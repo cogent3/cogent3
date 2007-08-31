@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+from string import split,strip
+from cogent.struct.rna2d  import Pairs,ViennaStructure
+from cogent.parse.column import column_parser
+
+def pfold_parser(lines):
+    """Parser for Pfold output
+    """
+    tree,lines = tree_struct_sep(lines)
+    result = column_parser(lines)
+
+    return result
+
+def tree_struct_sep(lines):
+    """Separates tree structure from rest of the data. 
+
+    This is done to get an excepted format for the column_parser
+    """
+    indx = None
+    for line in lines:
+        if line.startswith('; ********'):
+            indx = lines.index(line)+1
+            break
+    return lines[:indx],lines[indx:]

@@ -1,0 +1,1769 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<title>Cogent Usage Examples</title>
+<style type="text/css">
+
+  #contents {
+      background: rgb(255, 255, 255);
+      color: rgb(0, 0, 0);
+      line-height: 140%;
+      font-size: 140%;
+      font-family: "Hoefler Text";
+  }
+  blockquote { border-left: 5px solid rgb(204, 204, 204);
+    margin-left: 1.5em;
+    padding-left: 5px;
+    }
+
+  body { background: rgb(255, 255, 255) none repeat scroll 0% 50%;
+    color: rgb(0, 0, 0);
+    font-size: 12pt;
+    line-height: 12pt;
+    font-family: "Baskerville";
+    }
+  
+    @media screen {
+        body {
+        margin-left: 4%;
+        margin-right: 4%;
+        }
+        h1.title {
+          text-align: center;
+          }
+        
+        pre.code {
+            background-color: rgb(238, 238, 238);
+            }
+    }
+    
+    @media print {
+        body {
+             page-break-inside: auto;
+             text-align: justify;
+             bottom-right: counter(page);
+             margin-left: 1cm;
+             margin-right: 1cm;
+            }
+        h1.title {
+              text-align: left;
+              }
+        pre.code {
+            background-color: rgb(255, 255, 255);
+            }
+        }
+
+  cite { font-size: 90%;
+    font-style: normal;
+    }
+
+  h1 { font-family: "Hoefler Text";
+    background-color: #E6E6E6;
+    line-height: 140%;
+    font-size: 140%;
+    }
+  h1.title {
+    font-family: "Hoefler Text";
+    background-color: #E6E6E6;
+    line-height: 180%;
+    font-size: 180%;
+  }
+  h2 { border-bottom: 1px dotted rgb(204, 204, 204);
+    margin: 15px 0pt 2px;
+    letter-spacing: 0.2em;
+    padding-bottom: 2px;
+    font-size: 140%;
+    }
+
+    h3 { border-bottom: 1px dotted rgb(238, 238, 238);
+      margin-top: 0pt;
+      font-size: 120%;
+      }
+
+    h4 { border-bottom: 1px dotted rgb(238, 238, 238);
+    margin-top: 0pt;
+    font-size: 110%;
+    }
+
+  p, li, .feedback { font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    font-size-adjust: none;
+    font-family: normal;
+    font-size: 100%;
+    line-height: 100%;
+    }
+
+  ul.post-meta { list-style-type: none;
+    list-style-image: none;
+    list-style-position: outside;
+    }
+
+  ul.post-meta span.post-meta-key { font-weight: bold;
+    }
+
+  .copyright { font-size: 11px;
+    }
+
+  .credit { border: medium solid rgb(68, 68, 68);
+    margin: 0pt 19em 0pt 0pt;
+    padding: 0.25em;
+    background: rgb(232, 232, 232) none repeat scroll 0% 50%;
+    -moz-background-clip: initial;
+    -moz-background-origin: initial;
+    -moz-background-inline-policy: initial;
+    display: none;
+    font-size: 11px;
+    text-align: center;
+    line-height: 100%;
+    height: 33px;
+    }
+
+  .credit a:link, .credit a:hover { color: rgb(255, 255, 255);
+    }
+
+  .feedback { color: rgb(204, 204, 204);
+    text-align: right;
+    }
+
+  .meta { font-size: 0.75em;
+    }
+
+  .meta li, ul.post-meta li { display: inline;
+    }
+
+  .meta ul { margin: 0pt;
+    padding: 0pt;
+    display: inline;
+    list-style-type: none;
+    list-style-image: none;
+    list-style-position: outside;
+    }
+
+  .meta, .meta a { color: rgb(128, 128, 128);
+    font-weight: normal;
+    letter-spacing: 0pt;
+    }
+
+  .storytitle { margin: 0pt;
+    }
+
+  .storytitle a { text-decoration: none;
+    }
+
+    tt {
+    font-family: Monaco;
+        font-size: 82%;
+    }
+    
+    dt {
+        font-weight: bold;
+    }
+  pre.code { padding: 0em;
+    font-family: Monaco;
+    white-space: pre;
+    color: rgb(17, 17, 17);
+    width: 100%;
+    line-height: 100%;
+    font-size: 82%;
+    }
+
+  span.py_keyword { color: rgb(192, 0, 0);
+    }
+
+  span.py_string { color: rgb(0, 64, 128);
+    }
+
+  span.py_comment { color: rgb(0, 128, 0);
+    }
+
+  span.py_identifier { color: rgb(0, 0, 192);
+    }
+
+    table { border: 0px none ;
+      text-align: center;
+      font-weight: normal;
+      color: rgb(255, 255, 255);
+      background-color: rgb(102, 102, 102);
+      border-collapse: collapse;
+      -x-border-x-spacing: 0px;
+      -x-border-y-spacing: 0px;
+      font-family: Times New Roman,Times,serif;
+      font-size: 12pt;
+      line-height: 12pt;
+      }
+
+    table td { border: 1px solid rgb(255, 255, 255);
+      padding: 4px;
+      background-color: rgb(204, 204, 204);
+      color: rgb(0, 0, 0);
+      text-align: left;
+      font-family: Times New Roman,Times,serif;
+      font-size: 12pt;
+      line-height: 12pt;
+      }
+
+    table td.hed { border-bottom: 2px solid rgb(255, 255, 255);
+      padding: 4px;
+      background-color: rgb(102, 102, 102);
+      color: rgb(255, 255, 255);
+      text-align: left;
+      font-weight: bold;
+      font-family: Times New Roman,Times,serif;
+      font-size: 12pt;
+      line-height: 12pt;
+      }
+
+</style>
+</head>
+<body>
+<div class="document" id="cogent-usage-examples">
+<h1 class="title">Cogent Usage Examples</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-readme" id="id1">The Readme</a><ul>
+<li><a class="reference internal" href="#cogent-comparative-genomics-toolkit-install" id="id2"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a><ul>
+<li><a class="reference internal" href="#dependencies" id="id3">Dependencies</a></li>
+<li><a class="reference internal" href="#installation" id="id4">Installation</a></li>
+<li><a class="reference internal" href="#testing" id="id5">Testing</a></li>
+<li><a class="reference internal" href="#tips-for-usage" id="id6">Tips for usage</a></li>
+<li><a class="reference internal" href="#citation" id="id7">Citation</a></li>
+<li><a class="reference internal" href="#licenses-and-disclaimer" id="id8">Licenses and disclaimer</a></li>
+<li><a class="reference internal" href="#contacts" id="id9">Contacts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#a-note-on-the-computable-documentation" id="id10">A Note on the Computable Documentation</a></li>
+<li><a class="reference internal" href="#data-manipulation" id="id11">Data manipulation</a><ul>
+<li><a class="reference internal" href="#translating-dna-into-protein" id="id12">Translating DNA into protein</a></li>
+<li><a class="reference internal" href="#advanced-sequence-handling" id="id13">Advanced sequence handling</a></li>
+<li><a class="reference internal" href="#getting-the-reverse-complement" id="id14">Getting the reverse complement</a></li>
+<li><a class="reference internal" href="#map-protein-alignment-gaps-to-dna-alignment-gaps" id="id15">Map protein alignment gaps to DNA alignment gaps</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-visualisation" id="id16">Data Visualisation</a><ul>
+<li><a class="reference internal" href="#drawing-dendrograms-and-saving-to-pdf" id="id17">Drawing dendrograms and saving to PDF</a></li>
+<li><a class="reference internal" href="#drawing-a-dotplot" id="id18">Drawing a dotplot</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modelling-evolution" id="id19">Modelling Evolution</a><ul>
+<li><a class="reference internal" href="#the-simplest-script" id="id20">The simplest script</a></li>
+<li><a class="reference internal" href="#performing-a-relative-rate-test" id="id21">Performing a relative rate test</a></li>
+<li><a class="reference internal" href="#a-test-of-the-neutral-theory" id="id22">A test of the neutral theory</a></li>
+<li><a class="reference internal" href="#use-an-empirical-protein-substitution-model" id="id23">Use an empirical protein substitution model</a></li>
+<li><a class="reference internal" href="#analysis-of-rate-heterogeneity" id="id24">Analysis of rate heterogeneity</a></li>
+<li><a class="reference internal" href="#likelihood-analysis-of-multiple-loci" id="id25">Likelihood analysis of multiple loci</a></li>
+<li><a class="reference internal" href="#reusing-results-to-speed-up-optimisation" id="id26">Reusing results to speed up optimisation</a></li>
+<li><a class="reference internal" href="#specifying-and-using-an-restricted-nucleotide-substitution-model" id="id27">Specifying and using an restricted nucleotide substitution model</a></li>
+<li><a class="reference internal" href="#simulate-an-alignment" id="id28">Simulate an alignment</a></li>
+<li><a class="reference internal" href="#performing-a-parametric-bootstrap" id="id29">Performing a parametric bootstrap</a></li>
+<li><a class="reference internal" href="#estimate-parameter-values-using-a-sampling-from-a-dataset" id="id30">Estimate parameter values using a sampling from a dataset</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phylogenetic-reconstruction" id="id31">Phylogenetic Reconstruction</a><ul>
+<li><a class="reference internal" href="#calculate-pairwise-distances-between-sequences" id="id32">Calculate pairwise distances between sequences</a></li>
+<li><a class="reference internal" href="#make-a-neighbor-joining-tree" id="id33">Make a neighbor joining tree</a></li>
+<li><a class="reference internal" href="#phylogenetic-reconstruction-by-least-squares" id="id34">Phylogenetic reconstruction by least squares</a><ul>
+<li><a class="reference internal" href="#look-for-the-single-best-tree" id="id35">Look for the single best tree</a></li>
+<li><a class="reference internal" href="#a-more-rigourous-tree-space-search" id="id36">A more rigourous tree space search</a></li>
+<li><a class="reference internal" href="#assessing-the-fit-for-a-pre-specified-tree-topology" id="id37">Assessing the fit for a pre-specified tree topology</a></li>
+<li><a class="reference internal" href="#using-maximum-likelihood-for-measuring-tree-fit" id="id38">Using maximum likelihood for measuring tree fit</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#making-a-phylogenetic-tree-from-a-protein-sequence-alignment" id="id39">Making a phylogenetic tree from a protein sequence alignment</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#python-coding-guidelines" id="id40">Python Coding Guidelines</a><ul>
+<li><a class="reference internal" href="#why-have-coding-guidelines" id="id41">Why have coding guidelines?</a><ul>
+<li><a class="reference internal" href="#what-should-i-call-my-variables" id="id42">What should I call my variables?</a><ul>
+<li><a class="reference internal" href="#acceptable-abbreviations" id="id43">Acceptable abbreviations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-are-the-naming-conventions" id="id44">What are the naming conventions?</a></li>
+<li><a class="reference internal" href="#how-do-i-organize-my-modules-source-files" id="id45">How do I organize my modules (source files)?</a><ul>
+<li><a class="reference internal" href="#example-of-module-structure" id="id46">Example of module structure</a></li>
+<li><a class="reference internal" href="#how-should-i-write-comments" id="id47">How should I write comments?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-should-i-format-my-code" id="id48">How should I format my code?</a></li>
+<li><a class="reference internal" href="#how-should-i-test-my-code" id="id49">How should I test my code ?</a><ul>
+<li><a class="reference internal" href="#some-unittest-pointers" id="id50">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></li>
+<li><a class="reference internal" href="#example-of-a-unittest-test-module-structure" id="id51">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="the-readme">
+<h1><a class="toc-backref" href="#id1">The Readme</a></h1>
+<div class="section" id="cogent-comparative-genomics-toolkit-install">
+<h2><a class="toc-backref" href="#id2"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a></h2>
+<!-- This document is written in `restructured text`_ format. A html version, including examples cogent.html located in the doc directory, is automatically created when the project tarball is built. -->
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Gavin Huttley, Rob Knight</td>
+</tr>
+<tr class="field"><th class="field-name">Address:</th><td class="field-body">John Curtin School of Medical Research,
+Australian National University, Canberra, ACT 0200, Australia.
+Department of Chemistry and Biochemistry,
+University of Colorado, Boulder, CO 80309-0215, USA.</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0.1</td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">This software is copyright 2002-2007.</td>
+</tr>
+<tr class="field"><th class="field-name">Download:</th><td class="field-body">Download from <a class="reference external" href="http://sourceforge.net/projects/pycogent">here</a>.</td>
+</tr>
+<tr class="field"><th class="field-name">Registration:</th><td class="field-body">To be informed of bugs, new releases please subscribe to the mailing lists at sourceforge.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="dependencies">
+<h3><a class="toc-backref" href="#id3">Dependencies</a></h3>
+<p>The toolkit requires Python 2.5.1 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.</p>
+<p><strong>For non-geeks:</strong> The best way to install these dependencies depends on your platform. For MacOS X users, we suggest you install MacPython (see the <a class="reference external" href="http://www.python.org">python</a> home page) as it also contains a package manager that can ease installation of some of the dependencies.</p>
+<dl class="docutils">
+<dt><cite>Required</cite></dt>
+<dd><ul class="first last">
+<li><p class="first"><a class="reference external" href="http://www.python.org">Python</a>: the language the toolkit is primarily written in, and in which the user writes control scripts.</p>
+</li>
+<li><p class="first"><a class="reference external" href="http://www.scipy.org/NumPy">Numpy</a>: This is a python module used for speeding up matrix computations. It is available as source code for *nix. <strong>NOTE:</strong> For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as:</p>
+<pre class="literal-block">
+$ export ATLAS=None
+$ export LAPACK=None
+</pre>
+</li>
+</ul>
+</dd>
+<dt><cite>Optional</cite></dt>
+<dd><ul class="first last simple">
+<li>C compiler: This is standard on most *nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from <a class="reference external" href="http://www.apple.com">Apple</a>, or get MacPython and use the package manager.</li>
+<li><a class="reference external" href="http://reportlab.org">ReportLab</a>: required for drawing trees and alignments to pdf.</li>
+<li><a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib</a>: used to plot several kinds of graphs related to codon usage.</li>
+<li><a class="reference external" href="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/">Pyrex</a>: This module is only necessary if you are a developer who wants to modify the *.pyx files.</li>
+<li><a class="reference external" href="http://jcsmr.anu.edu.au/org/dmb/compgen/software.php">PyxMPI</a>: Our own python MPI interface, required for parallel computation.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="installation">
+<h3><a class="toc-backref" href="#id4">Installation</a></h3>
+<p>For *nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from <a class="reference external" href="http://sourceforge.net/projects/pycogent">here</a>. Uncompress the archive and change into the <tt class="docutils literal"><span class="pre">Cogent</span></tt> directory and type:</p>
+<pre class="literal-block">
+$ python setup.py build
+</pre>
+<p>This automatically compiles the modules. If you have administrative privileges type:</p>
+<pre class="literal-block">
+$ sudo python setup.py install
+</pre>
+<p>This then places the entire package into your python/site-packages folder.</p>
+<p>If you do not have administrator privileges on your machine you can move the cogent directory to where you want it (or leave it in place) and add this location to your python path using <tt class="docutils literal"><span class="pre">sys.path.append(&quot;/your/path/to/Cogent&quot;)</span></tt> in each script, or by setting shell environment variables. (Note that the path is not to <tt class="docutils literal"><span class="pre">../Cogent/cogent</span></tt>.)</p>
+</div>
+<div class="section" id="testing">
+<h3><a class="toc-backref" href="#id5">Testing</a></h3>
+<p><tt class="docutils literal"><span class="pre">Cogent/tests</span></tt> contains all the tests (currently &gt;2700). You can most readily run the tests using the <tt class="docutils literal"><span class="pre">Cogent/run_tests</span></tt> shell script. This is done by typing:</p>
+<pre class="literal-block">
+$ sh run_tests
+</pre>
+<p>which will automatically build extensions in place, set up the PYTHONPATH and run <tt class="docutils literal"><span class="pre">Cogent/tests/alltests.py</span></tt>. Note that if certain optional applications are not installed this will be indicated in the output as &quot;can't find&quot; or &quot;not installed&quot;. A <cite>.</cite> will be printed to screen for each test and if they all pass, you'll see output like:</p>
+<p>Ran 1982 tests in 40.455s</p>
+<p>OK</p>
+</div>
+<div class="section" id="tips-for-usage">
+<h3><a class="toc-backref" href="#id6">Tips for usage</a></h3>
+<p>A good IDE can greatly simplify writing control scripts. Features such as code completion and definition look-up are extremely useful. Amongst the freeware editors are <a class="reference external" href="http://www.jedit.org">Jedit</a> (runs on all platforms, and has plugins to provide an overview of code structure or to organise projects), <a class="reference external" href="http://www.codingmonkeys.de/subethaedit/">SubEthaEdit</a> (MacOS X only) and of course <a class="reference external" href="http://www.gnu.org/software/emacs/emacs.html">emacs</a> (all platforms). These provide syntax highlighting for Python, automated code indentation and (Jedit and emacs) code-folding abilities. For a more complete list of <a class="reference external" href="http://www.python.org/cgi-bin/moinmoin/PythonEditors">editors go here</a>.</p>
+<p>To get help on attributes of an object in python, use the <tt class="docutils literal"><span class="pre">dir(myalign)</span></tt> to list the attributes of <tt class="docutils literal"><span class="pre">myalign</span></tt> or <tt class="docutils literal"><span class="pre">help(myalign.writeToFile)</span></tt> to figure out how to use the <tt class="docutils literal"><span class="pre">myalign.writeToFile</span></tt> method. Also note that the directory structure of the package is similar to the import statements required to use a module -- to see the contents of <tt class="docutils literal"><span class="pre">alignment.py</span></tt> or <tt class="docutils literal"><span class="pre">sequence.py</span></tt> you need to look in the directory <tt class="docutils literal"><span class="pre">cogent/core</span></tt> path, to use the classes in those files you specify <tt class="docutils literal"><span class="pre">cogent.core</span></tt> for importing.</p>
+</div>
+<div class="section" id="citation">
+<span id="pyevolve"></span><h3><a class="toc-backref" href="#id7">Citation</a></h3>
+<p>If you use this software for published work please cite either --  R. Knight, P. Maxwell, A. Birmingham, J. Carnes, J. Caporaso, B. Easton, M. Hamady, H. Lindsay, Z. Liu, C. Lozupone, R. Sammut, S. Smit, M. Wakefield, J. Widmann, S. Wikman, S. Wilson, H. Ying, and G. Huttley. PyCogent: a toolkit for making sense from sequence. Genome Biol, In press, 2007.; or, Butterfield, A., V. Vedagiri, E. Lang, C. Lawrence, M.J. Wakefield, A. Isaev, and G.A. Huttley, PyEvolve: a toolkit for statistical modelling of molecular evolution. <cite>BMC Bioinformatics</cite>, 2004. <strong>5(1):</strong> p. 1</p>
+</div>
+<div class="section" id="licenses-and-disclaimer">
+<h3><a class="toc-backref" href="#id8">Licenses and disclaimer</a></h3>
+<p>COGENT is released under the GPL license, a copy of which is <a class="reference external" href="EVOLVE_LICENSE.txt">included</a> in the distribution. A copy of the permission to use the matrix exponentiation code from <a class="reference external" href="MATRIX_LICENSE.txt">PAML</a> is also included. Licenses for other code sources are left in place.</p>
+<p>This software is provided &quot;as-is&quot;. There are no expressed or implied warranties of any kind, including, but not limited to, the warranties of merchantability and fitness for a given application. In no event shall the authors be liable for any direct, indirect, incidental, special, exemplary or consequential damages (including, but not limited to, loss of use, data or profits, or business interruption) however caused and on any theory of liability, whether in contract, strict liability or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.</p>
+</div>
+<div class="section" id="contacts">
+<h3><a class="toc-backref" href="#id9">Contacts</a></h3>
+<p>If you find a bug or have any questions please send us an <a class="reference external" href="mailto:cogent&#64;cbis.anu.edu.au">email</a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="a-note-on-the-computable-documentation">
+<h1><a class="toc-backref" href="#id10">A Note on the Computable Documentation</a></h1>
+<p>The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.</p>
+</div>
+<div class="section" id="data-manipulation">
+<h1><a class="toc-backref" href="#id11">Data manipulation</a></h1>
+<div class="section" id="translating-dna-into-protein">
+<h2><a class="toc-backref" href="#id12">Translating DNA into protein</a></h2>
+<p>To translate a DNA alignment, read it in assigning the DNA alphabet. Note setting <tt class="docutils literal"><span class="pre">aligned</span> <span class="pre">=</span> <span class="pre">False</span></tt> is critical for loading sequences of unequal length. Different genetic codes are available in <tt class="docutils literal"><span class="pre">cogent.core.genetic_code</span></tt></p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA
+&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">'data/test2.fasta'</span>, moltype=DNA, aligned = <span class="py_keyword">False</span>)
+&gt;&gt;&gt; pal = al.getTranslation()
+&gt;&gt;&gt; <span class="py_keyword">print</span> pal.toFasta()
+&gt;DogFaced
+ARSQQNRWVETKETCNDRQT
+&gt;HowlerMon
+ARSQHNRWAESEETCNDRQT
+&gt;Human
+ARSQHNRWAGSKETCNDRRT
+&gt;Mouse
+AVSQQSRWAASKGTCNDRQV
+&gt;NineBande
+RQQSRWAESKETCNDRQT</pre><p>To save this result to a file, use the <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method.</p>
+</div>
+<div class="section" id="advanced-sequence-handling">
+<h2><a class="toc-backref" href="#id13">Advanced sequence handling</a></h2>
+<p>Individual sequences and alignments can be manipulated by annotations. Most value in the genome sequences arises from sequence annotations regarding specific sequence feature types, e.g. genes with introns / exons, repeat sequences. These can be applied to an alignment either using data formats available from genome portals (e.g. GFF, or GenBank annotation formats) or by custom assignments.</p>
+<p>Annotations can be added in two ways: using either the <tt class="docutils literal"><span class="pre">addAnnotation</span></tt> or the <tt class="docutils literal"><span class="pre">addFeature</span></tt> method. The distinction between these two is that <tt class="docutils literal"><span class="pre">addFeatures</span></tt> is more specialised. Features can be thought of as a type of annotation representing standard sequence properties eg introns/exons. Annotations are the more general case, such as a computed property which has, say a numerical value and a span.</p>
+<p>For illustrative purposes we define a sequence with 2 exons and grab the 1<sup>st</sup> exon:</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> DNA
+&gt;&gt;&gt; s = DNA.makeSequence(<span class="py_string">"aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa"</span>,
+... Name=<span class="py_string">"Orig"</span>)
+&gt;&gt;&gt; exon1 = s.addFeature(<span class="py_string">'exon'</span>, <span class="py_string">'exon1'</span>, [(10,15)])
+&gt;&gt;&gt; exon2 = s.addFeature(<span class="py_string">'exon'</span>, <span class="py_string">'exon2'</span>, [(30,40)])</pre><p>Here, '<tt class="docutils literal"><span class="pre">exon</span></tt>' is the feature type, and '<tt class="docutils literal"><span class="pre">exon#</span></tt>' the feature name. The feature type is used for the display formatting, which won't be illustrated here, and also for selecting all features of the same type, shown below.</p>
+<p>We could also have created an annotation using the <tt class="docutils literal"><span class="pre">addAnnotation</span></tt> method:</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.core.annotation <span class="py_keyword">import</span> Feature
+&gt;&gt;&gt; s2=DNA.makeSequence(<span class="py_string">"aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa"</span>,
+... Name=<span class="py_string">"Orig2"</span>)
+&gt;&gt;&gt; exon3 = s2.addAnnotation(Feature, <span class="py_string">'exon'</span>, <span class="py_string">'exon1'</span>, [(35,40)])</pre><p>We can use the features (eg <tt class="docutils literal"><span class="pre">exon1</span></tt>) to get the corresponding sequence region.</p>
+<pre class="code">&gt;&gt;&gt; s[exon1]
+DnaSequence(CCCCC)</pre><p>You can query annotations by type and optionally by label, receiving a list of features:</p>
+<pre class="code">&gt;&gt;&gt; exons = s.getAnnotationsMatching(<span class="py_string">'exon'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> exons
+[exon <span class="py_string">"exon1"</span> at [10:15]/48, exon <span class="py_string">"exon2"</span> at [30:40]/48]</pre><p>We can use this list to construct a pseudo-feature covering (or excluding) multiple features using <tt class="docutils literal"><span class="pre">getRegionCoveringAll</span></tt>. For instance, getting all exons,</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> s.getRegionCoveringAll(exons)
+region <span class="py_string">"exon"</span> at [10:15, 30:40]/48
+&gt;&gt;&gt; s.getRegionCoveringAll(exons).getSlice()
+DnaSequence(CCCCCTT... 15)</pre><p>or not exons (the exon <em>shadow</em>):</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> s.getRegionCoveringAll(exons).getShadow().getSlice()
+AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA</pre><p>The first of these essentially returns the CDS of the gene.</p>
+<p>Features are themselves sliceable:</p>
+<pre class="code">&gt;&gt;&gt; exon1[0:3].getSlice()
+DnaSequence(CCC)</pre><p>This approach to sequence / alignment handling allows the user to manipulate them according to things they know about such as genes or repeat elements. Most of this annotation data can be obtained from genome portals.</p>
+<p>The toolkit can perform standard sequence / alignment manipulations such as getting a subset of sequences or aligned columns, translating sequences, reading and writing standard formats.</p>
+</div>
+<div class="section" id="getting-the-reverse-complement">
+<h2><a class="toc-backref" href="#id14">Getting the reverse complement</a></h2>
+<p>This is a property of DNA, and hence alignments need to be created with the appropriate <tt class="docutils literal"><span class="pre">MolType</span></tt>. In the following example, the alignment is truncated to just 100 bases for the sake of simplifying the presentation.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA
+&gt;&gt;&gt; aln = LoadSeqs(<span class="py_string">"data/long_testseqs.fasta"</span>, moltype=DNA)[:100]</pre><p>The original alignment looks like this.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> aln
+&gt;FlyingFox
+TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAAC---AGTTTATTATACACTAAAGACAGAATGAATGTAGAAAAGACTGACTTCTGTAATA
+&gt;DogFaced
+TGTGGCACAAATACTCATGCCAACTCATTACAGCATGAGAACAGCAGTTTATTATACACTAAAGACAGAATGAATGTAGAAAAGACTGACTTCTGTAATA</pre><p>We do reverse complement very simply.</p>
+<pre class="code">&gt;&gt;&gt; naln = aln.rc()</pre><p>The reverse complemented alignment looks like this.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> naln
+&gt;FlyingFox
+TATTACAGAAGTCAGTCTTTTCTACATTCATTCTGTCTTTAGTGTATAATAAACT---GTTCTCATGCTGTAAAGAGCTGGCATGAGCATTTGTGCCACA
+&gt;DogFaced
+TATTACAGAAGTCAGTCTTTTCTACATTCATTCTGTCTTTAGTGTATAATAAACTGCTGTTCTCATGCTGTAATGAGTTGGCATGAGTATTTGTGCCACA
+&lt;BLANKLINE&gt;</pre></div>
+<div class="section" id="map-protein-alignment-gaps-to-dna-alignment-gaps">
+<h2><a class="toc-backref" href="#id15">Map protein alignment gaps to DNA alignment gaps</a></h2>
+<p>Although PyCogent provides a means for directly aligning codon sequences, you may want to use a different approach based on the translate-align-introduce gaps into the original paradigm. After you've translated your codon sequences, and aligned the resulting amino acid sequences, you want to introduce the gaps from the aligned protein sequences back into the original codon sequences. Here's how.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA, PROTEIN</pre><p>First I'm going to construct an artificial example, using the seqs dict as a means to get the data into the Alignment object. The basic idea, however, is that you should already have a set of DNA sequences that are in frame (i.e. position 0 is the 1st codon position), you've translated those sequences and aligned these translated sequences. The result is an alignment of aa sequences and a set of unaligned DNA sequences from which the aa seqs were derived. If your sequences are not in frame you can adjust it by either slicing, or adding N's to the beginning of the raw string.</p>
+<pre class="code">&gt;&gt;&gt; seqs = {
+... <span class="py_string">'hum'</span>: <span class="py_string">'AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT'</span>,
+... <span class="py_string">'mus'</span>: <span class="py_string">'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'</span>,
+... <span class="py_string">'rat'</span>: <span class="py_string">'CTGAACAAGCAGCCACTTTCAAACAAGAAA'</span>}
+&gt;&gt;&gt; unaligned_DNA = LoadSeqs(data=seqs, moltype = DNA, aligned = <span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> unaligned_DNA.toFasta()
+&gt;hum
+AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
+&gt;mus
+AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
+&gt;rat
+CTGAACAAGCAGCCACTTTCAAACAAGAAA</pre><p>In order to ensure the alignment algorithm preserves the coding frame, we align the translation of the sequences. We need to translate them first, but note that because the seqs are unaligned they we have to set <tt class="docutils literal"><span class="pre">aligned</span> <span class="pre">=</span> <span class="pre">False</span></tt>, or we'll get an error.</p>
+<pre class="code">&gt;&gt;&gt; unaligned_aa = unaligned_DNA.getTranslation()
+&gt;&gt;&gt; <span class="py_keyword">print</span> unaligned_aa.toFasta()
+&gt;hum
+KQIQESSENGSLAARQERQAQVNLT
+&gt;mus
+KQIQESGESGSLAARQERQAQVNLT
+&gt;rat
+LNKQPLSNKK</pre><p>The translated seqs can then be written to file, using the method <tt class="docutils literal"><span class="pre">writeToFile</span></tt>. That file then serves as input for an alignment program. The resulting alignment file can be read back in. (We won't write to file in this example.) For this example we will specify the aligned sequences in the dict, rather than from file.</p>
+<pre class="code">&gt;&gt;&gt; aligned_aa_seqs = {<span class="py_string">'hum'</span>: <span class="py_string">'KQIQESSENGSLAARQERQAQVNLT'</span>,
+... <span class="py_string">'mus'</span>: <span class="py_string">'KQIQESGESGSLAARQERQAQVNLT'</span>,
+... <span class="py_string">'rat'</span>: <span class="py_string">'LNKQ------PLS---------NKK'</span>}
+&gt;&gt;&gt; aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
+&gt;&gt;&gt; aligned_DNA = aligned_aa.replaceSequences(unaligned_DNA)</pre><p>Just to be sure, we'll check that the DNA sequence has gaps in the right place.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> aligned_DNA
+&gt;hum
+AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
+&gt;rat
+CTGAACAAGCAG------------------CCACTTTCA---------------------------AACAAGAAA
+&gt;mus
+AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
+&lt;BLANKLINE&gt;</pre></div>
+</div>
+<div class="section" id="data-visualisation">
+<h1><a class="toc-backref" href="#id16">Data Visualisation</a></h1>
+<div class="section" id="drawing-dendrograms-and-saving-to-pdf">
+<h2><a class="toc-backref" href="#id17">Drawing dendrograms and saving to PDF</a></h2>
+<p>From cogent import all the components we need.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.draw <span class="py_keyword">import</span> dendrogram</pre><p>Do a model, see the neutral test example for more details of this</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; t = LoadTree(<span class="py_string">"data/test.tree"</span>)
+&gt;&gt;&gt; sm = Y98()
+&gt;&gt;&gt; nonneutral_lf = sm.makeLikelihoodFunction(t)
+&gt;&gt;&gt; nonneutral_lf.setParamRule(<span class="py_string">"omega"</span>, is_independent = 1)
+&gt;&gt;&gt; nonneutral_lf.setAlignment(al)
+&gt;&gt;&gt; nonneutral_lf.optimise(tolerance = 1.0)
+Outer loop = 0...
+&gt;&gt;&gt; nonneutral_lf.optimise(local = <span class="py_keyword">True</span>)
+    Number of function evaluations = 1; current F = 139...</pre><p>We will draw two different dendrograms -- one with branch lengths contemporaneous, the other where length is scaled NOTE: the argument names to dendrogram classes break from our convention of underscores_separating_argument_words. The convention used is that of ReportLab and these key-word arguments are passed directly to the underlying <tt class="docutils literal"><span class="pre">reportlab</span></tt> module.</p>
+<p>Specify the dimensions of the canvas in pixels</p>
+<pre class="code">&gt;&gt;&gt; height, width = 500, 700</pre><p>Dendrogram with branch lengths not proportional</p>
+<pre class="code">&gt;&gt;&gt; np = dendrogram.ContemporaneousDendrogram(nonneutral_lf.tree)
+&gt;&gt;&gt; np.drawToPDF(<span class="py_string">'tree-unscaled.pdf'</span> , width, height, stroke_width=2.0,
+... show_params = [<span class="py_string">'r'</span>], label_template = <span class="py_string">"%(r).2g"</span>, shade_param = <span class="py_string">'r'</span>,
+... max_value = 1.0, show_internal_labels=<span class="py_keyword">False</span>, font_size = 10,
+... scale_bar = <span class="py_keyword">None</span>, use_lengths=<span class="py_keyword">False</span>)</pre><p>Dendrogram with branch lengths proportional</p>
+<pre class="code">&gt;&gt;&gt; p = dendrogram.SquareDendrogram(nonneutral_lf.tree)
+&gt;&gt;&gt; p.drawToPDF(<span class="py_string">'tree-scaled.pdf'</span>, width, height, stroke_width=2.0,
+... shade_param = <span class="py_string">'r'</span>, max_value = 1.0, show_internal_labels=<span class="py_keyword">False</span>,
+... font_size = 10)</pre><p>To save a tree for later reuse, either for analysis of drawing can be done using an annotated tree, which looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This tree can be saved in xml format, which preserve these parameter estimates. The annotated tree is obtained from the likelihood function with following command.</p>
+<pre class="code">&gt;&gt;&gt; at = nonneutral_lf.getAnnotatedTree()</pre><p>Saving this to file is done using the normal <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method, specifying a filename with the .xml suffix.</p>
+</div>
+<div class="section" id="drawing-a-dotplot">
+<h2><a class="toc-backref" href="#id18">Drawing a dotplot</a></h2>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.core <span class="py_keyword">import</span> annotation
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.draw <span class="py_keyword">import</span> dotplot</pre><p>Load the alignment for illustrative purposes, I'll make one sequence a different length than the other and introduce a custom sequence annotation for a miscellaneous feature. Normally, those annotations would be on the unaligned sequences.</p>
+<pre class="code">&gt;&gt;&gt; aln = LoadSeqs(<span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; feature = aln.addAnnotation(annotation.Feature, <span class="py_string">"misc_feature"</span>,
+...                             <span class="py_string">"pprobs"</span>, [(38, 55)])
+&gt;&gt;&gt; seq1 = aln.getSeq(<span class="py_string">'NineBande'</span>)[10:-3]
+&gt;&gt;&gt; seq2 = aln.getSeq(<span class="py_string">'DogFaced'</span>)</pre><p>Write out the dotplot as a pdf file in the current directory note that seq1 will be the x-axis, and seq2 the y-axis.</p>
+<pre class="code">&gt;&gt;&gt; dp = dotplot.Display2D(seq1,seq2)
+&gt;&gt;&gt; filename = <span class="py_string">'dotplot_example.pdf'</span>
+&gt;&gt;&gt; dp.drawToPDF(filename)</pre></div>
+</div>
+<div class="section" id="modelling-evolution">
+<h1><a class="toc-backref" href="#id19">Modelling Evolution</a></h1>
+<div class="section" id="the-simplest-script">
+<h2><a class="toc-backref" href="#id20">The simplest script</a></h2>
+<p>This is just about the simplest possible Cogent script. We use a canned nucleotide substitution model: the general time reversible model.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GTR
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; model = GTR()
+&gt;&gt;&gt; alignment = LoadSeqs(<span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; tree = LoadTree(<span class="py_string">"data/test.tree"</span>)
+&gt;&gt;&gt; likelihood_function = model.makeLikelihoodFunction(tree)
+&gt;&gt;&gt; likelihood_function.setAlignment(alignment)
+&gt;&gt;&gt; likelihood_function.optimise(show_progress = <span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> likelihood_function
+Likelihood Function Table
+==============================================
+   A/C       A/G       A/T       C/G       C/T
+----------------------------------------------
+0.7120    2.1574    0.0000    0.4457    4.1764
+----------------------------------------------
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0348
+HowlerMon    edge.0    0.0168
+   edge.0    edge.1    0.0222
+    Mouse    edge.1    0.2047
+   edge.1      root    0.0000
+NineBande      root    0.0325
+ DogFaced      root    0.0554
+-----------------------------
+===============
+motif    mprobs
+---------------
+    T    0.1433
+    C    0.1600
+    A    0.3800
+    G    0.3167
+---------------</pre></div>
+<div class="section" id="performing-a-relative-rate-test">
+<h2><a class="toc-backref" href="#id21">Performing a relative rate test</a></h2>
+<p>From cogent import all the components we need</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.maths <span class="py_keyword">import</span> stats</pre><p>Get your alignment and tree.</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(filename = <span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; t = LoadTree(filename = <span class="py_string">"data/test.tree"</span>)</pre><p>Create a HKY85 model.</p>
+<pre class="code">&gt;&gt;&gt; sm = HKY85()</pre><p>Make the controller object.</p>
+<pre class="code">&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)</pre><p>Set the local clock for humans &amp; Howler Monkey. This method is just a special interface to the more general setParamRules method.</p>
+<pre class="code">&gt;&gt;&gt; lf.setLocalClock(<span class="py_string">"Human"</span>, <span class="py_string">"HowlerMon"</span>)</pre><p>Get the likelihood function object this object performs the actual likelihood calculation.</p>
+<pre class="code">&gt;&gt;&gt; lf.setAlignment(al)</pre><p>Optimise the function capturing the return optimised lnL, and parameter value vector.</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise(show_progress = <span class="py_keyword">False</span>)</pre><p>View the resulting maximum-likelihood parameter values.</p>
+<pre class="code">&gt;&gt;&gt; lf.setName(<span class="py_string">"clock"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+clock
+======
+ kappa
+------
+4.8020
+------
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0257
+HowlerMon    edge.0    0.0257
+   edge.0    edge.1    0.0224
+    Mouse    edge.1    0.2112
+   edge.1      root    0.0000
+NineBande      root    0.0327
+ DogFaced      root    0.0545
+-----------------------------
+===============
+motif    mprobs
+---------------
+    T    0.1433
+    C    0.1600
+    A    0.3800
+    G    0.3167
+---------------</pre><p>We extract the log-likelihood and number of free parameters for later use.</p>
+<pre class="code">&gt;&gt;&gt; null_lnL = lf.getLogLikelihood()
+&gt;&gt;&gt; null_nfp = lf.getNumFreeParams()</pre><p>Clear the local clock constraint, freeing up the branch lengths.</p>
+<pre class="code">&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'length'</span>, is_independent=<span class="py_keyword">True</span>)</pre><p>Run the optimiser capturing the return optimised lnL, and parameter value vector.</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise(show_progress=<span class="py_keyword">False</span>)</pre><p>View the resulting maximum-likelihood parameter values.</p>
+<pre class="code">&gt;&gt;&gt; lf.setName(<span class="py_string">"non clock"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+non clock
+======
+ kappa
+------
+4.8027
+------
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0347
+HowlerMon    edge.0    0.0167
+   edge.0    edge.1    0.0224
+    Mouse    edge.1    0.2112
+   edge.1      root    0.0000
+NineBande      root    0.0327
+ DogFaced      root    0.0545
+-----------------------------
+===============
+motif    mprobs
+---------------
+    T    0.1433
+    C    0.1600
+    A    0.3800
+    G    0.3167
+---------------</pre><p>These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.</p>
+<pre class="code">&gt;&gt;&gt; LR = 2 * (lf.getLogLikelihood() - null_lnL)
+&gt;&gt;&gt; df = lf.getNumFreeParams() - null_nfp
+&gt;&gt;&gt; P = stats.chisqprob(LR, df)</pre><p>Print this and look up a chi-sq with number of edges - 1 degrees of freedom.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"Likelihood ratio statistic = "</span>, LR
+Likelihood ratio statistic =  0.34...
+&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"degrees-of-freedom = "</span>, df
+degrees-of-freedom =  1
+&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
+probability =  0.5...</pre></div>
+<div class="section" id="a-test-of-the-neutral-theory">
+<h2><a class="toc-backref" href="#id22">A test of the neutral theory</a></h2>
+<p>This file contains an example for performing a likelihood ratio test of neutrality. The test compares a model where the codon model parameter omega is constrained to be the same for all edges against one where each edge has its' own omega. From cogent import all the components we need.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GY94
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.maths <span class="py_keyword">import</span> stats</pre><p>Get your alignment and tree.</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; t = LoadTree(<span class="py_string">"data/test.tree"</span>)</pre><p>We use a Goldman Yang 1994 model.</p>
+<pre class="code">&gt;&gt;&gt; sm = GY94()</pre><p>Make the controller object</p>
+<pre class="code">&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)</pre><p>Get the likelihood function object this object performs the actual likelihood calculation.</p>
+<pre class="code">&gt;&gt;&gt; lf.setAlignment(al)</pre><p>By default, parameters other than branch lengths are treated as global in scope, so we don't need to do anything special here. We can influence how rigorous the optimisation will be, and switch between the global and local optimisers provided in the toolkit using arguments to the optimise method. The <tt class="docutils literal"><span class="pre">global_tolerance=1.0</span></tt> argument specifies conditions for an early break from simulated annealing which will be automatically followed by the Powell local optimiser. :Note: the 'results' are of course nonsense.</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise(global_tolerance = 1.0, show_progress=<span class="py_keyword">False</span>)</pre><p>View the resulting maximum-likelihood parameter values</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+================
+ kappa     omega
+----------------
+9.2738    1.8707
+----------------
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0968
+HowlerMon    edge.0    0.0540
+   edge.0    edge.1    0.0654
+    Mouse    edge.1    0.9115
+   edge.1      root    0.0000
+NineBande      root    0.1073
+ DogFaced      root    0.1801...</pre><p>We'll get the lnL and number of free parameters for later use.</p>
+<pre class="code">&gt;&gt;&gt; null_lnL = lf.getLogLikelihood()
+&gt;&gt;&gt; null_nfp = lf.getNumFreeParams()</pre><p>Specify each edge has it's own omega by just modifying the existing <tt class="docutils literal"><span class="pre">lf</span></tt>. This means the new function will start with the above values.</p>
+<pre class="code">&gt;&gt;&gt; lf.setParamRule(<span class="py_string">"omega"</span>, is_independent = <span class="py_keyword">True</span>)</pre><p>Optimise the likelihood function, this time just using the local optimiser.</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise(local = <span class="py_keyword">True</span>, show_progress=<span class="py_keyword">False</span>)</pre><p>View the resulting maximum-likelihood parameter values.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+======
+ kappa
+------
+8.9536
+------
+============================================
+     edge    parent    length          omega
+--------------------------------------------
+    Human    edge.0    0.0970    999999.9815
+HowlerMon    edge.0    0.0569    999999.9370
+   edge.0    edge.1    0.0700    999999.9867
+    Mouse    edge.1    0.9602         0.6964
+   edge.1      root    0.0000    196705.5616
+NineBande      root    0.1114    999999.9940
+ DogFaced      root    0.1809         1.0999...</pre><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Note:</th><td class="field-body">The parameter estimates for <tt class="docutils literal"><span class="pre">omega</span></tt> are highly implausible, reflecting (in this case) our small and uninformative data set.</td>
+</tr>
+</tbody>
+</table>
+<p>Get out an annotated tree, it looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This object can be used for plotting, or to provide starting estimates to a related model.</p>
+<pre class="code">&gt;&gt;&gt; at = lf.getAnnotatedTree()</pre><p>Get a dictionary of the statistics that I could use for post-processing.</p>
+<pre class="code">&gt;&gt;&gt; sd = lf.getStatisticsAsDict(with_edge_names=<span class="py_keyword">True</span>)</pre><p>The lnL's from the two models are now used to calculate the likelihood ratio statistic (<tt class="docutils literal"><span class="pre">LR</span></tt>) it's degrees-of-freedom (<tt class="docutils literal"><span class="pre">df</span></tt>) and the probability (<tt class="docutils literal"><span class="pre">P</span></tt>) of observing the LR.</p>
+<pre class="code">&gt;&gt;&gt; LR = 2 * (lf.getLogLikelihood() - null_lnL)
+&gt;&gt;&gt; df = lf.getNumFreeParams() - null_nfp
+&gt;&gt;&gt; P = stats.chisqprob(LR, df)</pre><p>Print this and look up a chi-sq with number of edges - 1 degrees of freedom.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"Likelihood ratio statistic = "</span>, LR
+Likelihood ratio statistic =  4.4...
+&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"degrees-of-freedom = "</span>, df
+degrees-of-freedom =  6
+&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
+probability =  0.6...</pre></div>
+<div class="section" id="use-an-empirical-protein-substitution-model">
+<h2><a class="toc-backref" href="#id23">Use an empirical protein substitution model</a></h2>
+<p>This file contains an example of importing an empirically determined protein substitution matrix such as Dayhoff et al 1978 and using it to create a substitution model. The globin alignment is from the PAML distribution.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, PROTEIN
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.parse.paml_matrix <span class="py_keyword">import</span> PamlMatrixParser</pre><p>Make a tree object.  In this case from a string.</p>
+<pre class="code">&gt;&gt;&gt; treestring=<span class="py_string">"(((rabbit,rat),human),goat-cow,marsupial);"</span>
+&gt;&gt;&gt; t = LoadTree(treestring=treestring)</pre><p>Import the alignment, explicitly setting the <tt class="docutils literal"><span class="pre">moltype</span></tt> to be protein</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">'data/abglobin_aa.phylip'</span>,
+...                interleaved=<span class="py_keyword">True</span>,
+...                moltype=PROTEIN,
+...                )</pre><p>Open the file that contains the empirical matrix and parse the matrix and frequencies.</p>
+<pre class="code">&gt;&gt;&gt; matrix_file = open(<span class="py_string">'data/dayhoff.dat'</span>)</pre><p>The <tt class="docutils literal"><span class="pre">PamlMatrixParser</span></tt> will import the matrix and frequency from files designed for Yang's PAML package.  This format is the lower half of the matrix in three letter amino acid name order white space delineated followed by motif frequencies in the same order.</p>
+<pre class="code">&gt;&gt;&gt; empirical_matrix, empirical_frequencies = PamlMatrixParser(matrix_file)</pre><p>Create an Empirical Protein Matrix Substitution model object.  This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.</p>
+<pre class="code">&gt;&gt;&gt; sm = EmpiricalProteinMatrix(empirical_matrix, empirical_frequencies)</pre><p>Make a parameter controller, likelihood function object and optimise.</p>
+<pre class="code">&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)
+&gt;&gt;&gt; lf.setAlignment(al)
+&gt;&gt;&gt; lf.optimise(show_progress = <span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf.getLogLikelihood()
+-1706...
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+=============================
+     edge    parent    length
+-----------------------------
+   rabbit    edge.0    0.0785
+      rat    edge.0    0.1750
+   edge.0    edge.1    0.0324
+    human    edge.1    0.0545
+   edge.1      root    0.0269
+ goat-cow      root    0.0972
+marsupial      root    0.2424
+-----------------------------
+===============
+motif    mprobs
+---------------
+    A    0.0871
+    C    0.0335
+    D    0.0469
+    E    0.0495
+    F    0.0398
+    G    0.0886
+    H    0.0336
+    I    0.0369
+    K    0.0805
+    L    0.0854
+    M    0.0148
+    N    0.0404
+    P    0.0507
+    Q    0.0383
+    R    0.0409
+    S    0.0696
+    T    0.0585
+    V    0.0647
+    W    0.0105
+    Y    0.0299
+---------------</pre></div>
+<div class="section" id="analysis-of-rate-heterogeneity">
+<h2><a class="toc-backref" href="#id24">Analysis of rate heterogeneity</a></h2>
+<p>A simple example for analyses involving rate heterogeneity among sites. In this case we will simulate an alignment with two rate categories and then try to recover the rates from the alignment.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> Nucleotide
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree</pre><p>Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.</p>
+<pre class="code">&gt;&gt;&gt; model = Nucleotide(equal_motif_probs=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; tree = LoadTree(<span class="py_string">"data/test.tree"</span>)
+&gt;&gt;&gt; lf = model.makeLikelihoodFunction(tree)
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'length'</span>, value=0.6, is_const=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; aln1 = lf.simulateAlignment(sequence_length=1000)
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'length'</span>, value=0.2, is_const=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; aln2 = lf.simulateAlignment(sequence_length=1000)
+&gt;&gt;&gt; aln3 = aln1 + aln2</pre><p>Start from scratch, optimising only rates and the rate probability ratio.</p>
+<pre class="code">&gt;&gt;&gt; model = Nucleotide(equal_motif_probs=<span class="py_keyword">True</span>, ordered_param=<span class="py_string">"rate"</span>,
+...                    distribution=<span class="py_string">"free"</span>)
+&gt;&gt;&gt; lf = model.makeLikelihoodFunction(tree, bins=2)
+&gt;&gt;&gt; lf.setAlignment(aln3)
+&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, max_restarts=2, show_progress = <span class="py_keyword">False</span>)</pre><p>We want to know the bin probabilities and the posterior probabilities.</p>
+<pre class="code">&gt;&gt;&gt; bprobs = lf.getParamValue(<span class="py_string">'bprobs'</span>)
+&gt;&gt;&gt; pp = lf.getBinProbs()
+&gt;&gt;&gt; <span class="py_keyword">for</span> bin <span class="py_keyword">in</span> [0,1]:
+...     p = pp[bin]
+...     rate = lf.getParamValue(<span class="py_string">'rate'</span>, bin=<span class="py_string">'bin%s'</span>%bin)
+...     <span class="py_keyword">print</span> <span class="py_string">'%.2f of sites have rate %.2f'</span> % (bprobs[bin], rate)
+...     <span class="py_keyword">print</span> <span class="py_string">'Avg probs over the fast (%.2f) and slow (%.2f) halves'</span> % \
+...        (sum(p[:1000])/1000, sum(p[1000:])/1000)
+0.12 of sites have rate 0.22
+Avg probs over the fast (0.05) <span class="py_keyword">and</span> slow (0.18) halves
+0.88 of sites have rate 1.10
+Avg probs over the fast (0.95) <span class="py_keyword">and</span> slow (0.82) halves</pre><p>We'll now use a gamma distribution on the sample alignment, specifying the number of bins as 4. We specify that the bins have equal density using the <tt class="docutils literal"><span class="pre">lf.setParamRule('bprobs',</span> <span class="pre">is_const=True)</span></tt> command.</p>
+<pre class="code">&gt;&gt;&gt; model = Nucleotide(equal_motif_probs=<span class="py_keyword">True</span>, ordered_param=<span class="py_string">"rate"</span>,
+...                    distribution=<span class="py_string">"gamma"</span>)
+&gt;&gt;&gt; lf = model.makeLikelihoodFunction(tree, bins=4)
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'bprobs'</span>, is_const=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; lf.setAlignment(aln3)
+&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, max_restarts=2, show_progress = <span class="py_keyword">False</span>)</pre></div>
+<div class="section" id="likelihood-analysis-of-multiple-loci">
+<h2><a class="toc-backref" href="#id25">Likelihood analysis of multiple loci</a></h2>
+<p>We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.recalculation.scope <span class="py_keyword">import</span> EACH, ALL
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.maths.stats <span class="py_keyword">import</span> chisqprob
+&gt;&gt;&gt; aln = LoadSeqs(<span class="py_string">"data/long_testseqs.fasta"</span>)
+&gt;&gt;&gt; half = len(aln)/2
+&gt;&gt;&gt; aln1 = aln[:half]
+&gt;&gt;&gt; aln2 = aln[half:]</pre><p>We provide names for those alignments, then construct the tree, model instances.</p>
+<pre class="code">&gt;&gt;&gt; loci_names = [<span class="py_string">"1st-half"</span>, <span class="py_string">"2nd-half"</span>]
+&gt;&gt;&gt; loci = [aln1, aln2]
+&gt;&gt;&gt; tree = LoadTree(tip_names=aln.getSeqNames())
+&gt;&gt;&gt; mod = HKY85()</pre><p>To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported <tt class="docutils literal"><span class="pre">ALL</span></tt>) or different for each locus (using <tt class="docutils literal"><span class="pre">EACH</span></tt>). We conduct a LR test as before.</p>
+<pre class="code">&gt;&gt;&gt; lf = mod.makeLikelihoodFunction(tree, loci=loci_names)
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">"length"</span>, is_independent=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'kappa'</span>, loci = ALL)
+&gt;&gt;&gt; lf.setAlignment(loci)
+&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, show_progress=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+===========================
+  locus    motif    mprobs
+---------------------------
+1st-half        T    0.2341
+1st-half        C    0.1758
+1st-half        A    0.3956
+1st-half        G    0.1944
+2nd-half        T    0.2400
+2nd-half        C    0.1851
+2nd-half        A    0.3628
+2nd-half        G    0.2121
+---------------------------
+================
+kappa    length
+----------------
+8.0072    0.0271
+----------------
+&gt;&gt;&gt; all_lnL = lf.getLogLikelihood()
+&gt;&gt;&gt; all_nfp = lf.getNumFreeParams()
+&gt;&gt;&gt; lf.setParamRule(<span class="py_string">'kappa'</span>, loci = EACH)
+&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, show_progress=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+==================
+   locus     kappa
+------------------
+1st-half    7.9077
+2nd-half    8.1293
+------------------
+===========================
+   locus    motif    mprobs
+---------------------------
+1st-half        T    0.2341
+1st-half        C    0.1758
+1st-half        A    0.3956
+1st-half        G    0.1944
+2nd-half        T    0.2400
+2nd-half        C    0.1851
+2nd-half        A    0.3628
+2nd-half        G    0.2121
+---------------------------
+======
+length
+------
+0.0271
+------
+&gt;&gt;&gt; each_lnL = lf.getLogLikelihood()
+&gt;&gt;&gt; each_nfp = lf.getNumFreeParams()
+&gt;&gt;&gt; LR = 2 * (each_lnL - all_lnL)
+&gt;&gt;&gt; df = each_nfp - all_nfp
+&gt;&gt;&gt; <span class="py_keyword">print</span> LR, df, chisqprob(LR, df)
+0.00424532328725 1 0.94804967777</pre></div>
+<div class="section" id="reusing-results-to-speed-up-optimisation">
+<h2><a class="toc-backref" href="#id26">Reusing results to speed up optimisation</a></h2>
+<p>An example of how to use the maximum-likelihood parameter estimates from one model as starting values for another model. In this file we do something silly, by saving a result and then reloading it. This is silly because the analyses are run consecutively. A better approach when running consecutively is to simply use the annotated tree directly.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98</pre><p>We'll create a simple model, optimise it and save it for later reuse</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>)
+&gt;&gt;&gt; t = LoadTree(<span class="py_string">"data/test.tree"</span>)
+&gt;&gt;&gt; sm = Y98()
+&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)
+&gt;&gt;&gt; lf.setAlignment(al)
+&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, show_progress=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Likelihood Function Table
+================
+ kappa     omega
+----------------
+9.2759    1.8713
+----------------
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0968
+HowlerMon    edge.0    0.0540
+   edge.0    edge.1    0.0654
+    Mouse    edge.1    0.9116
+   edge.1      root    0.0000
+NineBande      root    0.1073
+ DogFaced      root    0.1801...</pre><p>The essential object for reuse is an annotated tree these capture the parameter estimates from the above optimisation we can either use this directly in the same run, or we can save the tree to file in <tt class="docutils literal"><span class="pre">xml</span></tt> format and reload the tree at a later time for use. In this example I'll illustrate the latter scenario.</p>
+<pre class="code">&gt;&gt;&gt; at=lf.getAnnotatedTree()
+&gt;&gt;&gt; at.writeToFile(<span class="py_string">'tree.xml'</span>)</pre><p>We load the tree as per usual</p>
+<pre class="code">&gt;&gt;&gt; nt = LoadTree(<span class="py_string">'tree.xml'</span>)</pre><p>Now create a more parameter rich model, in this case by allowing the <tt class="docutils literal"><span class="pre">Human</span></tt> edge to have a different value of <tt class="docutils literal"><span class="pre">omega</span></tt>. By providing the annotated tree, the parameter estimates from the above run will be used as starting values for the new model.</p>
+<pre class="code">&gt;&gt;&gt; new_lf = sm.makeLikelihoodFunction(nt)
+&gt;&gt;&gt; new_lf.setParamRule(<span class="py_string">'omega'</span>, edge=<span class="py_string">'Human'</span>,
+... is_independent=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; new_lf.setAlignment(al)
+&gt;&gt;&gt; new_lf.optimise(local=<span class="py_keyword">True</span>, show_progress=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> new_lf
+Likelihood Function Table
+======
+ kappa
+------
+9.0706
+------
+============================================
+     edge    parent    length          omega
+--------------------------------------------
+    Human    edge.0    0.1001    999999.9965
+HowlerMon    edge.0    0.0510         1.5666
+   edge.0    edge.1    0.0649         1.5666
+    Mouse    edge.1    0.8984         1.5666
+   edge.1      root    0.0000         1.5666
+NineBande      root    0.1064         1.5666
+ DogFaced      root    0.1793         1.5666...</pre><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Note:</th><td class="field-body">A parameter rich model applied to a small data set is unreliable.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="specifying-and-using-an-restricted-nucleotide-substitution-model">
+<h2><a class="toc-backref" href="#id27">Specifying and using an restricted nucleotide substitution model</a></h2>
+<p>Do standard <tt class="docutils literal"><span class="pre">cogent</span></tt> imports.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, DNA
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.predicate <span class="py_keyword">import</span> MotifChange
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> Nucleotide</pre><p>To specify substitution models we use the <tt class="docutils literal"><span class="pre">MotifChange</span></tt> class from predicates. In the case of an unrestricted nucleotide model, we specify 11 such <tt class="docutils literal"><span class="pre">MotifChanges</span></tt>, the last possible change being ignored (with the result it is constrained to equal 1, thus calibrating the matrix).</p>
+<pre class="code">&gt;&gt;&gt; ACTG = list(<span class="py_string">'ACTG'</span>)
+&gt;&gt;&gt; preds = [MotifChange(i, j, forward_only=<span class="py_keyword">True</span>) <span class="py_keyword">for</span> i <span class="py_keyword">in</span> ACTG <span class="py_keyword">for</span> j <span class="py_keyword">in</span> ACTG <span class="py_keyword">if</span> i != j]
+&gt;&gt;&gt; <span class="py_keyword">del</span>(preds[-1])
+&gt;&gt;&gt; preds
+[A&gt;C, A&gt;T, A&gt;G, C&gt;A, C&gt;T, C&gt;G, T&gt;A, T&gt;C, T&gt;G, G&gt;A, G&gt;C]
+&gt;&gt;&gt; sm = Nucleotide(predicates=preds, recode_gaps=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sm
+&lt;BLANKLINE&gt;
+Nucleotide ( name = <span class="py_string">''</span>; type = <span class="py_string">'None'</span>; params = [<span class="py_string">'A&gt;T'</span>, <span class="py_string">'C&gt;G'</span>, <span class="py_string">'T&gt;G'</span>, <span class="py_string">'G&gt;A'</span>, <span class="py_string">'T&gt;A'</span>, <span class="py_string">'T&gt;C'</span>, <span class="py_string">'C&gt;A'</span>, <span class="py_string">'G&gt;C'</span>, <span class="py_string">'C&gt;T'</span>, <span class="py_string">'A&gt;G'</span>, <span class="py_string">'A&gt;C'</span>]; number of motifs = 4; motifs = [<span class="py_string">'T'</span>, <span class="py_string">'C'</span>, <span class="py_string">'A'</span>, <span class="py_string">'G'</span>])
+&lt;BLANKLINE&gt;</pre><p>We'll illustrate this with a sample alignment and tree in &quot;data/test.paml&quot;.</p>
+<pre class="code">&gt;&gt;&gt; tr = LoadTree(<span class="py_string">"data/test.tree"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> tr
+(((Human,HowlerMon),Mouse),NineBande,DogFaced);
+&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>, moltype=DNA)
+&gt;&gt;&gt; al
+5 x 60 dna alignment: NineBande[GCAAGGCGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...</pre><p>We now construct the parameter controller with each predicate constant across the tree, and get the likelihood function calculator.</p>
+<pre class="code">&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(tr)
+&gt;&gt;&gt; lf.setAlignment(al)
+&gt;&gt;&gt; lf.setName(<span class="py_string">'Unrestricted model'</span>)
+&gt;&gt;&gt; lf.optimise()
+Outer loop = 0...</pre><p>In the output from the <tt class="docutils literal"><span class="pre">optimise</span></tt> call you'll see progress from the simulated annealing optimiser which is used first, and the Powell optimiser which finishes things off.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+Unrestricted model
+============================================================================
+   A&gt;C       A&gt;G       A&gt;T       C&gt;A       C&gt;G       C&gt;T       G&gt;A       G&gt;C
+----------------------------------------------------------------------------
+0.6890    1.8880    0.0000    0.0000    0.0000    2.1652    0.2291    0.4868
+----------------------------------------------------------------------------
+&lt;BLANKLINE&gt;
+continued:
+====================================
+   A&gt;C       T&gt;A       T&gt;C       T&gt;G
+------------------------------------
+0.6890    0.0000    2.2755    0.0000
+------------------------------------
+&lt;BLANKLINE&gt;
+=============================
+     edge    parent    length
+-----------------------------
+    Human    edge.0    0.0333
+HowlerMon    edge.0    0.0165
+   edge.0    edge.1    0.0164
+    Mouse    edge.1    0.1980
+   edge.1      root    0.0000
+NineBande      root    0.0335
+ DogFaced      root    0.0503
+-----------------------------
+===============
+motif    mprobs
+---------------
+    T    0.1433
+    C    0.1600
+    A    0.3800
+    G    0.3167
+---------------</pre><p>This data set is very small, so the parameter estimates are poor and hence doing something like allowing the parameters to differ between edges is silly. <strong>But</strong> if you have lots of data it makes sense and can be specified by modifying the <tt class="docutils literal"><span class="pre">lf</span></tt> as follows.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">for</span> pred <span class="py_keyword">in</span> preds:
+...     lf.setParamRule(str(pred), is_independent=<span class="py_keyword">True</span>)</pre><p>You then make a new <tt class="docutils literal"><span class="pre">lf</span></tt> and optimise as above, but I won't do that now as the optimiser would struggle due to the low information content of this sample.</p>
+</div>
+<div class="section" id="simulate-an-alignment">
+<h2><a class="toc-backref" href="#id28">Simulate an alignment</a></h2>
+<p>How to  simulate an alignment. For this example we just create a simple model using a four taxon tree with very different branch lengths, a Felsenstein model with very different nucleotide frequencies and a long alignment.</p>
+<p>See the other examples for how to define other substitution models.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> sys
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve <span class="py_keyword">import</span> substitution_model</pre><p>Specify the 4 taxon tree,</p>
+<pre class="code">&gt;&gt;&gt; t = LoadTree(treestring=<span class="py_string">'(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1);'</span>)</pre><p>Define our Felsenstein 1981 substitution model.</p>
+<pre class="code">&gt;&gt;&gt; sm = substitution_model.Nucleotide(motif_probs = {<span class="py_string">'A'</span>: 0.5, <span class="py_string">'C'</span>: 0.2,
+... <span class="py_string">'G'</span>: 0.2, <span class="py_string">'T'</span>: 0.1}, model_gaps=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)
+&gt;&gt;&gt; lf.setConstantLengths()
+&gt;&gt;&gt; lf.setName(<span class="py_string">'F81 model'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> lf
+F81 model
+==========================
+  edge    parent    length
+--------------------------
+     a      root    0.4000
+     b      root    0.3000
+     c    edge.0    0.1500
+     d    edge.0    0.2000
+edge.0      root    0.1000
+--------------------------
+===============
+motif    mprobs
+---------------
+    T    0.1000
+    C    0.2000
+    A    0.5000
+    G    0.2000
+---------------</pre><p>We'll now create a simulated alignment of length 1000 nucleotides.</p>
+<pre class="code">&gt;&gt;&gt; simulated = lf.simulateAlignment(sequence_length=1000)</pre><p>The result is a normal <tt class="docutils literal"><span class="pre">Cogent</span></tt> alignment object, which can be used in the same way as any other alignment object.</p>
+</div>
+<div class="section" id="performing-a-parametric-bootstrap">
+<h2><a class="toc-backref" href="#id29">Performing a parametric bootstrap</a></h2>
+<p>This file contains an example for estimating the probability of a Likelihood ratio statistic obtained from a relative rate test. The bootstrap classes can take advantage of parallel architectures.</p>
+<p>From cogent import all the components we need.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve <span class="py_keyword">import</span> bootstrap
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.maths <span class="py_keyword">import</span> stats</pre><p>Define the null model that takes an alignment object and returns a likelihood function properly assembled for optimising the likelihood under the null hypothesis. The sample distribution is generated using this model.</p>
+<p>We will use a HKY model.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">def</span> <span class="py_identifier">create_alt_function</span>():
+...     t = LoadTree(<span class="py_string">"data/test.tree"</span>)
+...     sm = HKY85()
+...     <span class="py_keyword">return</span> sm.makeLikelihoodFunction(t)</pre><p>Define a function that takes an alignment object and returns an appropriately assembled function for the alternative model. Since the two models are identical bar the constraint on the branch lengths, we'll use the same code to generate the basic likelihood function as for the alt model, and then apply the constraint here</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">def</span> <span class="py_identifier">create_null_function</span>():
+...     lf = create_alt_function()
+...     <span class="py_comment"># set the local clock for humans &amp; howler monkey</span>
+...     lf.setLocalClock(<span class="py_string">"Human"</span>, <span class="py_string">"HowlerMon"</span>)
+...     <span class="py_keyword">return</span> lf</pre><p>Get our observed data alignment</p>
+<pre class="code">&gt;&gt;&gt; aln = LoadSeqs(filename = <span class="py_string">"data/test.paml"</span>)</pre><p>Create a <tt class="docutils literal"><span class="pre">EstimateProbability</span></tt> bootstrap instance</p>
+<pre class="code">&gt;&gt;&gt; estimateP = bootstrap.EstimateProbability(create_null_function(),
+...                                       create_alt_function(),
+...                                       aln)</pre><p>Specify how many random samples we want it to generate. Here we use a very small number of replicates only for the purpose of testing.</p>
+<pre class="code">&gt;&gt;&gt; estimateP.setNumReplicates(5)</pre><p>Run it.</p>
+<pre class="code">&gt;&gt;&gt; estimateP.run(show_progress = <span class="py_keyword">False</span>)</pre><p><tt class="docutils literal"><span class="pre">show_progress</span></tt> sets whether individual optimisations are printed to screen. Get the estimated probability.</p>
+<pre class="code">&gt;&gt;&gt; p = estimateP.getEstimatedProb()</pre><p><tt class="docutils literal"><span class="pre">p</span></tt> is a floating point value, as you'd expect. Grab the estimated likelihoods for the observed data.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">'%.2f, %.2f'</span> % estimateP.getObservedlnL()
+-162.65, -162.48</pre></div>
+<div class="section" id="estimate-parameter-values-using-a-sampling-from-a-dataset">
+<h2><a class="toc-backref" href="#id30">Estimate parameter values using a sampling from a dataset</a></h2>
+<p>This script uses the sample method of the alignment class to provide an
+estimate for a two stage optimisation.
+This allows rapid optimisation of long alignments and complex models with
+a good chance of arriving at the global maximum for the model and data.
+Local optimisation of the full alignment may end up in local maximum and
+for this reason results from this strategy my be inaccurate.</p>
+<p>From cogent import all the components we need.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve <span class="py_keyword">import</span>  substitution_model</pre><p>Load your alignment, note that if your file ends with a suffix that is the same as it's format (assuming it's a supported format) then you can just give the filename. Otherwise you can specify the format using the format argument.</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(filename = <span class="py_string">"data/test.paml"</span>)</pre><p>Get your tree</p>
+<pre class="code">&gt;&gt;&gt; t = LoadTree(filename = <span class="py_string">"data/test.tree"</span>)</pre><p>Get the raw substitution model</p>
+<pre class="code">&gt;&gt;&gt; sm = substitution_model.Nucleotide()</pre><p>Make a likelihood function from a sample of the alignment the .sample method selects the chosen number of bases at random because we set motif probabilities earlier the motif probabilities of the whole alignment rather than the sample will be used for the calculator</p>
+<pre class="code">&gt;&gt;&gt; lf = sm.makeLikelihoodFunction(t)
+&gt;&gt;&gt; lf.setMotifProbsFromData(al)
+&gt;&gt;&gt; lf.setAlignment(al.sample(20))</pre><p>Optimise with the slower but more accurate simulated annealing optimiser</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise()
+Outer loop = 0...</pre><p>Next use the whole alignment</p>
+<pre class="code">&gt;&gt;&gt; lf.setAlignment(al)</pre><p>and the faster Powell optimiser that will only find the best result near the provided starting point</p>
+<pre class="code">&gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>)
+Number of function evaluations = 1; current F = ...</pre><p>Print the result using <tt class="docutils literal"><span class="pre">print</span> <span class="pre">lf</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="phylogenetic-reconstruction">
+<h1><a class="toc-backref" href="#id31">Phylogenetic Reconstruction</a></h1>
+<div class="section" id="calculate-pairwise-distances-between-sequences">
+<h2><a class="toc-backref" href="#id32">Calculate pairwise distances between sequences</a></h2>
+<p>An example of how to calculate the pairwise distances for a set of sequences.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance</pre><p>Import a substitution model (or create your own)</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85</pre><p>Load my alignment</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>)</pre><p>Create a pairwise distances object with your alignment and substitution model</p>
+<pre class="code">&gt;&gt;&gt; d = distance.EstimateDistances(al, submodel= HKY85())</pre><p>Printing <tt class="docutils literal"><span class="pre">d</span></tt> before execution shows its status.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> d
+=========================================================================
+Seq1 \ Seq2    NineBande       Mouse       Human    HowlerMon    DogFaced
+-------------------------------------------------------------------------
+  NineBande            *    Not Done    Not Done     Not Done    Not Done
+      Mouse     Not Done           *    Not Done     Not Done    Not Done
+      Human     Not Done    Not Done           *     Not Done    Not Done
+  HowlerMon     Not Done    Not Done    Not Done            *    Not Done
+   DogFaced     Not Done    Not Done    Not Done     Not Done           *
+-------------------------------------------------------------------------</pre><p>Which in this case is to simply indicate nothing has been done.</p>
+<pre class="code">&gt;&gt;&gt; d.run(show_progress=<span class="py_keyword">False</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> d
+=====================================================================
+Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
+---------------------------------------------------------------------
+  NineBande            *    0.2196    0.0890       0.0700      0.0891
+      Mouse       0.2196         *    0.2737       0.2736      0.2467
+      Human       0.0890    0.2737         *       0.0530      0.1092
+  HowlerMon       0.0700    0.2736    0.0530            *      0.0894
+   DogFaced       0.0891    0.2467    0.1092       0.0894           *
+---------------------------------------------------------------------</pre><p>Note that pairwise distances can be distributed for computation across multiple CPU's. In this case, when statistics (like distances) are requested only the master CPU returns data.</p>
+<p>We'll write a phylip formatted distance matrix.</p>
+<pre class="code">&gt;&gt;&gt; d.writeToFile(<span class="py_string">'junk.phylip'</span>, format=<span class="py_string">"phylip"</span>)</pre><p>We'll also save the distances to file in Python's pickle format.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> cPickle
+&gt;&gt;&gt; f = open(<span class="py_string">'dists_for_phylo.pickle'</span>, <span class="py_string">"w"</span>)
+&gt;&gt;&gt; cPickle.dump(d.getPairwiseDistances(), f)
+&gt;&gt;&gt; f.close()</pre></div>
+<div class="section" id="make-a-neighbor-joining-tree">
+<h2><a class="toc-backref" href="#id33">Make a neighbor joining tree</a></h2>
+<p>An example of how to calculate the pairwise distances for a set of sequences.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, nj</pre><p>Import a substitution model (or create your own)</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85</pre><p>Load the alignment.</p>
+<pre class="code">&gt;&gt;&gt; al = LoadSeqs(<span class="py_string">"data/test.paml"</span>)</pre><p>Create a pairwise distances object calculator for the alignment, providing a substitution model instance.</p>
+<pre class="code">&gt;&gt;&gt; d = distance.EstimateDistances(al, submodel= HKY85())
+&gt;&gt;&gt; d.run(show_progress=<span class="py_keyword">False</span>)</pre><p>Now use this matrix to build a neighbour joining tree.</p>
+<pre class="code">&gt;&gt;&gt; mytree = nj.nj(d.getPairwiseDistances())
+&gt;&gt;&gt; <span class="py_keyword">print</span> mytree.asciiArt()
+                    /-NineBande
+          /edge.1--|
+         |          \-Mouse
+         |
+-root----|--DogFaced
+         |
+         |          /-HowlerMon
+          \edge.0--|
+                    \-Human</pre><p>We can save this tree to file.</p>
+<pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>)</pre></div>
+<div class="section" id="phylogenetic-reconstruction-by-least-squares">
+<h2><a class="toc-backref" href="#id34">Phylogenetic reconstruction by least squares</a></h2>
+<p>We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called <tt class="docutils literal"><span class="pre">pickle</span></tt> which is native to python. As per usual, we import the basic components we need.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> cPickle
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, least_squares</pre><p>Now load the distance data.</p>
+<pre class="code">&gt;&gt;&gt; filename = <span class="py_string">"dists_for_phylo.pickle"</span>
+&gt;&gt;&gt; f = file(filename, <span class="py_string">'r'</span>)
+&gt;&gt;&gt; dists = cPickle.load(f)
+&gt;&gt;&gt; f.close()</pre><p>If there are extremely small distances, they can cause an error in the least squares calculation. Since such estimates are between extremely closely related sequences we could simply drop all distances for one of the sequences. We won't do that here, we'll leave that as exercise.</p>
+<p>We make the ls calculator.</p>
+<pre class="code">&gt;&gt;&gt; ls = least_squares.WLS(dists)</pre><p>We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter <em>asaa</em>).</p>
+<div class="section" id="look-for-the-single-best-tree">
+<h3><a class="toc-backref" href="#id35">Look for the single best tree</a></h3>
+<p>In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying <tt class="docutils literal"><span class="pre">a=5</span></tt>. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. <tt class="docutils literal"><span class="pre">k=1</span></tt> means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best <tt class="docutils literal"><span class="pre">k</span></tt> results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single <tt class="docutils literal"><span class="pre">Tree</span></tt> which can be saved etc ..</p>
+<pre class="code">&gt;&gt;&gt; score, tree = ls.trex(a = 5, k = 1, show_progress = <span class="py_keyword">True</span>)
+3 trees of size 4 at start
+15 trees of size 5 ... done
+&gt;&gt;&gt; <span class="py_keyword">print</span> score
+0.0009...</pre><p>We won't display this tree, because we are doing more below.</p>
+</div>
+<div class="section" id="a-more-rigourous-tree-space-search">
+<h3><a class="toc-backref" href="#id36">A more rigourous tree space search</a></h3>
+<p>We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change <tt class="docutils literal"><span class="pre">a</span></tt> to be larger, but in the current case we just adjust <tt class="docutils literal"><span class="pre">k</span></tt>. We also set the argument <tt class="docutils literal"><span class="pre">return_all</span> <span class="pre">=</span> <span class="pre">True</span></tt>, the effect of which is to return the complete set of 145 trees. These, and their support statistic, can then be inspected.</p>
+<pre class="code">&gt;&gt;&gt; trees = ls.trex(a = 5, k = 5, show_progress = <span class="py_keyword">True</span>, return_all = <span class="py_keyword">True</span>)
+3 trees of size 4 at start
+15 trees of size 5 ... done</pre><p>Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. As indicated above, <tt class="docutils literal"><span class="pre">trees</span></tt> has length 145.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> len(trees)
+15</pre><p>Lets inspect the resulting statistics. First, the object <tt class="docutils literal"><span class="pre">trees</span></tt> is a list of (wls, Tree) tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct <tt class="docutils literal"><span class="pre">for</span></tt> loop.</p>
+<pre class="code">&gt;&gt;&gt; wls_stats = [tree[0] <span class="py_keyword">for</span> tree <span class="py_keyword">in</span> trees]
+&gt;&gt;&gt; <span class="py_keyword">print</span> wls_stats[:15]
+[0.000914409229523, 0.001...</pre><p>From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print the first two of the these trees after balancing them (in order to make their representations as equal as possible).</p>
+<pre class="code">&gt;&gt;&gt; t1 = trees[0][1].balanced()
+&gt;&gt;&gt; t2 = trees[1][1].balanced()
+&gt;&gt;&gt; <span class="py_keyword">print</span> t1.asciiArt()
+          /-DogFaced
+         |
+         |          /-NineBande
+-root----|-edge.0--|
+         |          \-Mouse
+         |
+         |          /-HowlerMon
+          \edge.1--|
+                    \-Human
+&gt;&gt;&gt; <span class="py_keyword">print</span> t2.asciiArt()
+          /-NineBande
+         |
+         |          /-DogFaced
+-root----|-edge.0--|
+         |          \-Mouse
+         |
+         |          /-HowlerMon
+          \edge.1--|
+                    \-Human</pre><p>You can see the difference involves the Jackrabbit, TreeShrew, Gorilla, Rat clade.</p>
+</div>
+<div class="section" id="assessing-the-fit-for-a-pre-specified-tree-topology">
+<h3><a class="toc-backref" href="#id37">Assessing the fit for a pre-specified tree topology</a></h3>
+<p>In some instances we may have a tree from the literature or elsewhere whose fit to the data we seek to evaluate. In this case I'm going load a tree as follows.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree
+&gt;&gt;&gt; query_tree = LoadTree(treestring = <span class="py_string">"((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)"</span>)</pre><p>We now just use the <tt class="docutils literal"><span class="pre">ls</span></tt> object created above. The following evaluates the query using it's associated branch lengths, returning only the wls statistic.</p>
+<pre class="code">&gt;&gt;&gt; ls.evaluateTree(query_tree)
+ 3.95...</pre><p>We can also evaluate just the tree's topology, returning both the wls statistic and the tree with best fit branch lengths.</p>
+<pre class="code">&gt;&gt;&gt; ls.evaluateTopology(query_tree)
+(0.00316480233404, Tree(<span class="py_string">"((Human,DogFaced),(NineBande,Mouse),HowlerMon)root;"</span>))</pre></div>
+<div class="section" id="using-maximum-likelihood-for-measuring-tree-fit">
+<h3><a class="toc-backref" href="#id38">Using maximum likelihood for measuring tree fit</a></h3>
+<p>This is a much slower algorithm and the interface largely mirrors that for the above. The difference is you import <tt class="docutils literal"><span class="pre">maximum_likelihood</span></tt> instead of <tt class="docutils literal"><span class="pre">least_squares</span></tt>, and use the <tt class="docutils literal"><span class="pre">ML</span></tt> instead of <tt class="docutils literal"><span class="pre">WLS</span></tt> classes. The <tt class="docutils literal"><span class="pre">ML</span></tt> class requires a substitution model (like a HKY85 for DNA or JTT92 for protein), and an alignment. It also optionally takes a distance matrix, such as that used here, computed for the same sequences. These distances are then used to obtain estimates of branch lengths by the WLS method for each evaluated tree topology which are then used as starting values for the likelihood optimisation.</p>
+</div>
+</div>
+<div class="section" id="making-a-phylogenetic-tree-from-a-protein-sequence-alignment">
+<h2><a class="toc-backref" href="#id39">Making a phylogenetic tree from a protein sequence alignment</a></h2>
+<p>In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard cogent import for <tt class="docutils literal"><span class="pre">LoadSeqs</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, PROTEIN</pre><p>We will use an empirical protein substitution matrix, this requires a file format parser also.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.parse.paml_matrix <span class="py_keyword">import</span> PamlMatrixParser</pre><p>The next components we need are for computing the matrix of pairwise sequence distances and then for estimating a neighbour joining tree from those distances.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> nj, distance</pre><p>Now load our sequence alignment, explicitly setting the alphabet to be protein.</p>
+<pre class="code">&gt;&gt;&gt; aln = LoadSeqs(<span class="py_string">'data/abglobin_aa.phylip'</span>, interleaved=<span class="py_keyword">True</span>,
+...                 moltype=PROTEIN)</pre><p>We open the file that contains the empirical matrix and parse the matrix and frequencies.</p>
+<pre class="code">&gt;&gt;&gt; matrix_file = open(<span class="py_string">'data/dayhoff.dat'</span>)</pre><p>Create an Empirical Protein Matrix Substitution model object. This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.</p>
+<pre class="code">&gt;&gt;&gt; sm = EmpiricalProteinMatrix(*PamlMatrixParser(matrix_file))</pre><p>We now use this and the alignment to construct a distance calculator.</p>
+<pre class="code">&gt;&gt;&gt; d = distance.EstimateDistances(aln, submodel = sm)
+&gt;&gt;&gt; d.run(show_progress=<span class="py_keyword">False</span>)</pre><p>The resulting distances are passed to the nj function.</p>
+<pre class="code">&gt;&gt;&gt; mytree = nj.nj(d.getPairwiseDistances())</pre><p>The shape of the resulting tree can be readily view using the <tt class="docutils literal"><span class="pre">asciiArt</span></tt> method on <tt class="docutils literal"><span class="pre">Tree</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> mytree.asciiArt()
+          /-human
+         |
+         |          /-rabbit
+-root----|-edge.1--|
+         |          \-rat
+         |
+         |          /-goat-cow
+          \edge.0--|
+                    \-marsupial</pre><p>This tree can be saved to file, the <tt class="docutils literal"><span class="pre">with_distances</span></tt> argument specifies that branch lengths are to be included in the newick formatted output.</p>
+<pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>, with_distances=<span class="py_keyword">True</span>)</pre></div>
+</div>
+<div class="section" id="python-coding-guidelines">
+<h1><a class="toc-backref" href="#id40">Python Coding Guidelines</a></h1>
+<div class="section" id="why-have-coding-guidelines">
+<h2><a class="toc-backref" href="#id41">Why have coding guidelines?</a></h2>
+<p>As project size increases, consistency increases in importance. Unit testing and a consistent style are critical to having trusted code to integrate. Also, guesses about names and interfaces will be correct more often.</p>
+<div class="section" id="what-should-i-call-my-variables">
+<h3><a class="toc-backref" href="#id42">What should I call my variables?</a></h3>
+<ul class="simple">
+<li><em>Choose the name that people will most likely guess.</em> Make it descriptive, but not too long: <tt class="docutils literal"><span class="pre">curr_record</span></tt> is better than <tt class="docutils literal"><span class="pre">c</span></tt>, or <tt class="docutils literal"><span class="pre">curr</span></tt>, or <tt class="docutils literal"><span class="pre">current_genbank_record_from_database</span></tt>.</li>
+<li><em>Good names are hard to find.</em> Don't be afraid to change names except when they are part of interfaces that other people are also using. It may take some time working with the code to come up with reasonable names for everything: if you have unit tests, it's easy to change them, especially with global search and replace.</li>
+<li><em>Use singular names for individual things, plural names for collections.</em> For example, you'd expect <tt class="docutils literal"><span class="pre">self.Name</span></tt> to hold something like a single string, but <tt class="docutils literal"><span class="pre">self.Names</span></tt> to hold something that you could loop through like a list or dict. Sometimes the decision can be tricky: is <tt class="docutils literal"><span class="pre">self.Index</span></tt> an int holding a positon, or a dict holding records keyed by name for easy lookup? If you find yourself wondering these things, the name should probably be changed to avoid the problem: try <tt class="docutils literal"><span class="pre">self.Position</span></tt> or <tt class="docutils literal"><span class="pre">self.LookUp</span></tt>.</li>
+<li><em>Don't make the type part of the name.</em> You might want to change the implementation later. Use <tt class="docutils literal"><span class="pre">Records</span></tt> rather than <tt class="docutils literal"><span class="pre">RecordDict</span></tt> or <tt class="docutils literal"><span class="pre">RecordList</span></tt>, etc. Don't use Hungarian Notation either (i.e. where you prefix the name with the type).</li>
+<li><em>Make the name as precise as possible.</em> If the variable is the name of the input file, call it <tt class="docutils literal"><span class="pre">infile_name</span></tt>, not <tt class="docutils literal"><span class="pre">input</span></tt> or <tt class="docutils literal"><span class="pre">file</span></tt> (which you shouldn't use anyway, since they're keywords), and not <tt class="docutils literal"><span class="pre">infile</span></tt> (because that looks like it should be a file object, not just its name).</li>
+<li><em>Use</em> <tt class="docutils literal"><span class="pre">result</span></tt> <em>to store the value that will be returned from a method or function.</em> Use <tt class="docutils literal"><span class="pre">data</span></tt> for input in cases where the function or method acts on arbitrary data (e.g. sequence data, or a list of numbers, etc.) unless a more descriptive name is appropriate.</li>
+<li><em>One-letter variable names should only occur in math functions or as loop iterators with limited scope.</em> Limited scope covers things like <tt class="docutils literal"><span class="pre">for</span> <span class="pre">k</span> <span class="pre">in</span> <span class="pre">keys:</span> <span class="pre">print</span> <span class="pre">k</span></tt>, where <tt class="docutils literal"><span class="pre">k</span></tt> survives only a line or two. Loop iterators should refer to the variable that they're looping through: <tt class="docutils literal"><span class="pre">for</span> <span class="pre">k</span> <span class="pre">in</span> <span class="pre">keys,</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">items</span></tt>, or <tt class="docutils literal"><span class="pre">for</span> <span class="pre">key</span> <span class="pre">in</span> <span class="pre">keys,</span> <span class="pre">item</span> <span class="pre">in</span> <span class="pre">items</span></tt>. If the loop is long or there are several 1-letter variables active in the same scope, rename them.</li>
+<li><em>Limit your use of abbreviations.</em> A few well-known abbreviations are OK, but you don't want to come back to your code in 6 months and have to figure out what <tt class="docutils literal"><span class="pre">sptxck2</span></tt> is. It's worth it to spend the extra time typing <tt class="docutils literal"><span class="pre">species_taxon_check_2</span></tt>, but that's still a horrible name: what's check number 1? Far better to go with something like <tt class="docutils literal"><span class="pre">taxon_is_species_rank</span></tt> that needs no explanation, especially if the variable is only used once or twice.</li>
+</ul>
+<div class="section" id="acceptable-abbreviations">
+<h4><a class="toc-backref" href="#id43">Acceptable abbreviations</a></h4>
+<p>The following list of abbreviations can be considered well-known and used with impunity within mixed name variables, but some should not be used by themselves as they would conflict with common functions, python built-in's, or raise an exception. Do not use the following by themselves as variable names: <tt class="docutils literal"><span class="pre">dir</span></tt>,  <tt class="docutils literal"><span class="pre">exp</span></tt> (a common <tt class="docutils literal"><span class="pre">math</span></tt> module function), <tt class="docutils literal"><span class="pre">in</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, and <tt class="docutils literal"><span class="pre">min</span></tt>. They can, however, be used as part of a name, eg <tt class="docutils literal"><span class="pre">matrix_exp</span></tt>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="59%" />
+<col width="41%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Full</th>
+<th class="head">Abbreviated</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>alignment</td>
+<td>aln</td>
+</tr>
+<tr><td>archaeal</td>
+<td>arch</td>
+</tr>
+<tr><td>auxillary</td>
+<td>aux</td>
+</tr>
+<tr><td>bacterial</td>
+<td>bact</td>
+</tr>
+<tr><td>citation</td>
+<td>cite</td>
+</tr>
+<tr><td>current</td>
+<td>curr</td>
+</tr>
+<tr><td>database</td>
+<td>db</td>
+</tr>
+<tr><td>dictionary</td>
+<td>dict</td>
+</tr>
+<tr><td>directory</td>
+<td>dir</td>
+</tr>
+<tr><td>end of file</td>
+<td>eof</td>
+</tr>
+<tr><td>eukaryotic</td>
+<td>euk</td>
+</tr>
+<tr><td>frequency</td>
+<td>freq</td>
+</tr>
+<tr><td>expected</td>
+<td>exp</td>
+</tr>
+<tr><td>index</td>
+<td>idx</td>
+</tr>
+<tr><td>input</td>
+<td>in</td>
+</tr>
+<tr><td>maximum</td>
+<td>max</td>
+</tr>
+<tr><td>minimum</td>
+<td>min</td>
+</tr>
+<tr><td>mitochondrial</td>
+<td>mt</td>
+</tr>
+<tr><td>number</td>
+<td>num</td>
+</tr>
+<tr><td>observed</td>
+<td>obs</td>
+</tr>
+<tr><td>original</td>
+<td>orig</td>
+</tr>
+<tr><td>output</td>
+<td>out</td>
+</tr>
+<tr><td>parameter</td>
+<td>param</td>
+</tr>
+<tr><td>phylogeny</td>
+<td>phylo</td>
+</tr>
+<tr><td>previous</td>
+<td>prev</td>
+</tr>
+<tr><td>probability</td>
+<td>prob</td>
+</tr>
+<tr><td>protein</td>
+<td>prot</td>
+</tr>
+<tr><td>record</td>
+<td>rec</td>
+</tr>
+<tr><td>reference</td>
+<td>ref</td>
+</tr>
+<tr><td>sequence</td>
+<td>seq</td>
+</tr>
+<tr><td>standard deviation</td>
+<td>stdev</td>
+</tr>
+<tr><td>statistics</td>
+<td>stats</td>
+</tr>
+<tr><td>string</td>
+<td>str</td>
+</tr>
+<tr><td>structure</td>
+<td>struct</td>
+</tr>
+<tr><td>temporary</td>
+<td>temp</td>
+</tr>
+<tr><td>taxonomic</td>
+<td>tax</td>
+</tr>
+<tr><td>variance</td>
+<td>var</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="what-are-the-naming-conventions">
+<h3><a class="toc-backref" href="#id44">What are the naming conventions?</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Type</th>
+<th class="head">Convention</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>function</td>
+<td><tt class="docutils literal"><span class="pre">verb_with_underscores</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">find_all</span></tt></td>
+</tr>
+<tr><td>variable</td>
+<td><tt class="docutils literal"><span class="pre">noun_with_underscores</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">curr_index</span></tt></td>
+</tr>
+<tr><td>constant</td>
+<td><tt class="docutils literal"><span class="pre">NOUN_ALL_CAPS</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">ALLOWED_RNA_PAIRS</span></tt></td>
+</tr>
+<tr><td>class</td>
+<td><tt class="docutils literal"><span class="pre">MixedCaseNoun</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">RnaSequence</span></tt></td>
+</tr>
+<tr><td>public property</td>
+<td><tt class="docutils literal"><span class="pre">MixedCaseNoun</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">IsPaired</span></tt></td>
+</tr>
+<tr><td>private property</td>
+<td><tt class="docutils literal"><span class="pre">_noun_with_leading_underscore</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">_is_updated</span></tt></td>
+</tr>
+<tr><td>public method</td>
+<td><tt class="docutils literal"><span class="pre">mixedCaseExceptFirstWordVerb</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">stripDegenerate</span></tt></td>
+</tr>
+<tr><td>private method</td>
+<td><tt class="docutils literal"><span class="pre">_verb_with_leading_underscore</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">_check_if_paired</span></tt></td>
+</tr>
+<tr><td>really private data</td>
+<td><tt class="docutils literal"><span class="pre">__two_leading_underscores</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">__delegator_object_ref</span></tt></td>
+</tr>
+<tr><td>parameters that match properties</td>
+<td><tt class="docutils literal"><span class="pre">SameAsProperty</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">def</span> <span class="pre">__init__(data,</span> <span class="pre">Alphabet=None)</span></tt></td>
+</tr>
+<tr><td>factory function</td>
+<td><tt class="docutils literal"><span class="pre">MixedCase</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">InverseDict</span></tt></td>
+</tr>
+<tr><td>module</td>
+<td><tt class="docutils literal"><span class="pre">lowercase_with_underscores</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">unit_test</span></tt></td>
+</tr>
+<tr><td>global variables</td>
+<td><tt class="docutils literal"><span class="pre">gMixedCaseWithLeadingG</span></tt></td>
+<td>no examples in evo - should be rare!</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><em>It is important to follow the naming conventions because they make it much easier to guess what a name refers to</em>. In particular, it should be easy to guess what scope a name is defined in, what it refers to, whether it's OK to change its value, and whether its referent is callable. The following rules provide these distinctions.</li>
+<li><tt class="docutils literal"><span class="pre">lowercase_with_underscores</span></tt> <em>for modules and internal variables (including function/method parameters).</em></li>
+<li><tt class="docutils literal"><span class="pre">MixedCase</span></tt> for <em>classes</em> and <em>public properties</em>, and for <em>factory functions</em> that act like additional constructors for a class.</li>
+<li><tt class="docutils literal"><span class="pre">mixedCaseExceptFirstWord</span></tt> for <em>public methods and functions</em>.</li>
+<li><tt class="docutils literal"><span class="pre">_lowercase_with_leading_underscore</span></tt> for <em>private</em> functions, methods, and properties.</li>
+<li><tt class="docutils literal"><span class="pre">__lowercase_with_two_leading_underscores</span></tt> for <em>private</em> properties and functions that <em>must not be overwritten</em> by a subclass.</li>
+<li><tt class="docutils literal"><span class="pre">CAPS_WITH_UNDERSCORES</span></tt> for named <em>constants</em>.</li>
+<li><tt class="docutils literal"><span class="pre">gMixedCase</span></tt> (i.e. mixed case prefixed with 'g') for <em>globals</em>. Globals should be used extremely rarely and with caution, even if you sneak them in using the Singleton pattern or some similar system.</li>
+<li><em>Underscores can be left out if the words read OK run together.</em> <tt class="docutils literal"><span class="pre">infile</span></tt> and <tt class="docutils literal"><span class="pre">outfile</span></tt> rather than <tt class="docutils literal"><span class="pre">in_file</span></tt> and <tt class="docutils literal"><span class="pre">out_file</span></tt>; <tt class="docutils literal"><span class="pre">infile_name</span></tt> and <tt class="docutils literal"><span class="pre">outfile_name</span></tt> rather than <tt class="docutils literal"><span class="pre">in_file_name</span></tt> and <tt class="docutils literal"><span class="pre">out_file_name</span></tt> or <tt class="docutils literal"><span class="pre">infilename</span></tt> and <tt class="docutils literal"><span class="pre">outfilename</span></tt> (getting too long to read effortlessly).</li>
+</ul>
+</div>
+<div class="section" id="how-do-i-organize-my-modules-source-files">
+<h3><a class="toc-backref" href="#id45">How do I organize my modules (source files)?</a></h3>
+<ul class="simple">
+<li><em>Have a docstring with a description of the module's functions</em>. If the description is long, the first line should be a short summary that makes sense on its own, separated from the rest by a newline.</li>
+<li><em>All code, including import statements, should follow the docstring.</em> Otherwise, the docstring will not be recognized by the interpreter, and you will not have access to it in interactive sessions (i.e. through <tt class="docutils literal"><span class="pre">obj.__doc__</span></tt>) or when generating documentation with automated tools.</li>
+<li><em>Import built-in modules first, followed by third-party modules, followed by any changes to the path and your own modules.</em> Especially, additions to the path and names of your modules are likely to change rapidly: keeping them in one place makes them easier to find.</li>
+<li><em>Don't use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">*</span></tt>, <em>instead use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">Name,</span> <span class="pre">Name2,</span> <span class="pre">Name3...</span></tt> <em>or possibly</em> <tt class="docutils literal"><span class="pre">import</span> <span class="pre">module</span></tt>. This makes it <em>much</em> easier to see name collisions and to replace implementations.</li>
+</ul>
+<div class="section" id="example-of-module-structure">
+<h4><a class="toc-backref" href="#id46">Example of module structure</a></h4>
+<pre class="literal-block">
+#!/usr/bin/env python
+
+&quot;&quot;&quot;Provides NumberList and FrequencyDistribution, classes for statistics.
+
+NumberList holds a sequence of numbers, and defines several statistical
+operations (mean, stdev, etc.) FrequencyDistribution holds a mapping from
+items (not necessarily numbers) to counts, and defines operations such as
+Shannon entropy and frequency normalization.
+&quot;&quot;&quot;
+
+from math import sqrt, log, e
+from random import choice, random
+from Utils import indices
+
+class NumberList(list):
+    pass    # much code deleted
+class FrequencyDistribution(dict):
+    pass    # much code deleted
+
+# use the following when the module can meaningfully be called as a script.
+if __name__ == '__main__':    # code to execute if called from command-line
+    pass    # do nothing - code deleted
+</pre>
+</div>
+<div class="section" id="how-should-i-write-comments">
+<h4><a class="toc-backref" href="#id47">How should I write comments?</a></h4>
+<ul>
+<li><p class="first"><em>Always update the comments when the code changes.</em> Incorrect comments are far worse than no comments, since they are actively misleading.</p>
+</li>
+<li><p class="first"><em>Comments should say more than the code itself.</em> Examine your comments carefully: they may indicate that you'd be better off rewriting your code (especially, <em>renaming your variables</em> and getting rid of the comment.) In particular, don't scatter magic numbers and other constants that have to be explained through your code. It's far better to use variables whose names are self-documenting, especially if you use the same constant more than once. Also, think about making constants into class or instance data, since it's all too common for 'constants' to need to change or to be needed in several methods.</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><p class="first last">Wrong</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">win_size</span> <span class="pre">-=</span> <span class="pre">20</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">#</span> <span class="pre">decrement</span> <span class="pre">win_size</span> <span class="pre">by</span> <span class="pre">20</span></tt></p>
+</td>
+</tr>
+<tr><td><p class="first last">OK</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">win_size</span> <span class="pre">-=</span> <span class="pre">20</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">#</span> <span class="pre">leave</span> <span class="pre">space</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">scroll</span> <span class="pre">bar</span></tt></p>
+</td>
+</tr>
+<tr><td><p class="first last">Right</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">self._scroll_bar_size</span> <span class="pre">=</span> <span class="pre">20</span></tt></p>
+</td>
+</tr>
+<tr><td>&nbsp;</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">win_size</span> <span class="pre">-=</span> <span class="pre">self._scroll_bar_size</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+</li>
+<li><p class="first"><em>Use comments starting with #, not strings, inside blocks of code.</em> Python ignores real comments, but must allocate storage for strings (which can be a performance disaster inside an inner loop).</p>
+</li>
+<li><p class="first"><em>Start each method, class and function with a docstring using triple double quotes (&quot;&quot;&quot;).</em> The docstring should start with a 1-line description that makes sense by itself (many automated formatting tools, and the IDE, use this). This should be followed by a blank line, followed by descriptions of the parameters (if any). Finally, add any more detailed information, such as a longer description, notes about the algorithm, detailed notes about the parameters, etc. If there is a usage example, it should appear at the end. Make sure any descriptions of parameters have the correct spelling, case, etc. For example:</p>
+<pre class="literal-block">
+def __init__(self, data, name='', alphabet=None):
+    &quot;&quot;&quot;Returns new Sequence object with specified data, name, alphabet.
+
+    Arguments:
+
+        - data: The sequence data. Should be a sequence of characters.
+        - name: Arbitrary label for the sequence. Should be string-like.
+        - alphabet: Set of allowed characters. Should support 'for x in y'
+          syntax. None by default.
+
+    Note: if alphabet is None, performs no validation.
+    &quot;&quot;&quot;
+</pre>
+</li>
+<li><p class="first"><em>Always update the docstring when the code changes.</em> Like outdated comments, outdated docstrings can waste a lot of time. &quot;Correct examples are priceless, but incorrect examples are worse than worthless.&quot; <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="how-should-i-format-my-code">
+<h3><a class="toc-backref" href="#id48">How should I format my code?</a></h3>
+<ul>
+<li><p class="first"><em>Use 4 spaces for indentation.</em> Do not use tabs (set your editor to convert tabs to spaces). The behaviour of tabs is not predictable across platforms, and will cause syntax errors. If we all use the same indentation, collaboration is much easier.</p>
+</li>
+<li><p class="first"><em>Lines should not be longer than 79 characters.</em> Long lines are inconvenient in some editors. Use \ for line continuation. Note that there cannot be whitespace after the \.</p>
+</li>
+<li><p class="first"><em>Blank lines should be used to highlight class and method definitions.</em> Separate class definitions by two blank lines. Separate methods by one blank line.</p>
+</li>
+<li><p class="first"><em>Be consistent with the use of whitespace around operators.</em> Inconsistent whitespace makes it harder to see at a glance what is grouped together.</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><p class="first last">Good</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">((a+b)*(c+d))</span></tt></p>
+</td>
+</tr>
+<tr><td><p class="first last">OK</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">((a</span> <span class="pre">+</span> <span class="pre">b)</span> <span class="pre">*</span> <span class="pre">(c</span> <span class="pre">+</span> <span class="pre">d))</span></tt></p>
+</td>
+</tr>
+<tr><td><p class="first last">Bad</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">(</span> <span class="pre">(a+</span> <span class="pre">b)</span>&nbsp; <span class="pre">*(c</span> <span class="pre">+d</span>&nbsp; <span class="pre">))</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+</li>
+<li><p class="first"><em>Don't put whitespace after delimiters or inside slicing delimiters.</em> Whitespace here makes it harder to see what's associated.</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="35%" />
+<col width="49%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><p class="first last">Good</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">(a+b)</span></tt></p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">d[k]</span></tt></p>
+</td>
+</tr>
+<tr><td><p class="first last">Bad</p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">(</span> <span class="pre">a+b</span> <span class="pre">)</span></tt></p>
+</td>
+<td><p class="first last"><tt class="docutils literal"><span class="pre">d</span> <span class="pre">[k],</span> <span class="pre">d[</span> <span class="pre">k]</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="how-should-i-test-my-code">
+<h3><a class="toc-backref" href="#id49">How should I test my code ?</a></h3>
+<p>There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.</p>
+<p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference external" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rest are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
+<p>In general, it's easier to start writing <tt class="docutils literal"><span class="pre">doctest</span></tt>'s, as you don't need to learn the <tt class="docutils literal"><span class="pre">unittest</span></tt> API but the latter give's much greater control.</p>
+<p>Whatever approach is employed, the general principle is every line of code should be tested. It is critical that your code be fully tested before you draw conclusions from results it produces. For scientific work, bugs don't just mean unhappy users who you'll never actually meet: they may mean retracted publications.</p>
+<p>Tests are an opportunity to invent the interface(s) you want. Write the test for a method before you write the method: often, this helps you figure out what you would want to call it and what parameters it should take. It's OK to write the tests a few methods at a time, and to change them as your ideas about the interface change. However, you shouldn't change them once you've told other people what the interface is.</p>
+<p>Never treat prototypes as production code. It's fine to write prototype code without tests to try things out, but when you've figured out the algorithm and interfaces you must rewrite it <em>with tests</em> to consider it finished. Often, this helps you decide what interfaces and functionality you actually need and what you can get rid of.</p>
+<p>&quot;Code a little test a little&quot;. For production code, write a couple of tests, then a couple of methods, then a couple more tests, then a couple more methods, then maybe change some of the names or generalize some of the functionality. If you have a huge amount of code where 'all you have to do is write the tests', you're probably closer to 30% done than 90%. Testing vastly reduces the time spent debugging, since whatever went wrong has to be in the code you wrote since the last test suite. And remember to use python's interactive interpreter for quick checks of syntax and ideas.</p>
+<p>Run the test suite when you change <cite>anything</cite>. Even if a change seems trivial, it will only take a couple of seconds to run the tests and then you'll be sure. This can eliminate long and frustrating debugging sessions where the change turned out to have been made long ago, but didn't seem significant at the time.</p>
+<div class="section" id="some-unittest-pointers">
+<h4><a class="toc-backref" href="#id50">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></h4>
+<ul>
+<li><p class="first"><em>Use the</em> <tt class="docutils literal"><span class="pre">unittest</span></tt> <em>framework with tests in a separate file for each module.</em> Name the test file <tt class="docutils literal"><span class="pre">test_module_name.py</span></tt>. Keeping the tests separate from the code reduces the temptation to change the tests when the code doesn't work, and makes it easy to verify that a completely new implementation presents the same interface (behaves the same) as the old.</p>
+</li>
+<li><p class="first"><em>Use</em> <tt class="docutils literal"><span class="pre">evo.unit_test</span></tt> <em>if you are doing anything with floating point numbers or permutations</em> (use <tt class="docutils literal"><span class="pre">assertFloatEqual</span></tt>). Do <em>not</em> try to compare floating point numbers using <tt class="docutils literal"><span class="pre">assertEqual</span></tt> if you value your sanity. <tt class="docutils literal"><span class="pre">assertFloatEqualAbs</span></tt> and <tt class="docutils literal"><span class="pre">assertFloatEqualRel</span></tt> can specifically test for absolute and relative differences if the default behavior is not giving you what you want. Similarly, <tt class="docutils literal"><span class="pre">assertEqualItems</span></tt>, <tt class="docutils literal"><span class="pre">assertSameItems</span></tt>, etc. can be useful when testing permutations.</p>
+</li>
+<li><p class="first"><em>Test the interface of each class in your code by defining at least one</em> <tt class="docutils literal"><span class="pre">TestCase</span></tt> <em>with the name</em> <tt class="docutils literal"><span class="pre">ClassNameTests</span></tt>. This should contain tests for everything in the public interface.</p>
+</li>
+<li><p class="first"><em>If the class is complicated, you may want to define additional tests with names</em> <tt class="docutils literal"><span class="pre">ClassNameTests_test_type</span></tt>. These might subclass <tt class="docutils literal"><span class="pre">ClassNameTests</span></tt> in order to share <tt class="docutils literal"><span class="pre">setUp</span></tt> methods, etc.</p>
+</li>
+<li><p class="first"><em>Tests of private methods should be in a separate</em> <tt class="docutils literal"><span class="pre">TestCase</span></tt> <em>called</em> <tt class="docutils literal"><span class="pre">ClassNameTests_private</span></tt>. Private methods may change if you change the implementation. It is not required that test cases for private methods pass when you change things (that's why they're private, after all), though it is often useful to have these tests for debugging.</p>
+</li>
+<li><p class="first"><em>Test `all` the methods in your class.</em> You should assume that any method you haven't tested has bugs. The convention for naming tests is <tt class="docutils literal"><span class="pre">test_method_name</span></tt>. Any leading and trailing underscores on the method name can be ignored for the purposes of the test; however, <em>all tests must start with the literal substring</em> <tt class="docutils literal"><span class="pre">test</span></tt> <em>for</em> <tt class="docutils literal"><span class="pre">unittest</span></tt> <em>to find them.</em> If the method is particularly complex, or has several discretely different cases you need to check, use <tt class="docutils literal"><span class="pre">test_method_name_suffix</span></tt>, e.g. <tt class="docutils literal"><span class="pre">test_init_empty</span></tt>, <tt class="docutils literal"><span class="pre">test_init_single</span></tt>, <tt class="docutils literal"><span class="pre">test_init_wrong_type</span></tt>, etc. for testing <tt class="docutils literal"><span class="pre">__init__</span></tt>.</p>
+</li>
+<li><p class="first"><em>Write good docstrings for all your test methods.</em> When you run the test with the <tt class="docutils literal"><span class="pre">-v</span></tt> command-line switch for verbose output, the docstring for each test will be printed along with <tt class="docutils literal"><span class="pre">...OK</span></tt> or <tt class="docutils literal"><span class="pre">...FAILED</span></tt> on a single line. It is thus important that your docstring is short and descriptive, and makes sense in this context.</p>
+<blockquote>
+<p><strong>Good docstrings:</strong></p>
+<pre class="literal-block">
+NumberList.var should raise ValueError on empty or 1-item list
+NumberList.var should match values from R if list has &gt;2 items
+NumberList.__init__ should raise error on values that fail float()
+FrequencyDistribution.var should match corresponding NumberList var
+</pre>
+<p><strong>Bad docstrings:</strong></p>
+<pre class="literal-block">
+var should calculate variance           # lacks class name, not descriptive
+Check initialization of a NumberList    # doesn't say what's expected
+Tests of the NumberList initialization. # ditto
+</pre>
+</blockquote>
+</li>
+<li><p class="first"><em>Module-level functions should be tested in their own</em> <tt class="docutils literal"><span class="pre">TestCase</span></tt><em>, called</em> <tt class="docutils literal"><span class="pre">modulenameTests</span></tt>. Even if these functions are simple, it's important to check that they work as advertised.</p>
+</li>
+<li><p class="first"><em>It is much more important to test several small cases that you can check by hand than a single large case that requires a calculator.</em> Don't trust spreadsheets for numerical calculations -- use R instead!</p>
+</li>
+<li><p class="first"><em>Make sure you test all the edge cases: what happens when the input is None, or '', or 0, or negative?</em> What happens at values that cause a conditional to go one way or the other? Does incorrect input raise the right exceptions? Can your code accept subclasses or superclasses of the types it expects? What happens with very large input?</p>
+</li>
+<li><p class="first"><em>To test permutations, check that the original and shuffled version are different, but that the sorted original and sorted shuffled version are the same.</em> Make sure that you get <em>different</em> permutations on repeated runs and when starting from different points.</p>
+</li>
+<li><p class="first"><em>To test random choices, figure out how many of each choice you expect in a large sample (say, 1000 or a million) using the binomial distribution or its normal approximation.</em> Run the test several times and check that you're within, say, 3 standard deviations of the mean.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="example-of-a-unittest-test-module-structure">
+<h4><a class="toc-backref" href="#id51">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></h4>
+<pre class="literal-block">
+#!/usr/bin/env python
+
+&quot;&quot;&quot;Tests NumberList and FrequencyDistribution, classes for statistics.&quot;&quot;&quot;
+
+from unittest import TestCase, main # for floating point test use unittestfp
+from statistics import NumberList, FrequencyDistribution
+
+class NumberListTests(TestCase): # remember to subclass TestCase
+    &quot;&quot;&quot;Tests of the NumberList class.&quot;&quot;&quot;
+    def setUp(self):
+        &quot;&quot;&quot;Define a few standard NumberLists.&quot;&quot;&quot;
+        self.Null = NumberList()            # test empty init
+        self.Empty = NumberList([])         # test init with empty sequence
+        self.Single = NumberList([5])       # single item
+        self.Zero = NumberList([0])         # single, False item
+        self.Three = NumberList([1,2,3])    # multiple items
+        self.ZeroMean = NumberList([1,-1])  # items nonzero, mean zero
+        self.ZeroVar = NumberList([1,1,1])  # items nonzero, mean nonzero, variance zero
+        # etc. These objects shared by all tests, and created new each time a method
+        # starting with the string 'test' is called (i.e. the same object does not
+        # persist between tests: rather, you get separate copies).
+
+        def test_mean_empty(self):
+            &quot;&quot;&quot;NumberList.mean() should raise ValueError on empty object&quot;&quot;&quot;
+            for empty in (self.Null, self.Empty):
+                self.assertRaises(ValueError, empty.mean)
+        def test_mean_single(self):
+            &quot;&quot;&quot;NumberList.mean() should return item if only 1 item in list&quot;&quot;&quot;
+            for single in (self.Single, self.Zero):
+                self.assertEqual(single.mean(), single[0])
+        # other tests of mean
+        def test_var_failures(self):
+            &quot;&quot;&quot;NumberList.var() should raise ZeroDivisionError if &lt;2 items&quot;&quot;&quot;
+            for small in (self.Null, self.Empty, self.Single, self.Zero):
+                self.assertRaises(ZeroDivisionError, small.var)
+        # other tests of var
+        # tests of other methods
+
+class FrequencyDistributionTests(TestCase):
+    pass    # much code deleted
+# tests of other classes
+
+if __name__ == '__main__':    # run tests if called from command-line
+    main()
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+A Sequence with a couple of exons on it
+
+    >>> from cogent import DNA
+    >>> from cogent.core.annotation import Feature
+    >>> s = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+    ... Name="Orig")
+    >>> exon1 = s.addAnnotation(Feature, 'exon', 'fred', [(10,15)])
+    >>> exon2 = s.addAnnotation(Feature, 'exon', 'trev', [(30,40)])
+
+The corresponding sequence can be extracted either with slice notation
+or by asking the feature to do it, since the feature knows what sequence it
+belongs to.
+
+    >>> s[exon1]
+    DnaSequence(CCCCC)
+    >>> exon1.getSlice()
+    DnaSequence(CCCCC)
+
+Usually the only way to get a Feature object like exon1 is to ask the sequence
+for it.  There is one method for querying annotations by type and optionally by
+label:
+
+    >>> exons = s.getAnnotationsMatching('exon')
+    >>> print exons
+    [exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]
+
+To construct a pseudo-feature covering (or excluding) multiple features,  use
+getRegionCoveringAll:
+
+    >>> print s.getRegionCoveringAll(exons)
+    region "exon" at [10:15, 30:40]/48
+    >>> print s.getRegionCoveringAll(exons).getShadow()
+    region "not exon" at [0:10, 15:30, 40:48]/48
+
+eg: all the exon sequence:
+
+    >>> s.getRegionCoveringAll(exons).getSlice()
+    DnaSequence(CCCCCTT... 15)
+
+or with slice notation:
+    
+    >>> s[exon1, exon2]
+    DnaSequence(CCCCCTT... 15)
+
+Though .getRegionCoveringAll also guarantees no overlaps within the result,
+slicing does not:
+
+    >>> print s.getRegionCoveringAll(exons+exons)
+    region "exon" at [10:15, 30:40]/48
+
+    >>> s[exon1, exon1, exon1, exon1, exon1]
+    Traceback (most recent call last):
+    ValueError: Uninvertable. Overlap: 10 < 15
+
+You can use features, maps, slices or integers, but non-monotonic slices are
+not allowed:
+
+    >>> s[15:20, 5:16]
+    Traceback (most recent call last):
+    ValueError: Uninvertable. Overlap: 15 < 16
+
+Features are themselves sliceable:
+
+    >>> exon1[0:3].getSlice()
+    DnaSequence(CCC)
+
+When sequences are concatenated they keep their (non-overlapping) annotations:
+    
+    >>> c = s[exon1[4:]]+s
+    >>> print len(c)
+    49
+    >>> for feat in  c.annotations:
+    ...     print feat
+    ...
+    exon "fred" at [-4-, 0:1]/49
+    exon "fred" at [11:16]/49
+    exon "trev" at [31:41]/49
+
+Since features know their parents you can't use a feature from one sequence to
+slice another:
+    
+    >>> print c[exon1]
+    Traceback (most recent call last):
+    ValueError: Can't map exon "fred" at [10:15]/48 onto ...
+
+Features are generally attached to the thing they annotate, but in those
+cases where a free-floating feature is created it can later be attached:
+
+    >>> len(s.annotations)
+    2
+    >>> region = s.getRegionCoveringAll(exons)
+    >>> len(s.annotations)
+    2
+    >>> region.attach()
+    >>> len(s.annotations)
+    3
+    >>> region.detach()
+    >>> len(s.annotations)
+    2
+
+Sequence features can be accessed via a containing Alignment:
+
+    >>> from cogent import LoadSeqs
+    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
+    >>> print aln
+    >y
+    TTTT--TTTT
+    >x
+    -AAAAAAAAA
+    <BLANKLINE>
+    >>> exon = aln.getSeq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
+    >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
+    >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
+
+But these will be returned as _alignment_ features with locations in 
+alignment coordinates.
+
+    >>> print exon
+    exon "fred" at [3:8]/9
+    >>> print aln_exons[0]
+    exon "fred" at [4:9]/10
+    >>> print aln_exons[0].getSlice()
+    >y
+    --TTT
+    >x
+    AAAAA
+    <BLANKLINE>
+    >>> aln_exons[0].attach()
+    >>> len(aln.annotations)
+    1
+
+Similarly alignment features can be projected onto the aligned sequences, where they may end up falling across gaps:
+
+    >>> exons = aln.getProjectedAnnotations('y', 'exon') 
+    >>> print exons 
+    [exon "fred" at [-2-, 4:7]/8]
+    >>> print aln.getSeq('y')[exons[0].map.withoutGaps()]
+    TTT
+
+We copy the annotations from another sequence.
+
+    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
+    >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
+    >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
+    >>> exon = aln.getSeq('x').copyAnnotations(s)
+    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> print aln_exons
+    [exon "fred" at [4:9]/10]
+
+We consider cases where there are terminal gaps.
+
+    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'------TTTT'})
+    >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> print aln_exons
+    [exon "fred" at [4:9]/10]
+    >>> print aln_exons[0].getSlice()
+    >y
+    --TTT
+    >x
+    AAAAA
+    <BLANKLINE>
+    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--T---'})
+    >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> print aln_exons[0].getSlice()
+    >y
+    --T--
+    >x
+    AAAAA
+    <BLANKLINE>
+
+In this case, only those residues included within the feature are covered - note the omission of the T in ``y`` opposite the gap in ``x``.
+
+    >>> aln = LoadSeqs(data={'x':'C-CCCAAAAA', 'y':'-T----TTTT'})
+    >>> print aln
+    >y
+    -T----TTTT
+    >x
+    C-CCCAAAAA
+    <BLANKLINE>
+    >>> exon = aln.getSeq('x').addFeature('exon', 'ex1', [(0,4)])
+    >>> print exon
+    exon "ex1" at [0:4]/9
+    >>> print exon.getSlice()
+    CCCC
+    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> print aln_exons
+    [exon "ex1" at [0:1, 2:5]/10]
+    >>> print aln_exons[0].getSlice()
+    >y
+    ----
+    >x
+    CCCC
+    <BLANKLINE>
+
+
+Feature.asOneSpan(), is applied to the exon that straddles the gap in ``x``. The result is we preserve that feature.
+
+    >>> print aln_exons[0].asOneSpan().getSlice()
+    >y
+    -T---
+    >x
+    C-CCC
+    <BLANKLINE>
+
+Features can provide their coordinates, useful for custom analyses.
+    
+    >>> all_exons = aln.getRegionCoveringAll(aln_exons)
+    >>> coords = all_exons.getCoordinates()
+    >>> assert coords == [(0,1),(2,5)]
+
+Not documented, Source features.

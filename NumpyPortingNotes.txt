@@ -1,0 +1,6 @@
+These notes are issues that were encountered in switching Cogent from Numeric to Numpy.
+
+- When numpy returns a 1d array but Numeric returns a nd array, this is frequently due to a different default in axis. Resolved typically by setting axis=0.
+- numpy.nonzero returns a tuple, Numeric.nonzero doesn't
+- sum returns a numpy.scalar, not a standard float or int and the scalar has a length so code that relied on a try/except clause for len can fail.
+- different error types can be set using numpy.seterr

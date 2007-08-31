@@ -1,0 +1,105 @@
+----------------------------
+Cogent 1.0.1 - (29/8/2007)
+----------------------------
+
+New Features:
+----------------------------
+
+* Accept FloatingPointError as well as ZeroDivisionError to accommodate numpy.
+
+* Trees can now compare themselves to other trees using a couple of methods.
+Methods:
+
+subsets: compare based on fraction of subsets of labels defined by clades that
+are the same in the two trees.
+
+tip_to_tip: compare based on correlations of tip_to_tip distances.
+
+Both of these are fairly badly behaved statistically, so should always be
+compared to a distribution of values from random (e.g. label-permuted) trees
+using Monte Carlo.
+
+* Added ability to exclude non-shared taxa from subsets tree cmp method.
+
+* Added Zongzhi's combination and permutation implementations to transform.py.
+Also expanded module docstring to be a bit more representative of what's in
+the module. Possible that this module should be split out into separate modules
+dealing with strings, functions, etc.
+
+* Added some docs to UPGMA_cluster.
+
+* Added median in cogent.maths.stats.test
+I added median because the numpy version does not support an axis
+parameter. This function now works like numpy functions
+(sum, mean, etc...) where you can specify axis. This function should
+be safe in place of numpy.median.
+
+Changes:
+----------------------------
+
+* Updated std in cogent.maths.stats.test
+std now takes an axis parameter like numpy functions (sum, mean,etc...).
+I also added in a docstring and tests.
+[NOTE]
+cogent.maths.stats.test import sqrt from numpy instead of math inorder
+to allow std to work on arrays.
+
+* Tree now uses iterative implementation of traverse(). WARNING: READ NOTES!
+TreeNode's traverse() method now uses an iterative implementation of
+traverse(), based on code by Zongzhi. This iterative implementation handles
+even very large trees -- no more stack errors if the recursion depth exceeds
+what Python was compiled against. The results are identical with previous
+versions provided that the tree is not modified while the recursion occurs.
+
+WARNING: If you _do_ modify the tree while using traverse(), you will get
+undesired results. If you need to modify the tree, use traverse_recursive()
+instead. This only applies to the tree topology (e.g. if you are adding or
+deleting nodes, or moving nodes around; doesn't apply if you are changing
+branch lengths, etc.).
+
+The only two uses I found in Cogent where the tree is modified during iteration
+are in rna2d (some of the structure tree operations) and the prune() method.
+I have changed both to use traverse_recursive for now. However, there might
+be issues with other code.
+
+It might be worth figuring out how to make the iterative method do the right
+thing when the tree is modified -- suggestions are welcome provided they do
+not impose substantial performance penalties.
+
+* Changed the required python version to 2.5.1
+There is a difference between 2.5 and 2.5.1 in handling the with statement.
+
+* Changed dev status in setup call
+
+* Dropping comments indicating windows support
+
+Bug Fixes:
+----------------------------
+
+* Fixed important bug in metric_scaling.
+numpy eig() produces eigenvector array that is the transpose of Numeric eig().
+Therefore, any code that does not take this into account will produce results
+that are TOTALLY INCORRECT when fed to downstream analyses.
+
+Coordinates from this module prior to this patch are incorrect and are not
+to be trusted.
+
+* Fixed a typo in dialign test
+
+* tree __repr__ now more robust to non-str Name entries
+
+* seqsim.rangenode traverse now compatible /w base class.
+
+* Fixed line color bug in PR2 bias plots.
+
+* Added method to dump raw coords from dendrogram.
+
+* Fixed called to eigenvector when no pyrex
+
+* Fixed bug in nonrecursive postorder traversal if not root
+
+----------------------------
+Cogent 1.0 - (9/8/2007)
+----------------------------
+
+* Initial release

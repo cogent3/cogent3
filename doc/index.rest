@@ -1,0 +1,64 @@
+=========================
+  Cogent Usage Examples  
+=========================
+
+.. Contents::
+
+############
+ The Readme 
+############
+
+.. include:: ../README
+
+########################################
+ A Note on the Computable Documentation 
+########################################
+
+The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.
+
+###################
+ Data manipulation 
+###################
+
+.. include:: translate_dna.rest
+.. include:: seq_features.rest
+.. include:: reverse_complement.rest
+.. include:: align_codons_to_protein.rest
+
+####################
+ Data Visualisation 
+####################
+
+.. include:: draw_dendrogram.rest
+.. include:: draw_dotplot.rest
+
+#####################
+ Modelling Evolution 
+#####################
+
+.. include:: simple.rest
+.. include:: relative_rate.rest
+.. include:: neutral_test.rest
+.. include:: empirical_protein_models.rest
+.. include:: rate_heterogeneity.rest
+.. include:: testing_multi_loci.rest
+.. include:: reuse_results.rest
+.. include:: unrestricted_nucleotide.rest
+.. include:: simulate_alignment.rest
+.. include:: parametric_bootstrap.rest
+.. include:: estimate_startingpoint.rest
+
+#############################
+ Phylogenetic Reconstruction 
+#############################
+
+.. include:: calculate_pairwise_distances.rest
+.. include:: calculate_neigbourjoining_tree.rest
+.. include:: phylo_by_ls.rest
+.. include:: maketree_from_proteinseqs.rest
+
+##########################
+ Python Coding Guidelines 
+##########################
+
+.. include:: coding_guidelines.rest
