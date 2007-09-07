@@ -715,25 +715,21 @@ class TreeNode(object):
         
         Internal nodes with only one child will be removed and new connections
         will be made to reflect change.
-
-        WARNING: uses traverse_recursive, so may fail on very large trees.
-        TODO: figure out how to modify trees with iterative version of traverse,
-        which currently produces unexpected behavior.
         """
-        #traverse tree
-        for node in self.traverse_recursive(self_after=True,self_before=False):
+        #traverse tree to decide nodes to be removed.
+        nodes_to_remove = []
+        for node in self.traverse():
+            if (node.Parent is not None) and (len(node.Children)==1):
+                nodes_to_remove.append(node)
+        for node in nodes_to_remove:
             #save current parent
             curr_parent=node.Parent
-            #If not at the root
-            if curr_parent is not None:
-                #if current node only has 1 child
-                if len(node.Children) == 1:
-                    #save child
-                    child=node.Children[0]
-                    #remove current node by setting parent to None
-                    node.Parent=None
-                    #Connect child to current node's parent
-                    child.Parent=curr_parent
+            #save child
+            child=node.Children[0]
+            #remove current node by setting parent to None
+            node.Parent=None
+            #Connect child to current node's parent
+            child.Parent=curr_parent
     
     def sameShape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""

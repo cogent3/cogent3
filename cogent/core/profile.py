@@ -3,7 +3,8 @@
 
 Owner: Sandra Smit (Sandra Smit)
 """
-from __future__ import division, with_statement
+from __future__ import division
+from __future__ import with_statement
 from string import maketrans, translate
 
 from numpy import array, sum, transpose, reshape, ones, zeros,\
@@ -206,11 +207,6 @@ class Profile(object):
         try:
             with numpy_err(divide='raise'):
                 new_data = op(self.Data, other.Data)
-            #if do not use numpy_err
-            #new_data = op(self.Data, other.Data)
-            #if not all(isfinite(new_data)):
-            #   raise FloatingPointError()
-            #OverflowError and ZeroDivisionError are for Numeric compatibility
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError, "Can't do operation on input profiles"
         result = Profile(new_data, self.Alphabet, self.CharOrder)
