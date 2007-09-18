@@ -19,7 +19,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-if sys.version_info < (2, 5):
+if sys.version_info < (2, 5, 1):
     py_version = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError("Python-2.5 is required, Python-%s used." % py_version)
 
