@@ -2102,20 +2102,31 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         
         return result
     
-    def filtered(self, predicate):
-        """The alignment positions where predicate(column) is true."""
+    def filtered(self, predicate, motif_length=1, **kwargs):
+        """The alignment positions where predicate(column) is true.
+        
+        Arguments:
+            - predicate: a callback function that takes an tuple of motifs and
+              returns True/False
+            - motif_length: length of the motifs the sequences should be split
+              into, eg. 3 for filtering aligned codons."""
         gv = []
         kept = False
-        seqs = [self.getGappedSeq(n) for n in self.Names]
+        seqs = [self.getGappedSeq(n).getInMotifSize(motif_length,
+                                    **kwargs) for n in self.Names]
+        
         positions = zip(*seqs)
         for (position, column) in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
-                gv.append(position)
+                gv.append(position*motif_length)
                 kept = keep
+        
         if kept:
-            gv.append(position+1)
+            gv.append(len(positions)*motif_length)
+        
         locations = [(gv[i], gv[i+1]) for i in range(0, len(gv), 2)]
+        
         keep = Map(locations, parent_length=len(self))
         return self.gappedByMap(keep)
     

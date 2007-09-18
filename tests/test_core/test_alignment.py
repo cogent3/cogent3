@@ -784,7 +784,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.takePositions([5,4,0], negate=True, \
             seq_constructor=coerce_to_string),
             {'a':'AAAA','b':'--AA','c':'A---'})
-
+    
     def test_getPositionIndices(self):
         """SequenceCollection getPositionIndices should return names of cols where f(col)"""
         gap_1st = lambda x: x[0] == '-'
@@ -829,7 +829,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             negate=True), {'a':'AAAA','b':'AAAA','c':'A---'})
         self.assertEqual(self.gaps.takePositionsIf(gap_3rd, seq_constructor=coerce_to_string,\
             negate=True), {'a':'AA','b':'A-','c':'AA'})
-
+    
     def test_omitGapPositions(self):
         """SequenceCollection omitGapPositions should return alignment w/o positions of gaps"""
         aln = self.end_gaps
@@ -1055,6 +1055,28 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
+    
+    def make_and_filter(self, raw, expected, motif_length):
+        # a simple filter func
+        func = lambda x: re.findall("[-N?]", " ".join(x)) == []
+        aln = self.Class(raw)
+        result = aln.filtered(func,motif_length=motif_length,log_warnings=False)
+        self.assertEqual(result.todict(), expected)
+    
+    def test_filtered(self):
+        """filtered should return new alignment with positions consistent with
+        provided callback function"""
+        # a simple filter option
+        raw = {'a':'ACGACGACG',
+               'b':'CCC---CCC',
+               'c':'AAAA--AAA'}
+        self.make_and_filter(raw, {'a':'ACGACG','b':'CCCCCC','c':'AAAAAA'}, 1)
+        # check with motif_length = 2
+        self.make_and_filter(raw, {'a':'ACAC','b':'CCCC','c':'AAAA'}, 2)
+        # check with motif_length = 3
+        self.make_and_filter(raw, {'a':'ACGACG','b':'CCCCCC','c':'AAAAAA'}, 3)
+        
+    
 
 class DenseAlignmentSpecificTests(TestCase):
     """Tests of the DenseAlignment object and its methods"""

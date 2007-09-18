@@ -648,18 +648,23 @@ class Sequence(_Annotatable, SequenceI):
         for pos in range(0, len(self)-window+1,step):
             yield self[pos:pos+window]
     
-    def getInMotifSize(self, motiflen=1):
+    def getInMotifSize(self, motif_length=1, log_warnings=True):
+        """returns sequence as list of non-overlapping motifs
+        
+        Arguments:
+            - motif_length: length of the motifs
+            - log_warnings: whether to notify of an incomplete terminal motif"""
         seq = self._seq
-        if motiflen == 1:
+        if motif_length == 1:
             return seq
         else:
             length = len(seq)
-            remainder = length % motiflen
-            if remainder:
+            remainder = length % motif_length
+            if remainder and log_warnings:
                 LOG.warning('Dropped remainder "%s" from end of sequence' %
                         seq[-remainder:])
-            return [seq[i:i+motiflen]
-                    for i in range(0, length-remainder, motiflen)]
+            return [seq[i:i+motif_length]
+                    for i in range(0, length-remainder, motif_length)]
     
     def parseOutGaps(self):
         gapless = []
