@@ -793,7 +793,7 @@ class SequenceCollection(object):
         positions = [(loc*motif_length, (loc+1)*motif_length)
                 for loc in locations]
         sample = Map(positions, parent_length=len(self))
-        return self.gappedByMap(sample)
+        return self.gappedByMap(sample, Info=self.Info)
     
     def __add__(self, other):
         """Concatenates sequence data for same names"""
@@ -2045,7 +2045,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             align.append((name, self.NamedSeqs[name][slicemap]))
         return self.__class__(MolType=self.MolType, data=align)
     
-    def gappedByMap(self, keep):
+    def gappedByMap(self, keep, **kwargs):
         # keep is a Map
         seqs = []
         for seq_name in self.Names:
@@ -2053,7 +2053,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqmap = aligned.map[keep]
             seq = aligned.data.gappedByMap(seqmap)
             seqs.append((seq_name, seq))
-        return self.__class__(MolType=self.MolType, data=seqs)
+        return self.__class__(MolType=self.MolType, data=seqs, **kwargs)
     
     def getProjectedAnnotations(self, seq_name, *args):
         aligned = self.NamedSeqs[seq_name]
@@ -2128,7 +2128,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         locations = [(gv[i], gv[i+1]) for i in range(0, len(gv), 2)]
         
         keep = Map(locations, parent_length=len(self))
-        return self.gappedByMap(keep)
+        return self.gappedByMap(keep, Info=self.Info)
     
     def getSeq(self, seqname):
         """Return a ungapped sequence object for the specified seqname.
