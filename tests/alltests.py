@@ -176,6 +176,7 @@ def suite():
             ('raxmlHPC', 'test_raxml'),
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('hybrid-ss-min', 'test_unafold'),
+            ('mlagan', 'test_lagan'),
             ]
     for app, test_name in apps:
         if app_path(app):
