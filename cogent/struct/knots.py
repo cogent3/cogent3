@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 # knots.py
 
-"""Contains code related to RNA secondary structure and pseudoknots.
+"""Contains code related to RNA (secondary) structure and pseudoknots.
 
 Specifically, this module contains several methods to remove pseudoknots
-from RNA structures. Six functions are provided (see documentation of
-each function for a more detailed description):
+from RNA structures. Pseudoknot removal is discussed in the following paper:
 
-nested_majority -- calculates all nested structures that can be reached
-    by breaking the minimum number of base pairs
+S. Smit, K. Rother, J. Heringa, and R. Knight
+Manuscript in preparation.
+
+If you use this code in your work, please cite this publication (in addition
+to the PyCogent publication). If you need to cite the paper before submission,
+please contact the author of this module.
+
+Six functions are provided (see documentation of each function for
+a more detailed description):
+
+opt_all -- optimization approach that calculates all nested structures
+    that optimize some value (e.g. keep the maximum number of base pairs)
 conflict_elimination -- Removes pseudoknots from a structure by eliminating
     conflicting base pairs one by one. Two functions to determine which 
     paired region should be removed next are provided: max_conlficts
@@ -24,8 +33,11 @@ inc_range -- generates a nested structure by adding non-conflicting paired
     towards long-range interactions.
 
 These six functions represent the core objective of this module.
-Two convenience functions supporting the nested_majority function are added:
-single_majority_random, and single_majority_reason
+Two convenience functions supporting the opt_all function are added:
+opt_single_random, and opt_single_property
+There is also a modified version of the original Nussinov-Jacobson
+algorithm present which is restricted to the given list of base pairs:
+nussinov_restricted
 
 In addition, the following supporting objects and functions are present:
 
@@ -64,7 +76,7 @@ remove overlapping base pairs before trying to obtain a nested structure.
 
 from __future__ import division
 from random import choice
-from numpy import sum, average
+from numpy import sum, average, zeros
 from cogent.struct.rna2d import Pairs
 from cogent.util.dict2d import Dict2D
 
@@ -227,6 +239,16 @@ class PairedRegion(object):
             return False
         return True
 
+    def score(self, scoring_function):
+        """Sets self.Score to value of scoring function applies to self
+
+        scoring_function -- function that can be applied to a PairedRegion
+            object and returns a numerical value
+
+        Note: this method has no return value, it sets a property of the 
+            instance.
+        """
+        self.Score = scoring_function(self)
 
 def PairedRegionFromPairs(pairs, Id=None):
     """Return new PairedRegion object from Pairs object
@@ -346,6 +368,23 @@ class PairedRegions(list):
             return sum(map(len, self))
         else:
             return 0
+
+    def totalScore(self):
+        """Return sum of Score values of each PairedRegion in self
+
+        This method simply adds all the Score attributes (!= None)
+            for each PairedRegion in this PairedRegions object.
+        """
+        score = 0
+        for pr in self:
+            try:
+                score += pr.Score
+            except AttributeError:
+                raise ValueError("Score not set for %s"%(str(self)))
+            except TypeError:
+                raise ValueError("Score should be numerical, but is %s"\
+                    %(pr.Score))
+        return score
 
     def toPairs(self):
         """Return Pairs object containing all the pairs in each PairedRegion
@@ -714,6 +753,47 @@ class ConflictMatrix(object):
                 seen[i] = True
         return cliques
 
+# =============================================================================
+# SCORING FUNCTIONS FOR DYNAMIC PROGRAMMING APPROACH
+# =============================================================================
+
+def num_bps(paired_region):
+    """Return number of base pairs (=Length) of paired_region
+    
+    paired_region -- PairedRegion object
+    """
+    return paired_region.Length
+
+def nussinov_energy(seq):
+    """Return function to score a PairedRegion by the Nussinov energy score
+
+    seq -- Sequence object or string
+
+    The Nussinov energy score assigns a score of 3 to a GC base pair
+        and a score of 2 to AU and GU base pairs.
+    """
+    NUSSINOV_SCORE = {('G','C'): 3, ('C','G'): 3,\
+                ('A','U'): 2, ('U','A'): 2,\
+                ('G','U'): 2, ('U','G'): 2}
+
+    def apply_to(paired_region):
+        """Return score of paired_region by the Nussinov energy rules
+        
+        paired_region -- PairedRegion object
+
+        Scores each base pair in the region by giving each GC base pair 3 
+            points and each AU or GU base pair 2 points. Other base pairs
+            are ignored and don't add anything to the overall score.
+        """
+        score = 0
+        for up,down in paired_region.Pairs:
+            seq_pair = (seq[up],seq[down])
+            if seq_pair in NUSSINOV_SCORE:
+                score += NUSSINOV_SCORE[seq_pair]
+            else:
+                continue
+        return score
+    return apply_to
 
 # =============================================================================
 # HELPER FUNCTIONS FOR DYNAMIC PROGRAMMING APPROACH
@@ -739,7 +819,7 @@ def empty_matrix(size):
 
     size -- int, number of rows and columns in the matrix.
 
-    This function is a helper function of nested_majority.
+    This function is a helper function of opt_all.
     Each cell is filled with [PairedRegions()]. This is the initialization
         value needed for a dynamic programming matrix that keeps track
         of all optimal solutions. A solution is a single PairedRegions object.
@@ -753,34 +833,57 @@ def empty_matrix(size):
             result[i].append([PairedRegions()])
     return result
 
-def pick_multi_best(candidates):
-    """Return list of unique solutions of maximum length.
+def pick_multi_best(candidates, goal='max'):
+    """Return list of unique solutions with a maximum/minimum score.
 
     candidates -- list of PairedRegions objects
 
-    This function returns a list of all PairedRegions objects of 
-        maximum length. If the list of candidates is empty,
-        a list containing an empty PairedRegions object is returned.
+    This function returns a list of all PairedRegions objects that
+        have an optimal score (maximum or minimum depending on the goal).
+        If the list of candidates is empty, a list containing an
+        empty PairedRegions object is returned.
     This function is a helper function of dp_matrix_multi.
     """
     if not candidates:
         return [PairedRegions()]
-    all_lengths = [c.totalLength() for c in candidates]
-    best_len = max(all_lengths)
     result = []
+    best_score = None
     seen = {}
     for c in candidates:
         c_ids = tuple(c.sortedIds())
-        if c.totalLength() == best_len and c_ids not in seen:
+        if not c or c_ids in seen:
+            continue
+        this_score = c.totalScore()
+        if best_score is None:
+            best_score = this_score
+            result = [c]
+            seen[c_ids] = True
+        elif this_score == best_score:
             result.append(c)
             seen[c_ids] = True
+        elif goal == 'max' and this_score < best_score:
+            continue
+        elif goal == 'min' and this_score > best_score:
+            continue
+        else:
+            result = [c]
+            seen[c_ids] = True
+            best_score = this_score
+
+    if not result:
+        return [PairedRegions()]
     return result
 
 
-def dp_matrix_multi(paired_regions): 
+def dp_matrix_multi(paired_regions, goal='max', scoring_function=num_bps): 
     """Return dynamic programming matrix with top-right half filled
 
     paired_regions -- PairedRegions object
+    goal -- str, 'max' or 'min', if the goal is 'max' the routine
+        returns the solutions maximizing the score, if the goal
+        is 'min' the solutions with a minimum score are returned.
+    scoring_function -- function that can be applied to a PairedRegion
+        object and that returns a numerical score. 
 
     This function fills a matrix that calculates the optimal solution for the 
         pseudoknot-removal problem by storing optimal solutions for smaller
@@ -826,14 +929,20 @@ def dp_matrix_multi(paired_regions):
             that runs from the lowest start point minus one to the highest
             end point plus one. For each cell (i,k), (k+1,j) merge all 
             possible solutions and add them to the list of candidate-solutions.
-        ** Next, store in cell (i,j) all solutions of maximum length. There
-        might be one solution, or there might be multiple solutions.
+        ** Next, store in cell (i,j) all solutions with an optimal score.
+        There might be one solution, or there might be multiple solutions.
         ** Finish the calculation when the top-right cell in the matrix is
         filled. This cell contains the optimal solutions for the given set
         of paired regions.
     """
+    if goal not in ['max','min']:
+        raise ValueError("goal has to be 'min' or 'max', but is '%s'"%(goal))
     prs = paired_regions
     num_cells = len(prs)*2
+
+    # pre-calculate scores 
+    for pr in prs:
+        pr.score(scoring_function)
 
     # create and initialize matrix
     result = empty_matrix(num_cells)
@@ -898,13 +1007,13 @@ def dp_matrix_multi(paired_regions):
                                         candidates.append(both)
             
             # select all the candidates of maximum length
-            best_candidate = pick_multi_best(candidates)
+            best_candidate = pick_multi_best(candidates, goal=goal)
             result[begin_idx][end_idx] = best_candidate
 
     # return the whole matrix 
     return result
 
-def matrix_solutions(paired_regions):
+def matrix_solutions(paired_regions, goal='max', scoring_function=num_bps):
     """Return the list of solutions in the top-right cell of the DP matrix
 
     paired_regions -- PairedRegions object
@@ -913,14 +1022,16 @@ def matrix_solutions(paired_regions):
         dp_matrix_multi) and returns the list of solutions in the 
         top-right cell.
     """
-    return dp_matrix_multi(paired_regions)[0][-1]
+    return dp_matrix_multi(paired_regions, goal=goal,\
+        scoring_function=scoring_function)[0][-1]
 
 # =============================================================================
 # DYNAMIC PROGRAMMING APPROACH
 # =============================================================================
 
 # DP function used to remove pseudoknots
-def nested_majority(pairs, return_removed=False):
+def opt_all(pairs, return_removed=False, goal='max',\
+    scoring_function=num_bps):
     """Return a list of pseudoknot-free Pairs objects
 
     pairs -- Pairs object or list of tuples. One base can only interact
@@ -928,17 +1039,26 @@ def nested_majority(pairs, return_removed=False):
     return_removed -- boolean, if True a list of tuples of
         (nested pairs, removed pairs) will be returned. 
         Default is False --> list of nested pairs only is returned.
+    goal -- str, 'max' or 'min', if the goal is 'max' the routine
+        returns the solutions maximizing the score, if the goal
+        is 'min' the solutions with a minimum score are returned.
+    scoring_function -- function that can be applied to a PairedRegion
+        object and that returns a numerical score.
 
-    DYNAMIC PROGRAMMING (DP) -- PSEUDOKNOT REMOVAL METHOD
+    OPTIMIZATION, ALL SOLUTIONS (OA) -- PSEUDOKNOT REMOVAL METHOD
 
-    This method will find all nested structures that can be reached by
-        breaking the minimum number of base pairs. Since there might be
-        multiple optimal solutions, the retun value is always a list. If there
-        is only one solution, the list will contain a single element.
+    This method will find all nested structures with an optimal score.
+        Since there might be multiple optimal solutions, the retun value
+        is always a list. If there is only one solution, the list will
+        contain a single element.
     The problem is solved by dynamic programming. For each clique of mutually
         conflicting paired regions a matrix is filled out, and the best
         solutions are added to the result. Non-conflicting regions are part
         of the solution, and don't need to be processed.
+    The user can specify the goal (maximize or minimize) and the scoring
+        function. If one specifies for example goal='max' and 
+        scoring_function=num_bps, the routine finds the nested structures
+        with the maximum number of base pairs.
     See documentation of dp_matrix_multi for recursion rules used in the 
         approach.
     """
@@ -957,7 +1077,8 @@ def nested_majority(pairs, return_removed=False):
     # resolve conflicts, store survivors and removed
     for cl in cliques: 
         new_result = []
-        best = matrix_solutions(cl)
+        best = matrix_solutions(cl, goal=goal,\
+            scoring_function=scoring_function)
         for best_sol in best:
             for prev_res in result:
                 new_result.append(prev_res.merge(best_sol))
@@ -986,31 +1107,47 @@ def nested_majority(pairs, return_removed=False):
 # MAJORITY OF BASE PAIRS -- CONVENIENCE FUNCTIONS
 # =============================================================================
 
-def single_majority_random(pairs, return_removed=False):
-    """Return single pseudoknot-free Pairs object with max number of bps
+def opt_single_random(pairs, return_removed=False, goal='max',\
+    scoring_function=num_bps):
+    """Return single pseudoknot-free Pairs object with an optimal score
 
     pairs -- Pairs object or list of tuples. One base can only interact
         with one other base, otherwise an error will be raised.
     return_removed -- boolean, if True a tuple of (nested pairs, removed pairs)
         will be returned. Default is False --> only nested pairs are returned.
+    goal -- str, 'max' or 'min', if the goal is 'max' the routine
+        returns the solutions maximizing the score, if the goal
+        is 'min' the solutions with a minimum score are returned.
+    scoring_function -- function that can be applied to a PairedRegion
+        object and that returns a numerical score.
 
-    There might be multiple nested structures containing the maximum
-        number of base pairs. This method calculates all of them and returns
-        one at random.
+    There might be multiple nested structures with an optimal score.
+        This method calculates all of them and returns one at random.
+    The user can specify the goal (maximize or minimize) and the scoring
+        function. If one specifies for example goal='max' and 
+        scoring_function=num_bps, the routine finds the nested structures
+        with the maximum number of base pairs.
     """
-    nested_structs = nested_majority(pairs, return_removed)
+    nested_structs = opt_all(pairs, return_removed, goal,\
+        scoring_function)
     return choice(nested_structs)
 
-def single_majority_reason(pairs, return_removed=False, choose_random=False):
+def opt_single_property(pairs, return_removed=False, goal='max',\
+    scoring_function=num_bps):
     """Return single pseudoknot-free Pairs object with max number of bps
 
     pairs -- Pairs object or list of tuples. One base can only interact
         with one other base, otherwise an error will be raised.
     return_removed -- boolean, if True a tuple of (nested pairs, removed pairs)
         will be returned. Default is False --> only nested pairs are returned.
+    goal -- str, 'max' or 'min', if the goal is 'max' the routine
+        returns the solutions maximizing the score, if the goal
+        is 'min' the solutions with a minimum score are returned.
+    scoring_function -- function that can be applied to a PairedRegion
+        object and that returns a numerical score.
 
-    There might be multiple nested structures containing the maximum
-        number of base pairs. This method calculates all of them and
+    There might be multiple nested structures with an optimal score.
+        This method calculates all of them and
         returns the best by examining some properties. The first criterion
         is the number of paired regions in the returned structure, the
         second is the average range of the regions, the third is the 
@@ -1018,8 +1155,13 @@ def single_majority_reason(pairs, return_removed=False, choose_random=False):
         with the minimum value for these three properties. If all properties
         are the same for multiple structures, an error is raises. I believe
         this can't happen, but if it does the behavior can be changed.
+    The user can specify the goal (maximize or minimize) and the scoring
+        function. If one specifies for example goal='max' and 
+        scoring_function=num_bps, the routine finds the nested structures
+        with the maximum number of base pairs.
     """
-    nested_structs = nested_majority(pairs, return_removed)
+    nested_structs = opt_all(pairs, return_removed, goal,\
+        scoring_function)
     lookup = {}
     if return_removed:
         for p, p_rem in nested_structs:
@@ -1048,7 +1190,6 @@ def single_majority_reason(pairs, return_removed=False, choose_random=False):
     else:
         # believe this can never happen, but just to be sure...
         raise ValueError("Multiple solutions found with equal properties")
-
 
 
 # =============================================================================
@@ -1425,6 +1566,100 @@ def inc_range(pairs, reversed=False, return_removed=False):
         removed.sort()
         return result.toPairs(), removed
     return result.toPairs()
+
+# =============================================================================
+# NUSSINOV RESTRICTED
+# =============================================================================
+
+def nussinov_fill(pairs, size):
+    """Return filled dynamic programming search matrix with number of base pairs
+
+    pairs -- Pairs object or list of tuples, should be directed (up,down)
+    size -- int, number of rows and columns in the matrix (should be
+        at least as much as the highest base paired position)
+
+    Applies Nussinov-Jacobson algorithm restricted to input list of pairs.
+    This function records the number of base pairs in the optimal
+        (sub)solution.
+    """
+    bp_dict = dict.fromkeys(pairs)
+    m = zeros((size, size), int)
+    for j in range(size):
+        for i in range(j-1,-1,-1):
+            options = []
+            options.append(m[i+1,j]) # i unpaired
+            options.append(m[i,j-1]) # j unpaired
+            if (i,j) in bp_dict: # i and j form a pair
+                options.append(m[i+1,j-1] + 1)
+            for k in range(i+1,j-1): # bifurcation
+                options.append(m[i,k] + m[k+1,j])
+            m[i,j] = max(options)
+    return m
+
+def nussinov_traceback(m, i, j, pairs):
+    """Return set of base pairs: nested structure with max number of pairs
+
+    m -- filled DP search matrix
+    i -- int, row coordinate where traceback should start, normally 0
+    j -- int, column coordinate where traceback should start, normally length-1
+    pairs -- Pairs object of list of tuples, should be directed (up, down),
+        expect the same list as at the fill stage.
+
+    Traceback procedure of the Nussinov-Jacobson algorithm that returns
+        a single solution containing the maximum number of base pairs.
+    """
+    bp_dict = dict.fromkeys(pairs)
+    if m[i,j] == 0: #or if i>=j:
+        return set()
+    if (i,j) in bp_dict and m[i+1,j-1] + 1 == m[i,j]:
+        return set([(i,j)]) | nussinov_traceback(m, i+1, j-1, pairs)
+    for k in range(i,j):
+        if m[i,j] == m[i,k] + m[k+1,j]:
+            return nussinov_traceback(m,i,k,pairs) | \
+                nussinov_traceback(m,k+1,j,pairs)
+
+def nussinov_restricted(pairs, return_removed=False):
+    """Return nested Pairs object containing the maximum number of pairs
+
+    pairs -- Pairs object or list of tuples [(1,10),(2,9),...]. List
+        of base pairs has to be conflict-free (one base can only
+        pair with one other base)
+    return_removed -- boolean, if True a list of tuples of
+        (nested pairs, removed pairs) will be returned. 
+        Default is False --> list of nested pairs only is returned.
+
+    This function is a modification of the original Nussinov-Jacobson
+        algorithm, restricted to the given list of base pairs.
+        It calculated a nested structure containing the maximum
+        number of base pairs.
+
+    NOTE: This function is very slow. If have have many base pairs in 
+        the list, the size of the matrix grows quickly. We recoomend using
+        the opt_all (OA) function for larger problems.
+    """
+    # pairs have to be conflict-free, directed, and sorted
+    p = Pairs(pairs)
+    if p.hasConflicts():
+        raise ValueError("Cannot handle base pair conflicts")
+    p = p.directed()
+    p.sort()
+    if not p.hasPseudoknots():
+        nested = p  # if not Pseudoknots: return structure
+    else:
+        all_items = [x for x,y in p] + [y for x,y in p]
+        max_idx = max(filter(None, all_items))+1
+        m = nussinov_fill(p, size=max_idx)
+        nested = nussinov_traceback(m, 0, max_idx-1, p)
+        nested = Pairs(list(nested))
+        nested.sort()
+    if return_removed:
+        removed = Pairs([])
+        for bp in p:
+            if bp not in nested:
+                removed.append(bp)
+        return nested, removed
+    else:
+        return nested
 
 
 

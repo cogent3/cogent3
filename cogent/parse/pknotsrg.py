@@ -9,7 +9,7 @@ with {} brackets
 from string                import strip,split,atof
 from cogent.util.transform import make_trans
 from cogent.struct.rna2d   import Pairs,ViennaStructure
-from cogent.struct.knots   import single_majority_random
+from cogent.struct.knots   import opt_single_random
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -35,7 +35,7 @@ def pknotsrg_parser(lines=None,pseudo=True):
     tmp_pairs,energy = to_pairs(struct)
     tmp_pairs.sort()
     if not pseudo:
-        tmp_pairs = single_majority_random(tmp_pairs)
+        tmp_pairs = opt_single_random(tmp_pairs)
         tmp_pairs.sort()
     result.append([seq,tmp_pairs,energy])
     return result

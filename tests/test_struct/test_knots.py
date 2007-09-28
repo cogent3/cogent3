@@ -10,12 +10,14 @@ from cogent.util.dict2d import Dict2D
 from cogent.struct.rna2d import Pairs
 from cogent.struct.knots import PairedRegion, PairedRegionFromPairs,\
     PairedRegions, PairedRegionsFromPairs, ConflictMatrix,\
-    nested_majority, contains_true, empty_matrix,\
+    opt_all, contains_true, empty_matrix,\
     pick_multi_best, dp_matrix_multi, matrix_solutions,\
-    single_majority_random, single_majority_reason,\
+    opt_single_random, opt_single_property,\
     inc_order, inc_length, inc_range,\
     find_max_conflicts, find_min_gain,\
-    conflict_elimination, add_back_non_conflicting
+    conflict_elimination, add_back_non_conflicting,\
+    num_bps, nussinov_energy,\
+    nussinov_fill, nussinov_traceback, nussinov_restricted
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -156,6 +158,16 @@ class PairedRegionTests(TestCase):
         self.assertEqual(bl1.conflicting(bl2), True) # pseudoknot
         self.assertEqual(bl2.conflicting(bl1), True) # pseudoknot
 
+    def test_score(self):
+        """PairedRegion score: should take arbitrary scoring function"""
+        f = lambda x: x.Length # scoring function
+        bl1 = PairedRegion(2,10,3)
+        bl2 = PairedRegion(12,30,4)
+        bl1.score(f) # set Score attribute for bl1
+        bl2.score(f) # set Score attribute for bl2
+        self.assertEqual(bl1.Score, 3)
+        self.assertEqual(bl2.Score, 4)
+
     def test_PairedRegionFromPairs(self):
         """PairedRegionFromPairs: should handle valid input"""
         p = Pairs([(3,10),(4,9),(5,8)])
@@ -289,6 +301,28 @@ class PairedRegionsTests(TestCase):
         self.assertEqual(prs1.totalLength(), 6)
         
         self.assertEqual(PairedRegions().totalLength(), 0)
+
+    def test_totalScore(self):
+        """PairedRegions totalScore: full, empty, None"""
+        pr1 = PairedRegion(2,10,2)
+        pr1.Score = 3
+        pr2 = PairedRegion(11,20,4)
+        pr2.Score = 2
+        pr3 = PairedRegion(11,20,4)
+        pr3.Score = None
+        pr4 = PairedRegion(11,20,4)
+        pr4.Score = "abc"
+        pr5 = PairedRegion(11,20,4)
+        
+        prs1 = PairedRegions([pr1,pr2])
+        prs2 = PairedRegions([pr1,pr3])
+        prs3 = PairedRegions([pr1,pr4])
+        prs4 = PairedRegions([pr1,pr5])
+        
+        self.assertEqual(prs1.totalScore(), 5)
+        self.assertRaises(ValueError, prs2.totalScore)
+        self.assertRaises(ValueError, prs3.totalScore)
+        self.assertRaises(ValueError, prs4.totalScore)
 
     def test_toPairs(self):
         """PairedRegions toPairs: good data"""
@@ -651,8 +685,24 @@ class ConflictMatrixTests(TestCase):
     
     
 class DPTests(TestCase):
-    """Tests for nested_majority and related functions"""
+    """Tests for opt_all and related functions"""
 
+    def test_num_bps(self):
+        """num_bps: should return length of paired region"""
+        f = num_bps
+        pr1 = PairedRegion(0,10,3)
+        self.assertEqual(f(pr1), 3)
+
+    def test_nussinov_energy(self):
+        """nussinov_energy: score GC, AU, and GU base pairs"""
+        f = nussinov_energy('UACGAAAUGCGUG')
+        pr1 = PairedRegion(0,12,5)
+        self.assertEqual(f(pr1),10)
+
+        f = nussinov_energy('UACGAAA') # sequence too short
+        pr1 = PairedRegion(0,12,5)
+        self.assertRaises(IndexError, f, pr1)
+    
     def test_contains_true(self):
         """contains_true: should return True if True in input"""
         f = contains_true
@@ -676,18 +726,37 @@ class DPTests(TestCase):
 
         self.assertRaises(ValueError, f, 0)
 
-    def test_pick_multi_best(self):
-        """pick_multi_best: full and empty list"""
+    def test_pick_multi_best_max(self):
+        """pick_multi_best: max, full and empty list"""
         pr1 = PairedRegion(2,10,2)
         pr2 = PairedRegion(4,15,3)
         pr3 = PairedRegion(20,40,5)
         pr4 = PairedRegion(22,30,3)
+        for i in [pr1,pr2,pr3,pr4]:
+            i.score(num_bps)
         prs1 = PairedRegions([pr1, pr2])
         prs2 = PairedRegions([pr3])
         prs3 = PairedRegions([pr4])
         self.assertEqual(pick_multi_best([prs1, prs2, prs3]), [prs1, prs2])
 
         self.assertEqual(pick_multi_best([]), [PairedRegions()])
+
+    def test_pick_multi_best_min(self):
+        """pick_multi_best: min, full and empty list"""
+        f = lambda x: -1
+        pr1 = PairedRegion(2,10,2)
+        pr2 = PairedRegion(4,15,3)
+        pr3 = PairedRegion(20,40,5)
+        pr4 = PairedRegion(22,30,3)
+        for i in [pr1,pr2,pr3,pr4]:
+            i.score(f)
+        prs1 = PairedRegions([pr1, pr2])
+        prs2 = PairedRegions([pr3])
+        prs3 = PairedRegions([pr4])
+        self.assertEqual(pick_multi_best([prs1, prs2, prs3], goal='min'),\
+            [prs1])
+
+        self.assertEqual(pick_multi_best([], goal='min'), [PairedRegions()])
 
     def test_dp_matrix_multi_toy(self):
         """dp_matrix_multi: test on initial toy example"""
@@ -772,69 +841,102 @@ class DPTests(TestCase):
         obs = matrix_solutions(prs)
         self.assertEqual(obs, [prs])
 
-    def test_nested_majority_nested(self):
-        """nested_majority: should return input when already nested"""
+    def test_opt_all_nested(self):
+        """opt_all: should return input when already nested"""
         p = Pairs([(1,10),(2,9),(20,30),(22,29)])
-        obs = nested_majority(p)
+        obs = opt_all(p)
         self.assertEqual(len(obs),1)
         self.assertEqual(obs[0], p)
 
         p = Pairs()
-        self.assertEqual(nested_majority(p), [[]])
+        self.assertEqual(opt_all(p), [[]])
 
-    def test_nested_majority_overlap(self):
-        """nested_majority: should raise error on overlapping pairs"""
+    def test_opt_all_overlap(self):
+        """opt_all: should raise error on overlapping pairs"""
         p = Pairs([(1,10),(2,9),(9,30),(22,29),(1,None)])
-        self.assertRaises(ValueError, nested_majority, p)
+        self.assertRaises(ValueError, opt_all, p)
 
-    def test_nested_majority_knot(self):
-        """nested_majority: single/multiple solution(s)"""
+    def test_opt_all_knot(self):
+        """opt_all: single/multiple solution(s)"""
         p = Pairs([(1,10),(2,9),(3,15),(4,14),(11,20),(12,19),(25,30)])
-        obs = nested_majority(p)
+        obs = opt_all(p)
         exp = Pairs([(1,10),(2,9),(11,20),(12,19),(25,30)])
         exp_rem = [(3,15),(4,14)]
         self.assertEqual(len(obs), 1)
         self.assertEqual(obs[0], exp)
-        self.assertEqual(nested_majority(p, return_removed=True)[0][1],\
+        self.assertEqual(opt_all(p, return_removed=True)[0][1],\
             exp_rem)
         
         p = Pairs([(1,10),(2,9),(4,14),(3,15)])
-        obs = nested_majority(p)
+        obs = opt_all(p)
         self.assertEqual(len(obs), 2)
         self.assertEqualItems(obs, [Pairs([(1,10),(2,9)]),\
             Pairs([(3,15),(4,14)])])
         exp_rem = [(Pairs([(1,10),(2,9)]),Pairs([(3,15),(4,14)])),\
             (Pairs([(3,15),(4,14)]),Pairs([(1,10),(2,9)]))]
-        self.assertEqualItems(nested_majority(p, return_removed=True),\
+        self.assertEqualItems(opt_all(p, return_removed=True),\
             exp_rem)
 
-    def test_nested_majority_some_non_conflicting(self):
-        """nested_majority: some conflicting, other not"""
+    def test_opt_all_some_non_conflicting(self):
+        """opt_all: some conflicting, other not"""
         p = Pairs([(30,40),(10,20),(12,17),(13,None),(17,12),(35,45),(36,44)])
         exp = Pairs([(10,20),(12,17),(35,45),(36,44)])
         exp_rem = [(30,40)]
-        self.assertEqual(nested_majority(p, return_removed=True),\
+        self.assertEqual(opt_all(p, return_removed=True),\
             [(exp,exp_rem)])
 
-    def test_single_majority_random(self):
-        """single_majority_random: should return single solution"""
+    def test_opt_all_scoring1(self):
+        """opt_all: one optimal in bps, both optimal in energy"""
+        p = Pairs([(1,10),(2,9),(4,15),(5,14),(6,13)])
+        obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
+        obs_energy = opt_all(p, goal='max',\
+            scoring_function=nussinov_energy('CCCAAAUGGGGUCGUUC'))
+        exp_bps = [[(4,15),(5,14),(6,13)]]
+        exp_energy = [[(1,10),(2,9)],[(4,15),(5,14),(6,13)]]
+        self.assertEqualItems(obs_bps, exp_bps)
+        self.assertEqualItems(obs_energy, exp_energy)
+
+    def test_opt_all_scoring2(self):
+        """opt_all: both optimal in bps, one optimal in energy"""
+        p = Pairs([(0,9),(1,8),(2,7),(3,13),(4,12),(5,11)])
+        obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
+        obs_energy = opt_all(p, goal='max',\
+            scoring_function=nussinov_energy('CCCAAAAGGGUUUU'))
+        exp_bps = [[(0,9),(1,8),(2,7)],[(3,13),(4,12),(5,11)]]
+        exp_energy = [[(0,9),(1,8),(2,7)]]
+        self.assertEqualItems(obs_bps, exp_bps)
+        self.assertEqualItems(obs_energy, exp_energy)
+
+    def test_opt_all_scoring3(self):
+        """opt_all: one optimal in bps, the other optimal in energy"""
+        p = Pairs([(0,11),(1,10),(2,9),(4,15),(5,14),(6,13),(7,12)])
+        obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
+        obs_energy = opt_all(p, goal='max',\
+            scoring_function=nussinov_energy('CCCCAAAAGGGGUUUU'))
+        exp_bps = [[(4,15),(5,14),(6,13),(7,12)]]
+        exp_energy = [[(0,11),(1,10),(2,9)]]
+        self.assertEqualItems(obs_bps, exp_bps)
+        self.assertEqualItems(obs_energy, exp_energy)
+    
+    def test_opt_single_random(self):
+        """opt_single_random: should return single solution"""
         p = Pairs ([(10,20),(11,19),(15,25),(16,24)])
         exp1, exp_rem1 = [(10,20),(11,19)], [(15,25),(16,24)]
         exp2, exp_rem2 = [(15,25),(16,24)], [(10,20),(11,19)]
-        obs = single_majority_random(p)
+        obs = opt_single_random(p)
         self.failUnless(obs == exp1 or obs == exp2)
-        obs = single_majority_random(p, return_removed=True)
+        obs = opt_single_random(p, return_removed=True)
         self.failUnless(obs == (exp1, exp_rem1) or obs == (exp2, exp_rem2))
            
-    def test_single_majority_reason(self):
-        """single_majority_reason: three properties"""
+    def test_opt_single_property(self):
+        """opt_single_property: three properties"""
         # one solution single region, other solution two regions
         p = Pairs ([(10,20),(25,35),(26,34),(27,33),\
             (12,31),(13,30),(14,29),(15,28)])
         exp = [(12,31),(13,30),(14,29),(15,28)]
         exp_rem = [(10,20),(25,35),(26,34),(27,33)]
-        self.assertEqual(single_majority_reason(p), exp)
-        self.assertEqual(single_majority_reason(p, return_removed=True),\
+        self.assertEqual(opt_single_property(p), exp)
+        self.assertEqual(opt_single_property(p, return_removed=True),\
             (exp,exp_rem))
 
         # both two blocks, one shorter average range
@@ -842,16 +944,16 @@ class DPTests(TestCase):
             (17,26),(18,25),(36,43),(37,42)])
         exp = [(17,26),(18,25),(36,43),(37,42)]
         exp_rem = [(10,20),(22,40),(23,39),(24,38)]
-        self.assertEqual(single_majority_reason(p), exp)
-        self.assertEqual(single_majority_reason(p, return_removed=True),\
+        self.assertEqual(opt_single_property(p), exp)
+        self.assertEqual(opt_single_property(p, return_removed=True),\
             (exp,exp_rem))
 
         # both single block over same range, pick lowest start
         p = Pairs([(10,20),(15,25)])
         exp = [(10,20)]
         exp_rem = [(15,25)]
-        self.assertEqual(single_majority_reason(p), exp)
-        self.assertEqual(single_majority_reason(p, return_removed=True),\
+        self.assertEqual(opt_single_property(p), exp)
+        self.assertEqual(opt_single_property(p, return_removed=True),\
             (exp,exp_rem))
 
 class EliminationMethodsTests(TestCase):
@@ -1202,6 +1304,64 @@ class IncrementalMethodsTests(TestCase):
         p = [(1,10),(4,7),(2,9),(5,None)]
         exp = [(1,10),(2,9),(4,7)]
         self.assertEqual(f(p), exp)
+
+class NussinovTests(TestCase):
+    """Tests for restricted nussinov algorithm and related functions"""
+
+    def test_nussinov_fill(self):
+        """nussinov_fill: basic test"""
+        p = Pairs([(0,7),(1,6),(2,5),(3,9),(4,8)])
+        exp = [[0,0,0,0,0,1,2,3,3,3],
+                [0,0,0,0,0,1,2,2,2,2],
+                [0,0,0,0,0,1,1,1,1,2],
+                [0,0,0,0,0,0,0,0,1,2],
+                [0,0,0,0,0,0,0,0,1,1,],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0]]
+        obs = nussinov_fill(p,size=10)
+        self.assertEqual(obs, exp)
+
+    def test_nussinov_traceback(self):
+        """nussinov_traceback: basic test"""
+        p = Pairs([(0,7),(1,6),(2,5),(3,9),(4,8)])
+        m = nussinov_fill(p,size=10)
+        exp = set([(0,7),(1,6),(2,5)])
+        obs = nussinov_traceback(m, 0, 9, p)
+        self.assertEqual(obs, exp)
+
+    def test_nussinov_restricted(self):
+        """nussinov_restricted: basic test"""
+        p = Pairs([(0,7),(1,6),(2,5),(3,9),(4,8)])
+        obs = nussinov_restricted(p)
+        obs_rem = nussinov_restricted(p, return_removed=True)
+        exp = [(0,7),(1,6),(2,5)]
+        exp_rem = ([(0,7),(1,6),(2,5)],[(3,9),(4,8)])
+        self.assertEqual(obs, exp)
+        self.assertEqual(obs_rem, exp_rem)
+        
+        p = Pairs([(0,7),(1,6),(2,6)])
+        self.assertRaises(ValueError, nussinov_restricted, p)
+
+        p = Pairs([(0,7),(1,6),(2,5)])
+        exp = Pairs([(0,7),(1,6),(2,5)])
+        self.assertEqual(nussinov_restricted(p), exp)
+
+    def test_nussinov_restricted_bi(self):
+        """nussinov_restricted: include bifurcation"""
+        p = Pairs([(0,7),(1,6),(2,14),(3,13),(4,12),(5,11),\
+            (8,17),(9,16),(10,15)])
+        obs = nussinov_restricted(p)
+        obs_rem = nussinov_restricted(p, return_removed=True)
+        exp = [(0,7),(1,6),(8,17),(9,16),(10,15)]
+        exp_rem = ([(0,7),(1,6),(8,17),(9,16),(10,15)],\
+            [(2,14),(3,13),(4,12),(5,11)])
+        self.assertEqual(obs, exp)
+        self.assertEqual(obs_rem, exp_rem)
+
+
 
 if __name__ == "__main__":
     main()

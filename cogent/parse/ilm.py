@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from cogent.struct.rna2d      import Pairs
-from cogent.struct.knots      import single_majority_random
+from cogent.struct.knots      import opt_single_random
 from cogent.struct.pairs_util import adjust_base
 
 __author__ = "Shandy Wikman"
@@ -35,7 +35,7 @@ def ilm_parser(lines=None,pseudo=True):
     tmp = Pairs(pairs).directed()
     tmp.sort()
     if not pseudo:
-        tmp = single_majority_random(tmp)
+        tmp = opt_single_random(tmp)
         tmp.sort()
     result = []
     result.append(tmp)

@@ -33,7 +33,7 @@ Numbering is 1-based!
 from __future__ import division
 from string import strip
 from cogent.struct.rna2d import Vienna, Pairs
-from cogent.struct.knots import single_majority_random
+from cogent.struct.knots import opt_single_random
 from cogent.core.info import Info
 from cogent.core.sequence import RnaSequence
 
@@ -234,7 +234,7 @@ def BpseqParser(lines, num_base=1, unpaired_symbol='0'):
 
 def bpseq_specify_output(lines, num_base=1, unpaired_symbol='0',
     return_vienna=False, remove_pseudo=False,\
-    pseudoknot_function=single_majority_random):
+    pseudoknot_function=opt_single_random):
     """Return Vienna structure of Pairs object with or without pseudoknots
     
     lines -- filestream of bpseq file. File should contain a single record.
@@ -253,12 +253,13 @@ def bpseq_specify_output(lines, num_base=1, unpaired_symbol='0',
     pseudoknot_function -- function that takes a Pairs object as input and
         returns a nested version of the structure. The function should return
         a single nested structure, not a list of structures. Default is 
-        single_majority_random, which retuns a single nested structure (it picks
+        opt_single_random, which retuns a single nested structure (it picks
         one at random in case of multiple structures with the maximum number of 
         base pairs). This default is chosen to assure the code always returns
-        something. In case the experiment needs to be reproducible, a random choice
-        isn't the best one to make, and one should use a different pseudoknot
-        removal function. See struct/knots.py for documentation.
+        something. In case the experiment needs to be reproducible,
+        a random choice isn't the best one to make, and one should
+        use a different pseudoknot removal function. See struct/knots.py
+        for documentation.
     """
     seq, pairs = BpseqParser(lines, num_base, unpaired_symbol)
 

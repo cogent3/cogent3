@@ -3,7 +3,7 @@
 from string                import strip,split,atof
 from cogent.util.transform import make_trans
 from cogent.struct.rna2d   import Pairs,ViennaStructure
-from cogent.struct.knots   import single_majority_random
+from cogent.struct.knots   import opt_single_random
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -74,7 +74,7 @@ def to_pairs(list=None,pseudo=True):
         pairs.sort()
 
         if not pseudo:
-            pairs = single_majority_random(pairs)
+            pairs = opt_single_random(pairs)
             pairs.sort()
     else:
         structure = ViennaStructure(tmp.translate(curly_to_bracket_table))

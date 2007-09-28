@@ -11,7 +11,7 @@ will be reported as the most common.
 """
 from cogent.util.transform import make_trans
 from cogent.struct.rna2d   import Pairs
-from cogent.struct.knots   import single_majority_random
+from cogent.struct.knots   import opt_single_random
 from string                import index
 
 __author__ = "Shandy Wikman"
@@ -47,7 +47,7 @@ def comRNA_parser(lines=None,pseudo=True,first=False):
     if not pseudo:
         tmp = []
         for block in result:
-            tmp.append([block[0],single_majority_random(block[-1])])
+            tmp.append([block[0],opt_single_random(block[-1])])
         result = tmp
     return result
 
