@@ -132,7 +132,7 @@ class MetricScalingTests(TestCase):
         f = make_F_matrix(e)
         eigvals, eigvecs = run_eig(f)
         principal_coords = get_principal_coordinates(eigvals, eigvecs)
-        self.assertFloatEqual(principal_coords, \
+        self.assertFloatEqualAbs(principal_coords, \
             array([[  5.69047493e-09,   5.69047493e-09,   5.69047493e-09,
           5.69047493e-09,   5.69047493e-09,   5.69047493e-09],
        [  2.83986686e-01,  -1.87103662e-01,  -5.02155335e-02,
