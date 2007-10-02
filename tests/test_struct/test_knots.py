@@ -462,9 +462,9 @@ class PairedRegionsTests(TestCase):
 
     def test_merge(self):
         """PairedRegions merge: different, duplicates, empty"""
-        pr1 = PairedRegion(3,10,2)
-        pr2 = PairedRegion(11,20,3)
-        pr3 = PairedRegion(15,25,1)
+        pr1 = PairedRegion(3,10,2, Id='A')
+        pr2 = PairedRegion(11,20,3, Id='B')
+        pr3 = PairedRegion(15,25,1, Id='C')
         prs1 = PairedRegions([pr1, pr2])
         prs2 = PairedRegions([pr1, pr3])
         prs3 = PairedRegions()
@@ -728,16 +728,16 @@ class DPTests(TestCase):
 
     def test_pick_multi_best_max(self):
         """pick_multi_best: max, full and empty list"""
-        pr1 = PairedRegion(2,10,2)
-        pr2 = PairedRegion(4,15,3)
-        pr3 = PairedRegion(20,40,5)
-        pr4 = PairedRegion(22,30,3)
+        pr1 = PairedRegion(2,10,2, Id='A')
+        pr2 = PairedRegion(4,15,3, Id='B')
+        pr3 = PairedRegion(20,40,5, Id='C')
+        pr4 = PairedRegion(22,30,3, Id='D')
         for i in [pr1,pr2,pr3,pr4]:
             i.score(num_bps)
         prs1 = PairedRegions([pr1, pr2])
         prs2 = PairedRegions([pr3])
         prs3 = PairedRegions([pr4])
-        self.assertEqual(pick_multi_best([prs1, prs2, prs3]), [prs1, prs2])
+        self.assertEqualItems(pick_multi_best([prs1, prs2, prs3]), [prs1, prs2])
 
         self.assertEqual(pick_multi_best([]), [PairedRegions()])
 
@@ -820,6 +820,21 @@ class DPTests(TestCase):
         self.assertEqual(obs[0][14], [PairedRegions([pr4, pr6])])
         self.assertEqual(obs[1][15], [PairedRegions([pr4, pr6])])
         self.assertEqual(obs[0][15], [PairedRegions([pr0, pr1, pr4, pr7])])
+
+    def test_pick_multi_best_saturated(self):
+        """pick_multi_best: should only include saturated solutions"""
+        pr1 = PairedRegion(2,10,2, Id='A')
+        pr1.Score = 2
+        pr2 = PairedRegion(15,25,2, Id='B')
+        pr2.Score = 2
+        pr3 = PairedRegion(4,22,4, Id='C')
+        pr3.Score = 0
+        prs1 = PairedRegions([pr1])
+        prs2 = PairedRegions([pr2])
+        prs3 = PairedRegions([pr1, pr3])
+        self.assertEqualItems(pick_multi_best([prs1, prs2, prs3]),\
+            [prs2, prs3])
+        self.assertEqual(pick_multi_best([]), [PairedRegions()])
 
     def test_matrix_solutions(self):
         """matrix_solutions: should return contents of top-right cell"""

@@ -517,15 +517,15 @@ class PairedRegions(list):
 
         other -- PairedRegions object
 
-        Duplicate PairedRegion objects are stored only once. 
+        Duplicate PairedRegion objects are stored only once.
+        This methods used the PairedRegion IDs to check for duplications.
         """
         result = PairedRegions()
-        for pr in self:
-            if pr not in result:
+        seen = {}
+        for pr in self+other:
+            if pr.Id not in seen:
                 result.append(pr)
-        for pr in other:
-            if pr not in result:
-                result.append(pr)
+                seen[pr.Id] = True
         return result
 
     def conflicting(self, cm=None):
@@ -591,7 +591,7 @@ class PairedRegions(list):
             result.append(pr)
         return result
 
-
+ 
 def PairedRegionsFromPairs(pairs):
     """Return PairedRegions object from Pairs
 
@@ -843,14 +843,23 @@ def pick_multi_best(candidates, goal='max'):
         If the list of candidates is empty, a list containing an
         empty PairedRegions object is returned.
     This function is a helper function of dp_matrix_multi.
+
+    NOTE: PairedRegion IDs must be set. They are checked to avoid
+        including unsaturated solutions. Maybe implementation should be
+        changed, such that (Start, End, Length) tuples are used as IDs?!
     """
     if not candidates:
         return [PairedRegions()]
     result = []
     best_score = None
     seen = {}
-    for c in candidates:
+    # Candidates have to be processed in order of length
+    can_len = [(c.totalLength(), c) for c in candidates]
+    can_len.sort()
+    can_len.reverse()
+    for l, c in can_len:
         c_ids = tuple(c.sortedIds())
+        c_ids_set = set(c_ids)
         if not c or c_ids in seen:
             continue
         this_score = c.totalScore()
@@ -859,8 +868,16 @@ def pick_multi_best(candidates, goal='max'):
             result = [c]
             seen[c_ids] = True
         elif this_score == best_score:
-            result.append(c)
-            seen[c_ids] = True
+            is_sub = False
+            for seen_id in seen:
+                if len(c_ids_set) == len(c_ids_set & set(seen_id)):
+                    is_sub = True
+                    break
+            if is_sub:
+                seen[c_ids] = True
+            else:
+                result.append(c)
+                seen[c_ids] = True
         elif goal == 'max' and this_score < best_score:
             continue
         elif goal == 'min' and this_score > best_score:
