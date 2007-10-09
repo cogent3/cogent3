@@ -21,7 +21,7 @@ from cogent.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
 from cogent.parse import gff
 from cogent.format.fasta import fasta_from_sequences
 from cogent.core.info import Info as InfoClass
-from numpy import array, zeros, put, nonzero, take
+from numpy import array, zeros, put, nonzero, take, ravel
 from operator import eq, ne
 from random import shuffle
 import re
@@ -1014,6 +1014,7 @@ class ModelDnaSequence(ModelNucleicAcidSequence):
 
 class ModelCodonSequence(ModelSequence):
     """Abstract base class for codon sequences, incl. string conversion."""
+    SequenceClass = ModelNucleicAcidSequence
     def __str__(self):
         """Joins triplets together as string."""
         return self.Delimiter.join(map(''.join,self.Alphabet.fromIndices(self)))
@@ -1021,7 +1022,7 @@ class ModelCodonSequence(ModelSequence):
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
         s = s.upper().replace('U','T')    #convert to uppercase DNA
-        d = ModelNucleicAcidSequence(s, \
+        d = self.SequenceClass(s, \
             Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
     
@@ -1038,11 +1039,35 @@ class ModelCodonSequence(ModelSequence):
         return self
     
     def toDna(self):
-        """Returns a DnaSequence from the data in self"""
+        """Returns a ModelDnaSequence from the data in self"""
         unpacked = self.Alphabet.unpackArrays(self._data)
         result = zeros((len(self._data),3))
         for i, v in enumerate(unpacked):
             result[:,i] = v
-        return ModelNucleicAcidSequence(ravel(result), Name=self.Name, \
-            Alphabet=self.Alphabet.SubAlphabets[0])
-    
+        return ModelDnaSequence(ravel(result), Name=self.Name)
+
+    def toRna(self):
+        """Returns a ModelDnaSequence from the data in self."""
+        unpacked = self.Alphabet.unpackArrays(self._data)
+        result = zeros((len(self._data),3))
+        for i, v in enumerate(unpacked):
+            result[:,i] = v
+        return ModelRnaSequence(ravel(result), Name=self.Name)
+
+class ModelDnaCodonSequence(ModelCodonSequence):
+    """Holds non-degenerate DNA codon sequence."""
+    Alphabet = None #set to DNA.Alphabets.Base.Triples in moltype.py
+    SequenceClass = ModelDnaSequence
+
+class ModelRnaCodonSequence(ModelCodonSequence):
+    """Holds non-sgenerate DNA codon sequence."""
+    Alphabet = None #set to RNA.Alphabets.Base.Triples in motype.py
+    SequenceClass = ModelRnaSequence
+
+    def _from_string(self, s):
+        """Reads from a raw string, rather than a DnaSequence."""
+        s = s.upper().replace('T','U')    #convert to uppercase DNA
+        d = self.SequenceClass(s, \
+            Alphabet=self.Alphabet.SubEnumerations[0])
+        self._data = d.toCodons()._data
+ 

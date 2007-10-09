@@ -18,6 +18,7 @@ from cogent.maths.scipy_optimize import fmin, brent
 from cogent.util.array import scale_trace, norm_diff, \
     has_neg_off_diags, sum_neg_off_diags, with_diag, without_diag
 
+from cogent.core.alphabet import get_array_type
 from cogent.core.usage import RnaBases, DnaBases, DnaPairs, RnaPairs, Codons
 from cogent.core.sequence import ModelSequence
 from operator import add, sub, mul, div
@@ -28,7 +29,7 @@ from numpy import zeros, array, max, diag, log, nonzero, product, cumsum, \
                   searchsorted, exp, diagonal, choose, less, repeat, average,\
                   logical_and, logical_or, logical_not, transpose, compress,\
                   ravel, concatenate, equal, log, dot, \
-                  newaxis as NewAxis, sum, take, reshape, any, all
+                  newaxis as NewAxis, sum, take, reshape, any, all, asarray
 from numpy.linalg import eig
 from numpy.linalg import inv as inverse
 from numpy.random import random as randarray
@@ -519,12 +520,18 @@ class Counts(PairMatrix):
         """Class method: returns new Counts from two sequences.
         """
         size = len(Alphabet.SubEnumerations[-1])
-        #first, assume they're ModelSequence objects
+        #if they're ModelSequence objects, use the _data attribute
         if hasattr(first, '_data'):
-            items = first._data * size + second._data
-        #if not, treat them as arrays of indices
-        else:
-            items = first * size + second
+            first, second = first._data, second._data
+
+        #figure out what size we need the result to go in: note that the
+        #result is on a pair alphabet, so the data type of the single
+        #alphabet (that the sequence starts off in) might not work.
+        data_type = get_array_type(product(map(len, Alphabet.SubEnumerations)))
+        first = asarray(first, data_type)
+        second = asarray(second, data_type)
+        items = first * size + second
+        
         counts = reshape(Alphabet.counts(items), Alphabet.Shape)
         if average:
             return cls((counts + transpose(counts))/2.0, Alphabet)
@@ -541,11 +548,19 @@ class Counts(PairMatrix):
         #if they've got data, assume ModelSequence objects. Otherwise, arrays.
         if hasattr(first, '_data'):
             first, second, outgroup = first._data, second._data, outgroup._data
+
         size = len(Alphabet.SubEnumerations[-1])
         a_eq_b = equal(first, second)
         a_ne_b = logical_not(a_eq_b)
         a_eq_x = equal(first, outgroup)
         b_eq_x = equal(second, outgroup)
+
+        #figure out what size we need the result to go in: note that the
+        #result is on a pair alphabet, so the data type of the single
+        #alphabet (that the sequence starts off in) might not work.
+        data_type = get_array_type(product(map(len, Alphabet.SubEnumerations)))
+        first = asarray(first, data_type)
+        second = asarray(second, data_type)
        
         b_to_a = second*size + first
         a_to_a = first*size + first

@@ -4,7 +4,8 @@
 
 from cogent.core.sequence import Sequence, RnaSequence, DnaSequence, \
     ProteinSequence, \
-    ModelSequence, ModelNucleicAcidSequence, ModelCodonSequence
+    ModelSequence, ModelNucleicAcidSequence, ModelCodonSequence, \
+    ModelDnaCodonSequence, ModelRnaCodonSequence
 from cogent.core.moltype import RNA, DNA, PROTEIN, ASCII, AlphabetError
 from cogent.util.unit_test import TestCase, main
 
@@ -809,8 +810,23 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.MolType, RNA)
         self.assertEqual(s.Name, 'x')
-    
 
+    def test_ModelDnaCodonSequence(self):
+        """ModelDnaCodonSequence should behave as expected"""
+        d = ModelDnaCodonSequence('UUUCGU')
+        self.assertEqual(str(d), 'TTTCGT')
+        self.assertEqual(d._data, array([0,28]))
+        self.assertEqual(str(d.toRna()), 'UUUCGU')
+        self.assertEqual(str(d.toDna()), 'TTTCGT')
+    
+    def test_ModelRnaCodonSequence(self):
+        """ModelRnaCodonSequence should behave as expected"""
+        r = ModelRnaCodonSequence('UUUCGU')
+        self.assertEqual(str(r), 'UUUCGU')
+        self.assertEqual(r._data, array([0,28]))
+        self.assertEqual(str(r.toRna()), 'UUUCGU')
+        self.assertEqual(str(r.toDna()), 'TTTCGT')
+ 
 #run if called from command-line
 if __name__ == "__main__":
     main()

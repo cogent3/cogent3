@@ -44,10 +44,6 @@ RnaGapPairs = RnaBasesGap**2
 DnaGapPairs = DnaBasesGap**2
 AminoAcidPairs = AminoAcids**2
 ABPairs = AB**2
-Codons = DnaBases**3
-CodonsGap = DnaBasesGap**3
-DegenCodons = DnaIupac**3
-DegenCodonsGap = DnaIupacGap**3
 
 #RnaBases = 'UCAG'
 #DnaBases = 'TCAG'

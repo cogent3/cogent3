@@ -2,9 +2,11 @@
 """Unit tests for usage and substitution matrices.
 """
 from cogent.util.unit_test import TestCase, main
+from cogent.core.moltype import RNA
 from cogent.core.usage import RnaBases, DnaBases, RnaPairs, DnaPairs
 from cogent.core.alphabet import Alphabet
-from cogent.core.sequence import ModelRnaSequence as RnaSequence
+from cogent.core.sequence import ModelRnaSequence as RnaSequence, \
+    ModelRnaCodonSequence
 from cogent.seqsim.usage import Usage, DnaUsage, RnaUsage, PairMatrix, Counts,\
     Probs, Rates
 from numpy import average, asarray, sqrt, identity, diagonal, trace, \
@@ -430,6 +432,16 @@ class CountsTests(TestCase):
         for i, j, val in vals:
             self.assertFloatEqual(s[i,j], val)
 
+        #check that it works for codon seqs
+        s1 = ModelRnaCodonSequence('UUCGCG')
+        s2 = ModelRnaCodonSequence('UUUGGG')
+        c = Counts.fromPair(s1, s2, RNA.Alphabet.Triples**2)
+        self.assertEqual(c._data.sum(), 2)
+        self.assertEqual(c._data[0,1], 0.5)
+        self.assertEqual(c._data[1,0], 0.5)
+        self.assertEqual(c._data[55,63], 0.5)
+        self.assertEqual(c._data[63,55], 0.5)
+
 
     def test_fromTriple(self):
         """Counts fromTriple should return correct counts."""
@@ -492,6 +504,16 @@ class CountsTests(TestCase):
         ]
         for i, j, val in vals:
             self.assertFloatEqual(s[i,j], val)
+
+        #check that it works for codon seqs
+        s1 = ModelRnaCodonSequence('UUCGCG')
+        s2 = ModelRnaCodonSequence('UUUGGG')
+        s3 = s2
+        c = Counts.fromTriple(s1, s2, s3, RNA.Alphabet.Triples**2)
+        self.assertEqual(c._data.sum(), 2)
+        self.assertEqual(c._data[0,1], 1)
+        self.assertEqual(c._data[63,55], 1)
+
         
 class ProbsTests(TestCase):
     """Tests of the Probs class."""

@@ -29,7 +29,8 @@ from cogent.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
     ByteSequence, ModelSequence, ModelNucleicAcidSequence, \
-    ModelDnaSequence, ModelRnaSequence
+    ModelDnaSequence, ModelRnaSequence, ModelDnaCodonSequence, \
+    ModelRnaCodonSequence
 from cogent.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent.core.alignment import Alignment, DenseAlignment, \
@@ -1093,6 +1094,9 @@ ModelSequence.Alphabet = BYTES.Alphabet
 
 DenseAlignment.Alphabet = BYTES.Alphabet
 DenseAlignment.MolType = BYTES
+
+ModelDnaCodonSequence.Alphabet = DNA.Alphabets.Base.Triples
+ModelRnaCodonSequence.Alphabet = RNA.Alphabets.Base.Triples
 
 #Modify Alignment to avoid circular import
 Alignment.MolType = ASCII
