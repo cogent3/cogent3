@@ -5,7 +5,7 @@ from linear import colors, \
 
 from legend import Legend
 
-__all__ = ['dendogram', 'dotplot', 'legend', 'linear']
+__all__ = ['dendrogram', 'dotplot', 'legend', 'linear']
 
 __author__ = ""
 __copyright__ = "Copyright 2007, The Cogent Project"
