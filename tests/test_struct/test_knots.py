@@ -16,7 +16,7 @@ from cogent.struct.knots import PairedRegion, PairedRegionFromPairs,\
     inc_order, inc_length, inc_range,\
     find_max_conflicts, find_min_gain,\
     conflict_elimination, add_back_non_conflicting,\
-    num_bps, nussinov_energy,\
+    num_bps, hydrogen_bonds,\
     nussinov_fill, nussinov_traceback, nussinov_restricted
 
 __author__ = "Sandra Smit"
@@ -693,13 +693,13 @@ class DPTests(TestCase):
         pr1 = PairedRegion(0,10,3)
         self.assertEqual(f(pr1), 3)
 
-    def test_nussinov_energy(self):
-        """nussinov_energy: score GC, AU, and GU base pairs"""
-        f = nussinov_energy('UACGAAAUGCGUG')
+    def test_hydrogen_bonds(self):
+        """hydrogen_bonds: score GC, AU, and GU base pairs"""
+        f = hydrogen_bonds('UACGAAAUGCGUG')
         pr1 = PairedRegion(0,12,5)
         self.assertEqual(f(pr1),10)
 
-        f = nussinov_energy('UACGAAA') # sequence too short
+        f = hydrogen_bonds('UACGAAA') # sequence too short
         pr1 = PairedRegion(0,12,5)
         self.assertRaises(IndexError, f, pr1)
     
@@ -905,7 +905,7 @@ class DPTests(TestCase):
         p = Pairs([(1,10),(2,9),(4,15),(5,14),(6,13)])
         obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
         obs_energy = opt_all(p, goal='max',\
-            scoring_function=nussinov_energy('CCCAAAUGGGGUCGUUC'))
+            scoring_function=hydrogen_bonds('CCCAAAUGGGGUCGUUC'))
         exp_bps = [[(4,15),(5,14),(6,13)]]
         exp_energy = [[(1,10),(2,9)],[(4,15),(5,14),(6,13)]]
         self.assertEqualItems(obs_bps, exp_bps)
@@ -916,7 +916,7 @@ class DPTests(TestCase):
         p = Pairs([(0,9),(1,8),(2,7),(3,13),(4,12),(5,11)])
         obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
         obs_energy = opt_all(p, goal='max',\
-            scoring_function=nussinov_energy('CCCAAAAGGGUUUU'))
+            scoring_function=hydrogen_bonds('CCCAAAAGGGUUUU'))
         exp_bps = [[(0,9),(1,8),(2,7)],[(3,13),(4,12),(5,11)]]
         exp_energy = [[(0,9),(1,8),(2,7)]]
         self.assertEqualItems(obs_bps, exp_bps)
@@ -927,7 +927,7 @@ class DPTests(TestCase):
         p = Pairs([(0,11),(1,10),(2,9),(4,15),(5,14),(6,13),(7,12)])
         obs_bps = opt_all(p, goal='max', scoring_function=num_bps)
         obs_energy = opt_all(p, goal='max',\
-            scoring_function=nussinov_energy('CCCCAAAAGGGGUUUU'))
+            scoring_function=hydrogen_bonds('CCCCAAAAGGGGUUUU'))
         exp_bps = [[(4,15),(5,14),(6,13),(7,12)]]
         exp_energy = [[(0,11),(1,10),(2,9)]]
         self.assertEqualItems(obs_bps, exp_bps)
