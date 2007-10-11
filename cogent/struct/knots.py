@@ -764,20 +764,20 @@ def num_bps(paired_region):
     """
     return paired_region.Length
 
-def nussinov_energy(seq):
-    """Return function to score a PairedRegion by the Nussinov energy score
+def hydrogen_bonds(seq):
+    """Return function to score a PairedRegion by its hydrogen bonds
 
     seq -- Sequence object or string
 
-    The Nussinov energy score assigns a score of 3 to a GC base pair
-        and a score of 2 to AU and GU base pairs.
+    This method counts the number of hydrogen bonds in Watson-Crick and 
+        Wobble base pairs. GC pairs score 3, AU and GU pairs score 2.
     """
-    NUSSINOV_SCORE = {('G','C'): 3, ('C','G'): 3,\
+    HB_SCORE = {('G','C'): 3, ('C','G'): 3,\
                 ('A','U'): 2, ('U','A'): 2,\
                 ('G','U'): 2, ('U','G'): 2}
 
     def apply_to(paired_region):
-        """Return score of paired_region by the Nussinov energy rules
+        """Return score of paired_region by its hydrogen bonds
         
         paired_region -- PairedRegion object
 
@@ -788,9 +788,9 @@ def nussinov_energy(seq):
         score = 0
         for up,down in paired_region.Pairs:
             seq_pair = (seq[up],seq[down])
-            if seq_pair in NUSSINOV_SCORE:
-                score += NUSSINOV_SCORE[seq_pair]
-            else:
+            try:
+                score += HB_SCORE[seq_pair]
+            except KeyError:
                 continue
         return score
     return apply_to
