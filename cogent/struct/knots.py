@@ -1603,14 +1603,14 @@ def nussinov_fill(pairs, size):
     m = zeros((size, size), int)
     for j in range(size):
         for i in range(j-1,-1,-1):
-            options = []
-            options.append(m[i+1,j]) # i unpaired
-            options.append(m[i,j-1]) # j unpaired
-            if (i,j) in bp_dict: # i and j form a pair
-                options.append(m[i+1,j-1] + 1)
+            m[i,j] = m[i+1,j] # i unpaired
+            if m[i,j-1] > m[i,j]: # j unpaired
+                m[i,j] = m[i,j-1]
+            if (i,j) in bp_dict and m[i+1,j-1]+1 > m[i,j]: # (i,j) pair
+                m[i,j] = m[i+1,j-1]+ 1
             for k in range(i+1,j-1): # bifurcation
-                options.append(m[i,k] + m[k+1,j])
-            m[i,j] = max(options)
+                if m[i,k] + m[k+1,j] > m[i,j]:
+                    m[i,j] = m[i,k]+m[k+1,j]
     return m
 
 def nussinov_traceback(m, i, j, pairs):
@@ -1663,11 +1663,28 @@ def nussinov_restricted(pairs, return_removed=False):
     if not p.hasPseudoknots():
         nested = p  # if not Pseudoknots: return structure
     else:
-        all_items = [x for x,y in p] + [y for x,y in p]
-        max_idx = max(filter(None, all_items))+1
-        m = nussinov_fill(p, size=max_idx)
-        nested = nussinov_traceback(m, 0, max_idx-1, p)
-        nested = Pairs(list(nested))
+        paired_positions = [x for x,y in p] + [y for x,y in p]
+        paired_positions.sort()
+        if max(paired_positions) > 200:
+            # if the 'sequence' is longer than 200, map the numbers
+            # to remove the 'unpaired' positions. Avoid waste of space
+            mapped_back = dict([(x,y) for x,y in enumerate(paired_positions)])
+            mapped = dict([(y,x) for x,y in enumerate(paired_positions)])
+            mapped_pairs = []
+            for x,y in pairs:
+                mapped_pairs.append((mapped[x],mapped[y]))
+            max_idx = len(paired_positions)+1
+            m = nussinov_fill(mapped_pairs, size=max_idx)
+            t = nussinov_traceback(m, 0, max_idx-1, mapped_pairs)
+            nested = []
+            for x,y in t:
+                nested.append((mapped_back[x], mapped_back[y]))
+        else:
+            # sequence short enough, fill matrix directly
+            max_idx = max(filter(None, paired_positions))+1
+            m = nussinov_fill(p, size=max_idx)
+            nested = nussinov_traceback(m, 0, max_idx-1, p)
+            nested = Pairs(list(nested))
         nested.sort()
     if return_removed:
         removed = Pairs([])
