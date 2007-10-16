@@ -27,15 +27,15 @@ class microarray_normalize_tests(TestCase):
         a = reshape(arange(15),(5,3))
         z = zscores(a)
         self.assertEqual(z[2], array([0,0,0])) #middle should be mean
-        self.assertFloatEqual(z[0], [-1.26491106]*3)
+        self.assertFloatEqual(z[0], [-1.41421356]*3)
         #check that it works when arrays aren't sorted
         a[0] = a[-1]
         a[1] = a[-2]
         a[0, -1] = 50
         z = zscores(a)
         self.assertEqual(z[0,0],z[-1,0])
-        self.assertFloatEqual(z[0,-1], 1.77576822)
-        self.assertFloatEqual(z[-1,-1], -0.27319511)
+        self.assertFloatEqual(z[0,-1], 1.9853692256351525)
+        self.assertFloatEqual(z[-1,-1], -0.30544141932848506)
 
     def test_logzscores(self):
         """logzscores should perform zscores on log of a"""

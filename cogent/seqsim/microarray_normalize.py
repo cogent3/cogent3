@@ -28,9 +28,8 @@ Revision History
 11/10/05 Micah Hamady: merged w/my implementations
 """
 from cogent.maths.stats.distribution import ndtri
-from numpy.oldnumeric.mlab import std
 from numpy import ceil, arange, argsort, sort, array, log2, zeros, ravel, \
-                  transpose, take, mean
+                  transpose, take, mean, std
 from numpy.linalg import svd
 
 __author__ = "Rob Knight"
@@ -44,7 +43,7 @@ __status__ = "Development"
 
 def zscores(a):
     """Converts a to zscores in each col, i.e. subtract mean and div by stdev."""
-    return (a - mean(a,axis=0)) / std(a)
+    return (a - mean(a,axis=0)) / std(a, axis=0)
 
 def logzscores(a):
     """Takes log (base 2) of values then computes zscores"""
