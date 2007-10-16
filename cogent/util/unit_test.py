@@ -13,7 +13,7 @@ expected values must have the same number of each item, though the order can
 differ); assertNotEqualItems verifies that two lists do not contain the same
 set of items.
 """
-from contextlib import contextmanager
+#from contextlib import contextmanager
 import numpy; from numpy import testing, array
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
 from cogent.util.misc import recursive_flatten
@@ -28,21 +28,22 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-@contextmanager
-def numpy_err(**kw):
-    """a numpy err context manager.
+## SUPPORT2425
+#@contextmanager
+#def numpy_err(**kw):
+#    """a numpy err context manager.
 
-    **kw: pass to numpy.seterr(all=None, divide=None, over=None, under=None,
-    invalid=None)
+#    **kw: pass to numpy.seterr(all=None, divide=None, over=None, under=None,
+#    invalid=None)
 
-    Example:
-    with numpy_err(divide='raise'):
-        self.assertRaises(FloatingPointError, log, 0)
-    """
-    ori_err = numpy.geterr()
-    numpy.seterr(**kw)
-    try: yield None
-    finally: numpy.seterr(**ori_err)
+#    Example:
+#    with numpy_err(divide='raise'):
+#        self.assertRaises(FloatingPointError, log, 0)
+#    """
+#    ori_err = numpy.geterr()
+#    numpy.seterr(**kw)
+#    try: yield None
+#    finally: numpy.seterr(**ori_err)
 
 class FakeRandom(object):
     """Drop-in substitute for random.random that provides items from list."""

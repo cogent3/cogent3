@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Provides tests for array.py
 """
-from __future__ import with_statement
-from cogent.util.unit_test import main, TestCase, numpy_err
+#SUPPORT2425
+#from __future__ import with_statement
+from cogent.util.unit_test import main, TestCase#, numpy_err
 from cogent.util.array import gapped_to_ungapped, unmasked_to_masked, \
     ungapped_to_gapped, masked_to_unmasked, pairs_to_array,\
     ln_2, log2, safe_p_log_p, safe_log, row_uncertainty, column_uncertainty,\
@@ -24,7 +25,6 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 from numpy import array, zeros, transpose, sqrt, reshape, arange, \
     ravel, trace, ones
-from cogent.util.unit_test import numpy_err
 
 __author__ = "Rob Knight and Jeremy Widmann"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -148,14 +148,26 @@ class ArrayMathTests(TestCase):
         self.assertEqual(log2(4),2)
         self.assertEqual(log2(8),3)
 
-        with numpy_err(divide='ignore'):
+        #SUPPORT2425
+        #with numpy_err(divide='ignore'):
+        ori_err = numpy.geterr()
+        numpy.seterr(divide='ignore')
+        try:
             try:
                 self.assertEqual(log2(0),float('-inf'))
             except (ValueError, OverflowError):      #platform-dependent
                 pass
+        finally:
+            numpy.seterr(**ori_err)
 
-        with numpy_err(divide='raise'):
+        #SUPPORT2425
+        ori_err = numpy.geterr()
+        numpy.seterr(divide='raise')
+        try:
+        #with numpy_err(divide='raise'):
             self.assertRaises(FloatingPointError, log2, 0)
+        finally:
+            numpy.seterr(**ori_err)
 
         #nan is the only thing that's not equal to itself
         try:
@@ -397,9 +409,17 @@ class ArrayMathTests(TestCase):
         self.assertFloatEqual(m, [[0.4,0.8,1.2,1.6],[0.8,1.6,1.6,0],\
                 [1,1,1,1],[0,0,0,4.0]])
         #if any of the rows sums to zero, an exception will be raised.
-        with numpy_err(divide='raise'):
+
+        #SUPPORT2425
+        ori_err = numpy.geterr()
+        numpy.seterr(divide='raise')
+        try:
+        #with numpy_err(divide='raise'):
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
-                scale_row_sum, array([[1,0],[0,0]]))
+                scale_row_sum, array([[1,0],[0,0]]))            
+        finally:
+            numpy.seterr(**ori_err)
+
 
     def test_scale_row_sum_naive(self):
         """scale_row_sum_naive should scale rows to correct values"""
@@ -411,9 +431,16 @@ class ArrayMathTests(TestCase):
         self.assertFloatEqual(m, [[0.4,0.8,1.2,1.6],[0.8,1.6,1.6,0],\
                 [1,1,1,1],[0,0,0,4.0]])
         #if any of the rows sums to zero, an exception will be raised.
-        with numpy_err(divide='raise'):
+
+        #SUPPORT2425
+        ori_err = numpy.geterr()
+        numpy.seterr(divide='raise')
+        try:
+        #with numpy_err(divide='raise'):
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
                 scale_row_sum_naive, array([[1,0],[0,0]]))
+        finally:
+            numpy.seterr(**ori_err)
 
     def test_scale_trace(self):
         """scale_trace should scale trace to correct values"""
@@ -434,9 +461,16 @@ class ArrayMathTests(TestCase):
         self.assertFloatEqual(m, m_orig / -5)
         #but should fail if trace is zero
         m = array([[0,1,1],[1,0,1],[1,1,0]])
-        with numpy_err(divide='raise'):
+
+        #SUPPORT2425
+        ori_err = numpy.geterr()
+        numpy.seterr(divide='raise')
+        try:
+        #with numpy_err(divide='raise'):
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
                 scale_trace, m)
+        finally:
+            numpy.seterr(**ori_err)
 
     def test_abs_diff(self):
         """abs_diff should calculate element-wise sum of abs(first-second)"""

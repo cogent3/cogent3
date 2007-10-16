@@ -6,7 +6,8 @@ from string import translate
 from numpy import array, sum, sqrt, transpose, add, subtract, multiply,\
     divide, zeros
 from numpy.random import random
-from cogent.util.unit_test import TestCase, main, numpy_err
+
+from cogent.util.unit_test import TestCase, main#, numpy_err 
 from cogent.core.moltype import DNA
 from cogent.core.profile import Profile, ProfileError, CharMeaningProfile
 from cogent.core.alignment import DenseAlignment as Alignment

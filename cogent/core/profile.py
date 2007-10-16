@@ -4,7 +4,8 @@
 Owner: Sandra Smit (Sandra Smit)
 """
 from __future__ import division
-from __future__ import with_statement
+#SUPPORT2425
+#from __future__ import with_statement
 from string import maketrans, translate
 
 from numpy import array, sum, transpose, reshape, ones, zeros,\
@@ -15,7 +16,8 @@ from numpy import array, sum, transpose, reshape, ones, zeros,\
 from numpy.random import random
 from cogent.util.array import euclidean_distance, row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
-from cogent.util.unit_test import numpy_err
+##SUPPORT2425
+import numpy #from cogent.util.unit_test import numpy_err
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -204,9 +206,15 @@ class Profile(object):
         if normalize_input:
             self.normalizePositions()
             other.normalizePositions()
+        
         try:
-            with numpy_err(divide='raise'):
-                new_data = op(self.Data, other.Data)
+            ##SUPPORT2425
+            ori_err = numpy.geterr()
+            numpy.seterr(divide='raise')
+            try: new_data = op(self.Data, other.Data)
+            finally: numpy.seterr(**ori_err)
+            #with numpy_err(divide='raise'):
+                #new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError, "Can't do operation on input profiles"
         result = Profile(new_data, self.Alphabet, self.CharOrder)

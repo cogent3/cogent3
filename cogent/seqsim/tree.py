@@ -317,7 +317,8 @@ class RangeNode(PhyloNode):
             #the breakpoint is in
             while children:
                 middle = children[1].LeafRange[0]
-                curr_node = children[middle <= b]
+                #SUPPORT2425
+                curr_node = children[int(middle <= b)]
                 children = curr_node.Children
             #curr_node is now the range that contains the breakpoint
             start, end = curr_node.LeafRange
