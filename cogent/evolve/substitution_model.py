@@ -213,6 +213,8 @@ class SubstitutionModel(_SubstitutionModel):
         # - partitioned_params: params to be partitioned across bins
         
         # MISC
+        assert len(alphabet) < 65, "Alphabet too big. Try explicitly "\
+            "setting alphabet to PROTEIN or DNA"
         
         self.name = name
         self._optimise_motif_probs = optimise_motif_probs
