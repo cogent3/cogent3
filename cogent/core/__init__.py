@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['alignment', 'alphabet', 'annotaion', 'bitvector', 'genetic_code',
+__all__ = ['alignment', 'alphabet', 'annotation', 'bitvector', 'genetic_code',
            'info', 'location', 'moltype', 'profile', 'sequence', 'tree',
            'usage']
 
