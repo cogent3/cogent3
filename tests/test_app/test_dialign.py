@@ -110,12 +110,12 @@ class DialignTests(GeneralSetUp):
     def test_base_command(self):
         """Dialign BaseCommand should return the correct BaseCommand"""
         c = Dialign()
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','dialign2-2']))
+        self.assertEqual(c.BaseCommand,
+            ''.join(['cd ','"%s/"; ' % getcwd(),'dialign2-2']))
         
         c.Parameters["-fa"].on()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','dialign2-2 -fa']))
+            ''.join(['cd ','"%s/"; ' % getcwd(),'dialign2-2 -fa']))
     
     def test_align(self):
         """test aligning samples"""

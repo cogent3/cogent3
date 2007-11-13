@@ -52,7 +52,7 @@ class Mlagan(CommandLineApplication):
         '-fastreject':FlagParameter(Prefix='-',Name='fastreject'),
         # -out filename [default standard out]
         # Output the alignment to filename, rather than standard out.
-        '-out':ValuedParameter('-',Name='out',Delimiter=' ')
+        '-out':ValuedParameter('-',Name='out',Delimiter=' ', Quote="\"")
     
     }
     
