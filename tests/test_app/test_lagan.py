@@ -38,11 +38,11 @@ class MlaganTests(GeneralSetUp):
         """Mlagan BaseCommand should return the correct BaseCommand"""
         c = Mlagan()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','mlagan']))
+            ''.join(['cd ','"%s/"; ' % getcwd(),'mlagan']))
         
         c.Parameters["-tree"].on('"((human chimp), (mouse rat))"')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','mlagan -tree "((human chimp), (mouse rat))"']))
+            ''.join(['cd ','"%s/"; ' % getcwd(),'mlagan -tree "((human chimp), (mouse rat))"']))
     
     def test_align(self):
         """test aligning samples"""

@@ -53,7 +53,7 @@ class Dialign(CommandLineApplication):
         #                 alignment
         '-ff':FlagParameter(Prefix='-',Name='ff'),
         # -fn <out_file>  output files are named <out_file>.<extension> .
-        '-fn':ValuedParameter('-',Name='fn',Delimiter=' '),
+        '-fn':ValuedParameter('-',Name='fn',Delimiter=' ', Quote="\""),
         #
         #
         # -fop            Creates file *.fop containing coordinates of all fragments
