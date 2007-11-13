@@ -55,7 +55,7 @@ class Muscle(CommandLineApplication):
         '-hydrofactor':ValuedParameter('-',Name='hydrofactor',Delimiter=' '),
         
         # Where to find the input sequences.
-        '-in':ValuedParameter('-',Name='in',Delimiter=' '),
+        '-in':ValuedParameter('-',Name='in',Delimiter=' ', Quote="\""),
         
         # Log file name (delete existing file).
         '-log':ValuedParameter('-',Name='log',Delimiter=' '),
@@ -94,7 +94,7 @@ class Muscle(CommandLineApplication):
         '-objscore':ValuedParameter('-',Name='objscore',Delimiter=' '),
         
         # Where to write the alignment.
-        '-out':ValuedParameter('-',Name='out',Delimiter=' '),
+        '-out':ValuedParameter('-',Name='out',Delimiter=' ', Quote="\""),
         
         # Where to write the file in phylip sequenctial format (v3.6 only).
         '-physout':ValuedParameter('-',Name='physout',Delimiter=' '),
@@ -119,8 +119,8 @@ class Muscle(CommandLineApplication):
         
         # Save tree produced in first or second iteration to given file in
         # Newick (Phylip-compatible) format.
-        '-tree1':ValuedParameter('-',Name='tree1',Delimiter=' '),
-        '-tree2':ValuedParameter('-',Name='tree2',Delimiter=' '),
+        '-tree1':ValuedParameter('-',Name='tree1',Delimiter=' ', Quote="\""),
+        '-tree2':ValuedParameter('-',Name='tree2',Delimiter=' ', Quote="\""),
         
         # Sequence weighting scheme.
         # weight1 is used in iterations 1 and 2.

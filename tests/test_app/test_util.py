@@ -111,23 +111,27 @@ f.close()
         """CLAppTester: BaseCommand correctly composed """
         # No parameters on
         app = CLAppTester()
-        self.assertEqual(app.BaseCommand,'cd /tmp/; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
         # ValuedParameter on/off
         app.Parameters['-F'].on('junk.txt')
-        self.assertEqual(app.BaseCommand,'cd /tmp/; ./CLAppTester.py -F junk.txt')
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt"')
         app.Parameters['-F'].off()
-        self.assertEqual(app.BaseCommand,'cd /tmp/; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
         # ValuedParameter accessed by synonym turned on/off
         app.Parameters['File'].on('junk.txt')
-        self.assertEqual(app.BaseCommand,'cd /tmp/; ./CLAppTester.py -F junk.txt')
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt"')
         app.Parameters['File'].off()
-        self.assertEqual(app.BaseCommand,'cd /tmp/; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
         # Try multiple parameters, must check for a few different options
         # because parameters are printed in arbitrary order
         app.Parameters['-F'].on('junk.txt')
         app.Parameters['--duh'].on()
-        assert app.BaseCommand == 'cd /tmp/; ./CLAppTester.py -F junk.txt --duh'\
-            or app.BaseCommand == 'cd /tmp/; ./CLAppTester.py --duh -F junk.txt'
+        self.failUnless(app.BaseCommand ==\
+            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt" --duh'\
+            or app.BaseCommand ==\
+            'cd "/tmp/"; ./CLAppTester.py --duh -F "junk.txt"')
        
     def test_getHelp(self):
         """CLAppTester: getHelp() functions as expected """
@@ -142,7 +146,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         #test_command
-        self.assertEqual(app.BaseCommand,"cd /tmp/; ./CLAppTester.py")
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'out\n')
@@ -162,7 +166,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         #test_command
-        self.assertEqual(app.BaseCommand,"cd /tmp/; ./CLAppTester.py")
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'out 43\n')
@@ -183,7 +187,7 @@ f.close()
         assert app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            "cd /tmp/; ./CLAppTester.py -F p_file.txt")
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'')
@@ -205,7 +209,7 @@ f.close()
         assert app.SuppressStdout
         #test_command
         self.assertEqual(app.BaseCommand,\
-            "cd /tmp/; ./CLAppTester.py -F p_file.txt")
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'],None)
@@ -227,7 +231,7 @@ f.close()
         assert not app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            "cd /tmp/; ./CLAppTester.py -F p_file.txt")
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -249,7 +253,7 @@ f.close()
         assert not app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            "cd /tmp/; ./CLAppTester.py -F p_file.txt")
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'')
@@ -296,7 +300,7 @@ f.close()
         self.assertEqual(app.WorkingDir,'/tmp/test/')
         #test_command
         self.assertEqual(app.BaseCommand,\
-            "cd /tmp/test/; ./CLAppTester.py -F p_file.txt")
+            'cd "/tmp/test/"; ./CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -410,7 +414,8 @@ class RemoveTests(TestCase):
 
 class CLAppTester(CommandLineApplication):
     _parameters = {
-        '-F':ValuedParameter(Prefix='-',Name='F',Delimiter=' ',Value=None),\
+        '-F':ValuedParameter(Prefix='-',Name='F',Delimiter=' ',\
+            Value=None, Quote="\""),\
         '--duh':FlagParameter(Prefix='--',Name='duh')}
     _command = './CLAppTester.py'
     _synonyms = {'File':'-F','file':'-F'}

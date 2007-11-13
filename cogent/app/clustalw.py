@@ -41,7 +41,7 @@ class Clustalw(CommandLineApplication):
 
     #sequence file for alingment, or alignment file for bootstrap and tree
     #actions
-    _input = {'-infile':ValuedParameter('-','infile',Delimiter='=')}
+    _input = {'-infile':ValuedParameter('-','infile',Delimiter='=', Quote="\"")}
     
     _multiple_alignment={\
         '-quicktree':FlagParameter('-','quicktree'),
@@ -83,19 +83,19 @@ class Clustalw(CommandLineApplication):
         '-outputtree':ValuedParameter('-',Name='outputtree',Delimiter='=')}
 
     _output={\
-        '-outfile':ValuedParameter('-',Name='outfile',Delimiter='='),
+        '-outfile':ValuedParameter('-',Name='outfile',Delimiter='=',Quote="\""),
         '-output':ValuedParameter('-',Name='output',Delimiter='='),
         '-case':ValuedParameter('-',Name='case',Delimiter='='),
         '-outorder':ValuedParameter('-',Name='outorder',Delimiter='='),
         '-seqnos':ValuedParameter('-',Name='seqnos',Delimiter='=')}
 
     _profile_alignment={\
-        '-profile1':ValuedParameter('-','profile1',Delimiter='='),
-        '-profile2':ValuedParameter('-','profile2',Delimiter='='),
-        '-usetree1':ValuedParameter('-','usetree1',Delimiter='='),
-        '-usetree2':ValuedParameter('-','usetree2',Delimiter='='),
-        '-newtree1':ValuedParameter('-','newtree1',Delimiter='='),
-        '-newtree2':ValuedParameter('-','newtree2',Delimiter='=')}
+        '-profile1':ValuedParameter('-','profile1',Delimiter='=',Quote="\""),
+        '-profile2':ValuedParameter('-','profile2',Delimiter='=',Quote="\""),
+        '-usetree1':ValuedParameter('-','usetree1',Delimiter='=',Quote="\""),
+        '-usetree2':ValuedParameter('-','usetree2',Delimiter='=',Quote="\""),
+        '-newtree1':ValuedParameter('-','newtree1',Delimiter='=',Quote="\""),
+        '-newtree2':ValuedParameter('-','newtree2',Delimiter='=',Quote="\"")}
     
     _structure_alignment={\
         '-nosecstr1':FlagParameter('-',Name='nosecstr1'),
