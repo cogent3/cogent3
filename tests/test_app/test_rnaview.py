@@ -35,13 +35,13 @@ class test_rnaview(TestCase):
 
     def test_base_command(self):
         """RnaView: BaseCommand is built correctly """
-        self.assertEqual(self.r1.BaseCommand, 'cd /tmp/; rnaview')
-        self.assertEqual(self.r2.BaseCommand, 'cd /tmp/; rnaview -v')
-        self.assertEqual(self.r3.BaseCommand, 'cd /tmp/; rnaview -c A')
-        assert (self.r4.BaseCommand == 'cd /tmp/; rnaview -x -p') or \
-            (self.r4.BaseCommand == 'cd /tmp/; rnaview -p -x')
+        self.assertEqual(self.r1.BaseCommand, 'cd "/tmp/"; rnaview')
+        self.assertEqual(self.r2.BaseCommand, 'cd "/tmp/"; rnaview -v')
+        self.assertEqual(self.r3.BaseCommand, 'cd "/tmp/"; rnaview -c A')
+        assert (self.r4.BaseCommand == 'cd "/tmp/"; rnaview -x -p') or \
+            (self.r4.BaseCommand == 'cd "/tmp/"; rnaview -p -x')
         self.assertEqual(self.r5.BaseCommand,\
-            'cd ' + getcwd() + '/'+ '; rnaview')
+            'cd "' + getcwd() + '/'+ '"; rnaview')
 
     def test_file_pointers_no_extras_input_as_file(self):
         """RnaView: pointers created only for minimal files w/ _input_as_lines

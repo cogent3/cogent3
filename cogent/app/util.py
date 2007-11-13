@@ -225,13 +225,9 @@ class CommandLineApplication(Application):
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
         command = self._command_delimiter.join(filter(None,\
-            [self.BaseCommand,input_arg,'>',outfile,'2>',errfile]))
-   
-        # DEBUG
-        #if 'clust' in command:
-        #print command
-        #    raise ValueError, command
-        
+            [self.BaseCommand,input_arg,'>','"'+outfile+'"','2>',\
+                '"'+errfile+'"']))
+
         if self.HaltExec: 
             raise AssertionError, "Halted exec with command:\n" + command
         # The return value of system is a 16-bit number containing the signal 
@@ -308,7 +304,8 @@ class CommandLineApplication(Application):
         command_parts = []
         # Append a change directory to the beginning of the command to change 
         # to self.WorkingDir before running the command
-        cd_command = ''.join(['cd ',self.WorkingDir,';'])
+        # WorkingDir should be in quotes -- filenames might contain spaces
+        cd_command = ''.join(['cd "',self.WorkingDir,'";'])
         if self._command is None:
             raise ApplicationError, '_command has not been set.'
         command = self._command
@@ -385,8 +382,8 @@ class CommandLineApplication(Application):
         # if not current directory, append "/" if not already on path
         elif not tmp_dir.endswith("/"):
             tmp_dir += "/"
-
-        return ''.join([tmp_dir, self.TmpPrefix,
+        
+        return ''.join([tmp_dir, self.TmpPrefix,\
             ''.join([choice(_all_chars) for i in range(self.TmpNameLen)]),
             self.TmpSuffix])
 
@@ -403,7 +400,8 @@ def get_tmp_filename(tmp_dir="/tmp", prefix="tmp"):
 
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
-    return tmp_dir + prefix + "%s.txt" % ''.join([choice(picks) for i in range(20)]) 
+    return tmp_dir + prefix +\
+        "%s.txt" % ''.join([choice(picks) for i in range(20)]) 
 
 def guess_input_handler(seqs, add_seq_names=False):
     """Returns the name of the input handler for seqs."""

@@ -2,6 +2,7 @@
 
 import re
 from os import getcwd, remove, rmdir, mkdir, path
+import shutil
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
@@ -44,6 +45,8 @@ class GeneralSetUp(TestCase):
         self.treeduringalignseqs = TREEDURINGALIGNSEQS
         self.treefromalignseqs = TREEFROMALIGNSEQS
         
+        self.temp_dir_space = "/tmp/clustalw test"
+
         try:
             mkdir('/tmp/ct')
         except OSError: #dir already exists
@@ -80,30 +83,31 @@ class ClustalwTests(GeneralSetUp):
         """Clustalw BaseCommand should return the correct BaseCommand"""
         c = Clustalw()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','clustalw -align']))
+            ''.join(['cd "',getcwd(),'/"; ','clustalw -align']))
         c.Parameters['-infile'].on('seq.txt')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','clustalw -infile=seq.txt -align']))
+            ''.join(['cd "',getcwd(),'/"; ',\
+            'clustalw -infile="seq.txt" -align']))
         c.Parameters['-align'].off()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','clustalw -infile=seq.txt']))
+            ''.join(['cd "',getcwd(),'/"; ','clustalw -infile="seq.txt"']))
         c.Parameters['-nopgap'].on()
         c.Parameters['-infile'].off()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','clustalw -nopgap']))
+            ''.join(['cd "',getcwd(),'/"; ','clustalw -nopgap']))
 
     def test_changing_working_dir(self):
         """Clustalw BaseCommand should change according to WorkingDir"""
         c = Clustalw(WorkingDir='/tmp/clustaltest')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ','/tmp/clustaltest','/; ','clustalw -align']))
+            ''.join(['cd "','/tmp/clustaltest','/"; ','clustalw -align']))
         c = Clustalw(WorkingDir='/tmp/clustaltest/')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ','/tmp/clustaltest/','/; ','clustalw -align']))
+            ''.join(['cd "','/tmp/clustaltest/','/"; ','clustalw -align']))
         c = Clustalw()
         c.WorkingDir = '/tmp/clustaltest2/'
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ','/tmp/clustaltest2/','/; ','clustalw -align']))
+            ''.join(['cd "','/tmp/clustaltest2/','/"; ','clustalw -align']))
         
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
@@ -125,6 +129,24 @@ class ClustalwTests(GeneralSetUp):
     def test_stdout_input_as_lines(self):
         """Clustalw input_as_lines should function as expected"""
         c = Clustalw(InputHandler='_input_as_lines',WorkingDir='/tmp/ct')
+        res = c(self.lines1)
+        #get info on input file name and change output accordingly
+        name = c.Parameters['-infile'].Value
+        out = self.stdout1.split('\n')
+        out[16] = 'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] = 'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+
+        self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
+                            cw_vers.sub("", '\n'.join(out)))
+        self.assertEqual(res['StdErr'].read(),'')
+        self.assertEqual(cw_vers.sub("", res['Align'].read()),
+                            cw_vers.sub("", self.aln1))
+        self.assertEqual(res['Dendro'].read(),self.dnd1)
+        res.cleanUp()
+
+    def test_stdout_input_as_lines_local(self):
+        """Clustalw input_as_lines should function as expected"""
+        c = Clustalw(InputHandler='_input_as_lines',WorkingDir=self.temp_dir_space)
         res = c(self.lines1)
         #get info on input file name and change output accordingly
         name = c.Parameters['-infile'].Value
@@ -215,8 +237,8 @@ class ClustalwTests(GeneralSetUp):
         self.assertEqual(res['Tree'].name,'/tmp/ct/align1.ph')
         self.assertEqual(res['TreeInfo'].name,'/tmp/ct/align1.dst')
         res.cleanUp()
-        
-   
+
+
 class clustalwTests(GeneralSetUp):
     """Tests for module level functions in clustalw.py"""
    
@@ -294,7 +316,7 @@ class clustalwTests(GeneralSetUp):
         res.cleanUp()
         pre_res.cleanUp()
 
-    def test_general_cleanUp(self):
+    def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         remove('/tmp/ct/seq1.txt')
         remove('/tmp/ct/seq2.txt')
@@ -302,6 +324,7 @@ class clustalwTests(GeneralSetUp):
         remove('/tmp/ct/align2')
         remove('/tmp/ct/tree1')
         rmdir('/tmp/ct')
+        shutil.rmtree(self.temp_dir_space)
 
 STDOUT1=\
 """

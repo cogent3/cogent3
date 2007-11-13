@@ -30,6 +30,11 @@ class GeneralSetUp(TestCase):
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
         
         self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir_spaces = '/tmp/test for muscle/'
+        try:
+            mkdir(self.temp_dir_spaces)
+        except OSError:
+            pass
         try:
             #create sequence files
             f = open(path.join(self.temp_dir, 'seq1.txt'),'w')
@@ -49,24 +54,24 @@ class MuscleTests(GeneralSetUp):
         """Clustalw BaseCommand should return the correct BaseCommand"""
         c = Muscle()
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','muscle']))
+            ''.join(['cd "',getcwd(),'/"; ','muscle']))
         c.Parameters['-in'].on('seq.txt')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','muscle -in seq.txt']))
+            ''.join(['cd "',getcwd(),'/"; ','muscle -in "seq.txt"']))
         c.Parameters['-cluster2'].on('neighborjoining')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ',getcwd(),'/; ','muscle -cluster2 neighborjoining' +
-            ' -in seq.txt']))
+            ''.join(['cd "',getcwd(),'/"; ','muscle -cluster2 neighborjoining' +
+            ' -in "seq.txt"']))
 
     def test_changing_working_dir(self):
         """Clustalw BaseCommand should change according to WorkingDir"""
         c = Muscle(WorkingDir='/tmp/muscle_test')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ','/tmp/muscle_test','/; ','muscle']))
+            ''.join(['cd "','/tmp/muscle_test','/"; ','muscle']))
         c = Muscle()
         c.WorkingDir = '/tmp/muscle_test2'
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd ','/tmp/muscle_test2','/; ','muscle']))
+            ''.join(['cd "','/tmp/muscle_test2','/"; ','muscle']))
         
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
@@ -83,11 +88,32 @@ class MuscleTests(GeneralSetUp):
         self.assertEqual(len(aln), 6)
         self.assertEqual(aln[-2], '>3\n')
         self.assertEqual(aln[-1], 'GCGGCUAUUAGAUCGUA------\n')
-    
+
+    def test_aln_tree_seqs_spaces(self):
+        "aln_tree_seqs should work on filename with spaces"
+        try:
+            #create sequence files
+            f = open(path.join(self.temp_dir_spaces, 'muscle_test_seq1.txt'),'w')
+            f.write('\n'.join(self.lines1))
+            f.close()
+        except OSError:
+            pass
+        tree, aln = aln_tree_seqs(path.join(self.temp_dir_spaces,\
+                                    'muscle_test_seq1.txt'), 
+                                    tree_type="neighborjoining",
+                                    WorkingDir=getcwd(),
+                                    clean_up=True)
+        self.assertEqual(str(tree), '((1:1.125,2:1.125):0.375,3:1.5);')
+        self.assertEqual(len(aln), 6)
+        self.assertEqual(aln[-2], '>3\n')
+        self.assertEqual(aln[-1], 'GCGGCUAUUAGAUCGUA------\n')
+        remove(self.temp_dir_spaces+'/muscle_test_seq1.txt')
+
     def test_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.temp_dir_spaces)
     
 
 if __name__ == '__main__':
