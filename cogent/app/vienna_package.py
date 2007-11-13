@@ -10,8 +10,8 @@ __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.0.1"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Sandra Smit"
+__email__ = "Sandra.Smit@colorado.edu"
 __status__ = "Production"
 
 class RNAfold(CommandLineApplication):
@@ -112,6 +112,7 @@ class RNAsubopt(CommandLineApplication):
     StdErr is suppressed by default, but can be overwritten in an instance.
     """
     _parameters = {
+    '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' '),
     '-e':ValuedParameter(Prefix='-',Name='e',Delimiter=' ',Value=1),
     '-ep':ValuedParameter(Prefix='-',Name='ep',Delimiter=' '),
     '-s':FlagParameter(Prefix='-',Name='s'),
