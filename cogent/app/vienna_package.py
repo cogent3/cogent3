@@ -114,6 +114,7 @@ class RNAsubopt(CommandLineApplication):
     """
     _parameters = {
     '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' '),
+    '-C':FlagParameter(Prefix='-',Name='C'),
     '-e':ValuedParameter(Prefix='-',Name='e',Delimiter=' ',Value=1),
     '-ep':ValuedParameter(Prefix='-',Name='ep',Delimiter=' '),
     '-s':FlagParameter(Prefix='-',Name='s'),
