@@ -25,6 +25,8 @@ class CommandLineApplicationTests(TestCase):
         self.app_no_params = CLAppTester()
         self.app_no_params_no_stderr = CLAppTester(SuppressStderr=True)
         self.app_params =CLAppTester({'-F':'p_file.txt'})
+        self.app_params_space_in_command =\
+            CLAppTester_space_in_command({'-F':'p_file.txt'})
         self.app_params_no_stderr =CLAppTester({'-F':'p_file.txt'},\
             SuppressStderr=True)
         self.app_params_no_stdout =CLAppTester({'-F':'p_file.txt'},\
@@ -33,6 +35,12 @@ class CommandLineApplicationTests(TestCase):
             InputHandler='_input_as_lines')
         self.app_params_WorkingDir =CLAppTester({'-F':'p_file.txt'},\
             WorkingDir='/tmp/test')
+        self.app_params_WorkingDir_w_space =CLAppTester({'-F':'p_file.txt'},\
+            WorkingDir='/tmp/test space')
+        self.app_params_TmpDir =CLAppTester({'-F':'p_file.txt'},\
+            TmpDir='/tmp2')
+        self.app_params_TmpDir_w_space =CLAppTester({'-F':'p_file.txt'},\
+            TmpDir='/tmp space')
         self.data = 42
         script = """#!/usr/bin/env python
 #This is a test script intended to test the CommandLineApplication
@@ -106,6 +114,12 @@ f.close()
         f.write(script)
         f.close()
         system('chmod 777 /tmp/CLAppTester.py')
+
+        # create a copy of the script with a space in the name 
+        f = open('/tmp/CLApp Tester.py','w')
+        f.write(script)
+        f.close()
+        system('chmod 777 "/tmp/CLApp Tester.py"')
  
     def test_base_command(self):
         """CLAppTester: BaseCommand correctly composed """
@@ -132,6 +146,9 @@ f.close()
             'cd "/tmp/"; ./CLAppTester.py -F "junk.txt" --duh'\
             or app.BaseCommand ==\
             'cd "/tmp/"; ./CLAppTester.py --duh -F "junk.txt"')
+        # Space in _command
+        app = CLAppTester_space_in_command()
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; "./CLApp Tester.py"')
        
     def test_getHelp(self):
         """CLAppTester: getHelp() functions as expected """
@@ -244,6 +261,29 @@ f.close()
             'out p_file.txt')
         result.cleanUp()
 
+    def test_p_space_in_command(self):
+        """CLAppTester: parameters turned on, no data, space in command"""
+        app = self.app_params_space_in_command
+        #test_init
+        assert app.Parameters['-F'].isOn()
+        self.assertEqual(app.InputHandler,'_input_as_string')
+        assert not app.SuppressStderr
+        #test_command
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/"; "./CLApp Tester.py" -F "p_file.txt"')
+        #test_result
+        result = app()
+        self.assertEqual(result['StdOut'].read(),'')
+        self.assertEqual(result['StdErr'].read(),'I am stderr\n')
+        self.assertEqual(result['ExitStatus'],0)
+        self.assertEqual(result['fixed_file'].read(),'I am fixed file')
+        self.assertEqual(result['base_dep_1'].read(),'base dependent 1')
+        self.assertEqual(result['base_dep_2'].read(),'base dependent 2')
+        self.assertEqual(result['parameterized_file'].read(),\
+            'out p_file.txt')
+        result.cleanUp()
+
+
     def test_p_data_as_str(self):
         """CLAppTester: parameters turned on, data as str"""
         app = self.app_params
@@ -317,6 +357,90 @@ f.close()
             'out p_file.txt')
         result.cleanUp()
 
+    def test_WorkingDir_w_space(self):
+        """CLAppTester: WorkingDir w/ space in path functions as expected """
+        system('cp /tmp/CLAppTester.py "/tmp/test space/CLAppTester.py"')
+        app = self.app_params_WorkingDir_w_space
+        #test_init
+        assert app.Parameters['-F'].isOn()
+        self.assertEqual(app.InputHandler,'_input_as_string')
+        assert not app.SuppressStderr
+        # WorkingDir is what we expect
+        self.assertEqual(app.WorkingDir,'/tmp/test space/')
+        #test_command
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/test space/"; ./CLAppTester.py -F "p_file.txt"')
+        #test_result
+        result = app()
+        self.assertEqual(result['StdOut'].read(),'')
+        self.assertEqual(result['StdErr'].read(),'I am stderr\n')
+        self.assertEqual(result['ExitStatus'],0)
+        self.assertEqual(result['fixed_file'].read(),'I am fixed file')
+        self.assertEqual(result['base_dep_1'].read(),'base dependent 1')
+        self.assertEqual(result['base_dep_2'].read(),'base dependent 2')
+        
+        # Make sure that the parameterized file is in the correct place
+        self.assertEqual(result['parameterized_file'].name,\
+            '/tmp/test space/p_file.txt')
+        self.assertEqual(result['parameterized_file'].read(),\
+            'out p_file.txt')
+        result.cleanUp()
+
+    def test_TmpDir(self):
+        """CLAppTester: Alternative TmpDir functions as expected"""
+        app = self.app_params_TmpDir
+        #test_init
+        assert app.Parameters['-F'].isOn()
+        self.assertEqual(app.InputHandler,'_input_as_string')
+        assert not app.SuppressStderr
+        # TmpDir is what we expect
+        self.assertEqual(app.TmpDir,'/tmp2')
+        #test_command
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+        #test_result
+        result = app()
+        self.assertEqual(result['StdOut'].read(),'')
+        self.assertEqual(result['StdErr'].read(),'I am stderr\n')
+        self.assertEqual(result['ExitStatus'],0)
+        self.assertEqual(result['fixed_file'].read(),'I am fixed file')
+        self.assertEqual(result['base_dep_1'].read(),'base dependent 1')
+        self.assertEqual(result['base_dep_2'].read(),'base dependent 2')
+        
+        # Make sure that the parameterized file is in the correct place
+        self.assertEqual(result['parameterized_file'].name,\
+            '/tmp/p_file.txt')
+        self.assertEqual(result['parameterized_file'].read(),\
+            'out p_file.txt')
+        result.cleanUp()
+
+    def test_TmpDir_w_space(self):
+        """CLAppTester: TmpDir functions as expected w space in name"""
+        app = self.app_params_TmpDir_w_space
+        #test_init
+        assert app.Parameters['-F'].isOn()
+        self.assertEqual(app.InputHandler,'_input_as_string')
+        assert not app.SuppressStderr
+        # TmpDir is what we expect
+        self.assertEqual(app.TmpDir,'/tmp space')
+        #test_command
+        self.assertEqual(app.BaseCommand,\
+            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+        #test_result
+        result = app()
+        self.assertEqual(result['StdOut'].read(),'')
+        self.assertEqual(result['StdErr'].read(),'I am stderr\n')
+        self.assertEqual(result['ExitStatus'],0)
+        self.assertEqual(result['fixed_file'].read(),'I am fixed file')
+        self.assertEqual(result['base_dep_1'].read(),'base dependent 1')
+        self.assertEqual(result['base_dep_2'].read(),'base dependent 2')
+        
+        # Make sure that the parameterized file is in the correct place
+        self.assertEqual(result['parameterized_file'].name,\
+            '/tmp/p_file.txt')
+        self.assertEqual(result['parameterized_file'].read(),\
+            'out p_file.txt')
+        result.cleanUp()
 
     def test_input_as_string(self):
         """CLAppTester: _input_as_string functions as expected """
@@ -373,6 +497,60 @@ f.close()
         self.assertEqual(f.readline(),'3')
         f.close()
 
+    def test_input_as_path(self):
+        """CLAppTester: _input_as_path casts data to FilePath"""
+        actual = self.app_no_params._input_as_path('test.pdb')
+        self.assertEqual(actual,'"test.pdb"')
+        actual = self.app_no_params._input_as_path('te st.pdb')
+        self.assertEqual(actual,'"te st.pdb"')
+        actual = self.app_no_params._input_as_path('./test.pdb')
+        self.assertEqual(actual,'"./test.pdb"')
+        actual = self.app_no_params._input_as_path('/this/is/a/test.pdb')
+        self.assertEqual(actual,'"/this/is/a/test.pdb"')
+        actual = self.app_no_params._input_as_path('/this/i s/a/test.pdb')
+        self.assertEqual(actual,'"/this/i s/a/test.pdb"')
+
+    
+    def test_input_as_paths(self):
+        """CLAppTester: _input_as_paths casts each input to FilePath """
+        input = ['test.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"test.pdb"'
+        self.assertEqual(actual,expected)
+        
+        input = ['test1.pdb','test2.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"test1.pdb" "test2.pdb"'
+        self.assertEqual(actual,expected)
+        
+        input = ['/path/to/test1.pdb','test2.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"/path/to/test1.pdb" "test2.pdb"'
+        self.assertEqual(actual,expected)
+        
+        input = ['test1.pdb','/path/to/test2.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"test1.pdb" "/path/to/test2.pdb"'
+        self.assertEqual(actual,expected)
+        
+        input = ['/path/to/test1.pdb','/path/to/test2.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"/path/to/test1.pdb" "/path/to/test2.pdb"'
+        self.assertEqual(actual,expected)
+
+        input = ['/pa th/to/test1.pdb','/path/to/te st2.pdb']
+        actual = self.app_no_params._input_as_paths(input)
+        expected = '"/pa th/to/test1.pdb" "/path/to/te st2.pdb"'
+        self.assertEqual(actual,expected)
+
+
+    def test_absolute(self):
+        """CLAppTester: _absolute converts relative paths to absolute paths
+        """
+        absolute = self.app_no_params._absolute
+        self.assertEqual(absolute('/tmp/test.pdb'),'/tmp/test.pdb')
+        self.assertEqual(absolute('test.pdb'),'/tmp/test.pdb')
+
     def test_working_dir_setting(self):
         """CLAppTester: WorkingDir is set correctly """
         app = CLAppTester_no_working_dir()
@@ -393,11 +571,10 @@ f.close()
         assert obs.startswith(app.TmpDir)
         chars = set(obs[5:])
         assert len(chars) > 1
-        
 
 class RemoveTests(TestCase):
     def test_remove(self):
-        """This wil remove the test script. Not actually a test!"""
+        """This will remove the test script. Not actually a test!"""
 
         for dir, n, fnames in walk('/tmp/test/'):
             for f in fnames:
@@ -406,8 +583,13 @@ class RemoveTests(TestCase):
                 except OSError, e:
                     pass
            
-        remove('/tmp/CLAppTester.py')
+        remove('/tmp/CLAppTester.py') 
+        remove('/tmp/test space/CLAppTester.py') 
+        remove('/tmp/CLApp Tester.py') 
+        rmdir('/tmp space')
+        rmdir('/tmp2')
         rmdir('/tmp/test')
+        rmdir('/tmp/test space')
        
 
 #=====================END OF TESTS===================================
@@ -444,7 +626,10 @@ class CLAppTester(CommandLineApplication):
 
 class CLAppTester_no_working_dir(CLAppTester):
     _working_dir = None
-        
+
+class CLAppTester_space_in_command(CLAppTester):
+    _command = '"./CLApp Tester.py"'
+ 
 if __name__ == '__main__':
 
    

@@ -26,45 +26,14 @@ class RnaView(CommandLineApplication):
         '-a':FlagParameter(Prefix='-',Name='a'),\
         '-x':FlagParameter(Prefix='-',Name='x')}
     _command = 'rnaview'
-
-    def _input_as_string(self,data):
-        """ Return data as a string 
-            
-            data can be one of two things: a filename, or a filename 
-             optionally followed by a float (when -a is passed). 
-             To allow this code to handle filenames containing spaces, 
-             we have to wrap all filenames in double quotes. This is 
-             somewhat tricky b/c the float is optional when 
-             -a is passed, so we need to check for it. 
-        
-        """
-        if self.Parameters['-a'].isOn():
-            fields = data.split()
-            try:
-                # If the last field is a float, it is a min resolution being
-                # passed by the user, and we don't want to put it in quotes.
-                # Cast the last field to a float to make sure it is 
-                # floatable -- if it's not, we'll get a value error and 
-                # know that we only have a filename. 
-                float(fields[-1])
-                # Wrap the filename preserving the original white space chars
-                # and ensuring that there are no trailing whitespaces as they 
-                # would be problematic within the quotes.
-                filename = ''.join(\
-                 ['"',str(data[:data.rindex(' ')]).rstrip(),'"'])
-                # Return the quotation-wrapped filename and resolution in it's
-                # original format (i.e., w/ no rounding error).
-                return ' '.join([filename,fields[-1]])
-            except ValueError:
-                pass
-        # we only have a filename (either -a with no resolution or not -a)
-        return ''.join(['"',str(data),'"'])
+    _input_handler = '_input_as_path'
 
     ### Everything above is necessary for sub-class, code below is for cases 
     ### where files are written (ie. data goes to places other than stdout and
     ### stderr) Complexity increases with the amount of variability in the 
     ### file name. For rnaview the naming of the files is quite complex, hence
     ### the large amount of code necessary.
+
     def _get_result_paths(self,data):
         # There are two possibilities for what data will be, if -a has been 
         # specified, data will be a file containing a space-delimited list of 

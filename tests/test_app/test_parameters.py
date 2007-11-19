@@ -2,7 +2,7 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
-    MixedParameter,Parameters, _find_synonym, ParameterError
+    MixedParameter,Parameters, _find_synonym, ParameterError, FilePath
 
 __author__ = "Sandra Smit and Greg Caporaso"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -225,6 +225,12 @@ class ValuedParameterTests(TestCase):
                 self.constructor(Name=None,Prefix='-'),\
                 self.constructor(Name=4,Prefix=None),\
                 self.constructor(Name='abcdef',Prefix='-')]
+        
+        self.p_modified_is_path =\
+         [self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',IsPath=True),\
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',IsPath=False)]
 
     def test_init(self):
         """Parameter: init functions as expected """ 
@@ -272,6 +278,9 @@ class ValuedParameterTests(TestCase):
         p7 = self.constructor(Name='a',Prefix='-',Value=42,Quote='\'',\
             Delimiter='!!!')
         p8 = self.constructor(Name='wwwww',Prefix='-------')
+        p9 = self.constructor(Name='a',Prefix='-',Value=42,Quote='\'',\
+            Delimiter='=',IsPath=True)
+
 
         assert p1 == p2
         assert not p1 == p3
@@ -280,6 +289,7 @@ class ValuedParameterTests(TestCase):
         assert not p1 == p6
         assert not p1 == p7
         assert not p1 == p8
+        assert not p1 == p9
         # test default setting
         p5.Value = 42
         assert not p1 == p5
@@ -301,6 +311,8 @@ class ValuedParameterTests(TestCase):
         p7 = self.constructor(Name='a',Prefix='-',Value=42,Quote='\'',\
             Delimiter='!!!')
         p8 = self.constructor(Name='wwwww',Prefix='-------')
+        p9 = self.constructor(Name='a',Prefix='-',Value=42,Quote='\'',\
+            Delimiter='=',IsPath=True)
 
         assert not p1 != p2
         assert p1 != p3
@@ -309,6 +321,7 @@ class ValuedParameterTests(TestCase):
         assert p1 != p6
         assert p1 != p7
         assert p1 != p8
+        assert p1 != p9
         # test default setting
         p5.Value = 42
         assert p1 != p5
@@ -320,7 +333,19 @@ class ValuedParameterTests(TestCase):
         self.assertEqual(p1._get_default(),42)
         p1.Value = 43
         self.assertEqual(p1._get_default(),42)
-        
+
+    def test_get_default_w_IsPath(self):
+        """Parameter: default is a FilePath object when IsPath is set """
+        p = self.constructor(Name='a',Prefix='-',Value='test.txt',Quote='\'',\
+            Delimiter='=',IsPath=True)
+        self.assertEqual(p._get_default(),'test.txt')
+        self.assertEqual(p.Default,'test.txt')
+        p.Value = 'test2.txt'
+        self.assertEqual(p._get_default(),'test.txt')
+        self.assertEqual(p.Default,'test.txt')
+        assert isinstance(p._get_default(),FilePath)
+        assert isinstance(p.Default,FilePath)
+ 
     def test_reset(self):
         """Parameter: reset correctly set Value to _default """
         p1 = self.constructor(Name='a',Prefix='-',Value=42,Quote='\'',\
@@ -412,7 +437,16 @@ class ValuedParameterTests(TestCase):
 
         for param,exp in zip(self.p_modified_quote,expected_results):
             self.assertEqual(str(param),exp)
+     
+    def test_str_modify_is_path(self):
+        """Parameter: str functions as expected with different IsPath """
+
+        expected_results = ['-d "test.txt"','-d test.txt']
+
+        for param,exp in zip(self.p_modified_is_path,expected_results):
+            self.assertEqual(str(param),exp)
         
+    
     def test_str_full(self):
         """Parameter: str functions as expected with all values non-default """
         for p in self.p_full:
@@ -433,7 +467,20 @@ class MixedParameterTests(ValuedParameterTests):
                 self.constructor(Name='d',Prefix='-',Value='F')]
         
         self.p_Off = [self.constructor(Name='d',Prefix='-',Value=False)]
-    
+         
+        # This is different from the superclass variable b/c we need to make
+        # sure that specifying IsPath with Value=None functions as expected
+        self.p_modified_is_path =\
+         [self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',IsPath=True),\
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',IsPath=False),
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value=None,IsPath=True),\
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value=None,IsPath=False)]
+
+   
     def test_on(self):
         """Parameter: on functions as expected """
         for param in self.p_On + self.p_Off:
@@ -451,6 +498,7 @@ class MixedParameterTests(ValuedParameterTests):
             self.assertEqual(p.Delimiter,None)
             self.assertEqual(p.Quote,None)
             self.assertEqual(p.Id,'-a')
+            self.assertEqual(p.IsPath,False)
 
     def test_str_all_modes(self):
         """MixedParameter: str() functions in various modes """
@@ -460,7 +508,17 @@ class MixedParameterTests(ValuedParameterTests):
         self.assertEqual(str(p),'-d')
         p.on('a')
         self.assertEqual(str(p),'-d=]a]')
+     
+    def test_str_modify_is_path(self):
+        """MixedParameter: str functions as expected with different IsPath """
 
+        # This is different from the superclass test b/c we need to make
+        # sure that specifying IsPath with Value=None functions as expected
+        expected_results = ['-d "test.txt"','-d test.txt','-d','-d']
+
+        for param,exp in zip(self.p_modified_is_path,expected_results):
+            self.assertEqual(str(param),exp)
+ 
 class ParametersTests(TestCase):
     """Tests of the Parameters class"""
 
@@ -513,6 +571,68 @@ def parametersTests(TestCase):
         """_find_synonym() functions as expected """
         f = _find_synonym({'a':'-a'})
         self.assertEqual(f('a'),'-a') 
+
+class FilePathTests(TestCase):
+    """ Tests of the FilePath class """
+
+    def setUp(self):
+        """ Initialize variables to be used by tests """
+        self.filename = 'filename.txt'
+        self.relative_dir_path = 'a/relative/path/'
+        self.relative_dir_path_no_trailing_slash = 'a/relative/path'
+        self.relative_file_path = 'a/relative/filepath.txt'
+        self.absolute_dir_path = '/absolute/path/'
+        self.absolute_file_path = '/absolute/filepath.txt'
+        self.all_paths = [self.filename, self.relative_dir_path,\
+            self.relative_file_path, self.absolute_dir_path,\
+            self.absolute_file_path]
+
+    def test_init(self):
+        """FilePath: initialization returns w/o error """
+        for p in self.all_paths:
+            self.assertEqual(FilePath(p),p)
+        self.assertEqual(FilePath(''),'')
+
+    def test_str(self):
+        """FilePath: str wraps path in quotes """
+        # Do one explicit test (for sanity), then automatically run
+        # through the examples
+        self.assertEqual(str(FilePath(self.filename)),'"filename.txt"')
+        for p in self.all_paths:
+            self.assertEqual(str(FilePath(p)),'"' + p + '"')
+
+    def test_str_path_is_None(self):
+        """FilePath: str return empty string when path is None """
+        self.assertEqual(str(FilePath(None)),'')
+
+    def test_add(self):
+        """FilePath: add (or joining of paths) functions as expected """
+        actual = FilePath(self.relative_dir_path) + FilePath(self.filename)
+        expected = FilePath('a/relative/path/filename.txt')
+        self.assertEqual(actual,expected)
+        # result is a FilePath
+        assert isinstance(actual,FilePath)
+        # appending a string to a FilePath results in a FilePath
+        actual = FilePath(self.relative_dir_path) + 'filename.txt'
+        expected = FilePath('a/relative/path/filename.txt')
+        self.assertEqual(actual,expected)
+        # result is a FilePath
+        assert isinstance(actual,FilePath)
+
+    def test_FilePath_identity_preserved(self):
+        """FilePath: trivial actions on FilePaths yeild original FilePath
+        """
+        p = FilePath(self.filename)
+        # Creating FilePath from FilePath results in FilePath
+        # equal to original
+        self.assertEqual(FilePath(p),p)
+        for p in self.all_paths:
+            self.assertEqual(FilePath(p),p)
+        # Appending an empty FilePath to a FilePath results in FilePath
+        # equal to original
+        self.assertEqual(p+FilePath(''),p)
+
+
 
 if __name__ == '__main__':
     main()
