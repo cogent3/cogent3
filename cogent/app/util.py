@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import commands
 from sys import platform
-from os import remove,system,mkdir,getcwd,close
+from os import remove,system,mkdir,getcwd,close,sep
+from os.path import isabs
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
-    MixedParameter,Parameters, _find_synonym, is_not_None
+    MixedParameter,Parameters, _find_synonym, is_not_None, FilePath
 from cogent.util.misc import if_
 from random import choice
 
@@ -24,7 +25,7 @@ _all_chars = _chars + _chars.upper() + "0123456790"
 
 class ApplicationError(OSError):
     pass
-    
+   
 class ResultPath(object):
     """ Hold a file path a boolean value specifying whether file was written
     """
@@ -36,7 +37,7 @@ class ResultPath(object):
             IsWritten: a boolean specifying whether the file has been written,
                 default = True
         """
-        self.Path = Path
+        self.Path = FilePath(Path)
         self.IsWritten = IsWritten
 
 class CommandLineAppResult(dict):
@@ -126,8 +127,8 @@ class CommandLineApplication(Application):
     _suppress_stderr = False
     _suppress_stdout = False
     _working_dir = None
-    TmpPrefix = 'tmp'
-    TmpSuffix = '.txt'
+    TmpPrefix = FilePath('tmp')
+    TmpSuffix = FilePath('.txt')
 
     def __init__(self,params=None,InputHandler=None,SuppressStderr=None,\
         SuppressStdout=None,WorkingDir=None,TmpDir='/tmp', \
@@ -173,10 +174,11 @@ class CommandLineApplication(Application):
         else:
             self.SuppressStdout = self._suppress_stdout
         if WorkingDir is not None:
-            self.WorkingDir = WorkingDir
+            working_dir = WorkingDir
         else:
-            self.WorkingDir = self._working_dir or getcwd()
-        self.TmpDir = TmpDir
+            working_dir = self._working_dir or getcwd()
+        self.WorkingDir = FilePath(working_dir)
+        self.TmpDir = FilePath(TmpDir)
         self.TmpNameLen = TmpNameLen
         self.HaltExec = HALT_EXEC
         #===========================
@@ -210,13 +212,13 @@ class CommandLineApplication(Application):
         suppress_stdout = self.SuppressStdout
         suppress_stderr = self.SuppressStderr
         if suppress_stdout:
-            outfile = '/dev/null'
+            outfile = FilePath('/dev/null')
         else:
-            outfile = self.getTmpFilename(self.WorkingDir)
+            outfile = self.getTmpFilename(self.TmpDir)
         if suppress_stderr:
-            errfile = '/dev/null'
+            errfile = FilePath('/dev/null')
         else:
-            errfile = self.getTmpFilename(self.WorkingDir)
+            errfile = FilePath(self.getTmpFilename(self.TmpDir))
         if data is None:
             input_arg = ''
         else:
@@ -225,9 +227,8 @@ class CommandLineApplication(Application):
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
         command = self._command_delimiter.join(filter(None,\
-            [self.BaseCommand,input_arg,'>','"'+outfile+'"','2>',\
-                '"'+errfile+'"']))
-
+            [self.BaseCommand,str(input_arg),'>',str(outfile),'2>',\
+                str(errfile)]))
         if self.HaltExec: 
             raise AssertionError, "Halted exec with command:\n" + command
         # The return value of system is a 16-bit number containing the signal 
@@ -271,7 +272,8 @@ class CommandLineApplication(Application):
 
         data: a multiline string to be written to a file.
         """
-        filename = self._input_filename = self.getTmpFilename(self.WorkingDir)
+        filename = self._input_filename = self.getTmpFilename(self.TmpDir)
+        filename = FilePath(filename)
         data_file = open(filename,'w')
         data_file.write(data)
         data_file.close()
@@ -287,25 +289,53 @@ class CommandLineApplication(Application):
                 before writing to a file in order to avoid multiple new lines
                 accidentally be written to a file
         """
-        filename = self._input_filename = self.getTmpFilename(self.WorkingDir)
+        filename = self._input_filename = self.getTmpFilename(self.TmpDir)
+        filename = FilePath(filename)
         data_file = open(filename,'w')
         data_to_file = '\n'.join([str(d).strip('\n') for d in data])
         data_file.write(data_to_file)
         data_file.close()
         return filename
-   
+
+    def _input_as_path(self,data):
+        """ Return data as a FilePath object 
+            
+            data: path or filename, most likely as a string
+
+        """
+        return str(FilePath(data))
+
+    def _input_as_paths(self,data):
+        """ Return data as a list of FilePath objects 
+            
+            data: paths or filenames, most likely as a list of 
+             strings
+
+        """
+        return ' '.join(map(self._input_as_path,data))
+
+    def _absolute(self,path):
+        """ Convert a filename to an absolute path """
+        # Is this line necessary?
+        path = FilePath(path)
+        if isabs(path):
+            return path
+        else:
+            # these are both Path objects, so joining with + is acceptable
+            return self.WorkingDir + path
+ 
     def _get_base_command(self):
         """ Returns the full command string 
 
             input_arg: the argument to the command which represents the input 
                 to the program, this will be a string, either 
                 representing input or a filename to get input from
-        """
+         tI"""
         command_parts = []
         # Append a change directory to the beginning of the command to change 
         # to self.WorkingDir before running the command
         # WorkingDir should be in quotes -- filenames might contain spaces
-        cd_command = ''.join(['cd "',self.WorkingDir,'";'])
+        cd_command = ''.join(['cd ',str(self.WorkingDir),';'])
         if self._command is None:
             raise ApplicationError, '_command has not been set.'
         command = self._command
@@ -334,7 +364,7 @@ class CommandLineApplication(Application):
         '/' at the end doesn't hurt anything, it's convienient to 
         be able to rely on it, and not have to check for it
         """
-        self._curr_working_dir = path + '/'
+        self._curr_working_dir = FilePath(path) + '/'
         try:
             mkdir(self.WorkingDir)
         except OSError:
@@ -382,12 +412,18 @@ class CommandLineApplication(Application):
         # if not current directory, append "/" if not already on path
         elif not tmp_dir.endswith("/"):
             tmp_dir += "/"
-        
-        return ''.join([tmp_dir, self.TmpPrefix,\
-            ''.join([choice(_all_chars) for i in range(self.TmpNameLen)]),
-            self.TmpSuffix])
 
-def get_tmp_filename(tmp_dir="/tmp", prefix="tmp"):
+        try:
+            mkdir(tmp_dir)
+        except OSError:
+            # Directory already exists
+            pass
+        
+        return FilePath(''.join([tmp_dir,self.TmpPrefix,\
+            ''.join([choice(_all_chars) for i in range(self.TmpNameLen)]),\
+            self.TmpSuffix]))
+
+def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
     """
     Generate temp filename
     """
@@ -400,8 +436,9 @@ def get_tmp_filename(tmp_dir="/tmp", prefix="tmp"):
 
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
-    return tmp_dir + prefix +\
-        "%s.txt" % ''.join([choice(picks) for i in range(20)]) 
+    return FilePath(tmp_dir) + FilePath(prefix) +\
+        FilePath("%s%s" % \
+        (''.join([choice(picks) for i in range(20)]),suffix))
 
 def guess_input_handler(seqs, add_seq_names=False):
     """Returns the name of the input handler for seqs."""

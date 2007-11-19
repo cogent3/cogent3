@@ -24,13 +24,54 @@ class ParameterError(ValueError):
     """Error raised when field in parameter is bad"""
     pass
 
+class FilePath(str):
+    """ Hold paths for proper handling
+
+        Paths in this sense are filenames, directory paths, or filepaths. 
+        Some examples include:
+         file.txt
+         ./path/to/file.txt
+         ./path/to/dir/
+         /path/to/file.txt
+         .
+         /
+
+        The purpose of this class is to allow all paths to be handled the
+         same since they sometimes need to be treated differently than 
+         simple strings. For example, if a path has a space in it, and it
+         is being passed to system, it needs to be wrapped in quotes. But,
+         you wouldn't want it as a string wrapped in quotes b/c, e.g.,
+         isabs('"/absolute/path"') == False, b/c the first char is a ", not
+         a /.
+
+        * This would make more sense to call Path, but that conflicts with
+            the ResultPath.Path attribute. I'm not sure what to do about this
+            and want to see what others think. Once finalized, a global
+            replace should take care of making the switch.
+
+    """
+    def __new__(cls,path):
+        try:
+            return str.__new__(cls, path.strip('"'))
+        except AttributeError:
+            return str.__new__(cls,'')
+
+    def __str__(self):
+        """ wrap self in quotes, or return the empty string if self == '' """
+        if self == '': return ''
+        return ''.join(['"',self,'"'])
+
+    def __add__(self,other):
+        return FilePath(''.join([self,other]))
+ 
 class Parameter(object):
     """Stores information regarding a parameter to an application.
     
         An abstract class.
     """
 
-    def __init__(self,Prefix,Name,Value=None,Delimiter=None,Quote=None):
+    def __init__(self,Prefix,Name,Value=None,Delimiter=None,\
+        Quote=None,IsPath=None):
         """Initialize the Parameter object.
         
         Prefix: the character(s) preceding the name of the parameter
@@ -44,7 +85,9 @@ class Parameter(object):
             a '-l="hello" parameter). At this point asymmetrical quotes 
             are not possible (ie. [4]) 
             WARNING: You must escape the quote in most cases.     
-                
+        IsPath: boolean indicating whether Value is a file path, and should
+            therefore be cast to a FilePath object               
+ 
         Id: The combination of Prefix and Name is called the identifier (Id)
             of the parameter. (eg. '-a' for a '-a' parameter, or '-t' for 
             a '-t=9' parameter)
@@ -72,6 +115,7 @@ class Parameter(object):
         self.Delimiter = Delimiter
         self.Quote = Quote
         self.Value = Value
+        self.IsPath = IsPath
     
     def _get_id(self):
         """Construct and return the identifier"""
@@ -81,11 +125,12 @@ class Parameter(object):
 
     def __eq__(self,other):
         """Return True if two parameters are equal"""
-        return (self.Name == other.Name) and\
+        return (self.IsPath == other.IsPath) and\
+                (self.Name == other.Name) and\
                 (self.Prefix == other.Prefix) and\
                 (self.Delimiter == other.Delimiter) and \
                 (self.Quote == other.Quote) and \
-                (self.Value == other.Value) 
+                (self.Value == other.Value)
 
     def __ne__(self,other):
         """Return True if two parameters are not equal to each other"""
@@ -162,7 +207,8 @@ class FlagParameter(Parameter):
 class ValuedParameter(Parameter):
     """Stores information regarding a valued parameter to an application"""
 
-    def __init__(self,Prefix,Name,Value=None,Delimiter=None,Quote=None):
+    def __init__(self,Prefix,Name,Value=None,Delimiter=None,Quote=None,\
+        IsPath=False):
         """Initialize a ValuedParameter object.
         
         Prefix: the character(s) preceding the name of the parameter
@@ -175,6 +221,8 @@ class ValuedParameter(Parameter):
             a '-l="hello" parameter). At this point asymmetrical quotes 
             are not possible (ie. [4]) 
             WARNING: You must escape the quote in most cases.     
+        IsPath: boolean indicating whether Value is a file path, and should
+            therefore be cast to a FilePath object               
         
         Id: The combination of Prefix and Name is called the identifier (Id)
             of the parameter. (eg. '-a' for a '-a' parameter, or '-t' for 
@@ -191,8 +239,10 @@ class ValuedParameter(Parameter):
             the parameter is turned off by default and won't be used by
             the application unless turned on with some value.
         """
+        if IsPath and Value:
+            Value=FilePath(Value)
         super(ValuedParameter,self).__init__(Name=Name,Prefix=Prefix,\
-                Value=Value,Delimiter=Delimiter,Quote=Quote)
+                Value=Value,Delimiter=Delimiter,Quote=Quote,IsPath=IsPath)
         self._default = Value
 
     def __str__(self):
@@ -259,6 +309,8 @@ class ValuedParameter(Parameter):
             raise ParameterError,\
             "Turning the ValuedParameter on with value None is the same as "+\
             "turning it off. Use another value."
+        elif self.IsPath:
+            self.Value = FilePath(val)
         else:
             self.Value = val
 
@@ -279,7 +331,8 @@ class MixedParameter(ValuedParameter):
     You can give either '-d' or '-d0' or '-d1' as input.
     """
 
-    def __init__(self,Prefix,Name,Value=False,Delimiter=None,Quote=None):
+    def __init__(self,Prefix,Name,Value=False,Delimiter=None,Quote=None,\
+        IsPath=False):
         """Initialize a MixedParameter object
         
         Prefix: the character(s) preceding the name of the parameter
@@ -292,6 +345,8 @@ class MixedParameter(ValuedParameter):
             a '-l="hello" parameter). At this point asymmetrical quotes 
             are not possible (ie. [4]) 
             WARNING: You must escape the quote in most cases.     
+        IsPath: boolean indicating whether Value is a file path, and should
+            therefore be cast to a FilePath object               
         
         Id: The combination of Prefix and Name is called the identifier (Id)
             of the parameter. (eg. '-a' for a '-a' parameter, or '-t' for 
@@ -311,8 +366,10 @@ class MixedParameter(ValuedParameter):
             the parameter is turned off by default (Value=False) and won't be
             used by the application unless turned on with some value.
         """
+        if IsPath and Value:
+            Value=FilePath(Value)
         super(MixedParameter,self).__init__(Name=Name,Prefix=Prefix,\
-                Value=Value,Delimiter=Delimiter,Quote=Quote)
+                Value=Value,Delimiter=Delimiter,Quote=Quote,IsPath=IsPath)
 
     def __str__(self):
         """Return the parameter as a string
@@ -364,6 +421,8 @@ class MixedParameter(ValuedParameter):
             raise ParameterError,\
             "Turning the ValuedParameter on with value False is the same as "+\
             "turning it off. Use another value."
+        elif self.IsPath:
+            self.Value = FilePath(val)
         else:
             self.Value = val
 
