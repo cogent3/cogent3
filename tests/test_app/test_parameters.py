@@ -230,7 +230,9 @@ class ValuedParameterTests(TestCase):
          [self.constructor(Name='d',Prefix='-',Delimiter=' ',\
             Value='test.txt',IsPath=True),\
           self.constructor(Name='d',Prefix='-',Delimiter=' ',\
-            Value='test.txt',IsPath=False)]
+            Value='test.txt',IsPath=False),\
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',Quote='"',IsPath=True)]
 
     def test_init(self):
         """Parameter: init functions as expected """ 
@@ -441,7 +443,7 @@ class ValuedParameterTests(TestCase):
     def test_str_modify_is_path(self):
         """Parameter: str functions as expected with different IsPath """
 
-        expected_results = ['-d "test.txt"','-d test.txt']
+        expected_results = ['-d "test.txt"','-d test.txt','-d "test.txt"']
 
         for param,exp in zip(self.p_modified_is_path,expected_results):
             self.assertEqual(str(param),exp)
@@ -474,7 +476,9 @@ class MixedParameterTests(ValuedParameterTests):
          [self.constructor(Name='d',Prefix='-',Delimiter=' ',\
             Value='test.txt',IsPath=True),\
           self.constructor(Name='d',Prefix='-',Delimiter=' ',\
-            Value='test.txt',IsPath=False),
+            Value='test.txt',Quote='"',IsPath=True),\
+          self.constructor(Name='d',Prefix='-',Delimiter=' ',\
+            Value='test.txt',IsPath=False),\
           self.constructor(Name='d',Prefix='-',Delimiter=' ',\
             Value=None,IsPath=True),\
           self.constructor(Name='d',Prefix='-',Delimiter=' ',\
@@ -514,7 +518,8 @@ class MixedParameterTests(ValuedParameterTests):
 
         # This is different from the superclass test b/c we need to make
         # sure that specifying IsPath with Value=None functions as expected
-        expected_results = ['-d "test.txt"','-d test.txt','-d','-d']
+        expected_results = ['-d "test.txt"','-d "test.txt"',\
+            '-d test.txt','-d','-d']
 
         for param,exp in zip(self.p_modified_is_path,expected_results):
             self.assertEqual(str(param),exp)

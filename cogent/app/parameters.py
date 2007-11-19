@@ -87,6 +87,11 @@ class Parameter(object):
             WARNING: You must escape the quote in most cases.     
         IsPath: boolean indicating whether Value is a file path, and should
             therefore be cast to a FilePath object               
+            WARNING: Don't set Quote='"' and set IsPath=True. This 
+            would result in two sets of double quotes being wrapped around 
+            the path when it is printed, and the application would most 
+            likely fail. We explicitly disallow this with:
+             if self.IsPath and self.Quote == '"': self.Quote = None
  
         Id: The combination of Prefix and Name is called the identifier (Id)
             of the parameter. (eg. '-a' for a '-a' parameter, or '-t' for 
@@ -109,6 +114,7 @@ class Parameter(object):
         Optionally you can overwrite __init__, but you should be sure to 
         either call the superclass init or handle the setting of the
         self._default attribute (or things will break!)
+        
         """
         self.Name = Name
         self.Prefix = Prefix
@@ -116,6 +122,7 @@ class Parameter(object):
         self.Quote = Quote
         self.Value = Value
         self.IsPath = IsPath
+        if self.IsPath and self.Quote == '"': self.Quote = None
     
     def _get_id(self):
         """Construct and return the identifier"""

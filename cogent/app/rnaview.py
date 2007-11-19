@@ -15,7 +15,24 @@ __email__ = "gregcaporaso@gmail.com"
 __status__ = "Production"
 
 class RnaView(CommandLineApplication):
-    """ The Application controller for the RnaView application """
+    """ The Application controller for the RnaView application 
+
+        There are two known issues with this applications controller
+         which are being addressed: 
+         (1) The first is that it doesn't handle
+         the functionality where -a is passed followed by a filename and
+         a float. This will be addressed shortly. 
+         (2) The second problem is that under
+         some mysterious circumstances, rnaview (the actual application,
+         not via cogent) writes extra output files. This seems to be a bug
+         in rnaview, and cogent therefore doesn't clean them up. One time 
+         when this occurs is when there are spaces in filenames or paths.
+         Contact Greg (gregcaporaso@gmail.com) for some example output
+         illustrating this issue. Users are warned to look for extra 
+         output files either showing up in the working directory or 
+         the temp directory (default: /tmp).
+
+    """
 
     # The functionality necessary for use of the -a parameter is still 
     # under development and is not ready for use

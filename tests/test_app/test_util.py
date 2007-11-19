@@ -500,15 +500,20 @@ f.close()
     def test_input_as_path(self):
         """CLAppTester: _input_as_path casts data to FilePath"""
         actual = self.app_no_params._input_as_path('test.pdb')
-        self.assertEqual(actual,'"test.pdb"')
+        self.assertEqual(actual,'test.pdb')
+        self.assertEqual(str(actual),'"test.pdb"')
         actual = self.app_no_params._input_as_path('te st.pdb')
-        self.assertEqual(actual,'"te st.pdb"')
+        self.assertEqual(actual,'te st.pdb')
+        self.assertEqual(str(actual),'"te st.pdb"')
         actual = self.app_no_params._input_as_path('./test.pdb')
-        self.assertEqual(actual,'"./test.pdb"')
+        self.assertEqual(actual,'./test.pdb')
+        self.assertEqual(str(actual),'"./test.pdb"')
         actual = self.app_no_params._input_as_path('/this/is/a/test.pdb')
-        self.assertEqual(actual,'"/this/is/a/test.pdb"')
+        self.assertEqual(actual,'/this/is/a/test.pdb')
+        self.assertEqual(str(actual),'"/this/is/a/test.pdb"')
         actual = self.app_no_params._input_as_path('/this/i s/a/test.pdb')
-        self.assertEqual(actual,'"/this/i s/a/test.pdb"')
+        self.assertEqual(actual,'/this/i s/a/test.pdb')
+        self.assertEqual(str(actual),'"/this/i s/a/test.pdb"')
 
     
     def test_input_as_paths(self):
