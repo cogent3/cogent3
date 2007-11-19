@@ -5,7 +5,7 @@ Presently restricted to mlagan
 """
 import os, re
 
-from cogent.app.parameters import FlagParameter, ValuedParameter
+from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, \
                         get_tmp_filename, ApplicationError, guess_input_handler
 from cogent.core.moltype import ASCII
@@ -52,7 +52,7 @@ class Mlagan(CommandLineApplication):
         '-fastreject':FlagParameter(Prefix='-',Name='fastreject'),
         # -out filename [default standard out]
         # Output the alignment to filename, rather than standard out.
-        '-out':ValuedParameter('-',Name='out',Delimiter=' ', Quote="\"")
+        '-out':ValuedParameter('-',Name='out',Delimiter=' ', IsPath=True)
     
     }
     
@@ -70,7 +70,7 @@ class Mlagan(CommandLineApplication):
         # these will be cleaned up after run
         for seq in data:
             fn = self.getTmpFilename(self.WorkingDir)
-            self._input_fasta_names.append(fn)
+            self._input_fasta_names.append(FilePath(fn))
             f = open(fn, "w")
             f.writelines(seq.toFasta())
             f.close()
@@ -81,12 +81,6 @@ class Mlagan(CommandLineApplication):
         make_seq = ASCII.makeSequence
         data=[make_seq(seq, label) for label, seq in parser]
         return self._input_as_seqs(data)
-    
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
     
     def _align_out_filename(self):
         if self.Parameters['-out'].isOn():
