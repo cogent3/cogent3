@@ -53,7 +53,7 @@ class Dialign(CommandLineApplication):
         #                 alignment
         '-ff':FlagParameter(Prefix='-',Name='ff'),
         # -fn <out_file>  output files are named <out_file>.<extension> .
-        '-fn':ValuedParameter('-',Name='fn',Delimiter=' ', Quote="\""),
+        '-fn':ValuedParameter('-',Name='fn',Delimiter=' ', IsPath=True),
         #
         #
         # -fop            Creates file *.fop containing coordinates of all fragments
@@ -167,12 +167,6 @@ class Dialign(CommandLineApplication):
             lines.append(s)
         return self._input_as_lines(lines)
     
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
-    
     def _align_out_filename(self):
         
         if self.Parameters['-fn'].isOn():
@@ -188,7 +182,6 @@ class Dialign(CommandLineApplication):
             out_name = self._align_out_filename()
             result['Align'] = ResultPath(Path=out_name,IsWritten=True)
         return result
-
     
     def getHelp(self):
         """Dialign help"""
@@ -196,4 +189,4 @@ class Dialign(CommandLineApplication):
         help_str = """
 """
         return help_str
-
+    
