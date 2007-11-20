@@ -133,8 +133,10 @@ class ClustalwTests(GeneralSetUp):
         #get info on input file name and change output accordingly
         name = c.Parameters['-infile'].Value
         out = self.stdout1.split('\n')
-        out[16] = 'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
-        out[23] = 'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+        out[16] =\
+            'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] =\
+            'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
 
         self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
                             cw_vers.sub("", '\n'.join(out)))
@@ -151,8 +153,10 @@ class ClustalwTests(GeneralSetUp):
         #get info on input file name and change output accordingly
         name = c.Parameters['-infile'].Value
         out = self.stdout1.split('\n')
-        out[16] = 'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
-        out[23] = 'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+        out[16] =\
+            'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] =\
+            'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
 
         self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
                             cw_vers.sub("", '\n'.join(out)))
@@ -169,8 +173,10 @@ class ClustalwTests(GeneralSetUp):
         #get info on input file name and change output accordingly
         name = c.Parameters['-infile'].Value
         out = self.stdout1.split('\n')
-        out[16] = 'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
-        out[23] = 'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+        out[16] =\
+            'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] =\
+            'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
         
         self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
                             cw_vers.sub("", '\n'.join(out)))

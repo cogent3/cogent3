@@ -39,10 +39,13 @@ class Clustalw(CommandLineApplication):
         '-tree':FlagParameter('-','tree'),
         '-bootstrap':MixedParameter('-','bootstrap',Delimiter='=')}
 
-    #sequence file for alingment, or alignment file for bootstrap and tree
+    #sequence file for alignment, or alignment file for bootstrap and tree
     #actions
-    _input = {'-infile':ValuedParameter('-','infile',Delimiter='=', Quote="\"")}
-    
+    _input = {'-infile':ValuedParameter('-','infile',Delimiter='=',IsPath=True)}
+   
+    # matrix and dnamatrix can be filenames as well, but not always.
+    # They won't be treated as filenames and thus not quoted.
+    # Therefore filepaths containing spaces might result in errors.
     _multiple_alignment={\
         '-quicktree':FlagParameter('-','quicktree'),
         '-type':ValuedParameter('-','type',Delimiter='='),
@@ -58,8 +61,8 @@ class Clustalw(CommandLineApplication):
         '-maxdiv':ValuedParameter('-',Name='maxdiv',Delimiter='='),
         '-negative':FlagParameter('-','negative'),
         '-transweight':ValuedParameter('-',Name='transweight',Delimiter='='),
-        '-newtree':ValuedParameter('-','newtree',Delimiter='='),
-        '-usetree':ValuedParameter('-','usetree',Delimiter='=')}
+        '-newtree':ValuedParameter('-','newtree',Delimiter='=',IsPath=True),
+        '-usetree':ValuedParameter('-','usetree',Delimiter='=',IsPath=True)}
 
     _fast_pairwise={\
         '-ktuple':ValuedParameter('-',Name='ktuple',Delimiter='='),
@@ -68,6 +71,9 @@ class Clustalw(CommandLineApplication):
         '-pairgap':ValuedParameter('-',Name='pairgap',Delimiter='='),
         '-score':ValuedParameter('-',Name='score',Delimiter='=')}
         
+    # pwmatrix and pwdnamatrix can be filenames as well, but not always.
+    # They won't be treated as filenames and thus not quoted.
+    # Therefore filepaths containing spaces might result in errors.
     _slow_pairwise={\
         '-pwmatrix':ValuedParameter('-',Name='pwmatrix',Delimiter='='),
         '-pwdnamatrix':ValuedParameter('-',Name='pwdnamatrix',Delimiter='='),
@@ -83,19 +89,20 @@ class Clustalw(CommandLineApplication):
         '-outputtree':ValuedParameter('-',Name='outputtree',Delimiter='=')}
 
     _output={\
-        '-outfile':ValuedParameter('-',Name='outfile',Delimiter='=',Quote="\""),
+        '-outfile':ValuedParameter('-',Name='outfile',Delimiter='=',\
+            IsPath=True),
         '-output':ValuedParameter('-',Name='output',Delimiter='='),
         '-case':ValuedParameter('-',Name='case',Delimiter='='),
         '-outorder':ValuedParameter('-',Name='outorder',Delimiter='='),
         '-seqnos':ValuedParameter('-',Name='seqnos',Delimiter='=')}
 
     _profile_alignment={\
-        '-profile1':ValuedParameter('-','profile1',Delimiter='=',Quote="\""),
-        '-profile2':ValuedParameter('-','profile2',Delimiter='=',Quote="\""),
-        '-usetree1':ValuedParameter('-','usetree1',Delimiter='=',Quote="\""),
-        '-usetree2':ValuedParameter('-','usetree2',Delimiter='=',Quote="\""),
-        '-newtree1':ValuedParameter('-','newtree1',Delimiter='=',Quote="\""),
-        '-newtree2':ValuedParameter('-','newtree2',Delimiter='=',Quote="\"")}
+        '-profile1':ValuedParameter('-','profile1',Delimiter='=',IsPath=True),
+        '-profile2':ValuedParameter('-','profile2',Delimiter='=',IsPath=True),
+        '-usetree1':ValuedParameter('-','usetree1',Delimiter='=',IsPath=True),
+        '-usetree2':ValuedParameter('-','usetree2',Delimiter='=',IsPath=True),
+        '-newtree1':ValuedParameter('-','newtree1',Delimiter='=',IsPath=True),
+        '-newtree2':ValuedParameter('-','newtree2',Delimiter='=',IsPath=True)}
     
     _structure_alignment={\
         '-nosecstr1':FlagParameter('-',Name='nosecstr1'),
@@ -138,7 +145,8 @@ class Clustalw(CommandLineApplication):
         help_str =\
         """
         There are several help pages available online. For example:
-        http://searchlauncher.bcm.tmc.edu/multi-align/Help/clustalw_help_1.8.html
+        http://searchlauncher.bcm.tmc.edu/multi-align/Help/
+            clustalw_help_1.8.html
         http://hypernig.nig.ac.jp/homology/clustalw-e_help.html
         http://www.genebee.msu.su/clustal/help.html
         
@@ -148,13 +156,22 @@ class Clustalw(CommandLineApplication):
         return help_str
    
     def _input_as_lines(self,data):
+        """Writes data to tempfile and sets -infile parameter
+
+        data -- list of lines, ready to be written to file
+        """
         if data:
             self.Parameters['-infile']\
                 .on(super(Clustalw,self)._input_as_lines(data))
         return ''
 
     def _input_as_seqs(self,data):
+        """writes sequences to tempfile and sets -infile parameter
 
+        data -- list of sequences
+
+        Adds numbering to the sequences: >1, >2, etc.
+        """
         lines = []
         for i,s in enumerate(data):
             #will number the sequences 1,2,3,etc.
@@ -172,13 +189,8 @@ class Clustalw(CommandLineApplication):
             self.Parameters['-infile'].on(data)
         return ''
 
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
-    
     def _suffix(self):
+        """Return appropriate suffix for alignment file"""
         _output_formats={'GCG':'.msf',
                         'GDE':'.gde',
                         'PHYLIP':'.phy',
@@ -191,6 +203,10 @@ class Clustalw(CommandLineApplication):
             return '.aln'
     
     def _aln_filename(self,prefix):
+        """Return name of file containing the alignment
+        
+        prefix -- str, prefix of alignment file.
+        """
         if self.Parameters['-outfile'].isOn():
             aln_filename = self._absolute(self.Parameters['-outfile'].Value)
         else:
@@ -198,6 +214,8 @@ class Clustalw(CommandLineApplication):
         return aln_filename
 
     def _get_result_paths(self,data):
+        """Return dict of {key: ResultPath}
+        """
         
         #clustalw .aln is used when no or unkown output type specified
         _treeinfo_formats = {'nj':'.nj',
@@ -349,7 +367,7 @@ def addSeqsToAlignment(aln1,seqs,outfile,WorkingDir=None,SuppressStderr=None,\
         SuppressStdout=None):
     """Aligns sequences from second profile against first profile
     
-    aln1: string, name of file containing the alingment
+    aln1: string, name of file containing the alignment
     seqs: string, name of file containing the sequences that should be added
         to the alignment.
     outfile: string, name of the output file (the new alignment)
@@ -357,6 +375,7 @@ def addSeqsToAlignment(aln1,seqs,outfile,WorkingDir=None,SuppressStderr=None,\
     app = Clustalw({'-sequences':None,'-profile1':aln1,\
         '-profile2':seqs,'-outfile':outfile},SuppressStderr=\
         SuppressStderr,WorkingDir=WorkingDir, SuppressStdout=SuppressStdout)
+        
     app.Parameters['-align'].off()
     return app()
 
