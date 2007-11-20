@@ -70,9 +70,9 @@ class RNAfoldTests(TestCase):
         self.assertEqual(obs,exp)
         res.cleanUp()
 
-    def test_stdout_input_as_string(self):
-        """RNAfold: StdOut with input_as_string"""
-        r = RNAfold(InputHandler='_input_as_string')
+    def test_stdout_input_as_path(self):
+        """RNAfold: StdOut with input_as_path"""
+        r = RNAfold(InputHandler='_input_as_path')
         f = open('/tmp/rnatestfile','w')
         f.write('\n'.join(self.mixed_seq2))
         f.close()
@@ -85,6 +85,23 @@ class RNAfoldTests(TestCase):
         self.assertEqual(obs,exp)
         res.cleanUp()
         remove('/tmp/rnatestfile')
+
+    def test_stdout_input_as_path_space(self):
+        """RNAfold: StdOut with input_as_path and space in filename"""
+        r = RNAfold(InputHandler='_input_as_path')
+        f = open('/tmp/rna test file','w')
+        f.write('\n'.join(self.mixed_seq2))
+        f.close()
+        exp = '\n'.join(['>namedseq2','AUAGCUAGCUAUGCGCUAGC',\
+            '...((((((.....)))))) ( -8.30)','ACGGCUAUAGCUAGCGA',\
+            '...((((....)))).. ( -3.20)','GCUAGCUAUUAUAUAUA',\
+            '................. (  0.00)'])+'\n'
+        res = r('/tmp/rna test file')
+        obs = res['StdOut'].read()
+        self.assertEqual(obs,exp)
+        res.cleanUp()
+        remove('/tmp/rna test file')
+
 
     def test_get_result_paths_unnamed_seq(self):
         """RNAfold: _get_result_paths() should work on unnamed seq"""
@@ -211,6 +228,29 @@ class RNAsuboptTests(TestCase):
         obs = res['StdOut'].read()
         self.assertEqual(obs,exp)
         res.cleanUp()
+
+    def test_stdout_input_as_path_space(self):
+        """RNAsubopt: StdOut with input_as_path and space in filename"""
+        mixed_seq2 = ['>namedseq2','AUAGCUAGCUAUGCGCUAGC',
+            'ACGGCUAUAGCUAGCGA','gcuagcuauuauauaua']
+        r = RNAsubopt(InputHandler='_input_as_path')
+        f = open('/tmp/rna test file','w')
+        f.write('\n'.join(mixed_seq2))
+        f.close()
+        exp = '\n'.join(['> namedseq2 [100]',
+            'AUAGCUAGCUAUGCGCUAGC   -830    100',
+            '...((((((.....))))))  -8.30',
+            'ACGGCUAUAGCUAGCGA   -320    100',
+            '...(((......)))..  -2.30',
+            '...((((....))))..  -3.20',
+            'GCUAGCUAUUAUAUAUA      0    100',
+            '.................   0.00'])+'\n'
+        res = r('/tmp/rna test file')
+        obs = res['StdOut'].read()
+        self.assertEqual(obs,exp)
+        res.cleanUp()
+        remove('/tmp/rna test file')
+
 
     def test_get_result_paths(self):
         """RNAsubopt: _get_result_paths() should create the right dict entries
