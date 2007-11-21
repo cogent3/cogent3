@@ -259,12 +259,6 @@ class Muscle(CommandLineApplication):
                 .on(super(Muscle,self)._input_as_multiline_string(data))
         return ''
     
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
-    
     def _align_out_filename(self):
         
         if self.Parameters['-out'].isOn():
