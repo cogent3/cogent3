@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """Application controller for RAxML-V (v2.23) 
 """
-from cogent.app.parameters import FlagParameter, ValuedParameter
-from cogent.app.util import CommandLineApplication, ResultPath
+from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
+from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from random import choice
 from os import walk
+from os.path import isabs
 from cogent.parse.tree import DndParser
 
 __author__ = "Micah Hamady"
@@ -138,9 +139,6 @@ class Raxml(CommandLineApplication):
         # Print the version
         '-v':FlagParameter('-',Name='v'),
 
-        # Specify working directory for output files
-        '-w':ValuedParameter('-', Name='w', Delimiter=' '),
-
         # Compute only randomized starting parsimony tree with RAxML, do not
         # optimize an ML analysis of the tree
         '-y':FlagParameter('-', Name='y'),
@@ -159,6 +157,16 @@ class Raxml(CommandLineApplication):
     _parameters.update(_options)
     _command = "raxmlHPC"
     _out_format = "RAxML_%s.%s"
+
+    def _format_output(self, outfile_name, out_type):
+        """ Prepend proper output prefix to output filename """
+
+        outfile_name = self._absolute(outfile_name)
+        outparts = outfile_name.split("/") 
+        outparts[-1] = self._out_format % (out_type, outparts[-1] )
+
+        return '/'.join(outparts)
+ 
 
     def _input_as_seqs(self,data):
         lines = []
@@ -189,10 +197,10 @@ class Raxml(CommandLineApplication):
             self.Parameters['-s']\
                 .on(super(Raxml,self)._input_as_multiline_string(data))
         return ''
-
    
     def _absolute(self,path):
-        if path.startswith('/'):
+        path = FilePath(path)
+        if isabs(path):
             return path
         elif self.Parameters['-w'].isOn():
             return self.Parameters['-w'].Value + path
@@ -201,39 +209,27 @@ class Raxml(CommandLineApplication):
 
     def _log_out_filename(self):
         if self.Parameters['-n'].isOn():
-            out_filename = self._absolute(
-                   self._out_format % ("log", str(self.Parameters['-n'].Value)))
+            return self._format_output(str(self.Parameters['-n'].Value), "log")
         else:
             raise ValueError, "No output file specified." 
-        return out_filename
 
     def _info_out_filename(self):
         if self.Parameters['-n'].isOn():
-            out_filename = self._absolute(
-                   self._out_format % ("info",
-                                        str(self.Parameters['-n'].Value)))
+            return self._format_output(str(self.Parameters['-n'].Value), "info")
         else:
             raise ValueError, "No output file specified." 
-        return out_filename
 
     def _parsimony_tree_out_filename(self):
         if self.Parameters['-n'].isOn():
-            out_filename = self._absolute(
-                   self._out_format % ("parsimonyTree",
-                                        str(self.Parameters['-n'].Value)))
+            return self._format_output(str(self.Parameters['-n'].Value), "parsimonyTree")
         else:
             raise ValueError, "No output file specified." 
-        return out_filename
 
     def _result_tree_out_filename(self):
         if self.Parameters['-n'].isOn():
-            out_filename = self._absolute(
-                   self._out_format % ("result",
-                                        str(self.Parameters['-n'].Value)))
+            return self._format_output(str(self.Parameters['-n'].Value), "result")
         else:
             raise ValueError, "No output file specified." 
-        return out_filename
-
 
     def _checkpoint_out_filenames(self):
         """
@@ -286,6 +282,7 @@ class Raxml(CommandLineApplication):
 
 #SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS
 def raxml_alignment(align_obj,
+                 raxml_model="GTRCAT",
                  params={},
                  SuppressStderr=True,
                  SuppressStdout=True):
@@ -302,9 +299,12 @@ def raxml_alignment(align_obj,
 
     # generate temp filename for output
     params["-w"] = "/tmp/"
-    params["-n"] = get_tmp_filename()
+    params["-n"] = get_tmp_filename().split("/")[-1]
+    params["-m"] = raxml_model
     ih = '_input_as_multiline_string'
     seqs, align_map = align_obj.toPhylip()
+    
+    #print params["-n"]
 
     # set up command
     raxml_app = Raxml(
@@ -334,15 +334,5 @@ def raxml_alignment(align_obj,
     ra.cleanUp()
 
     return tree_node, parsimony_tree_node, log_likelihood, total_exec_time
-
-def get_tmp_filename(tmp_dir=""):
-    # temp hack - change this to lookup and generate file in class
-    chars = "abcdefghigklmnopqrstuvwxyz"
-    all_chars = chars + chars.upper() + "0123456789"
-    picks = list(all_chars)
-    if tmp_dir:
-        tmp_dir = tmp_dir + "/"
-
-    return tmp_dir + "tmp%s.txt" % ''.join([choice(picks) for i in range(10)]) 
 
 
