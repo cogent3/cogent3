@@ -196,12 +196,6 @@ class Blast(CommandLineApplication):
                 .on(super(Blast,self)._input_as_multiline_string(data))
         return ''
 
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
-    
     def _align_out_filename(self):
 
         if self.Parameters['-o'].isOn():
@@ -528,12 +522,6 @@ class FastaCmd(CommandLineApplication):
             self.Parameters['-s'].on(data)
         return ''
 
-    def _absolute(self,path):
-        if path.startswith('/'):
-            return path
-        else:
-            return self.WorkingDir + path
-    
     def _out_filename(self):
 
         if self.Parameters['-o'].isOn():
