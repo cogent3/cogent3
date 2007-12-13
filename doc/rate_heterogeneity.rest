@@ -1,17 +1,17 @@
 Analysis of rate heterogeneity
-------------------------------
+++++++++++++++++++++++++++++++
 
 A simple example for analyses involving rate heterogeneity among sites. In this case we will simulate an alignment with two rate categories and then try to recover the rates from the alignment.
 
 .. pycode::
-    
+
     >>> from cogent.evolve.substitution_model import Nucleotide
     >>> from cogent import LoadTree
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 
 .. pycode::
-    
+
     >>> model = Nucleotide(equal_motif_probs=True)
     >>> tree = LoadTree("data/test.tree")
     >>> lf = model.makeLikelihoodFunction(tree)
@@ -24,7 +24,7 @@ Make an alignment with equal split between rates 0.6 and 0.2, and then concatena
 Start from scratch, optimising only rates and the rate probability ratio.
 
 .. pycode::
-    
+
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="free")
     >>> lf = model.makeLikelihoodFunction(tree, bins=2)
@@ -34,7 +34,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
 We want to know the bin probabilities and the posterior probabilities.
 
 .. pycode::
-    
+
     >>> bprobs = lf.getParamValue('bprobs')
     >>> pp = lf.getBinProbs()
     >>> for bin in [0,1]:
@@ -51,7 +51,7 @@ We want to know the bin probabilities and the posterior probabilities.
 We'll now use a gamma distribution on the sample alignment, specifying the number of bins as 4. We specify that the bins have equal density using the ``lf.setParamRule('bprobs', is_const=True)`` command.
 
 .. pycode::
-    
+
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="gamma")
     >>> lf = model.makeLikelihoodFunction(tree, bins=4)

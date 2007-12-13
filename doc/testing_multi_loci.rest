@@ -1,10 +1,10 @@
 Likelihood analysis of multiple loci
-------------------------------------
+++++++++++++++++++++++++++++++++++++
 
 We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.
 
 .. pycode::
-    
+
     >>> from cogent import LoadSeqs, LoadTree
     >>> from cogent.evolve.models import HKY85
     >>> from cogent.recalculation.scope import EACH, ALL
@@ -26,7 +26,7 @@ We provide names for those alignments, then construct the tree, model instances.
 To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.
 
 .. pycode::
-    
+
     >>> lf = mod.makeLikelihoodFunction(tree, loci=loci_names)
     >>> lf.setParamRule("length", is_independent=False)
     >>> lf.setParamRule('kappa', loci = ALL)
