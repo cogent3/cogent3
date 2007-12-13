@@ -1,5 +1,5 @@
 `COGENT` (COmparative GENomics Toolkit) Install
------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++
 
 ..
     This document is written in `restructured text`_ format. A html version, including examples cogent.html located in the doc directory, is automatically created when the project tarball is built.
@@ -15,7 +15,7 @@
 :Registration: To be informed of bugs, new releases please subscribe to the mailing lists at sourceforge.
 
 Dependencies
-````````````
+------------
 
 The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.
 
@@ -24,7 +24,7 @@ The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside fr
 `Required`
     - Python_: the language the toolkit is primarily written in, and in which the user writes control scripts.
     - Numpy_: This is a python module used for speeding up matrix computations. It is available as source code for \*nix. **NOTE:** For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as::
-        
+
         $ export ATLAS=None
         $ export LAPACK=None
 
@@ -34,9 +34,9 @@ The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside fr
     - Matplotlib_: used to plot several kinds of graphs related to codon usage.
     - Pyrex_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
     - PyxMPI_: Our own python MPI interface, required for parallel computation.
-    
+
 Installation
-````````````
+------------
 
 For \*nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from here_. Uncompress the archive and change into the ``Cogent`` directory and type::
 
@@ -51,7 +51,7 @@ This then places the entire package into your python/site-packages folder.
 If you do not have administrator privileges on your machine you can move the cogent directory to where you want it (or leave it in place) and add this location to your python path using ``sys.path.append("/your/path/to/Cogent")`` in each script, or by setting shell environment variables. (Note that the path is not to ``../Cogent/cogent``.)
 
 Testing
-```````
+-------
 
 ``Cogent/tests`` contains all the tests (currently >2700). You can most readily run the tests using the ``Cogent/run_tests`` shell script. This is done by typing::
 
@@ -64,7 +64,7 @@ Ran 1982 tests in 40.455s
 OK
 
 Tips for usage
-``````````````
+--------------
 
 A good IDE can greatly simplify writing control scripts. Features such as code completion and definition look-up are extremely useful. Amongst the freeware editors are Jedit_ (runs on all platforms, and has plugins to provide an overview of code structure or to organise projects), SubEthaEdit_ (MacOS X only) and of course emacs_ (all platforms). These provide syntax highlighting for Python, automated code indentation and (Jedit and emacs) code-folding abilities. For a more complete list of `editors go here`_.
 
@@ -73,19 +73,19 @@ To get help on attributes of an object in python, use the ``dir(myalign)`` to li
 .. _PyEvolve:
 
 Citation
-````````
+--------
 
 If you use this software for published work please cite either --  R. Knight, P. Maxwell, A. Birmingham, J. Carnes, J. Caporaso, B. Easton, M. Hamady, H. Lindsay, Z. Liu, C. Lozupone, R. Sammut, S. Smit, M. Wakefield, J. Widmann, S. Wikman, S. Wilson, H. Ying, and G. Huttley. PyCogent: a toolkit for making sense from sequence. Genome Biol, In press, 2007.; or, Butterfield, A., V. Vedagiri, E. Lang, C. Lawrence, M.J. Wakefield, A. Isaev, and G.A. Huttley, PyEvolve: a toolkit for statistical modelling of molecular evolution. `BMC Bioinformatics`, 2004. **5(1):** p. 1
 
 Licenses and disclaimer
-```````````````````````
+-----------------------
 
 COGENT is released under the GPL license, a copy of which is included_ in the distribution. A copy of the permission to use the matrix exponentiation code from PAML_ is also included. Licenses for other code sources are left in place.
 
 This software is provided "as-is". There are no expressed or implied warranties of any kind, including, but not limited to, the warranties of merchantability and fitness for a given application. In no event shall the authors be liable for any direct, indirect, incidental, special, exemplary or consequential damages (including, but not limited to, loss of use, data or profits, or business interruption) however caused and on any theory of liability, whether in contract, strict liability or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
 
 Contacts
-````````
+--------
 
 If you find a bug or have any questions please send us an email_.
 

@@ -1,10 +1,10 @@
 Use an empirical protein substitution model
--------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++
 
 This file contains an example of importing an empirically determined protein substitution matrix such as Dayhoff et al 1978 and using it to create a substitution model. The globin alignment is from the PAML distribution.
 
 .. pycode::
-    
+
     >>> from cogent import LoadSeqs, LoadTree, PROTEIN
     >>> from cogent.evolve.substitution_model import EmpiricalProteinMatrix
     >>> from cogent.parse.paml_matrix import PamlMatrixParser
@@ -12,14 +12,14 @@ This file contains an example of importing an empirically determined protein sub
 Make a tree object.  In this case from a string.
 
 .. pycode::
-    
+
     >>> treestring="(((rabbit,rat),human),goat-cow,marsupial);"
     >>> t = LoadTree(treestring=treestring)
 
 Import the alignment, explicitly setting the ``moltype`` to be protein
 
 .. pycode::
-    
+
     >>> al = LoadSeqs('data/abglobin_aa.phylip',
     ...                interleaved=True,
     ...                moltype=PROTEIN,
@@ -28,25 +28,25 @@ Import the alignment, explicitly setting the ``moltype`` to be protein
 Open the file that contains the empirical matrix and parse the matrix and frequencies.
 
 .. pycode::
-    
+
     >>> matrix_file = open('data/dayhoff.dat')
 
 The ``PamlMatrixParser`` will import the matrix and frequency from files designed for Yang's PAML package.  This format is the lower half of the matrix in three letter amino acid name order white space delineated followed by motif frequencies in the same order.
 
 .. pycode::
-    
+
     >>> empirical_matrix, empirical_frequencies = PamlMatrixParser(matrix_file)
 
 Create an Empirical Protein Matrix Substitution model object.  This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.
 
 .. pycode::
-    
+
     >>> sm = EmpiricalProteinMatrix(empirical_matrix, empirical_frequencies)
 
 Make a parameter controller, likelihood function object and optimise.
 
 .. pycode::
-    
+
     >>> lf = sm.makeLikelihoodFunction(t)
     >>> lf.setAlignment(al)
     >>> lf.optimise(show_progress = False)

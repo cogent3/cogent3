@@ -1,10 +1,10 @@
 The simplest script
--------------------
++++++++++++++++++++
 
 This is just about the simplest possible Cogent script. We use a canned nucleotide substitution model: the general time reversible model.
 
 .. pycode::
-    
+
     >>> from cogent.evolve.models import GTR
     >>> from cogent import LoadSeqs, LoadTree
     >>> model = GTR()
