@@ -1,6 +1,13 @@
 #!/bin/sh
+
+# for automated testing - check if using alternate python install 
+PYTHON_EXE=python
+if [ $PYTHON_TEST_EXE ]; then
+    PYTHON_EXE=$PYTHON_TEST_EXE; 
+fi
+
 set -e
-python setup.py build_ext --inplace
+$PYTHON_EXE setup.py build_ext --inplace
 export PYTHONPATH=`pwd`:$PYTHONPATH
 cd tests
-nice python alltests.py "$@"
+nice $PYTHON_EXE alltests.py "$@"

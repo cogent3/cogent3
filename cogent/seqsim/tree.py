@@ -635,7 +635,18 @@ def balanced_breakpoints(num_leaves):
 
 def BalancedTree(num_leaves, node_class=RangeNode):
     """Returns a balanced tree of node_class (num_leaves must be power of 2)."""
-    return node_class.fromBreakpoints(balanced_breakpoints(num_leaves))
+    #return node_class.fromBreakpoints(balanced_breakpoints(num_leaves))
+    root = node_class()
+    curr_children = [root]
+
+    while len(curr_children) < num_leaves:
+        tmp = []
+        for n in curr_children:
+            n.Children[:] = [node_class(Parent=n), node_class(Parent=n)]
+            tmp.extend(n.Children)
+        curr_children = tmp
+
+    return root
 
 def RandomTree(num_leaves, node_class=RangeNode):
     """Returns a random node_class tree using the breakpoint model."""
@@ -644,9 +655,18 @@ def RandomTree(num_leaves, node_class=RangeNode):
 def CombTree(num_leaves, deepest_first=True, node_class=RangeNode):
     """Returns a comb node_class tree."""
     if deepest_first:
-        return node_class.fromBreakpoints(range(num_leaves-1))
+        branch_child = 1
     else:
-        return node_class.fromBreakpoints(range(num_leaves-1)[::-1])
+        branch_child = 0
+
+    root = node_class()
+    curr = root
+
+    for i in range(num_leaves-1):
+        curr.Children[:] = [node_class(Parent=curr),node_class(Parent=curr)]
+        curr = curr.Children[branch_child]
+
+    return root
 
 def StarTree(num_leaves, node_class=RangeNode):
     """Returns a star phylogeny, with all leaves equally connected to root."""

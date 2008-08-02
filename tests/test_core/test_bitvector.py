@@ -189,8 +189,9 @@ class BitvectorTests(TestCase):
                 self.assertEqual(   str(first | second),
                                     results[first_pos][second_pos])
         #test chaining
-        assert Bitvector('1110') == \
-        Bitvector('1000') | Bitvector('0100') | Bitvector('0110')
+        expected = Bitvector('1110')
+        observed = Bitvector('1000') | Bitvector('0100') | Bitvector('0110')
+        self.assertEqual(observed, expected)
 
         #test long
         self.assertEqual(Bitvector('10'*50) | Bitvector('01'*50), \
@@ -215,9 +216,10 @@ class BitvectorTests(TestCase):
                 self.assertEqual(   str(first & second), 
                                     results[first_pos][second_pos])
         #test chaining
-        assert Bitvector('0110') == \
-        Bitvector('1110') & Bitvector('1111') & Bitvector('0111')
-        
+        expected = Bitvector('0110')
+        observed = Bitvector('1110') & Bitvector('1111') & Bitvector('0111')
+        self.assertEqual(observed, expected)
+
         #test long
         self.assertEqual(Bitvector('10'*50) & Bitvector('11'*50), \
             Bitvector('10'*50))
@@ -242,8 +244,8 @@ class BitvectorTests(TestCase):
                                     results[first_pos][second_pos])
 
         #test chaining
-        assert Bitvector('0110') == \
-        Bitvector('1111') ^ Bitvector('0110') ^ Bitvector('1111')
+        expected = Bitvector('0110')
+        observed = Bitvector('1111') ^ Bitvector('0110') ^ Bitvector('1111')
  
         #test long
         self.assertEqual(Bitvector('11'*50) ^ Bitvector('01'*50), \
@@ -253,16 +255,16 @@ class BitvectorTests(TestCase):
         """Bitvector ~A should return a vector exchanging 1's for 0's"""
         results = map(Bitvector, ['', '1', '0', '11', '10', '01', '00'])
         for data, result in zip(self.vectors, results):
-            assert ~data == result
+            self.assertEqual(~data, result)
             
             if len(data):
-                assert data != result
+                self.assertNotEqual(data, result)
             else:
-                assert data == result
+                self.assertEqual(data, result)
 
             #test chaining
-            assert ~~data == data   #inverting twice should give original
-            assert ~~~data == ~data
+            self.assertEqual(~~data, data) #inverting twice should give original
+            self.assertEqual(~~~data, ~data)
 
             #test long
             self.assertEqual(~Bitvector('10'*50), Bitvector('01'*50))
@@ -298,12 +300,13 @@ class BitvectorTests(TestCase):
         """Bitvector repr should look like a normal object"""
         v = Bitvector(3, 10)
         v_id = str(hex(id(v)))
-        assert `v`.startswith('<cogent.core.bitvector.ShortBitvector object at')
+        expected = '<cogent.core.bitvector.ShortBitvector object at'
+        self.assertTrue(`v`.startswith(expected))
 
     def test_freeze(self):
         """Bitvector freeze should return same object"""
         v = Bitvector()
-        assert v.freeze() is v
+        self.assertSameObj(v.freeze(), v)
 
     def test_thaw(self):
         """Bitvector thaw should return mutable bitvector with same data"""
@@ -465,8 +468,11 @@ class MutableBitvectorTests(TestCase):
                 self.assertEqual(   str(first | second),
                                     results[first_pos][second_pos])
         #test chaining
-        assert MutableBitvector('1110') == \
-        MutableBitvector('1000') | MutableBitvector('0100') | MutableBitvector('0110')
+        expected = MutableBitvector('1110')
+        observed = MutableBitvector('1000') | \
+                   MutableBitvector('0100') | \
+                   MutableBitvector('0110')
+        self.assertEqual(observed, expected)
 
         #test long
         self.assertEqual(MutableBitvector('10'*50) | MutableBitvector('01'*50), \
@@ -491,8 +497,11 @@ class MutableBitvectorTests(TestCase):
                 self.assertEqual(   str(first & second),
                                     results[first_pos][second_pos])
         #test chaining
-        assert MutableBitvector('0110') == \
-        MutableBitvector('1110') & MutableBitvector('1111') & MutableBitvector('0111')
+        expected = MutableBitvector('0110')
+        observed = MutableBitvector('1110') & \
+                   MutableBitvector('1111') & \
+                   MutableBitvector('0111')
+        self.assertEqual(observed, expected)
         
         #test long
         self.assertEqual(MutableBitvector('10'*50) & MutableBitvector('11'*50), \
@@ -518,8 +527,11 @@ class MutableBitvectorTests(TestCase):
                                     results[first_pos][second_pos])
 
         #test chaining
-        assert MutableBitvector('0110') == \
-        MutableBitvector('1111') ^ MutableBitvector('0110') ^ MutableBitvector('1111')
+        expected = MutableBitvector('0110')
+        observed = MutableBitvector('1111') ^ \
+                   MutableBitvector('0110') ^ \
+                   MutableBitvector('1111')
+        self.assertEqual(observed, expected)
  
         #test long
         self.assertEqual(MutableBitvector('11'*50) ^ MutableBitvector('01'*50), \
@@ -529,16 +541,16 @@ class MutableBitvectorTests(TestCase):
         """MutableBitvector ~A should return a vector exchanging 1's for 0's"""
         results = map(MutableBitvector, ['', '1', '0', '11', '10', '01', '00'])
         for data, result in zip(self.vectors, results):
-            assert ~data == result
+            self.assertEqual(~data, result)
             
             if len(data):
-                assert data != result
+                self.assertNotEqual(data, result)
             else:
-                assert data == result
+                self.assertEqual(data, result)
 
             #test chaining
-            assert ~~data == data   #inverting twice should give original
-            assert ~~~data == ~data
+            self.assertEqual(~~data, data) #inverting twice should give original
+            self.assertEqual(~~~data, ~data)
 
             #test long
             self.assertEqual(~MutableBitvector('10'*50), MutableBitvector('01'*50))
@@ -600,19 +612,20 @@ class MutableBitvectorTests(TestCase):
         """MutableBitvector repr should look like a normal object"""
         v = MutableBitvector(3, 10)
         v_id = str(hex(id(v)))
-        assert `v`.startswith('<cogent.core.bitvector.MutableBitvector object at')
+        expected = '<cogent.core.bitvector.MutableBitvector object at'
+        self.assertTrue(`v`.startswith(expected))
 
     def test_thaw(self):
         """MutableBitvector thaw should return same object"""
         v = MutableBitvector()
-        assert v.thaw() is v
+        self.assertSameObj(v.thaw(), v)
 
     def test_freeze(self):
         """MutableBitvector freeze should return immutable bv with same data"""
         b = MutableBitvector('111')
         b[1] = 0
         c = b.freeze()
-        assert c is b._handler
+        self.assertSameObj(c, b._handler)
         self.assertEqual(c, Bitvector('101'))
         try:
             c[1] = 1
@@ -710,7 +723,7 @@ class BitvectorClassTests(TestCase):
     def test_and(self):
         """Bitwise and should work between short and long bitvectors"""
         s, l, tiny, huge = self.s, self.l, self.tiny, self.huge
-        assert isinstance(l, long)
+        self.assertTrue(isinstance(l, long))
         self.assertEqual(l & s, s)
         self.assertEqual(s & l, s)
         self.assertEqual(huge & tiny, tiny)
@@ -734,17 +747,17 @@ class VectorFromCasesTests(TestCase):
 
         for data, result in zip(valid_strings, results):
             self.assertEqual(VectorFromCases(data), LongBitvector(result))
-            assert isinstance(VectorFromCases(data), LongBitvector)
+            self.assertTrue(isinstance(VectorFromCases(data), LongBitvector))
             self.assertEqual(VectorFromCases(data, ShortBitvector), \
                 ShortBitvector(result))
-            assert isinstance(VectorFromCases(data, ShortBitvector), \
-                ShortBitvector)
+            self.assertTrue(isinstance(VectorFromCases(data, ShortBitvector), \
+                                       ShortBitvector))
 
         v = VectorFromCases('aBC')
-        assert isinstance(v, ImmutableBitvector)
+        self.assertTrue(isinstance(v, ImmutableBitvector))
 
         w = VectorFromCases('aBC', MutableBitvector)
-        assert isinstance(w, MutableBitvector)
+        self.assertTrue(isinstance(w, MutableBitvector))
         self.assertEqual(w, Bitvector('011'))
         w[0] = 1
         self.assertEqual(w, Bitvector('111'))
@@ -918,12 +931,12 @@ class VectorFromMatchesTests(TestCase):
         """VectorFromMatches should return correct type of vector"""
         v = VectorFromMatches('a', 'a')
         self.assertEqual(v, Bitvector('1'))
-        assert isinstance(v, ImmutableBitvector)
+        self.assertTrue(isinstance(v, ImmutableBitvector))
         v = VectorFromMatches('a', 'a', constructor=MutableBitvector)
         self.assertEqual(v, Bitvector('1'))
         v[0] = 0
         self.assertEqual(v, Bitvector('0'))
-        assert isinstance(v, MutableBitvector)
+        self.assertTrue(isinstance(v, MutableBitvector))
 
 class VectorFromRunsTests(TestCase):
     """Tests of the VectorFromRuns factory fuction."""

@@ -20,6 +20,7 @@ def MageGroupFromString(line):
     """Returns a new MageGroup, created from a string representation"""
     result = MageGroup([],RecessiveOn=False) 
     trans = {'off':('Off',True),\
+            'on':('Off',False),\
             'recessiveon':('RecessiveOn',True),\
             'color':'Color',\
             'radius':'Radius',\
@@ -66,6 +67,7 @@ def MageListFromString(line):
     """Returns a new MageList, created from a string representation"""
     result = MageList()
     trans = {'off':('Off',True),\
+            'on':('Off',False),\
             'color':'Color',\
             'radius':'Radius',\
             'nobutton':('NoButton',True),\

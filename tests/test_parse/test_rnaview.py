@@ -553,7 +553,9 @@ class RnaviewParserTests(TestCase):
         self.assertEqual(is_edge('./W'),True)
         self.assertEqual(is_edge('+/+'),True)
         self.assertEqual(is_edge('   '),False)
-        self.assertEqual(is_edge('X/W'),False)
+        self.assertEqual(is_edge('P/W'),False)
+        self.assertEqual(is_edge('X/W'),True)
+        self.assertEqual(is_edge('X/X'),True)
 
     def test_is_orientation(self):
         """is_orientation: should fail on anything but 'cis' or 'tran'"""
@@ -733,6 +735,7 @@ class RnaviewParserTests(TestCase):
         self.assertEqual(parse_pair_counts([]),{})
 
     def test_verify_bp_counts(self):
+        """verify_bp_count: should raise an error if bp counts are wrong"""
         lines = RNAVIEW_PDB_REAL.split('\n')
         obs = RnaviewParser(lines)
         # this shouldn't raise an error
@@ -740,10 +743,19 @@ class RnaviewParserTests(TestCase):
         # reported number isn't right
         self.assertRaises(RnaViewParseError,\
             verify_bp_counts, obs['BP'], 12, obs['PC'])
+        
+        # No longer checks for the base pair counts reported in the 
+        # dictionary, b/c this number doens't match the total when
+        # modified bases are present.
+        ## PREVIOUS TEST:
         # pair_counts isn't right
+        #obs['PC']['Standard'] = 14
+        #self.assertRaises(RnaViewParseError,\
+        #    verify_bp_counts, obs['BP'], 11, obs['PC'])
+        ## NEW TEST
         obs['PC']['Standard'] = 14
-        self.assertRaises(RnaViewParseError,\
-            verify_bp_counts, obs['BP'], 11, obs['PC'])
+        verify_bp_counts(obs['BP'],11,obs['PC'])
+        
 
     def test_MinimalRnaviewParser(self):
         """MinimalRnaviewParser: should divide lines into right classes"""

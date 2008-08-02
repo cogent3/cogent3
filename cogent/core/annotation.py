@@ -1,3 +1,5 @@
+from cogent.util.warning import deprecated
+
 from location import as_map, Map
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -110,14 +112,14 @@ class _Annotatable(object):
                 self.annotations.remove(annot)
                 annot.attached = False
     
-    def addFeature(self, type, label, spans):
-        return self.addAnnotation(Feature, type, label, spans)
+    def addFeature(self, type, Name, spans):
+        return self.addAnnotation(Feature, type, Name, spans)
     
-    def getAnnotationsMatching(self, annotation_type, label=None):
+    def getAnnotationsMatching(self, annotation_type, Name=None):
         result = []
         for annotation in self.annotations:
             if annotation_type == annotation.type and (
-                    label is None or label == annotation.label):
+                    Name is None or Name == annotation.Name):
                 result.append(annotation)
         return result
     
@@ -130,24 +132,24 @@ class _Annotatable(object):
                 annotation_types.append(annot.type)
         map = Map(spans=spans, parent_length=len(self))
         map = map.covered() # No overlaps
-        label = ','.join(annotation_types)
-        return _Feature(self, map, type='region', label=label)
+        Name = ','.join(annotation_types)
+        return _Feature(self, map, type='region', Name=Name)
     
-    def getByAnnotation(self, annotation_type, label=None, ignore_partial=False):
+    def getByAnnotation(self, annotation_type, Name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
-        annotation_type and label one at a time.
+        annotation_type and Name one at a time.
         
         Arguments:
             - ignore_partial: if True, annotations that extend beyond the
             current sequence are ignored."""
-        for annotation in self.getAnnotationsMatching(annotation_type, label):
+        for annotation in self.getAnnotationsMatching(annotation_type, Name):
             try:
                 seq = self[annotation.map]
             except ValueError, msg:
                 if ignore_partial:
                     continue
                 raise msg
-            seq.Info['label'] = annotation.label
+            seq.Info['Name'] = annotation.Name
             yield seq
     
     def _annotations_nucleic_reversed_on(self, new):
@@ -163,7 +165,7 @@ class _Annotatable(object):
     
 
 class _Feature(_Annotatable):
-    qualifier_names = ['type', 'label']
+    qualifier_names = ['type', 'Name']
     
     def __init__(self, parent, map, original=None, **kw):
         assert isinstance(parent, _Annotatable), parent
@@ -184,6 +186,16 @@ class _Feature(_Annotatable):
                 setattr(self, n, getattr(original, n))
         assert not kw, kw
     
+    def _get_label(self):
+        deprecated('attribute', 'label', 'Name', '1.2')
+        return self.Name
+    
+    def _set_label(self, val):
+        deprecated('attribute', 'label', 'Name', '1.2')
+        self.Name = val
+    
+    label = property(_get_label, _set_label)
+    
     def attach(self):
         self.parent.attachAnnotations([self])
     
@@ -191,30 +203,30 @@ class _Feature(_Annotatable):
         self.parent.detachAnnotations([self])
     
     def _mapped(self, slicemap):
-        label = "%s of %s" % (repr(slicemap), self.label)
-        return _Feature(self, slicemap, type="slice", label=label)
+        Name = "%s of %s" % (repr(slicemap), self.Name)
+        return _Feature(self, slicemap, type="slice", Name=Name)
     
     def getSlice(self):
         seq = self.base[self.base_map]
         #source_map = Map(spans=[Span(0, len(seq))], parent_length=len(seq))
-        #seq.addAnnotation(Source, source_map, self.label, self.base_map)
+        #seq.addAnnotation(Source, source_map, self.Name, self.base_map)
         return seq
     
     def asOneSpan(self):
         new_map = self.map.getCoveringSpan()
-        return _Feature(self.parent, new_map, type="span", label=self.label)
+        return _Feature(self.parent, new_map, type="span", Name=self.Name)
     
     def getShadow(self):
         return _Feature(self.parent, self.map.shadow(), type='region',
-                label='not '+ self.label)
+                Name='not '+ self.Name)
     
     def __len__(self):
         return len(self.map)
     
     def __repr__(self):
-        label = getattr(self, 'label', '')
-        if label: label = ' "%s"' % label
-        return '%s%s at %s' % (self.type, label, self.map)
+        Name = getattr(self, 'Name', '')
+        if Name: Name = ' "%s"' % Name
+        return '%s%s at %s' % (self.type, Name, self.map)
     
     def remappedTo(self, grandparent, gmap):
         map = gmap[self.map]
@@ -231,7 +243,7 @@ class AnnotatableFeature(_Feature):
     """These features can themselves be annotated."""
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
-        return _Feature(self.parent, new_map, type='slice', label='')
+        return _Feature(self.parent, new_map, type='slice', Name='')
     
     def remappedTo(self, grandparent, gmap):
         new = _Feature.remappedTo(self, grandparent, gmap)
@@ -249,7 +261,7 @@ class Source(_Feature):
     
     def __init__(self, seq, map, accession, basemap):
         self.accession = accession
-        self.label = repr(basemap) + ' of ' + accession
+        self.Name = repr(basemap) + ' of ' + accession
         self.parent = seq
         self.attached = False
         self.map = map
@@ -265,13 +277,13 @@ class Source(_Feature):
         return self.__class__(grandparent, new_map, self.accession, basemap)
     
 
-def Feature(parent, type, label, spans, value=None):
+def Feature(parent, type, Name, spans, value=None):
     if isinstance(spans, Map):
         map = spans
         assert map.parent_length == len(parent), (map, len(parent))
     else:
         map = Map(locations=spans, parent_length=len(parent))
-    return AnnotatableFeature(parent, map, type=type, label=label)
+    return AnnotatableFeature(parent, map, type=type, Name=Name)
 
 class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
@@ -280,7 +292,7 @@ class _Variable(_Feature):
         return policy.tracksForVariable(self)
     
 
-def Variable(parent, type, label, xxy_list):
+def Variable(parent, type, Name, xxy_list):
     """A variable that has 2 x-components (start, end) and a single y component.
     Currently used by Vestige - BMC Bioinformatics, 6:130, 2005."""
     start = min([min(x1, x2) for ((x1, x2), y) in xxy_list])
@@ -290,7 +302,7 @@ def Variable(parent, type, label, xxy_list):
         end -= start
     #values = [location.Span(x1-start, x2-start, True, True, y) for ((x1, x2), y) in xxy]
     map = Map([(start, end)], parent_length=len(parent))
-    return _Variable(parent, map, type=type, label=label, xxy_list=xxy_list)
+    return _Variable(parent, map, type=type, Name=Name, xxy_list=xxy_list)
 
 class _SimpleVariable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['data']
@@ -299,10 +311,10 @@ class _SimpleVariable(_Feature):
         return policy.tracks_for_value(self)
     
 
-def SimpleVariable(parent, type, label, data):
+def SimpleVariable(parent, type, Name, data):
     """A simple variable type of annotation, such as a computed property of
     a sequence that varies spatially."""
     assert len(data) == len(parent), (len(data), len(parent))
     map = Map([(0, len(data))], parent_length=len(parent))
-    return _SimpleVariable(parent, map, type=type, label=label, data=data)
+    return _SimpleVariable(parent, map, type=type, Name=Name, data=data)
 

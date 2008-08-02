@@ -2,6 +2,15 @@
   Data Manipulation using ``Table``
 =====================================
 
+:Author: Gavin Huttley
+:Copyright: Copyright 2007, The Cogent Project
+:Credits: Gavin Huttley, Felix Schill
+:License: GPL
+:Version: 1.0.1
+:Maintainer: Gavin Huttley
+:Email: gavin.huttley@anu.edu.au
+:Status: Production
+
 The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting statistics for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The table module is located within ``cogent.format``.
 
 Testing a sub-component
@@ -45,9 +54,10 @@ We directly test the latex formatting.
 Table creation
 --------------
 
-We import table using the following statement:
+Tables can be created directly using the Table object itself, or a convenience function that handles loading from files. We import both here:
     
-    >>> from cogent import Table
+    >>> from cogent import LoadTable
+    >>> from cogent.util.table import Table
 
 Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``).
     
@@ -404,7 +414,7 @@ Saving a table object to file for later reloading can be done using the standard
     ... row_ids = True, title = 'My Title',
     ... legend = 'Legend: this is a nonsense example.')
     >>> t3.writeToFile("t3.pickle")
-    >>> t3_loaded = Table(filename = "t3.pickle")
+    >>> t3_loaded = LoadTable(filename = "t3.pickle")
     >>> print t3_loaded
     My Title
     ==========================================
@@ -449,7 +459,7 @@ Saving a table object to file for later reloading can be done using the standard
     >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle')
     >>> t2.writeToFile('t2.csv', sep=',')
-    >>> t2_loaded = Table(filename = 't2.csv', header = True, with_title = True,
+    >>> t2_loaded = LoadTable(filename = 't2.csv', header = True, with_title = True,
     ...  sep = ',')
     >>> print t2_loaded
     A 
@@ -468,7 +478,7 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
     ... ['y', None]], missing_data='*', title = 'A \ntitle',
     ... legend = "And\na legend too")
     >>> t2.writeToFile('t2.csv', sep=',')
-    >>> t2_loaded = Table(filename = 't2.csv', header = True,
+    >>> t2_loaded = LoadTable(filename = 't2.csv', header = True,
     ... with_title = True, with_legend = True, sep = ',', digits = 2)
     >>> print t2_loaded
     A 
@@ -512,7 +522,7 @@ We can read in a delimited format using a custom reader, which we'll now import.
     >>> t3.writeToFile("t3.tab", sep="\t")
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep="\t")
-    >>> t3a = Table(filename="t3.tab", reader=reader, title="new title",
+    >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
     ...       space=2)
     >>> print t3a
     new title
@@ -527,6 +537,13 @@ We can read in a delimited format using a custom reader, which we'll now import.
        edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
        edge.1         root  4.0000  1.0000  3.0000  6.0000
     ------------------------------------------------------
+
+We also test the reader function for a '\t' delimited format with missing data at the end.
+
+    >>> data = ['ab\tcd\t', 'ab\tcd\tef']
+    >>> tab_reader = SeparatorFormatParser(sep='\t')
+    >>> for line in tab_reader(data):
+    ...     assert len(line) == 3, line
 
 We can likewise specify a writer, using a custom field formatter and provide this to the ``Table`` directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.
 
@@ -548,7 +565,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
     >>> converter = ConvertFields([(0,strip), (1, strip)])
     >>> reader = SeparatorFormatParser(with_header=True, converter=converter,
     ...       sep="|", strip_wspace=True)
-    >>> t3a = Table(filename="t3.tab", reader=reader, title="new title",
+    >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
     ...       space=2)
     >>> print t3a
     new title
@@ -1035,6 +1052,165 @@ Reverse sort both columns.
     NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
     NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
     ---------------------------------------------------------
+
+Joining Tables
+--------------
+
+The Table object is capable of joins or merging of records in two tables. There are two fundamental types of joins -- inner and outer -- with there being different sub-types. We demonstrate these first constructing some simple tables.
+
+    >>> a=Table(header=["index", "col2","col3"],
+    ...         rows=[[1,2,3],[2,3,1],[2,6,5]], title="A")
+    >>> print a
+    A
+    =====================
+    index    col2    col3
+    ---------------------
+        1       2       3
+        2       3       1
+        2       6       5
+    ---------------------
+    >>> b=Table(header=["index", "col2","col3"],
+    ...         rows=[[1,2,3],[2,2,1],[3,6,3]], title="B")
+    >>> print b
+    B
+    =====================
+    index    col2    col3
+    ---------------------
+        1       2       3
+        2       2       1
+        3       6       3
+    ---------------------
+    >>> c=Table(header=["index","col_c2"],rows=[[1,2],[3,2],[3,5]],title="C")
+    >>> print c
+    C
+    ===============
+    index    col_c2
+    ---------------
+        1         2
+        3         2
+        3         5
+    ---------------
+
+For a natural inner join, only 1 copy of columns with the same name are retained. So we expect the headings to be identical between the table ``a``/``b`` and the result of ``a.joined(b)`` or ``b.joined(a)``.
+
+    >>> assert a.joined(b).Header == b.Header
+    >>> assert b.joined(a).Header == a.Header
+
+For a standard inner join, the joined table should contain all columns from ``a`` and ``b`` excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the provided tables do not have a title, a ``RuntimeError`` is raised.
+
+    >>> b.Title = None
+    >>> try:
+    ...     a.joined(b)
+    ... except RuntimeError:
+    ...     pass
+    >>> b.Title = 'B'
+    >>> assert a.joined(b, "index").Header == ["index", "col2", "col3",
+    ...                                        "B_col2", "B_col3"]
+
+Note that the table title's were used to prefix the column headings from the second table. We further test this using table ``c`` which has different dimensions.
+
+    >>> assert a.joined(c,"index").Header == ["index","col2","col3",
+    ...                                       "C_col_c2"]
+
+It's also possible to specify index columns using numerical values, the results of which should be the same.
+
+    >>> assert a.joined(b,[0, 2]).getRawData() ==\
+    ...                          a.joined(b,["index","col3"]).getRawData()
+
+Additionally, it's possible to provide two series of indices for the two tables. Here, they have identical values.
+
+    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
+    ...         == a.joined(b,["index","col3"]).getRawData()
+
+The results of a standard join between tables ``a`` and ``b`` are
+
+    >>> print a.joined(b, ["index"], title='A&B')
+    A&B
+    =========================================
+    index    col2    col3    B_col2    B_col3
+    -----------------------------------------
+        1       2       3         2         3
+        2       3       1         2         1
+        2       6       5         2         1
+    -----------------------------------------
+
+We demo the table specific indices.
+
+    >>> print a.joined(c, ["col2"], ["index"], title='A&C by "col2/index"')
+    A&C by "col2/index"
+    =================================
+    index    col2    col3    C_col_c2
+    ---------------------------------
+        2       3       1           2
+        2       3       1           5
+    ---------------------------------
+
+Tables ``a`` and ``c`` share a single row with the same value in the ``index`` column, hence a join by that index should return a table with just that row.
+
+    >>> print a.joined(c, "index", title='A&C by "index"')
+    A&C by "index"
+    =================================
+    index    col2    col3    C_col_c2
+    ---------------------------------
+        1       2       3           2
+    ---------------------------------
+
+A natural join of tables ``a`` and ``b`` results in a table with only rows that were identical between the two parents.
+
+    >>> print a.joined(b, title='A&B Natural Join')
+    A&B Natural Join
+    =====================
+    index    col2    col3
+    ---------------------
+        1       2       3
+    ---------------------
+
+We test the outer join by defining an additional table with different dimensions, and conducting a join specifying ``inner_join=False``.
+
+    >>> d=Table(header=["index", "col_c2"], rows=[[5,42],[6,23]], title="D")
+    >>> print d
+    D
+    ===============
+    index    col_c2
+    ---------------
+        5        42
+        6        23
+    ---------------
+    >>> print c.joined(d,inner_join=False, title='C&D Outer join')
+    C&D Outer join
+    ======================================
+    index    col_c2    D_index    D_col_c2
+    --------------------------------------
+        1         2          5          42
+        1         2          6          23
+        3         2          5          42
+        3         2          6          23
+        3         5          5          42
+        3         5          6          23
+    --------------------------------------
+
+We finally establish the ``joined`` method works for mixtures of character and numerical data, setting some indices and some cell values to be strings.
+
+    >>> a=Table(header=["index", "col2","col3"],
+    ...         rows=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
+    >>> b=Table(header=["index", "col2","col3"],
+    ...         rows=[[1,2,"3"],["2",2,1],[3,6,3]], title="B")
+    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
+    ...         == a.joined(b,["index","col3"]).getRawData()
+
+Counting rows
+-------------
+
+We can count the number of rows for which a condition holds. This method uses the same arguments as ``filtered`` but returns an integer result only.
+
+    >>> print c.count("col_c2 == 2")
+    2
+    >>> print c.joined(d,inner_join=False).count("index==3 and D_index==5")
+    2
+
+
+Test Cleanup
+------------
 
 Import the ``os`` module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where ``junk.pdf`` wasn't created due to ``reportlab`` not being present.
     

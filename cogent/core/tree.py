@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-"""Classes for storing and manipulating a phylogenetic tree
-object. These tree's can be either strictly binary, or have polytomies
+"""Classes for storing and manipulating a phylogenetic tree.
+
+These trees can be either strictly binary, or have polytomies
 (multiple children to a parent node).
 
 Trees consist of Nodes (or branches) that connect two nodes. The Tree can
@@ -32,10 +33,11 @@ import cogent.parse.newick, cogent.parse.tree_xml
 from cogent.util.transform import comb
 from cogent.maths.stats.test import correlation
 from operator import or_
+from cogent.util.misc import InverseDict
 
 LOG = logging.getLogger('cogent.tree')
 
-__author__ = "Gavin Huttley and Peter Maxwell"
+__author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
@@ -57,7 +59,8 @@ def distance_from_r(m1, m2):
 class TreeError(Exception):
     pass
 
-def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
+def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
+    underscore_unmunge=False):
     
     """Constructor for tree.
     
@@ -65,6 +68,10 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
         - filename: a file containing a newick or xml formatted tree.
         - treestring: a newick or xml formatted tree string.
         - tip_names: a list of tip names.
+
+    Note: underscore_unmunging is turned off by default, although it is part
+    of the Newick format. Set underscore_unmunge to True to replace underscores
+    with spaces in all names read.
     """
     
     if filename:
@@ -81,7 +88,12 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
         else:
             parser = cogent.parse.newick.parse_string
         tree_builder = TreeBuilder().createEdge
-        tree = parser(treestring, tree_builder)
+        #FIXME: More general strategy for underscore_unmunge
+        if parser is cogent.parse.newick.parse_string:
+            tree = parser(treestring, tree_builder, \
+                underscore_unmunge=underscore_unmunge)
+        else:
+            tree = parser(treestring, tree_builder)
         if not tree.NameLoaded:
             tree.Name = 'root'
     elif tip_names:
@@ -885,7 +897,16 @@ class TreeNode(object):
             endpoints = self.getTipNames()
         (root_dists, endpoint_dists) = self._getDistances(endpoints)
         return endpoint_dists
-    
+   
+    def maxTipTipDistance(self):
+        """returns the max distance between any pair of tips
+        
+        Also returns the tip names  that it is between as a tuple"""
+        dists = self.getDistances()
+        dists = InverseDict(dists)
+        max_dist = max(dists)
+        return max_dist, dists[max_dist]
+ 
     def _getSubTree(self, included_names, constructor=None):
         """An equivalent node with possibly fewer children, or None"""
         
@@ -1147,6 +1168,27 @@ class TreeNode(object):
         if lca is None:
             raise TreeError("No LCA found for %s and %s" % (name1, name2))
         return lca
+    
+    def getConnectingEdges(self, name1, name2):
+        """returns a list of edges connecting two nodes
+    
+        includes self and other in the list"""
+        edge1 = self.getNodeMatchingName(name1)
+        edge2 = self.getNodeMatchingName(name2)
+        LCA = self.getConnectingNode(name1, name2)
+        node_path = [edge1]
+        node_path.extend(edge1.ancestors())
+        #remove nodes deeper than the LCA
+        LCA_ind = node_path.index(LCA)
+        node_path = node_path[:LCA_ind+1]
+        #remove LCA and deeper nodes from anc list of other
+        anc2 = edge2.ancestors()
+        LCA_ind = anc2.index(LCA)
+        anc2 = anc2[:LCA_ind]
+        anc2.reverse()
+        node_path.extend(anc2)
+        node_path.append(edge2)
+        return node_path
     
     def getParamValue(self, param, edge):
         """returns the parameter value for named edge"""
@@ -1431,8 +1473,103 @@ class PhyloNode(TreeNode):
         tip = self.getNodeMatchingName(outgroup_name)
         return tip.Parent.unrootedDeepcopy()
 
+    def rootAtMidpoint(self):
+        """A new tree with Midpoint rooting
+
+        root is at the midpoint of the two tips with the max distance between
+        them.
+        """
+        #get the max distance between any two tips
+        max_dist, tip_names = self.maxTipTipDistance()
+        tip_pair = (self.getNodeMatchingName(tip_names[0]), \
+                self.getNodeMatchingName(tip_names[1]))
+        #get the internal nodes that flank the midpoint (when traversing 
+        #from tip_pair[0] to tip_pair[1] - node_far is furthest from the 
+        #midpoint and node_near is nearest to the midpoint
+        node_far, node_near = self._find_midpoint_nodes(max_dist, tip_names)
+        cum_dist = tip_pair[0].distance(node_far)
+        BL1 = cum_dist - max_dist/2.0
+        new_root = PhyloNode()
+        dist = node_far.distance(node_near)
+        if node_far.Parent == node_near:
+            NR_child = node_far
+            NR_parent = node_near
+            NR_child.Length = BL1
+            new_root.Length = dist-BL1
+        elif node_near.Parent == node_far:
+            NR_child = node_near
+            NR_parent = node_far
+            NR_child.Length = dist-BL1
+            new_root.Length = BL1
+        #reset the root to the midpoint
+        new_root.Parent = NR_parent
+        new_root.append(NR_child)
+        return new_root.unrootedDeepcopy()    
     
-    
+    def _find_midpoint_nodes(self, max_dist, tip_pair):
+        """returns the nodes surrounding the maxTipTipDistance midpoint 
+        
+        used for midpoint rooting.
+        max_dist: The maximum distance between any 2 tips
+        tip_pair: Names of the two tips associated with max_dist
+        """
+        half_max_dist = max_dist/2.0
+        #get a list of the nodes that separate the tip pair
+        node_path = self.getConnectingEdges(tip_pair[0], tip_pair[1])
+        tip1 = self.getNodeMatchingName(tip_pair[0])
+        for index, node in enumerate(node_path):
+            dist = tip1.distance(node)
+            if dist > half_max_dist:
+                return node, node_path[index-1]
+
+    def setTipDistances(self):
+        """Sets distance from each node to the most distant tip."""
+        for node in self.traverse(self_before=False, self_after=True):
+            if node.Children:
+                node.TipDistance = max([c.Length + c.TipDistance for \
+                    c in node.Children])
+            else:
+                node.TipDistance = 0
+
+    def scaleBranchLengths(self, max_length=100, ultrametric=False):
+        """Scales BranchLengths in place to integers for ascii output.
+
+        Warning: tree might not be exactly the length you specify.
+
+        Set ultrametric=True if you want all the root-tip distances to end
+        up precisely the same.
+        """
+        self.setTipDistances()
+        orig_max = max([n.TipDistance for n in self.traverse()])
+        if not ultrametric: #easy case -- just scale and round
+            for node in self.traverse():
+                curr = node.Length
+                if curr is not None:
+                    node.ScaledBranchLength =  \
+                        max(1, int(round(1.0*curr/orig_max*max_length)))
+        else:   #hard case -- need to make sure they all line up at the end
+            for node in self.traverse(self_before=False, self_after=True):
+                if not node.Children:   #easy case: ignore tips
+                    node.DistanceUsed = 0
+                    continue
+                #if we get here, we know the node has children
+                #figure out what distance we want to set for this node
+                ideal_distance=int(round(node.TipDistance/orig_max*max_length))
+                min_distance = max([c.DistanceUsed for c in node.Children]) + 1
+                distance = max(min_distance, ideal_distance)
+                for c in node.Children:
+                    c.ScaledBranchLength = distance - c.DistanceUsed
+                node.DistanceUsed = distance
+        #reset the BranchLengths
+        for node in self.traverse(self_before=True, self_after=False):
+            if node.Length is not None:
+                node.Length = node.ScaledBranchLength
+            if hasattr(node, 'ScaledBranchLength'):
+                del node.ScaledBranchLength
+            if hasattr(node, 'DistanceUsed'):
+                del node.DistanceUsed
+            if hasattr(node, 'TipDistance'):
+                del node.TipDistance
 
 class TreeBuilder(object):
     # Some tree code which isn't needed once the tree is finished.

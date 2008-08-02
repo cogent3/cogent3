@@ -43,7 +43,7 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
         for line in lines:
             if ignore(line):
                 continue
-            line = line.strip().split(sep)
+            line = line.strip('\n').split(sep)
             if strip_wspace:
                 line = [field.strip() for field in line]
             if with_header and not header:
@@ -54,55 +54,36 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
     
     return callable
 
-def getFromFilename(filename, format = None, **kw):
-    from cogent import Table
-    
-    if format is None:
-        format = filename[filename.rfind(".")+1:]
-    
-    def loadPickle(filename, **kw):
-        f = file(filename, 'U')
-        loaded_table = cPickle.load(f)
-        f.close()
-        return loaded_table
-    
-    def loadDelimited(filename, header = True, delimiter = ',',
-            with_title = False, with_legend = False):
-        f = file(filename, "U")
-        reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
-        data = [row for row in reader]
-        f.close()
-        if with_title:
-            title = ''.join(data.pop(0))
-        else:
-            title = ''
-        if header:
-            header = data.pop(0)
-        else:
-            header = None
-        if with_legend:
-            legend = ''.join(data.pop(-1))
-        else:
-            legend = ''
-        # now do type casting in the order int, float, default is string
-        for row in data:
-            for cdex, cell in enumerate(row):
+def load_delimited(filename, header = True, delimiter = ',',
+        with_title = False, with_legend = False):
+    f = file(filename, "U")
+    reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
+    rows = [row for row in reader]
+    f.close()
+    if with_title:
+        title = ''.join(rows.pop(0))
+    else:
+        title = ''
+    if header:
+        header = rows.pop(0)
+    else:
+        header = None
+    if with_legend:
+        legend = ''.join(rows.pop(-1))
+    else:
+        legend = ''
+    # now do type casting in the order int, float, default is string
+    for row in rows:
+        for cdex, cell in enumerate(row):
+            try:
+                cell = int(cell)
+                row[cdex] = cell
+            except ValueError:
                 try:
-                    cell = int(cell)
+                    cell = float(cell)
                     row[cdex] = cell
                 except ValueError:
-                    try:
-                        cell = float(cell)
-                        row[cdex] = cell
-                    except ValueError:
-                        pass
                     pass
-        loaded_table = Table(header = header, rows = data, title = title,
-                            legend = legend)
-        return loaded_table
-    
-    parser = dict(pickle = loadPickle, csv = loadDelimited).get(format, loadDelimited)
-    loaded_table = parser(filename, **kw)
-    # assert isinstance(loaded_table, Table), "file content not a Table[%s]: %s" % (type(Table), type(loaded_table))
-    return loaded_table
-    
+                pass
+    return header, rows, title, legend
+

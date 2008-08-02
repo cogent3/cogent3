@@ -108,6 +108,24 @@ class MemeTests(TestCase):
             '629-C08': float(5.61e-07),
             }
                              }
+        self.remap_dict = {
+            '11':'11',
+            '1':'1',
+            '407-A07':'407-A07',
+            '17':'17',
+            '159':'159',
+            '505-D01':'505-D01',
+            '28':'28',
+            '507-B04-1':'507-B04-1',
+            '402-C01':'402-C01',
+            '621-H01':'621-H01',
+            '629-C08':'629-C08',
+            '410-A10':'410-A10',
+            '105':'105',
+            '625-H05':'625-H05',
+            '518-D12':'518-D12'
+            }
+
 
         #ModuleInstances and Modules
         self.ModuleInstances = [
@@ -227,7 +245,7 @@ class MemeTests(TestCase):
     def test_extract_module_data(self):
         """extractModuleData should return a Module object."""
         for data, module in zip(self.module_data_blocks,self.Modules):
-            ans = extractModuleData(data,DNA)
+            ans = extractModuleData(data,DNA,self.remap_dict)
             self.assertEqual(ans,module)
     
     def test_get_consensus_sequence(self):  
@@ -251,6 +269,7 @@ class MemeTests(TestCase):
         """MemeParser should correctly return a MotifResults object."""
         test_motif_results = MotifResults([],[],{})
         test_motif_results.Results = self.summary_dict
+        test_motif_results.Results['Warnings']=[]
         test_motif_results.Parameters = self.command_line_list
         test_motif_results.Modules = self.Modules
         ans_motif_results = MemeParser(self.meme_file)

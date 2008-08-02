@@ -225,7 +225,8 @@ class analysisTests(TestCase):
         #check that row sums are 0
         for x in [(i,j) for i in range(5) for j in range(5)]:
             self.assertFloatEqual(sum(result[x]), 0)
-        assert any(result)
+        #need to make sure we didn't just get an empty array
+        self.assertGreaterThan((abs(result)).sum(), 0)
         #check that it works without_diag
         result = tree_twoway_rates(t, without_diag=True)
         self.assertEqual(result.shape, (5,5,12))
@@ -236,19 +237,27 @@ class analysisTests(TestCase):
         self.assertEqual(result.shape, (5,5,12))
         #check that the row sums are not 1 before normalization (note that they
         #can be zero, though)
+        sums_before = []
         for x in [(i,j) for i in range(5) for j in range(5)]:
-            assert sum(result[x]) == 0 or abs(sum(result[x]) - 1) > 1e-4
+            curr_sum = sum(result[x])
+            sums_before.append(curr_sum)
         #...but if we tell it to normalize, row sums should be nearly 1
         #after omitting diagonal
         result = tree_twoway_rates(t, without_diag=True, \
             normalize=True)
         self.assertEqual(result.shape, (5,5,12))
+        sums_after = []
         for x in [(i,j) for i in range(5) for j in range(5)]:
-                s = sum(result[x])
-                if s != 0:
-                    self.assertFloatEqual(s, 1)
-         
-
+            curr_sum = sum(result[x])
+            sums_after.append(curr_sum)
+            if curr_sum != 0:
+                self.assertFloatEqual(curr_sum, 1)
+        try:
+            self.assertFloatEqual(sums_before, sums_after)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError, "Expected different arrays before/after norm"
    
     def test_multivariate_normal_prob(self):
         """Multivariate normal prob should match R results"""

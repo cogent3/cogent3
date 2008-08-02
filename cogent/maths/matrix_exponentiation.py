@@ -192,8 +192,10 @@ def _chooseFastExponentiator(Q, symmetric):
         (eigenvectors, (r,ev)) = _fastest(eigen_candidates, Q)
         inverse_candidates = [inv, pyrex.inverse]
         (inverse, evI) = _fastest(inverse_candidates, ev)
-        if not evI.flags['C_CONTIGUOUS']:
-            evI = numpy.ascontiguousarray(evI)
+        #if not evI.flags['C_CONTIGUOUS']:
+        #evI = numpy.ascontiguousarray(evI)
+        # a crime to do this but works on osx + python 2.5 + default numpy
+        Q, r, ev, evI = map(numpy.ascontiguousarray, (Q,r,ev,evI))
         exponentiator_candidates = [EigenExponentiator(Q, r, ev, evI)]
         if symmetric:
             pyx = pyrex.EigenExponentiator(Q, r, ev, evI)

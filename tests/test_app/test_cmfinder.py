@@ -117,7 +117,7 @@ class CombMotifTest(TestCase):
         res = cbm('input.fasta')
 
         self.assertEqualItems(res.keys(),['StdOut','StdErr','ExitStatus',
-        'comb1'])
+        'comb1','latest'])
         self.assertEqual(res['ExitStatus'],0)
         assert res['comb1'] is not None
         res.cleanUp()

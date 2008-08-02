@@ -17,8 +17,7 @@ belongs to.
     DnaSequence(CCCCC)
 
 Usually the only way to get a Feature object like exon1 is to ask the sequence
-for it.  There is one method for querying annotations by type and optionally by
-label:
+for it.  There is one method for querying annotations by type and optionally by name:
 
     >>> exons = s.getAnnotationsMatching('exon')
     >>> print exons
@@ -112,7 +111,7 @@ Sequence features can be accessed via a containing Alignment:
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
     >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
 
-But these will be returned as _alignment_ features with locations in 
+But these will be returned as **alignment** features with locations in 
 alignment coordinates.
 
     >>> print exon

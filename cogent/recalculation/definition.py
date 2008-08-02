@@ -80,7 +80,7 @@ from scope import Evaluator, _NonLeafDefn, _LeafDefn, _Defn, \
 
 from setting import Var, ConstVal, Whole, Part
 
-from cogent.recalculation.array import DictArrayTemplate
+from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
 from cogent.util import parallel
 

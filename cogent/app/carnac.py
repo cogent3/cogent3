@@ -64,7 +64,8 @@ class Carnac(CommandLineApplication):
             path=str(data)
             data=open(data).readlines()
         else: #data input as lines
-            path=''.join([self.WorkingDir,self._input_filename.split('/')[-1]])
+            #path=''.join([self.WorkingDir,self._input_filename.split('/')[-1]])
+            path = ''.join(['/tmp/', self._input_filename.split('/')[-1]])
         for item in data:
             if item.startswith('>'):
                 name_counter += 1
@@ -82,8 +83,9 @@ class Carnac(CommandLineApplication):
                     ResultPath(Path=('%s%s%d.ct' % (path,count,nr)))
                 result['eq%d' % nr] =\
                     ResultPath(Path=('%s%s%d.eq' % (path,count,nr)))
-                result['out_seq%d' % nr] =\
-                    ResultPath(Path=('%sZ_%s%d.%s.out' % (self.WorkingDir,count,nr,name)))
+                result['out_seq%d' % nr] = \
+                    ResultPath(Path=(''.join([self.WorkingDir,'Z_%s%d.%s.out'% \
+                        (count,nr,name)])))
 
             result['graph'] =\
                 ResultPath(Path=(self.WorkingDir+'graph.out'))

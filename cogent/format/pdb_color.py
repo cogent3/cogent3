@@ -22,12 +22,10 @@ three_to_one = {'ALA':'A','CYS':'C','ASP':'D','GLU':'E', 'PHE':'F', 'GLY':'G',
 def get_aligned_muscle(seq1,seq2):
     """Returns aligned sequences and frac_same using MUSCLE.
 
-        THis needs to be moved to the muscle app controller
+        This needs to be moved to the muscle app controller
     """
     outname = get_tmp_filename()
     res = muscle_seqs([seq1,seq2], add_seq_names=True, WorkingDir="/tmp", out_filename=outname)
-    #raise ValueError,  res['StdErr'].read()
-    #raise ValueError, res
     seq1_aligned,seq2_aligned =list(MinimalFastaParser(res['MuscleOut'].read()))
     res.cleanUp()
     del(res)
@@ -45,21 +43,40 @@ def get_chains(lines):
     """
     chains = {}
     last_resnum = None
+    ter=False
+    prev_chain=None
     for line in lines:
         #skip if not an atom line
         if not line.startswith('ATOM'):
-            continue
-        residue = line[17:20].strip()
-        chain = line[21].strip()
-        resnum = int(line[22:26])
-            
-        if chain not in chains:
-            chains[chain] = []
-        curr_chain = chains[chain]
-        if resnum != last_resnum:
-            curr_chain.append((resnum,residue))
-        last_resnum = resnum
+            #If chain terminated, record chain.
+            if line.startswith('TER'):
+                ter=True
+                prev_chain=chain
+            else:
+                continue
+        else:
+            residue = line[17:20].strip()
+            chain = line[21].strip()
+            resnum = int(line[22:26])
+            #Continue until next chain is found.
+            if ter:
+                if prev_chain == chain:
+                    continue
+                else:
+                    ter=False
+                    if chain not in chains:
+                        chains[chain] = []
+                    curr_chain = chains[chain]
+            else:
+                if chain not in chains:
+                    chains[chain] = []
+                curr_chain = chains[chain]
+
+                if resnum != last_resnum:
+                    curr_chain.append((resnum,residue))
+                last_resnum = resnum
     return chains
+
 
 
 def ungapped_to_pdb_numbers(chain_list):
@@ -161,6 +178,12 @@ def align_subject_to_pdb(subject_seq, pdb_matching):
 
 
 #####The following code must be in the .pml script:####
+def iterate_blocks(seq, max_len=100):
+    """Yields successive blocks up to max_len from seq."""
+    curr = 0
+    while curr < len(seq):
+        yield seq[curr:curr+max_len]
+        curr += max_len
 
 def make_color_list(colors, prefix="color_"):
     """Makes list of colors, sequentially numbered after prefix."""

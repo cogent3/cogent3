@@ -3,7 +3,7 @@
 import random, numpy
 
 from cogent.core.alignment import Alignment
-from cogent.recalculation.array import DictArrayTemplate
+from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 

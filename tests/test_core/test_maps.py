@@ -15,11 +15,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def SimpleAnnotation(parent, locations, label):
-    return Feature(parent, '', label, locations)
+def SimpleAnnotation(parent, locations, Name):
+    return Feature(parent, '', Name, locations)
 
-def annotate(parent, start, end, label):
-    annot = parent.addAnnotation(SimpleAnnotation, locations=[(start, end)], label=label)
+def annotate(parent, start, end, Name):
+    annot = parent.addAnnotation(SimpleAnnotation, locations=[(start, end)], Name=Name)
     return annot
 
 def structure(a, depth=0):
@@ -27,9 +27,9 @@ def structure(a, depth=0):
     if not isinstance(a, _Feature):
         return ('seq', len(a), annots)
     elif annots:
-        return (a.label, repr(a.map), annots)
+        return (a.Name, repr(a.map), annots)
     else:
-        return (a.label, repr(a.map))
+        return (a.Name, repr(a.map))
 
 class MapTest(unittest.TestCase):
     """Testing annotation of and by maps"""

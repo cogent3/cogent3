@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 
+import os
+
 from cogent.app.util import CommandLineApplication, \
      CommandLineAppResult, ResultPath
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
      MixedParameter,Parameters
 from sys import exit
 from os.path import isfile
+
+if 'CMfinder' not in os.environ:
+    raise RuntimeError, \
+        'cmfinder cannot run if the CMfinder environment variable is not set.'
 
 class CMfinder(CommandLineApplication):
     """The application controller for CMfinder 0.2 application
@@ -191,5 +197,12 @@ class CombMotif(CommandLineApplication):
                                     result['comb'+n] = ResultPath(Path=file)
                                 except IOError:
                                     pass        
+       
+        if isfile(self.WorkingDir+'latest.cm'):
+            result['latest'] =\
+                ResultPath(Path=(self.WorkingDir+'latest.cm'))
+        else:
+            pass
+
         return result
     

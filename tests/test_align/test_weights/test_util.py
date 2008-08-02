@@ -71,7 +71,7 @@ class UtilTests(TestCase):
         self.assertEqual(len(list(pseudo_seqs_monte_carlo(self.aln1,n=100))),\
             100)
         for i in pseudo_seqs_monte_carlo(self.aln3,n=100):
-            assert i in ['AA','AB','BA','BB']
+            self.assertContains(['AA','AB','BA','BB'], i)
 
     def test_row_to_vote(self):
         """row_to_vote: should return correct votes for int and float distances

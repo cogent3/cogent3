@@ -58,7 +58,7 @@ class MfoldTest(TestCase):
         res = m(self.input)
 
 
-        self.assertEqualItems(res.keys(),['StdOut', 'StdErr', 'ExitStatus', 'ct_all', 'ct1', 'log', 'ann', 'h-num', 'det', 'pnt', 'sav', 'ss-count', '-local.seq', 'rnaml', 'out', 'plot','pdf1'])
+        self.assertEqualItems(res.keys(),['ps','_1.ps','_1.ss','StdOut', 'StdErr', 'ExitStatus', 'ct_all', 'ct1', 'log', 'ann', 'h-num', 'det', 'pnt', 'sav', 'ss-count', '-local.seq', 'rnaml', 'out', 'plot','pdf1'])
         self.assertEqual(res['ExitStatus'],0)
         assert res['ct_all'] is not None
         assert res['log'] is not None

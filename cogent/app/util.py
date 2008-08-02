@@ -125,8 +125,6 @@ class CommandLineApplication(Application):
     _suppress_stderr = False
     _suppress_stdout = False
     _working_dir = None
-    TmpPrefix = FilePath('tmp')
-    TmpSuffix = FilePath('.txt')
 
     def __init__(self,params=None,InputHandler=None,SuppressStderr=None,\
         SuppressStdout=None,WorkingDir=None,TmpDir='/tmp', \
@@ -274,8 +272,8 @@ class CommandLineApplication(Application):
             (which is a string subclass).
 
         """
-        filename = self._input_filename = self.getTmpFilename(self.TmpDir)
-        filename = FilePath(filename)
+        filename = self._input_filename = \
+            FilePath(self.getTmpFilename(self.TmpDir))
         data_file = open(filename,'w')
         data_file.write(data)
         data_file.close()
@@ -293,7 +291,8 @@ class CommandLineApplication(Application):
                 before writing to a file in order to avoid multiple new lines
                 accidentally be written to a file
         """
-        filename = self._input_filename = self.getTmpFilename(self.TmpDir)
+        filename = self._input_filename = \
+            FilePath(self.getTmpFilename(self.TmpDir))
         filename = FilePath(filename)
         data_file = open(filename,'w')
         data_to_file = '\n'.join([str(d).strip('\n') for d in data])
@@ -319,11 +318,11 @@ class CommandLineApplication(Application):
              strings
 
         """
-        return ' '.join(map(str,map(self._input_as_path,data)))
+        return self._command_delimiter.join(\
+            map(str,map(self._input_as_path,data)))
 
     def _absolute(self,path):
         """ Convert a filename to an absolute path """
-        # Is this line necessary?
         path = FilePath(path)
         if isabs(path):
             return path
@@ -410,8 +409,22 @@ class CommandLineApplication(Application):
         """
         return {}
 
-    def getTmpFilename(self, tmp_dir="/tmp"):
-        # temp hack - change this to lookup and generate file in class
+
+    def getTmpFilename(self, tmp_dir="/tmp",prefix='tmp',suffix='.txt',\
+        include_class_id=False):
+        """ Return a temp filename
+
+            tmp_dir: path for temp file
+            prefix: text to append to start of file name
+            suffix: text to append to end of file name
+            include_class_id: if True, will append a class identifier (built
+             from the class name) to the filename following prefix. This is 
+             False by default b/c there is some string processing overhead
+             in getting the class name. This will probably be most useful for
+             testing: if temp files are being left behind by tests, you can
+             turn this on in here (temporarily) to find out which tests are
+             leaving the temp files.
+        """
 
         # check not none
         if not tmp_dir:
@@ -420,15 +433,26 @@ class CommandLineApplication(Application):
         elif not tmp_dir.endswith("/"):
             tmp_dir += "/"
 
+        if include_class_id:
+            # Append the classname to the prefix from the class name 
+            # so any problematic temp files can be associated with 
+            # the class that created them. This should be especially 
+            # useful for testing, but is turned off by default to
+            # avoid the string-parsing overhead.
+            class_id = str(self.__class__())
+            prefix = ''.join([prefix,\
+             class_id[class_id.rindex('.')+1:class_id.index(' ')]])
+        
         try:
             mkdir(tmp_dir)
         except OSError:
             # Directory already exists
             pass
-        
-        return FilePath(''.join([tmp_dir,self.TmpPrefix,\
-            ''.join([choice(_all_chars) for i in range(self.TmpNameLen)]),\
-            self.TmpSuffix]))
+        # note: it is OK to join FilePath objects with + 
+        return FilePath(tmp_dir) + FilePath(prefix) + \
+            FilePath(''.join([choice(_all_chars) \
+             for i in range(self.TmpNameLen)])) +\
+            FilePath(suffix)
 
 def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
     """
@@ -454,6 +478,8 @@ def guess_input_handler(seqs, add_seq_names=False):
             ih = '_input_as_multiline_string'
         else:               #assume it was a filename
             ih = '_input_as_string'
+            #Uncommenting the next line causes errors in muscle tests - Micah?
+            #ih = '_input_as_path'
     elif add_seq_names:
         ih = '_input_as_seqs'
     else:

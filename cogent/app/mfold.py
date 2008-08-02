@@ -13,7 +13,7 @@ from random import choice
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Shandy Wikman"
@@ -107,13 +107,17 @@ class Mfold(CommandLineApplication):
                  '-local.seq',
                  'rnaml',
                  'out',
-                 'plot']
+                 'plot',
+                 'ps',
+                 '_1.ps',
+                 '_1.ss']
         for f in files:
-            if f != '-local.seq':
-                file = '%s.%s' % (name,f)
+            if f == '-local.seq':
+                file = ''.join([name, f])
+            elif f.startswith('_1'):
+                file = ''.join([name, f])
             else:
-                file = '%s%s' % (name,f)
-            result['%s' % f] =\
-                ResultPath(Path=file)
+                file = '.'.join([name, f]) 
+            result['%s' % f] = ResultPath(Path=file)
  
         return result

@@ -3,10 +3,11 @@
 """
 
 from cogent.core.sequence import Sequence, RnaSequence, DnaSequence, \
-    ProteinSequence, \
-    ModelSequence, ModelNucleicAcidSequence, ModelCodonSequence, \
+    ProteinSequence, ModelSequenceBase, \
+    ModelSequence, ModelNucleicAcidSequence, ModelRnaSequence, \
+    ModelDnaSequence, ModelProteinSequence, ModelCodonSequence, \
     ModelDnaCodonSequence, ModelRnaCodonSequence
-from cogent.core.moltype import RNA, DNA, PROTEIN, ASCII, AlphabetError
+from cogent.core.moltype import RNA, DNA, PROTEIN, ASCII, BYTES, AlphabetError
 from cogent.util.unit_test import TestCase, main
 
 import re
@@ -31,9 +32,11 @@ class SequenceTests(TestCase):
     PROT = ProteinSequence
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
+        #NOTE: ModelSequences can't be initialized empty because it screws up
+        #the dimensions of the array, and not worth special-casing.
         s = self.SEQ()
         self.assertEqual(s, '')
-        assert s.MolType is ASCII
+        assert s.MolType in (ASCII, BYTES)
 
         r = self.RNA()
         assert r.MolType is RNA 
@@ -51,6 +54,18 @@ class SequenceTests(TestCase):
         self.assertEqual(s._seq, 'UCAGG')
         self.assertEqual(s.Name, 'x')
         self.assertEqual(s.Info.z, 3)
+
+    def test_compare_to_string(self):
+        """Sequence should compare equal to same string."""
+        r = self.RNA('UCC')
+        self.assertEqual(r, 'UCC')
+
+    def test_slice(self):
+        """Sequence slicing should work as expected"""
+        r = self.RNA('UCAGG')
+        self.assertEqual(r[0], 'U')
+        self.assertEqual(r[-1], 'G')
+        self.assertEqual(r[1:3], 'CA')
 
     def test_conversion(self):
         """Should convert t to u automatically"""
@@ -129,8 +144,8 @@ class SequenceTests(TestCase):
 
     def test_complement(self):
         """Sequence complement should correctly complement sequence"""
-        self.assertEqual(self.RNA('UauCG-NR').complement(), 'AUAGC-NY')
-        self.assertEqual(self.DNA('TatCG-NR').complement(), 'ATAGC-NY')
+        self.assertEqual(self.RNA('UAUCG-NR').complement(), 'AUAGC-NY')
+        self.assertEqual(self.DNA('TATCG-NR').complement(), 'ATAGC-NY')
         self.assertEqual(self.DNA('').complement(), '')
         self.assertRaises(TypeError, self.PROT('ACD').complement)
 
@@ -237,7 +252,7 @@ class SequenceTests(TestCase):
         s = self.RNA('AUn-yrs-wkmCGwmrNMWRKY')
         t = s.disambiguate('random')
         u = s.disambiguate('random')
-        for i, j in zip(s, t):
+        for i, j in zip(str(s), str(t)):
             if i in s.MolType.Degenerates:
                 assert j in s.MolType.Degenerates[i]
             else:
@@ -255,6 +270,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('gcuauacg-').degap(), 'GCUAUACG')
         self.assertEqual(self.RNA('-CUAGUCA').degap(), 'CUAGUCA')
         self.assertEqual(self.RNA('---a---c---u----g---').degap(), 'ACUG')
+        self.assertEqual(self.RNA('?a-').degap(), 'A')
         
     def test_gapList(self):
         """Sequence gapList should return correct gap positions"""
@@ -277,7 +293,7 @@ class SequenceTests(TestCase):
          map(bool, map(int,'1000000000')))
         self.assertEqual(g('UACHASCAGDS-'), 
          map(bool, map(int,'000000000001')))
-        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'), \
+        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'), \
          map(bool, map(int,'111000000001110000011100000000111')))
 
     def test_gapMaps(self):
@@ -437,7 +453,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UGCUGCUC').diff('U'), 0)
         self.assertEqual(self.RNA('UGCUGCUC').diff('UCCCCCUC'), 3)
         #case-sensitive!
-        self.assertEqual(self.RNA('AAAAA').diff('aaaaa'), 5)
+        self.assertEqual(self.RNA('AAAAA').diff('CCCCC'), 5)
         #raises TypeError if other not iterable
         self.assertRaises(TypeError, self.RNA('AAAAA').diff, 5)
         
@@ -455,7 +471,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UGCUGCUC').distance('U'), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('UCCCCCUC'), 3)
         #case-sensitive!
-        self.assertEqual(self.RNA('AAAAA').distance('aaaaa'), 5)
+        self.assertEqual(self.RNA('AAAAA').distance('CCCCC'), 5)
         #should use function if supplied
         self.assertEqual(self.RNA('UGCUGCUC').distance('', f), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('U', f), 0)
@@ -463,7 +479,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UGCUGCUC').distance('G', f), 10)
         self.assertEqual(self.RNA('UGCUGCUC').distance('UCCCCCUC', f), 21)
         #case-sensitive!
-        self.assertEqual(self.RNA('AAAAA').distance('aaaaa', f), 50)
+        self.assertEqual(self.RNA('AAAAA').distance('CCCCC', f), 50)
 
     def test_matrixDistance(self):
         """Sequence matrixDistance should look up distances from a matrix"""
@@ -623,6 +639,13 @@ class SequenceTests(TestCase):
         test(s1, s2, 7.0/8)
         test(s1, s3, 5.0/8)
         test(s2,s3, 4.0/8)
+
+    def test_withTerminiUnknown(self):
+        """withTerminiUnknown should reset termini to unknown char"""
+        s1 = self.RNA('-?--AC--?-')
+        s2 = self.RNA('AC')
+        self.assertEqual(s1.withTerminiUnknown(), '????AC????')
+        self.assertEqual(s2.withTerminiUnknown(), 'AC')
     
     def test_consistent_gap_degen_handling(self):
         """gap degen character should be treated consistently"""
@@ -826,6 +849,64 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(r._data, array([0,28]))
         self.assertEqual(str(r.toRna()), 'UUUCGU')
         self.assertEqual(str(r.toDna()), 'TTTCGT')
+
+class ModelSequenceTests(SequenceTests):
+    """Tests of the ModelSequence class's inheritance of SequenceI."""
+    SEQ = ModelSequence
+    RNA = ModelRnaSequence
+    DNA = ModelDnaSequence
+    PROT = ModelProteinSequence
+
+    def test_distance_indices(self):
+        """ModelSequence distance should work with function of indices"""
+        s1 = self.RNA('AUGC')
+        s2 = self.RNA('AAGC')
+        def f(x,y):
+            if x == 2 or y == 2:
+                return 10
+            return 0
+        self.assertEqual(s1.distance(s2, f, use_indices=True), 20)
+    
+    def test_stripBad(self):
+        """Sequence stripBad should remove any non-base, non-gap chars"""
+        #have to turn off check to get bad data in; no longer preserves case
+        r = self.RNA('UCAGRYU')
+        r._data[0] = 31
+        r._data[2] = 55
+        self.assertEqual(r.stripBad(), 'CGRYU')
+
+    def test_stripBadAndGaps(self):
+        """Sequence stripBadAndGaps should remove gaps and bad chars"""
+        #have to turn off check to get bad data in; no longer preserves case
+        r = self.RNA('ACG--GRN?')
+        self.assertEqual(r.stripBadAndGaps(), 'ACGGRN')
+        r._data[0] = 99
+        self.assertEqual(r.stripBadAndGaps(), 'CGGRN')
+
+    def test_gapArray(self):
+        """Sequence gapArray should return array of gaps"""
+        r = self.RNA('-?A-?NRY-')
+        v = r.gapArray()
+        self.assertEqual(v, array([1,1,0,1,1,0,0,0,1]))
+        r = self.RNA('AC')
+        v = r.gapArray()
+        self.assertEqual(v, array([0,0]))
+        r = self.RNA('-?')
+        v = r.gapArray()
+        self.assertEqual(v, array([1,1]))
+
+    def test_gapIndices(self):
+        """Sequence gapIndices should return positions of gaps"""
+        r = self.RNA('-?A-?NRY-')
+        v = r.gapIndices()
+        self.assertEqual(v, array([0,1,3,4,8]))
+        r = self.RNA('AC')
+        v = r.gapIndices()
+        self.assertEqual(v, array([])) #note: always returns array
+        r = self.RNA('-?')
+        v = r.gapIndices()
+        self.assertEqual(v, array([0,1]))
+
  
 #run if called from command-line
 if __name__ == "__main__":

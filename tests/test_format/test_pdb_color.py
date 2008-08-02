@@ -67,10 +67,11 @@ class PdbColorTests(TestCase):
         frac_same_known = 4/5.0
         
         seq1_aln, seq2_aln, frac_same = get_aligned_muscle(seq1,seq2)
-        self.assertEqual(seq1_aligned_known,seq1_aln)
-        self.assertEqual(seq2_aligned_known,seq2_aln)
-        self.assertEqual(frac_same_known, frac_same)
-    
+
+        self.assertEqual(seq1_aln,seq1_aligned_known)
+        self.assertEqual(seq2_aln,seq2_aligned_known)
+        self.assertEqual(frac_same,frac_same_known)
+            
     def test_get_chains_nucleotide(self):
         """Tests for get_chains function using nucleotide pdb lines.
         """
@@ -87,30 +88,30 @@ class PdbColorTests(TestCase):
         """Tests for ungapped_to_pdb function using nucleotide pdb chains.
         """
         for k,v in self.test_pdb_chains_1.items():
-            self.assertEqual(self.ungapped_to_pdb_1[k], \
-                        ungapped_to_pdb_numbers(v))
+            self.assertEqual(ungapped_to_pdb_numbers(v),\
+                            self.ungapped_to_pdb_1[k])                        
     
     def test_ungapped_to_pdb_protein(self):
         """Tests for ungapped_to_pdb function using protein pdb chains.
         """
         for k,v in self.test_pdb_chains_2.items():
-            self.assertEqual(self.ungapped_to_pdb_2[k], \
-                        ungapped_to_pdb_numbers(v))
+            self.assertEqual(ungapped_to_pdb_numbers(v),\
+                            self.ungapped_to_pdb_2[k])
     
     def test_chains_to_seqs_nucleotide(self):
         """Tests for chains_to_seqs function using nucleotide pdb chains.
         """
         seqs, seqtypes = chains_to_seqs(self.test_pdb_chains_1)
-        self.assertEqual(self.test_pdb_seqs_1, seqs)
-        self.assertEqual(self.test_pdb_types_1, seqtypes)
+        self.assertEqual(seqs, self.test_pdb_seqs_1)
+        self.assertEqual(seqtypes, self.test_pdb_types_1)
         
     
     def test_chains_to_seqs_protein(self):
         """Tests for chains_to_seqs function using protein pdb chains.
         """
         seqs, seqtypes = chains_to_seqs(self.test_pdb_chains_2)
-        self.assertEqual(self.test_pdb_seqs_2, seqs)
-        self.assertEqual(self.test_pdb_types_2, seqtypes)
+        self.assertEqual(seqs, self.test_pdb_seqs_2)
+        self.assertEqual(seqtypes, self.test_pdb_types_2)
     
     def test_get_best_muscle_hits(self):
         """Tests for get_best_muscle_hits function.
@@ -131,10 +132,10 @@ class PdbColorTests(TestCase):
         res_80 = {4:'AACCGGGU'}
         res_100 = {}
         
-        self.assertEqual(res_20,get_best_muscle_hits(subject_seq,query_aln,.2))
-        self.assertEqual(res_50,get_best_muscle_hits(subject_seq,query_aln,.5))
-        self.assertEqual(res_80,get_best_muscle_hits(subject_seq,query_aln,.8))
-        self.assertEqual(res_100,get_best_muscle_hits(subject_seq,query_aln,1))
+        self.assertEqual(get_best_muscle_hits(subject_seq,query_aln,.2),res_20)
+        self.assertEqual(get_best_muscle_hits(subject_seq,query_aln,.5),res_50)
+        self.assertEqual(get_best_muscle_hits(subject_seq,query_aln,.8),res_80)
+        self.assertEqual(get_best_muscle_hits(subject_seq,query_aln,1),res_100)
     
     def test_get_matching_chains(self):
         """Tests for get_matching_chains function.
@@ -166,10 +167,10 @@ class PdbColorTests(TestCase):
                                         TEST_PDB_STRING_1.split('\n'),\
                                         subject_type='Protein',\
                                         threshold=.3)
-        self.assertEqual(res_30,test_30)
-        self.assertEqual(res_80,test_80)
-        self.assertEqual(res_100,test_100)
-        self.assertEqual({},test_wrong_subject)
+        self.assertEqual(test_30,res_30)
+        self.assertEqual(test_80,res_80)
+        self.assertEqual(test_100,res_100)
+        self.assertEqual(test_wrong_subject,{})
     
     def test_align_subject_to_pdb(self):
         """Tests for align_subject_to_pdb function.
@@ -180,7 +181,7 @@ class PdbColorTests(TestCase):
         pdb_matching = {'A': 'GCCACCCUG', 'B': 'CAGGGUCGGC'}
         result = {'A':('GCGACCCUG', 'GCCACCCUG'), \
                   'B':('GCGACCCUG-', 'CAGGGUCGGC')}
-        self.assertEqual(result, align_subject_to_pdb(subject_seq,pdb_matching))
+        self.assertEqual(align_subject_to_pdb(subject_seq,pdb_matching),result)
     
     def test_make_color_list(self):
         """Tests for make_color_list function.
@@ -190,7 +191,7 @@ class PdbColorTests(TestCase):
                ('color_2',(1.0,0.0,1.0)),\
                ('color_3',(.5,.5,.5))]
         
-        self.assertEqual(res,make_color_list(colors))
+        self.assertEqual(make_color_list(colors),res)
     
     
     

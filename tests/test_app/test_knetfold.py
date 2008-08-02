@@ -61,7 +61,6 @@ class KnetfoldTest(TestCase):
         assert res['coll'] is not None
         assert res['sec'] is not None
         assert res['fasta'] is not None
-        assert res['pdf'] is not None
 
         res.cleanUp()
 

@@ -7,7 +7,7 @@ from cogent.util.array import mutate_array
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Rob Knight"]
+__credits__ = ["Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
@@ -43,6 +43,23 @@ class MicroarrayNode(RangeNode):
             self.Array = vec.copy()
         else:
             self.Array = mutate_array(vec, self.Length)
-        #do for all the children
-        for c in self.Children:
-            c.setExpression(self.Array)
+
+        curr_children = self.Children
+        curr_arrays = [self.Array] * len(curr_children)
+
+        while len(curr_children):
+            new_children = []
+            new_arrays = []
+
+            for c,a in zip(curr_children, curr_arrays):
+                if not c.Length:
+                    c.Array = a.copy()
+                else:
+                    c.Array = mutate_array(a, c.Length)
+
+                new_children.extend(c.Children)
+                new_arrays.extend([c.Array] * len(c.Children))
+
+            curr_children = new_children
+            curr_arrays = new_arrays
+

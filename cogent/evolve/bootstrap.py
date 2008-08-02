@@ -104,7 +104,7 @@ class ParametricBootstrapCore(object):
                     split_results[cpu].append(local_results)
         
         for cpu in range(parallel_context.size):
-            split_results[cpu] = parallel_context.broadcastObj(split_results[cpu], cpu)
+            split_results[cpu] = parallel_context.broadcast_obj(split_results[cpu], cpu)
         
         self.results = []
         for round in range((self._numreplicates-1) / parallel_context.size + 1):

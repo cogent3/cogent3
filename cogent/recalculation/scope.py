@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division
 import logging
-from cogent.recalculation.array import DictArrayTemplate
+from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
 
 LOG = logging.getLogger('cogent')

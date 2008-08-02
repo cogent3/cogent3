@@ -7,7 +7,7 @@ from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Shandy Wikman"
@@ -68,7 +68,8 @@ class Knetfold(CommandLineApplication):
             filename=(data.split('/')[-1]).split('.')[0]
         #output files created in extensions list
         extensions = ['ct','coll','sec','fasta','pdf']
-        file = '%s%s%s' % (self.WorkingDir,filename,'_knet')
+        #file = '%s%s%s' % (self.WorkingDir,filename,'_knet')
+        file = ''.join([self.WorkingDir, filename, '_knet'])
         for ext in extensions:
             try:
                 path = '%s.%s' % (file,ext)
@@ -81,9 +82,11 @@ class Knetfold(CommandLineApplication):
          
         number = 0
         #Unknown number of mx files, try/except to find all
+        #file = '%s%s%s%d' % (self.WorkingDir,filename,'_knet.mx',number)
+        file_base = ''.join([self.WorkingDir, filename, '_knet.mx'])
         while(True):
             try:
-                file = '%s%s%s%d' % (self.WorkingDir,filename,'_knet.mx',number)
+                file = file_base + str(number)
                 f = open(file)
                 result['%s%d' % ('mx',number)]= ResultPath(Path=(file))
                 f.close()

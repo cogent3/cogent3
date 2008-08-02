@@ -22,7 +22,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 from cogent.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
-    AlphabetError
+    AlphabetError, _make_complement_array
 from cogent.util.misc import FunctionWrapper, add_lowercase, iterable, if_
 from cogent.util.transform import allchars, keep_chars
 from cogent.data.molecular_weight import DnaMW, RnaMW, ProteinMW
@@ -30,7 +30,7 @@ from cogent.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
     ByteSequence, ModelSequence, ModelNucleicAcidSequence, \
     ModelDnaSequence, ModelRnaSequence, ModelDnaCodonSequence, \
-    ModelRnaCodonSequence
+    ModelRnaCodonSequence, ModelProteinSequence
 from cogent.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent.core.alignment import Alignment, DenseAlignment, \
@@ -316,21 +316,28 @@ class CoreObjectGroup(object):
         self.Base.Ungapped = self.Base
         self.Base.Degen = self.Degen
         self.Base.NonDegen = self.Base
+
+        statements = [
+        "self.Degen.Gapped = self.DegenGapped",
+        "self.Degen.Ungapped = self.Degen",
+        "self.Degen.Degen = self.Degen",
+        "self.Degen.NonDegen = self.Base",
         
-        self.Degen.Gapped = self.DegenGapped
-        self.Degen.Ungapped = self.Degen
-        self.Degen.Degen = self.Degen
-        self.Degen.NonDegen = self.Base
+        "self.Gapped.Gapped = self.Gapped",
+        "self.Gapped.Ungapped = self.Base",
+        "self.Gapped.Degen = self.DegenGapped",
+        "self.Gapped.NonDegen = self.Gapped",
         
-        self.Gapped.Gapped = self.Gapped
-        self.Gapped.Ungapped = self.Base
-        self.Gapped.Degen = self.DegenGapped
-        self.Gapped.NonDegen = self.Gapped
-        
-        self.DegenGapped.Gapped = self.DegenGapped
-        self.DegenGapped.Ungapped = self.Degen
-        self.DegenGapped.Degen = self.DegenGapped
-        self.DegenGapped.NonDegen = self.Gapped
+        "self.DegenGapped.Gapped = self.DegenGapped",
+        "self.DegenGapped.Ungapped = self.Degen",
+        "self.DegenGapped.Degen = self.DegenGapped",
+        "self.DegenGapped.NonDegen = self.Gapped",
+        ]
+        for s in statements:
+            try:
+                exec(s)
+            except AttributeError:
+                pass
     
     def __getitem__(self, i):
         """Allows container to be indexed into, by type of object (e.g. Gap)."""
@@ -344,7 +351,8 @@ class CoreObjectGroup(object):
 class AlphabetGroup(CoreObjectGroup):
     """Container relating gapped, ungapped, degen, and non-degen alphabets."""
     
-    def __init__(self, chars, degens, gap=IUPAC_gap, MolType=None, constructor=None):
+    def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing, \
+        MolType=None, constructor=None):
         """Returns new AlphabetGroup."""
         if constructor is None:
             if max(map(len, chars)) == 1:
@@ -354,12 +362,17 @@ class AlphabetGroup(CoreObjectGroup):
             else:
                 constructor = Alphabet  #assume multi-char
         self.Base = constructor(chars, MolType=MolType)
-        self.Degen = constructor(chars + degens, MolType=MolType)
+        self.Degen = constructor(chars+degens, MolType=MolType)
         self.Gapped = constructor(chars+gap, gap, MolType=MolType)
-        self.DegenGapped = constructor(chars+gap+degens, gap, MolType=MolType)
+        self.DegenGapped = constructor(chars+gap+degens+missing, gap, \
+            MolType=MolType)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
-    
+        #set complements if MolType was specified
+        if MolType is not None:
+            comps = MolType.Complements
+            for i in self._items:
+                i._complement_array = _make_complement_array(i, comps)
 
 class MolType(object):
     """MolType: Handles operations that depend on the sequence type (e.g. DNA).
@@ -444,15 +457,19 @@ class MolType(object):
         self.Sequence = Sequence
         
         #set the ambiguities
-        ambigs = {self.Missing:tuple(motifset)+(self.Gap,), self.Gap:(self.Gap,)}
+        ambigs = {self.Missing:tuple(motifset)+(self.Gap,),self.Gap:(self.Gap,)}
         if Ambiguities:
             ambigs.update(Ambiguities)
         for c in motifset:
             ambigs[c] = (c,)
         self.Ambiguities = ambigs
         
-        if make_alphabet_group:
-            self.Alphabets = AlphabetGroup(motifset, Ambiguities, MolType=self)
+        #set Complements -- must set before we make the alphabet group
+        self.Complements = Complements or {}
+        
+        if make_alphabet_group: #note: must use _original_ ambiguities here
+            self.Alphabets = AlphabetGroup(motifset, Ambiguities, \
+                MolType=self)
             self.Alphabet = self.Alphabets.Base
         else:
             if isinstance(motifset, Enumeration):
@@ -462,12 +479,12 @@ class MolType(object):
             else:
                 self.Alphabet = Alphabet(motifset, MolType=self)
         #set the other properties
-        self.Degenerates = Ambiguities or {}
+        self.Degenerates = Ambiguities and Ambiguities.copy() or {}
         self.Degenerates[self.Missing] = ''.join(motifset)+self.Gap
-        self.Complements = Complements or {}
-        self.Matches = make_matches(motifset, self.Gaps, Ambiguities)
-        self.Pairs = Pairs or {}
-        self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, Ambiguities))
+        self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
+        self.Pairs = Pairs and Pairs.copy() or {}
+        self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, \
+            self.Degenerates))
         self.MWCalculator = MWCalculator
         #add lowercase characters, if we're doing that
         if add_lower:
@@ -1024,7 +1041,7 @@ PROTEIN = MolType(
     Ambiguities = IUPAC_PROTEIN_ambiguities,
     MWCalculator = ProteinMW,
     make_alphabet_group=True,
-    ModelSeq = ModelSequence,
+    ModelSeq = ModelProteinSequence,
     label = "protein")
 
 BYTES = MolType(
@@ -1089,6 +1106,9 @@ ModelRnaSequence.Alphabet = RNA.Alphabets.DegenGapped
 
 ModelDnaSequence.MolType = DNA
 ModelDnaSequence.Alphabet = DNA.Alphabets.DegenGapped
+
+ModelProteinSequence.MolType = PROTEIN
+ModelProteinSequence.Alphabet = PROTEIN.Alphabets.DegenGapped
 
 ModelSequence.Alphabet = BYTES.Alphabet
 

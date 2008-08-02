@@ -10,7 +10,7 @@ from os  import remove,system,mkdir,getcwd,close
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Shandy Wikman"
@@ -68,7 +68,9 @@ class Dynalign(CommandLineApplication):
         ex: data = ['path1,'path2'']"""
 
         inputFiles = ''
+        self._input_filename = []
         for i in data:
+            self._input_filename.append(i)
             inputFiles  = ' '.join([inputFiles,i])
         outputFile = ' '.join(['ct1', 'ct2'])
         inputFiles = ' '.join([inputFiles,outputFile])
@@ -87,8 +89,10 @@ class Dynalign(CommandLineApplication):
         accidentally be written to a file
         """
         inputFiles = ''
+        self._input_filename = []
         for el in data:
-            filename = self._input_filename = self.getTmpFilename(self.WorkingDir)
+            filename = self.getTmpFilename(self.WorkingDir)
+            self._input_filename.append(filename)
             data_file = open(filename,'w')
             data_to_file = '\n'.join([str(d).strip('\n') for d in el])
             data_file.write(data_to_file)
@@ -178,7 +182,8 @@ class Dynalign(CommandLineApplication):
 
         # Clean up the input file if one was created
         if self._input_filename:
-            remove(self._input_filename)
+            for f in self._input_filename:
+                remove(f)
             self._input_filename = None
 
         return result

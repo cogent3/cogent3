@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 """Application controller for muscle 3.6
 """
+from os import remove
 from cogent.app.parameters import FlagParameter, ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     get_tmp_filename, guess_input_handler
 from random import choice
+from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
 from cogent.parse.fasta import MinimalFastaParser
@@ -12,7 +14,7 @@ from cogent.parse.fasta import MinimalFastaParser
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Micah Hamady", "Zongzhi Liu", "Mike Robeson",
-                    "Catherine Lozupone", "Rob Knight"]
+       "Catherine Lozupone", "Rob Knight", "Daniel McDonald", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
@@ -56,6 +58,8 @@ class Muscle(CommandLineApplication):
         
         # Where to find the input sequences.
         '-in':ValuedParameter('-',Name='in',Delimiter=' ', Quote="\""),
+        '-in1':ValuedParameter('-',Name='in1',Delimiter=' ', Quote="\""),
+        '-in2':ValuedParameter('-',Name='in2',Delimiter=' ', Quote="\""),
         
         # Log file name (delete existing file).
         '-log':ValuedParameter('-',Name='log',Delimiter=' '),
@@ -101,7 +105,11 @@ class Muscle(CommandLineApplication):
         
         # Where to write the file in phylip interleaved format (v3.6 only).
         '-phyiout':ValuedParameter('-',Name='phyiout',Delimiter=' '),
-        
+
+        # Set to profile for aligning two alignments and adding seqs to an 
+        # existing alignment
+        '-profile':FlagParameter(Prefix='-',Name='profile'),
+
         # Method used to root tree; root1 is used in iteration 1 and 2, root2
         # in later iterations.
         '-root1':ValuedParameter('-',Name='root1',Delimiter=' '),
@@ -141,7 +149,8 @@ class Muscle(CommandLineApplication):
         
         # Cluster sequences
         '-cluster':FlagParameter(Prefix='-',Name='cluster'),
-        '-neighborjoining':FlagParameter(Prefix='-',Name='neighborjoining'),
+        # neighborjoining is "unrecognized"
+        #'-neighborjoining':FlagParameter(Prefix='-',Name='neighborjoining'),
 
         
         # Write output in CLUSTALW format with the "CLUSTAL W (1.81)" header
@@ -258,7 +267,24 @@ class Muscle(CommandLineApplication):
             self.Parameters['-in']\
                 .on(super(Muscle,self)._input_as_multiline_string(data))
         return ''
-    
+
+    def _input_as_multifile(self, data):
+        """For use with the -profile option
+
+        This input handler expects data to be a tuple containing two
+        filenames. Index 0 will be set to -in1 and index 1 to -in2
+        """
+        if data:
+            try:
+                filename1, filename2 = data
+            except:
+                raise ValueError, "Expected two filenames"
+
+            self.Parameters['-in'].off()
+            self.Parameters['-in1'].on(filename1)
+            self.Parameters['-in2'].on(filename2)
+        return ''
+
     def _align_out_filename(self):
         
         if self.Parameters['-out'].isOn():
@@ -497,51 +523,234 @@ def fastest_aln_seqs(seqs,
                  SuppressStdout=SuppressStdout)
     return muscle_res
 
+def align_unaligned_seqs(seqs, moltype, params=None):
+    """Returns an Alignment object from seqs.
+
+    seqs: SequenceCollection object, or data that can be used to build one.
+    
+    moltype: a MolType object.  DNA, RNA, or PROTEIN.
+
+    params: dict of parameters to pass in to the Muscle app controller.
+    
+    Result will be an Alignment object.
+    """
+    if not params:
+        params = {}
+    #create SequenceCollection object from seqs
+    seq_collection = SequenceCollection(seqs,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = seq_collection.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+    #get temporary filename
+    params.update({'-out':get_tmp_filename()})
+    #Create Muscle app.
+    app = Muscle(InputHandler='_input_as_multiline_string',\
+                 params=params)
+    #Get results using int_map as input to app
+    res = app(int_map.toFasta())
+    #Get alignment as dict out of results
+    alignment = dict(MinimalFastaParser(res['MuscleOut'].readlines()))
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        new_alignment[int_keys[k]]=v
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment,MolType=moltype)
+    #Clean up
+    res.cleanUp()
+    del(seq_collection,int_map,int_keys,app,res,alignment,params)
+
+    return new_alignment
+
+
 def align_and_build_tree(seqs, best_tree=False, params=None):
     """Returns an alignment and a tree from Sequences object seqs.
     
-    seqs: an xxx.Sequences object, or data that can be used to build one.
+    seqs: a cogent.core.alignment.SequenceCollection object, or data that can 
+    be used to build one.
     
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
     
     params: dict of parameters to pass in to the Muscle app controller.
     
-    The result will be a tuple containing a xxx.Alignment and an xxx.Tree
-    object (or None for the alignment and/or tree if either fails).
+    The result will be a tuple containing a cogent.core.alignment.Alignment 
+    and a cogent.core.tree.PhyloNode object (or None for the alignment 
+    and/or tree if either fails).
     """
-    raise NotImplementedError
+    aln = align_unaligned_seqs(seqs, moltype=None, params=params)
+    tree = build_tree_from_alignment(aln, best_tree, params)
+    return {'Align':aln, 'Tree':tree}
 
 def build_tree_from_alignment(aln, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
     
-    aln: an xxx.Alignment object, or data that can be used to build one.
+    aln: a cogent.core.alignment.Alignment object, or data that can be used 
+    to build one.
     
-    best_tree: if True (default:False), uses a slower but more accurate
-    algorithm to build the tree.
+    best_tree: unsupported
     
     params: dict of parameters to pass in to the Muscle app controller.
     
-    The result will be an xxx.Alignment object, or None if tree fails.
+    The result will be an cogent.core.tree.PhyloNode object, or None if tree 
+    fails.
     """
-    raise NotImplementedError
+    # Create instance of app controller, enable tree, disable alignment
+    app = Muscle(InputHandler='_input_as_multiline_string', params=params, \
+                   WorkingDir='/tmp')
+
+    app.Parameters['-cluster'].on()
+    app.Parameters['-tree1'].on(get_tmp_filename(app.WorkingDir))
+
+    seq_collection = SequenceCollection(aln)
+
+    # Collect result
+    result = app(seq_collection.toFasta())
+
+    # Build tree
+    tree = DndParser(result['Tree1Out'].read(), constructor=PhyloNode)
+
+    # Clean up
+    result.cleanUp()
+    del(seq_collection, app, result)
+
+    return tree
 
 def add_seqs_to_alignment(seqs, aln, params=None):
     """Returns an Alignment object from seqs and existing Alignment.
     
-    seqs: an xxx.Sequences object, or data that can be used to build one.
+    seqs: a cogent.core.alignment.SequenceCollection object, or data that can 
+    be used to build one.
     
-    aln: an xxx.Alignment object, or data that can be used to build one
+    aln: a cogent.core.alignment.Alignment object, or data that can be used 
+    to build one
     
     params: dict of parameters to pass in to the Muscle app controller.
     """
-    raise NotImplementedError
+    if not params:
+        params = {}
+
+    #create SequenceCollection object from seqs
+    seqs_collection = SequenceCollection(seqs)
+    #Create mapping between abbreviated IDs and full IDs
+    seqs_int_map, seqs_int_keys = seqs_collection.getIntMap(prefix='seq_')
+    #Create SequenceCollection from int_map.
+    seqs_int_map = SequenceCollection(seqs_int_map)
+
+    #create SequenceCollection object from aln
+    aln_collection = SequenceCollection(aln)
+    #Create mapping between abbreviated IDs and full IDs
+    aln_int_map, aln_int_keys = aln_collection.getIntMap(prefix='aln_')
+    #Create SequenceCollection from int_map.
+    aln_int_map = SequenceCollection(aln_int_map)
+
+    #set output and profile options
+    params.update({'-out':get_tmp_filename(), '-profile':True})
+
+    #save seqs to tmp file
+    seqs_filename = get_tmp_filename()
+    seqs_out = open(seqs_filename,'w')
+    seqs_out.write(seqs_int_map.toFasta())
+    seqs_out.close()
+
+    #save aln to tmp file
+    aln_filename = get_tmp_filename()
+    aln_out = open(aln_filename, 'w')
+    aln_out.write(aln_int_map.toFasta())
+    aln_out.close()
+
+    #Create Muscle app and get results
+    app = Muscle(InputHandler='_input_as_multifile', params=params)
+    res = app((aln_filename, seqs_filename))
+
+    #Get alignment as dict out of results
+    alignment = dict(MinimalFastaParser(res['MuscleOut'].readlines()))
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        if k in seqs_int_keys:
+            new_alignment[seqs_int_keys[k]] = v
+        else:
+            new_alignment[aln_int_keys[k]] = v
+
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment)
+
+    #Clean up
+    res.cleanUp()
+    del(seqs_collection, seqs_int_map, seqs_int_keys)
+    del(aln_collection, aln_int_map, aln_int_keys)
+    del(app, res, alignment, params)
+    remove(seqs_filename)
+    remove(aln_filename)
+
+    return new_alignment
 
 def align_two_alignments(aln1, aln2, params=None):
     """Returns an Alignment object from two existing Alignments.
     
-    aln1, aln2: xxx.Alignment objects, or data that can be used to build them.
+    aln1, aln2: cogent.core.alignment.Alignment objects, or data that can be 
+    used to build them.
     
     params: dict of parameters to pass in to the Muscle app controller.
     """
-    raise NotImplementedError
+    if not params:
+        params = {}
+
+    #create SequenceCollection object from aln1
+    aln1_collection = SequenceCollection(aln1)
+    #Create mapping between abbreviated IDs and full IDs
+    aln1_int_map, aln1_int_keys = aln1_collection.getIntMap(prefix='aln1_')
+    #Create SequenceCollection from int_map.
+    aln1_int_map = SequenceCollection(aln1_int_map)
+
+    #create SequenceCollection object from aln2
+    aln2_collection = SequenceCollection(aln2)
+    #Create mapping between abbreviated IDs and full IDs
+    aln2_int_map, aln2_int_keys = aln2_collection.getIntMap(prefix='aln2_')
+    #Create SequenceCollection from int_map.
+    aln2_int_map = SequenceCollection(aln2_int_map)
+
+    #set output and profile options
+    params.update({'-out':get_tmp_filename(), '-profile':True})
+
+    #save aln1 to tmp file
+    aln1_filename = get_tmp_filename()
+    aln1_out = open(aln1_filename,'w')
+    aln1_out.write(aln1_int_map.toFasta())
+    aln1_out.close()
+
+    #save aln2 to tmp file
+    aln2_filename = get_tmp_filename()
+    aln2_out = open(aln2_filename, 'w')
+    aln2_out.write(aln2_int_map.toFasta())
+    aln2_out.close()
+
+    #Create Muscle app and get results
+    app = Muscle(InputHandler='_input_as_multifile', params=params)
+    res = app((aln1_filename, aln2_filename))
+
+    #Get alignment as dict out of results
+    alignment = dict(MinimalFastaParser(res['MuscleOut'].readlines()))
+
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        if k in aln1_int_keys:
+            new_alignment[aln1_int_keys[k]] = v
+        else:
+            new_alignment[aln2_int_keys[k]] = v
+
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment)
+
+    #Clean up
+    res.cleanUp()
+    del(aln1_collection, aln1_int_map, aln1_int_keys)
+    del(aln2_collection, aln2_int_map, aln2_int_keys)
+    del(app, res, alignment, params)
+    remove(aln1_filename)
+    remove(aln2_filename)
+
+    return new_alignment

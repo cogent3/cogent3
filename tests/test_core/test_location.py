@@ -53,37 +53,37 @@ class SpanTests(TestCase):
 
     def test_contains(self):
         """Span object contains its start but not its end"""
-        assert not 0 in self.empty
-        assert 30 in self.full
-        assert 34 in self.full
-        assert 35 not in self.full
-        assert self.inside in self.full
-        assert self.overlapping not in self.full
-        assert 0 in self.spans_zero
-        assert -5 in self.spans_zero
-        assert 5 not in self.spans_zero
-
+        self.assertNotContains(self.empty, 0)
+        self.assertContains(self.full, 30)
+        self.assertContains(self.full, 34)
+        self.assertNotContains(self.full, 35)
+        self.assertContains(self.full, self.inside)
+        self.assertNotContains(self.full, self.overlapping)
+        self.assertContains(self.spans_zero, 0)
+        self.assertContains(self.spans_zero, -5)
+        self.assertNotContains(self.spans_zero, 5)
+        
     def test_overlaps(self):
         """Span objects should be able to overlap points or spans"""
-        assert self.full.overlaps(self.overlapping)
-        assert not self.full.overlaps(self.before)
-        assert not self.before.overlaps(self.overlapping)
-        assert not self.full.overlaps(self.after)
-        assert not self.after.overlaps(self.before)
-        assert self.full.overlaps(self.inside)
-        assert self.spans_zero.overlaps(self.empty)
-        assert self.empty.overlaps(self.spans_zero)
+        self.assertTrue(self.full.overlaps(self.overlapping))
+        self.assertFalse(self.full.overlaps(self.before))
+        self.assertFalse(self.before.overlaps(self.overlapping))
+        self.assertFalse(self.full.overlaps(self.after))
+        self.assertFalse(self.after.overlaps(self.before))
+        self.assertTrue(self.full.overlaps(self.inside))
+        self.assertTrue(self.spans_zero.overlaps(self.empty))
+        self.assertTrue(self.empty.overlaps(self.spans_zero))
 
     def test_reverse(self):
         """Span reverse should change direction"""
-        assert not self.empty.Reverse
+        self.assertFalse(self.empty.Reverse)
         self.empty.reverse()
-        assert self.empty.Reverse
+        self.assertTrue(self.empty.Reverse)
         self.empty.reverse()
-        assert not self.empty.Reverse
-        assert self.reverse.Reverse
+        self.assertFalse(self.empty.Reverse)
+        self.assertTrue(self.reverse.Reverse)
         self.reverse.reverse()
-        assert not self.reverse.Reverse
+        self.assertFalse(self.reverse.Reverse)
 
     def test_iter(self):
         """Span iter should loop through (integer) contents"""
@@ -119,119 +119,119 @@ class SpanTests(TestCase):
         second = [r, o, f, s, e, i, n]
         second.sort()
         for i, j in zip(first, second):
-            assert i is j
+            self.assertSameObj(i, j)
 
         for i, j in zip(first, expected_order):
-            assert i is j
+            self.assertSameObj(i, j)
 
     def test_startsBefore(self):
         """Span startsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
-        assert e.startsBefore(f)
-        assert not f.startsBefore(e)
-        assert e.startsBefore(1)
-        assert e.startsBefore(1000)
-        assert not e.startsBefore(0)
-        assert not e.startsBefore(-1)
-        assert not f.startsBefore(30)
-        assert f.startsBefore(31)
-        assert f.startsBefore(1000)
+        self.assertTrue(e.startsBefore(f))
+        self.assertFalse(f.startsBefore(e))
+        self.assertTrue(e.startsBefore(1))
+        self.assertTrue(e.startsBefore(1000))
+        self.assertFalse(e.startsBefore(0))
+        self.assertFalse(e.startsBefore(-1))
+        self.assertFalse(f.startsBefore(30))
+        self.assertTrue(f.startsBefore(31))
+        self.assertTrue(f.startsBefore(1000))
         
     def test_startsAfter(self):
         """Span startsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
-        assert not e.startsAfter(f)
-        assert f.startsAfter(e)
-        assert not e.startsAfter(1)
-        assert not e.startsAfter(1000)
-        assert not e.startsAfter(0)
-        assert e.startsAfter(-1)
-        assert f.startsAfter(29)
-        assert not f.startsAfter(30)
-        assert not f.startsAfter(31)
-        assert not f.startsAfter(1000)
+        self.assertFalse(e.startsAfter(f))
+        self.assertTrue(f.startsAfter(e))
+        self.assertFalse(e.startsAfter(1))
+        self.assertFalse(e.startsAfter(1000))
+        self.assertFalse(e.startsAfter(0))
+        self.assertTrue(e.startsAfter(-1))
+        self.assertTrue(f.startsAfter(29))
+        self.assertFalse(f.startsAfter(30))
+        self.assertFalse(f.startsAfter(31))
+        self.assertFalse(f.startsAfter(1000))
 
     def test_startsAt(self):
         """Span startsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
-        assert e.startsAt(0)
-        assert f.startsAt(30)
-        assert s.startsAt(30)
-        assert f.startsAt(s)
-        assert s.startsAt(f)
-        assert not e.startsAt(f)
-        assert not e.startsAt(-1)
-        assert not e.startsAt(1)
-        assert not f.startsAt(29)
+        self.assertTrue(e.startsAt(0))
+        self.assertTrue(f.startsAt(30))
+        self.assertTrue(s.startsAt(30))
+        self.assertTrue(f.startsAt(s))
+        self.assertTrue(s.startsAt(f))
+        self.assertFalse(e.startsAt(f))
+        self.assertFalse(e.startsAt(-1))
+        self.assertFalse(e.startsAt(1))
+        self.assertFalse(f.startsAt(29))
 
     def test_startsInside(self):
         """Span startsInside should return True if input starts inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        assert not e.startsInside(0)
-        assert not f.startsInside(30)
-        assert not e.startsInside(f)
-        assert i.startsInside(f)
-        assert not f.startsInside(i)
-        assert o.startsInside(f)
-        assert not o.endsInside(i)
+        self.assertFalse(e.startsInside(0))
+        self.assertFalse(f.startsInside(30))
+        self.assertFalse(e.startsInside(f))
+        self.assertTrue(i.startsInside(f))
+        self.assertFalse(f.startsInside(i))
+        self.assertTrue(o.startsInside(f))
+        self.assertFalse(o.endsInside(i))
         
     def test_endsBefore(self):
         """Span endsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
-        assert e.endsBefore(f)
-        assert not f.endsBefore(e)
-        assert e.endsBefore(1)
-        assert e.endsBefore(1000)
-        assert not e.endsBefore(0)
-        assert not e.endsBefore(-1)
-        assert not f.endsBefore(30)
-        assert not f.endsBefore(31)
-        assert f.endsBefore(1000)
+        self.assertTrue(e.endsBefore(f))
+        self.assertFalse(f.endsBefore(e))
+        self.assertTrue(e.endsBefore(1))
+        self.assertTrue(e.endsBefore(1000))
+        self.assertFalse(e.endsBefore(0))
+        self.assertFalse(e.endsBefore(-1))
+        self.assertFalse(f.endsBefore(30))
+        self.assertFalse(f.endsBefore(31))
+        self.assertTrue(f.endsBefore(1000))
         
     def test_endsAfter(self):
         """Span endsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
-        assert not e.endsAfter(f)
-        assert f.endsAfter(e)
-        assert not e.endsAfter(1)
-        assert not e.endsAfter(1000)
-        assert not e.endsAfter(0)
-        assert e.endsAfter(-1)
-        assert f.endsAfter(29)
-        assert f.endsAfter(30)
-        assert f.endsAfter(34)
-        assert not f.endsAfter(35)
-        assert not f.endsAfter(1000)
+        self.assertFalse(e.endsAfter(f))
+        self.assertTrue(f.endsAfter(e))
+        self.assertFalse(e.endsAfter(1))
+        self.assertFalse(e.endsAfter(1000))
+        self.assertFalse(e.endsAfter(0))
+        self.assertTrue(e.endsAfter(-1))
+        self.assertTrue(f.endsAfter(29))
+        self.assertTrue(f.endsAfter(30))
+        self.assertTrue(f.endsAfter(34))
+        self.assertFalse(f.endsAfter(35))
+        self.assertFalse(f.endsAfter(1000))
 
     def test_endsAt(self):
         """Span endsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
         t = Span(-100, 35)
-        assert e.endsAt(0)
-        assert f.endsAt(35)
-        assert s.endsAt(1000)
-        assert not f.endsAt(s)
-        assert not s.endsAt(f)
-        assert f.endsAt(t)
-        assert t.endsAt(f)
+        self.assertTrue(e.endsAt(0))
+        self.assertTrue(f.endsAt(35))
+        self.assertTrue(s.endsAt(1000))
+        self.assertFalse(f.endsAt(s))
+        self.assertFalse(s.endsAt(f))
+        self.assertTrue(f.endsAt(t))
+        self.assertTrue(t.endsAt(f))
 
     def test_endsInside(self):
         """Span endsInside should return True if input ends inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        assert not e.endsInside(0)
-        assert not f.endsInside(30)
-        assert not f.endsInside(34)
-        assert not f.endsInside(35)
-        assert not e.endsInside(f)
-        assert i.endsInside(f)
-        assert not f.endsInside(i)
-        assert not o.endsInside(f)
-        assert not o.endsInside(i)
-        assert e.endsInside(Span(-1,1))
-        assert e.endsInside(Span(0,1))
-        assert not e.endsInside(Span(-1,0))
+        self.assertFalse(e.endsInside(0))
+        self.assertFalse(f.endsInside(30))
+        self.assertFalse(f.endsInside(34))
+        self.assertFalse(f.endsInside(35))
+        self.assertFalse(e.endsInside(f))
+        self.assertTrue(i.endsInside(f))
+        self.assertFalse(f.endsInside(i))
+        self.assertFalse(o.endsInside(f))
+        self.assertFalse(o.endsInside(i))
+        self.assertTrue(e.endsInside(Span(-1,1)))
+        self.assertTrue(e.endsInside(Span(0,1)))
+        self.assertFalse(e.endsInside(Span(-1,0)))
 
 class RangeInterfaceTests(object): #SpanTests):
     """A single-element Range should behave like the corresponding Span."""
@@ -319,81 +319,81 @@ class RangeTests(TestCase):
     def test_reverse(self):
         """Range reverse method should reverse each span"""
         for s in self.overlapping.Spans:
-            assert not s.Reverse
+            self.assertFalse(s.Reverse)
         self.overlapping.reverse()
         for s in self.overlapping.Spans:
-            assert s.Reverse
+            self.assertTrue(s.Reverse)
         self.overlapping.Spans.append(Span(0, 100))
         self.overlapping.reverse()
         for s in self.overlapping.Spans[0:1]:
-            assert not s.Reverse
-        assert self.overlapping.Spans[-1].Reverse
+            self.assertFalse(s.Reverse)
+        self.assertTrue(self.overlapping.Spans[-1].Reverse)
 
     def test_Reverse(self):
         """Range Reverse property should return True if any span reversed"""
-        assert not self.one.Reverse
+        self.assertFalse(self.one.Reverse)
         self.one.reverse()
-        assert self.one.Reverse
-        assert not self.two.Reverse
+        self.assertTrue(self.one.Reverse)
+        self.assertFalse(self.two.Reverse)
         self.two.Spans.append(Span(0,100,Reverse=True))
-        assert self.two.Reverse
+        self.assertTrue(self.two.Reverse)
         self.two.reverse()
-        assert self.two.Reverse
+        self.assertTrue(self.two.Reverse)
 
     def test_contains(self):
         """Range contains an item if any span contains it"""
-        assert 50 in self.one
-        assert 0 in self.one
-        assert 99 in self.one
-        assert 100 not in self.one
-        assert 6 in self.three
-        assert 7 not in self.three
-        assert 8 not in self.three
-        assert 14 not in self.three
-        assert 15 in self.three
-        assert 29 not in self.three
-        assert 30 in self.three
-        assert 34 in self.three
-        assert 35 not in self.three
-        assert 40 not in self.three
+        self.assertContains(self.one, 50)
+        self.assertContains(self.one, 0)
+        self.assertContains(self.one, 99)
+        self.assertNotContains(self.one, 100)
+        self.assertContains(self.three, 6)
+        self.assertNotContains(self.three, 7)
+        self.assertNotContains(self.three, 8)
+        self.assertNotContains(self.three, 14)
+        self.assertContains(self.three, 15)
+        self.assertNotContains(self.three, 29)
+        self.assertContains(self.three, 30)
+        self.assertContains(self.three, 34)
+        self.assertNotContains(self.three, 35)
+        self.assertNotContains(self.three, 40)
         #should work if a span is added
         self.three.Spans.append(40)
-        assert 40 in self.three
+        self.assertContains(self.three, 40)
         #should work for spans
-        assert Span(31, 33) in self.three
-        assert Span(31, 37) not in self.three
+        self.assertContains(self.three, Span(31, 33))
+        self.assertNotContains(self.three, Span(31, 37))
         #span contains itself
-        assert self.twocopy in self.two
+        self.assertContains(self.two, self.twocopy)
         #should work for ranges
-        assert Range([6, Span(15,16), Span(30,33)]) in self.three
+        self.assertContains(self.three, Range([6, Span(15,16), Span(30,33)]))
         #should work for copy, except when extra piece added
         threecopy = Range(self.three)
-        assert threecopy in self.three
+        self.assertContains(self.three, threecopy)
         threecopy.Spans.append(1000)
-        assert threecopy not in self.three
+        self.assertNotContains(self.three, threecopy)
         self.three.Spans.append(Span(950, 1050))
-        assert threecopy in self.three
-        assert self.three not in threecopy
+        self.assertContains(self.three, threecopy)
+        self.assertNotContains(threecopy, self.three)
 
     def test_overlaps(self):
         """Range overlaps should return true if any component overlapping"""
-        assert self.two.overlaps(self.one)
-        assert self.one.overlaps(self.two)
-        assert self.three.overlaps(self.one)
+        self.assertTrue(self.two.overlaps(self.one))
+        self.assertTrue(self.one.overlaps(self.two))
+        self.assertTrue(self.three.overlaps(self.one))
         #two and three are interleaved but not overlapping
-        assert not self.two.overlaps(self.three)
-        assert not self.three.overlaps(self.two)
-        assert self.one.overlaps(self.empty)
-        assert self.empty.overlaps(self.one)
-        assert self.singles.overlaps(self.two)
+        self.assertFalse(self.two.overlaps(self.three))
+        self.assertFalse(self.three.overlaps(self.two))
+        self.assertTrue(self.one.overlaps(self.empty))
+        self.assertTrue(self.empty.overlaps(self.one))
+        self.assertTrue(self.singles.overlaps(self.two))
 
     def test_overlapsExtent(self):
         """Range overlapsExtent should return true for interleaved ranges"""
-        assert self.two.overlapsExtent(self.three)
-        assert self.three.overlapsExtent(self.two)
-        assert not self.single.overlapsExtent(self.two)
-        assert not self.single.overlapsExtent(self.three)
-        assert self.one.overlapsExtent(self.three)
+        self.assertTrue(self.two.overlapsExtent(self.three))
+        self.assertTrue(self.three.overlapsExtent(self.two))
+        self.assertFalse(self.single.overlapsExtent(self.two))
+        self.assertFalse(self.single.overlapsExtent(self.three))
+        self.assertTrue(self.one.overlapsExtent(self.three))
 
     def test_sort(self):
         """Range sort should sort component spans"""

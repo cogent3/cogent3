@@ -22,6 +22,8 @@ __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"
 
+class QueryNotFoundError(Exception): pass
+
 eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
 
 #EUtils requires a tool and and email address
@@ -241,7 +243,12 @@ class EUtils(object):
         if self.DEBUG:
             print 'SEARCH RESULT:'
             print search_result
-        self.query_key = search_result.QueryKey
+        try:
+            self.query_key = search_result.QueryKey
+        except AttributeError:
+            raise QueryNotFoundError, \
+            "Query %s returned no results.\nURL was:\n%s" % \
+            (repr(query),str(search_query))
         self.WebEnv = search_result.WebEnv
         count = search_result.Count
 
@@ -320,7 +327,7 @@ def get_primary_ids(term, retmax=100, max_recs=None, **kwargs):
 
 def ids_to_taxon_ids(ids, db='nucleotide'):
     """Converts primary ids to taxon ids"""
-    link = ELink(id=' '.join(ids), db='taxonomy', dbfrom=db)
+    link = ELink(id=' '.join(ids), db='taxonomy', dbfrom=db, DEBUG=True)
     return ELinkResultParser(link.read())
 
 def get_between_tags(line):
@@ -420,11 +427,11 @@ def fix_taxon_ids(ids):
 def get_unique_lineages(query, db='protein'):
     """Gets the unique lineages directly from a query."""
     return set(map(tuple, taxon_ids_to_lineages(ids_to_taxon_ids(
-        get_primary_ids(query)))))
+        get_primary_ids(query,db=db),db=db))))
 
 def get_unique_taxa(query, db='protein'):
     """Gets the unique lineages directly from a query."""
-    return set(taxon_ids_to_names(ids_to_taxon_ids(get_primary_ids(query))))
+    return set(taxon_ids_to_names(ids_to_taxon_ids(get_primary_ids(query,db=db),db=db)))
 
 if __name__ == '__main__':
     from sys import argv, exit

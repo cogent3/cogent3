@@ -1,17 +1,23 @@
 #!/usr/bin/env python
-
+"""Tests for application controller for ClustalW v1.83"""
 import re
 from os import getcwd, remove, rmdir, mkdir, path
 import shutil
+from cogent.core.alignment import Alignment
+from cogent.core.moltype import RNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
     alignUnalignedSeqs, alignTwoAlignments, addSeqsToAlignment,\
-    buildTreeFromAlignment
+    buildTreeFromAlignment, build_tree_from_alignment, \
+    bootstrap_tree_from_alignment, align_unaligned_seqs, \
+    align_and_build_tree, add_seqs_to_alignment, align_two_alignments
+from cogent.parse.fasta import MinimalFastaParser
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Daniel McDonald",\
+               "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Sandra Smit"
@@ -27,12 +33,15 @@ class GeneralSetUp(TestCase):
         """Clustalw general setUp method for all tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
+        self.aln1_fasta = ALIGN1_FASTA
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
         self.stdout1 = STDOUT1
         self.aln1 = ALIGN1
         self.dnd1 = DND1
         
+        self.multiline1 = '\n'.join(flatten(zip(self.labels1, self.seqs1)))
+       
         self.seqs2=['UAGGCUCUGAUAUAAUAGCUCUC','UAUCGCUUCGACGAUUCUCUGAUAGAGA',
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
@@ -47,6 +56,68 @@ class GeneralSetUp(TestCase):
         
         self.temp_dir_space = "/tmp/clustalw test"
 
+        self.build_tree_seqs_short = """>clustal_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>clustal_test_seqs_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>clustal_test_seqs_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>clustal_test_seqs_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>clustal_test_seqs_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>clustal_test_seqs_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>clustal_test_seqs_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
+        self.build_tree_seqs_long = """>clustal_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>clustal_test_seqsaaaaaaaa_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>clustal_test_seqsaaaaaaaa_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>clustal_test_seqsaaaaaaaa_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>clustal_test_seqsaaaaaaaa_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>clustal_test_seqsaaaaaaaa_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
         try:
             mkdir('/tmp/ct')
         except OSError: #dir already exists
@@ -171,6 +242,26 @@ class ClustalwTests(GeneralSetUp):
         c = Clustalw(InputHandler='_input_as_seqs',WorkingDir='/tmp/ct')
         res = c(self.seqs1)
         #get info on input file name and change output accordingly
+        name = c.Parameters['-infile'].Value
+        out = self.stdout1.split('\n')
+        out[16] =\
+            'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] =\
+            'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+        
+        self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
+                            cw_vers.sub("", '\n'.join(out)))
+        self.assertEqual(res['StdErr'].read(),'')
+        self.assertEqual(cw_vers.sub("", res['Align'].read()),
+                            cw_vers.sub("", self.aln1))
+        self.assertEqual(res['Dendro'].read(),self.dnd1)
+        res.cleanUp()
+
+    def test_stdout_input_as_multiline_string(self):
+        """Clustalw input_as_multiline_string should function as expected"""
+        c = Clustalw(InputHandler='_input_as_multiline_string',\
+                     WorkingDir='/tmp/ct')
+        res = c(self.multiline1)
         name = c.Parameters['-infile'].Value
         out = self.stdout1.split('\n')
         out[16] =\
@@ -322,6 +413,78 @@ class clustalwTests(GeneralSetUp):
         res.cleanUp()
         pre_res.cleanUp()
 
+    def test_build_tree_from_alignment(self):
+        """Clustalw should return a tree built from the passed alignment"""
+        tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
+                best_tree=False)
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+        
+        tree_long = build_tree_from_alignment(self.build_tree_seqs_long, \
+                best_tree=False)
+        seq_names = []
+        for line in self.build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
+
+        tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
+                best_tree=True, params={'-bootstrap':3})
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+     
+    def test_align_unaligned_seqs(self):
+        """Clustalw align_unaligned_seqs should work as expected"""
+        res = align_unaligned_seqs(self.seqs1, RNA)
+        self.assertEqual(res.toFasta(), self.aln1_fasta)
+        
+    def test_bootstrap_tree_from_alignment(self):
+        """Clustalw should return a bootstrapped tree from the passed aln"""
+        tree_short = bootstrap_tree_from_alignment(self.build_tree_seqs_short)
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+        
+        tree_long = bootstrap_tree_from_alignment(self.build_tree_seqs_long)
+        seq_names = []
+        for line in self.build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
+    def test_align_and_build_tree(self):
+        """Aligns and builds a tree for a set of sequences"""
+        res = align_and_build_tree(self.seqs1)
+        self.assertEqual(res['Align'].toFasta(), self.aln1_fasta)
+
+        tree = res['Tree']
+        seq_names = []
+        for line in self.aln1_fasta.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+                
+        for node in tree.tips():
+            if node.Name not in seq_names:
+                self.fail()
+    
+    def test_add_seqs_to_alignment(self):
+        """Clustalw add_seqs_to_alignment should work as expected."""
+        seq2 = dict(MinimalFastaParser(self.lines2))
+        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
+        res = add_seqs_to_alignment(seq2,align1,RNA)
+        self.assertEqual(res.toFasta(), SEQ_PROFILE_ALIGN)
+    
+    def test_align_two_alignments(self):
+        """Clustalw align_two_alignments should work as expected."""
+        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
+        align2 = dict(MinimalFastaParser(ALIGN2_FASTA.split('\n')))
+        res = align_two_alignments(align1,align2,RNA)
+        self.assertEqual(res.toFasta(), PROFILE_PROFILE_ALIGN)
+    
     def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         remove('/tmp/ct/seq1.txt')
@@ -369,6 +532,8 @@ ALIGN1=\
                    ****                
 """
 
+ALIGN1_FASTA = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
+
 DND1=\
 """(
 1:0.21719,
@@ -385,6 +550,8 @@ b               ----UAUCGCUUCGACGAUUCUCUGAUAGAGA
 c               ------------UGACUACGCAU---------
                               *     *           
 """
+
+ALIGN2_FASTA = ">a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\n----UAUCGCUUCGACGAUUCUCUGAUAGAGA\n>c\n------------UGACUACGCAU---------"
 
 DND2=\
 """(
@@ -450,6 +617,10 @@ a:0.25531)
 3:0.29438,
 b:0.23503);
 """
+
+SEQ_PROFILE_ALIGN = """>a\n-------UAGGCUCUGAUAUAAUAGCUCUC---\n>b\nUAUCGCUUCGACGAUUCUCUGAUAGAGA-----\n>c\n-------------------UGACUACGCAU---\n>seq_0\n----------ACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n-------------GCUACGUAGCUAC-------\n>seq_2\n----------GCGGCUAUUAGAUCGUA------"""
+
+PROFILE_PROFILE_ALIGN = """>a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\n----UAUCGCUUCGACGAUUCUCUGAUAGAGA\n>c\n------------UGACUACGCAU---------\n>seq_0\n---ACUGCUAGCUAGUAGCGUACGUA------\n>seq_1\n------GCUACGUAGCUAC-------------\n>seq_2\n---GCGGCUAUUAGAUCGUA------------"""
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 >>> import numpy
->>> from cogent.recalculation.array import DictArrayTemplate
+>>> from cogent.util.dict_array import DictArrayTemplate
 >>> a = numpy.identity(3, int)
 >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
 >>> b[0]

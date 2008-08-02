@@ -90,12 +90,11 @@ class VoronoiTests(GeneralTests):
         self.assertFloatEqualAbs(VA(self.aln6).values(),aln6_exp.values(),
             eps=err)
 
-
         results = []
         for x in range(5):
             results.append(VA(self.aln2))
             if x > 0:
-                assert results[x] == results[x-1]
+                self.assertEqual(results[x], results[x-1])
 
     def test_VOR_exact(self):
         """VOR: should give exact results when using pseudo_seqs_exact"""
@@ -118,8 +117,8 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(VOR(self.aln2))
             if x > 0:
-                assert results[x] == results[x-1]
-        
+                self.assertEqual(results[x], results[x-1])
+
     def test_VOR_force_mc(self):
         """VOR: should result in good approximation when using monte carlo"""
         err=9e-2
@@ -131,36 +130,52 @@ class VoronoiTests(GeneralTests):
             [0.0840,0.0763,0.1155,0.1019,0.0932,0.0980,0.0864,\
             0.0999,0.1121,0.1328]))
  
-        self.assertFloatEqualAbs(VOR(self.aln2,force_monte_carlo=True)\
-            .values(), aln2_exp.values(),eps=err)
-        self.assertFloatEqualAbs(VOR(self.aln3,force_monte_carlo=True)\
-            .values(), aln3_exp.values(),eps=err)
-        self.assertFloatEqualAbs(VOR(self.aln4,force_monte_carlo=True)\
-            .values(), aln4_exp.values(),eps=err)
-        self.assertFloatEqualAbs(VOR(self.aln6,n=1000)\
-            .values(), aln6_exp.values(),eps=err)
+        # the following assertSimiliarMeans statements were added to replace 
+        # stochastic assertFloatEqualAbs calls below
+        self.assertSimiliarMeans(VOR(self.aln2,force_monte_carlo=True).values(),
+                                 aln2_exp.values())
+        self.assertSimiliarMeans(VOR(self.aln3,force_monte_carlo=True).values(),
+                                 aln3_exp.values())
+        self.assertSimiliarMeans(VOR(self.aln4,force_monte_carlo=True).values(),
+                                 aln4_exp.values())
+        self.assertSimiliarMeans(VOR(self.aln6,n=1000).values(),
+                                 aln6_exp.values())
+
+        #self.assertFloatEqualAbs(VOR(self.aln2,force_monte_carlo=True)\
+        #    .values(), aln2_exp.values(),eps=err)
+        #self.assertFloatEqualAbs(VOR(self.aln3,force_monte_carlo=True)\
+        #    .values(), aln3_exp.values(),eps=err)
+        #self.assertFloatEqualAbs(VOR(self.aln4,force_monte_carlo=True)\
+        #    .values(), aln4_exp.values(),eps=err)
+        #self.assertFloatEqualAbs(VOR(self.aln6,n=1000)\
+        #    .values(), aln6_exp.values(),eps=err)
  
         #make sure monte carlo is used
         results = []
         for x in range(5):
             results.append(VOR(self.aln2,force_monte_carlo=True))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
 
     def test_VOR_mc_threshold(self):
         """VOR: should apply monte carlo when # of pseudo seqs > mc_threshold
         """
         err=9e-2
         aln2_exp = {'seq1':.259, 'seq2':.315,'seq3':.167,'seq4':.259}
-        self.assertFloatEqual(VOR(self.aln2,mc_threshold=15).values(),\
-            aln2_exp.values(),err)
+
+        # the following assertSimiliarMeans statement was added to replace 
+        # stochastic assertFloatEqualAbs call below
+        self.assertSimiliarMeans(VOR(self.aln2, mc_threshold=15).values(), 
+                                 aln2_exp.values())
+        #self.assertFloatEqual(VOR(self.aln2,mc_threshold=15).values(),\
+        #    aln2_exp.values(),err)
         
         #make sure monte carlo is used
         results = []
         for x in range(5):
             results.append(VOR(self.aln2,mc_threshold=15))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
     
     def test_mVOR(self):
         """mVOR: should return weights closer to the 'True' weights"""
@@ -180,12 +195,21 @@ class VoronoiTests(GeneralTests):
             [0.09021,0.08039,0.113560,0.10399,0.092370,0.097130,
             0.09198,0.09538,0.10927,0.12572]))
 
-        self.assertFloatEqualAbs(mVOR(self.aln3,order="ABC").values(),\
-            aln3_exp.values(),eps=err)
-        self.assertFloatEqualAbs(mVOR(self.aln4,order="ABC").values(),\
-            aln4_exp.values(),eps=err)
-        self.assertFloatEqualAbs(mVOR(self.aln6,order=DNA_ORDER,n=3000)\
-            .values(), aln6_exp.values(),eps=err)
+        # the following assertSimiliarMeans statements were added to replace 
+        # stochastic assertFloatEqualAbs calls below
+        self.assertSimiliarMeans(mVOR(self.aln3,order="ABC").values(),
+                                 aln3_exp.values())
+        self.assertSimiliarMeans(mVOR(self.aln4,order="ABC").values(),
+                                 aln4_exp.values())
+        self.assertSimiliarMeans(mVOR(self.aln6,order=DNA_ORDER,n=3000)\
+                                 .values(), aln6_exp.values())
+
+        #self.assertFloatEqualAbs(mVOR(self.aln3,order="ABC").values(),\
+        #    aln3_exp.values(),eps=err)
+        #self.assertFloatEqualAbs(mVOR(self.aln4,order="ABC").values(),\
+        #    aln4_exp.values(),eps=err)
+        #self.assertFloatEqualAbs(mVOR(self.aln6,order=DNA_ORDER,n=3000)\
+        #    .values(), aln6_exp.values(),eps=err)
         
         #the results vary with runs, because the sample of random profiles
         #is different each time
@@ -193,7 +217,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(mVOR(self.aln4,order="ABC"))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
 
 class PositionBasedTests(GeneralTests):
     """Contains tests for PB (=position-based) method"""
@@ -218,6 +242,7 @@ class PositionBasedTests(GeneralTests):
         """PB: should return correct weights"""
         err=1e-3
         aln2_exp = {'seq3': 0.2, 'seq2': 0.267, 'seq1': 0.267, 'seq4': 0.267}
+
         self.assertFloatEqualAbs(PB(self.aln2,PROTEIN_ORDER)\
             .values(), aln2_exp.values(),eps=err)
 
@@ -233,7 +258,7 @@ class SsTests(GeneralTests):
             [0.0977,0.0942,0.1045,0.0997,0.0968,0.0988,
             0.0929,0.0950,0.1076,0.1122]))
         aln7_exp = {'seq1':.1792, 'seq2':.2447,'seq3':.2880,'seq4':.2880}
-        
+
         self.assertFloatEqualAbs(SS(self.aln4).values(),aln4_exp.values(),
             eps=err) 
         self.assertFloatEqualAbs(SS(self.aln6).values(),aln6_exp.values(),
@@ -277,7 +302,10 @@ class AclTests(GeneralTests):
         self.assertFloatEqual(w_tree8['A'], w_tree8['C'],err)
         self.assertFloatEqual(w_tree8['D'], w_tree8['E'],err)
         self.assertFloatEqual(w_tree8['F'], w_tree8['G'],err)
-        assert w_tree8['A'] > w_tree8['D'] > w_tree8['H'] > w_tree8['F']
+
+        self.assertGreaterThan(w_tree8['A'], w_tree8['D'])
+        self.assertGreaterThan(w_tree8['D'], w_tree8['H'])
+        self.assertGreaterThan(w_tree8['H'], w_tree8['F'])
 
 class GscTests(GeneralTests):
     """Tests for GSC functionality"""

@@ -9,7 +9,7 @@ from sys import exc_info
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
@@ -278,6 +278,11 @@ class TestCaseTests(TestCase):
         self.assertEqual([[1,0], [0,1]],
                 [array([1,0]), array([0,1])])
         
+    def test_assertEqual_shape_mismatch(self):
+        """assertEqual should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertEqual, obs, exp)
 
     def test_assertFloatEqualAbs_equal(self):
         """assertFloatEqualAbs should not raise exception when values within eps"""
@@ -322,6 +327,12 @@ class TestCaseTests(TestCase):
                 "unit_test.assertFloatEqualAbs failed on input %s and %s" \
                 % (`first`, `second`)
 
+    def test_assertFloatEqualAbs_shape_mismatch(self):
+        """assertFloatEqualAbs should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqualAbs, obs, exp)
+
     def test_assertFloatEqualRel_equal(self):
         """assertFloatEqualRel should not raise exception when values within eps"""
         for first, second in self.within_1e6_rel_pairs:
@@ -365,6 +376,11 @@ class TestCaseTests(TestCase):
                 "unit_test.assertFloatEqualRel failed on input %s and %s" \
                 % (`first`, `second`)
 
+    def test_assertFloatEqualRel_shape_mismatch(self):
+        """assertFloatEqualRel should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqualRel, obs, exp)
 
     def test_assertFloatEqualList_equal(self):
         """assertFloatEqual should work on two lists of similar values"""
@@ -376,6 +392,12 @@ class TestCaseTests(TestCase):
         except:
             raise AssertionError, \
             "unit_test.assertFloatEqual failed on lists of similar values"
+
+    def test_assertFloatEqual_shape_mismatch(self):
+        """assertFloatEqual should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqual, obs, exp)
 
     def test_assertFloatEqualList_unequal(self):
         """assertFloatEqual should fail on two lists of dissimilar values"""
@@ -630,6 +652,569 @@ class TestCaseTests(TestCase):
             raise AssertionError, \
             "unit_test.assertNotContains failed on input %s and %s" \
             % (`{'a':1, 'b':2}`, `'a'`)
+
+    def test_assertGreaterThan_equal(self):
+        """assertGreaterThan should raise exception if equal"""
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5, 5)
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5.0, 5.0)
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5.0, 5)
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5, 5.0)
+
+    def test_assertGreaterThan_None(self):
+        """assertGreaterThan should raise exception if compared to None"""
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5, None)
+        self.assertRaises(AssertionError, self.assertGreaterThan, None, 5)
+        self.assertRaises(AssertionError, self.assertGreaterThan, 5.0, None)
+        self.assertRaises(AssertionError, self.assertGreaterThan, None, 5.0)
+ 
+    def test_assertGreaterThan_numbers_true(self):
+        """assertGreaterThan should pass when observed > value"""
+        self.assertGreaterThan(10, 5)
+
+    def test_assertGreaterThan_numbers_false(self):
+        """assertGreaterThan should raise when observed <= value"""
+        self.assertRaises(AssertionError, self.assertGreaterThan, 2, 5)
+
+    def test_assertGreaterThan_numbers_list_true(self):
+        """assertGreaterThan should pass when all elements are > value"""
+        observed = [1,2,3,4,3,2,3,4,6,3]
+        self.assertGreaterThan(observed, 0)
+
+    def test_assertGreaterThan_numbers_list_false(self):
+        """assertGreaterThan should raise when a single element is <= value"""
+        observed = [2,3,4,3,2,1,3,4,6,3]
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1)
+
+    def test_assertGreaterThan_floats_true(self):
+        """assertGreaterThan should pass when observed > value"""
+        self.assertGreaterThan(5.0, 3.0)
+
+    def test_assertGreaterThan_floats_false(self):
+        """assertGreaterThan should raise when observed <= value"""
+        self.assertRaises(AssertionError, self.assertGreaterThan, 3.0, 5.0)
+
+    def test_assertGreaterThan_floats_list_true(self):
+        """assertGreaterThan should pass when all elements are > value"""
+        observed = [1.0,2.0,3.0,4.0,6.0,3.0]
+        self.assertGreaterThan(observed, 0.0)
+
+    def test_assertGreaterThan_floats_list_false(self):
+        """assertGreaterThan should raise when any elements are <= value"""
+        observed = [2.0,3.0,4.0,1.0, 3.0,3.0]
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1.0)
+
+    def test_assertGreaterThan_mixed_true(self):
+        """assertGreaterThan should pass when observed > value"""
+        self.assertGreaterThan(5.0, 3)
+        self.assertGreaterThan(5, 3.0)
+
+    def test_assertGreaterThan_mixed_false(self):
+        """assertGreaterThan should raise when observed <= value"""
+        self.assertRaises(AssertionError, self.assertGreaterThan, -3, 5.0)
+        self.assertRaises(AssertionError, self.assertGreaterThan, 3.0, 5)
+
+    def test_assertGreaterThan_mixed_list_true(self):
+        """assertGreaterThan should pass when all elements are > value"""
+        observed = [1.0, 2, 3.0, 4.0, 6, 3.0]
+        self.assertGreaterThan(observed, 0.0)
+        self.assertGreaterThan(observed, 0)
+
+    def test_assertGreaterThan_mixed_list_false(self):
+        """assertGreaterThan should raise when a single element is <= value"""
+        observed = [2.0, 3, 4, 1.0, 3.0, 3.0]
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1.0)
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1)
+
+    def test_assertGreaterThan_numpy_array_true(self):
+        """assertGreaterThan should pass when all elements are > value"""
+        observed = array([1,2,3,4])
+        self.assertGreaterThan(observed, 0)
+        self.assertGreaterThan(observed, 0.0)
+
+    def test_assertGreaterThan_numpy_array_false(self):
+        """assertGreaterThan should pass when any element is  <= value"""
+        observed = array([1,2,3,4])
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 3)
+        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 3.0)
+
+    def test_assertLessThan_equal(self):
+        """assertLessThan should raise exception if equal"""
+        self.assertRaises(AssertionError, self.assertLessThan, 5, 5)
+        self.assertRaises(AssertionError, self.assertLessThan, 5.0, 5.0)
+        self.assertRaises(AssertionError, self.assertLessThan, 5.0, 5)
+        self.assertRaises(AssertionError, self.assertLessThan, 5, 5.0)
+
+    def test_assertLessThan_None(self):
+        """assertLessThan should raise exception if compared to None"""
+        self.assertRaises(AssertionError, self.assertLessThan, 5, None)
+        self.assertRaises(AssertionError, self.assertLessThan, None, 5)
+        self.assertRaises(AssertionError, self.assertLessThan, 5.0, None)
+        self.assertRaises(AssertionError, self.assertLessThan, None, 5.0)
+ 
+    def test_assertLessThan_numbers_true(self):
+        """assertLessThan should pass when observed < value"""
+        self.assertLessThan(10, 15)
+
+    def test_assertLessThan_numbers_false(self):
+        """assertLessThan should raise when observed >= value"""
+        self.assertRaises(AssertionError, self.assertLessThan, 6, 5)
+
+    def test_assertLessThan_numbers_list_true(self):
+        """assertLessThan should pass when all elements are < value"""
+        observed = [1,2,3,4,3,2,3,4,6,3]
+        self.assertLessThan(observed, 8)
+
+    def test_assertLessThan_numbers_list_false(self):
+        """assertLessThan should raise when a single element is >= value"""
+        observed = [2,3,4,3,2,1,3,4,6,3]
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 6)
+
+    def test_assertLessThan_floats_true(self):
+        """assertLessThan should pass when observed < value"""
+        self.assertLessThan(-5.0, 3.0)
+
+    def test_assertLessThan_floats_false(self):
+        """assertLessThan should raise when observed >= value"""
+        self.assertRaises(AssertionError, self.assertLessThan, 3.0, -5.0)
+
+    def test_assertLessThan_floats_list_true(self):
+        """assertLessThan should pass when all elements are < value"""
+        observed = [1.0,2.0,-3.0,4.0,-6.0,3.0]
+        self.assertLessThan(observed, 5.0)
+
+    def test_assertLessThan_floats_list_false(self):
+        """assertLessThan should raise when a single element is >= value"""
+        observed = [2.0,3.0,4.0,1.0, 3.0,3.0]
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 4.0)
+
+    def test_assertLessThan_mixed_true(self):
+        """assertLessThan should pass when observed < value"""
+        self.assertLessThan(2.0, 3)
+        self.assertLessThan(2, 3.0)
+
+    def test_assertLessThan_mixed_false(self):
+        """assertLessThan should raise when observed >= value"""
+        self.assertRaises(AssertionError, self.assertLessThan, 6, 5.0)
+        self.assertRaises(AssertionError, self.assertLessThan, 6.0, 5)
+
+    def test_assertLessThan_mixed_list_true(self):
+        """assertLessThan should pass when all elements are < value"""
+        observed = [1.0, 2, 3.0, 4.0, 6, 3.0]
+        self.assertLessThan(observed, 7.0)
+        self.assertLessThan(observed, 7)
+
+    def test_assertLessThan_mixed_list_false(self):
+        """assertLessThan should raise when a single element is >= value"""
+        observed = [2.0, 3, 4, 1.0, 3.0, 3.0]
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 4.0)
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 4)
+
+    def test_assertLessThan_numpy_array_true(self):
+        """assertLessThan should pass when all elements are < value"""
+        observed = array([1,2,3,4])
+        self.assertLessThan(observed, 5)
+        self.assertLessThan(observed, 5.0)
+
+    def test_assertLessThan_numpy_array_false(self):
+        """assertLessThan should pass when any element is  >= value"""
+        observed = array([1,2,3,4])
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 3)
+        self.assertRaises(AssertionError, self.assertLessThan, observed, 3.0)
+
+    def test_assertIsBetween_bounds(self):
+        """assertIsBetween should raise if min_value >= max_value"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 6, 3)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 3, 3)
+ 
+    def test_assertIsBetween_equal(self):
+        """assertIsBetween should raise when a value is equal to either bound"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 1, 1, 5)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1, 5)
+
+    def test_assertIsBetween_None(self):
+        """assertIsBetween should raise when compared to None"""
+        self.assertRaises(AssertionError, self.assertIsBetween, None, 1, 5)
+        self.assertRaises(AssertionError, self.assertIsBetween, 1, None, 5)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1, None)
+
+    def test_assertIsBetween_numbers_true(self):
+        """assertIsBetween should pass when in bounds"""
+        self.assertIsBetween(5,3,7)
+
+    def test_assertIsBetween_numbers_false(self):
+        """assertIsBetween should raise when out of bounds"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1, 3)
+
+    def test_assertIsBetween_numbers_list_true(self):
+        """assertIsBetween should pass when all elements are in bounds"""
+        observed = [3,4,5,4,3,4,5,4,3]
+        self.assertIsBetween(observed, 1, 7)
+
+    def test_assertIsBetween_numbers_list_false(self):
+        """assertIsBetween should raise when any elements are out of bounds"""
+        observed = [3,4,5,4,3,4,5,6]
+        self.assertRaises(AssertionError, self.assertIsBetween, observed, 1, 5)
+
+    def test_assertIsBetween_floats_true(self):
+        """assertIsBetween should pass when in bounds"""
+        self.assertIsBetween(5.0, 3.0 ,7.0)
+        
+    def test_assertIsBetween_floats_false(self):
+        """assertIsBetween should raise when out of bounds"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 5.0, 1.0, 3.0)
+
+    def test_assertIsBetween_floats_list_true(self):
+        """assertIsBetween should pass when all elements are in bounds"""
+        observed = [3.0, 4.0, -5.0, 4.0, 3.0]
+        self.assertIsBetween(observed, -7.0, 7.0)
+
+    def test_assertIsBetween_floats_list_false(self):
+        """assertIsBetween should raise when any elements are out of bounds"""
+        observed = [3.0, 4.0, -5.0, 5.0, 6.0]
+        self.assertRaises(AssertionError, self.assertIsBetween,observed,1.0,5.0)
+
+    def test_assertIsBetween_mixed_true(self):
+        """assertIsBetween should pass when in bounds"""
+        self.assertIsBetween(5.0, 3, 7)
+        self.assertIsBetween(5, 3.0, 7)
+        self.assertIsBetween(5, 3, 7.0)
+        self.assertIsBetween(5.0, 3.0, 7)
+        self.assertIsBetween(5, 3.0, 7.0)
+        self.assertIsBetween(5.0, 3, 7.0)
+
+    def test_assertIsBetween_mixed_false(self):
+        """assertIsBetween should raise when out of bounds"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 5.0, 1, 3)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1.0, 3)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1, 3.0)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5.0, 1.0, 3)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 1.0, 3.0)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5.0, 1, 3.0)
+
+    def test_assertIsBetween_mixed_list_true(self):
+        """assertIsBetween should pass when all elements are in bounds"""
+        observed = [3,4,5,4.0,3,4.0,5,4,3.0]
+        self.assertIsBetween(observed, 1, 7)
+        self.assertIsBetween(observed, 1.0, 7)
+        self.assertIsBetween(observed, 1, 7.0)
+        self.assertIsBetween(observed, 1.0, 7.0)
+
+    def test_assertIsBetween_mixed_list_false(self):
+        """assertIsBetween should raise when any elements are out of bounds"""
+        observed = [3.0,4,5.0,4,3,4.0,5,6]
+        self.assertRaises(AssertionError, self.assertIsBetween,observed, 1.0, 5)
+        self.assertRaises(AssertionError, self.assertIsBetween,observed, 1, 5.0)
+        self.assertRaises(AssertionError, self.assertIsBetween,observed,1.0,5.0)
+        self.assertRaises(AssertionError, self.assertIsBetween,observed, 1, 5)
+
+    def test_assertIsBetween_numpy_array_true(self):
+        """assertIsBetween should pass when all elements are in bounds"""
+        observed = array([1,2,4,5,6])
+        self.assertIsBetween(observed, 0, 7)
+
+    def test_assertIsBetween_numpy_array_false(self):
+        """assertIsBetween should raise when any elements is out of bounds"""
+        observed = array([1,2,4,5,6])
+        self.assertRaises(AssertionError, self.assertIsBetween, observed, 2, 7)
+
+    def test_assertIsProb_None(self):
+        """assertIsProb should raise when compared against None"""
+        self.assertRaises(AssertionError, self.assertIsProb, None)
+
+    def test_assertIsProb_numbers_true(self):
+        """assertIsProb should pass when compared against valid numbers"""
+        self.assertIsProb(0)
+        self.assertIsProb(1)
+
+    def test_assertIsProb_numbers_false(self):
+        """assertIsProb should raise when compared against invalid numbers"""
+        self.assertRaises(AssertionError, self.assertIsProb, -1)
+        self.assertRaises(AssertionError, self.assertIsProb, 2)
+    
+    def test_assertIsProb_numbers_list_true(self):
+        """assertIsProb should pass when all elements are probs"""
+        observed = [0, 1, 0]
+        self.assertIsProb(observed)
+
+    def test_assertIsProb_numbers_list_false(self):
+        """assertIsProb should raise when any element is not a prob"""
+        observed = [-2, -4, 3]
+        self.assertRaises(AssertionError, self.assertIsProb, observed)
+
+    def test_assertIsProb_float_true(self):
+        """assertIsProb should pass when compared against valid numbers"""
+        self.assertIsProb(0.0)
+        self.assertIsProb(1.0)
+
+    def test_assertIsProb_float_false(self):
+        """assertIsProb should raise when compared against invalid numbers"""
+        self.assertRaises(AssertionError, self.assertIsProb, -1.0)
+        self.assertRaises(AssertionError, self.assertIsProb, 2.0)
+
+    def test_assertIsProb_float_list_true(self):
+        """assertIsProb should pass when all elements are probs"""
+        observed = [0.0, 1.0, 0.0]
+        self.assertIsProb(observed)
+
+    def test_assertIsProb_float_list_false(self):
+        """assertIsProb should raise when any element is not a prob"""
+        observed = [-2.0, -4.0, 3.0]
+        self.assertRaises(AssertionError, self.assertIsProb, observed)
+
+    def test_assertIsProb_mixed_list_true(self):
+        """assertIsProb should pass when all elements are probs"""
+        observed = [0.0, 1, 0.0]
+        self.assertIsProb(observed)
+
+    def test_assertIsProb_mixed_list_false(self):
+        """assertIsProb should raise when any element is not a prob"""
+        observed = [-2.0, -4, 3.0]
+        self.assertRaises(AssertionError, self.assertIsProb, observed)
+    
+    def test_assertIsProb_numpy_array_true(self):
+        """assertIsProb should pass when all elements are probs"""
+        observed = array([0.0,0.4,0.8])
+        self.assertIsProb(observed)
+
+    def test_assertIsProb_numpy_array_true(self):
+        """assertIsProb should pass when all elements are probs"""
+        observed = array([0.0,-0.4,0.8])
+        self.assertRaises(AssertionError, self.assertIsProb, observed)
+
+    def test_assertSimiliarMeans_one_obs_true(self):
+        """assertSimiliarMeans should pass when p > pvalue"""
+        obs = [5]
+        expected = [1,2,3,4,5,6,7,8,9,10,11]
+        self.assertSimiliarMeans(obs, expected)
+        self.assertSimiliarMeans(obs, expected, pvalue=0.25)
+        self._set_suite_pvalue(0.10)
+        self.assertSimiliarMeans(obs, expected)
+
+    def test_assertSimiliarMeans_one_obs_false(self):
+        """assertSimiliarMeans should raise when p < pvalue"""
+        obs = [5]
+        expected = [.001,.009,.00012]
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected)
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected, 0.1)
+        self._set_suite_pvalue(0.001)
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected)
+
+    def test_assertSimiliarMeans_twosample_true(self):
+        """assertSimiliarMeans should pass when p > pvalue"""
+        obs = [4,5,6]
+        expected = [1,2,3,4,5,6,7,8,9]
+        self.assertSimiliarMeans(obs, expected)
+        self.assertSimiliarMeans(obs, expected, pvalue=0.25)
+        self._set_suite_pvalue(0.10)
+        self.assertSimiliarMeans(obs, expected)
+
+    def test_assertSimiliarMeans_twosample_false(self):
+        """assertSimiliarMeans should raise when p < pvalue"""
+        obs = [1,2,3]
+        expected = [6,7,8,9,10,11,12,13,14]
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected)
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected, 0.1)
+        self._set_suite_pvalue(0.001)
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+                                          obs, expected)
+
+    def test_assertSimiliarFreqs_true(self):
+        """assertSimiliarFreqs should pass when p > pvalue"""
+        observed = [2,2,3,2,1,2,2,2,2]
+        expected = [2,2,2,2,2,2,2,2,2]
+        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimiliarFreqs(observed, expected, pvalue=0.25)
+        self._set_suite_pvalue(0.10)
+        self.assertSimiliarFreqs(observed, expected)
+
+    def test_assertSimiliarFreqs_false(self):
+        """assertSimiliarFreqs should raise when p < pvalue"""
+        observed = [10,15,20,10,12,12,13]
+        expected = [100,50,10,20,700,2,100]
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected)
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected, 0.2)
+        self._set_suite_pvalue(0.001)
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected)
+
+    def test_assertSimiliarFreqs_numpy_array_true(self):
+        """assertSimiliarFreqs should pass when p > pvalue"""
+        observed = array([2,2,3,2,1,2,2,2,2])
+        expected = array([2,2,2,2,2,2,2,2,2])
+        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimiliarFreqs(observed, expected, pvalue=0.25)
+        self._set_suite_pvalue(0.10)
+        self.assertSimiliarFreqs(observed, expected)
+
+    def test_assertSimiliarFreqs_numpy_array_false(self):
+        """assertSimiliarFreqs should raise when p < pvalue"""
+        observed = array([10,15,20,10,12,12,13])
+        expected = array([100,50,10,20,700,2,100])
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected)
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected, 0.2)
+        self._set_suite_pvalue(0.001)
+        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+                                          observed, expected)
+
+    def test_set_suite_pvalue(self):
+        """Should set the suite pvalue"""
+        # force stats to fail
+        self._set_suite_pvalue(0.99)
+        obs = [2,5,6]
+        exp = [1,2,3,4,5,6,7,8,9]
+        self.assertRaises(AssertionError, self.assertSimiliarMeans, obs, exp)
+        
+        # force stats to pass
+        self._set_suite_pvalue(0.01)
+        self.assertSimiliarMeans(obs, exp)
+
+    def test_assertIsPermutation_true(self):
+        """assertIsPermutation should pass when a is a permutation of b"""
+        observed = [3,2,1,4,5]
+        items = [1,2,3,4,5]
+        self.assertIsPermutation(observed, items)
+
+    def test_assertIsPermutation_false(self):
+        """assertIsPermutation should raise when a is not a permutation of b"""
+        items = [1,2,3,4,5]
+        self.assertRaises(AssertionError,self.assertIsPermutation, items,items)
+        self.assertRaises(AssertionError,self.assertIsPermutation, [1,2],[3,4])
+
+    def test_assertSameObj_true(self):
+        """assertSameObj should pass when 'a is b'"""
+        self.assertSameObj("foo", "foo")
+        self.assertSameObj(None, None)
+        bar = lambda x:5
+        self.assertSameObj(bar, bar)
+
+    def test_assertSameObj_false(self):
+        """assertSameObj should raise when 'a is not b'"""
+        self.assertRaises(AssertionError, self.assertSameObj, "foo", "bar")
+        self.assertRaises(AssertionError, self.assertSameObj, None, "bar")
+        self.assertRaises(AssertionError, self.assertSameObj, lambda x:5, \
+                                                              lambda y:6)
+    def test_assertNotSameObj_true(self):
+        """assertNotSameObj should pass when 'a is not b'"""
+        self.assertNotSameObj("foo", "bar")
+        self.assertNotSameObj(None, 5)
+        self.assertNotSameObj(lambda x:5, lambda y:6)
+        
+    def test_assertNotSameObj_false(self):
+        """assertSameObj should raise when 'a is b'"""
+        self.assertRaises(AssertionError, self.assertNotSameObj, "foo", "foo")
+        self.assertRaises(AssertionError, self.assertNotSameObj, None, None)
+        bar = lambda x:5
+        self.assertRaises(AssertionError, self.assertNotSameObj, bar, bar)
+
+    def test_assertIsNotBetween_bounds(self):
+        """assertIsNotBetween should raise if min_value >= max_value"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 5, 4, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 5, 3, 3)
+
+    def test_assertIsNotBetween_equals(self):
+        """assertIsNotBetween should pass when equal on either bound"""
+        self.assertIsNotBetween(1, 1, 2)
+        self.assertIsNotBetween(1.0, 1, 2)
+        self.assertIsNotBetween(1, 1.0, 2)
+        self.assertIsNotBetween(1.0, 1.0, 2)
+        self.assertIsNotBetween(2, 1, 2)
+        self.assertIsNotBetween(2.0, 1, 2)
+        self.assertIsNotBetween(2, 1, 2.0)
+        self.assertIsNotBetween(2.0, 1, 2.0)
+
+    def test_assertIsNotBetween_None(self):
+        """assertIsNotBetween should raise when compared against None"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, None, 1, 2)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 1, None, 2)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 1, 2, None)
+
+    def test_assertIsNotBetween_numbers_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1,2,3)
+        self.assertIsNotBetween(4,2,3)
+        self.assertIsNotBetween(-1,-3,-2)
+        self.assertIsNotBetween(-4,-3,-2)
+        self.assertIsNotBetween(2,-1,1)
+
+    def test_assertIsNotBetween_numbers_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2, 1, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 0, -1, 1)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, -2, -3, -1)
+
+    def test_assertIsNotBetween_numbers_list_true(self):
+        """assertIsNotBetween should pass when all elements are out of bounds"""
+        obs = [1,2,3,4,5]
+        self.assertIsNotBetween(obs, 5, 10)
+        self.assertIsNotBetween(obs, -2, 1)
+
+    def test_assertIsNotBetween_numbers_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1,2,3,4,5]
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3, 7)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, -3, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 2, 4)
+        
+    def test_assertIsNotBetween_float_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1.0, 2.0, 3.0)
+        self.assertIsNotBetween(4.0, 2.0, 3.0)
+        self.assertIsNotBetween(-1.0, -3.0, -2.0)
+        self.assertIsNotBetween(-4.0, -3.0, -2.0)
+        self.assertIsNotBetween(2.0, -1.0, 1.0)
+
+    def test_assertIsNotBetween_float_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0,1.0,3.0)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 0.0,-1.0,1.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween,-2.0,-3.0,-1.0)
+
+    def test_assertIsNotBetween_float_list_true(self):
+        """assertIsNotBetween should pass when all elements are out of bounds"""
+        obs = [1.0, 2.0, 3.0, 4.0, 5.0]
+        self.assertIsNotBetween(obs, 5.0, 10.0)
+        self.assertIsNotBetween(obs, -2.0, 1.0)
+
+    def test_assertIsNotBetween_float_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1.0, 2.0, 3.0, 4.0, 5.0]
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, -3.0,3.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 2.0, 4.0)
+    def test_assertIsNotBetween_mixed_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1, 2.0, 3.0)
+        self.assertIsNotBetween(1.0, 2, 3.0)
+        self.assertIsNotBetween(1.0, 2.0, 3)
+
+    def test_assertIsNotBetween_mixed_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0, 1.0, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0, 1, 3.0)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2, 1.0, 3.0)
+
+    def test_assertIsNotBetween_mixed_list_true(self):
+        """assertIsNotBetween should pass when all elements are not in bounds"""
+        obs = [1, 2.0, 3, 4.0, 5.0]
+        self.assertIsNotBetween(obs, 5.0, 10.0)
+        self.assertIsNotBetween(obs, 5, 10.0)
+        self.assertIsNotBetween(obs, 5.0, 10)
+
+    def test_assertIsNotBetween_mixed_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1, 2.0, 3, 4.0, 5.0]
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7)
 
 if __name__ == '__main__':
     main()

@@ -51,12 +51,12 @@ class DbRefTests(TestCase):
 
     def test_cmp(self):
         """DbRef cmp should first try numeric, then alphabetic, cmp."""
-        assert DbRef('abc') < DbRef('xyz')
-        assert DbRef('abc') == DbRef('abc')
-        assert DbRef('123') > DbRef('14')
-        assert DbRef('123') < DbRef('abc')
+        self.assertLessThan(DbRef('abc'), DbRef('xyz'))
+        self.assertEqual(DbRef('abc'), DbRef('abc'))
+        self.assertGreaterThan(DbRef('123'), DbRef('14'))
+        self.assertLessThan(DbRef('123'), DbRef('abc'))
         #check that it ignores other attributes
-        assert DbRef('x','y','z','a','b') == DbRef('x')
+        self.assertEqual(DbRef('x','y','z','a','b'), DbRef('x'))
 
 class infoTests(TestCase):
     """Tests of top-level functions."""
@@ -87,9 +87,9 @@ class InfoTests(TestCase):
         """Info empty init should work as expected"""
         d = Info()
         self.assertEqual(len(d), 1)
-        assert 'Refs' in d
+        self.assertContains(d, 'Refs')
         self.assertEqual(d.Refs, DbRefs())
-        assert isinstance(d.Refs, DbRefs)
+        self.assertTrue(isinstance(d.Refs, DbRefs))
 
     def test_init_data(self):
         """Info init with data should put items in correct places"""
@@ -108,27 +108,27 @@ class InfoTests(TestCase):
             raise Exception, "Failed to prevent deletion of required key Refs"""
         d.GenBank = ('qaz', 'wsx')
         self.assertEqual(d.GenBank, ['qaz', 'wsx'])
-        assert 'GenBank' in d.Refs
-        assert 'GenBank' in d
+        self.assertContains(d.Refs, 'GenBank')
+        self.assertContains(d, 'GenBank')
         d.GenBank = 'xyz'
         self.assertEqual(d.GenBank, ['xyz'])
-        assert d.GenBank is d.Refs.GenBank
+        self.assertSameObj(d.GenBank, d.Refs.GenBank)
         d.GO = 'x'
         self.assertEqual(d.GO, ['x'])
         d.GO.append('y')
         self.assertEqual(d.GO, ['x', 'y'])
         d.ZZZ = 'zzz'
         self.assertEqual(d.ZZZ, 'zzz')
-        assert 'ZZZ' not in d.Refs
-        assert 'XXX' not in d
+        self.assertNotContains(d.Refs, 'ZZZ')
+        self.assertNotContains(d, 'XXX')
         self.assertEqual(d.XXX, None)
 
     def test_identity(self):
         """Info should get its own new Refs when created"""
         i = Info()
         j = Info()
-        assert i is not j
-        assert i.Refs is not j.Refs
+        self.assertNotSameObj(i, j)
+        self.assertNotSameObj(i.Refs, j.Refs)
 
 #run the following if invoked from command-line
 if __name__ == "__main__":

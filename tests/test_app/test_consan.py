@@ -56,8 +56,6 @@ class ConsanTest(TestCase):
         assert res['StdOut'] is not None
                          
         res.cleanUp()
-        remove('/tmp/seq1.fasta')
-        remove('/tmp/seq2.fasta')
 
     def test_get_result_path(self):
         """Tests Consan result path"""

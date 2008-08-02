@@ -28,7 +28,7 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
     def _maketree(self, treestring=None):
         if treestring is None:
             treestring = self.default_newick
-        return LoadTree(treestring=treestring)
+        return LoadTree(treestring=treestring, underscore_unmunge=True)
     
     def setUp(self):
         self.default_tree = self._maketree()

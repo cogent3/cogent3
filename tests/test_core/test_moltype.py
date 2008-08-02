@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from cogent.core import moltype, sequence
-from cogent.core.moltype import AlphabetError, make_matches, make_pairs, \
+from cogent.core.moltype import AlphabetError, \
+    CoreObjectGroup, AlphabetGroup, make_matches, make_pairs, \
     array, MolType, RNA, DNA, PROTEIN, STANDARD_CODON,\
     IUPAC_RNA_chars, \
     IUPAC_RNA_ambiguities, IUPAC_RNA_ambiguities_complements, \
@@ -79,7 +80,7 @@ class make_matches_tests(TestCase):
             ('y','x'):False, ('y','y'):False, ('y','z'):False, ('y','n'):False,
             ('z','y'):False, ('z','z'):False, ('z','n'):False, ('n','x'):False,
             ('n','y'):False, ('n','z'):False, ('n','n'):False})
-        assert ('x','z') not in m
+        self.assertNotContains(m, ('x','z'))
 
     def test_init_all(self):
         """make_matches with everything should produce correct dict"""
@@ -131,12 +132,12 @@ class make_pairs_tests(TestCase):
     def test_init_pairs(self):
         """make_pairs with just pairs should equal the original"""
         self.assertEqual(make_pairs(self.pairs), self.pairs)
-        assert make_pairs(self.pairs) is not self.pairs
+        self.assertNotSameObj(make_pairs(self.pairs), self.pairs)
     
     def test_init_monomers(self):
         """make_pairs with pairs and monomers should equal just the pairs"""
         self.assertEqual(make_pairs(self.pairs, 'ABCDEFG'), self.pairs)
-        assert make_pairs(self.pairs, 'ABCDEFG') is not self.pairs
+        self.assertNotSameObj(make_pairs(self.pairs, 'ABCDEFG'), self.pairs)
 
     def test_init_gaps(self):
         """make_pairs should add all combinations of gaps as weak pairs"""
@@ -172,16 +173,49 @@ class make_pairs_tests(TestCase):
         })
         self.assertEqual(p, self.pairs)
 
+class CoreObjectGroupTests(TestCase):
+    """Tests of the CoreObjectGroup class."""
+    
+    def test_init(self):
+        """CoreObjectGroup should init with basic list of objects."""
+        class o(object):
+            def __init__(self, s):
+                self.s = s
+        base = o('base')
+        c = CoreObjectGroup(base)
+        self.assertSameObj(c.Base, base)
+        self.assertSameObj(c.Degen, None)
+        self.assertSameObj(c.Base.Degen, None)
+
+        base, degen, gap, degengap = map(o, ['base','degen','gap','degengap'])
+        c = CoreObjectGroup(base, degen, gap, degengap)
+        self.assertSameObj(c.Base, base)
+        self.assertSameObj(c.Base.Degen, degen)
+        self.assertSameObj(c.Degen.Gapped, degengap)
+
+class AlphabetGroupTests(TestCase):
+    """Tests of the AlphabetGroup class."""
+
+    def test_init(self):
+        """AlphabetGroup should initialize successfully"""
+        chars = 'AB'
+        degens = {'C':'AB'}
+        g = AlphabetGroup(chars, degens)
+        self.assertEqual(''.join(g.Base), 'AB')
+        self.assertEqual(''.join(g.Degen), 'ABC')
+        self.assertEqual(''.join(g.Gapped), 'AB-')
+        self.assertEqual(''.join(g.DegenGapped), 'AB-C?')
+
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
         a = MolType('Abc')
-        assert 'A' in a.Alphabet
-        assert 'a' not in a.Alphabet    # case-sensitive
-        assert 'b' in a.Alphabet
-        assert 'B' not in a.Alphabet
-        assert 'x' not in a.Alphabet
+        self.assertContains(a.Alphabet, 'A')
+        self.assertNotContains(a.Alphabet, 'a')    # case-sensitive
+        self.assertContains(a.Alphabet, 'b')
+        self.assertNotContains(a.Alphabet, 'B')
+        self.assertNotContains(a.Alphabet, 'x')
 
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
@@ -189,7 +223,7 @@ class MolTypeTests(TestCase):
         a = MolType(k('Abc'), Ambiguities={'d':'bc'}, Gaps=k('~'), \
             Complements={'b':'c','c':'b'}, Pairs={}, add_lower=False)
         for i in 'Abcd~':
-            assert i in a
+            self.assertContains(a, i)
         self.assertEqual(a.complement('b'), 'c')
         self.assertEqual(a.complement('AbcAA'), 'AcbAA')
         self.assertEqual(a.firstDegenerate('AbcdA'), 3)
@@ -248,19 +282,19 @@ class MolTypeTests(TestCase):
     def test_contains(self):
         """MolType contains should return correct result"""
         for i in 'UCAGWSMKRYBDHVN-' + 'UCAGWSMKRYBDHVN-'.lower():
-            assert i in RnaMolType
+            self.assertContains(RnaMolType, i)
         for i in 'x!@#$%^&ZzQq':
-            assert i not in RnaMolType
+            self.assertNotContains(RnaMolType, i)
 
         a = MolType(dict.fromkeys('ABC'), add_lower=True)
         for i in 'abcABC':
-            assert i in a
-        assert 'x' not in a
+            self.assertContains(a, i)
+        self.assertNotContains(a, 'x')
         b = MolType(dict.fromkeys('ABC'), add_lower=False)
         for i in 'ABC':
-            assert i in b
+            self.assertContains(b, i)
         for i in 'abc':
-            assert i not in b
+            self.assertNotContains(b, i)
 
     def test_iter(self):
        """MolType iter should iterate over monomer order"""
@@ -271,61 +305,61 @@ class MolTypeTests(TestCase):
     def test_isGapped(self):
         """MolType isGapped should return True if gaps in seq"""
         g = RnaMolType.isGapped
-        assert not g('')
-        assert not g('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN')
-        assert g('-')
-        assert g('--')
-        assert g('CAGUCGUACGUCAGUACGUacucauacgac-caguACUG')
-        assert g('CA--CGUAUGCA-----g')
-        assert g('CAGU-')
+        self.assertFalse(g(''))
+        self.assertFalse(g('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN'))
+        self.assertTrue(g('-'))
+        self.assertTrue(g('--'))
+        self.assertTrue(g('CAGUCGUACGUCAGUACGUacucauacgac-caguACUG'))
+        self.assertTrue(g('CA--CGUAUGCA-----g'))
+        self.assertTrue(g('CAGU-'))
 
     def test_isGap(self):
         """MolType isGap should return True if char is a gap"""
         g = RnaMolType.isGap
         #True for the empty string
-        assert not g('')
+        self.assertFalse(g(''))
         #True for all the standard and degenerate symbols
         s = 'ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN'
-        assert not g(s)
+        self.assertFalse(g(s))
         for i in s:
-            assert not g(i)
+            self.assertFalse(g(i))
         #should be true for a single gap
-        assert g('-')
+        self.assertTrue(g('-'))
         #note that it _shouldn't_ be true for a run of gaps: use a.isGapped()
-        assert not g('--')
+        self.assertFalse(g('--'))
 
     def test_isDegenerate(self):
         """MolType isDegenerate should return True if degen symbol in seq"""
         d = RnaMolType.isDegenerate
-        assert not d('')
-        assert not d('UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG')
-        assert d('N')
-        assert d('R')
-        assert d('y')
-        assert d('GCAUguagcucgUCAGUCAGUACgUgcasCUAG')
-        assert d('ACGYAUGCUGYEWEWNFMNfuwbybcwuybcjwbeiwfub')
+        self.assertFalse(d(''))
+        self.assertFalse(d('UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG'))
+        self.assertTrue(d('N'))
+        self.assertTrue(d('R'))
+        self.assertTrue(d('y'))
+        self.assertTrue(d('GCAUguagcucgUCAGUCAGUACgUgcasCUAG'))
+        self.assertTrue(d('ACGYAUGCUGYEWEWNFMNfuwbybcwuybcjwbeiwfub'))
 
     def test_isValid(self):
         """MolType isValid should return True if any unknown symbol in seq"""
         v = RnaMolType.isValid
-        assert not v(3)
-        assert not v(None)
-        assert v('ACGUGCAUGUCAYCAYGUACGcaugacyugc----RYNCYRNC')
-        assert v('')
-        assert v('a')
-        assert not v('ACIUBHFWUIXZKLNJUCIHBICNSOWMOINJ')
-        assert not v('CAGUCAGUCACA---GACCAUG-_--cgau')
+        self.assertFalse(v(3))
+        self.assertFalse(v(None))
+        self.assertTrue(v('ACGUGCAUGUCAYCAYGUACGcaugacyugc----RYNCYRNC'))
+        self.assertTrue(v(''))
+        self.assertTrue(v('a'))
+        self.assertFalse(v('ACIUBHFWUIXZKLNJUCIHBICNSOWMOINJ'))
+        self.assertFalse(v('CAGUCAGUCACA---GACCAUG-_--cgau'))
 
     def test_isStrict(self):
         """MolType isStrict should return True if all symbols in Monomers"""
         s = RnaMolType.isStrict
-        assert not s(3)
-        assert not s(None)
-        assert s('')
-        assert s('A')
-        assert s('UAGCACUgcaugcauGCAUGACuacguACAUG')
-        assert not s('CAGUCGAUCA-cgaucagUCGAUGAC')
-        assert not s('ACGUGCAUXCAGUCAG')
+        self.assertFalse(s(3))
+        self.assertFalse(s(None))
+        self.assertTrue(s(''))
+        self.assertTrue(s('A'))
+        self.assertTrue(s('UAGCACUgcaugcauGCAUGACuacguACAUG'))
+        self.assertFalse(s('CAGUCGAUCA-cgaucagUCGAUGAC'))
+        self.assertFalse(s('ACGUGCAUXCAGUCAG'))
 
     def test_firstGap(self):
         """MolType firstGap should return index of first gap symbol, or None"""
@@ -382,13 +416,13 @@ class MolTypeTests(TestCase):
         u = d(s, 'random')
         for i, j in zip(s, t):
             if i in RnaMolType.Degenerates:
-                assert j in RnaMolType.Degenerates[i]
+                self.assertContains(RnaMolType.Degenerates[i], j)
             else:
-                assert i == j
+                self.assertEquals(i, j)
         self.assertNotEqual(t, u)
         self.assertEqual(d(tuple('UCAG'), 'random'), tuple('UCAG'))
         self.assertEqual(len(s), len(t))
-        assert RnaMolType.firstDegenerate(t) is None
+        self.assertSameObj(RnaMolType.firstDegenerate(t), None)
         #should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, 'xyz')
 
@@ -508,103 +542,103 @@ class MolTypeTests(TestCase):
     def test_canMatch(self):
         """MolType canMatch should return True if all positions can match"""
         m = RnaMolType.canMatch
-        assert m('', '')
-        assert m('UCAG', 'UCAG')
-        assert not m('UCAG', 'ucag')
-        assert m('UCAG', 'NNNN')
-        assert m('NNNN', 'UCAG')
-        assert m('NNNN', 'NNNN')
-        assert not m('N', 'x')
-        assert not m('N', '-')
-        assert m('UCAG', 'YYRR')
-        assert m('UCAG', 'KMWS')
+        self.assertTrue(m('', ''))
+        self.assertTrue(m('UCAG', 'UCAG'))
+        self.assertFalse(m('UCAG', 'ucag'))
+        self.assertTrue(m('UCAG', 'NNNN'))
+        self.assertTrue(m('NNNN', 'UCAG'))
+        self.assertTrue(m('NNNN', 'NNNN'))
+        self.assertFalse(m('N', 'x'))
+        self.assertFalse(m('N', '-'))
+        self.assertTrue(m('UCAG', 'YYRR'))
+        self.assertTrue(m('UCAG', 'KMWS'))
 
     def test_canMismatch(self):
         """MolType canMismatch should return True on any possible mismatch"""
         m = RnaMolType.canMismatch
-        assert not m('','')
-        assert m('N', 'N')
-        assert m('R', 'R')
-        assert m('N', 'r')
-        assert m('CGUACGCAN', 'CGUACGCAN')
-        assert m('U', 'C')
-        assert m('UUU', 'UUC')
-        assert m('UUU', 'UUY')
-        assert not m('UUU', 'UUU')
-        assert not m('UCAG', 'UCAG')
-        assert not m('U--', 'U--')
+        self.assertFalse(m('',''))
+        self.assertTrue(m('N', 'N'))
+        self.assertTrue(m('R', 'R'))
+        self.assertTrue(m('N', 'r'))
+        self.assertTrue(m('CGUACGCAN', 'CGUACGCAN'))
+        self.assertTrue(m('U', 'C'))
+        self.assertTrue(m('UUU', 'UUC'))
+        self.assertTrue(m('UUU', 'UUY'))
+        self.assertFalse(m('UUU', 'UUU'))
+        self.assertFalse(m('UCAG', 'UCAG'))
+        self.assertFalse(m('U--', 'U--'))
 
     def test_mustMatch(self):
         """MolType mustMatch should return True when no possible mismatches"""
         m = RnaMolType.mustMatch
-        assert m('','')
-        assert not m('N', 'N')
-        assert not m('R', 'R')
-        assert not m('N', 'r')
-        assert not m('CGUACGCAN', 'CGUACGCAN')
-        assert not m('U', 'C')
-        assert not m('UUU', 'UUC')
-        assert not m('UUU', 'UUY')
-        assert m('UU-', 'UU-')
-        assert m('UCAG', 'UCAG')
+        self.assertTrue(m('',''))
+        self.assertFalse(m('N', 'N'))
+        self.assertFalse(m('R', 'R'))
+        self.assertFalse(m('N', 'r'))
+        self.assertFalse(m('CGUACGCAN', 'CGUACGCAN'))
+        self.assertFalse(m('U', 'C'))
+        self.assertFalse(m('UUU', 'UUC'))
+        self.assertFalse(m('UUU', 'UUY'))
+        self.assertTrue(m('UU-', 'UU-'))
+        self.assertTrue(m('UCAG', 'UCAG'))
 
     def test_canPair(self):
         """MolType canPair should return True if all positions can pair"""
         p = RnaMolType.canPair
-        assert p('', '')
-        assert not p('UCAG', 'UCAG')
-        assert p('UCAG', 'CUGA')
-        assert not p('UCAG', 'cuga')
-        assert p('UCAG', 'NNNN')
-        assert p('NNNN', 'UCAG')
-        assert p('NNNN', 'NNNN')
-        assert not p('N', 'x')
-        assert not p('N', '-')
-        assert p('-', '-')
-        assert p('UCAGU', 'KYYRR')
-        assert p('UCAG', 'KKRS')
-        assert p('U', 'G')
+        self.assertTrue(p('', ''))
+        self.assertFalse(p('UCAG', 'UCAG'))
+        self.assertTrue(p('UCAG', 'CUGA'))
+        self.assertFalse(p('UCAG', 'cuga'))
+        self.assertTrue(p('UCAG', 'NNNN'))
+        self.assertTrue(p('NNNN', 'UCAG'))
+        self.assertTrue(p('NNNN', 'NNNN'))
+        self.assertFalse(p('N', 'x'))
+        self.assertFalse(p('N', '-'))
+        self.assertTrue(p('-', '-'))
+        self.assertTrue(p('UCAGU', 'KYYRR'))
+        self.assertTrue(p('UCAG', 'KKRS'))
+        self.assertTrue(p('U', 'G'))
 
         d = DnaMolType.canPair
-        assert not d('T', 'G')
+        self.assertFalse(d('T', 'G'))
 
     def test_canMispair(self):
         """MolType canMispair should return True on any possible mispair"""
         m = RnaMolType.canMispair
-        assert not m('','')
-        assert m('N', 'N')
-        assert m('R', 'Y')
-        assert m('N', 'r')
-        assert m('CGUACGCAN', 'NUHCHUACH')
-        assert m('U', 'C')
-        assert m('U', 'R')
-        assert m('UUU', 'AAR')
-        assert m('UUU', 'GAG')
-        assert not m('UUU', 'AAA')
-        assert not m('UCAG', 'CUGA')
-        assert m('U--', '--U')
+        self.assertFalse(m('',''))
+        self.assertTrue(m('N', 'N'))
+        self.assertTrue(m('R', 'Y'))
+        self.assertTrue(m('N', 'r'))
+        self.assertTrue(m('CGUACGCAN', 'NUHCHUACH'))
+        self.assertTrue(m('U', 'C'))
+        self.assertTrue(m('U', 'R'))
+        self.assertTrue(m('UUU', 'AAR'))
+        self.assertTrue(m('UUU', 'GAG'))
+        self.assertFalse(m('UUU', 'AAA'))
+        self.assertFalse(m('UCAG', 'CUGA'))
+        self.assertTrue(m('U--', '--U'))
 
         d = DnaMolType.canPair
-        assert d('TCCAAAGRYY', 'RRYCTTTGGA')
+        self.assertTrue(d('TCCAAAGRYY', 'RRYCTTTGGA'))
 
     def test_mustPair(self):
         """MolType mustPair should return True when no possible mispairs"""
         m = RnaMolType.mustPair
-        assert m('','')
-        assert not m('N', 'N')
-        assert not m('R', 'Y')
-        assert not m('A', 'A')
-        assert not m('CGUACGCAN', 'NUGCGUACG')
-        assert not m('U', 'C')
-        assert not m('UUU', 'AAR')
-        assert not m('UUU', 'RAA')
-        assert not m('UU-', '-AA')
-        assert m('UCAG', 'CUGA')
+        self.assertTrue(m('',''))
+        self.assertFalse(m('N', 'N'))
+        self.assertFalse(m('R', 'Y'))
+        self.assertFalse(m('A', 'A'))
+        self.assertFalse(m('CGUACGCAN', 'NUGCGUACG'))
+        self.assertFalse(m('U', 'C'))
+        self.assertFalse(m('UUU', 'AAR'))
+        self.assertFalse(m('UUU', 'RAA'))
+        self.assertFalse(m('UU-', '-AA'))
+        self.assertTrue(m('UCAG', 'CUGA'))
 
         d = DnaMolType.mustPair
-        assert d('TCCAGGG', 'CCCTGGA')
-        assert d('tccaggg', 'ccctgga')
-        assert not d('TCCAGGG', 'NCCTGGA')
+        self.assertTrue(d('TCCAGGG', 'CCCTGGA'))
+        self.assertTrue(d('tccaggg', 'ccctgga'))
+        self.assertFalse(d('TCCAGGG', 'NCCTGGA'))
 
 class RnaMolTypeTests(TestCase):
     """Spot-checks of alphabet functionality applied to RNA alphabet."""
@@ -613,10 +647,10 @@ class RnaMolTypeTests(TestCase):
         """RnaMolType should __contain__ the expected symbols."""
         keys = 'ucagrymkwsbhvdn?-'
         for k in keys:
-            assert k in RnaMolType
+            self.assertContains(RnaMolType, k)
         for k in keys.upper():
-            assert k in RnaMolType
-        assert 'X' not in RnaMolType
+            self.assertContains(RnaMolType, k)
+        self.assertNotContains(RnaMolType, 'X')
 
     def test_degenerateFromSequence(self):
         """RnaMolType degenerateFromSequence should give correct results"""

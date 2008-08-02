@@ -24,7 +24,7 @@ import string
 import logging
 LOG = logging.getLogger('cogent.data')
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
-    ravel, asarray, fromstring, take, uint8, uint16, uint32
+    ravel, asarray, fromstring, take, uint8, uint16, uint32, take
 from string import maketrans, translate
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -96,6 +96,11 @@ def _make_translation_tables(a):
     indices = ''.join(map(chr, range(len(a))))
     chars = ''.join(a)
     return maketrans(indices, chars), maketrans(chars, indices)
+
+def _make_complement_array(a, complements):
+    """Makes translation array between item indices and their complements."""
+    comps = [complements.get(i, i) for i in a]
+    return array(map(a.index, comps))
 
 class Enumeration(tuple):
     """An ordered set of objects, e.g. a list of taxon labels or sequence ids.
@@ -172,7 +177,7 @@ class Enumeration(tuple):
         if len(self._quick_motifset) != len(self):
             #got duplicates: show user what they sent in
             raise TypeError, 'Alphabet initialized with duplicate values:\n' +\
-                str(motifset)
+                str(self)
         self._obj_to_index = dict(zip(self, range(len(self))))
         #handle gaps
         self.Gap = Gap
@@ -189,6 +194,7 @@ class Enumeration(tuple):
         #_allowed_range provides for fast sums of matching items
         self._allowed_range = arange(len(self))[:,newaxis]
         self.ArrayType = get_array_type(len(self))
+        self._complement_array = None   #set in moltypes.py for standard types
     
     def index(self, item):
         """Returns the index of a specified item.
@@ -242,6 +248,9 @@ class Enumeration(tuple):
             try:
                 data = map(int, data)
             except (TypeError, ValueError): #might be char array?
+                print "DATA", data
+                print "FIRST MAP:", map(str, data)
+                print "SECOND MAP:", map(ord, map(str, data))
                 data = map(ord, map(str, data))
             return(map(self.__getitem__, data))
     

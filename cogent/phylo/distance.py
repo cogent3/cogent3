@@ -215,7 +215,7 @@ class EstimateDistances(object):
                 if i >= len(combination_aligns):
                     continue
                 comp = combination_aligns[i]
-                value = parallel_context.broadcastObj(local_value, cpu)
+                value = parallel_context.broadcast_obj(local_value, cpu)
                 self.__param_ests[comp] = value
     
     def getPairwiseParam(self, param, summary_function="mean"):

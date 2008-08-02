@@ -38,6 +38,9 @@ class _Tokeniser(object):
     Two options can change how unquoted labels are interpreted:
       To prohibit internal spaces and quotes set strict_labels=True.
       To disable conversion of '_' to ' ' set underscore_unmunge=False.
+
+    NOTE: underscore_unmunging is part of the Newick standard, although it
+    is often inconvenient for other purposes.
     """
     
     def __init__(self, text, strict_labels=False, underscore_unmunge=True):
@@ -189,11 +192,17 @@ def _parse_subtrees(tokens, constructor, sentinals):
             name = token
     return nodes
                 
-def parse_string(text, constructor):
+def parse_string(text, constructor, underscore_unmunge=True):
+    """Parses a Newick-format string, using specified constructor for tree.
+
+    Note: underscore_unmunge, if True, replaces underscores with spaces in
+    the data that's read in. This is part of the Newick format, but it is
+    often useful to suppress this behavior.
+    """
     if text.strip()[0] not in  ["(", ";", ""]:
          # otherwise "filename" is a valid (if small) tree
         raise TreeParseError('Tree must start with "(", not "%s"' % text[:10])
-    tokens = iter(_Tokeniser(text))
+    tokens = iter(_Tokeniser(text,underscore_unmunge=underscore_unmunge))
     trees = _parse_subtrees(tokens, constructor, [';', EOT])
     assert len(trees) ==  1, len(trees)
     return trees[0]

@@ -483,8 +483,11 @@ def is_edge(s):
     """Return True if s is a description of the base pair edges.
     
     s -- string
+
+    X is added to the list of accepted symbols. X might be used
+    for modified bases.
     """
-    chars = dict.fromkeys("WHsS+-?.")
+    chars = dict.fromkeys("WHsS+-?.X")
     try:
         first, second = s.split('/')
     except ValueError:
@@ -698,6 +701,15 @@ def verify_bp_counts(bps, np, pair_counts):
 
     This function won't return anything. I'll just raise an error
     if the reported and actual numbers don't match.
+
+    The "total base pairs" doesn't have to match the counts
+    reported in the dictionary if "X/X" base pairs are present.
+    The lines of code dealing with this are removed. Original check was:
+    #if np != sum(pair_counts.values()):
+    #    raise RnaViewParseError(\
+    #    "Reported number of base pairs (%s)"%(np)+\
+    #    " doesn't match detailed "+\
+    #    "counts (%s)"%(sum(pair_counts.values())))
     """
     subset = bps.select(is_not_stacked_or_tertiary)
     if np != len(subset):
@@ -705,11 +717,6 @@ def verify_bp_counts(bps, np, pair_counts):
         "Reported number of base pairs (%s)"%(np)+\
         " doesn't match number"+\
         " of found base pairs (%s)"%(len(subset)))
-    if np != sum(pair_counts.values()):
-        raise RnaViewParseError(\
-        "Reported number of base pairs (%s)"%(np)+\
-        " doesn't match detailed "+\
-        "counts (%s)"%(sum(pair_counts.values())))
 
 def MinimalRnaviewParser(lines):
     """Return line groups for uncommon res, base pairs, base multiples, counts.

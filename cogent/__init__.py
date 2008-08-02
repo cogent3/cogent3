@@ -1,7 +1,7 @@
 """The most commonly used constructors are available from this toplevel module.
 The rest are in the subpackages: phylo, evolve, maths, draw, parse and format."""
 
-import sys, os, logging, re
+import sys, os, logging, re, cPickle
 import numpy
 
 __author__ = ""
@@ -41,7 +41,8 @@ if 'COGENT_LOG_LEVEL' in os.environ:
 version = __version__
 version_info = tuple([int(v) for v in __version__.split(".")])
 
-from cogent.util.table import Table
+from cogent.util.table import Table as _Table
+from cogent.parse.table import load_delimited
 from cogent.core.tree import LoadTree
 from cogent.core.alignment import SequenceCollection
 
@@ -117,3 +118,62 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     else:   #generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name, 
             name_conversion_f=name_conversion_f, **constructor_kw)
+
+from cogent.util.warning import deprecated
+
+def Table(**kwargs):
+    """deprecated, use LoadTable"""
+    deprecated('function', 'cogent.Table', 'cogent.LoadTable', '1.2')
+    return LoadTable(**kwargs)
+
+def LoadTable(filename, sep=',', reader=None, header=None, rows=None, 
+            row_order=None, digits=4, space=4, title='', missing_data='',
+            max_width = 1e100, row_ids=False, legend='', column_templates=None,
+            dtype=None,  **kwargs):
+    """
+    Arguments:
+    - filename: path to file containing a pickled table
+    - sep: the delimiting character between columns
+    - reader: a parser for reading filename. This approach assumes the first
+      row returned by the reader will be the header row.
+    - header: column headings
+    - rows: a 2D dict, list or tuple. If a dict, it must have column
+      headings as top level keys, and common row labels as keys in each
+      column.
+    - row_order: the order in which rows will be pulled from the twoDdict
+    - digits: floating point resolution
+    - space: number of spaces between columns or a string
+    - title: as implied
+    - missing_data: character assigned if a row has no entry for a column
+    - max_width: maximum column width for printing
+    - row_ids: if True, the 0'th column is used as row identifiers and keys
+      for slicing.
+    - legend: table legend
+    - column_templates: dict of column headings: string format templates
+      or a function that will handle the formatting.
+    - dtype: optional numpy array typecode.
+    """
+    if filename[filename.rfind(".")+1:] == 'pickle':
+        f = file(filename, 'U')
+        loaded_table = cPickle.load(f)
+        f.close()
+        return _Table(**loaded_table)
+    
+    # 
+    if filename is not None and reader is None:
+        sep = sep or kwargs.pop('delimiter', None)
+        header, rows, title, legend = load_delimited(filename,
+                                        delimiter = sep, **kwargs)
+    elif filename and reader:
+        f = file(filename, "r")
+        rows = [row for row in reader(f)]
+        f.close()
+        header = rows.pop(0)
+    
+    table = _Table(header=header, rows=rows, digits=digits, row_order=row_order,
+                title=title,
+                dtype=dtype, column_templates=column_templates, space=space,
+                missing_data=missing_data, max_width=max_width, row_ids=row_ids,
+                legend=legend)
+    
+    return table

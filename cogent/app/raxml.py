@@ -1,16 +1,22 @@
 #!/usr/bin/env python
-"""Application controller for RAxML-V (v2.23) 
+"""Application controller for RAxML (v7.0.3).
+
+WARNING: Because of the use of the -x option, this version is no longer
+compatible with RAxML version VI.
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
-from random import choice
+from cogent.core.tree import PhyloNode
+from cogent.core.alignment import Alignment
+from random import choice, randint
 from os import walk
 from os.path import isabs
 from cogent.parse.tree import DndParser
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight"]
+__credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
+               "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
@@ -150,7 +156,8 @@ class Raxml(CommandLineApplication):
         # Specifies number of runs on distinct starting trees.
         '-#':ValuedParameter('-', Name='#', Delimiter=' '),
 
-
+        #Specify an integer number (random seed) to turn on rapid bootstrapping
+        '-x':ValuedParameter('-', Name='x', Delimiter=' ')
     }
 
     _parameters = {}
@@ -231,6 +238,13 @@ class Raxml(CommandLineApplication):
         else:
             raise ValueError, "No output file specified." 
 
+    def _result_bootstrap_out_filename(self):
+        if self.Parameters['-n'].isOn():
+            return self._format_output(str(self.Parameters['-n'].Value), \
+                                       "bootstrap")
+        else:
+            raise ValueError, "No output file specified"
+
     def _checkpoint_out_filenames(self):
         """
         RAxML generates a crapload of checkpoint files so need to
@@ -257,16 +271,22 @@ class Raxml(CommandLineApplication):
     def _get_result_paths(self,data):
         
         result = {}
-        result['Log'] = ResultPath(Path=self._log_out_filename(),
-                                            IsWritten=True)
         result['Info'] = ResultPath(Path=self._info_out_filename(),
                                             IsWritten=True)
-        result['ParsimonyTree'] = ResultPath(
-                        Path=self._parsimony_tree_out_filename(),
-                        IsWritten=True)
-        result['Result'] = ResultPath(
-                        Path=self._result_tree_out_filename(),
-                        IsWritten=True)
+        if self.Parameters['-k'].isOn():
+            result['Bootstrap'] = ResultPath(
+                            Path=self._result_bootstrap_out_filename(),
+                            IsWritten=True)
+        else:    
+            result['Log'] = ResultPath(Path=self._log_out_filename(),
+                                            IsWritten=True)
+            result['ParsimonyTree'] = ResultPath(
+                                      Path=self._parsimony_tree_out_filename(),
+                                      IsWritten=True)
+            result['Result'] = ResultPath(
+                            Path=self._result_tree_out_filename(),
+                            IsWritten=True)
+
         for checkpoint_file in self._checkpoint_out_filenames():
             checkpoint_num = checkpoint_file.split(".")[-1]
             try:
@@ -335,4 +355,49 @@ def raxml_alignment(align_obj,
 
     return tree_node, parsimony_tree_node, log_likelihood, total_exec_time
 
+def build_tree_from_alignment(aln, best_tree=False, params={}):
+    """Returns a tree from Alignment object aln.
+    
+    aln: an xxx.Alignment object, or data that can be used to build one.
+    
+    best_tree: if True (default:False), uses a slower but more accurate
+    algorithm to build the tree.
+    
+    params: dict of parameters to pass in to the RAxML app controller.
+    
+    The result will be an xxx.Alignment object, or None if tree fails.
+    """
+    if best_tree:
+        raise NotImplementedError
 
+    if '-m' not in params:
+        params["-m"] = 'GTRMIX'
+
+    if not hasattr(aln, 'toPhylip'):
+        aln = Alignment(aln)
+    seqs, align_map = aln.toPhylip()
+
+    # generate temp filename for output    
+    params["-w"] = "/tmp/"    
+    params["-n"] = get_tmp_filename().split("/")[-1]
+    params["-k"] = True
+    params["-x"] = randint(1,100000)
+    
+    ih = '_input_as_multiline_string'    
+
+    raxml_app = Raxml(params=params,
+                      InputHandler=ih,
+                      WorkingDir=None,
+                      SuppressStderr=True,
+                      SuppressStdout=True)
+    
+    raxml_result = raxml_app(seqs)
+
+    tree = DndParser(raxml_result['Bootstrap'], constructor=PhyloNode)
+    
+    for node in tree.tips():
+        node.Name = align_map[node.Name]
+
+    raxml_result.cleanUp()
+
+    return tree

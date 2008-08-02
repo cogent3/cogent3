@@ -873,8 +873,9 @@ class StaticFreqsTestsI(object):
         probs = [float(i)/total for i in self.Alphabetic.values()]
         
         rand_seq = self.Alphabetic.randomSequence(10000)
-        for key, prob in zip(keys, probs):
-            self.assertFloatEqualAbs(rand_seq.count(key), prob*10000, 150)
+        observed = [rand_seq.count(key) for key in keys]
+        expected = [prob*10000 for prob in probs]
+        self.assertSimiliarFreqs(observed, expected)
 
     def test_randomSequence_bad(self):
         """Empty Freqs should raise error on randomSequence"""
@@ -1374,8 +1375,9 @@ class FreqsTestsI(object):
         probs = [float(i)/total for i in self.Alphabetic.values()]
         
         rand_seq = self.Alphabetic.randomSequence(10000)
-        for key, prob in zip(keys, probs):
-            self.assertFloatEqualAbs(rand_seq.count(key), prob*10000, 150)
+        observed = [rand_seq.count(key) for key in keys]
+        expected = [prob*10000 for prob in probs]
+        self.assertSimiliarFreqs(observed, expected)
 
     def test_randomSequence_bad(self):
         """Empty Freqs should raise error on randomSequence"""
