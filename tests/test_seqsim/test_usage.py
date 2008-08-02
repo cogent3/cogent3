@@ -8,7 +8,8 @@ from cogent.core.alphabet import Alphabet
 from cogent.core.sequence import ModelRnaSequence as RnaSequence, \
     ModelRnaCodonSequence
 from cogent.seqsim.usage import Usage, DnaUsage, RnaUsage, PairMatrix, Counts,\
-    Probs, Rates
+    Probs, Rates, goldman_q_dna_pair, goldman_q_rna_pair,\
+    goldman_q_dna_triple, goldman_q_rna_triple
 from numpy import average, asarray, sqrt, identity, diagonal, trace, \
                   array, sum
 from cogent.maths.matrix_logarithm import logm
@@ -810,21 +811,23 @@ class RatesTests(TestCase):
 
     def test_fixNegsFmin(self):
         """Rates fixNegsFmin should fix negatives using fmin method"""
-        for i in range(1):
-            p = Probs.random(RnaPairs, 0.75)
-            q = p.toRates()
-            r = q.fixNegsFmin()
-            if not r.isValid():
-                assert abs(r._data.sum()) < 1e-5
+        q = Rates(array([[-0.28936029,  0.14543346, -0.02648614,  0.17041297],
+            [ 0.00949624, -0.31186005,  0.17313171,  0.1292321 ],
+            [ 0.10443209,  0.16134479, -0.30480186,  0.03902498],
+            [ 0.01611264,  0.12999161,  0.15558259, -0.30168684]]), DnaPairs)
+        r = q.fixNegsFmin()
+        assert not q.isValid()
+        assert r.isValid()
 
     def test_fixNegsConstrainedOpt(self):
-        """Rates fixNegsConstrainedOpt should fix negatives using fmin method"""
-        for i in range(1):
-            p = Probs.random(RnaPairs, 0.75)
-            q = p.toRates()
-            r = q.fixNegsConstrainedOpt()
-            if not r.isValid():
-                assert abs(r._data.sum()) < 1e-5
+        """Rates fixNegsConstrainedOpt should fix negatives w/ constrained opt"""
+        q = Rates(array([[-0.28936029,  0.14543346, -0.02648614,  0.17041297],
+            [ 0.00949624, -0.31186005,  0.17313171,  0.1292321 ],
+            [ 0.10443209,  0.16134479, -0.30480186,  0.03902498],
+            [ 0.01611264,  0.12999161,  0.15558259, -0.30168684]]), DnaPairs)
+        r = q.fixNegsFmin()
+        assert not q.isValid()
+        assert r.isValid()
 
     def test_fixNegsReflect(self):
         """Rates fixNegsReflect should reflect negatives across diagonal"""
@@ -855,6 +858,60 @@ class RatesTests(TestCase):
                    [ 2, -5,  3,  0],
                    [ 2,  0, -2,  0],
                    [ 1,  5,  0, -6]]))
+
+class GoldmanTests(TestCase):
+    def setUp(self):
+        pass
+
+    def test_goldman_q_dna_pair(self):
+        """Should return expected rate matrix"""
+        seq1 = "ATGCATGCATGC"
+        seq2 = "AAATTTGGGCCC"
+
+        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
+                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
+                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
+                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
+        observed = goldman_q_dna_pair(seq1, seq2)
+        self.assertEquals(observed, expected)
+
+    def test_goldman_q_rna_pair(self):
+        """Should return expected rate matrix"""
+        seq1 = "AUGCAUGCAUGC"
+        seq2 = "AAAUUUGGGCCC"
+
+        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
+                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
+                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
+                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
+        observed = goldman_q_dna_pair(seq1, seq2)
+        self.assertEquals(observed, expected)
+
+    def test_goldman_q_dna_triple(self):
+        """Should return expected rate matrix"""
+        seq1 = "ATGCATGCATGC"
+        seq2 = "AAATTTGGGCCC"
+        outgroup = "AATTGGCCAATT"
+
+        expected = array([[-(1/2.0), (1/2.0), 0, 0],
+                          [0, 0, 0, 0],
+                          [(1/3.0), 0, -(1/3.0), 0],
+                          [0, 0, 0, 0]])
+        observed = goldman_q_dna_triple(seq1, seq2, outgroup)
+        self.assertFloatEqual(observed, expected)
+
+    def test_goldman_q_rna_triple(self):
+        """Should return expected rate matrix"""
+        seq1 = "AUGCAUGCAUGC"
+        seq2 = "AAAUUUGGGCCC"
+        outgroup = "AAUUGGCCAAUU"
+
+        expected = array([[-(1/2.0), (1/2.0), 0, 0],
+                          [0, 0, 0, 0],
+                          [(1/3.0), 0, -(1/3.0), 0],
+                          [0, 0, 0, 0]])
+        observed = goldman_q_rna_triple(seq1, seq2, outgroup)
+        self.assertFloatEqual(observed, expected)
 
 if __name__ == "__main__":
     main()

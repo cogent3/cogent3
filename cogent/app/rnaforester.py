@@ -112,6 +112,9 @@ class RNAforester(CommandLineApplication):
                 remove(self._input_filename)
                 self._input_filename = None
 
+        remove(''.join([self.WorkingDir, 'cluster.dot']))
+        remove(''.join([self.WorkingDir, 'test.out']))
+
         return result
 
     def _get_base_command(self):

@@ -38,9 +38,9 @@ class CommandLineApplicationTests(TestCase):
         self.app_params_WorkingDir_w_space =CLAppTester({'-F':'p_file.txt'},\
             WorkingDir='/tmp/test space')
         self.app_params_TmpDir =CLAppTester({'-F':'p_file.txt'},\
-            TmpDir='/tmp2')
+            TmpDir='/tmp/tmp2')
         self.app_params_TmpDir_w_space =CLAppTester({'-F':'p_file.txt'},\
-            TmpDir='/tmp space')
+            TmpDir='/tmp/tmp space')
         self.data = 42
         script = """#!/usr/bin/env python
 #This is a test script intended to test the CommandLineApplication
@@ -394,7 +394,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         # TmpDir is what we expect
-        self.assertEqual(app.TmpDir,'/tmp2')
+        self.assertEqual(app.TmpDir,'/tmp/tmp2')
         #test_command
         self.assertEqual(app.BaseCommand,\
             'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
@@ -422,7 +422,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         # TmpDir is what we expect
-        self.assertEqual(app.TmpDir,'/tmp space')
+        self.assertEqual(app.TmpDir,'/tmp/tmp space')
         #test_command
         self.assertEqual(app.BaseCommand,\
             'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
@@ -462,6 +462,7 @@ f.close()
         self.assertEqual(f.readline(),'c\n')
         self.assertEqual(f.readline(),'d')
         f.close()
+        remove(filename)
 
     def test_input_as_lines_from_list(self):
         """CLAppTester: _input_as_lines functions as expected w/ data as list
@@ -473,6 +474,7 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
 
     def test_input_as_lines_from_list_w_newlines(self):
         """CLAppTester: _input_as_lines functions w/ data as list w/ newlines
@@ -484,6 +486,7 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
 
     def test_input_as_multiline_string(self):
         """CLAppTester: _input_as_multiline_string functions as expected
@@ -496,6 +499,53 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
+
+    def test_input_as_lines_from_list_single_entry(self):
+        """CLAppTester: _input_as_lines functions as expected w/ 1 element list
+        """
+        filename = self.app_no_params._input_as_lines(['line 1'])
+        self.assertEqual(filename[0],'/')
+        f = open(filename)
+        self.assertEqual(f.readline(),'line 1')
+        f.close()
+        remove(filename)
+
+    def test_input_as_multiline_string_single_line(self):
+        """CLAppTester: _input_as_multiline_string functions w/ single line
+        """
+        # functions as expected with single line string
+        filename = self.app_no_params._input_as_multiline_string(\
+            'line 1')
+        self.assertEqual(filename[0],'/')
+        f = open(filename)
+        self.assertEqual(f.readline(),'line 1')
+        f.close()
+        remove(filename)
+
+    def test_getTmpFilename_non_default(self):
+        """TmpFilename handles alt tmp_dir, prefix and suffix properly"""
+        app = CLAppTester()
+        obs = app.getTmpFilename(include_class_id=False)
+        self.assertTrue(obs.startswith('/tmp/tmp'))
+        self.assertTrue(obs.endswith('.txt'))
+        
+        obs = app.getTmpFilename(tmp_dir="/blah",prefix="app_ctl_test",\
+            suffix='.test',include_class_id=False)
+        self.assertTrue(obs.startswith('/blah/app_ctl_test'))
+        self.assertTrue(obs.endswith('.test'))
+
+    def test_getTmpFilename_defaults_to_no_class_id(self):
+        """CLAppTester: getTmpFilename doesn't include class id by default 
+        """
+        # I want to explicitly test for this so people don't forget to 
+        # set the default to False if they change it for testing purposes
+        app = CLAppTester() 
+        self.assertFalse(app.getTmpFilename().\
+            startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(app.getTmpFilename(include_class_id=True).\
+            startswith('/tmp/tmpCLAppTester'))
+
 
     def test_input_as_path(self):
         """CLAppTester: _input_as_path casts data to FilePath"""
@@ -570,12 +620,37 @@ f.close()
     def test_getTmpFilename(self):
         """TmpFilename should return filename of correct length"""
         app = CLAppTester()
-        obs = app.getTmpFilename()
-        self.assertEqual(len(obs), len(app.TmpDir) + 1 + app.TmpNameLen \
-            + len(app.TmpPrefix) + len(app.TmpSuffix))
+        obs = app.getTmpFilename(include_class_id=True)
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(app.TmpDir) + len('/') + app.TmpNameLen \
+            + len('tmp') + len('CLAppTester') + len('.txt'))
         assert obs.startswith(app.TmpDir)
-        chars = set(obs[5:])
+        chars = set(obs[18:])
         assert len(chars) > 1
+        
+        obs = app.getTmpFilename(include_class_id=False)
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(app.TmpDir) + len('/') + app.TmpNameLen \
+            + len('tmp') + len('.txt'))
+        assert obs.startswith(app.TmpDir)
+
+    def test_getTmpFilename_prefix_suffix(self):
+        """TmpFilename should return filename with correct prefix and suffix"""
+        app = CLAppTester()
+        obs = app.getTmpFilename(prefix='blah',include_class_id=False)
+        self.assertTrue(obs.startswith('/tmp/blah'))
+        obs = app.getTmpFilename(suffix='.blah',include_class_id=False)
+        self.assertTrue(obs.endswith('.blah'))
+        # Prefix defaults to not include the class name
+        obs = app.getTmpFilename(include_class_id=False)
+        self.assertFalse(obs.startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(obs.endswith('.txt'))
+        # including class id functions correctly
+        obs = app.getTmpFilename(include_class_id=True)
+        self.assertTrue(obs.startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(obs.endswith('.txt'))
 
 class RemoveTests(TestCase):
     def test_remove(self):
@@ -591,10 +666,10 @@ class RemoveTests(TestCase):
         remove('/tmp/CLAppTester.py') 
         remove('/tmp/test space/CLAppTester.py') 
         remove('/tmp/CLApp Tester.py') 
-        rmdir('/tmp space')
-        rmdir('/tmp2')
+        rmdir('/tmp/tmp space')
         rmdir('/tmp/test')
         rmdir('/tmp/test space')
+        rmdir('/tmp/tmp2')
        
 
 #=====================END OF TESTS===================================

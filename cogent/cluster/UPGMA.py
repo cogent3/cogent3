@@ -6,7 +6,7 @@ as input. Can also generate this type of input from a Dict2D using
 inputs_from_dict2D function.
 """
 
-from numpy import array, ravel, argmin, take, sum, average
+from numpy import array, ravel, argmin, take, sum, average, ma, diag
 from cogent.core.tree import PhyloNode
 
 __author__ = "Catherine Lozupone"
@@ -27,7 +27,7 @@ def find_smallest_index(matrix):
     
     for UPGMA clustering elements on the diagonal should first be
     substituted with a very large number so that they are always 
-    larger than the rest if the values in the array"""
+    larger than the rest if the values in the array."""
     #get the shape of the array as a tuple (e.g. (3,3))
     shape = matrix.shape
     #turn into a 1 by x array and get the index of the lowest number
@@ -112,7 +112,13 @@ def UPGMA_cluster(matrix, node_order, large_number):
     tree = None
     for i in range(num_entries - 1):
         smallest_index = find_smallest_index(matrix)
-        row_order = condense_node_order(matrix, smallest_index, node_order)
+        index1, index2 = smallest_index
+        #if smallest_index is on the diagonal set the diagonal to large_number
+        if index1 == index2:
+            matrix[diag([True]*len(matrix))] = large_number
+            smallest_index = find_smallest_index(matrix)
+        row_order = condense_node_order(matrix, smallest_index, \
+                node_order)
         matrix = condense_matrix(matrix, smallest_index, large_number)
         tree = node_order[smallest_index[0]]
     return tree

@@ -5,7 +5,7 @@
 from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.parse.record import DelimitedSplitter
 from cogent.motif.util import Location, ModuleInstance, Module, Motif,\
-     MotifResults
+     MotifResults, make_remap_dict
 from cogent.core.moltype import DNA, RNA, PROTEIN
 
 __author__ = "Jeremy Widmann"
@@ -30,20 +30,19 @@ def getMolType(lines):
     """Returns alphabet type that sequences belong to.
     """
     for line in lines:
-        if line.startswith('ALPHABET'):
+        if 'ALPHABET' in line:
             alphabet_line = line
-    #Remove whitespace
-    alphabet_line = alphabet_line.strip()
     #Split on equal sign
-    alphabet_line = alphabet_line.split('= ')
+    alphabet_line = alphabet_line.strip().split('ALPHABET= ')[1].split()[0]
     #Get Set of alphabet letters
-    alphabet = set(alphabet_line[1])
+    alphabet = set(alphabet_line)
     #get Protein Set
     protein_order = set(PROTEIN.Alphabet)
     #get RNA Set
     rna_order = set(RNA.Alphabet)
     #Find out which alphabet is used
-    if alphabet == protein_order:
+    
+    if len(alphabet) >= 20:
         return PROTEIN
     elif alphabet == rna_order:
         return RNA
@@ -95,7 +94,7 @@ def extractCommandLineData(command_block):
     data_dict = {}
     #Get only necessary Command Line Summary data
     ignore = lambda x: x.startswith('*')
-    meme_model = LabeledRecordFinder(lambda x: x.startswith('model'),
+    meme_model = LabeledRecordFinder(lambda x: 'model:' in x,
                                     ignore=ignore)
     cmd_data = list(meme_model(command_block))
     cmd_data = cmd_data[1]
@@ -129,14 +128,14 @@ def getModuleDataBlocks(module_blocks):
         module_data_blocks.append(list(meme_module_data(module)))
     return module_data_blocks
 
-def extractModuleData(module_data, alphabet):
+def extractModuleData(module_data, alphabet, remap_dict):
     """Creates Module object given module_data list.
 
         - Only works on 1 module at a time: only pass in data from one module.
 
     """
     #Create Module object
-    meme_module = Module({}, MolType=alphabet)
+    meme_module = {}
     
     #Only keep first 3 elements of the list
     module_data = module_data[:3]
@@ -152,7 +151,7 @@ def extractModuleData(module_data, alphabet):
         instance_data[i] = instance_data[i].split()
     #Create a ModuleInstance object and add it to Module for each instance
     for instance in instance_data:
-        seqId = instance[0]
+        seqId = remap_dict[instance[0]]
         start = int(instance[1])-1
         Pvalue = float(instance[2])
         sequence = instance[4]
@@ -160,6 +159,7 @@ def extractModuleData(module_data, alphabet):
         location = Location(seqId, start, start + module_length)
         #Create ModuleInstance
         mod_instance = ModuleInstance(sequence,location,Pvalue)
+
         #Add ModuleInstance to Module
         meme_module[(seqId,start)] = mod_instance
     
@@ -207,15 +207,16 @@ def extractSummaryData(summary_block):
         summary[i] = summary[i].split()
     #Add necesary data to dict
     for seq in summary:
-        #Stop when first '-' character is found: end of data
-        if seq[0].startswith('-'):
+        #Stop when '--------------------' is found: end of data
+        if seq[0].startswith('--------------------'):
             break
         summary_dict[seq[0]] = float(seq[1])
     return {'CombinedP':summary_dict}
 
-def MemeParser(lines):
+def MemeParser(lines, allowed_ids=[]):
     """Returns a MotifResults object given a MEME results file.
     """
+    warnings = []
     #Create MotifResults object
     meme_motif_results = MotifResults()
     #Get main block and alphabet
@@ -235,15 +236,30 @@ def MemeParser(lines):
         summary_block = getSummaryBlock(module_blocks[-1])
         #Extract summary data and get summary_dict
         summary_dict = extractSummaryData(summary_block)
+        seq_names = summary_dict['CombinedP'].keys()
+        if allowed_ids:
+            remap_dict,warning = make_remap_dict(seq_names,allowed_ids)
+            if warning:
+                warnings.append(warning)
+            sd = {}
+            for k,v in summary_dict['CombinedP'].items():
+                sd[remap_dict[k]]=v
+            summary_dict['CombinedP']=sd
+        else:
+            remap_dict = dict(zip(seq_names,seq_names))
+        
         #Add summary dict to MotifResults object
         meme_motif_results.Results = summary_dict
+        
+        #Add warnings to MotifResults object
+        meme_motif_results.Results['Warnings']=warnings
         
         #Get blocks for each module
         module_blocks = getModuleDataBlocks(module_blocks)
         #Extract modules and put in MotifResults.Modules list
         for module in module_blocks:
             meme_motif_results.Modules.append(extractModuleData(module,\
-                alphabet))
+                alphabet,remap_dict))
         for module in meme_motif_results.Modules:
             meme_motif_results.Motifs.append(Motif(module))
     return meme_motif_results

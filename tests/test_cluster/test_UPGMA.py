@@ -32,7 +32,20 @@ class UPGMATests(TestCase):
                         [4, 5, 9999999, 10, 12], \
                         [20, 21, 10, 9999999, 2], \
                         [22, 23, 12, 2, 9999999]), Float)
+        #create a numpy matrix with zero diagonals to test diagonal mask 
+        self.matrix_zeros = array(([0, 1, 4, 20, 22], \
+                        [1, 0, 5, 21, 23], \
+                        [4, 5, 0, 10, 12], \
+                        [20, 21, 10, 0, 2], \
+                        [22, 23, 12, 2, 0]), Float)
         
+        #create a numpy matrix with zero diagonals to test diagonal mask 
+        self.matrix_five = array(([5, 1, 4, 20, 22], \
+                        [1, 5, 5, 21, 23], \
+                        [4, 5, 5, 10, 12], \
+                        [20, 21, 10, 5, 2], \
+                        [22, 23, 12, 2, 5]), Float)
+    
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array
         """
@@ -72,6 +85,28 @@ class UPGMATests(TestCase):
         """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA
         """
         matrix = self.matrix
+        node_order = self.node_order
+        large_number = 9999999999
+        tree = UPGMA_cluster(matrix, node_order, large_number)
+        self.assertEqual(str(tree), \
+                '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
+    
+    def test_UPGMA_cluster_diag(self):
+        """UPGMA_cluster works when the diagonal has lowest values
+        """
+        #test that checking the diagonal works
+        matrix = self.matrix_zeros
+        node_order = self.node_order
+        large_number = 9999999999
+        tree = UPGMA_cluster(matrix, node_order, large_number)
+        self.assertEqual(str(tree), \
+                '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
+    
+    def test_UPGMA_cluster_diag(self):
+        """UPGMA_cluster works when the diagonal has intermediate values
+        """
+        #test that checking the diagonal works
+        matrix = self.matrix_five
         node_order = self.node_order
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)

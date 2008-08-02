@@ -480,8 +480,10 @@ class UnpairedRegionTests(TestCase):
             r.refresh()
             fd.append(str(seq))
         fd = Freqs(''.join(fd))
-        self.assertFloatEqualAbs(fd['C'], 1800, 50)
-        self.assertFloatEqualAbs(fd['U'], 200, 50)
+
+        observed = [fd['C'], fd['U']]
+        expected = [1800, 200]
+        self.assertSimiliarFreqs(observed, expected)
         self.assertEqual(fd['U'] + fd['C'], 2000)
 
         freqs2 = Freqs({'A':5, 'U':5})
@@ -497,8 +499,9 @@ class UnpairedRegionTests(TestCase):
             r.refresh()
             fd.append(str(seq))
         fd = Freqs(''.join(fd))
-        self.assertFloatEqualAbs(fd['A'], 1500, 100)
-        self.assertFloatEqualAbs(fd['U'], 1500, 100)
+        observed = [fd['A'], fd['U']]
+        expected = [1500, 1500]
+        self.assertSimiliarFreqs(observed, expected)
         self.assertEqual(fd['A'] + fd['U'], 3000)
 
 class ShuffledRegionTests(TestCase):
@@ -559,11 +562,17 @@ class PairedRegionTests(TestCase):
         for i in Wobble:
             for j in Wobble[i]:
                 assert (i, j) in states.keys()
-        expected = {('A','U'):num_to_do/14, ('U','A'):num_to_do/14,
-                    ('C','G'):num_to_do/14*4, ('G','C'):num_to_do/14*4,
-                    ('U','G'):num_to_do/14*2, ('G','U'):num_to_do/14*2,}
-        for key, val in expected.items():
-            self.assertFloatEqualAbs(val, states[key], 130) #conservative?
+        expected_dict = {('A','U'):num_to_do/14, ('U','A'):num_to_do/14,
+                        ('C','G'):num_to_do/14*4, ('G','C'):num_to_do/14*4,
+                        ('U','G'):num_to_do/14*2, ('G','U'):num_to_do/14*2,}
+        # the following for loop was replaced with the assertSimiliarFreqs
+        # call below it
+        #for key, val in expected.items():
+            #self.assertFloatEqualAbs(val, states[key], 130) #conservative?
+        expected = [val for key, val in expected_dict.items()]
+        observed = [states[key] for key, val in expected_dict.items()]
+        self.assertSimiliarFreqs(observed, expected)
+
         assert ('G','U') in states
         assert ('U','G') in states
             
@@ -582,10 +591,13 @@ class PairedRegionTests(TestCase):
         for i in WatsonCrick:
             for j in WatsonCrick[i]:
                 assert (i, j) in states.keys()
-        expected = {('A','U'):num_to_do/4, ('U','A'):num_to_do/4,
-                    ('C','G'):num_to_do/4, ('G','C'):num_to_do/4,}
-        for key, val in expected.items():
-            self.assertFloatEqualAbs(val, states[key], 130) #3 std devs
+        expected_dict = {('A','U'):num_to_do/4, ('U','A'):num_to_do/4,
+                        ('C','G'):num_to_do/4, ('G','C'):num_to_do/4,}
+        expected = [val for key, val in expected_dict.items()]
+        observed = [states[key] for key, val in expected_dict.items()]
+        self.assertSimiliarFreqs(observed, expected)
+        #for key, val in expected.items():
+        #    self.assertFloatEqualAbs(val, states[key], 130) #3 std devs
         assert ('G','U') not in states
         assert ('U','G') not in states
 
@@ -993,9 +1005,9 @@ class SequenceEmbedderTests(TestCase):
             assert key[0] != key[1]
             curr = counts.get(key, 0)
             counts[key] = curr + 1
-        self.assertFloatEqualAbs(counts[(0,1)], 333, 50)
-        self.assertFloatEqualAbs(counts[(0,2)], 333, 50)
-        self.assertFloatEqualAbs(counts[(1,2)], 333, 50)
+        expected = [333, 333, 333]
+        observed = [counts[(0,1)], counts[(0,2)], counts[(1,2)]]
+        self.assertSimiliarFreqs(observed, expected)
         #make sure nothing else snuck in there
         self.assertEqual(counts[(0,1)]+counts[(0,2)]+counts[(1,2)], 1000)
 
@@ -1014,9 +1026,9 @@ class SequenceEmbedderTests(TestCase):
             key = tuple(self.ile_embedder._choose_locations())
             curr = counts.get(key, 0)
             counts[key] = curr + 1
-        self.assertFloatEqualAbs(counts[(0,0)], 250, 50)
-        self.assertFloatEqualAbs(counts[(0,1)], 500, 50)
-        self.assertFloatEqualAbs(counts[(1,1)], 250, 50)
+        expected = [250, 500, 250]
+        observed = [counts[(0,0)], counts[(0,1)], counts[(1,1)]]
+        self.assertSimiliarFreqs(observed, expected)
         #make sure nothing else snuck in there
         self.assertEqual(counts[(0,0)]+counts[(0,1)]+counts[(1,1)], 1000)
   

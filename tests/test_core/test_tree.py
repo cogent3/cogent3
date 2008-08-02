@@ -2,7 +2,7 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 from copy import copy, deepcopy
-from cogent.core.tree import TreeNode, PhyloNode
+from cogent.core.tree import TreeNode, PhyloNode, LoadTree
 from cogent.parse.tree import DndParser
 from cogent.maths.stats.test import correlation
 from cogent.util.unit_test import TestCase, main
@@ -16,6 +16,30 @@ __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+
+class TreeTests(TestCase):
+    """Tests of top-level functions."""
+
+    def test_LoadTree(self):
+        """LoadTree should load a tree from a file or a string"""
+        t_str = '(a_a:10,(b_b:2,c_c:4):5);'
+        #NOTE: Tree quotes these labels because they have underscores in them.
+        result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
+        t = LoadTree(treestring=t_str)
+        names = [i.Name for i in t.tips()]
+        self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
+        self.assertEqual(str(t),result_str) 
+        t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
+        #NOTE: Tree silently converts spaces to underscores (only for output),
+        #presumably for Newick compatibility.
+        result_str = "(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);"
+        t = LoadTree(treestring=t_str, underscore_unmunge=True)
+        names = [i.Name for i in t.tips()]
+        self.assertEqual(names, ['a a', 'b b', 'c c'])
+        self.assertEqual(str(t),result_str) 
+
+
 
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""
@@ -1076,6 +1100,71 @@ class PhyloNodeTests(TestCase):
         h.Length = None
         c.Length = None   #need to test both leaf and internal node
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c)b:0,h)a;')
+
+    def test_maxTipTipDistance(self):
+        """maxTipTipDistance returns the max dist between any pair of tips"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        max_dist, tip_pair = tree.maxTipTipDistance()
+        self.assertEqual(max_dist, 10)
+        self.assertEqual(tip_pair, ('h', 'g'))
+
+    def test__find_midpoint_nodes(self):
+        """_find_midpoint_nodes should return nodes surrounding the midpoint"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        max_dist = 10
+        tip_pair = ('g', 'h')
+        result = tree._find_midpoint_nodes(max_dist, tip_pair)
+        self.assertEqual(result, (nodes['b'], nodes['c']))
+        tip_pair = ('h', 'g')
+        result = tree._find_midpoint_nodes(max_dist, tip_pair)
+        self.assertEqual(result, (nodes['f'], nodes['c']))
+
+    def test_rootAtMidpoint(self):
+        """rootAtMidpoint performs midpoint rooting"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        #works when the midpoint falls on an existing edge
+        tree1 = deepcopy(tree)
+        result = tree1.rootAtMidpoint()
+        self.assertEqual(str(result), \
+                '((g:3)f:2.0,(d:1,e:4,((h:2)b:0)c:3):0.0);')
+        #works when the midpoint falls between two existing edges
+        nodes['f'].Length = 1
+        nodes['c'].Length = 4
+        result = tree.rootAtMidpoint()
+        self.assertEqual(str(result), \
+                '((d:1,e:4,(g:3)f:1)c:1.0,((h:2)b:0):3.0);')
+
+    def test_rootAtMidpoint2(self):
+        """rootAtMidpoint works when midpoint is on both sides of root"""
+        #also checks whether it works if the midpoint is adjacent to a tip
+        nodes, tree = self.TreeNode, self.TreeRoot
+        nodes['h'].Length = 20
+        result = tree.rootAtMidpoint()
+        self.assertEqual(str(result), \
+            '(h:14.0,(((d:1,e:4,(g:3)f:2)c:3)b:0):6.0);')
+    
+    def test_setTipDistances(self):
+        """setTipDistances should correctly set tip distances."""
+        tree = DndParser('(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);',constructor=PhyloNode)
+        
+        #expected distances for a post order traversal
+        expected_tip_distances = [0,0,0.1,0,0,0.1,0.2,0,0,0.1,0,0,0.1,0.2,0.5]
+        #tips should have distance of 0
+        tree.setTipDistances()
+        for node in tree.tips():
+            self.assertEqual(node.TipDistance,0)
+        idx = 0
+        for node in tree.traverse(self_before=False,self_after=True):
+            self.assertEqual(node.TipDistance,expected_tip_distances[idx])
+            idx+=1
+    
+    def test_scaleBranchLengths(self):
+        """scaleBranchLengths should correclty scale branch lengths."""
+        tree = DndParser('(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);',constructor=PhyloNode)
+        tree.scaleBranchLengths(max_length=100,ultrametric=True)
+        expected_tree = '(((A1:20,B1:20):20,(A2:20,B2:20):20):60,((A3:20,B3:20):20,(A4:20,B4:20):20):60);'
+        self.assertEqual(str(tree),expected_tree)
+
 
 class Test_tip_tip_distances_I(object):
     """Abstract class for testing different implementations of tip_to_tip."""

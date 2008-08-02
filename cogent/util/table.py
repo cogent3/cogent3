@@ -11,13 +11,12 @@ Table can read pickled and delimited formats.
 import cPickle, csv
 import numpy
 from cogent.format import table as table_format
-from cogent.parse import table as table_read
 
-from cogent.recalculation.array import DictArray
+from cogent.util.dict_array import DictArray
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Felix Schill"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Gavin Huttley"
@@ -58,16 +57,12 @@ def convert2DDict(twoDdict, header = None, row_order = None):
     return table
 
 class Table(DictArray):
-    def __init__(self, header = None, rows = None, filename = None,
-                reader = None, row_order = None, digits = 4, space = 4,
-                title = '', missing_data = '', max_width = 1e100,
+    def __init__(self, header = None, rows = None, row_order = None, digits = 4,
+                space = 4, title = '', missing_data = '', max_width = 1e100,
                 row_ids = False, legend = '', column_templates = None,
-                dtype = None, **kw):
+                dtype = None):
         """
         Arguments:
-        - filename: path to file containing a pickled table
-        - reader: a parser for reading filename. This approach assumes the first
-          row returned by the reader will be the header row.
         - header: column headings
         - rows: a 2D dict, list or tuple. If a dict, it must have column
           headings as top level keys, and common row labels as keys in each
@@ -85,66 +80,38 @@ class Table(DictArray):
           or a function that will handle the formatting.
         - dtype: optional numpy array typecode.
         """
-        if filename is not None and reader is None:
-            delimiter = kw.pop('sep', None) or kw.pop('delimiter', None)
-            loaded_table = table_read.getFromFilename(filename,
-                                    delimiter = delimiter, **kw)
-            try:
-                self.__dict__ = loaded_table.__dict__
-            except AttributeError:
-                self.__setstate__(loaded_table)
-        elif filename and reader:
-            f = file(filename, "r")
-            rows = [row for row in reader(f)]
-            f.close()
-            header = rows.pop(0)
+        header = [str(head) for head in header]
+        if isinstance(rows, dict):
+            rows = convert2DDict(rows, header = header,
+                                row_order = row_order)
         
-        # if we've loaded from a file, we allow only formatting data to be
-        # changed by arguments
-        if hasattr(self, "Header"):
-            self._missing_data = missing_data or self._missing_data
-            if digits != 4:
-                self._digits = digits
-            if space != 4: # the default value
-                self.Space = ' ' * space
-            if max_width != 1e100:
-                self._max_width = max_width
+        # if row_ids, we select that column as the row identifiers
+        if row_ids:
+            identifiers = [row[0] for row in rows]
         else:
-            header = [str(head) for head in header]
-            if isinstance(rows, dict):
-                rows = convert2DDict(rows, header = header,
-                                    row_order = row_order)
-            
-            # if row_ids, we select that column as the row identifiers
-            if row_ids:
-                identifiers = [row[0] for row in rows]
-            else:
-                identifiers = len(rows)
-            
-            if not dtype:
-                dtype = "O"
-            DictArray.__init__(self, rows, identifiers, header, dtype = dtype)
-            
-            # forcing all column headings to be strings
-            self.Header = [str(head) for head in header]
-            self._missing_data = missing_data
-            
-            self.Title = str(title)
-            self.Legend = str(legend)
-            try:
-                self.Space = ' ' * space
-            except TypeError:
-                self.Space = space
-            self._digits = digits
-            self._row_ids = row_ids
-            self._max_width = max_width
+            identifiers = len(rows)
+        
+        if not dtype:
+            dtype = "O"
+        DictArray.__init__(self, rows, identifiers, header, dtype = dtype)
+        
+        # forcing all column headings to be strings
+        self.Header = [str(head) for head in header]
+        self._missing_data = missing_data
+        
+        self.Title = str(title)
+        self.Legend = str(legend)
+        try:
+            self.Space = ' ' * space
+        except TypeError:
+            self.Space = space
+        self._digits = digits
+        self._row_ids = row_ids
+        self._max_width = max_width
         
         # some attributes are not preserved in any file format, so always based
         # on args
-        if column_templates:
-            self._column_templates = column_templates
-        else:
-            self._column_templates = {}
+        self._column_templates = column_templates or {}
     
     def __str__(self):
         return self.tostring()
@@ -396,6 +363,32 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header = self.Header, rows = sub_set, **kw)
     
+    def count(self, callback, columns=None, **kwargs):
+        """Returns number of rows for which the provided callback
+        function returns True when passed row data from columns. Row data
+        is a 1D list if more than one column, raw row[col] value otherwise.
+        
+        Arguments:
+            - columns: the columns whose values determine whether a row is to
+            be included.
+            - callback: Can be a function, which takes the sub-row delimited
+            by columns and returns True/False, or a string representing valid
+            python code to be evaluated."""
+        
+        if isinstance(columns, str):
+            columns = (columns,)
+        
+        if columns:
+            num_columns = len(columns)
+        else:
+            num_columns = None
+        
+        count = 0
+        for row in self:
+            if self._callback(callback, row, columns, num_columns):
+                count += 1
+        return count
+    
     def sorted(self, columns = None, reverse = None, **kwargs):
         """Returns a new table sorted according to columns order.
         
@@ -514,7 +507,6 @@ class Table(DictArray):
         twoD = [list(row) + [self._callback(callback, row, columns,
                 num_columns)] for row in self]
         
-        
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = self.Header + [new_column], rows = twoD, **kw)
@@ -525,3 +517,112 @@ class Table(DictArray):
         for row in self:
             vals.update([row[column]])
         return vals
+    
+    def joined(self, other_table, columns_self=None, columns_other=None,
+                inner_join=True, **kwargs):
+        """returns a new table containing the join of this table and
+        other_table. Default behaviour is the natural inner join. Checks for
+        equality in the specified columns (if provided) or all columns; a
+        combined row is included in the output if all indices match exactly. A
+        combined row contains first the row of this table, and then columns
+        from the other_table that are not key columns (i.e. not specified in
+        columns_other). The order (of self, then other)
+        is preserved. The column headers of the output are made unique by
+        replacing the headers of other_table with
+        <other_table.Title>_<other_table.Header>.
+        
+        Arguments:
+            - other_table: A table object which will be joined with this
+              table. other_table must have a title.
+            - columns_self, columns_other: indices of key columns that will
+              be compared in the join operation. Can be either column index,
+              or a string matching the column header. The order matters, and
+              the dimensions of columns_self and columns_other have to match.
+              A row will be included in the output iff
+              self[row][columns_self[i]]==other_table[row][columns_other[i]]
+              for all i
+            - inner_join: if False, the outer join of the two tables is
+              returned.
+        """
+        
+        if other_table.Title is None:
+            raise RuntimeError, "Cannot join if a other_table.Title is None"
+        elif self.Title == other_table.Title:
+            raise RuntimeError, "Cannot join if a table.Title's are equal"
+        
+        columns_self = [columns_self,[columns_self]][type(columns_self)==str]
+        columns_other = [columns_other,
+                            [columns_other]][type(columns_other)==str]
+        if not inner_join:
+            assert columns_self is None and columns_other is None, "Cannot "\
+                                "specify column indices for an outer join"
+            columns_self = []
+            columns_other = []
+        
+        if columns_self is None and columns_other is None:
+            # we do the natural inner join
+            columns_self=[]
+            columns_other=[]
+            for col_head in self.Header:
+                if col_head in other_table.Header:
+                    columns_self.append(self.Header.index(col_head))
+                    columns_other.append(other_table.Header.index(col_head))
+        elif columns_self is None or columns_other is None:
+            # the same column labels will be used for both tables
+            columns_self = columns_self or columns_other
+            columns_other = columns_self or columns_other
+        elif len(columns_self)!=len(columns_other):
+            raise RuntimeError("Error during table join: key columns have "\
+                  "different dimensions!")
+        
+        # create new 2d list for the output
+        joined_table=[]
+        
+        #resolve column indices from Header, if necessary
+        columns_self_indices=[]
+        columns_other_indices=[]
+        for col in columns_self:
+            if type(col)==int:
+                columns_self_indices.append(col)
+            else:
+                columns_self_indices.append(self.Header.index(col))
+        
+        for col in columns_other:
+            if type(col)==int:
+                columns_other_indices.append(col)
+            else:
+                columns_other_indices.append(self.Header.index(col))
+        # create a mask of which columns of the other_table will end up in the
+        # output
+        output_mask_other=[]
+        for col in range(0,len(other_table.Header)):
+            if not (col in columns_other_indices):
+                output_mask_other.append(col)
+        # use a dictionary for the key lookup
+        # key dictionary for other_table.
+        # key is a tuple made from specified columns; data is the row index
+        # for lookup...
+        key_lookup={}
+        row_index=0
+        for row in other_table:
+            #insert new entry for each row
+            key=tuple([row[col] for col in columns_other_indices])
+            if key in key_lookup:
+                key_lookup[key].append(row_index)
+            else:
+                key_lookup[key]=[row_index]
+            row_index=row_index+1
+            
+        for this_row in self:
+            # assemble key for query of other_table
+            key=tuple([this_row[col] for col in columns_self_indices])
+            if key in key_lookup:
+                for output_row_index in key_lookup[key]:
+                    other_row=[other_table[output_row_index,c] \
+                                                  for c in output_mask_other]
+                    joined_table.append(list(this_row) + other_row)
+        
+        new_header=self.Header+[other_table.Title+"_"+other_table.Header[c] \
+                                                  for c in output_mask_other]
+        return Table(header=new_header, rows=joined_table, **kwargs)
+    

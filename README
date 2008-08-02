@@ -1,6 +1,6 @@
 `COGENT` (COmparative GENomics Toolkit) Install
 +++++++++++++++++++++++++++++++++++++++++++++++
-
+ 
 ..
     This document is written in `restructured text`_ format. A html version, including examples cogent.html located in the doc directory, is automatically created when the project tarball is built.
 
@@ -11,7 +11,7 @@
           University of Colorado, Boulder, CO 80309-0215, USA.
 :Version: 1.0.1
 :Copyright: This software is copyright 2002-2007.
-:Download: Download from here_.
+:Download: Download from here_. 
 :Registration: To be informed of bugs, new releases please subscribe to the mailing lists at sourceforge.
 
 Dependencies

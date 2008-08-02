@@ -4,7 +4,9 @@
 Note: individual Alphabets are typically in MolType and are tested there.
 """
 from cogent.core.alphabet import Enumeration, get_array_type, \
-    uint8, uint16, uint32, array, JointEnumeration, CharAlphabet
+    uint8, uint16, uint32, array, JointEnumeration, CharAlphabet, \
+    _make_translation_tables, _make_complement_array
+from cogent.core.moltype import RNA
 
 from cogent.util.unit_test import TestCase, main
 
@@ -12,14 +14,35 @@ DnaBases = CharAlphabet('TCAG')
 RnaBases = CharAlphabet('UCAG')
 AminoAcids = CharAlphabet('ACDEFGHIKLMNPQRSTVWY')
 
-__author__ = "Peter Maxwell and Gavin Huttley"
+__author__ = "Rob Knight, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Rob Knight"]
+__credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.0.1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+class translation_table_tests(TestCase):
+    """Tests of top-level translation table functions"""
+    def test_make_translation_tables(self):
+        """_make_translation_tables should translate from chars to indices"""
+        a = 'ucag'
+        itoa, atoi = _make_translation_tables(a)
+        s = 'ggacu'
+        obs = s.translate(atoi)
+        self.assertEqual(obs, '\x03\x03\x02\x01\x00')
+        orig = obs.translate(itoa)
+        self.assertEqual(orig, s)
+
+    def test_make_complement_array(self):
+        """_make_complement_array should identify complements correctly"""
+        complement_array = _make_complement_array(RNA.Alphabet, RNA.Complements)
+        test = 'UCAG'
+        test_array = [RNA.Alphabet.index(i) for i in test]
+        complements = complement_array.take(test_array)
+        result = ''.join([RNA.Alphabet[i] for i in complements])
+        self.assertEqual(result, 'AGUC')
 
 class get_array_type_tests(TestCase):
     """Tests of the get_array_type top-level function."""
@@ -227,7 +250,7 @@ class CharAlphabetTests(TestCase):
         rp = r.Pairs
         self.assertEqual(len(rp), 16)
         rp2 = r.Pairs
-        assert rp is rp2
+        self.assertSameObj(rp, rp2)
 
     def test_triples(self):
         """triples should cache the same object."""
@@ -235,7 +258,7 @@ class CharAlphabetTests(TestCase):
         rt = r.Triples
         self.assertEqual(len(rt), 64)
         rt2 = r.Triples
-        assert rt is rt2
+        self.assertSameObj(rt, rt2)
 
 
 class JointEnumerationTests(TestCase):

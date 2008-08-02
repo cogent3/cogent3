@@ -90,9 +90,9 @@ class AllTests(TestCase):
         """seqFreqs should work the same on Alignment and DenseAlignment"""
         # Used alphabet: ('U', 'C', 'A', 'G', '-', 'B', 'D', 'H',\
         # 'K', 'M', 'N', 'S', 'R', 'W', 'V', 'Y')
-        exp = [[1,1,1,3,0,0,0,0,0,0,0,0,0,0,0,0],\
-            [1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,1],\
-            [0,1,2,0,1,0,0,0,0,0,1,0,1,0,0,0]]
+        exp = [[1,1,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0],\
+            [1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,1,0],\
+            [0,1,2,0,1,0,0,0,0,0,1,0,1,0,0,0,0]]
         # This works
         self.assertEqual(self.da.getSeqFreqs().Data, exp)
         # This used to raise an error, but now works

@@ -19,8 +19,9 @@ class PdbTests(TestCase):
         rec = Pdb()
         result = rec['1RMN'].read()
         assert result.startswith('HEADER')
-        assert result.endswith('1RMN1101\n')
+        assert result.rstrip().endswith('END') #note: trailing whitespace
         assert 'HAMMERHEAD RIBOZYME' in result
+        assert '1RMN' in result
 
 if __name__ == '__main__':
     main()

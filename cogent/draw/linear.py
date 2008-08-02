@@ -876,7 +876,7 @@ class DisplayPolicy(object):
             return []
         annot_tracks = feature.getAnnotationTracks(self)
         return annot_tracks + [Track(track_tag,
-                [Feature(self.map, style, feature.label)], level=level)]
+                [Feature(self.map, style, feature.Name)], level=level)]
     
     def tracksForVariable(self, variable):
         (track_tag, style, level) = self.getStyleDefnForFeature(variable)
@@ -886,11 +886,11 @@ class DisplayPolicy(object):
         max_y = 0.0
         for ((x1, x2), y) in variable.xxy_list:
             map = self.map[x1:x2]
-            segments.append(Feature(map, style, variable.label, value=y))
+            segments.append(Feature(map, style, variable.Name, value=y))
             if type(y) is tuple: y = max(y)
             if y > max_y: max_y = y
         return [Track(track_tag, segments, max_y=max_y, needs_border=True,
-                label=variable.label, level=level)]
+                label=variable.Name, level=level)]
     
 
 class Display(object):

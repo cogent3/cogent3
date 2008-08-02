@@ -21,7 +21,9 @@ from cogent.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
 from cogent.parse import gff
 from cogent.format.fasta import fasta_from_sequences
 from cogent.core.info import Info as InfoClass
-from numpy import array, zeros, put, nonzero, take, ravel
+from numpy import array, zeros, put, nonzero, take, ravel, compress, \
+    logical_or, logical_not, arange
+from numpy.random import permutation
 from operator import eq, ne
 from random import shuffle
 import re
@@ -282,11 +284,7 @@ class SequenceI(object):
         
         NOTE: truncates at the length of the shorter sequence. Case-sensitive.
         """
-        count = 0
-        for first, second in zip(self, other):
-            if first != second:
-                count += 1
-        return count
+        return self.distance(other)
     
     def distance(self, other, function=None):
         """Returns distance between self and other using function(i,j).
@@ -464,7 +462,25 @@ class SequenceI(object):
         
         return for_seq(f = lambda x, y: (x,y) in similar_pairs, \
             normalizer=per_shortest)(self, other)
-    
+
+    def withTerminiUnknown(self):
+        """Returns copy of sequence with terminal gaps remapped as missing."""
+        gaps = self.gapVector()
+        first_nongap = last_nongap = None
+        for i, state in enumerate(gaps):
+            if not state:
+                if first_nongap is None:
+                    first_nongap = i
+                last_nongap = i
+        missing = self.MolType.Missing
+        if first_nongap is None:    #sequence was all gaps
+            result = self.__class__([missing for i in len(self)],Info=self.Info)
+        else:
+            prefix = missing*first_nongap
+            mid = str(self[first_nongap:last_nongap+1])
+            suffix = missing*(len(self)-last_nongap-1)
+            result = self.__class__(prefix + mid + suffix, Info=self.Info)
+        return result
 
 class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
@@ -824,7 +840,7 @@ class ByteSequence(Sequence):
                 check=check, preserve_case=preserve_case)
     
 
-class ModelSequence(object):
+class ModelSequenceBase(object):
     """Holds the information for a non-degenerate sequence. Mutable.
     
     A ModelSequence is an array of indices of symbols, where those symbols are
@@ -851,7 +867,8 @@ class ModelSequence(object):
     Delimiter = ''      #Used for string conversions
     LineWrap = 80       #Wrap sequences at 80 characters by default.
     
-    def __init__(self, data, Alphabet=None, Name=None, Info=None):
+    def __init__(self, data='', Alphabet=None, Name=None, Info=None, \
+        check='ignored'):
         """Initializes sequence from data and alphabet.
         
         WARNING: Does not validate the data or alphabet for compatibility.
@@ -885,6 +902,14 @@ class ModelSequence(object):
         
         self.MolType = self.Alphabet.MolType
         self.Info = Info
+
+    def __getitem__(self, *args):
+        """__getitem__ returns char or slice, as same class."""
+        if len(args) == 1 and not isinstance(args[0], slice):
+            result = array([self._data[args[0]]])
+        else:
+            result = self._data.__getitem__(*args)
+        return self.__class__(result)
     
     def __cmp__(self, other):
         """__cmp__ compares based on string"""
@@ -903,7 +928,8 @@ class ModelSequence(object):
         if hasattr(self.Alphabet, 'toString'):
             return self.Alphabet.toString(self._data)
         else:
-            return self.Delimiter.join(map(str,self.Alphabet.fromIndices(self)))
+            return self.Delimiter.join(map(str, \
+                self.Alphabet.fromIndices(self._data)))
     
     def __len__(self):
         """Returns length of data."""
@@ -953,23 +979,38 @@ class ModelSequence(object):
         return result
     
     def __iter__(self):
-        """iter delegates to self._data."""
-        return iter(self._data)
+        """iter returns characters of self, rather than slices."""
+        if hasattr(self.Alphabet, 'toString'):
+            return iter(self.Alphabet.toString(self._data))
+        else:
+            return iter(self.Alpabet.fromIndices(self._data))
     
     def tostring(self):
         """tostring delegates to self._data."""
         return self._data.tostring()
     
     def gaps(self):
-        """Returns array containing 1 where self has gaps, 0 elsewhere."""
+        """Returns array containing 1 where self has gaps, 0 elsewhere.
+        
+        WARNING: Only checks for standard gap character (for speed), and
+        does not check for ambiguous gaps, etc.
+        """
         return self._data == self.Alphabet.GapIndex
     
     def nongaps(self):
-        """Returns array contining 0 where self has gaps, 1 elsewhere."""
+        """Returns array contining 0 where self has gaps, 1 elsewhere.
+        
+        WARNING: Only checks for standard gap character (for speed), and
+        does not check for ambiguous gaps, etc.
+        """
         return self._data != self.Alphabet.GapIndex
     
     def regap(self, other, strip_existing_gaps=False):
-        """Inserts elements of self into gaps specified by other."""
+        """Inserts elements of self into gaps specified by other.
+
+        WARNING: Only checks for standard gap character (for speed), and
+        does not check for ambiguous gaps, etc.
+        """
         if strip_existing_gaps:
             s = self.degap()
         else:
@@ -982,9 +1023,9 @@ class ModelSequence(object):
     
     def degap(self):
         """Returns ungapped copy of self, not changing alphabet."""
-        if self.Alphabet.Gap is None:
+        if not hasattr(self.Alphabet, 'Gap') or self.Alphabet.Gap is None:
             return self.copy()
-        d = take(self._data, nonzero(self.nongaps())[0])
+        d = take(self._data, nonzero(logical_not(self.gapArray()))[0])
         return self.__class__(d, Alphabet=self.Alphabet, Name=self.Name, \
             Info=self.Info)
     
@@ -992,32 +1033,286 @@ class ModelSequence(object):
         """Returns copy of self, always separate object."""
         return self.__class__(self._data.copy(), Alphabet=self.Alphabet, \
             Name=self.Name, Info=self.Info)
+
+    def __contains__(self, item):
+        """Returns true if item in self (converts to strings)."""
+        return item in str(self)
+
+    def disambiguate(self, *args, **kwargs):
+        """Disambiguates self using strings/moltype. Should recode if demand."""
+        return self.__class__(self.MolType.disambiguate(str(self), \
+            *args,**kwargs))
+
+    def distance(self, other, function=None, use_indices=False):
+        """Returns distance between self and other using function(i,j).
+        
+        other must be a sequence.
+        
+        function should be a function that takes two items and returns a
+        number. To turn a 2D matrix into a function, use
+        cogent.util.miscs.DistanceFromMatrix(matrix).
+
+        use_indices: if False, maps the indices onto items (e.g. assumes 
+        function relates the characters). If True, uses the indices directly.
+        
+        NOTE: Truncates at the length of the shorter sequence.
+        
+        Note that the function acts on two _elements_ of the sequences, not
+        the two sequences themselves (i.e. the behavior will be the same for
+        every position in the sequences, such as identity scoring or a function
+        derived from a distance matrix as suggested above). One limitation of
+        this approach is that the distance function cannot use properties of
+        the sequences themselves: for example, it cannot use the lengths of the
+        sequences to normalize the scores as percent similarities or percent
+        differences.
+        
+        If you want functions that act on the two sequences themselves, there
+        is no particular advantage in making these functions methods of the
+        first sequences by passing them in as parameters like the function
+        in this method. It makes more sense to use them as standalone functions.
+        The factory function cogent.util.transform.for_seq is useful for
+        converting per-element functions into per-sequence functions, since it
+        takes as parameters a per-element scoring function, a score aggregation
+        function, and a normalization function (which itself takes the two
+        sequences as parameters), returning a single function that combines
+        these functions and that acts on two complete sequences.
+        """
+        if function is None:
+            #use identity scoring
+            shortest = min(len(self), len(other))
+            if not hasattr(other, '_data'):
+                other = self.__class__(other)
+            distance = (self._data[:shortest] != other._data[:shortest]).sum()
+        else:
+            distance = 0
+            if use_indices:
+                self_seq = self._data
+                if hasattr(other, '_data'):
+                    other_seq = other._data
+            else:
+                self_seq = self.Alphabet.fromIndices(self._data)
+                if hasattr(other, '_data'):
+                    other_seq = other.Alphabet.fromIndices(other._data)
+                else:
+                    other_seq = other
+            for first, second in zip(self_seq, other_seq):
+                distance += function(first, second)
+        return distance
+
+    def matrixDistance(self, other, matrix, use_indices=False):
+        """Returns distance between self and other using a score matrix.
+        
+        if use_indices is True (default is False), assumes that matrix is
+        an array using the same indices that self uses.
+
+        WARNING: the matrix must explicitly contain scores for the case where
+        a position is the same in self and other (e.g. for a distance matrix,
+        an identity between U and U might have a score of 0). The reason the
+        scores for the 'diagonals' need to be passed explicitly is that for
+        some kinds of distance matrices, e.g. log-odds matrices, the 'diagonal'
+        scores differ from each other. If these elements are missing, this
+        function will raise a KeyError at the first position that the two
+        sequences are identical.
+        """
+        return self.distance(other, DistanceFromMatrix(matrix))
+
+    def shuffle(self):
+        """Returns shuffled copy of self"""
+        return self.__class__(permutation(self._data), Info=self.Info)
     
+    def gapArray(self):
+        """Returns array of 0/1 indicating whether each position is a gap."""
+        gap_indices = []
+        a = self.Alphabet
+        for c in self.MolType.Gaps:
+            if c in a:
+                gap_indices.append(a.index(c))
+        gap_vector = None
+        for i in gap_indices:
+            if gap_vector is None:
+                gap_vector = self._data == i
+            else:
+                gap_vector = logical_or(gap_vector, self._data == i)
+        return gap_vector
+
+    def gapIndices(self):
+        """Returns array of indices of gapped positions in self."""
+        return self.gapArray().nonzero()[0]
+
+    def fracSameGaps(self, other):
+        """Returns fraction of positions where gaps match other's gaps.
+        """
+        if not other:
+            return 0
+        self_gaps = self.gapArray()
+        if hasattr(other, 'gapArray'):
+            other_gaps = other.gapArray()
+        elif hasattr(other, 'gapVector'):
+            other_gaps = array(other.gapVector())
+        else:
+            other_gaps = array(self.MolType.gapVector(other))
+        min_len = min(len(self), len(other))
+        self_gaps, other_gaps = self_gaps[:min_len], other_gaps[:min_len]
+        return (self_gaps == other_gaps).sum()/float(min_len)
+ 
+
+class ModelSequence(ModelSequenceBase, SequenceI):
+    """ModelSequence provides an array-based implementation of Sequence.
+
+    Use ModelSequenceBase if you need a stripped-down, fast implementation.
+    ModelSequence implements everything that SequenceI implements.
+
+    See docstrings for ModelSequenceBase and SequenceI for information about
+    these respective classes.
+    """
+    def stripBad(self):
+        """Returns copy of self with bad chars excised"""
+        valid_indices = self._data < len(self.Alphabet)
+        result = compress(valid_indices, self._data)
+        return self.__class__(result, Info=self.Info)
+
+    def stripBadAndGaps(self):
+        """Returns copy of self with bad chars and gaps excised."""
+        gap_indices = map(self.Alphabet.index, self.MolType.Gaps)
+        valid_indices = self._data < len(self.Alphabet)
+        for i in gap_indices:
+            valid_indices -= self._data == i
+        result = compress(valid_indices, self._data)
+        return self.__class__(result, Info=self.Info)
+
+    def stripDegenerate(self):
+        """Returns copy of self without degenerate symbols.
+        
+        NOTE: goes via string intermediate because some of the algorithms
+        for resolving degenerates are complex. This could be optimized if
+        speed becomes critical.
+        """
+        return self.__class__(self.MolType.stripDegenerate(str(self)), \
+            Info=self.Info)
+
+    def countGaps(self):
+        """Returns count of gaps in self."""
+        return self.gapArray().sum()
+
+    def gapVector(self):
+        """Returns list of bool containing whether each pos is a gap."""
+        return map(bool, self.gapArray())
+
+    def gapList(self):
+        """Returns list of gap indices."""
+        return list(self.gapIndices())
+
+    def gapMaps(self):
+        """Returns dicts mapping gapped/ungapped positions."""
+        nongaps = logical_not(self.gapArray())
+        indices = arange(len(self)).compress(nongaps)
+        new_indices = arange(len(indices))
+        return dict(zip(new_indices, indices)), dict(zip(indices, new_indices))
+
+    def firstGap(self):
+        """Returns position of first gap, or None."""
+        a = self.gapIndices()
+        try:
+            return a[0]
+        except IndexError:
+            return None
+
+    def isGapped(self):
+        """Returns True of sequence contains gaps."""
+        return len(self.gapIndices())
+
+    def MW(self, *args, **kwargs):
+        """Returns molecular weight.
+
+        Works via string intermediate: could optimize using array of MW if
+        speed becomes important.
+        """
+        return self.MolType.MW(str(self), *args, **kwargs)
+
+    def fracSimilar(self, other, similar_pairs):
+        """Returns fraction of positions where self[i] is similar to other[i].
+        
+        similar_pairs must be a dict such that d[(i,j)] exists if i and j are
+        to be counted as similar. Use PairsFromGroups in cogent.util.misc to
+        construct such a dict from a list of lists of similar residues.
+        
+        Truncates at the length of the shorter sequence.
+        
+        Note: current implementation re-creates the distance function each
+        time, so may be expensive compared to creating the distance function
+        using for_seq separately.
+        
+        Returns 0 if one sequence is empty.
+
+        NOTE: goes via string intermediate, could optimize using array if
+        speed becomes important. Note that form of similar_pairs input would
+        also have to change.
+        """
+        if not self or not other:
+            return 0.0
+        
+        return for_seq(f = lambda x, y: (x,y) in similar_pairs, \
+            normalizer=per_shortest)(str(self), str(other))
 
 class ModelNucleicAcidSequence(ModelSequence):
     """Abstract class defining ops for codons, translation, etc."""
+    
     def toCodons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
         alpha_len = len(self.Alphabet)
         return ModelCodonSequence(alpha_len*(\
             alpha_len*self._data[::3] + self._data[1::3]) + self._data[2::3], \
             Name=self.Name, Alphabet=self.Alphabet.Triples)
-    
+
+    def complement(self):
+        """Returns complement of sequence"""
+        return self.__class__(self.Alphabet._complement_array.take(self._data),\
+            Info=self.Info)
+
+    def rc(self):
+        """Returns reverse-complement of sequence"""
+        comp = self.Alphabet._complement_array.take(self._data)
+        return self.__class__(comp[::-1], Info=self.Info)
+     
+    def toRna(self):
+        """Returns self as RNA"""
+        return ModelRnaSequence(self._data)
+
+    def toDna(self):
+        """Returns self as DNA"""
+        return ModelDnaSequence(self._data)
+
 
 class ModelRnaSequence(ModelNucleicAcidSequence):
     MolType = None  #set to RNA in moltype.py
     Alphabet = None #set to RNA.Alphabets.DegenGapped in moltype.py
 
+    def __init__(self, data='', *args, **kwargs):
+        """Returns new ModelRnaSequence, converting T -> U"""
+        if hasattr(data, 'upper'):
+            data = data.upper().replace('T','U')
+        return super(ModelNucleicAcidSequence, self).__init__(data, \
+            *args, **kwargs)
+
 class ModelDnaSequence(ModelNucleicAcidSequence):
     MolType = None  #set to DNA in moltype.py
     Alphabet = None #set to DNA.Alphabets.DegenGapped in moltype.py
+
+    def __init__(self, data='', *args, **kwargs):
+        """Returns new ModelRnaSequence, converting U -> T"""
+        if hasattr(data, 'upper'):
+            data = data.upper().replace('U','T')
+        return super(ModelNucleicAcidSequence, self).__init__(data, \
+            *args, **kwargs)
+
 
 class ModelCodonSequence(ModelSequence):
     """Abstract base class for codon sequences, incl. string conversion."""
     SequenceClass = ModelNucleicAcidSequence
     def __str__(self):
         """Joins triplets together as string."""
-        return self.Delimiter.join(map(''.join,self.Alphabet.fromIndices(self)))
+        return self.Delimiter.join(map(''.join, \
+            self.Alphabet.fromIndices(self._data)))
     
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
@@ -1026,7 +1321,7 @@ class ModelCodonSequence(ModelSequence):
             Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
     
-    def __init__(self, data, Alphabet=None, Name=None, Info=None):
+    def __init__(self, data='', Alphabet=None, Name=None, Info=None):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
@@ -1060,7 +1355,7 @@ class ModelDnaCodonSequence(ModelCodonSequence):
     SequenceClass = ModelDnaSequence
 
 class ModelRnaCodonSequence(ModelCodonSequence):
-    """Holds non-sgenerate DNA codon sequence."""
+    """Holds non-degenerate DNA codon sequence."""
     Alphabet = None #set to RNA.Alphabets.Base.Triples in motype.py
     SequenceClass = ModelRnaSequence
 
@@ -1070,4 +1365,7 @@ class ModelRnaCodonSequence(ModelCodonSequence):
         d = self.SequenceClass(s, \
             Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
- 
+
+class ModelProteinSequence(ModelSequence):
+    MolType = None  #set to PROTEIN in moltype.py
+    Alphabet = None #set to PROTEN.Alphabets.DegenGapped in moltype.py

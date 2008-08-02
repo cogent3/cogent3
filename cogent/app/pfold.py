@@ -5,6 +5,8 @@
 Run in the same order as the order in this file(instructions from pfold author)
 [fasta2col,findphyl,mltree,scfg]
 """
+import os
+
 from cogent.app.util import CommandLineApplication,\
     CommandLineAppResult, ResultPath
 
@@ -18,8 +20,12 @@ __email__ = "ens01svn@cs.umu.se"
 __status__ = "Development"  
 
 #IMPORTANT!!!!
-#dir must be set manually to the bin directory in the install directory of pfold
-dir = 'your_path/pfold/bin/'
+#pfold_path must be set manually to the bin dir in the install dir of pfold
+if 'PFOLD_BIN_DIR' not in os.environ:
+    raise RuntimeError, \
+        "The pfold app controller requires PFOLD_BIN_DIR environment variable"
+else:
+    pfold_path = os.environ['PFOLD_BIN_DIR']
 
 class fasta2col(CommandLineApplication):
     """Application controller for fasta2col in Pfold package"""
@@ -59,7 +65,7 @@ class findphyl(CommandLineApplication):
         """Overrides  _input_as_string in CommandLineApplication
 
         scfg.rate file need to be specified along with the input file""" 
-        file = '%s%s' % (dir,'scfg.rate')
+        file = '%s%s' % (pfold_path,'scfg.rate')
         data = '%s %s' % (file,filename)
         return data
     
@@ -69,7 +75,7 @@ class findphyl(CommandLineApplication):
         scfg.rate file need to be specified along with the input file"""
         filename = super(findphyl,self)._input_as_lines(data)
 
-        file = '%s%s' % (dir,'scfg.rate')
+        file = '%s%s' % (pfold_path,'scfg.rate')
         data = '%s %s' % (file,filename)
         return data
 
@@ -87,7 +93,7 @@ class mltree(CommandLineApplication):
         """Overrides  _input_as_string in CommandLineApplication
 
         scfg.rate file need to be specified along with the input file"""
-        file = '%s%s' % (dir,'scfg.rate')
+        file = '%s%s' % (pfold_path,'scfg.rate')
         data = '%s %s' % (file,filename)
         return data
     
@@ -97,7 +103,7 @@ class mltree(CommandLineApplication):
         scfg.rate file need to be specified along with the input file"""
         filename = super(mltree,self)._input_as_lines(data)
 
-        file = '%s%s' % (dir,'scfg.rate')
+        file = '%s%s' % (pfold_path,'scfg.rate')
         data = '%s %s' % (file,filename)
         return data
 
@@ -117,7 +123,7 @@ class scfg(CommandLineApplication):
         """Overrides  _input_as_string in CommandLineApplication
 
         Additional input information about tree needed from article.grm file"""
-        file = '%s %s%s' % ('--treeinfile',dir,'article.grm')
+        file = '%s %s%s' % ('--treeinfile',pfold_path,'article.grm')
         data = '%s %s' % (file,filename)
         return data
     
@@ -127,7 +133,7 @@ class scfg(CommandLineApplication):
         Additional input information about tree needed from article.grm file"""
         filename = super(scfg,self)._input_as_lines(data)
 
-        file = '%s %s%s' % ('--treeinfile',dir,'article.grm')
+        file = '%s %s%s' % ('--treeinfile',pfold_path,'article.grm')
         data = '%s %s' % (file,filename)
         return data
 

@@ -3,14 +3,15 @@
 from os import getcwd, remove, rmdir, mkdir
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
-from cogent.app.raxml import Raxml,raxml_alignment
+from cogent.app.raxml import Raxml,raxml_alignment, build_tree_from_alignment
 from cogent.app.util import ApplicationError
 from cogent.parse.phylip import get_align_for_phylip
+from cogent.core.tree import PhyloNode
 from StringIO import StringIO
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Micah Hamady", "Rob Knight"]
+__credits__ = ["Micah Hamady", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
@@ -123,7 +124,13 @@ class RaxmlTests(GenericRaxml):
         phy_node, parsimony_phy_node, log_likelihood, total_exec \
             = raxml_alignment(self.align1)
 
-
+    def test_build_tree_from_alignment(self):
+        """Builds a tree from an alignment"""
+        tree = build_tree_from_alignment(self.align1, False)
+        self.assertTrue(isinstance(tree, PhyloNode))
+        self.assertEqual(len(tree.tips()), 7)
+        self.assertRaises(NotImplementedError, build_tree_from_alignment, \
+                          self.align1, True)
    
 PHYLIP_FILE= """ 7 50
 Species001   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUCA UUAAAUCAGU

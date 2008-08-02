@@ -2,17 +2,16 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.app.rnaview import RnaView
-from cogent.app.util import get_tmp_filename
 from tempfile import mktemp, tempdir
-from os import remove, system, getcwd, makedirs, removedirs
+from os import remove, system, getcwd
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.0"
 __maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
+__email__ = "Greg Caporaso"
 __status__ = "Production"
 
 class test_rnaview(TestCase):
@@ -61,15 +60,14 @@ class test_rnaview(TestCase):
     def test_file_pointers_no_extras(self):
         """RnaView: pointers created only for minimal files
         """
-        filename = get_tmp_filename(suffix='') + '.pdb'
+        filename = mktemp() + '.pdb'
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()
-       
+        
         written_files = {}.fromkeys(['bp_stats','base_pairs',\
             'StdOut','StdErr','ExitStatus'])
         res = self.r1(data=filename)
-        
         for f in res:
             if f in written_files:
                 assert res[f] is not None
@@ -82,8 +80,8 @@ class test_rnaview(TestCase):
         """RnaView: pointers created for minimal files and files turned on
         """
         # need to make a fake pdb file with base pairs so that wrl file will be 
-        # created. 
-        filename = get_tmp_filename(suffix='') + '.pdb'
+        # created
+        filename = mktemp() + '.pdb'
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()
@@ -100,67 +98,9 @@ class test_rnaview(TestCase):
         res.cleanUp()
         remove(filename)
 
-    def test_space_ok_in_input_filename(self):
-        """RNAview: spaces in input filenames are handled w/o error"""
-        # need to make a fake pdb file with base pairs so that wrl file will be 
-        # created. 
-        filename = get_tmp_filename(suffix='') + ' 5.pdb'
-        filename = str(filename)[1:-1]
-        f = open(filename,"w")
-        f.writelines(self.fake_pdb_file)
-        f.close()
-
-        written_files = {}.fromkeys(['bp_stats','base_pairs',\
-            'StdOut','StdErr','ExitStatus'])
-
-        # The following line should return without error
-        res = self.r1(data=filename)
-        # Check that all the output files were created
-        for f in res:
-            if f in written_files:
-                assert res[f] is not None
-            else:
-                assert res[f] is None
-        
-        res.cleanUp()
-        remove(filename)
-
-    def test_space_ok_in_input_directory(self):
-        """RNAview: spaces in input directory are handled w/o error"""
-        # need to make a fake pdb file with base pairs so that wrl file will be 
-        # created. 
-        dir = get_tmp_filename(suffix='') + ' space5/'
-        makedirs(dir)
-        filename = dir + 'FAKE.pdb'
-        filename = str(filename)[1:-1]
-        f = open(filename,"w")
-        f.writelines(self.fake_pdb_file)
-        f.close()
-        
-        written_files = {}.fromkeys(['bp_stats','base_pairs',\
-            'StdOut','StdErr','ExitStatus'])
-        res = self.r1(data=filename)
-        for f in res:
-            if f in written_files:
-                assert res[f] is not None
-            else:
-                assert res[f] is None
-        res.cleanUp()
-        remove(filename)
-
-        ## These extra removes appear to be necessary due to a bug in RnaView.
-        ## When there is a space in a path there are extra files created, and
-        ## I can recreate this with rnaview as a stand-alone application. I'm
-        ## going to try to figure this out by contacting the rnaview authors.
-        remove(filename + '_patt.out')
-        remove(filename + '_patt_tmp.out')
-        remove(filename + '_sort.out')
-        remove(filename + '_tmp.pdb')
-        removedirs(dir)
- 
     def test_base_pairs_out(self):
         """RnaView: output sanity check """
-        filename = get_tmp_filename(suffix='')
+        filename = mktemp()
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()
@@ -188,21 +128,23 @@ class test_rnaview(TestCase):
         self.assertEqual(self.r1._get_pdb_filename('/tmp/pdb17.ent'),\
             'pdb17.ent_nmr.pdb')
         remove('/tmp/pdb17.ent')
-
-        # Test space in filename 
-        f = open('/tmp/1E HZ.pdb',"w")
-        f.writelines(self.fake_pdb_file)
-        f.close()
-        self.assertEqual(self.r1._get_pdb_filename('/tmp/1E HZ.pdb'),'1E HZ.pdb')
-        remove('/tmp/1E HZ.pdb')
         
+        #OLD TESTS BEFORE THE ACTUAL FILE HAD TO BE THERE
+        #self.assertEqual(self.r1._get_pdb_filename('/tmp/1EHZ.pdb'),'1EHZ.pdb')
+        #self.assertEqual(self.r1._get_pdb_filename('/tmp/duh/1EHZ.pdb'),\
+        #    '1EHZ.pdb')
+        #self.assertEqual(self.r1._get_pdb_filename('1EHZ1.pdb'),'1EHZ1.pdb')
+        #self.assertEqual(self.r1._get_pdb_filename('/1'),'1')
+        #self.assertEqual(self.r1._get_pdb_filename('1EHZZZ.pdb'),'1EHZZZ.pdb')
+        #self.assertEqual(self.r1._get_pdb_filename('/tmp/tmpW3urtc'),\
+        #    'tmpW3urtc')
+
     def test_get_out_path(self):
         """RnaView: _get_out_path functions as expected """
         self.assertEqual(self.r1._get_out_path('1EHZ.pdb'),'')
         self.assertEqual(self.r1._get_out_path('/tmp/1EHZ.pdb'),'/tmp/')
         self.assertEqual(self.r1._get_out_path('/tmp/duh/1EHZ.pdb'),'/tmp/duh/')
         self.assertEqual(self.r1._get_out_path('/1'),'/')
-        self.assertEqual(self.r1._get_out_path('/tmp/d uh/1EHZ.pdb'),'/tmp/d uh/')
 
 
     def test_accept_exit_status(self):
@@ -212,6 +154,8 @@ class test_rnaview(TestCase):
         self.assertEqual(self.r1._accept_exit_status('0'),False)
         self.assertEqual(self.r1._accept_exit_status(None),False)
         self.assertEqual(self.r1._accept_exit_status(''),False)
+
+   
 
 fake_pdb_file = """ATOM      1  O3P   G A   1      50.193  51.190  50.534  1.00 99.85           O  
 ATOM      2  P     G A   1      50.626  49.730  50.573  1.00100.19           P  

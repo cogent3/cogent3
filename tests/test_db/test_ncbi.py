@@ -186,8 +186,5 @@ class NcbiTests(TestCase):
         assert 'Homo sapiens' in result
         assert len(result) > 2
 
-
-
-
 if __name__ == '__main__':
     main()

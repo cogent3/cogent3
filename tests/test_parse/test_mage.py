@@ -32,6 +32,8 @@ class MageGroupFromStringTests(TestCase):
             '@subgroup {max_group} recessiveon instance=   {inst \tname} lens')
         self.assertEqual(str(group),
             '@subgroup {max_group} recessiveon lens instance={inst \tname}')
+        group = f('@subgroup {Pos 1} on')
+        self.assertEqual(str(group), '@subgroup {Pos 1}')
         
     def test_MageGroupFromString_wrong(self):
         """MageGroupFromString should fail on wrong input"""
@@ -56,6 +58,8 @@ class MageListFromStringTests(TestCase):
                 'font=\tother size= 3')
         self.assertEqual(str(l),'@balllist off angle=4 width=2 '+\
                 'face=something font=other size=3')
+        l = f('@dotlist {} on nobutton color=sky')
+        self.assertEqual(str(l),'@dotlist nobutton color=sky')
         
     def test_MageListFromString_wrong(self):
         """MageListFromString should fail on wrong input"""

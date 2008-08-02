@@ -20,7 +20,8 @@ from cogent.util.array import scale_trace, norm_diff, \
 
 from cogent.core.alphabet import get_array_type
 from cogent.core.usage import RnaBases, DnaBases, DnaPairs, RnaPairs, Codons
-from cogent.core.sequence import ModelSequence
+from cogent.core.sequence import ModelSequence, ModelDnaSequence, \
+    ModelRnaSequence
 from operator import add, sub, mul, div
 from cogent.maths.matrix_logarithm import logm
 from cogent.maths.stats.util import FreqsI
@@ -28,7 +29,7 @@ from cogent.maths.matrix_exponentiation import FastExponentiator as expm
 from numpy import zeros, array, max, diag, log, nonzero, product, cumsum, \
                   searchsorted, exp, diagonal, choose, less, repeat, average,\
                   logical_and, logical_or, logical_not, transpose, compress,\
-                  ravel, concatenate, equal, log, dot, \
+                  ravel, concatenate, equal, log, dot, identity, \
                   newaxis as NewAxis, sum, take, reshape, any, all, asarray
 from numpy.linalg import eig
 from numpy.linalg import inv as inverse
@@ -910,12 +911,12 @@ class Rates(PairMatrix):
                 raise Exception, 'Made invalid Q matrix: %s' % q
         return self.__class__(new_q, self.Alphabet)
 
-    def fixNegsConstrainedOpt(self, to_minimize=norm_diff):
+    def fixNegsConstrainedOpt(self, to_minimize=norm_diff, badness=1e6):
         """Uses constrained minimization to find approx q matrix.
 
-        WARNING: As of 2/4/05, it's necessary to change 'Int' to 'Int32'
-        on lines 160, 163, and 164 of scipy/optimize/lbfgsb.py (in
-        site-packages) to get this to work. 
+        to_minimize: metric for comparing orig result and new result.
+
+        badness: scale factor for penalizing negative off-diagonal values.
         """
         if not sum_neg_off_diags(self._data):
             return self
@@ -925,11 +926,13 @@ class Rates(PairMatrix):
             new_q = reshape(array(q), (4,3))
             new_q = with_diag(new_q, -sum(new_q, 1))
             p_new = expm(new_q)(t=1)
-            return to_minimize(ravel(p), ravel(p_new))
-        #note: this optimizer changes the array in-place
+            result = to_minimize(ravel(p), ravel(p_new))
+            if q.min() < 0:
+                result += -q.min() * badness
+            return result
         a = array(q)
         xmin = fmin(func=err_f, x0=a, disp=0)
-        r = reshape(a, (4,3))
+        r = reshape(xmin, (4,3))
         new_q = with_diag(r, -sum(r, 1))
         return self.__class__(new_q, self.Alphabet)
 
@@ -963,6 +966,81 @@ class Rates(PairMatrix):
                     result[j][j] += val
         return self.__class__(result, self.Alphabet)
 
+def goldman_q_rna_triple(seq1, seq2, outgroup):
+    """Returns the Goldman rate matrix for seq1"""
+    if len(seq1) != len(seq2) != len(outgroup):
+        raise ValueError, "seq1,seq2 and outgroup are not the same length!"
+
+    seq1 = ModelRnaSequence(seq1)
+    seq2 = ModelRnaSequence(seq2)
+    outgroup = ModelRnaSequence(outgroup)
+
+    m = Counts.fromTriple(seq1, seq2, outgroup, RnaPairs)._data
+
+    q = m / m.sum(axis=1)[:,NewAxis]
+    new_diag = -(q.sum(axis=1) - diag(q))
+
+    for i,v in enumerate(new_diag):
+        q[i,i] = v
+
+    return q
+
+def goldman_q_dna_triple(seq1, seq2, outgroup):
+    """Returns the Goldman rate matrix for seq1"""
+    if len(seq1) != len(seq2) != len(outgroup):
+        raise ValueError, "seq1,seq2 and outgroup are not the same length!"
+
+    seq1 = ModelDnaSequence(seq1)
+    seq2 = ModelDnaSequence(seq2)
+    outgroup = ModelDnaSequence(outgroup)
+
+    m = Counts.fromTriple(seq1, seq2, outgroup, DnaPairs)._data
+
+    q = m / m.sum(axis=1)[:,NewAxis]
+    new_diag = -(q.sum(axis=1) - diag(q))
+
+    for i,v in enumerate(new_diag):
+        q[i,i] = v
+
+    return q
+
+def goldman_q_dna_pair(seq1, seq2):
+    """Returns the Goldman rate matrix"""
+    if len(seq1) != len(seq2):
+        raise ValueError, "seq1 and seq2 are not the same length!"
+
+    seq1, seq2 = ModelDnaSequence(seq1), ModelDnaSequence(seq2)
+
+    # grab frequencies and make symmetric
+    m = Counts.fromPair(seq1, seq2, DnaPairs,average=False)._data
+    m = (m + m.T) - (identity(4) * diag(m))
+
+    q = m / m.sum(axis=1)[:,NewAxis]
+    new_diag = -(q.sum(axis=1) - diag(q))
+
+    for i,v in enumerate(new_diag):
+        q[i,i] = v
+
+    return q
+
+def goldman_q_rna_pair(seq1, seq2):
+    """Returns the Goldman rate matrix"""
+    if len(seq1) != len(seq2):
+        raise ValueError, "seq1 and seq2 are not the same length!"
+
+    seq1, seq2 = ModelRnaSequence(seq1), ModelRnaSequence(seq2)
+
+    # grab frequencies and make symmetric
+    m = Counts.fromPair(seq1, seq2, RnaPairs,average=False)._data
+    m = (m + m.T) - (identity(4) * diag(m))
+
+    q = m / m.sum(axis=1)[:,NewAxis]
+    new_diag = -(q.sum(axis=1) - diag(q))
+
+    for i,v in enumerate(new_diag):
+        q[i,i] = v
+
+    return q
 
 def make_random_from_file(lines):
     """Simulates array random() using values from an iterator."""

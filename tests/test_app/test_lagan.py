@@ -12,7 +12,7 @@ from cogent import LoadSeqs
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Gavin Huttley"
@@ -28,7 +28,6 @@ class GeneralSetUp(TestCase):
             'TAGCTAC']
         self.labels1 = ['>a','>b', '>c', '>d']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
-        self.temp_dir = tempfile.mkdtemp()
         
 
 class MlaganTests(GeneralSetUp):
@@ -47,18 +46,15 @@ class MlaganTests(GeneralSetUp):
     def test_align(self):
         """test aligning samples"""
         # this takes a while, even for small examples like this!
-        c = Mlagan(WorkingDir=self.temp_dir, InputHandler="_input_as_lines")
+        temp_dir = tempfile.mkdtemp()
+        c = Mlagan(WorkingDir=temp_dir, InputHandler="_input_as_lines")
         res = c(self.lines1)
         align = res["StdOut"].readlines()
         self.assertEqual(align, ['>c\n', '------TAGCTAC\n',
                                  '>b\n', 'GCTACGTAGCTAC\n',
                                  '>a\n', 'GCTAC---GTTAC\n', '\n'])
         res.cleanUp()
+        shutil.rmtree(temp_dir)
     
-    def test_cleaning_up(self):
-        """not a test, just removes the temp_dir"""
-        shutil.rmtree(self.temp_dir)
-    
-
 if __name__ == '__main__':
     main()

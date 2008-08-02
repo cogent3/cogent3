@@ -5,7 +5,7 @@ import os, logging
 __author__ = "Andrew Butterfield"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
-                    "Edward Lang"]
+                "Matthew Wakefield", "Edward Lang"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Gavin Huttley"
@@ -28,7 +28,7 @@ class _FakeCommunicator(object):
         return value
     def max(self, value, dest=None):
         return value
-    def broadcastObj(self, obj, source):
+    def broadcast_obj(self, obj, source):
         return obj
     def broadcast(self, array, source):
         pass
@@ -67,7 +67,7 @@ def pop(context=None):
 
 def sync_random(r):
     if _ParallelisationStack[-1].size > 1:
-        state = _ParallelisationStack[-1].broadcastObj(r.getstate(), 0)
+        state = _ParallelisationStack[-1].broadcast_obj(r.getstate(), 0)
         r.setstate(state)
 
 def getCommunicator():

@@ -2,8 +2,6 @@
 """Utility classes for general motif and module API."""
 
 from __future__ import division
-import string
-import re
 from cogent.core.alignment import Alignment
 from cogent.core.location import Span
 
@@ -196,7 +194,9 @@ class Module(Alignment):
         """
         strict_dict = {} #Dictionary to hold counts of instance strings.
         #For each ModuleInstance in self.
+
         for instance in self.values():
+
             #If instance already in strict_dict then increment and append.
             if instance.Sequence in strict_dict:
                 strict_dict[instance.Sequence][0]+=1
@@ -204,6 +204,7 @@ class Module(Alignment):
             #Else, add count and instance to dict.
             else:
                 strict_dict[instance.Sequence]=[1,[instance]]
+        
         #List with all counts and instances
         count_list = strict_dict.values()
         count_list.sort()
@@ -283,10 +284,10 @@ class MotifFormatter(object):
 
         - Takes in a list of motifs and generates specified output format.
     """
-    COLORS = [ "#00FF00", "#FFFF00", "#00FFFF", "#FF00FF",
-               "#C0C0C0", "#FAEBD7", "#8A2BE2", "#A52A2A", "#00CC00", "#FF6600",
-               "#FF33CC", "#CC33CC", "#9933FF", "#FFCCCC", "#00CCCC", "#999999",
-               "#CC6666", "#CCCC33", "#66CCFF" ]
+    COLORS = [ "#FF0000", "#00FF00","#0000FF", "#FFFF00", "#00FFFF", "#FF00FF",
+               "#FAEBD7", "#8A2BE2", "#A52A2A", "#00CC00", "#FF6600",
+               "#FF33CC", "#CC33CC", "#9933FF", "#FFCCCC", "#00CCCC", 
+               "#CC6666", "#CCCC33", "#66CCFF", "#6633CC", "#FF6633" ]
 
     STYLES = ["", "font-weight: bold", "font-style: italic"]
     def getColorMapS0(self, module_ids):
@@ -325,28 +326,70 @@ class MotifFormatter(object):
         for module_id in module_ids: 
             ix = int(module_id)
             cur_color = ix % mod
-            color_map[module_id] = \
+            color_map["color_" + module_id] = \
                 html_color_to_rgb(MotifFormatter.COLORS[cur_color])
 
         return color_map
 
-
+    def __init__(self, *args):
+        """Init method for MotifFormatter"""
+        self.ConsCache={}
+        self.ConservationThresh=None
+    
     def __call__(self, *args):
         """Call method for MotifFormatter"""
         raise NotImplementedError
-
-def html_color_to_rgb(colorstring):
-    """ convert #RRGGBB to an (R, G, B) tuple 
     
-        - From Python Cookbook.
-    """
-    colorstring = colorstring.strip()
-    if colorstring[0] == '#': colorstring = colorstring[1:]
-    if len(colorstring) != 6:
-        raise ValueError, "input #%s is not in #RRGGBB format" % colorstring
-    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
-    r, g, b = [int(n, 16) for n in (r, g, b)]
-    return (r, g, b)
+    def _make_conservation_consensus(self, module):
+        """
+        Return conservation consensus string
+        """
+        mod_id = module.ID
+        if mod_id in self.ConsCache:
+            return self.ConsCache[mod_id]
+
+        cons_thresh = self.ConservationThresh
+
+        cons_seq = ''.join(module.majorityConsensus())
+        col_freqs = module.columnFreqs()
+        cons_con_seq = []
+        for ix, col in enumerate(col_freqs):
+            col_sum = sum(col.values())
+            keep = False
+            for b, v in col.items():
+                cur_cons = v / col_sum
+                if cur_cons >= cons_thresh:
+                    keep = True
+            if keep:
+                cons_con_seq.append(cons_seq[ix])
+            else:
+                cons_con_seq.append(" ")
+        self.ConsCache[mod_id] = (cons_seq, ''.join(cons_con_seq))
+        return self.ConsCache[mod_id]
+
+    def _flag_conserved_consensus(self, cons_con_seq, cons_seq, cur_seq):
+        """
+        Annotate consensus  
+        """
+        color_style = """background-color: %s; font-family: 'Courier New', Courier"""
+
+        span_fmt = """<span style="%s">%s</span>"""
+        h_str = []
+        for ix in range(len(cur_seq)):
+            cur_c = cur_seq[ix]
+            if cur_c == cons_con_seq[ix]:
+                h_str.append(span_fmt % (color_style % "#eeeeee", "+"))
+            elif cons_con_seq[ix] != " ":
+                #h_str.append("<font color=red>-</font>")
+                h_str.append(span_fmt % (color_style % "#ff0000", "-"))
+            elif cons_seq[ix] == cur_c:
+                #h_str.append("<font color=orange>*</font>")
+                h_str.append(span_fmt % (color_style % "white", "*"))
+            else:
+                h_str.append("&nbsp;")
+        return h_str 
+        #return """<font face="Courier New, Courier, monospace">%s</font>""" % ''.join(h_str)
+
     
 class MotifResults(object):
     """Object that holds a list of Modules, Motifs and a dict of Results.
@@ -362,3 +405,53 @@ class MotifResults(object):
             self.__dict__.update(Parameters)
         self.Alignment = Alignment
         self.MolType = MolType
+
+def html_color_to_rgb(colorstring):
+    """ convert #RRGGBB to an (R, G, B) tuple 
+    
+        - From Python Cookbook.
+    """
+    colorstring = colorstring.strip()
+    if colorstring[0] == '#': colorstring = colorstring[1:]
+    if len(colorstring) != 6:
+        raise ValueError, "input #%s is not in #RRGGBB format" % colorstring
+    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
+    r, g, b = [int(n, 16) for n in (r, g, b)]
+    #Divide each rgb value by 255.0 so to get float from 0.0-1.0 so colors
+    # work in PyMOL
+    r = r/255.0
+    g = g/255.0
+    b = b/255.0
+    return (r, g, b)
+
+def make_remap_dict(results_ids, allowed_ids):
+    """Returns a dict mapping results_ids to allowed_ids.
+    """
+    remap_dict = {}
+    warning = None
+    if sorted(results_ids) == sorted(allowed_ids):
+        remap_dict = dict(zip(results_ids,results_ids))
+    else:
+        warning = 'Sequence IDs do not match allowed IDs. IDs were remapped.'
+        for ri in results_ids:
+            curr_match = []
+            for ai in allowed_ids:
+                if ai.startswith(ri):
+                    curr_match.append(ai)
+            if not curr_match:
+                raise ValueError, \
+                    'Sequence ID "%s" was not found in allowed IDs'%(ri)
+            #if current results id was prefix of more than one allowed ID
+            elif len(curr_match)>1:
+                #Check if any allowed ID matches map to other results IDs
+                for cm in curr_match:
+                    #Remove any matches that map to other results IDs
+                    for ri2 in results_ids:
+                        if ri2 != ri and cm.startswith(ri2):
+                            curr_match.remove(cm)
+                #Raise error if still more than one match
+                if len(curr_match)>1:
+                    raise ValueError, \
+                        'Sequence ID "%s" had more than one match in allowed IDs: "%s"'%(ri,str(curr_match))
+            remap_dict[ri]=curr_match[0]
+    return remap_dict, warning

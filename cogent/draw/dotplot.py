@@ -40,7 +40,7 @@ def comparison_display(t1, t2, total_width, margin=10):
     left = max(t1.label_width, t2.height)
     bottom = max(t2.label_width, t1.height)
     width = total_width-2*margin-left
-    g1 = t1.asShape(width)
+    g1 = t1.asShape(width+t1.label_width)
     scale = 1.0*width/len(t1.base)
     height = scale * len(t2.base)
     g2 = t2.asShape(height, withTrackLabelColumn=False)

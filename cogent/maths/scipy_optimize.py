@@ -1299,6 +1299,7 @@ def brent(func, args=(), brack=None, tol=1.48e-8, full_output=0, maxiter=500):
             else: b = x
             v=w; w=x; x=u
             fv=fw; fw=fx; fx=fu
+        iter += 1
     
     xmin = x
     fval = fx

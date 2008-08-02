@@ -51,8 +51,6 @@ class DynalignTest(TestCase):
         obs = res['StdOut'].read()
         self.assertEqual(obs,exp)
         res.cleanUp()
-        remove('/tmp/dyn1')
-        remove('/tmp/dyn2')
 
     def test_get_result_path(self):
         """Tests Dynalign result path"""

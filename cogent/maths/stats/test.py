@@ -24,23 +24,84 @@ from random import choice
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
-                    "Sandra Smit", "Micah Hamady", "Daniel McDonald"]
+                    "Sandra Smit", "Micah Hamady", "Daniel McDonald",
+                    "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+class IndexOrValueError(IndexError, ValueError): pass
+
 var = cov   #cov will calculate variance if called on a vector
 
-def std(x, axis=None):
+def std_(x, axis=None):
     """Returns standard deviations by axis (similiar to numpy.std)
 
     The result is unbiased, matching the result from MLab.std
     """
     x = asarray(x)
-    d = x - mean(x, axis)
-    return sqrt(sum(d**2, axis)/(len(x)-1))
+    
+    if axis is None:
+        d = x - mean(x)
+        return sqrt(sum(d**2)/(len(x)-1))
+    elif axis == 0:
+        result = []
+        for col in range(x.shape[1]):
+            vals = x[:,col]
+            d = vals - mean(vals)
+            result.append(sqrt(sum(d**2)/(len(x)-1)))
+        return result
+    elif axis == 1:
+        result = []
+        for row in range(x.shape[0]):
+            vals = x[row,:]
+            d = vals - mean(vals)
+            result.append(sqrt(sum(d**2)/(len(x)-1)))
+        return result
+    else:
+        raise ValueError, "axis out of bounds"
+    
+# tested only by std
+def var(x, axis=None):
+    """Returns unbiased standard deviations over given axis.
+
+    Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
+
+    x: a float ndarray or asarray(x) is a float ndarray.
+    axis=None: computed for the flattened array by default, or compute along an
+     integer axis.
+
+    Implementation Notes:
+    Change the SS calculation from:
+        SumSq(x-x_bar) to SumSq(x) - SqSum(x)/n
+        See p. 37 of Zar (1999) Biostatistical Analysis.
+    """
+    x = asarray(x)
+    #figure out sample size along the axis
+    if axis is None:
+        n = x.size
+    else:
+        n = x.shape[axis]
+    #compute the sum of squares from the mean(s)
+    sample_SS = sum(x**2, axis) - sum(x, axis)**2/n
+    return sample_SS / (n-1)
+
+def std(x, axis=None):
+    """computed unbiased standard deviations along given axis or flat array.
+
+    Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
+
+    x: a float ndarray or asarray(x) is a float ndarray.
+    axis=None: computed for the flattened array by default, or compute along an
+      given integer axis.
+    """
+    try:
+        sample_variance = var(x, axis=axis)
+    except IndexError, e: #just to avoid breaking the old test code
+        raise IndexOrValueError(e)
+    return sqrt(sample_variance)
 
 def median(m, axis=None):
     """Returns medians by axis (similiar to numpy.mean)
@@ -554,6 +615,7 @@ def regress_origin(x,y):
 
     returns slope, intercept as a tuple.
     """
+    x, y = array(x), array(y)
     return sum(x*y)/sum(x*x), 0
 
 def regress_R2(x, y):
@@ -872,7 +934,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     
     try: # if numpy arrays were input, the Pval can be an array of len==1
         Pval = Pval[0]
-    except TypeError:
+    except (TypeError, IndexError):
         pass
     return stat, Pval
 
@@ -986,3 +1048,110 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
         elif alt in lo:
             p = 1 - p/2
     return tau, p
+
+## Start functions for distance_matrix_permutation_test
+
+def distance_matrix_permutation_test(matrix, cells, cells2=None,\
+        f=t_two_sample, tails=None, n=1000, return_scores=False,\
+        is_symmetric=True):
+    """performs a monte carlo permutation test to determine if the 
+    values denoted in cells are significantly different than the rest
+    of the values in the matrix
+
+    matrix: a numpy array
+    cells: a list of indices of special cells to compare to the rest of the 
+        matrix
+    cells2: an optional list of indices to compare cells to. If set to None
+        (default), compares cells to the rest of the matrix
+    f: the statistical test used. Should take a "tails" parameter as input
+    tails: can be None(default), 'high', or 'low'. Input into f.
+    n: the number of replicates in the Monte Carlo simulations
+    is_symmetric: corrects if the matrix is symmetric. Need to only look at
+        one half otherwise the degrees of freedom value will be incorrect.
+    """
+    #if matrix is symmetric convert all indices to lower trangular
+    if is_symmetric:
+        cells = get_ltm_cells(cells)
+        if cells2:
+            cells2 = get_ltm_cells(cells2)
+    # pull out the special values
+    special_values, other_values = \
+        get_values_from_matrix(matrix, cells, cells2, is_symmetric)
+    # calc the stat and parameteric p-value for real data
+    stat, p = f(special_values, other_values, tails)
+    #calc for randomized matrices
+    count_more_extreme = 0
+    stats = []
+    indices = range(len(matrix))
+    for k in range(n):
+        # shuffle the order of indices, and use those to permute the matrix
+        permuted_matrix = permute_2d(matrix,permutation(indices))
+        special_values, other_values = \
+            get_values_from_matrix(permuted_matrix, cells,\
+            cells2, is_symmetric)
+        # calc the stat and p for a random subset (we don't do anything 
+        # with these p-values, we only use the current_stat value)
+        current_stat, current_p = f(special_values, other_values, tails)
+        stats.append(current_stat)
+        if tails == None:
+            if abs(current_stat) > abs(stat): count_more_extreme += 1
+        elif tails == 'low':
+            if current_stat < stat: count_more_extreme += 1
+        elif tails == 'high':
+            if current_stat > stat: count_more_extreme += 1
+
+    # pack up the parametric stat, parametric p, and empirical p; calc the
+    # the latter in the process
+    result = [stat, p, count_more_extreme/n]
+    # append the scores of the n tests if requested
+    if return_scores: result.append(stats)
+    return tuple(result)
+
+def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
+    """get values from matrix positions in cells and cells2
+
+        matrix: the numpy array from which values should be taken
+        cells: indices of first set of requested values
+        cells2: indices of second set of requested values or None
+         if they should be randomly selected
+        is_symmetric: True if matrix is symmetric 
+
+    """
+
+    # pull cells values
+    cells_values = [matrix[i] for i in cells]
+    # pull cells2 values
+    if cells2:
+        cells2_values = [matrix[i] for i in cells2]
+    # or generate the indices and grab them if they
+    # weren't passed in
+    else:
+        cells2_values = []
+        for i, val_i in enumerate(matrix):
+            for j, val in enumerate(val_i):
+                if is_symmetric:
+                    if (i,j) not in cells and i > j:
+                        cells2_values.append(val)
+                else:
+                    if (i,j) not in cells:
+                        cells2_values.append(val)
+    return cells_values, cells2_values
+
+def get_ltm_cells(cells):
+    """converts matrix indices so all are below the diagonal
+
+        cells: list of indices into a 2D integer-indexable object
+         (typically a list or lists of array of arrays)
+    
+    """
+    new_cells = []
+    for cell in cells:
+        if cell[0] < cell[1]:
+            new_cells.append((cell[1], cell[0]))
+        elif cell[0] > cell[1]:
+            new_cells.append(cell)
+    #remove duplicates
+    new_cells = set(new_cells)
+    return list(new_cells)
+
+## End functions for distance_matrix_permutation_test
