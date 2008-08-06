@@ -12,10 +12,10 @@ from cogent.align.weights.methods import VA, VOR, mVOR, pos_char_weights, PB,\
     SS, ACL, GSC, _clip_branch_lengths, _set_branch_sum, _set_node_weight
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"

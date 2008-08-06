@@ -27,10 +27,10 @@ from math import log, exp
 from cogent.core.genetic_code import GeneticCodes
 
 __author__ = "Michael Eaton"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Michael Eaton", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

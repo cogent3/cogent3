@@ -11,10 +11,10 @@ Note:
 from numpy import sum, square, sqrt, asmatrix, zeros
 
 __author__ = "Zongzhi Liu"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Production"

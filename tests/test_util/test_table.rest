@@ -3,7 +3,7 @@
 =====================================
 
 :Author: Gavin Huttley
-:Copyright: Copyright 2007, The Cogent Project
+:Copyright: Copyright 2007-2008, The Cogent Project
 :Credits: Gavin Huttley, Felix Schill
 :License: GPL
 :Version: 1.0.1

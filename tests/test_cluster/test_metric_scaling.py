@@ -9,10 +9,10 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

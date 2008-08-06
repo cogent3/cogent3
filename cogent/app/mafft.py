@@ -15,10 +15,10 @@ from cogent.parse.tree import DndParser
 from os import remove
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
@@ -36,71 +36,165 @@ class Mafft(CommandLineApplication):
     # Algorithm
     
     # Automatically selects an appropriate strategy from L-INS-i, FFT-NS-i
-    # and FFT-NS-2, according to data size. Default: off (always FFT-NS-2)    '--auto':FlagParameter(Prefix='--',Name='auto'),\
-    # Distance is calculated based on the number of shared 6mers. Default: on    '--6merpair':FlagParameter(Prefix='--',Name='6merpair'),\    # All pairwise alignments are computed with the Needleman-Wunsch algorithm.
+    # and FFT-NS-2, according to data size. Default: off (always FFT-NS-2)
+    '--auto':FlagParameter(Prefix='--',Name='auto'),\
+
+    # Distance is calculated based on the number of shared 6mers. Default: on
+    '--6merpair':FlagParameter(Prefix='--',Name='6merpair'),\
+
+    # All pairwise alignments are computed with the Needleman-Wunsch algorithm.
     # More accurate but slower than --6merpair. Suitable for a set of globally
     # alignable sequences. Applicable to up to ~200 sequences. A combination
     # with --maxiterate 1000 is recommended (G-INS-i). Default: off 
-    # (6mer distance is used)    '--globalpair':FlagParameter(Prefix='--',Name='globalpair'),\
+    # (6mer distance is used)
+    '--globalpair':FlagParameter(Prefix='--',Name='globalpair'),\
 
     # All pairwise alignments are computed with the Smith-Waterman algorithm.
     # More accurate but slower than --6merpair. Suitable for a set of locally
     # alignable sequences. Applicable to up to ~200 sequences. A combination
     # with --maxiterate 1000 is recommended (L-INS-i). Default: off
-    # (6mer distance is used)    '--localpair':FlagParameter(Prefix='--',Name='localpair'),\    # All pairwise alignments are computed with a local algorithm with the
+    # (6mer distance is used)
+    '--localpair':FlagParameter(Prefix='--',Name='localpair'),\
+
+    # All pairwise alignments are computed with a local algorithm with the
     # generalized affine gap cost (Altschul 1998). More accurate but slower than 
     # --6merpair. Suitable when large internal gaps are expected. Applicable to
     # up to ~200 sequences. A combination with --maxiterate 1000 is recommended
-    # (E-INS-i). Default: off (6mer distance is used)    '--genafpair':FlagParameter(Prefix='--',Name='genafpair'),\    # All pairwise alignments are computed with FASTA (Pearson and Lipman 1988). 
-    # FASTA is required. Default: off (6mer distance is used)    '--fastapair':FlagParameter(Prefix='--',Name='fastapair'),\
+    # (E-INS-i). Default: off (6mer distance is used)
+    '--genafpair':FlagParameter(Prefix='--',Name='genafpair'),\
+
+    # All pairwise alignments are computed with FASTA (Pearson and Lipman 1988). 
+    # FASTA is required. Default: off (6mer distance is used)
+    '--fastapair':FlagParameter(Prefix='--',Name='fastapair'),\
 
     # Weighting factor for the consistency term calculated from pairwise
     # alignments. Valid when either of --blobalpair, --localpair, --genafpair,
-    # --fastapair or --blastpair is selected. Default: 2.7    '--weighti':ValuedParameter(Prefix='--',Name='weighti',Delimiter=' '),\    # Guide tree is built number times in the progressive stage. Valid with 6mer 
-    # distance. Default: 2    '--retree':ValuedParameter(Prefix='--',Name='retree',Delimiter=' '),\    # number cycles of iterative refinement are performed. Default: 0    '--maxiterate':ValuedParameter(Prefix='--',Name='maxiterate',\
-        Delimiter=' '),\      # Use FFT approximation in group-to-group alignment. Default: on    '--fft':FlagParameter(Prefix='--',Name='fft'),\
+    # --fastapair or --blastpair is selected. Default: 2.7
+    '--weighti':ValuedParameter(Prefix='--',Name='weighti',Delimiter=' '),\
+
+    # Guide tree is built number times in the progressive stage. Valid with 6mer 
+    # distance. Default: 2
+    '--retree':ValuedParameter(Prefix='--',Name='retree',Delimiter=' '),\
+
+    # number cycles of iterative refinement are performed. Default: 0
+    '--maxiterate':ValuedParameter(Prefix='--',Name='maxiterate',\
+        Delimiter=' '),\
+  
+    # Use FFT approximation in group-to-group alignment. Default: on
+    '--fft':FlagParameter(Prefix='--',Name='fft'),\
     
-    # Do not use FFT approximation in group-to-group alignment. Default: off    '--nofft':FlagParameter(Prefix='--',Name='nofft'),\
+    # Do not use FFT approximation in group-to-group alignment. Default: off
+    '--nofft':FlagParameter(Prefix='--',Name='nofft'),\
 
     #Alignment score is not checked in the iterative refinement stage. Default:
-    # off (score is checked)    '--noscore':FlagParameter(Prefix='--',Name='noscore'),\
+    # off (score is checked)
+    '--noscore':FlagParameter(Prefix='--',Name='noscore'),\
 
     # Use the Myers-Miller (1988) algorithm. Default: automatically turned on 
-    # when the alignment length exceeds 10,000 (aa/nt).    '--memsave':FlagParameter(Prefix='--',Name='memsave'),\    # Use a fast tree-building method (PartTree, Katoh and Toh 2007) with the
+    # when the alignment length exceeds 10,000 (aa/nt).
+    '--memsave':FlagParameter(Prefix='--',Name='memsave'),\
+
+    # Use a fast tree-building method (PartTree, Katoh and Toh 2007) with the
     # 6mer distance. Recommended for a large number (> ~10,000) of sequences are 
-    # input. Default: off    '--parttree':FlagParameter(Prefix='--',Name='parttree'),\    # The PartTree algorithm is used with distances based on DP. Slightly more
+    # input. Default: off
+    '--parttree':FlagParameter(Prefix='--',Name='parttree'),\
+
+    # The PartTree algorithm is used with distances based on DP. Slightly more
     # accurate and slower than --parttree. Recommended for a large number
-    # (> ~10,000) of sequences are input. Default: off    '--dpparttree':FlagParameter(Prefix='--',Name='dpparttree'),\    # The PartTree algorithm is used with distances based on FASTA. Slightly
+    # (> ~10,000) of sequences are input. Default: off
+    '--dpparttree':FlagParameter(Prefix='--',Name='dpparttree'),\
+
+    # The PartTree algorithm is used with distances based on FASTA. Slightly
     # more accurate and slower than --parttree. Recommended for a large number
-    # (> ~10,000) of sequences are input. FASTA is required. Default: off    '--fastaparttree':FlagParameter(Prefix='--',Name='fastaparttree'),\    # The number of partitions in the PartTree algorithm. Default: 50    '--partsize':ValuedParameter(Prefix='--',Name='partsize',Delimiter=' '),\
+    # (> ~10,000) of sequences are input. FASTA is required. Default: off
+    '--fastaparttree':FlagParameter(Prefix='--',Name='fastaparttree'),\
+
+    # The number of partitions in the PartTree algorithm. Default: 50
+    '--partsize':ValuedParameter(Prefix='--',Name='partsize',Delimiter=' '),\
+
     # Do not make alignment larger than number sequences. Valid only with the
     # --*parttree options. Default: the number of input sequences
-    '--groupsize':ValuedParameter(Prefix='--',Name='groupsize',Delimiter=' '),\     # Parameter
-    # Gap opening penalty at group-to-group alignment. Default: 1.53    '--op':ValuedParameter(Prefix='--',Name='op',Delimiter=' '),\
+    '--groupsize':ValuedParameter(Prefix='--',Name='groupsize',Delimiter=' '),\
+ 
+    # Parameter
+
+    # Gap opening penalty at group-to-group alignment. Default: 1.53
+    '--op':ValuedParameter(Prefix='--',Name='op',Delimiter=' '),\
 
     # Offset value, which works like gap extension penalty, for group-to-group
-    # alignment. Deafult: 0.123    '--ep':ValuedParameter(Prefix='--',Name='ep',Delimiter=' '),\    # Gap opening penalty at local pairwise alignment. Valid when the
-    # --localpair or --genafpair option is selected. Default: -2.00    '--lop':ValuedParameter(Prefix='--',Name='lop',Delimiter=' '),\    # Offset value at local pairwise alignment. Valid when the --localpair or 
-    # --genafpair option is selected. Default: 0.1    '--lep':ValuedParameter(Prefix='--',Name='lep',Delimiter=' '),\    # Gap extension penalty at local pairwise alignment. Valid when the
-    # --localpair or --genafpair option is selected. Default: -0.1    '--lexp':ValuedParameter(Prefix='--',Name='lexp',Delimiter=' '),\    # Gap opening penalty to skip the alignment. Valid when the --genafpair
-    # option is selected. Default: -6.00    '--LOP':ValuedParameter(Prefix='--',Name='LOP',Delimiter=' '),\    # Gap extension penalty to skip the alignment. Valid when the --genafpair
-    # option is selected. Default: 0.00    '--LEXP':ValuedParameter(Prefix='--',Name='LEXP',Delimiter=' '),\    # BLOSUM number matrix (Henikoff and Henikoff 1992) is used. number=30, 45,
-    # 62 or 80. Default: 62    '--bl':ValuedParameter(Prefix='--',Name='bl',Delimiter=' '),\    # JTT PAM number (Jones et al. 1992) matrix is used. number>0.
-    # Default: BLOSUM62    '--jtt':ValuedParameter(Prefix='--',Name='jtt',Delimiter=' '),\    # Transmembrane PAM number (Jones et al. 1994) matrix is used. number>0.
-    # Default: BLOSUM62    '--tm':ValuedParameter(Prefix='--',Name='tm',Delimiter=' '),\    # Use a user-defined AA scoring matrix. The format of matrixfile is the same 
+    # alignment. Deafult: 0.123
+    '--ep':ValuedParameter(Prefix='--',Name='ep',Delimiter=' '),\
+
+    # Gap opening penalty at local pairwise alignment. Valid when the
+    # --localpair or --genafpair option is selected. Default: -2.00
+    '--lop':ValuedParameter(Prefix='--',Name='lop',Delimiter=' '),\
+
+    # Offset value at local pairwise alignment. Valid when the --localpair or 
+    # --genafpair option is selected. Default: 0.1
+    '--lep':ValuedParameter(Prefix='--',Name='lep',Delimiter=' '),\
+
+    # Gap extension penalty at local pairwise alignment. Valid when the
+    # --localpair or --genafpair option is selected. Default: -0.1
+    '--lexp':ValuedParameter(Prefix='--',Name='lexp',Delimiter=' '),\
+
+    # Gap opening penalty to skip the alignment. Valid when the --genafpair
+    # option is selected. Default: -6.00
+    '--LOP':ValuedParameter(Prefix='--',Name='LOP',Delimiter=' '),\
+
+    # Gap extension penalty to skip the alignment. Valid when the --genafpair
+    # option is selected. Default: 0.00
+    '--LEXP':ValuedParameter(Prefix='--',Name='LEXP',Delimiter=' '),\
+
+    # BLOSUM number matrix (Henikoff and Henikoff 1992) is used. number=30, 45,
+    # 62 or 80. Default: 62
+    '--bl':ValuedParameter(Prefix='--',Name='bl',Delimiter=' '),\
+
+    # JTT PAM number (Jones et al. 1992) matrix is used. number>0.
+    # Default: BLOSUM62
+    '--jtt':ValuedParameter(Prefix='--',Name='jtt',Delimiter=' '),\
+
+    # Transmembrane PAM number (Jones et al. 1994) matrix is used. number>0.
+    # Default: BLOSUM62
+    '--tm':ValuedParameter(Prefix='--',Name='tm',Delimiter=' '),\
+
+    # Use a user-defined AA scoring matrix. The format of matrixfile is the same 
     # to that of BLAST. Ignored when nucleotide sequences are input.
-    # Default: BLOSUM62    '--aamatrix':ValuedParameter(Prefix='--',Name='aamatrix',Delimiter=' '),\    # Incorporate the AA/nuc composition information into the scoring matrix.
-    # Deafult: off    '--fmodel':FlagParameter(Prefix='--',Name='fmodel'),\
-        # Output
+    # Default: BLOSUM62
+    '--aamatrix':ValuedParameter(Prefix='--',Name='aamatrix',Delimiter=' '),\
 
-    # Output format: clustal format. Default: off (fasta format)    '--clustalout':FlagParameter(Prefix='--',Name='clustalout'),\    # Output order: same as input. Default: on    '--inputorder':FlagParameter(Prefix='--',Name='inputorder'),\
+    # Incorporate the AA/nuc composition information into the scoring matrix.
+    # Deafult: off
+    '--fmodel':FlagParameter(Prefix='--',Name='fmodel'),\
+    
+    # Output
 
-    # Output order: aligned. Default: off (inputorder)    '--reorder':FlagParameter(Prefix='--',Name='reorder'),\    # Guide tree is output to the input.tree file. Default: off    '--treeout':FlagParameter(Prefix='--',Name='treeout'),\
+    # Output format: clustal format. Default: off (fasta format)
+    '--clustalout':FlagParameter(Prefix='--',Name='clustalout'),\
+
+    # Output order: same as input. Default: on
+    '--inputorder':FlagParameter(Prefix='--',Name='inputorder'),\
+
+    # Output order: aligned. Default: off (inputorder)
+    '--reorder':FlagParameter(Prefix='--',Name='reorder'),\
+
+    # Guide tree is output to the input.tree file. Default: off
+    '--treeout':FlagParameter(Prefix='--',Name='treeout'),\
+
     # Do not report progress. Default: off
-    '--quiet':FlagParameter(Prefix='--',Name='quiet'),\# Input
+    '--quiet':FlagParameter(Prefix='--',Name='quiet'),\
 
-    # Assume the sequences are nucleotide. Deafult: auto    '--nuc':FlagParameter(Prefix='--',Name='nuc'),\    # Assume the sequences are amino acid. Deafult: auto    '--amino':FlagParameter(Prefix='--',Name='amino'),\    # Seed alignments given in alignment_n (fasta format) are aligned with
-    # sequences in input. The alignment within every seed is preserved.    '--seed':ValuedParameter(Prefix='--',Name='seed',Delimiter=' '),\    }
+# Input
+
+    # Assume the sequences are nucleotide. Deafult: auto
+    '--nuc':FlagParameter(Prefix='--',Name='nuc'),\
+
+    # Assume the sequences are amino acid. Deafult: auto
+    '--amino':FlagParameter(Prefix='--',Name='amino'),\
+
+    # Seed alignments given in alignment_n (fasta format) are aligned with
+    # sequences in input. The alignment within every seed is preserved.
+    '--seed':ValuedParameter(Prefix='--',Name='seed',Delimiter=' '),\
+    }
     
     _parameters = {}
     _parameters.update(_options)

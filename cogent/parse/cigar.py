@@ -21,10 +21,10 @@ from cogent.core.location import LostSpan, Span, Map, _LostSpan
 from cogent import DNA, LoadSeqs
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Hua Ying"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"

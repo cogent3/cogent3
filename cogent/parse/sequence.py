@@ -8,11 +8,11 @@ from cogent.parse import gbseq, tinyseq, macsim, gcg
 from cogent.parse.record import FileFormatError
 
 __author__ = "Cath Lawrence"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Cath Lawrence", "Gavin Huttley", "Peter Maxwell",
                     "Matthew Wakefield", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
