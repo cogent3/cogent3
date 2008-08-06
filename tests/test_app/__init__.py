@@ -13,11 +13,11 @@ test_dialign        test_pknotsrg
 """.split()
 
 __author__ = ""
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight", "Catherine Lozupone",
                     "Sandra Smit", "Gavin Huttley", "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

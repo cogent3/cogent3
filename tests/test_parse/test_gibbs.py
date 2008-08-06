@@ -15,10 +15,10 @@ from cogent.parse.gibbs import get_sequence_and_motif_blocks, get_sequence_map,\
 from math import exp
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
@@ -403,667 +403,1170 @@ motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 1 **
-1234[] motif A cycle 4 AP 0.0 (0 sites)
+
+** 1 **
+
+1
+2
+3
+4[] motif A cycle 4 AP 0.0 (0 sites)
 [] motif B cycle 4 AP -567.7 (18 sites)
 [] motif C cycle 4 AP -1161.7 (31 sites)
 [] motif D cycle 4 AP -245.0 (4 sites)
 Total Map : 412.899 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 53
-5[] motif A cycle 5 AP -26.6 (1 sites)
+
+5[] motif A cycle 5 AP -26.6 (1 sites)
 [] motif B cycle 5 AP -426.5 (17 sites)
 [] motif C cycle 5 AP -1245.5 (33 sites)
 [------] motif D cycle 5 AP -210.4 (4 sites)
 Total Map : 499.315 Prev: 412.899 Diff: 86.4157 Motifs: 55
-6[] motif A cycle 6 AP -178.0 (10 sites)
+
+6[] motif A cycle 6 AP -178.0 (10 sites)
 [] motif B cycle 6 AP -691.2 (26 sites)
 [] motif C cycle 6 AP -1189.4 (32 sites)
 [------] motif D cycle 6 AP -315.4 (6 sites)
 Total Map : 605.7 Prev: 499.315 Diff: 106.385 Motifs: 74
-7[] motif A cycle 7 AP -260.3 (16 sites)
+
+7[] motif A cycle 7 AP -260.3 (16 sites)
 [] motif B cycle 7 AP -664.9 (25 sites)
 [] motif C cycle 7 AP -1189.4 (32 sites)
 [------] motif D cycle 7 AP -366.4 (7 sites)
 Total Map : 646.637 Prev: 605.7 Diff: 40.937 Motifs: 80
-8[] motif A cycle 8 AP -331.5 (20 sites)
+
+8[] motif A cycle 8 AP -331.5 (20 sites)
 [] motif B cycle 8 AP -725.3 (27 sites)
 [] motif C cycle 8 AP -1141.6 (31 sites)
 [------] motif D cycle 8 AP -366.4 (7 sites)
 Total Map : 660.38 Prev: 646.637 Diff: 13.7434 Motifs: 85
-910[] motif A cycle 10 AP -371.3 (22 sites)
+
+9
+10[] motif A cycle 10 AP -371.3 (22 sites)
 [] motif B cycle 10 AP -727.7 (27 sites)
 [] motif C cycle 10 AP -1245.5 (33 sites)
 [] motif D cycle 10 AP -346.6 (7 sites)
 Total Map : 671.561 Prev: 660.38 Diff: 11.181 Motifs: 89
-11[] motif A cycle 11 AP -365.7 (22 sites)
+
+11[] motif A cycle 11 AP -365.7 (22 sites)
 [] motif B cycle 11 AP -760.1 (28 sites)
 [] motif C cycle 11 AP -1189.4 (32 sites)
 [] motif D cycle 11 AP -346.6 (7 sites)
 Total Map : 685.28 Prev: 671.561 Diff: 13.719 Motifs: 89
-12[] motif A cycle 12 AP -446.5 (26 sites)
+
+12[] motif A cycle 12 AP -446.5 (26 sites)
 [] motif B cycle 12 AP -725.3 (27 sites)
 [] motif C cycle 12 AP -1141.6 (31 sites)
 [] motif D cycle 12 AP -346.6 (7 sites)
 Total Map : 689.5 Prev: 685.28 Diff: 4.21965 Motifs: 91
-131415[] motif A cycle 15 AP -422.8 (26 sites)
+
+13
+14
+15[] motif A cycle 15 AP -422.8 (26 sites)
 [] motif B cycle 15 AP -726.1 (27 sites)
 [] motif C cycle 15 AP -1041.5 (29 sites)
 [] motif D cycle 15 AP -348.1 (7 sites)
 Total Map : 714.246 Prev: 689.5 Diff: 24.7462 Motifs: 89
-16[] motif A cycle 16 AP -440.3 (27 sites)
+
+16[] motif A cycle 16 AP -440.3 (27 sites)
 [] motif B cycle 16 AP -725.3 (27 sites)
 [] motif C cycle 16 AP -1041.5 (29 sites)
 [] motif D cycle 16 AP -348.1 (7 sites)
 Total Map : 717.139 Prev: 714.246 Diff: 2.89264 Motifs: 90
-17[] motif A cycle 17 AP -416.4 (26 sites)
+
+17[] motif A cycle 17 AP -416.4 (26 sites)
 [] motif B cycle 17 AP -725.3 (27 sites)
 [] motif C cycle 17 AP -1041.5 (29 sites)
 [] motif D cycle 17 AP -348.1 (7 sites)
 Total Map : 723.199 Prev: 717.139 Diff: 6.05975 Motifs: 89
-18[] motif A cycle 18 AP -476.5 (29 sites)
+
+18[] motif A cycle 18 AP -476.5 (29 sites)
 [] motif B cycle 18 AP -660.6 (25 sites)
 [] motif C cycle 18 AP -1041.5 (29 sites)
 [] motif D cycle 18 AP -348.1 (7 sites)
 Total Map : 725.194 Prev: 723.199 Diff: 1.99565 Motifs: 90
-19[] motif A cycle 19 AP -387.7 (25 sites)
+
+19[] motif A cycle 19 AP -387.7 (25 sites)
 [] motif B cycle 19 AP -725.3 (27 sites)
 [] motif C cycle 19 AP -1041.5 (29 sites)
 [] motif D cycle 19 AP -348.1 (7 sites)
 Total Map : 730.839 Prev: 725.194 Diff: 5.64428 Motifs: 88
-20[] motif A cycle 20 AP -454.8 (28 sites)
+
+20[] motif A cycle 20 AP -454.8 (28 sites)
 [] motif B cycle 20 AP -691.2 (26 sites)
 [] motif C cycle 20 AP -1090.2 (30 sites)
 [] motif D cycle 20 AP -348.1 (7 sites)
 Total Map : 740.315 Prev: 730.839 Diff: 9.47605 Motifs: 91
-2122[] motif A cycle 22 AP -347.4 (23 sites)
+
+21
+22[] motif A cycle 22 AP -347.4 (23 sites)
 [] motif B cycle 22 AP -691.2 (26 sites)
 [] motif C cycle 22 AP -1041.0 (29 sites)
 [] motif D cycle 22 AP -348.1 (7 sites)
 Total Map : 742.668 Prev: 740.315 Diff: 2.35327 Motifs: 85
-2324[] motif A cycle 24 AP -368.0 (24 sites)
+
+23
+24[] motif A cycle 24 AP -368.0 (24 sites)
 [] motif B cycle 24 AP -728.8 (27 sites)
 [] motif C cycle 24 AP -1041.0 (29 sites)
 [] motif D cycle 24 AP -348.1 (7 sites)
 Total Map : 742.863 Prev: 742.668 Diff: 0.19554 Motifs: 87
-2526272829303132333435363738394041424344
+
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
 MAX :: 742.863379 (Seed = 1149743202, Iteration = 24   Motif A = 24 Motif B = 27 Motif C = 29 Motif D = 7 )
 motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 2 **
-1234[] motif A cycle 4 AP -53.8 (3 sites)
+
+** 2 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -53.8 (3 sites)
 [] motif B cycle 4 AP -751.2 (33 sites)
 [] motif C cycle 4 AP -1873.4 (54 sites)
 [] motif D cycle 4 AP -667.4 (12 sites)
 Total Map : 1679.61 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 102
-5[] motif A cycle 5 AP -51.0 (3 sites)
+
+5[] motif A cycle 5 AP -51.0 (3 sites)
 [] motif B cycle 5 AP -684.4 (33 sites)
 [] motif C cycle 5 AP -1599.1 (54 sites)
 [------] motif D cycle 5 AP -534.8 (12 sites)
 Total Map : 2005.21 Prev: 1679.61 Diff: 325.602 Motifs: 102
-6[] motif A cycle 6 AP -71.4 (4 sites)
+
+6[] motif A cycle 6 AP -71.4 (4 sites)
 [] motif B cycle 6 AP -741.8 (35 sites)
 [] motif C cycle 6 AP -1599.1 (54 sites)
 [------] motif D cycle 6 AP -468.9 (11 sites)
 Total Map : 2020.82 Prev: 2005.21 Diff: 15.6117 Motifs: 104
-7[] motif A cycle 7 AP -51.0 (3 sites)
+
+7[] motif A cycle 7 AP -51.0 (3 sites)
 [] motif B cycle 7 AP -741.8 (35 sites)
 [] motif C cycle 7 AP -1599.1 (54 sites)
 [------] motif D cycle 7 AP -468.9 (11 sites)
 Total Map : 2022.05 Prev: 2020.82 Diff: 1.23593 Motifs: 103
-8910[] motif A cycle 10 AP -48.5 (3 sites)
+
+8
+9
+10[] motif A cycle 10 AP -48.5 (3 sites)
 [] motif B cycle 10 AP -741.8 (35 sites)
 [] motif C cycle 10 AP -1599.1 (54 sites)
 [] motif D cycle 10 AP -534.8 (12 sites)
 Total Map : 2026.1 Prev: 2022.05 Diff: 4.04393 Motifs: 104
-1112131415[] motif A cycle 15 AP -47.4 (3 sites)
+
+11
+12
+13
+14
+15[] motif A cycle 15 AP -47.4 (3 sites)
 [] motif B cycle 15 AP -741.8 (35 sites)
 [] motif C cycle 15 AP -1599.1 (54 sites)
 [] motif D cycle 15 AP -534.8 (12 sites)
 Total Map : 2026.45 Prev: 2026.1 Diff: 0.353957 Motifs: 104
-161718[] motif A cycle 18 AP -64.6 (4 sites)
+
+16
+17
+18[] motif A cycle 18 AP -64.6 (4 sites)
 [] motif B cycle 18 AP -741.8 (35 sites)
 [] motif C cycle 18 AP -1599.1 (54 sites)
 [] motif D cycle 18 AP -468.9 (11 sites)
 Total Map : 2028.63 Prev: 2026.45 Diff: 2.1753 Motifs: 104
-19202122[] motif A cycle 22 AP -64.6 (4 sites)
+
+19
+20
+21
+22[] motif A cycle 22 AP -64.6 (4 sites)
 [] motif B cycle 22 AP -850.9 (38 sites)
 [] motif C cycle 22 AP -1599.1 (54 sites)
 [] motif D cycle 22 AP -468.9 (11 sites)
 Total Map : 2029.4 Prev: 2028.63 Diff: 0.769306 Motifs: 107
-232425[] motif A cycle 25 AP -64.6 (4 sites)
+
+23
+24
+25[] motif A cycle 25 AP -64.6 (4 sites)
 [] motif B cycle 25 AP -850.9 (38 sites)
 [] motif C cycle 25 AP -1599.1 (54 sites)
 [] motif D cycle 25 AP -534.8 (12 sites)
 Total Map : 2029.8 Prev: 2029.4 Diff: 0.400632 Motifs: 108
-2627282930[] motif A cycle 30 AP -47.5 (3 sites)
+
+26
+27
+28
+29
+30[] motif A cycle 30 AP -47.5 (3 sites)
 [] motif B cycle 30 AP -850.9 (38 sites)
 [] motif C cycle 30 AP -1658.1 (55 sites)
 [] motif D cycle 30 AP -467.4 (11 sites)
 Total Map : 2035.48 Prev: 2029.8 Diff: 5.68003 Motifs: 107
-31323334[] motif A cycle 34 AP -47.5 (3 sites)
+
+31
+32
+33
+34[] motif A cycle 34 AP -47.5 (3 sites)
 [] motif B cycle 34 AP -816.5 (37 sites)
 [] motif C cycle 34 AP -1599.1 (54 sites)
 [] motif D cycle 34 AP -467.4 (11 sites)
 Total Map : 2036.53 Prev: 2035.48 Diff: 1.0477 Motifs: 105
-3536373839404142434445464748495051525354
+
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
 MAX :: 2036.525370 (Seed = 1149743202, Iteration = 34   Motif A = 3 Motif B = 37 Motif C = 54 Motif D = 11 )
 motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 3 **
-1234[] motif A cycle 4 AP -408.4 (26 sites)
+
+** 3 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -408.4 (26 sites)
 [] motif B cycle 4 AP -71.4 (2 sites)
 [] motif C cycle 4 AP -1871.1 (53 sites)
 [] motif D cycle 4 AP -174.1 (3 sites)
 Total Map : 1146.38 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 84
-5[] motif A cycle 5 AP -296.5 (26 sites)
+
+5[] motif A cycle 5 AP -296.5 (26 sites)
 [] motif B cycle 5 AP -71.4 (2 sites)
 [] motif C cycle 5 AP -1665.3 (53 sites)
 [] motif D cycle 5 AP -174.1 (3 sites)
 Total Map : 1455.53 Prev: 1146.38 Diff: 309.149 Motifs: 84
-6[] motif A cycle 6 AP -343.8 (29 sites)
+
+6[] motif A cycle 6 AP -343.8 (29 sites)
 [] motif B cycle 6 AP -71.4 (2 sites)
 [] motif C cycle 6 AP -1696.2 (54 sites)
 [] motif D cycle 6 AP -174.1 (3 sites)
 Total Map : 1498.45 Prev: 1455.53 Diff: 42.9205 Motifs: 88
-78[] motif A cycle 8 AP -384.0 (31 sites)
+
+7
+8[] motif A cycle 8 AP -384.0 (31 sites)
 [] motif B cycle 8 AP -71.4 (2 sites)
 [] motif C cycle 8 AP -1696.2 (54 sites)
 [] motif D cycle 8 AP -174.1 (3 sites)
 Total Map : 1502.55 Prev: 1498.45 Diff: 4.0994 Motifs: 90
-9[] motif A cycle 9 AP -422.5 (33 sites)
+
+9[] motif A cycle 9 AP -422.5 (33 sites)
 [] motif B cycle 9 AP -71.4 (2 sites)
 [] motif C cycle 9 AP -1696.2 (54 sites)
 [] motif D cycle 9 AP -174.1 (3 sites)
 Total Map : 1503.54 Prev: 1502.55 Diff: 0.99024 Motifs: 92
-1011[] motif A cycle 11 AP -419.9 (34 sites)
+
+10
+11[] motif A cycle 11 AP -419.9 (34 sites)
 [] motif B cycle 11 AP -71.4 (2 sites)
 [] motif C cycle 11 AP -1753.3 (55 sites)
 [] motif D cycle 11 AP -174.1 (3 sites)
 Total Map : 1516.48 Prev: 1503.54 Diff: 12.938 Motifs: 94
-12[] motif A cycle 12 AP -419.9 (34 sites)
+
+12[] motif A cycle 12 AP -419.9 (34 sites)
 [] motif B cycle 12 AP -71.4 (2 sites)
 [] motif C cycle 12 AP -1696.2 (54 sites)
 [] motif D cycle 12 AP -174.1 (3 sites)
 Total Map : 1518.67 Prev: 1516.48 Diff: 2.18498 Motifs: 93
-1314151617181920212223242526272829303132motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 4 **
-1234[] motif A cycle 4 AP 0.0 (0 sites)
+
+** 4 **
+
+1
+2
+3
+4[] motif A cycle 4 AP 0.0 (0 sites)
 [] motif B cycle 4 AP -1240.2 (53 sites)
 [] motif C cycle 4 AP -192.8 (5 sites)
 [] motif D cycle 4 AP -1139.0 (22 sites)
 Total Map : 1140.99 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 80
-5[] motif A cycle 5 AP -27.5 (1 sites)
+
+5[] motif A cycle 5 AP -27.5 (1 sites)
 [] motif B cycle 5 AP -1108.9 (54 sites)
 [] motif C cycle 5 AP -107.7 (4 sites)
 [+++] motif D cycle 5 AP -1112.4 (24 sites)
 Total Map : 1548.32 Prev: 1140.99 Diff: 407.325 Motifs: 83
-6789[] motif A cycle 9 AP -370.2 (22 sites)
+
+6
+7
+8
+9[] motif A cycle 9 AP -370.2 (22 sites)
 [] motif B cycle 9 AP -1103.5 (54 sites)
 [] motif C cycle 9 AP -1257.6 (33 sites)
 [+++] motif D cycle 9 AP 0.0 (0 sites)
 Total Map : 1561.07 Prev: 1548.32 Diff: 12.75 Motifs: 109
-10[] motif A cycle 10 AP -434.4 (26 sites)
+
+10[] motif A cycle 10 AP -434.4 (26 sites)
 [] motif B cycle 10 AP -1071.7 (53 sites)
 [] motif C cycle 10 AP -1241.9 (34 sites)
 [] motif D cycle 10 AP -75.4 (1 sites)
 Total Map : 1606.41 Prev: 1561.07 Diff: 45.3433 Motifs: 114
-1112[] motif A cycle 12 AP -551.0 (33 sites)
+
+11
+12[] motif A cycle 12 AP -551.0 (33 sites)
 [] motif B cycle 12 AP -1144.9 (55 sites)
 [] motif C cycle 12 AP -1232.3 (34 sites)
 [] motif D cycle 12 AP 0.0 (0 sites)
 Total Map : 1660.34 Prev: 1606.41 Diff: 53.9249 Motifs: 122
-1314151617181920212223242526272829303132motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 5 **
-1234[] motif A cycle 4 AP -44.7 (2 sites)
+
+** 5 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -44.7 (2 sites)
 [] motif B cycle 4 AP -1352.6 (53 sites)
 [] motif C cycle 4 AP -98.3 (2 sites)
 [] motif D cycle 4 AP -1454.8 (28 sites)
 Total Map : 989.762 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 85
-5[] motif A cycle 5 AP -61.7 (3 sites)
+
+5[] motif A cycle 5 AP -61.7 (3 sites)
 [] motif B cycle 5 AP -1093.0 (53 sites)
 [] motif C cycle 5 AP -82.2 (2 sites)
 [-----] motif D cycle 5 AP -1250.5 (29 sites)
 Total Map : 1543.73 Prev: 989.762 Diff: 553.967 Motifs: 87
-6[] motif A cycle 6 AP -117.1 (6 sites)
+
+6[] motif A cycle 6 AP -117.1 (6 sites)
 [] motif B cycle 6 AP -1118.4 (54 sites)
 [] motif C cycle 6 AP -82.2 (2 sites)
 [-----] motif D cycle 6 AP -1228.9 (29 sites)
 Total Map : 1579.26 Prev: 1543.73 Diff: 35.536 Motifs: 91
-78910[] motif A cycle 10 AP -119.2 (6 sites)
+
+7
+8
+9
+10[] motif A cycle 10 AP -119.2 (6 sites)
 [] motif B cycle 10 AP -1156.4 (55 sites)
 [] motif C cycle 10 AP -81.4 (2 sites)
 [] motif D cycle 10 AP -1227.7 (29 sites)
 Total Map : 1584.6 Prev: 1579.26 Diff: 5.33507 Motifs: 92
-11[] motif A cycle 11 AP -117.1 (6 sites)
+
+11[] motif A cycle 11 AP -117.1 (6 sites)
 [] motif B cycle 11 AP -1117.5 (54 sites)
 [] motif C cycle 11 AP -81.4 (2 sites)
 [] motif D cycle 11 AP -1227.7 (29 sites)
 Total Map : 1584.81 Prev: 1584.6 Diff: 0.213828 Motifs: 91
-12[] motif A cycle 12 AP -117.1 (6 sites)
+
+12[] motif A cycle 12 AP -117.1 (6 sites)
 [] motif B cycle 12 AP -1156.4 (55 sites)
 [] motif C cycle 12 AP -81.4 (2 sites)
 [] motif D cycle 12 AP -1227.7 (29 sites)
 Total Map : 1587.59 Prev: 1584.81 Diff: 2.77506 Motifs: 92
-1314151617181920[] motif A cycle 20 AP -97.4 (5 sites)
+
+13
+14
+15
+16
+17
+18
+19
+20[] motif A cycle 20 AP -97.4 (5 sites)
 [] motif B cycle 20 AP -1156.8 (55 sites)
 [] motif C cycle 20 AP -79.9 (2 sites)
 [] motif D cycle 20 AP -1227.7 (29 sites)
 Total Map : 1587.99 Prev: 1587.59 Diff: 0.397059 Motifs: 91
-21222324252627282930[] motif A cycle 30 AP -39.0 (2 sites)
+
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30[] motif A cycle 30 AP -39.0 (2 sites)
 [] motif B cycle 30 AP -1156.8 (55 sites)
 [] motif C cycle 30 AP -80.5 (2 sites)
 [] motif D cycle 30 AP -1227.7 (29 sites)
 Total Map : 1588.16 Prev: 1587.99 Diff: 0.175261 Motifs: 88
-3132[] motif A cycle 32 AP -58.3 (3 sites)
+
+31
+32[] motif A cycle 32 AP -58.3 (3 sites)
 [] motif B cycle 32 AP -1156.8 (55 sites)
 [] motif C cycle 32 AP -80.5 (2 sites)
 [] motif D cycle 32 AP -1227.7 (29 sites)
 Total Map : 1588.59 Prev: 1588.16 Diff: 0.429544 Motifs: 89
-33343536[] motif A cycle 36 AP -232.0 (13 sites)
+
+33
+34
+35
+36[] motif A cycle 36 AP -232.0 (13 sites)
 [] motif B cycle 36 AP -1117.1 (54 sites)
 [] motif C cycle 36 AP 0.0 (0 sites)
 [] motif D cycle 36 AP -1227.7 (29 sites)
 Total Map : 1601.78 Prev: 1588.59 Diff: 13.1946 Motifs: 96
-37[] motif A cycle 37 AP -229.0 (13 sites)
+
+37[] motif A cycle 37 AP -229.0 (13 sites)
 [] motif B cycle 37 AP -1156.8 (55 sites)
 [] motif C cycle 37 AP -234.4 (5 sites)
 [] motif D cycle 37 AP -1227.7 (29 sites)
 Total Map : 1611.86 Prev: 1601.78 Diff: 10.0767 Motifs: 102
-38[] motif A cycle 38 AP -247.4 (14 sites)
+
+38[] motif A cycle 38 AP -247.4 (14 sites)
 [] motif B cycle 38 AP -1156.8 (55 sites)
 [] motif C cycle 38 AP -544.7 (13 sites)
 [] motif D cycle 38 AP -1227.7 (29 sites)
 Total Map : 1688.66 Prev: 1611.86 Diff: 76.798 Motifs: 111
-3940[] motif A cycle 40 AP -199.9 (12 sites)
+
+39
+40[] motif A cycle 40 AP -199.9 (12 sites)
 [] motif B cycle 40 AP -1156.8 (55 sites)
 [] motif C cycle 40 AP -692.6 (17 sites)
 [] motif D cycle 40 AP -1227.7 (29 sites)
 Total Map : 1767.8 Prev: 1688.66 Diff: 79.137 Motifs: 113
-41[] motif A cycle 41 AP -311.4 (18 sites)
+
+41[] motif A cycle 41 AP -311.4 (18 sites)
 [] motif B cycle 41 AP -1156.8 (55 sites)
 [] motif C cycle 41 AP -784.5 (19 sites)
 [] motif D cycle 41 AP -1227.7 (29 sites)
 Total Map : 1785.93 Prev: 1767.8 Diff: 18.1288 Motifs: 121
-4243444546[] motif A cycle 46 AP -483.4 (27 sites)
+
+42
+43
+44
+45
+46[] motif A cycle 46 AP -483.4 (27 sites)
 [] motif B cycle 46 AP -1120.7 (54 sites)
 [] motif C cycle 46 AP -928.7 (22 sites)
 [] motif D cycle 46 AP -1227.7 (29 sites)
 Total Map : 1799.6 Prev: 1785.93 Diff: 13.6793 Motifs: 132
-47[] motif A cycle 47 AP -529.5 (29 sites)
+
+47[] motif A cycle 47 AP -529.5 (29 sites)
 [] motif B cycle 47 AP -1156.8 (55 sites)
 [] motif C cycle 47 AP -880.8 (21 sites)
 [] motif D cycle 47 AP -1227.7 (29 sites)
 Total Map : 1804.67 Prev: 1799.6 Diff: 5.06939 Motifs: 134
-48[] motif A cycle 48 AP -459.6 (26 sites)
+
+48[] motif A cycle 48 AP -459.6 (26 sites)
 [] motif B cycle 48 AP -1118.4 (54 sites)
 [] motif C cycle 48 AP -876.6 (21 sites)
 [] motif D cycle 48 AP -1227.7 (29 sites)
 Total Map : 1808.9 Prev: 1804.67 Diff: 4.22417 Motifs: 130
-49505152[] motif A cycle 52 AP -487.1 (27 sites)
+
+49
+50
+51
+52[] motif A cycle 52 AP -487.1 (27 sites)
 [] motif B cycle 52 AP -1156.8 (55 sites)
 [] motif C cycle 52 AP -914.8 (22 sites)
 [] motif D cycle 52 AP -1227.7 (29 sites)
 Total Map : 1817.39 Prev: 1808.9 Diff: 8.49225 Motifs: 133
-5354555657585960616263646566676869707172motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 6 **
-1234[] motif A cycle 4 AP -67.0 (3 sites)
+
+** 6 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -67.0 (3 sites)
 [] motif B cycle 4 AP -1223.6 (54 sites)
 [] motif C cycle 4 AP -145.7 (3 sites)
 [] motif D cycle 4 AP -224.8 (4 sites)
 Total Map : 981.16 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 64
-5[] motif A cycle 5 AP -37.3 (2 sites)
+
+5[] motif A cycle 5 AP -37.3 (2 sites)
 [] motif B cycle 5 AP -989.0 (54 sites)
 [] motif C cycle 5 AP -304.6 (8 sites)
 [----] motif D cycle 5 AP -187.9 (4 sites)
 Total Map : 1275.57 Prev: 981.16 Diff: 294.41 Motifs: 68
-6[] motif A cycle 6 AP -81.8 (5 sites)
+
+6[] motif A cycle 6 AP -81.8 (5 sites)
 [] motif B cycle 6 AP -989.0 (54 sites)
 [] motif C cycle 6 AP -590.1 (16 sites)
 [----] motif D cycle 6 AP -358.3 (7 sites)
 Total Map : 1416.85 Prev: 1275.57 Diff: 141.283 Motifs: 82
-7[] motif A cycle 7 AP -96.8 (6 sites)
+
+7[] motif A cycle 7 AP -96.8 (6 sites)
 [] motif B cycle 7 AP -989.0 (54 sites)
 [] motif C cycle 7 AP -633.2 (17 sites)
 [----] motif D cycle 7 AP -358.3 (7 sites)
 Total Map : 1424.61 Prev: 1416.85 Diff: 7.75982 Motifs: 84
-8910[] motif A cycle 10 AP -91.9 (6 sites)
+
+8
+9
+10[] motif A cycle 10 AP -91.9 (6 sites)
 [] motif B cycle 10 AP -989.0 (54 sites)
 [] motif C cycle 10 AP -674.5 (18 sites)
 [-] motif D cycle 10 AP -337.3 (7 sites)
 Total Map : 1448.23 Prev: 1424.61 Diff: 23.6156 Motifs: 85
-11[] motif A cycle 11 AP -91.9 (6 sites)
+
+11[] motif A cycle 11 AP -91.9 (6 sites)
 [] motif B cycle 11 AP -989.0 (54 sites)
 [] motif C cycle 11 AP -667.6 (18 sites)
 [-] motif D cycle 11 AP -337.3 (7 sites)
 Total Map : 1456.26 Prev: 1448.23 Diff: 8.03531 Motifs: 85
-1213[] motif A cycle 13 AP -114.3 (7 sites)
+
+12
+13[] motif A cycle 13 AP -114.3 (7 sites)
 [] motif B cycle 13 AP -989.0 (54 sites)
 [] motif C cycle 13 AP -854.9 (22 sites)
 [-] motif D cycle 13 AP -337.3 (7 sites)
 Total Map : 1463.23 Prev: 1456.26 Diff: 6.96803 Motifs: 90
-14[] motif A cycle 14 AP -137.2 (8 sites)
+
+14[] motif A cycle 14 AP -137.2 (8 sites)
 [] motif B cycle 14 AP -989.0 (54 sites)
 [] motif C cycle 14 AP -803.3 (21 sites)
 [-] motif D cycle 14 AP -337.3 (7 sites)
 Total Map : 1465.75 Prev: 1463.23 Diff: 2.52048 Motifs: 90
-15[] motif A cycle 15 AP -134.8 (8 sites)
+
+15[] motif A cycle 15 AP -134.8 (8 sites)
 [] motif B cycle 15 AP -989.0 (54 sites)
 [] motif C cycle 15 AP -803.3 (21 sites)
 [+] motif D cycle 15 AP -336.6 (7 sites)
 Total Map : 1470.32 Prev: 1465.75 Diff: 4.56864 Motifs: 90
-16[] motif A cycle 16 AP -108.3 (7 sites)
+
+16[] motif A cycle 16 AP -108.3 (7 sites)
 [] motif B cycle 16 AP -989.0 (54 sites)
 [] motif C cycle 16 AP -850.5 (22 sites)
 [+] motif D cycle 16 AP -411.5 (8 sites)
 Total Map : 1480.76 Prev: 1470.32 Diff: 10.4373 Motifs: 91
-17181920[] motif A cycle 20 AP -128.6 (8 sites)
+
+17
+18
+19
+20[] motif A cycle 20 AP -128.6 (8 sites)
 [] motif B cycle 20 AP -989.0 (54 sites)
 [] motif C cycle 20 AP -940.1 (24 sites)
 [--] motif D cycle 20 AP -405.0 (8 sites)
 Total Map : 1500.43 Prev: 1480.76 Diff: 19.6736 Motifs: 94
-21[] motif A cycle 21 AP -108.3 (7 sites)
+
+21[] motif A cycle 21 AP -108.3 (7 sites)
 [] motif B cycle 21 AP -989.0 (54 sites)
 [] motif C cycle 21 AP -940.1 (24 sites)
 [--] motif D cycle 21 AP -405.0 (8 sites)
 Total Map : 1501.82 Prev: 1500.43 Diff: 1.38679 Motifs: 93
-22[] motif A cycle 22 AP -108.3 (7 sites)
+
+22[] motif A cycle 22 AP -108.3 (7 sites)
 [] motif B cycle 22 AP -989.0 (54 sites)
 [] motif C cycle 22 AP -986.8 (25 sites)
 [--] motif D cycle 22 AP -405.0 (8 sites)
 Total Map : 1503.53 Prev: 1501.82 Diff: 1.70712 Motifs: 94
-2324252627[] motif A cycle 27 AP -128.6 (8 sites)
+
+23
+24
+25
+26
+27[] motif A cycle 27 AP -128.6 (8 sites)
 [] motif B cycle 27 AP -989.0 (54 sites)
 [] motif C cycle 27 AP -939.0 (24 sites)
 [] motif D cycle 27 AP -404.6 (8 sites)
 Total Map : 1504 Prev: 1503.53 Diff: 0.475394 Motifs: 94
-28[] motif A cycle 28 AP -108.3 (7 sites)
+
+28[] motif A cycle 28 AP -108.3 (7 sites)
 [] motif B cycle 28 AP -989.0 (54 sites)
 [] motif C cycle 28 AP -939.0 (24 sites)
 [] motif D cycle 28 AP -404.6 (8 sites)
 Total Map : 1505.38 Prev: 1504 Diff: 1.37798 Motifs: 93
-29303132333435[] motif A cycle 35 AP -142.7 (9 sites)
+
+29
+30
+31
+32
+33
+34
+35[] motif A cycle 35 AP -142.7 (9 sites)
 [] motif B cycle 35 AP -989.0 (54 sites)
 [] motif C cycle 35 AP -889.8 (23 sites)
 [] motif D cycle 35 AP -471.7 (9 sites)
 Total Map : 1508.79 Prev: 1505.38 Diff: 3.40696 Motifs: 95
-3637[] motif A cycle 37 AP -159.8 (10 sites)
+
+36
+37[] motif A cycle 37 AP -159.8 (10 sites)
 [] motif B cycle 37 AP -989.0 (54 sites)
 [] motif C cycle 37 AP -939.0 (24 sites)
 [] motif D cycle 37 AP -404.6 (8 sites)
 Total Map : 1514.12 Prev: 1508.79 Diff: 5.3377 Motifs: 96
-38[] motif A cycle 38 AP -159.8 (10 sites)
+
+38[] motif A cycle 38 AP -159.8 (10 sites)
 [] motif B cycle 38 AP -989.0 (54 sites)
 [] motif C cycle 38 AP -986.4 (25 sites)
 [] motif D cycle 38 AP -404.6 (8 sites)
 Total Map : 1514.79 Prev: 1514.12 Diff: 0.670946 Motifs: 97
-3940[] motif A cycle 40 AP -175.3 (11 sites)
+
+39
+40[] motif A cycle 40 AP -175.3 (11 sites)
 [] motif B cycle 40 AP -989.0 (54 sites)
 [] motif C cycle 40 AP -939.0 (24 sites)
 [] motif D cycle 40 AP -404.6 (8 sites)
 Total Map : 1518.92 Prev: 1514.79 Diff: 4.12608 Motifs: 97
-41[] motif A cycle 41 AP -151.0 (10 sites)
+
+41[] motif A cycle 41 AP -151.0 (10 sites)
 [] motif B cycle 41 AP -989.0 (54 sites)
 [] motif C cycle 41 AP -937.3 (24 sites)
 [] motif D cycle 41 AP -404.6 (8 sites)
 Total Map : 1522.39 Prev: 1518.92 Diff: 3.46783 Motifs: 96
-42[] motif A cycle 42 AP -132.3 (9 sites)
+
+42[] motif A cycle 42 AP -132.3 (9 sites)
 [] motif B cycle 42 AP -989.0 (54 sites)
 [] motif C cycle 42 AP -986.4 (25 sites)
 [] motif D cycle 42 AP -404.6 (8 sites)
 Total Map : 1523.36 Prev: 1522.39 Diff: 0.973725 Motifs: 96
-4344454647484950[] motif A cycle 50 AP -151.0 (10 sites)
+
+43
+44
+45
+46
+47
+48
+49
+50[] motif A cycle 50 AP -151.0 (10 sites)
 [] motif B cycle 50 AP -989.0 (54 sites)
 [] motif C cycle 50 AP -986.4 (25 sites)
 [] motif D cycle 50 AP -404.6 (8 sites)
 Total Map : 1524.12 Prev: 1523.36 Diff: 0.756895 Motifs: 97
-51525354[] motif A cycle 54 AP -169.9 (11 sites)
+
+51
+52
+53
+54[] motif A cycle 54 AP -169.9 (11 sites)
 [] motif B cycle 54 AP -989.0 (54 sites)
 [] motif C cycle 54 AP -939.0 (24 sites)
 [] motif D cycle 54 AP -404.6 (8 sites)
 Total Map : 1524.49 Prev: 1524.12 Diff: 0.371963 Motifs: 97
-5556575859606162636465[] motif A cycle 65 AP -151.0 (10 sites)
+
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65[] motif A cycle 65 AP -151.0 (10 sites)
 [] motif B cycle 65 AP -989.0 (54 sites)
 [] motif C cycle 65 AP -986.8 (25 sites)
 [] motif D cycle 65 AP -402.9 (8 sites)
 Total Map : 1529.11 Prev: 1524.49 Diff: 4.61554 Motifs: 97
-66[] motif A cycle 66 AP -169.9 (11 sites)
+
+66[] motif A cycle 66 AP -169.9 (11 sites)
 [] motif B cycle 66 AP -989.0 (54 sites)
 [] motif C cycle 66 AP -986.8 (25 sites)
 [] motif D cycle 66 AP -402.9 (8 sites)
 Total Map : 1530.16 Prev: 1529.11 Diff: 1.05073 Motifs: 98
-67686970[] motif A cycle 70 AP -169.9 (11 sites)
+
+67
+68
+69
+70[] motif A cycle 70 AP -169.9 (11 sites)
 [] motif B cycle 70 AP -989.0 (54 sites)
 [] motif C cycle 70 AP -986.4 (25 sites)
 [] motif D cycle 70 AP -402.9 (8 sites)
 Total Map : 1532.06 Prev: 1530.16 Diff: 1.89983 Motifs: 98
-7172737475767778798081828384858687888990motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 7 **
-1234[] motif A cycle 4 AP -201.0 (12 sites)
+
+** 7 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -201.0 (12 sites)
 [] motif B cycle 4 AP -113.6 (3 sites)
 [] motif C cycle 4 AP -930.1 (23 sites)
 [] motif D cycle 4 AP -2959.1 (54 sites)
 Total Map : 903.055 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 92
-5[] motif A cycle 5 AP -150.4 (11 sites)
+
+5[] motif A cycle 5 AP -150.4 (11 sites)
 [] motif B cycle 5 AP -117.6 (4 sites)
 [] motif C cycle 5 AP -871.9 (23 sites)
 [] motif D cycle 5 AP -2452.5 (52 sites)
 Total Map : 1437.59 Prev: 903.055 Diff: 534.536 Motifs: 90
-6[] motif A cycle 6 AP -185.8 (13 sites)
+
+6[] motif A cycle 6 AP -185.8 (13 sites)
 [] motif B cycle 6 AP -63.1 (2 sites)
 [] motif C cycle 6 AP -817.6 (22 sites)
 [] motif D cycle 6 AP -2556.7 (54 sites)
 Total Map : 1469.43 Prev: 1437.59 Diff: 31.8425 Motifs: 91
-7[] motif A cycle 7 AP -185.8 (13 sites)
+
+7[] motif A cycle 7 AP -185.8 (13 sites)
 [] motif B cycle 7 AP -63.1 (2 sites)
 [] motif C cycle 7 AP -817.6 (22 sites)
 [] motif D cycle 7 AP -2469.2 (53 sites)
 Total Map : 1490.24 Prev: 1469.43 Diff: 20.8077 Motifs: 90
-8910[] motif A cycle 10 AP -185.8 (13 sites)
+
+8
+9
+10[] motif A cycle 10 AP -185.8 (13 sites)
 [] motif B cycle 10 AP -60.9 (2 sites)
 [] motif C cycle 10 AP -923.4 (24 sites)
 [--] motif D cycle 10 AP -2454.7 (53 sites)
 Total Map : 1505.14 Prev: 1490.24 Diff: 14.9023 Motifs: 92
-111213[] motif A cycle 13 AP -185.8 (13 sites)
+
+11
+12
+13[] motif A cycle 13 AP -185.8 (13 sites)
 [] motif B cycle 13 AP -60.9 (2 sites)
 [] motif C cycle 13 AP -817.6 (22 sites)
 [--] motif D cycle 13 AP -2454.7 (53 sites)
 Total Map : 1505.52 Prev: 1505.14 Diff: 0.372181 Motifs: 90
-1415161718192021222324252627282930313233motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 8 **
-1234[] motif A cycle 4 AP -56.8 (3 sites)
+
+** 8 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -56.8 (3 sites)
 [] motif B cycle 4 AP -594.9 (23 sites)
 [] motif C cycle 4 AP -194.1 (4 sites)
 [] motif D cycle 4 AP -367.4 (6 sites)
 Total Map : 271.959 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 36
-5[] motif A cycle 5 AP -46.0 (3 sites)
+
+5[] motif A cycle 5 AP -46.0 (3 sites)
 [] motif B cycle 5 AP -486.2 (21 sites)
 [] motif C cycle 5 AP -979.1 (29 sites)
 [-----] motif D cycle 5 AP -276.6 (6 sites)
 Total Map : 840.305 Prev: 271.959 Diff: 568.345 Motifs: 59
-6[] motif A cycle 6 AP -46.0 (3 sites)
+
+6[] motif A cycle 6 AP -46.0 (3 sites)
 [] motif B cycle 6 AP -481.1 (20 sites)
 [] motif C cycle 6 AP -1396.9 (39 sites)
 [-----] motif D cycle 6 AP -486.7 (10 sites)
 Total Map : 950.671 Prev: 840.305 Diff: 110.367 Motifs: 72
-78[] motif A cycle 8 AP -46.0 (3 sites)
+
+7
+8[] motif A cycle 8 AP -46.0 (3 sites)
 [] motif B cycle 8 AP -316.3 (10 sites)
 [] motif C cycle 8 AP -3004.0 (74 sites)
 [-----] motif D cycle 8 AP -552.2 (11 sites)
 Total Map : 954.552 Prev: 950.671 Diff: 3.88022 Motifs: 98
-910[] motif A cycle 10 AP -46.5 (3 sites)
+
+9
+10[] motif A cycle 10 AP -46.5 (3 sites)
 [] motif B cycle 10 AP -243.9 (8 sites)
 [] motif C cycle 10 AP -2992.1 (74 sites)
 [-] motif D cycle 10 AP -530.1 (11 sites)
 Total Map : 1001.93 Prev: 954.552 Diff: 47.3832 Motifs: 96
-1112131415161718192021222324252627282930motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 9 **
-1234[] motif A cycle 4 AP -86.2 (4 sites)
+
+** 9 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -86.2 (4 sites)
 [] motif B cycle 4 AP -122.1 (3 sites)
 [] motif C cycle 4 AP -2149.3 (51 sites)
 [] motif D cycle 4 AP -234.1 (4 sites)
 Total Map : 509.201 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 62
-5[] motif A cycle 5 AP -66.9 (4 sites)
+
+5[] motif A cycle 5 AP -66.9 (4 sites)
 [] motif B cycle 5 AP -75.7 (3 sites)
 [] motif C cycle 5 AP -1697.1 (50 sites)
 [] motif D cycle 5 AP -461.9 (9 sites)
 Total Map : 1092.03 Prev: 509.201 Diff: 582.825 Motifs: 66
-6[] motif A cycle 6 AP -311.5 (21 sites)
+
+6[] motif A cycle 6 AP -311.5 (21 sites)
 [] motif B cycle 6 AP -96.6 (3 sites)
 [] motif C cycle 6 AP -1790.1 (52 sites)
 [] motif D cycle 6 AP -742.9 (14 sites)
 Total Map : 1213.73 Prev: 1092.03 Diff: 121.707 Motifs: 90
-7[] motif A cycle 7 AP -368.8 (24 sites)
+
+7[] motif A cycle 7 AP -368.8 (24 sites)
 [] motif B cycle 7 AP -112.7 (4 sites)
 [] motif C cycle 7 AP -1737.2 (51 sites)
 [] motif D cycle 7 AP -1041.8 (19 sites)
 Total Map : 1253.72 Prev: 1213.73 Diff: 39.9908 Motifs: 98
-8910[] motif A cycle 10 AP -481.8 (31 sites)
+
+8
+9
+10[] motif A cycle 10 AP -481.8 (31 sites)
 [] motif B cycle 10 AP -58.0 (2 sites)
 [] motif C cycle 10 AP -1790.1 (52 sites)
 [] motif D cycle 10 AP -1237.8 (23 sites)
 Total Map : 1285.2 Prev: 1253.72 Diff: 31.4769 Motifs: 108
-11[] motif A cycle 11 AP -489.8 (32 sites)
+
+11[] motif A cycle 11 AP -489.8 (32 sites)
 [] motif B cycle 11 AP -99.2 (3 sites)
 [] motif C cycle 11 AP -1790.1 (52 sites)
 [] motif D cycle 11 AP -1417.6 (26 sites)
 Total Map : 1303.74 Prev: 1285.2 Diff: 18.5344 Motifs: 113
-12[] motif A cycle 12 AP -492.2 (32 sites)
+
+12[] motif A cycle 12 AP -492.2 (32 sites)
 [] motif B cycle 12 AP -58.0 (2 sites)
 [] motif C cycle 12 AP -1842.5 (53 sites)
 [] motif D cycle 12 AP -1419.1 (26 sites)
 Total Map : 1309.87 Prev: 1303.74 Diff: 6.13088 Motifs: 113
-1314151617[] motif A cycle 17 AP -469.5 (31 sites)
+
+13
+14
+15
+16
+17[] motif A cycle 17 AP -469.5 (31 sites)
 [] motif B cycle 17 AP -58.7 (2 sites)
 [] motif C cycle 17 AP -1790.1 (52 sites)
 [] motif D cycle 17 AP -1419.1 (26 sites)
 Total Map : 1311.38 Prev: 1309.87 Diff: 1.50905 Motifs: 111
-1819202122232425262728293031323334353637motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
+
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37motif A: 5 (+/- 7.88) out of 15393   a = 20; b = 61552; p = 0.000323771
 motif B: 5 (+/- 7.87) out of 14888   a = 20; b = 59532; p = 0.000334158
 motif C: 5 (+/- 7.86) out of 14383   a = 20; b = 57512; p = 0.000345232
 motif D: 5 (+/- 7.85) out of 13878   a = 20; b = 55492; p = 0.000357066
-** 10 **
-1234[] motif A cycle 4 AP -374.5 (22 sites)
+
+** 10 **
+
+1
+2
+3
+4[] motif A cycle 4 AP -374.5 (22 sites)
 [] motif B cycle 4 AP -74.4 (2 sites)
 [] motif C cycle 4 AP -1774.4 (54 sites)
 [] motif D cycle 4 AP -1794.7 (36 sites)
 Total Map : 1821.24 Prev: -1.79769e+308 Diff: 1.79769e+308 Motifs: 114
-5[] motif A cycle 5 AP -364.1 (22 sites)
+
+5[] motif A cycle 5 AP -364.1 (22 sites)
 [] motif B cycle 5 AP -74.4 (2 sites)
 [] motif C cycle 5 AP -1607.6 (54 sites)
 [++] motif D cycle 5 AP -1738.3 (36 sites)
 Total Map : 2005.44 Prev: 1821.24 Diff: 184.204 Motifs: 114
-6[] motif A cycle 6 AP -355.0 (22 sites)
+
+6[] motif A cycle 6 AP -355.0 (22 sites)
 [] motif B cycle 6 AP -74.4 (2 sites)
 [] motif C cycle 6 AP -1607.6 (54 sites)
 [++] motif D cycle 6 AP -1800.3 (37 sites)
 Total Map : 2026.99 Prev: 2005.44 Diff: 21.5427 Motifs: 115
-7[] motif A cycle 7 AP -305.7 (20 sites)
+
+7[] motif A cycle 7 AP -305.7 (20 sites)
 [] motif B cycle 7 AP -74.4 (2 sites)
 [] motif C cycle 7 AP -1607.6 (54 sites)
 [++] motif D cycle 7 AP -1800.3 (37 sites)
 Total Map : 2042.47 Prev: 2026.99 Diff: 15.4851 Motifs: 113
-8[] motif A cycle 8 AP -360.2 (23 sites)
+
+8[] motif A cycle 8 AP -360.2 (23 sites)
 [] motif B cycle 8 AP -74.4 (2 sites)
 [] motif C cycle 8 AP -1607.6 (54 sites)
 [++] motif D cycle 8 AP -1734.6 (36 sites)
 Total Map : 2049.89 Prev: 2042.47 Diff: 7.41789 Motifs: 115
-910[] motif A cycle 10 AP -321.7 (22 sites)
+
+9
+10[] motif A cycle 10 AP -321.7 (22 sites)
 [] motif B cycle 10 AP -74.4 (2 sites)
 [] motif C cycle 10 AP -1607.6 (54 sites)
 [] motif D cycle 10 AP -1800.3 (37 sites)
 Total Map : 2065.41 Prev: 2049.89 Diff: 15.5161 Motifs: 115
-11[] motif A cycle 11 AP -345.0 (23 sites)
+
+11[] motif A cycle 11 AP -345.0 (23 sites)
 [] motif B cycle 11 AP -74.4 (2 sites)
 [] motif C cycle 11 AP -1607.6 (54 sites)
 [] motif D cycle 11 AP -1800.3 (37 sites)
 Total Map : 2068.72 Prev: 2065.41 Diff: 3.31307 Motifs: 116
-1213141516[] motif A cycle 16 AP -467.4 (29 sites)
+
+12
+13
+14
+15
+16[] motif A cycle 16 AP -467.4 (29 sites)
 [] motif B cycle 16 AP -74.4 (2 sites)
 [] motif C cycle 16 AP -1607.6 (54 sites)
 [] motif D cycle 16 AP -1800.3 (37 sites)
 Total Map : 2074.61 Prev: 2068.72 Diff: 5.89359 Motifs: 122
-17[] motif A cycle 17 AP -469.2 (29 sites)
+
+17[] motif A cycle 17 AP -469.2 (29 sites)
 [] motif B cycle 17 AP -74.4 (2 sites)
 [] motif C cycle 17 AP -1607.6 (54 sites)
 [] motif D cycle 17 AP -1800.3 (37 sites)
 Total Map : 2075.76 Prev: 2074.61 Diff: 1.14881 Motifs: 122
-181920212223242526272829303132[] motif A cycle 32 AP -377.5 (25 sites)
+
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32[] motif A cycle 32 AP -377.5 (25 sites)
 [] motif B cycle 32 AP -107.2 (3 sites)
 [] motif C cycle 32 AP -1607.6 (54 sites)
 [] motif D cycle 32 AP -1800.3 (37 sites)
 Total Map : 2090.08 Prev: 2075.76 Diff: 14.3209 Motifs: 119
-3334[] motif A cycle 34 AP -398.0 (26 sites)
+
+33
+34[] motif A cycle 34 AP -398.0 (26 sites)
 [] motif B cycle 34 AP -107.2 (3 sites)
 [] motif C cycle 34 AP -1607.6 (54 sites)
 [] motif D cycle 34 AP -1800.3 (37 sites)
 Total Map : 2090.33 Prev: 2090.08 Diff: 0.249073 Motifs: 120
-35[] motif A cycle 35 AP -377.0 (25 sites)
+
+35[] motif A cycle 35 AP -377.0 (25 sites)
 [] motif B cycle 35 AP -89.9 (3 sites)
 [] motif C cycle 35 AP -1607.6 (54 sites)
 [] motif D cycle 35 AP -1800.3 (37 sites)
 Total Map : 2095.44 Prev: 2090.33 Diff: 5.10984 Motifs: 119
-36[] motif A cycle 36 AP -377.0 (25 sites)
+
+36[] motif A cycle 36 AP -377.0 (25 sites)
 [] motif B cycle 36 AP -159.5 (5 sites)
 [] motif C cycle 36 AP -1607.6 (54 sites)
 [] motif D cycle 36 AP -1800.3 (37 sites)
 Total Map : 2099.24 Prev: 2095.44 Diff: 3.79902 Motifs: 121
-37[] motif A cycle 37 AP -377.0 (25 sites)
+
+37[] motif A cycle 37 AP -377.0 (25 sites)
 [] motif B cycle 37 AP -160.6 (5 sites)
 [] motif C cycle 37 AP -1607.6 (54 sites)
 [] motif D cycle 37 AP -1800.3 (37 sites)
 Total Map : 2102.31 Prev: 2099.24 Diff: 3.07348 Motifs: 121
-38394041[] motif A cycle 41 AP -356.4 (24 sites)
+
+38
+39
+40
+41[] motif A cycle 41 AP -356.4 (24 sites)
 [] motif B cycle 41 AP -160.7 (5 sites)
 [] motif C cycle 41 AP -1607.6 (54 sites)
 [] motif D cycle 41 AP -1800.3 (37 sites)
 Total Map : 2103.18 Prev: 2102.31 Diff: 0.864532 Motifs: 120
-4243[] motif A cycle 43 AP -377.0 (25 sites)
+
+42
+43[] motif A cycle 43 AP -377.0 (25 sites)
 [] motif B cycle 43 AP -160.7 (5 sites)
 [] motif C cycle 43 AP -1607.6 (54 sites)
 [] motif D cycle 43 AP -1800.3 (37 sites)
 Total Map : 2103.36 Prev: 2103.18 Diff: 0.182404 Motifs: 121
-4445[] motif A cycle 45 AP -422.3 (27 sites)
+
+44
+45[] motif A cycle 45 AP -422.3 (27 sites)
 [] motif B cycle 45 AP -229.0 (7 sites)
 [] motif C cycle 45 AP -1607.6 (54 sites)
 [] motif D cycle 45 AP -1800.3 (37 sites)
 Total Map : 2104.94 Prev: 2103.36 Diff: 1.57855 Motifs: 125
-46[] motif A cycle 46 AP -422.3 (27 sites)
+
+46[] motif A cycle 46 AP -422.3 (27 sites)
 [] motif B cycle 46 AP -187.8 (6 sites)
 [] motif C cycle 46 AP -1607.6 (54 sites)
 [] motif D cycle 46 AP -1668.3 (35 sites)
 Total Map : 2109.23 Prev: 2104.94 Diff: 4.29029 Motifs: 122
-47[] motif A cycle 47 AP -446.7 (28 sites)
+
+47[] motif A cycle 47 AP -446.7 (28 sites)
 [] motif B cycle 47 AP -187.8 (6 sites)
 [] motif C cycle 47 AP -1607.6 (54 sites)
 [] motif D cycle 47 AP -1668.3 (35 sites)
 Total Map : 2109.87 Prev: 2109.23 Diff: 0.644012 Motifs: 123
-4849[] motif A cycle 49 AP -490.2 (30 sites)
+
+48
+49[] motif A cycle 49 AP -490.2 (30 sites)
 [] motif B cycle 49 AP -187.8 (6 sites)
 [] motif C cycle 49 AP -1607.6 (54 sites)
 [] motif D cycle 49 AP -1668.3 (35 sites)
 Total Map : 2110.99 Prev: 2109.87 Diff: 1.11211 Motifs: 125
-5051525354555657585960616263646566676869
+
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
 MAX :: 2110.985589 (Seed = 1149743202, Iteration = 49   Motif A = 30 Motif B = 6 Motif C = 54 Motif D = 35 )
 Max subopt MAP found on seed 10
 
@@ -1075,7 +1578,107 @@ Max subopt MAP found on seed 10
 ======================================================================
 MAP = 584 maybe = 588 discard = 64640
 Max set 2111.157969 at 4
-5101520253035404550556065707580859095100105110115120125130135140145150155160165170175180185190195200205210215220225230235240245250255260265270275280285290295300305310315320325330335340345350355360365370375380385390395400405410415420425430435440445450455460465470475480485490495500
+
+5
+10
+15
+20
+25
+30
+35
+40
+45
+50
+55
+60
+65
+70
+75
+80
+85
+90
+95
+100
+105
+110
+115
+120
+125
+130
+135
+140
+145
+150
+155
+160
+165
+170
+175
+180
+185
+190
+195
+200
+205
+210
+215
+220
+225
+230
+235
+240
+245
+250
+255
+260
+265
+270
+275
+280
+285
+290
+295
+300
+305
+310
+315
+320
+325
+330
+335
+340
+345
+350
+355
+360
+365
+370
+375
+380
+385
+390
+395
+400
+405
+410
+415
+420
+425
+430
+435
+440
+445
+450
+455
+460
+465
+470
+475
+480
+485
+490
+495
+500
 
 =============================================================
 ======                Results by Sequence               =====

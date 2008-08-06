@@ -6,10 +6,10 @@ from cogent.core.genetic_code import GeneticCode, GeneticCodeInitError,\
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"

@@ -61,14 +61,14 @@ __all__ = ['aaindex',
            'unigene']
   
 __author__ = ""
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Catherine Lozupone", "Jeremy Widmann", "Matthew Wakefield",
                     "Sandra Smit", "Greg Caporaso", "Zongzhi Liu", 
                     "Micah Hamady", "Jason Carnes", "Raymond Sammut", 
                     "Hua Ying", "Andrew Butterfield"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

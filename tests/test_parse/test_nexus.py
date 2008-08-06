@@ -8,10 +8,10 @@ from cogent.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, 
      find_fields
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

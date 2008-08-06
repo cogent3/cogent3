@@ -13,10 +13,10 @@ from cogent.align.weights.util import Weights, number_of_pseudo_seqs,\
     SeqToProfile,AlnToProfile, distance_to_closest
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"

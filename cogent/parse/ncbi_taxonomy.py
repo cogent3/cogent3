@@ -5,10 +5,10 @@ from cogent.core.tree import TreeNode
 from string import strip
 
 __author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Jason Carnes"
 __email__ = "jason.carnes@sbri.org"
 __status__ = "Development"

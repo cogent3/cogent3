@@ -4,12 +4,12 @@ __all__ = ['array', 'checkpointing', 'datatypes', 'dict2d', 'misc', 'modules',
            'warning']
 
 __author__ = ""
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
                     "Peter Maxwell", "Amanda Birmingham", "Zongzhi Liu",
                     "Andrew Butterfield", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
