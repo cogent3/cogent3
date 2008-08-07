@@ -33,15 +33,15 @@ Now use this matrix to build a neighbour joining tree.
 
     >>> mytree = nj.nj(d.getPairwiseDistances())
     >>> print mytree.asciiArt()
-                        /-NineBande
-              /edge.1--|
-             |          \-Mouse
+              /-NineBande
              |
-    -root----|--DogFaced
+             |          /-DogFaced
+             |-edge.1--|
+    -root----|         |          /-HowlerMon
+             |          \edge.0--|
+             |                    \-Human
              |
-             |          /-HowlerMon
-              \edge.0--|
-                        \-Human
+              \-Mouse
 
 We can save this tree to file.
 
