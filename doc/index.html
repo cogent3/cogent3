@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Cogent Usage Examples</title>
 <style type="text/css">
 
@@ -222,79 +222,78 @@
 <body>
 <div class="document" id="cogent-usage-examples">
 <h1 class="title">Cogent Usage Examples</h1>
-
-<div class="contents topic" id="contents">
-<p class="topic-title first">Contents</p>
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
 <ul class="simple">
-<li><a class="reference internal" href="#the-readme" id="id1">The Readme</a><ul>
-<li><a class="reference internal" href="#cogent-comparative-genomics-toolkit-install" id="id2"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a><ul>
-<li><a class="reference internal" href="#dependencies" id="id3">Dependencies</a></li>
-<li><a class="reference internal" href="#installation" id="id4">Installation</a></li>
-<li><a class="reference internal" href="#testing" id="id5">Testing</a></li>
-<li><a class="reference internal" href="#tips-for-usage" id="id6">Tips for usage</a></li>
-<li><a class="reference internal" href="#citation" id="id7">Citation</a></li>
-<li><a class="reference internal" href="#licenses-and-disclaimer" id="id8">Licenses and disclaimer</a></li>
-<li><a class="reference internal" href="#contacts" id="id9">Contacts</a></li>
+<li><a class="reference" href="#the-readme" id="id1" name="id1">The Readme</a><ul>
+<li><a class="reference" href="#cogent-comparative-genomics-toolkit-install" id="id2" name="id2"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a><ul>
+<li><a class="reference" href="#dependencies" id="id3" name="id3">Dependencies</a></li>
+<li><a class="reference" href="#installation" id="id4" name="id4">Installation</a></li>
+<li><a class="reference" href="#testing" id="id5" name="id5">Testing</a></li>
+<li><a class="reference" href="#tips-for-usage" id="id6" name="id6">Tips for usage</a></li>
+<li><a class="reference" href="#citation" id="id7" name="id7">Citation</a></li>
+<li><a class="reference" href="#licenses-and-disclaimer" id="id8" name="id8">Licenses and disclaimer</a></li>
+<li><a class="reference" href="#contacts" id="id9" name="id9">Contacts</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#a-note-on-the-computable-documentation" id="id10">A Note on the Computable Documentation</a></li>
-<li><a class="reference internal" href="#data-manipulation" id="id11">Data manipulation</a><ul>
-<li><a class="reference internal" href="#translating-dna-into-protein" id="id12">Translating DNA into protein</a></li>
-<li><a class="reference internal" href="#advanced-sequence-handling" id="id13">Advanced sequence handling</a></li>
-<li><a class="reference internal" href="#getting-the-reverse-complement" id="id14">Getting the reverse complement</a></li>
-<li><a class="reference internal" href="#map-protein-alignment-gaps-to-dna-alignment-gaps" id="id15">Map protein alignment gaps to DNA alignment gaps</a></li>
+<li><a class="reference" href="#a-note-on-the-computable-documentation" id="id10" name="id10">A Note on the Computable Documentation</a></li>
+<li><a class="reference" href="#data-manipulation" id="id11" name="id11">Data manipulation</a><ul>
+<li><a class="reference" href="#translating-dna-into-protein" id="id12" name="id12">Translating DNA into protein</a></li>
+<li><a class="reference" href="#advanced-sequence-handling" id="id13" name="id13">Advanced sequence handling</a></li>
+<li><a class="reference" href="#getting-the-reverse-complement" id="id14" name="id14">Getting the reverse complement</a></li>
+<li><a class="reference" href="#map-protein-alignment-gaps-to-dna-alignment-gaps" id="id15" name="id15">Map protein alignment gaps to DNA alignment gaps</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#data-visualisation" id="id16">Data Visualisation</a><ul>
-<li><a class="reference internal" href="#drawing-dendrograms-and-saving-to-pdf" id="id17">Drawing dendrograms and saving to PDF</a></li>
-<li><a class="reference internal" href="#drawing-a-dotplot" id="id18">Drawing a dotplot</a></li>
+<li><a class="reference" href="#data-visualisation" id="id16" name="id16">Data Visualisation</a><ul>
+<li><a class="reference" href="#drawing-dendrograms-and-saving-to-pdf" id="id17" name="id17">Drawing dendrograms and saving to PDF</a></li>
+<li><a class="reference" href="#drawing-a-dotplot" id="id18" name="id18">Drawing a dotplot</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#modelling-evolution" id="id19">Modelling Evolution</a><ul>
-<li><a class="reference internal" href="#the-simplest-script" id="id20">The simplest script</a></li>
-<li><a class="reference internal" href="#performing-a-relative-rate-test" id="id21">Performing a relative rate test</a></li>
-<li><a class="reference internal" href="#a-test-of-the-neutral-theory" id="id22">A test of the neutral theory</a></li>
-<li><a class="reference internal" href="#use-an-empirical-protein-substitution-model" id="id23">Use an empirical protein substitution model</a></li>
-<li><a class="reference internal" href="#analysis-of-rate-heterogeneity" id="id24">Analysis of rate heterogeneity</a></li>
-<li><a class="reference internal" href="#likelihood-analysis-of-multiple-loci" id="id25">Likelihood analysis of multiple loci</a></li>
-<li><a class="reference internal" href="#reusing-results-to-speed-up-optimisation" id="id26">Reusing results to speed up optimisation</a></li>
-<li><a class="reference internal" href="#specifying-and-using-an-restricted-nucleotide-substitution-model" id="id27">Specifying and using an restricted nucleotide substitution model</a></li>
-<li><a class="reference internal" href="#simulate-an-alignment" id="id28">Simulate an alignment</a></li>
-<li><a class="reference internal" href="#performing-a-parametric-bootstrap" id="id29">Performing a parametric bootstrap</a></li>
-<li><a class="reference internal" href="#estimate-parameter-values-using-a-sampling-from-a-dataset" id="id30">Estimate parameter values using a sampling from a dataset</a></li>
+<li><a class="reference" href="#modelling-evolution" id="id19" name="id19">Modelling Evolution</a><ul>
+<li><a class="reference" href="#the-simplest-script" id="id20" name="id20">The simplest script</a></li>
+<li><a class="reference" href="#performing-a-relative-rate-test" id="id21" name="id21">Performing a relative rate test</a></li>
+<li><a class="reference" href="#a-test-of-the-neutral-theory" id="id22" name="id22">A test of the neutral theory</a></li>
+<li><a class="reference" href="#use-an-empirical-protein-substitution-model" id="id23" name="id23">Use an empirical protein substitution model</a></li>
+<li><a class="reference" href="#analysis-of-rate-heterogeneity" id="id24" name="id24">Analysis of rate heterogeneity</a></li>
+<li><a class="reference" href="#likelihood-analysis-of-multiple-loci" id="id25" name="id25">Likelihood analysis of multiple loci</a></li>
+<li><a class="reference" href="#reusing-results-to-speed-up-optimisation" id="id26" name="id26">Reusing results to speed up optimisation</a></li>
+<li><a class="reference" href="#specifying-and-using-an-restricted-nucleotide-substitution-model" id="id27" name="id27">Specifying and using an restricted nucleotide substitution model</a></li>
+<li><a class="reference" href="#simulate-an-alignment" id="id28" name="id28">Simulate an alignment</a></li>
+<li><a class="reference" href="#performing-a-parametric-bootstrap" id="id29" name="id29">Performing a parametric bootstrap</a></li>
+<li><a class="reference" href="#estimate-parameter-values-using-a-sampling-from-a-dataset" id="id30" name="id30">Estimate parameter values using a sampling from a dataset</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#phylogenetic-reconstruction" id="id31">Phylogenetic Reconstruction</a><ul>
-<li><a class="reference internal" href="#calculate-pairwise-distances-between-sequences" id="id32">Calculate pairwise distances between sequences</a></li>
-<li><a class="reference internal" href="#make-a-neighbor-joining-tree" id="id33">Make a neighbor joining tree</a></li>
-<li><a class="reference internal" href="#phylogenetic-reconstruction-by-least-squares" id="id34">Phylogenetic reconstruction by least squares</a><ul>
-<li><a class="reference internal" href="#look-for-the-single-best-tree" id="id35">Look for the single best tree</a></li>
-<li><a class="reference internal" href="#a-more-rigourous-tree-space-search" id="id36">A more rigourous tree space search</a></li>
-<li><a class="reference internal" href="#assessing-the-fit-for-a-pre-specified-tree-topology" id="id37">Assessing the fit for a pre-specified tree topology</a></li>
-<li><a class="reference internal" href="#using-maximum-likelihood-for-measuring-tree-fit" id="id38">Using maximum likelihood for measuring tree fit</a></li>
+<li><a class="reference" href="#phylogenetic-reconstruction" id="id31" name="id31">Phylogenetic Reconstruction</a><ul>
+<li><a class="reference" href="#calculate-pairwise-distances-between-sequences" id="id32" name="id32">Calculate pairwise distances between sequences</a></li>
+<li><a class="reference" href="#make-a-neighbor-joining-tree" id="id33" name="id33">Make a neighbor joining tree</a></li>
+<li><a class="reference" href="#phylogenetic-reconstruction-by-least-squares" id="id34" name="id34">Phylogenetic reconstruction by least squares</a><ul>
+<li><a class="reference" href="#look-for-the-single-best-tree" id="id35" name="id35">Look for the single best tree</a></li>
+<li><a class="reference" href="#a-more-rigourous-tree-space-search" id="id36" name="id36">A more rigourous tree space search</a></li>
+<li><a class="reference" href="#assessing-the-fit-for-a-pre-specified-tree-topology" id="id37" name="id37">Assessing the fit for a pre-specified tree topology</a></li>
+<li><a class="reference" href="#using-maximum-likelihood-for-measuring-tree-fit" id="id38" name="id38">Using maximum likelihood for measuring tree fit</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#making-a-phylogenetic-tree-from-a-protein-sequence-alignment" id="id39">Making a phylogenetic tree from a protein sequence alignment</a></li>
+<li><a class="reference" href="#making-a-phylogenetic-tree-from-a-protein-sequence-alignment" id="id39" name="id39">Making a phylogenetic tree from a protein sequence alignment</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#python-coding-guidelines" id="id40">Python Coding Guidelines</a><ul>
-<li><a class="reference internal" href="#why-have-coding-guidelines" id="id41">Why have coding guidelines?</a><ul>
-<li><a class="reference internal" href="#what-should-i-call-my-variables" id="id42">What should I call my variables?</a><ul>
-<li><a class="reference internal" href="#acceptable-abbreviations" id="id43">Acceptable abbreviations</a></li>
+<li><a class="reference" href="#python-coding-guidelines" id="id40" name="id40">Python Coding Guidelines</a><ul>
+<li><a class="reference" href="#why-have-coding-guidelines" id="id41" name="id41">Why have coding guidelines?</a><ul>
+<li><a class="reference" href="#what-should-i-call-my-variables" id="id42" name="id42">What should I call my variables?</a><ul>
+<li><a class="reference" href="#acceptable-abbreviations" id="id43" name="id43">Acceptable abbreviations</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#what-are-the-naming-conventions" id="id44">What are the naming conventions?</a></li>
-<li><a class="reference internal" href="#how-do-i-organize-my-modules-source-files" id="id45">How do I organize my modules (source files)?</a><ul>
-<li><a class="reference internal" href="#example-of-module-structure" id="id46">Example of module structure</a></li>
-<li><a class="reference internal" href="#how-should-i-write-comments" id="id47">How should I write comments?</a></li>
+<li><a class="reference" href="#what-are-the-naming-conventions" id="id44" name="id44">What are the naming conventions?</a></li>
+<li><a class="reference" href="#how-do-i-organize-my-modules-source-files" id="id45" name="id45">How do I organize my modules (source files)?</a><ul>
+<li><a class="reference" href="#example-of-module-structure" id="id46" name="id46">Example of module structure</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#how-should-i-format-my-code" id="id48">How should I format my code?</a></li>
-<li><a class="reference internal" href="#how-should-i-test-my-code" id="id49">How should I test my code ?</a><ul>
-<li><a class="reference internal" href="#some-unittest-pointers" id="id50">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></li>
-<li><a class="reference internal" href="#example-of-a-unittest-test-module-structure" id="id51">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></li>
+<li><a class="reference" href="#how-should-i-write-comments" id="id47" name="id47">How should I write comments?</a></li>
+<li><a class="reference" href="#how-should-i-format-my-code" id="id48" name="id48">How should I format my code?</a></li>
+<li><a class="reference" href="#how-should-i-test-my-code" id="id49" name="id49">How should I test my code ?</a><ul>
+<li><a class="reference" href="#some-unittest-pointers" id="id50" name="id50">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></li>
+<li><a class="reference" href="#example-of-a-unittest-test-module-structure" id="id51" name="id51">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></li>
 </ul>
 </li>
 </ul>
@@ -303,10 +302,10 @@
 </li>
 </ul>
 </div>
-<div class="section" id="the-readme">
-<h1><a class="toc-backref" href="#id1">The Readme</a></h1>
-<div class="section" id="cogent-comparative-genomics-toolkit-install">
-<h2><a class="toc-backref" href="#id2"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id1" id="the-readme" name="the-readme">The Readme</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id2" id="cogent-comparative-genomics-toolkit-install" name="cogent-comparative-genomics-toolkit-install"><cite>COGENT</cite> (COmparative GENomics Toolkit) Install</a></h2>
 <!-- This document is written in `restructured text`_ format. A html version, including examples cogent.html located in the doc directory, is automatically created when the project tarball is built. -->
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -323,22 +322,22 @@ University of Colorado, Boulder, CO 80309-0215, USA.</td>
 </tr>
 <tr class="field"><th class="field-name">Copyright:</th><td class="field-body">This software is copyright 2002-2007.</td>
 </tr>
-<tr class="field"><th class="field-name">Download:</th><td class="field-body">Download from <a class="reference external" href="http://sourceforge.net/projects/pycogent">here</a>.</td>
+<tr class="field"><th class="field-name">Download:</th><td class="field-body">Download from <a class="reference" href="http://sourceforge.net/projects/pycogent">here</a>.</td>
 </tr>
 <tr class="field"><th class="field-name">Registration:</th><td class="field-body">To be informed of bugs, new releases please subscribe to the mailing lists at sourceforge.</td>
 </tr>
 </tbody>
 </table>
-<div class="section" id="dependencies">
-<h3><a class="toc-backref" href="#id3">Dependencies</a></h3>
-<p>The toolkit requires Python 2.5.1 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.</p>
-<p><strong>For non-geeks:</strong> The best way to install these dependencies depends on your platform. For MacOS X users, we suggest you install MacPython (see the <a class="reference external" href="http://www.python.org">python</a> home page) as it also contains a package manager that can ease installation of some of the dependencies.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id3" id="dependencies" name="dependencies">Dependencies</a></h3>
+<p>The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.</p>
+<p><strong>For non-geeks:</strong> The best way to install these dependencies depends on your platform. For MacOS X users, we suggest you install MacPython (see the <a class="reference" href="http://www.python.org">python</a> home page) as it also contains a package manager that can ease installation of some of the dependencies.</p>
 <dl class="docutils">
 <dt><cite>Required</cite></dt>
 <dd><ul class="first last">
-<li><p class="first"><a class="reference external" href="http://www.python.org">Python</a>: the language the toolkit is primarily written in, and in which the user writes control scripts.</p>
+<li><p class="first"><a class="reference" href="http://www.python.org">Python</a>: the language the toolkit is primarily written in, and in which the user writes control scripts.</p>
 </li>
-<li><p class="first"><a class="reference external" href="http://www.scipy.org/NumPy">Numpy</a>: This is a python module used for speeding up matrix computations. It is available as source code for *nix. <strong>NOTE:</strong> For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as:</p>
+<li><p class="first"><a class="reference" href="http://www.scipy.org/NumPy">Numpy</a>: This is a python module used for speeding up matrix computations. It is available as source code for *nix. <strong>NOTE:</strong> For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as:</p>
 <pre class="literal-block">
 $ export ATLAS=None
 $ export LAPACK=None
@@ -348,18 +347,18 @@ $ export LAPACK=None
 </dd>
 <dt><cite>Optional</cite></dt>
 <dd><ul class="first last simple">
-<li>C compiler: This is standard on most *nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from <a class="reference external" href="http://www.apple.com">Apple</a>, or get MacPython and use the package manager.</li>
-<li><a class="reference external" href="http://reportlab.org">ReportLab</a>: required for drawing trees and alignments to pdf.</li>
-<li><a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib</a>: used to plot several kinds of graphs related to codon usage.</li>
-<li><a class="reference external" href="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/">Pyrex</a>: This module is only necessary if you are a developer who wants to modify the *.pyx files.</li>
-<li><a class="reference external" href="http://jcsmr.anu.edu.au/org/dmb/compgen/software.php">PyxMPI</a>: Our own python MPI interface, required for parallel computation.</li>
+<li>C compiler: This is standard on most *nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from <a class="reference" href="http://www.apple.com">Apple</a>, or get MacPython and use the package manager.</li>
+<li><a class="reference" href="http://reportlab.org">ReportLab</a>: required for drawing trees and alignments to pdf.</li>
+<li><a class="reference" href="http://matplotlib.sourceforge.net">Matplotlib</a>: used to plot several kinds of graphs related to codon usage.</li>
+<li><a class="reference" href="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/">Pyrex</a>: This module is only necessary if you are a developer who wants to modify the *.pyx files.</li>
+<li><a class="reference" href="http://jcsmr.anu.edu.au/org/dmb/compgen/software.php">PyxMPI</a>: Our own python MPI interface, required for parallel computation.</li>
 </ul>
 </dd>
 </dl>
 </div>
-<div class="section" id="installation">
-<h3><a class="toc-backref" href="#id4">Installation</a></h3>
-<p>For *nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from <a class="reference external" href="http://sourceforge.net/projects/pycogent">here</a>. Uncompress the archive and change into the <tt class="docutils literal"><span class="pre">Cogent</span></tt> directory and type:</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id4" id="installation" name="installation">Installation</a></h3>
+<p>For *nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from <a class="reference" href="http://sourceforge.net/projects/pycogent">here</a>. Uncompress the archive and change into the <tt class="docutils literal"><span class="pre">Cogent</span></tt> directory and type:</p>
 <pre class="literal-block">
 $ python setup.py build
 </pre>
@@ -370,8 +369,8 @@ $ sudo python setup.py install
 <p>This then places the entire package into your python/site-packages folder.</p>
 <p>If you do not have administrator privileges on your machine you can move the cogent directory to where you want it (or leave it in place) and add this location to your python path using <tt class="docutils literal"><span class="pre">sys.path.append(&quot;/your/path/to/Cogent&quot;)</span></tt> in each script, or by setting shell environment variables. (Note that the path is not to <tt class="docutils literal"><span class="pre">../Cogent/cogent</span></tt>.)</p>
 </div>
-<div class="section" id="testing">
-<h3><a class="toc-backref" href="#id5">Testing</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id5" id="testing" name="testing">Testing</a></h3>
 <p><tt class="docutils literal"><span class="pre">Cogent/tests</span></tt> contains all the tests (currently &gt;2700). You can most readily run the tests using the <tt class="docutils literal"><span class="pre">Cogent/run_tests</span></tt> shell script. This is done by typing:</p>
 <pre class="literal-block">
 $ sh run_tests
@@ -380,34 +379,34 @@ $ sh run_tests
 <p>Ran 1982 tests in 40.455s</p>
 <p>OK</p>
 </div>
-<div class="section" id="tips-for-usage">
-<h3><a class="toc-backref" href="#id6">Tips for usage</a></h3>
-<p>A good IDE can greatly simplify writing control scripts. Features such as code completion and definition look-up are extremely useful. Amongst the freeware editors are <a class="reference external" href="http://www.jedit.org">Jedit</a> (runs on all platforms, and has plugins to provide an overview of code structure or to organise projects), <a class="reference external" href="http://www.codingmonkeys.de/subethaedit/">SubEthaEdit</a> (MacOS X only) and of course <a class="reference external" href="http://www.gnu.org/software/emacs/emacs.html">emacs</a> (all platforms). These provide syntax highlighting for Python, automated code indentation and (Jedit and emacs) code-folding abilities. For a more complete list of <a class="reference external" href="http://www.python.org/cgi-bin/moinmoin/PythonEditors">editors go here</a>.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id6" id="tips-for-usage" name="tips-for-usage">Tips for usage</a></h3>
+<p>A good IDE can greatly simplify writing control scripts. Features such as code completion and definition look-up are extremely useful. Amongst the freeware editors are <a class="reference" href="http://www.jedit.org">Jedit</a> (runs on all platforms, and has plugins to provide an overview of code structure or to organise projects), <a class="reference" href="http://www.codingmonkeys.de/subethaedit/">SubEthaEdit</a> (MacOS X only) and of course <a class="reference" href="http://www.gnu.org/software/emacs/emacs.html">emacs</a> (all platforms). These provide syntax highlighting for Python, automated code indentation and (Jedit and emacs) code-folding abilities. For a more complete list of <a class="reference" href="http://www.python.org/cgi-bin/moinmoin/PythonEditors">editors go here</a>.</p>
 <p>To get help on attributes of an object in python, use the <tt class="docutils literal"><span class="pre">dir(myalign)</span></tt> to list the attributes of <tt class="docutils literal"><span class="pre">myalign</span></tt> or <tt class="docutils literal"><span class="pre">help(myalign.writeToFile)</span></tt> to figure out how to use the <tt class="docutils literal"><span class="pre">myalign.writeToFile</span></tt> method. Also note that the directory structure of the package is similar to the import statements required to use a module -- to see the contents of <tt class="docutils literal"><span class="pre">alignment.py</span></tt> or <tt class="docutils literal"><span class="pre">sequence.py</span></tt> you need to look in the directory <tt class="docutils literal"><span class="pre">cogent/core</span></tt> path, to use the classes in those files you specify <tt class="docutils literal"><span class="pre">cogent.core</span></tt> for importing.</p>
 </div>
-<div class="section" id="citation">
-<span id="pyevolve"></span><h3><a class="toc-backref" href="#id7">Citation</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id7" id="citation" name="citation"><span id="pyevolve"></span>Citation</a></h3>
 <p>If you use this software for published work please cite either --  R. Knight, P. Maxwell, A. Birmingham, J. Carnes, J. Caporaso, B. Easton, M. Hamady, H. Lindsay, Z. Liu, C. Lozupone, R. Sammut, S. Smit, M. Wakefield, J. Widmann, S. Wikman, S. Wilson, H. Ying, and G. Huttley. PyCogent: a toolkit for making sense from sequence. Genome Biol, In press, 2007.; or, Butterfield, A., V. Vedagiri, E. Lang, C. Lawrence, M.J. Wakefield, A. Isaev, and G.A. Huttley, PyEvolve: a toolkit for statistical modelling of molecular evolution. <cite>BMC Bioinformatics</cite>, 2004. <strong>5(1):</strong> p. 1</p>
 </div>
-<div class="section" id="licenses-and-disclaimer">
-<h3><a class="toc-backref" href="#id8">Licenses and disclaimer</a></h3>
-<p>COGENT is released under the GPL license, a copy of which is <a class="reference external" href="EVOLVE_LICENSE.txt">included</a> in the distribution. A copy of the permission to use the matrix exponentiation code from <a class="reference external" href="MATRIX_LICENSE.txt">PAML</a> is also included. Licenses for other code sources are left in place.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id8" id="licenses-and-disclaimer" name="licenses-and-disclaimer">Licenses and disclaimer</a></h3>
+<p>COGENT is released under the GPL license, a copy of which is <a class="reference" href="EVOLVE_LICENSE.txt">included</a> in the distribution. A copy of the permission to use the matrix exponentiation code from <a class="reference" href="MATRIX_LICENSE.txt">PAML</a> is also included. Licenses for other code sources are left in place.</p>
 <p>This software is provided &quot;as-is&quot;. There are no expressed or implied warranties of any kind, including, but not limited to, the warranties of merchantability and fitness for a given application. In no event shall the authors be liable for any direct, indirect, incidental, special, exemplary or consequential damages (including, but not limited to, loss of use, data or profits, or business interruption) however caused and on any theory of liability, whether in contract, strict liability or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.</p>
 </div>
-<div class="section" id="contacts">
-<h3><a class="toc-backref" href="#id9">Contacts</a></h3>
-<p>If you find a bug or have any questions please send us an <a class="reference external" href="mailto:cogent&#64;cbis.anu.edu.au">email</a>.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id9" id="contacts" name="contacts">Contacts</a></h3>
+<p>If you find a bug or have any questions please send us an <a class="reference" href="mailto:cogent&#64;cbis.anu.edu.au">email</a>.</p>
 </div>
 </div>
 </div>
-<div class="section" id="a-note-on-the-computable-documentation">
-<h1><a class="toc-backref" href="#id10">A Note on the Computable Documentation</a></h1>
+<div class="section">
+<h1><a class="toc-backref" href="#id10" id="a-note-on-the-computable-documentation" name="a-note-on-the-computable-documentation">A Note on the Computable Documentation</a></h1>
 <p>The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.</p>
 </div>
-<div class="section" id="data-manipulation">
-<h1><a class="toc-backref" href="#id11">Data manipulation</a></h1>
-<div class="section" id="translating-dna-into-protein">
-<h2><a class="toc-backref" href="#id12">Translating DNA into protein</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id11" id="data-manipulation" name="data-manipulation">Data manipulation</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id12" id="translating-dna-into-protein" name="translating-dna-into-protein">Translating DNA into protein</a></h2>
 <p>To translate a DNA alignment, read it in assigning the DNA alphabet. Note setting <tt class="docutils literal"><span class="pre">aligned</span> <span class="pre">=</span> <span class="pre">False</span></tt> is critical for loading sequences of unequal length. Different genetic codes are available in <tt class="docutils literal"><span class="pre">cogent.core.genetic_code</span></tt></p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA
 &gt;&gt;&gt; al = LoadSeqs(<span class="py_string">'data/test2.fasta'</span>, moltype=DNA, aligned = <span class="py_keyword">False</span>)
@@ -424,8 +423,8 @@ AVSQQSRWAASKGTCNDRQV
 &gt;NineBande
 RQQSRWAESKETCNDRQT</pre><p>To save this result to a file, use the <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method.</p>
 </div>
-<div class="section" id="advanced-sequence-handling">
-<h2><a class="toc-backref" href="#id13">Advanced sequence handling</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id13" id="advanced-sequence-handling" name="advanced-sequence-handling">Advanced sequence handling</a></h2>
 <p>Individual sequences and alignments can be manipulated by annotations. Most value in the genome sequences arises from sequence annotations regarding specific sequence feature types, e.g. genes with introns / exons, repeat sequences. These can be applied to an alignment either using data formats available from genome portals (e.g. GFF, or GenBank annotation formats) or by custom assignments.</p>
 <p>Annotations can be added in two ways: using either the <tt class="docutils literal"><span class="pre">addAnnotation</span></tt> or the <tt class="docutils literal"><span class="pre">addFeature</span></tt> method. The distinction between these two is that <tt class="docutils literal"><span class="pre">addFeatures</span></tt> is more specialised. Features can be thought of as a type of annotation representing standard sequence properties eg introns/exons. Annotations are the more general case, such as a computed property which has, say a numerical value and a span.</p>
 <p>For illustrative purposes we define a sequence with 2 exons and grab the 1<sup>st</sup> exon:</p>
@@ -455,8 +454,8 @@ AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA</pre><p>The first of these essentially returns
 DnaSequence(CCC)</pre><p>This approach to sequence / alignment handling allows the user to manipulate them according to things they know about such as genes or repeat elements. Most of this annotation data can be obtained from genome portals.</p>
 <p>The toolkit can perform standard sequence / alignment manipulations such as getting a subset of sequences or aligned columns, translating sequences, reading and writing standard formats.</p>
 </div>
-<div class="section" id="getting-the-reverse-complement">
-<h2><a class="toc-backref" href="#id14">Getting the reverse complement</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id14" id="getting-the-reverse-complement" name="getting-the-reverse-complement">Getting the reverse complement</a></h2>
 <p>This is a property of DNA, and hence alignments need to be created with the appropriate <tt class="docutils literal"><span class="pre">MolType</span></tt>. In the following example, the alignment is truncated to just 100 bases for the sake of simplifying the presentation.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA
 &gt;&gt;&gt; aln = LoadSeqs(<span class="py_string">"data/long_testseqs.fasta"</span>, moltype=DNA)[:100]</pre><p>The original alignment looks like this.</p>
@@ -471,9 +470,9 @@ TGTGGCACAAATACTCATGCCAACTCATTACAGCATGAGAACAGCAGTTTATTATACACTAAAGACAGAATGAATGTAGA
 TATTACAGAAGTCAGTCTTTTCTACATTCATTCTGTCTTTAGTGTATAATAAACT---GTTCTCATGCTGTAAAGAGCTGGCATGAGCATTTGTGCCACA
 &gt;DogFaced
 TATTACAGAAGTCAGTCTTTTCTACATTCATTCTGTCTTTAGTGTATAATAAACTGCTGTTCTCATGCTGTAATGAGTTGGCATGAGTATTTGTGCCACA
-&lt;BLANKLINE&gt;</pre></div>
-<div class="section" id="map-protein-alignment-gaps-to-dna-alignment-gaps">
-<h2><a class="toc-backref" href="#id15">Map protein alignment gaps to DNA alignment gaps</a></h2>
+</pre></div>
+<div class="section">
+<h2><a class="toc-backref" href="#id15" id="map-protein-alignment-gaps-to-dna-alignment-gaps" name="map-protein-alignment-gaps-to-dna-alignment-gaps">Map protein alignment gaps to DNA alignment gaps</a></h2>
 <p>Although PyCogent provides a means for directly aligning codon sequences, you may want to use a different approach based on the translate-align-introduce gaps into the original paradigm. After you've translated your codon sequences, and aligned the resulting amino acid sequences, you want to introduce the gaps from the aligned protein sequences back into the original codon sequences. Here's how.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, DNA, PROTEIN</pre><p>First I'm going to construct an artificial example, using the seqs dict as a means to get the data into the Alignment object. The basic idea, however, is that you should already have a set of DNA sequences that are in frame (i.e. position 0 is the 1st codon position), you've translated those sequences and aligned these translated sequences. The result is an alignment of aa sequences and a set of unaligned DNA sequences from which the aa seqs were derived. If your sequences are not in frame you can adjust it by either slicing, or adding N's to the beginning of the raw string.</p>
 <pre class="code">&gt;&gt;&gt; seqs = {
@@ -500,7 +499,7 @@ LNKQPLSNKK</pre><p>The translated seqs can then be written to file, using the me
 ... <span class="py_string">'mus'</span>: <span class="py_string">'KQIQESGESGSLAARQERQAQVNLT'</span>,
 ... <span class="py_string">'rat'</span>: <span class="py_string">'LNKQ------PLS---------NKK'</span>}
 &gt;&gt;&gt; aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
-&gt;&gt;&gt; aligned_DNA = aligned_aa.replaceSequences(unaligned_DNA)</pre><p>Just to be sure, we'll check that the DNA sequence has gaps in the right place.</p>
+&gt;&gt;&gt; aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA)</pre><p>Just to be sure, we'll check that the DNA sequence has gaps in the right place.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> aligned_DNA
 &gt;hum
 AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
@@ -508,12 +507,12 @@ AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
 CTGAACAAGCAG------------------CCACTTTCA---------------------------AACAAGAAA
 &gt;mus
 AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
-&lt;BLANKLINE&gt;</pre></div>
+</pre></div>
 </div>
-<div class="section" id="data-visualisation">
-<h1><a class="toc-backref" href="#id16">Data Visualisation</a></h1>
-<div class="section" id="drawing-dendrograms-and-saving-to-pdf">
-<h2><a class="toc-backref" href="#id17">Drawing dendrograms and saving to PDF</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id16" id="data-visualisation" name="data-visualisation">Data Visualisation</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="drawing-dendrograms-and-saving-to-pdf" name="drawing-dendrograms-and-saving-to-pdf">Drawing dendrograms and saving to PDF</a></h2>
 <p>From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98
@@ -541,8 +540,8 @@ Outer loop = 0...
 ... font_size = 10)</pre><p>To save a tree for later reuse, either for analysis of drawing can be done using an annotated tree, which looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This tree can be saved in xml format, which preserve these parameter estimates. The annotated tree is obtained from the likelihood function with following command.</p>
 <pre class="code">&gt;&gt;&gt; at = nonneutral_lf.getAnnotatedTree()</pre><p>Saving this to file is done using the normal <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method, specifying a filename with the .xml suffix.</p>
 </div>
-<div class="section" id="drawing-a-dotplot">
-<h2><a class="toc-backref" href="#id18">Drawing a dotplot</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id18" id="drawing-a-dotplot" name="drawing-a-dotplot">Drawing a dotplot</a></h2>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.core <span class="py_keyword">import</span> annotation
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.draw <span class="py_keyword">import</span> dotplot</pre><p>Load the alignment for illustrative purposes, I'll make one sequence a different length than the other and introduce a custom sequence annotation for a miscellaneous feature. Normally, those annotations would be on the unaligned sequences.</p>
@@ -555,10 +554,10 @@ Outer loop = 0...
 &gt;&gt;&gt; filename = <span class="py_string">'dotplot_example.pdf'</span>
 &gt;&gt;&gt; dp.drawToPDF(filename)</pre></div>
 </div>
-<div class="section" id="modelling-evolution">
-<h1><a class="toc-backref" href="#id19">Modelling Evolution</a></h1>
-<div class="section" id="the-simplest-script">
-<h2><a class="toc-backref" href="#id20">The simplest script</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id19" id="modelling-evolution" name="modelling-evolution">Modelling Evolution</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id20" id="the-simplest-script" name="the-simplest-script">The simplest script</a></h2>
 <p>This is just about the simplest possible Cogent script. We use a canned nucleotide substitution model: the general time reversible model.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GTR
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
@@ -594,8 +593,8 @@ motif    mprobs
     A    0.3800
     G    0.3167
 ---------------</pre></div>
-<div class="section" id="performing-a-relative-rate-test">
-<h2><a class="toc-backref" href="#id21">Performing a relative rate test</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id21" id="performing-a-relative-rate-test" name="performing-a-relative-rate-test">Performing a relative rate test</a></h2>
 <p>From cogent import all the components we need</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
@@ -674,8 +673,8 @@ Likelihood ratio statistic =  0.34...
 degrees-of-freedom =  1
 &gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
 probability =  0.5...</pre></div>
-<div class="section" id="a-test-of-the-neutral-theory">
-<h2><a class="toc-backref" href="#id22">A test of the neutral theory</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id22" id="a-test-of-the-neutral-theory" name="a-test-of-the-neutral-theory">A test of the neutral theory</a></h2>
 <p>This file contains an example for performing a likelihood ratio test of neutrality. The test compares a model where the codon model parameter omega is constrained to be the same for all edges against one where each edge has its' own omega. From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GY94
@@ -743,8 +742,8 @@ Likelihood ratio statistic =  4.4...
 degrees-of-freedom =  6
 &gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
 probability =  0.6...</pre></div>
-<div class="section" id="use-an-empirical-protein-substitution-model">
-<h2><a class="toc-backref" href="#id23">Use an empirical protein substitution model</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id23" id="use-an-empirical-protein-substitution-model" name="use-an-empirical-protein-substitution-model">Use an empirical protein substitution model</a></h2>
 <p>This file contains an example of importing an empirically determined protein substitution matrix such as Dayhoff et al 1978 and using it to create a substitution model. The globin alignment is from the PAML distribution.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, PROTEIN
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
@@ -800,8 +799,8 @@ motif    mprobs
     W    0.0105
     Y    0.0299
 ---------------</pre></div>
-<div class="section" id="analysis-of-rate-heterogeneity">
-<h2><a class="toc-backref" href="#id24">Analysis of rate heterogeneity</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id24" id="analysis-of-rate-heterogeneity" name="analysis-of-rate-heterogeneity">Analysis of rate heterogeneity</a></h2>
 <p>A simple example for analyses involving rate heterogeneity among sites. In this case we will simulate an alignment with two rate categories and then try to recover the rates from the alignment.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> Nucleotide
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree</pre><p>Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.</p>
@@ -836,8 +835,8 @@ Avg probs over the fast (0.95) <span class="py_keyword">and</span> slow (0.82) h
 &gt;&gt;&gt; lf.setParamRule(<span class="py_string">'bprobs'</span>, is_const=<span class="py_keyword">True</span>)
 &gt;&gt;&gt; lf.setAlignment(aln3)
 &gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, max_restarts=2, show_progress = <span class="py_keyword">False</span>)</pre></div>
-<div class="section" id="likelihood-analysis-of-multiple-loci">
-<h2><a class="toc-backref" href="#id25">Likelihood analysis of multiple loci</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id25" id="likelihood-analysis-of-multiple-loci" name="likelihood-analysis-of-multiple-loci">Likelihood analysis of multiple loci</a></h2>
 <p>We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
@@ -910,8 +909,8 @@ length
 &gt;&gt;&gt; df = each_nfp - all_nfp
 &gt;&gt;&gt; <span class="py_keyword">print</span> LR, df, chisqprob(LR, df)
 0.00424532328725 1 0.94804967777</pre></div>
-<div class="section" id="reusing-results-to-speed-up-optimisation">
-<h2><a class="toc-backref" href="#id26">Reusing results to speed up optimisation</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id26" id="reusing-results-to-speed-up-optimisation" name="reusing-results-to-speed-up-optimisation">Reusing results to speed up optimisation</a></h2>
 <p>An example of how to use the maximum-likelihood parameter estimates from one model as starting values for another model. In this file we do something silly, by saving a result and then reloading it. This is silly because the analyses are run consecutively. A better approach when running consecutively is to simply use the annotated tree directly.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98</pre><p>We'll create a simple model, optimise it and save it for later reuse</p>
@@ -971,8 +970,8 @@ NineBande      root    0.1064         1.5666
 </tbody>
 </table>
 </div>
-<div class="section" id="specifying-and-using-an-restricted-nucleotide-substitution-model">
-<h2><a class="toc-backref" href="#id27">Specifying and using an restricted nucleotide substitution model</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id27" id="specifying-and-using-an-restricted-nucleotide-substitution-model" name="specifying-and-using-an-restricted-nucleotide-substitution-model">Specifying and using an restricted nucleotide substitution model</a></h2>
 <p>Do standard <tt class="docutils literal"><span class="pre">cogent</span></tt> imports.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, DNA
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.predicate <span class="py_keyword">import</span> MotifChange
@@ -984,9 +983,9 @@ NineBande      root    0.1064         1.5666
 [A&gt;C, A&gt;T, A&gt;G, C&gt;A, C&gt;T, C&gt;G, T&gt;A, T&gt;C, T&gt;G, G&gt;A, G&gt;C]
 &gt;&gt;&gt; sm = Nucleotide(predicates=preds, recode_gaps=<span class="py_keyword">True</span>)
 &gt;&gt;&gt; <span class="py_keyword">print</span> sm
-&lt;BLANKLINE&gt;
+
 Nucleotide ( name = <span class="py_string">''</span>; type = <span class="py_string">'None'</span>; params = [<span class="py_string">'A&gt;T'</span>, <span class="py_string">'C&gt;G'</span>, <span class="py_string">'T&gt;G'</span>, <span class="py_string">'G&gt;A'</span>, <span class="py_string">'T&gt;A'</span>, <span class="py_string">'T&gt;C'</span>, <span class="py_string">'C&gt;A'</span>, <span class="py_string">'G&gt;C'</span>, <span class="py_string">'C&gt;T'</span>, <span class="py_string">'A&gt;G'</span>, <span class="py_string">'A&gt;C'</span>]; number of motifs = 4; motifs = [<span class="py_string">'T'</span>, <span class="py_string">'C'</span>, <span class="py_string">'A'</span>, <span class="py_string">'G'</span>])
-&lt;BLANKLINE&gt;</pre><p>We'll illustrate this with a sample alignment and tree in &quot;data/test.paml&quot;.</p>
+</pre><p>We'll illustrate this with a sample alignment and tree in &quot;data/test.paml&quot;.</p>
 <pre class="code">&gt;&gt;&gt; tr = LoadTree(<span class="py_string">"data/test.tree"</span>)
 &gt;&gt;&gt; <span class="py_keyword">print</span> tr
 (((Human,HowlerMon),Mouse),NineBande,DogFaced);
@@ -1005,14 +1004,14 @@ Unrestricted model
 ----------------------------------------------------------------------------
 0.6890    1.8880    0.0000    0.0000    0.0000    2.1652    0.2291    0.4868
 ----------------------------------------------------------------------------
-&lt;BLANKLINE&gt;
+
 continued:
 ====================================
    A&gt;C       T&gt;A       T&gt;C       T&gt;G
 ------------------------------------
 0.6890    0.0000    2.2755    0.0000
 ------------------------------------
-&lt;BLANKLINE&gt;
+
 =============================
      edge    parent    length
 -----------------------------
@@ -1035,8 +1034,8 @@ motif    mprobs
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">for</span> pred <span class="py_keyword">in</span> preds:
 ...     lf.setParamRule(str(pred), is_independent=<span class="py_keyword">True</span>)</pre><p>You then make a new <tt class="docutils literal"><span class="pre">lf</span></tt> and optimise as above, but I won't do that now as the optimiser would struggle due to the low information content of this sample.</p>
 </div>
-<div class="section" id="simulate-an-alignment">
-<h2><a class="toc-backref" href="#id28">Simulate an alignment</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id28" id="simulate-an-alignment" name="simulate-an-alignment">Simulate an alignment</a></h2>
 <p>How to  simulate an alignment. For this example we just create a simple model using a four taxon tree with very different branch lengths, a Felsenstein model with very different nucleotide frequencies and a long alignment.</p>
 <p>See the other examples for how to define other substitution models.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> sys
@@ -1069,8 +1068,8 @@ motif    mprobs
 ---------------</pre><p>We'll now create a simulated alignment of length 1000 nucleotides.</p>
 <pre class="code">&gt;&gt;&gt; simulated = lf.simulateAlignment(sequence_length=1000)</pre><p>The result is a normal <tt class="docutils literal"><span class="pre">Cogent</span></tt> alignment object, which can be used in the same way as any other alignment object.</p>
 </div>
-<div class="section" id="performing-a-parametric-bootstrap">
-<h2><a class="toc-backref" href="#id29">Performing a parametric bootstrap</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id29" id="performing-a-parametric-bootstrap" name="performing-a-parametric-bootstrap">Performing a parametric bootstrap</a></h2>
 <p>This file contains an example for estimating the probability of a Likelihood ratio statistic obtained from a relative rate test. The bootstrap classes can take advantage of parallel architectures.</p>
 <p>From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
@@ -1096,8 +1095,8 @@ motif    mprobs
 <pre class="code">&gt;&gt;&gt; p = estimateP.getEstimatedProb()</pre><p><tt class="docutils literal"><span class="pre">p</span></tt> is a floating point value, as you'd expect. Grab the estimated likelihoods for the observed data.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">'%.2f, %.2f'</span> % estimateP.getObservedlnL()
 -162.65, -162.48</pre></div>
-<div class="section" id="estimate-parameter-values-using-a-sampling-from-a-dataset">
-<h2><a class="toc-backref" href="#id30">Estimate parameter values using a sampling from a dataset</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id30" id="estimate-parameter-values-using-a-sampling-from-a-dataset" name="estimate-parameter-values-using-a-sampling-from-a-dataset">Estimate parameter values using a sampling from a dataset</a></h2>
 <p>This script uses the sample method of the alignment class to provide an
 estimate for a two stage optimisation.
 This allows rapid optimisation of long alignments and complex models with
@@ -1120,10 +1119,10 @@ Outer loop = 0...</pre><p>Next use the whole alignment</p>
 Number of function evaluations = 1; current F = ...</pre><p>Print the result using <tt class="docutils literal"><span class="pre">print</span> <span class="pre">lf</span></tt>.</p>
 </div>
 </div>
-<div class="section" id="phylogenetic-reconstruction">
-<h1><a class="toc-backref" href="#id31">Phylogenetic Reconstruction</a></h1>
-<div class="section" id="calculate-pairwise-distances-between-sequences">
-<h2><a class="toc-backref" href="#id32">Calculate pairwise distances between sequences</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id31" id="phylogenetic-reconstruction" name="phylogenetic-reconstruction">Phylogenetic Reconstruction</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id32" id="calculate-pairwise-distances-between-sequences" name="calculate-pairwise-distances-between-sequences">Calculate pairwise distances between sequences</a></h2>
 <p>An example of how to calculate the pairwise distances for a set of sequences.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance</pre><p>Import a substitution model (or create your own)</p>
@@ -1157,8 +1156,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 &gt;&gt;&gt; f = open(<span class="py_string">'dists_for_phylo.pickle'</span>, <span class="py_string">"w"</span>)
 &gt;&gt;&gt; cPickle.dump(d.getPairwiseDistances(), f)
 &gt;&gt;&gt; f.close()</pre></div>
-<div class="section" id="make-a-neighbor-joining-tree">
-<h2><a class="toc-backref" href="#id33">Make a neighbor joining tree</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id33" id="make-a-neighbor-joining-tree" name="make-a-neighbor-joining-tree">Make a neighbor joining tree</a></h2>
 <p>An example of how to calculate the pairwise distances for a set of sequences.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, nj</pre><p>Import a substitution model (or create your own)</p>
@@ -1168,18 +1167,18 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 &gt;&gt;&gt; d.run(show_progress=<span class="py_keyword">False</span>)</pre><p>Now use this matrix to build a neighbour joining tree.</p>
 <pre class="code">&gt;&gt;&gt; mytree = nj.nj(d.getPairwiseDistances())
 &gt;&gt;&gt; <span class="py_keyword">print</span> mytree.asciiArt()
-                    /-NineBande
-          /edge.1--|
-         |          \-Mouse
+          /-NineBande
          |
--root----|--DogFaced
+         |          /-DogFaced
+         |-edge.1--|
+-root----|         |          /-HowlerMon
+         |          \edge.0--|
+         |                    \-Human
          |
-         |          /-HowlerMon
-          \edge.0--|
-                    \-Human</pre><p>We can save this tree to file.</p>
+          \-Mouse</pre><p>We can save this tree to file.</p>
 <pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>)</pre></div>
-<div class="section" id="phylogenetic-reconstruction-by-least-squares">
-<h2><a class="toc-backref" href="#id34">Phylogenetic reconstruction by least squares</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id34" id="phylogenetic-reconstruction-by-least-squares" name="phylogenetic-reconstruction-by-least-squares">Phylogenetic reconstruction by least squares</a></h2>
 <p>We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called <tt class="docutils literal"><span class="pre">pickle</span></tt> which is native to python. As per usual, we import the basic components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> cPickle
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, least_squares</pre><p>Now load the distance data.</p>
@@ -1189,8 +1188,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 &gt;&gt;&gt; f.close()</pre><p>If there are extremely small distances, they can cause an error in the least squares calculation. Since such estimates are between extremely closely related sequences we could simply drop all distances for one of the sequences. We won't do that here, we'll leave that as exercise.</p>
 <p>We make the ls calculator.</p>
 <pre class="code">&gt;&gt;&gt; ls = least_squares.WLS(dists)</pre><p>We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter <em>asaa</em>).</p>
-<div class="section" id="look-for-the-single-best-tree">
-<h3><a class="toc-backref" href="#id35">Look for the single best tree</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id35" id="look-for-the-single-best-tree" name="look-for-the-single-best-tree">Look for the single best tree</a></h3>
 <p>In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying <tt class="docutils literal"><span class="pre">a=5</span></tt>. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. <tt class="docutils literal"><span class="pre">k=1</span></tt> means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best <tt class="docutils literal"><span class="pre">k</span></tt> results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single <tt class="docutils literal"><span class="pre">Tree</span></tt> which can be saved etc ..</p>
 <pre class="code">&gt;&gt;&gt; score, tree = ls.trex(a = 5, k = 1, show_progress = <span class="py_keyword">True</span>)
 3 trees of size 4 at start
@@ -1198,8 +1197,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 &gt;&gt;&gt; <span class="py_keyword">print</span> score
 0.0009...</pre><p>We won't display this tree, because we are doing more below.</p>
 </div>
-<div class="section" id="a-more-rigourous-tree-space-search">
-<h3><a class="toc-backref" href="#id36">A more rigourous tree space search</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id36" id="a-more-rigourous-tree-space-search" name="a-more-rigourous-tree-space-search">A more rigourous tree space search</a></h3>
 <p>We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change <tt class="docutils literal"><span class="pre">a</span></tt> to be larger, but in the current case we just adjust <tt class="docutils literal"><span class="pre">k</span></tt>. We also set the argument <tt class="docutils literal"><span class="pre">return_all</span> <span class="pre">=</span> <span class="pre">True</span></tt>, the effect of which is to return the complete set of 145 trees. These, and their support statistic, can then be inspected.</p>
 <pre class="code">&gt;&gt;&gt; trees = ls.trex(a = 5, k = 5, show_progress = <span class="py_keyword">True</span>, return_all = <span class="py_keyword">True</span>)
 3 trees of size 4 at start
@@ -1232,8 +1231,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
           \edge.1--|
                     \-Human</pre><p>You can see the difference involves the Jackrabbit, TreeShrew, Gorilla, Rat clade.</p>
 </div>
-<div class="section" id="assessing-the-fit-for-a-pre-specified-tree-topology">
-<h3><a class="toc-backref" href="#id37">Assessing the fit for a pre-specified tree topology</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id37" id="assessing-the-fit-for-a-pre-specified-tree-topology" name="assessing-the-fit-for-a-pre-specified-tree-topology">Assessing the fit for a pre-specified tree topology</a></h3>
 <p>In some instances we may have a tree from the literature or elsewhere whose fit to the data we seek to evaluate. In this case I'm going load a tree as follows.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree
 &gt;&gt;&gt; query_tree = LoadTree(treestring = <span class="py_string">"((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)"</span>)</pre><p>We now just use the <tt class="docutils literal"><span class="pre">ls</span></tt> object created above. The following evaluates the query using it's associated branch lengths, returning only the wls statistic.</p>
@@ -1241,13 +1240,13 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
  3.95...</pre><p>We can also evaluate just the tree's topology, returning both the wls statistic and the tree with best fit branch lengths.</p>
 <pre class="code">&gt;&gt;&gt; ls.evaluateTopology(query_tree)
 (0.00316480233404, Tree(<span class="py_string">"((Human,DogFaced),(NineBande,Mouse),HowlerMon)root;"</span>))</pre></div>
-<div class="section" id="using-maximum-likelihood-for-measuring-tree-fit">
-<h3><a class="toc-backref" href="#id38">Using maximum likelihood for measuring tree fit</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id38" id="using-maximum-likelihood-for-measuring-tree-fit" name="using-maximum-likelihood-for-measuring-tree-fit">Using maximum likelihood for measuring tree fit</a></h3>
 <p>This is a much slower algorithm and the interface largely mirrors that for the above. The difference is you import <tt class="docutils literal"><span class="pre">maximum_likelihood</span></tt> instead of <tt class="docutils literal"><span class="pre">least_squares</span></tt>, and use the <tt class="docutils literal"><span class="pre">ML</span></tt> instead of <tt class="docutils literal"><span class="pre">WLS</span></tt> classes. The <tt class="docutils literal"><span class="pre">ML</span></tt> class requires a substitution model (like a HKY85 for DNA or JTT92 for protein), and an alignment. It also optionally takes a distance matrix, such as that used here, computed for the same sequences. These distances are then used to obtain estimates of branch lengths by the WLS method for each evaluated tree topology which are then used as starting values for the likelihood optimisation.</p>
 </div>
 </div>
-<div class="section" id="making-a-phylogenetic-tree-from-a-protein-sequence-alignment">
-<h2><a class="toc-backref" href="#id39">Making a phylogenetic tree from a protein sequence alignment</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id39" id="making-a-phylogenetic-tree-from-a-protein-sequence-alignment" name="making-a-phylogenetic-tree-from-a-protein-sequence-alignment">Making a phylogenetic tree from a protein sequence alignment</a></h2>
 <p>In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard cogent import for <tt class="docutils literal"><span class="pre">LoadSeqs</span></tt>.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, PROTEIN</pre><p>We will use an empirical protein substitution matrix, this requires a file format parser also.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
@@ -1272,13 +1271,13 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
                     \-marsupial</pre><p>This tree can be saved to file, the <tt class="docutils literal"><span class="pre">with_distances</span></tt> argument specifies that branch lengths are to be included in the newick formatted output.</p>
 <pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>, with_distances=<span class="py_keyword">True</span>)</pre></div>
 </div>
-<div class="section" id="python-coding-guidelines">
-<h1><a class="toc-backref" href="#id40">Python Coding Guidelines</a></h1>
-<div class="section" id="why-have-coding-guidelines">
-<h2><a class="toc-backref" href="#id41">Why have coding guidelines?</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id40" id="python-coding-guidelines" name="python-coding-guidelines">Python Coding Guidelines</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id41" id="why-have-coding-guidelines" name="why-have-coding-guidelines">Why have coding guidelines?</a></h2>
 <p>As project size increases, consistency increases in importance. Unit testing and a consistent style are critical to having trusted code to integrate. Also, guesses about names and interfaces will be correct more often.</p>
-<div class="section" id="what-should-i-call-my-variables">
-<h3><a class="toc-backref" href="#id42">What should I call my variables?</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id42" id="what-should-i-call-my-variables" name="what-should-i-call-my-variables">What should I call my variables?</a></h3>
 <ul class="simple">
 <li><em>Choose the name that people will most likely guess.</em> Make it descriptive, but not too long: <tt class="docutils literal"><span class="pre">curr_record</span></tt> is better than <tt class="docutils literal"><span class="pre">c</span></tt>, or <tt class="docutils literal"><span class="pre">curr</span></tt>, or <tt class="docutils literal"><span class="pre">current_genbank_record_from_database</span></tt>.</li>
 <li><em>Good names are hard to find.</em> Don't be afraid to change names except when they are part of interfaces that other people are also using. It may take some time working with the code to come up with reasonable names for everything: if you have unit tests, it's easy to change them, especially with global search and replace.</li>
@@ -1289,8 +1288,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <li><em>One-letter variable names should only occur in math functions or as loop iterators with limited scope.</em> Limited scope covers things like <tt class="docutils literal"><span class="pre">for</span> <span class="pre">k</span> <span class="pre">in</span> <span class="pre">keys:</span> <span class="pre">print</span> <span class="pre">k</span></tt>, where <tt class="docutils literal"><span class="pre">k</span></tt> survives only a line or two. Loop iterators should refer to the variable that they're looping through: <tt class="docutils literal"><span class="pre">for</span> <span class="pre">k</span> <span class="pre">in</span> <span class="pre">keys,</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">items</span></tt>, or <tt class="docutils literal"><span class="pre">for</span> <span class="pre">key</span> <span class="pre">in</span> <span class="pre">keys,</span> <span class="pre">item</span> <span class="pre">in</span> <span class="pre">items</span></tt>. If the loop is long or there are several 1-letter variables active in the same scope, rename them.</li>
 <li><em>Limit your use of abbreviations.</em> A few well-known abbreviations are OK, but you don't want to come back to your code in 6 months and have to figure out what <tt class="docutils literal"><span class="pre">sptxck2</span></tt> is. It's worth it to spend the extra time typing <tt class="docutils literal"><span class="pre">species_taxon_check_2</span></tt>, but that's still a horrible name: what's check number 1? Far better to go with something like <tt class="docutils literal"><span class="pre">taxon_is_species_rank</span></tt> that needs no explanation, especially if the variable is only used once or twice.</li>
 </ul>
-<div class="section" id="acceptable-abbreviations">
-<h4><a class="toc-backref" href="#id43">Acceptable abbreviations</a></h4>
+<div class="section">
+<h4><a class="toc-backref" href="#id43" id="acceptable-abbreviations" name="acceptable-abbreviations">Acceptable abbreviations</a></h4>
 <p>The following list of abbreviations can be considered well-known and used with impunity within mixed name variables, but some should not be used by themselves as they would conflict with common functions, python built-in's, or raise an exception. Do not use the following by themselves as variable names: <tt class="docutils literal"><span class="pre">dir</span></tt>,  <tt class="docutils literal"><span class="pre">exp</span></tt> (a common <tt class="docutils literal"><span class="pre">math</span></tt> module function), <tt class="docutils literal"><span class="pre">in</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, and <tt class="docutils literal"><span class="pre">min</span></tt>. They can, however, be used as part of a name, eg <tt class="docutils literal"><span class="pre">matrix_exp</span></tt>.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1418,8 +1417,8 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 </table>
 </div>
 </div>
-<div class="section" id="what-are-the-naming-conventions">
-<h3><a class="toc-backref" href="#id44">What are the naming conventions?</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id44" id="what-are-the-naming-conventions" name="what-are-the-naming-conventions">What are the naming conventions?</a></h3>
 <table border="1" class="docutils">
 <colgroup>
 <col width="33%" />
@@ -1499,16 +1498,16 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <li><em>Underscores can be left out if the words read OK run together.</em> <tt class="docutils literal"><span class="pre">infile</span></tt> and <tt class="docutils literal"><span class="pre">outfile</span></tt> rather than <tt class="docutils literal"><span class="pre">in_file</span></tt> and <tt class="docutils literal"><span class="pre">out_file</span></tt>; <tt class="docutils literal"><span class="pre">infile_name</span></tt> and <tt class="docutils literal"><span class="pre">outfile_name</span></tt> rather than <tt class="docutils literal"><span class="pre">in_file_name</span></tt> and <tt class="docutils literal"><span class="pre">out_file_name</span></tt> or <tt class="docutils literal"><span class="pre">infilename</span></tt> and <tt class="docutils literal"><span class="pre">outfilename</span></tt> (getting too long to read effortlessly).</li>
 </ul>
 </div>
-<div class="section" id="how-do-i-organize-my-modules-source-files">
-<h3><a class="toc-backref" href="#id45">How do I organize my modules (source files)?</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id45" id="how-do-i-organize-my-modules-source-files" name="how-do-i-organize-my-modules-source-files">How do I organize my modules (source files)?</a></h3>
 <ul class="simple">
 <li><em>Have a docstring with a description of the module's functions</em>. If the description is long, the first line should be a short summary that makes sense on its own, separated from the rest by a newline.</li>
 <li><em>All code, including import statements, should follow the docstring.</em> Otherwise, the docstring will not be recognized by the interpreter, and you will not have access to it in interactive sessions (i.e. through <tt class="docutils literal"><span class="pre">obj.__doc__</span></tt>) or when generating documentation with automated tools.</li>
 <li><em>Import built-in modules first, followed by third-party modules, followed by any changes to the path and your own modules.</em> Especially, additions to the path and names of your modules are likely to change rapidly: keeping them in one place makes them easier to find.</li>
 <li><em>Don't use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">*</span></tt>, <em>instead use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">Name,</span> <span class="pre">Name2,</span> <span class="pre">Name3...</span></tt> <em>or possibly</em> <tt class="docutils literal"><span class="pre">import</span> <span class="pre">module</span></tt>. This makes it <em>much</em> easier to see name collisions and to replace implementations.</li>
 </ul>
-<div class="section" id="example-of-module-structure">
-<h4><a class="toc-backref" href="#id46">Example of module structure</a></h4>
+<div class="section">
+<h4><a class="toc-backref" href="#id46" id="example-of-module-structure" name="example-of-module-structure">Example of module structure</a></h4>
 <pre class="literal-block">
 #!/usr/bin/env python
 
@@ -1534,8 +1533,9 @@ if __name__ == '__main__':    # code to execute if called from command-line
     pass    # do nothing - code deleted
 </pre>
 </div>
-<div class="section" id="how-should-i-write-comments">
-<h4><a class="toc-backref" href="#id47">How should I write comments?</a></h4>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id47" id="how-should-i-write-comments" name="how-should-i-write-comments">How should I write comments?</a></h3>
 <ul>
 <li><p class="first"><em>Always update the comments when the code changes.</em> Incorrect comments are far worse than no comments, since they are actively misleading.</p>
 </li>
@@ -1588,13 +1588,12 @@ def __init__(self, data, name='', alphabet=None):
     &quot;&quot;&quot;
 </pre>
 </li>
-<li><p class="first"><em>Always update the docstring when the code changes.</em> Like outdated comments, outdated docstrings can waste a lot of time. &quot;Correct examples are priceless, but incorrect examples are worse than worthless.&quot; <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>.</p>
+<li><p class="first"><em>Always update the docstring when the code changes.</em> Like outdated comments, outdated docstrings can waste a lot of time. &quot;Correct examples are priceless, but incorrect examples are worse than worthless.&quot; <a class="reference" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>.</p>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="how-should-i-format-my-code">
-<h3><a class="toc-backref" href="#id48">How should I format my code?</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id48" id="how-should-i-format-my-code" name="how-should-i-format-my-code">How should I format my code?</a></h3>
 <ul>
 <li><p class="first"><em>Use 4 spaces for indentation.</em> Do not use tabs (set your editor to convert tabs to spaces). The behaviour of tabs is not predictable across platforms, and will cause syntax errors. If we all use the same indentation, collaboration is much easier.</p>
 </li>
@@ -1658,18 +1657,18 @@ def __init__(self, data, name='', alphabet=None):
 </li>
 </ul>
 </div>
-<div class="section" id="how-should-i-test-my-code">
-<h3><a class="toc-backref" href="#id49">How should I test my code ?</a></h3>
+<div class="section">
+<h3><a class="toc-backref" href="#id49" id="how-should-i-test-my-code" name="how-should-i-test-my-code">How should I test my code ?</a></h3>
 <p>There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.</p>
-<p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference external" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rest are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
+<p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rest are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
 <p>In general, it's easier to start writing <tt class="docutils literal"><span class="pre">doctest</span></tt>'s, as you don't need to learn the <tt class="docutils literal"><span class="pre">unittest</span></tt> API but the latter give's much greater control.</p>
 <p>Whatever approach is employed, the general principle is every line of code should be tested. It is critical that your code be fully tested before you draw conclusions from results it produces. For scientific work, bugs don't just mean unhappy users who you'll never actually meet: they may mean retracted publications.</p>
 <p>Tests are an opportunity to invent the interface(s) you want. Write the test for a method before you write the method: often, this helps you figure out what you would want to call it and what parameters it should take. It's OK to write the tests a few methods at a time, and to change them as your ideas about the interface change. However, you shouldn't change them once you've told other people what the interface is.</p>
 <p>Never treat prototypes as production code. It's fine to write prototype code without tests to try things out, but when you've figured out the algorithm and interfaces you must rewrite it <em>with tests</em> to consider it finished. Often, this helps you decide what interfaces and functionality you actually need and what you can get rid of.</p>
 <p>&quot;Code a little test a little&quot;. For production code, write a couple of tests, then a couple of methods, then a couple more tests, then a couple more methods, then maybe change some of the names or generalize some of the functionality. If you have a huge amount of code where 'all you have to do is write the tests', you're probably closer to 30% done than 90%. Testing vastly reduces the time spent debugging, since whatever went wrong has to be in the code you wrote since the last test suite. And remember to use python's interactive interpreter for quick checks of syntax and ideas.</p>
 <p>Run the test suite when you change <cite>anything</cite>. Even if a change seems trivial, it will only take a couple of seconds to run the tests and then you'll be sure. This can eliminate long and frustrating debugging sessions where the change turned out to have been made long ago, but didn't seem significant at the time.</p>
-<div class="section" id="some-unittest-pointers">
-<h4><a class="toc-backref" href="#id50">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></h4>
+<div class="section">
+<h4><a class="toc-backref" href="#id50" id="some-unittest-pointers" name="some-unittest-pointers">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></h4>
 <ul>
 <li><p class="first"><em>Use the</em> <tt class="docutils literal"><span class="pre">unittest</span></tt> <em>framework with tests in a separate file for each module.</em> Name the test file <tt class="docutils literal"><span class="pre">test_module_name.py</span></tt>. Keeping the tests separate from the code reduces the temptation to change the tests when the code doesn't work, and makes it easy to verify that a completely new implementation presents the same interface (behaves the same) as the old.</p>
 </li>
@@ -1712,8 +1711,8 @@ Tests of the NumberList initialization. # ditto
 </li>
 </ul>
 </div>
-<div class="section" id="example-of-a-unittest-test-module-structure">
-<h4><a class="toc-backref" href="#id51">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></h4>
+<div class="section">
+<h4><a class="toc-backref" href="#id51" id="example-of-a-unittest-test-module-structure" name="example-of-a-unittest-test-module-structure">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></h4>
 <pre class="literal-block">
 #!/usr/bin/env python
 
