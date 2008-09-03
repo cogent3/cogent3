@@ -16,15 +16,27 @@ from cogent.maths.matrix_logarithm import logm
 from cogent.maths.matrix_exponentiation import FastExponentiator as expm
 
 #need to find test directory to get access to the tests of the Freqs interface
-from os import getcwd
-from sys import path
-from os.path import sep,join
-test_path = getcwd().split(sep)
-index = test_path.index('tests')
-fields = test_path[:index+1] + ["test_maths"]
-test_path = sep + join(*fields)
-path.append(test_path)
-from test_stats.test_util import StaticFreqsTestsI
+try:
+    from os import getcwd
+    from sys import path
+    from os.path import sep,join
+    test_path = getcwd().split(sep)
+    index = test_path.index('tests')
+    fields = test_path[:index+1] + ["test_maths"]
+    test_path = sep + join(*fields)
+    path.append(test_path)
+    from test_stats.test_util import StaticFreqsTestsI
+
+    my_alpha = Alphabet('abcde')
+    class myUsage(Usage):
+        Alphabet = my_alpha
+
+    class UsageAsFreqsTests(StaticFreqsTestsI, TestCase):
+        """Note that the remaining Usage methods are tested here."""
+        ClassToTest=myUsage
+
+except ValueError:  #couldn't find directory
+    pass
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -224,14 +236,6 @@ class UsageTests(TestCase):
         #calculated this one by hand
         u = RnaUsage([.5,.3,.1,.1])
         self.assertFloatEqual(u.entropy(),1.6854752972273346) 
-
-my_alpha = Alphabet('abcde')
-class myUsage(Usage):
-    Alphabet = my_alpha
-
-class UsageAsFreqsTests(StaticFreqsTestsI, TestCase):
-    """Note that the remaining Usage methods are tested here."""
-    ClassToTest=myUsage
 
 class PairMatrixTests(TestCase):
     """Tests of the PairMatrix base class."""
@@ -505,6 +509,40 @@ class CountsTests(TestCase):
         ]
         for i, j, val in vals:
             self.assertFloatEqual(s[i,j], val)
+
+        #check that it works when forced to use both variants of fromTriple
+        s = cft( \
+            rs('AUCGCUAGCAUACGUCA'*1000),
+            rs('AAGCUGCGUAGCGCAUA'*1000),
+            rs('GCGCAUAUGACGAUAGC'*1000),
+            RnaPairs,
+            threshold=0 #forces "large" method
+        )
+        vals = [
+            ('U','U',1000),('U','C',0),('U','A',0),('U','G',0),
+            ('C','U',0),('C','C',0),('C','A',0),('C','G',1000),
+            ('A','U',1000),('A','C',0),('A','A',4000),('A','G',0),
+            ('G','U',0),('G','C',1000),('G','A',0),('G','G',1000),
+        ]
+        for i, j, val in vals:
+            self.assertFloatEqual(s[i,j], val)
+        
+        s = cft( \
+            rs('AUCGCUAGCAUACGUCA'*1000),
+            rs('AAGCUGCGUAGCGCAUA'*1000),
+            rs('GCGCAUAUGACGAUAGC'*1000),
+            RnaPairs,
+            threshold=1e12 #forces "small" method
+        )
+        vals = [
+            ('U','U',1000),('U','C',0),('U','A',0),('U','G',0),
+            ('C','U',0),('C','C',0),('C','A',0),('C','G',1000),
+            ('A','U',1000),('A','C',0),('A','A',4000),('A','G',0),
+            ('G','U',0),('G','C',1000),('G','A',0),('G','G',1000),
+        ]
+        for i, j, val in vals:
+            self.assertFloatEqual(s[i,j], val)
+
 
         #check that it works for codon seqs
         s1 = ModelRnaCodonSequence('UUCGCG')

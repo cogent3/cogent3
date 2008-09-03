@@ -541,10 +541,18 @@ class Counts(PairMatrix):
 
     fromPair = classmethod(fromPair)
 
-    def fromTriple(cls, first, second, outgroup, Alphabet):
+    def _from_triple_small(cls, first, second, outgroup, Alphabet):
         """Class method: returns new Counts for first from three sequences.
 
         Sequence order is first, second, outgroup.
+
+        Use this method when the sequences are short and/or the alphabet is
+        small: relatively memory intensive because it makes an array the size
+        of the seq x the alphabet for each sequence. Fast on short sequences,
+        though.
+
+        NOTE: requires input to either all be ModelSequence objects, or all not
+        be ModelSequence objects. Could change this if desirable.
         """
         #if they've got data, assume ModelSequence objects. Otherwise, arrays.
         if hasattr(first, '_data'):
@@ -570,9 +578,65 @@ class Counts(PairMatrix):
         a_to_a_items = compress(logical_or(a_eq_b, a_eq_x), a_to_a)
         items = concatenate((b_to_a_items, a_to_a_items))
         counts = reshape(Alphabet.counts(items), Alphabet.Shape)
+
         return cls(counts, Alphabet)
 
+    def _from_triple_large(cls, first, second, outgroup, Alphabet):
+        """Same as _from_triple except copes with very long sequences.
+        
+        Specifically, allocates an array for the frequencies of each type,
+        walks through the triple one base at a time, and updates the
+        appropriate cell. Faster when alphabet and/or sequences are large;
+        also avoids memory issues because it doesn't allocate the seq x
+        alphabet array.
+
+        NOTE: requires input to either all be ModelSequence objects, or all not
+        be ModelSequence objects. Could change this if desirable.
+
+        WARNING: uses float, not int, as datatype in return value.
+        """
+        #figure out if we already have the data in terms of alphabet indices.
+        #if not, we need to convert it.
+        if hasattr(first, '_data'):
+            first, second, outgroup = first._data, second._data, outgroup._data
+        else:
+            if hasattr(Alphabet, 'toIndices'):
+                converter = Alphabet.toIndices
+            else:
+                converter = Alphabet.fromSequenceToArray
+
+            # convert to alphabet indices
+            first, second, outgroup = map(asarray, map(converter,
+                                        [first, second, outgroup]))
+        # only include positions where all three not different
+        valid_posn = logical_not(logical_and(logical_and(first != outgroup,
+                                                        second != outgroup),
+                                                        first != second))
+        valid_pos = [index for index, val in enumerate(valid_posn) if val]
+        first = first.take(valid_pos)
+        second = second.take(valid_pos)
+        outgroup = outgroup.take(valid_pos)
+        out_diffs = logical_and(first == second, first != outgroup)
+        counts = zeros((len(Alphabet.SubEnumerations[0]), \
+            len(Alphabet.SubEnumerations[0])))
+        for x, y, out_diff in zip(outgroup, first,
+                                       out_diffs):
+            if out_diff:
+                counts[y,y] += 1
+            else:
+                counts[x,y] += 1
+        return cls(counts, Alphabet)
+
+    def fromTriple(cls, first, second, outgroup, Alphabet, threshold=1e6):
+       """Reads counts from triple of sequences, method chosen by data size."""
+       if len(first) * len(Alphabet) > threshold:
+           return cls._from_triple_large(first, second, outgroup, Alphabet)
+       else:
+           return cls._from_triple_small(first, second, outgroup, Alphabet)
+
     fromTriple = classmethod(fromTriple)
+    _from_triple_small = classmethod(_from_triple_small)
+    _from_triple_large = classmethod(_from_triple_large)
        
 class Probs(PairMatrix):
     """Holds the data for a probability matrix. Immutable."""
