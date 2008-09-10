@@ -906,24 +906,24 @@ class GoldmanTests(TestCase):
         seq1 = "ATGCATGCATGC"
         seq2 = "AAATTTGGGCCC"
 
-        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
-                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
-                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
-                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
+        expected = array([[-(2/3.0), (1/3.0), (1/3.0), 0],
+                          [(1/3.0), -(2/3.0), 0, (1/3.0)],
+                          [(1/3.0), 0, -(2/3.0), (1/3.0)],
+                          [0, (1/3.0), (1/3.0), -(2/3.0)]])
         observed = goldman_q_dna_pair(seq1, seq2)
-        self.assertEquals(observed, expected)
+        self.assertFloatEqual(observed, expected)
 
     def test_goldman_q_rna_pair(self):
         """Should return expected rate matrix"""
         seq1 = "AUGCAUGCAUGC"
         seq2 = "AAAUUUGGGCCC"
 
-        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
-                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
-                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
-                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
-        observed = goldman_q_dna_pair(seq1, seq2)
-        self.assertEquals(observed, expected)
+        expected = array([[-(2/3.0), (1/3.0), (1/3.0), 0],
+                          [(1/3.0), -(2/3.0), 0, (1/3.0)],
+                          [(1/3.0), 0, -(2/3.0), (1/3.0)],
+                          [0, (1/3.0), (1/3.0), -(2/3.0)]])
+        observed = goldman_q_rna_pair(seq1, seq2)
+        self.assertFloatEqual(observed, expected)
 
     def test_goldman_q_dna_triple(self):
         """Should return expected rate matrix"""
