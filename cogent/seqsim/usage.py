@@ -1075,9 +1075,7 @@ def goldman_q_dna_pair(seq1, seq2):
 
     seq1, seq2 = ModelDnaSequence(seq1), ModelDnaSequence(seq2)
 
-    # grab frequencies and make symmetric
-    m = Counts.fromPair(seq1, seq2, DnaPairs,average=False)._data
-    m = (m + m.T) - (identity(4) * diag(m))
+    m = Counts.fromPair(seq1, seq2, DnaPairs,average=True)._data
 
     q = m / m.sum(axis=1)[:,NewAxis]
     new_diag = -(q.sum(axis=1) - diag(q))
@@ -1094,9 +1092,7 @@ def goldman_q_rna_pair(seq1, seq2):
 
     seq1, seq2 = ModelRnaSequence(seq1), ModelRnaSequence(seq2)
 
-    # grab frequencies and make symmetric
-    m = Counts.fromPair(seq1, seq2, RnaPairs,average=False)._data
-    m = (m + m.T) - (identity(4) * diag(m))
+    m = Counts.fromPair(seq1, seq2, RnaPairs,average=True)._data
 
     q = m / m.sum(axis=1)[:,NewAxis]
     new_diag = -(q.sum(axis=1) - diag(q))
