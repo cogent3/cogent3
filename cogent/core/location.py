@@ -472,7 +472,7 @@ class Map(object):
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
                     raise RuntimeError("located outside sequence: %s" % \
-                                    (start, end, parent_length))
+                                    str((start, end, parent_length)))
                 elif max(start, end) < 0:
                     diff = min(start, end)
                     start = [start, 0][start < 0]
