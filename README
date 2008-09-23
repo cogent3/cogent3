@@ -87,7 +87,7 @@ This software is provided "as-is". There are no expressed or implied warranties 
 Contacts
 --------
 
-If you find a bug or have any questions please send us an email_.
+If you find a bug or have feature requests, please post comments on the corresponding `tracker`_ page at sourceforge. If you have any questions please post on the appropriate projects `forums`_ page at sourceforge.
 
 .. _Python: http://www.python.org
 .. _Numpy: http://www.scipy.org/NumPy
@@ -95,7 +95,7 @@ If you find a bug or have any questions please send us an email_.
 .. _Matplotlib: http://matplotlib.sourceforge.net
 .. _Apple: http://www.apple.com
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
-.. _here: http://sourceforge.net/projects/pycogent
+.. _here: http://sourceforge.net/forum/forum.php?forum_id=651121
 .. _jedit: http://www.jedit.org
 .. _subethaedit: http://www.codingmonkeys.de/subethaedit/
 .. _`editors go here`: http://www.python.org/cgi-bin/moinmoin/PythonEditors
@@ -103,6 +103,7 @@ If you find a bug or have any questions please send us an email_.
 .. _emacs: http://www.gnu.org/software/emacs/emacs.html
 .. _PAML: MATRIX_LICENSE.txt
 .. _included: EVOLVE_LICENSE.txt
-.. _email: cogent@cbis.anu.edu.au
+.. _tracker: http://sourceforge.net/tracker2/?group_id=186234
+.. _forums: http://sourceforge.net/forum/?group_id=186234
 .. _`restructured text`: http://docutils.sourceforge.net/rst.html
 .. _gcc: http://gcc.gnu.org/
