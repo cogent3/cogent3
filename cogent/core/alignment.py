@@ -1568,9 +1568,21 @@ class AlignmentI(object):
         index, and the symbol index as the second index. For example, for the
         TCAG DNA Alphabet, result[3][0] would store the count of T in the
         sequence at index 3 (i.e. the 4th sequence).
+        
+        First an DenseAligment object is created, next the calculation is done
+        on this object. It is important that the DenseAlignment is initialized
+        with the same MolType and Alphabet as the original Alignment.
         """
-        da = DenseAlignment(self)
+        da = DenseAlignment(self, MolType=self.MolType, Alphabet=self.Alphabet)
         return da._get_freqs(index)
+
+    def getPosFreqs(self):
+        """Returns Profile of counts: position by character.
+        
+        See documentation for _get_freqs: this just wraps it and converts the
+        result into a Profile object organized per-position (i.e. per column).
+        """
+        return Profile(self._get_freqs(1), self.Alphabet)
 
     def sample(self, n=None, with_replacement=False, motif_length=1, \
         randint=randint, permutation=permutation):
