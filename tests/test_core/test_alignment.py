@@ -1255,13 +1255,132 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # ensure each char occurs twice as sampling dinucs without replacement
         for char in seqs[0]:
             self.assertEqual(seqs[0].count(char), 2) 
-    
+
+
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
     Class = DenseAlignment
 
+    def test_get_freqs(self):
+        """DenseAlignment getSeqFreqs: should work on positions and sequences 
+        """
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        da = DenseAlignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        seq_exp = array([[1,1,1,1],[0,3,1,0],[1,0,2,1]])
+        pos_exp = array([[1,1,1,0],[0,2,0,1],[0,0,3,0],[1,1,0,1]])
+        self.assertEqual(da._get_freqs(index=1), pos_exp)
+        self.assertEqual(da._get_freqs(index=0), seq_exp)
+        
+    def test_getSeqFreqs(self):
+        """DenseAlignment getSeqFreqs: should work with DnaSequences and strings
+        """
+        exp = array([[1,1,1,1],[0,3,1,0],[1,0,2,1]])
+
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        da = DenseAlignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = da.getSeqFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+        s1 = 'TCAG'
+        s2 = 'CCAC'
+        s3 = 'AGAT'
+        da = DenseAlignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = da.getSeqFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+    def test_getPosFreqs_sequence(self):
+        """DenseAlignment getPosFreqs: should work with DnaSequences and strings
+        """
+        exp = array([[1,1,1,0],[0,2,0,1],[0,0,3,0],[1,1,0,1]])
+
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        da = DenseAlignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = da.getPosFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+        s1 = 'TCAG'
+        s2 = 'CCAC'
+        s3 = 'AGAT'
+        da = DenseAlignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = da.getPosFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
-    
+
+    def test_get_freqs(self):
+        """Alignment _get_freqs: should work on positions and sequences 
+        """
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        aln = Alignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        seq_exp = array([[1,1,1,1],[0,3,1,0],[1,0,2,1]])
+        pos_exp = array([[1,1,1,0],[0,2,0,1],[0,0,3,0],[1,1,0,1]])
+        self.assertEqual(aln._get_freqs(index=1), pos_exp)
+        self.assertEqual(aln._get_freqs(index=0), seq_exp)
+
+    def test_getSeqFreqs(self):
+        """Alignment getSeqFreqs: should work with DnaSequences and strings
+        """
+        exp = array([[1,1,1,1],[0,3,1,0],[1,0,2,1]])
+
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        aln = Alignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = aln.getSeqFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+        s1 = 'TCAG'
+        s2 = 'CCAC'
+        s3 = 'AGAT'
+        aln = Alignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = aln.getSeqFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+    def test_getPosFreqs(self):
+        """Alignment getPosFreqs: should work with DnaSequences and strings
+        """
+        exp = array([[1,1,1,0],[0,2,0,1],[0,0,3,0],[1,1,0,1]])
+
+        s1 = DNA.Sequence('TCAG', Name='s1')
+        s2 = DNA.Sequence('CCAC', Name='s2')
+        s3 = DNA.Sequence('AGAT', Name='s3')
+        aln = Alignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = aln.getPosFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+        s1 = 'TCAG'
+        s2 = 'CCAC'
+        s3 = 'AGAT'
+        aln = Alignment([s1,s2,s3], MolType=DNA, Alphabet=DNA.Alphabet)
+        obs = aln.getPosFreqs()
+        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.Alphabet, DNA.Alphabet)
+        self.assertEqual(obs.CharOrder, list("TCAG"))
+
+
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func
         func = lambda x: re.findall("[-N?]", " ".join(x)) == []
