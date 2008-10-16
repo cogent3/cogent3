@@ -9,6 +9,7 @@ from numpy.random import random
 
 from cogent.util.unit_test import TestCase, main#, numpy_err 
 from cogent.core.moltype import DNA
+from cogent.core.sequence import ModelSequence
 from cogent.core.profile import Profile, ProfileError, CharMeaningProfile
 from cogent.core.alignment import DenseAlignment as Alignment
 
@@ -112,6 +113,16 @@ class ProfileTests(TestCase):
         self.assertEqual(p1.isValid(),True)
         self.assertEqual(p2.isValid(),False)
         self.assertEqual(p3.isValid(),False)
+
+    def test_dataAt(self):
+        """dataAt: should work on valid position and character"""
+        p = Profile(array([[.2,.4,.4,0],[.1,0,.9,0],[.1,.2,.3,.4]]),\
+            Alphabet="TCAG")
+        self.assertEqual(p.dataAt(0,'C'),.4)
+        self.assertEqual(p.dataAt(1,'T'),.1)
+        self.assertRaises(ProfileError, p.dataAt, 1, 'U')
+        self.assertRaises(ProfileError, p.dataAt, -2, 'T')
+        self.assertRaises(ProfileError, p.dataAt, 5, 'T')
 
     def test_copy(self):
         """copy: should act as expected while rebinding/modifying attributes
@@ -429,6 +440,28 @@ class ProfileTests(TestCase):
         #raises error when sequence contains characters that 
         #are not in the characterorder
         self.assertRaises(ProfileError,self.score2.score,"ACBRT") 
+
+    def test_score_sequence_object(self):
+        """score: should work correctly on Sequence object as input
+        """
+        # DnaSequence object
+        ds = self.score1.score(DNA.Sequence("ATTCAC"),offset=0)
+        self.assertEqual(ds, [6,2,-3,0])
+        # ModelSequence object
+        ms = self.score1.score(ModelSequence("ATTCAC", Alphabet=DNA.Alphabet),\
+            offset=0)
+        self.assertEqual(ms, [6,2,-3,0])
+
+    def test_score_no_trans_table(self):
+        """score: should work when no translation table is present
+        """
+        p = Profile(Data=array([[-1,0,1,2],[-2,2,0,0],[-3,5,1,0]]),\
+            Alphabet=DNA, CharOrder="ATGC")
+        # remove translation table
+        del p.__dict__['_translation_table']
+        # then score the profile
+        s1 = p.score(DNA.Sequence("ATTCAC"),offset=0)
+        self.assertEqual(s1, [6,2,-3,0])
 
     def test_score_profile(self):
         """score: should work correctly for Profile as input
