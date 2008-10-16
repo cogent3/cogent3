@@ -77,9 +77,19 @@ class Profile(object):
         chars = ''.join(map(str,self.CharOrder))
         return maketrans(chars, indices)
 
-    def hasValidData(self):
-        """Returns True if all rows in self.Data add up to one"""
-        if (sum(self.Data,1) == ones(len(self.Data))).all():
+    def hasValidData(self, err=1e-16):
+        """Returns True if all rows in self.Data add up to one
+        
+        err -- float, maximum deviation from 1 allowed, default is 1e-16
+
+        Rounding errors might occur, so a small deviation from 1 is allowed.
+            The default tolerance is 1e-16.
+        """
+        obs_sums = sums = sum(self.Data,1)
+        lower_bound = ones(len(self.Data)) - err
+        upper_bound = ones(len(self.Data)) + err
+        tfs = sum(self.Data,1) == ones(len(self.Data))
+        if (lower_bound <= obs_sums).all() and (obs_sums <= upper_bound).all():
             return True
         return False
 
@@ -97,6 +107,26 @@ class Profile(object):
         vd = self.hasValidData()
         va = self.hasValidAttributes()
         return vd and va
+
+    def dataAt(self, pos, character=None):
+        """Return data for a certain position (row!) and character (column)
+
+        pos -- int, position (row) in the profile
+        character -- str, character from the CharacterOrder
+
+        If character is None, all data for the position is returned.
+        """
+        if not 0 <= pos < len(self.Data):
+            raise ProfileError(\
+            "Position %s is not present in the profile"%(pos))
+        if character is None:
+            return self.Data[pos,:]
+        else:
+            if character not in self.CharOrder:
+                raise ProfileError(\
+                "Character %s is not present in the profile's CharacterOrder"\
+                    %(character))
+            return self.Data[pos, self.CharOrder.index(character)]
  
     def copy(self):
         """Returns a copy of the Profile object
@@ -459,7 +489,7 @@ class Profile(object):
         else:
             #translate seq to indices
             if hasattr(self, '_translation_table'):
-                seq_indices = array(map(ord,translate(input_data,\
+                seq_indices = array(map(ord,translate(str(input_data),\
                     self._translation_table)))
             else:   #need to figure out where each item is in the charorder
                 idx = self.CharOrder.index
