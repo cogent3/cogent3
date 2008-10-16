@@ -21,6 +21,7 @@ Data manipulation
 .. include:: seq_features.rest
 .. include:: reverse_complement.rest
 .. include:: align_codons_to_protein.rest
+.. include:: aln_profile.rest
 
 Data Visualisation
 ==================
