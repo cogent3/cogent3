@@ -14,6 +14,8 @@ A Note on the Computable Documentation
 
 The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.
 
+Examples not explicitly attributed were authored by Gavin Huttley.
+
 Data manipulation
 =================
 
@@ -22,6 +24,7 @@ Data manipulation
 .. include:: reverse_complement.rest
 .. include:: align_codons_to_protein.rest
 .. include:: aln_profile.rest
+.. include:: genetic_code_aa_index.rest
 
 Data Visualisation
 ==================
