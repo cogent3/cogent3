@@ -10,17 +10,48 @@ from numpy import array, ravel, argmin, take, sum, average, ma, diag
 from cogent.core.tree import PhyloNode
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.1"
+__version__ = "1.0.1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
 
 import numpy
+from cogent.util.dict2d import Dict2D
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
+BIG_NUM = 1e305
+
+def upgma(pairwise_distances):
+    """Uses the UPGMA algorithm to cluster sequences
+
+    pairwise_distances: a dictionary with pai tuples mapped to a distance
+    returns a PhyloNode object if the UPGMA cluster
+    """
+    items_in_matrix = []
+    for i in pairwise_distances:
+        if i[0] not in items_in_matrix:
+            items_in_matrix.append(i[0])
+        if i[1] not in items_in_matrix:
+            items_in_matrix.append(i[1])
+    dict2d_input = [(i[0], i[1], pairwise_distances[i]) for i in \
+            pairwise_distances]
+    dict2d_input.extend([(i[1], i[0], pairwise_distances[i]) for i in \
+            pairwise_distances])
+    dict2d_input = Dict2D(dict2d_input, RowOrder=items_in_matrix, \
+            ColOrder=items_in_matrix, Pad=True, Default=BIG_NUM)
+    matrix_a, node_order = inputs_from_dict2D(dict2d_input)
+    tree = UPGMA_cluster(matrix_a, node_order, BIG_NUM)
+    index = 0
+    for node in tree.traverse():
+        if not node.Parent:
+            node.Name = 'root'
+        elif not node.Name:
+            node.Name = 'edge.' + str(index)
+            index += 1
+    return tree
 
 def find_smallest_index(matrix):
     """returns the index of the smallest element in a numpy array
