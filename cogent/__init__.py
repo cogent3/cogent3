@@ -126,7 +126,7 @@ def Table(**kwargs):
     deprecated('function', 'cogent.Table', 'cogent.LoadTable', '1.2')
     return LoadTable(**kwargs)
 
-def LoadTable(filename, sep=',', reader=None, header=None, rows=None, 
+def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None, 
             row_order=None, digits=4, space=4, title='', missing_data='',
             max_width = 1e100, row_ids=False, legend='', column_templates=None,
             dtype=None,  **kwargs):
@@ -153,17 +153,18 @@ def LoadTable(filename, sep=',', reader=None, header=None, rows=None,
       or a function that will handle the formatting.
     - dtype: optional numpy array typecode.
     """
-    if filename[filename.rfind(".")+1:] == 'pickle':
-        f = file(filename, 'U')
-        loaded_table = cPickle.load(f)
-        f.close()
-        return _Table(**loaded_table)
-    
     # 
     if filename is not None and reader is None:
+        if filename[filename.rfind(".")+1:] == 'pickle':
+            f = file(filename, 'U')
+            loaded_table = cPickle.load(f)
+            f.close()
+            return _Table(**loaded_table)
+        
         sep = sep or kwargs.pop('delimiter', None)
-        header, rows, title, legend = load_delimited(filename,
+        header, rows, loaded_title, legend = load_delimited(filename,
                                         delimiter = sep, **kwargs)
+        title = title or loaded_title
     elif filename and reader:
         f = file(filename, "r")
         rows = [row for row in reader(f)]
