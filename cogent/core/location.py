@@ -600,7 +600,6 @@ class Map(object):
         """reverses spans according to concept of nucleic acid sequence
         reverse complement"""
         spans = [s.reversedRelativeTo(self.parent_length) for s in self.spans]
-        spans.reverse()
         return Map(spans=spans, parent_length=self.parent_length)
     
     def gaps(self):
