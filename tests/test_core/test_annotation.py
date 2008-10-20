@@ -158,15 +158,15 @@ class TestMapSpans(unittest.TestCase):
         assert reverse.reversedRelativeTo(100) == forward
     
     def test_map(self):
+        """reversing a map with multiple spans should preserve span relative
+        order"""
         forward = [Span(20,30), Span(40,50)]
         fmap = Map(spans=forward, parent_length=100)
         fmap_reversed = fmap.nucleicReversed()
-        reverse = [Span(50,60, Reverse=True), Span(70,80, Reverse=True)]
+        reverse = [Span(70,80, Reverse=True), Span(50,60, Reverse=True)]
         rmap = Map(spans=reverse, parent_length=100)
-        rmap_reversed = rmap.nucleicReversed()
         for i in range(2):
-            assert rmap_reversed.spans[i] == fmap.spans[i]
-            assert fmap_reversed.spans[i] == rmap.spans[i]
+            self.assertEquals(fmap_reversed.spans[i], rmap.spans[i])
     
     
 

@@ -97,6 +97,20 @@ cases where a free-floating feature is created it can later be attached:
     >>> len(s.annotations)
     2
 
+When dealing with sequences that can be reverse complemented (e.g. DnaSequence) features are also reversed. Feature types like CDS, however, have strand specific meaning and thus they're preserved in that orientation. We create a sequence with a CDS that spans multiple exons, and show that after getting the reverse complement we have exactly the same result from getting the CDS annotation.
+
+    >>> plus = DNA.makeSequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
+    ... Name="plus")
+    >>> plus_cds = plus.addAnnotation(Feature, 'CDS', 'gene',
+    ...                           [(2,6),(10,15),(25,35)])
+    >>> print plus_cds.getSlice()
+    GGGGCCCCCTTTTTTTTTT
+    >>> minus = plus.rc()
+    >>> minus_cds = minus.getAnnotationsMatching('CDS')[0]
+    >>> print minus_cds.getSlice()
+    GGGGCCCCCTTTTTTTTTT
+
+
 Sequence features can be accessed via a containing Alignment:
 
     >>> from cogent import LoadSeqs
