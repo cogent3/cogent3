@@ -6,14 +6,14 @@ from numpy import array
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 from cogent.cluster.UPGMA import find_smallest_index, condense_matrix, \
-        condense_node_order, UPGMA_cluster, inputs_from_dict2D
+        condense_node_order, UPGMA_cluster, inputs_from_dict2D, upgma
 from cogent.util.dict2d import Dict2D
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.1"
+__version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -23,6 +23,16 @@ class UPGMATests(TestCase):
 
     def setUp(self):
         """creates inputs"""
+        self.pairwise_distances = {('a', 'b'): 1.0,
+        ('a', 'c'):4.0,
+        ('a', 'd'):20.0,
+        ('a', 'e'):22.0,
+        ('b', 'c'):5.0,
+        ('b', 'd'):21.0,
+        ('b', 'e'):23.0,
+        ('c', 'd'):10.0,
+        ('c', 'e'):12.0,
+        ('d', 'e'):2.0}
         #create a list of PhyloNode objects
         a, b, c, d, e = map(PhyloNode, 'abcde')
         self.node_order = [a, b, c, d, e]
@@ -46,6 +56,13 @@ class UPGMATests(TestCase):
                         [20, 21, 10, 5, 2], \
                         [22, 23, 12, 2, 5]), Float)
     
+    def test_UPGMA_cluster(self):
+        """upgma works on pairwise distance dict
+        """
+        pairwise_dist = self.pairwise_distances
+        cluster = upgma(pairwise_dist)
+        self.assertEqual(str(cluster), '(((b:0.5,a:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
+        
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array
         """
@@ -81,7 +98,7 @@ class UPGMATests(TestCase):
         self.assertEqual(node_order[3].__str__(), 'd;')
         self.assertEqual(node_order[4].__str__(), 'e;')
 
-    def test_UPGMA_cluster(self):
+    def test_upgma_cluster(self):
         """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA
         """
         matrix = self.matrix
