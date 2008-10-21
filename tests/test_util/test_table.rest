@@ -871,10 +871,19 @@ For completeness, we generate a table with no rows and assess its shape.
     >>> sub_table3.Shape
     (0, 5)
 
-The distinct values in a column can be obtained.
+The distinct values can be obtained for a single column,
 
     >>> distinct = new.getDistinctValues("edge.name")
     >>> assert distinct == set(['Rat', 'Mouse', 'Human'])
+
+or multiple columns
+    
+    >>> distinct = new.getDistinctValues(["edge.parent", "z"])
+    >>> assert distinct == set([('root', 6.0), ('root', 7.0)]), distinct
+
+We can compute column sums. This will fail if there are non-numerical values in a column.
+
+    >>> assert new.summed('z') == 39., new.summed('z')
 
 Extending tables
 ----------------
@@ -1189,7 +1198,7 @@ We test the outer join by defining an additional table with different dimensions
         3         5          6          23
     --------------------------------------
 
-We finally establish the ``joined`` method works for mixtures of character and numerical data, setting some indices and some cell values to be strings.
+We establish the ``joined`` method works for mixtures of character and numerical data, setting some indices and some cell values to be strings.
 
     >>> a=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
@@ -1197,6 +1206,30 @@ We finally establish the ``joined`` method works for mixtures of character and n
     ...         rows=[[1,2,"3"],["2",2,1],[3,6,3]], title="B")
     >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
     ...         == a.joined(b,["index","col3"]).getRawData()
+
+We test that the ``joined`` method works when the column index orders differ.
+
+    >>> t1_header = ['a', 'b']
+    >>> t1_rows = [(1,2),(3,4)]
+    >>> t2_header = ['b', 'c']
+    >>> t2_rows = [(3,6),(4,8)]
+    >>> t1 = Table(header = t1_header, rows = t1_rows, title='t1')
+    >>> t2 = Table(header = t2_header, rows = t2_rows, title='t2')
+    >>> t3 = t1.joined(t2, columns_self = ["b"], columns_other = ["b"])
+    >>> print t3
+    ==============
+    a    b    t2_c
+    --------------
+    3    4       8
+    --------------
+
+We then establish that a join with no values does not cause a failure, just returns an empty ``Table``.
+
+    >>> t4_header = ['b', 'c']
+    >>> t4_rows = [(5,6),(7,8)]
+    >>> t4 = LoadTable(header = t4_header, rows = t4_rows)
+    >>> t4.Title = 't4'
+    >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
 
 Counting rows
 -------------
