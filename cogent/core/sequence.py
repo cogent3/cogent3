@@ -559,6 +559,44 @@ class Sequence(_Annotatable, SequenceI):
             feat_label = gff.parse_attributes(attributes)
             self.addFeature(feature, feat_label, [(start, end)])
     
+    def withMaskedAnnotations(self, annot_types, mask_char=None, shadow=False):
+        """returns a sequence with annot_types regions replaced by mask_char
+        if shadow is False, otherwise all other regions are masked.
+        
+        Arguments:
+            - annot_types: annotation type(s)
+            - mask_char: must be a character valid for the seq MolType. The
+              default value is the most ambiguous character, eg. '?' for DNA
+            - shadow: whether to mask the annotated regions, or everything but
+              the annotated regions"""
+        if mask_char is None:
+            ambigs = [(len(v), c) for c,v in self.MolType.Ambiguities.items()]
+            ambigs.sort()
+            mask_char = ambigs[-1][1]
+        assert mask_char in self.MolType, 'Invalid mask_char %s' % mask_char
+        
+        annotations = []
+        annot_types = [annot_types, [annot_types]][type(annot_types)==str]
+        for annot_type in annot_types:
+            annotations += self.getAnnotationsMatching(annot_type)
+        
+        region = self.getRegionCoveringAll(annotations)
+        if shadow:
+            region = region.getShadow()
+        
+        i = 0
+        segments = []
+        for b, e in region.getCoordinates():
+            segments += [self._seq[i:b]]
+            segments += ['?'*(e-b)]
+            i = e
+        segments += [self._seq[i:]]
+        
+        new = self.__class__(''.join(segments), Name=self.Name, check=False,
+                            Info=self.Info)
+        new.annotations = self.annotations[:]
+        return new
+    
     def gappedByMapSegmentIter(self, map, allow_gaps=True, recode_gaps=False):
         for span in map.spans:
             if span.lost:

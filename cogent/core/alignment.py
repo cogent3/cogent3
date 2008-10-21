@@ -1379,6 +1379,13 @@ class Aligned(object):
         """Returns gapVector of GappedSeq, for omitGapPositions."""
         return self.getGappedSeq().gapVector()
     
+    def _masked_annotations(self, annot_types, mask_char, shadow):
+        """returns a new aligned sequence with regions defined by align_spans
+        and shadow masked."""
+        new_data = self.data.withMaskedAnnotations(annot_types, mask_char, shadow)
+        # we remove the mask annotations from self and new_data
+        return self.__class__(self.map, new_data)
+    
 
 class AlignmentI(object):
     """Alignment interface object. Contains methods shared by implementations.
@@ -2296,6 +2303,23 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 feature.map.Start, feature.map.End, self.Name or '')
             result.append(segment)
         return result
+    
+    def withMaskedAnnotations(self, annot_types, mask_char=None, shadow=False):
+        """returns an alignment with annot_types regions replaced by mask_char
+        if shadow is False, otherwise all other regions are masked.
+        
+        Arguments:
+            - annot_types: annotation type(s)
+            - mask_char: must be a character valid for the seq MolType. The
+              default value is the most ambiguous character, eg. '?' for DNA
+            - shadow: whether to mask the annotated regions, or everything but
+              the annotated regions"""
+        masked_seqs = []
+        for seq in self.Seqs:
+            # we mask each sequence using these spans
+            masked_seqs += [seq._masked_annotations(annot_types,mask_char,shadow)]
+        new = self.__class__(data=masked_seqs, Info=self.Info, Name=self.Name)
+        return new
     
     def variablePositions(self, include_gap_motif = True):
         """Return a list of variable position indexes.
