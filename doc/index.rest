@@ -25,6 +25,7 @@ Data manipulation
 .. include:: align_codons_to_protein.rest
 .. include:: aln_profile.rest
 .. include:: genetic_code_aa_index.rest
+.. include:: handling_tabular_data.rest
 
 Data Visualisation
 ==================
