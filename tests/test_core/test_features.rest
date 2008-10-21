@@ -223,4 +223,133 @@ Features can provide their coordinates, useful for custom analyses.
     >>> coords = all_exons.getCoordinates()
     >>> assert coords == [(0,1),(2,5)]
 
+Annotated regions can be masked (observed sequence characters replaced by another), either through the sequence on which they reside or by projection from the alignment. Note that ``mask_char`` must be a valid character for the sequence ``MolType``. Either the features (multiple can be named), or their shadow, can be masked.
+
+We create an alignment with a sequence that has two different annotation types.
+
+    >>> aln = LoadSeqs(data={'x':'C-CCCAAAAAGGGAA', 'y':'-T----TTTTG-GTT'})
+    >>> print aln
+    >y
+    -T----TTTTG-GTT
+    >x
+    C-CCCAAAAAGGGAA
+    <BLANKLINE>
+    >>> exon = aln.getSeq('x').addFeature('exon', 'norwegian', [(0,4)])
+    >>> print exon.getSlice()
+    CCCC
+    >>> repeat = aln.getSeq('x').addFeature('repeat', 'blue', [(9,12)])
+    >>> print repeat.getSlice()
+    GGG
+    >>> repeat = aln.getSeq('y').addFeature('repeat', 'frog', [(5,7)])
+    >>> print repeat.getSlice()
+    GG
+
+Each sequence should correctly mask either the single feature, it's shadow, or the multiple features, or shadow.
+
+    >>> print aln.getSeq('x').withMaskedAnnotations('exon', mask_char='?')
+    ????AAAAAGGGAA
+    >>> print aln.getSeq('x').withMaskedAnnotations('exon', mask_char='?',
+    ...                                         shadow=True)
+    CCCC??????????
+    >>> print aln.getSeq('x').withMaskedAnnotations(['exon', 'repeat'],
+    ...                                           mask_char='?')
+    ????AAAAA???AA
+    >>> print aln.getSeq('x').withMaskedAnnotations(['exon', 'repeat'],
+    ...                                           mask_char='?', shadow=True)
+    CCCC?????GGG??
+    >>> print aln.getSeq('y').withMaskedAnnotations('exon', mask_char='?')
+    TTTTTGGTT
+    >>> print aln.getSeq('y').withMaskedAnnotations('repeat', mask_char='?')
+    TTTTT??TT
+    >>> print aln.getSeq('y').withMaskedAnnotations('repeat', mask_char='?',
+    ...                                          shadow=True)
+    ?????GG??
+
+The same methods can be applied to annotated Alignment's.
+
+    >>> print aln.withMaskedAnnotations('exon', mask_char='?')
+    >y
+    -T----TTTTG-GTT
+    >x
+    ?-???AAAAAGGGAA
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations('exon', mask_char='?', shadow=True)
+    >y
+    -?----?????-???
+    >x
+    C-CCC??????????
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations('repeat', mask_char='?')
+    >y
+    -T----TTTT?-?TT
+    >x
+    C-CCCAAAAA???AA
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations('repeat', mask_char='?', shadow=True)
+    >y
+    -?----????G-G??
+    >x
+    ?-????????GGG??
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations(['repeat', 'exon'], mask_char='?')
+    >y
+    -T----TTTT?-?TT
+    >x
+    ?-???AAAAA???AA
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations(['repeat', 'exon'],shadow=True)
+    >y
+    -?----????G-G??
+    >x
+    C-CCC?????GGG??
+    <BLANKLINE>
+
+It shouldn't matter whether annotated coordinates are entered separately, or as a series.
+
+>>> data = {"human": 'CGAAACGTTT', 'mouse':'CTAAACGTCG'}
+>>> as_series = LoadSeqs(data = data)
+>>> as_items = LoadSeqs(data = data)
+
+We add annotations to the sequences as a series.
+
+>>> as_series.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
+cpgsite "cpg" at [0:2, 5:7]/10
+>>> as_series.getSeq('mouse').addFeature('cpgsite', 'cpg', [(5,7), (8,10)])
+cpgsite "cpg" at [5:7, 8:10]/10
+
+We add the annotations to the sequences one segment at a time.
+
+>>> as_items.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2)])
+cpgsite "cpg" at [0:2]/10
+>>> as_items.getSeq('human').addFeature('cpgsite', 'cpg', [(5,7)])
+cpgsite "cpg" at [5:7]/10
+>>> as_items.getSeq('mouse').addFeature('cpgsite', 'cpg', [(5,7)])
+cpgsite "cpg" at [5:7]/10
+>>> as_items.getSeq('mouse').addFeature('cpgsite', 'cpg', [(8,10)])
+cpgsite "cpg" at [8:10]/10
+
+These different constructions should generate the same output.
+
+>>> serial = as_series.withMaskedAnnotations(['cpgsite'])
+>>> print serial
+>mouse
+CTAAA??T??
+>human
+??AAA??TTT
+<BLANKLINE>
+>>> itemwise = as_items.withMaskedAnnotations(['cpgsite'])
+>>> print itemwise
+>mouse
+CTAAA??T??
+>human
+??AAA??TTT
+<BLANKLINE>
+
+Annotations should be correctly masked, whether the sequence has been reverse complemented or not. We use the plus/minus strand CDS containing sequences created above.
+
+>>> print plus.withMaskedAnnotations("CDS")
+AA????AAAA?????AAAAAAAAAA??????????AAA
+>>> print minus.withMaskedAnnotations("CDS")
+TTT??????????TTTTTTTTTT?????TTTT????TT
+
 Not documented, Source features.
