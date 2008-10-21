@@ -512,10 +512,13 @@ class Table(DictArray):
         return Table(header = self.Header + [new_column], rows = twoD, **kw)
     
     def getDistinctValues(self, column):
-        """returns the set of distinct values for the named column"""
+        """returns the set of distinct values for the named column(s)"""
         vals = set()
+        columns = [column, [column]][type(column) == str]
         for row in self:
-            vals.update([row[column]])
+            val = [row[column] for column in columns]
+            val = [val, [tuple(val)]][len(columns) > 1]
+            vals.update(val)
         return vals
     
     def joined(self, other_table, columns_self=None, columns_other=None,
@@ -591,7 +594,7 @@ class Table(DictArray):
             if type(col)==int:
                 columns_other_indices.append(col)
             else:
-                columns_other_indices.append(self.Header.index(col))
+                columns_other_indices.append(other_table.Header.index(col))
         # create a mask of which columns of the other_table will end up in the
         # output
         output_mask_other=[]
@@ -624,5 +627,14 @@ class Table(DictArray):
         
         new_header=self.Header+[other_table.Title+"_"+other_table.Header[c] \
                                                   for c in output_mask_other]
+        if not joined_table:
+            # YUK, this is to stop dimension check in DictArray causing
+            # failures
+            joined_table = numpy.empty((0,len(new_header)))
+        
         return Table(header=new_header, rows=joined_table, **kwargs)
     
+    def summed(self, column):
+        """returns the sum of row values for column"""
+        vals = [r[column] for r in self]
+        return sum(vals)
