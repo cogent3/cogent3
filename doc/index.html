@@ -246,56 +246,72 @@
 <li><a class="reference" href="#map-protein-alignment-gaps-to-dna-alignment-gaps" id="id17" name="id17">Map protein alignment gaps to DNA alignment gaps</a></li>
 <li><a class="reference" href="#creating-and-manipulating-alignment-profiles" id="id18" name="id18">Creating and manipulating alignment profiles</a></li>
 <li><a class="reference" href="#compute-the-effect-of-a-nucleotide-substitution-on-residue-polarity-in-two-different-genetic-codes-using-geneticcode-and-aaindex" id="id19" name="id19">Compute the effect of a nucleotide substitution on residue polarity in two different genetic codes using GeneticCode and AAIndex</a></li>
+<li><a class="reference" href="#data-manipulation-using-table" id="id20" name="id20">Data Manipulation using <tt class="docutils literal"><span class="pre">Table</span></tt></a><ul>
+<li><a class="reference" href="#testing-a-sub-component" id="id21" name="id21">Testing a sub-component</a></li>
+<li><a class="reference" href="#table-creation" id="id22" name="id22">Table creation</a></li>
+<li><a class="reference" href="#table-output" id="id23" name="id23">Table output</a></li>
+<li><a class="reference" href="#saving-a-table-for-reloading" id="id24" name="id24">Saving a table for reloading</a></li>
+<li><a class="reference" href="#table-slicing-and-iteration" id="id25" name="id25">Table slicing and iteration</a></li>
+<li><a class="reference" href="#filtering-tables-selecting-subsets-of-rows" id="id26" name="id26">Filtering tables - selecting subsets of rows</a></li>
+<li><a class="reference" href="#appending-tables" id="id27" name="id27">Appending tables</a></li>
+<li><a class="reference" href="#miscellaneous" id="id28" name="id28">Miscellaneous</a></li>
+<li><a class="reference" href="#extending-tables" id="id29" name="id29">Extending tables</a></li>
+<li><a class="reference" href="#sorting-tables" id="id30" name="id30">Sorting tables</a></li>
+<li><a class="reference" href="#joining-tables" id="id31" name="id31">Joining Tables</a></li>
+<li><a class="reference" href="#counting-rows" id="id32" name="id32">Counting rows</a></li>
+<li><a class="reference" href="#cleanup" id="id33" name="id33">Cleanup</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#data-visualisation" id="id20" name="id20">Data Visualisation</a><ul>
-<li><a class="reference" href="#drawing-dendrograms-and-saving-to-pdf" id="id21" name="id21">Drawing dendrograms and saving to PDF</a></li>
-<li><a class="reference" href="#drawing-a-dotplot" id="id22" name="id22">Drawing a dotplot</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#modelling-evolution" id="id23" name="id23">Modelling Evolution</a><ul>
-<li><a class="reference" href="#the-simplest-script" id="id24" name="id24">The simplest script</a></li>
-<li><a class="reference" href="#performing-a-relative-rate-test" id="id25" name="id25">Performing a relative rate test</a></li>
-<li><a class="reference" href="#a-test-of-the-neutral-theory" id="id26" name="id26">A test of the neutral theory</a></li>
-<li><a class="reference" href="#use-an-empirical-protein-substitution-model" id="id27" name="id27">Use an empirical protein substitution model</a></li>
-<li><a class="reference" href="#analysis-of-rate-heterogeneity" id="id28" name="id28">Analysis of rate heterogeneity</a></li>
-<li><a class="reference" href="#likelihood-analysis-of-multiple-loci" id="id29" name="id29">Likelihood analysis of multiple loci</a></li>
-<li><a class="reference" href="#reusing-results-to-speed-up-optimisation" id="id30" name="id30">Reusing results to speed up optimisation</a></li>
-<li><a class="reference" href="#specifying-and-using-an-restricted-nucleotide-substitution-model" id="id31" name="id31">Specifying and using an restricted nucleotide substitution model</a></li>
-<li><a class="reference" href="#simulate-an-alignment" id="id32" name="id32">Simulate an alignment</a></li>
-<li><a class="reference" href="#performing-a-parametric-bootstrap" id="id33" name="id33">Performing a parametric bootstrap</a></li>
-<li><a class="reference" href="#estimate-parameter-values-using-a-sampling-from-a-dataset" id="id34" name="id34">Estimate parameter values using a sampling from a dataset</a></li>
+<li><a class="reference" href="#data-visualisation" id="id34" name="id34">Data Visualisation</a><ul>
+<li><a class="reference" href="#drawing-dendrograms-and-saving-to-pdf" id="id35" name="id35">Drawing dendrograms and saving to PDF</a></li>
+<li><a class="reference" href="#drawing-a-dotplot" id="id36" name="id36">Drawing a dotplot</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#phylogenetic-reconstruction" id="id35" name="id35">Phylogenetic Reconstruction</a><ul>
-<li><a class="reference" href="#calculate-pairwise-distances-between-sequences" id="id36" name="id36">Calculate pairwise distances between sequences</a></li>
-<li><a class="reference" href="#make-a-neighbor-joining-tree" id="id37" name="id37">Make a neighbor joining tree</a></li>
-<li><a class="reference" href="#phylogenetic-reconstruction-by-least-squares" id="id38" name="id38">Phylogenetic reconstruction by least squares</a><ul>
-<li><a class="reference" href="#look-for-the-single-best-tree" id="id39" name="id39">Look for the single best tree</a></li>
-<li><a class="reference" href="#a-more-rigourous-tree-space-search" id="id40" name="id40">A more rigourous tree space search</a></li>
-<li><a class="reference" href="#assessing-the-fit-for-a-pre-specified-tree-topology" id="id41" name="id41">Assessing the fit for a pre-specified tree topology</a></li>
-<li><a class="reference" href="#using-maximum-likelihood-for-measuring-tree-fit" id="id42" name="id42">Using maximum likelihood for measuring tree fit</a></li>
+<li><a class="reference" href="#modelling-evolution" id="id37" name="id37">Modelling Evolution</a><ul>
+<li><a class="reference" href="#the-simplest-script" id="id38" name="id38">The simplest script</a></li>
+<li><a class="reference" href="#performing-a-relative-rate-test" id="id39" name="id39">Performing a relative rate test</a></li>
+<li><a class="reference" href="#a-test-of-the-neutral-theory" id="id40" name="id40">A test of the neutral theory</a></li>
+<li><a class="reference" href="#use-an-empirical-protein-substitution-model" id="id41" name="id41">Use an empirical protein substitution model</a></li>
+<li><a class="reference" href="#analysis-of-rate-heterogeneity" id="id42" name="id42">Analysis of rate heterogeneity</a></li>
+<li><a class="reference" href="#likelihood-analysis-of-multiple-loci" id="id43" name="id43">Likelihood analysis of multiple loci</a></li>
+<li><a class="reference" href="#reusing-results-to-speed-up-optimisation" id="id44" name="id44">Reusing results to speed up optimisation</a></li>
+<li><a class="reference" href="#specifying-and-using-an-restricted-nucleotide-substitution-model" id="id45" name="id45">Specifying and using an restricted nucleotide substitution model</a></li>
+<li><a class="reference" href="#simulate-an-alignment" id="id46" name="id46">Simulate an alignment</a></li>
+<li><a class="reference" href="#performing-a-parametric-bootstrap" id="id47" name="id47">Performing a parametric bootstrap</a></li>
+<li><a class="reference" href="#estimate-parameter-values-using-a-sampling-from-a-dataset" id="id48" name="id48">Estimate parameter values using a sampling from a dataset</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#making-a-phylogenetic-tree-from-a-protein-sequence-alignment" id="id43" name="id43">Making a phylogenetic tree from a protein sequence alignment</a></li>
+<li><a class="reference" href="#phylogenetic-reconstruction" id="id49" name="id49">Phylogenetic Reconstruction</a><ul>
+<li><a class="reference" href="#calculate-pairwise-distances-between-sequences" id="id50" name="id50">Calculate pairwise distances between sequences</a></li>
+<li><a class="reference" href="#make-a-neighbor-joining-tree" id="id51" name="id51">Make a neighbor joining tree</a></li>
+<li><a class="reference" href="#phylogenetic-reconstruction-by-least-squares" id="id52" name="id52">Phylogenetic reconstruction by least squares</a><ul>
+<li><a class="reference" href="#look-for-the-single-best-tree" id="id53" name="id53">Look for the single best tree</a></li>
+<li><a class="reference" href="#a-more-rigourous-tree-space-search" id="id54" name="id54">A more rigourous tree space search</a></li>
+<li><a class="reference" href="#assessing-the-fit-for-a-pre-specified-tree-topology" id="id55" name="id55">Assessing the fit for a pre-specified tree topology</a></li>
+<li><a class="reference" href="#using-maximum-likelihood-for-measuring-tree-fit" id="id56" name="id56">Using maximum likelihood for measuring tree fit</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#python-coding-guidelines" id="id44" name="id44">Python Coding Guidelines</a><ul>
-<li><a class="reference" href="#why-have-coding-guidelines" id="id45" name="id45">Why have coding guidelines?</a><ul>
-<li><a class="reference" href="#what-should-i-call-my-variables" id="id46" name="id46">What should I call my variables?</a><ul>
-<li><a class="reference" href="#acceptable-abbreviations" id="id47" name="id47">Acceptable abbreviations</a></li>
+<li><a class="reference" href="#making-a-phylogenetic-tree-from-a-protein-sequence-alignment" id="id57" name="id57">Making a phylogenetic tree from a protein sequence alignment</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#what-are-the-naming-conventions" id="id48" name="id48">What are the naming conventions?</a></li>
-<li><a class="reference" href="#how-do-i-organize-my-modules-source-files" id="id49" name="id49">How do I organize my modules (source files)?</a><ul>
-<li><a class="reference" href="#example-of-module-structure" id="id50" name="id50">Example of module structure</a></li>
+<li><a class="reference" href="#python-coding-guidelines" id="id58" name="id58">Python Coding Guidelines</a><ul>
+<li><a class="reference" href="#why-have-coding-guidelines" id="id59" name="id59">Why have coding guidelines?</a><ul>
+<li><a class="reference" href="#what-should-i-call-my-variables" id="id60" name="id60">What should I call my variables?</a><ul>
+<li><a class="reference" href="#acceptable-abbreviations" id="id61" name="id61">Acceptable abbreviations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#how-should-i-write-comments" id="id51" name="id51">How should I write comments?</a></li>
-<li><a class="reference" href="#how-should-i-format-my-code" id="id52" name="id52">How should I format my code?</a></li>
-<li><a class="reference" href="#how-should-i-test-my-code" id="id53" name="id53">How should I test my code ?</a><ul>
-<li><a class="reference" href="#some-unittest-pointers" id="id54" name="id54">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></li>
-<li><a class="reference" href="#example-of-a-unittest-test-module-structure" id="id55" name="id55">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></li>
+<li><a class="reference" href="#what-are-the-naming-conventions" id="id62" name="id62">What are the naming conventions?</a></li>
+<li><a class="reference" href="#how-do-i-organize-my-modules-source-files" id="id63" name="id63">How do I organize my modules (source files)?</a><ul>
+<li><a class="reference" href="#example-of-module-structure" id="id64" name="id64">Example of module structure</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#how-should-i-write-comments" id="id65" name="id65">How should I write comments?</a></li>
+<li><a class="reference" href="#how-should-i-format-my-code" id="id66" name="id66">How should I format my code?</a></li>
+<li><a class="reference" href="#how-should-i-test-my-code" id="id67" name="id67">How should I test my code ?</a><ul>
+<li><a class="reference" href="#some-unittest-pointers" id="id68" name="id68">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></li>
+<li><a class="reference" href="#example-of-a-unittest-test-module-structure" id="id69" name="id69">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></li>
 </ul>
 </li>
 </ul>
@@ -624,15 +640,1052 @@ U   C       A       G       -       B       D       H       K       M       N   
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="id2">[1]</a></td><td>Error Minimization and Coding Triplet/Binding Site Associations are Independent Features of the Canonical Genetic Code; J. Gregory Caporaso, Michael Yarus, and Rob Knight; Journal of Molecular Evolution, 2005.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id2">[1]</a></td><td>Caporaso, Yarus, and Knight. <em>Error minimization and coding triplet/binding site associations are independent features of the canonical genetic code.</em> J Mol Evol, 61(5):597-607, 2005.</td></tr>
 </tbody>
 </table>
 </div>
+<div class="section">
+<h2><a class="toc-backref" href="#id20" id="data-manipulation-using-table" name="data-manipulation-using-table">Data Manipulation using <tt class="docutils literal"><span class="pre">Table</span></tt></a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Gavin Huttley</td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Copyright 2007-2008, The Cogent Project</td>
+</tr>
+<tr class="field"><th class="field-name">Credits:</th><td class="field-body">Gavin Huttley, Felix Schill</td>
+</tr>
+<tr class="field"><th class="field-name">License:</th><td class="field-body">GPL</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0.1</td>
+</tr>
+<tr class="field"><th class="field-name">Maintainer:</th><td class="field-body">Gavin Huttley</td>
+</tr>
+<tr class="field"><th class="field-name">Email:</th><td class="field-body"><a class="reference" href="mailto:gavin.huttley&#64;anu.edu.au">gavin.huttley&#64;anu.edu.au</a></td>
+</tr>
+<tr class="field"><th class="field-name">Status:</th><td class="field-body">Production</td>
+</tr>
+</tbody>
+</table>
+<p>The toolkit has a <tt class="docutils literal"><span class="pre">Table</span></tt> object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting statistics for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The table module is located within <tt class="docutils literal"><span class="pre">cogent.format</span></tt>.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id21" id="testing-a-sub-component" name="testing-a-sub-component">Testing a sub-component</a></h3>
+<p>Before using <tt class="docutils literal"><span class="pre">Table</span></tt>, we exercise some formatting code:</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.format.table <span class="py_keyword">import</span> formattedCells, drawToPDF, phylipMatrix
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.format.table <span class="py_keyword">import</span> latex</pre><p>Of interest to be able to format an arbitrary 2D list, without a header. We use the <tt class="docutils literal"><span class="pre">formattedCells</span></tt> function directly. We allow for the case that <tt class="docutils literal"><span class="pre">reportlab</span></tt> may not be present.</p>
+<pre class="code">&gt;&gt;&gt; data = [[230, <span class="py_string">'acdef'</span>, 1.3], [6, <span class="py_string">'cc'</span>, 1.9876]]
+&gt;&gt;&gt; header, formatted = formattedCells(data, header = [<span class="py_string">'one'</span>, <span class="py_string">'two'</span>,
+...  <span class="py_string">'three'</span>])
+&gt;&gt;&gt; <span class="py_keyword">print</span> formatted
+[[<span class="py_string">'230'</span>, <span class="py_string">'acdef'</span>, <span class="py_string">'1.3000'</span>], [<span class="py_string">'  6'</span>, <span class="py_string">'   cc'</span>, <span class="py_string">'1.9876'</span>]]
+&gt;&gt;&gt; <span class="py_keyword">print</span> header
+[<span class="py_string">'one'</span>, <span class="py_string">'  two'</span>, <span class="py_string">' three'</span>]
+&gt;&gt;&gt; <span class="py_keyword">try</span>:
+...     drawToPDF([<span class="py_string">'one'</span>, <span class="py_string">'two'</span>, <span class="py_string">'three'</span>], formatted, <span class="py_string">"junk.pdf"</span>)
+... <span class="py_keyword">except</span> ImportError:
+...     <span class="py_keyword">pass</span></pre><p>We directly test the latex formatting.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> latex(formatted, header, justify=<span class="py_string">'lrl'</span>, caption=<span class="py_string">'A legend'</span>,
+...             label=<span class="py_string">"table:test"</span>)
+\begin{longtable}[htp!]{ l r l }
+\hline
+\bf{one} &amp; \bf{two} &amp; \bf{three} \\
+\hline
+\hline
+230 &amp; acdef &amp; 1.3000 \\
+  6 &amp;    cc &amp; 1.9876 \\
+\hline
+\caption{A legend}
+\label{table:test}
+\end{longtable}</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id22" id="table-creation" name="table-creation">Table creation</a></h3>
+<p>Tables can be created directly using the Table object itself, or a convenience function that handles loading from files. We import both here:</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTable
+&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.util.table <span class="py_keyword">import</span> Table</pre><p>Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type <tt class="docutils literal"><span class="pre">tuple</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt>, <tt class="docutils literal"><span class="pre">dict</span></tt>).</p>
+<pre class="code">&gt;&gt;&gt; column_headings = [<span class="py_string">'Journal'</span>, <span class="py_string">'Impact'</span>]</pre><p>The string &quot;Journal&quot; will become the first column heading, &quot;Impact&quot; the second column heading. The data are,</p>
+<pre class="code">&gt;&gt;&gt; rows = [[<span class="py_string">'INT J PARASITOL'</span>, 2.9],
+... [<span class="py_string">'J MED ENTOMOL'</span>, 1.4],
+... [<span class="py_string">'Med Vet Entomol'</span>, 1.0],
+... [<span class="py_string">'INSECT MOL BIOL'</span>, 2.85],
+... [<span class="py_string">'J AM MOSQUITO CONTR'</span>, 0.811],
+... [<span class="py_string">'MOL PHYLOGENET EVOL'</span>, 2.8],
+... [<span class="py_string">'HEREDITY'</span>, 1.99e+0],
+... [<span class="py_string">'AM J TROP MED HYG'</span>, 2.105],
+... [<span class="py_string">'MIL MED'</span>, 0.605],
+... [<span class="py_string">'MED J AUSTRALIA'</span>, 1.736]]</pre><p>We create the simplest of tables.</p>
+<pre class="code">&gt;&gt;&gt; t = Table(header = column_headings, rows = rows)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t
+=============================
+            Journal    Impact
+-----------------------------
+    INT J PARASITOL    2.9000
+      J MED ENTOMOL    1.4000
+    Med Vet Entomol    1.0000
+    INSECT MOL BIOL    2.8500
+J AM MOSQUITO CONTR    0.8110
+MOL PHYLOGENET EVOL    2.8000
+           HEREDITY    1.9900
+  AM J TROP MED HYG    2.1050
+            MIL MED    0.6050
+    MED J AUSTRALIA    1.7360
+-----------------------------</pre><p>The format above is referred to as 'simple' format in the documentation. Notice that the numbers in this table have 4 decimal places, despite the fact the original data were largely strings and had <tt class="docutils literal"><span class="pre">max</span></tt> of 3 decimal places precision. <tt class="docutils literal"><span class="pre">Table</span></tt> converts string representations of numbers to their appropriate form when you do <tt class="docutils literal"><span class="pre">str(table)</span></tt> or print the table.</p>
+<p>We have several things we might want to specify when creating a table: the precision and or format of floating point numbers (integer argument - <tt class="docutils literal"><span class="pre">digits</span></tt>), the spacing between columns (integer argument or actual string of whitespace - <tt class="docutils literal"><span class="pre">space</span></tt>), title (argument - <tt class="docutils literal"><span class="pre">title</span></tt>), and legend (argument - <tt class="docutils literal"><span class="pre">legend</span></tt>). Lets modify some of these and provide a title and legend.</p>
+<pre class="code">&gt;&gt;&gt; t = Table(column_headings, rows, title=<span class="py_string">'Journal impact factors'</span>, legend=<span class="py_string">'From ISI'</span>,
+... digits=2, space=<span class="py_string">'        '</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t
+Journal impact factors
+=================================
+            Journal        Impact
+---------------------------------
+    INT J PARASITOL          2.90
+      J MED ENTOMOL          1.40
+    Med Vet Entomol          1.00
+    INSECT MOL BIOL          2.85
+J AM MOSQUITO CONTR          0.81
+MOL PHYLOGENET EVOL          2.80
+           HEREDITY          1.99
+  AM J TROP MED HYG          2.10
+            MIL MED          0.60
+    MED J AUSTRALIA          1.74
+---------------------------------
+From ISI</pre><p>The Table class cannot handle arbitrary python objects, unless they are passed in as strings. Note in this case we now directly pass in the column headings list and the handling of missing data can be explicitly specified..</p>
+<pre class="code">&gt;&gt;&gt; t2 = Table([<span class="py_string">'abcd'</span>, <span class="py_string">'data'</span>], [[str(range(1,6)), <span class="py_string">'0'</span>],
+...                               [<span class="py_string">'x'</span>, 5.0], [<span class="py_string">'y'</span>, <span class="py_keyword">None</span>]],
+...           missing_data=<span class="py_string">'*'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t2
+=========================
+           abcd      data
+-------------------------
+[1, 2, 3, 4, 5]         0
+              x    5.0000
+              y         *
+-------------------------</pre><p>Tables may also be created from 2-dimensional dictionaries. In this case, special capabilities are provided to enforce printing rows in a particular order.</p>
+<pre class="code">&gt;&gt;&gt; d2D={<span class="py_string">'edge.parent'</span>: {<span class="py_string">'NineBande'</span>: <span class="py_string">'root'</span>, <span class="py_string">'edge.1'</span>: <span class="py_string">'root'</span>,
+... <span class="py_string">'DogFaced'</span>: <span class="py_string">'root'</span>, <span class="py_string">'Human'</span>: <span class="py_string">'edge.0'</span>, <span class="py_string">'edge.0'</span>: <span class="py_string">'edge.1'</span>,
+... <span class="py_string">'Mouse'</span>: <span class="py_string">'edge.1'</span>, <span class="py_string">'HowlerMon'</span>: <span class="py_string">'edge.0'</span>}, <span class="py_string">'x'</span>: {<span class="py_string">'NineBande'</span>: 1.0,
+... <span class="py_string">'edge.1'</span>: 1.0, <span class="py_string">'DogFaced'</span>: 1.0, <span class="py_string">'Human'</span>: 1.0, <span class="py_string">'edge.0'</span>: 1.0,
+... <span class="py_string">'Mouse'</span>: 1.0, <span class="py_string">'HowlerMon'</span>: 1.0}, <span class="py_string">'length'</span>: {<span class="py_string">'NineBande'</span>: 4.0,
+... <span class="py_string">'edge.1'</span>: 4.0, <span class="py_string">'DogFaced'</span>: 4.0, <span class="py_string">'Human'</span>: 4.0, <span class="py_string">'edge.0'</span>: 4.0,
+... <span class="py_string">'Mouse'</span>: 4.0, <span class="py_string">'HowlerMon'</span>: 4.0}, <span class="py_string">'y'</span>: {<span class="py_string">'NineBande'</span>: 3.0, <span class="py_string">'edge.1'</span>: 3.0,
+... <span class="py_string">'DogFaced'</span>: 3.0, <span class="py_string">'Human'</span>: 3.0, <span class="py_string">'edge.0'</span>: 3.0, <span class="py_string">'Mouse'</span>: 3.0,
+... <span class="py_string">'HowlerMon'</span>: 3.0}, <span class="py_string">'z'</span>: {<span class="py_string">'NineBande'</span>: 6.0, <span class="py_string">'edge.1'</span>: 6.0,
+... <span class="py_string">'DogFaced'</span>: 6.0, <span class="py_string">'Human'</span>: 6.0, <span class="py_string">'edge.0'</span>: 6.0, <span class="py_string">'Mouse'</span>: 6.0,
+... <span class="py_string">'HowlerMon'</span>: 6.0},
+... <span class="py_string">'edge.name'</span>: [<span class="py_string">'Human'</span>, <span class="py_string">'HowlerMon'</span>, <span class="py_string">'Mouse'</span>, <span class="py_string">'NineBande'</span>, <span class="py_string">'DogFaced'</span>,
+... <span class="py_string">'edge.0'</span>, <span class="py_string">'edge.1'</span>]}
+&gt;&gt;&gt; row_order = d2D[<span class="py_string">'edge.name'</span>]
+&gt;&gt;&gt; d2D[<span class="py_string">'edge.name'</span>] = dict(zip(row_order, row_order))
+&gt;&gt;&gt; t3 = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'length'</span>, <span class="py_string">'x'</span>, <span class="py_string">'y'</span>, <span class="py_string">'z'</span>], d2D,
+... row_order = row_order, missing_data=<span class="py_string">'*'</span>, space=8, max_width = 50,
+... row_ids = <span class="py_keyword">True</span>, title = <span class="py_string">'My Title'</span>,
+... legend = <span class="py_string">'Legend: this is a nonsense example.'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3
+My Title
+==========================================
+edge.name        edge.parent        length
+------------------------------------------
+    Human             edge.0        4.0000
+HowlerMon             edge.0        4.0000
+    Mouse             edge.1        4.0000
+NineBande               root        4.0000
+ DogFaced               root        4.0000
+   edge.0             edge.1        4.0000
+   edge.1               root        4.0000
+------------------------------------------
+
+continued: My Title
+=====================================
+edge.name             x             y
+-------------------------------------
+    Human        1.0000        3.0000
+HowlerMon        1.0000        3.0000
+    Mouse        1.0000        3.0000
+NineBande        1.0000        3.0000
+ DogFaced        1.0000        3.0000
+   edge.0        1.0000        3.0000
+   edge.1        1.0000        3.0000
+-------------------------------------
+
+continued: My Title
+=======================
+edge.name             z
+-----------------------
+    Human        6.0000
+HowlerMon        6.0000
+    Mouse        6.0000
+NineBande        6.0000
+ DogFaced        6.0000
+   edge.0        6.0000
+   edge.1        6.0000
+-----------------------
+
+Legend: this <span class="py_keyword">is</span> a nonsense example.</pre><p>In the above we specify a maximum width of the table, and also specify row identifiers (using <tt class="docutils literal"><span class="pre">row_ids</span></tt>, the integer corresponding to the column at which data begin, preceding columns are taken as the identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The <tt class="docutils literal"><span class="pre">row_ids</span></tt> are keys for slicing the table by row, and as identifiers are presented in each wrapped sub-table.</p>
+<p>We can also customise the formatting of individual columns.</p>
+<pre class="code">&gt;&gt;&gt; rows = ((<span class="py_string">'NP_003077_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 2.5386013224378985),
+... (<span class="py_string">'NP_004893_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.12135142635634111e+06),
+... (<span class="py_string">'NP_005079_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.95165949788861326e+07),
+... (<span class="py_string">'NP_005500_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.73827030202664901e-07),
+... (<span class="py_string">'NP_055852_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 1.0933217708952725e+07))</pre><p>We first create a table and show the default formatting behaviour for <tt class="docutils literal"><span class="pre">Table</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; t46 = Table([<span class="py_string">'Gene'</span>, <span class="py_string">'Type'</span>, <span class="py_string">'LR'</span>], rows)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t46
+===============================================
+                  Gene    Type               LR
+-----------------------------------------------
+NP_003077_hs_mm_rn_dna     Con           2.5386
+NP_004893_hs_mm_rn_dna     Con      121351.4264
+NP_005079_hs_mm_rn_dna     Con     9516594.9789
+NP_005500_hs_mm_rn_dna     Con           0.0000
+NP_055852_hs_mm_rn_dna     Con    10933217.7090
+-----------------------------------------------</pre><p>We then format the <tt class="docutils literal"><span class="pre">LR</span></tt> column to use a scientific number format.</p>
+<pre class="code">&gt;&gt;&gt; t46 = Table([<span class="py_string">'Gene'</span>, <span class="py_string">'Type'</span>, <span class="py_string">'LR'</span>], rows)
+&gt;&gt;&gt; t46.setColumnFormat(<span class="py_string">'LR'</span>, <span class="py_string">"%.4e"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t46
+============================================
+                  Gene    Type            LR
+--------------------------------------------
+NP_003077_hs_mm_rn_dna     Con    2.5386e+00
+NP_004893_hs_mm_rn_dna     Con    1.2135e+05
+NP_005079_hs_mm_rn_dna     Con    9.5166e+06
+NP_005500_hs_mm_rn_dna     Con    7.3827e-08
+NP_055852_hs_mm_rn_dna     Con    1.0933e+07
+--------------------------------------------</pre><p>It is safe to directly modify certain attributes, such as the title, legend and white space separating columns, which we do for the <tt class="docutils literal"><span class="pre">t46</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; t46.Title = <span class="py_string">"A new title"</span>
+&gt;&gt;&gt; t46.Legend = <span class="py_string">"A new legend"</span>
+&gt;&gt;&gt; t46.Space = <span class="py_string">'  '</span>
+&gt;&gt;&gt; <span class="py_keyword">print</span> t46
+A new title
+========================================
+                  Gene  Type          LR
+----------------------------------------
+NP_003077_hs_mm_rn_dna   Con  2.5386e+00
+NP_004893_hs_mm_rn_dna   Con  1.2135e+05
+NP_005079_hs_mm_rn_dna   Con  9.5166e+06
+NP_005500_hs_mm_rn_dna   Con  7.3827e-08
+NP_055852_hs_mm_rn_dna   Con  1.0933e+07
+----------------------------------------
+A new legend</pre><p>We can provide settings for multiple columns.</p>
+<pre class="code">&gt;&gt;&gt; t3 = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'length'</span>, <span class="py_string">'x'</span>, <span class="py_string">'y'</span>, <span class="py_string">'z'</span>], d2D,
+... row_order = row_order)
+&gt;&gt;&gt; t3.setColumnFormat(<span class="py_string">'x'</span>, <span class="py_string">"%.1e"</span>)
+&gt;&gt;&gt; t3.setColumnFormat(<span class="py_string">'y'</span>, <span class="py_string">"%.2f"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3
+===============================================================
+edge.name    edge.parent    length          x       y         z
+---------------------------------------------------------------
+    Human         edge.0    4.0000    1.0e+00    3.00    6.0000
+HowlerMon         edge.0    4.0000    1.0e+00    3.00    6.0000
+    Mouse         edge.1    4.0000    1.0e+00    3.00    6.0000
+NineBande           root    4.0000    1.0e+00    3.00    6.0000
+ DogFaced           root    4.0000    1.0e+00    3.00    6.0000
+   edge.0         edge.1    4.0000    1.0e+00    3.00    6.0000
+   edge.1           root    4.0000    1.0e+00    3.00    6.0000
+---------------------------------------------------------------</pre><p>In some cases, the contents of a column can be of different types. In this instance, rather than passing a column template we pass a reference to a function that will handle this complexity. To illustrate this we will define a function that formats floating point numbers, but returns everything else as is.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">def</span> <span class="py_identifier">formatcol</span>(value):
+...     <span class="py_keyword">if</span> isinstance(value, float):
+...         val = <span class="py_string">"%.2f"</span> % value
+...     <span class="py_keyword">else</span>:
+...         val = str(value)
+...     <span class="py_keyword">return</span> val</pre><p>We apply this to a table with mixed string, integer and floating point data.</p>
+<pre class="code">&gt;&gt;&gt; t6 = Table([<span class="py_string">'ColHead'</span>], [[<span class="py_string">'a'</span>], [1], [0.3], [<span class="py_string">'cc'</span>]],
+... column_templates = dict(ColHead=formatcol))
+&gt;&gt;&gt; <span class="py_keyword">print</span> t6
+=======
+ColHead
+-------
+      a
+      1
+   0.30
+     cc
+-------</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id23" id="table-output" name="table-output">Table output</a></h3>
+<p>Other formats are also possible, including restructured text or 'rest' and delimited. These can be obtained using the <tt class="docutils literal"><span class="pre">tostring</span></tt> method and <tt class="docutils literal"><span class="pre">format</span></tt> argument as follows. Using table <tt class="docutils literal"><span class="pre">t</span></tt> from above,</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> t.tostring(format=<span class="py_string">'rest'</span>)
++------------------------------+
+|    Journal impact factors    |
++---------------------+--------+
+|             Journal | Impact |
++=====================+========+
+|     INT J PARASITOL |   2.90 |
++---------------------+--------+
+|       J MED ENTOMOL |   1.40 |
++---------------------+--------+
+|     Med Vet Entomol |   1.00 |
++---------------------+--------+
+|     INSECT MOL BIOL |   2.85 |
++---------------------+--------+
+| J AM MOSQUITO CONTR |   0.81 |
++---------------------+--------+
+| MOL PHYLOGENET EVOL |   2.80 |
++---------------------+--------+
+|            HEREDITY |   1.99 |
++---------------------+--------+
+|   AM J TROP MED HYG |   2.10 |
++---------------------+--------+
+|             MIL MED |   0.60 |
++---------------------+--------+
+|     MED J AUSTRALIA |   1.74 |
++---------------------+--------+
+| From ISI                     |
++------------------------------+</pre><p>Arguments such as <tt class="docutils literal"><span class="pre">space</span></tt> have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or excel).</p>
+<p>Here is the latex format, note how the title and legend are joined into the latex table caption. We also provide optional arguments for the column alignment (fist column left aligned, second column right aligned and remaining columns centred) and a label for table referencing.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> t3.tostring(format=<span class="py_string">'tex'</span>, justify=<span class="py_string">"lrcccc"</span>, label=<span class="py_string">"table:example"</span>)
+\begin{longtable}[htp!]{ l r c c c c }
+\hline
+\bf{edge.name} &amp; \bf{edge.parent} &amp; \bf{length} &amp; \bf{x} &amp; \bf{y} &amp; \bf{z} \\
+\hline
+\hline
+    Human &amp;      edge.0 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+HowlerMon &amp;      edge.0 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+    Mouse &amp;      edge.1 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+NineBande &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+ DogFaced &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+   edge.0 &amp;      edge.1 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+   edge.1 &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+\hline
+\label{table:example}
+\end{longtable}</pre><p>More complex latex table justifying is also possible. Specifying the width of individual columns requires passing in a series (list or tuple) of justification commands. In the following we introduce the command for specific columns widths.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> t3.tostring(format=<span class="py_string">'tex'</span>, justify=[<span class="py_string">"l"</span>,<span class="py_string">"p{3cm}"</span>,<span class="py_string">"c"</span>,<span class="py_string">"c"</span>,<span class="py_string">"c"</span>,<span class="py_string">"c"</span>])
+\begin{longtable}[htp!]{ l p{3cm} c c c c }
+\hline
+\bf{edge.name} &amp; \bf{edge.parent} &amp; \bf{length} &amp; \bf{x} &amp; \bf{y} &amp; \bf{z} \\
+\hline
+\hline
+    Human &amp;      edge.0 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+HowlerMon &amp;      edge.0 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+    Mouse &amp;      edge.1 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+NineBande &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+ DogFaced &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+   edge.0 &amp;      edge.1 &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+   edge.1 &amp;        root &amp; 4.0000 &amp; 1.0e+00 &amp; 3.00 &amp; 6.0000 \\
+\hline
+\end{longtable}
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3.tostring(sep=<span class="py_string">','</span>)
+edge.name,edge.parent,length,      x,   y,     z
+    Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
+HowlerMon,     edge.0,4.0000,1.0e+00,3.00,6.0000
+    Mouse,     edge.1,4.0000,1.0e+00,3.00,6.0000
+NineBande,       root,4.0000,1.0e+00,3.00,6.0000
+ DogFaced,       root,4.0000,1.0e+00,3.00,6.0000
+   edge.0,     edge.1,4.0000,1.0e+00,3.00,6.0000
+   edge.1,       root,4.0000,1.0e+00,3.00,6.0000</pre><p>You can specify any standard text character that will work with your desired target. Useful separators are tabs ('\t'), or pipes ('|'). If <tt class="docutils literal"><span class="pre">Table</span></tt> encounters any of these characters within a cell, it wraps the cell in quotes -- a standard approach to facilitate import by other applications. We will illustrate this with <tt class="docutils literal"><span class="pre">t2</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> t2.tostring(sep=<span class="py_string">', '</span>)
+           abcd,   data
+<span class="py_string">"[1, 2, 3, 4, 5]"</span>,      0
+              x, 5.0000
+              y,      *</pre><p>Note that I introduced an extra space after the column just to make the result more readable in this example.</p>
+<p>Test the writing of phylip distance matrix format.</p>
+<pre class="code">&gt;&gt;&gt; rows = [[<span class="py_string">'a'</span>, <span class="py_string">''</span>, 0.088337278874079342, 0.18848582712597683,
+...  0.44084000179091454], [<span class="py_string">'c'</span>, 0.088337278874079342, <span class="py_string">''</span>,
+...  0.088337278874079342, 0.44083999937417828], [<span class="py_string">'b'</span>, 0.18848582712597683,
+...  0.088337278874079342, <span class="py_string">''</span>, 0.44084000179090932], [<span class="py_string">'e'</span>,
+...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, <span class="py_string">''</span>]]
+&gt;&gt;&gt; dist = Table(rows = rows, header = [<span class="py_string">'seq1/2'</span>, <span class="py_string">'a'</span>, <span class="py_string">'c'</span>, <span class="py_string">'b'</span>, <span class="py_string">'e'</span>],
+...  row_ids = <span class="py_keyword">True</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> dist.tostring(format = <span class="py_string">'phylip'</span>)
+   4
+a           0.0000  0.0883  0.1885  0.4408
+c           0.0883  0.0000  0.0883  0.4408
+b           0.1885  0.0883  0.0000  0.4408
+e           0.4408  0.4408  0.4408  0.0000</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id24" id="saving-a-table-for-reloading" name="saving-a-table-for-reloading">Saving a table for reloading</a></h3>
+<p>Saving a table object to file for later reloading can be done using the standard <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method and <tt class="docutils literal"><span class="pre">filename</span></tt> argument to the <tt class="docutils literal"><span class="pre">Table</span></tt> constructor and either the <tt class="docutils literal"><span class="pre">pickle</span></tt> or a delimited format (eg ',', '|'). The <tt class="docutils literal"><span class="pre">writeToFile</span></tt> saves the raw data in the appropriate format, the constructor recreates a table from raw data located at <tt class="docutils literal"><span class="pre">filename</span></tt>. We first write out the table <tt class="docutils literal"><span class="pre">t3</span></tt> in <tt class="docutils literal"><span class="pre">pickle</span></tt> format and then the table <tt class="docutils literal"><span class="pre">t2</span></tt> in a csv (comma separated values format).</p>
+<pre class="code">&gt;&gt;&gt; t3 = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'length'</span>, <span class="py_string">'x'</span>, <span class="py_string">'y'</span>, <span class="py_string">'z'</span>], d2D,
+... row_order = row_order, missing_data=<span class="py_string">'*'</span>, space=8, max_width = 50,
+... row_ids = <span class="py_keyword">True</span>, title = <span class="py_string">'My Title'</span>,
+... legend = <span class="py_string">'Legend: this is a nonsense example.'</span>)
+&gt;&gt;&gt; t3.writeToFile(<span class="py_string">"t3.pickle"</span>)
+&gt;&gt;&gt; t3_loaded = LoadTable(filename = <span class="py_string">"t3.pickle"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3_loaded
+My Title
+==========================================
+edge.name        edge.parent        length
+------------------------------------------
+    Human             edge.0        4.0000
+HowlerMon             edge.0        4.0000
+    Mouse             edge.1        4.0000
+NineBande               root        4.0000
+ DogFaced               root        4.0000
+   edge.0             edge.1        4.0000
+   edge.1               root        4.0000
+------------------------------------------
+
+continued: My Title
+=====================================
+edge.name             x             y
+-------------------------------------
+    Human        1.0000        3.0000
+HowlerMon        1.0000        3.0000
+    Mouse        1.0000        3.0000
+NineBande        1.0000        3.0000
+ DogFaced        1.0000        3.0000
+   edge.0        1.0000        3.0000
+   edge.1        1.0000        3.0000
+-------------------------------------
+
+continued: My Title
+=======================
+edge.name             z
+-----------------------
+    Human        6.0000
+HowlerMon        6.0000
+    Mouse        6.0000
+NineBande        6.0000
+ DogFaced        6.0000
+   edge.0        6.0000
+   edge.1        6.0000
+-----------------------
+
+Legend: this <span class="py_keyword">is</span> a nonsense example.
+&gt;&gt;&gt; t2 = Table([<span class="py_string">'abcd'</span>, <span class="py_string">'data'</span>], [[str(range(1,6)), <span class="py_string">'0'</span>], [<span class="py_string">'x'</span>, 5.0],
+... [<span class="py_string">'y'</span>, <span class="py_keyword">None</span>]], missing_data=<span class="py_string">'*'</span>, title = <span class="py_string">'A \ntitle'</span>)
+&gt;&gt;&gt; t2.writeToFile(<span class="py_string">'t2.csv'</span>, sep=<span class="py_string">','</span>)
+&gt;&gt;&gt; t2_loaded = LoadTable(filename = <span class="py_string">'t2.csv'</span>, header = <span class="py_keyword">True</span>, with_title = <span class="py_keyword">True</span>,
+...  sep = <span class="py_string">','</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t2_loaded
+A
+title
+=========================
+           abcd      data
+-------------------------
+[1, 2, 3, 4, 5]         0
+              x    5.0000
+              y
+-------------------------</pre><p>Note the <tt class="docutils literal"><span class="pre">missing_data</span></tt> attribute is not saved in the delimited format, but is in the <tt class="docutils literal"><span class="pre">pickle</span></tt> format. In the next case, I'm going to override the digits format on reloading of the table.</p>
+<pre class="code">&gt;&gt;&gt; t2 = Table([<span class="py_string">'abcd'</span>, <span class="py_string">'data'</span>], [[str(range(1,6)), <span class="py_string">'0'</span>], [<span class="py_string">'x'</span>, 5.0],
+... [<span class="py_string">'y'</span>, <span class="py_keyword">None</span>]], missing_data=<span class="py_string">'*'</span>, title = <span class="py_string">'A \ntitle'</span>,
+... legend = <span class="py_string">"And\na legend too"</span>)
+&gt;&gt;&gt; t2.writeToFile(<span class="py_string">'t2.csv'</span>, sep=<span class="py_string">','</span>)
+&gt;&gt;&gt; t2_loaded = LoadTable(filename = <span class="py_string">'t2.csv'</span>, header = <span class="py_keyword">True</span>,
+... with_title = <span class="py_keyword">True</span>, with_legend = <span class="py_keyword">True</span>, sep = <span class="py_string">','</span>, digits = 2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t2_loaded
+A
+title
+=======================
+           abcd    data
+-----------------------
+[1, 2, 3, 4, 5]       0
+              x    5.00
+              y
+-----------------------
+And
+a legend too</pre><p>A few things to note about the delimited file saving: formatting arguments are lost in saving to a delimited format; the <tt class="docutils literal"><span class="pre">header</span></tt> argument specifies whether the first line of file should be treated as the header; the <tt class="docutils literal"><span class="pre">with_title</span></tt> and <tt class="docutils literal"><span class="pre">with_legend</span></tt> arguments are necessary if the file contains them, otherwise the become the header or part of the file. Importantly, if you wish to preserve numerical precision use the <tt class="docutils literal"><span class="pre">pickle</span></tt> format.</p>
+<p>cPickle should be able to load a useful object from the pickled Table alone.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> cPickle
+&gt;&gt;&gt; f = file(<span class="py_string">"t3.pickle"</span>)
+&gt;&gt;&gt; pickled = cPickle.load(f)
+&gt;&gt;&gt; f.close()
+&gt;&gt;&gt; pickled.keys()
+[<span class="py_string">'digits'</span>, <span class="py_string">'row_ids'</span>, <span class="py_string">'rows'</span>, <span class="py_string">'title'</span>, <span class="py_string">'space'</span>, <span class="py_string">'max_width'</span>, <span class="py_string">'header'</span>, <span class="py_string">'missing_data'</span>, <span class="py_string">'legend'</span>]
+&gt;&gt;&gt; pickled[<span class="py_string">'rows'</span>][0]
+[<span class="py_string">'Human'</span>, <span class="py_string">'edge.0'</span>, 4.0, 1.0, 3.0, 6.0]</pre><p>We can read in a delimited format using a custom reader, which we'll now import. We convert columns 2-5 to floats by specifying a field convertor. We then create a reader, specifying the data (below a list but can be a file) properties. Note that if no convertor is provided all data are returned as strings. We can also provide this reader to the <tt class="docutils literal"><span class="pre">Table</span></tt> constructor for a more direct way of opening such files. In this case, <tt class="docutils literal"><span class="pre">Table</span></tt> assumes there is a header row and nothing else.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.parse.table <span class="py_keyword">import</span> ConvertFields, SeparatorFormatParser
+&gt;&gt;&gt; t3.Title = t3.Legend = <span class="py_keyword">None</span>
+&gt;&gt;&gt; comma_sep = t3.tostring(sep=<span class="py_string">","</span>).splitlines()
+&gt;&gt;&gt; <span class="py_keyword">print</span> comma_sep
+[<span class="py_string">'edge.name,edge.parent,length,     x,     y,     z'</span>, <span class="py_string">'    Human,     edge.0,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">'HowlerMon,     edge.0,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">'    Mouse,     edge.1,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">'NineBande,       root,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">' DogFaced,       root,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">'   edge.0,     edge.1,4.0000,1.0000,3.0000,6.0000'</span>, <span class="py_string">'   edge.1,       root,4.0000,1.0000,3.0000,6.0000'</span>]
+&gt;&gt;&gt; converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])
+&gt;&gt;&gt; reader = SeparatorFormatParser(with_header=<span class="py_keyword">True</span>,converter=converter,
+...      sep=<span class="py_string">","</span>)
+&gt;&gt;&gt; comma_sep = [line <span class="py_keyword">for</span> line <span class="py_keyword">in</span> reader(comma_sep)]
+&gt;&gt;&gt; <span class="py_keyword">print</span> comma_sep
+[[<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'length'</span>, <span class="py_string">'x'</span>, <span class="py_string">'y'</span>, <span class="py_string">'z'</span>], [<span class="py_string">'Human'</span>, <span class="py_string">'edge.0'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'HowlerMon'</span>, <span class="py_string">'edge.0'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'Mouse'</span>, <span class="py_string">'edge.1'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'NineBande'</span>, <span class="py_string">'root'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'DogFaced'</span>, <span class="py_string">'root'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'edge.0'</span>, <span class="py_string">'edge.1'</span>, 4.0, 1.0, 3.0, 6.0], [<span class="py_string">'edge.1'</span>, <span class="py_string">'root'</span>, 4.0, 1.0, 3.0, 6.0]]
+&gt;&gt;&gt; t3.writeToFile(<span class="py_string">"t3.tab"</span>, sep=<span class="py_string">"\t"</span>)
+&gt;&gt;&gt; reader = SeparatorFormatParser(with_header=<span class="py_keyword">True</span>,converter=converter,
+...      sep=<span class="py_string">"\t"</span>)
+&gt;&gt;&gt; t3a = LoadTable(filename=<span class="py_string">"t3.tab"</span>, reader=reader, title=<span class="py_string">"new title"</span>,
+...       space=2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3a
+new title
+======================================================
+edge.name  edge.parent  length       x       y       z
+------------------------------------------------------
+    Human       edge.0  4.0000  1.0000  3.0000  6.0000
+HowlerMon       edge.0  4.0000  1.0000  3.0000  6.0000
+    Mouse       edge.1  4.0000  1.0000  3.0000  6.0000
+NineBande         root  4.0000  1.0000  3.0000  6.0000
+ DogFaced         root  4.0000  1.0000  3.0000  6.0000
+   edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
+   edge.1         root  4.0000  1.0000  3.0000  6.0000
+------------------------------------------------------</pre><p>We also test the reader function for a 't' delimited format with missing data at the end.</p>
+<pre class="code">&gt;&gt;&gt; data = [<span class="py_string">'ab\tcd\t'</span>, <span class="py_string">'ab\tcd\tef'</span>]
+&gt;&gt;&gt; tab_reader = SeparatorFormatParser(sep=<span class="py_string">'\t'</span>)
+&gt;&gt;&gt; <span class="py_keyword">for</span> line <span class="py_keyword">in</span> tab_reader(data):
+...     <span class="py_keyword">assert</span> len(line) == 3, line</pre><p>We can likewise specify a writer, using a custom field formatter and provide this to the <tt class="docutils literal"><span class="pre">Table</span></tt> directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.format.table <span class="py_keyword">import</span> FormatFields, SeparatorFormatWriter
+&gt;&gt;&gt; formatter = FormatFields([(0,<span class="py_string">'"%s"'</span>), (1,<span class="py_string">'"%s"'</span>)])
+&gt;&gt;&gt; writer = SeparatorFormatWriter(formatter=formatter, sep=<span class="py_string">" | "</span>)
+&gt;&gt;&gt; <span class="py_keyword">for</span> formatted <span class="py_keyword">in</span> writer(comma_sep, has_header=<span class="py_keyword">True</span>):
+...      <span class="py_keyword">print</span> formatted
+edge.name | edge.parent | length | x | y | z
+<span class="py_string">"Human"</span> | <span class="py_string">"edge.0"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"HowlerMon"</span> | <span class="py_string">"edge.0"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"Mouse"</span> | <span class="py_string">"edge.1"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"NineBande"</span> | <span class="py_string">"root"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"DogFaced"</span> | <span class="py_string">"root"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"edge.0"</span> | <span class="py_string">"edge.1"</span> | 4.0 | 1.0 | 3.0 | 6.0
+<span class="py_string">"edge.1"</span> | <span class="py_string">"root"</span> | 4.0 | 1.0 | 3.0 | 6.0
+&gt;&gt;&gt; t3.writeToFile(filename=<span class="py_string">"t3.tab"</span>, writer=writer)
+&gt;&gt;&gt; strip = <span class="py_keyword">lambda</span> x: x.replace(<span class="py_string">'"'</span>, <span class="py_string">''</span>)
+&gt;&gt;&gt; converter = ConvertFields([(0,strip), (1, strip)])
+&gt;&gt;&gt; reader = SeparatorFormatParser(with_header=<span class="py_keyword">True</span>, converter=converter,
+...       sep=<span class="py_string">"|"</span>, strip_wspace=<span class="py_keyword">True</span>)
+&gt;&gt;&gt; t3a = LoadTable(filename=<span class="py_string">"t3.tab"</span>, reader=reader, title=<span class="py_string">"new title"</span>,
+...       space=2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3a
+new title
+=============================================
+edge.name  edge.parent  length    x    y    z
+---------------------------------------------
+    Human       edge.0     4.0  1.0  3.0  6.0
+HowlerMon       edge.0     4.0  1.0  3.0  6.0
+    Mouse       edge.1     4.0  1.0  3.0  6.0
+NineBande         root     4.0  1.0  3.0  6.0
+ DogFaced         root     4.0  1.0  3.0  6.0
+   edge.0       edge.1     4.0  1.0  3.0  6.0
+   edge.1         root     4.0  1.0  3.0  6.0
+---------------------------------------------</pre><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Note:</th><td class="field-body">There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader, to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id20" id="data-visualisation" name="data-visualisation">Data Visualisation</a></h1>
+<h3><a class="toc-backref" href="#id25" id="table-slicing-and-iteration" name="table-slicing-and-iteration">Table slicing and iteration</a></h3>
+<p>The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method <tt class="docutils literal"><span class="pre">getColumns</span></tt> can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if <tt class="docutils literal"><span class="pre">row_ids</span></tt> was specified as <tt class="docutils literal"><span class="pre">True</span></tt> the 0'th cell in each row can also be used.</p>
+<pre class="code">&gt;&gt;&gt; t4 = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'length'</span>, <span class="py_string">'x'</span>, <span class="py_string">'y'</span>, <span class="py_string">'z'</span>], d2D,
+... row_order = row_order, row_ids = <span class="py_keyword">True</span>, title = <span class="py_string">'My Title'</span>)</pre><p>We subset <tt class="docutils literal"><span class="pre">t4</span></tt> by column and reorder them.</p>
+<pre class="code">&gt;&gt;&gt; new = t4.getColumns([<span class="py_string">'z'</span>, <span class="py_string">'y'</span>])
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+My Title
+=============================
+edge.name         z         y
+-----------------------------
+    Human    6.0000    3.0000
+HowlerMon    6.0000    3.0000
+    Mouse    6.0000    3.0000
+NineBande    6.0000    3.0000
+ DogFaced    6.0000    3.0000
+   edge.0    6.0000    3.0000
+   edge.1    6.0000    3.0000
+-----------------------------</pre><p>We use the column position indexes to do get the same table.</p>
+<pre class="code">&gt;&gt;&gt; new = t4.getColumns([5, 4])
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+My Title
+=============================
+edge.name         z         y
+-----------------------------
+    Human    6.0000    3.0000
+HowlerMon    6.0000    3.0000
+    Mouse    6.0000    3.0000
+NineBande    6.0000    3.0000
+ DogFaced    6.0000    3.0000
+   edge.0    6.0000    3.0000
+   edge.1    6.0000    3.0000
+-----------------------------</pre><p>We can also using more general slicing, by both rows and columns. The following returns all rows from 4 on, and columns up to (but excluding) 'y':</p>
+<pre class="code">&gt;&gt;&gt; k = t4[4:, :<span class="py_string">'y'</span>]
+&gt;&gt;&gt; <span class="py_keyword">print</span> k
+My Title
+============================================
+edge.name    edge.parent    length         x
+--------------------------------------------
+ DogFaced           root    4.0000    1.0000
+   edge.0         edge.1    4.0000    1.0000
+   edge.1           root    4.0000    1.0000
+--------------------------------------------</pre><p>We can explicitly reference individual cells, in this case using both row and column keys.</p>
+<pre class="code">&gt;&gt;&gt; val = t4[<span class="py_string">'HowlerMon'</span>, <span class="py_string">'y'</span>]
+&gt;&gt;&gt; <span class="py_keyword">print</span> val
+3.0</pre><p>We slice a single row,</p>
+<pre class="code">&gt;&gt;&gt; new = t4[3]
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+My Title
+================================================================
+edge.name    edge.parent    length         x         y         z
+----------------------------------------------------------------
+NineBande           root    4.0000    1.0000    3.0000    6.0000
+----------------------------------------------------------------</pre><p>and range of rows.</p>
+<pre class="code">&gt;&gt;&gt; new = t4[3:6]
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+My Title
+================================================================
+edge.name    edge.parent    length         x         y         z
+----------------------------------------------------------------
+NineBande           root    4.0000    1.0000    3.0000    6.0000
+ DogFaced           root    4.0000    1.0000    3.0000    6.0000
+   edge.0         edge.1    4.0000    1.0000    3.0000    6.0000
+----------------------------------------------------------------</pre><p>You can get disjoint rows.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> t4.getDisjointRows([<span class="py_string">'Human'</span>, <span class="py_string">'Mouse'</span>, <span class="py_string">'DogFaced'</span>])
+My Title
+================================================================
+edge.name    edge.parent    length         x         y         z
+----------------------------------------------------------------
+    Human         edge.0    4.0000    1.0000    3.0000    6.0000
+    Mouse         edge.1    4.0000    1.0000    3.0000    6.0000
+ DogFaced           root    4.0000    1.0000    3.0000    6.0000
+----------------------------------------------------------------</pre><p>You can iterate over the table one row at a time and slice the rows. We illustrate this slicing a single column,</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">for</span> row <span class="py_keyword">in</span> t:
+...     <span class="py_keyword">print</span> row[<span class="py_string">'Journal'</span>]
+INT J PARASITOL
+J MED ENTOMOL
+Med Vet Entomol
+INSECT MOL BIOL
+J AM MOSQUITO CONTR
+MOL PHYLOGENET EVOL
+HEREDITY
+AM J TROP MED HYG
+MIL MED
+MED J AUSTRALIA</pre><p>and for multiple columns.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">for</span> row <span class="py_keyword">in</span> t:
+...     <span class="py_keyword">print</span> row[<span class="py_string">'Journal'</span>], row[<span class="py_string">'Impact'</span>]
+INT J PARASITOL 2.9
+J MED ENTOMOL 1.4
+Med Vet Entomol 1.0
+INSECT MOL BIOL 2.85
+J AM MOSQUITO CONTR 0.811
+MOL PHYLOGENET EVOL 2.8
+HEREDITY 1.99
+AM J TROP MED HYG 2.105
+MIL MED 0.605
+MED J AUSTRALIA 1.736</pre><p>The numerical slice equivalent to the first case above would be <tt class="docutils literal"><span class="pre">row[0]</span></tt>, to the second case either <tt class="docutils literal"><span class="pre">row[:]</span></tt>, <tt class="docutils literal"><span class="pre">row[:2]</span></tt>.</p>
+</div>
 <div class="section">
-<h2><a class="toc-backref" href="#id21" id="drawing-dendrograms-and-saving-to-pdf" name="drawing-dendrograms-and-saving-to-pdf">Drawing dendrograms and saving to PDF</a></h2>
+<h3><a class="toc-backref" href="#id26" id="filtering-tables-selecting-subsets-of-rows" name="filtering-tables-selecting-subsets-of-rows">Filtering tables - selecting subsets of rows</a></h3>
+<p>We want to be able to slice a table, based on some condition(s), to produce a new subset table. For instance, we construct a table with type and probability values.</p>
+<pre class="code">&gt;&gt;&gt; header = [<span class="py_string">'Gene'</span>, <span class="py_string">'type'</span>, <span class="py_string">'LR'</span>, <span class="py_string">'df'</span>, <span class="py_string">'Prob'</span>]
+&gt;&gt;&gt; rows = ((<span class="py_string">'NP_003077_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 2.5386013224378985, 1, 0.11109315773082831),
+... (<span class="py_string">'NP_004893_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.12135142635634111, 1, 0.72757335582240734),
+... (<span class="py_string">'NP_005079_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.95165949788861326, 1, 0.32929724584698283),
+... (<span class="py_string">'NP_005500_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.73827030202664901, 1, 0.39021552602340093),
+... (<span class="py_string">'NP_055852_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 1.0933217708952725e-07, 1, 0.99973617615127786),
+... (<span class="py_string">'NP_057012_hs_mm_rn_dna'</span>, <span class="py_string">'Unco'</span>, 34.308128716646024, 1, 4.7041285669893972e-09),
+... (<span class="py_string">'NP_061130_hs_mm_rn_dna'</span>, <span class="py_string">'Unco'</span>, 3.7985547146436147, 1, 0.051296842773762508),
+... (<span class="py_string">'NP_065168_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 89.976605494927753, 1, 2.4099285463629382e-21),
+... (<span class="py_string">'NP_065396_hs_mm_rn_dna'</span>, <span class="py_string">'Unco'</span>, 11.891188830577448, 1, 0.0005640011189894644),
+... (<span class="py_string">'NP_109590_hs_mm_rn_dna'</span>, <span class="py_string">'Con'</span>, 0.21207818314360338, 1, 0.64514339888725714),
+... (<span class="py_string">'NP_116116_hs_mm_rn_dna'</span>, <span class="py_string">'Unco'</span>, 9.747428216541266, 1, 0.0017957376763436551))
+&gt;&gt;&gt; t5 = Table(header, rows)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t5
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+---------------------------------------------------------</pre><p>We then seek to obtain only those rows that contain probabilities &lt; 0.05. We use valid python code within a string. <strong>Note:</strong> Make sure your column headings could be valid python variable names or the string based approach will fail (you could use an external function instead, see below).</p>
+<pre class="code">&gt;&gt;&gt; sub_table1 = t5.filtered(callback = <span class="py_string">"Prob &lt; 0.05"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sub_table1
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+---------------------------------------------------------</pre><p>Using the above table we test the function to extract the raw data for a single column,</p>
+<pre class="code">&gt;&gt;&gt; raw = sub_table1.getRawData(<span class="py_string">'LR'</span>)
+&gt;&gt;&gt; raw
+[34.308128716646024, 89.976605494927753, 11.891188830577448, 9.747428216541266]</pre><p>and from multiple columns.</p>
+<pre class="code">&gt;&gt;&gt; raw = sub_table1.getRawData(columns = [<span class="py_string">'LR'</span>, <span class="py_string">'df'</span>, <span class="py_string">'Prob'</span>])
+&gt;&gt;&gt; raw
+[[34.308128716646024, 1, 4.7041285669893972e-09], [89.976605494927753, 1, 2.4099285463629382e-21], [11.891188830577448, 1, 0.0005640011189894644], [9.747428216541266, 1, 0.0017957376763436551]]</pre><p>We can also do filtering using an external function, in this case we use a <tt class="docutils literal"><span class="pre">lambda</span></tt> to obtain only those rows of type 'Unco' that contain probabilities &lt; 0.05, modifying our callback function.</p>
+<pre class="code">&gt;&gt;&gt; func = <span class="py_keyword">lambda</span> (ty, pr): ty == <span class="py_string">'Unco'</span> <span class="py_keyword">and</span> pr &lt; 0.05
+&gt;&gt;&gt; sub_table2 = t5.filtered(columns = (<span class="py_string">'type'</span>, <span class="py_string">'Prob'</span>), callback = func)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sub_table2
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+---------------------------------------------------------</pre><p>This can also be done using the string approach.</p>
+<pre class="code">&gt;&gt;&gt; sub_table2 = t5.filtered(callback = <span class="py_string">"type == 'Unco' and Prob &lt; 0.05"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sub_table2
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+---------------------------------------------------------</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id27" id="appending-tables" name="appending-tables">Appending tables</a></h3>
+<p>Tables may also be appended to each other, to make larger tables. We'll construct two simple tables to illustrate this.</p>
+<pre class="code">&gt;&gt;&gt; geneA = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'z'</span>], [[<span class="py_string">'Human'</span>,<span class="py_string">'root'</span>,
+... 6.0],[<span class="py_string">'Mouse'</span>,<span class="py_string">'root'</span>, 6.0], [<span class="py_string">'Rat'</span>,<span class="py_string">'root'</span>, 6.0]],
+... title=<span class="py_string">'Gene A'</span>)
+&gt;&gt;&gt; geneB = Table([<span class="py_string">'edge.name'</span>, <span class="py_string">'edge.parent'</span>, <span class="py_string">'z'</span>], [[<span class="py_string">'Human'</span>,<span class="py_string">'root'</span>,
+... 7.0],[<span class="py_string">'Mouse'</span>,<span class="py_string">'root'</span>, 7.0], [<span class="py_string">'Rat'</span>,<span class="py_string">'root'</span>, 7.0]],
+... title=<span class="py_string">'Gene B'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> geneB
+Gene B
+==================================
+edge.name    edge.parent         z
+----------------------------------
+    Human           root    7.0000
+    Mouse           root    7.0000
+      Rat           root    7.0000
+----------------------------------</pre><p>we now use the <tt class="docutils literal"><span class="pre">appended</span></tt> Table method to create a new table, specifying that we want a new column created (by passing the <tt class="docutils literal"><span class="pre">new_column</span></tt> argument a heading) in which the table titles will be placed.</p>
+<pre class="code">&gt;&gt;&gt; new = geneA.appended(<span class="py_string">'Gene'</span>, geneB, title=<span class="py_string">'Appended tables'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+Appended tables
+============================================
+  Gene    edge.name    edge.parent         z
+--------------------------------------------
+Gene A        Human           root    6.0000
+Gene A        Mouse           root    6.0000
+Gene A          Rat           root    6.0000
+Gene B        Human           root    7.0000
+Gene B        Mouse           root    7.0000
+Gene B          Rat           root    7.0000
+--------------------------------------------</pre><p>We repeat this without adding a new column.</p>
+<pre class="code">&gt;&gt;&gt; new = geneA.appended(<span class="py_keyword">None</span>, geneB, title=<span class="py_string">"Appended, no new column"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> new
+Appended, no new column
+==================================
+edge.name    edge.parent         z
+----------------------------------
+    Human           root    6.0000
+    Mouse           root    6.0000
+      Rat           root    6.0000
+    Human           root    7.0000
+    Mouse           root    7.0000
+      Rat           root    7.0000
+----------------------------------</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id28" id="miscellaneous" name="miscellaneous">Miscellaneous</a></h3>
+<p>Tables have a <tt class="docutils literal"><span class="pre">Shape</span></tt> attribute, which specifies <em>x</em> (number of columns) and <em>y</em> (number of rows). The attribute is a tuple and we illustrate it for the above <tt class="docutils literal"><span class="pre">sub_table</span></tt> tables. Combined with the <tt class="docutils literal"><span class="pre">filtered</span></tt> method, this attribute can tell you how many rows satisfy a specific condition.</p>
+<pre class="code">&gt;&gt;&gt; t5.Shape
+(11, 5)
+&gt;&gt;&gt; sub_table1.Shape
+(4, 5)
+&gt;&gt;&gt; sub_table2.Shape
+(3, 5)</pre><p>For instance, 3 of the 11 rows in <tt class="docutils literal"><span class="pre">t</span></tt> were significant and belonged to the <tt class="docutils literal"><span class="pre">Unco</span></tt> type.</p>
+<p>For completeness, we generate a table with no rows and assess its shape.</p>
+<pre class="code">&gt;&gt;&gt; func = <span class="py_keyword">lambda</span> (ty, pr): ty == <span class="py_string">'Unco'</span> <span class="py_keyword">and</span> pr &gt; 0.1
+&gt;&gt;&gt; sub_table3 = t5.filtered(columns = (<span class="py_string">'type'</span>, <span class="py_string">'Prob'</span>), callback = func)
+&gt;&gt;&gt; sub_table3.Shape
+(0, 5)</pre><p>The distinct values can be obtained for a single column,</p>
+<pre class="code">&gt;&gt;&gt; distinct = new.getDistinctValues(<span class="py_string">"edge.name"</span>)
+&gt;&gt;&gt; <span class="py_keyword">assert</span> distinct == set([<span class="py_string">'Rat'</span>, <span class="py_string">'Mouse'</span>, <span class="py_string">'Human'</span>])</pre><p>or multiple columns</p>
+<pre class="code">&gt;&gt;&gt; distinct = new.getDistinctValues([<span class="py_string">"edge.parent"</span>, <span class="py_string">"z"</span>])
+&gt;&gt;&gt; <span class="py_keyword">assert</span> distinct == set([(<span class="py_string">'root'</span>, 6.0), (<span class="py_string">'root'</span>, 7.0)]), distinct</pre><p>We can compute column sums. This will fail if there are non-numerical values in a column.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> new.summed(<span class="py_string">'z'</span>) == 39., new.summed(<span class="py_string">'z'</span>)</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id29" id="extending-tables" name="extending-tables">Extending tables</a></h3>
+<p>In some cases it is desirable to compute an additional column from existing column values. This is done using the <tt class="docutils literal"><span class="pre">withNewColumn</span></tt> method. We'll use t4 from above, adding two of the columns to create an additional column.</p>
+<pre class="code">&gt;&gt;&gt; t7 = t4.withNewColumn(<span class="py_string">'Sum'</span>, callback=<span class="py_string">"z+x"</span>, digits=2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t7
+My Title
+==================================================================
+edge.name    edge.parent    length       x       y       z     Sum
+------------------------------------------------------------------
+    Human         edge.0      4.00    1.00    3.00    6.00    7.00
+HowlerMon         edge.0      4.00    1.00    3.00    6.00    7.00
+    Mouse         edge.1      4.00    1.00    3.00    6.00    7.00
+NineBande           root      4.00    1.00    3.00    6.00    7.00
+ DogFaced           root      4.00    1.00    3.00    6.00    7.00
+   edge.0         edge.1      4.00    1.00    3.00    6.00    7.00
+   edge.1           root      4.00    1.00    3.00    6.00    7.00
+------------------------------------------------------------------</pre><p>We test this with an externally defined function.</p>
+<pre class="code">&gt;&gt;&gt; func = <span class="py_keyword">lambda</span> (x, y): x * y
+&gt;&gt;&gt; t7 = t4.withNewColumn(<span class="py_string">'Sum'</span>, callback=func, columns=(<span class="py_string">"y"</span>,<span class="py_string">"z"</span>),
+... digits=2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t7
+My Title
+===================================================================
+edge.name    edge.parent    length       x       y       z      Sum
+-------------------------------------------------------------------
+    Human         edge.0      4.00    1.00    3.00    6.00    18.00
+HowlerMon         edge.0      4.00    1.00    3.00    6.00    18.00
+    Mouse         edge.1      4.00    1.00    3.00    6.00    18.00
+NineBande           root      4.00    1.00    3.00    6.00    18.00
+ DogFaced           root      4.00    1.00    3.00    6.00    18.00
+   edge.0         edge.1      4.00    1.00    3.00    6.00    18.00
+   edge.1           root      4.00    1.00    3.00    6.00    18.00
+-------------------------------------------------------------------
+&gt;&gt;&gt; func = <span class="py_keyword">lambda</span> x: x**3
+&gt;&gt;&gt; t7 = t4.withNewColumn(<span class="py_string">'Sum'</span>, callback=func, columns=<span class="py_string">"y"</span>, digits=2)
+&gt;&gt;&gt; <span class="py_keyword">print</span> t7
+My Title
+===================================================================
+edge.name    edge.parent    length       x       y       z      Sum
+-------------------------------------------------------------------
+    Human         edge.0      4.00    1.00    3.00    6.00    27.00
+HowlerMon         edge.0      4.00    1.00    3.00    6.00    27.00
+    Mouse         edge.1      4.00    1.00    3.00    6.00    27.00
+NineBande           root      4.00    1.00    3.00    6.00    27.00
+ DogFaced           root      4.00    1.00    3.00    6.00    27.00
+   edge.0         edge.1      4.00    1.00    3.00    6.00    27.00
+   edge.1           root      4.00    1.00    3.00    6.00    27.00
+-------------------------------------------------------------------</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id30" id="sorting-tables" name="sorting-tables">Sorting tables</a></h3>
+<p>We want a table sorted according to values in a column.</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(columns = <span class="py_string">'LR'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+---------------------------------------------------------</pre><p>We want a table sorted according to values in a subset of columns, note the order of columns determines the sort order.</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(columns=(<span class="py_string">'LR'</span>, <span class="py_string">'type'</span>))
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+---------------------------------------------------------</pre><p>We now do a sort based on 2 columns.</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(columns=(<span class="py_string">'type'</span>, <span class="py_string">'LR'</span>))
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+---------------------------------------------------------</pre><p>Reverse sort a single column</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(<span class="py_string">'LR'</span>, reverse = <span class="py_string">'LR'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+---------------------------------------------------------</pre><p>Reverse sort one column but not another</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(columns=(<span class="py_string">'type'</span>, <span class="py_string">'LR'</span>), reverse = <span class="py_string">'LR'</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+---------------------------------------------------------</pre><p>Reverse sort both columns.</p>
+<pre class="code">&gt;&gt;&gt; sorted = t5.sorted(columns=(<span class="py_string">'type'</span>, <span class="py_string">'LR'</span>), reverse = (<span class="py_string">'type'</span>, <span class="py_string">'LR'</span>))
+&gt;&gt;&gt; <span class="py_keyword">print</span> sorted
+=========================================================
+                  Gene    type         LR    df      Prob
+---------------------------------------------------------
+NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+---------------------------------------------------------</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id31" id="joining-tables" name="joining-tables">Joining Tables</a></h3>
+<p>The Table object is capable of joins or merging of records in two tables. There are two fundamental types of joins -- inner and outer -- with there being different sub-types. We demonstrate these first constructing some simple tables.</p>
+<pre class="code">&gt;&gt;&gt; a=Table(header=[<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>],
+...         rows=[[1,2,3],[2,3,1],[2,6,5]], title=<span class="py_string">"A"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> a
+A
+=====================
+index    col2    col3
+---------------------
+    1       2       3
+    2       3       1
+    2       6       5
+---------------------
+&gt;&gt;&gt; b=Table(header=[<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>],
+...         rows=[[1,2,3],[2,2,1],[3,6,3]], title=<span class="py_string">"B"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> b
+B
+=====================
+index    col2    col3
+---------------------
+    1       2       3
+    2       2       1
+    3       6       3
+---------------------
+&gt;&gt;&gt; c=Table(header=[<span class="py_string">"index"</span>,<span class="py_string">"col_c2"</span>],rows=[[1,2],[3,2],[3,5]],title=<span class="py_string">"C"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> c
+C
+===============
+index    col_c2
+---------------
+    1         2
+    3         2
+    3         5
+---------------</pre><p>For a natural inner join, only 1 copy of columns with the same name are retained. So we expect the headings to be identical between the table <tt class="docutils literal"><span class="pre">a</span></tt>/<tt class="docutils literal"><span class="pre">b</span></tt> and the result of <tt class="docutils literal"><span class="pre">a.joined(b)</span></tt> or <tt class="docutils literal"><span class="pre">b.joined(a)</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b).Header == b.Header
+&gt;&gt;&gt; <span class="py_keyword">assert</span> b.joined(a).Header == a.Header</pre><p>For a standard inner join, the joined table should contain all columns from <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the provided tables do not have a title, a <tt class="docutils literal"><span class="pre">RuntimeError</span></tt> is raised.</p>
+<pre class="code">&gt;&gt;&gt; b.Title = <span class="py_keyword">None</span>
+&gt;&gt;&gt; <span class="py_keyword">try</span>:
+...     a.joined(b)
+... <span class="py_keyword">except</span> RuntimeError:
+...     <span class="py_keyword">pass</span>
+&gt;&gt;&gt; b.Title = <span class="py_string">'B'</span>
+&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b, <span class="py_string">"index"</span>).Header == [<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>, <span class="py_string">"col3"</span>,
+...                                        <span class="py_string">"B_col2"</span>, <span class="py_string">"B_col3"</span>]</pre><p>Note that the table title's were used to prefix the column headings from the second table. We further test this using table <tt class="docutils literal"><span class="pre">c</span></tt> which has different dimensions.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(c,<span class="py_string">"index"</span>).Header == [<span class="py_string">"index"</span>,<span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>,
+...                                       <span class="py_string">"C_col_c2"</span>]</pre><p>It's also possible to specify index columns using numerical values, the results of which should be the same.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b,[0, 2]).getRawData() ==\
+...                          a.joined(b,[<span class="py_string">"index"</span>,<span class="py_string">"col3"</span>]).getRawData()</pre><p>Additionally, it's possible to provide two series of indices for the two tables. Here, they have identical values.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b, [<span class="py_string">"index"</span>, <span class="py_string">"col3"</span>],[<span class="py_string">"index"</span>, <span class="py_string">"col3"</span>]).getRawData()\
+...         == a.joined(b,[<span class="py_string">"index"</span>,<span class="py_string">"col3"</span>]).getRawData()</pre><p>The results of a standard join between tables <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> are</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> a.joined(b, [<span class="py_string">"index"</span>], title=<span class="py_string">'A&amp;B'</span>)
+A&amp;B
+=========================================
+index    col2    col3    B_col2    B_col3
+-----------------------------------------
+    1       2       3         2         3
+    2       3       1         2         1
+    2       6       5         2         1
+-----------------------------------------</pre><p>We demo the table specific indices.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> a.joined(c, [<span class="py_string">"col2"</span>], [<span class="py_string">"index"</span>], title=<span class="py_string">'A&amp;C by "col2/index"'</span>)
+A&amp;C by <span class="py_string">"col2/index"</span>
+=================================
+index    col2    col3    C_col_c2
+---------------------------------
+    2       3       1           2
+    2       3       1           5
+---------------------------------</pre><p>Tables <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">c</span></tt> share a single row with the same value in the <tt class="docutils literal"><span class="pre">index</span></tt> column, hence a join by that index should return a table with just that row.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> a.joined(c, <span class="py_string">"index"</span>, title=<span class="py_string">'A&amp;C by "index"'</span>)
+A&amp;C by <span class="py_string">"index"</span>
+=================================
+index    col2    col3    C_col_c2
+---------------------------------
+    1       2       3           2
+---------------------------------</pre><p>A natural join of tables <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> results in a table with only rows that were identical between the two parents.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> a.joined(b, title=<span class="py_string">'A&amp;B Natural Join'</span>)
+A&amp;B Natural Join
+=====================
+index    col2    col3
+---------------------
+    1       2       3
+---------------------</pre><p>We test the outer join by defining an additional table with different dimensions, and conducting a join specifying <tt class="docutils literal"><span class="pre">inner_join=False</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; d=Table(header=[<span class="py_string">"index"</span>, <span class="py_string">"col_c2"</span>], rows=[[5,42],[6,23]], title=<span class="py_string">"D"</span>)
+&gt;&gt;&gt; <span class="py_keyword">print</span> d
+D
+===============
+index    col_c2
+---------------
+    5        42
+    6        23
+---------------
+&gt;&gt;&gt; <span class="py_keyword">print</span> c.joined(d,inner_join=<span class="py_keyword">False</span>, title=<span class="py_string">'C&amp;D Outer join'</span>)
+C&amp;D Outer join
+======================================
+index    col_c2    D_index    D_col_c2
+--------------------------------------
+    1         2          5          42
+    1         2          6          23
+    3         2          5          42
+    3         2          6          23
+    3         5          5          42
+    3         5          6          23
+--------------------------------------</pre><p>We establish the <tt class="docutils literal"><span class="pre">joined</span></tt> method works for mixtures of character and numerical data, setting some indices and some cell values to be strings.</p>
+<pre class="code">&gt;&gt;&gt; a=Table(header=[<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>],
+...         rows=[[1,2,<span class="py_string">"3"</span>],[<span class="py_string">"2"</span>,3,1],[2,6,5]], title=<span class="py_string">"A"</span>)
+&gt;&gt;&gt; b=Table(header=[<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>],
+...         rows=[[1,2,<span class="py_string">"3"</span>],[<span class="py_string">"2"</span>,2,1],[3,6,3]], title=<span class="py_string">"B"</span>)
+&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b, [<span class="py_string">"index"</span>, <span class="py_string">"col3"</span>],[<span class="py_string">"index"</span>, <span class="py_string">"col3"</span>]).getRawData()\
+...         == a.joined(b,[<span class="py_string">"index"</span>,<span class="py_string">"col3"</span>]).getRawData()</pre><p>We test that the <tt class="docutils literal"><span class="pre">joined</span></tt> method works when the column index orders differ.</p>
+<pre class="code">&gt;&gt;&gt; t1_header = [<span class="py_string">'a'</span>, <span class="py_string">'b'</span>]
+&gt;&gt;&gt; t1_rows = [(1,2),(3,4)]
+&gt;&gt;&gt; t2_header = [<span class="py_string">'b'</span>, <span class="py_string">'c'</span>]
+&gt;&gt;&gt; t2_rows = [(3,6),(4,8)]
+&gt;&gt;&gt; t1 = Table(header = t1_header, rows = t1_rows, title=<span class="py_string">'t1'</span>)
+&gt;&gt;&gt; t2 = Table(header = t2_header, rows = t2_rows, title=<span class="py_string">'t2'</span>)
+&gt;&gt;&gt; t3 = t1.joined(t2, columns_self = [<span class="py_string">"b"</span>], columns_other = [<span class="py_string">"b"</span>])
+&gt;&gt;&gt; <span class="py_keyword">print</span> t3
+==============
+a    b    t2_c
+--------------
+3    4       8
+--------------</pre><p>We then establish that a join with no values does not cause a failure, just returns an empty <tt class="docutils literal"><span class="pre">Table</span></tt>.</p>
+<pre class="code">&gt;&gt;&gt; t4_header = [<span class="py_string">'b'</span>, <span class="py_string">'c'</span>]
+&gt;&gt;&gt; t4_rows = [(5,6),(7,8)]
+&gt;&gt;&gt; t4 = LoadTable(header = t4_header, rows = t4_rows)
+&gt;&gt;&gt; t4.Title = <span class="py_string">'t4'</span>
+&gt;&gt;&gt; t5 = t1.joined(t4, columns_self = [<span class="py_string">"b"</span>], columns_other = [<span class="py_string">"b"</span>])</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id32" id="counting-rows" name="counting-rows">Counting rows</a></h3>
+<p>We can count the number of rows for which a condition holds. This method uses the same arguments as <tt class="docutils literal"><span class="pre">filtered</span></tt> but returns an integer result only.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> c.count(<span class="py_string">"col_c2 == 2"</span>)
+2
+&gt;&gt;&gt; <span class="py_keyword">print</span> c.joined(d,inner_join=<span class="py_keyword">False</span>).count(<span class="py_string">"index==3 and D_index==5"</span>)
+2</pre></div>
+<div class="section">
+<h3><a class="toc-backref" href="#id33" id="cleanup" name="cleanup">Cleanup</a></h3>
+<p>Import the <tt class="docutils literal"><span class="pre">os</span></tt> module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where <tt class="docutils literal"><span class="pre">junk.pdf</span></tt> wasn't created due to <tt class="docutils literal"><span class="pre">reportlab</span></tt> not being present.</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> os
+&gt;&gt;&gt; to_delete = [<span class="py_string">'t3.pickle'</span>, <span class="py_string">'junk.pdf'</span>, <span class="py_string">'t2.csv'</span>, <span class="py_string">'t3.tab'</span>]
+&gt;&gt;&gt; <span class="py_keyword">for</span> f <span class="py_keyword">in</span> to_delete:
+...     <span class="py_keyword">try</span>:
+...         os.remove(f)
+...     <span class="py_keyword">except</span> OSError:
+...         <span class="py_keyword">pass</span></pre></div>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id34" id="data-visualisation" name="data-visualisation">Data Visualisation</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id35" id="drawing-dendrograms-and-saving-to-pdf" name="drawing-dendrograms-and-saving-to-pdf">Drawing dendrograms and saving to PDF</a></h2>
 <p>From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98
@@ -661,7 +1714,7 @@ Outer loop = 0...
 <pre class="code">&gt;&gt;&gt; at = nonneutral_lf.getAnnotatedTree()</pre><p>Saving this to file is done using the normal <tt class="docutils literal"><span class="pre">writeToFile</span></tt> method, specifying a filename with the .xml suffix.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id22" id="drawing-a-dotplot" name="drawing-a-dotplot">Drawing a dotplot</a></h2>
+<h2><a class="toc-backref" href="#id36" id="drawing-a-dotplot" name="drawing-a-dotplot">Drawing a dotplot</a></h2>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.core <span class="py_keyword">import</span> annotation
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.draw <span class="py_keyword">import</span> dotplot</pre><p>Load the alignment for illustrative purposes, I'll make one sequence a different length than the other and introduce a custom sequence annotation for a miscellaneous feature. Normally, those annotations would be on the unaligned sequences.</p>
@@ -675,9 +1728,9 @@ Outer loop = 0...
 &gt;&gt;&gt; dp.drawToPDF(filename)</pre></div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id23" id="modelling-evolution" name="modelling-evolution">Modelling Evolution</a></h1>
+<h1><a class="toc-backref" href="#id37" id="modelling-evolution" name="modelling-evolution">Modelling Evolution</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id24" id="the-simplest-script" name="the-simplest-script">The simplest script</a></h2>
+<h2><a class="toc-backref" href="#id38" id="the-simplest-script" name="the-simplest-script">The simplest script</a></h2>
 <p>This is just about the simplest possible Cogent script. We use a canned nucleotide substitution model: the general time reversible model.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GTR
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
@@ -714,7 +1767,7 @@ motif    mprobs
     G    0.3167
 ---------------</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id25" id="performing-a-relative-rate-test" name="performing-a-relative-rate-test">Performing a relative rate test</a></h2>
+<h2><a class="toc-backref" href="#id39" id="performing-a-relative-rate-test" name="performing-a-relative-rate-test">Performing a relative rate test</a></h2>
 <p>From cogent import all the components we need</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
@@ -794,7 +1847,7 @@ degrees-of-freedom =  1
 &gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
 probability =  0.5...</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id26" id="a-test-of-the-neutral-theory" name="a-test-of-the-neutral-theory">A test of the neutral theory</a></h2>
+<h2><a class="toc-backref" href="#id40" id="a-test-of-the-neutral-theory" name="a-test-of-the-neutral-theory">A test of the neutral theory</a></h2>
 <p>This file contains an example for performing a likelihood ratio test of neutrality. The test compares a model where the codon model parameter omega is constrained to be the same for all edges against one where each edge has its' own omega. From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> GY94
@@ -863,7 +1916,7 @@ degrees-of-freedom =  6
 &gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">"probability = "</span>, P
 probability =  0.6...</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id27" id="use-an-empirical-protein-substitution-model" name="use-an-empirical-protein-substitution-model">Use an empirical protein substitution model</a></h2>
+<h2><a class="toc-backref" href="#id41" id="use-an-empirical-protein-substitution-model" name="use-an-empirical-protein-substitution-model">Use an empirical protein substitution model</a></h2>
 <p>This file contains an example of importing an empirically determined protein substitution matrix such as Dayhoff et al 1978 and using it to create a substitution model. The globin alignment is from the PAML distribution.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, PROTEIN
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
@@ -920,7 +1973,7 @@ motif    mprobs
     Y    0.0299
 ---------------</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id28" id="analysis-of-rate-heterogeneity" name="analysis-of-rate-heterogeneity">Analysis of rate heterogeneity</a></h2>
+<h2><a class="toc-backref" href="#id42" id="analysis-of-rate-heterogeneity" name="analysis-of-rate-heterogeneity">Analysis of rate heterogeneity</a></h2>
 <p>A simple example for analyses involving rate heterogeneity among sites. In this case we will simulate an alignment with two rate categories and then try to recover the rates from the alignment.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> Nucleotide
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree</pre><p>Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.</p>
@@ -956,7 +2009,7 @@ Avg probs over the fast (0.95) <span class="py_keyword">and</span> slow (0.82) h
 &gt;&gt;&gt; lf.setAlignment(aln3)
 &gt;&gt;&gt; lf.optimise(local=<span class="py_keyword">True</span>, max_restarts=2, show_progress = <span class="py_keyword">False</span>)</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id29" id="likelihood-analysis-of-multiple-loci" name="likelihood-analysis-of-multiple-loci">Likelihood analysis of multiple loci</a></h2>
+<h2><a class="toc-backref" href="#id43" id="likelihood-analysis-of-multiple-loci" name="likelihood-analysis-of-multiple-loci">Likelihood analysis of multiple loci</a></h2>
 <p>We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> HKY85
@@ -1030,7 +2083,7 @@ length
 &gt;&gt;&gt; <span class="py_keyword">print</span> LR, df, chisqprob(LR, df)
 0.00424532328725 1 0.94804967777</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id30" id="reusing-results-to-speed-up-optimisation" name="reusing-results-to-speed-up-optimisation">Reusing results to speed up optimisation</a></h2>
+<h2><a class="toc-backref" href="#id44" id="reusing-results-to-speed-up-optimisation" name="reusing-results-to-speed-up-optimisation">Reusing results to speed up optimisation</a></h2>
 <p>An example of how to use the maximum-likelihood parameter estimates from one model as starting values for another model. In this file we do something silly, by saving a result and then reloading it. This is silly because the analyses are run consecutively. A better approach when running consecutively is to simply use the annotated tree directly.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.models <span class="py_keyword">import</span> Y98</pre><p>We'll create a simple model, optimise it and save it for later reuse</p>
@@ -1091,7 +2144,7 @@ NineBande      root    0.1064         1.5666
 </table>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id31" id="specifying-and-using-an-restricted-nucleotide-substitution-model" name="specifying-and-using-an-restricted-nucleotide-substitution-model">Specifying and using an restricted nucleotide substitution model</a></h2>
+<h2><a class="toc-backref" href="#id45" id="specifying-and-using-an-restricted-nucleotide-substitution-model" name="specifying-and-using-an-restricted-nucleotide-substitution-model">Specifying and using an restricted nucleotide substitution model</a></h2>
 <p>Do standard <tt class="docutils literal"><span class="pre">cogent</span></tt> imports.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree, DNA
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.predicate <span class="py_keyword">import</span> MotifChange
@@ -1155,7 +2208,7 @@ motif    mprobs
 ...     lf.setParamRule(str(pred), is_independent=<span class="py_keyword">True</span>)</pre><p>You then make a new <tt class="docutils literal"><span class="pre">lf</span></tt> and optimise as above, but I won't do that now as the optimiser would struggle due to the low information content of this sample.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id32" id="simulate-an-alignment" name="simulate-an-alignment">Simulate an alignment</a></h2>
+<h2><a class="toc-backref" href="#id46" id="simulate-an-alignment" name="simulate-an-alignment">Simulate an alignment</a></h2>
 <p>How to  simulate an alignment. For this example we just create a simple model using a four taxon tree with very different branch lengths, a Felsenstein model with very different nucleotide frequencies and a long alignment.</p>
 <p>See the other examples for how to define other substitution models.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> sys
@@ -1189,7 +2242,7 @@ motif    mprobs
 <pre class="code">&gt;&gt;&gt; simulated = lf.simulateAlignment(sequence_length=1000)</pre><p>The result is a normal <tt class="docutils literal"><span class="pre">Cogent</span></tt> alignment object, which can be used in the same way as any other alignment object.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id33" id="performing-a-parametric-bootstrap" name="performing-a-parametric-bootstrap">Performing a parametric bootstrap</a></h2>
+<h2><a class="toc-backref" href="#id47" id="performing-a-parametric-bootstrap" name="performing-a-parametric-bootstrap">Performing a parametric bootstrap</a></h2>
 <p>This file contains an example for estimating the probability of a Likelihood ratio statistic obtained from a relative rate test. The bootstrap classes can take advantage of parallel architectures.</p>
 <p>From cogent import all the components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, LoadTree
@@ -1216,7 +2269,7 @@ motif    mprobs
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">print</span> <span class="py_string">'%.2f, %.2f'</span> % estimateP.getObservedlnL()
 -162.65, -162.48</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id34" id="estimate-parameter-values-using-a-sampling-from-a-dataset" name="estimate-parameter-values-using-a-sampling-from-a-dataset">Estimate parameter values using a sampling from a dataset</a></h2>
+<h2><a class="toc-backref" href="#id48" id="estimate-parameter-values-using-a-sampling-from-a-dataset" name="estimate-parameter-values-using-a-sampling-from-a-dataset">Estimate parameter values using a sampling from a dataset</a></h2>
 <p>This script uses the sample method of the alignment class to provide an
 estimate for a two stage optimisation.
 This allows rapid optimisation of long alignments and complex models with
@@ -1240,9 +2293,9 @@ Number of function evaluations = 1; current F = ...</pre><p>Print the result usi
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id35" id="phylogenetic-reconstruction" name="phylogenetic-reconstruction">Phylogenetic Reconstruction</a></h1>
+<h1><a class="toc-backref" href="#id49" id="phylogenetic-reconstruction" name="phylogenetic-reconstruction">Phylogenetic Reconstruction</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id36" id="calculate-pairwise-distances-between-sequences" name="calculate-pairwise-distances-between-sequences">Calculate pairwise distances between sequences</a></h2>
+<h2><a class="toc-backref" href="#id50" id="calculate-pairwise-distances-between-sequences" name="calculate-pairwise-distances-between-sequences">Calculate pairwise distances between sequences</a></h2>
 <p>An example of how to calculate the pairwise distances for a set of sequences.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance</pre><p>Import a substitution model (or create your own)</p>
@@ -1277,7 +2330,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 &gt;&gt;&gt; cPickle.dump(d.getPairwiseDistances(), f)
 &gt;&gt;&gt; f.close()</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id37" id="make-a-neighbor-joining-tree" name="make-a-neighbor-joining-tree">Make a neighbor joining tree</a></h2>
+<h2><a class="toc-backref" href="#id51" id="make-a-neighbor-joining-tree" name="make-a-neighbor-joining-tree">Make a neighbor joining tree</a></h2>
 <p>An example of how to calculate the pairwise distances for a set of sequences.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, nj</pre><p>Import a substitution model (or create your own)</p>
@@ -1298,7 +2351,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
           \-Mouse</pre><p>We can save this tree to file.</p>
 <pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>)</pre></div>
 <div class="section">
-<h2><a class="toc-backref" href="#id38" id="phylogenetic-reconstruction-by-least-squares" name="phylogenetic-reconstruction-by-least-squares">Phylogenetic reconstruction by least squares</a></h2>
+<h2><a class="toc-backref" href="#id52" id="phylogenetic-reconstruction-by-least-squares" name="phylogenetic-reconstruction-by-least-squares">Phylogenetic reconstruction by least squares</a></h2>
 <p>We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called <tt class="docutils literal"><span class="pre">pickle</span></tt> which is native to python. As per usual, we import the basic components we need.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> cPickle
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.phylo <span class="py_keyword">import</span> distance, least_squares</pre><p>Now load the distance data.</p>
@@ -1309,7 +2362,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <p>We make the ls calculator.</p>
 <pre class="code">&gt;&gt;&gt; ls = least_squares.WLS(dists)</pre><p>We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter <em>asaa</em>).</p>
 <div class="section">
-<h3><a class="toc-backref" href="#id39" id="look-for-the-single-best-tree" name="look-for-the-single-best-tree">Look for the single best tree</a></h3>
+<h3><a class="toc-backref" href="#id53" id="look-for-the-single-best-tree" name="look-for-the-single-best-tree">Look for the single best tree</a></h3>
 <p>In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying <tt class="docutils literal"><span class="pre">a=5</span></tt>. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. <tt class="docutils literal"><span class="pre">k=1</span></tt> means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best <tt class="docutils literal"><span class="pre">k</span></tt> results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single <tt class="docutils literal"><span class="pre">Tree</span></tt> which can be saved etc ..</p>
 <pre class="code">&gt;&gt;&gt; score, tree = ls.trex(a = 5, k = 1, show_progress = <span class="py_keyword">True</span>)
 3 trees of size 4 at start
@@ -1318,7 +2371,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 0.0009...</pre><p>We won't display this tree, because we are doing more below.</p>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id40" id="a-more-rigourous-tree-space-search" name="a-more-rigourous-tree-space-search">A more rigourous tree space search</a></h3>
+<h3><a class="toc-backref" href="#id54" id="a-more-rigourous-tree-space-search" name="a-more-rigourous-tree-space-search">A more rigourous tree space search</a></h3>
 <p>We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change <tt class="docutils literal"><span class="pre">a</span></tt> to be larger, but in the current case we just adjust <tt class="docutils literal"><span class="pre">k</span></tt>. We also set the argument <tt class="docutils literal"><span class="pre">return_all</span> <span class="pre">=</span> <span class="pre">True</span></tt>, the effect of which is to return the complete set of 145 trees. These, and their support statistic, can then be inspected.</p>
 <pre class="code">&gt;&gt;&gt; trees = ls.trex(a = 5, k = 5, show_progress = <span class="py_keyword">True</span>, return_all = <span class="py_keyword">True</span>)
 3 trees of size 4 at start
@@ -1352,7 +2405,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
                     \-Human</pre><p>You can see the difference involves the Jackrabbit, TreeShrew, Gorilla, Rat clade.</p>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id41" id="assessing-the-fit-for-a-pre-specified-tree-topology" name="assessing-the-fit-for-a-pre-specified-tree-topology">Assessing the fit for a pre-specified tree topology</a></h3>
+<h3><a class="toc-backref" href="#id55" id="assessing-the-fit-for-a-pre-specified-tree-topology" name="assessing-the-fit-for-a-pre-specified-tree-topology">Assessing the fit for a pre-specified tree topology</a></h3>
 <p>In some instances we may have a tree from the literature or elsewhere whose fit to the data we seek to evaluate. In this case I'm going load a tree as follows.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTree
 &gt;&gt;&gt; query_tree = LoadTree(treestring = <span class="py_string">"((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)"</span>)</pre><p>We now just use the <tt class="docutils literal"><span class="pre">ls</span></tt> object created above. The following evaluates the query using it's associated branch lengths, returning only the wls statistic.</p>
@@ -1361,12 +2414,12 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <pre class="code">&gt;&gt;&gt; ls.evaluateTopology(query_tree)
 (0.00316480233404, Tree(<span class="py_string">"((Human,DogFaced),(NineBande,Mouse),HowlerMon)root;"</span>))</pre></div>
 <div class="section">
-<h3><a class="toc-backref" href="#id42" id="using-maximum-likelihood-for-measuring-tree-fit" name="using-maximum-likelihood-for-measuring-tree-fit">Using maximum likelihood for measuring tree fit</a></h3>
+<h3><a class="toc-backref" href="#id56" id="using-maximum-likelihood-for-measuring-tree-fit" name="using-maximum-likelihood-for-measuring-tree-fit">Using maximum likelihood for measuring tree fit</a></h3>
 <p>This is a much slower algorithm and the interface largely mirrors that for the above. The difference is you import <tt class="docutils literal"><span class="pre">maximum_likelihood</span></tt> instead of <tt class="docutils literal"><span class="pre">least_squares</span></tt>, and use the <tt class="docutils literal"><span class="pre">ML</span></tt> instead of <tt class="docutils literal"><span class="pre">WLS</span></tt> classes. The <tt class="docutils literal"><span class="pre">ML</span></tt> class requires a substitution model (like a HKY85 for DNA or JTT92 for protein), and an alignment. It also optionally takes a distance matrix, such as that used here, computed for the same sequences. These distances are then used to obtain estimates of branch lengths by the WLS method for each evaluated tree topology which are then used as starting values for the likelihood optimisation.</p>
 </div>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id43" id="making-a-phylogenetic-tree-from-a-protein-sequence-alignment" name="making-a-phylogenetic-tree-from-a-protein-sequence-alignment">Making a phylogenetic tree from a protein sequence alignment</a></h2>
+<h2><a class="toc-backref" href="#id57" id="making-a-phylogenetic-tree-from-a-protein-sequence-alignment" name="making-a-phylogenetic-tree-from-a-protein-sequence-alignment">Making a phylogenetic tree from a protein sequence alignment</a></h2>
 <p>In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard cogent import for <tt class="docutils literal"><span class="pre">LoadSeqs</span></tt>.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs, PROTEIN</pre><p>We will use an empirical protein substitution matrix, this requires a file format parser also.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.evolve.substitution_model <span class="py_keyword">import</span> EmpiricalProteinMatrix
@@ -1392,12 +2445,12 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <pre class="code">&gt;&gt;&gt; mytree.writeToFile(<span class="py_string">'test_nj.tree'</span>, with_distances=<span class="py_keyword">True</span>)</pre></div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id44" id="python-coding-guidelines" name="python-coding-guidelines">Python Coding Guidelines</a></h1>
+<h1><a class="toc-backref" href="#id58" id="python-coding-guidelines" name="python-coding-guidelines">Python Coding Guidelines</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id45" id="why-have-coding-guidelines" name="why-have-coding-guidelines">Why have coding guidelines?</a></h2>
+<h2><a class="toc-backref" href="#id59" id="why-have-coding-guidelines" name="why-have-coding-guidelines">Why have coding guidelines?</a></h2>
 <p>As project size increases, consistency increases in importance. Unit testing and a consistent style are critical to having trusted code to integrate. Also, guesses about names and interfaces will be correct more often.</p>
 <div class="section">
-<h3><a class="toc-backref" href="#id46" id="what-should-i-call-my-variables" name="what-should-i-call-my-variables">What should I call my variables?</a></h3>
+<h3><a class="toc-backref" href="#id60" id="what-should-i-call-my-variables" name="what-should-i-call-my-variables">What should I call my variables?</a></h3>
 <ul class="simple">
 <li><em>Choose the name that people will most likely guess.</em> Make it descriptive, but not too long: <tt class="docutils literal"><span class="pre">curr_record</span></tt> is better than <tt class="docutils literal"><span class="pre">c</span></tt>, or <tt class="docutils literal"><span class="pre">curr</span></tt>, or <tt class="docutils literal"><span class="pre">current_genbank_record_from_database</span></tt>.</li>
 <li><em>Good names are hard to find.</em> Don't be afraid to change names except when they are part of interfaces that other people are also using. It may take some time working with the code to come up with reasonable names for everything: if you have unit tests, it's easy to change them, especially with global search and replace.</li>
@@ -1409,7 +2462,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <li><em>Limit your use of abbreviations.</em> A few well-known abbreviations are OK, but you don't want to come back to your code in 6 months and have to figure out what <tt class="docutils literal"><span class="pre">sptxck2</span></tt> is. It's worth it to spend the extra time typing <tt class="docutils literal"><span class="pre">species_taxon_check_2</span></tt>, but that's still a horrible name: what's check number 1? Far better to go with something like <tt class="docutils literal"><span class="pre">taxon_is_species_rank</span></tt> that needs no explanation, especially if the variable is only used once or twice.</li>
 </ul>
 <div class="section">
-<h4><a class="toc-backref" href="#id47" id="acceptable-abbreviations" name="acceptable-abbreviations">Acceptable abbreviations</a></h4>
+<h4><a class="toc-backref" href="#id61" id="acceptable-abbreviations" name="acceptable-abbreviations">Acceptable abbreviations</a></h4>
 <p>The following list of abbreviations can be considered well-known and used with impunity within mixed name variables, but some should not be used by themselves as they would conflict with common functions, python built-in's, or raise an exception. Do not use the following by themselves as variable names: <tt class="docutils literal"><span class="pre">dir</span></tt>,  <tt class="docutils literal"><span class="pre">exp</span></tt> (a common <tt class="docutils literal"><span class="pre">math</span></tt> module function), <tt class="docutils literal"><span class="pre">in</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, and <tt class="docutils literal"><span class="pre">min</span></tt>. They can, however, be used as part of a name, eg <tt class="docutils literal"><span class="pre">matrix_exp</span></tt>.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1538,7 +2591,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 </div>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id48" id="what-are-the-naming-conventions" name="what-are-the-naming-conventions">What are the naming conventions?</a></h3>
+<h3><a class="toc-backref" href="#id62" id="what-are-the-naming-conventions" name="what-are-the-naming-conventions">What are the naming conventions?</a></h3>
 <table border="1" class="docutils">
 <colgroup>
 <col width="33%" />
@@ -1619,7 +2672,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 </ul>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id49" id="how-do-i-organize-my-modules-source-files" name="how-do-i-organize-my-modules-source-files">How do I organize my modules (source files)?</a></h3>
+<h3><a class="toc-backref" href="#id63" id="how-do-i-organize-my-modules-source-files" name="how-do-i-organize-my-modules-source-files">How do I organize my modules (source files)?</a></h3>
 <ul class="simple">
 <li><em>Have a docstring with a description of the module's functions</em>. If the description is long, the first line should be a short summary that makes sense on its own, separated from the rest by a newline.</li>
 <li><em>All code, including import statements, should follow the docstring.</em> Otherwise, the docstring will not be recognized by the interpreter, and you will not have access to it in interactive sessions (i.e. through <tt class="docutils literal"><span class="pre">obj.__doc__</span></tt>) or when generating documentation with automated tools.</li>
@@ -1627,7 +2680,7 @@ Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
 <li><em>Don't use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">*</span></tt>, <em>instead use</em> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">Name,</span> <span class="pre">Name2,</span> <span class="pre">Name3...</span></tt> <em>or possibly</em> <tt class="docutils literal"><span class="pre">import</span> <span class="pre">module</span></tt>. This makes it <em>much</em> easier to see name collisions and to replace implementations.</li>
 </ul>
 <div class="section">
-<h4><a class="toc-backref" href="#id50" id="example-of-module-structure" name="example-of-module-structure">Example of module structure</a></h4>
+<h4><a class="toc-backref" href="#id64" id="example-of-module-structure" name="example-of-module-structure">Example of module structure</a></h4>
 <pre class="literal-block">
 #!/usr/bin/env python
 
@@ -1655,7 +2708,7 @@ if __name__ == '__main__':    # code to execute if called from command-line
 </div>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id51" id="how-should-i-write-comments" name="how-should-i-write-comments">How should I write comments?</a></h3>
+<h3><a class="toc-backref" href="#id65" id="how-should-i-write-comments" name="how-should-i-write-comments">How should I write comments?</a></h3>
 <ul>
 <li><p class="first"><em>Always update the comments when the code changes.</em> Incorrect comments are far worse than no comments, since they are actively misleading.</p>
 </li>
@@ -1713,7 +2766,7 @@ def __init__(self, data, name='', alphabet=None):
 </ul>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id52" id="how-should-i-format-my-code" name="how-should-i-format-my-code">How should I format my code?</a></h3>
+<h3><a class="toc-backref" href="#id66" id="how-should-i-format-my-code" name="how-should-i-format-my-code">How should I format my code?</a></h3>
 <ul>
 <li><p class="first"><em>Use 4 spaces for indentation.</em> Do not use tabs (set your editor to convert tabs to spaces). The behaviour of tabs is not predictable across platforms, and will cause syntax errors. If we all use the same indentation, collaboration is much easier.</p>
 </li>
@@ -1778,7 +2831,7 @@ def __init__(self, data, name='', alphabet=None):
 </ul>
 </div>
 <div class="section">
-<h3><a class="toc-backref" href="#id53" id="how-should-i-test-my-code" name="how-should-i-test-my-code">How should I test my code ?</a></h3>
+<h3><a class="toc-backref" href="#id67" id="how-should-i-test-my-code" name="how-should-i-test-my-code">How should I test my code ?</a></h3>
 <p>There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.</p>
 <p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rest are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
 <p>In general, it's easier to start writing <tt class="docutils literal"><span class="pre">doctest</span></tt>'s, as you don't need to learn the <tt class="docutils literal"><span class="pre">unittest</span></tt> API but the latter give's much greater control.</p>
@@ -1788,7 +2841,7 @@ def __init__(self, data, name='', alphabet=None):
 <p>&quot;Code a little test a little&quot;. For production code, write a couple of tests, then a couple of methods, then a couple more tests, then a couple more methods, then maybe change some of the names or generalize some of the functionality. If you have a huge amount of code where 'all you have to do is write the tests', you're probably closer to 30% done than 90%. Testing vastly reduces the time spent debugging, since whatever went wrong has to be in the code you wrote since the last test suite. And remember to use python's interactive interpreter for quick checks of syntax and ideas.</p>
 <p>Run the test suite when you change <cite>anything</cite>. Even if a change seems trivial, it will only take a couple of seconds to run the tests and then you'll be sure. This can eliminate long and frustrating debugging sessions where the change turned out to have been made long ago, but didn't seem significant at the time.</p>
 <div class="section">
-<h4><a class="toc-backref" href="#id54" id="some-unittest-pointers" name="some-unittest-pointers">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></h4>
+<h4><a class="toc-backref" href="#id68" id="some-unittest-pointers" name="some-unittest-pointers">Some <tt class="docutils literal"><span class="pre">unittest</span></tt> pointers</a></h4>
 <ul>
 <li><p class="first"><em>Use the</em> <tt class="docutils literal"><span class="pre">unittest</span></tt> <em>framework with tests in a separate file for each module.</em> Name the test file <tt class="docutils literal"><span class="pre">test_module_name.py</span></tt>. Keeping the tests separate from the code reduces the temptation to change the tests when the code doesn't work, and makes it easy to verify that a completely new implementation presents the same interface (behaves the same) as the old.</p>
 </li>
@@ -1832,7 +2885,7 @@ Tests of the NumberList initialization. # ditto
 </ul>
 </div>
 <div class="section">
-<h4><a class="toc-backref" href="#id55" id="example-of-a-unittest-test-module-structure" name="example-of-a-unittest-test-module-structure">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></h4>
+<h4><a class="toc-backref" href="#id69" id="example-of-a-unittest-test-module-structure" name="example-of-a-unittest-test-module-structure">Example of a <tt class="docutils literal"><span class="pre">unittest</span></tt> test module structure</a></h4>
 <pre class="literal-block">
 #!/usr/bin/env python
 
