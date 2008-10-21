@@ -187,7 +187,7 @@ class _Feature(_Annotatable):
         assert not kw, kw
     
     def _get_label(self):
-        deprecated('attribute', 'label', 'Name', '1.2')
+        deprecated('attribute', 'label', 'Name', '1.2', stack_level=3)
         return self.Name
     
     def _set_label(self, val):
