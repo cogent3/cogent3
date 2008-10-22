@@ -264,7 +264,8 @@ class PairsTests(TestCase):
         self.assertEqual(a.toVienna(10),'.(.())(())')
         self.assertEqual(a.toVienna(13,offset=3),'....(.())(())')
         
-        self.assertRaises(Exception,b.toVienna,7) #pseudoknot NOT accepted
+        self.assertRaises(PairError,b.toVienna,7) #pseudoknot NOT accepted
+        self.assertRaises(Exception,b.toVienna,7) #old test for exception
         self.assertRaises(ValueError,c.toVienna,7)
         
         #pairs containging None are being skipped

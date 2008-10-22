@@ -218,8 +218,7 @@ class Pairs(list):
         strict specifies whether collisions cause fatal errors.
         """
         if self.hasPseudoknots():
-            raise Exception, "Pairs contains pseudoknots %s"%(self)
-        
+            raise PairError, "Pairs contains pseudoknots %s"%(self)
         try:
             length = int(length)
         except ValueError: #raised when length can't be converted to int
