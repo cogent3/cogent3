@@ -53,6 +53,7 @@ Phylogenetic Reconstruction
 
 .. include:: calculate_pairwise_distances.rest
 .. include:: calculate_neigbourjoining_tree.rest
+.. include:: calculate_UPGMA_cluster.rest
 .. include:: phylo_by_ls.rest
 .. include:: maketree_from_proteinseqs.rest
 
