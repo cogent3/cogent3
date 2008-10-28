@@ -1,13 +1,18 @@
 #usr/bin/env python
 """Functions to cluster using UPGMA
 
-Takes an array and a list of PhyloNode objects corresponding to the array 
-as input. Can also generate this type of input from a Dict2D using
+upgma takes an dictionary of pair tuples mapped to distances as input. 
+
+UPGMA_cluster takes an array and a list of PhyloNode objects corresponding 
+to the array as input. Can also generate this type of input from a Dict2D using
 inputs_from_dict2D function.
+
+Both return a PhyloNode object of the UPGMA cluster
 """
 
 from numpy import array, ravel, argmin, take, sum, average, ma, diag
 from cogent.core.tree import PhyloNode
+from cogent.util.dict2d import Dict2D
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -19,7 +24,6 @@ __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
 
 import numpy
-from cogent.util.dict2d import Dict2D
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
 BIG_NUM = 1e305
@@ -27,8 +31,8 @@ BIG_NUM = 1e305
 def upgma(pairwise_distances):
     """Uses the UPGMA algorithm to cluster sequences
 
-    pairwise_distances: a dictionary with pai tuples mapped to a distance
-    returns a PhyloNode object if the UPGMA cluster
+    pairwise_distances: a dictionary with pair tuples mapped to a distance
+    returns a PhyloNode object of the UPGMA cluster
     """
     items_in_matrix = []
     for i in pairwise_distances:
