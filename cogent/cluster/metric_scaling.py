@@ -6,9 +6,10 @@ Calculations performed as described in:
 Principles of Multivariate analysis: A User's Perspective. W.J. Krzanowski 
 Oxford University Press, 2000. p106.
 """
-
 from numpy import shape, add, sum, sqrt, argsort, transpose, newaxis
 from numpy.linalg import eig
+from cogent.util.dict2d import Dict2D
+from cogent.cluster.UPGMA import inputs_from_dict2D
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -18,6 +19,28 @@ __version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
+
+def PCoA(pairwise_distances):
+    """runs principle coordinates analysis on a distance matrix
+    
+    Takes a dictionary with tuple pairs mapped to distances as input. 
+    Returns the results in tab delimited text. 
+    """
+    items_in_matrix = []
+    for i in pairwise_distances:
+        if i[0] not in items_in_matrix:
+            items_in_matrix.append(i[0])
+        if i[1] not in items_in_matrix:
+            items_in_matrix.append(i[1])
+    dict2d_input = [(i[0], i[1], pairwise_distances[i]) for i in \
+            pairwise_distances]
+    dict2d_input.extend([(i[1], i[0], pairwise_distances[i]) for i in \
+            pairwise_distances])
+    dict2d_input = Dict2D(dict2d_input, RowOrder=items_in_matrix, \
+            ColOrder=items_in_matrix, Pad=True, Default=0.0)
+    matrix_a, node_order = inputs_from_dict2D(dict2d_input)
+    point_matrix, eigvals = principal_coordinates_analysis(matrix_a)
+    return output_pca(point_matrix, eigvals, items_in_matrix)
 
 def principal_coordinates_analysis(distance_matrix):
     """Takes a distance matrix and returns principal coordinate results

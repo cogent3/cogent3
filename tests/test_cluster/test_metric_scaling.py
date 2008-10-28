@@ -3,7 +3,7 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.cluster.metric_scaling import make_E_matrix, \
         make_F_matrix, run_eig, get_principal_coordinates, \
-        principal_coordinates_analysis, output_pca
+        principal_coordinates_analysis, output_pca, PCoA
 from numpy import array
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -62,6 +62,7 @@ class MetricScalingTests(TestCase):
     dnd = """
     """
 
+
     def test_principal_coordinate_analysis(self):
         """principal_coordinate_analysis returns array of principal coors"""
         #I took the example in the book (see intro info), and did the
@@ -71,6 +72,27 @@ class MetricScalingTests(TestCase):
         pcs, eigvals= principal_coordinates_analysis(matrix)
         self.assertEqual(len(pcs), 14)
         self.assertFloatEqual(pcs[0,0], -0.240788133045)
+        self.assertFloatEqual(pcs[1,0], 0.233677162)
+
+    def test_PCoA(self):
+        """PCoA returns tab delimited text results"""
+        matrix = self.real_matrix
+        names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']
+        pairwise_dist = {}
+        for i, name1 in enumerate(names):
+            for j, name2 in enumerate(names):
+                combo = (name1, name2)
+                if combo not in pairwise_dist:
+                    pairwise_dist[combo] = matrix[i,j]
+
+        #perform with the PCoA function
+        result = PCoA(pairwise_dist)
+        result = result.split('\n')
+        line1 = result[0].split('\t')
+        self.assertEqual(line1[0], "pc vector number ")
+        line2 = result[8].split('\t')
+        self.assertEqual(line2[0], 'a')
+        self.assertEqual(line2[1], '-0.240788133045')
 
     def test_make_E_matrix(self):
         """make_E_matrix converts a distance matrix to an E matrix"""
