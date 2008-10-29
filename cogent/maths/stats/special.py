@@ -3,11 +3,11 @@
 (c) Stephen L. Moshier 1984, 1995.
 """
 from __future__ import division
-from math import exp, log, floor, sin, sqrt
+from numpy import exp, log, floor, sin, sqrt
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
+__credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"
