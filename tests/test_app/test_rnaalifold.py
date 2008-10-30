@@ -2,11 +2,12 @@
 
 from os                    import remove
 from cogent.util.unit_test import TestCase, main
-from cogent.app.rnaalifold import RNAalifold
+from cogent.app.rnaalifold import RNAalifold, rnaalifold_from_alignment
+from cogent.core.alignment import DataError
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Shandy Wikman"
@@ -18,7 +19,21 @@ class RnaalifoldTest(TestCase):
 
     def setUp(self):
         self.input = RNAALIFOLD_INPUT
-        
+        self.unaligned = \
+            {'seq_0': 'GGUAGGUCGCUGGACUUGUCUCCUUGACUGUCCGGAAGGAGCGGU',
+             'seq_1': 'GGUAGGUCGCUGGAUUGAUAUGAGUAUUGUCCGGAAGGAGCGGA',
+             'seq_2': 'GGUAGGACGCGGGACUUCUGUUCAGGACUGUCCCGAAGGUGCGGU',
+             'seq_3': 'GGUAGGUCGCCGCACGUCGCUUCAGGACUGUGCGGAAGGAGCGGU',
+             'seq_4': 'GGUAGGUCGCUGUACUUCUAUCAGGACUGUACGGAAGGAGCGGU',
+             }
+        self.alignment = \
+            {'seq_0': 'GGUAGGUCGCUGGAC-UUGUCUCCUUGACU-GUCCGGAAGGAGCGGU',
+             'seq_1': 'GGUAGGUCGCUGGAU-UGAUAUGAGUAUU--GUCCGGAAGGAGCGGA',
+             'seq_2': 'GGUAGGACGCGGGAC-UUCUGUUCAGGACU-GUCCCGAAGGUGCGGU',
+             'seq_3': 'GGUAGGUCGCCGCACGUCGCUUCAGGAC--UGUGCGGAAGGAGCGGU',
+             'seq_4': 'GGUAGGUCGCUGUAC-UUCUAUCAGGACU--GUACGGAAGGAGCGGU',
+             }
+        self.struct = '....(.((.((((((..(((....)))....))))))...)).)...'
         
     def test_input_as_lines(self):
         """Test rnaalifold stdout input as lines"""
@@ -54,6 +69,18 @@ class RnaalifoldTest(TestCase):
         assert res['StdOut'] is not None
 
         res.cleanUp()
+    
+    def test_rnaalifold_from_alignment_unaligned(self):
+        """rnaalifold_from_alignment should handle unaligned seqs.
+        """
+        self.assertRaises(DataError,rnaalifold_from_alignment,self.unaligned)
+    
+    def test_rnaalifold_from_alignment(self):
+        """rnaalifold_from_alignment should give correct result.
+        """
+        [[seq, struct,energy]] = rnaalifold_from_alignment(aln=self.alignment)
+        self.assertEqual(struct,self.struct)
+        
 
 RNAALIFOLD_INPUT = ['CLUSTAL\n', '\n', 'seq1 GGCTAGATAGCTCAGATGGT-AGAGCAGAGGATTGAAGATCCTTGTGTCGTCGGTTCGATCCCGGCTCTGGCC----\n']
 
