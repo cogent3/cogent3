@@ -100,6 +100,18 @@ class ClearcutTests(GeneralSetUp):
         for node in tree_long.tips():
             if node.Name not in seq_names:
                 self.fail()
+        #repeat with best_tree = True
+        tree_long = build_tree_from_alignment(build_tree_seqs_long,\
+            best_tree=True,\
+            moltype=DNA)
+        seq_names = []
+        for line in build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
         
         #build_tree_from_alignment should raise DataError when constructing
         # an Alignment from unaligned sequences. Clearcut only allows aligned
