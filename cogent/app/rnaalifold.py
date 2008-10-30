@@ -4,10 +4,16 @@ from cogent.app.util import CommandLineApplication,\
     CommandLineAppResult, ResultPath
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym
+from cogent.core.alignment import Alignment
+from cogent.core.moltype import RNA
+from cogent.parse.fasta import MinimalFastaParser
+from cogent.parse.rnaalifold import rnaalifold_parser, MinimalRnaalifoldParser
+from cogent.format.clustal import clustal_from_alignment
+from cogent.struct.rna2d import ViennaStructure
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Shandy Wikman"
@@ -97,3 +103,29 @@ OPTIONS
             IsWritten=True)
 
         return result
+
+def rnaalifold_from_alignment(aln,moltype=RNA,params=None):
+    """Returns seq, pairs, folding energy for alignment.
+    """
+    #Create Alignment object.  Object will handle if seqs are unaligned.
+    aln = Alignment(aln,MolType=RNA)
+    int_map, int_keys = aln.getIntMap()
+
+    app = RNAalifold(WorkingDir='/tmp',\
+        InputHandler='_input_as_multiline_string',params=params)
+    res = app(clustal_from_alignment(int_map))
+    
+    #seq,pairs,energy = rnaalifold_parser(res['StdOut'].readlines())
+    pairs_list = MinimalRnaalifoldParser(res['StdOut'].readlines())
+
+    res.cleanUp()
+    return pairs_list
+
+if __name__ == "__main__":
+    from sys import argv
+    aln_file = argv[1]
+    aln = dict(MinimalFastaParser(open(aln_file,'U')))
+    res = rnaalifold_from_alignment(aln)
+    print res
+    
+    
