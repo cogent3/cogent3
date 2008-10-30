@@ -284,7 +284,7 @@ class MotifFormatter(object):
 
         - Takes in a list of motifs and generates specified output format.
     """
-    COLORS = [ "#FF0000", "#00FF00","#0000FF", "#FFFF00", "#00FFFF", "#FF00FF",
+    COLORS = [ "#00FF00","#0000FF", "#FFFF00", "#00FFFF", "#FF00FF",
                "#FAEBD7", "#8A2BE2", "#A52A2A", "#00CC00", "#FF6600",
                "#FF33CC", "#CC33CC", "#9933FF", "#FFCCCC", "#00CCCC", 
                "#CC6666", "#CCCC33", "#66CCFF", "#6633CC", "#FF6633" ]
