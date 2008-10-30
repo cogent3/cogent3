@@ -254,6 +254,9 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
     if moltype == RNA:
         moltype = DNA
     
+    if best_tree:
+        app.Parameters['-N'].on()
+    
     #Turn on correct moltype
     moltype_string = moltype.label.upper()
     app.Parameters[MOLTYPE_MAP[moltype_string]].on()    
