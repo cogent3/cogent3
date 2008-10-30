@@ -57,7 +57,7 @@ We demonstrate saving this UPGMA cluster to a file.
 Cleanup
 -------
 
-We don;'t actually want to keep that file now, so I'm importing the ``os`` module to delete it.
+We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.
 
 .. pycode::
 
