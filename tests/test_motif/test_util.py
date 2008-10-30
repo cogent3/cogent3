@@ -450,16 +450,16 @@ class MotifFormatterTests(TestCase):
         self.motif_results = MotifResults(Modules=self.modules_with_ids,\
             Motifs=self.motifs_with_ids)
         
-        self.color_map = {'1':"""background-color: #00FF00; ; font-family: 'Courier New', Courier""",
-                          '2':"""background-color: #0000FF; ; font-family: 'Courier New', Courier""",
-                          '3':"""background-color: #FFFF00; ; font-family: 'Courier New', Courier""",
-                          '4':"""background-color: #00FFFF; ; font-family: 'Courier New', Courier""",
+        self.color_map = {'1':"""background-color: #0000FF; ; font-family: 'Courier New', Courier""",
+                          '2':"""background-color: #FFFF00; ; font-family: 'Courier New', Courier""",
+                          '3':"""background-color: #00FFFF; ; font-family: 'Courier New', Courier""",
+                          '4':"""background-color: #FF00FF; ; font-family: 'Courier New', Courier""",
                           }
         self.color_map_rgb = {
-            'color_1':(0.0,1.0,0.0),
-            'color_2':(0.0,0.0,1.0),
-            'color_3':(1.0,1.0,0.0),
-            'color_4':(0.0,1.0,1.0),
+            'color_1':(0.0,0.0,1.0),
+            'color_2':(1.0,1.0,0.0),
+            'color_3':(0.0,1.0,1.0),
+            'color_4':(1.0,0.0,1.0),
             }
         
     def test_getColorMapS0(self):
