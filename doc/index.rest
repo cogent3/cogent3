@@ -27,6 +27,11 @@ Data manipulation
 .. include:: genetic_code_aa_index.rest
 .. include:: handling_tabular_data.rest
 
+General data analysis
+=====================
+
+.. include:: perform_PCoA_analysis.rest
+
 Data Visualisation
 ==================
 
