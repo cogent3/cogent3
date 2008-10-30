@@ -75,9 +75,10 @@ class MetricScalingTests(TestCase):
         self.assertFloatEqual(pcs[1,0], 0.233677162)
 
     def test_PCoA(self):
-        """PCoA returns tab delimited text results"""
+        """PCoA returns a cogent Table result"""
         matrix = self.real_matrix
-        names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']
+        names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+                    'm', 'n']
         pairwise_dist = {}
         for i, name1 in enumerate(names):
             for j, name2 in enumerate(names):
@@ -87,12 +88,8 @@ class MetricScalingTests(TestCase):
 
         #perform with the PCoA function
         result = PCoA(pairwise_dist)
-        result = result.split('\n')
-        line1 = result[0].split('\t')
-        self.assertEqual(line1[0], "pc vector number ")
-        line2 = result[8].split('\t')
-        self.assertEqual(line2[0], 'a')
-        self.assertEqual(line2[1], '-0.240788133045')
+        self.assertEqual(result[7,1], 'a')
+        self.assertFloatEqual(result[7,2], -0.240788133045)
 
     def test_make_E_matrix(self):
         """make_E_matrix converts a distance matrix to an E matrix"""
@@ -127,19 +124,24 @@ class MetricScalingTests(TestCase):
         self.assertEqual(result[2], array([6,6,6]))
 
     def test_output_pca(self):
-        """output_pca1 creates a string output for pcs results"""
+        """output_pca1 creates a Table output for pcs results"""
         #make arbitary values for inputs
         eigvals = array([4.2,3.2,5.2])
         names = ['env1', 'env2', 'env3']
-        pca_matrix = array([[-0.34, -0.22, 0.57], [-0.12, 0.14, -0.018],\
-                [1.8, 1.9, 2.0]])
-        output_str = output_pca(pca_matrix, eigvals, names)
-        output = output_str.split('\n')
-        self.assertEqual(output[0], 'pc vector number \t1\t2\t3\t')
-        self.assertEqual(output[1], \
-                'env1\t1.8\t-0.34\t-0.12\t')
-        self.assertEqual(output[6], \
-                'eigvals\t5.2\t4.2\t3.2\t')
+        pca_matrix = array([[-0.34, -0.22, 0.57], [-0.12, 0.14, -0.018],
+                            [1.8, 1.9, 2.0]])
+        output_table = output_pca(pca_matrix, eigvals, names)
+        self.assertEqual(str(output_table),
+'''\
+================================================================
+        Type              Label  vec_num-0  vec_num-1  vec_num-2
+----------------------------------------------------------------
+Eigenvectors               env1       1.80      -0.34      -0.12
+Eigenvectors               env2       1.90      -0.22       0.14
+Eigenvectors               env3       2.00       0.57      -0.02
+ Eigenvalues        eigenvalues       5.20       4.20       3.20
+ Eigenvalues  var explained (%)      41.27      33.33      25.40
+----------------------------------------------------------------''')
 
     def test_integration(self):
         """Integration test of PCoA should work correctly"""

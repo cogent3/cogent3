@@ -9,11 +9,13 @@ Oxford University Press, 2000. p106.
 from numpy import shape, add, sum, sqrt, argsort, transpose, newaxis
 from numpy.linalg import eig
 from cogent.util.dict2d import Dict2D
+from cogent.util.table import Table
 from cogent.cluster.UPGMA import inputs_from_dict2D
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
+__credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
+               "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
@@ -24,7 +26,7 @@ def PCoA(pairwise_distances):
     """runs principle coordinates analysis on a distance matrix
     
     Takes a dictionary with tuple pairs mapped to distances as input. 
-    Returns the results in tab delimited text. 
+    Returns a cogent Table object.
     """
     items_in_matrix = []
     for i in pairwise_distances:
@@ -116,38 +118,35 @@ def output_pca(PCA_matrix, eigvals, names):
     function. Names is a list of names that corresponds to the columns in the
     PCA_matrix. It is the order that samples were represented in the initial
     distance matrix.
-
-    returns tab-delimited text that can be opened in Excel for analysis"""
-
+    
+    returns a cogent Table object"""
+    
     output = []
     #get order to output eigenvectors values. reports the eigvecs according
     #to their cooresponding eigvals from greatest to least
     vector_order = list(argsort(eigvals))
     vector_order.reverse()
     
-    #make the header line and append to output
-    header = 'pc vector number \t'
-    for i in range(len(eigvals)):
-        header = header + str(i+1) + '\t'
-    output.append(header)
+    # make the eigenvector header line and append to output
+    vec_num_header = ['vec_num-%d' % i for i in range(len(eigvals))]
+    header = ['Label'] + vec_num_header
     #make data lines for eigenvectors and add to output
+    rows = []
     for name_i, name in enumerate(names):
-        new_line = name + '\t'
+        row = [name]
         for vec_i in vector_order:
-            new_line = new_line + str(PCA_matrix[vec_i,name_i]) + '\t'
-        output.append(new_line)
-    #make data line for eigvals and append to output
+            row.append(PCA_matrix[vec_i,name_i])
+        rows.append(row)
+    eigenvectors = Table(header=header,rows=rows,digits=2,space=2,
+                    title='Eigenvectors')
     output.append('\n')
-    eigval_line = 'eigvals' + '\t'
-    for vec_i in vector_order:
-        eigval_line = eigval_line + str(eigvals[vec_i]) + '\t'
-    output.append(eigval_line)
-    #make data line for percent variaion explained by eigvecs for output
-    percents = (eigvals/sum(eigvals))*100
-    percents_line = '% variation explained' + '\t'
-    for vec_i in vector_order:
-        percents_line = percents_line + str(percents[vec_i]) + '\t'
-    output.append(percents_line)
-
-    return ('\n').join(output)
+    # make the eigenvalue header line and append to output
+    header = ['Label']+vec_num_header
+    rows = [['eigenvalues']+[eigvals[vec_i] for vec_i in vector_order]]
+    pcnts = (eigvals/sum(eigvals))*100
+    rows += [['var explained (%)']+[pcnts[vec_i] for vec_i in vector_order]]
+    eigenvalues = Table(header=header,rows=rows,digits=2,space=2, 
+                    title='Eigenvalues')
+    
+    return eigenvectors.appended('Type', eigenvalues, title='')
 
