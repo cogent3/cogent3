@@ -1253,9 +1253,10 @@ def cmbuild_from_alignment(aln, structure_string, refine=False, \
     if refine:
         app.Parameters['--refine'].on(get_tmp_filename(app.WorkingDir))
         
-    #get path to alignment filename
+    #Get alignment in Stockholm format
     aln_file_string = stockholm_from_alignment(aln,GC_annotation=struct_dict)
     
+    #get path to alignment filename
     aln_path = app._input_as_multiline_string(aln_file_string)
     cm_path = aln_path.split('.txt')[0]+'.cm'
     app.Parameters['-n'].on(cm_path)
@@ -1266,15 +1267,17 @@ def cmbuild_from_alignment(aln, structure_string, refine=False, \
     
     cm_file = res['CmFile'].read()
     
-    res.cleanUp()
+    
     if return_alignment:
         #If alignment was refined, return refined alignment and structure,
         # otherwise return original alignment and structure.
         if refine:
             aln_file_string = res['Refined'].read()
+        res.cleanUp()
         return cm_file, aln_file_string
     #Just return cm_file
     else:
+        res.cleanUp()
         return cm_file
 
 
@@ -1360,9 +1363,11 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
     #Create an Alignment object from alignment dict
     new_alignment = Alignment(new_alignment,MolType=moltype)
     
+    std_out = res['StdOut'].read()
     res.cleanUp()
+    
     if return_stdout:
-        return new_alignment, struct_string, res['StdOut'].read()
+        return new_alignment, struct_string, std_out
     else:
         return new_alignment, struct_string
     
@@ -1423,10 +1428,10 @@ def cmalign_from_file(cm_file_path, seqs, moltype, alignment_file_path=None,\
         new_alignment[int_keys.get(k,k)]=v
     #Create an Alignment object from alignment dict
     new_alignment = Alignment(new_alignment,MolType=moltype)
-    
+    std_out = res['StdOut'].read()
     res.cleanUp()
     if return_stdout:
-        return new_alignment, struct_string, res['StdOut'].read()
+        return new_alignment, struct_string, std_out
     else:
         return new_alignment, struct_string
     
@@ -1527,29 +1532,3 @@ def cmsearch_from_file(cm_file_path, seqs, moltype, cutoff=0.0, params=None):
 
     return search_results
 
-
-
-if __name__ == "__main__":
-    from sys import argv
-    sto_filename = argv[1]
-    fasta_filename = argv[2]
-    seqs = dict(MinimalFastaParser(open(fasta_filename,'U')))
-    info,aln,struct = list(MinimalRfamParser(open(sto_filename,'U')))[0]
-    #res = cmbuild_from_alignment(aln,str(struct),refine=True)
-    aligned,structure_string,stdout = \
-        cmalign_from_alignment(aln,str(struct),seqs,RNA,include_aln=True,\
-            refine=True,return_stdout=True)
-            
-    print aligned
-    print len(aligned)
-    print structure_string
-    #print stdout
-    #print res
-    #print res['Alignment'].read()
-    #print res['StdOut'].read()
-    #res.cleanUp()
-    
-    
-    
-    
-    
