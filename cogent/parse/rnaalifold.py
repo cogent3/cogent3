@@ -5,12 +5,26 @@ from cogent.struct.rna2d   import ViennaStructure,Pairs
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Shandy Wikman"
 __email__ = "ens01svn@cs.umu.se"
 __status__ = "Development"
+
+def MinimalRnaalifoldParser(lines):
+    """MinimalRnaalifoldParser.
+        returns lists of sequence, structure_string, energy
+    """
+    res = []
+    if lines:
+        for i in range(0,len(lines),2):
+            seq = lines[i].strip()
+            struct,energy = lines[i+1].split(" (")
+            energy = float(energy.split('=')[0].strip())
+            res.append([seq,struct,energy])
+    return res
+        
 
 def rnaalifold_parser(lines=None):
     """Parser for rnaalifold stdout output
@@ -21,25 +35,25 @@ def rnaalifold_parser(lines=None):
     result = line_parser(lines)
     return result
     
-def line_parser(list=None):
+def line_parser(lines=None):
     """Parses RNAalifold output line for line """
     s = False
     seq = ''
     energy = ''
     pairs = ''
     result = []
-    for line in list:
+    for line in lines:
         if len(line)>1 and s==False:
             seq = line.strip()
             s = True
         elif s == True:
             s=False
             struct = line.split(None,2)[0].strip('\n')
-            energy = atof(line.split(None,2)[1].strip('(\n'))
+            energy = atof(line.split(' (',1)[1].split(None,1)[0].strip())
             pairs = to_pairs(struct)
             pairs.sort()
             
-    result.append([seq,pairs,energy])
+            result.append([seq,pairs,energy])
     return result
 
 def to_pairs(struct=None):
