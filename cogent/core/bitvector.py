@@ -39,19 +39,19 @@ from cogent.util.misc import Delegator
 import re
 from string import maketrans
 from operator import and_, or_, xor
-from math import log
+from numpy import log2
 from sys import maxint
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Rob Knight"]
+__credits__ = ["Jeremy Widmann", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
-_bits_in_int = int(round(log(maxint, 2)))
+_bits_in_int = int(round(log2(maxint)))
 
 
 def is_nonzero_string_char(char):

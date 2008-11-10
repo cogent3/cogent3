@@ -25,15 +25,14 @@ and they are therefore not supported (but may work anyway).
 __author__ = "Kristian Rother"
 __copyright__ = "Copyright 2008, The Cogent Project"
 __contributors__ = ["Kristian Rother", "Sandra Smit"]
-__credits__ = ["Janusz Bujnicki"]
+__credits__ = ["Janusz Bujnicki", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Production"
 
-from math import pi, cos, acos
-from numpy import array, cross
+from numpy import array, cross, pi, cos, arccos as acos
 from cogent.util.array import norm
 from cogent.maths.stats.special import fix_rounding_error
 

@@ -6,11 +6,11 @@ from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.motif.util import Location, ModuleInstance, Module, Motif,\
      MotifResults
 from cogent.core.moltype import DNA, RNA, PROTEIN
-from math import exp
+from numpy import exp
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Micah Hamady"]
+__credits__ = ["Jeremy Widmann", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Jeremy Widmann"

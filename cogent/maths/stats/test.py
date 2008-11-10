@@ -13,12 +13,11 @@ from cogent.maths.stats.special import Gamma
 
 from numpy import array, asarray, transpose, ravel, take, nonzero, log, sum,\
         mean, cov, corrcoef, fabs, any, reshape, clip, nan, isnan, isinf, \
-        sqrt, median as _median
+        sqrt, exp, median as _median
         #, std - currently incorrect
 from numpy.random import permutation
 
 from operator import add
-from math import exp
 from random import choice
 
 __author__ = "Rob Knight"

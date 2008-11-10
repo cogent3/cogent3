@@ -2,7 +2,6 @@
 
 from __future__ import division
 import numpy
-import math
 from cogent.maths.markov import TransitionMatrix
 
 try:
@@ -75,14 +74,14 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         close = 1.0 - extend
         
         # First indel event
-        indel = 1.0 - math.exp(-distance)
+        indel = 1.0 - numpy.exp(-distance)
         insert = deletion = indel / 2.0
     
         # Second indel event
         if distance < 0.0001:
             secondary_indel = distance/2
         else:
-            x = math.exp(-distance - math.log(distance))
+            x = numpy.exp(-distance - numpy.log(distance))
             secondary_indel = 1 - 1/distance + x
         assert 0.0 <= secondary_indel <= 1.0
         secondary_deletion = secondary_insert = secondary_indel / 2.0

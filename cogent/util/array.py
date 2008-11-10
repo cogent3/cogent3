@@ -5,9 +5,8 @@ from operator import mul, __getitem__ as getitem
 from numpy import array, arange, logical_not, cumsum, where, compress, ravel,\
     zeros, put, take, sort, searchsorted, log, nonzero, sum,\
     sqrt, clip, maximum, reshape, argsort, argmin, repeat, product, identity,\
-    concatenate, less, trace, newaxis, min
+    concatenate, less, trace, newaxis, min, pi
 from numpy.random import randint, normal
-from math import pi
 import numpy
 from cogent.util.transform import cross_comb
 

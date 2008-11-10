@@ -108,13 +108,13 @@ from __future__ import division
 from cogent.util.misc import FunctionWrapper, MappedList, MappedDict, \
     ConstraintError
 from cogent.util.table import Table
-from math import sqrt, log, e, floor, ceil
+from numpy import sqrt, log2, e, floor, ceil
 from random import choice, random
 from operator import gt, ge, lt, le, add, sub
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"
@@ -1062,7 +1062,7 @@ class FreqsI(object):
         total = 0
         for prob in normalized.values():
             if prob:
-                total -= prob * log(prob, 2)
+                total -= prob * log2(prob)
         return total
     Uncertainty = property(_get_uncertainty)
 

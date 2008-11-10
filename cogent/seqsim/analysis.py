@@ -2,11 +2,10 @@
 from tree import RangeNode, balanced_breakpoints
 from cogent.core.usage import DnaPairs
 from usage import Counts
-from math import pi
 from random import choice
 from numpy.linalg import det as determinant, inv as inverse
 from numpy import sqrt, newaxis as NewAxis, exp, dot, zeros, ravel, array, \
-                  float64, max, min, average, any
+                  float64, max, min, average, any, pi
 from cogent.util.array import without_diag
 from cogent.maths.svd import three_item_combos, two_item_combos
 from cogent.maths.stats.test import std
