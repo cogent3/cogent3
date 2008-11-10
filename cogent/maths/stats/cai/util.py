@@ -23,12 +23,12 @@ Note:
     frequencies from creating a bias.
 """
 from __future__ import division
-from math import log, exp
+from numpy import log , exp
 from cogent.core.genetic_code import GeneticCodes
 
 __author__ = "Michael Eaton"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Michael Eaton", "Rob Knight"]
+__credits__ = ["Michael Eaton", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"
@@ -95,9 +95,9 @@ def arithmetic_mean(vals, freqs=None):
 def geometric_mean(vals, freqs=None):
     """Returns geometric mean of vals."""
     if freqs is None:
-        return exp(sum(map(log,vals))/float(len(vals)))
+        return exp(log(vals).sum()/float(len(vals)))
     else:
-        return exp(sum([v*i for v,i in zip(map(log,vals), freqs)])/sum(freqs))
+        return exp(sum([v*i for v,i in zip(log(vals), freqs)])/sum(freqs))
 
 def codon_adaptiveness_all(freqs):
     """Calculates relative codon adaptiveness, using all codons."""
@@ -239,7 +239,7 @@ def make_cai_3(genetic_code=SGC):
             if sum(freqs):
                 block_results.append(average(vals, freqs))
         if eyre_walker:
-            return exp(arithmetic_mean(map(log, block_results)))
+            return exp(arithmetic_mean(log(block_results)))
         else:
             return average(block_results)
     return cai_3

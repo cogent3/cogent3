@@ -6,12 +6,12 @@ Translated from R 2.5 by Gavin Huttley
 """
 
 from __future__ import division
-from math import floor, sqrt
+from numpy import floor, sqrt
 from cogent.maths.stats.distribution import zprob
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Gavin Huttley"

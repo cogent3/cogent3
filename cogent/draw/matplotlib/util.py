@@ -31,14 +31,13 @@ try:
     import ImageFilter
 except ImportError:
     Image = ImageFilter = None  #only used to smooth contours: skip if no PIL
-from numpy import array, shape, fromstring, sqrt, zeros
+from numpy import array, shape, fromstring, sqrt, zeros, pi
 from cogent.core.usage import UnsafeCodonUsage as CodonUsage
 from cogent.maths.stats.test import regress, correlation
 from pylab import plot, cm, savefig, gca, gcf, arange, text, subplot, \
     asarray, iterable, searchsorted, sort, diff, concatenate, silent_list, \
     is_string_like, Circle, mean, std, normpdf, legend, contourf, \
     colorbar, ravel, imshow, contour
-from math import pi
 from matplotlib.font_manager import FontProperties
 from os.path import split
 #module-level constants

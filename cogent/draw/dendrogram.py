@@ -24,12 +24,12 @@ For drawing trees use either:
 # and constant-y is suitable for placing alongside a sequence alignment anyway.
 from reportlab.graphics import shapes, renderPDF
 from reportlab.lib import colors
-import math
+import numpy
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Zongzhi Liu"]
+                    "Zongzhi Liu", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Peter Maxwell"
@@ -336,7 +336,7 @@ class _Dendrogram(object):
         if use_lengths:
             # Placing the scale properly might take some work,
             # for now just always put it in a bottom corner.
-            unit = 10**math.floor(math.log10(width/scale/2.0))
+            unit = 10**numpy.floor(numpy.log10(width/scale/2.0))
             if scale_bar == "right":
                 x1, x2 = (width-scale*unit, width)
             elif scale_bar == "left":
@@ -482,7 +482,7 @@ class StraightDendrogramForm(_RootedDendrogramForm):
     def xCoords(self, node, x1):
         dx = node.length * self.xscale
         dy = node.y2 - node.y1
-        dx = math.sqrt(max(dx**2 - dy**2, 1))
+        dx = numpy.sqrt(max(dx**2 - dy**2, 1))
         return (x1, x1 + dx)
     
 
@@ -563,13 +563,13 @@ class UnrootedDendrogram(_Dendrogram):
     use_lengths_default = True
     
     def updateCoordinates(self, width, height):
-        angle = 2*math.pi / self.leafcount
+        angle = 2*numpy.pi / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
         # the best rotation of the tree to fit the display.
         best_scale = 0
         for i in range(60):
-            direction = i/60.0*math.pi
+            direction = i/60.0*numpy.pi
             points = self._update_coordinates(1.0, 0, 0, direction, angle)
             xs = [x for (x,y) in points]
             ys = [y for (x,y) in points]
@@ -585,7 +585,7 @@ class UnrootedDendrogram(_Dendrogram):
     
     def _update_coordinates(self, s, x1, y1, a, da):
         # Constant angle algorithm.  Should add maximim daylight step.
-        (x2, y2) = (x1+self.length*s*math.sin(a), y1+self.length*s*math.cos(a))
+        (x2, y2) = (x1+self.length*s*numpy.sin(a), y1+self.length*s*numpy.cos(a))
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         a -= self.leafcount * da / 2
         if not self.children:
@@ -599,7 +599,7 @@ class UnrootedDendrogram(_Dendrogram):
         return points
     
     def getLabelCoordinates(self, text, renderer):
-        (dx, dy) = (math.sin(self.angle), math.cos(self.angle))
+        (dx, dy) = (numpy.sin(self.angle), numpy.cos(self.angle))
         pad = renderer.labelPadDistance
         ty = renderer.stringHeight(text) / 2
         tx = renderer.stringWidth(text) / 2

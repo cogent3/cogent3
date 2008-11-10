@@ -2,7 +2,6 @@
 """Classes for dealing with base, codon, and amino acid usage.
 """
 from __future__ import division
-from math import sqrt
 from cogent.maths.stats.util import Freqs, Numbers, UnsafeFreqs
 from cogent.maths.stats.special import fix_rounding_error
 from cogent.util.array import euclidean_distance
@@ -12,11 +11,11 @@ from cogent.core.info import Info as InfoClass
 from cogent.core.alphabet import CharAlphabet
 from string import upper
 
-from numpy import array, concatenate, sum, mean, isfinite
+from numpy import array, concatenate, sum, mean, isfinite, sqrt
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"

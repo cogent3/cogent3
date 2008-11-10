@@ -4,9 +4,8 @@
 """
 from __future__ import division
 
-from math import sqrt
 from numpy import array, zeros, dot as matrixmultiply, ones, identity, take,\
-    asarray, uint8 as UInt8, add
+    asarray, uint8 as UInt8, add, sqrt
 from random import choice
 from cogent.util.array import hamming_distance
 from cogent.core.profile import Profile, CharMeaningProfile
@@ -15,7 +14,7 @@ from cogent.core.alignment import Alignment
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight", "Gavin Huttley"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Sandra Smit"

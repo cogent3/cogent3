@@ -2,7 +2,7 @@
 from __future__ import division
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-import math, time, logging, warnings
+import time, logging, warnings
 import cogent.maths.optimisers
 from cogent.maths.solve import find_root
 from cogent.util import parallel
@@ -15,7 +15,7 @@ LOG = logging.getLogger('cogent')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Peter Maxwell"
@@ -81,11 +81,11 @@ class LogOptPar(OptPar):
     # .getValueArray() and .getBoundsArrrays().
     
     def transformFromOptimiser(self, value):
-        return math.exp(value)
+        return numpy.exp(value)
     
     def transformToOptimiser(self, value):
         try:
-            return math.log(value)
+            return numpy.log(value)
         except OverflowError:
             raise OverflowError('log(%s)' % value)
     

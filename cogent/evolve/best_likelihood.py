@@ -7,13 +7,14 @@ process, but its likelihood indicates the maximum possible likelihood value
 for a site-independent evolutionary process.
 """
 from __future__ import division
-import math, re
+import re
+from numpy import log
 
 from cogent import LoadSeqs
 
 __author__ = "Helen Lindsay, Gavin Huttley"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Helen Lindsay", "Gavin Huttley"]
+__credits__ = ["Helen Lindsay", "Gavin Huttley", "Daniel McDonald"]
 cite = "Goldman, N. (1993).  Statistical tests of models of DNA substitution.  J Mol Evol, 36: 182-98"
 __license__ = "GPL"
 __version__ = "1.1"
@@ -89,7 +90,7 @@ def get_G93_lnL_from_array(columns_list):
     col_stats = get_ML_probs(columns_list)
     log_likelihood = 0
     for freq, num in col_stats:
-        pattern_lnL = math.log(freq)*num
+        pattern_lnL = log(freq)*num
         log_likelihood += pattern_lnL
     return log_likelihood
 

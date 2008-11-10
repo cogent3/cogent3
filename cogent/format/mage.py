@@ -16,17 +16,16 @@ numbers reflect the fractions of A, C, G and U directly.
 """
 
 from __future__ import division
-from numpy import array
+from numpy import array, fabs
 
 from copy import deepcopy
-from math import fabs
 from cogent.util.misc import extract_delimited
 from cogent.maths.stats.util import Freqs
 from cogent.maths.stats.special import fix_rounding_error
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley", "Sandra Smit"]
+__credits__ = ["Rob Knight", "Gavin Huttley", "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"

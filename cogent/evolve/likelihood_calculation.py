@@ -9,7 +9,6 @@ validating accuracy. The calculations can be performed for tree's that have poly
 in addition to binary trees.
 """
 import numpy
-import math
 import logging
 LOG = logging.getLogger('cogent.evolve')
 

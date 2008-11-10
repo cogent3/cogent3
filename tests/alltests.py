@@ -182,6 +182,7 @@ def suite():
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('hybrid-ss-min', 'test_unafold'),
             ('mlagan', 'test_lagan'),
+            ('cd-hit', 'test_cd_hit')
             ]
     for app, test_name in apps:
         if app_path(app):

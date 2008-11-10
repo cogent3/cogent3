@@ -13,7 +13,6 @@ from optimiser import OptimiserBase
 
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-import math
 import time
 
 __author__ = "Andrew Butterfield"
@@ -47,7 +46,7 @@ class AnnealingSchedule(object):
     
     def willAccept(self, newF, oldF, random_series):
         deltaF = newF - oldF
-        return deltaF >= 0 or random_series.uniform(0.0, 1.0) < math.exp(deltaF / self.T)
+        return deltaF >= 0 or random_series.uniform(0.0, 1.0) < numpy.exp(deltaF / self.T)
     
 
 class AnnealingHistory(object):
