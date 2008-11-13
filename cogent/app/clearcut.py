@@ -10,6 +10,7 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
 from cogent.util.dict2d import Dict2D
+from cogent.format.table import phylipMatrix
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -379,38 +380,24 @@ def _matrix_input_from_dict2d(matrix):
             new_dists.append((int_map[env1], int_map[env2], matrix[env1][env2]))
     int_map_dists = Dict2D(new_dists)
     
-    #The input expects the names to be exactly 10 characters - pad shorted
-    #names with spaces and raise error if too long (should't happen)s
-    keys_10_char = []
-    for key in int_map_dists.keys():
-        if len(key) > 10:
-            raise ValueError, "names must be <10 characters"
-        elif len(key) < 10:
-            for i in range(len(key), 10):
-                key += ' '
-            keys_10_char.append(key)
-        else:
-            keys_10_char.append(key)
-    keys_10_char.sort()
-    
-    #The first line of the input is the number of items in the matrix
-    matrix_input = ['    ' + str(len(keys_10_char))]
-
-    #The subsequent line is the item name followed by space delimited values
+    #names will be fed into the phylipTable function - it is the int map names
+    names = sorted(int_map_dists.keys())
+    rows = []
+    #populated rows with values based on the order of names
     #the following code will work for a square matrix only
-    keys = sorted(int_map_dists.keys())
-    for index, key1 in enumerate(keys):
-        new_line = [keys_10_char[index]]
-        for key2 in keys:
+    for index, key1 in enumerate(names):
+        row = []
+        for key2 in names:
             val = str(int_map_dists[key1][key2])
             #the values should be 5 characters (e.g 0.000)
             if len(val) < 5:
                 for i in range(len(val), 5):
                     val += '0'
-            new_line.append(val[:5])
-        matrix_input.append(' '.join(new_line))
-    matrix_input = '\n'.join(matrix_input)
+            row.append(val[:5])
+        rows.append(row)
+    input_matrix = phylipMatrix(rows, names)
     #input needs a trailing whitespace or it will fail!
-    matrix_input += '\n'
+    input_matrix += '\n'
    
-    return matrix_input, int_keys 
+    return input_matrix, int_keys
+
