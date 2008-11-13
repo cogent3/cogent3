@@ -132,9 +132,9 @@ class ClearcutTests(GeneralSetUp):
         of.close()
         matrix = matrix.split('\n')
         self.assertEqual(matrix[0], '   3')
-        self.assertEqual(matrix[1], 'env_0       0.000  1.438  2.456')
-        self.assertEqual(matrix[2], 'env_1       1.438  0.000  2.700')
-        self.assertEqual(matrix[3], 'env_2       2.456  2.700  0.000')
+        self.assertEqual(matrix[1], 'env_0       0.0  1.438  2.45678')
+        self.assertEqual(matrix[2], 'env_1       1.438  0.0  2.7')
+        self.assertEqual(matrix[3], 'env_2       2.45678  2.7  0.0')
         self.assertEqual(int_map['env_1'], 'sample2')
         self.assertEqual(int_map['env_0'], 'sample1aaaaaaa')
         self.assertEqual(int_map['env_2'], 'sample3')
@@ -145,7 +145,7 @@ class ClearcutTests(GeneralSetUp):
         data = [('sample1aaaaaaa', 'sample2', 1.438), ('sample2', 'sample1aaaaaaa', 1.438), ('sample1aaaaaaa', 'sample3', 2.45678), ('sample3', 'sample1aaaaaaa', 2.45678), ('sample2', 'sample3', 2.7), ('sample3', 'sample2', 2.7)]
         data_dict2d = Dict2D(data, Pad=True, Default=0.0)
         result = build_tree_from_distance_matrix(data_dict2d)
-        self.assertEqual(str(result), '((sample1aaaaaaa:0.597,sample2:0.841),sample3:1.859);')
+        self.assertEqual(str(result), '((sample1aaaaaaa:0.59739,sample2:0.84061),sample3:1.85939);')
 
         
 align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
