@@ -6,7 +6,9 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.core.alignment import DataError
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
-from cogent.app.clearcut import Clearcut, build_tree_from_alignment
+from cogent.app.clearcut import Clearcut, build_tree_from_alignment,\
+    _matrix_input_from_dict2d, build_tree_from_distance_matrix
+from cogent.util.dict2d import Dict2D
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -119,7 +121,30 @@ class ClearcutTests(GeneralSetUp):
         self.assertRaises(DataError,build_tree_from_alignment,\
             build_tree_seqs_unaligned,DNA)
 
+    def test_matrix_input_from_dict2d(self):
+        """matrix_input_from_dict2d formats dict2d object into distance matrix
+        """
+        data = [('sample1aaaaaaa', 'sample2', 1.438), ('sample2', 'sample1aaaaaaa', 1.438), ('sample1aaaaaaa', 'sample3', 2.45678), ('sample3', 'sample1aaaaaaa', 2.45678), ('sample2', 'sample3', 2.7), ('sample3', 'sample2', 2.7)]
+        data_dict2d = Dict2D(data, Pad=True, Default=0.0)
+        matrix, int_map = _matrix_input_from_dict2d(data_dict2d)
+        matrix = matrix.split('\n')
+        self.assertEqual(matrix[0], '    3')
+        self.assertEqual(matrix[1], 'env_0      0.000 1.438 2.456')
+        self.assertEqual(matrix[2], 'env_1      1.438 0.000 2.700')
+        self.assertEqual(matrix[3], 'env_2      2.456 2.700 0.000')
+        self.assertEqual(int_map['env_1'], 'sample2')
+        self.assertEqual(int_map['env_0'], 'sample1aaaaaaa')
+        self.assertEqual(int_map['env_2'], 'sample3')
+        
+    def test_build_tree_from_distance_matrix(self):
+        """build_tree_from_distance_matrix builds a tree from a dict2d
+        """
+        data = [('sample1aaaaaaa', 'sample2', 1.438), ('sample2', 'sample1aaaaaaa', 1.438), ('sample1aaaaaaa', 'sample3', 2.45678), ('sample3', 'sample1aaaaaaa', 2.45678), ('sample2', 'sample3', 2.7), ('sample3', 'sample2', 2.7)]
+        data_dict2d = Dict2D(data, Pad=True, Default=0.0)
+        result = build_tree_from_distance_matrix(data_dict2d)
+        self.assertEqual(str(result), '((sample1aaaaaaa:0.597,sample2:0.841),sample3:1.859);')
 
+        
 align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
 
 build_tree_seqs_short = """>clearcut_test_seqs_0

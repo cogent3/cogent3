@@ -1358,6 +1358,29 @@ class PhyloNode(TreeNode):
             other = other._parent
         return None
     
+    def prune(self):
+        """Reconstructs correct tree after nodes have been removed.
+        
+        Internal nodes with only one child will be removed and new connections
+        and Branch lengths will be made to reflect change. 
+        """
+        #traverse tree to decide nodes to be removed.
+        nodes_to_remove = []
+        for node in self.traverse():
+            if (node.Parent is not None) and (len(node.Children)==1):
+                nodes_to_remove.append(node)
+        for node in nodes_to_remove:
+            #save current parent
+            curr_parent=node.Parent
+            #save child
+            child=node.Children[0]
+            #remove current node by setting parent to None
+            node.Parent=None
+            #Connect child to current node's parent
+            child.Parent=curr_parent
+            #Add the Length of the removed node to the Length of the Child
+            child.Length = child.Length + node.Length
+    
     def unrootedDeepcopy(self, constructor=None, parent=None):
         # walks the tree unrooted-style, ie: treating self.Parent as just
         # another child 'parent' is where we got here from, ie: the neighbour
@@ -1504,7 +1527,9 @@ class PhyloNode(TreeNode):
         #reset the root to the midpoint
         new_root.Parent = NR_parent
         new_root.append(NR_child)
-        return new_root.unrootedDeepcopy()    
+        result = new_root.unrootedDeepcopy()
+        result.prune()
+        return result
     
     def _find_midpoint_nodes(self, max_dist, tip_pair):
         """returns the nodes surrounding the maxTipTipDistance midpoint 

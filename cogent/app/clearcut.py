@@ -9,6 +9,7 @@ from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
+from cogent.util.dict2d import Dict2D
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -310,3 +311,106 @@ def align_two_alignments(aln1, aln2, params=None):
     raise NotImplementedError, """Clearcut does not support alignment."""
 
     
+def build_tree_from_distance_matrix(matrix, best_tree=False, params={},\
+    working_dir='/tmp'):
+    """Returns a tree from a distance matrix.
+
+    matrix: a square Dict2D object (cogent.util.dict2d)
+    
+    best_tree: if True (default:False), uses a slower but more accurate
+    algorithm to build the tree.
+
+    params: dict of parameters to pass in to the Clearcut app controller.
+
+    The result will be an cogent.core.tree.PhyloNode object, or None if tree
+    fails.
+    """
+    params['--out'] = get_tmp_filename(working_dir)
+    
+    # Create instance of app controller, enable tree, disable alignment
+    app = Clearcut(InputHandler='_input_as_multiline_string', params=params, \
+                   WorkingDir=working_dir, SuppressStdout=True,\
+                   SuppressStderr=True)
+    #Turn off input as alignment
+    app.Parameters['-a'].off()
+    #Input is a distance matrix
+    app.Parameters['-d'].on()
+    
+    if best_tree:
+        app.Parameters['-N'].on()
+    
+    # Turn the dict2d object into the expected input format
+    matrix_input, int_keys = _matrix_input_from_dict2d(matrix)
+
+    # Collect result
+    result = app(matrix_input)
+    
+    # Build tree
+    tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
+
+    # reassign to original names
+    for node in tree.tips():
+        node.Name = int_keys[node.Name]
+
+    # Clean up
+    result.cleanUp()
+    del(app, result, params)
+
+    return tree
+
+def _matrix_input_from_dict2d(matrix):
+    """makes input for running clearcut on a matrix from a dict2D object"""
+    #clearcut truncates names to 10 char- need to rename before and 
+    #reassign after
+    
+    #make a dict of env_index:full name
+    int_keys = dict([('env_' + str(i), k) for i,k in \
+            enumerate(sorted(matrix.keys()))])
+    #invert the dict
+    int_map = {}
+    for i in int_keys:
+        int_map[int_keys[i]] = i
+
+    #make a new dict2D object with the integer keys mapped to values instead of
+    #the original names
+    new_dists = []
+    for env1 in matrix:
+        for env2 in matrix[env1]:
+            new_dists.append((int_map[env1], int_map[env2], matrix[env1][env2]))
+    int_map_dists = Dict2D(new_dists)
+    
+    #The input expects the names to be exactly 10 characters - pad shorted
+    #names with spaces and raise error if too long (should't happen)s
+    keys_10_char = []
+    for key in int_map_dists.keys():
+        if len(key) > 10:
+            raise ValueError, "names must be <10 characters"
+        elif len(key) < 10:
+            for i in range(len(key), 10):
+                key += ' '
+            keys_10_char.append(key)
+        else:
+            keys_10_char.append(key)
+    keys_10_char.sort()
+    
+    #The first line of the input is the number of items in the matrix
+    matrix_input = ['    ' + str(len(keys_10_char))]
+
+    #The subsequent line is the item name followed by space delimited values
+    #the following code will work for a square matrix only
+    keys = sorted(int_map_dists.keys())
+    for index, key1 in enumerate(keys):
+        new_line = [keys_10_char[index]]
+        for key2 in keys:
+            val = str(int_map_dists[key1][key2])
+            #the values should be 5 characters (e.g 0.000)
+            if len(val) < 5:
+                for i in range(len(val), 5):
+                    val += '0'
+            new_line.append(val[:5])
+        matrix_input.append(' '.join(new_line))
+    matrix_input = '\n'.join(matrix_input)
+    #input needs a trailing whitespace or it will fail!
+    matrix_input += '\n'
+   
+    return matrix_input, int_keys 

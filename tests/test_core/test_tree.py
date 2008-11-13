@@ -1081,6 +1081,14 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(h.distance(g), 10)
         self.assertEqual(h.distance(h), 0)
 
+    def test_prune(self):
+        """prune should reconstruct correct topology and Lengths of tree."""
+        tree = DndParser('((a:3,((c:1):1):1):2);',constructor=TreeNode)
+        tree.prune()
+        result_tree = DndParser('((a:3.0,c:3.0):2.0);',constructor=TreeNode)
+        self.assertEqual(str(tree),str(result_tree))
+
+
     def test_str(self):
         """PhyloNode str should give expected results"""
         nodes, tree = self.TreeNode, self.TreeRoot
@@ -1125,14 +1133,12 @@ class PhyloNodeTests(TestCase):
         #works when the midpoint falls on an existing edge
         tree1 = deepcopy(tree)
         result = tree1.rootAtMidpoint()
-        self.assertEqual(str(result), \
-                '((g:3)f:2.0,(d:1,e:4,((h:2)b:0)c:3):0.0);')
+        self.assertEqual(str(result), '((d:1,e:4,h:5):0.0,g:5.0);')
         #works when the midpoint falls between two existing edges
         nodes['f'].Length = 1
         nodes['c'].Length = 4
         result = tree.rootAtMidpoint()
-        self.assertEqual(str(result), \
-                '((d:1,e:4,(g:3)f:1)c:1.0,((h:2)b:0):3.0);')
+        self.assertEqual(str(result), '((d:1,e:4,g:4)c:1.0,h:5.0);')
 
     def test_rootAtMidpoint2(self):
         """rootAtMidpoint works when midpoint is on both sides of root"""
@@ -1140,8 +1146,7 @@ class PhyloNodeTests(TestCase):
         nodes, tree = self.TreeNode, self.TreeRoot
         nodes['h'].Length = 20
         result = tree.rootAtMidpoint()
-        self.assertEqual(str(result), \
-            '(h:14.0,(((d:1,e:4,(g:3)f:2)c:3)b:0):6.0);')
+        self.assertEqual(str(result), '(h:14.0,(d:1,e:4,g:5)c:9.0);')
     
     def test_setTipDistances(self):
         """setTipDistances should correctly set tip distances."""
