@@ -388,12 +388,7 @@ def _matrix_input_from_dict2d(matrix):
     for index, key1 in enumerate(names):
         row = []
         for key2 in names:
-            val = str(int_map_dists[key1][key2])
-            #the values should be 5 characters (e.g 0.000)
-            if len(val) < 5:
-                for i in range(len(val), 5):
-                    val += '0'
-            row.append(val[:5])
+            row.append(str(int_map_dists[key1][key2]))
         rows.append(row)
     input_matrix = phylipMatrix(rows, names)
     #input needs a trailing whitespace or it will fail!
