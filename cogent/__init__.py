@@ -20,7 +20,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 #SUPPORT2425
-if sys.version_info < (2, 4) or sys.version_info > (2, 5, 3):
+if sys.version_info < (2, 4):
     py_version = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError("Python-2.4 or 2.5 is required, Python-%s used." % py_version)
 
@@ -37,6 +37,9 @@ if 'COGENT_LOG_LEVEL' in os.environ:
     valid_log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
     assert level in valid_log_levels, valid_log_levels
     logging.basicConfig(level=getattr(logging, level))
+
+if sys.version_info > (2, 5, 2):
+    LOG.warning("cogent.align.methods.ACL fails with Python-2.6")
 
 version = __version__
 version_info = tuple([int(v) for v in __version__.split(".")])

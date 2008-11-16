@@ -2,20 +2,124 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
-    CommandLineAppResult, ResultPath, ApplicationError
+    CommandLineAppResult, ResultPath, ApplicationError, ParameterEnumerator
 from cogent.app.parameters import *
+from types import GeneratorType
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
 __author__ = "Greg Caporaso and Sandra Smit"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Gavin Huttley",
-                    "Rob Knight"]
+                    "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
 
+class ParameterEnumeratorTests(TestCase):
+    class MyApp(CommandLineApplication):
+        """ParameterEnumerator mock application to wrap"""
+        _command = 'testcmd'
+        _parameters = {'-flag1':FlagParameter(Prefix='-',Name='flag1'),
+                       '-flag2':FlagParameter(Prefix='-',Name='flag2'),
+                       '--value1':ValuedParameter(Prefix='--',Name='value1'),
+                       '-value2':ValuedParameter(Prefix='-',Name='value2'),
+                       '-mix1':MixedParameter(Prefix='-',Name='mix1'),
+                       '-mix2':MixedParameter(Prefix='-',Name='mix2'),
+                       '-delim':ValuedParameter(Prefix='-',Name='delim',
+                                                Delimiter='aaa'),
+                       '-default':ValuedParameter(Prefix='-',Name='default',
+                                                  Value=42)}
+    def setUp(self):
+        """Setup for ParameterEnumerator tests"""
+        self.mock_app = self.MyApp
+        self.params = {'-flag1':True,
+                       '--value1':range(0,5),
+                       '-delim':range(0,2),
+                       '-mix1':[None] + range(0,3)}
+        self.always_on = ['--value1']
+        self.enumerator = ParameterEnumerator(self.mock_app, self.params, 
+                                              self.always_on)
+        
+
+    def test_init(self):
+        """Test constructor"""
+        exp_params = {'-flag1':[True, False],
+                      '--value1':range(0,5),
+                      '-delim':range(0,2) + [False],
+                      '-mix1':[None,0,1,2] + [False]}
+        exp_keys = exp_params.keys()
+        exp_values = exp_params.values()
+
+        self.assertEqual(sorted(self.enumerator._keys), sorted(exp_keys))
+        self.assertEqual(sorted(self.enumerator._values), sorted(exp_values))
+
+        self.params['asdasda'] = 5
+        self.assertRaises(ValueError, ParameterEnumerator, self.mock_app, \
+                          self.params, self.always_on)
+
+        self.params.pop('asdasda')
+        self.always_on.append('asdasd')
+        self.assertRaises(ValueError, ParameterEnumerator, self.mock_app, \
+                          self.params, self.always_on)
+
+        self.assertTrue(isinstance(self.enumerator._generator, GeneratorType))
+
+    def test_get_combinations(self):
+        """Tests generator capabilities"""
+        all_params = list(self.enumerator)
+        self.assertEqual(len(all_params), 150)
+        params = {'-flag1':True,
+                  '--value1':1,
+                  '-delim':['choice1','choice2']}
+        always_on = ['-flag1','-delim']
+        enumerator = ParameterEnumerator(self.mock_app, params, always_on)
+        
+        exp = [self.mock_app._parameters.copy(),
+               self.mock_app._parameters.copy(),
+               self.mock_app._parameters.copy(),
+               self.mock_app._parameters.copy()]
+
+        exp[0]['-flag1'].on()
+        exp[0]['--value1'].on(1)
+        exp[0]['-delim'].on('choice1')
+
+        exp[1]['-flag1'].on()
+        exp[1]['--value1'].on(1)
+        exp[1]['-delim'].on('choice2')
+
+        exp[2]['-flag1'].on()
+        exp[2]['--value1'].off()
+        exp[2]['-delim'].on('choice1')
+
+        exp[3]['-flag1'].on()
+        exp[3]['--value1'].off()
+        exp[3]['-delim'].on('choice2')
+
+        obs = list(enumerator)
+        self.assertEqual(obs,exp)
+
+    def test_make_app_params(self):
+        """Returns app parameters with expected values set"""
+        state = [0,0,0,0]
+        exp = self.mock_app._parameters.copy()
+        exp['-flag1'].on()
+        exp['--value1'].on(0)
+        exp['-delim'].on(0)
+        exp['-mix1'].on(None)
+        obs = self.enumerator._make_app_params(state)
+        self.assertEqual(obs, exp)
+
+        state = [4,2,1,4]
+        exp = self.mock_app._parameters.copy()
+        exp['-flag1'].off()
+        exp['--value1'].on(4)
+        exp['-delim'].off()
+        exp['-mix1'].off()
+        obs = self.enumerator._make_app_params(state)
+        self.assertEqual(obs, exp)
+        
 class CommandLineApplicationTests(TestCase):
     """Tests for the CommandLineApplication class"""
     
