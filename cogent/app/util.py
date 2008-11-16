@@ -7,11 +7,12 @@ from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None, FilePath
 from cogent.util.misc import if_
 from random import choice
+from numpy import zeros, array, nonzero, max
 
 __author__ = "Sandra Smit and Greg Caporaso"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Micah Hamady",
-                    "Jeremy Widmann", "Rob Knight"]
+                    "Jeremy Widmann", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Sandra Smit"
@@ -453,6 +454,98 @@ class CommandLineApplication(Application):
             FilePath(''.join([choice(_all_chars) \
              for i in range(self.TmpNameLen)])) +\
             FilePath(suffix)
+
+class ParameterEnumerator:
+    """Enumerates a set of parameters for a specific application"""
+    def __init__(self, Application, Parameters, AlwaysOn=None):
+        """Initialize the ParameterEnumerator
+
+        Application : A CommandLineApplication subclass
+        Parameters  : A dict keyed by the application paramter, value by
+                      the range of parameters to enumerate over. For 
+                      FlagParameters, unless specified in AlwaysOn, the value
+                      will cycle between True/False (on/off). For 
+                      MixedParameters, include [None] specifically to utilize
+                      flag functionality.
+        AlwaysOn    : List of parameters that will always be on
+
+        Parameters is checked against the applications known parameters, but
+        only performed superficially: only keys are validated. AlwaysOn
+        values must have entries within Parameters.
+
+        NOTE: If the parameter is not specified in AlwaysOn, a False value
+        is appended so that the parameter can be turned off. Multiple False
+        states for a parameter will result if False is specified without
+        adding the parameter to AlwaysOn. If a parameter has a default value,
+        then that parameter is implicitly always on.
+        """
+        self._app_params = Application._parameters
+       
+        # Validate Parameters
+        for k in Parameters:
+            if k not in self._app_params:
+                raise ValueError, "Parameter %s not present in app" % k
+            values = Parameters[k]
+
+            # Make sure the parameters are specified in a list
+            if not isinstance(values, list):
+                Parameters[k] = [values]
+        _my_params = Parameters
+        
+        # Validate AlwaysOn
+        for k in AlwaysOn:
+            if k not in _my_params:
+                raise ValueError, "AlwaysOn %s not passed with Parameters" % k
+
+        # Append "off states" to relevant parameters
+        for k in set(_my_params.keys()) - set(AlwaysOn):
+            _my_params[k] = _my_params[k] + [False]
+
+        # Create seperate key/value lists preserving index relation
+        self._keys, self._values = zip(*sorted(_my_params.items()))
+
+        # Construct generator
+        self._generator = self._get_combinations()
+
+    def _get_combinations(self):
+        """Enumerates all possible combinations of parameters"""
+        num_items = [len(i) - 1 for i in self._values]
+        state = zeros(len(self._values), dtype=int)
+        finished = array(num_items, dtype=int)
+
+        yield self._make_app_params(state)
+
+        while True:
+            if state[-1] != num_items[-1]:
+                state[-1] += 1
+                yield self._make_app_params(state)
+            else:
+                incrementable = nonzero(state != finished)[0]
+                if not len(incrementable):
+                    raise StopIteration
+                rightmost = max(incrementable)
+                state[rightmost] += 1
+                state[rightmost+1:] = 0
+                yield self._make_app_params(state)
+
+    def _make_app_params(self, state):
+        """Returns an app's param dict with values set as described by state"""
+        app_params = self._app_params.copy()
+        for key, values, state_idx in zip(self._keys, self._values, state):
+            val = values[state_idx]
+            if val is False:
+                app_params[key].off()
+            elif val is True:
+                app_params[key].on()
+            else:
+                app_params[key].on(val)
+        return app_params
+   
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self._generator.next()
 
 def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
     """
