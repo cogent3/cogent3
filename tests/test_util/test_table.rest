@@ -150,6 +150,36 @@ The Table class cannot handle arbitrary python objects, unless they are passed i
                   y         *
     -------------------------
 
+Table column headings can be assessed from the ``table.Header`` property
+
+.. pycode::
+    
+    >>> assert t2.Header == ['abcd', 'data']
+
+and this is immutable (cannot be changed).
+
+.. pycode::
+    
+    >>> t2.Header[1] = 'Data'
+    Traceback (most recent call last):
+    RuntimeError: Table Header is immutable, use withNewColumns
+
+If you want to change the Header, use the ``withNewHeader`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
+
+.. pycode::
+    
+    >>> mod_header = t2.withNewHeader('abcd', 'ABCD')
+    >>> assert mod_header.Header == ['ABCD', 'data']
+    >>> mod_header = t2.withNewHeader(['abcd', 'data'], ['ABCD', 'DATA'])
+    >>> print mod_header
+    =========================
+               ABCD      DATA
+    -------------------------
+    [1, 2, 3, 4, 5]         0
+                  x    5.0000
+                  y         *
+    -------------------------
+
 Tables may also be created from 2-dimensional dictionaries. In this case, special capabilities are provided to enforce printing rows in a particular order.
 
 .. pycode::
@@ -1239,6 +1269,7 @@ For a standard inner join, the joined table should contain all columns from ``a`
     >>> b.Title = 'B'
     >>> assert a.joined(b, "index").Header == ["index", "col2", "col3",
     ...                                        "B_col2", "B_col3"]
+    ...                                         
 
 Note that the table title's were used to prefix the column headings from the second table. We further test this using table ``c`` which has different dimensions.
 
