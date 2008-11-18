@@ -1030,6 +1030,21 @@ From ISI</pre><p>The Table class cannot handle arbitrary python objects, unless 
 [1, 2, 3, 4, 5]         0
               x    5.0000
               y         *
+-------------------------</pre><p>Table column headings can be assessed from the <tt class="docutils literal"><span class="pre">table.Header</span></tt> property</p>
+<pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> t2.Header == [<span class="py_string">'abcd'</span>, <span class="py_string">'data'</span>]</pre><p>and this is immutable (cannot be changed).</p>
+<pre class="code">&gt;&gt;&gt; t2.Header[1] = <span class="py_string">'Data'</span>
+Traceback (most recent call last):
+RuntimeError: Table Header <span class="py_keyword">is</span> immutable, use withNewColumns</pre><p>If you want to change the Header, use the <tt class="docutils literal"><span class="pre">withNewHeader</span></tt> method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.</p>
+<pre class="code">&gt;&gt;&gt; mod_header = t2.withNewHeader(<span class="py_string">'abcd'</span>, <span class="py_string">'ABCD'</span>)
+&gt;&gt;&gt; <span class="py_keyword">assert</span> mod_header.Header == [<span class="py_string">'ABCD'</span>, <span class="py_string">'data'</span>]
+&gt;&gt;&gt; mod_header = t2.withNewHeader([<span class="py_string">'abcd'</span>, <span class="py_string">'data'</span>], [<span class="py_string">'ABCD'</span>, <span class="py_string">'DATA'</span>])
+&gt;&gt;&gt; <span class="py_keyword">print</span> mod_header
+=========================
+           ABCD      DATA
+-------------------------
+[1, 2, 3, 4, 5]         0
+              x    5.0000
+              y         *
 -------------------------</pre><p>Tables may also be created from 2-dimensional dictionaries. In this case, special capabilities are provided to enforce printing rows in a particular order.</p>
 <pre class="code">&gt;&gt;&gt; d2D={<span class="py_string">'edge.parent'</span>: {<span class="py_string">'NineBande'</span>: <span class="py_string">'root'</span>, <span class="py_string">'edge.1'</span>: <span class="py_string">'root'</span>,
 ... <span class="py_string">'DogFaced'</span>: <span class="py_string">'root'</span>, <span class="py_string">'Human'</span>: <span class="py_string">'edge.0'</span>, <span class="py_string">'edge.0'</span>: <span class="py_string">'edge.1'</span>,
@@ -1850,7 +1865,8 @@ index    col_c2
 ...     <span class="py_keyword">pass</span>
 &gt;&gt;&gt; b.Title = <span class="py_string">'B'</span>
 &gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b, <span class="py_string">"index"</span>).Header == [<span class="py_string">"index"</span>, <span class="py_string">"col2"</span>, <span class="py_string">"col3"</span>,
-...                                        <span class="py_string">"B_col2"</span>, <span class="py_string">"B_col3"</span>]</pre><p>Note that the table title's were used to prefix the column headings from the second table. We further test this using table <tt class="docutils literal"><span class="pre">c</span></tt> which has different dimensions.</p>
+...                                        <span class="py_string">"B_col2"</span>, <span class="py_string">"B_col3"</span>]
+...</pre><p>Note that the table title's were used to prefix the column headings from the second table. We further test this using table <tt class="docutils literal"><span class="pre">c</span></tt> which has different dimensions.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(c,<span class="py_string">"index"</span>).Header == [<span class="py_string">"index"</span>,<span class="py_string">"col2"</span>,<span class="py_string">"col3"</span>,
 ...                                       <span class="py_string">"C_col_c2"</span>]</pre><p>It's also possible to specify index columns using numerical values, the results of which should be the same.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">assert</span> a.joined(b,[0, 2]).getRawData() ==\

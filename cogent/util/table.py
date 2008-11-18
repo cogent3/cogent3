@@ -56,6 +56,21 @@ def convert2DDict(twoDdict, header = None, row_order = None):
         table.append(string_row)
     return table
 
+class _Header(list):
+    """a convenience class for storing the Header"""
+    def __new__(cls, arg):
+        n = list.__new__(cls, list(arg))
+        return n
+    
+    def __setslice__(self, *args):
+        """disallowed"""
+        raise RuntimeError("Table Header is immutable, use withNewColumns")
+    
+    def __setitem__(self, *args):
+        """disallowed"""
+        raise RuntimeError("Table Header is immutable, use withNewColumns")
+    
+
 class Table(DictArray):
     def __init__(self, header = None, rows = None, row_order = None, digits = 4,
                 space = 4, title = '', missing_data = '', max_width = 1e100,
@@ -96,7 +111,7 @@ class Table(DictArray):
         DictArray.__init__(self, rows, identifiers, header, dtype = dtype)
         
         # forcing all column headings to be strings
-        self.Header = [str(head) for head in header]
+        self._header = _Header([str(head) for head in header])
         self._missing_data = missing_data
         
         self.Title = str(title)
@@ -152,6 +167,39 @@ class Table(DictArray):
         new = Table(**data)
         self.__dict__.update(new.__dict__)
         return self
+    
+    def _get_header(self):
+        """returns Header value"""
+        return self._header
+    
+    def _set_header(self, data):
+        """disallowed"""
+        raise RuntimeError("not allowed to set the Header")
+    
+    Header = property(_get_header, _set_header)
+    
+    def withNewHeader(self, old, new, **kwargs):
+        """returns a new Table with old header labels replaced by new
+        
+        Arguments:
+            - old: the old column header(s). Can be a string or series of
+              them.
+            - new: the new column header(s). Can be a string or series of
+              them.
+        """
+        if type(old) == str:
+            old = [old]
+            new = [new]
+        
+        assert len(old) == len(new), 'Mismatched number of old/new labels'
+        indices = map(self.Header.index, old)
+        new_header = list(self.Header)
+        for i in range(len(old)):
+            new_header[indices[i]] = new[i]
+        
+        kw = self._get_persistent_attrs()
+        kw.update(kwargs)
+        return Table(header = new_header, rows = self.getRawData(), **kw)
     
     def _get_persistent_attrs(self):
         kws = dict(row_ids = self._row_ids, title = self.Title,
