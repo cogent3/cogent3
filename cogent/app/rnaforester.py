@@ -114,6 +114,7 @@ class RNAforester(CommandLineApplication):
 
         remove(''.join([self.WorkingDir, 'cluster.dot']))
         remove(''.join([self.WorkingDir, 'test.out']))
+        remove(''.join([self.WorkingDir, 'ShapesStderr']))
 
         return result
 
@@ -139,6 +140,7 @@ class RNAforester(CommandLineApplication):
 
         command_part1.append(cd_command)
         command_part1.append(command1)
+        command_part1.append(''.join(['2> ', self.WorkingDir, 'ShapesStderr']))
 
         command_part2.append(command2)
 
