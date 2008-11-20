@@ -18,12 +18,13 @@ from cogent.core.moltype import AB, DNA
 from cogent.parse.fasta import MinimalFastaParser
 from numpy import array, arange, transpose
 from tempfile import mktemp
+from os import remove
 import re
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
-                    "Rob Knight"]
+                    "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"
@@ -733,6 +734,7 @@ class SequenceCollectionBaseTests(object):
         aln.writeToFile(fn)
         result = open(fn, 'U').read()
         self.assertEqual(result, '>a\nAAAA\n>b\nTTTT\n>c\nCCCC\n')
+        remove(fn)
 
     def test_len(self):
         """len(SequenceCollection) returns length of longest sequence"""
