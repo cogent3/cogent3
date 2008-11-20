@@ -246,5 +246,6 @@ def cdhit_from_seqs(seqs, moltype, params=None):
     # perform cleanup
     res.cleanUp()
     shutil.rmtree(working_dir)
+    remove(params['-o'] + '.bak.clstr')
 
     return SequenceCollection(new_seqs, MolType=moltype)
