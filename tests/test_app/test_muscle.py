@@ -49,7 +49,12 @@ class GeneralSetUp(TestCase):
             g.close()
         except OSError:
             pass
-    
+
+    def tearDown(self): 
+        """cleans up all files initially created"""
+        # remove the tempdir and contents
+        shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.temp_dir_spaces)
 
 class MuscleTests(GeneralSetUp):
     """Tests for the Muscle application controller"""
@@ -113,12 +118,6 @@ class MuscleTests(GeneralSetUp):
         self.assertEqual(aln[-1], 'GCGGCUAUUAGAUCGUA------\n')
         remove(self.temp_dir_spaces+'/muscle_test_seq1.txt')
 
-    def test_general_cleanUp(self):
-        """Last test executed: cleans up all files initially created"""
-        # remove the tempdir and contents
-        shutil.rmtree(self.temp_dir)
-        shutil.rmtree(self.temp_dir_spaces)
-    
     def test_align_unaligned_seqs(self):
         """align_unaligned_seqs should work as expected"""
         res = align_unaligned_seqs(self.seqs1, RNA)
