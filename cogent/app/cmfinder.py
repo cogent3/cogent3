@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Provides application controller for CMfinder v0.2"""
+
 import os
 
 from cogent.app.util import CommandLineApplication, \
