@@ -65,6 +65,7 @@ def suite():
         'test_data.test_molecular_weight',
         'test_evolve.test_best_likelihood',
         'test_evolve.test_bootstrap',
+        'test_evolve.test_coevolution',
         'test_evolve.test_motifchange',
         'test_evolve.test_substitution_model',
         'test_evolve.test_scale_rules',
@@ -144,6 +145,7 @@ def suite():
         'test_util.test_dict2d',
         'test_util.test_misc',
         'test_util.test_organizer',
+        'test_util.test_recode_alignment',
         'test_util.test_table.rest',
         'test_util.test_transform',
         ]
@@ -182,7 +184,8 @@ def suite():
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('hybrid-ss-min', 'test_unafold'),
             ('mlagan', 'test_lagan'),
-            ('cd-hit', 'test_cd_hit')
+            ('cd-hit', 'test_cd_hit'),
+            ('calculate_likelihood','test_gctmpca')
             ]
     for app, test_name in apps:
         if app_path(app):
