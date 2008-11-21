@@ -3,13 +3,14 @@
 __all__ = ["best_likelihood", "bootstrap", "likelihood_calculation",
            "likelihood_function", "likelihood_tree", "models",
            "parameter_controller", "predicate", "simulate",
-           "substitution_calculation", "substitution_model"]
+           "substitution_calculation", "substitution_model",
+           "coevolution"]
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Andrew Butterfield",
                     "Rob Knight", "Matthrew Wakefield", "Brett Easton", 
-                    "Edward Lang"]
+                    "Edward Lang","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Gavin Huttley"

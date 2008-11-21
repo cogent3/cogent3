@@ -8,7 +8,7 @@ test_cmfinder       test_mfold          test_sfold
 test_comrna         test_muscle         test_unafold
 test_consan         test_nupack         test_util
 test_contrafold     test_parameters     test_vienna_package
-test_cove           test_pfold
+test_cove           test_pfold          test_gctmpca
 test_dialign        test_pknotsrg
 """.split()
 

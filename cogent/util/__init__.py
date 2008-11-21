@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 __all__ = ['array', 'checkpointing', 'datatypes', 'dict2d', 'misc', 'modules',
            'organizer', 'parallel', 'table', 'transform', 'unit_test',
-           'warning']
+           'warning','recode_alignment']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
                     "Peter Maxwell", "Amanda Birmingham", "Zongzhi Liu",
-                    "Andrew Butterfield", "Daniel McDonald"]
+                    "Andrew Butterfield", "Daniel McDonald",
+                    "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Gavin Huttley"
