@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __all__ = ['test_unit_test', 'test_misc', 'test_array', 'test_dict2d',
-           'test_organizer', 'test_transform']
+           'test_organizer', 'test_transform', 'test_recode_alignment']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2008, The Cogent Project"

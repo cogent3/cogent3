@@ -13,6 +13,7 @@ __all__ = ['blast',
            'dialign',
            'dynalign',
            'foldalign',
+           'gctmpca',
            'ilm',
            'knetfold',
            'mfold',
@@ -35,7 +36,7 @@ __author__ = ""
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                     "Rob Knight", "Zongzhi Liu", "Sandra Smit", "Micah Hamady",
-                    "Grep Caporaso", "Mike Robeson"]
+                    "Greg Caporaso", "Mike Robeson"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Rob Knight"
