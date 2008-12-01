@@ -9,7 +9,7 @@ from cogent.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, 
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Catherine Lozupone", "Rob Knight"]
+__credits__ = ["Catherine Lozupone", "Rob Knight", "Micah Hamady"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
@@ -63,7 +63,43 @@ Begin trees;  [Treefile saved Wednesday, June 14, 2006  11:20 AM]
 ]
 tree nj = [&U] ((((((((((YA10260L1:0.01855,SARAG06_Y:0.00367):0.01965,(((YA270L1G0:0.01095,SARAD10_Y:0.00699):0.01744,YA270L1A0:0.04329):0.00028,((YA165L1C1:0.01241,SARAA02_Y:0.02584):0.00213,((YA165L1H0:0.00092,SARAF10_Y:-0.00092):0.00250,(YA165L1A0:0.00177,SARAH10_Y:0.01226):0.00198):0.00131):0.00700):0.01111):0.11201,(YA160L1F0:0.00348,SARAG01_Y:-0.00122):0.13620):0.01202,((((YRM60L1D0:0.00357,(YRM60L1C0:0.00477,SARAE10_Y:-0.00035):0.00086):0.00092,SARAE03_Y:0.00126):0.00125,SARAC11_Y:0.00318):0.00160,YRM60L1H0:0.00593):0.09975):0.07088,SARAA01_Y:0.02880):0.00190,SARAB04_Y:0.05219):0.00563,YRM60L1E0:0.06099):0.00165,(YRM60L1H0:0.00450,SARAF11_Y:0.01839):0.00288):0.00129,YRM60L1B1:0.00713):0.00194,(YRM60L1G0:0.00990,(YA165L1G0:0.00576,(YA160L1G0:0.01226,SARAA11_Y:0.00389):0.00088):0.00300):0.00614,SARAC06_Y:0.00381);
 end;""".split('\n')
-        
+
+Nexus_tree_3 = """#NEXUS 
+
+Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]
+[!
+>Data file = Grassland_short.nex
+>Neighbor-joining search settings:
+>  Ties (if encountered) will be broken systematically
+>  Distance measure = Jukes-Cantor
+>  (Tree is unrooted)
+]
+	Translate
+		1 outgroup25,
+		2 AF078391l,
+		3 'AF078211af',
+		4 AF078393l,
+		5 AF078187af,
+		6 AF078320l,
+		7 AF078432l,
+		8 AF078290af,
+		9 AF078350l,
+		10 AF078356l,
+		11 AF078306af,
+		12 AF078429l,
+		13 AF078256af,
+		14 'AF078443l',
+		15 AF078450l,
+		16 AF078452l,
+		17 AF078258af,
+		18 'AF078380l',
+		19 AF078251af,
+		20 AF078179af,
+		21 outgroup258
+		;
+tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);
+tree PAUP_2 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);
+End;""".split('\n')
 
 PAUP_log = """
 P A U P *
@@ -186,6 +222,27 @@ class NexusParserTests(TestCase):
         Trans_table, dnd = parse_nexus_tree(Nexus_tree_2)
         self.assertEqual(Trans_table, None)
         self.assertEqual(dnd['tree nj'], '((((((((((YA10260L1:0.01855,SARAG06_Y:0.00367):0.01965,(((YA270L1G0:0.01095,SARAD10_Y:0.00699):0.01744,YA270L1A0:0.04329):0.00028,((YA165L1C1:0.01241,SARAA02_Y:0.02584):0.00213,((YA165L1H0:0.00092,SARAF10_Y:-0.00092):0.00250,(YA165L1A0:0.00177,SARAH10_Y:0.01226):0.00198):0.00131):0.00700):0.01111):0.11201,(YA160L1F0:0.00348,SARAG01_Y:-0.00122):0.13620):0.01202,((((YRM60L1D0:0.00357,(YRM60L1C0:0.00477,SARAE10_Y:-0.00035):0.00086):0.00092,SARAE03_Y:0.00126):0.00125,SARAC11_Y:0.00318):0.00160,YRM60L1H0:0.00593):0.09975):0.07088,SARAA01_Y:0.02880):0.00190,SARAB04_Y:0.05219):0.00563,YRM60L1E0:0.06099):0.00165,(YRM60L1H0:0.00450,SARAF11_Y:0.01839):0.00288):0.00129,YRM60L1B1:0.00713):0.00194,(YRM60L1G0:0.00990,(YA165L1G0:0.00576,(YA160L1G0:0.01226,SARAA11_Y:0.00389):0.00088):0.00300):0.00614,SARAC06_Y:0.00381);')
+
+
+    def test_parse_nexus_tree_sq(self):
+        """remove single quotes from tree and translate tables"""
+        Trans_table, dnd = parse_nexus_tree(Nexus_tree_3)
+
+        #check the full dendrogram string is returned
+        self.assertEqual(dnd['tree PAUP_1'],\
+         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+        
+        #check that all taxa are returned in the Trans_table
+        self.assertEqual(Trans_table['1'], 'outgroup25')
+        self.assertEqual(Trans_table['2'], 'AF078391l')
+        self.assertEqual(Trans_table['3'], 'AF078211af')
+        self.assertEqual(Trans_table['4'], 'AF078393l')
+        self.assertEqual(Trans_table['5'], 'AF078187af')
+        self.assertEqual(Trans_table['6'], 'AF078320l')
+        self.assertEqual(Trans_table['21'], 'outgroup258')
+        self.assertEqual(Trans_table['20'], 'AF078179af')
+        self.assertEqual(Trans_table['19'], 'AF078251af')
+
 
     def test_get_tree_info(self):
         """get_tree_info returns the Nexus file section that describes the tree"""
