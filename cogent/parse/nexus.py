@@ -10,7 +10,7 @@ from cogent.parse.record import RecordError
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight"]
+__credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady"]
 __license__ = "GPL"
 __version__ = "1.1"
 __maintainer__ = "Catherine Lozupone"
@@ -95,6 +95,9 @@ def parse_trans_table(trans_table):
             #take comma out of name if it is there
             if name.endswith(','):
                 name = name[0:-1]
+            # remove single quotes
+            if name.startswith("'") and name.endswith("'"):
+                name = name[1:-1]
             result[label] = name
     return result
 
@@ -111,10 +114,6 @@ def parse_dnd(dnd):#get rooted info
         dnd_dict[name] = data
     return dnd_dict
            
-                  
-#---------------------------------------------------------------
-
-
 def get_BL_table(branch_lengths):
     """returns the section of the log file with the BL table
     as a list of strings"""
@@ -167,7 +166,6 @@ def parse_taxa(taxa_field):
         data = data_match.group(0)
     return data            
 
-
 def parse_PAUP_log(branch_lengths):
     """gets branch length info from a PAUP log file
     returns a dictionary mapping the taxon number to the parent number
@@ -183,8 +181,3 @@ def parse_PAUP_log(branch_lengths):
         BL_dict[taxa] = (parent, bl)
 
     return BL_dict
-
-
-                                    
-                
-
