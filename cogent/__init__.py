@@ -122,13 +122,6 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         return SequenceCollection(data, MolType=moltype, Name=name, 
             name_conversion_f=name_conversion_f, **constructor_kw)
 
-from cogent.util.warning import deprecated
-
-def Table(**kwargs):
-    """deprecated, use LoadTable"""
-    deprecated('function', 'cogent.Table', 'cogent.LoadTable', '1.2')
-    return LoadTable(**kwargs)
-
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None, 
             row_order=None, digits=4, space=4, title='', missing_data='',
             max_width = 1e100, row_ids=False, legend='', column_templates=None,
