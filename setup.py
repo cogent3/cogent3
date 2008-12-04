@@ -8,7 +8,7 @@ __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield", 
                     "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.1"
+__version__ = "1.2"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
