@@ -1,5 +1,5 @@
 Perform a coevolutionary analysis on biological sequence alignments
--------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This document describes how to perform a coevolutionary analysis on a ``DenseAlignment`` object. Coevolutionary analyses identify correlated substitution patterns between ``DenseAlignment`` positions (columns). Several coevolution detection methods are currently provided via the PyCogent coevolution module. ``DenseAlignment`` objects must always be used as input to these functions. 
 
@@ -27,7 +27,7 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
     
     >>> from cogent.evolve.coevolution import coevolve_pair_functions, coevolve_pair
     >>> coevolve_pair(coevolve_pair_functions['mi'],aln,pos1=1,pos2=2)
-    0.311278124459
+    0.31127...
 
 Perform a coevolutionary analysis on a pair of positions in the alignment using statistical coupling analysis (``sca``):
 
@@ -35,7 +35,7 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
     
     >>> from cogent.evolve.coevolution import coevolve_pair_functions, coevolve_pair
     >>> coevolve_pair(coevolve_pair_functions['sca'],aln,pos1=1,pos2=2,cutoff=0.5)
-    0.980536895536
+    0.98053...
 
 Perform a coevolutionary analysis on one position and all other positions in the alignment using mutual information (``mi``):
 
@@ -56,6 +56,7 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
        [        NaN,  0.31127812, 1.        ]])
 
 View the available algorithms for computing coevolution values:
+
 .. pycode::
     
     >>> print coevolve_pair_functions.keys()
@@ -65,12 +66,16 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
 
 .. pycode::
 
-    >>> from cogent.evolve.coevolution import coevolve_alignment_functions, coevolve_alignments
-    >>> aln1 = LoadSeqs(data={'human+protein1':'AAA','pig+protein1':'CTA', 'chicken+protein1':'CTC','echidna+weird_db_identifier':'-TC'},moltype=PROTEIN,aligned=DenseAlignment)
-    >>> aln2 = LoadSeqs(data={'pig+protein2':'AAAY','chicken+protein2':'CTAY', 'echidna+protein2':'CTCF','human+protein2':'-TCF'},moltype=PROTEIN,aligned=DenseAlignment)
+    >>> from cogent.evolve.coevolution import coevolve_alignment_functions,\
+    ...   coevolve_alignments
+    >>> aln1 = LoadSeqs(data={'human+protein1':'AAA','pig+protein1':'CTA',
+    ...  'chicken+protein1':'CTC','echidna+weird_db_identifier':'-TC'},
+    ...   moltype=PROTEIN,aligned=DenseAlignment)
+    >>> aln2 = LoadSeqs(data={'pig+protein2':'AAAY','chicken+protein2':'CTAY',
+    ...  'echidna+protein2':'CTCF','human+protein2':'-TCF'},
+    ...   moltype=PROTEIN,aligned=DenseAlignment)
     >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)
     array([[        NaN,         NaN,         NaN],
            [        NaN,  0.12255625,  0.31127812],
            [        NaN,  0.31127812,  0.        ],
            [        NaN,  0.31127812,  0.        ]])
-    
