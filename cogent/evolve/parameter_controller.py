@@ -11,7 +11,6 @@ from cogent.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent.recalculation.scope import _indexed
 from cogent.util import parallel
 
-from cogent.util.warning import deprecated
 import numpy
 import pickle
 

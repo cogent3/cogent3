@@ -1,5 +1,3 @@
-from cogent.util.warning import deprecated
-
 from location import as_map, Map
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -185,16 +183,6 @@ class _Feature(_Annotatable):
             else:
                 setattr(self, n, getattr(original, n))
         assert not kw, kw
-    
-    def _get_label(self):
-        deprecated('attribute', 'label', 'Name', '1.2', stack_level=3)
-        return self.Name
-    
-    def _set_label(self, val):
-        deprecated('attribute', 'label', 'Name', '1.2')
-        self.Name = val
-    
-    label = property(_get_label, _set_label)
     
     def attach(self):
         self.parent.attachAnnotations([self])
