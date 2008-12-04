@@ -93,13 +93,6 @@ __status__ = "Beta"
 gDefaultExcludes = ''.join([IUPAC_gap,IUPAC_missing])
 gDefaultNullValue = nan
 
-def build_null_value_filter(null_value):
-    def result(x):
-        return x != null_value
-    return result
-default_null_filter = build_null_value_filter(gDefaultNullValue)
-
-
 ## Mutual Information Analysis
 # Mutual Information Calculators
 def mi(h1,h2,joint_h):
