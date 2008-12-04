@@ -32,6 +32,7 @@ General data analysis
 =====================
 
 .. include:: perform_PCoA_analysis.rest
+.. include:: motif_results.rest
 
 Data Visualisation
 ==================
@@ -53,6 +54,7 @@ Modelling Evolution
 .. include:: simulate_alignment.rest
 .. include:: parametric_bootstrap.rest
 .. include:: estimate_startingpoint.rest
+.. include:: coevolution.rest
 
 Phylogenetic Reconstruction
 ===========================
