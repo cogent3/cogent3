@@ -6,6 +6,7 @@ from os.path import isabs
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None, FilePath
 from cogent.util.misc import if_
+from cogent.util.transform import cartesian_product
 from random import choice
 from numpy import zeros, array, nonzero, max
 
@@ -455,10 +456,17 @@ class CommandLineApplication(Application):
              for i in range(self.TmpNameLen)])) +\
             FilePath(suffix)
 
-class ParameterEnumerator:
-    """Enumerates a set of parameters for a specific application"""
+class ParameterIterBase:
+    """Base class for parameter iteration objects
+    
+    This class provides base functionality for parameter iteration objects.
+    A parameter iteration object acts like a generator and returns 
+    parameter dicts of varying values. The specific keys and ranges of values
+    can be specified. Subclasses of this object implement the way in which
+    the parameter values are chosen."""
+
     def __init__(self, Application, Parameters, AlwaysOn=None):
-        """Initialize the ParameterEnumerator
+        """Initialize the ParameterIterBase
 
         Application : A CommandLineApplication subclass
         Parameters  : A dict keyed by the application paramter, value by
@@ -479,74 +487,158 @@ class ParameterEnumerator:
         adding the parameter to AlwaysOn. If a parameter has a default value,
         then that parameter is implicitly always on.
         """
-        self._app_params = Application._parameters
+        self.AppParams = Application._parameters
        
         # Validate Parameters
-        for k in Parameters:
-            if k not in self._app_params:
-                raise ValueError, "Parameter %s not present in app" % k
-            values = Parameters[k]
+        param_set = set(Parameters.keys())
+        app_param_set = set(self.AppParams.keys())
+        if not param_set.issubset(app_param_set):
+            not_present = str(param_set.difference(app_param_set))
+            raise ValueError, "Parameter(s) %s not present in app" % not_present
 
-            # Make sure the parameters are specified in a list
-            if not isinstance(values, list):
-                Parameters[k] = [values]
+        # Validate AlwaysOn
+        alwayson_set = set(AlwaysOn)
+        if not alwayson_set.issubset(param_set):
+            not_present = str(alwayson_set.difference(param_set))
+            raise ValueError, "AlwaysOn value(s) %s not in Parameters" % \
+                    not_present
+
+        # Make sure all values are lists
+        for k,v in Parameters.items():
+            if not isinstance(v, list):
+                Parameters[k] = [v]
         _my_params = Parameters
         
-        # Validate AlwaysOn
-        for k in AlwaysOn:
-            if k not in _my_params:
-                raise ValueError, "AlwaysOn %s not passed with Parameters" % k
-
         # Append "off states" to relevant parameters
-        for k in set(_my_params.keys()) - set(AlwaysOn):
-            _my_params[k] = _my_params[k] + [False]
+        for k in param_set.difference(alwayson_set):
+            _my_params[k].append(False)
 
         # Create seperate key/value lists preserving index relation
         self._keys, self._values = zip(*sorted(_my_params.items()))
 
         # Construct generator
-        self._generator = self._get_combinations()
+        self._generator = self._init_generator()
 
-    def _get_combinations(self):
-        """Enumerates all possible combinations of parameters"""
-        num_items = [len(i) - 1 for i in self._values]
-        state = zeros(len(self._values), dtype=int)
-        finished = array(num_items, dtype=int)
+    def _init_generator(self):
+        """Must be implemented in the subclass"""
+        pass
 
-        yield self._make_app_params(state)
-
-        while True:
-            if state[-1] != num_items[-1]:
-                state[-1] += 1
-                yield self._make_app_params(state)
-            else:
-                incrementable = nonzero(state != finished)[0]
-                if not len(incrementable):
-                    raise StopIteration
-                rightmost = max(incrementable)
-                state[rightmost] += 1
-                state[rightmost+1:] = 0
-                yield self._make_app_params(state)
-
-    def _make_app_params(self, state):
-        """Returns an app's param dict with values set as described by state"""
-        app_params = self._app_params.copy()
-        for key, values, state_idx in zip(self._keys, self._values, state):
-            val = values[state_idx]
-            if val is False:
+    def _make_app_params(self, values):
+        """Returns an app's param dict with values set as described by values"""
+        app_params = self.AppParams.copy()
+        for key, value in zip(self._keys, values):
+            if value is False:
                 app_params[key].off()
-            elif val is True:
+            elif value is True:
                 app_params[key].on()
             else:
-                app_params[key].on(val)
+                app_params[key].on(value)
         return app_params
-   
+
     def __iter__(self):
         return self
 
     def next(self):
         return self._generator.next()
 
+    def reset(self):
+        self._generator = self._init_generator()
+
+class ParameterCombinations(ParameterIterBase):
+    """Iterates over all combinations of parameters lexiographically"""
+
+    def _init_generator(self):
+        """Iterates over all possible combinations of parameters
+        
+        This method iterates over the cartesian product of parameter values
+        """
+        for vals in cartesian_product(self._values):
+            yield self._make_app_params(vals)
+   
+def cmdline_generator(param_iter, PathToBin=None, PathToCmd=None, \
+        PathsToInputs=None, PathToOutput=None, PathToStderr='/dev/null', \
+        PathToStdout='/dev/null', UniqueOutputs=False, InputParam=None, \
+        OutputParam=None):
+    """Generates command lines that can be used in a cluster environment
+
+    param_iter : ParameterIterBase subclass instance
+    PathToBin : Absolute location primary command (i.e. Python)
+    PathToCmd : Absolute location of the command
+    PathsToInputs : Absolute location(s) of input file(s)
+    PathToOutput : Absolute location of output file
+    PathToStderr : Path to stderr
+    PathToStdout : Path to stdout
+    UniqueOutputs : Generate unique tags for output files
+    InputParam : Application input parameter (if not specified, assumes
+        stdin is to be used)
+    OutputParam : Application output parameter (if not specified, assumes 
+        stdout is to be used)
+    """
+    # Make sure we have input(s) and output
+    if PathsToInputs is None:
+        raise ValueError, "No inputfile specified"
+    if PathToOutput is None:
+        raise ValueError, "No outputfile specified"
+
+    if not isinstance(PathsToInputs, list):
+        PathsToInputs = [PathsToInputs]
+
+    # PathToBin and PathToCmd can be blank
+    if PathToBin is None:
+        PathToBin = ''
+    if PathToCmd is None:
+        PathToCmd = ''
+
+    # stdout_ and stderr_ do not have to be redirected
+    if PathToStdout is None:
+        stdout_ = ''
+    else:
+        stdout_ = '> "%s"' % PathToStdout
+    if PathToStderr is None:
+        stderr_ = ''
+    else:
+        stderr_ = '2> "%s"' % PathToStderr
+
+    # Output can be redirected to stdout or specified output argument
+    if OutputParam is None:
+        output = '> "%s"' % PathToOutput
+        stdout_ = ''
+    else:
+        output_param = param_iter.AppParams[OutputParam]
+        output_param.on('"%s"' % PathToOutput)
+        output = str(output_param)
+        output_param.off()
+
+    output_count = 0
+    base_command = ' '.join([PathToBin, PathToCmd])
+    for params in param_iter:
+        # Support for multiple input files
+        for inputfile in PathsToInputs:
+            cmdline = [base_command]    
+            cmdline.extend(sorted(filter(None, map(str, params.values()))))
+
+            # Input can come from stdin or specified input argument
+            if InputParam is None:
+                input = '< "%s"' % inputfile
+            else:
+                input_param = params[InputParam]       
+                input_param.on('"%s"' % inputfile)
+                input = str(input_param)
+                input_param.off()
+    
+            cmdline.append(input)
+
+            if UniqueOutputs:
+                cmdline.append(''.join([output,str(output_count)]))
+                output_count += 1
+            else:
+                cmdline.append(output)
+
+            cmdline.append(stdout_)
+            cmdline.append(stderr_)
+        
+            yield ' '.join(cmdline)
+       
 def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
     """
     Generate temp filename
