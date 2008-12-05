@@ -2,9 +2,9 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
-    CommandLineAppResult, ResultPath, ApplicationError, ParameterEnumerator
+    CommandLineAppResult, ResultPath, ApplicationError, ParameterIterBase,\
+    ParameterCombinations, cmdline_generator
 from cogent.app.parameters import *
-from types import GeneratorType
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
 __author__ = "Greg Caporaso and Sandra Smit"
@@ -17,70 +17,34 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
 
-class ParameterEnumeratorTests(TestCase):
-    class MyApp(CommandLineApplication):
-        """ParameterEnumerator mock application to wrap"""
-        _command = 'testcmd'
-        _parameters = {'-flag1':FlagParameter(Prefix='-',Name='flag1'),
-                       '-flag2':FlagParameter(Prefix='-',Name='flag2'),
-                       '--value1':ValuedParameter(Prefix='--',Name='value1'),
-                       '-value2':ValuedParameter(Prefix='-',Name='value2'),
-                       '-mix1':MixedParameter(Prefix='-',Name='mix1'),
-                       '-mix2':MixedParameter(Prefix='-',Name='mix2'),
-                       '-delim':ValuedParameter(Prefix='-',Name='delim',
-                                                Delimiter='aaa'),
-                       '-default':ValuedParameter(Prefix='-',Name='default',
-                                                  Value=42)}
+class ParameterCombinationsTests(TestCase):
     def setUp(self):
-        """Setup for ParameterEnumerator tests"""
-        self.mock_app = self.MyApp
+        """Setup for ParameterCombinations tests"""
+        self.mock_app = ParameterCombinationsApp
         self.params = {'-flag1':True,
                        '--value1':range(0,5),
                        '-delim':range(0,2),
                        '-mix1':[None] + range(0,3)}
         self.always_on = ['--value1']
-        self.enumerator = ParameterEnumerator(self.mock_app, self.params, 
-                                              self.always_on)
+        self.param_iter = ParameterCombinations(self.mock_app, self.params, 
+                                                self.always_on)
         
-
-    def test_init(self):
-        """Test constructor"""
-        exp_params = {'-flag1':[True, False],
-                      '--value1':range(0,5),
-                      '-delim':range(0,2) + [False],
-                      '-mix1':[None,0,1,2] + [False]}
-        exp_keys = exp_params.keys()
-        exp_values = exp_params.values()
-
-        self.assertEqual(sorted(self.enumerator._keys), sorted(exp_keys))
-        self.assertEqual(sorted(self.enumerator._values), sorted(exp_values))
-
-        self.params['asdasda'] = 5
-        self.assertRaises(ValueError, ParameterEnumerator, self.mock_app, \
-                          self.params, self.always_on)
-
-        self.params.pop('asdasda')
-        self.always_on.append('asdasd')
-        self.assertRaises(ValueError, ParameterEnumerator, self.mock_app, \
-                          self.params, self.always_on)
-
-        self.assertTrue(isinstance(self.enumerator._generator, GeneratorType))
-
-    def test_get_combinations(self):
+    def test_init_generator(self):
         """Tests generator capabilities"""
-        all_params = list(self.enumerator)
+        all_params = list(self.param_iter)
         self.assertEqual(len(all_params), 150)
         params = {'-flag1':True,
                   '--value1':1,
                   '-delim':['choice1','choice2']}
         always_on = ['-flag1','-delim']
-        enumerator = ParameterEnumerator(self.mock_app, params, always_on)
+        param_iter = ParameterCombinations(self.mock_app, params, always_on)
         
         exp = [self.mock_app._parameters.copy(),
                self.mock_app._parameters.copy(),
                self.mock_app._parameters.copy(),
                self.mock_app._parameters.copy()]
 
+        # default is on in all these cases
         exp[0]['-flag1'].on()
         exp[0]['--value1'].on(1)
         exp[0]['-delim'].on('choice1')
@@ -97,29 +61,301 @@ class ParameterEnumeratorTests(TestCase):
         exp[3]['--value1'].off()
         exp[3]['-delim'].on('choice2')
 
-        obs = list(enumerator)
+        obs = list(param_iter)
         self.assertEqual(obs,exp)
+
+
+    def test_reset(self):
+        """Resets the iterator"""
+        first = list(self.param_iter)
+        self.assertRaises(StopIteration, self.param_iter.next)
+        self.param_iter.reset()
+        second = list(self.param_iter)
+        self.assertEqual(first, second)
+
+class ParameterIterBaseTests(TestCase):
+    def setUp(self):
+        """Setup for ParameterIterBase tests"""
+        self.mock_app = ParameterCombinationsApp
+        self.params = {'-flag1':True,
+                       '--value1':range(0,5),
+                       '-delim':range(0,2),
+                       '-mix1':[None] + range(0,3)}
+        self.always_on = ['--value1']
+        self.param_base = ParameterIterBase(self.mock_app, self.params, 
+                                                self.always_on)
+
+    def test_init(self):
+        """Test constructor"""
+        exp_params = {'-flag1':[True, False],
+                      '--value1':range(0,5),
+                      '-delim':range(0,2) + [False],
+                      '-mix1':[None,0,1,2] + [False]}
+        exp_keys = exp_params.keys()
+        exp_values = exp_params.values()
+
+        self.assertEqual(sorted(self.param_base._keys), sorted(exp_keys))
+        self.assertEqual(sorted(self.param_base._values), sorted(exp_values))
+
+        self.params['asdasda'] = 5
+        self.assertRaises(ValueError, ParameterIterBase, self.mock_app, \
+                          self.params, self.always_on)
+
+        self.params.pop('asdasda')
+        self.always_on.append('asdasd')
+        self.assertRaises(ValueError, ParameterIterBase, self.mock_app, \
+                          self.params, self.always_on)
 
     def test_make_app_params(self):
         """Returns app parameters with expected values set"""
-        state = [0,0,0,0]
+        values = [0,0,True,None]
         exp = self.mock_app._parameters.copy()
         exp['-flag1'].on()
         exp['--value1'].on(0)
         exp['-delim'].on(0)
         exp['-mix1'].on(None)
-        obs = self.enumerator._make_app_params(state)
+        obs = self.param_base._make_app_params(values)
         self.assertEqual(obs, exp)
 
-        state = [4,2,1,4]
+        state = [4,False,False,False]
         exp = self.mock_app._parameters.copy()
         exp['-flag1'].off()
         exp['--value1'].on(4)
         exp['-delim'].off()
         exp['-mix1'].off()
-        obs = self.enumerator._make_app_params(state)
+        obs = self.param_base._make_app_params(values)
         self.assertEqual(obs, exp)
+
+class CommandLineGeneratorTests(TestCase):
+    def setUp(self):
+        self.abs_path_to_bin = '/bin/path'
+        self.abs_path_to_cmd = '/cmd/path'
+        self.abs_path_to_input = '/input/path'
+        self.abs_path_to_output = '/output/path'
+        self.abs_path_to_stdout = '/stdout/path'
+        self.abs_path_to_stderr = '/stderr/path'
+        self.app = ParameterCombinationsApp
+
+        params = {'-flag1':True,
+                  '-delim':['choice1','choice2']}
+        always_on = ['-delim']
+        self.mock_app = ParameterCombinationsApp
+        self.param_iter = ParameterCombinations(self.mock_app,params, always_on)
         
+    def test_cmdline_generator_easy(self):
+        """Returns parameter combinations commandlines"""
+        cmdgen = cmdline_generator(self.param_iter,
+                                   PathToBin=self.abs_path_to_bin,
+                                   PathToCmd=self.abs_path_to_cmd, 
+                                   PathsToInputs=self.abs_path_to_input,
+                                   PathToOutput=self.abs_path_to_output,
+                                   PathToStdout=self.abs_path_to_stdout,
+                                   PathToStderr=self.abs_path_to_stderr,
+                                   UniqueOutputs=False,
+                                   InputParam='-input',
+                                   OutputParam='-output')
+        bin = self.abs_path_to_bin
+        cmd = self.abs_path_to_cmd
+        inputfile = self.abs_path_to_input
+        outputfile = self.abs_path_to_output
+        stdout = self.abs_path_to_stdout
+        stderr = self.abs_path_to_stderr
+
+        exp = [' '.join([bin, cmd, '-default=42', '-delimaaachoice1','-flag1',\
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr])]
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '-input="%s"' % inputfile, \
+                            '-output="%s"' % outputfile, '> "%s"' % stdout,\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+                           
+        cmdlines = list(cmdgen)
+        self.assertEqual(cmdlines, exp)
+
+    def test_cmdline_generator_hard(self):
+        """Returns parameter combinations commandlines. Test stdin/stdout"""
+        cmdgen = cmdline_generator(self.param_iter,
+                                   PathToBin=self.abs_path_to_bin,
+                                   PathToCmd=self.abs_path_to_cmd, 
+                                   PathsToInputs=self.abs_path_to_input,
+                                   PathToOutput=self.abs_path_to_output,
+                                   PathToStdout=self.abs_path_to_stdout,
+                                   PathToStderr=self.abs_path_to_stderr,
+                                   UniqueOutputs=True,
+                                   InputParam=None,
+                                   OutputParam=None)
+        bin = self.abs_path_to_bin
+        cmd = self.abs_path_to_cmd
+        inputfile = self.abs_path_to_input
+        outputfile = self.abs_path_to_output
+        stdout = self.abs_path_to_stdout
+        stderr = self.abs_path_to_stderr
+
+        # the extra '' is intentionally added. When stdout is used for actual
+        # output, the stdout_ param gets set to '' which results in an extra
+        # space being generated on the cmdline. this should be benign 
+        # across operating systems
+        exp = [' '.join([bin, cmd, '-default=42', '-delimaaachoice1','-flag1',\
+                        '< "%s"' % inputfile, '> "%s"0' % outputfile, '',\
+                        '2> "%s"' % stderr])]
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                            '< "%s"' % inputfile,'> "%s"1' % outputfile, '',\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '< "%s"' % inputfile, \
+                            '> "%s"2' % outputfile, '', '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                            '< "%s"' % inputfile,'> "%s"3' % outputfile, '',\
+                            '2> "%s"' % stderr]))
+
+        cmdlines = list(cmdgen)
+        self.assertEqual(cmdlines, exp)
+
+    def test_cmdline_generator_stdout_stderr_off(self):
+        """Returns cmdlines with stdout and stderr disabled"""
+        cmdgen = cmdline_generator(self.param_iter,
+                                   PathToBin=self.abs_path_to_bin,
+                                   PathToCmd=self.abs_path_to_cmd, 
+                                   PathsToInputs=self.abs_path_to_input,
+                                   PathToOutput=self.abs_path_to_output,
+                                   PathToStdout=None,
+                                   PathToStderr=None,
+                                   UniqueOutputs=False,
+                                   InputParam='-input',
+                                   OutputParam='-output')
+        bin = self.abs_path_to_bin
+        cmd = self.abs_path_to_cmd
+        inputfile = self.abs_path_to_input
+        outputfile = self.abs_path_to_output
+        stdout = self.abs_path_to_stdout
+        stderr = self.abs_path_to_stderr
+
+        exp = [' '.join([bin, cmd, '-default=42', '-delimaaachoice1','-flag1',\
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '',''])]
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '','']))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '-input="%s"' % inputfile, \
+                            '-output="%s"' % outputfile,'','']))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '-input="%s"' % inputfile,'-output="%s"' % outputfile,\
+                        '','']))
+                           
+        cmdlines = list(cmdgen)
+        self.assertEqual(cmdlines, exp)
+
+    def test_cmdline_generator_multiple_inputs(self):
+        """Tests the cmdline_generator for multiple input support"""
+        paths_to_inputs = ['/some/dir/a','/some/dir/b']
+        cmdgen = cmdline_generator(self.param_iter,
+                                   PathToBin=self.abs_path_to_bin,
+                                   PathToCmd=self.abs_path_to_cmd, 
+                                   PathsToInputs=paths_to_inputs,
+                                   PathToOutput=self.abs_path_to_output,
+                                   PathToStdout=self.abs_path_to_stdout,
+                                   PathToStderr=self.abs_path_to_stderr,
+                                   UniqueOutputs=False,
+                                   InputParam='-input',
+                                   OutputParam='-output')
+        bin = self.abs_path_to_bin
+        cmd = self.abs_path_to_cmd
+        inputfile1 = paths_to_inputs[0]
+        inputfile2 = paths_to_inputs[1]
+        outputfile = self.abs_path_to_output
+        stdout = self.abs_path_to_stdout
+        stderr = self.abs_path_to_stderr
+
+        exp = [' '.join([bin, cmd, '-default=42', '-delimaaachoice1','-flag1',\
+                        '-input="%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr])]
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1',\
+                   '-flag1', '-input="%s"' % inputfile2,\
+                   '-output="%s"' % outputfile, '> "%s"' % stdout, \
+                   '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '-input="%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '-input="%s"' % inputfile2,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '-input="%s"' % inputfile1, \
+                            '-output="%s"' % outputfile, '> "%s"' % stdout,\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '-input="%s"' % inputfile2, \
+                            '-output="%s"' % outputfile, '> "%s"' % stdout,\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '-input="%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '-input="%s"' % inputfile2,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+                           
+        cmdlines = list(cmdgen)
+        self.assertEqual(cmdlines, exp)
+
+    def test_cmdline_generator_multiple_input_stdin(self):
+        """Tests cmdline_generator for multiple inputs over stdin"""
+        paths_to_inputs = ['/some/dir/a','/some/dir/b']
+        cmdgen = cmdline_generator(self.param_iter,
+                                   PathToBin=self.abs_path_to_bin,
+                                   PathToCmd=self.abs_path_to_cmd, 
+                                   PathsToInputs=paths_to_inputs,
+                                   PathToOutput=self.abs_path_to_output,
+                                   PathToStdout=self.abs_path_to_stdout,
+                                   PathToStderr=self.abs_path_to_stderr,
+                                   UniqueOutputs=False,
+                                   InputParam=None,
+                                   OutputParam='-output')
+        bin = self.abs_path_to_bin
+        cmd = self.abs_path_to_cmd
+        inputfile1 = paths_to_inputs[0]
+        inputfile2 = paths_to_inputs[1]
+        outputfile = self.abs_path_to_output
+        stdout = self.abs_path_to_stdout
+        stderr = self.abs_path_to_stderr
+
+        exp = [' '.join([bin, cmd, '-default=42', '-delimaaachoice1','-flag1',\
+                        '< "%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr])]
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1',\
+                   '-flag1', '< "%s"' % inputfile2,\
+                   '-output="%s"' % outputfile, '> "%s"' % stdout, \
+                   '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '< "%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice1', \
+                        '< "%s"' % inputfile2,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '< "%s"' % inputfile1, \
+                            '-output="%s"' % outputfile, '> "%s"' % stdout,\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42','-delimaaachoice2', \
+                            '-flag1', '< "%s"' % inputfile2, \
+                            '-output="%s"' % outputfile, '> "%s"' % stdout,\
+                            '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '< "%s"' % inputfile1,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+        exp.append(' '.join([bin, cmd, '-default=42', '-delimaaachoice2', \
+                        '< "%s"' % inputfile2,'-output="%s"' % outputfile,\
+                        '> "%s"' % stdout, '2> "%s"' % stderr]))
+                           
+        cmdlines = list(cmdgen)
+        self.assertEqual(cmdlines, exp)
+
 class CommandLineApplicationTests(TestCase):
     """Tests for the CommandLineApplication class"""
     
@@ -814,6 +1050,23 @@ class CLAppTester_no_working_dir(CLAppTester):
 class CLAppTester_space_in_command(CLAppTester):
     _command = '"./CLApp Tester.py"'
  
+class ParameterCombinationsApp(CommandLineApplication):
+    """ParameterCombinations mock application to wrap"""
+    _command = 'testcmd'
+    _parameters = {'-flag1':FlagParameter(Prefix='-',Name='flag1'),
+                   '-flag2':FlagParameter(Prefix='-',Name='flag2'),
+                   '--value1':ValuedParameter(Prefix='--',Name='value1'),
+                   '-value2':ValuedParameter(Prefix='-',Name='value2'),
+                   '-mix1':MixedParameter(Prefix='-',Name='mix1'),
+                   '-mix2':MixedParameter(Prefix='-',Name='mix2'),
+                   '-delim':ValuedParameter(Prefix='-',Name='delim',
+                                            Delimiter='aaa'),
+                   '-default':ValuedParameter(Prefix='-',Name='default',
+                                              Value=42, Delimiter='='),
+                   '-input':ValuedParameter(Prefix='-',Name='input',\
+                                            Delimiter='='),
+                   '-output':ValuedParameter(Prefix='-',Name='output',
+                                             Delimiter='=')}
 if __name__ == '__main__':
 
    
