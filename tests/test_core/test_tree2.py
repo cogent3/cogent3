@@ -8,7 +8,7 @@ from cogent.core.tree import LoadTree
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Andrew Butterfield",
-                    "Matthew Wakefield"]
+                    "Matthew Wakefield", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.2"
 __maintainer__ = "Gavin Huttley"
@@ -100,7 +100,14 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
         tree = self._maketree(orig)
         self.assertEqual(tree.getNewick(with_distances=1), orig)
         self.assertEqual(tree.getNewick(), unlen)
-    
+   
+    def test_iterativeNewick(self):
+        orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
+        unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
+        tree = self._maketree(orig)
+        self.assertEqual(tree.iterativeNewick(with_distances=1), orig)
+        self.assertEqual(tree.iterativeNewick(), unlen)
+
     def test_XML(self):
         # should add some non-length parameters
         orig = self.default_tree

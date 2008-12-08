@@ -10,7 +10,7 @@ from numpy import array, arange
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Rob Knight", "Catherine Lozupone"]
+__credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.2"
 __maintainer__ = "Rob Knight"
@@ -30,6 +30,7 @@ class TreeTests(TestCase):
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
         self.assertEqual(str(t),result_str) 
+        self.assertEqual(t.iterativeNewick(with_distances=True), result_str) 
         t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
         #NOTE: Tree silently converts spaces to underscores (only for output),
         #presumably for Newick compatibility.
@@ -38,6 +39,7 @@ class TreeTests(TestCase):
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a a', 'b b', 'c c'])
         self.assertEqual(str(t),result_str) 
+        self.assertEqual(t.iterativeNewick(with_distances=True),result_str) 
 
 
 
@@ -137,6 +139,16 @@ class TreeNodeTests(TestCase):
         self.assertEqual(str(self.BigParent), '(0,1,2,3,4,5,6,7,8,9)x;')
         self.BigParent[-1].extend('abc')
         self.assertEqual(str(self.BigParent), '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
+
+    def test_iterative_newick(self):
+        """Should return Newick-style representation"""
+        self.assertEqual(self.Empty.iterativeNewick(), ';')
+        self.assertEqual(self.OneChild.iterativeNewick(), '(b)a;')
+        self.assertEqual(self.BigParent.iterativeNewick(), \
+                '(0,1,2,3,4,5,6,7,8,9)x;')
+        self.BigParent[-1].extend('abc')
+        self.assertEqual(self.BigParent.iterativeNewick(), \
+                '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
     def test_cmp(self):
         """TreeNode cmp should compare using Name attribute"""

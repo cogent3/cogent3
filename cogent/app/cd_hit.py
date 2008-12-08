@@ -2,6 +2,7 @@
 """Application controller for CD-HIT v3.1.1"""
 
 import shutil
+from os import remove
 from cogent.app.parameters import ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath,\
         get_tmp_filename
