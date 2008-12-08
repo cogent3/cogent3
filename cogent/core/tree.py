@@ -41,7 +41,7 @@ __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
-                    "Jeremy Widmann", "Zongzhi Liu"]
+                    "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.2"
 __maintainer__ = "Gavin Huttley"
@@ -786,6 +786,59 @@ class TreeNode(object):
             newick.append(";")
         
         return ''.join(newick)
+
+    def iterativeNewick(self, with_distances=False):
+        """Return the newick string for this tree.
+
+        Arguments:
+            - with_distances: whether branch lengths are included.
+
+        NOTE: This method returns the Newick representation of this node
+        and its descendents. This method is a modification of an implementation
+        by Zongzhi Liu
+        """
+        result = ['(']
+        nodes_stack = [[self, len(self.Children)]]
+
+        while nodes_stack:
+            #check the top node, any children left unvisited?
+            top = nodes_stack[-1]
+            top_node, num_unvisited_children = top
+            if num_unvisited_children: #has any child unvisited
+                top[1] -= 1  #decrease the #of children unvisited
+                next_child = top_node.Children[-num_unvisited_children] # - for order
+                #pre-visit
+                if next_child.Children:
+                    result.append('(')
+                nodes_stack.append([next_child, len(next_child.Children)])
+            else:  #no unvisited children
+                nodes_stack.pop()
+                #post-visit
+                if top_node.Children:
+                    result[-1] = ')'
+
+                if top_node.NameLoaded:
+                    if top_node.Name is None:
+                        name = ''
+                    else:
+                        name = str(top_node.Name)
+                        if re.search("""[]['"(),:;_]""", name):
+                            name = "'%s'" % name.replace("'", "''")
+                        else:
+                            name = name.replace(' ','_')
+                    result.append(name)
+
+                if with_distances and top_node.Length is not None:
+                    result.append(":%s" % top_node.Length)
+
+                result.append(',')
+
+        len_result = len(result)
+        if len_result == 2 or len_result == 3:  # empty tree
+            return ";"
+        else:
+            result[-1] = ';'
+            return ''.join(result)
     
     def removeNode(self, target):
         """Removes node by identity instead of value.
