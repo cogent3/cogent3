@@ -28,6 +28,11 @@ Data manipulation
 .. include:: genetic_code_aa_index.rest
 .. include:: handling_tabular_data.rest
 
+Controlling 3rd party applications
+==================================
+
+.. include:: generating_app_commandlines.rest
+
 General data analysis
 =====================
 
