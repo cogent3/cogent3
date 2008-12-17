@@ -1,3 +1,69 @@
+****************
+Cogent 1.1 - 1.2
+****************
+
+New Features
+============
+
+* Code for performing molecular coevolution/covariation analyses on multiple
+  sequence alignments, plus support files. (Described in J. Caporaso et al.
+  BMC Evol Biol, 8(1):327, 2008.)
+* App controller for CD-HIT (http://www.bioinformatics.org/cd-hit/)
+* A ParameterEnumerator object is now available in cogent.app.util. This
+  method will iterate over a range of parameters, returning parameter dicts
+  that can be used with the relevant app controller.
+* Sequence and alignment objects that inherit from Annotatable can now mask
+  regions of sequence, returning new objects where the observed sequence
+  characters in the regions spanned by the annotations are replaced by a mask
+  character (mask_char).
+* Table.count method. Counts the number of rows satisfying some condition.
+* Format writer for stockholm and clustal formats.
+* App controllers for dotur, infernal, RNAplot, RNAalifold. Parsers for
+  infernal and dotur.
+* Empirical nucleotide substitution matrix estimation code (Described in
+  M. Oscamou et al. BMC Bioinformatics, 9(1):511, 2008)
+
+New Documentation
+=================
+
+Usage examples (see doc/) were added for the following:
+
+* Querying NCBI
+* The motif module.
+* UPGMA clustering
+* For using the ParameterCombinations object and generating command lines
+* Coevolution modelling
+* Sequence annotation handling
+* Table manipulation
+* Principal components analysis (PCoA)
+* Genetic code objects
+* How to construct profiles, consensus seqs etc ..
+
+Changes
+=======
+
+* PyCogent no longer relies on the Python math module. All math functions are
+  now imported from numpy. The main motivator was to remove casting between
+  numpy and Python types. Such as, a 'numpy.float64' variable unknowingly
+  being converted to a Python 'float' type.
+* Tables.getDistinctValues now handles multiple columns.
+* Table.Header is now an immutable property of Tables. Use the withNewHeader
+  method modifying Header labels.
+
+Bug Fixes
+=========
+
+* LoadTable was ignoring title argument for standard file read.
+* Fixed bug in Table.joined. When a join produces no result, now returns a
+  Table with 0 rows.
+* Improved consistency of LoadTable with previous behaviour of cogent.Table
+* Added methods to detect large sequences/alphabets and handle counts from
+  sequence triples correctly.
+* goldman_q_dna_pair() and goldman_q_rna_pair() now average the frequency
+  matrix used.
+* reverse complement of annotations with disjoint spans correctly preserve
+  order.
+
 ******************
 Cogent 1.0.1 - 1.1
 ******************
