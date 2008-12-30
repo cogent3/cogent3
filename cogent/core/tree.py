@@ -25,6 +25,7 @@ Definition of relevant terms or abbreviations:
        from a node
     -  stem: the edge immediately preceeding a clade
 """
+from collections import defaultdict
 from numpy import zeros
 from copy import deepcopy
 import re
@@ -911,34 +912,62 @@ class TreeNode(object):
         return [c for c in (tuple(self.Children) + (self.Parent,))
                 if c is not None and c is not parent]
     
-    def _getDistances(self, endpoints):
-        """Recursively calcluates all of the root-to-tip and tip-to-tip
+    def _getDistances(self, endpoints=None):
+        """Iteratively calcluates all of the root-to-tip and tip-to-tip
         distances, resulting in a tuple of:
             - A list of (name, path length) pairs.
             - A dictionary of (tip1,tip2):distance pairs
         """
-        seen = []
-        paths = []
-        dists = {}
-        for child in self.Children:
-            length2 = child.Length
-            (paths2, dists2) = child._getDistances(endpoints)
-            dists.update(dists2)
-            for (name2, path2) in paths2:
-                paths.append((name2, path2+length2))
-                for (paths1, length1) in seen:
-                    for (name1, path1) in paths1:
-                        distance = path1 + length1 + path2 + length2
-                        dists[name1, name2] = dists[name2, name1] = distance
-            seen.append((paths2, length2))
-        
-        if self.Name in endpoints:
-            for (name, path) in paths:
-                dists[self.Name, name] = dists[name, self.Name] = path
-            paths.append((self.Name, 0))
-        
-        return (paths, dists)
-    
+        ## linearize the tips in postorder.
+        # .__start, .__stop compose the slice in tip_order.
+        if endpoints is None:
+            tip_order = list(self.tips())
+        else:
+            tip_order = []
+            for i,name in enumerate(endpoints):
+                node = self.getNodeMatchingName(name)
+                tip_order.append(node)
+        for i, node in enumerate(tip_order):
+            node.__start, node.__stop = i, i+1
+
+        num_tips = len(tip_order)
+        result = defaultdict(int)
+        tipdistances = zeros((num_tips), float) #distances from tip to curr node
+
+        def update_result():
+        # set tip_tip distance between tips of different child
+            for child1, child2 in comb(node.Children, 2):
+                for tip1 in range(child1.__start, child1.__stop):
+                    for tip2 in range(child2.__start, child2.__stop):
+                        name1 = tip_order[tip1].Name
+                        name2 = tip_order[tip2].Name
+                        result[(name1,name2)] = \
+                            tipdistances[tip1] + tipdistances[tip2]
+                        result[(name2,name1)] = \
+                            tipdistances[tip1] + tipdistances[tip2]
+
+        for node in self.traverse(self_before=False, self_after=True):
+            if not node.Children:
+                continue
+            ## subtree with solved child wedges
+            starts, stops = [], [] #to calc ._start and ._stop for curr node
+            for child in node.Children:
+                if hasattr(child, 'Length') and child.Length is not None:
+                    child_len = child.Length
+                else:
+                    child_len = 1 # default length
+                tipdistances[child.__start : child.__stop] += child_len
+                starts.append(child.__start); stops.append(child.__stop)
+            node.__start, node.__stop = min(starts), max(stops)
+            ## update result if nessessary
+            if len(node.Children) > 1: #not single child
+                update_result()
+
+        from_root = []
+        for i,n in enumerate(tip_order):
+            from_root.append((n.Name, tipdistances[i]))
+        return from_root, result
+
     def getDistances(self, endpoints=None):
         """The distance matrix as a dictionary.
         
@@ -946,8 +975,6 @@ class TreeNode(object):
             Grabs the branch lengths (evolutionary distances) as
             a complete matrix (i.e. a,b and b,a)."""
         
-        if endpoints is None:
-            endpoints = self.getTipNames()
         (root_dists, endpoint_dists) = self._getDistances(endpoints)
         return endpoint_dists
    
