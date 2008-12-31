@@ -86,14 +86,17 @@ def DndTokenizer(data):
 def DndParser(lines, constructor=PhyloNode):
     """Returns tree from the Clustal .dnd file format, and anything equivalent.
     
-    Will work even if lines is a single string, but will inefficiently
-    re-join it into a string. Better to pass in as a list of one string.
-
     Tree is made up of cogent.base.tree.PhyloNode objects, with branch lengths
     (by default, although you can pass in an alternative constructor 
     explicitly).
     """
-    data = ''.join(lines)
+    if isinstance(lines, str):
+        data = lines
+    else:
+        data = ''.join(lines)
+    #skip arb comment stuff if present: start at first paren
+    paren_index = data.find('(')
+    data = data[paren_index:]
     left_count = data.count('(')
     right_count = data.count(')')
     if left_count != right_count:
