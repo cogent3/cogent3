@@ -14,7 +14,7 @@ __credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
                     "Hua Ying", "Jason Carnes", "Raymond Sammut", 
                     "Helen Lindsay", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.2"
+__version__ = "1.3.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -42,7 +42,7 @@ if sys.version_info > (2, 5, 3):
     LOG.warning("cogent.align.methods.ACL fails with Python-2.6")
 
 version = __version__
-version_info = tuple([int(v) for v in __version__.split(".")])
+version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 from cogent.util.table import Table as _Table
 from cogent.parse.table import load_delimited

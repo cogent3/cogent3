@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2007-2008, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                 "Matthew Wakefield", "Edward Lang"]
 __license__ = "GPL"
-__version__ = "1.2"
+__version__ = "1.3.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin Huttley"
 __status__ = "Production"
