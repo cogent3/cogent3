@@ -10,17 +10,21 @@ tests to do:
     
     checking that the object resets on tree change, model change, etc
 """
+import warnings
 
-import unittest
-import copy
-import math
-import pprint
+warnings.filterwarnings("ignore", "Motif probs overspecified")
+warnings.filterwarnings("ignore", "Model not reversible")
+
 import os
+from numpy import ones, dot
 
-from cogent.evolve import substitution_model
+from cogent.evolve import substitution_model, predicate
 from cogent import DNA, LoadSeqs, LoadTree
+from cogent.util.unit_test import TestCase, main
+from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
 
-import cogent.maths.matrix_exponentiation
+Nucleotide = substitution_model.Nucleotide
+MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -32,20 +36,14 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def expm(Q):
-    ex = cogent.maths.matrix_exponentiation.FastExponentiator(Q)
-    P = ex(1.0)
-    Q[:] = P
-
-        
 base_path = os.getcwd()
 data_path = os.path.join(base_path, 'data')
 
 ALIGNMENT = LoadSeqs(
     moltype=DNA,
     filename = os.path.join(data_path,'brca1.fasta'))
-    
-OTU_NAMES    = ["Human", "Mouse", "HowlerMon"]
+
+OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
 
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
@@ -71,7 +69,7 @@ def numdiffs_position(motif1, motif2):
             ndiffs += 1
             
     return ndiffs == 1, position
-    
+
 def isinstantaneous(motif1, motif2):
     if motif1 != motif2 and (motif1 == '-' * len(motif1) or \
                              motif2 == '-' * len(motif1)):
@@ -83,7 +81,27 @@ def getposition(motif1, motif2):
     ndiffs, position = numdiffs_position(motif1, motif2)
     return position
 
-class LikelihoodCalcs(unittest.TestCase):
+##############################################################
+# funcs for testing the monomer weighted substitution matrices
+_root_probs = lambda x: dict([(n1+n2, p1*p2) \
+            for n1,p1 in x.items() for n2,p2 in x.items()])
+
+def make_p(length, coord, val):
+    """returns a probability matrix with value set at coordinate in
+    instantaneous rate matrix"""
+    Q = ones((4,4), float)*0.25 # assumes equi-frequent mprobs at root
+    for i in range(4):
+        Q[i,i] = 0.0
+    Q[coord] *= val
+    row_sum = Q.sum(axis=1)
+    scale = 1/(.25*row_sum).sum()
+    for i in range(4):
+        Q[i,i] -= row_sum[i]
+    Q *= scale
+    return expm(Q)(length)
+
+
+class LikelihoodCalcs(TestCase):
     """tests ability to calculate log-likelihoods for several
     substitution models."""
     def setUp(self):
@@ -104,7 +122,7 @@ class LikelihoodCalcs(unittest.TestCase):
         one = aln.pop(aln.keys()[0])
         aln["root"] = one
         aln = LoadSeqs(data=aln)
-        submod = substitution_model.Nucleotide()
+        submod = Nucleotide()
         tree = LoadTree(treestring="%s" % str(tuple(aln.Names)))
         lf = submod.makeLikelihoodFunction(tree)
         try:
@@ -158,7 +176,7 @@ class LikelihoodCalcs(unittest.TestCase):
         values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
-        
+    
     def test_complex_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
@@ -170,7 +188,7 @@ class LikelihoodCalcs(unittest.TestCase):
         values = lf.getParamValueDict(['bin'])['kappa_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
-
+    
     def test_codon(self):
         """test a three taxa codon model."""
         submod = substitution_model.Codon(
@@ -187,10 +205,10 @@ class LikelihoodCalcs(unittest.TestCase):
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
         self.assertEqual("%.6f" % -57.8379659216, "%.6f" % evolve_lnL)
-        
+    
     def test_nucleotide(self):
         """test a nucleotide model."""
-        submod = substitution_model.Nucleotide(
+        submod = Nucleotide(
             do_scaling=False,
             motif_probs=None,
             predicates={'kappa': 'transition'})
@@ -202,7 +220,7 @@ class LikelihoodCalcs(unittest.TestCase):
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
         self.assertEqual("%.6f" % -155.775725365, "%.6f" % evolve_lnL)
-        
+    
     def test_dinucleotide(self):
         """test a dinucleotide model."""
         submod = substitution_model.Dinucleotide(
@@ -224,21 +242,21 @@ class LikelihoodCalcs(unittest.TestCase):
         alignment = self.alignment.getTranslation()
         
         likelihood_function = self._makeLikelihoodFunction(submod, alignment)
-
+        
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
         self.assertEqual("%.6f" % -76.301896714, "%.6f" % evolve_lnL)
+    
 
-
-class LikelihoodFunctionTests(unittest.TestCase):
+class LikelihoodFunctionTests(TestCase):
     """tests for a tree analysis class. Various tests to create a tree analysis class,
     set parameters, and test various functions.
     """
     def setUp(self):
-        self.submodel = substitution_model.Nucleotide(
+        self.submodel = Nucleotide(
             do_scaling=True, model_gaps=False, equal_motif_probs=True,
             predicates = {'beta': 'transition'})
-
+        
         self.data = LoadSeqs(
                 filename = os.path.join(data_path, 'brca1_5.paml'),
                 moltype = self.submodel.MolType)
@@ -250,8 +268,8 @@ class LikelihoodFunctionTests(unittest.TestCase):
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setParamRule('beta', is_independent=True)
         lf.setAlignment(self.data)
-        return lf 
-            
+        return lf
+    
     def _setLengthsAndBetas(self, likelihood_function):
         for (species, length) in [
                 ("DogFaced", 0.1),
@@ -265,7 +283,7 @@ class LikelihoodFunctionTests(unittest.TestCase):
                 ("Human", "Mouse", 0.6)]:
             LCA = self.tree.getConnectingNode(species1, species2).Name
             likelihood_function.setpar("length", length, edge=LCA)
-
+        
         likelihood_function.setpar("beta", 4.0)
     
     def test_result_str(self):
@@ -298,7 +316,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-                    
+    
     def test_calclikelihood(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
@@ -332,7 +350,7 @@ motif    mprobs
         simulated_alignment = likelihood_function.simulateAlignment(20, exclude_internal = False)
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.getSeqNames()), 8)
-
+    
     def test_simulateHetergeneousAlignment(self):
         "Simulate substitution-heterogeneous DNA alignment"
         lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'])
@@ -346,7 +364,7 @@ motif    mprobs
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulateAlignment(100)
-
+    
     def test_simulateAlignment2(self):
         "Simulate alignment with dinucleotide model"
         al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
@@ -356,7 +374,7 @@ motif    mprobs
         lf = pc.makeCalculator(al)
         simalign = lf.simulateAlignment()
         self.assertEqual(len(simalign), 6)
-
+    
     def test_simulateAlignment3(self):
         """Simulated alignment with gap-induced ambiguous positions
         preserved"""
@@ -366,7 +384,7 @@ motif    mprobs
             'b':'---c-ctcct',
             'c':'-a-c-ctat-',
             'd':'-a-c-ctat-'})
-        sm = substitution_model.Nucleotide(recode_gaps=True)
+        sm = Nucleotide(recode_gaps=True)
         pc = sm.makeParamController(t)
         #pc.setConstantLengths()
         lf=pc.makeCalculator(al)
@@ -377,6 +395,7 @@ motif    mprobs
         self.assertEqual(
             re.sub('[ATCG]', 'x', simulated.todict()['a']),
             'x??xxxxxx?')
+        
     
     def test_simulateAlignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
@@ -404,7 +423,7 @@ motif    mprobs
         lf = pc.makeCalculator(self.data)
         self.assertEqual(lf.getParamValue("length", "Human"), 0.3)
         self.assertEqual(lf.getParamValue("beta", "Human"), 4.0)
-            
+    
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setpar("length", 4.0)
@@ -464,6 +483,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
+    
     def test_getMotifProbs(self):
         likelihood_function = self._makeLikelihoodFunction()
         mprobs = likelihood_function.getMotifProbs()
@@ -525,6 +545,189 @@ motif    mprobs
         lf.setParamRule('beta', init=2.0, is_const=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
         lf.real_par_controller.makeCalculator()
-       
+    
+class NewQ(TestCase):
+    aln = LoadSeqs(data={
+    'seq1': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
+    'seq2': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT'},
+    moltype=DNA)
+    tree = LoadTree(tip_names=['seq1', 'seq2'])
+    
+    asymm_nuc_probs_GC = dict(A=0.1,T=0.1,C=0.4,G=0.4)
+    asymm_root_probs = _root_probs(asymm_nuc_probs_GC)
+    symm_nuc_probs = dict(A=0.25,T=0.25,C=0.25,G=0.25)
+    symm_root_probs = _root_probs(symm_nuc_probs)
+    
+    def test_newQ_is_nuc_process(self):
+        """newQ is an extension of an independent nucleotide process"""
+        nuc = Nucleotide(motif_probs = self.asymm_nuc_probs_GC)
+        new_di = Nucleotide(motif_length=2, mprob_model='monomer',
+            motif_probs = self.asymm_nuc_probs_GC)
+        
+        nuc_lf = nuc.makeLikelihoodFunction(self.tree)
+        new_di_lf = new_di.makeLikelihoodFunction(self.tree)
+        # newQ branch length is exactly motif_length*nuc branch length
+        nuc_lf.setParamRule('length', is_independent=False, init=0.2)
+        new_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        
+        nuc_lf.setAlignment(self.aln)
+        new_di_lf.setAlignment(self.aln)
+        self.assertFloatEqual(nuc_lf.getLogLikelihood(),
+                                new_di_lf.getLogLikelihood())
+    
+    def test_newQ_is_not_oldQ(self):
+        """newQ produces a likelihood different to oldQ when monomers are
+        not equi-frequent"""
+        new_di = Nucleotide(motif_length=2, mprob_model='monomer',
+                                motif_probs = self.asymm_nuc_probs_GC)
+        old_di = Nucleotide(motif_length=2, mprob_model=None,
+                                motif_probs = self.asymm_root_probs)
+        
+        new_di_lf = new_di.makeLikelihoodFunction(self.tree)
+        old_di_lf = old_di.makeLikelihoodFunction(self.tree)
+        
+        new_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        old_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        
+        new_di_lf.setAlignment(self.aln)
+        old_di_lf.setAlignment(self.aln)
+        self.failIfAlmostEqual(new_di_lf.getLogLikelihood(),
+                               old_di_lf.getLogLikelihood(), places=2)
+    
+    def test_newQ_eq_oldQ(self):
+        """when monomers are equi-frequent, new and old Q are the same"""
+        new_di = Nucleotide(motif_length=2, mprob_model='monomer',
+                                motif_probs = self.symm_nuc_probs)
+        old_di = Nucleotide(motif_length=2, mprob_model=None,
+                                motif_probs = self.symm_root_probs)
+        
+        new_di_lf = new_di.makeLikelihoodFunction(self.tree)
+        old_di_lf = old_di.makeLikelihoodFunction(self.tree)
+        
+        new_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        old_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        
+        new_di_lf.setAlignment(self.aln)
+        old_di_lf.setAlignment(self.aln)
+        self.assertFloatEqual(old_di_lf.getLogLikelihood(),
+                                new_di_lf.getLogLikelihood())
+    
+    def test_nuc_models_unaffected(self):
+        """nuc models should not be affected by the mprob_model arg"""
+        gtr = [MotifChange(x,y) for x,y in 'AC AG AT CG CT'.split()]
+        mg_gtr = Nucleotide(predicates=gtr, mprob_model='monomer')
+        gy_gtr = Nucleotide(predicates=gtr, mprob_model=None)
+        mg_gtr = mg_gtr.makeLikelihoodFunction(self.tree)
+        gy_gtr = gy_gtr.makeLikelihoodFunction(self.tree)
+        for param, val in zip('A/C A/G A/T C/G C/T'.split(), [.1,2.,.5,.5,3.]):
+            for lf in mg_gtr, gy_gtr:
+                lf.setParamRule(param, value=val)
+        mg_gtr.setAlignment(self.aln)
+        gy_gtr.setAlignment(self.aln)
+        self.assertFloatEqual(mg_gtr.getLogLikelihood(), gy_gtr.getLogLikelihood())
+    
+    def test_position_specific_mprobs(self):
+        """correctly compute likelihood when positions have distinct
+        probabilities"""
+        aln_len = len(self.aln)
+        posn1 = []
+        posn2 = []
+        for name, seq in self.aln.todict().items():
+            p1 = [seq[i] for i in range(0,aln_len,2)]
+            p2 = [seq[i] for i in range(1,aln_len,2)]
+            posn1.append([name, ''.join(p1)])
+            posn2.append([name, ''.join(p2)])
+        
+        # the position specific alignments
+        posn1 = LoadSeqs(data=posn1)
+        posn2 = LoadSeqs(data=posn2)
+        
+        # NOTE: I had to set do_scaling=False to get this to work
+        # NOTE: the argument word_length will be deprecated in a future release
+        sm = Nucleotide(word_length=2, do_scaling=False) # a newQ dinucleotide model
+        lf = sm.makeLikelihoodFunction(self.tree)
+        lf.setAlignment(posn1)
+        posn1_lnL = lf.getLogLikelihood()
+        lf.setAlignment(posn2)
+        posn2_lnL = lf.getLogLikelihood()
+        expect_lnL = posn1_lnL+posn2_lnL
+        # the joint model
+        lf.setAlignment(self.aln)
+        aln_lnL = lf.getLogLikelihood()
+        
+        # setting the full alignment, which has different motif probs, should
+        # produce a different lnL
+        self.failIfAlmostEqual(expect_lnL, aln_lnL)
+        
+        # the position specific model
+        
+        # set the arguments for taking position specific mprobs
+        sm = Nucleotide(word_length=2, mprob_model='monomers', do_scaling=False)
+        lf = sm.makeLikelihoodFunction(self.tree)
+        lf.setAlignment(self.aln)
+        posn12_lnL = lf.getLogLikelihood()
+        self.assertFloatEqual(expect_lnL, posn12_lnL)
+    
+    def test_getting_node_mprobs(self):
+        """return correct motif probability vector for tree nodes"""
+        tree = LoadTree(treestring='(a:.2,b:.2,(c:.1,d:.1):.1)')
+        aln = LoadSeqs(data={
+        'a': 'TGTG',
+        'b': 'TGTG',
+        'c': 'TGTG',
+        'd': 'TGTG',
+        })
+        
+        motifs = ['T', 'C', 'A', 'G']
+        aX = MotifChange(motifs[0], motifs[3], forward_only=True).aliased('aX')
+        bX = MotifChange(motifs[3], motifs[0], forward_only=True).aliased('bX')
+        edX = MotifChange(motifs[1], motifs[2], forward_only=True).aliased('edX')
+        cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased('cX')
+        sm = Nucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
+        
+        lf = sm.makeLikelihoodFunction(tree)
+        lf.setParamRule('aX', edge='a', value=8.0)
+        lf.setParamRule('bX', edge='b', value=8.0)
+        lf.setParamRule('edX', edge='edge.0', value=2.0)
+        lf.setParamRule('cX', edge='c', value=0.5)
+        lf.setParamRule('edX', edge='d', value=4.0)
+        lf.setAlignment(aln)
+        
+        # we construct the hand calc variants
+        mprobs = ones(4, float) * .25
+        a = make_p(.2, (0,3), 8)
+        a = dot(mprobs, a)
+        
+        b = make_p(.2, (3, 0), 8)
+        b = dot(mprobs, b)
+        
+        e = make_p(.1, (1, 2), 2)
+        e = dot(mprobs, e)
+        
+        c = make_p(.1, (2, 1), 0.5)
+        c = dot(e, c)
+        
+        d = make_p(.1, (1, 2), 4)
+        d = dot(e, d)
+        
+        prob_vectors = lf.getMotifProbsByNode()
+        self.assertFloatEqual(prob_vectors['a'].array, a)
+        self.assertFloatEqual(prob_vectors['b'].array, b)
+        self.assertFloatEqual(prob_vectors['c'].array, c)
+        self.assertFloatEqual(prob_vectors['d'].array, d)
+        self.assertFloatEqual(prob_vectors['edge.0'].array, e)
+    
+    def test_get_statistics(self):
+        """get statistics should correctly apply arguments"""
+        for mprob_model in None, 'monomer', 'monomers':
+            di = Nucleotide(motif_length=2, mprob_model=mprob_model)
+            lf = di.makeLikelihoodFunction(self.tree)
+            for wm, wt in [(True, True), (True, False), (False, True),
+                           (False, False)]:
+                stats = lf.getStatistics(with_motif_probs=wm, with_titles=wt)
+        
+    
+
+
 if __name__ == '__main__':
-    unittest.main()
+    main()

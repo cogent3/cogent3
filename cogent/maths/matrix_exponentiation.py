@@ -13,7 +13,7 @@
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-from numpy.linalg import inv, eig as _eig,\
+from numpy.linalg import inv as _inv, eig as _eig,\
                         solve as solve_linear_equations, LinAlgError
 
 import logging
@@ -33,6 +33,10 @@ def eig(*a, **kw):
     vals, vecs = _eig(*a, **kw)
     return vals, vecs.T
 
+def inv(a):
+    """make inv return the same contiguous matrix as numpy one"""
+    return numpy.ascontiguousarray(_inv(a))
+
 try:
     pyrex = importVersionedModule('_matrix_exponentiation', globals(),
             (1, 2), LOG, "pure Python/NumPy exponentiation")
@@ -40,6 +44,13 @@ except ExpectedImportError:
     pyrex = None
 else:
     pyrex.setNumPy(numpy)
+    if pyrex.version_info == (1, 2):
+        def _pyrex_eigenvectors(q, orig=pyrex.eigenvectors):
+            try:
+                return orig(q)
+            except RuntimeError, detail:
+                raise ArithmeticError, detail
+        pyrex.eigenvectors = _pyrex_eigenvectors
 
 class _Exponentiator(object):
     def __init__(self, Q):
@@ -63,13 +74,10 @@ class EigenExponentiator(_Exponentiator):
         self.ev = ev
         self.roots = roots
     
-    def reconstructedQ(self):
-        return numpy.asarray(numpy.inner(self.evT * self.roots, self.evI).real)
-    
     def __call__(self, t):
         exp_roots = numpy.exp(t*self.roots)
         result = numpy.inner(self.evT * exp_roots, self.evI)
-        if result.dtype.char in "FD":
+        if result.dtype.kind == "c":
             result = numpy.asarray(result.real)
         result = numpy.maximum(result, 0.0)
         return result
@@ -186,19 +194,16 @@ def _fastest(fs, *args):
         i = numpy.argmin(m, -1)
     return (fs[i], fs[i](*args))
 
-def _chooseFastExponentiator(Q, symmetric):
+def _chooseFastExponentiators(Q):
     if pyrex is not None:
         eigen_candidates = [eig, pyrex.eigenvectors]
-        (eigenvectors, (r,ev)) = _fastest(eigen_candidates, Q)
+        (eigenvectors, (roots,ev)) = _fastest(eigen_candidates, Q)
         inverse_candidates = [inv, pyrex.inverse]
         (inverse, evI) = _fastest(inverse_candidates, ev)
-        #if not evI.flags['C_CONTIGUOUS']:
-        #evI = numpy.ascontiguousarray(evI)
-        # a crime to do this but works on osx + python 2.5 + default numpy
-        Q, r, ev, evI = map(numpy.ascontiguousarray, (Q,r,ev,evI))
-        exponentiator_candidates = [EigenExponentiator(Q, r, ev, evI)]
-        if symmetric:
-            pyx = pyrex.EigenExponentiator(Q, r, ev, evI)
+        exponentiator_candidates = [EigenExponentiator(Q, roots, ev, evI)]
+        if roots.dtype.kind == 'f':
+            assert ev.dtype.kind == 'f'
+            pyx = pyrex.EigenExponentiator(Q, roots, ev, evI)
             exponentiator_candidates.append(pyx)
         (exponentiator, P) = _fastest(exponentiator_candidates, 1.1)
         FastestExponentiator = type(exponentiator)
@@ -207,25 +212,37 @@ def _chooseFastExponentiator(Q, symmetric):
         inverse = inv
         FastestExponentiator = EigenExponentiator
     
-    def Exp(Q):
+    # FastestExponentiator may be the pyrex Exponentiator which
+    # doesn't cope with complex inputs
+    e_class = {'c': EigenExponentiator, 'f':FastestExponentiator}
+    
+    def Exp(Q, e_class=e_class):
+        (roots, ev) = eigenvectors(Q)
+        return e_class[roots.dtype.kind](Q, roots, ev, inverse(ev))
+    
+    def Exp2(Q, e_class=e_class):
         (roots, ev) = eigenvectors(Q)
         evI = inverse(ev)
-        return FastestExponentiator(Q, roots, ev, evI)
+        reQ = numpy.inner(ev.T * roots, evI).real
+        if not numpy.allclose(Q, reQ):
+            raise ArithmeticError, "eigen failed precision test"
+        return e_class[roots.dtype.kind](Q, roots, ev, evI)
     
     # These function attributes are just for log / debug etc.
     Exp.eigenvectors = eigenvectors
     Exp.inverse = inverse
     Exp.exponentiator = FastestExponentiator
     
-    return Exp
+    return (Exp, Exp2)
 
-def chooseFastExponentiator(Q, symmetric):
-    ex = _chooseFastExponentiator(Q, symmetric)
+def chooseFastExponentiators(Q):
+    ex = _chooseFastExponentiators(Q)
     LOG.info('Strategy for Q Size %s: PyrexEig:%s PyrexInv:%s PyrexExp:%s'
-        % (Q.shape[0],
-        (ex.eigenvectors is not eig),
-        (ex.inverse is not inv),
-        (ex.exponentiator is not EigenExponentiator)))
+        % (
+        Q.shape[0],
+        (ex[0].eigenvectors is not eig),
+        (ex[0].inverse is not inv),
+        (ex[0].exponentiator is not EigenExponentiator)))
     return ex
 
 def FastExponentiator(Q):
@@ -240,37 +257,3 @@ def FastExponentiator(Q):
 def RobustExponentiator(Q):
     return PadeExponentiator(Q)
 
-class ExponentiatorFactory(object):
-    """Switches between fast and robust exponentiation algorithms
-    as possible / required.  If 'check' is true the eigen decomposition
-    used by the faster method will be checked for accuracy, causing
-    ~15% slowdown, otherwise only an arithmetic error in the decomposition
-    (eg: determinant near zero) will trigger the switch to the more
-    robust algorithm"""
-    
-    def __init__(self, check, exponentiator_class):
-        self._slowcount = 0
-        self.given_expm_warning = False
-        self.check = check
-        self.FastExponentiator = exponentiator_class
-    
-    def __call__(self, Q):
-        self._slowcount += 1
-        if self._slowcount > 5 and self._slowcount % 10:
-            # In a bad patch, don't even bother to try fast algorithm
-            ex = RobustExponentiator(Q)
-        else:
-            # try fast on calls 1,2,3,4,5,10,20,30...
-            try:
-                ex = self.FastExponentiator(Q)
-                if self.check and not numpy.allclose(Q, ex.reconstructedQ()):
-                    raise ArithmeticError, "Failed precision test"
-            except (ArithmeticError, LinAlgError), detail:
-                if not self.given_expm_warning:
-                    LOG.warning("using slow exponentiator because '%s'" % str(detail))
-                    self.given_expm_warning = True
-                ex = RobustExponentiator(Q)
-            else:
-                self._slowcount = 0
-        return ex
-    

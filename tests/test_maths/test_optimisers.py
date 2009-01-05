@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import unittest, time, sys, os
+import unittest, time, sys, os, numpy
 from cogent.maths.optimisers import SimulatedAnnealing, Powell
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -12,11 +12,6 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-try:
-    import fpconst
-except ImportError:
-    import cogent.maths._fpconst as fpconst
-        
 class NullFile(object):
     def write(self, x):
         pass
@@ -35,7 +30,7 @@ def easilyOptimised(direction):
         if 0.0 <= vector[0] <= 10.0:
             return -direction * (vector[0]-5.0)**2 + 3
         else:
-            return -direction * fpconst.PosInf()
+            return -direction * numpy.inf
     bounds = ([0.0], [10.0])
     return (testoptparvector, [1.0], bounds)
     

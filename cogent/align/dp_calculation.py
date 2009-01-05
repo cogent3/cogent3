@@ -158,7 +158,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
         edge_args = []
         edge_defn_constructor = EdgeSumAndAlignDefn
     
-    mprobs = subst['motif_probs']
+    mprobs = subst['word_probs']
     bin_data = CalcDefn(BinData)(mprobs, indel, subst['Qd'])
     bin_data = selectDefns(bin_data, 'bin', bin_names)
     edge_args.extend(bin_data)

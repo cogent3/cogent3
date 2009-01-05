@@ -61,14 +61,8 @@ from numpy import max, min, sum, zeros, diag, eye, abs, asarray, argmin, shape,\
 
 __version__="0.7"
 
-# Since PEP754 isn't standard yet, and PEP326 dosn't play nice with arrays
-# We'll use fpconst.PosInf as the placeholder out-of-bounds value.
-try:
-    import fpconst
-except ImportError:
-    import cogent.maths._fpconst as fpconst
-Inf = fpconst.PosInf
-
+# placeholder out-of-bounds value
+Inf = Num.inf
 
 #import scipy_base
 _epsilon = 1.49e-8  #sqrt(scipy_base.limits.double_epsilon)
@@ -1253,7 +1247,7 @@ def brent(func, args=(), brack=None, tol=1.48e-8, full_output=0, maxiter=500):
         if abs(x-xmid) < (tol2-0.5*(b-a)):  # check for convergence
             xmin=x; fval=fx
             break
-        infinities_present = [f for f in [fw, fv, fx] if fpconst.isPosInf(f)]
+        infinities_present = [f for f in [fw, fv, fx] if Num.isposinf(f)]
         if infinities_present or (abs(deltax) <= tol1):
             if (x>=xmid): deltax=a-x       # do a golden section step
             else: deltax=b-x
@@ -1299,6 +1293,7 @@ def brent(func, args=(), brack=None, tol=1.48e-8, full_output=0, maxiter=500):
             else: b = x
             v=w; w=x; x=u
             fv=fw; fw=fx; fx=fu
+        
         iter += 1
     
     xmin = x

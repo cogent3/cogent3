@@ -60,8 +60,9 @@ class _LikelihoodParameterController(_LF):
         self.seq_names = tree.getTipNames()
         self.locus_names  = _category_names('locus', loci)
         self.bin_names  = _category_names('bin', bins)
+        self.posn_names = [str(i) for i in range(model.getWordLength())]
         self.motifs = self._motifs = model.getMotifs()
-        self._mprobs_name = 'mprobs'
+        self._mprob_motifs = list(model.getMprobAlphabet())
         defn = self.makeLikelihoodDefn(**kw)
         self.real_par_controller = defn.makeParamController()
         self.setDefaultParamRules()
@@ -122,26 +123,35 @@ class _LikelihoodParameterController(_LF):
             if edge.Length is not None:
                 self.setParamRule('length', edge=edge.Name, init=edge.Length)
     
-    def setMotifProbsFromData(self, align, locus=None, is_const=None, include_ambiguity=False, auto=False):
-        counts = self.model.countMotifs(align, include_ambiguity=include_ambiguity)
+    def setMotifProbsFromData(self, align, locus=None, is_const=None, 
+                include_ambiguity=False, is_independent=None, auto=False):
+        counts = self.model.countMotifs(align, 
+                include_ambiguity=include_ambiguity)
         mprobs = counts/(1.0*sum(counts))
-        self.setMotifProbs(mprobs, locus=locus, is_const=is_const, auto=auto)
+        self.setMotifProbs(mprobs, locus=locus, is_const=is_const, 
+                is_independent=is_independent, auto=auto)
     
-    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_const=None, auto=False):
-        alphabet = self.model.getAlphabet()
-        assert len(motif_probs) == len(alphabet), (motif_probs, len(alphabet))
-        if isinstance(motif_probs, dict):
-            motif_probs = numpy.array(
-                    [motif_probs[motif] for motif in alphabet])
-        motif_probs = numpy.asarray(motif_probs)
-        assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
+    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_const=None, 
+                is_independent=None, auto=False):
+        motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
         if is_const is None:
             is_const = not self.optimise_motif_probs
-        self.setParamRule('mprobs', is_const=is_const, value=motif_probs,
-                bin=bin, locus=locus)
+        if self.model.position_specific_mprobs:
+            assert len(self.posn_names) == len(motif_probs), len(motif_probs)
+            for (i,m) in zip(self.posn_names, motif_probs):
+                self.setParamRule('mprobs', is_const=is_const, value=m,
+                        bin=bin, locus=locus, is_independent=is_independent,
+                        position=i)
+        else:
+            self.setParamRule('mprobs', is_const=is_const, value=motif_probs,
+                    bin=bin, locus=locus, is_independent=is_independent)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
     
+    def setExpm(self, expm):
+        assert expm in ['pade', 'either', 'eigen', 'checked'], expm
+        self.setParamRule('expm', is_const=True, value=expm)
+
     def makeCalculator(self, aligns):
         # deprecate
         self.setAlignment(aligns)
@@ -179,7 +189,8 @@ class _LikelihoodParameterController(_LF):
     
     def setParamRule(self, par_name, is_independent=None, is_const=False,
             value=None, total=None, lower=None, init=None, upper=None,
-            bin=None, bins=None, locus=None, loci=None, **scope_info):
+            bin=None, bins=None, locus=None, loci=None, position=None, 
+            **scope_info):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
         
@@ -210,6 +221,7 @@ class _LikelihoodParameterController(_LF):
                 common ancestor defined by the tip_names+outgroup_name
                 arguments.
         """
+        par_name = str(par_name)
         
         edges = self._process_scope_info(**scope_info)
         
@@ -230,6 +242,8 @@ class _LikelihoodParameterController(_LF):
             scopes['bin'] = bins
         if loci:
             scopes['locus'] = loci
+        if position:
+            scopes['position'] = position
         
         if total is not None:
             assert not (value or is_independent or init or lower or upper or bins or loci)
@@ -287,7 +301,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         defns = self.model.makeParamControllerDefns(
                 bin_names=self.bin_names)
         return likelihood_calculation.makeTotalLogLikelihoodDefn(
-            self.tree, defns['align'], defns['psubs'], defns['motif_probs'],
+            self.tree, defns['align'], defns['psubs'], defns['word_probs'],
             defns['bprobs'], self.bin_names, self.locus_names,
             sites_independent)
     

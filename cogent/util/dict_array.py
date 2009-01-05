@@ -45,6 +45,10 @@ class DictArrayTemplate(object):
             self.names.append(names)
             self.ordinals.append(dict((c,i) for (i,c) in enumerate(names)))
     
+    def __eq__(self, other):
+        return self is other or (
+            isinstance(other, DictArrayTemplate) and self.names == other.names)
+    
     def wrap(self, array, dtype = None):
         # dtype is numpy
         array = numpy.asarray(array, dtype=dtype)
@@ -149,8 +153,19 @@ class DictArray(object):
     def __repr__(self):
         return self.template.array_repr(self.array)
     
+    def __ne__(self, other):
+        return not self.__eq__(other)
+        
     def __eq__(self, other):
-        if not isinstance(other, dict):
-            other = other.asdict()
-        return self.asdict() == other
+        if self is other:
+            return True
+        elif isinstance(other, DictArray):
+            return self.template == other.template and numpy.all(
+                    self.array == other.array)
+        elif type(other) is type(self.array):
+            return self.array == other
+        elif isinstance(other, dict):
+            return self.asdict() == other
+        else:
+            return False
     

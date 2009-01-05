@@ -114,10 +114,14 @@ class ParameterController(_ParameterController):
                 independent=independent, **(scope_spec or {})):
             if value is None:
                 values = PC.getAllDefaultValues(scope)
-                values.sort()
-                s_value = values[len(values)//2]
-                if values != [s_value] * len(values):
-                    LOG.warning("Used '%s' median of %s" % (par_name, s_value))
+                if len(values) == 1:
+                    s_value = values[0]
+                else:
+                    s_value = sum(values) / len(values)
+                    for value in values:
+                        if not numpy.all(value==s_value):
+                            LOG.warning("Used mean of '%s' values" % par_name)
+                            break
             else:
                 s_value = value
             if const:
@@ -491,7 +495,9 @@ def _unpack_proportions(values):
     if len(values) == 1:
         return []
     half = len(values) // 2
-    ratio = sum(values[half:]) / sum(values[:half])
+    (num, denom) = (sum(values[half:]), sum(values[:half]))
+    assert num > 0 and denom > 0
+    ratio = num / denom
     return [ratio] + _unpack_proportions(values[:half]) + \
         _unpack_proportions(values[half:])
 
@@ -525,8 +531,26 @@ class PartitionDefn(_InputDefn):
         self.size = size
     
     def checkSettingIsValid(self, setting):
-        assert setting.getDefaultValue().shape == (self.size,), setting
-        assert abs(sum(setting.getDefaultValue()) - 1.0) < .00001
+        default = setting.getDefaultValue()
+        if default.shape != (self.size,):
+            raise ValueError("Wrong array shape %s for %s, expected %s" %
+                default.shape, self.name, (self.size,))
+        for part in default:
+            if part < 0:
+                raise ValueError("Negative probability in %s" % self.name)                
+            if part > 1:
+                raise ValueError("Probability > 1 in %s" % self.name)                
+            if not setting.is_const:
+                # 0 or 1 leads to log(0) or log(inf) in optimiser code
+                if part == 0:
+                    raise ValueError("Zeros allowed in %s only when constant" % 
+                        self.name)                
+                if part == 1:
+                    raise ValueError("Ones allowed in %s only when constant" % 
+                        self.name)
+        if abs(sum(default) - 1.0) > .00001:
+            raise ValueError("Elements of %s must sum to 1.0, not %s" %
+                self.name, sum(default))
     
     def makeDefaultSetting(self):
         #return ConstVal(self.default)
@@ -571,9 +595,9 @@ class PartitionDefn(_InputDefn):
         return [Evaluator(self, all_cells, uniq_cells)]
     
 
-def NonParamDefn(name, dimensions=None):
+def NonParamDefn(name, dimensions=None, **kw):
     # Just to get 2nd arg as dimensions
-    return NonScalarDefn(name=name, dimensions=dimensions)
+    return NonScalarDefn(name=name, dimensions=dimensions, **kw)
 
 class ConstDefn(NonScalarDefn):
     # This isn't really needed - just use NonParamDefn

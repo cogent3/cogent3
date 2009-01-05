@@ -9,7 +9,7 @@ from __future__ import division
 from tempfile import mktemp
 from os import remove, environ
 from os.path import exists
-from numpy import zeros, array, transpose, arange, nan, log, e, sqrt,\
+from numpy import zeros, ones, array, transpose, arange, nan, log, e, sqrt,\
     greater_equal, less_equal
 from cogent.util.unit_test import TestCase, main
 from cogent import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
@@ -2521,7 +2521,7 @@ class GctmpcaTests(TestCase):
         # due to the two Dayhoff matrices in the PAML data. I think they're
         # using the second one (which is from Dayhoff et al., 1978) and we're 
         # using the first one. What is the difference b/w these two?
-
+        
         aa_order = 'ACDEFGHIKLMNPQRSTVWY'
         q = build_rate_matrix(DSO78_matrix,DSO78_freqs,aa_order=aa_order)
         expected = []
@@ -2529,7 +2529,7 @@ class GctmpcaTests(TestCase):
             expected.append([default_gctmpca_aa_sub_matrix[row_aa][col_aa] \
              for col_aa in aa_order])
         self.assertFloatEqual(q,expected,3)
-
+    
     def test_build_q_ignores_zero_counts(self):
         """build_rate_matrix: recoded counts (i.e., w/ many 0s) yeilds right Q
         """
@@ -2544,7 +2544,9 @@ class GctmpcaTests(TestCase):
             motif_probs=aa_freqs_3,\
             alphabet=Alphabet(aa_order_3),recode_gaps=True,do_scaling=True,\
             name="",optimise_motif_probs=False)
-        q3 = sm.calcRateMatrix().calcQ([aa_freqs_3[aa] for aa in aa_order_3])
+        wprobs = array([aa_freqs_3[aa] for aa in aa_order_3])
+        mprobs_matrix=ones((wprobs.shape[0],wprobs.shape[0]),float)*wprobs
+        q3 = sm.calcRateMatrix().calcQ(wprobs, mprobs_matrix)
         aa_freqs_20 = {}.fromkeys('ACDEFGHIKLMNPQRSTVWY',0.0)
         aa_freqs_20['A'] = 0.5
         aa_freqs_20['C'] = 0.3

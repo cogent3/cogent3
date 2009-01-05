@@ -49,7 +49,8 @@ LOG = logging.getLogger('cogent')
 __author__ = "Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
-                    "Matthew Wakefield", "Brett Easton", "Rob Knight"]
+                    "Matthew Wakefield", "Brett Easton", "Rob Knight",
+                    "Von Bing Yap"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -98,6 +99,49 @@ def _extract_kw(substring, kw):
 def _isSymmetrical(matrix):
     return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
 
+def _calc_monomer_tuple_indices(tuple_alphabet, monomers):
+    """returns arrays for mapping between tuple_alphabet and monomer alphabet"""
+    # alphabets should be able to do this.
+    # m2w[AC, 1] = C
+    # w2m[AA, A] = 2
+    size = len(tuple_alphabet)
+    length = tuple_alphabet.getMotifLen()
+    m2w = numpy.zeros([size, length], Int)
+    w2m = numpy.zeros([length, size, len(monomers)], Int)
+    for i in range(size):
+        for j in range(length):
+            monomer = monomers.index(tuple_alphabet[i][j])
+            m2w[i, j] = monomer
+            w2m[j, i, monomer] = 1
+    return (m2w, w2m)
+
+def _calc_monomer_matrix_indices(tuple_alphabet, monomers, mask):
+    """return the element indices for flattened matrix for the monomers
+    
+    Arguments:
+        - tuple_alphabet: series of multi-letter motifs
+        - monomers: the monomers from which the motifs are made
+        - mask: instantaneous change matrix"""
+    
+    diff_pos = lambda x,y: [i for i in range(len(x)) if x[i] != y[i]]
+    mutated_posn = numpy.zeros(mask.shape, Int)
+    mutant_motif = numpy.zeros(mask.shape, Int)
+    num_states = len(tuple_alphabet)
+    for i in range(num_states):
+        old_word = tuple_alphabet[i]
+        for j in range(num_states):
+            new_word = tuple_alphabet[j]
+            if mask[i,j]:
+                assert mask[i,j] == 1.0
+                diffs = diff_pos(old_word, new_word)
+                assert len(diffs) == 1, (old_word, new_word)
+                mutated_posn[i,j] = diffs[0]
+                mutant_motif[i,j] = monomers.index(new_word[diffs[0]])
+            else:
+                mutated_posn[i,j] = 0  # ignored but must not upset .take()
+                mutant_motif[i,j] = 0  # values here ignored, mask used.
+    return (mutated_posn, mutant_motif, mask)
+
 class _SubstitutionModel(object):
     # Subclasses must provide
     #  .makeParamControllerDefns()
@@ -119,7 +163,7 @@ class _SubstitutionModel(object):
         return list(self.getAlphabet())
     
     def makeLikelihoodFunction(self, tree, motif_probs_from_align=None,
-            optimise_motif_probs=None, aligned=True, **kw):
+            optimise_motif_probs=None, aligned=True, expm='either', **kw):
         
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
@@ -142,6 +186,9 @@ class _SubstitutionModel(object):
         if self.motif_probs is not None:
             result.setMotifProbs(self.motif_probs, is_const=
                 not optimise_motif_probs, auto=True)
+        
+        result.setExpm(expm)
+        
         return result
     
     def makeParamController(self, tree, motif_probs_from_align=None,
@@ -161,17 +208,24 @@ class _SubstitutionModel(object):
         return result
     
     def convertSequence(self, sequence, name):
-        # makeLikelihoodTreeLeaf, sort of an indexed profile where duplicate columns
-        # stored once, so likelihoods only calc'd once
+        # makeLikelihoodTreeLeaf, sort of an indexed profile where duplicate
+        # columns stored once, so likelihoods only calc'd once
         return makeLikelihoodTreeLeaf(sequence, self.getAlphabet(), name)
     
     def countMotifs(self, alignment, include_ambiguity=False):
-        # for calculating motif probabilities
-        leaves = self.convertAlignment(alignment).values()
-        return numpy.sum([
-                leaf.getMotifCounts(include_ambiguity=include_ambiguity)
-                for leaf in leaves], 0)
-    
+        alphabet = [self.getMprobAlphabet(), self.getAlphabet()][
+                self.position_specific_mprobs]
+        result = None
+        for seq_name in alignment.getSeqNames():
+            sequence = alignment.getGappedSeq(seq_name, self.recode_gaps)
+            leaf = makeLikelihoodTreeLeaf(sequence, alphabet, 
+                    seq_name)
+            count = leaf.getMotifCounts(include_ambiguity=include_ambiguity)
+            if result is None:
+                result = count.copy()
+            else:
+                result += count
+        return result
 
 class SubstitutionModel(_SubstitutionModel):
     """Basic services for markov models of molecular substitution"""
@@ -179,11 +233,12 @@ class SubstitutionModel(_SubstitutionModel):
     def __init__(self, alphabet, predicates=None, scales=None,
             motif_probs=None, optimise_motif_probs=False,
             equal_motif_probs=False, motif_probs_from_data=None,
-            motif_probs_alignment=None, rate_matrix=None,
-            model_gaps=False, recode_gaps=False, motif_length=1,
+            motif_probs_alignment=None, mprob_model=None,
+            rate_matrix=None, word_length=None,
+            model_gaps=False, recode_gaps=False, motif_length=None,
             do_scaling=True, with_rate=False, name="", motifs=None,
             ordered_param=None, distribution=None, partitioned_params=None,
-            **kw):
+            ):
         
         """Initialise the model.
         
@@ -195,8 +250,14 @@ class SubstitutionModel(_SubstitutionModel):
             - motif_probs: dictionary of probabilities, or None if they are to
               be calculated from the alignment. If optimise_motif_probs is set
               these will only be used as initial values.
-            - model_gaps: specifies whether the gap motif should be included as
-              a state in the Markov chain.
+            - mprob_model: If 'monomer', the model Alphabet monomer
+              motif probabilities will be computed from motif probabilities.
+              Rate matrix elements then include the probability of the monomer
+              end state, eg an interchange between dinucleotide ij <=> ik
+              will be scaled by the probability P(k), not P(ik).
+              If 'monomers' position specific mprobs will be used.
+            - model_gaps: specifies whether the gap motif should be included
+              as a state in the Markov chain.
             - recode_gaps: specifies whether gaps in an alignment should be
               treated as an ambiguous state instead.
             - do_scaling: automatically scale branch lengths as the expected
@@ -205,12 +266,26 @@ class SubstitutionModel(_SubstitutionModel):
         
         # - with_rate: pertinent only for binned lengths
         # - scales: scale rules, dict with predicates
-        # - motif_probs_alignment: motif probs from full alignment, see Vestige
+        # - motif_probs_alignment: motif probs from full alignment, see
+        #   Vestige
         # - motifs: make a subalphabet that only contains those motifs
-        # - ordered_param: a single parameter name (str) or a series of parameter names
-        # - distribution: choices of 'free' or 'gamma' or an instance of some distribution. Could probably just deprecate free
+        # - ordered_param: a single parameter name (str) or a series of
+        #   parameter names
+        # - distribution: choices of 'free' or 'gamma' or an instance of some
+        #   distribution. Could probably just deprecate free
         # - rate_matrix: for empirical matrices
         # - partitioned_params: params to be partitioned across bins
+        
+        # the following is a hack to ensure the interface of the version of
+        # cogent published with the Lindsay et al Biology Direct manuscript
+        # has the same interface as that which will finally be used.
+        use_monomer_probs = None
+        position_specific_mprobs = False
+        if mprob_model == 'monomer':
+            use_monomer_probs = True
+        elif mprob_model == 'monomers':
+            use_monomer_probs = True
+            position_specific_mprobs = True
         
         # MISC
         assert len(alphabet) < 65, "Alphabet too big. Try explicitly "\
@@ -238,37 +313,35 @@ class SubstitutionModel(_SubstitutionModel):
         self.MolType = alphabet.MolType
         if model_gaps:
             alphabet = alphabet.withGapMotif()
-        if motif_length > 1:
-            alphabet = alphabet.getWordAlphabet(motif_length)
+                
+        # The tidy way to use new-Q is to derive the word-alphabet from the
+        # monomer-alphabet via 'word_length'
+        # The transitional way to use new-Q is to accept or make the 
+        # word-alphabet then extract the monomer-alphabet from it.
+        if word_length > 1:
+            assert motif_length is None, 'word_length OR motif_length'
+            if use_monomer_probs is None:
+                use_monomer_probs = True
+            motif_alphabet = alphabet
+            alphabet = motif_alphabet.getWordAlphabet(word_length)
+            if not use_monomer_probs:
+                motif_alphabet = alphabet
+        else:
+            if motif_length > 1:
+                alphabet = alphabet.getWordAlphabet(motif_length)
+            if use_monomer_probs:
+                # interface deprecation warning?
+                motif_alphabet = alphabet.MolType.Alphabet
+            else:
+                motif_alphabet = alphabet
+            word_length = alphabet.getMotifLen() // motif_alphabet.getMotifLen()
+
         if motifs is not None:
             alphabet = alphabet.getSubset(motifs)
         self.alphabet = alphabet
         self.gapmotif = alphabet.getGapMotif()
-        
-        # MOTIF PROBS
-        
-        if equal_motif_probs:
-            assert not (motif_probs or motif_probs_alignment), \
-                    "Motif probs equal or provided but not both"
-            motif_probs = {}
-            for motif in self.alphabet:
-                motif_probs[motif] = 1.0 / len(self.alphabet)
-        elif motif_probs_alignment is not None:
-            assert not motif_probs, \
-                    "Motif probs from alignment or provided but not both"
-            motif_probs = self.countMotifs(motif_probs_alignment)
-            motif_probs = motif_probs.astype(Float) / sum(motif_probs)
-            motif_probs = dict(zip(self.alphabet, motif_probs))
-        if motif_probs:
-            assert len(motif_probs) == len(alphabet)
-            self.motif_probs = motif_probs
-            if motif_probs_from_data is None:
-                motif_probs_from_data = False
-        else:
-            self.motif_probs = None
-            if motif_probs_from_data is None:
-                motif_probs_from_data = True
-        self.motif_probs_from_align = motif_probs_from_data
+        self._mprobs_alphabet = motif_alphabet
+        self._word_length = word_length
         
         # MATRIX
         # truth (_instantaneous_mask) mask may not be needed
@@ -302,6 +375,44 @@ class SubstitutionModel(_SubstitutionModel):
         
         self.scale_masks = self._adaptPredicates(scales or [])
         
+        # MOTIF PROB ALPHABET MAPPING
+        if use_monomer_probs:
+            if model_gaps:
+                raise ValueError("Gapped new-Q context models not yet possible")
+            self._monomer_indices = _calc_monomer_tuple_indices(
+                    alphabet, motif_alphabet)
+            self._monomer_matrix_indices = _calc_monomer_matrix_indices(
+                    alphabet, motif_alphabet, self._instantaneous_mask_f)
+        else:
+            self._monomer_indices = None
+            self._monomer_matrix_indices = None
+        
+        # MOTIF PROBS
+        self.position_specific_mprobs = position_specific_mprobs
+        
+        if equal_motif_probs:
+            assert not (motif_probs or motif_probs_alignment), \
+                    "Motif probs equal or provided but not both"
+            motif_probs = {}
+            for motif in self._mprobs_alphabet:
+                motif_probs[motif] = 1.0 / len(self._mprobs_alphabet)
+        elif motif_probs_alignment is not None:
+            assert not motif_probs, \
+                    "Motif probs from alignment or provided but not both"
+            motif_probs = self.countMotifs(motif_probs_alignment)
+            motif_probs = motif_probs.astype(Float) / sum(motif_probs)
+            motif_probs = dict(zip(self._mprobs_alphabet, motif_probs))
+        if motif_probs:
+            self.adaptMotifProbs(motif_probs) # to check
+            self.motif_probs = motif_probs
+            if motif_probs_from_data is None:
+                motif_probs_from_data = False
+        else:
+            self.motif_probs = None
+            if motif_probs_from_data is None:
+                motif_probs_from_data = True
+        self.motif_probs_from_align = motif_probs_from_data
+
         # BINS
         if isinstance(ordered_param, str):
             ordered_param = (ordered_param,)
@@ -345,6 +456,9 @@ class SubstitutionModel(_SubstitutionModel):
     def getAlphabet(self):
         return self.alphabet
     
+    def getMprobAlphabet(self):
+        return self._mprobs_alphabet
+        
     def calcRateMatrix(self, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         inst = self._instantaneous_mask_f
@@ -354,19 +468,26 @@ class SubstitutionModel(_SubstitutionModel):
             numpy.put(work, indices, par)
             F *= work
             work[:] = 1.0
+            
         return self.rateMatrixClass(F, self._ident, self.symmetric)
     
-    def _suitableExponentiatorClass(self):
+    def suitableEigenExponentiators(self):
         # Uses a fake Q to compare the eigenvalue implementations
         # with.  This assumes that one Q will be much like another.
         import random
         if self._exponentiator is None:
             params = [random.uniform(0.5, 2.0) for p in self.parameter_order]
             R = self.calcRateMatrix(*params)
-            motif_probs = numpy.array(
-                    [random.uniform(0.2, 1.0) for m in self.getAlphabet()])
-            motif_probs /= sum(motif_probs)
-            self._exponentiator = R.getFastExponentiatorClass(motif_probs)
+            if self.motif_probs:
+                monomer_probs =self.adaptMotifProbs(self.motif_probs, auto=True)
+            else:
+                monomer_probs = numpy.array(
+                    [random.uniform(0.2, 1.0) for m in self.getMprobAlphabet()])
+            monomer_probs /= sum(monomer_probs)
+            word_probs = self.calcWordProbs(monomer_probs)
+            mprobs_matrix = self.calcWordWeightMatrix(monomer_probs)
+            self._exponentiator = R.getFastEigenExponentiators(
+                word_probs, mprobs_matrix)
         return self._exponentiator
     
     # At some point this can be made variable, and probably
@@ -474,6 +595,9 @@ class SubstitutionModel(_SubstitutionModel):
             Pars[x, y].sort()
         return Pars
     
+    def getWordLength(self):
+        return self._word_length
+        
     def getMotifProbs(self):
         """Return the dictionary of motif probabilities."""
         return self.motif_probs.copy()
@@ -508,7 +632,9 @@ class SubstitutionModel(_SubstitutionModel):
         bin_probs = numpy.asarray(bin_probs)
         for (Q, bin_prob, motif_probs) in zip(Qs, bin_probs, motif_probss):
             row_totals = numpy.sum(rule * Q, axis=1)
-            scale = sum(row_totals * numpy.asarray(motif_probs))
+            motif_probs = numpy.asarray(motif_probs)
+            word_probs = self.calcWordProbs(motif_probs)
+            scale = sum(row_totals * word_probs)
             weighted_scale += bin_prob * scale
         return weighted_scale
     
@@ -589,25 +715,112 @@ class SubstitutionModel(_SubstitutionModel):
         return substitution_calculation.AlignmentAdaptDefn(
             model, align)
     
-    def makeMotifProbsDefn(self, none=None):
+    def makeMotifProbsDefn(self):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
-        assert none is None, none # YUK TIDY
+        if self.position_specific_mprobs:
+            dimensions = ('locus', 'position')
+        else:
+            dimensions = ('locus',)
         return substitution_calculation.PartitionDefn(
-                name="mprobs", default=None, dimensions=('locus',),
-                dimension=('motif', tuple(self.getAlphabet())))
-        #return substitution_calculation.makeMotifProbsDefn(
-        #    self.getAlphabet(), self.motif_probs)
+                name="mprobs", default=None, dimensions=dimensions,
+                dimension=('motif', tuple(self.getMprobAlphabet())))
+
+    def makeMotifPosnProbsDefns(self, monomer_probs):
+        if self.position_specific_mprobs:
+            return [substitution_calculation.SelectFromDimension(
+                monomer_probs, position=str(i)) for i in 
+                range(self._word_length)]
+        else:
+            return [monomer_probs]
+
+    def adaptMotifProbs(self, motif_probs, auto=False):
+        alphabet = self.getMprobAlphabet()
+        recode_mprobs = False
+        if hasattr(motif_probs, 'keys'):
+            sample = motif_probs.keys()[0]
+            if sample not in alphabet:
+                alphabet = self.getAlphabet()
+                recode_mprobs = True
+                if sample not in alphabet:
+                        raise ValueError("Can't find motif %s in alphabet" %
+                                sample)
+            motif_probs = numpy.array(
+                    [motif_probs.get(motif, 0) for motif in alphabet])
+        else:
+            if len(motif_probs) != len(alphabet):
+                alphabet = self.getAlphabet()
+                recode_mprobs = True
+                if len(motif_probs) != len(alphabet):
+                    raise ValueError("Can't match %s probs to %s alphabet" %
+                            (len(motif_probs), len(alphabet)))
+            motif_probs = numpy.asarray(motif_probs)
+        assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
+        if recode_mprobs:
+            motif_probs = self.calcMonomerProbs(motif_probs)
+            if not auto and not self.position_specific_mprobs:
+                warnings.warn('Motif probs overspecified', stacklevel=4)
+        elif self.position_specific_mprobs:
+            motif_probs = [motif_probs.copy() for i in range(self._word_length)]
+        return motif_probs
+
+    def calcMonomerProbs(self, word_probs):
+        # Not presently used, always go monomer->word instead
+        if self._monomer_indices is None:
+            return word_probs
+        (m2w, w2m) = self._monomer_indices
+        if not self.position_specific_mprobs:
+            monomer_probs = numpy.dot(word_probs, w2m.sum(axis=0))
+            monomer_probs /= monomer_probs.sum()
+        else:
+            monomer_probs = numpy.dot(word_probs, w2m)
+            monomer_probs /= monomer_probs.sum(axis=1)[..., numpy.newaxis]
+            monomer_probs = list(monomer_probs)
+        return monomer_probs
     
-    def makeQdDefn(self, motif_probs, rate_params):
+    def calcWordProbs(self, *monomer_probs):  
+        if self._monomer_indices is None:
+            assert len(monomer_probs) == 1
+            return monomer_probs[0]
+        (m2w, w2m) = self._monomer_indices
+        if len(monomer_probs) == 1:
+            result = numpy.product(monomer_probs[0].take(m2w), axis=-1)
+            # maybe simpler but slower, works ok:
+            #result = numpy.product(monomer_probs[0] ** (w2m, axis=-1))
+        else:
+            assert len(monomer_probs) == m2w.shape[1]
+            result = numpy.product(
+                [monomer_probs[i].take(m2w[:,i]) 
+                for i in range(len(monomer_probs))], axis=0)
+        result /= result.sum()
+        return result
+    
+    def calcWordWeightMatrix(self, *monomer_probs):  
+        if self._monomer_matrix_indices is None:
+            assert len(monomer_probs) == 1
+            return monomer_probs[0]
+        (positions, indices, mask) = self._monomer_matrix_indices
+        if len(monomer_probs) == 1:
+            result = monomer_probs[0].take(indices) * mask
+        else:
+            monomer_probs = numpy.array(monomer_probs) # so [posn, motif]
+            size = monomer_probs.shape[-1]
+            extended_indices = positions * size + indices # should be constant
+            result = monomer_probs.take(extended_indices) * mask
+        return result
+    
+    def makeQdDefn(self, word_probs, mprobs_matrix, rate_params):
+        NonParamDefn = substitution_calculation.NonParamDefn
+        expm = NonParamDefn('expm')
+        exp = substitution_calculation.ExpDefn(expm, model=self)
+        
         return substitution_calculation.QdDefn(
-            motif_probs,
+            exp,
+            word_probs,
+            mprobs_matrix,
             *rate_params,
-            **dict(
-            calc_rate_matrix = self.calcRateMatrix,
-            check_eigenvalues = not self.symmetric,
-            exponentiator_class=self._suitableExponentiatorClass()
-            ))
+            **dict(calc_rate_matrix = self.calcRateMatrix)
+            )
     
     def makePsubsDefn(self, Qd, distance):
         """Makes the second part of the parameter controller definition,
@@ -654,7 +867,6 @@ class SubstitutionModel(_SubstitutionModel):
             distance = length
         
         model = substitution_calculation.ConstDefn(self, 'model')
-        motif_probs = self.makeMotifProbsDefn()
         rate_params = []
         for param_name in self.parameter_order:
             if param_name not in self.partitioned_params:
@@ -667,10 +879,24 @@ class SubstitutionModel(_SubstitutionModel):
                             param_name, param_name+'_factor', bprobs)
                     defn = ProductDefn(b_defn, defn, name=param_name+'_BE')
             rate_params.append(defn)
-        Qd = self.makeQdDefn(motif_probs, rate_params)
+            
+        monomer_probs = self.makeMotifProbsDefn()
+        monomer_probs3 = self.makeMotifPosnProbsDefns(monomer_probs)
+        word_probs = mprobs_matrix = monomer_probs
+        if self._monomer_indices is not None:
+            word_probs = substitution_calculation.CalcDefn(
+                self.calcWordProbs, name="wprobs")(*monomer_probs3)
+        if self._monomer_matrix_indices is not None:
+            mprobs_matrix = substitution_calculation.CalcDefn(
+                self.calcWordWeightMatrix, name="mprobs_matrix")(
+                    *monomer_probs3)
+        Qd = self.makeQdDefn(word_probs, mprobs_matrix, rate_params)
+        
         defns = {
             'model': model,
-            'motif_probs': motif_probs,
+            'motif_probs': monomer_probs,  
+            'word_probs': word_probs,
+            'mprobs_matrix': mprobs_matrix,
             'length': length,
             'distance': distance,
             'Qd': Qd,

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['_fpconst',
-           'function_optimisation',
+__all__ = ['function_optimisation',
            'geometry',
            'markov',
            'matrix_exponentiation',

@@ -69,7 +69,7 @@ class ConstVal(Setting):
         return self.value
     
     def getBounds(self):
-        return (self.value, self.value, self.value)
+        return (None, self.value, None)
     
 
 class Whole(object):

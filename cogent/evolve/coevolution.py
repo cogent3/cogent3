@@ -55,7 +55,7 @@ from optparse import OptionParser
 from cPickle import Pickler, Unpickler
 from os.path import splitext, basename, exists
 from sys import exit
-from numpy import zeros, float, put, transpose, array, float64, nonzero,\
+from numpy import zeros, ones, float, put, transpose, array, float64, nonzero,\
     abs, sqrt, exp, ravel, take, reshape, mean, tril, nan, isnan, log, e,\
     greater_equal, less_equal
 from random import shuffle
@@ -1123,7 +1123,11 @@ def ancestral_state_pair(aln,tree,pos1,pos2,\
 def build_rate_matrix(count_matrix,freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
 
     epm = EmpiricalProteinMatrix(count_matrix,freqs)
-    return epm.calcRateMatrix().calcQ([freqs[aa] for aa in aa_order])
+    word_probs = array([freqs[aa] for aa in aa_order])
+    num = word_probs.shape[0]
+    mprobs_matrix = ones((num,num), float)*word_probs
+    
+    return epm.calcRateMatrix().calcQ(word_probs, mprobs_matrix)
 
 def create_gctmpca_input(aln,tree):
     """ Generate the four input files as lists of lines. """
