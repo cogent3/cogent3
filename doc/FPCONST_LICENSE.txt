@@ -5,7 +5,7 @@ fpconst: A Python module for handling IEEE 754 floating point special
 Author:    Gregory R. Warnes <gregory_r_warnes@groton.pfizer.com>
 Date::     2003-04-08
 Version    0.6.0
-Copyright: (c) 2003 Pfizer, Inc
+Copyright 2007-2009: (c) 2003 Pfizer, Inc
 ------------------------------------------------------------------
 
 This module provides 'fpconst' a reference implementation of Python

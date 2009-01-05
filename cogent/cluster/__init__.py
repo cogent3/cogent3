@@ -5,7 +5,7 @@
 __all__ = ['metric_scaling', 'UPGMA']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

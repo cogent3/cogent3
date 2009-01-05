@@ -5,7 +5,7 @@ from cogent.core.info      import Info
 from cogent.parse.nupack   import nupack_parser
 
 __author__ = "Shandy Wikman"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Shandy Wikman"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
@@ -32,7 +32,7 @@ class NupackParserTest(TestCase):
         self.assertEqual(obs,self.nupack_exp)
 
 NUPACK = ['****************************************************************\n', 'NUPACK 1.2\n', 
-'Copyright 2003, 2004 by Robert M. Dirks & Niles A. Pierce\n', 
+'Copyright 2007-2009 2003, 2004 by Robert M. Dirks & Niles A. Pierce\n', 
 'California Institute of Technology\n', 'Pasadena, CA 91125 USA\n', '\n', 
 'Last Modified: 03/18/2004\n', 
 '****************************************************************\n', '\n', 

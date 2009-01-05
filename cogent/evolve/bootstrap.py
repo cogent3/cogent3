@@ -28,7 +28,7 @@ from cogent.maths import optimisers
 import random
 
 __author__ = "Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley","Andrew Butterfield", "Matthew Wakefield",
                     "Edward Lang", "Peter Maxwell"]
 __license__ = "GPL"

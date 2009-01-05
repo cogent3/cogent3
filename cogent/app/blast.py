@@ -12,7 +12,7 @@ from random import choice
 from copy import copy
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Micah Hamady", "Jeremy Widmann",
                     "Catherine Lozupone", "Rob Knight"]
 __license__ = "GPL"

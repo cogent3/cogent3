@@ -15,7 +15,7 @@ except ImportError:
     LOG.warning('Using slow Python dotplot implementation')
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

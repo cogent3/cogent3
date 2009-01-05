@@ -10,7 +10,7 @@ from cogent.app.muscle import Muscle, muscle_seqs, aln_tree_seqs, \
         align_and_build_tree, add_seqs_to_alignment, align_two_alignments
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

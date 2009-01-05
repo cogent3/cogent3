@@ -9,7 +9,7 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 from numpy import exp
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

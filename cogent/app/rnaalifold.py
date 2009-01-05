@@ -12,7 +12,7 @@ from cogent.format.clustal import clustal_from_alignment
 from cogent.struct.rna2d import ViennaStructure
 
 __author__ = "Shandy Wikman"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Shandy Wikman","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

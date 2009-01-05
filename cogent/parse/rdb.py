@@ -11,7 +11,7 @@ from cogent.core.info import Info
 from cogent.core.alphabet import AlphabetError
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

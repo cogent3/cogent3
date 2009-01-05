@@ -13,7 +13,7 @@ from numpy import log
 from cogent import LoadSeqs
 
 __author__ = "Helen Lindsay, Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Helen Lindsay", "Gavin Huttley", "Daniel McDonald"]
 cite = "Goldman, N. (1993).  Statistical tests of models of DNA substitution.  J Mol Evol, 36: 182-98"
 __license__ = "GPL"

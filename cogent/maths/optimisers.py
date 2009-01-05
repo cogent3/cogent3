@@ -7,7 +7,7 @@ from simannealingoptimiser import SimulatedAnnealing
 from scipy_optimisers import Powell, DownhillSimplex
 
 __author__ = "Andrew Butterfield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

@@ -21,7 +21,7 @@ from cogent.util.recode_alignment import alphabets, recode_dense_alignment,\
     recode_counts_and_freqs, recode_count_matrix
     
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

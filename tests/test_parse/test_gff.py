@@ -6,7 +6,7 @@ from cogent.util.unit_test import TestCase, main
 from StringIO import StringIO
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009 2008, The Cogent Project"
 __credits__ = ["Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

@@ -23,7 +23,7 @@ and they are therefore not supported (but may work anyway).
 """
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009 2008, The Cogent Project"
 __contributors__ = ["Kristian Rother", "Sandra Smit"]
 __credits__ = ["Janusz Bujnicki", "Daniel McDonald"]
 __license__ = "GPL"

@@ -5,7 +5,7 @@ from cogent.maths.stats.ks import pkolmogorov1x, pkolmogorov2x, pkstwo,\
 from cogent.maths.stats.test import ks_test, ks_boot
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

@@ -5,7 +5,7 @@ __all__ = ['alignment', 'alphabet', 'annotation', 'bitvector', 'genetic_code',
            'usage']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight",
                     "Sandra Smit", "Peter Maxwell", "Matthew Wakefield", 
                     "Greg Caporaso" ]

@@ -18,7 +18,7 @@ from cogent.util.dict2d import Dict2D
 import math
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
                     "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"

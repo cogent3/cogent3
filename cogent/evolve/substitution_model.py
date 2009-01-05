@@ -47,7 +47,7 @@ import logging
 LOG = logging.getLogger('cogent')
 
 __author__ = "Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Brett Easton", "Rob Knight"]
 __license__ = "GPL"

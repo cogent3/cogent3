@@ -10,7 +10,7 @@ __all__ = ['dendrogram', 'dotplot', 'legend', 'linear', 'colors', 'TrackDefn',
            'Diamond', 'Line', 'Scale', 'Legend']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", 
                     "Zongzhi Liu", "Matthew Wakefield"]
 __license__ = "GPL"

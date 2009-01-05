@@ -20,7 +20,7 @@ from cogent.maths.stats.util import Freqs
 from cogent.util.misc import identity, select
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight","Zongzhi Liu"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

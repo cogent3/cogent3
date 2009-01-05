@@ -6,7 +6,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.app.cd_hit import CD_HIT, CD_HIT_EST, cdhit_from_seqs
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

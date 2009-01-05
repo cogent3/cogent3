@@ -7,7 +7,7 @@ from cogent.evolve.best_likelihood import aligned_columns_to_rows, count_column_
 import math
 
 __author__ = "Helen Lindsay"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Helen Lindsay"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

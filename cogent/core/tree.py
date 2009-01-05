@@ -39,7 +39,7 @@ from cogent.util.misc import InverseDict
 LOG = logging.getLogger('cogent.tree')
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
                     "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald"]

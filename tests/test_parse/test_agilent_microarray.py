@@ -6,7 +6,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.parse.agilent_microarray import *
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

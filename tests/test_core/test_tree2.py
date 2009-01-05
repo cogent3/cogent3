@@ -6,7 +6,7 @@ import os
 from cogent.core.tree import LoadTree
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Andrew Butterfield",
                     "Matthew Wakefield", "Daniel McDonald"]
 __license__ = "GPL"

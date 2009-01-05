@@ -4,7 +4,7 @@ from distutils.extension import Extension
 import sys, os, re
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield", 
                     "Greg Caporaso"]
 __license__ = "GPL"

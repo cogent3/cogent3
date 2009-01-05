@@ -9,7 +9,7 @@ from cogent.db.ncbi import EUtils, ESearch, EFetch, ELink, ESearchResultParser,\
 from string import strip
 
 __author__ = "Mike Robeson"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Mike Robeson", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

@@ -11,7 +11,7 @@ from cogent.parse.fasta import MinimalFastaParser
 from cogent import LoadSeqs
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

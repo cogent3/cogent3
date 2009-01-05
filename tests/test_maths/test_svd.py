@@ -8,7 +8,7 @@ from cogent.maths.svd import ratio_two_best, ratio_best_to_sum, \
 from numpy import array, sqrt
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

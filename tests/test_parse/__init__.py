@@ -26,7 +26,7 @@ __all__ = ['test_aaindex',
            'test_unigene']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                     "Rob Knight", "Sandra Smit", "Micah Hamady",
                     "Jeremy Widmann", "Hua Ying", "Greg Caporaso",

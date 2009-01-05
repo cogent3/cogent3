@@ -16,7 +16,7 @@ from cogent.format.stockholm import stockholm_from_alignment
 from cogent.struct.rna2d import ViennaStructure, wuss_to_vienna
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
@@ -587,7 +587,7 @@ MODEL:
 
 CMALIGN_STDOUT = """# cmalign :: align sequences to an RNA CM
 # INFERNAL 1.0rc1 (June 2008)
-# Copyright (C) 2008 HHMI Janelia Farm Research Campus
+# Copyright 2007-2009 (C) 2008 HHMI Janelia Farm Research Campus
 # Freely distributed under the GNU General Public License (GPL)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command: cmalign --withali aln1.sto -o all_aligned.sto aln1.cm seqs1.fasta

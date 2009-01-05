@@ -12,7 +12,7 @@ from cogent.core.tree import PhyloNode
 from numpy.random import randint
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Sandra Smit", "Micah Hamady", "Rob Knight", "Jeremy Widmann",
                 "Daniel McDonald"]
 __license__ = "GPL"

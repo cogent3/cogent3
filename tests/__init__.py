@@ -11,7 +11,7 @@ for sub_module in sub_modules:
     exec ("from %s import %s" % (__name__, sub_module))
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield", "Andrew Butterfield", "Edward Lang"]
 __license__ = "GPL"

@@ -22,7 +22,7 @@ from cogent.parse.record import RecordError
 from string import strip, maketrans
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

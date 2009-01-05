@@ -5,7 +5,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.core.info import DbRef, DbRefs, Info, _make_list
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

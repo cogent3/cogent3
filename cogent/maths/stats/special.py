@@ -6,7 +6,7 @@ from __future__ import division
 from numpy import exp, log, floor, sin, sqrt
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

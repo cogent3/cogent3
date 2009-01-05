@@ -8,7 +8,7 @@ from cogent.app.parameters import *
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
 __author__ = "Greg Caporaso and Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Gavin Huttley",
                     "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"

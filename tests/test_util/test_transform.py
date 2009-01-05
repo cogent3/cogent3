@@ -16,7 +16,7 @@ from cogent.util.transform import apply_each, bools, bool_each, \
     first_index_not_in_set, last_index_not_in_set, perm, comb, cross_comb, _increment_comb
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
