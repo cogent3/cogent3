@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+import numpy
 from cogent.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent,\
-    bracket, golden, fpconst
+    bracket, golden
 from optimiser import OptimiserBase
 import time
 
@@ -30,14 +31,14 @@ def bound_brent(func, args, brack=None, tol=1.48e-8, full_output=0, **kw):
     assert not brack, brack
     xa = 0.0
     fa = apply(func, (xa,)+args)
-    assert fa is not fpconst.PosInf, "Starting point is infinite"
+    assert fa is not numpy.inf, "Starting point is infinite"
     
     # if dx sends us over the boundry shrink and reflect it until
     # it doesn't any more.
     dx = -2.0  # this would be -2.0 in orig impl, but is smaller better?
     xb = xa + dx
-    fb = fpconst.PosInf
-    while fb is fpconst.PosInf and xb != xa:
+    fb = numpy.inf
+    while fb is numpy.inf and xb != xa:
         dx = dx * -0.5
         xb = xa + dx
         fb = apply(func, (xb,)+args)
@@ -71,7 +72,7 @@ class _SciPyOptimiser(OptimiserBase):
     def runInner(self, function, xopt, show_progress, random_series=None):
         # random_series isn't used - these optimisers are deterministic -
         # but optimiser_base doesn't know that.
-        fval_last = fval = fpconst.PosInf
+        fval_last = fval = numpy.inf
         total_evaluations = 0
         t0 = time.time()
         if len(xopt) == 0:

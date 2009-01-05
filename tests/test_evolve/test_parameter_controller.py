@@ -90,6 +90,24 @@ class test_parameter_controller(unittest.TestCase):
         self.assertEqual(motif_probs, correct_probs)
         self.assertEqual(sum(motif_probs.values()), 1.0)
 
+    def test_setMultiLocus(self):
+        """2 loci each with own mprobs"""
+        model = cogent.evolve.substitution_model.Nucleotide(motif_probs=None)
+        lf = model.makeLikelihoodFunction(self.tree, 
+                motif_probs_from_align=False, loci=["a", "b"])
+                
+        mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
+        mprobs_b = dict(A=.1, T=.2, C=.3, G=.4)
+        
+        for is_const in [False, True]:
+            lf.setMotifProbs(mprobs_a, is_const=is_const)
+            s = str(lf)
+            lf.setMotifProbs(mprobs_b, locus="b")
+            self.assertEqual(lf.getMotifProbs(locus="a"), mprobs_a)
+            self.assertEqual(lf.getMotifProbs(locus="b"), mprobs_b)
+            s = str(lf)
+            #lf.setParamRule('mprobs', is_independent=False)
+
     def test_setParamRules(self):
         lf = self.model.makeLikelihoodFunction(self.tree)
         def do_rules(rule_set):

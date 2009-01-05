@@ -3,9 +3,10 @@
 import unittest
 import os
 
-from cogent import LoadSeqs, CodonAlphabet, DNA
+from cogent import LoadSeqs, CodonAlphabet, DNA, LoadTable
 from cogent.core import genetic_code
-from cogent.evolve import substitution_model
+from cogent.evolve import substitution_model, substitution_calculation
+from cogent.util.unit_test import TestCase, main
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -84,7 +85,29 @@ class MultiLetterMotifSubstModelTests(unittest.TestCase):
         # assert self.submodel.isIndel('-a', 'a-') == 0
     
             
-class ThreeLetterMotifSubstModelTests(unittest.TestCase):
+class TupleModelMotifProbFuncs(TestCase):
+    dinucs = ('TT', 'CT', 'AT', 'GT',
+              'TC', 'CC', 'AC', 'GC',
+              'TA', 'CA', 'AA', 'GA',
+              'TG', 'CG', 'AG', 'GG')
+    nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
+    dinuc_probs=[(m2+m1,p1*p2) for m1,p1 in nuc_probs for m2,p2 in nuc_probs]
+    mat_indices = dict(
+        C=set([(0,1),(0,4),(1,5),(2,1),(2,6),(3,1),(3,7),(4,5),(6,5),
+               (7,5),(8,4),(8,9),(9,5),(10,6),(10,9),(11,7),(11,9),(12,4),
+               (12,13),(13,5),(14,6),(14,13),(15,7),(15,13)]),
+        A=set([(0,2),(0,8),(1,2),(1,9),(2,10),(3,2),(3,11),(4,6),(4,8),
+               (5,6),(5,9),(6,10),(7,6),(7,11),(8,10),(9,10),(11,10),
+               (12,8),(12,14),(13,9),(13,14),(14,10),(15,11),(15,14)]),
+        G=set([(0,3),(0,12),(1,3),(1,13),(2,3),(2,14),(3,15),(4,7),(4,12),
+               (5,7),(5,13),(6,7),(6,14),(7,15),(8,11),(8,12),(9,11),
+               (9,13),(10,11),(10,14),(11,15),(12,15),(13,15),(14,15)]),
+        T=set([(1,0),(2,0),(3,0),(4,0),(5,1),(5,4),(6,2),(6,4),(7,3),
+               (7,4),(8,0),(9,1),(9,8),(10,2),(10,8),(11,3),(11,8),(12,0),
+               (13,1),(13,12),(14,2),(14,12),(15,3),(15,12)])
+           )
+
+class ThreeLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(motif_length=3)
         

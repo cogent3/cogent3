@@ -331,6 +331,7 @@ class _Defn(object):
                 if d in self.valid_dimensions]
         for (scope_t, i) in self.index.items():
             value = cell_value_lookup(self, i)
+            value = self.wrapValue(value)
             scope = tuple([scope_t[i] for i in posns])
             
             (d,key) = (result, self.name)
@@ -338,12 +339,12 @@ class _Defn(object):
                 if key not in d: d[key] = {}
                 (d, key) = (d[key], key2)
             
-            if d.get(key) not in [None, value]:
+            if key in d and  value != d[key]:
                 msg = 'Multiple values for %s' % self.name
                 if scope:
                     msg += ' within scope %s' % '/'.join(scope)
                 raise IncompleteScopeError(msg)
-            d[key] = self.wrapValue(value)
+            d[key] = value
     
     def _update_from_assignments(self):
         (self.uniq, self.index) = _indexed(self.assignments)

@@ -135,7 +135,9 @@ class LikelihoodFunction(object):
         elif dim == 'locus':
             result = self.locus_names[:]
         elif dim == 'motif':
-            result = self._motifs
+            result = self._mprob_motifs
+        elif dim == 'position':
+            result = self.posn_names[:]
         else:
             raise KeyError, dim
         return result
@@ -157,8 +159,72 @@ class LikelihoodFunction(object):
         else:
             title = self._name
         result = [title]
+        result += self.getStatistics(with_motif_probs=True, with_titles=False)
+        return '\n'.join(map(str, result))
+    
+    def getAnnotatedTree(self):
+        d = self.getStatisticsAsDict(with_parent_names=False)
+        tree = self._tree.deepcopy()
+        for edge in tree.getEdgeVector():
+            if edge.Name == 'root':
+                continue
+            for par in d:
+                edge.params[par] = d[par][edge.Name]
+        return tree
+    
+    def getMotifProbs(self, bin=None, locus=None):
+        motif_probs_array = self.getParamValue(
+                'mprobs', bin=bin, locus=locus)
+        return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
+        #return dict(zip(self._motifs, motif_probs_array))
+    
+    def getBinPriorProbs(self, locus=None):
+        bin_probs_array = self.getParamValue('bprobs', locus=locus)
+        return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
+    
+    def getScaledLengths(self, predicate, bin=None, locus=None):
+        """A dictionary of {scale:{edge:length}}"""
+        if not hasattr(self._model, 'getScaledLengthsFromQ'):
+            return {}
+        
+        def valueOf(param, **kw):
+            return self.getParamValue(param, locus=locus, **kw)
+        
+        if bin is None:
+            bin_names = self.bin_names
+        else:
+            bin_names = [bin]
+        
+        if len(bin_names) == 1:
+            bprobs = [1.0]
+        else:
+            bprobs = valueOf('bprobs')
+        
+        mprobs = [valueOf('mprobs', bin=b) for b in bin_names]
+        
+        scaled_lengths = {}
+        for edge in self._tree.getEdgeVector():
+            if edge.isroot():
+                continue
+            Qs = [valueOf('Qd', bin=b, edge=edge.Name).Q for b in bin_names]
+            length = valueOf('length', edge=edge.Name)
+            scaled_lengths[edge.Name] = length * self._model.getScaleFromQs(
+                    Qs, bprobs, mprobs, predicate)
+        return scaled_lengths
+    
+    def getStatistics(self, with_motif_probs=True, with_titles=True):
+        """returns the parameter values as tables/dict
+        
+        Arguments:
+            - with_motif_probs: include the motif probability table
+            - with_titles: include a title for each table based on it's
+              dimension"""
+        result = []
         group = {}
-        for param in self.getParamNames():
+        param_names = self.getParamNames()
+        if not with_motif_probs:
+            param_names.remove('mprobs')
+        for param in param_names:
             dims = tuple(self.getUsedDimensions(param))
             if dims not in group:
                 group[dims] = []
@@ -190,62 +256,15 @@ class LikelihoodFunction(object):
                 row.update(dict(zip(table_dims, scope)))
                 row = [row[k] for k in heading_names]
                 list_table.append(row)
-            result.append(
-                str(
-                    table.Table(
+            if table_dims:
+                title = ['', '%s params' % table_dims[0]][with_titles]
+            else:
+                title = ['', 'global params'][with_titles]
+            result.append(table.Table(
                         heading_names, list_table,
-                        max_width = 80, row_ids = True)))
-        return '\n'.join(result)
-    
-    def getAnnotatedTree(self):
-        d = self.getStatisticsAsDict(with_parent_names=False)
-        tree = self._tree.deepcopy()
-        for edge in tree.getEdgeVector():
-            if edge.Name == 'root':
-                continue
-            for par in d:
-                edge.params[par] = d[par][edge.Name]
-        return tree
-    
-    def getMotifProbs(self, bin=None, locus=None):
-        motif_probs_array = self.getParamValue(
-                self._mprobs_name, bin=bin, locus=locus)
-        return DictArrayTemplate(self._motifs).wrap(motif_probs_array)
-        #return dict(zip(self._motifs, motif_probs_array))
-    
-    def getBinPriorProbs(self, locus=None):
-        bin_probs_array = self.getParamValue('bprobs', locus=locus)
-        return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
-    
-    def getScaledLengths(self, predicate, bin=None, locus=None):
-        """A dictionary of {scale:{edge:length}}"""
-        if not hasattr(self._model, 'getScaledLengthsFromQ'):
-            return {}
-        
-        def valueOf(param, **kw):
-            return self.getParamValue(param, locus=locus, **kw)
-        
-        if bin is None:
-            bin_names = self.bin_names
-        else:
-            bin_names = [bin]
-        
-        if len(bin_names) == 1:
-            bprobs = [1.0]
-        else:
-            bprobs = valueOf('bprobs')
-        
-        mprobs = [valueOf(self._mprobs_name, bin=b) for b in bin_names]
-        
-        scaled_lengths = {}
-        for edge in self._tree.getEdgeVector():
-            if edge.isroot():
-                continue
-            Qs = [valueOf('Qd', bin=b, edge=edge.Name).Q for b in bin_names]
-            length = valueOf('length', edge=edge.Name)
-            scaled_lengths[edge.Name] = length * self._model.getScaleFromQs(
-                    Qs, bprobs, mprobs, predicate)
-        return scaled_lengths
+                        max_width = 80, row_ids = True,
+                        title=title))
+        return result
     
     def getStatisticsAsDict(self, with_parent_names=True,
                 with_edge_names=False):
@@ -291,6 +310,25 @@ class LikelihoodFunction(object):
     def getName(self):
         return self._name or 'unnamed'
     
+    def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
+        kw = dict(bin=bin, locus=locus)
+        mprobs = self.getParamValue('mprobs', **kw)
+        mprobs = self._model.calcWordProbs(mprobs)
+        result = self._nodeMotifProbs(self._tree, mprobs, kw)
+        if edges is None:
+            edges = [name for (name, m) in result]
+        result = dict(result)
+        values = [result[name] for name in edges]
+        return DictArrayTemplate(edges, self._mprob_motifs).wrap(values)
+        
+    def _nodeMotifProbs(self, tree, mprobs, kw):
+        result = [(tree.Name, mprobs)]
+        for child in tree.Children:
+            psub = self.getParamValue('psubs', edge=child.Name, **kw)
+            child_mprobs = numpy.dot(mprobs, psub)
+            result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
+        return result
+        
     def simulateAlignment(self, sequence_length=None, random_series=None,
             exclude_internal=True, locus=None, seed=None, root_sequence=None):
         """
@@ -315,7 +353,9 @@ class LikelihoodFunction(object):
         else:
             orig_ambig = {}
         
-        mprobs = self.getMotifProbs(locus=locus)
+        mprobs = self.getParamValue('mprobs',locus=locus)
+        mprobs = self._model.calcWordProbs(mprobs)
+        mprobs = dict((m, p) for (m,p) in zip(self._motifs, mprobs))
         
         if random_series is None:
             random_series = random.Random()

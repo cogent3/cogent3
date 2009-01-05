@@ -4,11 +4,6 @@ from __future__ import division
 import numpy
 from cogent.maths.markov import TransitionMatrix
 
-try:
-    import fpconst
-except ImportError:
-    import cogent.maths._fpconst as fpconst
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
@@ -30,7 +25,7 @@ def PairTransitionMatrix(order, a):
 
 def ClassicGapScores(d, e):
     """Gap open / gap extend costs.  No X to Y transitions"""
-    _ = fpconst.PosInf
+    _ = numpy.inf
     C = numpy.array([
         [e, _, 0],
         [_, e, 0],

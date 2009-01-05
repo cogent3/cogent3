@@ -24,11 +24,6 @@ from cogent import LoadSeqs
 from cogent.core.alignment import Aligned
 from cogent.align.traceback import map_traceback
 
-try:
-    import fpconst
-except ImportError:
-    import cogent.maths._fpconst as fpconst
-
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
     pyrex_align_module = importVersionedModule('_pairwise_pogs', globals(),
@@ -70,7 +65,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
     (rows, exponents) = rows
     if use_logs:
         neutral_score = 0.0
-        impossible = fpconst.NegInf
+        impossible = -numpy.inf
     else:
         neutral_score = 1.0
         impossible = 0.0

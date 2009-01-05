@@ -10,11 +10,6 @@ Float = numpy.core.numerictypes.sctype2char(float)
 import random
 import logging
 
-try:
-    import fpconst
-except ImportError:
-    import cogent.maths._fpconst as fpconst
-
 from cogent.util.checkpointing import Checkpointer
 
 __author__ = "Andrew Butterfield"
@@ -54,16 +49,16 @@ def bounds_exception_catching_function(f, direction):
     """Like bounded_function, except that the out-of-bounds parameter isn't caught
     here, but deeper in the calculation, and reported as an exception"""
     if direction < 0:
-        out_of_bounds_value = fpconst.PosInf
-        acceptable_inf = fpconst.isPosInf
+        out_of_bounds_value = numpy.inf
+        acceptable_inf = numpy.isposinf
     else:
-        out_of_bounds_value = fpconst.NegInf
-        acceptable_inf = fpconst.isNegInf
+        out_of_bounds_value = -numpy.inf
+        acceptable_inf = numpy.isneginf
     
     def _wrapper(x, **kw):
         try:
             result = f(x, **kw)
-            if not fpconst.isFinite(result):
+            if not numpy.isfinite(result):
                 if not acceptable_inf(result):
                     LOG.warning('Non-finite f %s from %s' % (result, x))
                     raise ParameterOutOfBoundsError
@@ -160,8 +155,8 @@ class OptimiserBase(object):
             fval = f(vector)
         except (ArithmeticError, ParameterOutOfBoundsError), detail:
             raise ValueError("Initial parameter values must be valid %s" % repr(detail.args))
-        if not fpconst.isFinite(fval):
-            if fpconst.isInf(fval) and self.__reverse_result:
+        if not numpy.isfinite(fval):
+            if numpy.isinf(fval) and self.__reverse_result:
                 fval = -1 * fval
             raise ValueError("Initial parameter values must evaluate to a finite likelihood, not %s. %s" % (fval, vector))
         
