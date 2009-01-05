@@ -17,7 +17,7 @@ import pickle
 from cogent.align.pairwise import AlignableSeq
 
 __author__ = "Andrew Butterfield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                     "Helen Lindsay"]
 __license__ = "GPL"

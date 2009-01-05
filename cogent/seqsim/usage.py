@@ -38,7 +38,7 @@ from numpy.random import random as randarray
 ARRAY_TYPE = type(array([0]))
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Mike Robeson", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

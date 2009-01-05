@@ -27,7 +27,7 @@ from reportlab.lib import colors
 import numpy
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Zongzhi Liu", "Daniel McDonald"]
 __license__ = "GPL"

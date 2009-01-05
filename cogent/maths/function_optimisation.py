@@ -15,7 +15,7 @@
 from numpy.random import normal
 
 __author__ = "Daniel McDonald and Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Daniel McDonald", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

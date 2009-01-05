@@ -9,7 +9,7 @@ columns separated by a provided string, and a simple text format.
 import textwrap
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
                     "Jeremy Widmann"]
 __license__ = "GPL"

@@ -24,7 +24,7 @@ from cogent.maths.stats.util import Freqs
 from cogent.maths.stats.special import fix_rounding_error
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

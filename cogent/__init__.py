@@ -5,7 +5,7 @@ import sys, os, logging, re, cPickle
 import numpy
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
                     "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                     "Edward Lang", "Greg Caporaso", "Mike Robeson",

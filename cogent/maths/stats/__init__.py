@@ -12,7 +12,7 @@ __all__ = ['distribution', 'histogram', 'kendall', 'ks', 'special', 'test',
 from distribution import chi_high as chisqprob
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
                     "Catherine Lozupone", "Micah Hamady"]
 __license__ = "GPL"

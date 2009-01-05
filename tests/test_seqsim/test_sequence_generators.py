@@ -16,7 +16,7 @@ from cogent.struct.rna2d import ViennaStructure
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

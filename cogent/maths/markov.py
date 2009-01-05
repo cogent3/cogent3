@@ -6,7 +6,7 @@ import bisect
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

@@ -5,7 +5,7 @@ import logging
 LOG = logging.getLogger('cogent.input')
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"

@@ -10,7 +10,7 @@ __all__ = ['alignment', 'fasta', 'mage', 'nexus', 'pdb_color', 'phylip',
            'table']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Matthew Wakefield",
                     "Rob Knight", "Sandra Smit", "Peter Maxwell"]
 __license__ = "GPL"

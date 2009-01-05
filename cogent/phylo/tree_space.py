@@ -5,7 +5,7 @@ from cogent.core.tree import TreeBuilder
 from cogent.util import parallel, checkpointing
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

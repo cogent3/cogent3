@@ -15,7 +15,7 @@ from cogent.core.tree import PhyloNode
 from cogent.util.dict2d import Dict2D
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2009 2007, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.0.1"

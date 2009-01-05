@@ -2,7 +2,7 @@ Data Manipulation using ``Table``
 +++++++++++++++++++++++++++++++++
 
 :Author: Gavin Huttley
-:Copyright: Copyright 2007-2008, The Cogent Project
+:Copyright 2007-2009: Copyright 2007-2009, The Cogent Project
 :Credits: Gavin Huttley, Felix Schill
 :License: GPL
 :Version: 1.0.1

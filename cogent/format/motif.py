@@ -14,7 +14,7 @@ from cogent.app.util import get_tmp_filename
 from gzip import GzipFile
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Micah Hamady"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

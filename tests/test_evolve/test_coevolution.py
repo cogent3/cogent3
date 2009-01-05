@@ -54,7 +54,7 @@ from cogent.evolve.coevolution import mi_alignment, nmi_alignment,\
     aln_position_pairs_le_threshold, gctmpca_pair
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

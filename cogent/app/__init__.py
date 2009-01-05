@@ -35,7 +35,7 @@ __all__ = ['blast',
            'vienna_package']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                     "Rob Knight", "Zongzhi Liu", "Sandra Smit", "Micah Hamady",
                     "Greg Caporaso", "Mike Robeson"]

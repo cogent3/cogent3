@@ -13,7 +13,7 @@ from cogent.util.dict2d import Dict2D
 from cogent.format.table import phylipMatrix
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

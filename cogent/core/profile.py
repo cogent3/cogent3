@@ -20,7 +20,7 @@ from cogent.util.array import euclidean_distance, row_degeneracy,\
 import numpy #from cogent.util.unit_test import numpy_err
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight"
                     "Peter Maxwell"]
 __license__ = "GPL"

@@ -27,7 +27,7 @@ from numpy import array, zeros, transpose, sqrt, reshape, arange, \
     ravel, trace, ones
 
 __author__ = "Rob Knight and Jeremy Widmann"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Sandra Smit"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

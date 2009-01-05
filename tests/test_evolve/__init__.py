@@ -10,7 +10,7 @@ __all__ = ["test_best_likelihood",
            "test_coevolution"]
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

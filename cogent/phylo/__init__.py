@@ -4,7 +4,7 @@ __all__ = ['consensus', 'distance', 'least_squares', 'maximum_likelihood',
            'nj', 'tree_space', 'util']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

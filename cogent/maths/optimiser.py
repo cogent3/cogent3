@@ -18,7 +18,7 @@ except ImportError:
 from cogent.util.checkpointing import Checkpointer
 
 __author__ = "Andrew Butterfield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Edward Lang",
                     "Gavin Huttley"]
 __license__ = "GPL"

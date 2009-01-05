@@ -46,7 +46,7 @@ from bisect import bisect_right, bisect_left
 import copy
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
                     "Gavin Huttley"]
 __license__ = "GPL"

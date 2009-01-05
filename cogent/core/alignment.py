@@ -44,7 +44,7 @@ LOG = logging.getLogger('cogent.data')
 from cogent.core.profile import Profile
 
 __author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                     "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                     "Micah Hamady"]

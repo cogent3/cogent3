@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import A4
 from xml.sax.saxutils import escape
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield"]
 __license__ = "GPL"

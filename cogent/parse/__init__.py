@@ -61,7 +61,7 @@ __all__ = ['aaindex',
            'unigene']
   
 __author__ = ""
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Catherine Lozupone", "Jeremy Widmann", "Matthew Wakefield",
                     "Sandra Smit", "Greg Caporaso", "Zongzhi Liu", 

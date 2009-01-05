@@ -23,7 +23,7 @@ from cogent import DNA, LoadSeqs, LoadTree
 import cogent.maths.matrix_exponentiation
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield", "Brett Easton"]
 __license__ = "GPL"

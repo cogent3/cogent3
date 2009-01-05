@@ -7,7 +7,7 @@ Float = numpy.core.numerictypes.sctype2char(float)
 from cogent.evolve import substitution_model
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
