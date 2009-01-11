@@ -259,6 +259,14 @@ class MemeTests(TestCase):
         for module, data_dict in zip(self.module_data_blocks,
                                      self.module_info_dicts):
             self.assertEqual(getModuleGeneralInfo(module[0][0]),data_dict)
+        #Test that getModuleGeneralInfo can parse general info line when
+        # motif ID is > 100.  MEME changes the format of this line when in this
+        # case.
+        data_line_special = \
+        'MOTIF100	width =   50   sites =   2   llr = 273   E-value = 3.1e-007'
+        expected = {'MOTIF':'100','width':'50','sites':'2','llr':'273',\
+            'E-value':'3.1e-007'}
+        self.assertEqual(getModuleGeneralInfo(data_line_special),expected)
 
     def test_extract_summary_data(self):
         """extractSummaryData should return a dict of MEME summary data."""

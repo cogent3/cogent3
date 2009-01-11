@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """Parses MEME output file and creates Module objects.
+
+    Supports MEME version 3.0 - 4.0
 """
 from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.parse.record import DelimitedSplitter
@@ -186,10 +188,13 @@ def getModuleGeneralInfo(module_general):
         - Module general information includes:
             - width, sites, llr, E-value
     """
-    module_general = module_general.replace(' =','')
+    module_id = module_general[:8]
+    module_general = module_general[8:].strip().replace(' =','')
     module_general = module_general.split()
     #Get dict of Module general info from list
-    return dictFromList(module_general)
+    general_dict = dictFromList(module_general)
+    general_dict['MOTIF']=module_id[5:].strip()
+    return general_dict
 
 def extractSummaryData(summary_block):
     """Returns dict of sequences and combined P values.
