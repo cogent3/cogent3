@@ -5,7 +5,10 @@ from __future__ import division
 from cogent.motif.util import MotifFormatter
 from cogent.format.pdb_color import get_matching_chains,\
     align_subject_to_pdb, PYMOL_FUNCTION_STRING, MAIN_FUNCTION_STRING
-from cogent.core.moltype import PROTEIN
+from cogent.format.rna_struct import color_on_structure
+from cogent.format.fasta import fasta_from_alignment
+from cogent.core.moltype import PROTEIN, RNA, DNA
+from cogent.core.alignment import Alignment,SequenceCollection
 from cogent.util.dict2d import Dict2D
 from numpy import zeros, nonzero
 from cogent.align.weights.util import AlnToProfile
@@ -433,7 +436,8 @@ class HighlightMotifs(MotifFormatter):
 
 
 
-    def __init__(self, MotifResults, NodeOrder=None, KeepIds=[], KeepAll=False, MolType=PROTEIN):
+    def __init__(self, MotifResults, NodeOrder=None, KeepIds=None,\
+        KeepAll=False, MolType=PROTEIN):
         """Set up color map and motif results
 
         ModuleMap: flattened map (b/c of pickle problem.)
@@ -451,6 +455,8 @@ class HighlightMotifs(MotifFormatter):
         self.ColorMap = self.getColorMapS0(sorted(list(module_ids)))
         self.ModuleMap = ModuleMap 
         self.Alignment = MotifResults.Alignment
+        if KeepIds is None:
+            KeepIds = []
         self.KeepIds = set(KeepIds)
         self.KeepAll = KeepAll
         if not NodeOrder:
@@ -460,17 +466,17 @@ class HighlightMotifs(MotifFormatter):
         self.GapMap = self.getGapMap()
         self.HighlightMap = {}
 
-    def __call__(self, title_class="ntitle", normal_class="normal", row_class="highlight"):
+    def __call__(self, title_class="ntitle", normal_class="normal", row_class="highlight", table_style=''):
         """Call method for HightlightMotifs class.  """
 
         #Start HTML string with table and table headers
         html_list = []
 
         #For each module
-        for seq_id in self.NodeOrder: 
+        for seq_id in self.NodeOrder:
             html_list.append(self.highlightSeq(seq_id, title_class, row_class))
 
-        out_str = """<table cellpadding=2 cellspacing=2 border=0>
+        out_str = """<table cellpadding=2 cellspacing=2 border=0 %s>
                <tr class="ntitle">
                     <td colspan=2><p>Selected Motifs Highlighted on Sequences:</p> </td>
                </tr>
@@ -479,7 +485,7 @@ class HighlightMotifs(MotifFormatter):
                     <td>Sequence</td>
                </tr>
                %s
-               </table>""" % (title_class, ''.join(html_list))
+               </table>""" % (table_style, title_class, ''.join(html_list))
 
 
         if html_list:
@@ -549,7 +555,8 @@ class HighlightMotifs(MotifFormatter):
                 if seq_mask[jx] > 1:
                     style = "background-color: red"
                 else:
-                    style = self.ColorMap[mod_id_map[jx][0]].replace("font-family: 'Courier New', Courier, monospace", "")
+                    #style = self.ColorMap[mod_id_map[jx][0]].replace("font-family: 'Courier New', Courier, monospace", "")
+                    style = self.ColorMap[mod_id_map[jx][0]]
 
                 seq_list[jx] = mo_span_tmpl % (style,
                                                 "<br>".join(['Motif ID: %s' % \
@@ -1069,3 +1076,492 @@ for sticks_cmd in sticks_command_list:
                             module_map[skey].append((ix, mod_id, mod_len))
 
         return module_map, module_cons_map
+
+class ColorSecondaryStructure(MotifFormatter):
+    """Generates postscript file with motifs highlighted on 2D structure  """
+
+    def makeModuleMap(self, motif_results):
+        """
+        Need to extract this b/c can't pickle motif_results... grr.
+
+        motif_results: MotifResults object
+        keep_module_ids: list of module ids to keep
+        """
+        module_map = {}  #Dict with locations of every motif keyed by module
+        if motif_results:
+            for motif in motif_results.Motifs:
+                for module in motif.Modules:
+                    mod_len = len(module)
+                    mod_id = str(module.ID)
+                    for skey, indexes in module.LocationDict.items():
+                        if skey not in module_map:
+                            module_map[skey] = []
+                        for ix in indexes:
+                            module_map[skey].append((ix, mod_id, mod_len))
+        return module_map
+
+
+    def __init__(self, MotifResults, KeepIds=None,\
+        KeepAll=True, MolType=RNA, strict=True,circle_motif_id=None,\
+        SkipIds=None):
+        """Set up color map and motif results
+
+        ModuleMap: flattened map (b/c of pickle problem.)
+                generate using make_module_map() function
+        Alignment: SequenceCollection or Alignment object
+        KeepIds: list of module ids to keep
+        KeepAll: When True, ignores KeepIds and highlights all motifs
+        """
+        MotifFormatter.__init__(self)
+        self.ModuleMap = self.makeModuleMap(MotifResults)
+        module_ids = set([])
+        for skey, slist in self.ModuleMap.items():
+            for stup in slist:
+                module_ids.add(stup[1])
+        self.ColorMap = self.getColorMapRgb(MotifResults)
+        overlap_color = {'overlap_color':(1.0,0.0,0.0)}
+        self.ColorMap.update(overlap_color)
+        
+        self.Alignment = MotifResults.Alignment
+        if KeepIds is None:
+            KeepIds = []
+        self.KeepIds = set(KeepIds)
+        self.KeepAll = KeepAll
+        self.MolType = MolType
+        self.GapMap = self.getGapMap()
+        self.HighlightMap = {}
+        self.Strict=strict
+        self.CircleId = circle_motif_id
+        self.SkipIds=SkipIds
+
+    def __call__(self,seq_id,sequence,struct,write_dir='.'):
+        """Call method for ColorSecondaryStructure class.  """
+
+        #indices, colors = self.getColorIndices(seq_id,sequence)
+        indices, colors = self.getColorIndices(seq_id,sequence)
+        circle_indices = []
+        if self.CircleId:
+            circle_indices = \
+                self.getCircleIndices(seq_id,sequence,self.CircleId)
+        
+        structure_postscript = color_on_structure(\
+            sequence=sequence,\
+            struct=struct,\
+            color_map = self.ColorMap,\
+            indices=indices,\
+            colors=colors,\
+            circle_indices=circle_indices)
+        file_id = seq_id.split()[0]
+        ps_out_path = \
+            write_dir+'/'+file_id+'_secondary_struct.ps'
+        ps_out = open(ps_out_path,'w')
+        ps_out.write(structure_postscript)
+        ps_out.close()
+        return ps_out_path
+            
+    def getGapMap(self):
+        """Returns dict mapping gapped_coord to ungapped_coord in self.Alignment
+        
+            - {seq_id:{gapped_coord:ungapped_coord}}
+        """
+        gap_map = {}
+        for k,v in self.Alignment.items():
+            gapped, ungapped = self.MolType.gapMaps(v)
+            gap_map[k] = gapped
+        return gap_map
+
+    def getColorIndices(self, seq_id, sequence):
+        """Returns list of indices and colors for a given sequence.
+
+        seq_id: sequence ID to highlight on structure
+        """
+        #seq_list = list(self.Alignment.NamedSeqs[seq_id])
+        seq_list = list(sequence)
+        seq_len = len(seq_list)
+        seq_mask = zeros(seq_len)
+        mod_id_map = {}
+        indices = []
+        colors = []
+        gapped,ungapped = self.MolType.gapMaps(sequence)
+        self.GapMap[seq_id]= gapped
+        if self.Strict:
+            if seq_id not in self.ModuleMap:
+                raise IndexError, 'seq_id %s not in ModuleMap'%(seq_id)
+        else:
+            if seq_id not in self.ModuleMap:
+                return [],[]
+
+        for mod_tup in self.ModuleMap[seq_id]:
+            ix, mod_id, mod_len = mod_tup
+            
+            # skip modules we con't care about
+            if not self.KeepAll and mod_id not in self.KeepIds:
+                continue
+            elif mod_id in self.SkipIds:
+                continue
+
+            mod_mask = zeros(seq_len)
+
+            # mask motif region
+            for i in range(ix,ix+mod_len):
+                gapped_ix = self.GapMap[seq_id][i]
+                mod_mask[gapped_ix] = 1
+            # add to sequence map
+            seq_mask += mod_mask
+
+            # map module ids to indexes
+            for jx in range(ix,ix+mod_len):
+                gapped_jx = self.GapMap[seq_id][jx]
+                if gapped_jx not in mod_id_map:
+                    mod_id_map[gapped_jx] = [] 
+                mod_id_map[gapped_jx].append(mod_id)
+
+
+        # get module regions
+        #need to take [0] element of nonzero() since numpy returns a tuple
+        # where Numeric did not
+        for kx in nonzero(seq_mask)[0]:
+            # if overlapping use red background, otherwise display color
+            if seq_mask[kx] > 1:
+                curr_color = 'overlap_color'
+            else:
+                mod_id = mod_id_map[kx][0]
+                curr_color = 'color_'+mod_id
+            #append indices.  Must start at 1, not 0 for RNAplot to work
+            indices.append(kx+1)
+            colors.append(curr_color)
+            
+        return indices, colors
+
+    def getCircleIndices(self, seq_id, sequence, motif_id):
+        """Returns list of indices to be circled for a given sequence.
+
+            seq_id: sequence ID to highlight on structure
+            sequence: sequence string
+            motif_id: ID of motif to circle.
+        """
+        seq_list = list(sequence)
+        seq_len = len(seq_list)
+        seq_mask = zeros(seq_len)
+        mod_id_map = {}
+        indices = []
+
+        gapped,ungapped = self.MolType.gapMaps(sequence)
+        self.GapMap[seq_id]= gapped
+        if self.Strict:
+            if seq_id not in self.ModuleMap:
+                raise IndexError, 'seq_id %s not in ModuleMap'%(seq_id)
+        else:
+            if seq_id not in self.ModuleMap:
+                return [],[]
+
+        for mod_tup in self.ModuleMap[seq_id]:
+            ix, mod_id, mod_len = mod_tup
+            if mod_id != motif_id:
+                continue
+            
+            # skip modules we con't care about
+            if not self.KeepAll and mod_id not in self.KeepIds:
+                continue
+
+            mod_mask = zeros(seq_len)
+
+            # mask motif region
+            for i in range(ix,ix+mod_len):
+                gapped_ix = self.GapMap[seq_id][i]
+                mod_mask[gapped_ix] = 1
+            # add to sequence map
+            seq_mask += mod_mask
+
+            # map module ids to indexes
+            for jx in range(ix,ix+mod_len):
+                gapped_jx = self.GapMap[seq_id][jx]
+                if gapped_jx not in mod_id_map:
+                    mod_id_map[gapped_jx] = [] 
+                mod_id_map[gapped_jx].append(mod_id)
+
+
+        # get module regions
+        #need to take [0] element of nonzero() since numpy returns a tuple
+        # where Numeric did not
+        for kx in nonzero(seq_mask)[0]:
+            #append indices.  Must start at 1, not 0 for RNAplot to work
+            indices.append(kx+1)
+            
+        return indices
+
+class MotifsUpperCase(MotifFormatter):
+    """Generates postscript file with motifs highlighted on 2D structure  """
+
+    def makeModuleMap(self, motif_results):
+        """
+        Need to extract this b/c can't pickle motif_results... grr.
+
+        motif_results: MotifResults object
+        keep_module_ids: list of module ids to keep
+        """
+        module_map = {}  #Dict with locations of every motif keyed by module
+        if motif_results:
+            for motif in motif_results.Motifs:
+                for module in motif.Modules:
+                    mod_len = len(module)
+                    mod_id = str(module.ID)
+                    for skey, indexes in module.LocationDict.items():
+                        if skey not in module_map:
+                            module_map[skey] = []
+                        for ix in indexes:
+                            module_map[skey].append((ix, mod_id, mod_len))
+        return module_map
+
+
+    def __init__(self, MotifResults, KeepIds=None,\
+        KeepAll=True, MolType=RNA):
+        """Set up color map and motif results
+
+        ModuleMap: flattened map (b/c of pickle problem.)
+                generate using make_module_map() function
+        Alignment: SequenceCollection or Alignment object
+        KeepIds: list of module ids to keep
+        KeepAll: When True, ignores KeepIds and highlights all motifs
+        """
+        MotifFormatter.__init__(self)
+        self.ModuleMap = self.makeModuleMap(MotifResults)
+        
+        self.Alignment = MotifResults.Alignment
+        if KeepIds is None:
+            KeepIds = []
+        self.KeepIds = set(KeepIds)
+        self.KeepAll = KeepAll
+        self.MolType = MolType
+        self.GapMap = self.getGapMap()
+        self.HighlightMap = {}
+
+    def __call__(self,aln,outfile_prefix='',write_dir='.'):
+        """Call method for ColorSecondaryStructure class.  """
+        aln = SequenceCollection(aln)
+        new_aln = {}
+        for k,v in aln.NamedSeqs.items():
+            new_aln[k]=self.getUpperCaseSequence(k,v)
+        
+        
+        out_path = \
+            write_dir+'/'+outfile_prefix+'_binding_site_alignment.fasta'
+        out_file = open(out_path,'w')
+        out_file.write(fasta_from_alignment(new_aln))
+        out_file.close()
+        print out_path
+        return new_aln
+            
+    def getGapMap(self):
+        """Returns dict mapping gapped_coord to ungapped_coord in self.Alignment
+        
+            - {seq_id:{gapped_coord:ungapped_coord}}
+        """
+        gap_map = {}
+        for k,v in self.Alignment.items():
+            gapped, ungapped = self.MolType.gapMaps(v)
+            gap_map[k] = gapped
+        return gap_map
+
+    def getUpperCaseSequence(self, seq_id, sequence):
+        """Returns list of indices and colors for a given sequence.
+
+        seq_id: sequence ID to highlight on structure
+        """
+        sequence=str(sequence)
+        seq_len = len(sequence)
+        seq_mask = zeros(seq_len)
+        mod_id_map = {}
+        
+        gapped,ungapped = self.MolType.gapMaps(sequence)
+        self.GapMap[seq_id] = gapped
+        
+        #if there are no motifs, return lower case sequence.
+        if seq_id not in self.ModuleMap:
+            return sequence.lower()
+
+        for mod_tup in self.ModuleMap[seq_id]:
+            ix, mod_id, mod_len = mod_tup
+            
+            # skip modules we con't care about
+            if not self.KeepAll and mod_id not in self.KeepIds:
+                continue
+
+            mod_mask = zeros(seq_len)
+
+            # mask motif region
+            for i in range(ix,ix+mod_len):
+                gapped_ix = self.GapMap[seq_id][i]
+                mod_mask[gapped_ix] = 1
+            # add to sequence map
+            seq_mask += mod_mask
+        
+        # get upper case in module regions
+        new_seq = []
+        for kx, lc, uc in zip(seq_mask,sequence.lower(), sequence.upper()):
+            # if not motif region, use lower
+            if kx < 1:
+                new_seq.append(lc)
+            else:
+                new_seq.append(uc)
+            
+        return ''.join(new_seq)
+    
+class MotifSequenceConstraints(MotifFormatter):
+    """Generates postscript file with motifs highlighted on 2D structure  """
+
+    def makeModuleMap(self, motif_results):
+        """
+        Need to extract this b/c can't pickle motif_results... grr.
+
+        motif_results: MotifResults object
+        keep_module_ids: list of module ids to keep
+        """
+        module_map = {}  #Dict with locations of every motif keyed by module
+        if motif_results:
+            for motif in motif_results.Motifs:
+                for module in motif.Modules:
+                    mod_len = len(module)
+                    mod_id = str(module.ID)
+                    for skey, indexes in module.LocationDict.items():
+                        if skey not in module_map:
+                            module_map[skey] = []
+                        for ix in indexes:
+                            module_map[skey].append((ix, mod_id, mod_len))
+        return module_map
+
+
+    def __init__(self, MotifResults, KeepIds=None,\
+        KeepAll=True, MolType=RNA, strict=True):
+        """Set up color map and motif results
+
+        ModuleMap: flattened map (b/c of pickle problem.)
+                generate using make_module_map() function
+        Alignment: SequenceCollection or Alignment object
+        KeepIds: list of module ids to keep
+        KeepAll: When True, ignores KeepIds and highlights all motifs
+        """
+        MotifFormatter.__init__(self)
+        self.ModuleMap = self.makeModuleMap(MotifResults)
+        
+        self.Alignment = MotifResults.Alignment
+        if KeepIds is None:
+            KeepIds = []
+        self.KeepIds = set(KeepIds)
+        self.KeepAll = KeepAll
+        self.MolType = MolType
+        self.GapMap = self.getGapMap()
+        self.Strict=strict
+        self.MotifCharacter = \
+        list('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
+    def __call__(self,seq_id,sequence,struct,write_dir='.'):
+        """Call method for ColorSecondaryStructure class.  """
+
+        #indices, colors = self.getColorIndices(seq_id,sequence)
+        indices, colors = self.getColorIndices(seq_id,sequence)
+        circle_indices = []
+        if self.CircleId:
+            circle_indices = \
+                self.getCircleIndices(seq_id,sequence,self.CircleId)
+        
+        structure_postscript = color_on_structure(\
+            sequence=sequence,\
+            struct=struct,\
+            color_map = self.ColorMap,\
+            indices=indices,\
+            colors=colors,\
+            circle_indices=circle_indices)
+        file_id = seq_id.split()[0]
+        ps_out_path = \
+            write_dir+'/'+file_id+'_secondary_struct.ps'
+        ps_out = open(ps_out_path,'w')
+        ps_out.write(structure_postscript)
+        ps_out.close()
+        return ps_out_path
+            
+    def getGapMap(self):
+        """Returns dict mapping gapped_coord to ungapped_coord in self.Alignment
+        
+            - {seq_id:{gapped_coord:ungapped_coord}}
+        """
+        gap_map = {}
+        for k,v in self.Alignment.items():
+            gapped, ungapped = self.MolType.gapMaps(v)
+            gap_map[k] = gapped
+        return gap_map
+
+    def getSeqMask(self, seq_id, sequence):
+        """Returns vector where motifs are present in sequence.
+
+            - seq_id: sequence ID to make seq mask.
+            - sequence: sequence to make seq mask with.
+        """
+        #seq_list = list(self.Alignment.NamedSeqs[seq_id])
+        seq_list = list(sequence)
+        seq_len = len(seq_list)
+        seq_mask = zeros(seq_len)
+        mod_id_map = {}
+
+        gapped,ungapped = self.MolType.gapMaps(sequence)
+        self.GapMap[seq_id]= gapped
+        if self.Strict:
+            if seq_id not in self.ModuleMap:
+                raise IndexError, 'seq_id %s not in ModuleMap'%(seq_id)
+        else:
+            if seq_id not in self.ModuleMap:
+                return '',''
+
+        for mod_tup in self.ModuleMap[seq_id]:
+            ix, mod_id, mod_len = mod_tup
+            
+            # skip modules we con't care about
+            if not self.KeepAll and mod_id not in self.KeepIds:
+                continue
+            elif mod_id in self.SkipIds:
+                continue
+
+            mod_mask = zeros(seq_len)
+
+            # mask motif region
+            for i in range(ix,ix+mod_len):
+                gapped_ix = self.GapMap[seq_id][i]
+                mod_mask[gapped_ix] = 1
+            # add to sequence map
+            seq_mask += mod_mask
+
+        return seq_mask
+        
+    def getOverlapDicts(self,alignment):
+        """Returns dicts of motifs that overlap in start or end positions.
+        """
+        #start overlap dict
+        start_overlap = {}
+        #end overlap dict
+        end_overlap = {}
+        
+        #Get seq_mask_dict.  Calling this will construct self.GapMap for given
+        # sequence.
+        for seq_id,seq in alignment.items():
+            curr_seq_mask = self.getSeqMask(seq_id,seq)
+                    
+            #for each module
+            for mod_tup in self.ModuleMap[seq_id]:
+                ix, mod_id, mod_len = mod_tup
+                gapped_start = self.GapMap[seq_id][ix]
+                gapped_end = self.GapMap[seq_id][ix+mod_len]
+                if curr_seq_mask[gapped_start]>1:
+                    start_overlap[mod_id]=seq_id
+                if curr_seq_mask[gapped_end]>1:
+                    end_overlap[mod_id]=seq_id
+        
+        return start_overlap, end_overlap
+    
+    def getConstraintStrings(self,alignment):
+        """Returns dict of constraint strings for each sequence in alignment.
+        
+            - {seq_id:{1:constraint_string_1,2:constraint_string_2}}
+        """
+        start_overlap, end_overlap = self.getOverlapDicts(alignment)
+        
+        
