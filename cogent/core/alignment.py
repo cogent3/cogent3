@@ -1616,7 +1616,7 @@ class AlignmentI(object):
         if not n:
             n = population_size
         if with_replacement:
-            locations = randint(0, population_size-1, n)
+            locations = randint(0, population_size, n)
         else:
             assert n <= population_size, (n, population_size, motif_length)
             locations = permutation(population_size)[:n]
@@ -2086,7 +2086,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         if not n:
             n = population_size
         if with_replacement:
-            locations = randint(0, population_size-1, n)
+            locations = randint(0, population_size, n)
         else:
             assert n <= population_size, (n, population_size, motif_length)
             locations = permutation(population_size)[:n]
@@ -2141,7 +2141,7 @@ def aln_from_fasta_codons(seqs, array_type=None, Alphabet=None):
         if not n:
             n = population_size
         if with_replacement:
-            locations = [random_series.randint(0, population_size-1)
+            locations = [random_series.randint(0, population_size)
                     for samp in xrange(n)]
         else:
             assert n <= population_size, (n, population_size, motif_length)

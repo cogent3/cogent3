@@ -1242,6 +1242,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         alignment = self.Class({'seq1': 'gatc', 'seq2': 'gatc'})
         sample = alignment.sample(1000, with_replacement=True)
         self.assertEqual(len(sample), 1000)
+        # ensure that sampling with replacement works on single col alignment
+        alignment1 = self.Class({'seq1': 'A',
+                                    'seq2': 'A'})
+        result = alignment1.sample(with_replacement=True)
+        self.assertEqual(len(result), 1)
 
     def test_sample_tuples(self):
         ##### test with motif size != 1 #####
