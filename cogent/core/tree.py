@@ -25,7 +25,6 @@ Definition of relevant terms or abbreviations:
        from a node
     -  stem: the edge immediately preceeding a clade
 """
-from collections import defaultdict
 from numpy import zeros
 from copy import deepcopy
 import re
@@ -931,7 +930,7 @@ class TreeNode(object):
             node.__start, node.__stop = i, i+1
 
         num_tips = len(tip_order)
-        result = defaultdict(int)
+        result = {}
         tipdistances = zeros((num_tips), float) #distances from tip to curr node
 
         def update_result():
