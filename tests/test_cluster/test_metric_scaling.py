@@ -71,8 +71,8 @@ class MetricScalingTests(TestCase):
         matrix = self.real_matrix
         pcs, eigvals= principal_coordinates_analysis(matrix)
         self.assertEqual(len(pcs), 14)
-        self.assertFloatEqual(pcs[0,0], -0.240788133045)
-        self.assertFloatEqual(pcs[1,0], 0.233677162)
+        self.assertFloatEqual(abs(pcs[0,0]), 0.240788133045)
+        self.assertFloatEqual(abs(pcs[1,0]), 0.233677162)
 
     def test_PCoA(self):
         """PCoA returns a cogent Table result"""
@@ -89,7 +89,7 @@ class MetricScalingTests(TestCase):
         #perform with the PCoA function
         result = PCoA(pairwise_dist)
         self.assertEqual(result[7,1], 'a')
-        self.assertFloatEqual(result[7,2], -0.240788133045)
+        self.assertFloatEqual(abs(result[7,2]), 0.240788133045)
 
     def test_make_E_matrix(self):
         """make_E_matrix converts a distance matrix to an E matrix"""
