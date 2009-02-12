@@ -3,7 +3,7 @@
 """
 
 from cogent.util.unit_test import TestCase, main
-from distance_transform import *
+from cogent.maths.distance_transform import *
 from numpy import array, sqrt, shape
             
             
@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Justin Kuczynski",
                     "Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.0.1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
