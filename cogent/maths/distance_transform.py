@@ -12,9 +12,10 @@ docstring for specifics):
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
-    * two rows of all zeros typically returns 0 distance between them
-    * negative values are usually not allowed: if strict==True, negative
-    input values return a ValueError, if strict==False, odd behvior may ensue
+    * two rows of all zeros *typically* returns 0 distance between them
+    * negative values are only allowed for some distance metrics,
+    in these cases if strict==True, negative input values return a ValueError, 
+    and if strict==False, errors or misleading return values may result
     * functions prefaced with "binary" consider only presense/absense in
     input data (qualitative rather than quantitative)
 
@@ -65,7 +66,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
                     "Zongzhi Liu", "Catherine Lozupone"]
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.0.1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
@@ -172,7 +173,7 @@ def dist_bray_curtis(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
@@ -223,7 +224,7 @@ def dist_canberra(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     * chisq dist normalizes by column sums - empty columns (all zeros) are
     ignored here
@@ -281,7 +282,7 @@ def dist_chisq(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     * chisq dist normalizes by column sums - empty columns (all zeros) are
     ignored here
@@ -339,17 +340,15 @@ def dist_chord(datamtx, strict=True):
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * an all zero row compared with a not all zero row returns a distance of 1
-    * if strict==True, raises ValueError if any of the input data is negative,
+    * if strict==True, raises ValueError if any of the input data is 
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    * if strict==False, assumes input data is a 2d matrix.  
+    If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
@@ -379,20 +378,23 @@ def dist_chord(datamtx, strict=True):
     return dists
 
 def dist_euclidean(datamtx, strict=True):
-    """returns a row-row euclidean dist matrix
+    """returns a row by row euclidean dist matrix
     
+    returns the euclidean norm of row1 - row2 for all rows in datamtx
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
-    * two rows of all zeros returns 0 distance between them
+    * if strict==True, raises ValueError if any of the input data is 
+    not finite, or if the input data is not a rank 2 array (a matrix).
+    * if strict==False, assumes input data is a 2d matrix.  
+    If rank of input data is < 2, returns an empty 2d array (shape:
+    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
@@ -416,25 +418,24 @@ def dist_gower(datamtx, strict=True):
     
     see for example, Faith et al., 1987
     
+
+    * comparisons are between rows (samples)
     * any column containing identical data for all rows is ignored (this
     prevents a 0/0 error in the formula for gower distance
-    * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
-    * if strict==True, raises ValueError if any of the input data is negative,
+    * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    * if strict==False, assumes input data is a 2d matrix.  
+    If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
@@ -475,7 +476,7 @@ def dist_hellinger(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
@@ -528,7 +529,7 @@ def dist_kulczynski(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
@@ -578,14 +579,15 @@ def dist_manhattan(datamtx, strict=True):
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
-    * two rows of all zeros returns 0 distance between them
-    * negative input values should be fine, but aren't tested
+    * if strict==True, raises ValueError if any of the input data is
+    not finite, or if the input data is not a rank 2 array (a matrix).
+    * if strict==False, assumes input data is a 2d matrix.  
+    If rank of input data is < 2, returns an empty 2d array (shape:
+    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
@@ -619,6 +621,11 @@ def dist_morisita_horn(datamtx, strict=True):
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * an all zero row compared with a not all zero row returns a distance of 1
+    * if strict==True, raises ValueError if any of the input data is negative,
+    not finite, or if the input data is not a rank 2 array (a matrix).
+    * if strict==False, assumes input data is a matrix with nonnegative 
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
+    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
@@ -666,10 +673,18 @@ def dist_morisita_horn(datamtx, strict=True):
 
 def dist_pearson(datamtx, strict=True):
     """ Calculates pearson distance (1-r) between rows
+
     
-    see for example: Thirteen Ways... by J rodgers, 1988
+    note that the literature sometimer refers to the pearson dissimilarity
+    as (1 - r)/2 (e.g.: BC Blaxall et al. 2003: Differential Myocardial Gene
+    Expression in the Development and Rescue of Murine Heart Failure)
+    
+    for pearson's r, see for example: Thirteen Ways to Look at the 
+    Correlation Coefficient by J rodgers, 1988
+
     * distance varies between 0-2, inclusive.  
-    * Flat rows (all elements itentical) will produce odd results
+    * Flat rows (all elements itentical) will return a distance of 1 relative
+    to any non-flat row, and a distance of zero to another flat row
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -677,17 +692,15 @@ def dist_pearson(datamtx, strict=True):
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * an all zero row compared with a not all zero row returns a distance of 1
-    * if strict==True, raises ValueError if any of the input data is negative,
+    * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    * if strict==False, assumes input data is a 2d matrix
+    If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
@@ -746,7 +759,7 @@ def dist_soergel(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
@@ -794,20 +807,21 @@ def dist_spearman_approx(datamtx, strict=True):
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
-    * if strict==True, raises ValueError if any of the input data is negative,
-    not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    * if strict==True, raises ValueError if any of the input data is
+    not finite, or if the input data is not a rank 2 array (a matrix), or if
+    there are less than 2 colunms
+    * if strict==False, assumes input data is a 2d matrix.
+    If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
-            raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = shape(datamtx)
+        if numcols < 2:
+            raise ValueError("input matrix has < 2 colunms")
     else:
         try:
             numrows, numcols = shape(datamtx)
@@ -847,7 +861,7 @@ def dist_specprof(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     if strict:
@@ -993,7 +1007,7 @@ def binary_dist_hamming(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     datamtx = datamtx.astype(bool)
@@ -1051,7 +1065,7 @@ def binary_dist_jaccard(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     datamtx = datamtx.astype(bool)
@@ -1112,7 +1126,7 @@ def binary_dist_lennon(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     datamtx = datamtx.astype(bool)
@@ -1175,7 +1189,7 @@ def binary_dist_ochiai(datamtx, strict=True):
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
     * if strict==False, assumes input data is a matrix with nonnegative 
-    entries.  If rank on input data is < 2, returns an empty 2d array (shape:
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
     datamtx = datamtx.astype(bool)
