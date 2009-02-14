@@ -25,7 +25,7 @@ from random import choice, random, shuffle, randrange
 from cogent.maths.stats.util import Freqs
 from cogent.struct.rna2d import ViennaStructure
 from cogent.app.vienna_package import RNAfold
-from numpy import array, logical_and
+from numpy import logical_and, fromstring, byte
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -1118,11 +1118,11 @@ class Module(object):
         if not length:  #zero-length pattern matches everywhere by definition
             return True
         else:
-            ss = array(self.Structure)
-            structure_mask = ss != 'x'
-            diffs = ss != array(structure[index:index+length])
-            result = not bool(logical_and(diffs, structure_mask))
-            return result
+            ss = fromstring(self.Structure, byte)
+            structure_mask = ss != ord('x')
+            diffs = ss != fromstring(structure[index:index+length], byte)
+            result = not logical_and(diffs, structure_mask).any()
+            return result, ss, structure_mask, diffs
             
 class Motif(object):
     """Holds sequences and structures for a motif."""
@@ -1173,10 +1173,17 @@ class Motif(object):
         """
         start_up = locations[rule.UpstreamSequence]+rule.UpstreamPosition
         start_down = locations[rule.DownstreamSequence]+rule.DownstreamPosition
-        for i in xrange(rule.Length):
+        for i in range(rule.Length):
             if pairlist[start_up + i] != start_down - i:
                 return False
         return True     #if nothing failed, everything must be OK
+
+    def _get_rule_match_pairs(self, rule, pairlist, locations):
+        """Get the pairs that the rule will check."""
+        start_up = locations[rule.UpstreamSequence]+rule.UpstreamPosition
+        start_down = locations[rule.DownstreamSequence]+rule.DownstreamPosition
+        return [(start_up+i,start_down-i) for i in range(rule.Length)]
+
             
     def matches(self, sequence, structure, positions):
         """Checks that sequence and structure matches motifs/rules.
@@ -1212,7 +1219,7 @@ class Motif(object):
         #if we got here, all the modules matched and all the rules were OK
         return True
  
-    def structureMatches(self, structure, positions, offsets=None):
+    def structureMatches(self, structure, positions, offsets=None,debug=False):
         """Checks that structure only matches motifs/rules.
 
         structure must have a PairList property (like ViennaStructure),
@@ -1232,12 +1239,39 @@ class Motif(object):
             raise ValueError, "len(positions) must match number of modules."
         if offsets:
             positions = [p+o for p, o in zip(positions, offsets)]
+        result = True
         for position, module in zip(positions, modules):
-            if not module.structureMatches(structure, position):
-                return False
+            matched, ss, mask, diffs = \
+                module.structureMatches(structure, position) 
+            if debug:
+                print 'STRUC:', structure[position:position+len(ss)]
+                print 'SS   :', ss.tostring()
+                print 'MASK :', ''.join(map(str, map(int, mask)))
+                print 'DIFFS:', ''.join(map(str, map(int,diffs)))
+                print 'WHERE:'
+                all = ['.'] * len(structure)
+                all[position:position+len(ss)] = ['x']*len(ss)
+                print ''.join(all)
+            if not matched: 
+                if debug:
+                    result = False
+                else:
+                    return False
+        if not result:
+            return False
         #can only get here if all the modules matched: need to check rules
         pairlist = structure.toPartners()
         for rule in self.Rules:
+            if debug:
+                pairs = self._get_rule_match_pairs(rule, pairlist, positions)
+                for up, down in pairs:
+                    all = ['.'] * len(structure)
+                    all[up] = '('
+                    all[down] = ')'
+                    print ''.join(all)
+                    if not pairlist[up] == down:
+                        print structure
+                        raise
             if not self._check_rule_match(rule, pairlist, positions):
                 return False
         #if we got here, all the modules matched and all the rules were OK
@@ -1336,7 +1370,7 @@ class SequenceEmbedder(object):
         self.Model.GU = self.GU
         self.Model.refresh()
 
-    def countMatches(self):
+    def countMatches(self, verbose=False):
         """Generates NumToDo sequences, folds them, and returns match count."""
         positions = []
         seqs = []
@@ -1365,17 +1399,25 @@ class SequenceEmbedder(object):
                 structs.append(ViennaStructure(line.split()[0]))
             odd = not odd
         good_count = 0
+        if self.Debug:
+            print "DEBUGGING"   #debug code: prints seqs, structs, matches
         for seq, struct, position in zip(seqs, structs, positions):
-            if self.Motif.structureMatches(struct, position, self.MatchOffsets):
+            matched = self.Motif.structureMatches(struct, position, \
+                self.MatchOffsets,debug=self.Debug)
+            if matched:
                 good_count += 1
-                if self.ReportSeqs:
-                    module_lengths = map(len, list(self.Model))
-                    print seq
-                    print struct
-                    temp = [' '] * len(seq)
-                    for l, p in zip(module_lengths, position):
-                        temp[p:p+l] = ['*']*l
-                    print ''.join(temp)
-                    print self.Motif.structureMatches(struct, position, \
-                        self.MatchOffsets)
+            if self.Debug or (matched and self.ReportSeqs):
+                module_lengths = map(len, list(self.Model))
+                if self.Debug:
+                    print "Module lengths:", module_lengths
+                    print "Positions:", position
+                print seq
+                print struct
+                temp = [' '] * len(seq)
+                for l, p in zip(module_lengths, position):
+                    temp[p:p+l] = ['*']*l
+                print ''.join(temp)
+                if self.Debug:
+                    print "Offsets:", self.MatchOffsets
+                print matched
         return good_count
