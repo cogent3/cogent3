@@ -1271,7 +1271,7 @@ class Motif(object):
                     print ''.join(all)
                     if not pairlist[up] == down:
                         print structure
-                        raise
+                        raise Exception, "Failed to find partner in pairlist"
             if not self._check_rule_match(rule, pairlist, positions):
                 return False
         #if we got here, all the modules matched and all the rules were OK
