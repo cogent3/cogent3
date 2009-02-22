@@ -35,11 +35,11 @@ class GeneralSetUp(TestCase):
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
         
         self.temp_dir = tempfile.mkdtemp()
-        self.temp_dir_spaces = '/tmp/test for clearcut/'
-        try:
-            mkdir(self.temp_dir_spaces)
-        except OSError:
-            pass
+        #self.temp_dir_spaces = '/tmp/test for clearcut/'
+        #try:
+        #    mkdir(self.temp_dir_spaces)
+        #except OSError:
+        #    pass
         try:
             #create sequence files
             f = open(path.join(self.temp_dir, 'seq1.txt'),'w')
@@ -84,7 +84,7 @@ class ClearcutTests(GeneralSetUp):
         """Last test executed: cleans up all files initially created"""
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
-        shutil.rmtree(self.temp_dir_spaces)
+        #shutil.rmtree(self.temp_dir_spaces)
 
     def test_build_tree_from_alignment(self):
         """Clearcut should return a tree built from the passed alignment"""
@@ -127,9 +127,9 @@ class ClearcutTests(GeneralSetUp):
         data = [('sample1aaaaaaa', 'sample2', 1.438), ('sample2', 'sample1aaaaaaa', 1.438), ('sample1aaaaaaa', 'sample3', 2.45678), ('sample3', 'sample1aaaaaaa', 2.45678), ('sample2', 'sample3', 2.7), ('sample3', 'sample2', 2.7)]
         data_dict2d = Dict2D(data, Pad=True, Default=0.0)
         matrix, int_map = _matrix_input_from_dict2d(data_dict2d)
-        of = open('temp.txt', 'w')
-        of.write(matrix)
-        of.close()
+        #of = open('temp.txt', 'w')
+        #of.write(matrix)
+        #of.close()
         matrix = matrix.split('\n')
         self.assertEqual(matrix[0], '   3')
         self.assertEqual(matrix[1], 'env_0       0.0  1.438  2.45678')
