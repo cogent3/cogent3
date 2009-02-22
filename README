@@ -53,7 +53,7 @@ If you do not have administrator privileges on your machine you can move the cog
 Testing
 -------
 
-``Cogent/tests`` contains all the tests (currently >2700). You can most readily run the tests using the ``Cogent/run_tests`` shell script. This is done by typing::
+``Cogent/tests`` contains all the tests (currently >3100). You can most readily run the tests using the ``Cogent/run_tests`` shell script. This is done by typing::
 
 $ sh run_tests
 
