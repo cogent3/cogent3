@@ -337,11 +337,13 @@ class DoubleBirthDeathModel(object):
         self.CurrStep = 0
         self.SpeciesTree = self.SpeciesClass()
         self.SpeciesTree.Length = 0
+        self.SpeciesTree.BirthDeathModel = self
         self.CurrSpecies = [self.SpeciesTree]
         self.SpeciesTree.CurrSpecies = self.CurrSpecies #ref to same object
         self.GeneTrees = [self.GeneClass() for i in range(self.GenesAtStart)]
         for i in self.GeneTrees:
             i.Length = 0
+            i.BirthDeathModel = self
         self.CurrGenes = self.GeneTrees[:]
 
         #set gene/species references
@@ -586,7 +588,7 @@ class DoubleBirthDeathModel(object):
         for i in self.CurrSpecies:
             assert not i.Children
         if self.DEBUG:
-            print "***"
+            print '*** DUPLICATING SPECIES'
             print "SPECIES GENES AT START: ", len(species.Genes)
         sc = self.SpeciesClass
         #make new species
@@ -606,7 +608,6 @@ class DoubleBirthDeathModel(object):
         #update gene references
         curr_genes = self.CurrGenes
         if self.DEBUG:
-            print '***'
             print "GENES BEFORE SWEEP: ", len(curr_genes)
             print "NUM GENES IN SPECIES: ", len(species.Genes)
         
@@ -631,8 +632,11 @@ class DoubleBirthDeathModel(object):
         self.SpeciesTree.assignIds()
         if self.DEBUG:
             print "SPECIES TREE: ", self.SpeciesTree
+        if self.DEBUG:
+            print "SPECIES ASSIGNMENTS FOR EACH GENE"
         for i in curr_genes: 
-            print i.Species.Id
+            if self.DEBUG:
+                print i.Species.Id
             assert (i.Species in self.CurrSpecies) or i.Species in [first_child, second_child]
         return children
 
@@ -659,6 +663,8 @@ class DoubleBirthDeathModel(object):
         self._init_vars()
         done = False
         while not done:
+            if self.DEBUG:
+                print "CURR STEP:", self.CurrStep
             for i in self.CurrGenes: assert i.Species in self.CurrSpecies
             self.geneStep(random_f)
             for i in self.CurrGenes: assert i.Species in self.CurrSpecies
@@ -681,6 +687,8 @@ class DoubleBirthDeathModel(object):
                 (len(self.CurrGenes), self.MaxGenes)
         #filter if required
         if filter:
+            if self.DEBUG:
+                print "***FILTERING..."
             self.SpeciesTree.assignIds()
             if self.DEBUG:
                 print "BEFORE PRUNE: ", self.SpeciesTree

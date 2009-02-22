@@ -33,7 +33,10 @@ class RnaalifoldTest(TestCase):
              'seq_3': 'GGUAGGUCGCCGCACGUCGCUUCAGGAC--UGUGCGGAAGGAGCGGU',
              'seq_4': 'GGUAGGUCGCUGUAC-UUCUAUCAGGACU--GUACGGAAGGAGCGGU',
              }
-        self.struct = '....(.((.((((((..(((....)))....))))))...)).)...'
+        self.old_struct = '....(.((.((((((..(((....)))....))))))...)).)...'  
+        #from version 1.4
+        self.new_struct = '....(.((.((((((................))))))...)).)...'  
+        #from version 1.8 - no easy way to check version so putting both in
         
     def test_input_as_lines(self):
         """Test rnaalifold stdout input as lines"""
@@ -79,7 +82,10 @@ class RnaalifoldTest(TestCase):
         """rnaalifold_from_alignment should give correct result.
         """
         [[seq, struct,energy]] = rnaalifold_from_alignment(aln=self.alignment)
-        self.assertEqual(struct,self.struct)
+        try:
+            self.assertEqual(struct,self.old_struct)
+        except AssertionError:
+            self.assertEqual(struct,self.new_struct)
         
 
 RNAALIFOLD_INPUT = ['CLUSTAL\n', '\n', 'seq1 GGCTAGATAGCTCAGATGGT-AGAGCAGAGGATTGAAGATCCTTGTGTCGTCGGTTCGATCCCGGCTCTGGCC----\n']
