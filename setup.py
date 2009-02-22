@@ -32,14 +32,12 @@ class NullCompiler(distutils.ccompiler.CCompiler):
     def link(self, *args, **kw):
         pass
 
-
 # Pyrex makes some messy C code so limit some warnings when we know how.
 import distutils.sysconfig
 if (distutils.sysconfig.get_config_var('CC') or '').startswith("gcc"):
     pyrex_compile_options = ['-w']
 else:
     pyrex_compile_options = []
-
 
 # On windows with no commandline probably means we want to build an installer.
 if sys.platform == "win32" and len(sys.argv) < 2:
@@ -100,7 +98,6 @@ else:
     
     pyrex_suffix = ".pyx"
 
-
 # predist python setup.py predist --inplace --force, this is in _darcs/prefs/prefs for instructing darcs predist to execute the subsequent, predist is a darcs word
 
 # Save some repetitive typing.  We have all compiled
@@ -112,7 +109,6 @@ def CogentExtension(module_name, extra_compile_args=[], include_dirs=[], **kw):
 
 # get version
 execfile('cogent/__init__.py')
-
 short_description = "COmparative GENomics Toolkit"
 
 # This ends up displayed by the installer
@@ -145,7 +141,8 @@ setup(
                 'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
                 'cogent.draw', 'cogent.draw.matplotlib', 'cogent.evolve',
                 'cogent.format', 'cogent.maths', 'cogent.maths.matrix',
-                'cogent.maths.stats', 'cogent.maths.stats.cai', 'cogent.motif',
+                'cogent.maths.stats', 'cogent.maths.stats.cai', 
+                'cogent.maths.unifrac', 'cogent.motif',
                 'cogent.parse', 'cogent.phylo', 'cogent.recalculation',
                 'cogent.seqsim', 'cogent.struct', 'cogent.util'],
     ext_modules=[
