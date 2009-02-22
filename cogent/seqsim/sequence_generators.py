@@ -1063,7 +1063,6 @@ class Module(object):
         ###THIS METHOD NEEDS ATTENTION: move responsibility for finding matches
         to the sequence objects themselves?
         """
-
         length = len(self)
         if not length:  #zero-length pattern matches everywhere by definition
             return True 
@@ -1087,7 +1086,7 @@ class Module(object):
                     seq_match = False
                     break
             struct_match = self.structureMatches(other.Structure, index)
-            return seq_match and struct_match
+            return seq_match and struct_match[0]
         else:
             other_length = len(other)
             seq = self.Sequence
@@ -1116,7 +1115,7 @@ class Module(object):
         """
         length = len(self)
         if not length:  #zero-length pattern matches everywhere by definition
-            return True
+            return (True, )
         else:
             ss = fromstring(self.Structure, byte)
             structure_mask = ss != ord('x')
@@ -1370,7 +1369,7 @@ class SequenceEmbedder(object):
         self.Model.GU = self.GU
         self.Model.refresh()
 
-    def countMatches(self, verbose=False):
+    def countMatches(self, verbose=False, temp=25):
         """Generates NumToDo sequences, folds them, and returns match count."""
         positions = []
         seqs = []
@@ -1391,7 +1390,7 @@ class SequenceEmbedder(object):
                 insert_length += module_lengths[i]
             positions.append(curr_positions)
             seqs.append(curr_seq)
-        folder = RNAfold()
+        folder = RNAfold(params={'-T':temp})
         struct_file = folder(seqs)['StdOut']
         odd = False
         for line in struct_file:

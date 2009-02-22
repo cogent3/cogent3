@@ -805,10 +805,11 @@ class ModuleTests(TestCase):
         positions = {3:short_p, 11:short_u, 7:short_up, 15:short_up}
         for module in [short_p, short_u, short_up]:
             for i in range(len(long_all)):
+                result = module.matches(long_all, i)
                 if positions.get(i, None) is module:
-                    self.assertEqual(module.matches(long_all, i), True)
+                    self.assertEqual(result, True)
                 else:
-                    self.assertEqual(module.matches(long_all, i), False)
+                    self.assertEqual(result, False)
 
 class MotifTests(TestCase):
     """Tests of the Motif object, which has a set of Modules and Rules."""
