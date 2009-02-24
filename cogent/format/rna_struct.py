@@ -4,6 +4,8 @@ Writer functions for RNA 2D structures.
 
     NOTE: Still in beta testing.
 """
+from matplotlib import use
+use('Agg')  #suppress graphical rendering
 
 from cogent.app.vienna_package import plot_from_seq_and_struct
 from cogent.parse.rna_plot import RnaPlotParser
@@ -20,6 +22,8 @@ __version__ = "1.3.0.dev"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
+
+
 
 ################################################################################
 ##### Code for postscript RNA 2d Struct ########################################
@@ -185,24 +189,18 @@ def scale_coords(coords):
     
     #max scale value
     max_scale = max(scaled_max_x, scaled_max_y)
-    min_scale_x, min_scale_y = 0,0
-    if min_x < min_y:
-        min_scale_x = min_x
-    elif min_y < min_x:
-        min_scale_y = min_y
-    else:
-        min_scale_x = min_x
-        min_scale_y = min_y
-        
+    
+    scale_x = min_x
+    scale_y = min_y
     
     for x,y in coords:
-        new_coords.append([(x-min_scale_x)/max_scale,\
-            (y-min_scale_y)/max_scale])
     
+        new_coords.append([(x-scale_x)/max_scale,\
+            (y-scale_y)/max_scale])
     
     return new_coords
 
-def make_circles(coords,facecolors,edgecolors,radius=0.02):
+def make_circles(coords,facecolors,edgecolors,radius=0.02,alpha=1.0,fill=False):
     """Returns list of Circle objects, given list of coordinates.
     
         - coords: list of [x,y] coordinates, already scaled to matplotlib axes.
@@ -210,17 +208,20 @@ def make_circles(coords,facecolors,edgecolors,radius=0.02):
         - edgecolor: color of circle edge.
         - radius: radius of circle.
     """
-    recenter = radius/2.0
+    recenter_divide = radius*100.
+    recenter = radius/recenter_divide
     circles = []
     for coord, facecolor,edgecolor in zip(coords,facecolors,edgecolors):
         x_coord,y_coord = coord
         curr_circle = Circle([x_coord+recenter,y_coord+recenter],\
-            radius=radius,facecolor=facecolor,edgecolor=edgecolor)
+            radius=radius,facecolor=facecolor,edgecolor=edgecolor,alpha=alpha,\
+            fill=fill)
         circles.append(curr_circle)
     
     return circles
 
-def make_boxes(coords, facecolor='white', edgecolor='black', edge_size=0.03):
+def make_boxes(coords, facecolor='white', edgecolor='black', edge_size=0.03,\
+    alpha=1.0,fill=False):
     """Returns list of Rectangle objects, given list of coordinates.
     
         - coords: list of [x,y] coordinates, already scaled to matplotlib axes.
@@ -229,11 +230,12 @@ def make_boxes(coords, facecolor='white', edgecolor='black', edge_size=0.03):
         - edge_size: length of box edges.
     """
     boxes = []
-    recenter = edge_size/6.0
+    recenter_divide = edge_size*200.
+    recenter = edge_size/recenter_divide
     for x_coord,y_coord in coords:
         curr_box = Rectangle([x_coord-recenter,y_coord-recenter],\
             edge_size,edge_size,\
-            facecolor=facecolor,edgecolor=edgecolor)
+            facecolor=facecolor,edgecolor=edgecolor,alpha=alpha,fill=fill)
         boxes.append(curr_box)
     
     return boxes
@@ -293,9 +295,17 @@ def make_labels(coords):
     return [fp_label,tp_label]
 
 def draw_structure(sequence,struct,indices=None,colors=None,\
-    circle_indices=None, square_indices=None):
+    circle_indices=None, square_indices=None,radial=True):
     """Returns a postscript string colored at indices.
     """
+    #Get circle radius.  Proportional to sequence length
+    circle_scale_size = (.02/int(len(sequence)/50))/2.0
+    circle_radius = .02 - circle_scale_size
+    
+    #Get edge size.  Proportional to sequence length
+    square_scale_size = (.03/int(len(sequence)/50))/4.0
+    square_edge_size = .03 - square_scale_size
+    
     if indices is None:
         indices = []
     if colors is None:
@@ -307,10 +317,14 @@ def draw_structure(sequence,struct,indices=None,colors=None,\
     
     if len(indices) != len(colors):
         raise ValueError, 'indices and colors must be equal sized lists'
-        
+    
+    if radial:
+        params = {'-t':'0'}
+    else:
+        params = {'-t':'1'}
     #Get the postscript list
     ps_list = plot_from_seq_and_struct(sequence,\
-        struct,params={'-t':'0'}).split('\n')
+        struct,params=params).split('\n')
     #Parse out seq, coords, and pairs
     seq, coords, pair_list = RnaPlotParser(ps_list)
     coords = scale_coords(coords)
@@ -323,21 +337,23 @@ def draw_structure(sequence,struct,indices=None,colors=None,\
     outline = make_outline(coords)
     #get labels
     labels = make_labels(coords)
-    
-    
-    #get motif circles
-    motif_coords = [coords[i] for i in indices]
-    motif_circles = make_circles(motif_coords,colors,colors)
+
     
     #get plain circle coords
     circle_coords = [coords[i] for i in circle_indices]
     circle_faces = ['white']*len(circle_coords)
     circle_edges = ['black']*len(circle_coords)
-    plain_circles = make_circles(circle_coords,circle_faces, circle_edges)
+    plain_circles = make_circles(circle_coords,circle_faces, circle_edges,\
+        radius=circle_radius)
+    
+    #get motif circles
+    motif_coords = [coords[i] for i in indices]
+    motif_circles = make_circles(motif_coords,colors,colors,fill=True,\
+        radius=circle_radius)
     
     #Get square coords
     square_coords = [coords[i] for i in square_indices]
-    plain_squares = make_boxes(square_coords)
+    plain_squares = make_boxes(square_coords,edge_size=square_edge_size)
     
     axis = gca()
     axis.set_axis_off()
