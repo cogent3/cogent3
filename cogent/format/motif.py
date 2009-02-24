@@ -2,6 +2,9 @@
 """Format classes for MotifResults objects."""
 
 from __future__ import division
+from matplotlib import use
+use('Agg')  #suppress graphical rendering
+
 from cogent.motif.util import MotifFormatter
 from cogent.format.pdb_color import get_matching_chains,\
     align_subject_to_pdb, PYMOL_FUNCTION_STRING, MAIN_FUNCTION_STRING
@@ -25,6 +28,7 @@ __version__ = "1.3.0.dev"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Prototype"
+
 
 def _format_number(number):
     if number is None:
