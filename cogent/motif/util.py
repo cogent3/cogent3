@@ -326,7 +326,7 @@ class MotifFormatter(object):
         for module_id in module_ids: 
             ix = int(module_id)
             cur_color = ix % mod
-            color_map["color_" + module_id] = \
+            color_map["color_" + str(module_id)] = \
                 html_color_to_rgb(MotifFormatter.COLORS[cur_color])
 
         return color_map
@@ -405,6 +405,24 @@ class MotifResults(object):
             self.__dict__.update(Parameters)
         self.Alignment = Alignment
         self.MolType = MolType
+    
+    def makeModuleMap(self):
+        """Returns dict of sequence ID keyed to modules.
+        
+            - result = {sequence_id:(index_in_sequence, module_id, module_len)}
+        """
+        module_map = {}  #Dict with locations of every motif keyed by module
+        if self:
+            for motif in self.Motifs:
+                for module in motif.Modules:
+                    mod_len = len(module)
+                    mod_id = str(module.ID)
+                    for skey, indexes in module.LocationDict.items():
+                        if skey not in module_map:
+                            module_map[skey] = []
+                        for ix in indexes:
+                            module_map[skey].append((ix, mod_id, mod_len))
+        return module_map
 
 def html_color_to_rgb(colorstring):
     """ convert #RRGGBB to an (R, G, B) tuple 
