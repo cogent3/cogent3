@@ -87,6 +87,8 @@ def suite():
         'test_maths.test_stats.test_cai.test_get_by_cai',
         'test_maths.test_stats.test_cai.test_util',
         'test_maths.test_optimisers',
+        'test_maths.test_unifrac.test_fast_tree',
+        'test_maths.test_unifrac.test_fast_unifrac',
         'test_motif.test_util',
         'test_parse.test_aaindex',
         'test_parse.test_agilent_microarray',

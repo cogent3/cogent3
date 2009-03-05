@@ -7,7 +7,7 @@ from cogent.maths.unifrac.fast_tree import (count_envs, sum_env_dict,
     index_envs, get_branch_lengths, index_tree, bind_to_array, 
     bind_to_parent_array, _is_parent_empty, delete_empty_parents,
     traverse_reduce, bool_descendants, sum_descendants, fitch_descendants, 
-    tip_distances, MinimalTreeNode, FitchCounter, FitchCounterDense,
+    tip_distances, UniFracTreeNode, FitchCounter, FitchCounterDense,
     permute_selected_rows, prep_items_for_jackknife, jackknife_bool, 
     jackknife_int, unifrac, unnormalized_unifrac, G, unnormalized_G, 
     unifrac_matrix, unifrac_vector, weighted_unifrac, weighted_unifrac_matrix, 
@@ -29,14 +29,14 @@ class fast_tree_tests(TestCase):
     """Tests of top-level functions"""
     def setUp(self):
         """Define a couple of standard trees"""
-        self.t1 = DndParser('(((a,b),c),(d,e))', MinimalTreeNode)
-        self.t2 = DndParser('(((a,b),(c,d)),(e,f))', MinimalTreeNode)
-        self.t3 = DndParser('(((a,b,c),(d)),(e,f))', MinimalTreeNode)
-        self.t4 = DndParser('((c)b,((f,g,h)e,i)d)', MinimalTreeNode)
+        self.t1 = DndParser('(((a,b),c),(d,e))', UniFracTreeNode)
+        self.t2 = DndParser('(((a,b),(c,d)),(e,f))', UniFracTreeNode)
+        self.t3 = DndParser('(((a,b,c),(d)),(e,f))', UniFracTreeNode)
+        self.t4 = DndParser('((c)b,((f,g,h)e,i)d)', UniFracTreeNode)
         self.t4.Name = 'a'
         self.t_str = '((a:1,b:2):4,(c:3,(d:1,e:1):2):3)'
 
-        self.t = DndParser(self.t_str, MinimalTreeNode)
+        self.t = DndParser(self.t_str, UniFracTreeNode)
         self.env_str = """
 a   A   1
 a   C   2
@@ -54,7 +54,7 @@ e   C   1"""
         self.old_t_str = '((org1:0.11,org2:0.22,(org3:0.12,org4:0.23)g:0.33)b:0.2,(org5:0.44,org6:0.55)c:0.3,org7:0.4)'
 
 
-        self.old_t = DndParser(self.old_t_str, MinimalTreeNode)
+        self.old_t = DndParser(self.old_t_str, UniFracTreeNode)
         self.old_env_str = """
 org1    env1    1
 org1    env2    1
@@ -77,7 +77,7 @@ org7    env3    1
     def test_traverse(self):
         """traverse should work iterative or recursive"""
         stti = self.t4.traverse
-        stt = self.t4._traverse_recursive
+        stt = self.t4.traverse_recursive
         obs = [i.Name for i in stt(self_before=False, self_after=False)]
         exp = [i.Name for i in stti(self_before=False, self_after=False)]
         self.assertEqual(obs, exp)
@@ -270,7 +270,7 @@ b   A   99
 
     def test_bool_descendants(self):
         """bool_descendants should be true if any descendant true"""
-        #self.t3 = DndParser('(((a,b,c),(d)),(e,f))', MinimalTreeNode)
+        #self.t3 = DndParser('(((a,b,c),(d)),(e,f))', UniFracTreeNode)
         id_, child = index_tree(self.t3)
         a = zeros((11,3)) + 99    #fill with junk
         bindings = bind_to_array(child, a)
@@ -325,7 +325,7 @@ c   D
 d   C
 e   C
 f   D"""
-        t = DndParser(t_str, MinimalTreeNode)
+        t = DndParser(t_str, UniFracTreeNode)
         node_index, nodes = index_tree(t)
         env_counts = count_envs(env_str.split('\n'))
     
