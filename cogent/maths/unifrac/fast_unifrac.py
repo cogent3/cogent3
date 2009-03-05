@@ -15,7 +15,7 @@ from cogent.phylo.nj import nj
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
-__credits__ = ["Rob Knight", "Micah Hamady"]
+__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
 __license__ = "All rights reserved"
 __version__ = "0.1"
 __maintainer__ = "Rob Knight, Micah Hamady"
@@ -74,7 +74,7 @@ def mcarlo_sig(real_val, sim_vals, num_comps, tail='low'):
 
 def fast_unifrac_file(tree_in, envs_in, weighted=False, metric=unifrac, is_symmetric=True, modes=UNIFRAC_DEFAULT_MODES):
     """ Wrapper to read tree and envs from files. """
-    tree = DndParser(tree_in, MinimalTreeNode)
+    tree = DndParser(tree_in, UniFracTreeNode)
     envs = count_envs(envs_in)
     return fast_unifrac(tree, envs, weighted, metric, is_symmetric=is_symmetric, modes=modes)
 
@@ -82,7 +82,7 @@ def fast_unifrac_permutations_file(tree_in, envs_in, weighted=False,
     num_iters=1000, verbose=False, test_on=TEST_ON_PAIRWISE):
     """ Wrapper to read tree and envs from files. """
     result = []
-    t = DndParser(tree_in, MinimalTreeNode)
+    t = DndParser(tree_in, UniFracTreeNode)
     envs = count_envs(envs_in)
     if test_on == TEST_ON_PAIRWISE:
         # calculate real values
@@ -128,7 +128,7 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
     test_on=TEST_ON_PAIRWISE):
     """ Wrapper to read tree and envs from files. """
     result = []
-    t = DndParser(tree_in, MinimalTreeNode)
+    t = DndParser(tree_in, UniFracTreeNode)
     envs = count_envs(envs_in)
     unique_envs, num_uenvs = get_unique_envs(envs)
     # calculate real, sim vals and p-vals for each pair of envs in tree 
@@ -475,7 +475,10 @@ def consolidate_skipping_missing_values(matrices, env_names, weights,
     """Consolidates matrices, skipping only values from missing envs"""
     result = []
     for m, e, w in zip(matrices, env_names, weights):
-        result.append(reshape_by_name(m, e, all_env_names, masked=True) *w)
+        reshaped = reshape_by_name(m, e, all_env_names, masked=True)
+        reshaped *= w
+        result.append(reshaped)
+
     data = array([i.data for i in result], float)
     masks = array([i.mask for i in result], bool)
     masked_result = ma.array(data, mask=masks)

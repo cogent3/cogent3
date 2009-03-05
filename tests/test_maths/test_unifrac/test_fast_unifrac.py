@@ -11,7 +11,7 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     weight_by_branch_length, weight_by_num_seqs, get_all_env_names,
     consolidate_skipping_missing_matrices, consolidate_missing_zero,
     consolidate_missing_one, consolidate_skipping_missing_values,
-    MinimalTreeNode, mcarlo_sig, num_comps, fast_unifrac_whole_tree,
+    UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac_whole_tree,
     TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE)
 from numpy.random import permutation 
 
@@ -29,7 +29,7 @@ class unifrac_tests(TestCase):
     def setUp(self):
         """Define some standard trees."""
         self.t_str = '((a:1,b:2):4,(c:3,(d:1,e:1):2):3)'
-        self.t = DndParser(self.t_str, MinimalTreeNode)
+        self.t = DndParser(self.t_str, UniFracTreeNode)
         self.env_str = """
 a   A   1
 a   C   2
@@ -41,7 +41,7 @@ e   C   1"""
         self.env_counts = count_envs(self.env_str.splitlines())
 
         self.t2_str = '(((a:1,b:1):1,c:5):2,d:4)'
-        self.t2 = DndParser(self.t2_str, MinimalTreeNode)
+        self.t2 = DndParser(self.t2_str, UniFracTreeNode)
         self.env2_str = """
 a   B   1
 b   A   1
@@ -58,7 +58,7 @@ d   C   1"""
         # from old EnvsNode tests
         self.old_t_str = '((org1:0.11,org2:0.22,(org3:0.12,org4:0.23)g:0.33)b:0.2,(org5:0.44,org6:0.55)c:0.3,org7:0.4)'
 
-        self.old_t = DndParser(self.old_t_str, MinimalTreeNode)
+        self.old_t = DndParser(self.old_t_str, UniFracTreeNode)
         self.old_env_str = """
 org1    env1    1
 org1    env2    1

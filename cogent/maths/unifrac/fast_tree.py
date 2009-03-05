@@ -5,10 +5,11 @@ from numpy import (logical_and, logical_or, sum, take, nonzero, repeat,
     array, concatenate, zeros, put, transpose, flatnonzero, newaxis,
     logical_xor, logical_not)
 from numpy.random import permutation
+from cogent.core.tree import TreeNode
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
-__credits__ = ["Rob Knight", "Micah Hamady"]
+__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
 __license__ = "All rights reserved"
 __version__ = "0.1"
 __maintainer__ = "Rob Knight, Micah Hamady"
@@ -19,183 +20,14 @@ __status__ = "Prototype"
 lar = logical_and.reduce
 lor = logical_or.reduce
 
-class MinimalTreeNode(object):
-    """Minimal treenode supporting DndParser and traverse()
+class UniFracTreeNode(TreeNode):
+    """Slightly extended TreeNode treenode for use with UniFrac
     
     Can expect Length and Name (= Name) to be set by DndParser.
     """
-    def __init__(self, Name=None, **kwargs):
-        """Makes new MinimalTreeNode; doesn't support parent/child args"""
-        self.Parent = None
-        self.Children = []
-        self.Name = Name
-
     def __nonzero__(self):
         """Returns True if self.Children."""
         return bool(self.Children)
-
-    def getNewick(self, with_distances=False, semicolon=True):
-        """Return the newick string for this edge.
-        
-        Arguments:
-            - with_distances: whether branch lengths are included.
-        """
-        newick = []
-
-        subtrees = [child.getNewick(with_distances, semicolon=False)
-                for child in self.Children]
-        if subtrees:
-            newick.append("(%s)" % ",".join(subtrees))
-
-        if self.Name is None:
-            name = ''
-        else:
-            name = self.Name.replace(' ','_')
-        newick.append(name)
-
-        if with_distances and hasattr(self, 'Length') and \
-            self.Length is not None:
-            newick.append(":%s" % self.Length)
-
-        if semicolon:
-            newick.append(";")
-
-        return ''.join(newick)
-
-    def __str__(self):
-        return self.getNewick(with_distances=True)
-
-    def _traverse_recursive(self, self_before=True, self_after=False):
-        """Returns iterator over descendants.
-        
-        Recursive implementation: should use only for testing.
-        """
-        if self:
-            if self_before:
-                yield self
-            for child in self.Children:
-                for i in child._traverse_recursive(self_before, self_after):
-                    yield i
-            if self_after:
-                yield self
-        else:
-            yield self
-
-    def traverse(self, self_before=True, self_after=False):
-        """Returns iterator over descendants. Iterative: safe for large trees."""
-        if self_before:
-            if self_after:
-                return self.pre_and_postorder()
-            else:
-                return self.preorder()
-        else:
-            if self_after:
-                return self.postorder()
-            else:
-                return self.tips()
-
-    def preorder(self):
-        """Performs preorder iteration over tree."""
-        stack = [self]
-        while stack:
-            curr = stack.pop()
-            yield curr
-            if curr.Children:
-                stack.extend(curr.Children[::-1])   #20% faster than reversed
-
-    def tips(self):
-        """Returns tips only."""
-        stack = [self]
-        while stack:
-            curr = stack.pop()
-            if curr.Children:
-                stack.extend(curr.Children[::-1])   #20% faster than reversed
-            else:
-                yield curr
-
-    def postorder(self):
-        """Performs postorder iteration over tree.
-        
-        This is somewhat inelegant compared to saving the node and its index
-        on the stack, but is 30% faster in the average case and 3x faster in
-        the worst case (for a comb tree).
-
-        Zongzhi Liu's slower but more compact version is:
-
-        def postorder_zongzhi(self):
-            stack = [[self, 0]]
-            while stack:
-                curr, child_idx = stack[-1]
-                if child_idx < len(curr.Children):
-                    stack[-1][1] += 1
-                    stack.append([curr.Children[child_idx], 0])
-                else:
-                    yield stack.pop()[0]
-        """
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.Children
-        curr_children_len = len(curr_children)
-        while 1:
-            curr_index = child_index_stack[-1]
-            #if there are children left, process them
-            if curr_index < curr_children_len:
-                curr_child = curr_children[curr_index]
-                #if the current child has children, go there
-                if curr_child.Children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.Children
-                    curr_children_len = len(curr_children)
-                    curr_index = 0
-                #otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            #if there are no children left, return self, and move to
-            #self's parent
-            else:
-                yield curr
-                if curr is self:
-                    break
-                curr = curr.Parent
-                curr_children = curr.Children
-                curr_children_len = len(curr_children)
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
-
-    def pre_and_postorder(self):
-        """Performs iteration over tree, visiting node before and after."""
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.Children
-        while 1:
-            curr_index = child_index_stack[-1]
-            if not curr_index:
-                yield curr
-            #if there are children left, process them
-            if curr_index < len(curr_children):
-                curr_child = curr_children[curr_index]
-                #if the current child has children, go there
-                if curr_child.Children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.Children
-                    curr_index = 0
-                #otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            #if there are no children left, return self, and move to
-            #self's parent
-            else:
-                yield curr
-                if curr is self:
-                    break
-                curr = curr.Parent
-                curr_children = curr.Children
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
 
 def index_tree(t):
     """Returns tuple containing {node_id:node}, [node_id,first_child,last_child]
