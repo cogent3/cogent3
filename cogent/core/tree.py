@@ -264,7 +264,36 @@ class TreeNode(object):
         return result
     
     __deepcopy__ = deepcopy = copy
-    
+   
+    def copyIterative(self):
+        """Returns a copy of self using an iterative approach"""
+        def __copy_node(n):
+            result = n.__class__()
+            efc = n._exclude_from_copy
+            for k,v in n.__dict__.items():
+                if k not in efc:
+                    result.__dict__[k] = deepcopy(n.__dict__[k])
+            return result
+
+        root = __copy_node(self)
+        nodes_stack = [[root, self, len(self.Children)]]
+
+        while nodes_stack:
+            #check the top node, any children left unvisited?
+            top = nodes_stack[-1]
+            new_top_node, old_top_node, unvisited_children = top
+
+            if unvisited_children:
+                top[2] -= 1
+                old_child = old_top_node.Children[-unvisited_children]
+                new_child = __copy_node(old_child)
+                new_top_node.append(new_child)
+                nodes_stack.append([new_child, old_child, \
+                                    len(old_child.Children)])
+            else:  #no unvisited children
+                nodes_stack.pop()
+        return root
+
     def copyTopology(self, constructor=None):
         """Copies only the topology and labels of a tree, not any extra data.
         
@@ -337,6 +366,16 @@ class TreeNode(object):
                 return self.postorder(include_self=include_self)
             else:
                 return self.tips(include_self=include_self)
+
+    def levelorder(self, include_self=True):
+        """Performs levelorder iteration over tree"""
+        queue = [self]
+        while queue:
+            curr = queue.pop(0)
+            if include_self or (curr is not self):
+                yield curr
+            if curr.Children:
+                queue.extend(curr.Children)
 
     def preorder(self, include_self=True):
         """Performs preorder iteration over tree."""

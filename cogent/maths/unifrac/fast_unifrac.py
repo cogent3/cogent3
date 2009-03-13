@@ -2,7 +2,8 @@
 """Fast implementation of UniFrac for use with very large datasets"""
 
 from random import shuffle
-from numpy import ones, ma
+from collections import defaultdict
+from numpy import ones, ma, where
 from numpy.random import permutation
 from cogent.maths.unifrac.fast_tree import *
 # not imported by import *
@@ -277,6 +278,48 @@ def fast_p_test(t, envs, num_iters, first_env=None, second_env=None,
             permutation_f=permutation)
         curr = fitch_descendants(bound_indices)
         result.append(curr)
+    return result
+
+def shared_branch_length(t, envs, env_count=1):
+    """Returns the shared branch length env_count combinations of envs
+    
+    t: phylogenetic tree relating the sequences.
+    envs: dict of {sequence:{env:count}} showing environmental abundance.
+    env_count: number of envs that must be within the subtree
+
+    Returns {(env1,env2,...env_count):shared_branch_length}
+    """
+
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+
+    if len(unique_envs) < env_count:
+        raise ValueError, "Not enough environments for env_count"
+
+    index_to_env = dict([(i,e) for i,e in enumerate(unique_envs)])
+
+    bound_indices = bind_to_array(nodes, count_array)
+    bool_descendants(bound_indices)
+
+    # determine what taxa meet the required number of environments
+    count_array = where(count_array > 0, 1, 0)
+    counts = count_array.sum(axis=1)
+    taxa_to_investigate = (counts == env_count).nonzero()[0]
+
+    # determine what environments corrispond to what taxa
+    envs_to_investigate = defaultdict(list)
+    for row_index in taxa_to_investigate:
+        taxa_envs = count_array[row_index]
+        row_envs = tuple([index_to_env[i] for i,v in enumerate(taxa_envs) if v])
+        envs_to_investigate[row_envs].append(row_index)
+
+    # compute shared branch length for each environments
+    result = {}
+    for envs_tuple, taxa_indices in envs_to_investigate.items():
+        valid_rows = zeros(len(count_array))
+        for i in taxa_indices:
+            valid_rows[i] = 1.0
+        result[envs_tuple] = sum(branch_lengths * valid_rows)
+
     return result
 
 def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True, 

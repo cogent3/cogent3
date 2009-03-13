@@ -12,12 +12,12 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     consolidate_skipping_missing_matrices, consolidate_missing_zero,
     consolidate_missing_one, consolidate_skipping_missing_values,
     UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac_whole_tree,
-    TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE)
+    TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length)
 from numpy.random import permutation 
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
-__credits__ = ["Rob Knight", "Micah Hamady"]
+__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
 __license__ = "All rights reserved"
 __version__ = "0.1"
 __maintainer__ = "Rob Knight, Micah Hamady"
@@ -74,6 +74,29 @@ org7    env3    1
         self.old_count_array, self.old_unique_envs, self.old_env_to_index, \
             self.old_node_to_index = index_envs(self.old_env_counts, self.old_node_index)
         self.old_branch_lengths = get_branch_lengths(self.old_node_index)
+
+    def test_shared_branch_length(self):
+        """Should return the correct shared branch length by env"""
+        t_str = "(((a:1,b:2):3,c:4),(d:5,e:6,f:7):8);"
+        envs = """
+a A 1
+b A 1
+c A 1
+d A 1
+e A 1
+f B 1
+"""
+        env_counts = count_envs(envs.splitlines())
+        t = DndParser(t_str, UniFracTreeNode)
+        exp = {('A',):21.0,('B',):7.0}
+        obs = shared_branch_length(t, env_counts, 1)
+        self.assertEqual(obs, exp)
+
+        exp = {('A','B'):8.0}
+        obs = shared_branch_length(t, env_counts, 2)
+        self.assertEqual(obs, exp)
+
+        self.assertRaises(ValueError, shared_branch_length, t, env_counts, 3)
 
     def test_fast_unifrac_whole_tree(self):
         """ should correctly compute one p-val for whole tree """

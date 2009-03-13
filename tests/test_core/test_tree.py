@@ -444,6 +444,34 @@ class TreeNodeTests(TestCase):
         c = t.copy()
         self.assertEqual(str(c), str(t))
 
+    def test_copyIterative(self):
+        """TreeNode.copy() should work on deep trees"""
+        t = comb_tree(1024) # should break recursion limit on regular copy
+        t.Name = 'foo' 
+        t.XYZ = [3]
+        t2 = t.copyIterative()
+        t3 = t.copyIterative()
+        t3.Name = 'bar'
+
+        self.assertEqual(len(t.tips()), 1024)
+        self.assertEqual(len(t2.tips()), 1024)
+        self.assertEqual(len(t3.tips()), 1024)
+
+        self.assertNotSameObj(t, t2)
+        self.assertEqual(t.Name, t2.Name)
+        self.assertNotEqual(t.Name, t3.Name)
+    
+        self.assertEqual(t.XYZ, t2.XYZ)
+        self.assertNotSameObj(t.XYZ, t2.XYZ)
+
+        self.assertEqual(t.iterativeNewick(), t2.iterativeNewick())
+
+        t_simple = TreeNode(['t'])
+        u_simple = TreeNode(['u'])
+        t_simple.append(u_simple)
+
+        self.assertEqual(t_simple.copy(), t_simple.copyIterative())
+
     def test_copyTopology(self):
         """TreeNode.copyTopology() should produce deep copy ignoring attrs"""
         t = TreeNode(['t'])
@@ -626,6 +654,11 @@ class TreeNodeTests(TestCase):
         list(t0.traverse(self_before=False, self_after=True))
         list(t0.traverse(self_before=True, self_after=True))
 
+    def test_levelorder(self):
+        t = DndParser("(((A,B)C,(D,E)F,(G,H)I)J,(K,L)M)N;")
+        exp = ['N','J','M','C','F','I','K','L','A','B','D','E','G','H']
+        names = [n.Name for n in t.levelorder()]
+        self.assertEqual(names,exp)
 
     def test_ancestors(self):
         """TreeNode ancestors should provide list of ancestors, deepest first"""
@@ -1228,6 +1261,19 @@ class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
         tips = [tip.Name for tip in tips]
         self.assertEqual(dist, tree_one_child_dist)
         self.assertEqual(tips, tree_one_child_tips)
+
+# for use with testing iterative copy method
+def comb_tree(num_leaves):
+    """Returns a comb node_class tree."""
+    branch_child = 1
+
+    root = TreeNode()
+    curr = root
+
+    for i in range(num_leaves-1):
+        curr.Children[:] = [TreeNode(Parent=curr),TreeNode(Parent=curr)]
+        curr = curr.Children[branch_child]
+    return root
 
 #run if called from command line
 if __name__ == '__main__':
