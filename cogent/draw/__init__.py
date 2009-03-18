@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-from linear import colors, \
-        TrackDefn, Display, DisplayPolicy, \
-        Area, Arrow, BluntArrow, Box, Diamond, Line, Scale
 
-from legend import Legend
+try:
+    from linear import colors, \
+            TrackDefn, Display, DisplayPolicy, \
+            Area, Arrow, BluntArrow, Box, Diamond, Line, Scale
+
+    from legend import Legend
+except ImportError: #fails if reportlab not installed
+    pass
 
 __all__ = ['dendrogram', 'dotplot', 'legend', 'linear', 'colors', 'TrackDefn',
            'Display', 'DisplayPolicy', 'Area', 'Arrow', 'BluntArrow', 'Box',
