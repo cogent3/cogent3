@@ -2,7 +2,7 @@
 """Application controllers for blast family
 """
 from string import strip
-from os import remove, access, F_OK, environ
+from os import remove, access, F_OK, environ, path
 from cogent.app.parameters import FlagParameter, ValuedParameter, MixedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     get_tmp_filename, guess_input_handler
@@ -20,14 +20,6 @@ __version__ = "1.3.0.dev"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"
-
-if 'BLASTMAT' not in environ:
-    raise RuntimeError, \
-        """BLAST cannot run if the BLASTMAT environment variable is not set.
-
-Usually, the BLASTMAT environment variable points to the NCBI data directory,
-which contains matrices like PAM30 and PAM70, etc.
-"""
 
 class Blast(CommandLineApplication):
     """BLAST generic application controller"""
@@ -159,6 +151,39 @@ class Blast(CommandLineApplication):
             self._command = "export BLASTMAT=%s;%s%s" % (blast_mat_root, 
                                                     extra_env, command)
         else:
+            if not ('BLASTMAT' in environ or access(path.expanduser("~/.ncbirc"), F_OK) or access(".ncbirc", F_OK)) :
+                raise RuntimeError, \
+        """BLAST cannot run if the BLASTMAT environment variable is not set.
+
+Usually, the BLASTMAT environment variable points to the NCBI data directory,
+which contains matrices like PAM30 and PAM70, etc.
+
+Alternatively, you may create a .ncbirc file to define these variables.
+
+From help file:
+
+2) Create a .ncbirc file. In order for Standalone BLAST to operate, you
+have will need to have a .ncbirc file that contains the following lines:
+
+[NCBI] 
+Data="path/data/"
+
+Where "path/data/" is the path to the location of the Standalone BLAST
+"data" subdirectory. For Example: 
+
+Data=/root/blast/data
+
+The data subdirectory should automatically appear in the directory where
+the downloaded file was extracted. Please note that in many cases it may
+be necessary to delimit the entire path including the machine name and
+or the net work you are located on. Your systems administrator can help
+you if you do not know the entire path to the data subdirectory.
+
+Make sure that your .ncbirc file is either in the directory that you
+call the Standalone BLAST program from or in your root directory.
+"""
+
+
             self._command = command
 
         super(Blast, self).__init__(params=params,
