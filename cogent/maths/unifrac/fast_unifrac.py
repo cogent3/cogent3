@@ -2,7 +2,6 @@
 """Fast implementation of UniFrac for use with very large datasets"""
 
 from random import shuffle
-from collections import defaultdict
 from numpy import ones, ma, where
 from numpy.random import permutation
 from cogent.maths.unifrac.fast_tree import *
@@ -306,11 +305,15 @@ def shared_branch_length(t, envs, env_count=1):
     taxa_to_investigate = (counts == env_count).nonzero()[0]
 
     # determine what environments corrispond to what taxa
-    envs_to_investigate = defaultdict(list)
+    envs_to_investigate = {} 
     for row_index in taxa_to_investigate:
         taxa_envs = count_array[row_index]
         row_envs = tuple([index_to_env[i] for i,v in enumerate(taxa_envs) if v])
-        envs_to_investigate[row_envs].append(row_index)
+        try: 
+            envs_to_investigate[row_envs].append(row_index)
+        except KeyError:
+            envs_to_investigate[row_envs] = [row_index]
+            
 
     # compute shared branch length for each environments
     result = {}
