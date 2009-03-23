@@ -291,6 +291,8 @@ def shared_branch_length(t, envs, env_count=1):
 
     envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
 
+    
+
     if len(unique_envs) < env_count:
         raise ValueError, "Not enough environments for env_count"
 
@@ -322,6 +324,44 @@ def shared_branch_length(t, envs, env_count=1):
         for i in taxa_indices:
             valid_rows[i] = 1.0
         result[envs_tuple] = sum(branch_lengths * valid_rows)
+
+    return result
+
+def shared_branch_length_to_root(t, envs):
+    """Returns the shared branch length for a single env from tips to root
+    
+    t: phylogenetic tree relating sequences
+    envs: dict of {sequence:{env:count}} showing environmental abundance
+
+    Returns {env:shared_branch_length}
+    """
+    working_t = t.copyIterative()
+    result = {}
+
+    # decorate nodes with environment information
+    for n in working_t.postorder():
+        # for tip, grab and set env information
+        if n.isTip():  
+            curr_envs = envs.get(n.Name, None)
+            if curr_envs is None:
+                n.Envs = set([])
+            else:
+                n.Envs = set(curr_envs.keys())
+        # for internal node, collect descending env information
+        else:  
+            n.Envs = set([])  # should only visit each internal node once
+            for c in n.Children:
+                n.Envs.update(c.Envs)
+
+    # collect branch length for each environment
+    for n in working_t.preorder(include_self=False):
+        if not hasattr(n, 'Length') or n.Length is None:
+            continue
+
+        for e in n.Envs:
+            if e not in result:
+                result[e] = 0.0
+            result[e] += n.Length
 
     return result
 
@@ -457,7 +497,7 @@ def dists_to_nj(matrix, labels):
 
 def shuffle_tipnames(t):
     """Returns copy of tree t with tip names shuffled."""
-    result = t.copy()
+    result = t.copyIterative()
     names = [i.Name for i in t.tips()]
     shuffle(names)
     for name, tip in zip(names, result.tips()):
