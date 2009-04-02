@@ -94,20 +94,61 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
         self.assertEqual(names,
             ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde', 'root'])
     
+    def test_getNewickRecursive(self):
+        orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
+        unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
+        tree = self._maketree(orig)
+        self.assertEqual(tree.getNewickRecursive(with_distances=1), orig)
+        self.assertEqual(tree.getNewickRecursive(), unlen)
+
+        tree.Name = "a'l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         ugly_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
+        tree.Name = "a_l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         ugly_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
+        tree.Name = "a l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         ugly_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
     def test_getNewick(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
         tree = self._maketree(orig)
         self.assertEqual(tree.getNewick(with_distances=1), orig)
         self.assertEqual(tree.getNewick(), unlen)
-   
-    def test_iterativeNewick(self):
-        orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
-        unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
-        tree = self._maketree(orig)
-        self.assertEqual(tree.iterativeNewick(with_distances=1), orig)
-        self.assertEqual(tree.iterativeNewick(), unlen)
 
+        tree.Name = "a'l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
+        self.assertEqual(tree.getNewick(escape_name=True), ugly_name_esc)
+        self.assertEqual(tree.getNewick(escape_name=False), ugly_name)
+   
+        tree.Name = "a_l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         ugly_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
+        tree.Name = "a l"
+        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
+        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         ugly_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
     def test_XML(self):
         # should add some non-length parameters
         orig = self.default_tree

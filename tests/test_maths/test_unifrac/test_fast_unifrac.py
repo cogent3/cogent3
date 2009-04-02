@@ -12,7 +12,8 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     consolidate_skipping_missing_matrices, consolidate_missing_zero,
     consolidate_missing_one, consolidate_skipping_missing_values,
     UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac_whole_tree,
-    TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length)
+    TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length,
+    shared_branch_length_to_root)
 from numpy.random import permutation 
 
 __author__ = "Rob Knight and Micah Hamady"
@@ -97,6 +98,24 @@ f B 1
         self.assertEqual(obs, exp)
 
         self.assertRaises(ValueError, shared_branch_length, t, env_counts, 3)
+
+    def test_shared_branch_length_to_root(self):
+        """Should return the correct shared branch length by env to root"""
+        t_str = "(((a:1,b:2):3,c:4),(d:5,e:6,f:7):8);"
+        envs = """
+a A 1
+b A 1
+c A 1
+d A 1
+e A 1
+f B 1 
+"""
+        env_counts = count_envs(envs.splitlines())
+        t = DndParser(t_str, UniFracTreeNode)
+        exp = {'A':29.0,'B':15.0}
+        obs = shared_branch_length_to_root(t, env_counts)
+        self.assertEqual(obs, exp)
+
 
     def test_fast_unifrac_whole_tree(self):
         """ should correctly compute one p-val for whole tree """

@@ -23,7 +23,7 @@ from string import strip, maketrans
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Rob Knight", "Catherine Lozupone"]
+__credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"
@@ -83,7 +83,7 @@ def DndTokenizer(data):
             sa(d)
     
 
-def DndParser(lines, constructor=PhyloNode):
+def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     """Returns tree from the Clustal .dnd file format, and anything equivalent.
     
     Tree is made up of cogent.base.tree.PhyloNode objects, with branch lengths
@@ -124,9 +124,15 @@ def DndParser(lines, constructor=PhyloNode):
             curr_node = curr_node.Parent
         elif state == 'PreColon' and state1 == 'PreClosed':   #data for the current node
             new_node = _new_child(curr_node, constructor)
+            if unescape_name:
+                while t.startswith("'") and t.endswith("'"):
+                    t = t[1:-1]
             new_node.Name = t
             curr_node = new_node
         elif state == 'PreColon' and state1 == 'PostClosed':
+            if unescape_name:
+                while t.startswith("'") and t.endswith("'"):
+                    t = t[1:-1]
             curr_node.Name = t
         elif state == 'PostColon':  #length data for the current node
             curr_node.Length = float(t)

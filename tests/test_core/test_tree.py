@@ -30,7 +30,7 @@ class TreeTests(TestCase):
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
         self.assertEqual(str(t),result_str) 
-        self.assertEqual(t.iterativeNewick(with_distances=True), result_str) 
+        self.assertEqual(t.getNewick(with_distances=True), result_str) 
         t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
         #NOTE: Tree silently converts spaces to underscores (only for output),
         #presumably for Newick compatibility.
@@ -39,7 +39,7 @@ class TreeTests(TestCase):
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a a', 'b b', 'c c'])
         self.assertEqual(str(t),result_str) 
-        self.assertEqual(t.iterativeNewick(with_distances=True),result_str) 
+        self.assertEqual(t.getNewick(with_distances=True),result_str) 
 
 
 
@@ -140,14 +140,14 @@ class TreeNodeTests(TestCase):
         self.BigParent[-1].extend('abc')
         self.assertEqual(str(self.BigParent), '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
-    def test_iterative_newick(self):
+    def test_getNewick(self):
         """Should return Newick-style representation"""
-        self.assertEqual(self.Empty.iterativeNewick(), ';')
-        self.assertEqual(self.OneChild.iterativeNewick(), '(b)a;')
-        self.assertEqual(self.BigParent.iterativeNewick(), \
+        self.assertEqual(self.Empty.getNewick(), ';')
+        self.assertEqual(self.OneChild.getNewick(), '(b)a;')
+        self.assertEqual(self.BigParent.getNewick(), \
                 '(0,1,2,3,4,5,6,7,8,9)x;')
         self.BigParent[-1].extend('abc')
-        self.assertEqual(self.BigParent.iterativeNewick(), \
+        self.assertEqual(self.BigParent.getNewick(), \
                 '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
     def test_cmp(self):
@@ -464,7 +464,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(t.XYZ, t2.XYZ)
         self.assertNotSameObj(t.XYZ, t2.XYZ)
 
-        self.assertEqual(t.iterativeNewick(), t2.iterativeNewick())
+        self.assertEqual(t.getNewick(), t2.getNewick())
 
         t_simple = TreeNode(['t'])
         u_simple = TreeNode(['u'])
