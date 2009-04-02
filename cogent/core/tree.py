@@ -794,11 +794,15 @@ class TreeNode(object):
         else:
             return self.Name == other.Name
     
-    def getNewick(self, with_distances=False, semicolon=True):
+    def getNewickRecursive(self, with_distances=False, semicolon=True, \
+            escape_name=True):
         """Return the newick string for this edge.
         
         Arguments:
             - with_distances: whether branch lengths are included.
+            - semicolon: end tree string with a semicolon
+            - escape_name: if any of these characters []'"(),:;_ exist in a
+                nodes name, wrap the name in single quotes
         """
         newick = []
         
@@ -812,10 +816,11 @@ class TreeNode(object):
                 name = ''
             else:
                 name = str(self.Name)
-                if re.search("""[]['"(),:;_]""", name):
-                    name = "'%s'" %  name.replace("'","''")
-                else:
-                    name = name.replace(' ','_')
+                if escape_name:
+                    if re.search("""[]['"(),:;_]""", name):
+                        name = "'%s'" %  name.replace("'","''")
+                    else:
+                        name = name.replace(' ','_')
             newick.append(name)
         
         if with_distances and self.Length is not None:
@@ -826,11 +831,14 @@ class TreeNode(object):
         
         return ''.join(newick)
 
-    def iterativeNewick(self, with_distances=False):
+    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
         """Return the newick string for this tree.
 
         Arguments:
             - with_distances: whether branch lengths are included.
+            - semicolon: end tree string with a semicolon
+            - escape_name: if any of these characters []'"(),:;_ exist in a
+                nodes name, wrap the name in single quotes
 
         NOTE: This method returns the Newick representation of this node
         and its descendents. This method is a modification of an implementation
@@ -838,8 +846,10 @@ class TreeNode(object):
         """
         result = ['(']
         nodes_stack = [[self, len(self.Children)]]
+        node_count = 1
 
         while nodes_stack:
+            node_count += 1
             #check the top node, any children left unvisited?
             top = nodes_stack[-1]
             top_node, num_unvisited_children = top
@@ -861,22 +871,35 @@ class TreeNode(object):
                         name = ''
                     else:
                         name = str(top_node.Name)
-                        if re.search("""[]['"(),:;_]""", name):
-                            name = "'%s'" % name.replace("'", "''")
-                        else:
-                            name = name.replace(' ','_')
+                        if escape_name:
+                            if re.search("""[]['"(),:;_]""", name):
+                                name = "'%s'" % name.replace("'", "''")
+                            else:
+                                name = name.replace(' ','_')
                     result.append(name)
 
                 if with_distances and top_node.Length is not None:
-                    result.append(":%s" % top_node.Length)
+                    #result.append(":%s" % top_node.Length)
+                    result[-1] = "%s:%s" % (result[-1], top_node.Length)
 
                 result.append(',')
 
         len_result = len(result)
-        if len_result == 2 or len_result == 3:  # empty tree
-            return ";"
+        if len_result == 2:  # single node no name
+            if semicolon:
+                return ";"
+            else:
+                return ''
+        elif len_result == 3: # single node with name
+            if semicolon:
+                return "%s;" % result[1]
+            else:
+                return result[1]
         else:
-            result[-1] = ';'
+            if semicolon:
+                result[-1] = ';'
+            else:
+                result.pop(-1)
             return ''.join(result)
     
     def removeNode(self, target):
@@ -1432,8 +1455,8 @@ class TreeNode(object):
 
 class PhyloNode(TreeNode):
     
-    def getNewick(self, with_distances=False, semicolon=True):
-        return TreeNode.getNewick(self, with_distances, semicolon)
+    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
+        return TreeNode.getNewick(self, with_distances, semicolon, escape_name)
     
     def __str__(self):
         """Returns string version of self, with names and distances."""

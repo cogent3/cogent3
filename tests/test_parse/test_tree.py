@@ -1,22 +1,19 @@
 #!/usr/bin/env python
 """Unit tests for tree parsers.
 """
-from cogent.parse.newick import parse_string , _Tokeniser as DndTokenizer, \
-        TreeParseError as RecordError
-        
-from cogent.core.tree import TreeBuilder
+from cogent.parse.tree import DndParser, DndTokenizer, RecordError
 
-def DndParser(data):
-    assert isinstance(data, basestring), data
-    constructor = TreeBuilder().createEdge
-    return parse_string(data, constructor)
+#def DndParser(data):
+#    assert isinstance(data, basestring), data
+#    constructor = TreeBuilder().createEdge
+#    return parse_string(data, constructor)
     
 from cogent.core.tree import PhyloNode
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"
@@ -73,7 +70,7 @@ class DndTokenizerTests(TestCase):
         ['(', '(', 'xyz', ':', '0.28124',',', '(', 'def', ':', '0.24498',\
         ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
         ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
-        'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';', None]
+        'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
         #split it up for debugging on an item-by-item basis
         obs = list(DndTokenizer(sample))
         self.assertEqual(len(obs), len(exp))
@@ -133,7 +130,7 @@ class DndParserTests(TestCase):
         """DndParser should work as expected on real data"""
         t = DndParser(sample)
         self.assertEqual(str(t), '((xyz:0.28124,(def:0.24498,mno:0.03627):0.1771):0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776):0.09853);')
-        tdata = DndParser(node_data_sample)
+        tdata = DndParser(node_data_sample, unescape_name=True)
         self.assertEqual(str(tdata), "((xyz:0.28124,(def:0.24498,mno:0.03627)A:0.1771)B:0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776)C:0.09853);")
 
     def test_gbad(self):
@@ -142,6 +139,37 @@ class DndParserTests(TestCase):
         right = '(abc:3))'
         self.assertRaises(RecordError, DndParser, left)
         self.assertRaises(RecordError, DndParser, right)
+
+    def test_DndParser(self):
+        """DndParser tests"""
+        t_str = "(A,(B:1.0,C),'D_e':0.5)E;"
+        tree_unesc = DndParser(t_str, PhyloNode, unescape_name=True)
+        tree_esc = DndParser(t_str, PhyloNode, unescape_name=False)
+
+        self.assertEqual(tree_unesc.Name, 'E')
+        self.assertEqual(tree_unesc.Children[0].Name, 'A')
+        self.assertEqual(tree_unesc.Children[1].Children[0].Name, 'B')
+        self.assertEqual(tree_unesc.Children[1].Children[0].Length, 1.0)
+        self.assertEqual(tree_unesc.Children[1].Children[1].Name, 'C')
+        self.assertEqual(tree_unesc.Children[2].Name, 'D_e')
+        self.assertEqual(tree_unesc.Children[2].Length, 0.5)
+
+        self.assertEqual(tree_esc.Name, 'E')
+        self.assertEqual(tree_esc.Children[0].Name, 'A')
+        self.assertEqual(tree_esc.Children[1].Children[0].Name, 'B')
+        self.assertEqual(tree_esc.Children[1].Children[0].Length, 1.0)
+        self.assertEqual(tree_esc.Children[1].Children[1].Name, 'C')
+        self.assertEqual(tree_esc.Children[2].Name, "'D_e'")
+        self.assertEqual(tree_esc.Children[2].Length, 0.5)
+
+        reload_test = tree_esc.getNewick(with_distances=True, \
+                                         escape_name=False)
+        self.assertEqual(DndParser(reload_test, unescape_name=False), \
+                         tree_esc)
+        reload_test = tree_unesc.getNewick(with_distances=True, \
+                                           escape_name=False)
+        self.assertEqual(DndParser(reload_test, unescape_name=False), \
+                         tree_unesc)
 
 class PhyloNodeTests(TestCase):
     """Check that PhyloNode works the way I think"""
