@@ -122,6 +122,13 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
    
+        tree.Name = "'a l'"
+        quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
+        quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
+        self.assertEqual(tree.getNewickRecursive(escape_name=True), \
+                         quoted_name_esc)
+        self.assertEqual(tree.getNewickRecursive(escape_name=False),quoted_name)
+   
     def test_getNewick(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
@@ -148,6 +155,13 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+   
+        tree.Name = "'a l'"
+        quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
+        quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
+        self.assertEqual(tree.getNewick(escape_name=True), \
+                         quoted_name_esc)
+        self.assertEqual(tree.getNewick(escape_name=False),quoted_name)
    
     def test_XML(self):
         # should add some non-length parameters

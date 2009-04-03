@@ -816,7 +816,8 @@ class TreeNode(object):
                 name = ''
             else:
                 name = str(self.Name)
-                if escape_name:
+                if escape_name and not (name.startswith("'") and \
+                                        name.endswith("'")):
                     if re.search("""[]['"(),:;_]""", name):
                         name = "'%s'" %  name.replace("'","''")
                     else:
@@ -871,7 +872,8 @@ class TreeNode(object):
                         name = ''
                     else:
                         name = str(top_node.Name)
-                        if escape_name:
+                        if escape_name and not (name.startswith("'") and \
+                                                name.endswith("'")):
                             if re.search("""[]['"(),:;_]""", name):
                                 name = "'%s'" % name.replace("'", "''")
                             else:
