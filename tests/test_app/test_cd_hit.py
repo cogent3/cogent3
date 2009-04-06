@@ -3,7 +3,8 @@
 from os import getcwd, rmdir
 from cogent.core.moltype import PROTEIN, DNA
 from cogent.util.unit_test import TestCase, main
-from cogent.app.cd_hit import CD_HIT, CD_HIT_EST, cdhit_from_seqs
+from cogent.app.cd_hit import CD_HIT, CD_HIT_EST, cdhit_from_seqs, \
+        cdhit_clusters_from_seqs, clean_cluster_seq_id, parse_cdhit_clstr_file
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -86,6 +87,33 @@ class CD_HIT_EST_Tests(TestCase):
         res = cdhit_from_seqs(dna_seqs, DNA, {'-c':0.8})
         self.assertEqual(res.toFasta(), dna_expected)
 
+class CD_HIT_SupportMethodTests(TestCase):
+    """Tests for supporting methods"""
+    def test_clean_cluster_seq_id(self):
+        """clean_cluster_seq_id returns a cleaned sequence id"""
+        data = ">foobar..."
+        exp = "foobar"
+        obs = clean_cluster_seq_id(data)
+        self.assertEqual(obs, exp)
+
+    def test_parse_cdhit_clstr_file(self):
+        """parse_cdhit_clstr_file returns the correct clusters"""
+        data = cdhit_clstr_file.split('\n')
+        exp = [['seq0'],['seq1','seq10','seq3','seq23','seq145'],\
+               ['seq7','seq17','seq69','seq1231']]
+        obs = parse_cdhit_clstr_file(data)
+        self.assertEqual(obs, exp)
+
+    def test_cdhit_clusters_from_seqs(self):
+        """cdhit_clusters_from_seqs returns expected clusters"""
+        exp = [['cdhit_test_seqs_0'],['cdhit_test_seqs_1'],\
+               ['cdhit_test_seqs_2'],['cdhit_test_seqs_3'],\
+               ['cdhit_test_seqs_4'],['cdhit_test_seqs_5'],\
+               ['cdhit_test_seqs_6','cdhit_test_seqs_8'],\
+               ['cdhit_test_seqs_7'],['cdhit_test_seqs_9']]
+        obs = cdhit_clusters_from_seqs(dna_seqs, DNA)
+        self.assertEqual(obs, exp)
+
 dna_seqs = """>cdhit_test_seqs_0
 AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
 >cdhit_test_seqs_1
@@ -157,6 +185,21 @@ MGNALRKGKFEGWAAVRERMRRTRTFPESEPCAPGVGQISRELAARGGIPSSHTPQNNESHQEEEVGFPVAPQV
 MGNAWSKSKFAGWSEVRDRMRRSSSDPQQPCAPGVGAVSRELATRGGISSSALAFLDSHKDEDVGFPVRPQVP
 >seq9
 MGNVLGKDKFKGWAAVRERMRKTSSDPDPQPCAPGVGPVSRELSYTPQNNAALAFLESHEDEDVGFPVXPQV"""
+
+cdhit_clstr_file = """>Cluster 0 
+0       2799aa, >seq0... * 
+>Cluster 1 
+0       2214aa, >seq1... at 80% 
+1       2215aa, >seq10... at 84% 
+2       2217aa, >seq3... * 
+3       2216aa, >seq23... at 84% 
+4       527aa, >seq145... at 63% 
+>Cluster 2 
+0       2202aa, >seq7... at 60% 
+1       2208aa, >seq17... * 
+2       2207aa, >seq69... at 73% 
+3       2208aa, >seq1231... at 69%"""
+
 
 if __name__ == '__main__':
     main()

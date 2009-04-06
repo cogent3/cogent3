@@ -209,6 +209,48 @@ class CD_HIT_EST(CD_HIT):
         '-r':ValuedParameter('-',Name='r',Delimiter=' ')
         })
 
+def cdhit_clusters_from_seqs(seqs, moltype, params=None):
+    """Returns the CD-HIT clusters given seqs
+
+    seqs        : dict like collection of sequences
+    moltype     : cogent.core.moltype object
+    params      : cd-hit parameters
+
+    NOTE: This method will call CD_HIT if moltype is PROTIEN,
+        CD_HIT_EST if moltype is RNA/DNA, and raise if any other
+        moltype is passed.
+    """
+    # keys are not remapped. Tested against seq_ids of 100char length
+    seqs = SequenceCollection(seqs, MolType=moltype)
+
+    # setup params and make sure the output argument is set
+    if params is None:
+        params = {}
+    if '-o' not in params:
+        params['-o'] = get_tmp_filename()
+
+    # call the correct version of cd-hit base on moltype
+    working_dir = get_tmp_filename()
+    if moltype is PROTEIN:
+        app = CD_HIT(WorkingDir=working_dir, params=params)
+    elif moltype is RNA:
+        app = CD_HIT_EST(WorkingDir=working_dir, params=params)
+    elif moltype is DNA:
+        app = CD_HIT_EST(WorkingDir=working_dir, params=params)
+    else:
+        raise ValueError, "Moltype must be either PROTEIN, RNA, or DNA"
+
+    # grab result
+    res = app(seqs.toFasta())
+    clusters = parse_cdhit_clstr_file(res['CLSTR'].readlines())
+
+    # perform cleanup
+    res.cleanUp()
+    shutil.rmtree(working_dir)
+    remove(params['-o'] + '.bak.clstr')
+
+    return clusters
+
 def cdhit_from_seqs(seqs, moltype, params=None):
     """Returns the CD-HIT results given seqs
 
@@ -250,3 +292,31 @@ def cdhit_from_seqs(seqs, moltype, params=None):
     remove(params['-o'] + '.bak.clstr')
 
     return SequenceCollection(new_seqs, MolType=moltype)
+
+def clean_cluster_seq_id(id):
+    """Returns a cleaned cd-hit sequence id
+
+    The cluster file has sequence ids in the form of:
+    >some_id...
+    """
+    return id[1:-3]
+
+def parse_cdhit_clstr_file(lines):
+    """Returns a list of list of sequence ids representing clusters"""
+    clusters = []
+    curr_cluster = []
+
+    for l in lines:
+        if l.startswith('>Cluster'):
+            if not curr_cluster:
+                continue
+            clusters.append(curr_cluster)
+            curr_cluster = []
+        else:
+            curr_cluster.append(clean_cluster_seq_id(l.split()[2]))
+
+    if curr_cluster:
+        clusters.append(curr_cluster)
+
+    return clusters
+
