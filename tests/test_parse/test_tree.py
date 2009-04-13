@@ -142,12 +142,12 @@ class DndParserTests(TestCase):
 
     def test_DndParser(self):
         """DndParser tests"""
-        t_str = "(A,(B:1.0,C),'D_e':0.5)E;"
+        t_str = "(A_a,(B:1.0,C),'D_e':0.5)E;"
         tree_unesc = DndParser(t_str, PhyloNode, unescape_name=True)
         tree_esc = DndParser(t_str, PhyloNode, unescape_name=False)
 
         self.assertEqual(tree_unesc.Name, 'E')
-        self.assertEqual(tree_unesc.Children[0].Name, 'A')
+        self.assertEqual(tree_unesc.Children[0].Name, 'A a')
         self.assertEqual(tree_unesc.Children[1].Children[0].Name, 'B')
         self.assertEqual(tree_unesc.Children[1].Children[0].Length, 1.0)
         self.assertEqual(tree_unesc.Children[1].Children[1].Name, 'C')
@@ -155,7 +155,7 @@ class DndParserTests(TestCase):
         self.assertEqual(tree_unesc.Children[2].Length, 0.5)
 
         self.assertEqual(tree_esc.Name, 'E')
-        self.assertEqual(tree_esc.Children[0].Name, 'A')
+        self.assertEqual(tree_esc.Children[0].Name, 'A_a')
         self.assertEqual(tree_esc.Children[1].Children[0].Name, 'B')
         self.assertEqual(tree_esc.Children[1].Children[0].Length, 1.0)
         self.assertEqual(tree_esc.Children[1].Children[1].Name, 'C')

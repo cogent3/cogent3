@@ -91,7 +91,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
         #FIXME: More general strategy for underscore_unmunge
         if parser is cogent.parse.newick.parse_string:
             tree = parser(treestring, tree_builder, \
-                underscore_unmunge=underscore_unmunge)
+                    underscore_unmunge=underscore_unmunge)
         else:
             tree = parser(treestring, tree_builder)
         if not tree.NameLoaded:
@@ -117,7 +117,7 @@ class TreeNode(object):
     _exclude_from_copy = dict.fromkeys(['_parent','Children'])
     
     def __init__(self, Name=None, Children=None, Parent=None, Params=None, \
-            NameLoaded=True):
+            NameLoaded=True, **kwargs):
         """Returns new TreeNode object."""
         self.Name = Name
         self.NameLoaded = NameLoaded
@@ -1456,14 +1456,15 @@ class TreeNode(object):
         return dist_f(self_matrix, other_matrix)
 
 class PhyloNode(TreeNode):
-    
-    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
-        return TreeNode.getNewick(self, with_distances, semicolon, escape_name)
-    
-    def __str__(self):
-        """Returns string version of self, with names and distances."""
-        return self.getNewick(with_distances=True)
-    
+
+    def __init__(self, *args, **kwargs):
+        length = kwargs.get('Length', None)
+        params = kwargs.get('Params', {})
+        if 'length' not in params:
+            params['length'] = length
+        kwargs['Params'] = params
+        super(PhyloNode, self).__init__(*args, **kwargs)
+
     def _set_length(self, value):
         if not hasattr(self, "params"):
             self.params = {}
@@ -1473,6 +1474,14 @@ class PhyloNode(TreeNode):
         return self.params.get("length", None)
     
     Length = property(_get_length, _set_length)
+
+    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
+        return TreeNode.getNewick(self, with_distances, semicolon, escape_name)
+    
+    def __str__(self):
+        """Returns string version of self, with names and distances."""
+        return self.getNewick(with_distances=True)
+    
     
     def distance(self, other):
         """Returns branch length between self and other."""
@@ -1522,8 +1531,11 @@ class PhyloNode(TreeNode):
             #Connect child to current node's parent
             child.Parent=curr_parent
             #Add the Length of the removed node to the Length of the Child
-            child.Length = child.Length + node.Length
-    
+            if child.Length is None or node.Length is None:
+                chidl.Length = child.Length or node.Length
+            else:
+                child.Length = child.Length + node.Length
+
     def unrootedDeepcopy(self, constructor=None, parent=None):
         # walks the tree unrooted-style, ie: treating self.Parent as just
         # another child 'parent' is where we got here from, ie: the neighbour
@@ -1655,7 +1667,7 @@ class PhyloNode(TreeNode):
         node_far, node_near = self._find_midpoint_nodes(max_dist, tip_names)
         cum_dist = tip_pair[0].distance(node_far)
         BL1 = cum_dist - max_dist/2.0
-        new_root = PhyloNode()
+        new_root = self.__class__()
         dist = node_far.distance(node_near)
         if node_far.Parent == node_near:
             NR_child = node_far
