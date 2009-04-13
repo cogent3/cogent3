@@ -27,6 +27,7 @@ class TreeTests(TestCase):
         #NOTE: Tree quotes these labels because they have underscores in them.
         result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
         t = LoadTree(treestring=t_str)
+        #t = DndParser(t_str)
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
         self.assertEqual(str(t),result_str) 
@@ -36,6 +37,7 @@ class TreeTests(TestCase):
         #presumably for Newick compatibility.
         result_str = "(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);"
         t = LoadTree(treestring=t_str, underscore_unmunge=True)
+        #t = DndParser(t_str, unescape_name=True)
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a a', 'b b', 'c c'])
         self.assertEqual(str(t),result_str) 
@@ -1041,6 +1043,20 @@ class PhyloNodeTests(TestCase):
         nodes['f'].Length = 2
         nodes['g'].Length = 3
         nodes['h'].Length = 2
+
+    def test_init(self):
+        """Check PhyloNode constructor"""
+        n = PhyloNode('foo', Length=10)
+        self.assertEqual(n.Name,'foo')
+        self.assertEqual(n.Length, 10)
+
+        n = PhyloNode('bar')
+        self.assertEqual(n.Name, 'bar')
+        self.assertEqual(n.Length, None)
+
+        n = PhyloNode()
+        self.assertEqual(n.Name, None)
+        self.assertEqual(n.Length, None)
 
     def test_distance(self):
         """PhyloNode Distance should report correct distance between nodes"""

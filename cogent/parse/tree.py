@@ -125,8 +125,12 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         elif state == 'PreColon' and state1 == 'PreClosed':   #data for the current node
             new_node = _new_child(curr_node, constructor)
             if unescape_name:
-                while t.startswith("'") and t.endswith("'"):
-                    t = t[1:-1]
+                if t.startswith("'") and t.endswith("'"):
+                    while t.startswith("'") and t.endswith("'"):
+                        t = t[1:-1]
+                else:
+                    if '_' in t:
+                        t = t.replace('_', ' ')
             new_node.Name = t
             curr_node = new_node
         elif state == 'PreColon' and state1 == 'PostClosed':
