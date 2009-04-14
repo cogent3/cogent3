@@ -21,14 +21,14 @@ class EUtilsTests(TestCase):
     """Tests of the EUtils class."""
     def test_simple_get(self):
         """EUtils simple access of an item should work"""
-        g = EUtils(db='protein',rettype='GenPept')
+        g = EUtils(db='protein',rettype='gp')
         result = g['NP_003320'].read()
         assert result.startswith('LOCUS')
         assert 'NP_003320' in result
 
     def test_get_slice(self):
         """EUtils access of a slice should work"""
-        g = EUtils(db='protein',rettype='GenPept', retmax=1)
+        g = EUtils(db='protein',rettype='gp', retmax=1)
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
@@ -37,7 +37,7 @@ class EUtilsTests(TestCase):
 
     def test_get_list(self):
         """EUtils access of a list should work"""
-        g = EUtils(db='protein',rettype='GenPept')
+        g = EUtils(db='protein',rettype='gp')
         result = g['NP_003320','NP_003321','NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
@@ -54,7 +54,7 @@ class EUtilsTests(TestCase):
         
     def test_query(self):
         """EUtils access via a query should work"""
-        g = EUtils(db='protein', rettype='GiList', retmax=100)
+        g = EUtils(db='protein', rettype='gi', retmax=100)
         result = g['homo[organism] AND erf1[ti]'].read().splitlines()
         assert '5499721' in result  #gi of human eRF1
         #note: successfully retrieved 841,821 ids on a query for 'rrna',
@@ -62,21 +62,21 @@ class EUtilsTests(TestCase):
 
     def test_query_retmax(self):
         """EUtils should join results taken retmax at a time"""
-        g = EUtils(db='protein', rettype='GiList', retmax=3, DEBUG=False)
+        g = EUtils(db='protein', rettype='gi', retmax=3, DEBUG=False)
         result = g['homo[organism] AND myh7'].read().splitlines()
         assert len(result) > 1
         assert '83304912' in result  #gi of human myh7
 
     def test_query_max_recs(self):
         """EUtils should stop query at max_recs when max_recs < retmax"""
-        g = EUtils(db='protein', rettype='GiList', max_recs=5, DEBUG=False,
+        g = EUtils(db='protein', rettype='gi', max_recs=5, DEBUG=False,
             retmax=100)
         result = g['homo[organism] AND myh7'].read().splitlines()
         self.assertEqual(len(result), 5)
 
     def test_query_max_recs_gt_retmax(self):
         """EUtils should stop query at max_recs when max_recs > retmax"""
-        g = EUtils(db='protein', rettype='GiList', max_recs=5, DEBUG=False,
+        g = EUtils(db='protein', rettype='gi', max_recs=5, DEBUG=False,
             retmax=3)
         result = g['homo[organism] AND myh7'].read().splitlines()
         self.assertEqual(len(result), 5)
@@ -86,7 +86,7 @@ class ESearchTests(TestCase):
     """Tests of the ESearch class: gets primary ids from search."""
     def test_simple_search(self):
         """ESearch Access via a query should return accessions"""
-        s = ESearch(db='protein', rettype='GiList', retmax=1000,
+        s = ESearch(db='protein', rettype='gi', retmax=1000,
             term='homo[organism] AND myh7')
         result = s.read()
         parsed = ESearchResultParser(result)
@@ -125,7 +125,7 @@ class NcbiTests(TestCase):
     def setUp(self):
         """Define some lengthy data."""
         self.mouse_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus'.split(';'))
-        self.human_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Primates; Haplorrhini; Simiiformes; Catarrhini; Hominoidea; Hominidae; Homo/Pan/Gorilla group; Homo'.split(';'))
+        self.human_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Primates; Haplorrhini; Simiiformes; Catarrhini; Hominoidea; Hominidae; Homininae; Homo'.split(';'))
 
     def test_get_primary_ids(self):
         """get_primary_ids should get primary ids from query"""
