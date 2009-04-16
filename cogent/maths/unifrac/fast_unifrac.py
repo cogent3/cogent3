@@ -335,7 +335,7 @@ def shared_branch_length_to_root(t, envs):
 
     Returns {env:shared_branch_length}
     """
-    working_t = t.copyIterative()
+    working_t = t.copy()
     result = {}
 
     # decorate nodes with environment information
@@ -497,7 +497,7 @@ def dists_to_nj(matrix, labels):
 
 def shuffle_tipnames(t):
     """Returns copy of tree t with tip names shuffled."""
-    result = t.copyIterative()
+    result = t.copy()
     names = [i.Name for i in t.tips()]
     shuffle(names)
     for name, tip in zip(names, result.tips()):
