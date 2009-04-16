@@ -2,7 +2,7 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 from copy import copy, deepcopy
-from cogent.core.tree import TreeNode, PhyloNode, LoadTree
+from cogent.core.tree import TreeNode, PhyloNode, LoadTree, TreeError
 from cogent.parse.tree import DndParser
 from cogent.maths.stats.test import correlation
 from cogent.util.unit_test import TestCase, main
@@ -419,8 +419,8 @@ class TreeNodeTests(TestCase):
         r = self.TreeRoot
         self.assertEqual(len(r), 2)
 
-    def test_copy(self):
-        """TreeNode.copy() should produce deep copy"""
+    def test_copyRecursive(self):
+        """TreeNode.copyRecursive() should produce deep copy"""
         t = TreeNode(['t'])
         u = TreeNode(['u'])
         t.append(u)
@@ -446,13 +446,13 @@ class TreeNodeTests(TestCase):
         c = t.copy()
         self.assertEqual(str(c), str(t))
 
-    def test_copyIterative(self):
+    def test_copy(self):
         """TreeNode.copy() should work on deep trees"""
         t = comb_tree(1024) # should break recursion limit on regular copy
         t.Name = 'foo' 
         t.XYZ = [3]
-        t2 = t.copyIterative()
-        t3 = t.copyIterative()
+        t2 = t.copy()
+        t3 = t.copy()
         t3.Name = 'bar'
 
         self.assertEqual(len(t.tips()), 1024)
@@ -472,7 +472,7 @@ class TreeNodeTests(TestCase):
         u_simple = TreeNode(['u'])
         t_simple.append(u_simple)
 
-        self.assertEqual(t_simple.copy(), t_simple.copyIterative())
+        self.assertEqual(t_simple.copy(), t_simple.copy())
 
     def test_copyTopology(self):
         """TreeNode.copyTopology() should produce deep copy ignoring attrs"""
@@ -948,7 +948,39 @@ class TreeNodeTests(TestCase):
         result2, node_list = tree.makeTreeArray(dec_list)
         self.assertEqual(result2, \
                 array([[1,0,1,1,1], [1,0,1,1,0], [1,0,1,1,0], [0,0,0,1,0]]))
-    
+   
+    def test_reassignNames(self):
+        """reassignNames should rename node names based on dict mapping"""
+        t = self.TreeRoot
+        mapping = dict([(x, str(i)) for i,x in enumerate('abfg')])
+        exp_names = ['0','1','2','3','c','d','e','h']
+        t.reassignNames(mapping)
+        obs_names = sorted(t.getNodeNames())
+        self.assertEqual(obs_names, exp_names)
+
+    def test_reassignNames_specific_nodes(self):
+        """reassignNames should rename nodes based on dict mapping"""
+        t = self.TreeRoot
+        nodes = [self.TreeNode['a'], self.TreeNode['b']]
+        mapping = dict([(x, str(i)) for i,x in enumerate('abfg')])
+        exp_names = ['0','1','c','d','e','f','g','h']
+        t.reassignNames(mapping, nodes)
+        obs_names = sorted(t.getNodeNames())
+        self.assertEqual(obs_names, exp_names)
+
+    def test_getNodesDict(self):
+        """getNodesDict returns a dict keyed by name, value is node"""
+        t = self.TreeRoot
+        nodes = self.TreeNode
+        self.assertEqual(t.getNodesDict(), nodes)
+
+    def test_getNodesDict_nonunique_names(self):
+        """getNodesDict raises if non unique names are in tree"""
+        t = self.TreeRoot
+        t.Children[0].Name = 'same'
+        t.Children[0].Children[0].Name = 'same'
+        self.assertRaises(TreeError, t.getNodesDict)
+
     def test_removeDeleted(self):
         """removeDeleted should remove all nodes where is_deleted tests true."""
         tree = DndParser('((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);',
@@ -1057,6 +1089,48 @@ class PhyloNodeTests(TestCase):
         n = PhyloNode()
         self.assertEqual(n.Name, None)
         self.assertEqual(n.Length, None)
+
+    def test_totalDescendingBranchLength(self):
+        """totalDescendingBranchLength returns total branchlength below self"""
+        t = self.TreeRoot
+        exp = 15
+        obs = t.totalDescendingBranchLength()
+        self.assertEqual(obs, exp)
+
+        node_c = self.TreeNode['c']
+        exp = 10
+        obs = node_c.totalDescendingBranchLength()
+        self.assertEqual(obs, exp)
+
+    def test_tipsWithinDistance(self):
+        """tipsWithinDistance returns tips that are within distance from self"""
+        t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
+        t = DndParser(t_str, constructor=PhyloNode)
+        nodes = t.getNodesDict()
+        e_node = nodes['E']
+
+        exp_at_dist_2 = []
+        exp_at_dist_3 = ['A','C','D']
+        exp_at_dist_4 = ['A','B','C','D','F']
+
+        obs_at_dist_2 = sorted([n.Name for n in e_node.tipsWithinDistance(2)])
+        obs_at_dist_3 = sorted([n.Name for n in e_node.tipsWithinDistance(3)])
+        obs_at_dist_4 = sorted([n.Name for n in e_node.tipsWithinDistance(4)])
+
+        self.assertEqual(obs_at_dist_2, exp_at_dist_2)
+        self.assertEqual(obs_at_dist_3, exp_at_dist_3)
+        self.assertEqual(obs_at_dist_4, exp_at_dist_4)
+
+    def test_tipsWithinDistance_nodistances(self):
+        """tipsWithinDistance returns tips that are within distance from self"""
+        t_str = "(A,B,(C,D)E,(F,((G,H)I)J)K)L;"
+        t = DndParser(t_str, constructor=PhyloNode)
+        nodes = t.getNodesDict()
+        e_node = nodes['E']
+
+        exp = sorted([n.Name for n in t.tips()])
+        obs = sorted([n.Name for n in e_node.tipsWithinDistance(0)])
+        self.assertEqual(obs, exp)
 
     def test_distance(self):
         """PhyloNode Distance should report correct distance between nodes"""
