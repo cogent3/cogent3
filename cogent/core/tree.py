@@ -1636,7 +1636,7 @@ class PhyloNode(TreeNode):
             child.Parent=curr_parent
             #Add the Length of the removed node to the Length of the Child
             if child.Length is None or node.Length is None:
-                chidl.Length = child.Length or node.Length
+                child.Length = child.Length or node.Length
             else:
                 child.Length = child.Length + node.Length
 
