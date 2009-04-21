@@ -457,6 +457,10 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
     app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir='/tmp')
     app.Parameters['-align'].off()
+    
+    #Set params to empty dict if None.
+    if params is None:
+        params={}
 
     # best_tree -> bootstrap
     if best_tree:
