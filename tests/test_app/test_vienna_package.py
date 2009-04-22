@@ -4,7 +4,7 @@ from os import getcwd, remove, rmdir
 import tempfile, shutil
 from cogent.util.unit_test import TestCase, main
 from cogent.app.vienna_package import RNAfold, RNAsubopt, RNAplot,\
-    plot_from_seq_and_struct, DataError
+    plot_from_seq_and_struct, DataError, get_constrained_fold
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -166,6 +166,35 @@ class RNAfoldTests(TestCase):
         self.assertEqual(res['ExitStatus'],0)
         res.cleanUp()
 
+    def test_get_constrained_fold_bad_data(self):
+        """get_constrained_fold should handle bad data."""
+        test_seq =   'AAACCCGGGUUU'
+        constraint = '(((...)))'
+        
+        #Test empty sequence.
+        self.assertRaises(ValueError, get_constrained_fold,\
+            '', constraint)
+        
+        #Test empty constraint string.
+        self.assertRaises(ValueError, get_constrained_fold,\
+            test_seq, '')
+
+        #Test different length sequence and constraint.
+        self.assertRaises(ValueError, get_constrained_fold,\
+            test_seq, constraint)        
+    
+    def test_get_constrained_fold(self):
+        """get_constrained_fold should give correct result."""
+        test_seq =   'AAACCCGGGUUU'
+        constraint = '(((......)))'
+        expected_struct = '((((....))))'
+        
+        obs_seq, obs_struct, obs_energy = \
+            get_constrained_fold(test_seq,constraint)
+        #Test get back correct seq and struct
+        self.assertEqual(obs_seq, test_seq)
+        self.assertEqual(obs_struct, expected_struct)
+        
     def test_zzz_general_cleanup(self):
         """Executed last, clean up temp_dir"""
         shutil.rmtree(self.temp_dir)
