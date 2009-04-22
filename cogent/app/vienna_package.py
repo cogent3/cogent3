@@ -6,6 +6,7 @@ from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None
 from cogent.struct.rna2d import ViennaStructure
 from cogent.core.alignment import DataError
+from cogent.parse.rnaalifold import MinimalRnaalifoldParser
 from random import choice
 
 __author__ = "Rob Knight"
@@ -99,6 +100,35 @@ class RNAfold(CommandLineApplication):
             seq_counter - name_counter > 0)) #DotPlot
         return result
 
+def get_constrained_fold(sequence, constraint_string, params=None):
+    """Returns secondary structure from RNAfold with constraints.
+    
+        - sequence: RNA sequence object or string.
+        - constraint_string: RNAfold folding constraint string.
+        - params: dict of additional RNAfold parameters.
+    """
+    #Check that sequence and constraint string exist.
+    if not sequence:
+        raise ValueError, 'No sequence found!'
+    elif not constraint_string:
+        raise ValueError, 'No constraint string found!'
+    
+    sequence = str(sequence) 
+    #Check that sequence and constraint_string are equal length.
+    if len(sequence) != len(constraint_string):
+        raise ValueError, 'Sequence and constraint string are not same length!'
+    app = RNAfold(params=params)
+    #Turn on constrained folding.
+    app.Parameters['-C'].on()
+    
+    res = app([sequence,constraint_string])
+    #Parse out seq, struct string and energy.
+    seq, struct, energy = MinimalRnaalifoldParser(res['StdOut'].readlines())[0]
+    #Clean up after application.
+    res.cleanUp()
+    
+    return seq, struct, energy
+    
 
 class RNAsubopt(CommandLineApplication):
     """Application controller for RNAsubopt (in the Vienna RNA package)
