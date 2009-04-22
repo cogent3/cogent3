@@ -21,7 +21,7 @@ def MinimalRnaalifoldParser(lines):
         for i in range(0,len(lines),2):
             seq = lines[i].strip()
             struct,energy = lines[i+1].split(" (")
-            energy = float(energy.split('=')[0].strip())
+            energy = float(energy.split('=')[0].strip(' \n)'))
             res.append([seq,struct,energy])
     return res
         
