@@ -52,9 +52,11 @@ EXAMPLE USAGE:
 
     
 """
+from __future__ import division
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
-    mean, std, argsort, take, ravel, logical_not, shape, sqrt,
-    sum, square, asmatrix, asarray, multiply, min, rank, any, all, isfinite)
+    mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
+    sum, square, asmatrix, asarray, multiply, min, rank, any, all, isfinite,
+    nonzero, nan_to_num, geterr, seterr)
 # any, all from numpy override built in any, all, preventing:
 # ValueError: The truth value of an array with more than one element is 
 # ambiguous. Use a.any() or a.all()
@@ -243,6 +245,7 @@ def dist_canberra(datamtx, strict=True):
         except ValueError:
             return zeros((0,0),'d')
 
+    oldstate = seterr(divide='ignore')
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
@@ -251,17 +254,13 @@ def dist_canberra(datamtx, strict=True):
         for j in range(i):
             r2 = datamtx[j]
             dist = 0.0
-            numzeros = 0
-            for colidx in range(numcols):
-                if r1[colidx] == 0.0 and r2[colidx] == 0.0:
-                    numzeros +=1
-                    
-                else:
-                    dist += abs(r1[colidx] - r2[colidx])/ \
-                        (r1[colidx] + r2[colidx])
-            if numzeros < numcols:
-                dist /= float(numcols - numzeros)
-            dists[i,j] = dists[j,i] = dist
+            net = abs( r1 - r2 ) / (r1 + r2)
+
+            net = nan_to_num(net)
+            num_nonzeros = nonzero(net)[0].size
+            dists[i,j] = dists[j,i] = nan_to_num(net.sum()/num_nonzeros)
+            
+    seterr(**oldstate)
     return dists
 
 def dist_chisq(datamtx, strict=True):
@@ -562,7 +561,7 @@ def dist_kulczynski(datamtx, strict=True):
             if (irowsum == 0.0 and jrowsum == 0.0):
                 cur_d = 0.0 # => two rows of zeros
             elif (irowsum == 0.0 or jrowsum == 0.0):
-                curr_d = 1.0 # one row zeros, one not all zeros
+                cur_d = 1.0 # one row zeros, one not all zeros
             else:
                 cur_d = 1.0 - (((rowminsum/irowsum) + (rowminsum/jrowsum))/2.0)
             dists[i][j] = dists[j][i] = cur_d
@@ -645,13 +644,13 @@ def dist_morisita_horn(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     
-    rowsums = datamtx.sum(axis=1)
-    row_ds = (datamtx**2).sum(axis=1) # these are d_a, etc
+    rowsums = datamtx.sum(axis=1, dtype='float')
+    row_ds = (datamtx**2).sum(axis=1, dtype='float') # these are d_a, etc
+    
     for i in range(numrows):
         if row_ds[i] !=0.:
-            row_ds[i] /= rowsums[i]**2
+            row_ds[i] = row_ds[i] / rowsums[i]**2
     # this leaves row_ds zero if actually 0/0
-
     for i in range(numrows):
         row1 = datamtx[i]
         N1 = rowsums[i]
@@ -660,14 +659,15 @@ def dist_morisita_horn(datamtx, strict=True):
             row2 = datamtx[j]
             N2 = rowsums[j]
             d2 = row_ds[j]
-            if N2 == 0 and N1==0:
+            if N2 == 0.0 and N1==0.0:
                 dist = 0.0
-            elif N2 == 0:
+            elif N2 == 0.0 or N1==0.0:
                 dist = 1.0
             else:
-                dist = 2*sum(row1*row2)
-                dist /= (d1 + d2) * N1 * N2
-                dist = 1 - dist
+            # d's zero only if N's zero, and we already checked for that
+                similarity = 2*sum(row1*row2)
+                similarity = similarity / ( (d1 + d2) * N1 * N2 )
+                dist = 1 - similarity
             dists[i][j] = dists[j][i] = dist
     return dists
 

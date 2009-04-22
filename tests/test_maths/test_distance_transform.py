@@ -4,7 +4,7 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.distance_transform import *
-from numpy import array, sqrt, shape
+from numpy import array, sqrt, shape, ones, diag
             
             
 __author__ = "Justin Kuczynski"
@@ -63,6 +63,14 @@ class functionTests(TestCase):
         mtx1expected = array([[ 0.0,  46.2/52.2],
                     [ 46.2/52.2,  0.0 ]],'d')
         self.assertFloatEqual(dist_canberra(self.mtx1), mtx1expected)
+
+        sparse1exp = ones((self.sparse1.shape[0],self.sparse1.shape[0]))
+        # remove diagonal
+        sparse1exp[0,0] = sparse1exp[1,1] = sparse1exp[2,2] = sparse1exp[3,3]\
+            = 0.0
+
+        sparse1exp[0,1] = sparse1exp[1,0] = ( (5.33-.4) / (5.33 + .4) )
+        self.assertFloatEqual(dist_canberra(self.sparse1), sparse1exp)
 
     def test_dist_euclidean(self):
         """tests dist_euclidean
