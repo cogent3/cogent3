@@ -54,6 +54,8 @@ def stockholm_from_alignment(aln, interleave_len=None, GC_annotation=None):
     ordered_seqs = [seqs.NamedSeqs[label] for label in order]
 
     if GC_annotation is not None:
+        GC_annotation_list = \
+            [(k,GC_annotation[k]) for k in sorted(GC_annotation.keys())]
         #Add GC_annotation to list of labels.
         labels.extend(['#=GC '+ k for k in GC_annotation.keys()])
         for k,v in GC_annotation.items():
@@ -75,7 +77,7 @@ def stockholm_from_alignment(aln, interleave_len=None, GC_annotation=None):
                 stockholm_list.extend(["#=GC %s%s%s"%(x,\
                     ' '*(max_spaces-len(x)-5),\
                     y[curr_ix:curr_ix + interleave_len]) for x,y in\
-                    GC_annotation.items()])
+                    GC_annotation_list])
             stockholm_list.append("")
             curr_ix += interleave_len
     else:
@@ -83,7 +85,7 @@ def stockholm_from_alignment(aln, interleave_len=None, GC_annotation=None):
             for x,y in zip(order, ordered_seqs)])
         if GC_annotation is not None:
             stockholm_list.extend(["#=GC %s%s%s"%(x,' '*(max_spaces-len(x)-5),\
-                y) for x,y in GC_annotation.items()])
+                y) for x,y in GC_annotation_list])
         stockholm_list.append("")
     
     return '\n'.join(stockholm_list)+'//'
