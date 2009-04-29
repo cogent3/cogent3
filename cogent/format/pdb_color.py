@@ -37,7 +37,7 @@ def get_aligned_muscle(seq1,seq2):
     return seq1_aligned,seq2_aligned,frac_same
 
 def get_chains(lines):
-    """From list of lines in pdb records, returns dict of {chain:{pos:residue}}.
+    """From list of lines in pdb records, returns dict of {chain:(pos:residue)}.
 
     Keeps original 1-based numbering. All residues will be returned.
     """
