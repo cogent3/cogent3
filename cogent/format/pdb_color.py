@@ -44,14 +44,14 @@ def get_chains(lines):
     chains = {}
     last_resnum = None
     ter=False
-    prev_chain=None
+    prev_chains=[]
     for line in lines:
         #skip if not an atom line
         if not line.startswith('ATOM'):
             #If chain terminated, record chain.
             if line.startswith('TER'):
                 ter=True
-                prev_chain=chain
+                prev_chains.append(chain)
             else:
                 continue
         else:
@@ -60,7 +60,7 @@ def get_chains(lines):
             resnum = int(line[22:26])
             #Continue until next chain is found.
             if ter:
-                if prev_chain == chain:
+                if chain in prev_chains:
                     continue
                 else:
                     ter=False
