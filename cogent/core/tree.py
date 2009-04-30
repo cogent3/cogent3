@@ -35,6 +35,7 @@ from cogent.maths.stats.test import correlation
 from operator import or_
 from cogent.util.misc import InverseDict
 from cogent.util.warning import deprecated
+from random import shuffle
 
 LOG = logging.getLogger('cogent.tree')
 
@@ -1930,7 +1931,7 @@ class PhyloNode(TreeNode):
         max_dist = max(dists)
         return max_dist, dists[max_dist]
 
-    def tipToTipDistances(self, default_length=1):
+    def tipToTipDistances(self, endpoints=None, default_length=1):
         """Returns distance matrix between all pairs of tips, and a tip order.
             
         Warning: .__start and .__stop added to self and its descendants.
@@ -1938,22 +1939,38 @@ class PhyloNode(TreeNode):
         tip_order contains the actual node objects, not their names (may be
         confusing in some cases).
         """
-        ## linearize the tips in postorder.
-        # .__start, .__stop compose the slice in tip_order.
-        tip_order = list(self.tips())
-        for i, tip in enumerate(tip_order):
-            tip.__start, tip.__stop = i, i+1
+        all_tips = self.tips()
+        if endpoints is None:
+            tip_order = list(all_tips)
+        else:
+             if isinstance(endpoints[0], PhyloNode):
+                tip_order = endpoints
+             else:
+                tip_order = [self.getNodeMatchingName(n) for n in endpoints]
 
-        num_tips = len(tip_order)
-        result = zeros((num_tips, num_tips), float) #tip by tip matrix
-        tipdistances = zeros((num_tips), float) #distances from tip to curr node
+        ## linearize all tips in postorder
+        # .__start, .__stop compose the slice in tip_order.
+        for i, node in enumerate(all_tips):
+            node.__start, node.__stop = i, i+1
+        
+        # the result map provides index in the result matrix
+        result_map = dict([(n.__start,i) for i,n in enumerate(tip_order)])
+        num_all_tips = len(all_tips) # total number of tips
+        num_tips = len(tip_order) # total number of tips in result
+        result = zeros((num_tips, num_tips), float) # tip by tip matrix
+        tipdistances = zeros((num_all_tips), float) # dist from tip to curr node
 
         def update_result():
         # set tip_tip distance between tips of different child
             for child1, child2 in comb(node.Children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
+                    if tip1 not in result_map:
+                        continue
+                    res_tip1 = result_map[tip1]
                     for tip2 in range(child2.__start, child2.__stop):
-                        result[tip1,tip2] = \
+                        if tip2 not in result_map:
+                            continue
+                        result[res_tip1,result_map[tip2]] = \
                             tipdistances[tip1] + tipdistances[tip2]
 
         for node in self.traverse(self_before=False, self_after=True):
@@ -1974,7 +1991,8 @@ class PhyloNode(TreeNode):
                 update_result()
         return result+result.T, tip_order
 
-    def compareByTipDistances(self, other, dist_f=distance_from_r):
+    def compareByTipDistances(self, other, sample=None, dist_f=distance_from_r,\
+            shuffle_f=shuffle):
         """Compares self to other using tip-to-tip distance matrices.
 
         Value returned is dist_f(m1, m2) for the two matrices. Default is
@@ -1990,20 +2008,28 @@ class PhyloNode(TreeNode):
         match, and because we need to reorder the names in the two trees to 
         match up the distance matrices).
         """
-        self_names = [i.Name for i in self.tips()]
-        other_names = [i.Name for i in other.tips()]
-        common_names = frozenset(self_names) & frozenset(other_names)
+        self_names = dict([(i.Name, i) for i in self.tips()])
+        other_names = dict([(i.Name, i) for i in other.tips()])
+        common_names = frozenset(self_names.keys()) & \
+                       frozenset(other_names.keys())
+        common_names = list(common_names)
+
         if not common_names:
             raise ValueError, "No names in common between the two trees."""
         if len(common_names) <= 2:
             return 1    #the two trees must match by definition in this case
-        #figure out correct order of the two name matrices
-        self_order = [self_names.index(i) for i in common_names]
-        other_order = [other_names.index(i) for i in common_names]
-        self_matrix = self.tipToTipDistances()[0][self_order][:,self_order]
-        other_matrix = other.tipToTipDistances()[0][other_order][:,other_order]
-        return dist_f(self_matrix, other_matrix)
 
+        if sample is not None:
+            shuffle_f(common_names)
+            common_names = common_names[:sample]
+            
+        self_nodes = [self_names[k] for k in common_names]
+        other_nodes = [other_names[k] for k in common_names]
+
+        self_matrix = self.tipToTipDistances(endpoints=self_nodes)[0]
+        other_matrix = other.tipToTipDistances(endpoints=other_nodes)[0]
+
+        return dist_f(self_matrix, other_matrix)
 
 class TreeBuilder(object):
     # Some tree code which isn't needed once the tree is finished.
