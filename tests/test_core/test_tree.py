@@ -104,15 +104,12 @@ class TreeNodeTests(TestCase):
         self.TreeNode = nodes
         self.TreeRoot = nodes['a']
 
-        #the following are used for the distance tests
-        self.s = '((H:1,G:1):2,(R:0.5,M:0.7):3);'
-        self.t = DndParser(self.s, PhyloNode)
-        self.s2 = '(((H:1,G:1):2,R:3):1,M:4);'
-        self.t2 = DndParser(self.s2, PhyloNode)
-        self.s3 = '(((H:1,G:1,O:1):2,R:3):1,X:4);'
-        self.t3 = DndParser(self.s3, PhyloNode)
-        self.s4 = '(((H:1,G:1):1,(O:1,R:3):1):1,X:4);'
-        self.t4 = DndParser(self.s4, PhyloNode)
+        self.s = '((H,G),(R,M));'
+        self.t = DndParser(self.s, TreeNode)
+        self.s2 = '(((H,G),R),M);'
+        self.t2 = DndParser(self.s2, TreeNode)
+        self.s4 = '(((H,G),(O,R)),X);'
+        self.t4 = DndParser(self.s4, TreeNode)
    
     def test_init_empty(self):
         """Empty TreeNode should init OK"""
@@ -1045,13 +1042,6 @@ class TreeNodeTests(TestCase):
         result = self.t.compareBySubsets(self.TreeRoot)
         self.assertEqual(result, 1)
 
-    def test_compareByTipDistances(self):
-        obs = self.t.compareByTipDistances(self.t3)
-        #note: common taxa are H, G, R (only)
-        m1 = array([[0,2,6.5],[2,0,6.5],[6.5,6.5,0]])
-        m2 = array([[0,2,6],[2,0,6],[6,6,0]])
-        r = correlation(m1.flat, m2.flat)[0]
-        self.assertEqual(obs, (1-r)/2)
 
 class PhyloNodeTests(TestCase):
     """Tests of phylogeny-specific methods."""
@@ -1075,6 +1065,11 @@ class PhyloNodeTests(TestCase):
         nodes['f'].Length = 2
         nodes['g'].Length = 3
         nodes['h'].Length = 2
+
+        self.s = '((H:1,G:1):2,(R:0.5,M:0.7):3);'
+        self.t = DndParser(self.s,PhyloNode)
+        self.s3 = '(((H:1,G:1,O:1):2,R:3):1,X:4);'
+        self.t3 = DndParser(self.s3, PhyloNode)
 
     def test_init(self):
         """Check PhyloNode constructor"""
@@ -1216,11 +1211,47 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(h.distance(g), 10)
         self.assertEqual(h.distance(h), 0)
 
+    def test_compareByTipDistances(self):
+        obs = self.t.compareByTipDistances(self.t3)
+        #note: common taxa are H, G, R (only)
+        m1 = array([[0,2,6.5],[2,0,6.5],[6.5,6.5,0]])
+        m2 = array([[0,2,6],[2,0,6],[6,6,0]])
+        r = correlation(m1.flat, m2.flat)[0]
+        self.assertEqual(obs, (1-r)/2)
+
+    def test_compareByTipDistances_sample(self):
+        obs = self.t.compareByTipDistances(self.t3, sample=3, shuffle_f=sorted)
+        #note: common taxa are H, G, R (only)
+        m1 = array([[0,2,6.5],[2,0,6.5],[6.5,6.5,0]])
+        m2 = array([[0,2,6],[2,0,6],[6,6,0]])
+        r = correlation(m1.flat, m2.flat)[0]
+        self.assertEqual(obs, (1-r)/2)
+
+        # 4 common taxa, still picking H, G, R
+        s = '((H:1,G:1):2,(R:0.5,M:0.7,Q:5):3);'
+        t = DndParser(self.s,PhyloNode)
+        s3 = '(((H:1,G:1,O:1):2,R:3,Q:10):1,X:4);'
+        t3 = DndParser(self.s3, PhyloNode)
+        obs = t.compareByTipDistances(t3, sample=3, shuffle_f=sorted)
+
+    def test_tipToTipDistances_endpoints(self):
+        """Test getting specifc tip distances  with tipToTipDistances"""
+        nodes = [self.t.getNodeMatchingName('H'), 
+                 self.t.getNodeMatchingName('G'),
+                 self.t.getNodeMatchingName('M')]
+        names = ['H','G','M']
+        exp = (array([[0,2.0,6.7],[2.0,0,6.7],[6.7,6.7,0.0]]), nodes)
+        obs = self.t.tipToTipDistances(endpoints=names)
+        self.assertEqual(obs, exp)
+        
+        obs = self.t.tipToTipDistances(endpoints=nodes)
+        self.assertEqual(obs, exp)
+
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""
-        tree = DndParser('((a:3,((c:1):1):1):2);',constructor=TreeNode)
+        tree = DndParser('((a:3,((c:1):1):1):2);',constructor=PhyloNode)
         tree.prune()
-        result_tree = DndParser('((a:3.0,c:3.0):2.0);',constructor=TreeNode)
+        result_tree = DndParser('((a:3.0,c:3.0):2.0);',constructor=PhyloNode)
         self.assertEqual(str(tree),str(result_tree))
 
 
