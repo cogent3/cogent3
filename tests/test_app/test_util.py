@@ -870,9 +870,9 @@ f.close()
         self.assertTrue(obs.startswith('/tmp/tmp'))
         self.assertTrue(obs.endswith('.txt'))
         
-        obs = app.getTmpFilename(tmp_dir="/blah",prefix="app_ctl_test",\
+        obs = app.getTmpFilename(tmp_dir="/tmp/blah",prefix="app_ctl_test",\
             suffix='.test',include_class_id=False)
-        self.assertTrue(obs.startswith('/blah/app_ctl_test'))
+        self.assertTrue(obs.startswith('/tmp/blah/app_ctl_test'))
         self.assertTrue(obs.endswith('.test'))
 
     def test_getTmpFilename_defaults_to_no_class_id(self):
@@ -1010,6 +1010,7 @@ class RemoveTests(TestCase):
         rmdir('/tmp/test')
         rmdir('/tmp/test space')
         rmdir('/tmp/tmp2')
+        rmdir('/tmp/blah')
        
 
 #=====================END OF TESTS===================================
