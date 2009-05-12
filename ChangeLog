@@ -49,6 +49,7 @@ Changes
 * Tables.getDistinctValues now handles multiple columns.
 * Table.Header is now an immutable property of Tables. Use the withNewHeader
   method modifying Header labels.
+* The TreeNode comparison methods now only check against the objects ID
 
 Bug Fixes
 =========
@@ -63,6 +64,8 @@ Bug Fixes
   matrix used.
 * reverse complement of annotations with disjoint spans correctly preserve
   order.
+* Fixed ambiguity in TreeNode comparison methods which resulted in the prune
+  method incorrectly removing entire subtrees.
 
 ******************
 Cogent 1.0.1 - 1.1
