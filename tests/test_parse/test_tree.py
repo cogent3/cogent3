@@ -164,12 +164,14 @@ class DndParserTests(TestCase):
 
         reload_test = tree_esc.getNewick(with_distances=True, \
                                          escape_name=False)
-        self.assertEqual(DndParser(reload_test, unescape_name=False), \
-                         tree_esc)
+        obs = DndParser(reload_test, unescape_name=False)
+        self.assertEqual(obs.getNewick(with_distances=True), \
+                         tree_esc.getNewick(with_distances=True))
         reload_test = tree_unesc.getNewick(with_distances=True, \
                                            escape_name=False)
-        self.assertEqual(DndParser(reload_test, unescape_name=False), \
-                         tree_unesc)
+        obs = DndParser(reload_test, unescape_name=False)
+        self.assertEqual(obs.getNewick(with_distances=True), \
+                         tree_unesc.getNewick(with_distances=True))
 
 class PhyloNodeTests(TestCase):
     """Check that PhyloNode works the way I think"""

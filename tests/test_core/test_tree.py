@@ -150,26 +150,36 @@ class TreeNodeTests(TestCase):
                 '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
     def test_cmp(self):
-        """TreeNode cmp should compare using Name attribute"""
+        """TreeNode cmp should compare using id"""
         nodes = self.TreeNode
         self.assertEqual(cmp(nodes['a'], nodes['a']), 0)
-        self.assertEqual(cmp(nodes['b'], nodes['a']), 1)
-        self.assertEqual(cmp(nodes['a'], nodes['b']), -1)
-        #compares diff types in same, arbitrary order depending only on the
-        #types and not on the content of each instance
-        self.assertEqual(cmp(nodes['a'], 3), cmp(nodes['b'], 1))
+        self.assertNotEqual(cmp(nodes['b'], nodes['a']), 0)
+        self.assertNotEqual(cmp(nodes['a'], nodes['b']), 0)
+
+    def test_compareName(self):
+        """Compare names between TreeNodes"""
+        nodes = self.TreeNode
+        self.assertEqual(nodes['a'].compareName(nodes['a']), 0)
+        self.assertEqual(nodes['a'].compareName(nodes['b']), -1)
+        self.assertEqual(nodes['b'].compareName(nodes['a']), 1)
+
+    def test_compareByNames(self):
+        """Compare names between trees"""
+        self.assertTrue(self.t.compareByNames(self.t2))
+        self.assertTrue(self.t.compareByNames(self.t))
+        self.assertFalse(self.t.compareByNames(self.t4))
 
     def test_eq(self):
-        """TreeNode should compare equal if same id or same data"""
+        """TreeNode should compare equal if same id"""
         t, u, v = self.Comparisons
         self.assertEqual(t, t)
         assert t is not u
-        self.assertEqual(t, u)
+        self.assertNotEqual(t, u)
         self.assertNotEqual(t, v)
     
         f = TreeNode(1.0)
         g = TreeNode(1)
-        self.assertEqual(f, g)
+        self.assertNotEqual(f, g)
         f.Name += 0.1
         self.assertNotEqual(f, g)
 
@@ -178,45 +188,19 @@ class TreeNodeTests(TestCase):
         g = TreeNode()
         self.assertNotEqual(f,g)
 
-    def test_ge(self):
-        """TreeNode should compare ge by id or data"""
-        t, u, v = self.Comparisons
-        self.assertEqual(t >= t, True)
-        self.assertEqual(t >= u, True)
-        self.assertEqual(t >= v, False)
-        self.assertEqual(v >= t, True)
-
-    def test_gt(self):
-        """TreeNode should compare gt by id or data"""
-        t, u, v = self.Comparisons
-        self.assertEqual(t > t, False)
-        self.assertEqual(t > u, False)
-        self.assertEqual(t > v, False)
-        self.assertEqual(v > t, True)
-
-    def test_le(self):
-        """TreeNode should compare le by id or data"""
-        t, u, v = self.Comparisons
-        self.assertEqual(t <= t, True)
-        self.assertEqual(t <= u, True)
-        self.assertEqual(t <= v, True)
-        self.assertEqual(v <= t, False)
-
-    def test_lt(self):
-        """TreeNode should compare lt by id or data"""
-        t, u, v = self.Comparisons
-        self.assertEqual(t < t, False)
-        self.assertEqual(t < u, False)
-        self.assertEqual(t < v, True)
-        self.assertEqual(v < t, False)
+        f = TreeNode(Name='foo')
+        g = f.copy()
+        self.assertNotEqual(f, g)
 
     def test_ne(self):
         """TreeNode should compare ne by id or data"""
         t, u, v = self.Comparisons
-        self.assertEqual(t != t, False)
-        self.assertEqual(t != u, False)
-        self.assertEqual(t != v, True)
-        self.assertEqual(v != t, True)
+        self.assertFalse(t != t)
+        self.assertTrue(t != u)
+
+        f = TreeNode(Name='foo')
+        g = f.copy()
+        self.assertTrue(f != g)
 
 
     def test_append(self):
@@ -389,19 +373,6 @@ class TreeNodeTests(TestCase):
             else:
                 assert n.Parent is parent
 
-    def test_contains(self):
-        """TreeNode __contains__ works by id or name, direct children only"""
-        r = self.TreeRoot
-        n = self.TreeNode
-        a = n['a']
-        assert n['b'] in a
-        assert n['h'] in a
-        assert n['g'] not in a  #not direct child
-        assert 'b' in a #should work for string
-        assert 'x' not in a
-        assert 'h' in a
-        assert 123 not in a #shouldn't raise exception
-
     def test_iter(self):
         """TreeNode iter should iterate over children"""
         r = self.TreeRoot
@@ -469,7 +440,7 @@ class TreeNodeTests(TestCase):
         u_simple = TreeNode(['u'])
         t_simple.append(u_simple)
 
-        self.assertEqual(t_simple.copy(), t_simple.copy())
+        self.assertEqual(str(t_simple.copy()), str(t_simple.copy()))
 
     def test_copyTopology(self):
         """TreeNode.copyTopology() should produce deep copy ignoring attrs"""
@@ -851,7 +822,7 @@ class TreeNodeTests(TestCase):
         assert children[0].Parent is parent
         assert children[1].Parent is None
         assert children[2].Parent is parent
-        self.assertEqual(children[0], children[1])
+        self.assertEqual(children[0].compareName(children[1]), 0)
         self.assertEqual(parent.removeNode(children[1]), False)
         self.assertEqual(len(parent), 2)
         self.assertEqual(parent.removeNode(children[0]), True)
@@ -998,6 +969,11 @@ class TreeNodeTests(TestCase):
         result_tree = DndParser('((a:3,c:1));',constructor=TreeNode)
         self.assertEqual(str(tree),str(result_tree))
 
+        samename_bug = DndParser("((A,B)SAMENAME,((C,D)SAMENAME));")
+        samename_bug.prune()
+        exp_tree_str = '((A,B)SAMENAME,(C,D)SAMENAME);'
+        self.assertEqual(str(samename_bug), exp_tree_str)
+        
     def test_getNodeMatchingName(self):
         """TreeNode getNodeMatchingName should return node that matches name"""
         nodes = self.TreeNode
