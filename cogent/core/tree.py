@@ -145,23 +145,26 @@ class TreeNode(object):
         """Returns Newick-format string representation of tree."""
         return self.getNewick()
     
-    def __cmp__(self, other):
-        """Compares TreeNode by name, but by id if name is None.
-        
-        Rationale for this behavior is that usually when the nodes
-        are unnamed, we want to check whether it's the same node object
-        rather than whether both are unnamed.
-        """
+    def compareName(self, other):
+        """Compares TreeNode by name"""
         if self is other:
             return 0
         try:
-            result = cmp(self.Name, other.Name)
-            if result == 0 and self.Name is None:
-                result = cmp(id(self), id(other))
-            return result
+            return cmp(self.Name, other.Name)
         except AttributeError:
             return cmp(type(self), type(other))
-    
+
+    def compareByNames(self, other):
+        """Equality test for trees by name"""
+        # if they are the same object then they must be the same tree...
+        if self is other:
+            return True
+        self_names = self.getNodeNames()
+        other_names = other.getNodeNames()
+        self_names.sort()
+        other_names.sort()
+        return self_names == other_names
+
     def _to_self_child(self, i):
         """Converts i to self's type, with self as its parent.
         
@@ -234,13 +237,6 @@ class TreeNode(object):
         else:
             curr._parent = None
         del self.Children[i]
-    
-    def __contains__(self, i):
-        """x in node returns True if name 'x' or node x is child of self."""
-        if isinstance(i, self.__class__):
-            return i in self.Children
-        else:
-            return i in [c.Name for c in self.Children]
     
     def __iter__(self):
         """Node iter iterates over the Children."""
@@ -1284,7 +1280,7 @@ class TreeNode(object):
         outf = open(filename, "w")
         outf.writelines(data)
         outf.close()
-    
+
     def getNodeNames(self, includeself=True, tipsonly=False):
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will

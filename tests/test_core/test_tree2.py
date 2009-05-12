@@ -168,7 +168,7 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
         orig = self.default_tree
         xml = orig.getXML()
         parsed = LoadTree(treestring=xml)
-        self.assertEqual(orig, parsed)
+        self.assertEqual(str(orig), str(parsed))
     
     # Magic methods
     
@@ -183,13 +183,16 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
     def test_eq(self):
         """testing (well, exercising at least), __eq__"""
         # xxx not good enough!
-        self.assertEqual(self._maketree(), self._maketree())
+        t1 = self._maketree()
+        t2 = self._maketree()
+        self.assertTrue(t1 == t1)
+        self.assertFalse(t1 == t2)
     
     def test_balanced(self):
         """balancing an unrooted tree"""
         t = LoadTree(treestring='((a,b),((c1,(c2,(c3,(c4,(c5,(c6,c7)))))),(d,e)),f)')
         b = LoadTree(treestring='(c1,(c2,(c3,(c4,(c5,(c6,c7))))),((d,e),((a,b),f)))')
-        self.assertEqual(t.balanced(), b)
+        self.assertEqual(str(t.balanced()), str(b))
     
     def test_params_merge(self):
         t = LoadTree(treestring='((((a,b)ab,c)abc),d)')
@@ -272,7 +275,7 @@ class TestTree(unittest.TestCase):
         
         # check we get the same names
         self.assertEqual(*[len(t.Children) for t in (subtree,new_tree)])
-        self.assertEqual(subtree, new_tree)
+        self.assertEqual(str(subtree), str(new_tree))
     
     def test_ascii(self):
         self.tree.asciiArt()
