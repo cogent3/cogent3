@@ -356,7 +356,7 @@ Australian National University, Canberra, ACT 0200, Australia.
 Department of Chemistry and Biochemistry,
 University of Colorado, Boulder, CO 80309-0215, USA.</td>
 </tr>
-<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0.1</td>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.3.0.dev</td>
 </tr>
 <tr class="field"><th class="field-name">Copyright 2007-2009:</th><td class="field-body">This software is copyright 2002-2007.</td>
 </tr>
@@ -936,7 +936,7 @@ U   C       A       G       -       B       D       H       K       M       N   
 </tr>
 <tr class="field"><th class="field-name">License:</th><td class="field-body">GPL</td>
 </tr>
-<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.0.1</td>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">1.3.0.dev</td>
 </tr>
 <tr class="field"><th class="field-name">Maintainer:</th><td class="field-body">Gavin Huttley</td>
 </tr>
@@ -3519,7 +3519,7 @@ def __init__(self, data, name='', alphabet=None):
 <div class="section" id="how-should-i-test-my-code">
 <h3><a class="toc-backref" href="#id80">How should I test my code ?</a></h3>
 <p>There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.</p>
-<p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference external" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rest are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
+<p>An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by <a class="reference external" href="http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf">Jim Fulton</a>, which is recommended reading. A significant change since that presentation is that <tt class="docutils literal"><span class="pre">doctest</span></tt> can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (<tt class="docutils literal"><span class="pre">py.test</span></tt>) is also <a class="reference external" href="http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html">available</a>. To see examples of both styles of testing look in <tt class="docutils literal"><span class="pre">Cogent/tests</span></tt>: files ending in .rst are using <tt class="docutils literal"><span class="pre">doctest</span></tt>, those ending in .py are using <tt class="docutils literal"><span class="pre">unittest</span></tt>.</p>
 <p>In general, it's easier to start writing <tt class="docutils literal"><span class="pre">doctest</span></tt>'s, as you don't need to learn the <tt class="docutils literal"><span class="pre">unittest</span></tt> API but the latter give's much greater control.</p>
 <p>Whatever approach is employed, the general principle is every line of code should be tested. It is critical that your code be fully tested before you draw conclusions from results it produces. For scientific work, bugs don't just mean unhappy users who you'll never actually meet: they may mean retracted publications.</p>
 <p>Tests are an opportunity to invent the interface(s) you want. Write the test for a method before you write the method: often, this helps you figure out what you would want to call it and what parameters it should take. It's OK to write the tests a few methods at a time, and to change them as your ideas about the interface change. However, you shouldn't change them once you've told other people what the interface is.</p>
