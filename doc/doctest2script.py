@@ -16,8 +16,8 @@ __status__ = "Production"
 for filename in sys.argv[1:]:
     print filename, 
     (name, suffix) = os.path.splitext(filename)
-    if suffix != '.rest':
-        print 'not a .rest file'
+    if suffix != '.rst':
+        print 'not a .rst file'
         continue
     f = open(filename,'r')
     s = ''.join(f.readlines())

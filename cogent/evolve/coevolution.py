@@ -29,7 +29,7 @@ coevolve_alignment: coevolution between all pairs of positions in an
 Each of these functions takes a coevolution calculator, an alignment, and 
  any additional keyword arguments that should be passed to the coevolution
  calculator. More information on these functions and how they should be used
- is available as executable documentation in coevolution.rest.
+ is available as executable documentation in coevolution.rst.
 
 The methods provided for calculating coevolution are: 
 Mutual Information (Shannon 19xx) 

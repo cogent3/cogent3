@@ -49,7 +49,7 @@ def build_html():
         print "Failed to build html due to ImportErrors for either docutils or docpytils"
         return
     stylesheet_path = os.path.join(os.getcwd(), "doc", "html_style.css")
-    new_html = docutils.core.publish_file(source_path="doc/index.rest",
+    new_html = docutils.core.publish_file(source_path="doc/index.rst",
                     writer_name='html',
                     destination_path='doc/index.html',
                     settings_overrides={"embed-stylesheet": True,

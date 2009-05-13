@@ -1,0 +1,27 @@
+Drawing a dotplot
+=================
+
+.. pycode::
+
+    >>> from cogent import LoadSeqs
+    >>> from cogent.core import annotation
+    >>> from cogent.draw import dotplot
+
+Load the alignment for illustrative purposes, I'll make one sequence a different length than the other and introduce a custom sequence annotation for a miscellaneous feature. Normally, those annotations would be on the unaligned sequences.
+
+.. pycode::
+
+    >>> aln = LoadSeqs("data/test.paml")
+    >>> feature = aln.addAnnotation(annotation.Feature, "misc_feature",
+    ...                             "pprobs", [(38, 55)])
+    >>> seq1 = aln.getSeq('NineBande')[10:-3]
+    >>> seq2 = aln.getSeq('DogFaced')
+
+Write out the dotplot as a pdf file in the current directory note that seq1 will be the x-axis, and seq2 the y-axis.
+
+.. pycode::
+
+    >>> dp = dotplot.Display2D(seq1,seq2)
+    >>> filename = 'dotplot_example.pdf'
+    >>> dp.drawToPDF(filename)
+

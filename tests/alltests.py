@@ -34,9 +34,9 @@ def my_import(name):
 
 def suite():
     modules_to_test = [
-        'test_recalculation.rest',
+        'test_recalculation.rst',
         'test_phylo',
-        'test_dictarray.rest',
+        'test_dictarray.rst',
         'test_align.test_align',
         'test_align.test_algorithm',
         'test_align.test_weights.test_methods',
@@ -50,7 +50,7 @@ def suite():
         'test_core.test_annotation',
         'test_core.test_bitvector',
         'test_core.test_core_standalone',
-        'test_core.test_features.rest',
+        'test_core.test_features.rst',
         'test_core.test_genetic_code',
         'test_core.test_info',
         'test_core.test_location',
@@ -149,7 +149,7 @@ def suite():
         'test_util.test_misc',
         'test_util.test_organizer',
         'test_util.test_recode_alignment',
-        'test_util.test_table.rest',
+        'test_util.test_table.rst',
         'test_util.test_transform',
         ]
         
@@ -212,8 +212,8 @@ def suite():
     alltests = unittest.TestSuite()
     
     for module in modules_to_test:
-        if module.endswith('.rest'):
-            module = os.path.join(*module.split(".")[:-1])+".rest"
+        if module.endswith('.rst'):
+            module = os.path.join(*module.split(".")[:-1])+".rst"
             test = doctest.DocFileSuite(module, optionflags=
                 doctest.REPORT_ONLY_FIRST_FAILURE |
                 doctest.ELLIPSIS)

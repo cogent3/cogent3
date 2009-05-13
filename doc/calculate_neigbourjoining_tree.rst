@@ -1,0 +1,50 @@
+Make a neighbor joining tree
+============================
+
+An example of how to calculate the pairwise distances for a set of sequences.
+
+.. pycode::
+
+    >>> from cogent import LoadSeqs
+    >>> from cogent.phylo import distance, nj
+
+Import a substitution model (or create your own)
+
+.. pycode::
+
+    >>> from cogent.evolve.models import HKY85
+
+Load the alignment.
+
+.. pycode::
+
+    >>> al = LoadSeqs("data/test.paml")
+
+Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
+
+.. pycode::
+
+    >>> d = distance.EstimateDistances(al, submodel= HKY85())
+    >>> d.run(show_progress=False)
+
+Now use this matrix to build a neighbour joining tree.
+
+.. pycode::
+
+    >>> mytree = nj.nj(d.getPairwiseDistances())
+    >>> print mytree.asciiArt()
+              /-NineBande
+             |
+             |          /-DogFaced
+             |-edge.1--|
+    -root----|         |          /-HowlerMon
+             |          \edge.0--|
+             |                    \-Human
+             |
+              \-Mouse
+
+We can save this tree to file.
+
+.. pycode::
+
+    >>> mytree.writeToFile('test_nj.tree')
