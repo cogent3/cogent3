@@ -1,0 +1,127 @@
+Phylogenetic reconstruction by least squares
+============================================
+
+We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called ``pickle`` which is native to python. As per usual, we import the basic components we need.
+
+.. pycode::
+
+    >>> import cPickle
+    >>> from cogent.phylo import distance, least_squares
+
+Now load the distance data.
+
+.. pycode::
+
+    >>> filename = "dists_for_phylo.pickle"
+    >>> f = file(filename, 'r')
+    >>> dists = cPickle.load(f)
+    >>> f.close()
+
+If there are extremely small distances, they can cause an error in the least squares calculation. Since such estimates are between extremely closely related sequences we could simply drop all distances for one of the sequences. We won't do that here, we'll leave that as exercise.
+
+We make the ls calculator.
+
+.. pycode::
+
+    >>> ls = least_squares.WLS(dists)
+
+We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter *asaa*).
+
+Look for the single best tree
+-----------------------------
+
+In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying ``a=5``. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. ``k=1`` means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best ``k`` results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single ``Tree`` which can be saved etc ..
+
+.. pycode::
+
+    >>> score, tree = ls.trex(a = 5, k = 1, show_progress = True)
+    3 trees of size 4 at start
+    15 trees of size 5 ... done
+    >>> print score
+    0.0009...
+
+We won't display this tree, because we are doing more below.
+
+A more rigourous tree space search
+----------------------------------
+
+We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change ``a`` to be larger, but in the current case we just adjust ``k``. We also set the argument ``return_all = True``, the effect of which is to return the complete set of 145 trees. These, and their support statistic, can then be inspected.
+
+.. pycode::
+
+    >>> trees = ls.trex(a = 5, k = 5, show_progress = True, return_all = True)
+    3 trees of size 4 at start
+    15 trees of size 5 ... done
+
+Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. As indicated above, ``trees`` has length 145.
+
+.. pycode::
+
+    >>> print len(trees)
+    15
+
+Lets inspect the resulting statistics. First, the object ``trees`` is a list of (wls, Tree) tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct ``for`` loop.
+
+.. pycode::
+
+    >>> wls_stats = [tree[0] for tree in trees]
+    >>> print wls_stats[:15]
+    [0.000914409229523, 0.001...
+
+From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print the first two of the these trees after balancing them (in order to make their representations as equal as possible).
+
+.. pycode::
+
+    >>> t1 = trees[0][1].balanced()
+    >>> t2 = trees[1][1].balanced()
+    >>> print t1.asciiArt()
+              /-DogFaced
+             |
+             |          /-NineBande
+    -root----|-edge.0--|
+             |          \-Mouse
+             |
+             |          /-HowlerMon
+              \edge.1--|
+                        \-Human
+    >>> print t2.asciiArt()
+              /-NineBande
+             |
+             |          /-DogFaced
+    -root----|-edge.0--|
+             |          \-Mouse
+             |
+             |          /-HowlerMon
+              \edge.1--|
+                        \-Human
+
+You can see the difference involves the Jackrabbit, TreeShrew, Gorilla, Rat clade.
+
+Assessing the fit for a pre-specified tree topology
+---------------------------------------------------
+
+In some instances we may have a tree from the literature or elsewhere whose fit to the data we seek to evaluate. In this case I'm going load a tree as follows.
+
+.. pycode::
+
+    >>> from cogent import LoadTree
+    >>> query_tree = LoadTree(treestring = "((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)")
+
+We now just use the ``ls`` object created above. The following evaluates the query using it's associated branch lengths, returning only the wls statistic.
+
+.. pycode::
+
+    >>> ls.evaluateTree(query_tree)
+     3.95...
+
+We can also evaluate just the tree's topology, returning both the wls statistic and the tree with best fit branch lengths.
+
+.. pycode::
+
+    >>> ls.evaluateTopology(query_tree)
+    (0.00316480233404, Tree("((Human,DogFaced),(NineBande,Mouse),HowlerMon)root;"))
+
+Using maximum likelihood for measuring tree fit
+-----------------------------------------------
+
+This is a much slower algorithm and the interface largely mirrors that for the above. The difference is you import ``maximum_likelihood`` instead of ``least_squares``, and use the ``ML`` instead of ``WLS`` classes. The ``ML`` class requires a substitution model (like a HKY85 for DNA or JTT92 for protein), and an alignment. It also optionally takes a distance matrix, such as that used here, computed for the same sequences. These distances are then used to obtain estimates of branch lengths by the WLS method for each evaluated tree topology which are then used as starting values for the likelihood optimisation.
