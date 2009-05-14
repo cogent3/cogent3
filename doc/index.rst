@@ -36,6 +36,8 @@ Data manipulation
 Controlling 3rd party applications
 **********************************
 
+.. include:: alignment_app_controllers.rst
+.. include:: phylogeny_app_controllers.rst
 .. include:: generating_app_commandlines.rst
 
 *********************

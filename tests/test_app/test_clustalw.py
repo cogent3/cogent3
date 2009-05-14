@@ -416,12 +416,12 @@ class clustalwTests(GeneralSetUp):
     def test_build_tree_from_alignment(self):
         """Clustalw should return a tree built from the passed alignment"""
         tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
-                best_tree=False)
+                RNA, best_tree=False)
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
         
         tree_long = build_tree_from_alignment(self.build_tree_seqs_long, \
-                best_tree=False)
+                RNA, best_tree=False)
         seq_names = []
         for line in self.build_tree_seqs_long.split('\n'):
             if line.startswith('>'):
@@ -432,7 +432,7 @@ class clustalwTests(GeneralSetUp):
                 self.fail()
 
         tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
-                best_tree=True, params={'-bootstrap':3})
+                RNA, best_tree=True, params={'-bootstrap':3})
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
      
@@ -458,7 +458,7 @@ class clustalwTests(GeneralSetUp):
                 self.fail()
     def test_align_and_build_tree(self):
         """Aligns and builds a tree for a set of sequences"""
-        res = align_and_build_tree(self.seqs1)
+        res = align_and_build_tree(self.seqs1, RNA)
         self.assertEqual(res['Align'].toFasta(), self.aln1_fasta)
 
         tree = res['Tree']

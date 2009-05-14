@@ -9,6 +9,7 @@ from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser 
 from cogent.parse.clustal import ClustalParser
 from cogent.core.tree import PhyloNode
+from cogent.core.moltype import RNA, DNA, PROTEIN
 from numpy.random import randint
 
 __author__ = "Sandra Smit"
@@ -420,12 +421,14 @@ def buildTreeFromAlignment(filename,WorkingDir=None,SuppressStderr=None):
     app.Parameters['-align'].off()
     return app()
 
-def align_and_build_tree(seqs, best_tree=False, params=None):
+def align_and_build_tree(seqs, moltype, best_tree=False, params=None):
     """Returns an alignment and a tree from Sequences object seqs.
     
     seqs: an cogent.core.alignment.SequenceCollection object, or data that can
     be used to build one.
     
+    moltype: cogent.core.moltype.MolType object
+
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
 
@@ -435,15 +438,17 @@ def align_and_build_tree(seqs, best_tree=False, params=None):
     and a cogent.core.tree.PhyloNode
     object (or None for the alignment and/or tree if either fails).
     """
-    aln = align_unaligned_seqs(seqs, moltype=None, params=params)
-    tree = build_tree_from_alignment(aln, best_tree, params)
+    aln = align_unaligned_seqs(seqs, moltype=moltype, params=params)
+    tree = build_tree_from_alignment(aln, moltype, best_tree, params)
     return {'Align':aln,'Tree':tree}
     
-def build_tree_from_alignment(aln, best_tree=False, params=None):
+def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
 
     aln: an cogent.core.alignment.Alignment object, or data that can be used
     to build one.
+
+    moltype: cogent.core.moltype.MolType object
 
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
@@ -461,6 +466,13 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
     #Set params to empty dict if None.
     if params is None:
         params={}
+
+    if moltype == DNA or moltype == RNA:
+        params['-type'] = 'd'
+    elif moltype == PROTEIN:
+        params['-type'] = 'p'
+    else:
+        raise ValueError, "moltype must be DNA, RNA, or PROTEIN"
 
     # best_tree -> bootstrap
     if best_tree:
