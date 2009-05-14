@@ -7,6 +7,7 @@ from cogent.app.raxml import Raxml,raxml_alignment, build_tree_from_alignment
 from cogent.app.util import ApplicationError
 from cogent.parse.phylip import get_align_for_phylip
 from cogent.core.tree import PhyloNode
+from cogent.core.moltype import RNA
 from StringIO import StringIO
 
 __author__ = "Micah Hamady"
@@ -126,7 +127,7 @@ class RaxmlTests(GenericRaxml):
 
     def test_build_tree_from_alignment(self):
         """Builds a tree from an alignment"""
-        tree = build_tree_from_alignment(self.align1, False)
+        tree = build_tree_from_alignment(self.align1, RNA, False)
         self.assertTrue(isinstance(tree, PhyloNode))
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \

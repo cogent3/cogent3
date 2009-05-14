@@ -8,6 +8,7 @@ from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from cogent.core.tree import PhyloNode
 from cogent.core.alignment import Alignment
+from cogent.core.moltype import DNA, RNA, PROTEIN
 from random import choice, randint
 from os import walk
 from os.path import isabs
@@ -134,6 +135,11 @@ class Raxml(CommandLineApplication):
         # Constraint file name: allows a bifurcating Newick tree to be passed
         # in as a constraint file, other taxa will be added by parsimony.
         '-r':ValuedParameter('-',Name='r',Delimiter=' '),
+       
+        # Specify a random number seed for the parsimony inferences. This 
+        # allows you to reproduce your results and will help me debug the 
+        # program. This option HAS NO EFFECT in the parallel MPI version
+        '-p':ValuedParameter('-',Name='p',Delimiter=' '),
         
         # specify the name of the alignment data file, in relaxed PHYLIP
         # format.
@@ -355,11 +361,13 @@ def raxml_alignment(align_obj,
 
     return tree_node, parsimony_tree_node, log_likelihood, total_exec_time
 
-def build_tree_from_alignment(aln, best_tree=False, params={}):
+def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     """Returns a tree from Alignment object aln.
     
     aln: an xxx.Alignment object, or data that can be used to build one.
     
+    moltype: cogent.core.moltype.MolType object
+
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
     
@@ -371,7 +379,12 @@ def build_tree_from_alignment(aln, best_tree=False, params={}):
         raise NotImplementedError
 
     if '-m' not in params:
-        params["-m"] = 'GTRMIX'
+        if moltype == DNA or moltype == RNA:
+            params["-m"] = 'GTRMIX'
+        elif moltype == PROTEIN:
+            params["-m"] = 'PROTMIXGTR'
+        else:
+            raise ValueError, "Moltype must be either DNA, RNA, or PROTEIN"
 
     if not hasattr(aln, 'toPhylip'):
         aln = Alignment(aln)

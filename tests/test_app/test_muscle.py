@@ -2,7 +2,7 @@
 
 from os import getcwd, remove, rmdir, mkdir, path
 import tempfile, shutil
-from cogent.core.moltype import RNA
+from cogent.core.moltype import RNA, DNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.muscle import Muscle, muscle_seqs, aln_tree_seqs, \
@@ -125,11 +125,11 @@ class MuscleTests(GeneralSetUp):
 
     def test_build_tree_from_alignment(self):
         """Muscle should return a tree built from the passed alignment"""
-        tree_short = build_tree_from_alignment(build_tree_seqs_short)
+        tree_short = build_tree_from_alignment(build_tree_seqs_short, DNA)
         num_seqs = flatten(build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
 
-        tree_long = build_tree_from_alignment(build_tree_seqs_long)
+        tree_long = build_tree_from_alignment(build_tree_seqs_long, DNA)
         seq_names = []
         for line in build_tree_seqs_long.split('\n'):
             if line.startswith('>'):
@@ -141,7 +141,7 @@ class MuscleTests(GeneralSetUp):
 
     def test_align_and_build_tree(self):
         """Should align and build a tree from a set of sequences"""
-        res = align_and_build_tree(self.seqs1)
+        res = align_and_build_tree(self.seqs1, RNA)
         self.assertEqual(res['Align'].toFasta(), align1)
 
         tree = res['Tree']
