@@ -1,7 +1,7 @@
 Querying NCBI for VWF
 =====================
 
-This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007).
+This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007). **Note:** Due to changes by NCBI in the structure of there records, it is no longer easy (but not impossible) to use the Sequences ``Info`` attribute to restrict sequences to Swissprot entries as we had done previously.
 
 We query the NCBI protein data base for von Willebrand Factor (VWF), a 2813 amino acid glycoprotein required for platelet adhesion in blood coagulation. Missense mutations in this molecule have been associated with von Willebrand disease, a heterogeneous disorder characterized by prolonged bleeding.
 
@@ -10,13 +10,13 @@ We import ``EUtils`` for querying NCBI and search the protein data-base, restric
 .. pycode::
     
     >>> from cogent.db.ncbi import EUtils
-    >>> db = EUtils(db="protein", rettype="genpept")
+    >>> db = EUtils(db="protein", rettype="gp")
     >>> query = '"VWf"[gene] AND Mammalia[orgn]'
     >>> records = db[query].readlines()
 
 We have requested the GenBank record format. We use the ``RichGenbankParser`` to grab features from the feature annotations of this format. We illustrate grabbing additional content from the feature tables by extracting the locations of SNPs and whether those SNPs have a disease association. An inspection of the feature tables for human entries reveals that the Swissprot entry had the most complete and accessible content regarding the SNP data: region features with ``region_name="Variant"`` and a note field that contains the indicated amino acid difference along with an indication of whether the SNP was associated with von Willebrand disease (denoted by the symbol VWD). Finally, we seek to extract the protein domain locations for presentation purposes.
 
-We access attributes of the Sequences ``Info`` attribute to restrict sequences to Swissprot entries, and extract annotation data from only the human entry. We use regular expressions to assist with extracting data regarding the amino acid change and the domain names. We also name sequences based on their [G]enus [spe]cies and accession.
+We simply limit our attention to large, relatively complete sequences. From the human record we extract annotation data. We use regular expressions to assist with extracting data regarding the amino acid change and the domain names. We also name sequences based on their [G]enus [spe]cies and accession.
 
 The selected species are accumulated in a ``seqs`` dictionary, keyed by their name. The feature data are accumulated in a list.
 
@@ -28,7 +28,7 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     >>> seqs = {}
     >>> rows = []
     >>> for accession, seq in parser:
-    ...     if "swissprot" not in seq.Info.dbsource or len(seq) < 2800:
+    ...     if len(seq) < 2800:
     ...         continue
     ...     # we extract annotation data only from the human record
     ...     if "Homo" in seq.Info.species:
@@ -62,7 +62,7 @@ We convert the sequences to a ``SequenceCollection`` using ``LoadSeqs`` and then
     
     >>> from cogent import LoadSeqs
     >>> seqs = LoadSeqs(data=seqs, aligned=False)
-    >>> print seqs.toFasta()
+    >>> print seqs.NamedSeqs['Clup.Q28295'].toFasta()
     >Clup.Q28295
     MSPTRLVRVLLALALI...
 

@@ -1979,14 +1979,14 @@ a    b    t2_c
 </div>
 <div class="section" id="querying-ncbi-for-vwf">
 <h2><a class="toc-backref" href="#id37">Querying NCBI for VWF</a></h2>
-<p>This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007).</p>
+<p>This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007). <strong>Note:</strong> Due to changes by NCBI in the structure of there records, it is no longer easy (but not impossible) to use the Sequences <tt class="docutils literal"><span class="pre">Info</span></tt> attribute to restrict sequences to Swissprot entries as we had done previously.</p>
 <p>We query the NCBI protein data base for von Willebrand Factor (VWF), a 2813 amino acid glycoprotein required for platelet adhesion in blood coagulation. Missense mutations in this molecule have been associated with von Willebrand disease, a heterogeneous disorder characterized by prolonged bleeding.</p>
 <p>We import <tt class="docutils literal"><span class="pre">EUtils</span></tt> for querying NCBI and search the protein data-base, restricting our search to mammal sequences.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent.db.ncbi <span class="py_keyword">import</span> EUtils
-&gt;&gt;&gt; db = EUtils(db=<span class="py_string">"protein"</span>, rettype=<span class="py_string">"genpept"</span>)
+&gt;&gt;&gt; db = EUtils(db=<span class="py_string">"protein"</span>, rettype=<span class="py_string">"gp"</span>)
 &gt;&gt;&gt; query = <span class="py_string">'"VWf"[gene] AND Mammalia[orgn]'</span>
 &gt;&gt;&gt; records = db[query].readlines()</pre><p>We have requested the GenBank record format. We use the <tt class="docutils literal"><span class="pre">RichGenbankParser</span></tt> to grab features from the feature annotations of this format. We illustrate grabbing additional content from the feature tables by extracting the locations of SNPs and whether those SNPs have a disease association. An inspection of the feature tables for human entries reveals that the Swissprot entry had the most complete and accessible content regarding the SNP data: region features with <tt class="docutils literal"><span class="pre">region_name=&quot;Variant&quot;</span></tt> and a note field that contains the indicated amino acid difference along with an indication of whether the SNP was associated with von Willebrand disease (denoted by the symbol VWD). Finally, we seek to extract the protein domain locations for presentation purposes.</p>
-<p>We access attributes of the Sequences <tt class="docutils literal"><span class="pre">Info</span></tt> attribute to restrict sequences to Swissprot entries, and extract annotation data from only the human entry. We use regular expressions to assist with extracting data regarding the amino acid change and the domain names. We also name sequences based on their [G]enus [spe]cies and accession.</p>
+<p>We simply limit our attention to large, relatively complete sequences. From the human record we extract annotation data. We use regular expressions to assist with extracting data regarding the amino acid change and the domain names. We also name sequences based on their [G]enus [spe]cies and accession.</p>
 <p>The selected species are accumulated in a <tt class="docutils literal"><span class="pre">seqs</span></tt> dictionary, keyed by their name. The feature data are accumulated in a list.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">import</span> re
 &gt;&gt;&gt; <span class="py_keyword">from</span> cogent.parse.genbank <span class="py_keyword">import</span> RichGenbankParser
@@ -1994,7 +1994,7 @@ a    b    t2_c
 &gt;&gt;&gt; seqs = {}
 &gt;&gt;&gt; rows = []
 &gt;&gt;&gt; <span class="py_keyword">for</span> accession, seq <span class="py_keyword">in</span> parser:
-...     <span class="py_keyword">if</span> <span class="py_string">"swissprot"</span> <span class="py_keyword">not</span> <span class="py_keyword">in</span> seq.Info.dbsource <span class="py_keyword">or</span> len(seq) &lt; 2800:
+...     <span class="py_keyword">if</span> len(seq) &lt; 2800:
 ...         <span class="py_keyword">continue</span>
 ...     <span class="py_comment"># we extract annotation data only from the human record</span>
 ...     <span class="py_keyword">if</span> <span class="py_string">"Homo"</span> <span class="py_keyword">in</span> seq.Info.species:
@@ -2023,7 +2023,7 @@ a    b    t2_c
 ...     seqs[seq_name] = seq</pre><p>We convert the sequences to a <tt class="docutils literal"><span class="pre">SequenceCollection</span></tt> using <tt class="docutils literal"><span class="pre">LoadSeqs</span></tt> and then save to a fasta formatted file.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadSeqs
 &gt;&gt;&gt; seqs = LoadSeqs(data=seqs, aligned=<span class="py_keyword">False</span>)
-&gt;&gt;&gt; <span class="py_keyword">print</span> seqs.toFasta()
+&gt;&gt;&gt; <span class="py_keyword">print</span> seqs.NamedSeqs[<span class="py_string">'Clup.Q28295'</span>].toFasta()
 &gt;Clup.Q28295
 MSPTRLVRVLLALALI...</pre><p>We convert the features into a PyCogent <tt class="docutils literal"><span class="pre">Table</span></tt> object, which requires we specify column headings. This can be saved to file if desired, but we don't do that here.</p>
 <pre class="code">&gt;&gt;&gt; <span class="py_keyword">from</span> cogent <span class="py_keyword">import</span> LoadTable
