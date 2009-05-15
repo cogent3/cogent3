@@ -503,7 +503,7 @@ class Map(object):
             elif not self.useful:
                 self.useful = True
                 (self.Start, self.End) = (span.Start, span.End)
-                self.reverse = span.Reverse
+                self.Reverse = span.Reverse
             else:
                 self.Start = min(self.Start, span.Start)
                 self.End = max(self.End, span.End)
