@@ -368,8 +368,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     
     moltype: cogent.core.moltype.MolType object
 
-    best_tree: if True (default:False), uses a slower but more accurate
-    algorithm to build the tree.
+    best_tree: best_tree suppport is currently not implemented
     
     params: dict of parameters to pass in to the RAxML app controller.
     

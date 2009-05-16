@@ -171,6 +171,7 @@ def suite():
             ('covea', 'test_cove'),
             ('dialign2-2', 'test_dialign'),
             ('dynalign', 'test_dynalign'),
+            ('FastTree', 'test_fasttree'),
             ('foldalign', 'test_foldalign'),
             ('ilm', 'test_ilm'),
             ('knetfold.pl', 'test_knetfold'),

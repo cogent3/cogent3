@@ -131,7 +131,7 @@ class RaxmlTests(GenericRaxml):
         self.assertTrue(isinstance(tree, PhyloNode))
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
-                          self.align1, True)
+                          self.align1, RNA, True)
    
 PHYLIP_FILE= """ 7 50
 Species001   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
