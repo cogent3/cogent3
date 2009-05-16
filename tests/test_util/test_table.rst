@@ -115,7 +115,7 @@ We have several things we might want to specify when creating a table: the preci
 .. pycode::
     
     >>> t = Table(column_headings, rows, title='Journal impact factors', legend='From ISI',
-    ... digits=2, space='        ')
+    ...     digits=2, space='        ')
     >>> print t
     Journal impact factors
     =================================
@@ -574,13 +574,14 @@ A few things to note about the delimited file saving: formatting arguments are l
 cPickle should be able to load a useful object from the pickled Table alone.
 
 .. pycode::
+    :options: +NORMALIZE_WHITESPACE
     
     >>> import cPickle
     >>> f = file("t3.pickle")
     >>> pickled = cPickle.load(f)
     >>> f.close()
     >>> pickled.keys()
-    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header', 'missing_data', 'legend']
+    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header'...
     >>> pickled['rows'][0]
     ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
 
@@ -592,13 +593,13 @@ We can read in a delimited format using a custom reader, which we'll now import.
     >>> t3.Title = t3.Legend = None
     >>> comma_sep = t3.tostring(sep=",").splitlines()
     >>> print comma_sep
-    ['edge.name,edge.parent,length,     x,     y,     z', '    Human,     edge.0,4.0000,1.0000,3.0000,6.0000', 'HowlerMon,     edge.0,4.0000,1.0000,3.0000,6.0000', '    Mouse,     edge.1,4.0000,1.0000,3.0000,6.0000', 'NineBande,       root,4.0000,1.0000,3.0000,6.0000', ' DogFaced,       root,4.0000,1.0000,3.0000,6.0000', '   edge.0,     edge.1,4.0000,1.0000,3.0000,6.0000', '   edge.1,       root,4.0000,1.0000,3.0000,6.0000']
+    ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
     >>> converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep=",")
     >>> comma_sep = [line for line in reader(comma_sep)]
     >>> print comma_sep
-    [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0], ['HowlerMon', 'edge.0', 4.0, 1.0, 3.0, 6.0], ['Mouse', 'edge.1', 4.0, 1.0, 3.0, 6.0], ['NineBande', 'root', 4.0, 1.0, 3.0, 6.0], ['DogFaced', 'root', 4.0, 1.0, 3.0, 6.0], ['edge.0', 'edge.1', 4.0, 1.0, 3.0, 6.0], ['edge.1', 'root', 4.0, 1.0, 3.0, 6.0]]
+    [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human',...
     >>> t3.writeToFile("t3.tab", sep="\t")
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep="\t")
@@ -824,17 +825,17 @@ We want to be able to slice a table, based on some condition(s), to produce a ne
 .. pycode::
     
     >>> header = ['Gene', 'type', 'LR', 'df', 'Prob']
-    >>> rows = (('NP_003077_hs_mm_rn_dna', 'Con', 2.5386013224378985, 1, 0.11109315773082831),
-    ... ('NP_004893_hs_mm_rn_dna', 'Con', 0.12135142635634111, 1, 0.72757335582240734),
-    ... ('NP_005079_hs_mm_rn_dna', 'Con', 0.95165949788861326, 1, 0.32929724584698283),
-    ... ('NP_005500_hs_mm_rn_dna', 'Con', 0.73827030202664901, 1, 0.39021552602340093),
-    ... ('NP_055852_hs_mm_rn_dna', 'Con', 1.0933217708952725e-07, 1, 0.99973617615127786),
-    ... ('NP_057012_hs_mm_rn_dna', 'Unco', 34.308128716646024, 1, 4.7041285669893972e-09),
-    ... ('NP_061130_hs_mm_rn_dna', 'Unco', 3.7985547146436147, 1, 0.051296842773762508),
-    ... ('NP_065168_hs_mm_rn_dna', 'Con', 89.976605494927753, 1, 2.4099285463629382e-21),
-    ... ('NP_065396_hs_mm_rn_dna', 'Unco', 11.891188830577448, 1, 0.0005640011189894644),
-    ... ('NP_109590_hs_mm_rn_dna', 'Con', 0.21207818314360338, 1, 0.64514339888725714),
-    ... ('NP_116116_hs_mm_rn_dna', 'Unco', 9.747428216541266, 1, 0.0017957376763436551))
+    >>> rows = (('NP_003077_hs_mm_rn_dna', 'Con', 2.5386, 1, 0.1111),
+    ...         ('NP_004893_hs_mm_rn_dna', 'Con', 0.1214, 1, 0.7276),
+    ...         ('NP_005079_hs_mm_rn_dna', 'Con', 0.9517, 1, 0.3293),
+    ...         ('NP_005500_hs_mm_rn_dna', 'Con', 0.7383, 1, 0.3902),
+    ...         ('NP_055852_hs_mm_rn_dna', 'Con', 0.0000, 1, 0.9997),
+    ...         ('NP_057012_hs_mm_rn_dna', 'Unco', 34.3081, 1, 0.0000),
+    ...         ('NP_061130_hs_mm_rn_dna', 'Unco', 3.7986, 1, 0.0513),
+    ...         ('NP_065168_hs_mm_rn_dna', 'Con', 89.9766, 1, 0.0000),
+    ...         ('NP_065396_hs_mm_rn_dna', 'Unco', 11.8912, 1, 0.0006),
+    ...         ('NP_109590_hs_mm_rn_dna', 'Con', 0.2121, 1, 0.6451),
+    ...         ('NP_116116_hs_mm_rn_dna', 'Unco', 9.7474, 1, 0.0018))
     >>> t5 = Table(header, rows)
     >>> print t5
     =========================================================
@@ -874,7 +875,7 @@ Using the above table we test the function to extract the raw data for a single 
     
     >>> raw = sub_table1.getRawData('LR')
     >>> raw
-    [34.308128716646024, 89.976605494927753, 11.891188830577448, 9.747428216541266]
+    [34.308100000000003, 89.976600000000005, 11.8912, 9.7474000000000007]
 
 and from multiple columns.
 
@@ -882,7 +883,7 @@ and from multiple columns.
     
     >>> raw = sub_table1.getRawData(columns = ['LR', 'df', 'Prob'])
     >>> raw
-    [[34.308128716646024, 1, 4.7041285669893972e-09], [89.976605494927753, 1, 2.4099285463629382e-21], [11.891188830577448, 1, 0.0005640011189894644], [9.747428216541266, 1, 0.0017957376763436551]]
+    [[34.308100000000003, 1, 0.0], [89.976600000000005, 1, 0.0],...
 
 We can also do filtering using an external function, in this case we use a ``lambda`` to obtain only those rows of type 'Unco' that contain probabilities < 0.05, modifying our callback function.
 
