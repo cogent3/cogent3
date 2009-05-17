@@ -726,7 +726,19 @@ class NewQ(TestCase):
                            (False, False)]:
                 stats = lf.getStatistics(with_motif_probs=wm, with_titles=wt)
         
-    
+    def test_set_tables_format(self):
+        """should correctly modify the format of tables displayed by str(lf)"""
+        sm = Nucleotide()
+        lf = sm.makeLikelihoodFunction(self.tree)
+        lf.setTablesFormat(space=2,digits=2)
+        stats = lf.getStatistics(with_motif_probs=False, with_titles=False)
+        expected=['====================',
+                  'edge  parent  length',
+                  '--------------------',
+                  'seq1    root    1.00',
+                  'seq2    root    1.00',
+                  '--------------------']
+        self.assertEqual(str(stats[0]),'\n'.join(expected))
 
 
 if __name__ == '__main__':
