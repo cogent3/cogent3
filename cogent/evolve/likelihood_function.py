@@ -263,7 +263,7 @@ class LikelihoodFunction(object):
             result.append(table.Table(
                         heading_names, list_table,
                         max_width = 80, row_ids = True,
-                        title=title))
+                        title=title, **self._format))
         return result
     
     def getStatisticsAsDict(self, with_parent_names=True,
@@ -309,6 +309,11 @@ class LikelihoodFunction(object):
     
     def getName(self):
         return self._name or 'unnamed'
+    
+    def setTablesFormat(self, space=4, digits=4):
+        """sets display properties for statistics tables. This affects results
+        of str(lf) too."""
+        self._format = dict(space=space, digits=digits)
     
     def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)

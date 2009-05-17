@@ -70,6 +70,7 @@ class _LikelihoodParameterController(_LF):
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
         self._name = ''
+        self._format = {}
     
     def save(self, filename):
         f = open(filename, 'w')
