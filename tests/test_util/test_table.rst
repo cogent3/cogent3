@@ -1,14 +1,16 @@
 Data Manipulation using ``Table``
 =================================
 
-:Author: Gavin Huttley
-:Copyright 2007-2009: Copyright 2007-2009, The Cogent Project
-:Credits: Gavin Huttley, Felix Schill
-:License: GPL
-:Version: 1.3.0.dev
-:Maintainer: Gavin Huttley
-:Email: gavin.huttley@anu.edu.au
-:Status: Production
+.. sectionauthor:: Gavin Huttley
+
+..
+    Copyright 2007-2009, The Cogent Project
+    Credits Gavin Huttley, Felix Schill
+    License, GPL
+    version, 1.3.0.dev
+    Maintainer, Gavin Huttley
+    Email, gavin.huttley@anu.edu.au
+    Status, Production
 
 The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting statistics for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The table module is located within ``cogent.format``.
 
@@ -17,14 +19,14 @@ Testing a sub-component
 
 Before using ``Table``, we exercise some formatting code:
 
-.. pycode::
+.. doctest::
     
     >>> from cogent.format.table import formattedCells, drawToPDF, phylipMatrix
     >>> from cogent.format.table import latex
 
 Of interest to be able to format an arbitrary 2D list, without a header. We use the ``formattedCells`` function directly. We allow for the case that ``reportlab`` may not be present.
 
-.. pycode::
+.. doctest::
     
     >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
     >>> header, formatted = formattedCells(data, header = ['one', 'two',
@@ -40,7 +42,7 @@ Of interest to be able to format an arbitrary 2D list, without a header. We use 
 
 We directly test the latex formatting.
 
-.. pycode::
+.. doctest::
     
     >>> print latex(formatted, header, justify='lrl', caption='A legend',
     ...             label="table:test")
@@ -61,20 +63,20 @@ Table creation
 
 Tables can be created directly using the Table object itself, or a convenience function that handles loading from files. We import both here:
 
-.. pycode::
+.. doctest::
     
     >>> from cogent import LoadTable
     >>> from cogent.util.table import Table
 
 Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``).
 
-.. pycode::
+.. doctest::
     
     >>> column_headings = ['Journal', 'Impact']
 
 The string "Journal" will become the first column heading, "Impact" the second column heading. The data are,
 
-.. pycode::
+.. doctest::
     
     >>> rows = [['INT J PARASITOL', 2.9],
     ... ['J MED ENTOMOL', 1.4],
@@ -89,7 +91,7 @@ The string "Journal" will become the first column heading, "Impact" the second c
 
 We create the simplest of tables.
 
-.. pycode::
+.. doctest::
     
     >>> t = Table(header = column_headings, rows = rows)
     >>> print t
@@ -112,7 +114,7 @@ The format above is referred to as 'simple' format in the documentation. Notice 
 
 We have several things we might want to specify when creating a table: the precision and or format of floating point numbers (integer argument - ``digits``), the spacing between columns (integer argument or actual string of whitespace - ``space``), title (argument - ``title``), and legend (argument - ``legend``). Lets modify some of these and provide a title and legend.
 
-.. pycode::
+.. doctest::
     
     >>> t = Table(column_headings, rows, title='Journal impact factors', legend='From ISI',
     ...     digits=2, space='        ')
@@ -136,7 +138,7 @@ We have several things we might want to specify when creating a table: the preci
 
 The Table class cannot handle arbitrary python objects, unless they are passed in as strings. Note in this case we now directly pass in the column headings list and the handling of missing data can be explicitly specified..
 
-.. pycode::
+.. doctest::
     
     >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'],
     ...                               ['x', 5.0], ['y', None]],
@@ -152,13 +154,13 @@ The Table class cannot handle arbitrary python objects, unless they are passed i
 
 Table column headings can be assessed from the ``table.Header`` property
 
-.. pycode::
+.. doctest::
     
     >>> assert t2.Header == ['abcd', 'data']
 
 and this is immutable (cannot be changed).
 
-.. pycode::
+.. doctest::
     
     >>> t2.Header[1] = 'Data'
     Traceback (most recent call last):
@@ -166,7 +168,7 @@ and this is immutable (cannot be changed).
 
 If you want to change the Header, use the ``withNewHeader`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
 
-.. pycode::
+.. doctest::
     
     >>> mod_header = t2.withNewHeader('abcd', 'ABCD')
     >>> assert mod_header.Header == ['ABCD', 'data']
@@ -182,7 +184,7 @@ If you want to change the Header, use the ``withNewHeader`` method. This can be 
 
 Tables may also be created from 2-dimensional dictionaries. In this case, special capabilities are provided to enforce printing rows in a particular order.
 
-.. pycode::
+.. doctest::
     
     >>> d2D={'edge.parent': {'NineBande': 'root', 'edge.1': 'root',
     ... 'DogFaced': 'root', 'Human': 'edge.0', 'edge.0': 'edge.1',
@@ -249,7 +251,7 @@ In the above we specify a maximum width of the table, and also specify row ident
 
 We can also customise the formatting of individual columns.
 
-.. pycode::
+.. doctest::
     
     >>> rows = (('NP_003077_hs_mm_rn_dna', 'Con', 2.5386013224378985),
     ... ('NP_004893_hs_mm_rn_dna', 'Con', 0.12135142635634111e+06),
@@ -259,7 +261,7 @@ We can also customise the formatting of individual columns.
 
 We first create a table and show the default formatting behaviour for ``Table``.
 
-.. pycode::
+.. doctest::
     
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
     >>> print t46
@@ -275,7 +277,7 @@ We first create a table and show the default formatting behaviour for ``Table``.
 
 We then format the ``LR`` column to use a scientific number format.
 
-.. pycode::
+.. doctest::
     
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
     >>> t46.setColumnFormat('LR', "%.4e")
@@ -292,7 +294,7 @@ We then format the ``LR`` column to use a scientific number format.
 
 It is safe to directly modify certain attributes, such as the title, legend and white space separating columns, which we do for the ``t46``.
 
-.. pycode::
+.. doctest::
     
     >>> t46.Title = "A new title"
     >>> t46.Legend = "A new legend"
@@ -312,7 +314,7 @@ It is safe to directly modify certain attributes, such as the title, legend and 
 
 We can provide settings for multiple columns.
 
-.. pycode::
+.. doctest::
     
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order)
@@ -333,7 +335,7 @@ We can provide settings for multiple columns.
 
 In some cases, the contents of a column can be of different types. In this instance, rather than passing a column template we pass a reference to a function that will handle this complexity. To illustrate this we will define a function that formats floating point numbers, but returns everything else as is.
 
-.. pycode::
+.. doctest::
     
     >>> def formatcol(value):
     ...     if isinstance(value, float):
@@ -344,7 +346,7 @@ In some cases, the contents of a column can be of different types. In this insta
 
 We apply this to a table with mixed string, integer and floating point data.
 
-.. pycode::
+.. doctest::
     
     >>> t6 = Table(['ColHead'], [['a'], [1], [0.3], ['cc']],
     ... column_templates = dict(ColHead=formatcol))
@@ -363,7 +365,7 @@ Table output
 
 Other formats are also possible, including restructured text or 'rest' and delimited. These can be obtained using the ``tostring`` method and ``format`` argument as follows. Using table ``t`` from above,
 
-.. pycode::
+.. doctest::
     
     >>> print t.tostring(format='rest')
     +------------------------------+
@@ -398,7 +400,7 @@ Arguments such as ``space`` have no effect in this case. The table may also be w
 
 Here is the latex format, note how the title and legend are joined into the latex table caption. We also provide optional arguments for the column alignment (fist column left aligned, second column right aligned and remaining columns centred) and a label for table referencing.
 
-.. pycode::
+.. doctest::
     
     >>> print t3.tostring(format='tex', justify="lrcccc", label="table:example")
     \begin{longtable}[htp!]{ l r c c c c }
@@ -419,7 +421,7 @@ Here is the latex format, note how the title and legend are joined into the late
 
 More complex latex table justifying is also possible. Specifying the width of individual columns requires passing in a series (list or tuple) of justification commands. In the following we introduce the command for specific columns widths.
 
-.. pycode::
+.. doctest::
     
     >>> print t3.tostring(format='tex', justify=["l","p{3cm}","c","c","c","c"])
     \begin{longtable}[htp!]{ l p{3cm} c c c c }
@@ -448,7 +450,7 @@ More complex latex table justifying is also possible. Specifying the width of in
 
 You can specify any standard text character that will work with your desired target. Useful separators are tabs ('\\t'), or pipes ('\|'). If ``Table`` encounters any of these characters within a cell, it wraps the cell in quotes -- a standard approach to facilitate import by other applications. We will illustrate this with ``t2``.
 
-.. pycode::
+.. doctest::
     
     >>> print t2.tostring(sep=', ')
                abcd,   data
@@ -460,7 +462,7 @@ Note that I introduced an extra space after the column just to make the result m
 
 Test the writing of phylip distance matrix format.
 
-.. pycode::
+.. doctest::
     
     >>> rows = [['a', '', 0.088337278874079342, 0.18848582712597683,
     ...  0.44084000179091454], ['c', 0.088337278874079342, '',
@@ -481,7 +483,8 @@ Saving a table for reloading
 
 Saving a table object to file for later reloading can be done using the standard ``writeToFile`` method and ``filename`` argument to the ``Table`` constructor and either the ``pickle`` or a delimited format (eg ',', '|'). The ``writeToFile`` saves the raw data in the appropriate format, the constructor recreates a table from raw data located at ``filename``. We first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
 
-.. pycode::
+.. doctest::
+    :options: +NORMALIZE_WHITESPACE
     
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
@@ -548,7 +551,8 @@ Saving a table object to file for later reloading can be done using the standard
 
 Note the ``missing_data`` attribute is not saved in the delimited format, but is in the ``pickle`` format. In the next case, I'm going to override the digits format on reloading of the table.
 
-.. pycode::
+.. doctest::
+    :options: +NORMALIZE_WHITESPACE
     
     >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle',
@@ -573,21 +577,20 @@ A few things to note about the delimited file saving: formatting arguments are l
 
 cPickle should be able to load a useful object from the pickled Table alone.
 
-.. pycode::
-    :options: +NORMALIZE_WHITESPACE
+.. doctest::
     
     >>> import cPickle
     >>> f = file("t3.pickle")
     >>> pickled = cPickle.load(f)
     >>> f.close()
     >>> pickled.keys()
-    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header'...
+    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header', 'missing_data', 'legend']
     >>> pickled['rows'][0]
     ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
 
 We can read in a delimited format using a custom reader, which we'll now import. We convert columns 2-5 to floats by specifying a field convertor. We then create a reader, specifying the data (below a list but can be a file) properties. Note that if no convertor is provided all data are returned as strings. We can also provide this reader to the ``Table`` constructor for a more direct way of opening such files. In this case, ``Table`` assumes there is a header row and nothing else.
 
-.. pycode::
+.. doctest::
     
     >>> from cogent.parse.table import ConvertFields, SeparatorFormatParser
     >>> t3.Title = t3.Legend = None
@@ -621,7 +624,7 @@ We can read in a delimited format using a custom reader, which we'll now import.
 
 We also test the reader function for a '\t' delimited format with missing data at the end.
 
-.. pycode::
+.. doctest::
     
     >>> data = ['ab\tcd\t', 'ab\tcd\tef']
     >>> tab_reader = SeparatorFormatParser(sep='\t')
@@ -630,7 +633,7 @@ We also test the reader function for a '\t' delimited format with missing data a
 
 We can likewise specify a writer, using a custom field formatter and provide this to the ``Table`` directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.
 
-.. pycode::
+.. doctest::
     
     >>> from cogent.format.table import FormatFields, SeparatorFormatWriter
     >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
@@ -673,14 +676,14 @@ Table slicing and iteration
 
 The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``getColumns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified as ``True`` the 0'th cell in each row can also be used.
 
-.. pycode::
+.. doctest::
     
     >>> t4 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order, row_ids = True, title = 'My Title')
 
 We subset ``t4`` by column and reorder them.
 
-.. pycode::
+.. doctest::
     
     >>> new = t4.getColumns(['z', 'y'])
     >>> print new
@@ -699,7 +702,7 @@ We subset ``t4`` by column and reorder them.
 
 We use the column position indexes to do get the same table.
 
-.. pycode::
+.. doctest::
     
     >>> new = t4.getColumns([5, 4])
     >>> print new
@@ -718,7 +721,7 @@ We use the column position indexes to do get the same table.
 
 We can also using more general slicing, by both rows and columns. The following returns all rows from 4 on, and columns up to (but excluding) 'y':
 
-.. pycode::
+.. doctest::
     
     >>> k = t4[4:, :'y']
     >>> print k
@@ -733,7 +736,7 @@ We can also using more general slicing, by both rows and columns. The following 
 
 We can explicitly reference individual cells, in this case using both row and column keys.
 
-.. pycode::
+.. doctest::
     
     >>> val = t4['HowlerMon', 'y']
     >>> print val
@@ -741,7 +744,7 @@ We can explicitly reference individual cells, in this case using both row and co
 
 We slice a single row,
 
-.. pycode::
+.. doctest::
     
     >>> new = t4[3]
     >>> print new
@@ -754,7 +757,7 @@ We slice a single row,
 
 and range of rows.
 
-.. pycode::
+.. doctest::
     
     >>> new = t4[3:6]
     >>> print new
@@ -769,7 +772,7 @@ and range of rows.
 
 You can get disjoint rows.
 
-.. pycode::
+.. doctest::
     
     >>> print t4.getDisjointRows(['Human', 'Mouse', 'DogFaced'])
     My Title
@@ -783,7 +786,7 @@ You can get disjoint rows.
 
 You can iterate over the table one row at a time and slice the rows. We illustrate this slicing a single column,
 
-.. pycode::
+.. doctest::
     
     >>> for row in t:
     ...     print row['Journal']
@@ -800,7 +803,7 @@ You can iterate over the table one row at a time and slice the rows. We illustra
 
 and for multiple columns.
 
-.. pycode::
+.. doctest::
     
     >>> for row in t:
     ...     print row['Journal'], row['Impact']
@@ -822,7 +825,7 @@ Filtering tables - selecting subsets of rows
 
 We want to be able to slice a table, based on some condition(s), to produce a new subset table. For instance, we construct a table with type and probability values.
 
-.. pycode::
+.. doctest::
     
     >>> header = ['Gene', 'type', 'LR', 'df', 'Prob']
     >>> rows = (('NP_003077_hs_mm_rn_dna', 'Con', 2.5386, 1, 0.1111),
@@ -856,7 +859,7 @@ We want to be able to slice a table, based on some condition(s), to produce a ne
 
 We then seek to obtain only those rows that contain probabilities < 0.05. We use valid python code within a string. **Note:** Make sure your column headings could be valid python variable names or the string based approach will fail (you could use an external function instead, see below).
 
-.. pycode::
+.. doctest::
     
     >>> sub_table1 = t5.filtered(callback = "Prob < 0.05")
     >>> print sub_table1
@@ -871,7 +874,7 @@ We then seek to obtain only those rows that contain probabilities < 0.05. We use
 
 Using the above table we test the function to extract the raw data for a single column,
 
-.. pycode::
+.. doctest::
     
     >>> raw = sub_table1.getRawData('LR')
     >>> raw
@@ -879,7 +882,7 @@ Using the above table we test the function to extract the raw data for a single 
 
 and from multiple columns.
 
-.. pycode::
+.. doctest::
     
     >>> raw = sub_table1.getRawData(columns = ['LR', 'df', 'Prob'])
     >>> raw
@@ -887,7 +890,7 @@ and from multiple columns.
 
 We can also do filtering using an external function, in this case we use a ``lambda`` to obtain only those rows of type 'Unco' that contain probabilities < 0.05, modifying our callback function.
 
-.. pycode::
+.. doctest::
     
     >>> func = lambda (ty, pr): ty == 'Unco' and pr < 0.05
     >>> sub_table2 = t5.filtered(columns = ('type', 'Prob'), callback = func)
@@ -902,7 +905,7 @@ We can also do filtering using an external function, in this case we use a ``lam
 
 This can also be done using the string approach.
 
-.. pycode::
+.. doctest::
     
     >>> sub_table2 = t5.filtered(callback = "type == 'Unco' and Prob < 0.05")
     >>> print sub_table2
@@ -919,7 +922,7 @@ Appending tables
 
 Tables may also be appended to each other, to make larger tables. We'll construct two simple tables to illustrate this.
 
-.. pycode::
+.. doctest::
     
     >>> geneA = Table(['edge.name', 'edge.parent', 'z'], [['Human','root',
     ... 6.0],['Mouse','root', 6.0], ['Rat','root', 6.0]],
@@ -939,7 +942,7 @@ Tables may also be appended to each other, to make larger tables. We'll construc
 
 we now use the ``appended`` Table method to create a new table, specifying that we want a new column created (by passing the ``new_column`` argument a heading) in which the table titles will be placed.
 
-.. pycode::
+.. doctest::
     
     >>> new = geneA.appended('Gene', geneB, title='Appended tables')
     >>> print new
@@ -957,7 +960,7 @@ we now use the ``appended`` Table method to create a new table, specifying that 
 
 We repeat this without adding a new column.
 
-.. pycode::
+.. doctest::
     
     >>> new = geneA.appended(None, geneB, title="Appended, no new column")
     >>> print new
@@ -978,7 +981,7 @@ Miscellaneous
 
 Tables have a ``Shape`` attribute, which specifies *x* (number of columns) and *y* (number of rows). The attribute is a tuple and we illustrate it for the above ``sub_table`` tables. Combined with the ``filtered`` method, this attribute can tell you how many rows satisfy a specific condition.
 
-.. pycode::
+.. doctest::
     
     >>> t5.Shape
     (11, 5)
@@ -991,7 +994,7 @@ For instance, 3 of the 11 rows in ``t`` were significant and belonged to the ``U
 
 For completeness, we generate a table with no rows and assess its shape.
 
-.. pycode::
+.. doctest::
     
     >>> func = lambda (ty, pr): ty == 'Unco' and pr > 0.1
     >>> sub_table3 = t5.filtered(columns = ('type', 'Prob'), callback = func)
@@ -1000,21 +1003,21 @@ For completeness, we generate a table with no rows and assess its shape.
 
 The distinct values can be obtained for a single column,
 
-.. pycode::
+.. doctest::
     
     >>> distinct = new.getDistinctValues("edge.name")
     >>> assert distinct == set(['Rat', 'Mouse', 'Human'])
 
 or multiple columns
 
-.. pycode::
+.. doctest::
     
     >>> distinct = new.getDistinctValues(["edge.parent", "z"])
     >>> assert distinct == set([('root', 6.0), ('root', 7.0)]), distinct
 
 We can compute column sums. This will fail if there are non-numerical values in a column.
 
-.. pycode::
+.. doctest::
     
     >>> assert new.summed('z') == 39., new.summed('z')
 
@@ -1023,7 +1026,7 @@ Extending tables
 
 In some cases it is desirable to compute an additional column from existing column values. This is done using the ``withNewColumn`` method. We'll use t4 from above, adding two of the columns to create an additional column.
 
-.. pycode::
+.. doctest::
     
     >>> t7 = t4.withNewColumn('Sum', callback="z+x", digits=2)
     >>> print t7
@@ -1042,7 +1045,7 @@ In some cases it is desirable to compute an additional column from existing colu
 
 We test this with an externally defined function.
 
-.. pycode::
+.. doctest::
     
     >>> func = lambda (x, y): x * y
     >>> t7 = t4.withNewColumn('Sum', callback=func, columns=("y","z"),
@@ -1081,7 +1084,7 @@ Sorting tables
 
 We want a table sorted according to values in a column.
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted(columns = 'LR')
     >>> print sorted
@@ -1103,7 +1106,7 @@ We want a table sorted according to values in a column.
 
 We want a table sorted according to values in a subset of columns, note the order of columns determines the sort order.
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted(columns=('LR', 'type'))
     >>> print sorted
@@ -1125,7 +1128,7 @@ We want a table sorted according to values in a subset of columns, note the orde
 
 We now do a sort based on 2 columns.
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted(columns=('type', 'LR'))
     >>> print sorted
@@ -1147,7 +1150,7 @@ We now do a sort based on 2 columns.
 
 Reverse sort a single column
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted('LR', reverse = 'LR')
     >>> print sorted
@@ -1169,7 +1172,7 @@ Reverse sort a single column
 
 Reverse sort one column but not another
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = 'LR')
     >>> print sorted
@@ -1191,7 +1194,7 @@ Reverse sort one column but not another
 
 Reverse sort both columns.
 
-.. pycode::
+.. doctest::
     
     >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = ('type', 'LR'))
     >>> print sorted
@@ -1216,7 +1219,7 @@ Joining Tables
 
 The Table object is capable of joins or merging of records in two tables. There are two fundamental types of joins -- inner and outer -- with there being different sub-types. We demonstrate these first constructing some simple tables.
 
-.. pycode::
+.. doctest::
     
     >>> a=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,3],[2,3,1],[2,6,5]], title="A")
@@ -1253,14 +1256,14 @@ The Table object is capable of joins or merging of records in two tables. There 
 
 For a natural inner join, only 1 copy of columns with the same name are retained. So we expect the headings to be identical between the table ``a``/``b`` and the result of ``a.joined(b)`` or ``b.joined(a)``.
 
-.. pycode::
+.. doctest::
     
     >>> assert a.joined(b).Header == b.Header
     >>> assert b.joined(a).Header == a.Header
 
 For a standard inner join, the joined table should contain all columns from ``a`` and ``b`` excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the provided tables do not have a title, a ``RuntimeError`` is raised.
 
-.. pycode::
+.. doctest::
     
     >>> b.Title = None
     >>> try:
@@ -1274,28 +1277,28 @@ For a standard inner join, the joined table should contain all columns from ``a`
 
 Note that the table title's were used to prefix the column headings from the second table. We further test this using table ``c`` which has different dimensions.
 
-.. pycode::
+.. doctest::
     
     >>> assert a.joined(c,"index").Header == ["index","col2","col3",
     ...                                       "C_col_c2"]
 
 It's also possible to specify index columns using numerical values, the results of which should be the same.
 
-.. pycode::
+.. doctest::
     
     >>> assert a.joined(b,[0, 2]).getRawData() ==\
     ...                          a.joined(b,["index","col3"]).getRawData()
 
 Additionally, it's possible to provide two series of indices for the two tables. Here, they have identical values.
 
-.. pycode::
+.. doctest::
     
     >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
     ...         == a.joined(b,["index","col3"]).getRawData()
 
 The results of a standard join between tables ``a`` and ``b`` are
 
-.. pycode::
+.. doctest::
     
     >>> print a.joined(b, ["index"], title='A&B')
     A&B
@@ -1309,7 +1312,7 @@ The results of a standard join between tables ``a`` and ``b`` are
 
 We demo the table specific indices.
 
-.. pycode::
+.. doctest::
     
     >>> print a.joined(c, ["col2"], ["index"], title='A&C by "col2/index"')
     A&C by "col2/index"
@@ -1322,7 +1325,7 @@ We demo the table specific indices.
 
 Tables ``a`` and ``c`` share a single row with the same value in the ``index`` column, hence a join by that index should return a table with just that row.
 
-.. pycode::
+.. doctest::
     
     >>> print a.joined(c, "index", title='A&C by "index"')
     A&C by "index"
@@ -1334,7 +1337,7 @@ Tables ``a`` and ``c`` share a single row with the same value in the ``index`` c
 
 A natural join of tables ``a`` and ``b`` results in a table with only rows that were identical between the two parents.
 
-.. pycode::
+.. doctest::
     
     >>> print a.joined(b, title='A&B Natural Join')
     A&B Natural Join
@@ -1346,7 +1349,7 @@ A natural join of tables ``a`` and ``b`` results in a table with only rows that 
 
 We test the outer join by defining an additional table with different dimensions, and conducting a join specifying ``inner_join=False``.
 
-.. pycode::
+.. doctest::
     
     >>> d=Table(header=["index", "col_c2"], rows=[[5,42],[6,23]], title="D")
     >>> print d
@@ -1372,7 +1375,7 @@ We test the outer join by defining an additional table with different dimensions
 
 We establish the ``joined`` method works for mixtures of character and numerical data, setting some indices and some cell values to be strings.
 
-.. pycode::
+.. doctest::
     
     >>> a=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
@@ -1383,7 +1386,7 @@ We establish the ``joined`` method works for mixtures of character and numerical
 
 We test that the ``joined`` method works when the column index orders differ.
 
-.. pycode::
+.. doctest::
     
     >>> t1_header = ['a', 'b']
     >>> t1_rows = [(1,2),(3,4)]
@@ -1401,7 +1404,7 @@ We test that the ``joined`` method works when the column index orders differ.
 
 We then establish that a join with no values does not cause a failure, just returns an empty ``Table``.
 
-.. pycode::
+.. doctest::
     
     >>> t4_header = ['b', 'c']
     >>> t4_rows = [(5,6),(7,8)]
@@ -1414,20 +1417,18 @@ Counting rows
 
 We can count the number of rows for which a condition holds. This method uses the same arguments as ``filtered`` but returns an integer result only.
 
-.. pycode::
+.. doctest::
     
     >>> print c.count("col_c2 == 2")
     2
     >>> print c.joined(d,inner_join=False).count("index==3 and D_index==5")
     2
 
+..
+    Import the ``os`` module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where ``junk.pdf`` wasn't created due to ``reportlab`` not being present.
 
-Cleanup
--------
-
-Import the ``os`` module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where ``junk.pdf`` wasn't created due to ``reportlab`` not being present.
-
-.. pycode::
+.. doctest::
+    :hide:
     
     >>> import os
     >>> to_delete = ['t3.pickle', 'junk.pdf', 't2.csv', 't3.tab']

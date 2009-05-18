@@ -1,0 +1,88 @@
+Likelihood analysis of multiple loci
+====================================
+
+We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.
+
+.. doctest::
+
+    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent.evolve.models import HKY85
+    >>> from cogent.recalculation.scope import EACH, ALL
+    >>> from cogent.maths.stats import chisqprob
+    >>> aln = LoadSeqs("data/long_testseqs.fasta")
+    >>> half = len(aln)/2
+    >>> aln1 = aln[:half]
+    >>> aln2 = aln[half:]
+
+We provide names for those alignments, then construct the tree, model instances.
+
+.. doctest::
+
+    >>> loci_names = ["1st-half", "2nd-half"]
+    >>> loci = [aln1, aln2]
+    >>> tree = LoadTree(tip_names=aln.getSeqNames())
+    >>> mod = HKY85()
+
+To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.
+
+.. doctest::
+
+    >>> lf = mod.makeLikelihoodFunction(tree, loci=loci_names)
+    >>> lf.setParamRule("length", is_independent=False)
+    >>> lf.setParamRule('kappa', loci = ALL)
+    >>> lf.setAlignment(loci)
+    >>> lf.optimise(local=True, show_progress=False)
+    >>> print lf
+    Likelihood Function Table
+    ===========================
+       locus    motif    mprobs
+    ---------------------------
+    1st-half        T    0.2341
+    1st-half        C    0.1758
+    1st-half        A    0.3956
+    1st-half        G    0.1944
+    2nd-half        T    0.2400
+    2nd-half        C    0.1851
+    2nd-half        A    0.3628
+    2nd-half        G    0.2121
+    ---------------------------
+    ================
+     kappa    length
+    ----------------
+    8.0072    0.0271
+    ----------------
+    >>> all_lnL = lf.getLogLikelihood()
+    >>> all_nfp = lf.getNumFreeParams()
+    >>> lf.setParamRule('kappa', loci = EACH)
+    >>> lf.optimise(local=True, show_progress=False)
+    >>> print lf
+    Likelihood Function Table
+    ==================
+       locus     kappa
+    ------------------
+    1st-half    7.9077
+    2nd-half    8.1293
+    ------------------
+    ===========================
+       locus    motif    mprobs
+    ---------------------------
+    1st-half        T    0.2341
+    1st-half        C    0.1758
+    1st-half        A    0.3956
+    1st-half        G    0.1944
+    2nd-half        T    0.2400
+    2nd-half        C    0.1851
+    2nd-half        A    0.3628
+    2nd-half        G    0.2121
+    ---------------------------
+    ======
+    length
+    ------
+    0.0271
+    ------
+    >>> each_lnL = lf.getLogLikelihood()
+    >>> each_nfp = lf.getNumFreeParams()
+    >>> LR = 2 * (each_lnL - all_lnL)
+    >>> df = each_nfp - all_nfp
+    >>> print LR, df, chisqprob(LR, df)
+    0.00424532328725 1 0.94804967777
