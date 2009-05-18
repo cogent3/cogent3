@@ -1,1 +1,1 @@
-../../tests/test_core/test_features.rst
+../tests/test_core/test_features.rst
