@@ -29,7 +29,7 @@ The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside fr
 Installation
 ------------
 
-For \*nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from here_. Uncompress the archive and change into the ``PyCogent`` directory and type::
+For \*nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from `here <http://sourceforge.net/projects/pycogent>`_. Uncompress the archive and change into the ``PyCogent`` directory and type::
 
 $ python setup.py build
 
