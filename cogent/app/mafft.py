@@ -16,7 +16,7 @@ from os import remove
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Jeremy Widmann"]
+__credits__ = ["Jeremy Widmann", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Jeremy Widmann"
@@ -461,6 +461,8 @@ def align_two_alignments(aln1, aln2, moltype, params=None):
     res.cleanUp()
     remove(aln1_path)
     remove(aln2_path)
+    remove('pre')
+    remove('trace')
     del(aln1,aln1_int_map,aln1_int_keys,\
         aln2,aln2_int_map,aln2_int_keys,app,res,alignment)
 
