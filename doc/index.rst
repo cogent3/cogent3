@@ -1,88 +1,107 @@
-#####################
-Cogent Usage Examples
-#####################
+.. _contents:
 
-.. Contents::
+####################################
+Welcome to PyCogent's documentation!
+####################################
 
-**********
-The Readme
-**********
+Contents:
 
-.. include:: ../README
+.. toctree::
+   :maxdepth: 1
+   
+   README
+   coding_guidelines
+   examples/index
+   licenses
 
-**************************************
-A Note on the Computable Documentation
-**************************************
+********
+Overview
+********
 
-The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.
+This documentation is undergoing significant revision as PyCogent moves to adoption of the Sphinx system. In the meantime, click the links above to see installation instructions and usage examples.
 
-Examples not explicitly attributed were authored by Gavin Huttley.
+For Developers
+==============
 
-*****************
-Data manipulation
-*****************
+Grabbing from the subversion repository
+---------------------------------------
 
-.. include:: translate_dna.rst
-.. include:: seq_features.rst
-.. include:: complete_seq_features.rst
-.. include:: reverse_complement.rst
-.. include:: align_codons_to_protein.rst
-.. include:: aln_profile.rst
-.. include:: genetic_code_aa_index.rst
-.. include:: handling_tabular_data.rst
-.. include:: query_ncbi.rst
+To grab PyCogent from the sourceforge subversion repository, do the following::
+    
+    $ svn co https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk PyCogent
 
-**********************************
-Controlling 3rd party applications
-**********************************
+Building/testing the documentation
+----------------------------------
 
-.. include:: alignment_app_controllers.rst
-.. include:: phylogeny_app_controllers.rst
-.. include:: generating_app_commandlines.rst
+To build the documentation or ``doctest`` the contents, you'll need to install Sphinx. Assuming you have ``easy_install`` configured on your machine (and if not, download ``setuptools`` from http://pypi.python.org/pypi/setuptools and follow the instructions). Then grab Sphinx::
 
-*********************
-General data analysis
-*********************
+    $ sudo easy_install -U sphinx
 
-.. include:: perform_PCoA_analysis.rst
-.. include:: motif_results.rst
+Generating the html form of the documentation requires changing into the ``doc`` directory and executing a ``make`` command::
+    
+    $ cd path/to/PyCogent/doc
+    $ make html
+    ... # bunch of output
+    Build finished. The HTML pages are in _build/html.
 
-******************
-Data Visualisation
-******************
+This prints a bunch of output to screen and creates a directory ``PyCogent/doc/_build`` and within that ``html``. The index file ``PyCogent/doc/_build/html/index.html`` is the root of the documentation.
 
-.. include:: draw_dendrogram.rst
-.. include:: draw_dotplot.rst
+One can also generate a pdf file, using the Sphinx latex generation capacity. This is slightly more involved. (It also requires that you have an installation of TeTex_.)
 
-*******************
-Modelling Evolution
-*******************
+.. _TeTex: http://www.tug.org/texlive/
 
-.. include:: simple.rst
-.. include:: relative_rate.rst
-.. include:: neutral_test.rst
-.. include:: empirical_protein_models.rst
-.. include:: rate_heterogeneity.rst
-.. include:: testing_multi_loci.rst
-.. include:: reuse_results.rst
-.. include:: unrestricted_nucleotide.rst
-.. include:: simulate_alignment.rst
-.. include:: parametric_bootstrap.rst
-.. include:: estimate_startingpoint.rst
-.. include:: coevolution.rst
+First generate the latex ::
 
-***************************
-Phylogenetic Reconstruction
-***************************
+    $ make latex
+    ... # bunch of output
+    Build finished; the LaTeX files are in _build/latex.
+    Run `make all-pdf' or `make all-ps' in that directory to run these through (pdf)latex.
 
-.. include:: calculate_pairwise_distances.rst
-.. include:: calculate_neigbourjoining_tree.rst
-.. include:: calculate_UPGMA_cluster.rst
-.. include:: phylo_by_ls.rst
-.. include:: maketree_from_proteinseqs.rst
+then change into the ``latex`` dir and build the pdf ::
+    
+    $ cd _build/latex
+    $ make all-pdf
 
-************************
-Python Coding Guidelines
-************************
+You can now open ``PyCogent.pdf``.
 
-.. include:: coding_guidelines.rst
+To actually test the documentation, you need to be in the ``doc`` directory and then execute another ``make`` command::
+    
+    $ cd path/to/PyCogent/doc
+    $ make doctest
+
+The results are in ``_build/doctest/output.txt``. 
+
+:NOTE: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent ``unittest`` test suite.  If you don't all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
+
+Adding to the documentation
+---------------------------
+
+For new use-case examples. Look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent are using heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
+
+- # with overline, for parts
+- \* with overline, for chapters
+- =, for sections
+- -, for subsections
+- ^, for subsubsections
+- ", for paragraphs
+- +, added for sub-paragraphs (non-standard)
+
+Create your file in the ``examples`` directory, giving it a ``.rst`` suffix. Link it into the documentation tree, adding a line into the ``examples/index.rst`` file.
+
+Then test that it works (rather than testing the entire suite, you can use the convenience script within doc). For instance, the following is a single test of one file::
+    
+    $ cd path/to/PyCogent/doc
+    $ python doctest_rsts.py examples/reverse_complement.rst
+
+If you have any questions, contact gavin_.
+
+.. _`rest overview`: http://sphinx.pocoo.org/rest.html
+.. _`Sphinx headings`: http://sphinx.pocoo.org/rest.html#sections
+.. _gavin: Gavin.Huttley@anu.edu.au
+
+******
+Search
+******
+
+* :ref:`search`
+

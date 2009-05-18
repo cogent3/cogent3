@@ -3,7 +3,7 @@ Complete version of manipulating sequence annotations
 
 A Sequence with a couple of exons on it.
 
-.. pycode::
+.. doctest::
     
     >>> from cogent import DNA
     >>> from cogent.core.annotation import Feature
@@ -14,7 +14,7 @@ A Sequence with a couple of exons on it.
 
 The corresponding sequence can be extracted either with slice notation or by asking the feature to do it, since the feature knows what sequence it belongs to.
 
-.. pycode::
+.. doctest::
     
     >>> s[exon1]
     DnaSequence(CCCCC)
@@ -23,7 +23,7 @@ The corresponding sequence can be extracted either with slice notation or by ask
 
 Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the sequence for it. There is one method for querying annotations by type and optionally by name:
 
-.. pycode::
+.. doctest::
     
     >>> exons = s.getAnnotationsMatching('exon')
     >>> print exons
@@ -31,7 +31,7 @@ Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the se
 
 To construct a pseudo-feature covering (or excluding) multiple features, use ``getRegionCoveringAll``:
 
-.. pycode::
+.. doctest::
     
     >>> print s.getRegionCoveringAll(exons)
     region "exon" at [10:15, 30:40]/48
@@ -40,21 +40,21 @@ To construct a pseudo-feature covering (or excluding) multiple features, use ``g
 
 eg: all the exon sequence:
 
-.. pycode::
+.. doctest::
     
     >>> s.getRegionCoveringAll(exons).getSlice()
     DnaSequence(CCCCCTT... 15)
 
 or with slice notation:
     
-.. pycode::
+.. doctest::
     
     >>> s[exon1, exon2]
     DnaSequence(CCCCCTT... 15)
 
 Though ``.getRegionCoveringAll`` also guarantees no overlaps within the result, slicing does not:
 
-.. pycode::
+.. doctest::
     
     >>> print s.getRegionCoveringAll(exons+exons)
     region "exon" at [10:15, 30:40]/48
@@ -64,7 +64,7 @@ Though ``.getRegionCoveringAll`` also guarantees no overlaps within the result, 
 
 You can use features, maps, slices or integers, but non-monotonic slices are not allowed:
 
-.. pycode::
+.. doctest::
     
     >>> s[15:20, 5:16]
     Traceback (most recent call last):
@@ -72,14 +72,14 @@ You can use features, maps, slices or integers, but non-monotonic slices are not
 
 Features are themselves sliceable:
 
-.. pycode::
+.. doctest::
     
     >>> exon1[0:3].getSlice()
     DnaSequence(CCC)
 
 When sequences are concatenated they keep their (non-overlapping) annotations:
     
-.. pycode::
+.. doctest::
     
     >>> c = s[exon1[4:]]+s
     >>> print len(c)
@@ -93,7 +93,7 @@ When sequences are concatenated they keep their (non-overlapping) annotations:
 
 Since features know their parents you can't use a feature from one sequence to slice another:
     
-.. pycode::
+.. doctest::
     
     >>> print c[exon1]
     Traceback (most recent call last):
@@ -101,7 +101,7 @@ Since features know their parents you can't use a feature from one sequence to s
 
 Features are generally attached to the thing they annotate, but in those cases where a free-floating feature is created it can later be attached:
 
-.. pycode::
+.. doctest::
     
     >>> len(s.annotations)
     2
@@ -117,7 +117,7 @@ Features are generally attached to the thing they annotate, but in those cases w
 
 When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence``) features are also reversed. Feature types like CDS, however, have strand specific meaning and thus they're preserved in that orientation. We create a sequence with a CDS that spans multiple exons, and show that after getting the reverse complement we have exactly the same result from getting the CDS annotation.
 
-.. pycode::
+.. doctest::
     
     >>> plus = DNA.makeSequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
     ... Name="plus")
@@ -133,7 +133,7 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
 
 Sequence features can be accessed via a containing ``Alignment``:
 
-.. pycode::
+.. doctest::
     
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
@@ -149,7 +149,7 @@ Sequence features can be accessed via a containing ``Alignment``:
 
 But these will be returned as **alignment** features with locations in alignment coordinates.
 
-.. pycode::
+.. doctest::
     
     >>> print exon
     exon "fred" at [3:8]/9
@@ -167,7 +167,7 @@ But these will be returned as **alignment** features with locations in alignment
 
 Similarly alignment features can be projected onto the aligned sequences, where they may end up falling across gaps:
 
-.. pycode::
+.. doctest::
     
     >>> exons = aln.getProjectedAnnotations('y', 'exon') 
     >>> print exons 
@@ -177,7 +177,7 @@ Similarly alignment features can be projected onto the aligned sequences, where 
 
 We copy the annotations from another sequence.
 
-.. pycode::
+.. doctest::
     
     >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
@@ -189,7 +189,7 @@ We copy the annotations from another sequence.
 
 We consider cases where there are terminal gaps.
 
-.. pycode::
+.. doctest::
     
     >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'------TTTT'})
     >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
@@ -214,7 +214,7 @@ We consider cases where there are terminal gaps.
 
 In this case, only those residues included within the feature are covered - note the omission of the T in ``y`` opposite the gap in ``x``.
 
-.. pycode::
+.. doctest::
     
     >>> aln = LoadSeqs(data={'x':'C-CCCAAAAA', 'y':'-T----TTTT'})
     >>> print aln
@@ -241,7 +241,7 @@ In this case, only those residues included within the feature are covered - note
 
 ``Feature.asOneSpan()``, is applied to the exon that straddles the gap in ``x``. The result is we preserve that feature.
 
-.. pycode::
+.. doctest::
     
     >>> print aln_exons[0].asOneSpan().getSlice()
     >y
@@ -252,7 +252,7 @@ In this case, only those residues included within the feature are covered - note
 
 Features can provide their coordinates, useful for custom analyses.
     
-.. pycode::
+.. doctest::
     
     >>> all_exons = aln.getRegionCoveringAll(aln_exons)
     >>> coords = all_exons.getCoordinates()
@@ -262,7 +262,7 @@ Annotated regions can be masked (observed sequence characters replaced by anothe
 
 We create an alignment with a sequence that has two different annotation types.
 
-.. pycode::
+.. doctest::
     
     >>> aln = LoadSeqs(data={'x':'C-CCCAAAAAGGGAA', 'y':'-T----TTTTG-GTT'})
     >>> print aln
@@ -283,7 +283,7 @@ We create an alignment with a sequence that has two different annotation types.
 
 Each sequence should correctly mask either the single feature, it's shadow, or the multiple features, or shadow.
 
-.. pycode::
+.. doctest::
     
     >>> print aln.getSeq('x').withMaskedAnnotations('exon', mask_char='?')
     ????AAAAAGGGAA
@@ -306,7 +306,7 @@ Each sequence should correctly mask either the single feature, it's shadow, or t
 
 The same methods can be applied to annotated Alignment's.
 
-.. pycode::
+.. doctest::
     
     >>> print aln.withMaskedAnnotations('exon', mask_char='?')
     >y
@@ -347,7 +347,7 @@ The same methods can be applied to annotated Alignment's.
 
 It shouldn't matter whether annotated coordinates are entered separately, or as a series.
 
-.. pycode::
+.. doctest::
     
     >>> data = {"human": 'CGAAACGTTT', 'mouse':'CTAAACGTCG'}
     >>> as_series = LoadSeqs(data = data)
@@ -355,7 +355,7 @@ It shouldn't matter whether annotated coordinates are entered separately, or as 
 
 We add annotations to the sequences as a series.
 
-.. pycode::
+.. doctest::
     
     >>> as_series.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
     cpgsite "cpg" at [0:2, 5:7]/10
@@ -364,7 +364,7 @@ We add annotations to the sequences as a series.
 
 We add the annotations to the sequences one segment at a time.
 
-.. pycode::
+.. doctest::
     
     >>> as_items.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2)])
     cpgsite "cpg" at [0:2]/10
@@ -377,7 +377,7 @@ We add the annotations to the sequences one segment at a time.
 
 These different constructions should generate the same output.
 
-.. pycode::
+.. doctest::
     
     >>> serial = as_series.withMaskedAnnotations(['cpgsite'])
     >>> print serial
@@ -396,7 +396,7 @@ These different constructions should generate the same output.
 
 Annotations should be correctly masked, whether the sequence has been reverse complemented or not. We use the plus/minus strand CDS containing sequences created above.
 
-.. pycode::
+.. doctest::
     
     >>> print plus.withMaskedAnnotations("CDS")
     AA????AAAA?????AAAAAAAAAA??????????AAA
