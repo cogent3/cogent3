@@ -1,1 +1,1 @@
-../tests/test_util/test_table.rst
+../../tests/test_util/test_table.rst
