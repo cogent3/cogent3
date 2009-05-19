@@ -2,11 +2,12 @@
 """cluster: provides tools for clustering
 """
 
-__all__ = ['metric_scaling', 'UPGMA']
+__all__ = ['metric_scaling', 'UPGMA', 'nmds']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
+__credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
+    "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Catherine Lozupone"
