@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_UPGMA', 'test_metric_scaling']
+__all__ = ['test_UPGMA', 'test_metric_scaling', 'test_nmds']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
