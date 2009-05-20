@@ -34,6 +34,7 @@ Controlling 3rd party applications
 .. toctree::
     :maxdepth: 1
 
+    application_controller_framework
     alignment_app_controllers
     phylogeny_app_controllers
     generating_app_commandlines
