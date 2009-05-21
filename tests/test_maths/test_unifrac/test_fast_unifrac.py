@@ -128,7 +128,7 @@ f B 1
             rawp, corp = mcarlo_sig(sum(real_ufracs), [sum(x) for x in \
                 sim_ufracs], 1, tail='high')
             result.append(rawp)
-        self.assertSimiliarMeans(result, 0.047)
+        self.assertSimilarMeans(result, 0.047)
 
     def test_mcarlo_sig(self):
         """test_mcarlo_sig should calculate monte carlo sig high/low"""
