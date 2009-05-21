@@ -62,7 +62,7 @@ nupack_input = ['>seq1\n',
 '\n']
 
 nupack_stdout = ['****************************************************************\n', 
-'NUPACK 1.2\n', 'Copyright 2007-2009 2003, 2004 by Robert M. Dirks & Niles A. Pierce\n', 
+'NUPACK 1.2\n', 'Copyright 2003, 2004 by Robert M. Dirks & Niles A. Pierce\n', 
 'California Institute of Technology\n', 'Pasadena, CA 91125 USA\n', '\n', 
 'Last Modified: 03/18/2004\n', 
 '****************************************************************\n', 
