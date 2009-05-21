@@ -157,7 +157,7 @@ class MagePointFromBaseFreqsTests(TestCase):
             def __init__(self, data, *args):
                 Delegator.__init__(self, *args)
                 self.__dict__['Info'] = self._handler
-                str.__init__(self, data)
+                str.__init__(data)
 
         class has_species(object):
             def __init__(self, sp):
