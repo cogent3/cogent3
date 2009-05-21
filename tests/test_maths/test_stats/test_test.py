@@ -891,24 +891,24 @@ class TestDistMatrixPermutationTest(TestCase):
         # looks at each possible permutation n times --
         # compare first row to rest
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False)
-        self.assertSimiliarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
             tails='high')
-        self.assertSimiliarMeans(r, 4./6.)
+        self.assertSimilarMeans(r, 4./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
             tails='low')
-        self.assertSimiliarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 0./6.)
         
         # looks at each possible permutation n times --
         # compare last row to rest
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False)
-        self.assertSimiliarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
             tails='high')
-        self.assertSimiliarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
             tails='low')
-        self.assertSimiliarMeans(r, 4./6.)
+        self.assertSimilarMeans(r, 4./6.)
 
     def test_distance_matrix_permutation_test_symmetric(self):
         """ evaluate empirical p-values for symmetric matrix
@@ -928,11 +928,11 @@ class TestDistMatrixPermutationTest(TestCase):
         # looks at each possible permutation n times --
         # compare first row to rest
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n)
-        self.assertSimiliarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='high')
-        self.assertSimiliarMeans(r, 0.77281447417149496,0)
+        self.assertSimilarMeans(r, 0.77281447417149496,0)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='low')
-        self.assertSimiliarMeans(r, 4./6.)
+        self.assertSimilarMeans(r, 4./6.)
 
         ## The following lines are not part of the test code, but are useful in 
         ## figuring out what t-scores all of the permutations will yield. 

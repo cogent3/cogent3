@@ -981,88 +981,88 @@ class TestCaseTests(TestCase):
         observed = array([0.0,-0.4,0.8])
         self.assertRaises(AssertionError, self.assertIsProb, observed)
 
-    def test_assertSimiliarMeans_one_obs_true(self):
-        """assertSimiliarMeans should pass when p > pvalue"""
+    def test_assertSimilarMeans_one_obs_true(self):
+        """assertSimilarMeans should pass when p > pvalue"""
         obs = [5]
         expected = [1,2,3,4,5,6,7,8,9,10,11]
-        self.assertSimiliarMeans(obs, expected)
-        self.assertSimiliarMeans(obs, expected, pvalue=0.25)
+        self.assertSimilarMeans(obs, expected)
+        self.assertSimilarMeans(obs, expected, pvalue=0.25)
         self._set_suite_pvalue(0.10)
-        self.assertSimiliarMeans(obs, expected)
+        self.assertSimilarMeans(obs, expected)
 
-    def test_assertSimiliarMeans_one_obs_false(self):
-        """assertSimiliarMeans should raise when p < pvalue"""
+    def test_assertSimilarMeans_one_obs_false(self):
+        """assertSimilarMeans should raise when p < pvalue"""
         obs = [5]
         expected = [.001,.009,.00012]
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected)
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected, 0.1)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected)
 
-    def test_assertSimiliarMeans_twosample_true(self):
-        """assertSimiliarMeans should pass when p > pvalue"""
+    def test_assertSimilarMeans_twosample_true(self):
+        """assertSimilarMeans should pass when p > pvalue"""
         obs = [4,5,6]
         expected = [1,2,3,4,5,6,7,8,9]
-        self.assertSimiliarMeans(obs, expected)
-        self.assertSimiliarMeans(obs, expected, pvalue=0.25)
+        self.assertSimilarMeans(obs, expected)
+        self.assertSimilarMeans(obs, expected, pvalue=0.25)
         self._set_suite_pvalue(0.10)
-        self.assertSimiliarMeans(obs, expected)
+        self.assertSimilarMeans(obs, expected)
 
-    def test_assertSimiliarMeans_twosample_false(self):
-        """assertSimiliarMeans should raise when p < pvalue"""
+    def test_assertSimilarMeans_twosample_false(self):
+        """assertSimilarMeans should raise when p < pvalue"""
         obs = [1,2,3]
         expected = [6,7,8,9,10,11,12,13,14]
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected)
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected, 0.1)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans, \
                                           obs, expected)
 
-    def test_assertSimiliarFreqs_true(self):
-        """assertSimiliarFreqs should pass when p > pvalue"""
+    def test_assertSimilarFreqs_true(self):
+        """assertSimilarFreqs should pass when p > pvalue"""
         observed = [2,2,3,2,1,2,2,2,2]
         expected = [2,2,2,2,2,2,2,2,2]
-        self.assertSimiliarFreqs(observed, expected)
-        self.assertSimiliarFreqs(observed, expected, pvalue=0.25)
+        self.assertSimilarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected, pvalue=0.25)
         self._set_suite_pvalue(0.10)
-        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected)
 
-    def test_assertSimiliarFreqs_false(self):
-        """assertSimiliarFreqs should raise when p < pvalue"""
+    def test_assertSimilarFreqs_false(self):
+        """assertSimilarFreqs should raise when p < pvalue"""
         observed = [10,15,20,10,12,12,13]
         expected = [100,50,10,20,700,2,100]
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected)
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected, 0.2)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected)
 
-    def test_assertSimiliarFreqs_numpy_array_true(self):
-        """assertSimiliarFreqs should pass when p > pvalue"""
+    def test_assertSimilarFreqs_numpy_array_true(self):
+        """assertSimilarFreqs should pass when p > pvalue"""
         observed = array([2,2,3,2,1,2,2,2,2])
         expected = array([2,2,2,2,2,2,2,2,2])
-        self.assertSimiliarFreqs(observed, expected)
-        self.assertSimiliarFreqs(observed, expected, pvalue=0.25)
+        self.assertSimilarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected, pvalue=0.25)
         self._set_suite_pvalue(0.10)
-        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected)
 
-    def test_assertSimiliarFreqs_numpy_array_false(self):
-        """assertSimiliarFreqs should raise when p < pvalue"""
+    def test_assertSimilarFreqs_numpy_array_false(self):
+        """assertSimilarFreqs should raise when p < pvalue"""
         observed = array([10,15,20,10,12,12,13])
         expected = array([100,50,10,20,700,2,100])
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected)
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected, 0.2)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimiliarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
                                           observed, expected)
 
     def test_set_suite_pvalue(self):
@@ -1071,11 +1071,11 @@ class TestCaseTests(TestCase):
         self._set_suite_pvalue(0.99)
         obs = [2,5,6]
         exp = [1,2,3,4,5,6,7,8,9]
-        self.assertRaises(AssertionError, self.assertSimiliarMeans, obs, exp)
+        self.assertRaises(AssertionError, self.assertSimilarMeans, obs, exp)
         
         # force stats to pass
         self._set_suite_pvalue(0.01)
-        self.assertSimiliarMeans(obs, exp)
+        self.assertSimilarMeans(obs, exp)
 
     def test_assertIsPermutation_true(self):
         """assertIsPermutation should pass when a is a permutation of b"""

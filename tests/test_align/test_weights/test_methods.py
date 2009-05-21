@@ -130,15 +130,15 @@ class VoronoiTests(GeneralTests):
             [0.0840,0.0763,0.1155,0.1019,0.0932,0.0980,0.0864,\
             0.0999,0.1121,0.1328]))
  
-        # the following assertSimiliarMeans statements were added to replace 
+        # the following assertSimilarMeans statements were added to replace 
         # stochastic assertFloatEqualAbs calls below
-        self.assertSimiliarMeans(VOR(self.aln2,force_monte_carlo=True).values(),
+        self.assertSimilarMeans(VOR(self.aln2,force_monte_carlo=True).values(),
                                  aln2_exp.values())
-        self.assertSimiliarMeans(VOR(self.aln3,force_monte_carlo=True).values(),
+        self.assertSimilarMeans(VOR(self.aln3,force_monte_carlo=True).values(),
                                  aln3_exp.values())
-        self.assertSimiliarMeans(VOR(self.aln4,force_monte_carlo=True).values(),
+        self.assertSimilarMeans(VOR(self.aln4,force_monte_carlo=True).values(),
                                  aln4_exp.values())
-        self.assertSimiliarMeans(VOR(self.aln6,n=1000).values(),
+        self.assertSimilarMeans(VOR(self.aln6,n=1000).values(),
                                  aln6_exp.values())
 
         #self.assertFloatEqualAbs(VOR(self.aln2,force_monte_carlo=True)\
@@ -163,9 +163,9 @@ class VoronoiTests(GeneralTests):
         err=9e-2
         aln2_exp = {'seq1':.259, 'seq2':.315,'seq3':.167,'seq4':.259}
 
-        # the following assertSimiliarMeans statement was added to replace 
+        # the following assertSimilarMeans statement was added to replace 
         # stochastic assertFloatEqualAbs call below
-        self.assertSimiliarMeans(VOR(self.aln2, mc_threshold=15).values(), 
+        self.assertSimilarMeans(VOR(self.aln2, mc_threshold=15).values(), 
                                  aln2_exp.values())
         #self.assertFloatEqual(VOR(self.aln2,mc_threshold=15).values(),\
         #    aln2_exp.values(),err)
@@ -195,13 +195,13 @@ class VoronoiTests(GeneralTests):
             [0.09021,0.08039,0.113560,0.10399,0.092370,0.097130,
             0.09198,0.09538,0.10927,0.12572]))
 
-        # the following assertSimiliarMeans statements were added to replace 
+        # the following assertSimilarMeans statements were added to replace 
         # stochastic assertFloatEqualAbs calls below
-        self.assertSimiliarMeans(mVOR(self.aln3,order="ABC").values(),
+        self.assertSimilarMeans(mVOR(self.aln3,order="ABC").values(),
                                  aln3_exp.values())
-        self.assertSimiliarMeans(mVOR(self.aln4,order="ABC").values(),
+        self.assertSimilarMeans(mVOR(self.aln4,order="ABC").values(),
                                  aln4_exp.values())
-        self.assertSimiliarMeans(mVOR(self.aln6,order=DNA_ORDER,n=3000)\
+        self.assertSimilarMeans(mVOR(self.aln6,order=DNA_ORDER,n=3000)\
                                  .values(), aln6_exp.values())
 
         #self.assertFloatEqualAbs(mVOR(self.aln3,order="ABC").values(),\
