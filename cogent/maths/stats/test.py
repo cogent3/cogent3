@@ -977,6 +977,7 @@ def permute_2d(m, p):
 
 def mantel(m1, m2, n):
     """Compares two distance matrices. Reports P-value for correlation."""
+    m1, m2 = asarray(m1), asarray(m2)
     m1_flat = ravel(m1)
     size = len(m1)
     orig_stat = abs(pearson(m1_flat, ravel(m2)))
