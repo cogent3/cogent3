@@ -10,7 +10,6 @@ also:
 
 import warnings
 import numpy
-from sets import Set
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -188,7 +187,7 @@ class DirectedMotifChange(predicate):
     
     def testMotif(self, motifs, query):
         """positions where motif pattern is found in query"""
-        positions = Set()
+        positions = set()
         for offset in range(len(query)-self.motiflen+1):
             for (q,ms) in zip(query[offset: offset+self.motiflen], motifs):
                 if q not in ms:

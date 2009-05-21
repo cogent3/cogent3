@@ -38,7 +38,7 @@ from numpy.random import randint, permutation
 
 from cogent.util.dict2d import Dict2D
 
-import logging, md5
+import logging
 LOG = logging.getLogger('cogent.data')
 
 from cogent.core.profile import Profile
