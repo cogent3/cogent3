@@ -32,7 +32,7 @@ before giving up and assuming that the result is always the same.
 """
 #from contextlib import contextmanager
 import numpy; from numpy import testing, array, asarray, ravel, zeros, \
-        logical_and, logical_or
+        logical_and, logical_or, isfinite
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
 from cogent.util.misc import recursive_flatten
 from cogent.maths.stats.test import t_two_sample, G_ind
@@ -492,10 +492,19 @@ class TestCase(orig_TestCase):
         if self._suite_pvalue:
             pvalue = self._suite_pvalue
 
-        t, p = t_two_sample(asarray(observed), asarray(expected))
+        observed, expected = asarray(observed), asarray(expected)
+
+        t, p = t_two_sample(observed, expected)
             
         if p > pvalue:
             return
+        elif p is None or not isfinite(p): #handle case where all elements were the same
+            if not observed.shape:
+                observed = observed.reshape((1,))
+            if not expected.shape:
+                expected = expected.reshape((1,))
+            if observed[0] == expected[0]:
+                return
         else:
             raise self.failureException, \
             (msg or 'p-value %s, t-test p %s' % (`pvalue`, `p`))
@@ -529,7 +538,7 @@ class TestCase(orig_TestCase):
         except:
             pass
         raise self.failureException, \
-        (msg or 'Observed %s is not a permuation of items %s' % \
+        (msg or 'Observed %s is not a different permutation of items %s' % \
         (`observed`, `items`))
  
     def assertSameObj(self, observed, expected, msg=None):
