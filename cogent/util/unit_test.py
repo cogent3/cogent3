@@ -487,7 +487,7 @@ class TestCase(orig_TestCase):
         """
         self._suite_pvalue = pvalue
 
-    def assertSimiliarMeans(self, observed, expected, pvalue=0.01, msg=None):
+    def assertSimilarMeans(self, observed, expected, pvalue=0.01, msg=None):
         """Fail if observed p is lower than pvalue"""
         if self._suite_pvalue:
             pvalue = self._suite_pvalue
@@ -509,7 +509,7 @@ class TestCase(orig_TestCase):
             raise self.failureException, \
             (msg or 'p-value %s, t-test p %s' % (`pvalue`, `p`))
 
-    def assertSimiliarFreqs(self, observed, expected, pvalue=0.01, msg=None):
+    def assertSimilarFreqs(self, observed, expected, pvalue=0.01, msg=None):
         """Fail if observed p is lower than pvalue"""
         if self._suite_pvalue:
             pvalue = self._suite_pvalue

@@ -875,7 +875,7 @@ class StaticFreqsTestsI(object):
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob*10000 for prob in probs]
-        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected)
 
     def test_randomSequence_bad(self):
         """Empty Freqs should raise error on randomSequence"""
@@ -1377,7 +1377,7 @@ class FreqsTestsI(object):
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob*10000 for prob in probs]
-        self.assertSimiliarFreqs(observed, expected)
+        self.assertSimilarFreqs(observed, expected)
 
     def test_randomSequence_bad(self):
         """Empty Freqs should raise error on randomSequence"""
