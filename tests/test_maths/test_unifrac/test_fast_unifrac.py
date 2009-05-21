@@ -120,11 +120,15 @@ f B 1
     def test_fast_unifrac_whole_tree(self):
         """ should correctly compute one p-val for whole tree """
         # "should test with fake permutation but using same as old envs nodefor now"
-        real_ufracs, sim_ufracs = fast_unifrac_whole_tree(self.old_t, self.old_env_counts, 1000, permutation_f=permutation)
-        rawp, corp = mcarlo_sig(sum(real_ufracs), [sum(x) for x in sim_ufracs], 1, tail='high')
-
-        # need to use different test than this, was used in old EnvsNode
-        self.failUnless(rawp >= 0.04 and rawp <= 0.075)
+        result = []
+        num_to_do = 10
+        for i in range(num_to_do):
+            real_ufracs, sim_ufracs = fast_unifrac_whole_tree(self.old_t, \
+                self.old_env_counts, 1000, permutation_f=permutation)
+            rawp, corp = mcarlo_sig(sum(real_ufracs), [sum(x) for x in \
+                sim_ufracs], 1, tail='high')
+            result.append(rawp)
+        self.assertSimiliarMeans(result, 0.047)
 
     def test_mcarlo_sig(self):
         """test_mcarlo_sig should calculate monte carlo sig high/low"""
@@ -145,11 +149,19 @@ f B 1
 
     def test_shuffle_tipnames(self):
         """shuffle_tipnames should return copy of tree w/ labels permuted"""
-        t = DndParser(self.t_str)
-        result = shuffle_tipnames(t)
-        orig_names = [n.Name for n in t.tips()]
-        new_names = [n.Name for n in result.tips()]
-        self.assertIsPermutation(orig_names, new_names)
+        #Note: this should never fail but is technically still stochastic
+        #5! is 120 so repeating 5 times should fail about 1 in 10^10.
+        for i in range(5):
+            try:
+                t = DndParser(self.t_str)
+                result = shuffle_tipnames(t)
+                orig_names = [n.Name for n in t.tips()]
+                new_names = [n.Name for n in result.tips()]
+                self.assertIsPermutation(orig_names, new_names)
+                return
+            except AssertionError:
+                continue
+        raise AssertionError, "Produced same permutation in 5 tries: broken?"
 
     def test_weight_equally(self):
         """weight_equally should return unit weight per tree"""
