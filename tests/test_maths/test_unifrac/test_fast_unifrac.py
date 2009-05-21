@@ -11,7 +11,8 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     weight_by_branch_length, weight_by_num_seqs, get_all_env_names,
     consolidate_skipping_missing_matrices, consolidate_missing_zero,
     consolidate_missing_one, consolidate_skipping_missing_values,
-    UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac_whole_tree,
+    UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac, 
+    fast_unifrac_whole_tree,
     TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length,
     shared_branch_length_to_root)
 from numpy.random import permutation 
@@ -40,6 +41,28 @@ c   B   1
 d   B   3
 e   C   1"""
         self.env_counts = count_envs(self.env_str.splitlines())
+        self.missing_env_str = """
+a   A   1
+a   C   2
+e   C   1"""
+        self.missing_env_counts = count_envs(self.missing_env_str.splitlines())
+        self.extra_tip_str = """
+q   A   1
+w   C   2
+e   A   1
+r   B   1
+t   B   1
+y   B   3
+u   C   1"""
+        self.extra_tip_counts = count_envs(self.extra_tip_str.splitlines())
+        self.wrong_tip_str = """
+q   A   1
+w   C   2
+r   B   1
+t   B   1
+y   B   3
+u   C   1"""
+        self.wrong_tip_counts = count_envs(self.wrong_tip_str.splitlines())
 
         self.t2_str = '(((a:1,b:1):1,c:5):2,d:4)'
         self.t2 = DndParser(self.t2_str, UniFracTreeNode)
@@ -116,6 +139,16 @@ f B 1
         obs = shared_branch_length_to_root(t, env_counts)
         self.assertEqual(obs, exp)
 
+
+    def test_fast_unifrac(self):
+        """Should calc unifrac values for whole tree."""
+        #Note: results not tested for correctness here as detailed tests
+        #in fast_tree module.
+        res = fast_unifrac(self.t, self.env_counts)
+        res = fast_unifrac(self.t, self.missing_env_counts)
+        res = fast_unifrac(self.t, self.extra_tip_counts)
+        self.assertRaises(ValueError,  fast_unifrac, self.t, \
+            self.wrong_tip_counts)
 
     def test_fast_unifrac_whole_tree(self):
         """ should correctly compute one p-val for whole tree """

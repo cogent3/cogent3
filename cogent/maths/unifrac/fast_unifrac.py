@@ -170,6 +170,8 @@ def _fast_unifrac_setup(t, envs):
     env_names = sorted(unique_envs)
     #Note: envs get sorted at the step above
     branch_lengths = get_branch_lengths(node_index)
+    if not envs:
+        raise ValueError, "No valid envs found. Check whether tips in envs file match tips in tree?"
     return envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes
 
 def fast_unifrac_whole_tree(t, envs, num_iters, permutation_f=permutation):
