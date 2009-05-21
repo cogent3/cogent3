@@ -98,7 +98,7 @@ class DictArrayTemplate(object):
 
 class DictArray(object):
     """Wraps a numpy array so that it can be indexed with strings like nested
-    dictionaries (only ordered), for things like substitution matricies and
+    dictionaries (only ordered), for things like substitution matrices and
     bin probabilities."""
     
     def __init__(self, *args, **kwargs):
