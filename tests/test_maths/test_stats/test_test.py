@@ -873,41 +873,42 @@ class TestDistMatrixPermutationTest(TestCase):
             To test the empirical p-values, we look at a simple 3x3 matrix 
              b/c it is easy to see what t score every permutation will 
              generate -- there's only 6 permutations. 
-             Running dist_matrix_test with n=540, we expect that each 
-             permutation will show up ~90 times, so we know how many 
+             Running dist_matrix_test with n=1000, we expect that each 
+             permutation will show up 160 times, so we know how many 
              times to expect to see more extreme t scores. We therefore 
-             know what the empirical p-values will be. (n=540 was chosen
+             know what the empirical p-values will be. (n=1000 was chosen
              empirically -- smaller values seem to lead to much more frequent
              random failures.)
 
 
         """
-        ## Need to update this code to use Daniel's test suite for 
-        ## handling tests with stochastic results. Right now I just check that 
-        ## empirical p-values are correct to one decimal place.
-
+        def make_result_list(*args, **kwargs):
+            return [distance_matrix_permutation_test(*args,**kwargs)[2] \
+                for i in range(10)]
 
         m = arange(9).reshape((3,3))
-        # looks at each possible permutation 300 times -- 
+        n = 100
+        # looks at each possible permutation n times --
         # compare first row to rest
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],n=540,is_symmetric=False)[2],0./6.,1)
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],n=540,tails='high',\
-            is_symmetric=False)[2],4./6.,1)
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],n=540,tails='low',\
-            is_symmetric=False)[2],0./6.,1)
-        # looks at each possible permutation 300 times --
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False)
+        self.assertSimiliarMeans(r, 0./6.)
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
+            tails='high')
+        self.assertSimiliarMeans(r, 4./6.)
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
+            tails='low')
+        self.assertSimiliarMeans(r, 0./6.)
+        
+        # looks at each possible permutation n times --
         # compare last row to rest
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(2,0),(2,1),(2,2)],n=540,is_symmetric=False)[2],0./6.,1)
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(2,0),(2,1),(2,2)],n=540,\
-            tails='high',is_symmetric=False)[2],0./6.,1)
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(2,0),(2,1),(2,2)],n=540,\
-            tails='low',is_symmetric=False)[2],4./6.,1)
+        r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False)
+        self.assertSimiliarMeans(r, 0./6.)
+        r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
+            tails='high')
+        self.assertSimiliarMeans(r, 0./6.)
+        r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
+            tails='low')
+        self.assertSimiliarMeans(r, 4./6.)
 
     def test_distance_matrix_permutation_test_symmetric(self):
         """ evaluate empirical p-values for symmetric matrix
@@ -916,23 +917,23 @@ class TestDistMatrixPermutationTest(TestCase):
             doc string for a description of how this test works. 
 
         """
-        ## Need to update this code to use Daniel's test suite for 
-        ## handling tests with stochastic results. Right now I just check that 
-        ## empirical p-values are correct to one decimal place.
+        def make_result_list(*args, **kwargs):
+            return [distance_matrix_permutation_test(*args)[2] for i in range(10)]
+
         m = array([[0,1,3],[1,2,4],[3,4,5]])
-        # looks at each possible permutation 300 times -- 
+        # looks at each possible permutation n times -- 
         # compare first row to rest
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],n=540)[2],2./6.,1)
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],\
-            n=540,tails='high')[2],0./6.,1)
-        self.assertEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],\
-            n=540,tails='high'),(1.1547005383792515, 0.77281447417149496,0./6.))
-        self.assertAlmostEqual(distance_matrix_permutation_test(\
-            m,[(0,0),(0,1),(0,2)],\
-            n=540,tails='low')[2],4./6.,1)
+        n = 100
+
+        # looks at each possible permutation n times --
+        # compare first row to rest
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n)
+        self.assertSimiliarMeans(r, 0./6.)
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='high')
+        self.assertSimiliarMeans(r, 0.77281447417149496,0)
+        r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='low')
+        self.assertSimiliarMeans(r, 4./6.)
+
         ## The following lines are not part of the test code, but are useful in 
         ## figuring out what t-scores all of the permutations will yield. 
         #permutes = [[0, 1, 2], [0, 2, 1], [1, 0, 2],\
