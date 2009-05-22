@@ -5,7 +5,7 @@ import random, numpy
 from cogent.core.alignment import Alignment
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
-from cogent.util import parallel, table
+from cogent.util import parallel, table, warning
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -72,6 +72,12 @@ class LikelihoodFunction(object):
             return root_lht.getFullLengthLikelihoods(root_lh)
     
     def reconstructAncestralSequences(self, locus=None):
+        """deprecated, use reconstructAncestralSeqs"""
+        warning.deprecated("method", "reconstructAncestralSequences",
+            "reconstructAncestralSeqs", 1.4)
+        return self.reconstructAncestralSeqs(locus=locus)
+    
+    def reconstructAncestralSeqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
         of each alphabet state for each node in the tree.
         
@@ -108,7 +114,7 @@ class LikelihoodFunction(object):
         
         Arguments:
             - locus: a named locus"""
-        prob_array = self.reconstructAncestralSequences(locus=locus)
+        prob_array = self.reconstructAncestralSeqs(locus=locus)
         seqs = []
         for edge, probs in prob_array.items():
             seq = []
