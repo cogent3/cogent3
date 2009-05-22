@@ -95,6 +95,18 @@ class Table(DictArray):
           or a function that will handle the formatting.
         - dtype: optional numpy array typecode.
         """
+        try:
+            num_cols = len(header)
+            assert num_cols > 0
+            if type(rows) == numpy.ndarray:
+                assert num_cols == rows.shape[1]
+            elif type(rows) == dict:
+                assert num_cols == len(rows)
+            else:
+                assert num_cols == len(rows[0])
+        except (IndexError, TypeError, AssertionError):
+            raise RuntimeError("header and rows must be provided to Table")
+        
         header = [str(head) for head in header]
         if isinstance(rows, dict):
             rows = convert2DDict(rows, header = header,
