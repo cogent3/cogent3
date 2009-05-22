@@ -6,7 +6,8 @@ Translated from R 2.5 by Gavin Huttley
 """
 
 from __future__ import division
-from numpy import floor, sqrt
+from numpy import floor, sqrt, array
+from cogent.maths.stats.util import Freqs
 from cogent.maths.stats.distribution import zprob
 
 __author__ = "Gavin Huttley"
@@ -94,27 +95,27 @@ def kendalls_tau(x, y, return_p=True):
                     y_tied += 1
                 if y_diff:
                     x_tied += 1
+    
     diff = con - discor
     total = con + discor
-    denom = (total + y_tied)**0.5 * (total + x_tied)**0.5
-    variance = (4*n + 10) / (9*n * (n-1))
+    denom = ((total + y_tied) * (total + x_tied))**0.5
+    variance = (4*n+10) / (9*n*(n-1))
     tau = diff / denom
     stat = tau
+    
     if x_tied or y_tied:
-        if x_tied:
-            x_tied += 1
-        if y_tied:
-            y_tied += 1
-        t1 = x_tied * (x_tied-1) / 2
+        x_tied = array([v for v in Freqs(x).itervalues() if v > 1])
+        y_tied = array([v for v in Freqs(y).itervalues() if v > 1])
         t0 = n*(n-1)/2
-        t2 = y_tied * (y_tied-1) / 2
+        t1 = sum(x_tied * (x_tied-1)) / 2
+        t2 = sum(y_tied * (y_tied-1)) / 2
         stat = tau * sqrt((t0-t1)*(t0-t2))
         v0 = n * (n - 1) * (2 * n + 5)
-        vt = x_tied * (x_tied - 1) * (2 * x_tied + 5)
-        vu = y_tied * (y_tied - 1) * (2 * y_tied + 5)
-        v1 = x_tied * (x_tied - 1) * y_tied * (y_tied - 1)
-        v2 = x_tied * (x_tied - 1) * (x_tied - 2) * y_tied * (y_tied - 1) *\
-                                                    (y_tied - 2)
+        vt = sum(x_tied * (x_tied - 1) * (2 * x_tied + 5))
+        vu = sum(y_tied * (y_tied - 1) * (2 * y_tied + 5))
+        v1 = sum(x_tied * (x_tied - 1)) * sum(y_tied * (y_tied - 1))
+        v2 = sum(x_tied * (x_tied - 1) * (x_tied - 2)) * \
+               sum(y_tied * (y_tied - 1) * (y_tied - 2))
         variance = (v0 - vt - vu) / 18 + v1 / (2 * n * (n - 1)) + v2 / (9 * n * \
                                                         (n - 1) * (n - 2))
     if return_p:
