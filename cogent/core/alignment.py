@@ -21,7 +21,7 @@
 """
 from __future__ import division
 from types import GeneratorType
-from annotation import Map, _Annotatable
+from cogent.core.annotation import Map, _Annotatable
 import cogent   #will use to get at cogent.parse.fasta.MinimalFastaParser,
                 #which is a circular import otherwise.
 from cogent.format.alignment import save_to_filename
