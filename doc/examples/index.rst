@@ -26,7 +26,7 @@ Data manipulation
     genetic_code_aa_index
     handling_tabular_data
     query_ncbi
-    cogent_tree_examples
+    manipulating_tree_nodes
 
 **********************************
 Controlling 3rd party applications
