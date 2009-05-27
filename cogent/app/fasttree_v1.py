@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""Application controller for FastTree v1.1.0"""
+"""Application controller for FastTree v1.0"""
 
-from cogent.app.parameters import ValuedParameter, FlagParameter, \
-       MixedParameter
+from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, FilePath, system, \
        CommandLineAppResult, ResultPath, remove
 from cogent.core.tree import PhyloNode
@@ -40,15 +39,12 @@ class FastTree(CommandLineApplication):
             '-nj':FlagParameter('-',Name='nj'),
             '-bionj':FlagParameter('-',Name='bionj'),
             '-nt':FlagParameter('-',Name='nt'),
-            '-n':ValuedParameter('-',Delimiter=' ',Name='n'),
-            '-pseudo':MixedParameter('-',Delimiter=' ', Name='pseudo'),
-            '-intree':ValuedParameter('-',Delimiter=' ',Name='intree'),
-            '-spr':ValuedParameter('-',Delimiter=' ',Name='spr'),
-            '-constraints':ValuedParameter('-',Delimiter=' ',\
-                                           Name='constraints'),
-            '-constraintWeight':ValuedParameter('-',Delimiter=' ',\
-                                                Name='constraintWeight'),\
-            '-makematrix':ValuedParameter('-',Delimiter=' ',Name='makematrix')}
+            '-n':ValuedParameter('-',Delimiter=' ',Name='n')}
+
+    #FastTree [-quiet] [-boot 1000] [-seed 1253] [-nni 10] [-slow | -fastest]
+    #      [-top | -notop] [-topm 1.0 [-close 0.75] [-refresh 0.8]]
+    #      [-matrix Matrix | -nomatrix] [-nj | -bionj]
+    #      [-nt] [-n 100] [alignment] > newick_tree
 
     def __call__(self,data=None, remove_tmp=True):
         """Run the application with the specified kwargs on data
@@ -121,7 +117,7 @@ class FastTree(CommandLineApplication):
         result = {}
         result['Tree'] = ResultPath(Path=self._outfile)
         return result
-
+ 
 def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     """Returns a tree from alignment
     
@@ -138,12 +134,11 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
         raise ValueError, \
                 "FastTree does not support moltype: %s" % moltype.label
 
-    if best_tree:
-        params['-slow'] = True
-
     app = FastTree(params=params)
     
+    if best_tree:
+        raise NotImplementedError, "best_tree not implemented yet"
     result = app(aln.toFasta())
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
     return tree
-    
+   

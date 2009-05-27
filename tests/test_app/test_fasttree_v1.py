@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Tests for FastTree v1.1 application controller"""
+"""Tests for FastTree v1.0.0 application controller"""
 
 from shutil import rmtree
 from os import getcwd
 from cogent.util.unit_test import TestCase, main
-from cogent.app.fasttree import FastTree, build_tree_from_alignment
+from cogent.app.fasttree_v1 import FastTree, build_tree_from_alignment
 from cogent.core.alignment import Alignment
 from cogent.parse.fasta import MinimalFastaParser
 from cogent.parse.tree import DndParser
@@ -164,7 +164,7 @@ TTGGGGTTTCTAAGAGCCGA
 CTTTTACCGGGGTGACCGAGAGCACCATCTGCGCCGTGCCCTGCTTCGAGGCCCAAACCACCATCATACTGTTTGTGAAT
 CAGGGGTTGCTAAGAGCCGA"""
 
-exp_tree = """((test_set2_0:0.02121,(test_set2_8:-0.03148,(((test_set3_6:0.05123,(test_set3_5:0.01878,((test_set3_0:0.03155,test_set3_1:0.06432)0.664:0.01096,(((test_set3_3:0.02014,test_set3_8:0.04240)0.880:0.01129,(test_set3_7:0.05900,test_set3_4:0.01449)0.756:0.00571)0.514:0.00038,test_set3_9:0.00907)0.515:0.00020)0.834:0.00164)0.708:0.01349)0.754:0.19207,test_set3_2:-0.16026)0.999:1.34181,(test_set1_2:0.00324,((test_set1_0:0.04356,test_set1_1:0.07539)0.393:0.00223,((test_set1_3:0.01998,(test_set1_9:0.07362,((test_set1_4:0.06701,test_set1_8:0.05195)0.397:0.00350,(((test_set4_4:0.06931,(((test_set4_2:0.03637,test_set4_7:0.04823)0.726:0.01237,((test_set4_5:0.09845,test_set4_6:0.08151)0.593:0.00959,((test_set4_3:0.01520,test_set4_8:0.03654)0.590:0.00869,test_set4_9:0.07865)0.499:0.00229)0.479:0.00187)0.430:0.00179,test_set4_0:0.08643)0.651:0.00975)0.478:0.04249,test_set4_1:0.03754)1.000:1.66272,test_set1_6:-0.12006)0.803:0.15777)0.490:0.00569)0.562:0.00182)0.879:0.00579,(test_set1_7:0.03234,test_set1_5:0.04114)0.520:0.00487)0.567:0.00688)0.651:0.06887)0.923:0.48284)0.994:1.24321)0.517:0.05040)0.522:0.00306,test_set2_4:0.03835,((test_set2_9:0.07472,(test_set2_3:0.03380,test_set2_6:0.01794)0.540:0.00679)0.583:0.00234,(test_set2_2:0.03055,((test_set2_5:0.08864,test_set2_7:0.04212)0.724:0.00563,test_set2_1:0.02522)0.905:0.00645)0.566:0.00081)0.642:0.00394);"""
+exp_tree = """(test_set1_3:0.02062,(test_set1_8:0.05983,test_set1_9:0.07093)0.652:0.00422,((test_set1_5:0.04140,test_set1_7:0.03208)0.634:0.00995,((test_set1_0:0.04748,(test_set1_1:0.07025,(test_set1_2:-0.00367,((((((test_set3_4:0.01485,test_set3_7:0.05863)0.862:0.00569,(test_set3_5:0.02048,(test_set3_3:0.02036,test_set3_8:0.04218)0.724:0.01088)0.397:0.00005)0.519:0.00018,((test_set3_0:0.03139,test_set3_1:0.06448)0.699:0.01095,test_set3_9:0.00940)0.505:0.00036)0.721:0.01080,test_set3_6:0.05333)0.808:0.16470,test_set3_2:-0.12547)1.000:1.42295,((test_set4_1:-0.24707,((test_set4_3:0.00903,test_set4_8:0.04272)0.650:0.00955,(test_set4_4:0.07633,((test_set4_5:0.09853,test_set4_6:0.08143)0.577:0.00748,((test_set4_0:0.08822,test_set4_9:0.07914)0.371:0.00130,(test_set4_2:0.03477,test_set4_7:0.04983)0.764:0.01228)0.665:0.00370)0.535:0.00147)0.633:0.00116)0.850:0.32065)0.998:1.45908,(((test_set2_2:0.03125,((test_set2_8:0.01770,(test_set2_0:0.02172,test_set2_4:0.04082)0.482:0.00228)0.575:0.00249,(test_set2_9:0.07291,(test_set2_3:0.03201,test_set2_6:0.01973)0.538:0.00746)0.690:0.00319)0.746:0.00073)0.788:0.00569,(test_set2_5:0.08827,test_set2_7:0.04250)0.717:0.00533)0.504:0.04532,test_set2_1:-0.01642)0.997:1.14023)0.625:0.41298)0.822:0.20836)0.783:0.07781)0.487:0.00591)0.469:0.00151,(test_set1_4:0.06606,test_set1_6:0.02981)0.703:0.00956)0.560:0.00216)0.468:0.00050);"""
 
 if __name__ == '__main__':
     main()

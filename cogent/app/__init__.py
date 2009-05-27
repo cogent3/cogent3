@@ -14,6 +14,7 @@ __all__ = ['blast',
            'dialign',
            'dynalign',
            'fasttree',
+           'fasttree_v1'
            'foldalign',
            'gctmpca',
            'ilm',
@@ -38,7 +39,7 @@ __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                     "Rob Knight", "Zongzhi Liu", "Sandra Smit", "Micah Hamady",
-                    "Greg Caporaso", "Mike Robeson"]
+                    "Greg Caporaso", "Mike Robeson", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"
