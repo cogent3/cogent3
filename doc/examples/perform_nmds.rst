@@ -5,7 +5,7 @@ An example of how to use nmds.
 
 .. doctest::
 
-    >>> from nmds.nmds import NMDS
+    >>> from cogent.cluster.nmds import NMDS
     >>> from cogent.maths.distance_transform import dist_euclidean
     >>> from numpy import array
 
@@ -45,7 +45,7 @@ The NMDS object provides a list of points, which can be plotted if desired
 
 .. doctest::
 
-    >>> pts = nm.get_points()
-    >>> stress = nm.get_stress()
+    >>> pts = nm.getPoints()
+    >>> stress = nm.getStress()
 
 With matplotlib installed, we could then do ``plt.plot(pts[:,0], pts[:,1])``
