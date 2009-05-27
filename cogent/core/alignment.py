@@ -37,17 +37,17 @@ from numpy import nonzero, array, logical_or, logical_and, logical_not, \
 from numpy.random import randint, permutation
 
 from cogent.util.dict2d import Dict2D
-
 import logging
 LOG = logging.getLogger('cogent.data')
 
+from copy import copy
 from cogent.core.profile import Profile
 
 __author__ = "Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                     "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
-                    "Micah Hamady"]
+                    "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"
@@ -804,7 +804,7 @@ class SequenceCollection(object):
         get = self.NamedSeqs.__getitem__
         int_keys = dict([(prefix+str(i),k) for i,k in \
                 enumerate(sorted(self.NamedSeqs.keys()))])
-        int_map = dict([(k, get(v)) for k,v in int_keys.items()])
+        int_map = dict([(k, copy(get(v))) for k,v in int_keys.items()])
         return int_map, int_keys
     
     def getNumSeqs(self):
@@ -1318,7 +1318,20 @@ class Aligned(object):
             self.Info = data.Info
         if hasattr(data, 'Name'):
             self.Name = data.Name
-    
+
+    def copy(self, memo=None, _nil=[], constructor='ignored'):
+        """Returns a shallow copy of self
+
+        WARNING: cogent.core.sequence.Sequence does NOT implement a copy method,
+        as such, the data member variable of the copied object will maintain
+        reference to the original object.
+
+        WARNING: cogent.core.location.Map does NOT implement a copy method, as 
+        such, the data member variable of the copied object will maintain
+        reference to the original object.
+        """
+        return self.__class__(self.map, self.data)
+
     def __repr__(self):
         return '%s of %s' % (repr(self.map), repr(self.data))
     

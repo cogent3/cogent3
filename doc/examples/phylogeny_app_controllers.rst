@@ -40,7 +40,7 @@ Now, let's construct some trees with default parameters!
     >>> clustalw_tree
     Tree("((DogFaced,(HowlerMon,Human)),Mouse,NineBande);")
     >>> fasttree_tree
-    Tree("('seq_3','seq_4',('seq_0',('seq_1','seq_2')0.720)0.678);")
+    Tree("(Mouse,NineBande,(DogFaced,(HowlerMon,Human)0.851)0.671);")
     >>> muscle_tree
     Tree("(Mouse,(DogFaced,(Human,(HowlerMon,NineBande))));")
     >>> raxml_tree
