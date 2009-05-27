@@ -33,7 +33,7 @@ LOG = logging.getLogger('cogent.data')
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley",
-                    "Matthew Wakefield"]
+                    "Matthew Wakefield", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"
@@ -738,6 +738,13 @@ class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
     pass
 
+class ProteinWithStopSequence(Sequence):
+    """Holds the standard Protein sequence, allows for stop codon
+
+    MolType set in moltype module
+    """
+    pass
+
 class NucleicAcidSequence(Sequence):
     """Base class for DNA and RNA sequences. Abstract."""
     PROTEIN = None #will set in moltype
@@ -1406,4 +1413,8 @@ class ModelRnaCodonSequence(ModelCodonSequence):
 
 class ModelProteinSequence(ModelSequence):
     MolType = None  #set to PROTEIN in moltype.py
-    Alphabet = None #set to PROTEN.Alphabets.DegenGapped in moltype.py
+    Alphabet = None #set to PROTEIN.Alphabets.DegenGapped in moltype.py
+
+class ModelProteinWithStopSequence(ModelSequence):
+    MolType = None #set to PROTEIN_WITH_STOP in moltype.py
+    Alphabet= None #set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py

@@ -14,7 +14,8 @@ types and the MolType can be made after the objects are created.
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", \
+        "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -30,7 +31,8 @@ from cogent.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
     ByteSequence, ModelSequence, ModelNucleicAcidSequence, \
     ModelDnaSequence, ModelRnaSequence, ModelDnaCodonSequence, \
-    ModelRnaCodonSequence, ModelProteinSequence
+    ModelRnaCodonSequence, ModelProteinSequence, ProteinWithStopSequence,\
+    ModelProteinWithStopSequence
 from cogent.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent.core.alignment import Alignment, DenseAlignment, \
@@ -180,9 +182,20 @@ IUPAC_PROTEIN_chars = [
     'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
     'W', 'Y']
 
+PROTEIN_WITH_STOP_chars = [
+    'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
+    'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+    'W', 'Y', '*']
+
 IUPAC_PROTEIN_ambiguities = {
     'B': ['N', 'D'],
     'X': IUPAC_PROTEIN_chars,
+    'Z': ['Q', 'E'],
+    }
+
+PROTEIN_WITH_STOP_ambiguities = {
+    'B': ['N', 'D'],
+    'X': PROTEIN_WITH_STOP_chars,
     'Z': ['Q', 'E'],
     }
 
@@ -1044,6 +1057,15 @@ PROTEIN = MolType(
     ModelSeq = ModelProteinSequence,
     label = "protein")
 
+PROTEIN_WITH_STOP = MolType(
+    Sequence = ProteinWithStopSequence,
+    motifset = PROTEIN_WITH_STOP_chars,
+    Ambiguities = PROTEIN_WITH_STOP_ambiguities,
+    MWCalculator = ProteinMW,
+    make_alphabet_group=True,
+    ModelSeq = ModelProteinWithStopSequence,
+    label = "protein_with_stop")
+
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
     # want to prematurely assume _anything_ about the data.
@@ -1109,6 +1131,9 @@ ModelDnaSequence.Alphabet = DNA.Alphabets.DegenGapped
 
 ModelProteinSequence.MolType = PROTEIN
 ModelProteinSequence.Alphabet = PROTEIN.Alphabets.DegenGapped
+
+ModelProteinWithStopSequence.MolType = PROTEIN_WITH_STOP
+ModelProteinWithStopSequence.Alphabet = PROTEIN_WITH_STOP.Alphabets.DegenGapped
 
 ModelSequence.Alphabet = BYTES.Alphabet
 
