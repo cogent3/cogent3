@@ -138,10 +138,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     
     if best_tree:
         raise NotImplementedError, "best_tree not implemented yet"
-
     result = app(aln.toFasta())
-
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
-
     return tree
    
