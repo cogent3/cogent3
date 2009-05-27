@@ -9,7 +9,7 @@ test_comrna         test_muscle         test_unafold
 test_consan         test_nupack         test_util
 test_contrafold     test_parameters     test_vienna_package
 test_cove           test_pfold          test_gctmpca
-test_dialign        test_pknotsrg
+test_dialign        test_pknotsrg       test_fasttree
 """.split()
 
 __author__ = ""
