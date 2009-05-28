@@ -285,17 +285,12 @@ class AclTests(GeneralTests):
             '9': 0.1186, '8': 0.0958}
         tree9_exp = {'A':.25,'B':.25,'C':.25,'D':.25}
         
-        self.assertFloatEqualAbs(ACL(self.tree1).values(),
-            tree1_exp.values(),eps=err)
-        self.assertFloatEqualAbs(ACL(self.tree2).values(),
-            tree2_exp.values(),eps=err)
-        self.assertFloatEqualAbs(ACL(self.tree3).values(),
-            tree3_exp.values(),eps=err)
-        self.assertFloatEqualAbs(ACL(self.tree4).values(),
-            tree4_exp.values(),eps=err)
+        self.assertFloatEqualAbs(ACL(self.tree1), tree1_exp, eps=err)
+        self.assertFloatEqualAbs(ACL(self.tree2), tree2_exp, eps=err)
+        self.assertFloatEqualAbs(ACL(self.tree3), tree3_exp, eps=err)
+        self.assertFloatEqualAbs(ACL(self.tree4), tree4_exp, eps=err)
         #also works when branch lengths are zero
-        self.assertFloatEqualAbs(ACL(self.tree9).values(),
-            tree9_exp.values(),eps=err)
+        self.assertFloatEqualAbs(ACL(self.tree9), tree9_exp, eps=err)
         
         w_tree8 = ACL(self.tree8)
         self.assertFloatEqual(w_tree8['A'], w_tree8['B'],err)

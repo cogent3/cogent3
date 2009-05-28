@@ -33,17 +33,27 @@ class RNAfoldTests(TestCase):
         """RNAfold: BaseCommand should be ok for different parameter settings"""
         r = RNAfold()
         working_dir = getcwd()
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAfold -d1 -T 37 -S 1.07']))
+
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAfold','-d1','-T','37','-S','1.07']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['-noLP'].on()
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAfold -d1 -noLP -T 37 -S 1.07']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAfold','-d1','-noLP','-T','37',\
+               '-S','1.07']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['Temp'].on(15)
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAfold -d1 -noLP -T 15 -S 1.07']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAfold','-d1','-noLP','-T','15', \
+               '-S','1.07']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['-d'].off()
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAfold -noLP -T 15 -S 1.07']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAfold','-noLP','-T','15','-S','1.07']
+        self.assertEqualItems(obs, exp)
         
     def test_changing_working_dir(self):
         """RNAfold: BaseCommand should be ok after changing the working dir"""
@@ -206,19 +216,27 @@ class RNAsuboptTests(TestCase):
         """RNAsubopt: BaseCommand should be ok for different parameter settings
         """
         r = RNAsubopt()
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAsubopt -e 1 -d2 -T 37']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAsubopt','-e','1','-d2','-T','37']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['-nsp'].on('GA')
-        self.assertEqual(r.BaseCommand,\
-            ''.join(\
-                ['cd "',getcwd(),'/"; ','RNAsubopt -e 1 -d2 -nsp GA -T 37']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAsubopt','-e','1','-d2','-nsp','GA',\
+               '-T','37']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['Temp'].on(15)
-        self.assertEqual(r.BaseCommand,\
-            ''.join(\
-                ['cd "',getcwd(),'/"; ','RNAsubopt -e 1 -d2 -nsp GA -T 15']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAsubopt','-e','1','-d2','-nsp','GA',\
+               '-T','15']
+        self.assertEqualItems(obs, exp)
+
         r.Parameters['-d'].off()
-        self.assertEqual(r.BaseCommand,\
-            ''.join(['cd "',getcwd(),'/"; ','RNAsubopt -e 1 -nsp GA -T 15']))
+        obs = r.BaseCommand.split()
+        exp = ['cd','"%s/";' % getcwd(),'RNAsubopt','-e','1','-nsp','GA','-T',\
+               '15']
+        self.assertEqualItems(obs, exp)
         
     def test_changing_working_dir(self):
         """RNAsubopt: BaseCommand should be ok after changing the working dir

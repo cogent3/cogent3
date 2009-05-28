@@ -38,9 +38,6 @@ if 'COGENT_LOG_LEVEL' in os.environ:
     assert level in valid_log_levels, valid_log_levels
     logging.basicConfig(level=getattr(logging, level))
 
-if sys.version_info >= (2, 6):
-    LOG.warning("cogent.align.methods.ACL fails with Python-2.6")
-
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
