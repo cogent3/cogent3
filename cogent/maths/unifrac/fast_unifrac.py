@@ -36,7 +36,7 @@ TEST_ON_PAIRWISE = "Pairwise"
 TEST_ON_TREE = "Tree"
 TEST_ON_ENVS = "Envs"
 
-def identity(x): return x
+def identity(x): return range(x)
 
 def num_comps(num_envs):
     """ Calc number of comparisons for Bonferroni correction """
@@ -276,7 +276,7 @@ def fast_p_test(t, envs, num_iters, first_env=None, second_env=None,
     for i in range(num_iters):
         count_array *= 0
         permute_selected_rows(tip_indices, orig_count_array, count_array, 
-            permutation_f=permutation)
+            permutation_f=permutation_f)
         curr = fitch_descendants(bound_indices)
         result.append(curr)
     return result
