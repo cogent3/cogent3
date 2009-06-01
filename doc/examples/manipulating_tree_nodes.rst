@@ -9,12 +9,12 @@ Examples of how to initialize and manipulate various tree node objects.
     >>> from cogent import LoadTree
     >>> from cogent.parse.tree import DndParser
 
-The general method to initialize a tree is "LoadTree", however, for exceptionally large trees or if one needs to specify the node objects ("TreeNode", "PhyloNode", or "RangeNode"), "DndParser" should be used.  "LoadTree" uses "PhyloNode" objects by default.
+The general method to initialize a tree is ``LoadTree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``LoadTree`` uses ``PhyloNode`` objects by default.
 
 The basic properties of the tree node objects are:
-    *  "TreeNode" objects are general purpose in nature, and lack phylogenetic distance values.
-    *  "PhyloNode" objects inherit the methods of the "TreeNode" class and in addition contain phylogenetic distances.
-    *  "RangeNode" objects contain evolution simulation methods in addition to the standard features of a "PhyloNode".
+    *  ``TreeNode`` objects are general purpose in nature, and lack phylogenetic distance values.
+    *  ``PhyloNode`` objects inherit the methods of the ``TreeNode`` class and in addition contain phylogenetic distances.
+    *  ``RangeNode`` objects contain evolution simulation methods in addition to the standard features of a ``PhyloNode``.
 
 The following demonstrates the two methods for initializing a phylogenetic tree object.
 
@@ -52,7 +52,7 @@ Display the children of the root node, one of which is the parent of the tip we 
     >>> print simple_tree.Children
     [Tree("B;"), Tree("(C,D)E;")]
 
-Remove the 'C' tip.  **Note:** "remove()" and "removeNode()" return 'True' if a node is removed, 'False' if they cannot remove a node.
+Remove the 'C' tip.  **Note:** ``remove()`` and ``removeNode()`` return 'True' if a node is removed, 'False' if they cannot remove a node.
 
 .. doctest ::
 
@@ -87,7 +87,7 @@ When deleting tree nodes, it is often desirable to clean up any unbranched inter
     -F-------|
               \E------- /-D
 
-With the "prune()" method, internal nodes with only a single branch are removed.
+With the ``prune()`` method, internal nodes with only a single branch are removed.
 
 .. doctest ::
 
@@ -100,7 +100,7 @@ With the "prune()" method, internal nodes with only a single branch are removed.
 An Example of Conditional Tree Node Modifications
 =================================================
 
-Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the "iterTips()" iterator, and rename each node.  The internal nodes must also be given names in order to display this tree with "asciiArt()".
+Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the ``iterTips()`` iterator, and rename each node.  The ``asciiArt()`` function, by default, will attempt to display internal nodes; this can be suppressed by the parameter ``show_internal=False``.
 
 First, let's split the ungainly name string for each tip and only preserve the genus and species component, separated by a space.
 
@@ -109,33 +109,33 @@ First, let's split the ungainly name string for each tip and only preserve the g
     >>> for n in complex_tree.iterTips():
     ...     n.Name=n.Name.split()[2]+" "+n.Name.split()[3]
 
-Name the internal nodes so we can display the tree with "asciiArt()".
+Now we display the tree with ``asciiArt()``.
 
 .. doctest ::
 
-    >>> complex_tree.nameUnnamedNodes()
-    >>> print complex_tree.asciiArt()
-                                  /-Alkalibacterium putridalgicola
-                        /node3---|
-                       |          \-Marinilactibacillus psychrotolerans
-              /node2---|
-             |         |          /-Facklamia hominis
-             |         |         |
-             |          \node4---|          /-Aerococcus viridans
-             |                   |         |
-             |                    \node5---|                    /-Abiotrophia defectiva
-             |                             |          /node7---|
-    -node1---|                              \node6---|          \-Bacillus schlegelii
-             |                                       |
-             |                                        \-Fibrobacter succinogenes
-             |
-             |          /-Fibrobacter intestinalis
-             |-node8---|
-             |          \-Dictyoglomus thermophilum
-             |
-              \-Thermus scotoductus
+    >>> print complex_tree.asciiArt(show_internal=False)
+                                      /-Alkalibacterium putridalgicola
+                            /--------|
+                           |          \-Marinilactibacillus psychrotolerans
+                  /--------|
+                 |         |          /-Facklamia hominis
+                 |         |         |
+                 |          \--------|          /-Aerococcus viridans
+                 |                   |         |
+                 |                    \--------|                    /-Abiotrophia defectiva
+                 |                             |          /--------|
+        ---------|                              \--------|          \-Bacillus schlegelii
+                 |                                       |
+                 |                                        \-Fibrobacter succinogenes
+                 |
+                 |          /-Fibrobacter intestinalis
+                 |---------|
+                 |          \-Dictyoglomus thermophilum
+                 |
+                  \-Thermus scotoductus
 
-For another example of manipulating a phylogenetic tree, let us suppose that we want to remove any species in the tree that are not closely related to *Aerococcus viridans*.  To do this, we will delete any nodes that have a greater phylogenetic distance than 1.8 from *Aerococcus viridans*.  The best method to remove a large number of nodes from a tree is to first create a list of nodes to delete, followed by the actual removal process.  It is important that the "prune()" function be called after deletion of each node to ensure that internal nodes whose tips are deleted are removed instead of becoming tips.  Alternatively, one could test for internal nodes whose children are deleted in the procedure and flag these nodes to be deleted as well.
+
+For another example of manipulating a phylogenetic tree, let us suppose that we want to remove any species in the tree that are not closely related to *Aerococcus viridans*.  To do this, we will delete any nodes that have a greater phylogenetic distance than 1.8 from *Aerococcus viridans*.  The best method to remove a large number of nodes from a tree is to first create a list of nodes to delete, followed by the actual removal process.  It is important that the ``prune()`` function be called after deletion of each node to ensure that internal nodes whose tips are deleted are removed instead of becoming tips.  Alternatively, one could test for internal nodes whose children are deleted in the procedure and flag these nodes to be deleted as well.
 
 First, generate a list of tip nodes.
 
@@ -153,7 +153,7 @@ Next, iterate through this list, compare the distances to *Aerococcus*, and appe
     ...     if tips[AEROCOCCUS_INDEX].distance(n)>1.8:
     ...         tips_to_delete.append(n)
 
-Now for the actual deletion process.  We can simply use the parent of each node in the deletion list to remove itself.  Pruning is necessary to prevent internal nodes from being left as tips.  **Note:** "remove()" and "removeNode()" return 'True' if a node is successfully removed, 'False' otherwise.
+Now for the actual deletion process.  We can simply use the parent of each node in the deletion list to remove itself.  Pruning is necessary to prevent internal nodes from being left as tips.  **Note:** ``remove()`` and ``removeNode()`` return 'True' if a node is successfully removed, 'False' otherwise.
 
 .. doctest ::
 
@@ -168,20 +168,21 @@ Finally, print the modified complex_tree.
 
 .. doctest ::
 
-    >>> print complex_tree.asciiArt()
-                                  /-Alkalibacterium putridalgicola
-                        /node3---|
-                       |          \-Marinilactibacillus psychrotolerans
-    -node1--- /node2---|
-                       |          /-Facklamia hominis
-                       |         |
-                        \node4---|          /-Aerococcus viridans
-                                 |         |
-                                  \node5---|                    /-Abiotrophia defectiva
-                                           |          /node7---|
-                                            \node6---|          \-Bacillus schlegelii
-                                                     |
-                                                      \-Fibrobacter succinogenes
+    >>> print complex_tree.asciiArt(show_internal=False)
+                                      /-Alkalibacterium putridalgicola
+                            /--------|
+                           |          \-Marinilactibacillus psychrotolerans
+        --------- /--------|
+                           |          /-Facklamia hominis
+                           |         |
+                            \--------|          /-Aerococcus viridans
+                                     |         |
+                                      \--------|                    /-Abiotrophia defectiva
+                                               |          /--------|
+                                                \--------|          \-Bacillus schlegelii
+                                                         |
+                                                          \-Fibrobacter succinogenes
+
 
 
 
