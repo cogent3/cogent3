@@ -26,6 +26,7 @@ Data manipulation
     genetic_code_aa_index
     handling_tabular_data
     query_ncbi
+    query_ensembl
     manipulating_tree_nodes
 
 **********************************

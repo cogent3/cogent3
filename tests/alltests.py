@@ -3,7 +3,6 @@
 # suite of cogent package unit tests.
 # run suite by executing this file
 #
-
 import doctest, cogent.util.unit_test as unittest, sys, os
 from cogent.util.misc import app_path
 
@@ -31,6 +30,17 @@ def my_import(name):
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
+
+def module_present(modules):
+    """returns True if dependencies present"""
+    if type(modules) == str:
+        modules = [modules]
+    try:
+        for module in modules:
+            mod = __import__(module)
+    except ImportError:
+        return False
+    return True
 
 def suite():
     modules_to_test = [
@@ -201,13 +211,40 @@ def suite():
     if app_path('muscle'):
         modules_to_test.append('test_format.test_pdb_color')
     
-    # we now toggle the db tests, based on an evironment flag
+    # we now toggle the db tests, based on an environment flag
     if int(os.environ.get('TEST_DB', 0)):
-        for db_test in ['test_db.test_ncbi', 'test_db.test_pdb',
-                            'test_db.test_rfam', 'test_db.test_util']:
+        db_tests = ['test_db.test_ncbi', 'test_db.test_pdb',
+                        'test_db.test_rfam', 'test_db.test_util']
+        
+        # we check for an environment flag for ENSEMBL
+        # we expect this to have the username and account for a localhost
+        # installation of the Ensembl MySQL databases
+        if 'ENSEMBL_ACCOUNT' in os.environ:
+            # check for cogent.db.ensembl dependencies
+            test_ensembl = True
+            for module in ['MySQLdb', 'sqlalchemy']:
+                if not module_present(module):
+                    test_ensembl=False
+                    print >>sys.stderr, \
+                        "Module '%s' not present: skipping test" % module
+            
+            if test_ensembl:
+                db_tests += ['test_db.test_ensembl.test_assembly',
+                     'test_db.test_ensembl.test_database',
+                     'test_db.test_ensembl.test_compara',
+                     'test_db.test_ensembl.test_genome',
+                     'test_db.test_ensembl.test_host',
+                     'test_db.test_ensembl.test_species',
+                      'test_db.test_ensembl.test_feature_level']
+        else:
+            print >>sys.stderr,  "Environment variable ENSEMBL_ACCOUNT not "\
+            "set: skipping db.ensembl tests"
+        
+        for db_test in db_tests:
             modules_to_test.append(db_test)
     else:
-        print >>sys.stderr, "Environment variable TEST_DB=1 not set: skipping db tests"
+        print >>sys.stderr, \
+                "Environment variable TEST_DB=1 not set: skipping db tests"
     
     assert sys.version_info >= (2, 4)
     

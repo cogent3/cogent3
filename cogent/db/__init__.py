@@ -2,11 +2,12 @@
 """db: provides support libraries for database retrieval.
 """
 
-__all__ = ['ncbi', 'util', 'rfam', 'pdb']
+__all__ = ['ncbi', 'util', 'rfam', 'pdb', 'ensembl']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Rob Knight", "Mike Robeson", "Zongzhi Liu"]
+__credits__ = ["Rob Knight", "Mike Robeson", "Zongzhi Liu", "Gavin Huttley",
+               "Hua Ying"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"
 __maintainer__ = "Rob Knight"

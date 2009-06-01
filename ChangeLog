@@ -2,11 +2,29 @@
 Cogent 1.2 - 1.3
 ****************
 
-* reconstructAncestralSequences has been deprecated to
-  reconstructAncestralSeqs. It will be removed in version 1.4.
+New Features
+============
+
+* Python2.6 is now supported
 * added cogent.cluster.nmds, code to perform nonmetric multidimensional
   scaling.  Not as fast as others (e.g.: R, MASS package, isoMDS)
-* Python2.6 is now supported
+* Documentation ported to using the Sphinx documentation generator.
+* Major additions to documentation in doc/examples.
+* Added partial support for querying the Ensembl MySQL databases. This
+  capacity has additional dependencies (MySQL-python and SQLAlchemy). This
+  module should be considered alpha level code, (although it has worked
+  reliably for some time in the hands of the developers). 
+
+Changes
+=======
+
+* reconstructAncestralSequences has been deprecated to
+  reconstructAncestralSeqs. It will be removed in version 1.4.
+
+Bug Fixes
+=========
+
+
 
 ****************
 Cogent 1.1 - 1.2
