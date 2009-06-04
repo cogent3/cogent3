@@ -17,7 +17,7 @@ Do standard ``cogent`` imports.
     >>> import warnings
     >>> warnings.filterwarnings("ignore", "Model not reversible")
 
-To specify substitution models we use the ``MotifChange`` class from predicates. In the case of an unrestricted nucleotide model, we specify 11 such ``MotifChanges``, the last possible change being ignored (with the result it is constrained to equal 1, thus calibrating the matrix).
+To specify substitution models we use the ``MotifChange`` class from predicates. In the case of an unrestricted nucleotide model, we specify 11 such ``MotifChanges``, the last possible change being ignored (with the result it is constrained to equal 1, thus calibrating the matrix). Also note that this is a non-reversible model and thus we can't assume the nucleotide frequencies estimated from the alignments are reasonable estimates for the root frequencies. We therefore specify they are to be optimised using ``optimise_motif_probs`` argument.
 
 .. doctest::
 
@@ -26,22 +26,22 @@ To specify substitution models we use the ``MotifChange`` class from predicates.
     >>> del(preds[-1])
     >>> preds
     [A>C, A>T, A>G, C>A, C>T, C>G, T>A, T>C, T>G, G>A, G>C]
-    >>> sm = Nucleotide(predicates=preds, recode_gaps=True)
+    >>> sm = Nucleotide(predicates=preds, recode_gaps=True, optimise_motif_probs=True)
     >>> print sm
     <BLANKLINE>
     Nucleotide ( name = ''; type = 'None'; params = ['A>T', 'C>G', 'T>G', 'G>A', 'T>A', 'T>C', 'C>A', 'G>C', 'C>T', 'A>G', 'A>C']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
     <BLANKLINE>
 
-We'll illustrate this with a sample alignment and tree in "data/test.paml".
+We'll illustrate this with a sample alignment and tree in "data/primate_cdx2_promoter.fasta".
 
 .. doctest::
 
-    >>> tr = LoadTree("data/test.tree")
-    >>> print tr
-    (((Human,HowlerMon),Mouse),NineBande,DogFaced);
-    >>> al = LoadSeqs("data/test.paml", moltype=DNA)
+    >>> al = LoadSeqs("data/primate_cdx2_promoter.fasta", moltype=DNA)
     >>> al
-    5 x 60 dna alignment: NineBande[GCAAGGCGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...
+    3 x 1525 dna alignment: human[AGCGCCCGCGG...], macaque[AGC...
+    >>> tr = LoadTree(tip_names=al.Names)
+    >>> print tr
+    (human,macaque,chimp)root;
 
 We now construct the parameter controller with each predicate constant across the tree, and get the likelihood function calculator.
 
@@ -49,9 +49,14 @@ We now construct the parameter controller with each predicate constant across th
 
     >>> lf = sm.makeLikelihoodFunction(tr)
     >>> lf.setAlignment(al)
+    >>> lf.setTablesFormat(digits=2, space=3)
     >>> lf.setName('Unrestricted model')
-    >>> lf.optimise()
-    Outer loop = 0...
+
+We want to make the most general continuous time Markov model, which requires the predicates be independent for every edge.
+
+.. doctest::
+    
+    >>> lf.optimise(local=True, show_progress=False)
 
 In the output from the ``optimise`` call you'll see progress from the simulated annealing optimiser which is used first, and the Powell optimiser which finishes things off.
 
@@ -59,44 +64,32 @@ In the output from the ``optimise`` call you'll see progress from the simulated 
 
     >>> print lf
     Unrestricted model
-    ============================================================================
-       A>C       A>G       A>T       C>A       C>G       C>T       G>A       G>C
-    ----------------------------------------------------------------------------
-    0.6890    1.8880    0.0000    0.0000    0.0000    2.1652    0.2291    0.4868
-    ----------------------------------------------------------------------------
-    <BLANKLINE>
-    continued:
-    ====================================
-       A>C       T>A       T>C       T>G
-    ------------------------------------
-    0.6890    0.0000    2.2755    0.0000
-    ------------------------------------
-    <BLANKLINE>
-    =============================
-         edge    parent    length
-    -----------------------------
-        Human    edge.0    0.0333
-    HowlerMon    edge.0    0.0165
-       edge.0    edge.1    0.0164
-        Mouse    edge.1    0.1980
-       edge.1      root    0.0000
-    NineBande      root    0.0335
-     DogFaced      root    0.0503
-    -----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-        T    0.1433
-        C    0.1600
-        A    0.3800
-        G    0.3167
-    ---------------
+    ==========================================================================
+     A>C    A>G    A>T    C>A    C>G    C>T    G>A    G>C    T>A    T>C    T>G
+    --------------------------------------------------------------------------
+    0.49   4.88   1.04   2.04   0.99   7.89   9.00   1.55   0.48   5.53   1.57
+    --------------------------------------------------------------------------
+    =========================
+       edge   parent   length
+    -------------------------
+      human     root     0.00
+    macaque     root     0.04
+      chimp     root     0.01
+    -------------------------
+    ==============
+    motif   mprobs
+    --------------
+        T     0.26
+        C     0.26
+        A     0.24
+        G     0.24
+    --------------
 
-This data set is very small, so the parameter estimates are poor and hence doing something like allowing the parameters to differ between edges is silly. **But** if you have lots of data it makes sense and can be specified by modifying the ``lf`` as follows.
+This data set is very small, so the parameter estimates are poor and hence doing something like allowing the parameters to differ between edges is silly. If you have lots of data it makes sense to allow parameters to differ between edges, which can be specified by modifying the ``lf`` as follows.
 
 .. doctest::
 
     >>> for pred in preds:
     ...     lf.setParamRule(str(pred), is_independent=True)
 
-You then make a new ``lf`` and optimise as above, but I won't do that now as the optimiser would struggle due to the low information content of this sample.
+You would then re-optimise the model as above.
