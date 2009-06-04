@@ -57,6 +57,7 @@ def build_html():
     print "Built index.html"
 
 # Compiling Pyrex modules to .c and .so
+include_path = os.path.join(os.getcwd(), 'include')
 try:
     if 'DONT_USE_PYREX' in os.environ:
         raise ImportError
@@ -64,17 +65,18 @@ try:
         from Pyrex.Compiler.Version import version
         version = tuple([int(v) \
             for v in re.split("[^\d]",version) if v.isdigit()])
-        if version < (0, 9, 4):
+        if version < (0, 9, 8):
             print "Your Pyrex version is too old"
             raise ImportError
 except ImportError:
     # build from intermediate .c files
     # if we don't have pyrex
     print "Didn't find Pyrex - will compile from .c files"
-    distutils_extras = {"include_dirs": [os.path.join(os.getcwd(), 'include')]}
+    distutils_extras = {"include_dirs": [include_path]}
     pyrex_suffix = ".c"
 else:
     from Pyrex.Distutils import build_ext
+    from Pyrex.Distutils.extension import Extension
                         
     class build_wrappers(build_ext):
         # for predist, make .c files
@@ -93,7 +95,7 @@ else:
             'build_ext': build_ext,
             'pyrexc': build_wrappers,
             'predist': build_wrappers_and_html},
-        "include_dirs": [os.path.join(os.getcwd(), 'include')],
+        "include_dirs": [include_path],
         }
     
     pyrex_suffix = ".pyx"
@@ -102,9 +104,11 @@ else:
 
 # Save some repetitive typing.  We have all compiled
 # modules in place with their python siblings.
-def CogentExtension(module_name, extra_compile_args=[], include_dirs=[], **kw):
+def CogentExtension(module_name, extra_compile_args=[], **kw):
     path = module_name.replace('.', '/')
     kw['extra_compile_args'] = pyrex_compile_options + extra_compile_args
+    if pyrex_suffix == '.pyx':
+        kw['pyrex_include_dirs'] = [include_path]
     return Extension(module_name, [path + pyrex_suffix], **kw)
 
 # get version
