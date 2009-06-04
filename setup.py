@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from distutils.core import setup
-from distutils.extension import Extension
 import sys, os, re
 
 __author__ = "Peter Maxwell"
@@ -61,23 +60,39 @@ include_path = os.path.join(os.getcwd(), 'include')
 try:
     if 'DONT_USE_PYREX' in os.environ:
         raise ImportError
-    else:
+    from Cython.Compiler.Version import version
+    version = tuple([int(v) \
+        for v in re.split("[^\d]",version) if v.isdigit()])
+    if version < (0, 11, 2):
+        print "Your Cython version is too old"
+        raise ImportError
+except ImportError:
+    if 'DONT_USE_PYREX' in os.environ:
+        raise ImportError
+    try:
         from Pyrex.Compiler.Version import version
         version = tuple([int(v) \
             for v in re.split("[^\d]",version) if v.isdigit()])
         if version < (0, 9, 8):
             print "Your Pyrex version is too old"
             raise ImportError
-except ImportError:
-    # build from intermediate .c files
-    # if we don't have pyrex
-    print "Didn't find Pyrex - will compile from .c files"
+    except ImportError:
+        # build from intermediate .c files
+        # if we don't have cython or pyrex
+        print "Didn't find Cython or Pyrex - will compile from .c files"
+        from distutils.extension import Extension
+        build_ext = None
+    else:
+        from Pyrex.Distutils import build_ext
+        from Pyrex.Distutils.extension import Extension
+else:
+    from Cython.Distutils import build_ext
+    from Cython.Distutils.extension import Extension
+
+if build_ext is None:
     distutils_extras = {"include_dirs": [include_path]}
     pyrex_suffix = ".c"
-else:
-    from Pyrex.Distutils import build_ext
-    from Pyrex.Distutils.extension import Extension
-                        
+else:                            
     class build_wrappers(build_ext):
         # for predist, make .c files
         def run(self):
@@ -94,6 +109,7 @@ else:
         "cmdclass": {
             'build_ext': build_ext,
             'pyrexc': build_wrappers,
+            'cython': build_wrappers,
             'predist': build_wrappers_and_html},
         "include_dirs": [include_path],
         }
