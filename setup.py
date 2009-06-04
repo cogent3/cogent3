@@ -46,6 +46,7 @@ if sys.platform == "win32" and len(sys.argv) < 2:
 def build_html():
     if doc_imports_failed:
         print "Failed to build html due to ImportErrors for either docutils or docpytils"
+        #sys.exit(1)
         return
     stylesheet_path = os.path.join(os.getcwd(), "doc", "html_style.css")
     new_html = docutils.core.publish_file(source_path="doc/index.rst",
@@ -57,6 +58,7 @@ def build_html():
 
 # Compiling Pyrex modules to .c and .so
 include_path = os.path.join(os.getcwd(), 'include')
+distutils_extras = {"include_dirs": [include_path]}
 try:
     if 'DONT_USE_PYREX' in os.environ:
         raise ImportError
@@ -67,9 +69,9 @@ try:
         print "Your Cython version is too old"
         raise ImportError
 except ImportError:
-    if 'DONT_USE_PYREX' in os.environ:
-        raise ImportError
     try:
+        if 'DONT_USE_PYREX' in os.environ:
+            raise ImportError
         from Pyrex.Compiler.Version import version
         version = tuple([int(v) \
             for v in re.split("[^\d]",version) if v.isdigit()])
@@ -90,31 +92,30 @@ else:
     from Cython.Distutils.extension import Extension
 
 if build_ext is None:
-    distutils_extras = {"include_dirs": [include_path]}
     pyrex_suffix = ".c"
-else:                            
+    for cmd in ['cython', 'pyrexc', 'predist']:
+        if cmd in sys.argv:
+            print "'%s' not available without Cython or Pyrex" % cmd
+            sys.exit(1)
+else:
+    pyrex_suffix = ".pyx"
     class build_wrappers(build_ext):
         # for predist, make .c files
         def run(self):
             self.compiler = NullCompiler()
             # skip build_ext.run() and thus ccompiler setup
             build_ext.build_extensions(self)
-
+    
     class build_wrappers_and_html(build_wrappers):
         def run(self):
             build_wrappers.run(self)
             build_html()
-
-    distutils_extras = {
-        "cmdclass": {
-            'build_ext': build_ext,
-            'pyrexc': build_wrappers,
-            'cython': build_wrappers,
-            'predist': build_wrappers_and_html},
-        "include_dirs": [include_path],
-        }
     
-    pyrex_suffix = ".pyx"
+    distutils_extras["cmdclass"] = {
+        'build_ext': build_ext,
+        'pyrexc': build_wrappers,
+        'cython': build_wrappers,
+        'predist': build_wrappers_and_html}    
 
 # predist python setup.py predist --inplace --force, this is in _darcs/prefs/prefs for instructing darcs predist to execute the subsequent, predist is a darcs word
 
