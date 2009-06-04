@@ -1,4 +1,4 @@
-include "numerical_pyrex.pyx"
+include "../../include/numerical_pyrex.pyx"
 version_info = (2, 1)
 
 cdef extern from "math.h":
@@ -33,8 +33,8 @@ def sumInputLikelihoods(child_indexes, result, likelihoods):
             for i from 0 <= i < S: # col of parent data
                 u = index_data[i] # col of childs data
                 for m from 0 <= m < M:
-                    target_data[M*i+m] = target_data[M*i+m] * values_data[M*u+m]
-        c = c + 1
+                    target_data[M*i+m] *= values_data[M*u+m]
+        c += 1
     return result
     
 def getTotalLogLikelihood(counts, input_likelihoods, mprobs):
@@ -50,8 +50,8 @@ def getTotalLogLikelihood(counts, input_likelihoods, mprobs):
     for i from 0 <= i < S:
         posn = 0.0
         for m from 0 <= m < M:
-            posn = posn + likelihoods_data[i*M+m] * mprobs_data[m]
-        total = total + log(posn)*weights_data[i]
+            posn += likelihoods_data[i*M+m] * mprobs_data[m]
+        total += log(posn)*weights_data[i]
     return total
 
 def getLogSumAcrossSites(counts, input_likelihoods):
@@ -63,7 +63,7 @@ def getLogSumAcrossSites(counts, input_likelihoods):
     likelihoods_data = checkArrayDouble1D(input_likelihoods, &S)
     total = 0.0
     for i from 0 <= i < S:
-        total = total + log(likelihoods_data[i])*weights_data[i]
+        total += log(likelihoods_data[i])*weights_data[i]
     return total
 
 def logDotReduce(index, patch_probs, switch_probs, plhs):
@@ -93,17 +93,17 @@ def logDotReduce(index, patch_probs, switch_probs, plhs):
         for i from 0 <= i < n:
             state[i] = 0
             for j from 0 <= j < n:
-                state[i] = state[i] + prev[j] * sp[j*n+i]
-            state[i] = state[i] * pl[k*n+i]
+                state[i] += prev[j] * sp[j*n+i]
+            state[i] *= pl[k*n+i]
             if state[i] > state[most_probable_state]:
                 most_probable_state = i
         while state[most_probable_state] < 1.0:
             for i from 0 <= i < n:
-                state[i] = state[i] * BASE
-            exponent = exponent - 1
+                state[i] *= BASE
+            exponent += -1
     result = 0.0
     for i from 0 <= i < n:
-        result = result + state[i]
+        result += state[i]
 
     return log(result) + exponent * log(BASE)
         

@@ -1,4 +1,4 @@
-include "numerical_pyrex.pyx"
+include "../../include/numerical_pyrex.pyx"
 
 version_info = (1, 2)
 
@@ -140,7 +140,7 @@ cdef class EigenExponentiator:
             for i from 0 <= i < n:
                 uexpt = evI[i*n+k] * expt
                 for j from 0 <= j < n:
-                    data[j*n+i] = data[j*n+i] + uexpt * ev[k*n+j]
+                    data[j*n+i] += uexpt * ev[k*n+j]
         for i from 0 <= i < n*n:
             if data[i] < 0.0:
                 data[i] = 0.0

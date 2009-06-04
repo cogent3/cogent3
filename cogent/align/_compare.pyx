@@ -52,9 +52,9 @@ def dotplot(
         for i from i_lo <=  i < i_hi:
             j = i + diagonal
             k = i % window
-            score = score - scores[k]
+            score -= scores[k]
             scores[k] = (seq1[i] == seq2[j])
-            score = score + scores[k]
+            score += scores[k]
             if score >= threshold:
                 if not was_high:
                     start = cmax(i_lo, i - window)
