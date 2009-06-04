@@ -1,4 +1,4 @@
-include "numerical_pyrex.pyx"
+include "../../include/numerical_pyrex.pyx"
 
 cdef extern from "Python.h":
     PyErr_Occurred()
@@ -26,12 +26,12 @@ def fmpt(mantissa, exponent, msg=''):
 
 def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index, 
         int i_low, int i_high, int j_low, int j_high, preds, 
-        ArrayType state_directions, ArrayType T,  
+        ArrayType state_directions, ArrayType T, 
         ArrayType xgap_scores, ArrayType ygap_scores, ArrayType match_scores, 
         rows, track, int viterbi, int use_logs=0, int local=False, 
         int use_scaling=True):
     
-    """The ultimate in 2D Pyrex dynamic programming - forward or Viterbi 
+    """The ultimate in 2D Pyrex dynamic programming - Forward or Viterbi 
     algorithm, with doubles or with slower but practically unoverflowable 
     (double, long) GMP-like numbers.  Viterbi is also available in the ever 
     popular addition-of-logs version.  All this with any possible pair HMM 
@@ -76,8 +76,8 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     assert not (local and not viterbi)
     
     N = 0
-    row_length = 0
     T_data = checkArrayDouble2D(T, &N, &N)
+    row_length = 0
     row_count = 0
     plan_data = checkArrayLong1D(plan, &row_count)
     
@@ -85,13 +85,13 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     d4 = 4
     # Array of (state, bin, dx, dy) tuples describing the HMM states.
     dest_states_data = checkArrayLong2D(state_directions, &dest_states, &d4)
-        
+    
     cdef int bin_count, bin
     cdef double *xgap_score_data, *ygap_score_data
     
     x_index = checkArrayLong1D(seq1_index, &row_count)
     y_index = checkArrayLong1D(seq2_index, &row_length)
-
+    
     max_x = max_y = bin_count = 0
     match_score_data = checkArrayDouble3D(
             match_scores, &bin_count, &max_x, &max_y)
@@ -102,7 +102,9 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
         assert 0 <= x_index[i] < max_x
     for j from 0 <= j < row_length:
         assert 0 <= y_index[j] < max_y
-        
+    
+    assert j_low >= 0 and j_high > j_low and j_high <= row_length
+    
     (pog1, pog2) = preds
     (j_sources, j_sources_offsets) = pog2.asCombinedArray()
     j_link_count = 0
@@ -110,8 +112,6 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     row_length1 = row_length + 1
     j_sources_offsets_data = checkArrayLong1D(j_sources_offsets, &row_length1)
     
-    assert j_low >= 0 and j_high > j_low and j_high <= row_length
-
     (i_sources, i_sources_offsets) = pog1.asCombinedArray()
     i_link_count = 0
     i_sources_data = checkArrayLong1D(i_sources, &i_link_count)
@@ -133,7 +133,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     overall_max_exponent = MIN_SCALE
     overall_max_mantissa = 0.0
     last_i = last_j = last_state = -1
-
+    
     for i from i_low <= i < i_high:
         x = x_index[i]
         
@@ -187,6 +187,12 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 bin = dest_states_data[dest_state*4+1]
                 dx = dest_states_data[dest_state*4+2]
                 dy = dest_states_data[dest_state*4+3]
+                
+                max_mantissa = impossible
+                max_exponent = MIN_SCALE
+                partial_sum = 0.0
+                pointer_state = N+1 # ie ERROR
+                
                 if dx:
                     a_low = 1
                     a_high = a_count + 1
@@ -200,11 +206,6 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 else:
                     b_low = 0
                     b_high = 1
-                    
-                max_mantissa = impossible
-                max_exponent = MIN_SCALE
-                partial_sum = 0.0
-                pointer_state = N+1 # ie ERROR
     
                 if use_scaling:
                     sub_partial_sum = 0.0
@@ -223,7 +224,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                 exponent = source_row_ex_data[index]
                                 if exponent == MIN_SCALE:
                                     continue
-                                    
+                                
                                 mantissa = (source_row_data[index] 
                                      * T_data[prev_state*N+state])
                                 
@@ -231,18 +232,21 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                     if mantissa == 0.0:
                                         continue
                                     if mantissa < 0.0:
+                                        if T_data[prev_state*N+state] < 0.0:
+                                            raise ArithmeticError(fmpt(mantissa, exponent, 
+                                                    "transition is a negative probability"))
                                         raise ArithmeticError(fmpt(mantissa, exponent, 
-                                                "is a negative probability"))
+                                                "product is a negative probability"))
                                     while mantissa < MIN_FLOAT_VALUE:
-                                        mantissa = mantissa * SCALE_STEP
-                                        exponent = exponent - 1
+                                        mantissa *= SCALE_STEP
+                                        exponent += -1
                                         if exponent <= MIN_SCALE:
                                           raise ArithmeticError(fmpt(mantissa, exponent,
                                                 "underflows"))
                                                 
                                 elif mantissa > 1.0:
-                                    mantissa = mantissa * MIN_FLOAT_VALUE
-                                    exponent = exponent + 1
+                                    mantissa *= MIN_FLOAT_VALUE
+                                    exponent += 1
                                     if exponent > MAX_SCALE:
                                         raise ArithmeticError(fmpt(mantissa, exponent, 
                                             "is unexpectedly large"))
@@ -257,7 +261,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                     max_exponent = exponent
                                 
                                 if exponent == max_exponent:
-                                    partial_sum = partial_sum + mantissa
+                                    partial_sum += mantissa
                                     if viterbi and mantissa > max_mantissa:
                                         max_mantissa = mantissa
                                         pointer_state = prev_state
@@ -265,9 +269,9 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                         pointer_b = b
                                 
                                 elif exponent == max_exponent - 1:
-                                    sub_partial_sum = sub_partial_sum + mantissa
+                                    sub_partial_sum += mantissa
                                     
-                            partial_sum = partial_sum + sub_partial_sum * MIN_FLOAT_VALUE
+                            partial_sum += sub_partial_sum * MIN_FLOAT_VALUE
                 else:
                     # keep these next 7 lines same as above/below, 
                     # less source_row_ex_data
@@ -283,12 +287,12 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                 else:
                                     mantissa = (source_row_data[index] 
                                          * T_data[prev_state*N+state])
-                                    partial_sum = partial_sum + mantissa
+                                    partial_sum += mantissa
                                 if viterbi and mantissa > max_mantissa:
                                     max_mantissa = mantissa
                                     pointer_state = prev_state
-                                    pointer_a = dx
-                                    pointer_b = dy
+                                    pointer_a = a
+                                    pointer_b = b
                         
                 if viterbi:
                     mantissa = max_mantissa
@@ -312,9 +316,9 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                     d_score = 1.0
                 
                 if use_logs:
-                    mantissa = mantissa + d_score
+                    mantissa += d_score
                 else:
-                    mantissa = mantissa * d_score
+                    mantissa *= d_score
                 
                 current_row_data[j*N+state] = mantissa
                 if use_scaling:
