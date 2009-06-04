@@ -127,19 +127,17 @@ def CogentExtension(module_name, extra_compile_args=[], **kw):
         kw['pyrex_include_dirs'] = [include_path]
     return Extension(module_name, [path + pyrex_suffix], **kw)
 
-# get version
-execfile('cogent/__init__.py')
 short_description = "COmparative GENomics Toolkit"
 
 # This ends up displayed by the installer
 long_description = """Cogent
 A toolkit for statistical analysis of biological sequences.
 Version %s.
-""" % version
+""" % __version__
 
 setup(
     name = "cogent",
-    version = version,
+    version = __version__,
     url = "http://sourceforge.net/projects/pycogent",
     author = "Gavin Huttley, Rob Knight",
     author_email = "gavin.huttley@anu.edu.au, rob@spot.colorado.edu",
