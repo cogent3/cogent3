@@ -114,25 +114,25 @@ Now we display the tree with ``asciiArt()``.
 .. doctest ::
 
     >>> print complex_tree.asciiArt(show_internal=False)
-                                      /-Alkalibacterium putridalgicola
-                            /--------|
-                           |          \-Marinilactibacillus psychrotolerans
-                  /--------|
-                 |         |          /-Facklamia hominis
-                 |         |         |
-                 |          \--------|          /-Aerococcus viridans
-                 |                   |         |
-                 |                    \--------|                    /-Abiotrophia defectiva
-                 |                             |          /--------|
-        ---------|                              \--------|          \-Bacillus schlegelii
-                 |                                       |
-                 |                                        \-Fibrobacter succinogenes
-                 |
-                 |          /-Fibrobacter intestinalis
-                 |---------|
-                 |          \-Dictyoglomus thermophilum
-                 |
-                  \-Thermus scotoductus
+                                  /-Alkalibacterium putridalgicola
+                        /--------|
+                       |          \-Marinilactibacillus psychrotolerans
+              /--------|
+             |         |          /-Facklamia hominis
+             |         |         |
+             |          \--------|          /-Aerococcus viridans
+             |                   |         |
+             |                    \--------|                    /-Abiotrophia defectiva
+             |                             |          /--------|
+    ---------|                              \--------|          \-Bacillus schlegelii
+             |                                       |
+             |                                        \-Fibrobacter succinogenes
+             |
+             |          /-Fibrobacter intestinalis
+             |---------|
+             |          \-Dictyoglomus thermophilum
+             |
+              \-Thermus scotoductus
 
 
 For another example of manipulating a phylogenetic tree, let us suppose that we want to remove any species in the tree that are not closely related to *Aerococcus viridans*.  To do this, we will delete any nodes that have a greater phylogenetic distance than 1.8 from *Aerococcus viridans*.  The best method to remove a large number of nodes from a tree is to first create a list of nodes to delete, followed by the actual removal process.  It is important that the ``prune()`` function be called after deletion of each node to ensure that internal nodes whose tips are deleted are removed instead of becoming tips.  Alternatively, one could test for internal nodes whose children are deleted in the procedure and flag these nodes to be deleted as well.
@@ -169,19 +169,19 @@ Finally, print the modified complex_tree.
 .. doctest ::
 
     >>> print complex_tree.asciiArt(show_internal=False)
-                                      /-Alkalibacterium putridalgicola
-                            /--------|
-                           |          \-Marinilactibacillus psychrotolerans
-        --------- /--------|
-                           |          /-Facklamia hominis
-                           |         |
-                            \--------|          /-Aerococcus viridans
-                                     |         |
-                                      \--------|                    /-Abiotrophia defectiva
-                                               |          /--------|
-                                                \--------|          \-Bacillus schlegelii
-                                                         |
-                                                          \-Fibrobacter succinogenes
+                                  /-Alkalibacterium putridalgicola
+                        /--------|
+                       |          \-Marinilactibacillus psychrotolerans
+    --------- /--------|
+                       |          /-Facklamia hominis
+                       |         |
+                        \--------|          /-Aerococcus viridans
+                                 |         |
+                                  \--------|                    /-Abiotrophia defectiva
+                                           |          /--------|
+                                            \--------|          \-Bacillus schlegelii
+                                                     |
+                                                      \-Fibrobacter succinogenes
 
 
 
