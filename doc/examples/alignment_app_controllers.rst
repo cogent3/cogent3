@@ -1,7 +1,7 @@
 Using alignment application controllers to align unaligned sequences
 ====================================================================
 
-:Author: Daniel McDonald
+.. sectionauthor:: Daniel McDonald
 
 This document provides examples of how to align sequences using the alignment application controllers. Each alignment application controller module provides the support method ``align_unaligned_seqs``. This method takes as input a ``SequenceCollection`` object or a dict mapping sequence ids to sequences, the ``MolType`` of the sequences, and an option dict containing specific parameter settings. As output, the method returns an ``Alignment`` object.
 

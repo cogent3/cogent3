@@ -35,7 +35,7 @@ Get the likelihood function object this object performs the actual likelihood ca
 
     >>> lf.setAlignment(al)
 
-By default, parameters other than branch lengths are treated as global in scope, so we don't need to do anything special here. We can influence how rigorous the optimisation will be, and switch between the global and local optimisers provided in the toolkit using arguments to the optimise method. The ``global_tolerance=1.0`` argument specifies conditions for an early break from simulated annealing which will be automatically followed by the Powell local optimiser. :Note: the 'results' are of course nonsense.
+By default, parameters other than branch lengths are treated as global in scope, so we don't need to do anything special here. We can influence how rigorous the optimisation will be, and switch between the global and local optimisers provided in the toolkit using arguments to the optimise method. The ``global_tolerance=1.0`` argument specifies conditions for an early break from simulated annealing which will be automatically followed by the Powell local optimiser. .. note:: the 'results' are of course nonsense.
 
 .. doctest::
 
@@ -104,7 +104,7 @@ View the resulting maximum-likelihood parameter values.
     NineBande    root    0.11  1000000.00
      DogFaced    root    0.18        1.10...
 
-:Note: The parameter estimates for ``omega`` are highly implausible, reflecting (in this case) our small and uninformative data set.
+.. note:: The parameter estimates for ``omega`` are highly implausible, reflecting (in this case) our small and uninformative data set.
 
 Get out an annotated tree, it looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This object can be used for plotting, or to provide starting estimates to a related model.
 

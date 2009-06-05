@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from distutils.core import setup
-import sys, os, re
+import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -14,8 +14,7 @@ __status__ = "Production"
 
 doc_imports_failed = False
 try:
-    import docutils.core
-    from docpytils.docpytils import *
+    import sphinx
 except ImportError:
     doc_imports_failed = True
 
@@ -45,15 +44,12 @@ if sys.platform == "win32" and len(sys.argv) < 2:
 # Restructured Text -> HTML
 def build_html():
     if doc_imports_failed:
-        print "Failed to build html due to ImportErrors for either docutils or docpytils"
-        #sys.exit(1)
+        print "Failed to build html due to ImportErrors for sphinx"
         return
-    stylesheet_path = os.path.join(os.getcwd(), "doc", "html_style.css")
-    new_html = docutils.core.publish_file(source_path="doc/index.rst",
-                    writer_name='html',
-                    destination_path='doc/index.html',
-                    settings_overrides={"embed-stylesheet": True,
-                                        "stylesheet_path": stylesheet_path})
+    cwd = os.getcwd()
+    os.chdir('doc')
+    subprocess.call(["make", "html"])
+    os.chdir(cwd)
     print "Built index.html"
 
 # Compiling Pyrex modules to .c and .so
@@ -97,7 +93,7 @@ if build_ext is None:
         if cmd in sys.argv:
             print "'%s' not available without Cython or Pyrex" % cmd
             sys.exit(1)
-else:
+else:                            
     pyrex_suffix = ".pyx"
     class build_wrappers(build_ext):
         # for predist, make .c files
@@ -105,12 +101,12 @@ else:
             self.compiler = NullCompiler()
             # skip build_ext.run() and thus ccompiler setup
             build_ext.build_extensions(self)
-    
+
     class build_wrappers_and_html(build_wrappers):
         def run(self):
             build_wrappers.run(self)
             build_html()
-    
+
     distutils_extras["cmdclass"] = {
         'build_ext': build_ext,
         'pyrexc': build_wrappers,

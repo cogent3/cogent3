@@ -1,7 +1,7 @@
 Compute the effect of a nucleotide substitution on residue polarity in two different genetic codes using GeneticCode and AAIndex
 ================================================================================================================================
 
-:Author: Greg Caporaso
+.. sectionauthor:: Greg Caporaso
 
 This document illustrates how to work with a genetic code object, and compare two different genetic codes. Here we compare the change in residue polarity, as judged by the Woese Polarity Requirement index (Woese 1973), resulting from a nucleotide substitution if the sequence is translated with the standard nuclear genetic code, or the vertebrate mitochondrial genetic code. 
 

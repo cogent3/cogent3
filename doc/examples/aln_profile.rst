@@ -1,7 +1,7 @@
 Creating and manipulating alignment profiles
 ============================================
 
-:Author: Sandra Smit
+.. sectionauthor:: Sandra Smit
 
 This is an example of how to create a profile from an alignment and how to do particular tricks with it. First, import the necessary stuff.
 

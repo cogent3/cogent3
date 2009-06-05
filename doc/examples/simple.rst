@@ -1,7 +1,7 @@
 The simplest script
 ===================
 
-This is just about the simplest possible Cogent script for evolutionary modelling. We use a canned nucleotide substitution model (the ``HKY85`` model) on just three primate species. As there is only unrooted tree possible, the sequence names are that's required to make the tree.
+This is just about the simplest possible Cogent script for evolutionary modelling. We use a canned nucleotide substitution model (the ``HKY85`` model) on just three primate species. As there is only unrooted tree possible, the sequence names are all that's required to make the tree.
 
 .. doctest::
 

@@ -12,24 +12,38 @@ Dependencies
 
 The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.
 
-`Required`
-    - Python_: the language the toolkit is primarily written in, and in which the user writes control scripts.
-    - Numpy_: This is a python module used for speeding up matrix computations. It is available as source code for \*nix. **NOTE:** For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as::
+.. todo::
+    
+    **FOR RELEASE** update Numpy version
 
+Required
+^^^^^^^^
+
+- Python_: the language the toolkit is primarily written in, and in which the user writes control scripts.
+- Numpy_: This is a python module used for speeding up matrix computations. It is available as source code for \*nix.
+    .. note:: For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as
+    
+    .. code-block:: guess
+    
         $ export ATLAS=None
         $ export LAPACK=None
 
-`Optional`
-    - C compiler: This is standard on most \*nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from Apple_.
-    - ReportLab_: required for drawing trees and alignments to pdf.
-    - Matplotlib_: used to plot several kinds of graphs related to codon usage.
-    - Pyrex_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
-    - PyxMPI_: Our own python MPI interface, required for parallel computation.
+Optional
+^^^^^^^^
+
+- C compiler: This is standard on most \*nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from Apple_.
+- ReportLab_: required for drawing trees and alignments to pdf.
+- Matplotlib_: used to plot several kinds of graphs related to codon usage.
+- Pyrex_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
+- PyxMPI_: Our own python MPI interface, required for parallel computation.
+- SQLAlchemy_ and `MySQL-python`_ : These are required for the Ensembl querying code.
+
+If you use the quick install approach (see :ref:`quick-install`), these are all specified in the requirements file.
 
 Installation
 ------------
 
-For \*nix platforms (including MacOS X), installation of the software is conventional for python packages. Download the software from `here <http://sourceforge.net/projects/pycogent>`_. Uncompress the archive and change into the ``PyCogent`` directory and type::
+If you don't wish to use the quick installation approach (:ref:`quick-install`) then the conventional \*nix platform (including MacOS X) python package installation procedure applies. Download the software from `here <http://sourceforge.net/projects/pycogent>`_. Uncompress the archive and change into the ``PyCogent`` directory and type::
 
 $ python setup.py build
 
@@ -39,17 +53,25 @@ $ sudo python setup.py install
 
 This then places the entire package into your python/site-packages folder.
 
-If you do not have administrator privileges on your machine you can move the cogent directory to where you want it (or leave it in place) and add this location to your python path using ``sys.path.append("/your/path/to/PyCogent")`` in each script, or by setting shell environment variables. (Note that the path is not to ``../PyCogent/cogent``.)
+If you do not have administrator privileges on your machine you can change the build approach to::
+
+$ python setup.py build_ext -if
+
+which compiles the extensions in place (the ``i`` option) forcibly (the ``f`` option, ie even if they've already been compiled). Then move the cogent directory to where you want it (or leave it in place) and add this location to your python path using ``sys.path.insert(0, "/your/path/to/PyCogent")`` in each script, or by setting shell environment variables. (Note that the path is not to ``../PyCogent/cogent``.)
 
 Testing
 -------
 
-``PyCogent/tests`` contains all the tests (currently >3100). You can most readily run the tests using the ``PyCogent/run_tests`` shell script. This is done by typing::
+``PyCogent/tests`` contains all the tests (currently >3100). You can most readily run the tests using the ``PyCogent/run_tests`` shell script. This is done by typing:
 
-$ sh run_tests
+.. code-block:: guess
+    
+    $ sh run_tests
 
-which will automatically build extensions in place, set up the PYTHONPATH and run ``PyCogent/tests/alltests.py``. Note that if certain optional applications are not installed this will be indicated in the output as "can't find" or "not installed". A "`.`" will be printed to screen for each test and if they all pass, you'll see output like::
+which will automatically build extensions in place, set up the PYTHONPATH and run ``PyCogent/tests/alltests.py``. Note that if certain optional applications are not installed this will be indicated in the output as "can't find" or "not installed". A "`.`" will be printed to screen for each test and if they all pass, you'll see output like:
 
+.. code-block:: guess
+    
     Ran 3299 tests in 58.128s
     
     OK
@@ -59,19 +81,19 @@ Tips for usage
 
 A good IDE can greatly simplify writing control scripts. Features such as code completion and definition look-up are extremely useful. For a complete list of `editors go here`_.
 
-To get help on attributes of an object in python, use the ``dir(myalign)`` to list the attributes of ``myalign`` or ``help(myalign.writeToFile)`` to figure out how to use the ``myalign.writeToFile`` method. Also note that the directory structure of the package is similar to the import statements required to use a module -- to see the contents of ``alignment.py`` or ``sequence.py`` you need to look in the directory ``cogent/core`` path, to use the classes in those files you specify ``cogent.core`` for importing.
+To get help on attributes of an object in python, use
 
-.. _PyEvolve:
+.. code-block:: python
+    
+    >>> dir(myalign)
 
-Citation
---------
+to list the attributes of ``myalign`` or 
 
-If you use this software for published work please cite either -- `Knight et al., 2007, Genome Biol, 8, R171 <http://genomebiology.com/2007/8/8/R171>`_; or, `Butterfield et al., 2004, BMC Bioinformatics, 5, 1 <http://www.biomedcentral.com/1471-2105/5/1>`_.
+.. code-block:: python
+    
+    >>> help(myalign.writeToFile)
 
-Contacts
---------
-
-If you find a bug or have feature requests, please post comments on the corresponding `tracker`_ page at sourceforge. If you have any questions please post on the appropriate projects `forums`_ page at sourceforge.
+to figure out how to use the ``myalign.writeToFile`` method. Also note that the directory structure of the package is similar to the import statements required to use a module -- to see the contents of ``alignment.py`` or ``sequence.py`` you need to look in the directory ``cogent/core`` path, to use the classes in those files you specify ``cogent.core`` for importing.
 
 .. _Python: http://www.python.org
 .. _Numpy: http://www.scipy.org/NumPy
@@ -81,7 +103,7 @@ If you find a bug or have feature requests, please post comments on the correspo
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
 .. _`editors go here`: http://www.python.org/cgi-bin/moinmoin/PythonEditors
 .. _PyxMPI: http://jcsmr.anu.edu.au/org/dmb/compgen/software.php
-.. _tracker: http://sourceforge.net/tracker2/?group_id=186234
-.. _forums: http://sourceforge.net/forum/?group_id=186234
 .. _`restructured text`: http://docutils.sourceforge.net/rst.html
 .. _gcc: http://gcc.gnu.org/
+.. _SQLAlchemy: http://www.sqlalchemy.org
+.. _`MySQL-python`: http://sourceforge.net/projects/mysql-python
