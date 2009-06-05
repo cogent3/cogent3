@@ -680,7 +680,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
        edge.1         root     4.0  1.0  3.0  6.0
     ---------------------------------------------
 
-:Note: There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader, to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.
+.. note:: There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader, to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.
 
 Table slicing and iteration
 ---------------------------

@@ -78,4 +78,4 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     NineBande    root    0.11       1.57
      DogFaced    root    0.18       1.57...
 
-:Note: A parameter rich model applied to a small data set is unreliable.
+.. note:: A parameter rich model applied to a small data set is unreliable.

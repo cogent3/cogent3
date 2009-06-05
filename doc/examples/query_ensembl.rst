@@ -326,7 +326,7 @@ Comparative Analyses
 
 The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compara``. This object provides a means for querying for relationships among genomes and obtaining multiple alignments. For convenience the class is made available through the top-level module for importing  (i.e. ``cogent.db.ensembl.Compara``). Instantiating ``Compara`` requires, as before, an account instance, the ensembl release and the series of species of interest. For the purpose of illustration we'll use the human, mouse and rat genomes.
 
-:NOTE: Any queries on this instance of compara will only return results for the indicated species. If you want to query about other species, create another instance.
+.. note:: Any queries on this instance of compara will only return results for the indicated species. If you want to query about other species, create another instance.
 
 .. doctest::
 
@@ -431,7 +431,7 @@ Ensembl stores multiple sequence alignments for selected species. For a given gr
 
 The ``align_method`` and ``align_clade`` columns can be used as arguments to ``getSyntenicRegions``. This method is responsible for returning ``SyntenicRegions`` instances for a given coordinate from a species. As it's possible that multiple records may be found from the multiple alignment for a given set of coordinates, the result of calling this method is a python generator. The returned regions have a length, defined by the full set of aligned sequences. If the ``omit_redundant`` argument is used, then positions with gaps in all sampled species will be removed in the alignment to be returned. The length of the syntenic region, however, is the length of the unfiltered alignment.
 
-:Note: It's important to realise that multiple alignments are from these clades. Hence, sequence regions that you might expect would result in a contiguous alignment in the species subset of interest may be returned as separate ``SyntenicRegions`` due to the influence on the alignment of the other species.
+.. note:: It's important to realise that multiple alignments are from these clades. Hence, sequence regions that you might expect would result in a contiguous alignment in the species subset of interest may be returned as separate ``SyntenicRegions`` due to the influence on the alignment of the other species.
 
 .. doctest::
 

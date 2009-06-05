@@ -1,7 +1,7 @@
 Motif results example
 =====================
 
-:Author: Jeremy Widmann
+.. sectionauthor:: Jeremy Widmann
 
 In this example we will be parsing a motif results file and doing some basic operations highlighting the features of the various core motif handling objects. We first want to import the necessary modules.
 

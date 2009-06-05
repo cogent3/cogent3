@@ -1,7 +1,7 @@
 Make a UPGMA cluster
 ====================
 
-:Author: Catherine Lozupone
+.. sectionauthor:: Catherine Lozupone
 
 An example of how to calculate the pairwise distances for a set of sequences.
 

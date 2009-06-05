@@ -1,7 +1,7 @@
 Generating application commandlines
 ===================================
 
-:Author: Daniel McDonald
+.. sectionauthor:: Daniel McDonald
 
 In this example we will generate application command lines. This tool is useful for creating jobs scripts in a cluster or supercomputer environment, as well as when varying parameters. First, we must create a ``ParameterIterBase`` subclass instance. For this example, we will use the ``ParameterCombinations`` object and will vary parameters from the ``Clustalw`` application controller.
 

@@ -1,7 +1,7 @@
 Using phylogeny application controllers to construct phylogenetic trees from alignments
 =======================================================================================
 
-:auther: Daniel McDonald
+.. sectionauthor:: Daniel McDonald
 
 This document provides a few use case examples of how to use the phylogeny application controllers available in PyCogent. Each phylogeny application controller provides the support method ``build_tree_from_alignment``. This method takes as input an ``Alignment`` object, a ``SequenceColleciton`` object or a dict mapping sequence IDs to sequences. The ``MolType`` must also be specified. Optionally, you can indicate if you would like the "best_tree$", as well as any additional application parameters. These methods return a ``PhyloNode`` object.
 

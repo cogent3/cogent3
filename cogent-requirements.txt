@@ -1,0 +1,7 @@
+https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk
+Sphinx>=0.6
+numpy>=1.3.0
+http://www.reportlab.org/ftp/ReportLab_2_3.tar.gz
+MySQL-python>=1.2.2
+SQLAlchemy>=0.5
+http://jcsmr.anu.edu.au/org/genbio/compgen/PyxMPI.tar.gz
