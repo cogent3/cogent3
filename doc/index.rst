@@ -4,7 +4,7 @@
 Welcome to PyCogent's documentation!
 ####################################
 
-Contents:
+**Contents:**
 
 .. toctree::
    :maxdepth: 1
@@ -13,8 +13,13 @@ Contents:
    coding_guidelines
    examples/index
    licenses
+   cookbook/index
 
 .. todolist::
+
+.. todo::
+    
+    **FOR RELEASE:** unlink cookbook until it's complete?
 
 .. _quick-install:
 
@@ -47,7 +52,7 @@ If you want to grab the development version of PyCogent, just replace the first 
 
 .. todo::
     
-    **FOR RELEASE:** update the requirements file
+    **FOR RELEASE:** update the cogent-requirements.txt file to point to stable release tarball
 
 Citation
 --------
@@ -111,7 +116,7 @@ To actually test the documentation, you need to be in the ``doc`` directory and 
 
 The results are in ``_build/doctest/output.txt``.
 
-.. note:: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent ``unittest`` test suite.  If you don't have all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
+.. note:: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent ``unittest`` test suite. If you don't have all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
 
 Adding to the documentation
 ---------------------------
