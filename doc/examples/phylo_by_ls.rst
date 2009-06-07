@@ -33,12 +33,11 @@ Look for the single best tree
 In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying ``a=5``. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. ``k=1`` means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best ``k`` results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single ``Tree`` which can be saved etc ..
 
 .. doctest::
-
+    
     >>> score, tree = ls.trex(a = 5, k = 1, show_progress = True)
     3 trees of size 4 at start
     15 trees of size 5 ... done
-    >>> print score
-    0.0009...
+    >>> assert score < 1e-4
 
 We won't display this tree, because we are doing more below.
 
@@ -65,8 +64,11 @@ Lets inspect the resulting statistics. First, the object ``trees`` is a list of 
 .. doctest::
 
     >>> wls_stats = [tree[0] for tree in trees]
+
+The ``wls_stats`` is a list which, if printed, looks like
+
     >>> print wls_stats[:15]
-    [0.000914409...
+    [1.3308768548934439e-05, 0.0015588630350439783, ...
 
 From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print the first two of the these trees after balancing them (in order to make their representations as equal as possible).
 
@@ -75,25 +77,25 @@ From this you'll see that the first 5 results are very similar to each other and
     >>> t1 = trees[0][1].balanced()
     >>> t2 = trees[1][1].balanced()
     >>> print t1.asciiArt()
-              /-DogFaced
+                        /-Human
+              /edge.0--|
+             |          \-HowlerMon
+             |
+    -root----|--Mouse
              |
              |          /-NineBande
-    -root----|-edge.0--|
-             |          \-Mouse
-             |
-             |          /-HowlerMon
               \edge.1--|
-                        \-Human
+                        \-DogFaced
     >>> print t2.asciiArt()
-              /-NineBande
+              /-DogFaced
              |
-             |          /-DogFaced
+             |          /-Human
     -root----|-edge.0--|
-             |          \-Mouse
+             |          \-HowlerMon
              |
-             |          /-HowlerMon
+             |          /-NineBande
               \edge.1--|
-                        \-Human
+                        \-Mouse
 
 You can see the difference involves the Jackrabbit, TreeShrew, Gorilla, Rat clade.
 
@@ -114,14 +116,14 @@ We now just use the ``ls`` object created above. The following evaluates the que
     :options: +NORMALIZE_WHITESPACE
     
     >>> ls.evaluateTree(query_tree)
-    3.95...
+    2.8...
 
 We can also evaluate just the tree's topology, returning both the wls statistic and the tree with best fit branch lengths.
 
 .. doctest::
 
     >>> wls, t = ls.evaluateTopology(query_tree)
-    >>> assert "%.4f" % wls == '0.0032'
+    >>> assert "%.4f" % wls == '0.0084'
 
 Using maximum likelihood for measuring tree fit
 -----------------------------------------------
