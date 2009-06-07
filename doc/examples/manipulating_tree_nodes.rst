@@ -14,9 +14,10 @@ Examples of how to initialize and manipulate various tree node objects.
 The general method to initialize a tree is ``LoadTree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``LoadTree`` uses ``PhyloNode`` objects by default.
 
 The basic properties of the tree node objects are:
-    *  ``TreeNode`` objects are general purpose in nature, and lack phylogenetic distance values.
-    *  ``PhyloNode`` objects inherit the methods of the ``TreeNode`` class and in addition contain phylogenetic distances.
-    *  ``RangeNode`` objects contain evolution simulation methods in addition to the standard features of a ``PhyloNode``.
+
+*  ``TreeNode`` objects are general purpose in nature, and lack phylogenetic distance values.
+*  ``PhyloNode`` objects inherit the methods of the ``TreeNode`` class and in addition contain phylogenetic distances.
+*  ``RangeNode`` objects contain evolution simulation methods in addition to the standard features of a ``PhyloNode``.
 
 The following demonstrates the two methods for initializing a phylogenetic tree object.
 
