@@ -6,21 +6,21 @@ This file contains an example for performing a likelihood ratio test of neutrali
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import GY94
+    >>> from cogent.evolve.models import MG94GTR
     >>> from cogent.maths import stats
 
 Get your alignment and tree.
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/test.paml")
+    >>> al = LoadSeqs("data/long_testseqs.fasta")
     >>> t = LoadTree("data/test.tree")
 
 We use a Goldman Yang 1994 model.
 
 .. doctest::
 
-    >>> sm = GY94()
+    >>> sm = MG94GTR()
 
 Make the controller object
 
@@ -47,21 +47,30 @@ View the resulting maximum-likelihood parameter values
 
     >>> print lf
     Likelihood Function Table
-    ============
-    kappa  omega
-    ------------
-     9.28   1.87
-    ------------
+    ===================================
+     A/C   A/G   A/T   C/G   C/T  omega
+    -----------------------------------
+    1.02  3.36  0.73  0.95  3.71   0.90
+    -----------------------------------
     =========================
          edge  parent  length
     -------------------------
-        Human  edge.0    0.10
-    HowlerMon  edge.0    0.05
-       edge.0  edge.1    0.07
-        Mouse  edge.1    0.91
-       edge.1    root    0.00
-    NineBande    root    0.11
-     DogFaced    root    0.18...
+        Human  edge.0    0.09
+    HowlerMon  edge.0    0.12
+       edge.0  edge.1    0.12
+        Mouse  edge.1    0.84
+       edge.1    root    0.06
+    NineBande    root    0.28
+     DogFaced    root    0.34
+    -------------------------
+    =============
+    motif  mprobs
+    -------------
+        T    0.23
+        C    0.19
+        A    0.37
+        G    0.21
+    -------------
 
 We'll get the lnL and number of free parameters for later use.
 
@@ -88,23 +97,30 @@ View the resulting maximum-likelihood parameter values.
 
     >>> print lf
     Likelihood Function Table
-    =====
-    kappa
-    -----
-     8.95
-    -----
-    =====================================
-         edge  parent  length       omega
-    -------------------------------------
-        Human  edge.0    0.10   999999.98
-    HowlerMon  edge.0    0.06   999999.99
-       edge.0  edge.1    0.07   999999.99
-        Mouse  edge.1    0.96        0.70
-       edge.1    root    0.00   976875.85
-    NineBande    root    0.11  1000000.00
-     DogFaced    root    0.18        1.10...
-
-.. note:: The parameter estimates for ``omega`` are highly implausible, reflecting (in this case) our small and uninformative data set.
+    ============================
+     A/C   A/G   A/T   C/G   C/T
+    ----------------------------
+    1.03  3.38  0.73  0.95  3.72
+    ----------------------------
+    ================================
+         edge  parent  length  omega
+    --------------------------------
+        Human  edge.0    0.09   0.59
+    HowlerMon  edge.0    0.12   0.96
+       edge.0  edge.1    0.11   1.13
+        Mouse  edge.1    0.83   0.92
+       edge.1    root    0.06   0.39
+    NineBande    root    0.28   1.28
+     DogFaced    root    0.34   0.84
+    --------------------------------
+    =============
+    motif  mprobs
+    -------------
+        T    0.23
+        C    0.19
+        A    0.37
+        G    0.21
+    -------------
 
 Get out an annotated tree, it looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This object can be used for plotting, or to provide starting estimates to a related model.
 
@@ -112,7 +128,7 @@ Get out an annotated tree, it looks just like a tree, but has the maximum-likeli
 
     >>> at = lf.getAnnotatedTree()
 
-Get a dictionary of the statistics that I could use for post-processing.
+Getting the maximum likelihood estimates for post-processing out can be done in numerous ways. Here I use the ``getStatisticsAsDict`` method.
 
 .. doctest::
 
@@ -131,9 +147,9 @@ Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
 .. doctest::
 
     >>> print "Likelihood ratio statistic = ", LR
-    Likelihood ratio statistic =  4.4...
+    Likelihood ratio statistic =  8...
     >>> print "degrees-of-freedom = ", df
     degrees-of-freedom =  6
     >>> print "probability = ", P
-    probability =  0.6...
+    probability =  0.2...
 

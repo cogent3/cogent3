@@ -1,5 +1,5 @@
-Specifying and using an restricted nucleotide substitution model
-================================================================
+Specifying and using an unrestricted nucleotide substitution model
+==================================================================
 
 Do standard ``cogent`` imports.
 
@@ -26,13 +26,13 @@ To specify substitution models we use the ``MotifChange`` class from predicates.
     >>> del(preds[-1])
     >>> preds
     [A>C, A>T, A>G, C>A, C>T, C>G, T>A, T>C, T>G, G>A, G>C]
-    >>> sm = Nucleotide(predicates=preds, recode_gaps=True, optimise_motif_probs=True)
+    >>> sm = Nucleotide(predicates=preds, recode_gaps=True,
+    ...                 optimise_motif_probs=True)
     >>> print sm
     <BLANKLINE>
-    Nucleotide ( name = ''; type = 'None'; params = ['A>T', 'C>G', 'T>G', 'G>A', 'T>A', 'T>C', 'C>A', 'G>C', 'C>T', 'A>G', 'A>C']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
-    <BLANKLINE>
+    Nucleotide ( name = ''; type = 'None'; params = ['A>T', 'C>G', 'T>G',...
 
-We'll illustrate this with a sample alignment and tree in "data/primate_cdx2_promoter.fasta".
+We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_promoter.fasta``.
 
 .. doctest::
 

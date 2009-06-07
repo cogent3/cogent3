@@ -37,7 +37,7 @@ Get our observed data alignment
 
 .. doctest::
 
-    >>> aln = LoadSeqs(filename = "data/test.paml")
+    >>> aln = LoadSeqs(filename = "data/long_testseqs.fasta")
 
 Create a ``EstimateProbability`` bootstrap instance
 
@@ -65,9 +65,9 @@ Run it.
 
     >>> p = estimateP.getEstimatedProb()
 
-``p`` is a floating point value, as you'd expect. Grab the estimated likelihoods for the observed data.
+``p`` is a floating point value, as you'd expect. Grab the estimated likelihoods (null and alternate) for the observed data.
 
 .. doctest::
 
     >>> print '%.2f, %.2f' % estimateP.getObservedlnL()
-    -162.65, -162.48
+    -8751.94, -8750.59

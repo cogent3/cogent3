@@ -26,7 +26,8 @@ Next, we'll load up a test set of sequences and construct an ``Alignment``:
     >>> aln = align_unaligned_seqs(unaligned, DNA)
 
 Now, let's construct some trees with default parameters!
-**NOTE** We are explicitly seeding Clearcut and RAxML to ensure reproducible results
+
+.. note:: We are explicitly seeding Clearcut and RAxML to ensure reproducible results
 
 .. doctest::
 

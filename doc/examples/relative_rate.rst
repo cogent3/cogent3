@@ -13,7 +13,7 @@ Get your alignment and tree.
 
 .. doctest::
 
-    >>> al = LoadSeqs(filename = "data/test.paml")
+    >>> aln = LoadSeqs(filename = "data/long_testseqs.fasta")
     >>> t = LoadTree(filename = "data/test.tree")
 
 Create a HKY85 model.
@@ -28,7 +28,7 @@ Make the controller object.
 
     >>> lf = sm.makeLikelihoodFunction(t)
 
-Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general setParamRules method.
+Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``setParamRules`` method.
 
 .. doctest::
 
@@ -38,7 +38,7 @@ Get the likelihood function object this object performs the actual likelihood ca
 
 .. doctest::
 
-    >>> lf.setAlignment(al)
+    >>> lf.setAlignment(aln)
 
 Optimise the function capturing the return optimised lnL, and parameter value vector.
 
@@ -56,26 +56,26 @@ View the resulting maximum-likelihood parameter values.
     ======
      kappa
     ------
-    4.8020
+    4.1004
     ------
     =============================
          edge    parent    length
     -----------------------------
-        Human    edge.0    0.0257
-    HowlerMon    edge.0    0.0257
-       edge.0    edge.1    0.0224
-        Mouse    edge.1    0.2112
-       edge.1      root    0.0000
-    NineBande      root    0.0327
-     DogFaced      root    0.0545
+        Human    edge.0    0.0363
+    HowlerMon    edge.0    0.0363
+       edge.0    edge.1    0.0385
+        Mouse    edge.1    0.2786
+       edge.1      root    0.0194
+    NineBande      root    0.0939
+     DogFaced      root    0.1130
     -----------------------------
     ===============
     motif    mprobs
     ---------------
-        T    0.1433
-        C    0.1600
-        A    0.3800
-        G    0.3167
+        T    0.2317
+        C    0.1878
+        A    0.3681
+        G    0.2125
     ---------------
 
 We extract the log-likelihood and number of free parameters for later use.
@@ -107,26 +107,26 @@ View the resulting maximum-likelihood parameter values.
     ======
      kappa
     ------
-    4.8027
+    4.0997
     ------
     =============================
          edge    parent    length
     -----------------------------
-        Human    edge.0    0.0347
-    HowlerMon    edge.0    0.0167
-       edge.0    edge.1    0.0224
-        Mouse    edge.1    0.2112
-       edge.1      root    0.0000
-    NineBande      root    0.0327
-     DogFaced      root    0.0545
+        Human    edge.0    0.0311
+    HowlerMon    edge.0    0.0415
+       edge.0    edge.1    0.0385
+        Mouse    edge.1    0.2785
+       edge.1      root    0.0195
+    NineBande      root    0.0940
+     DogFaced      root    0.1129
     -----------------------------
     ===============
     motif    mprobs
     ---------------
-        T    0.1433
-        C    0.1600
-        A    0.3800
-        G    0.3167
+        T    0.2317
+        C    0.1878
+        A    0.3681
+        G    0.2125
     ---------------
 
 These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.
@@ -137,14 +137,13 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
     >>> df = lf.getNumFreeParams() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
-Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
+Print this and look up a :math:`$\chi^2$` with number of edges - 1 degrees of freedom.
 
 .. doctest::
 
     >>> print "Likelihood ratio statistic = ", LR
-    Likelihood ratio statistic =  0.34...
+    Likelihood ratio statistic =  2.7...
     >>> print "degrees-of-freedom = ", df
     degrees-of-freedom =  1
     >>> print "probability = ", P
-    probability =  0.5...
-
+    probability =  0.09...

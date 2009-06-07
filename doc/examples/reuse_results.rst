@@ -6,36 +6,45 @@ An example of how to use the maximum-likelihood parameter estimates from one mod
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import Y98
+    >>> from cogent.evolve.models import MG94HKY
 
 We'll create a simple model, optimise it and save it for later reuse
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/test.paml")
+    >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> t = LoadTree("data/test.tree")
-    >>> sm = Y98()
+    >>> sm = MG94HKY()
     >>> lf = sm.makeLikelihoodFunction(t)
-    >>> lf.setTablesFormat(digits=2,space=2)
-    >>> lf.setAlignment(al)
+    >>> lf.setTablesFormat(digits=2, space=2)
+    >>> lf.setAlignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print lf
     Likelihood Function Table
     ============
     kappa  omega
     ------------
-     9.28   1.87
+     3.85   0.90
     ------------
     =========================
          edge  parent  length
     -------------------------
-        Human  edge.0    0.10
-    HowlerMon  edge.0    0.05
-       edge.0  edge.1    0.07
-        Mouse  edge.1    0.91
-       edge.1    root    0.00
-    NineBande    root    0.11
-     DogFaced    root    0.18...
+        Human  edge.0    0.09
+    HowlerMon  edge.0    0.12
+       edge.0  edge.1    0.12
+        Mouse  edge.1    0.84
+       edge.1    root    0.06
+    NineBande    root    0.28
+     DogFaced    root    0.34
+    -------------------------
+    =============
+    motif  mprobs
+    -------------
+        T    0.23
+        C    0.19
+        A    0.37
+        G    0.21
+    -------------
 
 The essential object for reuse is an annotated tree these capture the parameter estimates from the above optimisation we can either use this directly in the same run, or we can save the tree to file in ``xml`` format and reload the tree at a later time for use. In this example I'll illustrate the latter scenario.
 
@@ -57,25 +66,33 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     >>> new_lf = sm.makeLikelihoodFunction(nt)
     >>> new_lf.setTablesFormat(digits=2,space=2)
     >>> new_lf.setParamRule('omega', edge='Human',
-    ... is_independent=True)
-    >>> new_lf.setAlignment(al)
+    ...                     is_independent=True)
+    >>> new_lf.setAlignment(aln)
     >>> new_lf.optimise(local=True, show_progress=False)
     >>> print new_lf
     Likelihood Function Table
     =====
     kappa
     -----
-     9.07
+     3.85
     -----
-    ====================================
-         edge  parent  length      omega
-    ------------------------------------
-        Human  edge.0    0.10  999999.97
-    HowlerMon  edge.0    0.05       1.57
-       edge.0  edge.1    0.06       1.57
-        Mouse  edge.1    0.90       1.57
-       edge.1    root    0.00       1.57
-    NineBande    root    0.11       1.57
-     DogFaced    root    0.18       1.57...
+    ================================
+         edge  parent  length  omega
+    --------------------------------
+        Human  edge.0    0.09   0.59
+    HowlerMon  edge.0    0.12   0.92
+       edge.0  edge.1    0.12   0.92
+        Mouse  edge.1    0.84   0.92
+       edge.1    root    0.06   0.92
+    NineBande    root    0.28   0.92
+     DogFaced    root    0.34   0.92
+    --------------------------------
+    =============
+    motif  mprobs
+    -------------
+        T    0.23
+        C    0.19
+        A    0.37
+        G    0.21
+    -------------
 
-.. note:: A parameter rich model applied to a small data set is unreliable.
