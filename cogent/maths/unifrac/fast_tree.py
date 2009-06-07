@@ -5,7 +5,7 @@ from numpy import (logical_and, logical_or, sum, take, nonzero, repeat,
     array, concatenate, zeros, put, transpose, flatnonzero, newaxis,
     logical_xor, logical_not)
 from numpy.random import permutation
-from cogent.core.tree import TreeNode
+from cogent.core.tree import PhyloNode
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
@@ -20,8 +20,8 @@ __status__ = "Prototype"
 lar = logical_and.reduce
 lor = logical_or.reduce
 
-class UniFracTreeNode(TreeNode):
-    """Slightly extended TreeNode treenode for use with UniFrac
+class UniFracTreeNode(PhyloNode):
+    """Slightly extended PhyloNode treenode for use with UniFrac
     
     Can expect Length and Name (= Name) to be set by DndParser.
     """
