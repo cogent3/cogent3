@@ -63,6 +63,9 @@ Changes
 * updated app controller parameters for FastTree v1.1
 * Allow and require a more recent version of Pyrex.
 
+.. warning:: Pyrex is no longer the accepted way to develop extensions. Use
+    `Cython <http://www.cython.org/>`_ instead.
+
 Bug Fixes
 ---------
 
