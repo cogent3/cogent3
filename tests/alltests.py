@@ -77,6 +77,7 @@ def suite():
         'test_evolve.test_best_likelihood',
         'test_evolve.test_bootstrap',
         'test_evolve.test_coevolution',
+        'test_evolve.test_models',
         'test_evolve.test_motifchange',
         'test_evolve.test_substitution_model',
         'test_evolve.test_scale_rules',
