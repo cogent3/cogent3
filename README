@@ -4,7 +4,7 @@ The Readme
 ..
     This document is written in `restructured text`_ format.
 
-:Download: `From sourceforge <http://sourceforge.net/projects/pycogent>`_.
+:Download: `From sourceforge <http://sourceforge.net/projects/pycogent>`_ or follow the :ref:`quick-install` instructions.
 :Registration: To be informed of bugs, new releases please subscribe to the `mailing lists at sourceforge <http://sourceforge.net/projects/pycogent>`_.
 
 Dependencies
@@ -28,22 +28,26 @@ Required
         $ export ATLAS=None
         $ export LAPACK=None
 
+.. todo::
+    
+    **FOR RELEASE** is this advice still valid?
+
 Optional
 ^^^^^^^^
 
 - C compiler: This is standard on most \*nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from Apple_.
 - ReportLab_: required for drawing trees and alignments to pdf.
 - Matplotlib_: used to plot several kinds of graphs related to codon usage.
-- Pyrex_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
+- Cython_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
 - PyxMPI_: Our own python MPI interface, required for parallel computation.
 - SQLAlchemy_ and `MySQL-python`_ : These are required for the Ensembl querying code.
 
-If you use the quick install approach (see :ref:`quick-install`), these are all specified in the requirements file.
+If you use the :ref:`quick-install` approach, these are all specified in the requirements file.
 
 Installation
 ------------
 
-If you don't wish to use the quick installation approach (:ref:`quick-install`) then the conventional \*nix platform (including MacOS X) python package installation procedure applies. Download the software from `here <http://sourceforge.net/projects/pycogent>`_. Uncompress the archive and change into the ``PyCogent`` directory and type::
+If you don't wish to use the :ref:`quick-install` approach then the conventional \*nix platform (including MacOS X) python package installation procedure applies. Download the software from `here <http://sourceforge.net/projects/pycogent>`_. Uncompress the archive and change into the ``PyCogent`` directory and type::
 
 $ python setup.py build
 
@@ -96,6 +100,7 @@ to list the attributes of ``myalign`` or
 to figure out how to use the ``myalign.writeToFile`` method. Also note that the directory structure of the package is similar to the import statements required to use a module -- to see the contents of ``alignment.py`` or ``sequence.py`` you need to look in the directory ``cogent/core`` path, to use the classes in those files you specify ``cogent.core`` for importing.
 
 .. _Python: http://www.python.org
+.. _Cython: http://www.cython.org/
 .. _Numpy: http://www.scipy.org/NumPy
 .. _Reportlab: http://reportlab.org
 .. _Matplotlib: http://matplotlib.sourceforge.net
