@@ -1,9 +1,12 @@
-****************
+*********
+Changelog
+*********
+
 Cogent 1.2 - 1.3
-****************
+================
 
 New Features
-============
+------------
 
 * Python2.6 is now supported
 * added cogent.cluster.nmds, code to perform nonmetric multidimensional
@@ -13,30 +16,81 @@ New Features
 * Added partial support for querying the Ensembl MySQL databases. This
   capacity has additional dependencies (MySQL-python and SQLAlchemy). This
   module should be considered alpha level code, (although it has worked
-  reliably for some time in the hands of the developers). 
+  reliably for some time in the hands of the developers).
+* Introduced a new substitution model family. This family has the same form as
+  that originally described by Muse and Gaut (Mol Biol Evol, 11, 715-24).
+  These models were applied in the article by Lindsay et al. (2008, Biol
+  Direct, 3, 52). Model state defaults to the tuple weighted matrix (eg. the
+  Goldman and Yang codon models). Selecting the nucleotide weighted matrix is
+  done using the mprob_model argument.
+* Likelihood functions now have a getStatistics method. This returns cogent
+  Table objects. Optional arguments are with_motif_probs and with_titles where
+  the latter refers to the Table.Title attribute being set.
+* Added rna_struct formatter and rna_plot parser
+* A fast unifrac method implementation.
+* Added new methods on tree related objects: TreeNode.getNodesDict;
+  TreeNode.reassignNames; PhyloNode.tipsWithinDistance;
+  PhyloNode.totalDescendingBranchLength
+* Adopted Sphinx documentation system, added many new use cases, improved
+  existing ones.
+* added setTablesFormat to likelihood function. This allows setting the
+  spacing, display precision of the stats tables resulting from printing a
+  likelihood function.
+* Added non-parametric multidimensional scaling (nmds) method.
+* Added a seperate app controller for FastTree v1.0
+* new protein MolType, PROTEIN_WITH_STOP, that supports the stop codon new
+  sequence objects, ProteinWithStopSequence and ModelProteinWithStopSequence
+  to support the new MolType.
+* Support for Cython added.
 
 Changes
-=======
+-------
 
 * reconstructAncestralSequences has been deprecated to
   reconstructAncestralSeqs. It will be removed in version 1.4.
+* updated parsers
+* TreeNode.getNewick is now iterative. For recursive, use
+  TreeNode.getNewickRecursive. Both the iterative and recursive methods of
+  getNewick now support the keyword 'escape_name'. DndParser now supports the
+  keyword 'unescape_name'. DndParser unescape_name will now try to remove
+  underscores (like underscore_unmunge).
+* Generalized MinimalRnaalifoldParser to parse structures and energies from
+  RNAfold as well.
+* PhyloNode.tipToTipDistances can now work on a subset of tips by passing
+  either a list of tip names or a list of tip nodes using the endpoints param.
+* deprecating reconstructAncestralSequences to deprecating
+  reconstructAncestralSeqs.
+* updated app controller parameters for FastTree v1.1
+* Allow and require a more recent version of Pyrex.
 
 Bug Fixes
-=========
+---------
 
+* the alignment sample methods and xsample (randint had the wrong max
+  argument)
+* Fixes the tests that no longer work with NCBI's API changes, and sticks a
+  big warning for the unwary in the ncbi module pointing users to the
+  "official" list of reported rettypes. Note that the rettypes changed
+  recently and NCBI says they do not plan to support the old behavior.
+* The TreeNode operators cmp, contains, and any operator that relies on those
+  methods will now only perform comparisons against the objects id. Prior
+  behavior first checked the TreeNode's Name attribute and then object id if
+  the Name was not present. This resulted in ambiguous behavior in certain
+  situations.
+* Added type conversion to Mantel so it works on lists.
+* kendall tau fix, bug 2794469
+* Table now raises a RuntimeError if provided malformed data.
 
-
-****************
 Cogent 1.1 - 1.2
-****************
+================
 
 New Features
-============
+------------
 
 * Code for performing molecular coevolution/covariation analyses on multiple
   sequence alignments, plus support files. (Described in J. Caporaso et al.
   BMC Evol Biol, 8(1):327, 2008.)
-* App controller for CD-HIT (http://www.bioinformatics.org/cd-hit/)
+* App controller for `CD-HIT <http://www.bioinformatics.org/cd-hit/>`_
 * A ParameterEnumerator object is now available in cogent.app.util. This
   method will iterate over a range of parameters, returning parameter dicts
   that can be used with the relevant app controller.
@@ -52,7 +106,7 @@ New Features
   M. Oscamou et al. BMC Bioinformatics, 9(1):511, 2008)
 
 New Documentation
-=================
+-----------------
 
 Usage examples (see doc/) were added for the following:
 
@@ -68,7 +122,7 @@ Usage examples (see doc/) were added for the following:
 * How to construct profiles, consensus seqs etc ..
 
 Changes
-=======
+-------
 
 * PyCogent no longer relies on the Python math module. All math functions are
   now imported from numpy. The main motivator was to remove casting between
@@ -80,7 +134,7 @@ Changes
 * The TreeNode comparison methods now only check against the objects ID
 
 Bug Fixes
-=========
+---------
 
 * LoadTable was ignoring title argument for standard file read.
 * Fixed bug in Table.joined. When a join produces no result, now returns a
@@ -95,15 +149,13 @@ Bug Fixes
 * Fixed ambiguity in TreeNode comparison methods which resulted in the prune
   method incorrectly removing entire subtrees.
 
-******************
 Cogent 1.0.1 - 1.1
-******************
+==================
 
 New Features
-============
+------------
 
 * Added functionality to cogent.util.unit_test.TestCase
-    
     assertSameObj - use in place of 'assert a is b'
     assertNotSameObj - use in place of 'assert a is not b'
     assertIsPermutation - checks if observed is a permutation of items
@@ -115,37 +167,31 @@ New Features
     assertSimiliarMeans - compares samples using a t-test
     _set_suite_pvalue - set a suite wide pvalue
     
-    NOTE: both the similiarity assertions can have a pvalue specified in the
+    .. note:: both the similiarity assertions can have a pvalue specified in the
         testing module. This pvalue can be overwritten during alltests.py by
         calling TestCase._set_suite_pvalue(pvalue)
     
-    NOTE: All of these new assert methods can take lists as well. For instance:
+    .. note:: All of these new assert methods can take lists as well. For instance:
         obs = [1,2,3,4]
         value = 5
         self.assertLessThan(obs, value)
-
 * Alignment constructor now checks for iterators (e.g. results from
   parsers) and lists() them -- this allows direct construction like
   Alignment(MinimalFastaParser(open(myfile.fasta))). Applies to both
   dense and sparse alignments, and SequenceCollections.
-
 * Parameterized LoadTree underscore stripping in node names, and turned it off
   by default.
-
 * new Table features and refactor
     Trivial edits of the code provided by Felix Schill for SQL-like table
     joining. Principally a unification of the different types of table
     joins (inner- and outer-join) between 2 tables, and porting of all
     testing code into test_table.rest. The method Table.joined provides
     the interface (see tests/test_table.rest for usage).
-
 * added a Table.count method
     simply counts the number of rows satisfying some condition. Method
     has the same args as for Table.filtered.
-
 * Functions for obtaining the rate matrix for 2 or 3 sequences using the
   Goldman method. Support for RNA and DNA.
-
 * Additions to clustalw and muscle app controllers
     muscle.py
         add_seqs_to_alignment
@@ -158,13 +204,9 @@ New Features
         bootstrap_tree_from_alignment
         build_tree_from_alignment
         align_and_build_tree
-
 * App controllers for Clearcut, ClustalW, Mafft
-
 * Added midpoint rooting
-
 * Accept FloatingPointError as well as ZeroDivisionError to accommodate numpy.
-
 * Trees can now compare themselves to other trees using a couple of methods.
     subsets: compare based on fraction of subsets of labels defined by clades that
     are the same in the two trees.
@@ -174,13 +216,9 @@ New Features
     Both of these are fairly badly behaved statistically, so should always be
     compared to a distribution of values from random (e.g. label-permuted) trees
     using Monte Carlo.
-
 * Added ability to exclude non-shared taxa from subsets tree cmp method.
-
 * Added Zongzhi's combination and permutation implementations to transform.py.
-
 * Added some docs to UPGMA_cluster.
-
 * Added median in cogent.maths.stats.test
   Added because the numpy version does not support an axis
   parameter. This function now works like numpy functions
@@ -188,7 +226,7 @@ New Features
   be safe in place of numpy.median.
 
 Changes
-=======
+-------
 
 * Many changes to the core objects, mainly for compatibility. Major changes in
   this update:
@@ -197,74 +235,58 @@ Changes
       methods (e.g. nucleic acids can reverse-complement, etc.). Type checking is
       still performed using strings (e.g. for ambiguous characters, etc.) and
       could be improved, but everything seems to work. Bug # 1851959.
-      
     - ModelProteinSequence added. Bug # 1851961.
-    
     - DenseAlignment and ModelSequence can now handle the '?' character, which is
       added to the Alphabet during install. Bug # 1851483.
-      
     - Fixed a severe bug in moltype constructors that mutated the dict of ambiguous
       states after construction of each of the standard moltypes (for example,
       preventing re-instantiation of a similar moltype after the initial install:
       bug # 1851482. This would have been very confusing for anyone trying to
       experiment with custom MolTypes.
-      
     - DenseAlignment now implements many methods of Alignment (some of which have
       actually been moved into SequenceCollection), e.g. getGappedSeq() as per
       bug # 1816573.
 
 * Added parameter to MageListFromString and MageGroupFromString. Can now handle
   'on' as well as 'off'.
-
 * SequenceCollection, Alignment, etc. now check for duplicate seq labels and
   raise exception or strip duplicates as desired. Added unit test to cover this
   case.
     
-    SequenceCollection now also produces FASTA as default __str__ behavior like
-    the other objects.
-    
-    DenseAlignment now iterates over its mapped items, not the indices for
-    those items, by default. This allows API compatibility with Alignment
-    but is slow: it may be worth optimizing this for cases such as detecting
-    ambiguous chars, as I have already implemented for gaps.
+    - SequenceCollection now also produces FASTA as default __str__ behavior
+      like the other objects.
+    - DenseAlignment now iterates over its mapped items, not the indices for
+      those items, by default. This allows API compatibility with Alignment
+      but is slow: it may be worth optimizing this for cases such as detecting
+      ambiguous chars, as I have already implemented for gaps.
 
 * Updated std in cogent.maths.stats.test
-    std now takes an axis parameter like numpy functions (sum, mean,etc...).
-    I also added in a docstring and tests.
-    [NOTE]
-    cogent.maths.stats.test import sqrt from numpy instead of math inorder
-    to allow std to work on arrays.
-
-* Tree now uses iterative implementation of traverse(). WARNING: READ NOTES!
-    TreeNode's traverse() method now uses an iterative implementation of
-    traverse(), based on code by Zongzhi. This iterative implementation handles
-    even very large trees -- no more stack errors if the recursion depth exceeds
-    what Python was compiled against. The results are identical with previous
-    versions provided that the tree is not modified while the recursion occurs.
-
-    WARNING: If you _do_ modify the tree while using traverse(), you will get
-    undesired results. If you need to modify the tree, use traverse_recursive()
-    instead. This only applies to the tree topology (e.g. if you are adding or
-    deleting nodes, or moving nodes around; doesn't apply if you are changing
-    branch lengths, etc.).
-
-    The only two uses I found in Cogent where the tree is modified during iteration
-    are in rna2d (some of the structure tree operations) and the prune() method.
-    I have changed both to use traverse_recursive for now. However, there might
-    be issues with other code.
-
-    It might be worth figuring out how to make the iterative method do the
-    right thing when the tree is modified -- suggestions are welcome provided
-    they do not impose substantial performance penalties.
-
+    
+    - std now takes an axis parameter like numpy functions (sum, mean,etc...).
+    - also added in a docstring and tests.
+        .. note::
+            cogent.maths.stats.test import sqrt from numpy instead of math
+            in order to allow std to work on arrays.
+* Tree now uses iterative implementation of traverse().
+    .. warning::
+        If you **do** modify the tree while using traverse(), you will get
+        undesired results. If you need to modify the tree, use
+        traverse_recursive() instead. This only applies to the tree topology
+        (e.g. if you are adding or deleting nodes, or moving nodes around;
+        doesn't apply if you are changing branch lengths, etc.). The only two
+        uses I found in Cogent where the tree is modified during iteration
+        are in rna2d (some of the structure tree operations) and the prune()
+        method. I have changed both to use traverse_recursive for now.
+        However, there might be issues with other code. It might be worth
+        figuring out how to make the iterative method do the right thing
+        when the tree is modified -- suggestions are welcome provided they do
+        not impose substantial performance penalties.
 * Made compatible with Python 2.4
-
 * Changed dev status in setup call
-
 * Dropping comments indicating windows support
 
 Bug Fixes
-=========
+---------
 
 * Fixed bug 1850981:  UPGMA does not check diagonals.
     This bug was caused because the UPGMA algorithm picks the smallest
@@ -275,57 +297,41 @@ Bug Fixes
     node collapse. To prevent this error, the program now checks to make sure
     that the selected smallest_index is not on the diagonal. If it is, it
     reassigns the diagonal to the large number.
-
 * Fixed bug in gff.py attribute string parsing.
     If attribute string did not contain double quotes, find() returned -1, so
     the last character of the string was inadvertently omitted.
-
-* Fixed error in taxonomy convenience functions that failed to pass in the
-specified database.
+* Fixed error in taxonomy convenience functions that failed to pass in the specified database.
     This used to be masked by ncbi's automatic conversion
     between protein and nucleotide ids, but apparently this conversion no
     longer operates in the tested cases.
-
-* Zongzhi noticed that assertFloatEqual would compare two against when a shape
-(4,0) array was compared against a shape (4,4) array. This has been fixed.
+* fixed unittest methods
+    Zongzhi noticed that assertFloatEqual would compare two against when a
+    shape (4,0) array was compared against a shape (4,4) array.
     I added tests for assertFloatEqual, assertFloatEqualAbs,
     assertFloatEqualRel and assertEqual. The same bug was noticed in
-    assertFloatEqualRel. They are now fixed.
-
-    These fixes resulted in errors in maths.stats.test.std and
-    correlation_matrix. The std function needed a work over, but the
-    correlation_matrix was a fault in the test case itself. run_tests has
-    been run and everything passes.
-
+    assertFloatEqualRel. They are now fixed. These fixes resulted in errors
+    in maths.stats.test.std and correlation_matrix. The std function needed
+    a work over, but the correlation_matrix was a fault in the test case
+    itself.
 * fixed bug in reading tab-delimited tables
     failure when a record had a missing observation in the last field
     has been fixed. Line stripping of only line-feed characters is now
     done.
-
 * Fixed important bug in metric_scaling.
     numpy eig() produces eigenvector array that is the transpose of Numeric eig().
     Therefore, any code that does not take this into account will produce results
     that are TOTALLY INCORRECT when fed to downstream analyses.
-
     Coordinates from this module prior to this patch are incorrect and are not
     to be trusted.
-
 * Fixed a typo in dialign test
-
 * tree __repr__ now more robust to non-str Name entries
-
 * seqsim.rangenode traverse now compatible /w base class.
-
 * Fixed line color bug in PR2 bias plots.
-
 * Added method to dump raw coords from dendrogram.
-
 * Fixed called to eigenvector when no pyrex
-
 * Fixed bug in nonrecursive postorder traversal if not root
 
-***********************
 Cogent 1.0 - (9/8/2007)
-***********************
+=======================
 
 * Initial release
