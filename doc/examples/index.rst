@@ -6,7 +6,7 @@ Cogent Usage Examples
 A Note on the Computable Documentation
 **************************************
 
-The following examples are all available as standalone text files which can be computed using the Python doctest module. One caveat with these tests is a subset will fail sporadically (or even consistently), although there is nothing 'wrong' with the software. These failures arise because of the typically very small data-sets we use in order for the documentation to compute in a short time period. As a result of their small size, the results from numerical optimisations are volatile and can change from one run to another -- leading to 'failures'. Specific examples that are prone to these problems involve the HMM models, the test of Neutrality, rate heterogeneity, unrestricted nucleotide substitution model and even the simplest example.
+The following examples are all available as standalone text files which can be computed using the Python doctest module.
 
 Examples not explicitly attributed were authored by Gavin Huttley.
 
@@ -73,7 +73,6 @@ Modelling Evolution
     relative_rate
     neutral_test
     empirical_protein_models
-    rate_heterogeneity
     testing_multi_loci
     reuse_results
     unrestricted_nucleotide
@@ -81,6 +80,7 @@ Modelling Evolution
     parametric_bootstrap
     estimate_startingpoint
     coevolution
+    rate_heterogeneity
     hmm_par_heterogeneity
 
 ***************************
