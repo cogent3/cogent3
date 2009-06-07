@@ -1,6 +1,8 @@
 Complete version of manipulating sequence annotations
 =====================================================
 
+.. sectionauthor:: Peter Maxwell, Gavin Huttley
+
 A Sequence with a couple of exons on it.
 
 .. doctest::

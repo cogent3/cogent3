@@ -1,6 +1,8 @@
 Estimate parameter values using a sampling from a dataset
 =========================================================
 
+.. sectionauthor:: Gavin Huttley
+
 This script uses the ``sample`` method of the alignment class to provide an estimate for a two stage optimisation. This allows rapid optimisation of long alignments and complex models with a good chance of arriving at the global maximum for the model and data. Local optimisation of the full alignment may end up in local maximum and for this reason results from this strategy my be inaccurate.
 
 From cogent import all the components we need.

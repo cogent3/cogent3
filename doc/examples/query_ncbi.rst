@@ -1,6 +1,8 @@
 Querying NCBI for VWF
 =====================
 
+.. sectionauthor:: Gavin Huttley
+
 This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007).
 
 .. note:: Due to changes by NCBI in the structure of there records, it is no longer easy (but not impossible) to use the Sequences ``Info`` attribute to restrict sequences to Swissprot entries as we had done previously.

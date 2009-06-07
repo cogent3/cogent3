@@ -1,6 +1,8 @@
 Perform a coevolutionary analysis on biological sequence alignments
 ===================================================================
 
+.. sectionauthor:: Greg Caporaso
+
 This document describes how to perform a coevolutionary analysis on a ``DenseAlignment`` object. Coevolutionary analyses identify correlated substitution patterns between ``DenseAlignment`` positions (columns). Several coevolution detection methods are currently provided via the PyCogent coevolution module. ``DenseAlignment`` objects must always be used as input to these functions. 
 
 Before using an alignment in a coevolutionary analysis, you should be confident in the alignment. Poorly aligned sequences can yield very misleading results. There can be no ambiguous residue/base codes (e.g., B/Z/X in protein alignments) -- while some of the algorithms could tolerate them (e.g. Mutual Information), others which rely on information such as background residue frequencies (e.g. Statistical Coupling Analysis) cannot handle them. Some recoded amino acid alphabets will also not handle ambiguous residues. The best strategy is just to exclude ambiguous codes all together. To test for invalid characters before starting an analysis you can do the following:

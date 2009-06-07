@@ -1,6 +1,8 @@
 Use an empirical protein substitution model
 ===========================================
 
+.. sectionauthor:: Gavin Huttley
+
 This file contains an example of importing an empirically determined protein substitution matrix such as Dayhoff et al 1978 and using it to create a substitution model. The globin alignment is from the PAML distribution.
 
 .. doctest::

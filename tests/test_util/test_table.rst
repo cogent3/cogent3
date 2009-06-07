@@ -595,7 +595,7 @@ cPickle should be able to load a useful object from the pickled Table alone.
     >>> pickled = cPickle.load(f)
     >>> f.close()
     >>> pickled.keys()
-    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header', 'missing_data', 'legend']
+    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header',...
     >>> pickled['rows'][0]
     ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
 

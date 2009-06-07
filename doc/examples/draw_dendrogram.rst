@@ -1,7 +1,7 @@
 Drawing dendrograms and saving to PDF
 =====================================
 
-.. sectionauthor: Gavin Huttley
+.. sectionauthor:: Gavin Huttley
 
 From cogent import all the components we need.
 

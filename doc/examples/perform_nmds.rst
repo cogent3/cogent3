@@ -1,6 +1,8 @@
 Perform Nonmetric Multidimensional Scaling
 ==========================================
 
+.. sectionauthor:: Justin Kuczynski
+
 An example of how to use nmds.
 
 .. doctest::

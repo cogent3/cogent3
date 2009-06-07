@@ -1,6 +1,8 @@
 Likelihood analysis of multiple loci
 ====================================
 
+.. sectionauthor:: Gavin Huttley
+
 We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.
 
 .. doctest::

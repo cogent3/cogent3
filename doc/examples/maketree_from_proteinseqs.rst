@@ -1,6 +1,8 @@
 Making a phylogenetic tree from a protein sequence alignment
 ============================================================
 
+.. sectionauthor:: Gavin Huttley
+
 In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard cogent import for ``LoadSeqs``.
 
 .. doctest::

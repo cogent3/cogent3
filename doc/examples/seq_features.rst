@@ -1,6 +1,8 @@
 Advanced sequence handling
 ==========================
 
+.. sectionauthor:: Gavin Huttley
+
 Individual sequences and alignments can be manipulated by annotations. Most value in the genome sequences arises from sequence annotations regarding specific sequence feature types, e.g. genes with introns / exons, repeat sequences. These can be applied to an alignment either using data formats available from genome portals (e.g. GFF, or GenBank annotation formats) or by custom assignments.
 
 Annotations can be added in two ways: using either the ``addAnnotation`` or the ``addFeature`` method. The distinction between these two is that ``addFeatures`` is more specialised. Features can be thought of as a type of annotation representing standard sequence properties eg introns/exons. Annotations are the more general case, such as a computed property which has, say a numerical value and a span.

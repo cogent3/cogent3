@@ -1,6 +1,8 @@
 Phylogenetic reconstruction by least squares
 ============================================
 
+.. sectionauthor:: Gavin Huttley
+
 We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called ``pickle`` which is native to python. As per usual, we import the basic components we need.
 
 .. doctest::
