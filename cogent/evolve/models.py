@@ -23,7 +23,7 @@ __status__ = "Production"
 
 nucleotide_models = ['JC69','F81','HKY85', 'GTR']
 
-codon_models = ['GY94', 'H04G', 'H04GK', 'H04GGK']
+codon_models = ['MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
 
 protein_models = [ 'DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
@@ -49,6 +49,13 @@ def F81():
             name = 'F81',
             )
     
+# Substitution model rate matrix predicates
+MotifChange = predicate.MotifChange
+_gtr_preds = [MotifChange(x,y) for x,y in ['AC', 'AG', 'AT', 'CG', 'CT']]
+_kappa = (~MotifChange('R','Y')).aliased('kappa')
+_omega = predicate.replacement.aliased('omega')
+_cg = predicate.MotifChange('CG').aliased('G')
+_cg_k = (_cg & _kappa).aliased('G.K')
 
 def HKY85():
     """Hasegawa, Kishino and Yanamo 1985 model"""
@@ -74,11 +81,42 @@ def GTR():
             model_gaps = False,
             recode_gaps = True,
             name = 'GTR',
-            predicates = preds
+            predicates = _gtr_preds
             )
     
 
 # Codon Models
+def MG94HKY():
+    """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
+    the ratio of transitions to transversions)
+    
+    see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
+    return substitution_model.Codon(
+            motif_probs = None,
+            do_scaling = True,
+            model_gaps = False,
+            recode_gaps = True,
+            name = 'MG94',
+            predicates = [_kappa, _omega],
+            mprob_model='monomer'
+            )
+    
+def MG94GTR():
+    """Muse and Gaut 1994 codon substitution model, GTR variant (with params
+    analagous to the nucleotide GTR model)
+    
+    see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
+    return substitution_model.Codon(
+            motif_probs = None,
+            do_scaling = True,
+            model_gaps = False,
+            recode_gaps = True,
+            name = 'MG94',
+            predicates = _gtr_preds+[_omega],
+            mprob_model='monomer'
+            )
+    
+
 def GY94():
     """Goldman and Yang 1994 codon substitution model.
     
@@ -107,16 +145,13 @@ def H04G():
     to or from CpG's.
     
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    cg = predicate.MotifChange('CG').aliased('G')
-    kappa = (~predicate.MotifChange('R','Y')).aliased('kappa')
-    omega = predicate.replacement.aliased('omega')
     return substitution_model.Codon(
             motif_probs = None,
             do_scaling = True,
             model_gaps = False,
             recode_gaps = True,
             name = 'H04G',
-            predicates = [cg, kappa, omega],
+            predicates = [_cg, _kappa, _omega],
             )
     
 
@@ -125,17 +160,13 @@ def H04GK():
     substitutions to or from CpG's.
     
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    cg = predicate.MotifChange('CG').aliased('G')
-    kappa = (~predicate.MotifChange('R','Y')).aliased('K')
-    cg_k = (cg & kappa).aliased('G.K')
-    omega = predicate.replacement.aliased('omega')
     return substitution_model.Codon(
             motif_probs = None,
             do_scaling = True,
             model_gaps = False,
             recode_gaps = True,
             name = 'H04GK',
-            predicates = [cg_k, kappa, omega],
+            predicates = [_cg_k, _kappa, _omega],
             )
     
 
@@ -144,17 +175,13 @@ def H04GGK():
     substitutions to or from CpG's and an adjustment for CpG transitions.
     
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    cg = predicate.MotifChange('CG').aliased('G')
-    kappa = (~predicate.MotifChange('R','Y')).aliased('K')
-    cg_k = (cg & kappa).aliased('G.K')
-    omega = predicate.replacement.aliased('omega')
     return substitution_model.Codon(
             motif_probs = None,
             do_scaling = True,
             model_gaps = False,
             recode_gaps = True,
             name = 'H04GGK',
-            predicates = [cg, cg_k, kappa, omega],
+            predicates = [_cg, _cg_k, _kappa, _omega],
             )
     
 
