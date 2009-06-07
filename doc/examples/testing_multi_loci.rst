@@ -5,7 +5,7 @@ We want to know whether an exchangeability parameter is different between alignm
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent import LoadSeqs, LoadTree, LoadTable
     >>> from cogent.evolve.models import HKY85
     >>> from cogent.recalculation.scope import EACH, ALL
     >>> from cogent.maths.stats import chisqprob
@@ -30,59 +30,68 @@ To make a likelihood function with multiple alignments we provide the list of lo
     >>> lf = mod.makeLikelihoodFunction(tree, loci=loci_names)
     >>> lf.setParamRule("length", is_independent=False)
     >>> lf.setParamRule('kappa', loci = ALL)
+    >>> lf.setTablesFormat(digits=2,space=3)
     >>> lf.setAlignment(loci)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print lf
     Likelihood Function Table
-    ===========================
-       locus    motif    mprobs
-    ---------------------------
-    1st-half        T    0.2341
-    1st-half        C    0.1758
-    1st-half        A    0.3956
-    1st-half        G    0.1944
-    2nd-half        T    0.2400
-    2nd-half        C    0.1851
-    2nd-half        A    0.3628
-    2nd-half        G    0.2121
-    ---------------------------
-    ================
-     kappa    length
-    ----------------
-    8.0072    0.0271
-    ----------------
+    =========================
+       locus   motif   mprobs
+    -------------------------
+    1st-half       T     0.22
+    1st-half       C     0.18
+    1st-half       A     0.38
+    1st-half       G     0.21
+    2nd-half       T     0.24
+    2nd-half       C     0.19
+    2nd-half       A     0.35
+    2nd-half       G     0.22
+    -------------------------
+    ==============
+    kappa   length
+    --------------
+     3.98     0.13
+    --------------
     >>> all_lnL = lf.getLogLikelihood()
     >>> all_nfp = lf.getNumFreeParams()
     >>> lf.setParamRule('kappa', loci = EACH)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print lf
     Likelihood Function Table
-    ==================
-       locus     kappa
-    ------------------
-    1st-half    7.9077
-    2nd-half    8.1293
-    ------------------
-    ===========================
-       locus    motif    mprobs
-    ---------------------------
-    1st-half        T    0.2341
-    1st-half        C    0.1758
-    1st-half        A    0.3956
-    1st-half        G    0.1944
-    2nd-half        T    0.2400
-    2nd-half        C    0.1851
-    2nd-half        A    0.3628
-    2nd-half        G    0.2121
-    ---------------------------
+    ================
+       locus   kappa
+    ----------------
+    1st-half    4.33
+    2nd-half    3.74
+    ----------------
+    =========================
+       locus   motif   mprobs
+    -------------------------
+    1st-half       T     0.22
+    1st-half       C     0.18
+    1st-half       A     0.38
+    1st-half       G     0.21
+    2nd-half       T     0.24
+    2nd-half       C     0.19
+    2nd-half       A     0.35
+    2nd-half       G     0.22
+    -------------------------
     ======
     length
     ------
-    0.0271
+      0.13
     ------
     >>> each_lnL = lf.getLogLikelihood()
     >>> each_nfp = lf.getNumFreeParams()
     >>> LR = 2 * (each_lnL - all_lnL)
     >>> df = each_nfp - all_nfp
-    >>> print LR, df, chisqprob(LR, df)
-    0.00424532328725 1 0.94804967777
+
+Just to pretty up the result display, I'll print a table consisting of the test statistics created on the fly.
+
+    >>> print LoadTable(header=['LR', 'df', 'p'],
+    ...             rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3)
+    ================
+      LR   df      p
+    ----------------
+    1.59    1   0.21
+    ----------------

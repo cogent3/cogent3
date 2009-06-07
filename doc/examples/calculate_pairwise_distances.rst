@@ -18,7 +18,7 @@ Load my alignment
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/test.paml")
+    >>> al = LoadSeqs("data/long_testseqs.fasta")
 
 Create a pairwise distances object with your alignment and substitution model
 
@@ -32,13 +32,13 @@ Printing ``d`` before execution shows its status.
 
     >>> print d
     =========================================================================
-    Seq1 \ Seq2    NineBande       Mouse       Human    HowlerMon    DogFaced
+    Seq1 \ Seq2       Human    HowlerMon       Mouse    NineBande    DogFaced
     -------------------------------------------------------------------------
-      NineBande            *    Not Done    Not Done     Not Done    Not Done
-          Mouse     Not Done           *    Not Done     Not Done    Not Done
-          Human     Not Done    Not Done           *     Not Done    Not Done
-      HowlerMon     Not Done    Not Done    Not Done            *    Not Done
-       DogFaced     Not Done    Not Done    Not Done     Not Done           *
+          Human           *     Not Done    Not Done     Not Done    Not Done
+      HowlerMon    Not Done            *    Not Done     Not Done    Not Done
+          Mouse    Not Done     Not Done           *     Not Done    Not Done
+      NineBande    Not Done     Not Done    Not Done            *    Not Done
+       DogFaced    Not Done     Not Done    Not Done     Not Done           *
     -------------------------------------------------------------------------
 
 Which in this case is to simply indicate nothing has been done.
@@ -48,13 +48,13 @@ Which in this case is to simply indicate nothing has been done.
     >>> d.run(show_progress=False)
     >>> print d
     =====================================================================
-    Seq1 \ Seq2    NineBande     Mouse     Human    HowlerMon    DogFaced
+    Seq1 \ Seq2     Human    HowlerMon     Mouse    NineBande    DogFaced
     ---------------------------------------------------------------------
-      NineBande            *    0.2196    0.0890       0.0700      0.0891
-          Mouse       0.2196         *    0.2737       0.2736      0.2467
-          Human       0.0890    0.2737         *       0.0530      0.1092
-      HowlerMon       0.0700    0.2736    0.0530            *      0.0894
-       DogFaced       0.0891    0.2467    0.1092       0.0894           *
+          Human         *       0.0730    0.3363       0.1804      0.1972
+      HowlerMon    0.0730            *    0.3487       0.1865      0.2078
+          Mouse    0.3363       0.3487         *       0.3813      0.4022
+      NineBande    0.1804       0.1865    0.3813            *      0.2019
+       DogFaced    0.1972       0.2078    0.4022       0.2019           *
     ---------------------------------------------------------------------
 
 Note that pairwise distances can be distributed for computation across multiple CPU's. In this case, when statistics (like distances) are requested only the master CPU returns data.

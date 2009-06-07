@@ -18,7 +18,7 @@ Load the alignment.
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/test.paml")
+    >>> al = LoadSeqs("data/long_testseqs.fasta")
 
 Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
 
@@ -33,15 +33,15 @@ Now use this matrix to build a neighbour joining tree.
 
     >>> mytree = nj.nj(d.getPairwiseDistances())
     >>> print mytree.asciiArt()
-              /-NineBande
+                                  /-Human
+                        /edge.0--|
+              /edge.1--|          \-HowlerMon
+             |         |
+             |          \-Mouse
+    -root----|
+             |--DogFaced
              |
-             |          /-DogFaced
-             |-edge.1--|
-    -root----|         |          /-HowlerMon
-             |          \edge.0--|
-             |                    \-Human
-             |
-              \-Mouse
+              \-NineBande
 
 We can save this tree to file.
 

@@ -403,4 +403,6 @@ Annotations should be correctly masked, whether the sequence has been reverse co
     >>> print minus.withMaskedAnnotations("CDS")
     TTT??????????TTTTTTTTTT?????TTTT????TT
 
-Not documented, Source features.
+.. todo::
+    
+    Not documented, Source features.

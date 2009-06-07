@@ -1,7 +1,9 @@
 Querying NCBI for VWF
 =====================
 
-This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007). **Note:** Due to changes by NCBI in the structure of there records, it is no longer easy (but not impossible) to use the Sequences ``Info`` attribute to restrict sequences to Swissprot entries as we had done previously.
+This example is taken from the PyCogent paper (Knight et al. Genome Biol, 8(8):R171, 2007).
+
+.. note:: Due to changes by NCBI in the structure of there records, it is no longer easy (but not impossible) to use the Sequences ``Info`` attribute to restrict sequences to Swissprot entries as we had done previously.
 
 We query the NCBI protein data base for von Willebrand Factor (VWF), a 2813 amino acid glycoprotein required for platelet adhesion in blood coagulation. Missense mutations in this molecule have been associated with von Willebrand disease, a heterogeneous disorder characterized by prolonged bleeding.
 
@@ -42,7 +44,7 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     ...                 disease = "VWD" in note
     ...                 lo = feature["location"].first() - 1
     ...                 hi = feature["location"].last()
-    ...                 rows.append(["SNP", lo, hi, variant, disease])
+    ...                 rows.append(["SNP", lo, hi, variant.strip(), disease])
     ...             else:
     ...                 region_name = feature["region_name"][0]
     ...                 if region_name == "Domain":
@@ -51,7 +53,7 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     ...                     if len(note) == 1:
     ...                         note += [""]
     ...                     lo, hi = feature["location"].first() - 1, feature["location"].last()
-    ...                     rows.append(["Domain", lo, hi, ' '.join(note), None])
+    ...                     rows.append(["Domain", lo, hi, ' '.join(note).strip(), None])
     ...     species = seq.Info.species.split()
     ...     seq_name = "%s.%s" % (species[0][0] + species[1][:3], accession)
     ...     seqs[seq_name] = seq
@@ -74,18 +76,22 @@ We convert the features into a PyCogent ``Table`` object, which requires we spec
     >>> from cogent import LoadTable
     >>> feature_table = LoadTable(header=["Type", "Start", "Stop", "Note",
     ...                    "Disease"], rows=rows)
-    >>> print feature_table[:10]
-    =============================================
-      Type    Start    Stop       Note    Disease
-    ---------------------------------------------
-    Domain       33     240    VWFD 1            
-       SNP      272     273     R -> W       True
-    Domain      294     348     TIL 1            
-       SNP      376     377     W -> C       True
-    Domain      386     598    VWFD 2            
-       SNP      483     484     H -> R      False
-       SNP      527     528     N -> S       True
-       SNP      549     550     G -> R       True
-    Domain      651     707     TIL 2            
-    Domain      775     827     TIL 3            
-    ---------------------------------------------
+
+Printing ``feature_table[:10]`` should result in something like:
+
+.. code-block:: python
+    
+    ============================================
+      Type    Start    Stop      Note    Disease
+    --------------------------------------------
+    Domain       33     240    VWFD 1           
+       SNP      272     273    R -> W       True
+    Domain      294     348     TIL 1           
+       SNP      317     318    N -> K      False
+       SNP      376     377    W -> C       True
+    Domain      386     598    VWFD 2           
+       SNP      483     484    H -> R      False
+       SNP      527     528    N -> S       True
+       SNP      549     550    G -> R       True
+    Domain      651     707     TIL 2           
+    --------------------------------------------
