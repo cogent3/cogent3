@@ -1,6 +1,8 @@
 Performing a relative rate test
 ===============================
 
+.. sectionauthor:: Gavin Huttley
+
 From cogent import all the components we need
 
 .. doctest::

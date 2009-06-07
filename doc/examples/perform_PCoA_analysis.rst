@@ -1,6 +1,8 @@
 Perform Principal Coordinates Analysis
 ======================================
 
+.. sectionauthor:: Cathy Lozupone
+
 An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::

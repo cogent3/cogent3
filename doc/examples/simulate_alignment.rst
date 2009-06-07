@@ -1,6 +1,8 @@
 Simulate an alignment
 =====================
 
+.. sectionauthor:: Gavin Huttley
+
 How to  simulate an alignment. For this example we just create a simple model using a four taxon tree with very different branch lengths, a Felsenstein model with very different nucleotide frequencies and a long alignment.
 
 See the other examples for how to define other substitution models.

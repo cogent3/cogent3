@@ -1,6 +1,8 @@
 A test of the neutral theory
 ============================
 
+.. sectionauthor:: Gavin Huttley
+
 This file contains an example for performing a likelihood ratio test of neutrality. The test compares a model where the codon model parameter omega is constrained to be the same for all edges against one where each edge has its' own omega. From cogent import all the components we need.
 
 .. doctest::

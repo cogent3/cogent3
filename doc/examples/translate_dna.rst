@@ -1,6 +1,8 @@
 Translating DNA into protein
 ============================
 
+.. sectionauthor:: Gavin Huttley
+
 To translate a DNA alignment, read it in assigning the DNA alphabet. Note setting ``aligned = False`` is critical for loading sequences of unequal length. Different genetic codes are available in ``cogent.core.genetic_code``
 
 .. doctest::

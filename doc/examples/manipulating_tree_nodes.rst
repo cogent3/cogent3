@@ -1,6 +1,8 @@
 Manipulation of Tree Node Objects
 =================================
 
+.. sectionauthor:: Tony Walters
+
 Examples of how to initialize and manipulate various tree node objects.
 
 .. doctest ::

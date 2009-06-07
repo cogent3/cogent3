@@ -1,6 +1,8 @@
 Specifying and using an unrestricted nucleotide substitution model
 ==================================================================
 
+.. sectionauthor:: Gavin Huttley
+
 Do standard ``cogent`` imports.
 
 .. doctest::

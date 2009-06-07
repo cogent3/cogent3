@@ -1,6 +1,8 @@
 Analysis of rate heterogeneity
 ==============================
 
+.. sectionauthor:: Gavin Huttley
+
 A simple example for analyses involving rate heterogeneity among sites. In this case we will simulate an alignment with two rate categories and then try to recover the rates from the alignment.
 
 .. doctest::

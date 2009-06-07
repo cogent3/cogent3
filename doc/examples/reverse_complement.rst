@@ -1,6 +1,8 @@
 Getting the reverse complement
 ==============================
 
+.. sectionauthor:: Gavin Huttley
+
 This is a property of DNA, and hence alignments need to be created with the appropriate ``MolType``. In the following example, the alignment is truncated to just 50 bases for the sake of simplifying the presentation.
 
 .. doctest::

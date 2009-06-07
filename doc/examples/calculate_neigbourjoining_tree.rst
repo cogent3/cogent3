@@ -1,6 +1,8 @@
 Make a neighbor joining tree
 ============================
 
+.. sectionauthor:: Gavin Huttley
+
 An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::

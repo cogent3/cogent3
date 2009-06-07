@@ -1,6 +1,8 @@
 Drawing a dotplot
 =================
 
+.. sectionauthor:: Gavin Huttley
+
 .. doctest::
 
     >>> from cogent import LoadSeqs

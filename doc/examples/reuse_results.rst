@@ -1,6 +1,8 @@
 Reusing results to speed up optimisation
 ========================================
 
+.. sectionauthor:: Gavin Huttley
+
 An example of how to use the maximum-likelihood parameter estimates from one model as starting values for another model. In this file we do something silly, by saving a result and then reloading it. This is silly because the analyses are run consecutively. A better approach when running consecutively is to simply use the annotated tree directly.
 
 .. doctest::
