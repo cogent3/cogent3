@@ -13,4 +13,4 @@ if not fl:
     
 for test in fl:
     doctest.testfile(test, 
-    optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS, verbose=True)
+    optionflags = doctest.ELLIPSIS, verbose=True)
