@@ -54,7 +54,8 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     ...         for field in re.split("[.;]", feature["note"][0]) if field]
     ...                     if len(note) == 1:
     ...                         note += [""]
-    ...                     lo, hi = feature["location"].first() - 1, feature["location"].last()
+    ...                     lo = feature["location"].first() - 1
+    ...                     hi = feature["location"].last()
     ...                     rows.append(["Domain", lo, hi, ' '.join(note).strip(), None])
     ...     species = seq.Info.species.split()
     ...     seq_name = "%s.%s" % (species[0][0] + species[1][:3], accession)

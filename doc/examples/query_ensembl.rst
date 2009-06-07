@@ -113,7 +113,7 @@ Because there can be multiple hits from a query, and because we wish to not spen
     >>> print brca2.Description
     Breast cancer type...
     >>> print brca2
-    gene(Species=Homo sapiens; BioType="protein_coding"; Description="Breast cancer type..."; StableId="ENSG00000139618...
+    gene(Species=Homo sapiens; BioType="protein_coding"; Description="Breast...
 
 This code serves to illustrate a few things. First, the sorts of properties that exist on the object. These can be directly accessed as illustrated above. Secondly, that the argument names to ``getGenesMatching`` match the properties.
 
@@ -223,7 +223,7 @@ Ensembl's ``otherfeatures`` database mirrors the structure of the ``core`` datab
     >>> ests = human.getFeatures(feature_types='est', region=brca2)
     >>> for est in ests:
     ...     print est
-    est(Species=Homo sapiens; BioType="protein_coding"; Description="None"; Location=Coordinate('Human':"chro...":"13":...
+    est(Species=Homo sapiens; BioType="protein_coding"; Description="None";...
 
 Getting Variation
 ^^^^^^^^^^^^^^^^^
@@ -245,8 +245,7 @@ and that information can be used to query the genome for all variation of that e
     ...     print nsyn_variant
     ...     if nsyn_variant.Symbol == 'rs2853516':
     ...         break
-    variation(Symbol="rs28358582"; Effect=['SPLICE_SITE', 'NON_SYNONYMOUS_CODING']; Alleles="T/C")
-    variation(Symbol="rs2853516"; Effect='NON_SYNONYMOUS_CODING'; Alleles="G/A")...
+    variation(Symbol="rs28358582"; Effect=['SPLICE_SITE', 'NON_SYNONYMOUS_CODING']; ...
 
 ``Variation`` objects also have other useful properties, such as a location, the number of alleles. The length of a ``Variation`` instance is the length of it's longest allele.
 
@@ -334,7 +333,7 @@ The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compa
     >>> compara = Compara(['human', 'mouse', 'rat'], account=account,
     ...                  Release=Release)
     >>> print compara
-    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=52; connected=True)
+    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=52...
 
 The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes. The genome instances are named according to their common name in CamelCase. For instance, if we had created a compara instance with the american pika species included, then that genome would be accessed as ``compara.AmericanPika``. We access the human genome in this compara instance and conduct a gene search.
 
@@ -415,19 +414,17 @@ We can also search for other relationship types, which we do here for a histone.
 Getting Comparative Alignments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ensembl stores multiple sequence alignments for selected species. For a given group of species, you can examine what alignments are available by printing the ``method_species_links`` attribute of ``Compara``.
-
-.. doctest::
+Ensembl stores multiple sequence alignments for selected species. For a given group of species, you can examine what alignments are available by printing the ``method_species_links`` attribute of ``Compara``. This will return something like
 
     >>> print compara.method_species_links
     Align Methods/Clades
-    ======================================================================================================
-    method_link_species_set_id  method_link_id  species_set_id  align_method                   align_clade
-    ------------------------------------------------------------------------------------------------------
-                           338              10           31347         PECAN  12 amniota vertebrates Pecan
-                           341              12           31349       ORTHEUS       9 eutherian mammals EPO
-                           352              12           31684       ORTHEUS      29 eutherian mammals EPO
-    ------------------------------------------------------------------------------------------------------
+    ===================================================================================...
+    method_link_species_set_id  method_link_id  species_set_id  align_method           ...
+    -----------------------------------------------------------------------------------...
+                           338              10           31347         PECAN  12 amniot...
+                           341              12           31349       ORTHEUS       9 eu...
+                           352              12           31684       ORTHEUS      29 eu...
+    -----------------------------------------------------------------------------------...
 
 The ``align_method`` and ``align_clade`` columns can be used as arguments to ``getSyntenicRegions``. This method is responsible for returning ``SyntenicRegions`` instances for a given coordinate from a species. As it's possible that multiple records may be found from the multiple alignment for a given set of coordinates, the result of calling this method is a python generator. The returned regions have a length, defined by the full set of aligned sequences. If the ``omit_redundant`` argument is used, then positions with gaps in all sampled species will be removed in the alignment to be returned. The length of the syntenic region, however, is the length of the unfiltered alignment.
 
@@ -450,7 +447,7 @@ The ``align_method`` and ``align_clade`` columns can be used as arguments to ``g
       Coordinate('Mouse':"chro...":"5":151334868-151372713:-1)
       Coordinate('Rat':"chro...":"12":4282529-4317319:1)
     148073
-    3 x 148073 dna alignment: Rattus norvegicus:chromosome:12:4282529-4317319:-1[-AGACACCAAA...], Homo sapiens:chromosome:13:31798641-31871809:1[CAGACACCAAA...], Mus musculus:chromosome:5:151334868-151372713:1[CAGACACCAAA...]
+    3 x 148073 dna alignment: Rattus norvegicus:chromosome:12:4282529-4317319:-1[-AG...
 
 We consider a species for which only pairwise alignments are available, the bush baby.
 
@@ -460,14 +457,21 @@ We consider a species for which only pairwise alignments are available, the bush
     ...                        account=account)
     >>> print compara_pair
     Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=52; connected=True)
+
+
+Printing the ``method_species_links`` table provides all the necessary information for specifying selection conditions.
+
     >>> print compara_pair.method_species_links
     Align Methods/Clades
-    ===========================================================================================================
-    method_link_species_set_id  method_link_id  species_set_id  align_method                        align_clade
-    -----------------------------------------------------------------------------------------------------------
-                           264               1           30604    BLASTZ_NET  H.sap-O.gar blastz-net (on H.sap)
-                           352              12           31684       ORTHEUS           29 eutherian mammals EPO
-    -----------------------------------------------------------------------------------------------------------
+    ===================================================================================...
+    method_link_species_set_id  method_link_id  species_set_id  align_method           ...
+    -----------------------------------------------------------------------------------...
+                           264               1           30604    BLASTZ_NET  H.sap-O.g...
+                           352              12           31684       ORTHEUS           ...
+    -----------------------------------------------------------------------------------...
+
+.. doctest::
+    
     >>> gene = compara_pair.Bushbaby.getGenesMatching(
     ...                             StableId='ENSOGAG00000003166'
     ...                             )
