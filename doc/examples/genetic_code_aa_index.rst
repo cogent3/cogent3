@@ -10,21 +10,26 @@ First, we load the genetic code objects and look at how they differ from one ano
 .. doctest::
 
     >>> from cogent.core.genetic_code import GeneticCode
-    >>> standard_nuclear_genetic_code = GeneticCode('FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
-    >>> vertebrate_mitochondrial_genetic_code = GeneticCode('FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG')
+    >>> code = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
+    >>> standard_nuclear_genetic_code = GeneticCode(code)
+    >>> code = 'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG'
+    >>> vertebrate_mitochondrial_genetic_code = GeneticCode(code)
     >>> standard_nuclear_genetic_code == vertebrate_mitochondrial_genetic_code
     False
-    >>> differences = standard_nuclear_genetic_code.changes(vertebrate_mitochondrial_genetic_code).items()
-    >>> differences.sort()
-    >>> differences
-    [('AGA', 'R*'), ('AGG', 'R*'), ('ATA', 'IM'), ('TGA', '*W')]
 
-We'll make some synonyms for the objects for simplicity:
+We'll make some synonyms for the objects for simplicity, and then look at the differences between the two codes:
 
 .. doctest::
 
     >>> ngc = standard_nuclear_genetic_code
     >>> mgc = vertebrate_mitochondrial_genetic_code
+
+    >>> differences = ngc.changes(mgc).items()
+    >>> differences.sort()
+    >>> differences
+    [('AGA', 'R*'), ('AGG', 'R*'), ('ATA', 'IM'), ('TGA', '*W')]
+
+
 
 Next, let's load the Woese Polar Requirement ``AAIndex`` data, and find the effect of an ATA to ATG substitution with each of the two ``GeneticCode`` objects.
 
