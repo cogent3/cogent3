@@ -106,6 +106,11 @@ class ParameterController(_ParameterController):
             lower=None, upper=None, const=None, independent=None):
         settings = []
         PC = self.defn_for[par_name]
+        if not isinstance(PC, _LeafDefn):
+            args = ' and '.join(['"%s"' % a.name for a in PC.args])
+            msg = '"%s" is not settable as it is derived from %s.' % (
+                    par_name, args)
+            raise ValueError(msg)
         
         if const is None:
             const = PC.const_by_default
