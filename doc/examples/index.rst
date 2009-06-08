@@ -72,6 +72,7 @@ Modelling Evolution
     simple
     relative_rate
     neutral_test
+    scope_model_params_on_trees
     empirical_protein_models
     testing_multi_loci
     reuse_results
