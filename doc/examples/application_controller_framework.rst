@@ -286,7 +286,7 @@ useful to check whether the command runs on the normal command line.
    >>> print r.Parameters['-P'].isOn()
    False
    >>> print r.Parameters['-P']
-
+   <BLANKLINE>
    >>> print r.Parameters['-T'].isOn()
    True
    >>> print r.Parameters['-T']
@@ -1001,7 +1001,7 @@ False.
    >>> tree.isOn()
    False
    >>> print tree
-
+   <BLANKLINE>
    >>> tree.on()
    >>> print tree
    -tree
@@ -1042,7 +1042,7 @@ to None.
    >>> temp.isOn()
    False
    >>> print temp
-
+   <BLANKLINE>
    >>> temp.on(37)
    >>> print temp
    -T=37
@@ -1176,12 +1176,15 @@ user, appears in the synonyms dictionary the key to use for the parameters
 dictionary is looked up. Otherwise, it is assumed that the user used an existing
 key in the parameters dictionary. ::
 
-   >>> from cogent.app.parameters import FlagParameter, ValuedParameter, MixedParameter, Parameters
+   >>> from cogent.app.parameters import FlagParameter
    >>> a = FlagParameter('-','a')
+   >>> from cogent.app.parameters import  ValuedParameter
    >>> b = ValuedParameter('-','T',Value=37,Delimiter='=')
+   >>> from cogent.app.parameters import MixedParameter
    >>> c = MixedParameter('-','d',Value=0)
    >>> params = {'-a':a,'-T':b,'-d':c}
    >>> synonyms = {'temp':'-T','distance':'-d'}
+   >>> from cogent.app.parameters import Parameters
    >>> p = Parameters(params,synonyms)
    >>> p['-a'].isOn()
    False
