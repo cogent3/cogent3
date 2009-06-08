@@ -23,23 +23,27 @@ Next, we'll load our test data. We will be using DNA sequences for this example:
 
 Lets align some sequences using default parameters!
 
+.. note:: Output is truncated for document formatting
+
 .. doctest::
     
     >>> clustalw_aln = clustalw_align_unaligned_seqs(unaligned_seqs, DNA) 
     >>> muscle_aln = muscle_align_unaligned_seqs(unaligned_seqs, DNA) 
     >>> mafft_aln = mafft_align_unaligned_seqs(unaligned_seqs, DNA) 
     >>> clustalw_aln
-    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...
+    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], ...
     >>> muscle_aln
-    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...
+    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], ...
     >>> mafft_aln
-    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...
+    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], ...
 
 To change specific parameters, simply specify the parameters in a dict and pass it in:
+
+.. note:: Output is truncated for document formatting
 
 .. doctest::
     
     >>> clustalw_params = {'-gapopen':-3, '-quicktree':True}
     >>> clustalw_aln = clustalw_align_unaligned_seqs(unaligned_seqs, DNA, params=clustalw_params)
     >>> clustalw_aln
-    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], Human[GCAAGGAGCCA...], ...
+    5 x 60 dna alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], ...
