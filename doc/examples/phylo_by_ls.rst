@@ -3,7 +3,23 @@ Phylogenetic reconstruction by least squares
 
 .. sectionauthor:: Gavin Huttley
 
-We will load some pre-computed pairwise distance data. To see how that data was computed see the calculating pairwise distances example. That data is saved in a format called ``pickle`` which is native to python. As per usual, we import the basic components we need.
+We will load some pre-computed pairwise distance data. To see how that data was computed see the :ref:`calculating-pairwise-distances` example. That data is saved in a format called ``pickle`` which is native to python. As per usual, we import the basic components we need.
+
+.. recompute the data matrix and then delete file at end
+
+.. doctest::
+    :hide:
+    
+    >>> from cogent import LoadSeqs
+    >>> from cogent.phylo import distance
+    >>> from cogent.evolve.models import HKY85
+    >>> al = LoadSeqs("data/long_testseqs.fasta")
+    >>> d = distance.EstimateDistances(al, submodel= HKY85())
+    >>> d.run(show_progress=False)
+    >>> import cPickle
+    >>> f = open('dists_for_phylo.pickle', "w")
+    >>> cPickle.dump(d.getPairwiseDistances(), f)
+    >>> f.close()
 
 .. doctest::
 
@@ -14,8 +30,7 @@ Now load the distance data.
 
 .. doctest::
 
-    >>> filename = "dists_for_phylo.pickle"
-    >>> f = file(filename, 'r')
+    >>> f = file('dists_for_phylo.pickle', 'r')
     >>> dists = cPickle.load(f)
     >>> f.close()
 
@@ -131,3 +146,11 @@ Using maximum likelihood for measuring tree fit
 -----------------------------------------------
 
 This is a much slower algorithm and the interface largely mirrors that for the above. The difference is you import ``maximum_likelihood`` instead of ``least_squares``, and use the ``ML`` instead of ``WLS`` classes. The ``ML`` class requires a substitution model (like a HKY85 for DNA or JTT92 for protein), and an alignment. It also optionally takes a distance matrix, such as that used here, computed for the same sequences. These distances are then used to obtain estimates of branch lengths by the WLS method for each evaluated tree topology which are then used as starting values for the likelihood optimisation.
+
+.. clean up
+
+.. doctest::
+    :hide:
+    
+    >>> import os
+    >>> os.remove('dists_for_phylo.pickle')

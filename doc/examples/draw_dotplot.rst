@@ -27,3 +27,10 @@ Write out the dotplot as a pdf file in the current directory note that seq1 will
     >>> filename = 'dotplot_example.pdf'
     >>> dp.drawToPDF(filename)
 
+.. clean up
+
+.. doctest::
+    :hide:
+    
+    >>> import os
+    >>> os.remove('dotplot_example.pdf')

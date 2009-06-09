@@ -1,6 +1,11 @@
 For Developers
 ==============
 
+Anyone can contribute to the development of PyCogent, not just registered developers. If you figure out a solution to something using PyCogent that you'd like to share please post comments on the forums_ page at sourceforge and we'll look at including your tips! If you have ideas for improving the current documentation, then we want to here from you so please post on the tracker_ page!
+
+.. _forums: http://sourceforge.net/forum/?group_id=186234
+.. _tracker: http://sourceforge.net/tracker2/?group_id=186234
+
 Grabbing from the subversion repository
 ---------------------------------------
 
@@ -54,7 +59,9 @@ The results are in ``_build/doctest/output.txt``.
 Adding to the documentation
 ---------------------------
 
-For new use-case examples. Look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent are using heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
+You can maximise the cogent user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then add it into the documentation. If you can think of ways to improve the existing documents let us know.
+
+For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
 
 - # with overline, for parts
 - \* with overline, for chapters
@@ -64,10 +71,12 @@ For new use-case examples. Look at any of the existing examples. The restructure
 - ", for paragraphs
 - +, added for sub-paragraphs (non-standard)
 
-Create your file in the ``examples`` directory, giving it a ``.rst`` suffix. Link it into the documentation tree, adding a line into the ``examples/index.rst`` file.
+If it's a use-case, create your file in the ``examples`` directory, giving it a ``.rst`` suffix. Link it into the documentation tree, adding a line into the ``examples/index.rst`` file. If it's something you think should be added into the cookbook, add it into the appropriate cookbook document.
 
 The new documentation checklist
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Things you should check before committing your new document:
 
 - Add a line at the beginning with yourself as author (``.. sectionauthor:: My Name``) so people can contact you with feedback.
 - Spellcheck!!
@@ -91,7 +100,7 @@ Add todo's into the rst files using the ``todo`` directive as in
 
 To see the list of todo's in the project, uncomment the line that sets ``todo_include_todos=True`` in ``doc/conf.py``, then cd into the ``doc/`` and make the html docs again. The todo's are listed on the main page.
 
-.. warning:: Be sure to revert the conf.py file back to it's original state so you don't change everyone else's documentation too!
+.. warning:: Be sure to revert the conf.py file back to it's original state so you don't accidentally commit the change as this affects everyone else's documentation too!
 
 Developing C-extensions
 -----------------------
