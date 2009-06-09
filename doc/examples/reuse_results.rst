@@ -98,3 +98,10 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
         G    0.21
     -------------
 
+.. clean up
+
+.. doctest::
+    :hide:
+    
+    >>> import os
+    >>> os.remove('tree.xml')

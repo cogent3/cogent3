@@ -24,11 +24,12 @@ Create a HKY85 model.
 
     >>> sm = HKY85()
 
-Make the controller object.
+Make the controller object and limit the display precision (to decrease the chance that small differences in estimates cause tests of the documentation to fail).
 
 .. doctest::
 
     >>> lf = sm.makeLikelihoodFunction(t)
+    >>> lf.setTablesFormat(digits=2, space=3)
 
 Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``setParamRules`` method.
 
@@ -55,30 +56,30 @@ View the resulting maximum-likelihood parameter values.
     >>> lf.setName("clock")
     >>> print lf
     clock
-    ======
-     kappa
-    ------
-    4.1004
-    ------
-    =============================
-         edge    parent    length
-    -----------------------------
-        Human    edge.0    0.0363
-    HowlerMon    edge.0    0.0363
-       edge.0    edge.1    0.0385
-        Mouse    edge.1    0.2786
-       edge.1      root    0.0194
-    NineBande      root    0.0939
-     DogFaced      root    0.1130
-    -----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-        T    0.2317
-        C    0.1878
-        A    0.3681
-        G    0.2125
-    ---------------
+    =====
+    kappa
+    -----
+     4.10
+    -----
+    ===========================
+         edge   parent   length
+    ---------------------------
+        Human   edge.0     0.04
+    HowlerMon   edge.0     0.04
+       edge.0   edge.1     0.04
+        Mouse   edge.1     0.28
+       edge.1     root     0.02
+    NineBande     root     0.09
+     DogFaced     root     0.11
+    ---------------------------
+    ==============
+    motif   mprobs
+    --------------
+        T     0.23
+        C     0.19
+        A     0.37
+        G     0.21
+    --------------
 
 We extract the log-likelihood and number of free parameters for later use.
 
@@ -106,30 +107,30 @@ View the resulting maximum-likelihood parameter values.
     >>> lf.setName("non clock")
     >>> print lf
     non clock
-    ======
-     kappa
-    ------
-    4.0997
-    ------
-    =============================
-         edge    parent    length
-    -----------------------------
-        Human    edge.0    0.0311
-    HowlerMon    edge.0    0.0415
-       edge.0    edge.1    0.0385
-        Mouse    edge.1    0.2785
-       edge.1      root    0.0195
-    NineBande      root    0.0940
-     DogFaced      root    0.1129
-    -----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-        T    0.2317
-        C    0.1878
-        A    0.3681
-        G    0.2125
-    ---------------
+    =====
+    kappa
+    -----
+     4.10
+    -----
+    ===========================
+         edge   parent   length
+    ---------------------------
+        Human   edge.0     0.03
+    HowlerMon   edge.0     0.04
+       edge.0   edge.1     0.04
+        Mouse   edge.1     0.28
+       edge.1     root     0.02
+    NineBande     root     0.09
+     DogFaced     root     0.11
+    ---------------------------
+    ==============
+    motif   mprobs
+    --------------
+        T     0.23
+        C     0.19
+        A     0.37
+        G     0.21
+    --------------
 
 These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.
 

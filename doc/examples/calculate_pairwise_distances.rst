@@ -1,3 +1,5 @@
+.. _calculating-pairwise-distances:
+
 Calculate pairwise distances between sequences
 ==============================================
 
@@ -65,7 +67,7 @@ We'll write a phylip formatted distance matrix.
 
 .. doctest::
 
-    >>> d.writeToFile('junk.phylip', format="phylip")
+    >>> d.writeToFile('dists_for_phylo.phylip', format="phylip")
 
 We'll also save the distances to file in Python's pickle format.
 
@@ -75,3 +77,12 @@ We'll also save the distances to file in Python's pickle format.
     >>> f = open('dists_for_phylo.pickle', "w")
     >>> cPickle.dump(d.getPairwiseDistances(), f)
     >>> f.close()
+
+.. clean up
+
+.. doctest::
+    :hide:
+    
+    >>> import os
+    >>> for file_name in 'dists_for_phylo.phylip', 'dists_for_phylo.pickle':
+    ...     os.remove(file_name)

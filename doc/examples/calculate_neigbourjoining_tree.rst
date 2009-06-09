@@ -50,3 +50,11 @@ We can save this tree to file.
 .. doctest::
 
     >>> mytree.writeToFile('test_nj.tree')
+
+.. clean up
+
+.. doctest::
+    :hide:
+    
+    >>> import os
+    >>> os.remove('test_nj.tree')

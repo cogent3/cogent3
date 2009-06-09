@@ -69,4 +69,5 @@ It's typically better to not have the analysis and drawing code in the same scri
     :hide:
 
     >>> import os
-    >>> os.remove('annotated_tree.xml')
+    >>> for file_name in 'tree-scaled.pdf', 'tree-unscaled.pdf', 'annotated_tree.xml':
+    ...     os.remove(file_name)
