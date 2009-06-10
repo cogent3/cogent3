@@ -28,30 +28,26 @@ Examine the number of sequences in the alignment and the alignment length
 Create a profile containing the counts of each base at each alignment position
 
 .. doctest::
-    :options: +NORMALIZE_WHITESPACE
     
     >>> pf = aln.getPosFreqs()
-    >>> print pf.prettyPrint(include_header=True, column_limit=6)
-    U	C	A	G	-	B
-    0	0	0	20	0	0
-    0	12	0	8	0	0
-    1	18	0	1	0	0
-    7	9	0	4	0	0
-    ...
+    >>> print pf.prettyPrint(include_header=True, column_limit=6, col_sep='   ')
+     U    C    A    G    -   B
+     0    0    0   20    0   0
+     0   12    0    8    0   0
+     1   18    0    1    0   0
+     7    9    0    4    0   0...
 
 Normalize the positions to get the relative frequencies at each position
 
 .. doctest::
-    :options: +NORMALIZE_WHITESPACE
     
     >>> pf.normalizePositions()
-    >>> print pf.prettyPrint(include_header=True, column_limit=6)
-    U	C	A	G	-	B
-    0.0000	0.0000	0.0000	1.0000	0.0000	0.0000
-    0.0000	0.6000	0.0000	0.4000	0.0000	0.0000
-    0.0500	0.9000	0.0000	0.0500	0.0000	0.0000
-    0.3500	0.4500	0.0000	0.2000	0.0000	0.0000
-    ...
+    >>> print pf.prettyPrint(include_header=True, column_limit=6, col_sep='   ')
+         U        C        A        G        -        B
+    0.0000   0.0000   0.0000   1.0000   0.0000   0.0000
+    0.0000   0.6000   0.0000   0.4000   0.0000   0.0000
+    0.0500   0.9000   0.0000   0.0500   0.0000   0.0000
+    0.3500   0.4500   0.0000   0.2000   0.0000   0.0000...
 
 Make sure the data in the profile is valid. The method isValid checks whether all rows add up to one and whether the profile has a valid Alphabet and CharacterOrder.
 
@@ -64,7 +60,8 @@ A profile can be used to calculate consensus sequences from the alignment. To il
 
 .. doctest::
 
-    >>> print '\n'.join(['%s: %.3f'%(c,f) for (c,f) in zip(pf.CharOrder, pf.dataAt(4)) if f!=0])
+    >>> print '\n'.join(['%s: %.3f'%(c,f) for (c,f) in\
+    ...     zip(pf.CharOrder, pf.dataAt(4)) if f!=0])
     U: 0.050
     C: 0.400
     A: 0.250
@@ -92,23 +89,23 @@ You can also specify to use the degenerate character needed to cover all symbols
 A profile could also function as the description of a certain motif. As an example, let's create a profile description for the T-pseudouridine-C-loop which starts at index 54 and ends at index 59 (based on the reference structure matching the alignment).
 
 .. doctest::
-    :options: +NORMALIZE_WHITESPACE
     
     >>> loop_profile = Profile(pf.Data[54:60,:], Alphabet=RNA, CharOrder=pf.CharOrder)
-    >>> print loop_profile.prettyPrint(include_header=True, column_limit=6)
-    U	C	A	G	-	B
-    0.9500	0.0000	0.0500	0.0000	0.0000	0.0000
-    1.0000	0.0000	0.0000	0.0000	0.0000	0.0000
-    0.0000	1.0000	0.0000	0.0000	0.0000	0.0000
-    0.0000	0.0000	0.0500	0.9500	0.0000	0.0000
-    0.0000	0.0000	1.0000	0.0000	0.0000	0.0000
-    0.8500	0.0000	0.1500	0.0000	0.0000	0.0000
+    >>> print loop_profile.prettyPrint(include_header=True, column_limit=6, col_sep='   ')
+         U        C        A        G        -        B
+    0.9500   0.0000   0.0500   0.0000   0.0000   0.0000
+    1.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+    0.0000   1.0000   0.0000   0.0000   0.0000   0.0000
+    0.0000   0.0000   0.0500   0.9500   0.0000   0.0000
+    0.0000   0.0000   1.0000   0.0000   0.0000   0.0000
+    0.8500   0.0000   0.1500   0.0000   0.0000   0.0000
 
 We can calculate how well this profile matches in a certain sequence (or profile) by using the score method. As an example we see where the loop profile best fits into the yeast phe-tRNA sequence. As expected, we find the best hit at index 54 (with a score of 5.75).
 
 .. doctest::
 
-    >>> yeast = RNA.Sequence('GCGGAUUUAGCUCAGUU-GGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA')
+    >>> yeast = RNA.Sequence(\
+    ...     'GCGGAUUUAGCUCAGUU-GGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA')
     >>> scores = loop_profile.score(yeast)
     >>> print scores
     [ 2.8   0.9   0.85  0.15  2.05  2.    3.75  0.95  1.2   1.    2.9   2.75
