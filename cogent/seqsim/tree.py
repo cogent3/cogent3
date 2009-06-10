@@ -21,9 +21,8 @@ class RangeNode(PhyloNode):
     
     Note: some of these methods should possibly move to the base class.
     """
-    def __init__(self, Name=None, LeafRange=None, Id=None, Children=None, \
-            Parent=None, NameLoaded=True):
-        """Returns a new TreeNode object.
+    def __init__(self, *args, **kwargs):
+        """Returns a new RangeNode object.
 
         Name: text label
         LeafRange: range of this node's leaves in array. last = index+1
@@ -37,10 +36,9 @@ class RangeNode(PhyloNode):
         consistency! You must specify both the parent and the children
         explicitly, or the connections will not be made correctly.
         """
-        super(RangeNode, self).__init__(Name=Name, Children=Children,\
-            Parent=Parent, NameLoaded=NameLoaded)
-        self.LeafRange = LeafRange
-        self.Id = Id
+        self.LeafRange = kwargs.get('LeafRange', None)
+        self.Id = kwargs.get('Id', None)
+        super(RangeNode, self).__init__(*args, **kwargs)
 
     def __int__(self):
         """Returns index of self."""

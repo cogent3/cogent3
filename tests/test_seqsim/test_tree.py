@@ -22,6 +22,14 @@ __status__ = "Production"
 
 class treeTests(TestCase):
     """Tests for top-level functions."""
+    def test_init(self):
+        """Make sure keyword arguments are being passed to baseclass"""
+        node = RangeNode(LeafRange=1, Id=2, Name='foo', Length=42)
+        self.assertEqual(node.LeafRange, 1)
+        self.assertEqual(node.Id, 2)
+        self.assertEqual(node.Name, 'foo')
+        self.assertEqual(node.Length, 42)
+
     def test_balanced_breakpoints(self):
         """balanced_breakpoints should produce expected arrays."""
         self.assertRaises(ValueError, balanced_breakpoints, 1)
