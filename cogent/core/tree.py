@@ -688,7 +688,7 @@ class TreeNode(object):
         return result, node_list
     
     def _default_tree_constructor(self):
-        return TreeBuilder().edgeFromEdge
+        return TreeBuilder(constructor=self.__class__).edgeFromEdge
     
     def nameUnnamedNodes(self):
         """sets the Data property of unnamed nodes to an arbitrary value
