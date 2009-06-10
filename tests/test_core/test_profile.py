@@ -44,6 +44,7 @@ class ProfileTests(TestCase):
         self.score2 = Profile(array([[.2,.4,.4,0],[.1,0,.9,0],[.1,.2,.3,.4]]),\
             Alphabet="TCAG")
         self.oned = Profile(array([.25,.25,.25,.25]),"ABCD")
+        self.pp = Profile(array([[1,2,3,4],[5,6,7,8],[9,10,11,12]]),"ABCD")
         
     def test_init(self):
         """__init__: should set all attributed correctly"""
@@ -211,13 +212,34 @@ class ProfileTests(TestCase):
         #doesn't match the data
         p = self.full.copy()
         p.CharOrder="ABC"
+        
         self.assertEqual(p.prettyPrint(include_header=True),\
-            "A\tB\tC\n2\t4\n3\t5\n4\t8")
+            "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
         #it will truncate the CharOrder if data is transposed
         #and CharOrder is longer then the number of rows in the 
         #transposed data
         self.assertEqual(p.prettyPrint(include_header=True,\
             transpose_data=True),"A\t2\t3\t4\nB\t4\t5\t8")
+
+    def test_prettyPrint_four_cases(self):
+        """prettyPrint: with/without header/transpose/limit"""
+        p = self.full
+        p = self.pp
+        self.assertEqual(p.prettyPrint(),\
+            "1\t 2\t 3\t 4\n5\t 6\t 7\t 8\n9\t10\t11\t12")
+        self.assertEqual(p.prettyPrint(column_limit=3),\
+            "1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
+        self.assertEqual(p.prettyPrint(column_limit=3, include_header=True),\
+            "A\t B\t C\n1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
+        self.assertEqual(p.prettyPrint(column_limit=3, include_header=False,\
+            transpose_data=True),\
+            "1\t5\t 9\n2\t6\t10\n3\t7\t11\n4\t8\t12")
+        self.assertEqual(p.prettyPrint(column_limit=2, include_header=False,\
+            transpose_data=True),\
+            "1\t5\n2\t6\n3\t7\n4\t8")
+        self.assertEqual(p.prettyPrint(column_limit=3, include_header=True,\
+            transpose_data=True),\
+            "A\t1\t5\nB\t2\t6\nC\t3\t7\nD\t4\t8")
 
     def test_reduce_wrong_size(self):
         """reduce: should fail when profiles have different sizes"""

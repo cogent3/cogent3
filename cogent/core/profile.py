@@ -16,6 +16,7 @@ from numpy import array, sum, transpose, reshape, ones, zeros,\
 from numpy.random import random
 from cogent.util.array import euclidean_distance, row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
+from cogent.format.table import formattedCells
 ##SUPPORT2425
 import numpy #from cogent.util.unit_test import numpy_err
 
@@ -188,25 +189,39 @@ class Profile(object):
         else:
             self.Data = self.Data/col_sums
             
-    def prettyPrint(self, include_header=False, transpose_data=False):
+    def prettyPrint(self, include_header=False, transpose_data=False,\
+        column_limit=None, col_sep='\t'):
         """Returns a string method of the data and character order.
 
         include_header: include charcter order or not
         transpose_data: data as is (rows are positions) or transposed
             (rows are characters) to line it up with an alignment
+        column_limit = int, maximum number of columns displayed
+        col_sep = string, column separator
         """
         h = self.CharOrder
         d = self.Data
-        result = []
+        if column_limit is None:
+            max_col_idx = d.shape[1]
+        else:
+            max_col_idx = column_limit
         if include_header and not transpose_data:
             r = [h]+d.tolist()
         elif include_header and transpose_data:
             r =[[x] + y for x,y in zip(h,transpose(d).tolist())]
         elif transpose_data:
-            r = transpose(d)
+            r = transpose(d).tolist()
         else:
-            r = d
-        return '\n'.join(['\t'.join(map(str,i)) for i in r])
+            r = d.tolist()
+        # resize the result based on the column limit
+        if column_limit is not None:
+            r = [row[:column_limit] for row in r]
+        # nicely format the table content, discard the header (already included) 
+        if r:
+            new_header, formatted_res = formattedCells(r)
+        else:
+            formatted_res = r
+        return '\n'.join([col_sep.join(map(str,i)) for i in formatted_res])
         
     def reduce(self,other,op=add,normalize_input=True,normalize_output=True):
         """Reduces two profiles with some operator and returns a new Profile
