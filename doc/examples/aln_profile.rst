@@ -31,12 +31,12 @@ Create a profile containing the counts of each base at each alignment position
     :options: +NORMALIZE_WHITESPACE
     
     >>> pf = aln.getPosFreqs()
-    >>> print pf.prettyPrint(include_header=True)
-    U	C	A	G	-	B	D	H	K	M	N	S	R	W	V	Y	?
-    0	0	0	20	0	0	0	0	0	0	0	0	0	0	0	0	0
-    0	12	0	8	0	0	0	0	0	0	0	0	0	0	0	0	0
-    1	18	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0
-    7	9	0	4	0	0	0	0	0	0	0	0	0	0	0	0	0
+    >>> print pf.prettyPrint(include_header=True, column_limit=6)
+    U	C	A	G	-	B
+    0	0	0	20	0	0
+    0	12	0	8	0	0
+    1	18	0	1	0	0
+    7	9	0	4	0	0
     ...
 
 Normalize the positions to get the relative frequencies at each position
@@ -45,12 +45,12 @@ Normalize the positions to get the relative frequencies at each position
     :options: +NORMALIZE_WHITESPACE
     
     >>> pf.normalizePositions()
-    >>> print pf.prettyPrint(include_header=True)
-    U	C	A	G	-	B	D	H	K	M	N	S	R	W	V	Y	?
-    0.0	0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.0	0.6	0.0	0.4	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.05	0.9	0.0	0.05	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.35	0.45	0.0	0.2	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+    >>> print pf.prettyPrint(include_header=True, column_limit=6)
+    U	C	A	G	-	B
+    0.0000	0.0000	0.0000	1.0000	0.0000	0.0000
+    0.0000	0.6000	0.0000	0.4000	0.0000	0.0000
+    0.0500	0.9000	0.0000	0.0500	0.0000	0.0000
+    0.3500	0.4500	0.0000	0.2000	0.0000	0.0000
     ...
 
 Make sure the data in the profile is valid. The method isValid checks whether all rows add up to one and whether the profile has a valid Alphabet and CharacterOrder.
@@ -95,14 +95,14 @@ A profile could also function as the description of a certain motif. As an examp
     :options: +NORMALIZE_WHITESPACE
     
     >>> loop_profile = Profile(pf.Data[54:60,:], Alphabet=RNA, CharOrder=pf.CharOrder)
-    >>> print loop_profile.prettyPrint(include_header=True)
-    U	C	A	G	-	B	D	H	K	M	N	S	R	W	V	Y	?
-    0.95	0.0	0.05	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.0	0.0	0.05	0.95	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
-    0.85	0.0	0.15	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+    >>> print loop_profile.prettyPrint(include_header=True, column_limit=6)
+    U	C	A	G	-	B
+    0.9500	0.0000	0.0500	0.0000	0.0000	0.0000
+    1.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+    0.0000	1.0000	0.0000	0.0000	0.0000	0.0000
+    0.0000	0.0000	0.0500	0.9500	0.0000	0.0000
+    0.0000	0.0000	1.0000	0.0000	0.0000	0.0000
+    0.8500	0.0000	0.1500	0.0000	0.0000	0.0000
 
 We can calculate how well this profile matches in a certain sequence (or profile) by using the score method. As an example we see where the loop profile best fits into the yeast phe-tRNA sequence. As expected, we find the best hit at index 54 (with a score of 5.75).
 
