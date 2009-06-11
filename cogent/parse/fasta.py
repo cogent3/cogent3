@@ -5,6 +5,8 @@ from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.parse.record import RecordError
 from cogent.core.info import Info, DbRef
 from cogent.core.moltype import BYTES, ASCII
+from cogent.util.warning import deprecated
+
 from string import strip
 import cogent
 import re
@@ -39,17 +41,25 @@ def is_blank(x):
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 def default_label_to_name(label):
-    """Default transformation of label to name: delete >, strip."""
-    return label[1:].strip()
+    """Default transformation of label to name: does nothing"""
+    deprecated('function', 'default_label_to_name', 'str', 1.4)
+    return label
 
 
 def MinimalFastaParser(infile, strict=True, \
-    label_to_name=default_label_to_name, finder=FastaFinder, \
-    is_label=is_fasta_label):
+    label_to_name=str, finder=FastaFinder, \
+    is_label=None, label_characters='>'):
     """Yields successive sequences from infile as (label, seq) tuples.
 
     If strict is True (default), raises RecordError when label or seq missing.
     """
+    if is_label:
+        deprecated('argument', 'is_label', 'label_characters', 1.4)
+    else:
+        # use an re to search for line starting
+        label_pattern = re.compile('^[%s]' % label_characters)
+        is_label = label_pattern.search
+    
     for rec in finder(infile):
         #first line must be a label line
         if not is_label(rec[0]):
@@ -66,19 +76,20 @@ def MinimalFastaParser(infile, strict=True, \
             else:
                 continue
             
-        label = label_to_name(rec[0])
+        label = rec[0][1:].strip()
+        label = label_to_name(label)
         seq = ''.join(rec[1:])
 
         yield label, seq
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank) 
 
-def MinimalGdeParser(infile, strict=True, label_to_name=default_label_to_name):
+def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,\
-        is_label=is_gde_label)
+        label_characters='%#')
 
 def xmfa_label_to_name(line):
-    (loc, strand, contig) = line[1:].split()
+    (loc, strand, contig) = line.split()
     (sp, loc) = loc.split(':')
     (lo, hi) = [int(x) for x in loc.split('-')]
     if strand == '-':
@@ -97,7 +108,7 @@ XmfaFinder = LabeledRecordFinder(is_fasta_label, \
 
 def MinimalXmfaParser(infile, strict=True):
     # Fasta-like but with header info like ">1:10-1000 + chr1"
-    return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name,\
+    return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name,
         finder=XmfaFinder)
 
 def MinimalInfo(label):

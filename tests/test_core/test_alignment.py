@@ -234,7 +234,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection init should allow name mapping function"""
         d = {'a':'AAAAA', 'b':'BBBBB'}
         f = lambda x: x.upper()
-        a = self.Class(d, name_conversion_f=f)
+        a = self.Class(d, label_to_name=f)
         self.assertNotEqual(a, d)
         self.assertNotEqual(a.NamedSeqs.items(), d.items())
         d_upper = {'A':'AAAAA','B':'BBBBB'}
