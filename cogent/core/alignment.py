@@ -209,7 +209,8 @@ class SequenceCollection(object):
     def __init__(self, data, Names=None, Alphabet=None, MolType=None, \
             Name=None, Info=None, conversion_f=None, is_array=False, \
             force_same_data=False, \
-            remove_duplicate_names=False, name_conversion_f=None,
+            remove_duplicate_names=False, label_to_name=None,
+            name_conversion_f=None,
             suppress_named_seqs=False):
         """Initialize self with data and optionally Info.
         
@@ -251,7 +252,7 @@ class SequenceCollection(object):
         
         Names:          Order of Names in the alignment. Should match the
                         names of the sequences (after processing by
-                        name_conversion_f if present).
+                        label_to_name if present).
         
         Alphabet:       Alphabet to use for the alignment (primarily important
                         for DenseAlignment)
@@ -271,8 +272,12 @@ class SequenceCollection(object):
         remove_duplicate_names: True if duplicate names are to be silently
                         deleted instead of raising errors.
         
-        name_conversion_f: if present, converts name into f(name).
+        label_to_name: if present, converts name into f(name).
         """
+        if name_conversion_f:
+            deprecated('argument', 'name_conversion_f', 'label_to_name', 1.4)
+            label_to_name = name_conversion_f
+        
         #read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
             data = list(data)
@@ -295,7 +300,7 @@ class SequenceCollection(object):
         else:
             per_seq_names, curr_seqs, name_order = \
                 self._names_seqs_order(conversion_f, data, Names, is_array, \
-                name_conversion_f, remove_duplicate_names, \
+                label_to_name, remove_duplicate_names, \
                 Alphabet=self.Alphabet)
             self.Names = name_order
             
@@ -408,7 +413,7 @@ class SequenceCollection(object):
         return duplicates, fixed_names, fixed_seqs
 
     def _names_seqs_order(self, conversion_f, data, Names, is_array, \
-            name_conversion_f, remove_duplicate_names, Alphabet=None):
+            label_to_name, remove_duplicate_names, Alphabet=None):
         """Internal function to figure out names, seqs, and name_order."""
         #figure out conversion function and whether it's an array
         if not conversion_f:
@@ -420,8 +425,8 @@ class SequenceCollection(object):
             seqs, names = conversion_f(data, Alphabet=Alphabet)
         else:
             seqs, names = conversion_f(data)
-        if names and name_conversion_f:
-            names = map(name_conversion_f, names)
+        if names and label_to_name:
+            names = map(label_to_name, names)
         curr_seqs = self._coerce_seqs(seqs, is_array)
 
         #if no names were passed in as Names, if we obtained them from

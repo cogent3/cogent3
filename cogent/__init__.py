@@ -54,6 +54,8 @@ from cogent.parse.sequence import FromFilenameParser
 from cogent.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
         CodonAlphabet
 
+from cogent.util.warning import deprecated
+
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
         for (a_name, a_seq) in FromFilenameParser(filename, format):
@@ -72,7 +74,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     return seq
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
-            name=None, aligned=True, name_conversion_f=None,
+            name=None, aligned=True, label_to_name=None, name_conversion_f=None,
             parser_kw={}, constructor_kw={}, **kw):
     """Initialize an alignment or collection of sequences.
     
@@ -85,20 +87,24 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
       length, results in an Alignment object. If False, a SequenceCollection
       instance is returned instead. If callable, will use as a constructor
       (e.g. can pass in DenseAlignment or CodonAlignment).
-    - name_conversion_f: function for converting original name into another
+    - label_to_name: function for converting original name into another
       name. Default behavior is to split on first whitespace, i.e. to provide
       FASTA labels. 
       To force names to be left alone, pass in: 
-            name_conversion_f=lambda x: x
+            label_to_name=lambda x: x
       To look up names in a dict, pass in:
-            name_conversion_f = lambda x: d.get(x, default_name)
+            label_to_name = lambda x: d.get(x, default_name)
       ...where d is a dict that's in scope, and default_name is what you want
       to assign any sequence that isn't in the dict.
     
     If format is None, will attempt to infer format from the filename
-    suffix. If name_conversion_f is None, will attempt to infer correct
+    suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
+    
+    if name_conversion_f:
+        deprecated('argument', 'name_conversion_f', 'label_to_name', 1.4)
+        label_to_name = name_conversion_f
     
     if filename is None:
         assert data is not None
@@ -112,13 +118,13 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     if aligned: #if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
             return aligned(data=data, MolType=moltype, Name=name, 
-                name_conversion_f=name_conversion_f, **constructor_kw)
+                label_to_name=label_to_name, **constructor_kw)
         else:   #was not callable, but wasn't False
             return Alignment(data=data, MolType=moltype, Name=name, 
-                name_conversion_f=name_conversion_f, **constructor_kw)
+                label_to_name=label_to_name, **constructor_kw)
     else:   #generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name, 
-            name_conversion_f=name_conversion_f, **constructor_kw)
+            label_to_name=label_to_name, **constructor_kw)
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None, 
             row_order=None, digits=4, space=4, title='', missing_data='',
