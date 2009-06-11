@@ -3,7 +3,7 @@
 import unittest
 import os
 
-from cogent.core.tree import LoadTree
+from cogent import LoadTree
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"

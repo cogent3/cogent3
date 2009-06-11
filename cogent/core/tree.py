@@ -29,7 +29,6 @@ from numpy import zeros
 from copy import deepcopy
 import re
 import logging
-import cogent.parse.newick, cogent.parse.tree_xml
 from cogent.util.transform import comb
 from cogent.maths.stats.test import correlation
 from operator import or_
@@ -60,52 +59,6 @@ def distance_from_r(m1, m2):
 
 class TreeError(Exception):
     pass
-
-def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
-    underscore_unmunge=False):
-    
-    """Constructor for tree.
-    
-    Arguments, use only one of:
-        - filename: a file containing a newick or xml formatted tree.
-        - treestring: a newick or xml formatted tree string.
-        - tip_names: a list of tip names.
-
-    Note: underscore_unmunging is turned off by default, although it is part
-    of the Newick format. Set underscore_unmunge to True to replace underscores
-    with spaces in all names read.
-    """
-    
-    if filename:
-        assert not (treestring or tip_names)
-        treestring = open(filename).read()
-        if format is None and filename.endswith('.xml'):
-            format = "xml"
-    if treestring:
-        assert not tip_names
-        if format is None and treestring.startswith('<'):
-            format = "xml"
-        if format == "xml":
-            parser = cogent.parse.tree_xml.parse_string
-        else:
-            parser = cogent.parse.newick.parse_string
-        tree_builder = TreeBuilder().createEdge
-        #FIXME: More general strategy for underscore_unmunge
-        if parser is cogent.parse.newick.parse_string:
-            tree = parser(treestring, tree_builder, \
-                    underscore_unmunge=underscore_unmunge)
-        else:
-            tree = parser(treestring, tree_builder)
-        if not tree.NameLoaded:
-            tree.Name = 'root'
-    elif tip_names:
-        tree_builder = TreeBuilder().createEdge
-        tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
-        tree = tree_builder(tips, 'root', {})
-    else:
-        raise TreeError, 'filename or treestring not specified'
-    return tree
-
 
 class TreeNode(object):
     """Store information about a tree node. Mutable.
