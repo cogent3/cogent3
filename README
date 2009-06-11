@@ -58,7 +58,7 @@ If you do not have administrator privileges on your machine you can change the b
 
 $ python setup.py build_ext -if
 
-which compiles the extensions in place (the ``i`` option) forcibly (the ``f`` option, ie even if they've already been compiled). Then move the cogent directory to where you want it (or leave it in place) and add this location to your python path using ``sys.path.insert(0, "/your/path/to/PyCogent")`` in each script, or by setting shell environment variables. (Note that the path is not to ``../PyCogent/cogent``.)
+which compiles the extensions in place (the ``i`` option) forcibly (the ``f`` option, ie even if they've already been compiled). Then move the cogent directory to where you want it (or leave it in place) and add this location to your python path using ``sys.path.insert(0, "/your/path/to/PyCogent")`` in each script, or by setting shell environment variables (e.g. ``$ export PYTHONPATH=/your/path/to/PyCogent:$PYTHONPATH``)
 
 Testing
 -------
