@@ -66,7 +66,8 @@ release = '1.3.0.dev'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['_build']
+# exclude_trees = ['_build']
+exclude_trees = ['_build', 'cookbook'] # comment out after release
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

@@ -13,10 +13,12 @@ Welcome to PyCogent's documentation!
     README
     coding_guidelines
     examples/index
-    cookbook/index
     developer_notes
     licenses
     ChangeLog
+
+..     cookbook/index # connect back in when release done
+
 
 .. todolist::
 
