@@ -24,7 +24,7 @@ The key steps are then to:
 
 If you want to grab the development version of PyCogent, just replace the first line of the requirements file with ``https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk``.
 
-.. note:: Although there is a dependency on matplotlib_ for some of the drawing code, significant changes to the matplotlib API mean that those PyCogent capabilities are broken with recent matplotlib releases. We are waiting until matplotlib has been updated to use numpy 1.3, at which point we will be updating our support.
+.. note:: Although there is a dependency on matplotlib_ for some of the drawing code, significant changes to the matplotlib API mean that those PyCogent capabilities are broken with recent matplotlib releases. We are waiting until matplotlib has been updated to use numpy 1.3, at which point we will be updating our support. Until then, the code requires matplotlib version 0.87.6.
 
 .. todo::
 
