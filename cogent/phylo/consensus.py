@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 """This module implements methods for generating consensus trees from a list of trees"""
 
-from cogent.core.tree import LoadTree, TreeBuilder
+from cogent.core.tree import TreeBuilder
+from cogent import LoadTree
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"

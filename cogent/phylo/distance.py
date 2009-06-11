@@ -3,8 +3,7 @@
 """
 from cogent.util import parallel, table, warning
 from cogent.maths.stats.util import Numbers
-from cogent.core.tree import LoadTree
-from cogent import LoadSeqs
+from cogent import LoadSeqs, LoadTree
 
 from warnings import warn
 

@@ -62,7 +62,7 @@ Changes
   reconstructAncestralSeqs.
 * updated app controller parameters for FastTree v1.1
 * Allow and require a more recent version of Pyrex.
-
+* LoadTree is now a method of cogent.__init__
 .. warning:: Pyrex is no longer the accepted way to develop extensions. Use
     `Cython <http://www.cython.org/>`_ instead.
 
@@ -83,6 +83,8 @@ Bug Fixes
 * Added type conversion to Mantel so it works on lists.
 * kendall tau fix, bug 2794469
 * Table now raises a RuntimeError if provided malformed data.
+* Fixed silent type conversion in TreeNode, bug 2804431
+* RangeNode is now properly passing kwargs to baseclass, bug 2804441
 
 Cogent 1.1 - 1.2
 ================
