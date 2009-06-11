@@ -45,7 +45,7 @@ We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_pr
     >>> print tr
     (human,macaque,chimp)root;
 
-We now construct the parameter controller with each predicate constant across the tree, and get the likelihood function calculator.
+We now construct the parameter controller with each predicate constant across the tree, get the likelihood function calculator and optimise the function.
 
 .. doctest::
 
@@ -53,14 +53,9 @@ We now construct the parameter controller with each predicate constant across th
     >>> lf.setAlignment(al)
     >>> lf.setTablesFormat(digits=2, space=3)
     >>> lf.setName('Unrestricted model')
-
-We want to make the most general continuous time Markov model, which requires the predicates be independent for every edge.
-
-.. doctest::
-    
     >>> lf.optimise(local=True, show_progress=False)
 
-In the output from the ``optimise`` call you'll see progress from the simulated annealing optimiser which is used first, and the Powell optimiser which finishes things off.
+We just used the Powell optimiser, as this works quite well.
 
 .. doctest::
 
@@ -87,11 +82,11 @@ In the output from the ``optimise`` call you'll see progress from the simulated 
         G     0.24
     --------------
 
-This data set is very small, so the parameter estimates are poor and hence doing something like allowing the parameters to differ between edges is silly. If you have lots of data it makes sense to allow parameters to differ between edges, which can be specified by modifying the ``lf`` as follows.
+This data set consists of species that are relatively close for a modest length alignment. As a result, doing something like allowing the parameters to differ between edges is not particularly well supported. If you have lots of data it makes sense to allow parameters to differ between edges, which can be specified by modifying the ``lf`` as follows.
 
 .. doctest::
 
     >>> for pred in preds:
-    ...     lf.setParamRule(str(pred), is_independent=True)
+    ...     lf.setParamRule(pred, is_independent=True)
 
 You would then re-optimise the model as above.
