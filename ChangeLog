@@ -63,6 +63,7 @@ Changes
 * updated app controller parameters for FastTree v1.1
 * Allow and require a more recent version of Pyrex.
 * LoadTree is now a method of cogent.__init__
+
 .. warning:: Pyrex is no longer the accepted way to develop extensions. Use
     `Cython <http://www.cython.org/>`_ instead.
 
