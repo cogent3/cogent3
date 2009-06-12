@@ -8,8 +8,6 @@ A Note on the Computable Documentation
 
 The following examples are all available as standalone text files which can be computed using the Python doctest module.
 
-Examples not explicitly attributed were authored by Gavin Huttley.
-
 *****************
 Data manipulation
 *****************
