@@ -11,7 +11,7 @@ cdef extern from "math.h":
     double log (double x)
 
 version_info = (2, 2)
-__version__ == "1.3.0.dev"
+__version__ = "('1', '3')"
 
 cdef double SCALE_STEP, MIN_FLOAT_VALUE
 SCALE_STEP = 2.0**50

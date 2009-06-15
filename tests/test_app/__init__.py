@@ -17,7 +17,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight", "Catherine Lozupone",
                     "Sandra Smit", "Gavin Huttley", "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.3.0.dev"
+__version__ = "1.3"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

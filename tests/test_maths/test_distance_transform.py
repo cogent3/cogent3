@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Justin Kuczynski",
                     "Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.3"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"

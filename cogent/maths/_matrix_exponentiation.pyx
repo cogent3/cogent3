@@ -1,7 +1,7 @@
 include "../../include/numerical_pyrex.pyx"
 
 version_info = (1, 2)
-__version__ == '1.3.0.dev'
+__version__ = "('1', '3')"
 
 cdef extern from "math.h":
     double exp(double)
