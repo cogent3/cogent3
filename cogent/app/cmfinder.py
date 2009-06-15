@@ -11,13 +11,13 @@ from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
 from sys import exit
 from os.path import isfile
 
-__author__ = "Daniel McDonald"
+__author__ = "Daniel McDonald and Greg Caporaso"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Daniel McDonald"]
+__credits__ = ["Shandy Wikman"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
-__maintainer__ = "Daniel McDonald"
-__email__ = "mcdonadt@colorado.edu"
+__maintainer__ = "Shandy Wikman"
+__email__ = "ens01svn@cs.umu.se"
 __status__ = "Development"
 
 if 'CMfinder' not in os.environ:
