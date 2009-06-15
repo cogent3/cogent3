@@ -12,7 +12,7 @@
 #include <limits.h>
 #include <float.h>
 
-#define PYCOGENT_VERSION "1.3"
+#define PYCOGENT_VERSION "1.4.0.dev"
 
 /*****
 *

@@ -59,7 +59,7 @@ import numpy as Num
 from numpy import max, min, sum, zeros, diag, eye, abs, asarray, argmin, shape,\
                 squeeze
 
-__version__ = "1.3"
+__version__ = "1.4.0.dev"
 
 # placeholder out-of-bounds value
 Inf = Num.inf

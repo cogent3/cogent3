@@ -10,7 +10,7 @@
 #      dataB = checkArrayDouble2D(B, &z, &x)  # x must match
 #
 
-__version__ = "('1', '3')"
+__version__ = "('1', '4', '0', 'dev')"
 
 cdef extern from "Python.h":
     void *PyCObject_AsVoidPtr(object)

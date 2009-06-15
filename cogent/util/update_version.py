@@ -11,7 +11,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2009, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.3"
+__version__ = "1.4.0.dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Development"
@@ -130,14 +130,14 @@ class VersionUpdater(object):
                 else:
                     if self.Verbose:
                         print 'Version string found on line %d' % versionline
-                    lines[versionline] = 'version = %s\n' % self.VersionShort
+                    lines[versionline] = 'version = "%s"\n' % self.VersionShort
 
                 if releaseline is None:
                     print "No release string found in doc/conf.py"
                 else:
                     if self.Verbose:
                         print 'Release string found on line %d' % releaseline
-                    lines[releaseline] = 'release = %s\n' % self.Version
+                    lines[releaseline] = 'release = "%s"\n' % self.Version
                 
                 if versionline or releaseline:
                     if self.Verbose:
