@@ -11,6 +11,15 @@ from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
 from sys import exit
 from os.path import isfile
 
+__author__ = "Daniel McDonald"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Daniel McDonald"]
+__license__ = "GPL"
+__version__ = "1.3.0.dev"
+__maintainer__ = "Daniel McDonald"
+__email__ = "mcdonadt@colorado.edu"
+__status__ = "Development"
+
 if 'CMfinder' not in os.environ:
     raise RuntimeError, \
         'cmfinder cannot run if the CMfinder environment variable is not set.'

@@ -9,6 +9,9 @@
 #      dataA = checkArrayDouble2D(A, &x, &y)
 #      dataB = checkArrayDouble2D(B, &z, &x)  # x must match
 #
+
+__version__ = '1.3.0.dev'
+
 cdef extern from "Python.h":
     void *PyCObject_AsVoidPtr(object)
 

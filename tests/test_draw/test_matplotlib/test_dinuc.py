@@ -5,6 +5,15 @@ from numpy.random import random
 from cogent.util.unit_test import TestCase, main
 from os import remove
 
+__author__ = "Rob Knight"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.3.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 def add_random(a):
     """Adds a small random component to gene a, while maintaining the sum."""
     r = (random(a.shape)-.5)/10

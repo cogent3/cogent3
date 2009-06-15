@@ -54,6 +54,9 @@ jkl:0.13776)
 C:0.09853);
 """
 
+minimal = "();"
+no_names = "((,),(,));"
+missing_tip_name = "((a,b),(c,));"
 
 empty = '();'
 single = '(abc:3);'
@@ -79,14 +82,56 @@ class DndTokenizerTests(TestCase):
         #try it all in one go
         self.assertEqual(list(DndTokenizer(sample)), exp)
 
+    def test_nonames(self):
+        """DndTokenizer should work as expected on trees with no names"""
+        exp = ['(','(',',',')',',','(',',',')',')',';']
+        obs = list(DndTokenizer(no_names))
+        self.assertEqual(obs, exp)
+
+    def test_missing_tip_name(self):
+        """DndTokenizer should work as expected on trees with a missing name"""
+        exp = ['(','(','a',',','b',')',',','(','c',',',')',')',';']
+        obs = list(DndTokenizer(missing_tip_name))
+        self.assertEqual(obs, exp)
+
+    def test_minimal(self):
+        """DndTokenizer should work as expected a minimal tree without names"""
+        exp = ['(',')',';']
+        obs = list(DndTokenizer(minimal))
+        self.assertEqual(obs, exp)
 
 class DndParserTests(TestCase):
     """Tests of the DndParser factory function."""
-    def test_gempty(self):
-        """DndParser should produce an empty PhyloNode on null data"""
-        t = DndParser(empty)
-        self.assertFalse(t)
-        self.assertEqual(str(t), ';')
+    def test_nonames(self):
+        """DndParser should produce the correct tree when there are no names"""
+        obs = DndParser(no_names)
+        exp = PhyloNode()
+        exp.append(PhyloNode())
+        exp.append(PhyloNode())
+        exp.Children[0].append(PhyloNode())
+        exp.Children[0].append(PhyloNode())
+        exp.Children[1].append(PhyloNode())
+        exp.Children[1].append(PhyloNode())
+        self.assertEqual(str(obs), str(exp))
+
+    def test_minimal(self):
+        """DndParser should produce the correct minimal tree"""
+        obs = DndParser(minimal)
+        exp = PhyloNode()
+        exp.append(PhyloNode())
+        self.assertEqual(str(obs), str(exp))
+
+    def test_missing_tip_name(self):
+        """DndParser should produce the correct tree when missing a name"""
+        obs = DndParser(missing_tip_name)
+        exp = PhyloNode()
+        exp.append(PhyloNode())
+        exp.append(PhyloNode())
+        exp.Children[0].append(PhyloNode(Name='a'))
+        exp.Children[0].append(PhyloNode(Name='b'))
+        exp.Children[1].append(PhyloNode(Name='c'))
+        exp.Children[1].append(PhyloNode())
+        self.assertEqual(str(obs), str(exp))
 
     def test_gsingle(self):
         """DndParser should produce a single-child PhyloNode on minimal data"""
