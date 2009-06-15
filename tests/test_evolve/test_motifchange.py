@@ -9,7 +9,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield", "Brett Easton"]
 __license__ = "GPL"
-__version__ = "1.3.0.dev"
+__version__ = "1.3"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

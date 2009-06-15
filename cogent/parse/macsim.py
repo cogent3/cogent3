@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Raymond Sammut", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.3.0.dev"
+__version__ = "1.3"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

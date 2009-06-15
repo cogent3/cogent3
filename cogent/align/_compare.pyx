@@ -1,7 +1,7 @@
 """50x speedup for dotplots, but sequences must be strings and scoring is based on identity only
 """
 
-__version__ = '1.3.0.dev'
+__version__ = "('1', '3')"
 
 # Because this can be long-running check for interupts in the outer loop
 cdef extern from "Python.h":
