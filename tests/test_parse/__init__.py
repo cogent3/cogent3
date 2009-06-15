@@ -32,7 +32,7 @@ __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                     "Jeremy Widmann", "Hua Ying", "Greg Caporaso",
                     "Zongzhi Liu", "Jason Carnes", "Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.3"
+__version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
