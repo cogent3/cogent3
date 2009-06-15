@@ -12,6 +12,8 @@
 #include <limits.h>
 #include <float.h>
 
+#define PYCOGENT_VERSION "1.3.0.dev"
+
 /*****
 *
 * taking inv of matrix

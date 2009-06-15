@@ -15,6 +15,15 @@ from cogent.app.util import CommandLineApplication,\
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None
 
+__author__ = "Daniel McDonald and Greg Caporaso"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Shandy Wikman"]
+__license__ = "GPL"
+__version__ = "1.3.0.dev"
+__maintainer__ = "Shandy Wikman"
+__email__ = "ens01svn@cs.umu.se"
+__status__ = "Development"
+
 class RNAshapes(CommandLineApplication):
     """Application controller for RNAshapes application
 

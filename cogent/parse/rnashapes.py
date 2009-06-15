@@ -16,6 +16,15 @@ from string                import split,strip,atof
 from cogent.util.transform import make_trans
 from cogent.struct.rna2d   import Pairs,ViennaStructure
 
+__author__ = "Shandy Wikman"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__contributors__ = ["Shandy Wikman"]
+__license__ = "GPL"
+__version__ = "1.3.0.dev"
+__maintainer__ = "Shandy Wikman"
+__email__ = "ens01svn@cs.umu.se"
+__status__ = "Development"
+
 def RNAshapes_parser(lines=None,order=True):
     """
     Returns a list containing tuples of (sequence,pairs object,energy) for

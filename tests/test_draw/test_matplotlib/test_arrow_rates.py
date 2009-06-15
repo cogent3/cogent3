@@ -2,7 +2,16 @@
 from cogent.draw.matplotlib.arrow_rates import make_arrow_plot, sample_data
 from cogent.util.unit_test import TestCase, main
 from os import remove
-    
+   
+__author__ = "Rob Knight"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.3.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 class arrow_rates_tests(TestCase):
     """Tests of top-level function, primarily checking that it writes the file.
     

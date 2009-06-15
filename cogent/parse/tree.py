@@ -107,19 +107,35 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     curr_node = None
     state = 'PreColon'
     state1 = 'PreClosed'
+    last_token = None
     for t in tokens:
         if t == ':':    #expecting branch length
             state = 'PostColon'
             #prevent state reset
+            last_token = t
+            continue
+        if t == ')' and (last_token == ',' or last_token == '('): # node without name
+            new_node = _new_child(curr_node, constructor)
+            new_node.Name = None
+            curr_node = new_node.Parent
+            state1 = 'PostClosed'
+            last_token = t
             continue
         if t == ')':  #closing the current node
             curr_node = curr_node.Parent
             state1 = 'PostClosed'
+            last_token = t
             continue
         if t == '(':    #opening a new node
             curr_node = _new_child(curr_node, constructor)
         elif t == ';':  #end of data
+            last_token = t
             break
+        # node without name
+        elif t == ',' and (last_token == ',' or last_token == '('):
+            new_node = _new_child(curr_node, constructor)
+            new_node.Name = None
+            curr_node = new_node.Parent
         elif t == ',':  #separator: next node adds to this node's parent
             curr_node = curr_node.Parent
         elif state == 'PreColon' and state1 == 'PreClosed':   #data for the current node
@@ -144,6 +160,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             raise RecordError, "Incorrect PhyloNode state? %s" % t
         state = 'PreColon'  #get here for any non-colon token
         state1 = 'PreClosed'
+        last_token = t
         
     if curr_node is not None and curr_node.Parent is not None:
         raise RecordError, "Didn't get back to root of tree."
