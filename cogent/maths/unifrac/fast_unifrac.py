@@ -15,7 +15,8 @@ from cogent.phylo.nj import nj
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
-__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
+__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
+    "Justin Kuczynski"]
 __license__ = "All rights reserved"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
@@ -73,7 +74,14 @@ def mcarlo_sig(real_val, sim_vals, num_comps, tail='low'):
     return (raw_pval, cor_pval)
 
 def fast_unifrac_file(tree_in, envs_in, weighted=False, metric=unifrac, is_symmetric=True, modes=UNIFRAC_DEFAULT_MODES):
-    """ Wrapper to read tree and envs from files. """
+    """Takes tree and envs file and returns fast_unifrac() results
+
+    typical results: distance matrix, UPGMA cluster and PCoA
+
+    tree_in: open file object or list of lines with tree in Newick format
+    envs_in: open file object of list of lines with tab delimited sample mapping file
+    see fast_unifrac() for further description
+    """
     tree = DndParser(tree_in, UniFracTreeNode)
     envs = count_envs(envs_in)
     return fast_unifrac(tree, envs, weighted, metric, is_symmetric=is_symmetric, modes=modes)
@@ -371,11 +379,39 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
     modes=UNIFRAC_DEFAULT_MODES):
     """ Run fast unifrac.
     
-    t: phylogenetic tree relating the sequences.
+    t: phylogenetic tree relating the sequences.  pycogent phylonode object
     envs: dict of {sequence:{env:count}} showing environmental abundance.
-    weighted: if True (default=False), performs the weighted UniFrac procedure.
-    metric: metric to use (currently only implemented for UNWEIGHTED measures.
-    modes: tasks to perform on running unifrac.
+    weighted: if True, performs the weighted UniFrac procedure.
+    metric: distance metric to use.  currently you must use unifrac only
+        if weighted=True.
+        see fast_tree.py for metrics (e.g.: G, unnormalized_G, unifrac, etc.)
+    modes: tasks to perform on running unifrac.  see fast_unifrac.py
+        default is to get a unifrac distance matrix, pcoa on that matrix, and a
+        cluster of the environments
+    is_symmetric: if the desired distance matrix is symmetric 
+        (dist(sampleA, sampleB) == dist(sampleB, sampleA)), then set this True
+        to prevent calculating the same number twice
+
+    using default modes, returns a dictionary with the following (key:value) pairs:
+
+    'distance_matrix': a tuple with a numpy array of pairwise distances between samples and a list of names describing the order of samples in the array 
+    'cluster_envs': cogent.core.PhyloNode object containing results of running UPGMA on the distance matrix.
+    'pcoa': a cogent.util.Table object with the results of running Principal Coordines Analysis on the distance matrix.
+    
+
+    Usage examples: (these assume the example files exist)
+    from cogent.parse.tree import DndParser
+    from cogent.maths.unifrac.fast_unifrac import count_envs, fast_unifrac
+    from cogent.maths.unifrac.fast_tree import UniFracTreeNode, count_envs, G
+    tree_in = open('Crump_et_al_example.tree')
+    envs_in = open('Crump_et_al_example_env_file.txt')
+    tree = DndParser(tree_in, UniFracTreeNode)
+    envs = count_envs(envs_in)
+    unifrac_result = fast_unifrac(tree, envs)
+    G_result = fast_unifrac(tree, envs, metric=G, is_symmetric=False)
+
+    note: pcoa on asymetric distance matrices (e.g.: G metric) is untested,
+    perhaps meaningless.  buyer beware.
     """
     modes = set(modes)  #allow list, etc. of modes to be passed in.
     if not modes or modes - UNIFRAC_VALID_MODES:
