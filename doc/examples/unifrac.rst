@@ -43,17 +43,17 @@ and here it is in dict format for unifrac
     ...        }
     
 
-now we run unifrac
+now we run unifrac::
 
 
     
     >>> res = fast_unifrac(tr, envs)
     >>> print res['distance_matrix'] # doctest: +SKIP
-
+    
     (array([[ 0.        ,  0.46666667,  0.26666667],
            [ 0.46666667,  0.        ,  0.2       ],
            [ 0.26666667,  0.2       ,  0.        ]]),
-     ['sample1', 'sample2', 'sample3'])
+           ['sample1', 'sample2', 'sample3'])
     
 
 the pcoa results are misleading for such a small dataset, but the distance
