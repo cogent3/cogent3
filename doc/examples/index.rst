@@ -49,6 +49,7 @@ General data analysis
     perform_PCoA_analysis
     perform_nmds
     motif_results
+    unifrac
 
 ******************
 Data Visualisation
