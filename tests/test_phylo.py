@@ -5,7 +5,7 @@ from cogent.phylo.distance import *
 from cogent.phylo.nj import nj
 from cogent.phylo.least_squares import wls
 from cogent import LoadSeqs, LoadTree
-from cogent.evolve.models import JC69, HKY85
+from cogent.evolve.models import JC69, HKY85, F81
 from cogent.phylo.consensus import majorityRule
 
 __author__ = "Peter Maxwell"
@@ -71,7 +71,7 @@ class DistancesTests(unittest.TestCase):
                             'b':'GTACGTACGTAC',
                             'c':'GTACGTACGTTC',
                             'e':'GTACGTACTGGT'}, aligned=False)
-        
+    
     def test_EstimateDistances(self):
         """testing (well, exercising at least), EstimateDistances"""
         d = EstimateDistances(self.al, JC69())
@@ -89,7 +89,7 @@ class DistancesTests(unittest.TestCase):
         # excercise writing to file
         d.writeToFile('junk.txt')
         os.remove('junk.txt')
-        
+    
     def test_EstimateDistancesWithMotifProbs(self):
         """EstimateDistances with supplied motif probs"""
         motif_probs= {'A':0.1,'C':0.2,'G':0.2,'T':0.5}
@@ -157,6 +157,24 @@ class DistancesTests(unittest.TestCase):
         # this will be a dict with pairwise instances, it's called by the above
         # method, so the correctness of it's values is already checked
         kappa = d.getPairwiseParam('kappa')
+    
+    def test_EstimateDistances_modify_lf(self):
+        """tests modifying the lf"""
+        def constrain_fit(lf):
+            lf.setParamRule('kappa', is_const=True)
+            lf.optimise(local=True, show_progress=False)
+            return lf
+        
+        d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
+        d.run()
+        result = d.getPairwiseDistances()
+        d = EstimateDistances(self.al, F81())
+        d.run()
+        expect = d.getPairwiseDistances()
+        for key in result:
+            self.assertAlmostEqual(expect[key], result[key],4)
+        
+    
 
 if __name__ == '__main__':
     unittest.main()

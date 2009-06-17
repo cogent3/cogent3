@@ -21,7 +21,8 @@ class EstimateDistances(object):
     Can also estimate other parameters from pairs."""
     
     def __init__(self, seqs, submodel, threeway=False, motif_probs = None,
-                do_pair_align=False, rigorous_align=False, est_params=None):
+                do_pair_align=False, rigorous_align=False, est_params=None,
+                modify_lf=None):
         """Arguments:
             - seqs: an Alignment or SeqCollection instance with > 1 sequence
             - submodel: substitution model object Predefined models can
@@ -37,6 +38,10 @@ class EstimateDistances(object):
               settings are used. This slows down estimation considerably.
             - est_params: substitution model parameters to save estimates from
               in addition to length (distance)
+            - modify_lf: a callback function for that takes a likelihood
+              function (with alignment set) and modifies it. Can be used to
+              configure local_params, set bounds, optimise using a restriction
+              for faster performance.
         
         Note: Unless you know a priori your alignment will be flush ended
         (meaning no sequence has terminal gaps) it is advisable to construct a
@@ -61,6 +66,7 @@ class EstimateDistances(object):
         # substitution model stuff
         self.__sm = submodel
         
+        self._modify_lf = modify_lf
         # store for the results
         self.__param_ests = {}
         self.__est_params = est_params or []
@@ -99,6 +105,11 @@ class EstimateDistances(object):
                     LoadTree(tip_names=seqs.getSeqNames()),
                     aligned=False)
         lf.setSequences(seqs.NamedSeqs)
+        
+        # allow user to modify the lf config
+        if self._modify_lf:
+            lf = self._modify_lf(lf)
+        
         if self._rigorous_align:
             lf.optimise(**opt_kwargs)
         lnL = lf.getLogLikelihood()
@@ -127,8 +138,12 @@ class EstimateDistances(object):
         if self.__motif_probs:
             lf.setMotifProbs(self.__motif_probs)
         
-        # we probably want to make all pars local, but for time being ..
         lf.setAlignment(align)
+        
+        # allow user modification of lf using the modify_lf
+        if self._modify_lf:
+            lf = self._modify_lf(lf)
+        
         if dist_opt_args['show_progress']:
             print "\tEstimating distance:"
         lf.optimise(**dist_opt_args)
