@@ -3,6 +3,7 @@ Licenses and disclaimer
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    
    COGENT_LICENSE
    MATRIX_LICENSE
