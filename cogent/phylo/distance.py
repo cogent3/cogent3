@@ -348,9 +348,7 @@ class EstimateDistances(object):
         
         table = self.getTable(summary_function=summary_function, **kwargs)
         
-        outfile = open(filename, 'w')
-        outfile.write(table.tostring(format = format))
-        outfile.close()
+        table.writeToFile(filename, format=format)
         
         return
     
