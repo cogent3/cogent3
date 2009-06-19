@@ -37,7 +37,7 @@ def naive_histogram(vals, max_val=None, result=None):
 def wrap_numpy_histogram(max_val):
     """return convenience wrapper for numpy histogram"""
     bins = arange(max_val+2, dtype = int)   #+1 for length, +1 for leading 0
-    def f(vals, max_val='ignored'): return histogram(vals, bins)[0]
+    def f(vals, max_val='ignored'): return histogram(vals, bins, new=True)[0]
     return f
 
 def rarefaction(data, start=0, stop=None, stride=1, histogram_f=None, \
