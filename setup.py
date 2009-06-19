@@ -65,35 +65,16 @@ try:
         print "Your Cython version is too old"
         raise ImportError
 except ImportError:
-    try:
-        if 'DONT_USE_PYREX' in os.environ:
-            raise ImportError
-        from Pyrex.Compiler.Version import version
-        version = tuple([int(v) \
-            for v in re.split("[^\d]",version) if v.isdigit()])
-        if version < (0, 9, 8):
-            print "Your Pyrex version is too old"
-            raise ImportError
-    except ImportError:
-        # build from intermediate .c files
-        # if we don't have cython or pyrex
-        print "Didn't find Cython or Pyrex - will compile from .c files"
-        from distutils.extension import Extension
-        build_ext = None
-    else:
-        from Pyrex.Distutils import build_ext
-        from Pyrex.Distutils.extension import Extension
+    print "No Cython, will compile from .c files"
+    for cmd in ['cython', 'pyrexc', 'predist']:
+        if cmd in sys.argv:
+            print "'%s' not available without Cython" % cmd
+            sys.exit(1)
+    from distutils.extension import Extension
+    pyrex_suffix = ".c"
 else:
     from Cython.Distutils import build_ext
     from Cython.Distutils.extension import Extension
-
-if build_ext is None:
-    pyrex_suffix = ".c"
-    for cmd in ['cython', 'pyrexc', 'predist']:
-        if cmd in sys.argv:
-            print "'%s' not available without Cython or Pyrex" % cmd
-            sys.exit(1)
-else:                            
     pyrex_suffix = ".pyx"
     class build_wrappers(build_ext):
         # for predist, make .c files
