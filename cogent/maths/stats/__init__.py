@@ -4,7 +4,8 @@
 Also provides NumberList and FrequencyDistribution, two classes for
 working with statistical data.
 """
-__all__ = ['distribution', 'histogram', 'kendall', 'ks', 'special', 'test',
+__all__ = ['alpha_diversity', 'distribution', 'histogram', 'kendall', 'ks', 
+        'rarefaction', 'special', 'test',
            'util']
 
 # GAH: this is a temporary introduction, so users get notice of structure change and
