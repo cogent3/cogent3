@@ -20,9 +20,11 @@ The key steps are then to:
 
 3. Use pip to download, build and install PyCogent plus all dependencies. ::
 
-    $ sudo pip install -r path/to/cogent-requirements.txt
+    $ DONT_USE_PYREX=1 sudo pip install -r path/to/cogent-requirements.txt
 
-If the above fails to download PyCogent you can `download the tarball <http://sourceforge.net/projects/pycogent>`_ to your hard drive and replace the first line of the :download:`requirements file <../cogent-requirements.txt>` with the full path to the tarball, e.g. ``/Users/my_user_name/Downloads/PyCogent-1.3.tgz``.
+.. note:: The ``DONT_USE_PYREX=1`` statement is required if you have Pyrex installed due to a conflict between setuptools and later versions of Pyrex.
+
+If the above fails to download PyCogent you can `download the tarball <http://sourceforge.net/projects/pycogent>`_ to your hard drive and replace the first line of the :download:`requirements file <../cogent-requirements.txt>` with the full path to the tarball, e.g. ``/Users/my_user_name/Downloads/cogent-1.3.1.tgz``.
 
 If you want to grab the development version of PyCogent, just replace the first line of the :download:`requirements file <../cogent-requirements.txt>` with ``https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk``.
 
@@ -33,7 +35,7 @@ If you want to grab the development version of PyCogent, just replace the first 
 
 .. todo::
 
-    **FOR RELEASE:** update the cogent-requirements.txt file to point to stable release tarball
+    **FOR RELEASE:** update the tarball name for the version.
 
 Installing ``easy_install``
 ---------------------------
