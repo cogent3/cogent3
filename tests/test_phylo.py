@@ -88,7 +88,10 @@ class DistancesTests(unittest.TestCase):
         
         # excercise writing to file
         d.writeToFile('junk.txt')
-        os.remove('junk.txt')
+        try:
+            os.remove('junk.txt')
+        except OSError:
+            pass # probably parallel
     
     def test_EstimateDistancesWithMotifProbs(self):
         """EstimateDistances with supplied motif probs"""

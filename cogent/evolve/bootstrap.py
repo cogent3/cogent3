@@ -81,16 +81,18 @@ class ParametricBootstrapCore(object):
         self.observed = self.simplify(*self.parameter_controllers)
         
         (parallel_context, parallel_subcontext) = parallel.getSplitCommunicators(self._numreplicates)
-        split_results = [None] * parallel_context.size
-        split_results[parallel_context.rank] = []
-        for round in range((self._numreplicates-1) / parallel_context.size + 1):
-            for cpu in range(parallel_context.size):
+        cpu_count = parallel_context.Get_size()
+        this_cpu = parallel_context.Get_rank()
+        split_results = [None] * cpu_count
+        split_results[this_cpu] = []
+        for round in range((self._numreplicates-1) / cpu_count + 1):
+            for cpu in range(cpu_count):
                 # making the simulated alignment on every node keeps alignment_randomness in sync
                 # across all cpus.  This is only a good way of doing it so long as making the alignment
                 # is much faster than optimising the likelihood function.
                 self.parameter_controllers[0].setAlignment(self.alignment)
                 simalign = self.parameter_controllers[0].simulateAlignment(random_series=alignment_randomness)
-                if cpu == parallel_context.rank:
+                if cpu == this_cpu:
                     local_results = []
                     for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
                         parallel.push(parallel_subcontext)
@@ -103,12 +105,12 @@ class ParametricBootstrapCore(object):
                     local_results = self.simplify(*self.parameter_controllers)
                     split_results[cpu].append(local_results)
         
-        for cpu in range(parallel_context.size):
-            split_results[cpu] = parallel_context.broadcast_obj(split_results[cpu], cpu)
+        for cpu in range(cpu_count):
+            split_results[cpu] = parallel_context.bcast(split_results[cpu], cpu)
         
         self.results = []
-        for round in range((self._numreplicates-1) / parallel_context.size + 1):
-            for cpu in range(parallel_context.size):
+        for round in range((self._numreplicates-1) / cpu_count + 1):
+            for cpu in range(cpu_count):
                 self.results.append(split_results[cpu][round])
     
 

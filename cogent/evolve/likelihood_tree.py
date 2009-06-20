@@ -3,6 +3,8 @@
 Each leaf holds a sequence.  Used by a likelihood function."""
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
+from cogent.util.parallel import MPI
+
 import numpy
 
 numpy.seterr(all='ignore')
@@ -90,23 +92,26 @@ class _LikelihoodTreeEdge(object):
             
     def parallelShare(self, comm):
         """A local version of self for a single CPU in an MPI group"""
-        if comm is None or comm.size == 1:
+        if comm is None or comm.Get_size() == 1:
             return self
         assert self.comm is None
-        U = len(self.uniq) - 1
-        share = U // comm.size + 1
-        (lo, hi) = (share*comm.rank, share*(comm.rank+1))
-        hi = min(U, hi)
+        U = len(self.uniq) - 1 # Gap column
+        (size, rank) = (comm.Get_size(), comm.Get_rank())
+        (share, remainder) = divmod(U, size)
+        if share == 0:
+            return self # not enough to share
+        share_sizes = [share+1]*remainder + [share]*(size-remainder)
+        assert sum(share_sizes) == U
+        (lo,hi) = [sum(share_sizes[:i]) for i in (rank, rank+1)]
         local_cols = [i for (i,u) in enumerate(self.index) 
                 if lo <= u < hi]
         local = self.selectColumns(local_cols)
         
         # Attributes for reconstructing the global array.
         # should probably make a wrapping class instead.
-        local.global_uniq_length = len(self.uniq)
+        local.share_sizes = share_sizes
         local.index = self.index   # yuk
         local.comm = comm
-        
         return local
     
     def selectColumns(self, cols):
@@ -120,17 +125,10 @@ class _LikelihoodTreeEdge(object):
         """Recombine full uniq array (eg: likelihoods) from MPI CPUs"""
         if self.comm is None:
             return llh
-        comm = self.comm
-        U = self.global_uniq_length - 1
-        share = (U - 1) // comm.size + 1
-        llh = llh[:-1] # drop gap column
-        if len(llh) < share:
-            # pad so last local array is the same size as the rest
-            assert comm.rank == comm.size-1, (comm.rank, len(llh), share)
-            temp = numpy.empty((share,)+llh.shape[1:], llh.dtype.char)
-            temp[:len(llh)] = llh
-            llh = temp
-        result = comm.gather(llh, concat=True)[:U]
+        result = numpy.empty([sum(self.share_sizes)], llh.dtype)
+        send = (llh[:-1], MPI.DOUBLE) # drop gap column
+        recv = (result, self.share_sizes, None, MPI.DOUBLE)
+        self.comm.Allgatherv(send, recv)
         return result
     
     def getFullLengthLikelihoods(self, input_likelihoods):

@@ -115,7 +115,7 @@ class TreeEvaluator(object):
         exploration.
         Bioinformatics, 16(4):383 94, 2000."""
         
-        printing_cpu = parallel.getCommunicator().rank == 0
+        printing_cpu = parallel.getCommunicator().Get_rank() == 0
         
         names = self.names
         tree_size = len(names)
@@ -152,12 +152,13 @@ class TreeEvaluator(object):
             
             (comm, leftover) = parallel.getSplitCommunicators(evals)
             parallel.push(leftover)
+            (cpu_count, cpu_rank) = (comm.Get_size(), comm.Get_rank())
             try:
                 # tree of cpus
-                parent = (comm.rank+1) // 2 - 1
-                left = (comm.rank+1) * 2 - 1
+                parent = (cpu_rank+1) // 2 - 1
+                left = (cpu_rank+1) * 2 - 1
                 children = [child for child in [left, left+1]
-                        if child < comm.size]
+                        if child < cpu_count]
                 
                 trees2 = []
                 evaluate = self.makeTreeScorer(names[:n])
@@ -165,14 +166,14 @@ class TreeEvaluator(object):
                 for (err2, lengths2, ancestry) in trees:
                     for split_edge in range(len(ancestry)):
                         evaluation_count += 1
-                        if evaluation_count % comm.size != comm.rank:
+                        if evaluation_count % cpu_count != cpu_rank:
                             continue
                         ancestry2 = grown(ancestry, split_edge)
                         (err, lengths) = evaluate(ancestry2)
                         trees2.append((err, lengths, ancestry2))
                 
                 for child in children:
-                    trees2.extend(comm.receive_obj(child))
+                    trees2.extend(comm.recv(source=child))
                 
                 if len(trees2) > k and (n < tree_size or not return_all):
                     trees2 = heapq.nsmallest(k, trees2)
@@ -183,12 +184,12 @@ class TreeEvaluator(object):
                     else:
                         print 'done'
                 
-                if comm.rank > 0:
-                    comm.send_obj(trees2, parent)
-                    trees2 = comm.receive_obj(parent)
+                if cpu_rank > 0:
+                    comm.send(trees2, parent)
+                    trees2 = comm.recv(source=parent)
                 
                 for child in children:
-                    comm.send_obj(trees2, child)
+                    comm.send(trees2, child)
             finally:
                 parallel.pop(leftover)
             trees = trees2

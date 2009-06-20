@@ -159,10 +159,11 @@ class ParameterController(_ParameterController):
         # wraps it to find the best degree of parallelisation for this
         # particular calculation on the current hardware/MPI system.
         comm = parallel.getCommunicator()
+        cpu_count = comm.Get_size()
         if force_parallel:
-            return self._makeParallelCalculator(split=comm.size, **kw)
+            return self._makeParallelCalculator(split=cpu_count, **kw)
         best_lf = self._makeParallelCalculator(split=1, **kw)
-        if (comm.size == 1 or
+        if (cpu_count == 1 or
                 'parallel_context' not in self.defn_for or
                 len(best_lf.getValueArray()) == 0 or
                 force_parallel is not None):
@@ -170,8 +171,8 @@ class ParameterController(_ParameterController):
         best_speed = baseline_speed = best_lf.measureEvalsPerSecond()
         parallelisation_achieved = 1
         desc = "no"
-        for split in range(2, comm.size+1):
-            if comm.size % split:
+        for split in range(2, cpu_count+1):
+            if cpu_count % split:
                 continue
             lf = self._makeParallelCalculator(split=split, **kw)
             speed = lf.measureEvalsPerSecond()
@@ -184,12 +185,12 @@ class ParameterController(_ParameterController):
                 desc = "%s-way" % parallelisation_achieved
             else:
                 break
-        if parallelisation_achieved < comm.size:
+        if parallelisation_achieved < cpu_count:
             # assuming no other part of the LF can use them:
             if not parallel.inefficiency_forgiven:
                 LOG.warning("Using %s parallelism even though %s cpus are "\
                     "available, MPI overhead greater than gain, CPUs are "\
-                    "being wasted" % (desc, comm.size))
+                    "being wasted" % (desc, cpu_count))
         return best_lf
     
     def _makeParallelCalculator(self, split=None, **kw):
@@ -202,7 +203,7 @@ class ParameterController(_ParameterController):
         if 'parallel_context' in self.defn_for:
             self.assignAll(
                 'parallel_context', value=parallel_context, const=True)
-        if parallel_subcontext.size < comm.size:
+        if parallel_subcontext.Get_size() < comm.Get_size():
             kw['remaining_parallel_context'] = parallel_subcontext
         return self._makeCalculator(**kw)
     
@@ -695,7 +696,7 @@ class CallDefn(CalculationDefn):
 class ParallelSumDefn(CalculationDefn):
     name = 'parallel_sum'
     def calc(self, comm, local):
-        return comm.sum(local)
+        return comm.allreduce(local)  # default MPI op is SUM
     
 
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',

@@ -625,7 +625,8 @@ class Calculator(object):
                         last = []
             # Use one agreed on delta otherwise different cpus will finish the
             # loop at different times causing chaos.
-            delta = self.overall_parallel_context.max(now()-t0)
+            delta = self.overall_parallel_context.allreduce(
+                    now()-t0, parallel.MPI.MAX)
             if delta < 0.1:
                 # time.clock is low res, so need to ensure each sample
                 # is long enough to take SOME time.
