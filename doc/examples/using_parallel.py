@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""An example of how to distribute jobs across multiple cpu's. Note that this example works even if on a single cpu since the parallel assigns a `fake` communicator in that instance. Please also see the test.py example in the PyxMPI distribution.
+"""An example of how to distribute jobs across multiple cpu's. Note that this example works even if on a single cpu since the parallel assigns a `fake` communicator in that instance.
 """
 
 from cogent.util import parallel

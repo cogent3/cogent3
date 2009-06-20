@@ -36,7 +36,7 @@ Optional
 - ReportLab_: required for drawing trees and alignments to pdf.
 - Matplotlib_: used to plot several kinds of graphs related to codon usage.
 - Cython_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
-- PyxMPI_: Our own python MPI interface, required for parallel computation.
+- mpi4py_: Message Passing Interface interface, required for parallel computation.
 - SQLAlchemy_ and `MySQL-python`_ : These are required for the Ensembl querying code.
 
 If you use the :ref:`quick-install` approach, these are all specified in the requirements file.
@@ -104,7 +104,7 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 .. _Apple: http://www.apple.com
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
 .. _`editors go here`: http://www.python.org/cgi-bin/moinmoin/PythonEditors
-.. _PyxMPI: http://jcsmr.anu.edu.au/org/dmb/compgen/software.php
+.. _mpi4py: http://code.google.com/p/mpi4py
 .. _`restructured text`: http://docutils.sourceforge.net/rst.html
 .. _gcc: http://gcc.gnu.org/
 .. _SQLAlchemy: http://www.sqlalchemy.org
