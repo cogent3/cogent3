@@ -73,7 +73,7 @@ class EstimateDistances(object):
         
         self.__run = False # a flag indicating whether estimation completed
         # whether we're on the master CPU or not
-        self._on_master_cpu = parallel.getCommunicator().rank == 0
+        self._on_master_cpu = parallel.getCommunicator().Get_rank() == 0
     
     def __str__(self):
         return str(self.getTable())
@@ -203,9 +203,10 @@ class EstimateDistances(object):
                 parallel.getSplitCommunicators(len(combination_aligns))
         
         count_progress = 0
-        for _round in range((len(combination_aligns)-1)/\
-                            parallel_context.size +1):
-            i = _round * parallel_context.size + parallel_context.rank
+        cpu_count = parallel_context.Get_size()
+        this_cpu = parallel_context.Get_rank()
+        for _round in range((len(combination_aligns)-1)/cpu_count + 1):
+            i = _round * cpu_count + this_cpu
             if i >= len(combination_aligns):
                 local_value = None
             else:
@@ -224,12 +225,12 @@ class EstimateDistances(object):
                     parallel.pop(parallel_subcontext)
                 local_value = self.__param_ests[comp]
             
-            for cpu in range(parallel_context.size):
-                i = _round * parallel_context.size + cpu
+            for cpu in range(cpu_count):
+                i = _round * cpu_count + cpu
                 if i >= len(combination_aligns):
                     continue
                 comp = combination_aligns[i]
-                value = parallel_context.broadcast_obj(local_value, cpu)
+                value = parallel_context.bcast(local_value, cpu)
                 self.__param_ests[comp] = value
     
     def getPairwiseParam(self, param, summary_function="mean"):

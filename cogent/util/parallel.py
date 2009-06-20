@@ -19,42 +19,47 @@ inefficiency_forgiven = False
 
 class _FakeCommunicator(object):
     """Looks like a 1-cpu MPI communicator, but isn't"""
-    rank = 0
-    size = 1
-    
-    def split(self, colour):
+    def Get_rank(self):
+        return 0
+    def Get_size(self):
+        return 1
+    def Split(self, colour, key=0):
         return (self, self)
-    def sum(self, value, dest=None):
+    def allreduce(self, value, op=None):
         return value
-    def max(self, value, dest=None):
-        return value
-    def broadcast_obj(self, obj, source):
+    def bcast(self, obj, source):
         return obj
-    def broadcast(self, array, source):
+    def Bcast(self, array, source):
         pass
-    def barrier(self):
+    def Barrier(self):
         pass
-    
+
+class _FakeMPI(object):
+    # required MPI module constants
+    SUM = MAX = DOUBLE = 'fake'   
 
 if os.environ.get('DONT_USE_MPI', 0):
     mpi = None
 else:
     try:
-        import mpi
+        from mpi4py import MPI
     except ImportError:
-        mpi = None
+        MPI = None
     else:
-        LOG.info('MPI: %s processors' % mpi.world.size)
-        if mpi.world.size == 1:
-            mpi = None
-if mpi is None:
+        size = MPI.COMM_WORLD.Get_size()
+        LOG.info('MPI: %s processors' % size)
+        if size == 1:
+            MPI = None
+
+if MPI is None:
     LOG.info('Not using MPI')
     def get_processor_name():
         return os.environ.get('HOSTNAME', 'one')
     _ParallelisationStack = [_FakeCommunicator()]
+    MPI = _FakeMPI()
 else:
-    get_processor_name = mpi.get_processor_name
-    _ParallelisationStack = [mpi.world]
+    get_processor_name = MPI.Get_processor_name
+    _ParallelisationStack = [MPI.COMM_WORLD]
 
 def push(context):
     _ParallelisationStack.append(context)
@@ -66,8 +71,8 @@ def pop(context=None):
     return context2
 
 def sync_random(r):
-    if _ParallelisationStack[-1].size > 1:
-        state = _ParallelisationStack[-1].broadcast_obj(r.getstate(), 0)
+    if _ParallelisationStack[-1].Get_size() > 1:
+        state = _ParallelisationStack[-1].bcast(r.getstate(), 0)
         r.setstate(state)
 
 def getCommunicator():
@@ -76,16 +81,15 @@ def getCommunicator():
 def getSplitCommunicators(jobs):
     comm = getCommunicator()
     assert jobs > 0
-    group_count = min(jobs, comm.size)
+    (size, rank) = (comm.Get_size(), comm.Get_rank())
+    group_count = min(jobs, size)
     if group_count == 1:
-        next = _FakeCommunicator()
-        sub = comm
-    elif group_count == comm.size:
-        next = comm
-        sub = _FakeCommunicator()
+        (next, sub) = (_FakeCommunicator(), comm)
+    elif group_count == size:
+        (next, sub) = (comm, _FakeCommunicator())
     else:
-        next = comm.split(comm.rank // group_count)
-        sub = comm.split(comm.rank % group_count)
+        next = comm.Split(rank // group_count, rank)
+        sub = comm.Split(rank % group_count, rank)
     return (next, sub)
 
 
@@ -97,19 +101,19 @@ class _ParallelIter(object):
         self.values = values
         self.leftover = leftover
         self.cpus = cpus
-        self.i = cpus.rank
+        self.i = cpus.Get_rank()
         push(self.leftover)
     
     def next(self):
-        self.leftover.barrier()
+        self.leftover.Barrier()
         if self.i >= len(self.values):
             raise StopIteration
         result = self.values[self.i]
-        self.i += self.cpus.size
+        self.i += self.cpus.Get_size()
         return result
     
     def __del__(self):
-        self.cpus.barrier()
+        self.cpus.Barrier()
         pop(self.leftover)
     
 
@@ -164,4 +168,4 @@ class ParaRandom:
         self._rng.seed(arg)
     
 
-output_cpu = getCommunicator().rank == 0
+output_cpu = getCommunicator().Get_rank() == 0
