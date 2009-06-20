@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def bound_brent(func, args, brack=None, tol=1.48e-8, full_output=0, **kw):
+def bound_brent(func, brack=None, tol=1.48e-8, full_output=0, **kw):
     """Given a function and an initial point, find another
     point within the bounds, then use the two points to
     bracket a minimum.
@@ -30,7 +30,7 @@ def bound_brent(func, args, brack=None, tol=1.48e-8, full_output=0, **kw):
     
     assert not brack, brack
     xa = 0.0
-    fa = apply(func, (xa,)+args)
+    fa = func(xa)
     assert fa is not numpy.inf, "Starting point is infinite"
     
     # if dx sends us over the boundry shrink and reflect it until
@@ -41,9 +41,9 @@ def bound_brent(func, args, brack=None, tol=1.48e-8, full_output=0, **kw):
     while fb is numpy.inf and xb != xa:
         dx = dx * -0.5
         xb = xa + dx
-        fb = apply(func, (xb,)+args)
+        fb = func(xb)
     assert xb != xa, "Can't find a second in-bounds point on this line"
-    return brent(func, args, (xa, xb), tol, full_output, **kw)
+    return brent(func, (xa, xb), tol, full_output, **kw)
 
 
 class _SciPyOptimiser(OptimiserBase):
@@ -82,6 +82,7 @@ class _SciPyOptimiser(OptimiserBase):
                     function, xopt, disp=show_progress,
                     ftol=self.ftol, full_output=True,
                     maxfun=self.max_evaluations)
+            xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param
             if warnflag:
                 print "FORCED EXIT from optimiser after %s evaluations" % \
                         self.max_evaluations
