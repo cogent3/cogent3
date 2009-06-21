@@ -64,11 +64,11 @@ class _Header(list):
     
     def __setslice__(self, *args):
         """disallowed"""
-        raise RuntimeError("Table Header is immutable, use withNewColumns")
+        raise RuntimeError("Table Header is immutable, use withNewHeader")
     
     def __setitem__(self, *args):
         """disallowed"""
-        raise RuntimeError("Table Header is immutable, use withNewColumns")
+        raise RuntimeError("Table Header is immutable, use withNewHeader")
     
 
 class Table(DictArray):
