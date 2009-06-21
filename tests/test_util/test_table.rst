@@ -175,7 +175,7 @@ and this is immutable (cannot be changed).
     
     >>> t2.Header[1] = 'Data'
     Traceback (most recent call last):
-    RuntimeError: Table Header is immutable, use withNewColumns
+    RuntimeError: Table Header is immutable, use withNewHeader
 
 If you want to change the Header, use the ``withNewHeader`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
 
