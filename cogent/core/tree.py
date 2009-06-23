@@ -1146,6 +1146,7 @@ class TreeNode(object):
         LEN = 10
         PAD = ' ' * LEN
         PA = ' ' * (LEN-1)
+        namestr = self.Name or '' # prevents name of NoneType
         if self.Children:
             mids = []
             result = []
@@ -1170,10 +1171,10 @@ class TreeNode(object):
             result = [p+l for (p,l) in zip(prefixes, result)]
             if show_internal:
                 stem = result[mid]
-                result[mid] = stem[0] + self.Name + stem[len(self.Name)+1:]
+                result[mid] = stem[0] + namestr + stem[len(namestr)+1:]
             return (result, mid)
         else:
-            return ([char1 + '-' + self.Name], 0)
+            return ([char1 + '-' + namestr], 0)
     
     def asciiArt(self, show_internal=True, compact=False):
         """Returns a string containing an ascii drawing of the tree.
