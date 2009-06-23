@@ -4,11 +4,12 @@ import unittest
 import os
 
 from cogent import LoadTree
+from cogent.parse.tree import DndParser
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Andrew Butterfield",
-                    "Matthew Wakefield", "Daniel McDonald"]
+                    "Matthew Wakefield", "Daniel McDonald", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -279,7 +280,11 @@ class TestTree(unittest.TestCase):
     
     def test_ascii(self):
         self.tree.asciiArt()
-    
+        # unlabeled internal node
+        tr = DndParser("(B:0.2,(C:0.3,D:0.4):0.6)F;")
+        tr.asciiArt(show_internal=True, compact=False)
+        tr.asciiArt(show_internal=True, compact=True)
+        tr.asciiArt(show_internal=False, compact=False)
 
 # the following class repeats the above tests but using a big tree and big data-set
 class BigTreeSingleTests(TestTree):

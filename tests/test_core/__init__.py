@@ -20,7 +20,7 @@ __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
                     "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso", 
-                    "Sandra Smit"]
+                    "Sandra Smit", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"
