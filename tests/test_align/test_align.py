@@ -91,21 +91,24 @@ class UnalignedPairTestCase(unittest.TestCase):
     
 
 class MultipleAlignmentTestCase(unittest.TestCase):
-    def _make_aln(self, orig, model=dna_model, param_vals=None):
+    def _make_aln(self, orig, model=dna_model, param_vals=None, 
+            indel_rate=0.1, indel_length=0.5, **kw):
+        kw['indel_rate'] = indel_rate
+        kw['indel_length'] = indel_length
         seqs = dict((key, DNA.makeSequence(value)) 
                 for (key, value) in orig.items())
         if len(seqs) == 2:
             tree = cogent.LoadTree(tip_names=seqs.keys())
+            tree = cogent.LoadTree(treestring="(A:.1,B:.1)")
         else:
-            tree = cogent.LoadTree(treestring="(((A:.1,B:.3):.1,C:.2),D:.8)")
+            tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1),D:.1)")
         aln, tree = cogent.align.progressive.TreeAlign(model, seqs,
-                                                tree=tree, show_progress=False,
-                                                param_vals=param_vals)
+                tree=tree, show_progress=False, param_vals=param_vals, **kw)
         return aln
     
-    def _test_aln(self, seqs, model=dna_model, param_vals=None):
+    def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
         orig = dict((n,s.replace('-', '')) for (n,s) in seqs.items())
-        aln = self._make_aln(orig, model=model, param_vals=param_vals)
+        aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
         result = dict((n,s.lower()) for (n,s) in aln.todict().items())
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
@@ -115,15 +118,17 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             for param, val in param_vals:
                 self.assertEqual(aln.Info.AlignParams[param], val)
     
-    def test_progressive(self):
+    def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
         self._test_aln({
                 'A': 'tacagta', 
                 'B': 'tac-gtc',
                 'C': 'ta---ta', 
-                'D': 'cac-cta',
+                'D': 'tac-gtc',
                 })
          
+    def test_progressive2(self):
+        """test progressive alignment, gaps in middle"""
         self._test_aln({
                 'A': 'ac-ttgt', 
                 'B': 'ac---gt',
@@ -165,41 +170,54 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'D': 'gta',
                 })
     
-    def dont_test_gaps2(self):
+    def test_gaps2(self):
+        """Gaps have real costs, even end gaps"""
         self._test_aln({
-                'A': '----ggctttgcc', 
-                'B': '----ggctttgcc',
-                'C': 'gtaaggctttgcc', 
-                'D': 'gtaa---------',
+                'A': 'g-', 
+                'B': 'g-',
+                'C': 'ga', 
+                'D': 'a-',
                 })
     
-    def dont_test_hirchberg(self):
-        # Force use of linear space algorithm
-        # Fails to give same result as test_progressive above.
+        self._test_aln({
+                'A': '-g', 
+                'B': '-g',
+                'C': 'ag', 
+                'D': '-a',
+                })
+
+    def test_difficult_end_gaps(self):
+        self._test_aln({
+                'A': '--cctc', 
+                'B': '--cctc',
+                'C': 'gacctc', 
+                'D': 'ga----',
+                })  
+        return  
+
+        self._test_aln({
+                'A': 'gcctcgg------', 
+                'B': 'gcctcgg------',
+                'C': 'gcctcggaaacgt', 
+                'D': '-------aaacgt',
+                })    
+
+
+
+class HirschbergTestCase(MultipleAlignmentTestCase):
+    # Force use of linear space algorithm
+    
+    def _test_aln(self, seqs, **kw):
         tmp = cogent.align.pairwise.HIRSCHBERG_LIMIT
         try:
             cogent.align.pairwise.HIRSCHBERG_LIMIT = 100
-            result = self.test_progressive()
+            result = MultipleAlignmentTestCase._test_aln(self, seqs, **kw)
         finally:
             cogent.align.pairwise.HIRSCHBERG_LIMIT = tmp
         return result
-    
-    def test_hirchberg2(self):
-        # Force use of linear space algorithm
-        tmp = cogent.align.pairwise.HIRSCHBERG_LIMIT
-        try:
-            cogent.align.pairwise.HIRSCHBERG_LIMIT = 100
-            self._test_aln({
-                    'A': 'tacagta', 
-                    'B': 'tac-gtc',
-                    'D': 'ta---ta', 
-                    'C': 'cac-cta',
-                    })
-        finally:
-            cogent.align.pairwise.HIRSCHBERG_LIMIT = tmp
-        
-    
 
+
+    
 if __name__ == '__main__':
     unittest.main()
 
