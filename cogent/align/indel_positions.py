@@ -74,7 +74,7 @@ class POGBuilder(object):
         # Build a list of gaps (ie: segments of X or Y state) in
         # the alignment and a dict which maps from seq posn to the
         # start of the surrounding gap.
-        for (i, state) in enumerate(self.states):
+        for (i, state) in enumerate(self.states+['.']):
             gap = state in 'XYxy'
             if gap and not ingap:
                 start = i
@@ -85,6 +85,11 @@ class POGBuilder(object):
             if ingap:
                 gapmap[i] = start
         
+        # in case of tail gap
+        for (dim, child) in enumerate(self.children):
+            pos = len(child)
+            self.remap[dim][pos] = len(self.aligned_positions)  
+              
         # Keep only those child gaps which sit entirely within a gap
         # in this alignment
         child_jumps = []
@@ -103,12 +108,20 @@ class POGBuilder(object):
     
 
 class POG(object):
-    """A representation of the indel positions in a sequence, ie:
-    those segments of the sequence which may be inserts and so not
-    present in the parent sequence.
+    """A representation of the indel positions in a pairwise alignment, ie:
+    those segments of the consensus sequence which may be inserts and so absent
+    from the common ancestor.  Nearly equivalent to a generic Partial Order 
+    Graph.
     
     Indels are represented as tuples of
         (1st posn in indel, 1st posn after indel)
+        
+    Two lists of indels are kept, one for indels in the alignment, and one
+    for indels in its two children in case they are also alignments.
+    
+    This data structure largely inspired by:
+    Loytynoja A, Goldman N. 2005. An algorithm for progressive multiple 
+    alignment of sequences with insertions. PNAS 102:10557-10562
     """
     
     def __init__(self, length, jumps, child_jumps):
@@ -155,6 +168,12 @@ class POG(object):
     def __len__(self):
         return self.length
     
+    def midlinks(self):
+        # for the hirchberg algorithm.
+        half = self.length // 2
+        jumps = [(i,j) for (i,j) in self.all_jumps if i<=half and j>=half]
+        return [(half, half)] + jumps
+    
     def __getitem__(self, index):
         # POGs need to be sliceable for the hirchberg algorithm.
         if index.start is None:
@@ -166,10 +185,12 @@ class POG(object):
         else:
             end = index.stop
         assert end >= start, (start, end, index, self.length)
-        def moved(i):
-            return max(min(i, end), start)-start
-        jumps = [(moved(i), moved(j)) for (i,j) in self.jumps if i<end or j>start]
-        cjumps = [(moved(i), moved(j)) for (i,j) in self.child_jumps if i<end or j>start]
+        def moved(i,j):
+            i2 = max(min(i, end), start)-start
+            j2 = max(min(j, end), start)-start
+            return (i2, j2)
+        jumps = [moved(i,j) for (i,j) in self.jumps if i<end or j>start]
+        cjumps = [moved(i,j) for (i,j) in self.child_jumps if i<end or j>start]
         return POG(end-start, jumps, cjumps)
     
     def backward(self):
@@ -180,6 +201,22 @@ class POG(object):
         cjumps = [(length-j, length-i) for (i,j) in self.child_jumps]
         return POG(length, jumps, cjumps)
     
+    def writeToDot(self, dot):
+        pred_sets = self.asListOfPredLists()
+        print >>dot, 'digraph POG {'
+        for (i, preds) in enumerate(pred_sets):
+            #print i, preds
+            for pred in preds:
+                print >>dot, '  ', ('node%s -> node%s' % (pred, i))
+            if i == 0:
+                label = 'START'
+            elif i == len(pred_sets) - 1:
+                label = 'END'
+            else:
+                label = str(i)
+            print >>dot, '  ', ('node%s' % i), '[label="%s"]' % label
+        print >>dot, '}'
+        print >>dot, ''
 
 class LeafPOG(POG):
     """The POG for a known sequence contains no indels."""

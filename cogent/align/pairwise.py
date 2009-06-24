@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-"""Align two POGs"""
+"""Align two Alignables, each of which can be a sequence or a subalignment
+produced by the same code."""
 
 # How many cells before using linear space alignment algorithm.
 # Should probably set to about physical memory / 8
@@ -8,12 +9,12 @@ HIRSCHBERG_LIMIT = 25000000
 
 import numpy
 
-numpy.seterr(all='ignore')
+# setting global state on module load is bad practice and can be ineffective,
+# and this setting matches the defaults anyway, but left here as reference 
+# in case it needs to be put back in a more runtime way.
+#numpy.seterr(all='ignore')
 
-Float = numpy.core.numerictypes.sctype2char(float)
-Int = numpy.core.numerictypes.sctype2char(int)
-dot = numpy.dot
-
+import warnings
 import logging
 LOG = logging.getLogger('cogent.align')
 
@@ -52,13 +53,17 @@ def encode_state(dx, dy, state):
     # separately anyway
     return (dx*256+dy)*256+state
 
+DEBUG = False
+
 def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
         preds, state_directions, T,
         xgap_scores, ygap_scores, match_scores, rows, track, viterbi,
         local=False, use_scaling=False, use_logs=False):
-    """python function for POG calculations"""
-    # XXX assert not use_scaling
-    DEBUG = False
+    """Pure python version of the dynamic programming algorithms
+    Forward and Viterbi.  Works on sequences and POGs.  Unli"""
+    if use_scaling:
+        warnings.warn("Pure python version of DP code can suffer underflows")
+        # because it ignores 'exponents', the Pyrex version doesn't.
     source_states = range(len(T))
     BEGIN = 0
     ERROR = len(T)
@@ -82,7 +87,6 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
             y = y_index[j]
             j_sources = preds[1][j]
             for (state, bin, dx, dy) in state_directions:
-                #print (i, j, state, bin, dx, dy)
                 if (local and dx and dy):
                     cumulative_score = T[BEGIN, state]
                     pointer = (dx, dy, BEGIN)
@@ -101,6 +105,8 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                                     candidate = prev_value + transition
                                 else:
                                     candidate = prev_value * transition
+                                #if DEBUG:
+                                #    print prev_state, prev_value, state
                                 if candidate > cumulative_score:
                                     cumulative_score = candidate
                                     pointer = (a+dx, b+dy, prev_state)
@@ -114,21 +120,54 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                     d_score = ygap_scores[bin, y]
                 else:
                     d_score = neutral_score
+                #if DEBUG:
+                #    print (dx, dy), d_score, cumulative_score
                 if use_logs:
                     current_row[j, state] = cumulative_score + d_score
                 else:
                     current_row[j, state] = cumulative_score * d_score
-                if DEBUG:
-                    print (i, j), state, ':', cumulative_score, '*', d_score, '=', \
-                            current_row[j, state]
                 if track is not None:
                     track[i,j,state] = encode_state(*pointer)
                 if (i==i_high-1 and j==j_high-1 and not local) or (
                         local and dx and dy and current_row[j, state] > best_score):
                     (best, best_score) = (((i, j), state), current_row[j, state])
-    #print 'best_score, result', best_score, best + (numpy.log(best_score),)
+    #if DEBUG:
+    #    print i_low, i_high, j_low, j_high
+    #    print 'best_score %5.1f  at  %s' % (numpy.log(best_score), best)
     return best + (numpy.log(best_score),)
 
+class TrackBack(object):
+    def __init__(self, tlist):
+        self.tlist = tlist
+    
+    def __str__(self):
+        return ''.join('(%s,%s)%s' % 
+            (x,y, '.xym'[dx+2*dy]) for (state, (x,y), (dx,dy))
+            in self.tlist)
+            
+    def offset(self, X, Y):
+        tlist = [(state, (x+X, y+Y), dxy) for (state, (x,y), dxy) in self.tlist]
+        return TrackBack(tlist)
+                
+    def __add__(self, other):
+        return TrackBack(self.tlist + other.tlist)
+        
+    #def asStatePosnTransTuples(self):
+    #    return iter(self.tlist)
+        
+    def asStatePosnTuples(self):
+        return [(s,p) for (s,p,d) in self.tlist]
+
+    def asBinPosTuples(self, state_directions):
+        bin_map = dict((state, bin) for (state, bin, dx, dy) in
+            state_directions)
+        result = []
+        for (state, posn, (dx, dy)) in self.tlist:
+            pos = [[None, i-1][d] for (i,d) in zip(
+                    posn, [dx, dy])]
+            result.append((bin_map.get(int(state), None), pos))
+        return result
+    
 
 class Pair(object):
     def __init__(self, alignable1, alignable2, backward=False):
@@ -190,32 +229,29 @@ class Pair(object):
         children = [child[dim_index] for (child, dim_index) in zip(
                 self.children, index)]
         return Pair(*children)
-    
-    def penultimateRows(self):
-        return self.children[0].penultimateRows()
-    
+        
     def _decode_state(self, track, posn, pstate):
         coded = int(track[posn[0], posn[1], pstate])
         (coded, state) = divmod(coded, 256)
         if state >= track.shape[-1]:
             raise ArithmeticError('Error state in traceback')
-        (dx, dy) = divmod(coded, 256)
+        (a, b) = divmod(coded, 256)
         (x, y) = posn
         if state == -1:
             next = (x, y)
         else:
-            if dx: x = self.children[0][x][dx-1]
-            if dy: y = self.children[1][y][dy-1]
-            next = numpy.array([x,y], Int)
-        return (next, (dx, dy), state)
+            if a: x = self.children[0][x][a-1]
+            if b: y = self.children[1][y][b-1]
+            next = numpy.array([x,y], int)
+        return (next, (a, b), state)
     
     def traceback(self, track, posn, state, skip_last=False):
         result = []
         started = False
         while 1:
-            (nposn, (dx, dy), nstate) = self._decode_state(track, posn, state)
+            (nposn, (a, b), nstate) = self._decode_state(track, posn, state)
             if state:
-                result.append((state, posn, (dx, dy)))
+                result.append((state, posn, (a>0, b>0)))
             if started and state == 0:
                 break
             (posn, state) = (nposn, nstate)
@@ -223,7 +259,7 @@ class Pair(object):
         result.reverse()
         if skip_last:
             result.pop()
-        return result
+        return TrackBack(result)
     
     def edge2plh(self, edge, plhs):
         bins = plhs[0].shape[0]
@@ -238,7 +274,7 @@ class Pair(object):
     def getEmptyStateArray(self, n_states):
         assert n_states < 255
         assert self.max_preds < 255, ("\n\n", n_states, "\n\n", self.max_preds)
-        return numpy.zeros(self.size + [n_states], int) #, numpy.Int8)
+        return numpy.zeros(self.size + [n_states], int)
     
     def getScoreArraysShape(self):
         needed = max(self.plan) + 1
@@ -247,11 +283,11 @@ class Pair(object):
     
     def getEmptyScoreArrays(self, n_states, dp_options):
         shape = self.getScoreArraysShape() + (n_states,)
-        mantissas = numpy.zeros(shape, Float)
+        mantissas = numpy.zeros(shape, float)
         if dp_options.use_logs:
             mantissas[:] = numpylog(0.0)
         if dp_options.use_scaling:
-            exponents = numpy.ones(shape, Int) * -10000
+            exponents = numpy.ones(shape, int) * -10000
         else:
             exponents = None
         return (mantissas, exponents)
@@ -270,10 +306,9 @@ class _Alignable(object):
         self.alphabet = leaf.alphabet
         (uniq, alphabet_size) = leaf.input_likelihoods.shape
         full = len(leaf.index)
-        self.plh = numpy.zeros([uniq+2, alphabet_size], Float)
+        self.plh = numpy.zeros([uniq+2, alphabet_size], float)
         self.plh[1:-1] = leaf.input_likelihoods
         self.index = numpy.zeros([full+2], int)
-        #print leaf.shape, self.index.shape, leaf.index.shape
         self.index[1:-1] = numpy.asarray(leaf.index) + 1
         self.index[0] = 0
         self.index[full+1] = uniq+1
@@ -296,9 +331,6 @@ class _Alignable(object):
             self._combined = self._asCombinedArray()
         return self._combined
     
-    def penultimateRows(self):
-        return sorted(self[len(self)-1])
-    
     def getRowAssignmentPlan(self):
         d = self.getOuterLoopDiscardPoints()
         free = set()
@@ -317,6 +349,8 @@ class _Alignable(object):
     
 
 class AlignablePOG(_Alignable):
+    """Alignable wrapper of a Partial Object Graph, ie: subalignment"""
+    
     def __init__(self, leaf, pog, children=None):
         assert len(leaf) == len(pog), (len(leaf), len(pog))
         _Alignable.__init__(self, leaf)
@@ -325,6 +359,10 @@ class AlignablePOG(_Alignable):
         self.pog = pog
         if children is not None:
             self.aligneds = self._calcAligneds(children)
+        self.leaf = leaf
+    
+    def __repr__(self):
+        return 'AlPOG(%s,%s)' % (self.pog.all_jumps, repr(self.leaf))
     
     def getAlignment(self):
         return LoadSeqs(data=self.aligneds)
@@ -361,6 +399,9 @@ class AlignablePOG(_Alignable):
             leaf = self.leaf[index]
             return AlignablePOG(leaf, pog)
     
+    def midlinks(self):
+        return self.pog.midlinks()
+    
     def getOuterLoopDiscardPoints(self):
         # for score row caching
         last_successor = {}
@@ -375,6 +416,9 @@ class AlignablePOG(_Alignable):
     
 
 class AlignableSeq(_Alignable):
+    """Wrapper for a Sequence which gives it the same interface as an
+    AlignablePOG"""
+    
     def __init__(self, leaf):
         _Alignable.__init__(self, leaf)
         if hasattr(leaf, 'sequence'):
@@ -383,6 +427,9 @@ class AlignableSeq(_Alignable):
             self.aligneds = [(self.leaf.edge_name, aligned)]
         self.max_preds = 1
         self._pog = None
+    
+    def __repr__(self):
+        return 'AlSeq(%s)' % (getattr(self, 'seq', '?'))
     
     def getPOG(self):
         if self._pog is None:
@@ -414,7 +461,11 @@ class AlignableSeq(_Alignable):
         #    return self
         else:
             return AlignableSeq(self.leaf[index])
-    
+
+    def midlinks(self):
+        half = len(self.leaf) // 2
+        return  [(half, half)]
+
     def getOuterLoopDiscardPoints(self):
         return [[]] + [[i] for i in range(len(self)-1)]
     
@@ -433,7 +484,7 @@ def adaptPairTM(pairTM, finite=False):
         pairTM = pairTM.withoutSilentStates()
         stationary_probs = numpy.array(pairTM.StationaryProbs)
         T = pairTM.Matrix
-        full_matrix = numpy.zeros([len(T)+2, len(T)+2], Float)
+        full_matrix = numpy.zeros([len(T)+2, len(T)+2], float)
         full_matrix[1:-1,1:-1] = T
         full_matrix[0,1:-1] = stationary_probs # from BEGIN
         full_matrix[:,-1] = 1.0  #  to END
@@ -444,8 +495,7 @@ def adaptPairTM(pairTM, finite=False):
     state_directions_list.sort(key=this_row_last)
     # sorting into desirable order (sort may not be necessary)
     
-    state_directions = numpy.zeros([len(state_directions_list), 4],
-            Int)
+    state_directions = numpy.zeros([len(state_directions_list), 4], int)
     for (i, (state, emit)) in enumerate(state_directions_list):
         (dx, dy) = emit
         assert dx==0 or dy==0 or dx==dy
@@ -462,7 +512,8 @@ class PairEmissionProbs(object):
         self.scores = {}
     
     def makePartialLikelihoods(self, use_cost_function):
-        # use_cost_function specifies whether eqn 2 of LG invoked
+        # use_cost_function specifies whether eqn 2 of Loytynoja & Goldman 
+        # is applied
         plhs = [[], []]
         gap_plhs = [[], []]
         for bin in self.bins:
@@ -482,20 +533,14 @@ class PairEmissionProbs(object):
         for dim in [0,1]:
             plhs[dim] = numpy.array(plhs[dim])
             gap_plhs[dim] = numpy.array(gap_plhs[dim])
-            #print 'a', plhs[dim].shape
         return (plhs, gap_plhs)
     
     def _makeEmissionProbs(self, use_cost_function):
         (plhs, gap_scores) = self.makePartialLikelihoods(use_cost_function)
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size,
-                                    Float)
+                                    float)
         for (b, (x, y, bin)) in enumerate(zip(plhs[0], plhs[1], self.bins)):
-            if numpy.__version__.startswith('24.'):
-                # this should probably be removed on numpy port
-                # innerproduct failing at vecLib layer - Numeric bug #1369004
-                match_scores[b] = dot(x*bin.mprobs, numpy.transpose(y))
-            else:
-                match_scores[b] = numpy.inner(x*bin.mprobs, y)
+            match_scores[b] = numpy.inner(x*bin.mprobs, y)
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
         return (match_scores, gap_scores)
     
@@ -513,7 +558,7 @@ class PairEmissionProbs(object):
         return self.scores[key]
     
     def _calc_global_probs(self, pair, scores, kw, state_directions,
-            T, rows, tb, backward=False):
+            T, rows, cells, backward=False):
         (M, N) = pair.size
         (mantissas, exponents) = rows
         mantissas[0,0,0] = 1.0
@@ -521,11 +566,13 @@ class PairEmissionProbs(object):
         probs = []
         last_i = -1
         to_end = numpy.array([(len(T)-1, 0, 0, 0)])
-        for (state, (i,j), dxy) in tb:
+        for (state, (i,j)) in cells:
             if i > last_i:
                 rr = pair.calcRows(last_i+1, i+1, 0, N-1,
                     state_directions, T, scores, rows, None, **kw)
             else:
+                #rr = pair.calcRows(i+1, i+1, 0, N-1,
+                #    state_directions, T, scores, rows, None, **kw)
                 assert i == last_i, (i, last_i)
             last_i = i
             T2 = T.copy()
@@ -534,8 +581,12 @@ class PairEmissionProbs(object):
             else:
                 T2[:, -1] = 0.0
                 T2[state, -1] = 1.0
+            global DEBUG
+            _d = DEBUG
+            DEBUG = False
             (maxpos, state, score) = pair.calcRows(
                     i, i+1, j, j+1, to_end, T2, scores, rows, None, **kw)
+            DEBUG = _d
             probs.append(score)
         return numpy.array(probs)
     
@@ -558,7 +609,7 @@ class PairEmissionProbs(object):
     def __getitem__(self, index):
         assert len(index) == 2, index
         return PairEmissionProbs(self.pair[index], self.bins)
-    
+                
     def hirschberg(self, TM, dp_options):
         """linear-space alignment algorithm
         A linear space algorithm for computing maximal common subsequences.
@@ -566,57 +617,83 @@ class PairEmissionProbs(object):
         Dan Hirshberg
         """
         (states, T) = TM
-        row_count = self.pair.size[0] - 2
-        half = row_count // 2
         
+        # This implementation is slightly complicated by the need to handle 
+        # alignments of alignments, because a subalignment may have an indel
+        # spanning the midpoint where we want to divide the problem in half.
+        # That must be the sense in which the fatter and slower method used
+        # in Prank (Loytynoja A, Goldman N. 2005) is "computationally more 
+        # attractive": for them there is only one link in:
+        links = self.pair.children[0].midlinks()
+
         T2 = T.copy()
         T2[1:-1:,-1] = 1.0  # don't count the end state transition twice
-        (prows1, last_row1) = self[:half, :].dp(
-                (states, T2), dp_options, last_row=True)
+        last_row1 = self.scores_at_rows(
+                (states, T2), dp_options, last_row=[i for (i,j) in links])
         
         T2 = T.copy()
         T2[0, 1:-1] = 1.0  # don't count the begin state transition twice
-        (prows2, last_row2) = self[half:, :].dp(
-                (states, T2), dp_options, last_row=True, backward=True)
-        
-        middle_row = (last_row1 + last_row2[:,::-1,:])
-        anchor = numpy.argmax(middle_row.flat)
-        (link, rest) = divmod(anchor, middle_row.shape[1]*middle_row.shape[2])
-        (anchor, anchor_state) = divmod(rest, middle_row.shape[2])
-        join1 = prows1[link]
-        join2 = row_count - prows2[link]
-        #if join1 != join2:
-        #    print half, link, prows1, prows2, self.pair.size
-        #    print join1, join2
+        last_row2 = self.scores_at_rows(
+                (states, T2), dp_options, 
+                last_row=[j for (i,j) in links], 
+                backward=True)
+        middle_row = (last_row1 + last_row2)
+        (link, anchor, anchor_state) = numpy.unravel_index(
+            numpy.argmax(middle_row.flat), middle_row.shape)
         score = middle_row[link, anchor, anchor_state]
-        #print 'h', self.pair.size, [half, anchor], anchor_state, score
+        (join1, join2) = links[link]
         T2 = T.copy()
         T2[-1] = 0.0
         T2[anchor_state, -1] = 1.0  # Must end with the anchor's state
-        (s1, (tb1a, tb2a)) = self[:join1, :anchor].dp((states, T2), dp_options)
+        (s1, tb_a) = self[:join1, :anchor].dp((states, T2), dp_options)
         T2 = T.copy()
         T2[0, :] = T[anchor_state, :]  # Starting from the anchor's state
-        (s2, (tb1b, tb2b)) = self[join2:, anchor:].dp((states, T2), dp_options)
-        tb1b = [(state, (x+half, y+anchor), dxy)
-                for (state, (x,y), dxy) in tb1b]
-        tb = tb1a+tb1b
-        tb2 = self._nice_tb(states, tb)
-        #print 'scores', s1+s2, score   # XXX should be equal
-        # Same return tuple struct as for self.dp(..., tb=...)
-        return score, (tb, tb2)
+        (s2, tb_b) = self[join2:, anchor:].dp((states, T2), dp_options)
+        tb = tb_a + tb_b.offset(join2, anchor)
+        # Same return as for self.dp(..., tb=...)
+        return score, tb
     
-    def dp(self, TM, dp_options, tb=None, last_row=False, backward=False):
-        # tb: viterbi traceback
-        # last_row: for hirschberg
-        (state_directions, T) = TM
+    def scores_at_rows(self, TM, dp_options, last_row, backward=False):
+        """A score array shaped [rows, columns, states] but only for those
+        row numbers requested.  Used by Hirschberg algorithm"""
         
-        if dp_options.viterbi and not last_row:
+        (M, N) = self.pair.size
+        (state_directions, T) = TM
+        reverse = bool(dp_options.backward) ^ bool(backward)
+        cells = []
+        p_rows = sorted(set(last_row))
+        if reverse:
+            p_rows.reverse()
+        for i in p_rows:
+            for j in range(0, N-1):
+                for state in range(len(T)-1):
+                    if reverse:
+                        cells.append((state, (M-2-i, N-2-j)))
+                    else:
+                        cells.append((state, (i, j)))
+        probs = self.dp(TM, dp_options, cells=cells, backward=backward)
+        probs = numpy.array(probs)
+        probs.shape = (len(p_rows), N-1, len(T)-1)
+        result = numpy.array([
+            probs[p_rows.index(i)] for i in last_row])
+        return result
+        
+    def dp(self, TM, dp_options, cells=None, backward=False):
+        """Score etc. from a Dynamic Programming function applied to this pair.
+        
+        TM - (state_directions, array) describing the Transition Matrix.
+        dp_options - instance of DPFlags indicating algorithm etc.
+        cells - List of (state, posn) for which posterior probs are requested.
+        backward - run algorithm in reverse order.
+        """
+        (state_directions, T) = TM
+        if dp_options.viterbi and cells is None:
             problem_size = numpy.product(self.pair.size) * len(T)
             if problem_size > HIRSCHBERG_LIMIT and self.pair.size[0]-2 >= 3:
                 memory = 4*problem_size/10**6
                 if dp_options.local:
                     LOG.warn('Local alignment will use > %sMb.' % memory)
-                elif tb is not None:
+                elif cells is not None:
                     LOG.warn('Posterior probs will use > %sMb.' % memory)
                 else:
                     assert not backward
@@ -637,12 +714,13 @@ class PairEmissionProbs(object):
         if backward:
             pair = self.pair.backward()
             origT = T
-            T = numpy.zeros(T.shape, Float)
+            T = numpy.zeros(T.shape, float)
             T[1:-1,1:-1] = numpy.transpose(origT[1:-1,1:-1])
             T[0,:] = origT[:, -1]
             T[:,-1] = origT[0,:]
         else:
             pair = self.pair
+        
         if dp_options.use_logs:
             T = numpy.log(T)
         
@@ -650,30 +728,12 @@ class PairEmissionProbs(object):
                 dp_options.use_cost_function)
         
         rows = pair.getEmptyScoreArrays(len(T), dp_options)
-        if last_row:
-            (M, N) = pair.size
-            #print 'row', M-2, 'of', M, backward
-            tb = []
-            p_rows = self.pair.penultimateRows()
-            for i in p_rows:
-                for j in range(0, N-1):
-                    for state in range(len(T)-1):
-                        tb.append((state, (M-2, j), None))
+        
+        if cells is not None:
             assert not dp_options.local
             result = self._calc_global_probs(
-                    pair, scores, kw, state_directions, T, rows, tb,
+                    pair, scores, kw, state_directions, T, rows, cells,
                     backward)
-            result = numpy.array(result)
-            result.shape = (len(p_rows), N-1, len(T)-1)
-            result = (p_rows, result)
-        elif tb is not None:
-            assert not dp_options.local
-            result = self._calc_global_probs(
-                    pair, scores, kw, state_directions, T, rows, tb,
-                    backward)
-            if last_row:
-                result = numpy.array(result)
-                result.shape = (N-1, len(T)-1)
         else:
             calc = [self._calc_global, self._calc_local][dp_options.local]
             (maxpos, state, score) = calc(
@@ -684,20 +744,9 @@ class PairEmissionProbs(object):
             else:
                 tb = self.pair.traceback(track, maxpos, state,
                     skip_last = not dp_options.local)
-                tb2 = self._nice_tb(state_directions, tb)
-                result = (score, (tb, tb2))
+                result = (score, tb)
         return result
-    
-    def _nice_tb(self, state_directions, tb):
-        bin_map = dict((state, bin) for (state, bin, dx, dy) in
-            state_directions)
-        result = []
-        for (state, posn, (dx, dy)) in tb:
-            pos = [[None, i-1][not not d] for (i,d) in zip(
-                    posn, [dx, dy])]
-            result.append((bin_map.get(int(state), None), pos))
-        return result
-    
+        
     def getAlignable(self, aligned_positions, use_cost_function=False,
             ratio=None):
         assert ratio is None, "already 2-branched"
@@ -814,31 +863,35 @@ class PairHMM(object):
         return self._getDPResult(viterbi=False, **kw)
     
     def _getPosteriorProbs(self, tb, **kw):
+        cells = tb.asStatePosTuples()
         score = self.getForwardScore(**kw)
         dp_options = DPFlags(viterbi=False, **kw)
-        fwd = self.emission_probs.dp(self._transition_matrix, dp_options, tb)
+        fwd = self.emission_probs.dp(self._transition_matrix, dp_options, cells)
         (N, M) = self.emission_probs.pair.size
-        tb = [(state, (N-x-2, M-y-2), (dx, dy))
-                for (state, (x,y), (dx, dy)) in tb]
+        cells = [(state, (N-x-2, M-y-2)) for (state, (x,y)) in cells]
         tb.reverse()
-        back = self.emission_probs.dp(self._transition_matrix, dp_options, tb,
-            backward=True)[::-1]
-        return fwd + back - score
+        bck = self.emission_probs.dp(self._transition_matrix, dp_options, cells,
+                backward=True)[::-1]
+        return fwd + bck - score
     
     def getViterbiPath(self, **kw):
-        result = self._getDPResult(viterbi=True, **kw)
+        result = self._getDPResult(viterbi=True,**kw)
         return ViterbiPath(self, result, **kw)
     
     def getViterbiScoreAndAlignment(self, ratio=None, **kw):
         # deprecate
+        global DEBUG
+        DEBUG = True
         vpath = self.getViterbiPath(**kw)
+        DEBUG = False
         return (vpath.getScore(), vpath.getAlignment(ratio=ratio))
     
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
         # Only for pairwise.  Merge with getViterbiScoreAndAlignable above.
         # Local and POGs doesn't mix well.
-        (vscore, (tb, aligned_positions)) = self._getDPResult(
-                viterbi=True, local=True, **kw)
+        (vscore, tb) = self._getDPResult(viterbi=True, local=True, **kw)
+        (state_directions, T) = self._transition_matrix
+        aligned_positions = tb.asBinPosTuples(state_directions)
         seqs = self.emission_probs.pair.getSeqNamePairs()
         aligned_positions = [posn for (bin, posn) in aligned_positions]
         word_length = self.emission_probs.pair.alphabet.getMotifLen()
@@ -852,7 +905,9 @@ class PairHMM(object):
 
 class ViterbiPath(object):
     def __init__(self, pair_hmm, result, **kw):
-        (self.vscore, (self.tb, self.aligned_positions)) = result
+        (self.vscore, self.tb) = result
+        (state_directions, T) = pair_hmm._transition_matrix
+        self.aligned_positions = self.tb.asBinPosTuples(state_directions)
         self.pair_hmm = pair_hmm
         self.kw = kw
     

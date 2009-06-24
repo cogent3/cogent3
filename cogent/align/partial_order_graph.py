@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""A data structure currently superseded by indel_positions.py.
+
+Multiple Sequence Alignment Using Partial Order Graphs
+
+Bioinformatics 2002 18:452-464
+Christopher Lee, Catherine Grasso, & Mark Sharlow
+"""
+
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
@@ -150,6 +158,7 @@ class POG(object):
         else:
             end = index.stop + 1
         pred = [list(pre) for pre in self.pred_sets[start:end]]
+        origins = ['s'] + list(self.origins[start:end]) + ['e']
         before = self.pred_sets[1:start]
         after = self.pred_sets[end:]
         ends = []
@@ -159,7 +168,7 @@ class POG(object):
                     ends.append(max(pre-start+1, 0))
         pog = [[]] + [[max(0, pre-start+1) for pre in p] for p in pred]
         pog.append(ends)
-        return POG(pog, None)
+        return POG(pog, origins)
     
     def backward(self):
         # Switches predecessors / successors
@@ -172,7 +181,6 @@ class POG(object):
         return POG(pog, None)
     
     def writeToDot(self, dot):
-        origins = self.getOrigins()
         print >>dot, 'digraph POG {'
         for (i, preds) in enumerate(self.pred_sets):
             #print i, preds
@@ -183,7 +191,7 @@ class POG(object):
             elif i == len(self.pred_sets) - 1:
                 label = 'END'
             else:
-                label = ','.join(c for c in origins[i])
+                label = ','.join(c for c in self.origins[i])
             print >>dot, '  ', ('node%s' % i), '[label="%s"]' % label
         print >>dot, '}'
         print >>dot, ''
