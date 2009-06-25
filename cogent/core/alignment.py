@@ -1082,7 +1082,8 @@ class SequenceCollection(object):
         """
         if alphabet is None:
             alphabet = self.MolType.Alphabet
-            alphabet = [alphabet.Gapped, alphabet.Ungapped][allow_gap]
+            if allow_gap:
+                alphabet = alphabet.Gapped
         
         counts = {}
         for seq_name in self.Names:
@@ -1092,6 +1093,10 @@ class SequenceCollection(object):
                 posns = range(0, len(sequence)+1-motif_len, motif_len)
                 sequence = [sequence[i:i+motif_len] for i in posns]
             for motif in sequence:
+                if not allow_gap:
+                    if self.MolType.Gap in motif:
+                        continue
+                
                 if motif in counts:
                     counts[motif] += 1
                 else:

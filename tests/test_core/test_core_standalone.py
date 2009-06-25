@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 
 import unittest, os, tempfile
 
@@ -374,6 +375,31 @@ class AlignmentTestMethods(unittest.TestCase):
         alignment = LoadSeqs(data = seqs)
         short = {'seq1':'A', 'seq2':'A', 'seq3':'A'}
         self.assertEqual(alignment[0:1].todict(), short)
+    
+    def test_get_motifprobs(self):
+        """calculation of motif probs"""
+        seqs = {'seq1': 'ACGTANGT', 'seq2': '-CGTACGT', 'seq3': 'ACGTACGT'}
+        aln = LoadSeqs(data = seqs, moltype=DNA)
+        mprobs = aln.getMotifProbs(allow_gap=False)
+        expected = {'A':5/22, 'T':6/22, 'C':5/22, 'G':6/22}
+        self.assertEqual(mprobs, expected)
+        mprobs = aln.getMotifProbs(allow_gap=True)
+        expected = {'A':5/23, 'T':6/23, 'C':5/23, 'G':6/23, '-':1/23}
+        self.assertEqual(mprobs, expected)
+        mprobs = aln.getMotifProbs(allow_gap=False, include_ambiguity=True)
+        expected = {'A':5.25/23, 'T':6.25/23, 'C':5.25/23, 'G':6.25/23}
+        self.assertEqual(mprobs, expected)
+        mprobs = aln.getMotifProbs(allow_gap=True, include_ambiguity=True)
+        expected = {'A':5.25/24, 'T':6.25/24, 'C':5.25/24, 'G':6.25/24, '-':
+                    1/24}
+        self.assertEqual(mprobs, expected)
+        seqs = {'seq1': 'ACGAANGA', 'seq2': '-CGAACGA', 'seq3': 'ACGAACGA'}
+        aln = LoadSeqs(data = seqs, moltype=DNA)
+        mprobs = aln.getMotifProbs(exclude_unobserved=True)
+        expected = {'A':11/22, 'C':5/22, 'G':6/22}
+        self.assertEqual(mprobs, expected)
+        
+    
 
 # fileformats doesn't catch an exception when the file has no data!
 class SequenceTestMethods(unittest.TestCase):
