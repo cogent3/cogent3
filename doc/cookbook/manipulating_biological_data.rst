@@ -11,7 +11,7 @@ Translate DNA sequences
 -----------------------
 
 .. doctest::
-    
+
     >>> from cogent.core.genetic_code import DEFAULT as standard_code
     >>> standard_code.translate('TTTGCAAAC')
     'FAN'
@@ -20,7 +20,7 @@ Translate a codon
 -----------------
 
 .. doctest::
-    
+
     >>> from cogent.core.genetic_code import DEFAULT as standard_code
     >>> standard_code['TTT']
     'F'
@@ -28,7 +28,7 @@ Translate a codon
 or get the codons for a single amino acid
 
 .. doctest::
-    
+
     >>> standard_code['A']
     ['GCT', 'GCC', 'GCA', 'GCG']
 
@@ -232,6 +232,32 @@ Removing some sequences from the alignment
     ['NineBande', 'Mouse', 'Human', 'HowlerMon', 'DogFaced']
     >>> new = aln.takeSeqs(['Human', 'HowlerMon'])
 
+Computing motif probabilities from an alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For nucleotides.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
+    >>> motif_probs = aln.getMotifProbs()
+    >>> print motif_probs
+    {'A': 0.24...
+
+For dinucleotides, we need to pass in a dinucleotide alphabet.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA
+    >>> dinuc_alphabet = DNA.Alphabet.getWordAlphabet(2)
+    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
+    >>> motif_probs = aln.getMotifProbs(alphabet=dinuc_alphabet)
+    >>> print motif_probs
+    {'AA': 0.078222...
+
+The same holds for codons or other arbitrary alphabets, as long as they match the alignment ``MolType``.
+
 Calculating gap fractions for each column in an alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -316,20 +342,20 @@ Getting 3rd positions from codons
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
 .. doctest::
-    
+
     >>> from cogent import DNA
     >>> seq = DNA.makeSequence('ATGATGATGATG')
 
 Creating the position indices, note that we start at the 2nd index (the 'first' codon's 3rd position) indicate each position as a *span* (``i -- i+1``).
 
 .. doctest::
-    
+
     >>> indices = [(i,i+1) for i in range(len(seq))[2::3]]
 
 Create the sequence feature and use it to slice the sequence.
 
 .. doctest::
-    
+
     >>> pos3 = seq.addFeature('pos3', 'pos3', indices)
     >>> pos3 = pos3.getSlice()
     >>> assert str(pos3) == 'GGGG'
@@ -340,7 +366,7 @@ Getting 1st and 2nd positions from codons
 Only difference here to above is our span's cover 2 positions.
 
 .. doctest::
-    
+
     >>> from cogent import DNA
     >>> seq = DNA.makeSequence('ATGATGATGATG')
     >>> indices = [(i,i+2) for i in range(len(seq))[::3]]
@@ -433,7 +459,7 @@ Getting codon 3rd positions from an alignment
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
 .. doctest::
-    
+
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---', 'seq2': 'ATGATGATGATG'})
     >>> indices = [(i,i+1) for i in range(len(aln))[2::3]]
@@ -471,7 +497,7 @@ Tabular data
 
 .. doctest::
     :hide:
-    
+
     >>> # just saving some tabular data for subsequent data
     >>> from cogent import LoadTable
     >>> rows = (('NP_003077', 'Con', 2.5386013224378985),
@@ -488,7 +514,7 @@ Loading delimited formats
 We load a comma separated data file using the generic ``LoadTable`` function.
 
 .. doctest::
-    
+
     >>> from cogent import LoadTable
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table
@@ -508,13 +534,13 @@ Reading large files
 For really large files, the automated conversion used by the standard read mechanism can be quite slow. Explicit type casting of columns significantly improves reading. We illustrate here, first creating the converter, then the parser, finally loading the table using the ``LoadTable`` mechanism.
 
 .. doctest::
-    
+
     >>> from cogent.parse.table import ConvertFields, SeparatorFormatParser
 
 In creating the converter, any column not specifically referenced is converted as a ``str``.
 
 .. doctest::
-    
+
     >>> converter = ConvertFields([(2, float)])
     >>> table_reader = SeparatorFormatParser(with_header=True,
     ...                 converter=converter, sep=',')
@@ -541,7 +567,7 @@ Changing displayed numerical precision
 We change the ``Ratio`` column to using scientific notation.
 
 .. doctest::
-    
+
     >>> table.setColumnFormat('Ratio', '%.1e')
     >>> print table
     ==============================
@@ -560,7 +586,7 @@ Change digits or column spacing
 This can be done on table loading,
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',', digits=1, space=2)
     >>> print table
     =============================
@@ -576,7 +602,7 @@ This can be done on table loading,
 or, for spacing at least, by modifying the attributes
 
 .. doctest::
-    
+
     >>> table.Space = '    '
     >>> print table
     =================================
@@ -595,7 +621,7 @@ Changing column headings
 The table ``Header`` is immutable. Changing column headings is done as follows.
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table.Header
     ['Locus', 'Region', 'Ratio']
@@ -609,7 +635,7 @@ Creating new columns from existing ones
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table = table.withNewColumn('LargeCon',
     ...                     lambda (r,v): r == 'Con' and v>10.0,
@@ -631,7 +657,7 @@ Appending tables
 Can be done without specifying a new column. Here we simply use the same table data.
 
 .. doctest::
-    
+
     >>> table1 = LoadTable('stats.txt', sep=',')
     >>> table2 = LoadTable('stats.txt', sep=',')
     >>> table = table1.appended(None, table2)
@@ -654,7 +680,7 @@ Can be done without specifying a new column. Here we simply use the same table d
 or with a new column
 
 .. doctest::
-    
+
     >>> table1.Title = 'Data1'
     >>> table2.Title = 'Data2'
     >>> table = table1.appended('Data#', table2, title='')
@@ -680,7 +706,7 @@ Summing column values
 ---------------------
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table.summed('Ratio')
     20571166.652847398
@@ -691,7 +717,7 @@ Filtering results
 We can do this by providing a reference to an external function
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> sub_table = table.filtered(lambda x: x < 10.0, columns='Ratio')
     >>> print sub_table
@@ -705,7 +731,7 @@ We can do this by providing a reference to an external function
 or using valid python syntax within a string, which is executed
 
 .. doctest::
-    
+
     >>> sub_table = table.filtered("Ratio < 10.0")
     >>> print sub_table
     =============================
@@ -718,7 +744,7 @@ or using valid python syntax within a string, which is executed
 You can also filter for values in multiple columns
 
 .. doctest::
-    
+
     >>> sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
     >>> print sub_table
     =============================
@@ -734,7 +760,7 @@ Standard sorting
 ^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table.sorted(columns='Ratio')
     ====================================
@@ -751,7 +777,7 @@ Reverse sorting
 ^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> print table.sorted(columns='Ratio', reverse='Ratio')
     ====================================
         Locus    Region            Ratio
@@ -767,7 +793,7 @@ Sorting involving multiple columns, one reversed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> print table.sorted(columns=['Region', 'Ratio'], reverse='Ratio')
     ====================================
         Locus    Region            Ratio
@@ -786,7 +812,7 @@ For a single column
 ^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> raw = table.getRawData('Region')
     >>> print raw
@@ -796,7 +822,7 @@ For multiple columns
 ^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> raw = table.getRawData(['Locus', 'Region'])
     >>> print raw
@@ -806,11 +832,11 @@ Iterating over table rows
 -------------------------
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> for row in table:
     ...     print row['Locus']
-    ...     
+    ...
     NP_003077
     NP_004893
     NP_005079
@@ -824,7 +850,7 @@ Using column names
 ^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table[:2, :'Region']
     =========
@@ -838,7 +864,7 @@ Using column indices
 ^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table[:2,: 1]
     =========
@@ -855,7 +881,7 @@ Distinct values
 ^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> assert table.getDistinctValues('Region') == set(['NonCon', 'Con'])
 
@@ -863,7 +889,7 @@ Counting
 ^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
@@ -873,7 +899,7 @@ Joining tables
 SQL like join operations requires tables have different ``Title`` attributes which are not ``None``. We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
 
 .. doctest::
-    
+
     >>> rows = [['NP_004893', True], ['NP_005079', True],
     ...         ['NP_005500', False], ['NP_055852', False]]
     >>> region_type = LoadTable(header=['Locus', 'LargeCon'], rows=rows,
@@ -897,7 +923,7 @@ Writing delimited formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table.writeToFile('stats_tab.txt', sep='\t')
 
@@ -907,7 +933,7 @@ Writing latex format
 It is also possible to specify column alignment, table caption and other arguments.
 
 .. doctest::
-    
+
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table.tostring(format='latex')
     \begin{longtable}[htp!]{ r r r }
@@ -927,7 +953,7 @@ It is also possible to specify column alignment, table caption and other argumen
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> os.remove('stats.txt')
     >>> os.remove('stats_tab.txt')
