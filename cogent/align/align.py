@@ -38,7 +38,7 @@ def make_dna_scoring_dict(match, transition, transversion):
             DNA[a,b] = score
     return DNA
 
-def _align_pairwise(s1, s2, mprobs, psub, TM, local):
+def _align_pairwise(s1, s2, mprobs, psub, TM, local, **kw):
     """Generic alignment with any substitution model and indel model"""
     [p1, p2] = [makeLikelihoodTreeLeaf(seq) for seq in [s1, s2]]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
@@ -46,12 +46,12 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local):
     EP = pair.makeSimpleEmissionProbs(mprobs, [psub])
     hmm = EP.makePairHMM(TM)
     if local:
-        (score, alignment) = hmm.getLocalViterbiScoreAndAlignment()
+        (score, alignment) = hmm.getLocalViterbiScoreAndAlignment(**kw)
     else:
-        (score, alignment) = hmm.getViterbiScoreAndAlignment()
+        (score, alignment) = hmm.getViterbiScoreAndAlignment(**kw)
     return alignment
 
-def classic_align_pairwise(s1, s2, Sd, d, e, local):
+def classic_align_pairwise(s1, s2, Sd, d, e, local, **kw):
     """Alignment specified by gap costs and a score matrix"""
     TM = indel_model.ClassicGapScores(d, e)
     a1 = s1.MolType.Alphabet
@@ -62,7 +62,7 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), Float) / len(psub)
-    return _align_pairwise(s1, s2, mprobs, psub, TM, local)
+    return _align_pairwise(s1, s2, mprobs, psub, TM, local, **kw)
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM

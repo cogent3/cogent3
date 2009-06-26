@@ -10,7 +10,7 @@ cdef extern from "Python.h":
 cdef extern from "math.h":
     double log (double x)
 
-version_info = (2, 2)
+version_info = (3, 0)
 __version__ = "('1', '4', '0', 'dev')"
 
 cdef double SCALE_STEP, MIN_FLOAT_VALUE
@@ -24,6 +24,15 @@ cdef long MIN_SCALE, MAX_SCALE
 MIN_SCALE = -10000
 MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
 
+#cdef unsigned long * checkArrayULong3D(ArrayType a, int *x, int *y, int *z) except NULL:
+#    return <unsigned long *> checkArray3D(a, c'i', sizeof(long), x, y, z)
+
+#cdef unsigned int * checkArrayUInt3D(ArrayType a, int *x, int *y, int *z) except NULL:
+#    return <unsigned int *> checkArray3D(a, c'i', sizeof(int), x, y, z)
+
+cdef unsigned char * checkArrayUChar3D(ArrayType a, int *x, int *y, int *z) except NULL:
+    return <unsigned char *> checkArray3D(a, c'i', sizeof(char), x, y, z)
+
 def fmpt(mantissa, exponent, msg=''):
     return "%s * SCALE_STEP ** %s %s" % (mantissa, exponent, msg)
 
@@ -31,7 +40,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
         int i_low, int i_high, int j_low, int j_high, preds, 
         ArrayType state_directions, ArrayType T, 
         ArrayType xgap_scores, ArrayType ygap_scores, ArrayType match_scores, 
-        rows, track, int viterbi, int use_logs=0, int local=False, 
+        rows, track, track_enc, int viterbi, int use_logs=0, int local=False, 
         int use_scaling=True):
     
     """The faster, sequence only (no POG) version.  Forward or Viterbi 
@@ -48,6 +57,8 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     cdef int a_count, b_count, a, b, a_low, a_high, b_low, b_high
     cdef int dest_states, dest_state, d4, j, i, source_i
     cdef int last_i, last_j, last_state, overall_max_exponent
+    cdef int tcode_x, tcode_y, tcode_s
+    cdef unsigned char *track_data
     cdef double overall_max_mantissa
     cdef double d_score, mantissa, partial_sum, sub_partial_sum, max_mantissa
     cdef long exponent, index, max_exponent, *source_row_ex_data
@@ -57,7 +68,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     cdef ArrayType i_sources, j_sources
     cdef double *current_row_data, *prev_row_data
     cdef long *current_row_ex_data, *prev_row_ex_data
-    cdef long pointer_a, pointer_b, pointer_state, *track_data
+    cdef long pointer_a, pointer_b, pointer_state
     cdef long *x_index, *y_index
     cdef int x, y, max_x, max_y
     
@@ -101,18 +112,20 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     
     cdef double impossible                
     if use_logs:
-        impossible = -Py_HUGE_VAL
+        impossible = log(0.0) # -inf
     else:
         impossible = 0.0
 
-    if viterbi and track is not None:
-        track_data = checkArrayLong3D(track, &row_count, &row_length, &N)
+    if viterbi and track is not None and track_enc is not None:
+        track_data = checkArrayUChar3D(track, &row_count, &row_length, &N)
+        (tcode_x, tcode_y, tcode_s) = track_enc
     else:
         track_data = NULL
+        tcode_x = tcode_y = tcode_s = 0
     
     # For local
     overall_max_exponent = MIN_SCALE
-    overall_max_mantissa = 0.0
+    overall_max_mantissa = impossible
     last_i = last_j = last_state = -1
     
     for i from i_low <= i < i_high:
@@ -148,7 +161,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 max_mantissa = impossible
                 max_exponent = MIN_SCALE
                 partial_sum = 0.0
-                pointer_state = N+1 # ie ERROR
+                pointer_state = N  # ie ERROR
                 
                 a = dx
                 b = dy
@@ -161,7 +174,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                     source_i = i
                     source_row_data = current_row_data
                     source_row_ex_data = current_row_ex_data
-                    
+                
                 prev_j = j - dy
                 if prev_j < 0:
                     continue
@@ -251,8 +264,10 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 if viterbi:
                     mantissa = max_mantissa
                     if track_data:
-                        track_data[(i*row_length+j)*N+state] = (
-                            pointer_a*256+pointer_b)*256 + pointer_state
+                        track_data[(i*row_length+j)*N+state] = (        
+                            (pointer_a << tcode_x) |  
+                            (pointer_b << tcode_y) |
+                            (pointer_state << tcode_s))
                 else:
                     mantissa = partial_sum
     
