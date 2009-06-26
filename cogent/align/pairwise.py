@@ -4,8 +4,8 @@
 produced by the same code."""
 
 # How many cells before using linear space alignment algorithm.
-# Should probably set to about physical memory / 8
-HIRSCHBERG_LIMIT = 25000000
+# Should probably set to about half of physical memory / PointerEncoder.bytes
+HIRSCHBERG_LIMIT = 10**8
 
 import numpy
 
@@ -28,12 +28,12 @@ from cogent.align.traceback import map_traceback
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
     pyrex_align_module = importVersionedModule('_pairwise_pogs', globals(),
-            (2, 0), LOG, "slow Python alignment implementation")
+            (3, 0), LOG, "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_align_module = None
 try:
     pyrex_seq_align_module = importVersionedModule('_pairwise_seqs', globals(),
-            (2, 1), LOG, "slow Python alignment implementation")
+            (3, 0), LOG, "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_seq_align_module = None
 
@@ -46,19 +46,41 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-def encode_state(dx, dy, state):
-    # Pack 3 small ints into a long to save memory but also avoid
-    # using numpy.Int8, because that complicates the numerical
-    # pyrex stuff and there is no need to look up the 3 values
-    # separately anyway
-    return (dx*256+dy)*256+state
+class PointerEncoding(object):
+    """Pack very small ints into a byte.  The last field, state, is assigned
+    whatever bits are left over after the x and y pointers have claimed what 
+    they need, which is expected to be only 2 bits each at most"""
+    
+    dtype = numpy.int8
+    bytes = 1
 
+    def __init__(self, x, y):
+        assert x > 0 and y > 0, (x,y)
+        (x, y) = (numpy.ceil(numpy.log2([x+1,y+1]))).astype(int)
+        s = 8 * self.bytes - sum([x, y])
+        assert s**2 >= 4+1, (x,y,s) # min states required
+        self.widths = numpy.array([x,y,s]).astype(int)
+        self.limits = 2 ** self.widths
+        self.max_states = self.limits[-1]
+        if DEBUG:
+            print self.max_states, "states allowed in viterbi traceback"
+        self.positions = numpy.array([0, x, x+y], int)
+        #a.flags.writeable = False
+    def encode(self, x, y, s):
+        parts = numpy.asarray([x, y, s], int)
+        assert all(parts < self.limits), (parts, self.limits)
+        return (parts << self.positions).sum()
+    def decode(self, coded):
+        return (coded >> self.positions) % self.limits
+    def getEmptyArray(self, shape):
+        return numpy.zeros(shape, self.dtype)
+    
 DEBUG = False
 
 def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
         preds, state_directions, T,
-        xgap_scores, ygap_scores, match_scores, rows, track, viterbi,
-        local=False, use_scaling=False, use_logs=False):
+        xgap_scores, ygap_scores, match_scores, rows, track, track_enc, 
+        viterbi, local=False, use_scaling=False, use_logs=False):
     """Pure python version of the dynamic programming algorithms
     Forward and Viterbi.  Works on sequences and POGs.  Unli"""
     if use_scaling:
@@ -91,7 +113,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                     cumulative_score = T[BEGIN, state]
                     pointer = (dx, dy, BEGIN)
                 else:
-                    cumulative_score = 0.0
+                    cumulative_score = impossible
                     pointer = (0, 0, ERROR)
                 for (a, prev_i) in enumerate([[i], i_sources][dx]):
                     source_row = rows[plan[prev_i]]
@@ -127,14 +149,16 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                 else:
                     current_row[j, state] = cumulative_score * d_score
                 if track is not None:
-                    track[i,j,state] = encode_state(*pointer)
+                    track[i,j,state] = (numpy.array(pointer) << track_enc).sum()
                 if (i==i_high-1 and j==j_high-1 and not local) or (
                         local and dx and dy and current_row[j, state] > best_score):
                     (best, best_score) = (((i, j), state), current_row[j, state])
     #if DEBUG:
     #    print i_low, i_high, j_low, j_high
     #    print 'best_score %5.1f  at  %s' % (numpy.log(best_score), best)
-    return best + (numpy.log(best_score),)
+    if not use_logs:
+        best_score = numpy.log(best_score)
+    return best + (best_score,)
 
 class TrackBack(object):
     def __init__(self, tlist):
@@ -197,7 +221,9 @@ class Pair(object):
             alignables = [a.backward() for a in alignables]
         
         self.children = [alignable1, alignable2] = alignables
-        self.max_preds = max(alignable.max_preds for alignable in alignables)
+        self.max_preds = [alignable.max_preds for alignable in alignables]
+        self.pointer_encoding = PointerEncoding(*self.max_preds)
+
         self.size = [len(alignable1), len(alignable2)]
         self.uniq_size = [len(alignable1.plh), len(alignable2.plh)]
         self.plan = numpy.array(alignable1.getRowAssignmentPlan())
@@ -230,12 +256,11 @@ class Pair(object):
                 self.children, index)]
         return Pair(*children)
         
-    def _decode_state(self, track, posn, pstate):
+    def _decode_state(self, track, encoding, posn, pstate):
         coded = int(track[posn[0], posn[1], pstate])
-        (coded, state) = divmod(coded, 256)
+        (a, b, state) = encoding.decode(coded)
         if state >= track.shape[-1]:
             raise ArithmeticError('Error state in traceback')
-        (a, b) = divmod(coded, 256)
         (x, y) = posn
         if state == -1:
             next = (x, y)
@@ -245,11 +270,12 @@ class Pair(object):
             next = numpy.array([x,y], int)
         return (next, (a, b), state)
     
-    def traceback(self, track, posn, state, skip_last=False):
+    def traceback(self, track, encoding, posn, state, skip_last=False):
         result = []
         started = False
         while 1:
-            (nposn, (a, b), nstate) = self._decode_state(track, posn, state)
+            (nposn, (a, b), nstate) = self._decode_state(track, encoding, 
+                    posn, state)
             if state:
                 result.append((state, posn, (a>0, b>0)))
             if started and state == 0:
@@ -270,12 +296,12 @@ class Pair(object):
     def getPOG(self, aligned_positions):
         (pog1, pog2) = [child.getPOG() for child in self.children]
         return pog1.traceback(pog2, aligned_positions)
-    
-    def getEmptyStateArray(self, n_states):
-        assert n_states < 255
-        assert self.max_preds < 255, ("\n\n", n_states, "\n\n", self.max_preds)
-        return numpy.zeros(self.size + [n_states], int)
-    
+        
+    def getPointerEncoding(self, n_states):
+        assert n_states <= self.pointer_encoding.max_states, (
+            n_states, self.pointer_encoding.max_states)
+        return self.pointer_encoding
+
     def getScoreArraysShape(self):
         needed = max(self.plan) + 1
         N = self.size[1]
@@ -285,7 +311,7 @@ class Pair(object):
         shape = self.getScoreArraysShape() + (n_states,)
         mantissas = numpy.zeros(shape, float)
         if dp_options.use_logs:
-            mantissas[:] = numpylog(0.0)
+            mantissas[:] = numpy.log(0.0)
         if dp_options.use_scaling:
             exponents = numpy.ones(shape, int) * -10000
         else:
@@ -293,11 +319,14 @@ class Pair(object):
         return (mantissas, exponents)
     
     def calcRows(self, i_low, i_high, j_low, j_high, state_directions,
-            T, scores, rows, track, viterbi, **kw):
+            T, scores, rows, track, track_encoding, viterbi, **kw):
         (match_scores, (xscores, yscores)) = scores
+        track_enc = track_encoding and track_encoding.positions
+        #print T
         return self.aligner(self.plan, self.x_index, self.y_index,
                 i_low, i_high, j_low, j_high, self.children, state_directions,
-                T, xscores, yscores, match_scores, rows, track, viterbi, **kw)
+                T, xscores, yscores, match_scores, rows, track, 
+                track_enc, viterbi, **kw)
     
 
 class _Alignable(object):
@@ -513,17 +542,16 @@ class PairEmissionProbs(object):
     
     def makePartialLikelihoods(self, use_cost_function):
         # use_cost_function specifies whether eqn 2 of Loytynoja & Goldman 
-        # is applied
+        # is applied.  Without it insertions may be favored over deletions
+        # because the emission probs of the insert aren't counted.
         plhs = [[], []]
         gap_plhs = [[], []]
         for bin in self.bins:
             for (dim, pred) in enumerate(self.pair.children):
                 # first and last should be special START and END nodes
-                # evolve
                 plh = numpy.inner(pred.plh, bin.ppsubs[dim])
                 gap_plh = numpy.inner(pred.plh, bin.mprobs)
                 if use_cost_function:
-                    # is this correct?
                     plh /= gap_plh[..., numpy.newaxis]
                     gap_plh[:] = 1.0
                 else:
@@ -544,68 +572,53 @@ class PairEmissionProbs(object):
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
         return (match_scores, gap_scores)
     
-    def _getEmissionProbs(self, use_logs=False, use_cost_function=True):
+    def _getEmissionProbs(self, use_logs, use_cost_function):
         key = (use_logs, use_cost_function)
         if key not in self.scores:
             if use_logs:
-                (M, (X, Y)) = self._getEmissionProbs(
-                        use_logs=False, use_cost_function=use_cost_function)
+                (M, (X, Y)) = self._getEmissionProbs(False, use_cost_function)
                 (M, X, Y) = [numpy.log(a) for a in [M, X, Y]]
                 self.scores[key] = (M, (X, Y))
             else:
-                self.scores[key] = self._makeEmissionProbs(
-                        use_cost_function=use_cost_function)
+                self.scores[key] = self._makeEmissionProbs(use_cost_function)
         return self.scores[key]
     
     def _calc_global_probs(self, pair, scores, kw, state_directions,
             T, rows, cells, backward=False):
+        if kw['use_logs']:
+            (impossible, inevitable) = (-numpy.inf, 0.0)
+        else:
+            (impossible, inevitable) = (0.0, 1.0)
         (M, N) = pair.size
         (mantissas, exponents) = rows
-        mantissas[0,0,0] = 1.0
-        exponents[0,0,0] = 0
+        mantissas[0,0,0] = inevitable
+        if exponents is not None:
+            exponents[0,0,0] = 0
         probs = []
         last_i = -1
         to_end = numpy.array([(len(T)-1, 0, 0, 0)])
         for (state, (i,j)) in cells:
             if i > last_i:
                 rr = pair.calcRows(last_i+1, i+1, 0, N-1,
-                    state_directions, T, scores, rows, None, **kw)
+                    state_directions, T, scores, rows, None, None, **kw)
             else:
-                #rr = pair.calcRows(i+1, i+1, 0, N-1,
-                #    state_directions, T, scores, rows, None, **kw)
                 assert i == last_i, (i, last_i)
             last_i = i
             T2 = T.copy()
             if backward:
                 T2[:, -1] = T[:, state]
             else:
-                T2[:, -1] = 0.0
-                T2[state, -1] = 1.0
+                T2[:, -1] = impossible
+                T2[state, -1] = inevitable
             global DEBUG
             _d = DEBUG
             DEBUG = False
             (maxpos, state, score) = pair.calcRows(
-                    i, i+1, j, j+1, to_end, T2, scores, rows, None, **kw)
+                    i, i+1, j, j+1, to_end, T2, scores, rows, None, None, **kw)
             DEBUG = _d
             probs.append(score)
         return numpy.array(probs)
-    
-    def _calc_global(self, pair, scores, kw, state_directions, T,
-            rows, track):
-        (M, N) = pair.size
-        pair.calcRows(0, M-1, 0, N-1,
-                state_directions, T, scores, rows, track, **kw)
-        end_state_only = numpy.array([(len(T)-1, 0, 1, 1)])
-        result = pair.calcRows(M-1, M, N-1, N,
-                end_state_only, T, scores, rows, track, **kw)
-        return result
-    
-    def _calc_local(self, pair, scores, kw, state_directions, T, rows, track):
-        (M, N) = pair.size
-        result =  pair.calcRows(1, M-1, 1, N-1,
-                state_directions, T, scores, rows, track, **kw)
-        return result
-    
+        
     def __getitem__(self, index):
         assert len(index) == 2, index
         return PairEmissionProbs(self.pair[index], self.bins)
@@ -622,8 +635,8 @@ class PairEmissionProbs(object):
         # alignments of alignments, because a subalignment may have an indel
         # spanning the midpoint where we want to divide the problem in half.
         # That must be the sense in which the fatter and slower method used
-        # in Prank (Loytynoja A, Goldman N. 2005) is "computationally more 
-        # attractive": for them there is only one link in:
+        # in "Prank" (Loytynoja A, Goldman N. 2005) is "computationally more 
+        # attractive": for them there is only one link in the list:
         links = self.pair.children[0].midlinks()
 
         T2 = T.copy()
@@ -656,7 +669,6 @@ class PairEmissionProbs(object):
     def scores_at_rows(self, TM, dp_options, last_row, backward=False):
         """A score array shaped [rows, columns, states] but only for those
         row numbers requested.  Used by Hirschberg algorithm"""
-        
         (M, N) = self.pair.size
         (state_directions, T) = TM
         reverse = bool(dp_options.backward) ^ bool(backward)
@@ -688,9 +700,11 @@ class PairEmissionProbs(object):
         """
         (state_directions, T) = TM
         if dp_options.viterbi and cells is None:
-            problem_size = numpy.product(self.pair.size) * len(T)
+            encoder = self.pair.getPointerEncoding(len(T))
+            problem_dimensions = self.pair.size + [len(T)]
+            problem_size = numpy.product(problem_dimensions)
             if problem_size > HIRSCHBERG_LIMIT and self.pair.size[0]-2 >= 3:
-                memory = 4*problem_size/10**6
+                memory = problem_size * encoder.bytes / 10**6
                 if dp_options.local:
                     LOG.warn('Local alignment will use > %sMb.' % memory)
                 elif cells is not None:
@@ -698,9 +712,9 @@ class PairEmissionProbs(object):
                 else:
                     assert not backward
                     return self.hirschberg(TM, dp_options)
-            track = self.pair.getEmptyStateArray(len(T))
+            track = encoder.getEmptyArray(problem_dimensions)
         else:
-            track = None
+            track = encoder = None
         
         kw = dict(
                 use_scaling=dp_options.use_scaling,
@@ -724,8 +738,8 @@ class PairEmissionProbs(object):
         if dp_options.use_logs:
             T = numpy.log(T)
         
-        scores = self._getEmissionProbs(dp_options.use_logs,
-                dp_options.use_cost_function)
+        scores = self._getEmissionProbs(
+                dp_options.use_logs, dp_options.use_cost_function)
         
         rows = pair.getEmptyScoreArrays(len(T), dp_options)
         
@@ -735,28 +749,33 @@ class PairEmissionProbs(object):
                     pair, scores, kw, state_directions, T, rows, cells,
                     backward)
         else:
-            calc = [self._calc_global, self._calc_local][dp_options.local]
-            (maxpos, state, score) = calc(
-                    pair, scores, kw, state_directions, T, rows, track)
-            
+            (M, N) = pair.size
+            if dp_options.local:
+                (maxpos, state, score) =  pair.calcRows(1, M-1, 1, N-1,
+                    state_directions, T, scores, rows, track, encoder, **kw)
+            else:
+                pair.calcRows(0, M-1, 0, N-1,
+                    state_directions, T, scores, rows, track, encoder, **kw)
+                end_state_only = numpy.array([(len(T)-1, 0, 1, 1)])
+                (maxpos, state, score) = pair.calcRows(M-1, M, N-1, N,
+                    end_state_only, T, scores, rows, track, encoder, **kw)
+                    
             if track is None:
                 result = score
             else:
-                tb = self.pair.traceback(track, maxpos, state,
+                tb = self.pair.traceback(track, encoder, maxpos, state,
                     skip_last = not dp_options.local)
                 result = (score, tb)
         return result
         
-    def getAlignable(self, aligned_positions, use_cost_function=False,
-            ratio=None):
+    def getAlignable(self, aligned_positions, ratio=None):
         assert ratio is None, "already 2-branched"
-        assert not use_cost_function
         children = self.pair.children # alignables
         leaves = [c.leaf for c in children]
         aligned_positions = [posn for (bin, posn) in aligned_positions]
         pog = self.pair.getPOG(aligned_positions)
         edge = LikelihoodTreeEdge(leaves, 'parent', pog.getAlignedPositions())
-        (plhs, gap_scores) = self.makePartialLikelihoods(use_cost_function)
+        (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)
         assert len(plh) == 1, ('bins!', len(plh))
         leaf = edge.asLeaf(plh[0]) # like profile
@@ -793,9 +812,6 @@ class ReversiblePairEmissionProbs(object):
     
     def __init__(self, pair, bins, length):
         self.pair = pair
-        #self.mprobs = mprobs
-        #self.Qds = Qds
-        #self.rates = rates
         self.bins = bins
         self.length = length
         self.midpoint = self._makePairEmissionProbs(0.5)
@@ -809,25 +825,27 @@ class ReversiblePairEmissionProbs(object):
         pbins = [bin.forLengths(*lengths) for bin in self.bins]
         return PairEmissionProbs(self.pair, pbins)
     
-    def getAlignable(self, a_p, ratio=None, use_cost_function=False):
+    def getAlignable(self, a_p, ratio=None):
         # a_p alignment positions
         if ratio in [None, 0.5]:
             ep = self.midpoint
         else:
             ep = self._makePairEmissionProbs(ratio=ratio)
-        return ep.getAlignable(a_p, use_cost_function)
+        return ep.getAlignable(a_p)
     
     def makePairHMM(self, transition_matrix):
         return PairHMM(self, transition_matrix)
     
 
 class DPFlags(object):
-    def __init__(self, viterbi, local=False, use_logs=False,
-            use_cost_function=None, use_scaling=None, backward=False):
+    def __init__(self, viterbi, local=False, use_logs=None,
+            use_cost_function=True, use_scaling=None, backward=False):
+        if use_logs is None:
+            use_logs = viterbi and not use_scaling
         if use_scaling is None:
             use_scaling = not use_logs
-        if use_cost_function is None:
-            use_cost_function = True
+        if use_logs:
+            assert viterbi and not use_scaling
         self.use_cost_function = use_cost_function
         self.local = local
         self.use_logs = use_logs
@@ -880,10 +898,7 @@ class PairHMM(object):
     
     def getViterbiScoreAndAlignment(self, ratio=None, **kw):
         # deprecate
-        global DEBUG
-        DEBUG = True
         vpath = self.getViterbiPath(**kw)
-        DEBUG = False
         return (vpath.getScore(), vpath.getAlignment(ratio=ratio))
     
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):

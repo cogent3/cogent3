@@ -2,8 +2,8 @@
 
 import numpy
 import time
-from cogent.align import *
-from cogent.align.traceback import seq_traceback
+from cogent import DNA
+from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -17,28 +17,26 @@ __status__ = "Production"
 def _s2i(s):
     return numpy.array(['ATCG'.index(c) for c in s])
 
-def test(f, decode, d, e, r=1):
-            
-    S = numpy.identity(4) * 7 - 4
+def test(r=1, **kw):   
+    S = make_dna_scoring_dict(10, -1, -8)
     
-    s2 = 'AAAATGCTT' * r
-    s1 = 'AATTTTGCT' * r
+    seq2 = DNA.makeSequence('AAAATGCTTA' * r)
+    seq1 = DNA.makeSequence('AATTTTGCTG' * r)
     
     t0 = time.time()
-    (score, states, maxpos, last_state) = f(_s2i(s1), _s2i(s2), S, d, e)
-    print time.time() - t0
+    aln = classic_align_pairwise(seq1, seq2, S, 10, 2, local=False, **kw)
+    t = time.time() - t0
+    return (len(seq1)*len(seq2))/t
     
-    alignment = seq_traceback(s1, s2, decode, states, maxpos, last_state, '.')
-    print ' ', r*10, d, e, score
-    print ' ', ''.join(alignment[0][:40])
-    print ' ', ''.join(alignment[1][:40])
-    
-    #for a in gap_traceback(decode, states, maxpos, last_state):
-    #    print a
-        
+    print t 
         
 if __name__ == '__main__':
     d = 2
     e = 1
-    for r in [1]: #, 10, 20, 30, 50]:
-        test(needle.needleman_wunsch, needle.decode_state, d, e, r)
+    options = [(False, False), (True, False), (False, True)]
+    template = "%10s " * 4
+    print "                1000s positions per second"
+    print template % ("size", "simple", "logs", "scaled")
+    for r in [50, 100, 200, 500]:
+        times = [test(r, use_logs=l, use_scaling=s) for (l,s) in options]
+        print template % tuple([r*10] + [int(t/1000) for t in times])
