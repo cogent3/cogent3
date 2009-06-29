@@ -41,7 +41,7 @@ def bit_encode(x, _bool2num=numpy.array(["0","1"]).take):
     """Convert a boolean array into an integer"""
     return int(_bool2num(x).tostring(), 2)
 
-def binary_partitions(aln):
+def binary_partitions(alignment):
     """Returns (sites, columns, partitions) 
     sites[alignment position number] = informative column number
     columns[informative column number] = distinct partition number
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     parser.add_option("-d", "--display", action="store_true", default=False, 
             dest="display", help="show matrices via matplotlib")
     parser.add_option("-s", "--samples",
-                  action="store_const", dest="samples", default=0,
+                  dest="samples", default=10000, type="int",
                   help="samples for significance test")
     (options, args) = parser.parse_args()
     alignment = LoadSeqs(args[0], moltype=DNA)
