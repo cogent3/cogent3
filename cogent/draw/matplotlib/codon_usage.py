@@ -193,15 +193,15 @@ def plot_fingerprint(data, alpha=0.7, \
         legend_key = [abbrev[b] for b in blocks]
         #copy legend font properties from the x axis tick labels
         legend_font_props = \
-            a.xaxis.get_label().get_font_properties().copy()
+            a.xaxis.get_label().get_fontproperties().copy()
         legend_font_scale_factor = 0.7
         curr_size = legend_font_props.get_size()
         legend_font_props.set_size(curr_size*legend_font_scale_factor)
-        l = figlegend(a.patches,
+        l = figlegend(a.patches[:len(blocks)],
                   legend_key,
                   prop=legend_font_props,
-                  loc='center right',pad=0.1,labelsep=0.0025,
-                  handlelen=0.02,handletextsep=0.007, axespad=0.0)
+                  loc='center right',borderpad=0.1,labelspacing=0.5,
+                  handlelength=1.0,handletextpad=0.5, borderaxespad=0.0)
         #fix transparency of patches
         for p in l.get_patches():
             p.set_alpha(1)
