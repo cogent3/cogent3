@@ -12,7 +12,7 @@ etc.
 See individual docstrings for more info.
 """
 from __future__ import division
-from matplotlib import use, rc
+from matplotlib import use, rc, rcParams
 
 __author__ = "Stephanie Wilson"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -24,7 +24,7 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 use('Agg')  #suppress graphical rendering
-rc('text', usetex=True)
+#rc('text', usetex=True)
 rc('font', family='serif')  #required to match latex text and equations
 try:
     import Image
@@ -197,7 +197,10 @@ def as_species(name, leave_path=False):
     #assume second field is species name
     if len(fields) > 1:
         fields[1] = fields[1].lower()
-    return '\emph{'+' '.join(fields)+'}'
+    binomial = ' '.join(fields)
+    if rcParams.get('text.usetex'):
+        binomial = r'\emph{' + binomial + '}'
+    return binomial
 
 def frac_to_psq(frac, graph_size):
     """Converts diameter as fraction of graph to points squared for scatter.
@@ -424,7 +427,7 @@ def plot_regression_line(x,y,line_color='r', axes=None, prob_axes=False, \
     else:
         sign_str = ' '
     
-    equation=''.join(['y= ',m_str,'x',sign_str,b_str,'\n\nr$^2$=',r_str])
+    equation=''.join(['y= ',m_str,'x',sign_str,b_str,'\nr$^2$=',r_str])
     return equation, line_color
 
 def add_regression_equations(equations, axes=None, prob_axes=False, \
@@ -777,16 +780,16 @@ def plot_scatter_with_histograms(data, graph_name='histo_scatter.png', \
     br=subplot(2,2,4)
     bl=subplot(2,2,3, sharex=tl, sharey=br)
 
-    #get_position returns left, bottom, width, height relative to figure
+    #get_position returns a Bbox relative to figure
     tl_coords = tl.get_position()
     bl_coords = bl.get_position()
     br_coords = br.get_position()
 
-    left = tl_coords[0]
-    bottom = bl_coords[1]
+    left = tl_coords.xmin
+    bottom = bl_coords.ymin
 
-    width = br_coords[0] + br_coords[2] - left
-    height = tl_coords[1] + tl_coords[3] - bottom
+    width = br_coords.xmax - left
+    height = tl_coords.ymax - bottom
 
     bl.set_position([left, bottom, frac*width, frac*height])
     tl.set_position([left, bottom+(frac*height), frac*width, (1-frac)*height])
