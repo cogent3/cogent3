@@ -19,11 +19,10 @@ def order_to_cluster_similar(S, elts=None, start=None):
             return elts
         elts = set(elts)
         for x in range(len(S)):
-            if x is not start and x not in elts:
+            if x != start and x not in elts:
                 unavailable.add(x)
     if start is not None:
         position[start] = (False, [start])
-                
     similarity = [numpy.unravel_index(p, S.shape) 
                 for p in numpy.argsort(S, axis=None)]
     for (x, y) in similarity[::-1]:
@@ -59,9 +58,17 @@ def order_tied_to_cluster_similar(S, scores):
     pos = numpy.concatenate(([0],pos+1,[len(scores)]))
     new_order = []
     start = None
+    
     for (a,b) in zip(pos[:-1],pos[1:]):
-        sub_order = order_to_cluster_similar(S, range(a,b), start)
-        new_order.extend(sub_order)
+        useful = range(a,b)
+        if start is not None:
+            useful.append(start)
+            start = len(useful)-1
+        useful = numpy.array(useful)
+        S2 = S[useful,:]
+        S2 = S2[:,useful]
+        sub_order = order_to_cluster_similar(S2, range(b-a), start)
+        new_order.extend([useful[i] for i in sub_order])
         start = new_order[-1]
     assert set(new_order) == set(range(len(scores))) 
     return new_order
@@ -70,9 +77,15 @@ def bit_encode(x, _bool2num=numpy.array(["0","1"]).take):
     """Convert a boolean array into an integer"""
     return int(_bool2num(x).tostring(), 2)
 
+def bit_decode(x, numseqs):
+    """Convert an integer in a boolean array"""
+    s = bin(x)[2:]
+    s = '0'*(numseqs-len(s)) + s
+    return numpy.fromiter((c=="1" for c in s), bool, len(s))
+
 def binary_partitions(alignment):
     """Returns (sites, columns, partitions) 
-    sites[alignment position number] = informative column number
+    sites[informative column number] = alignment position number
     columns[informative column number] = distinct partition number
     partitions[distinct partition number] = (partition, mask) as ints
     """
@@ -80,7 +93,7 @@ def binary_partitions(alignment):
     columns = []
     partitions = []
     partition_index = {}
-    for column in alignment.Positions:
+    for (site, column) in enumerate(alignment.Positions):
         column = numpy.array(column)
         (A, T, C, G, R, Y, W, S, U) = [
             bit_encode(column == N) for N in "ATCGRYWSU"]
@@ -98,7 +111,7 @@ def binary_partitions(alignment):
                 if partition not in partition_index:
                     partition_index[partition] = len(partitions)
                     partitions.append(partition)
-                sites.append(len(columns))
+                sites.append(site)
                 columns.append(partition_index[partition])
                 break  # if R/Y split OK no need to consider W/S split. 
     return (sites, columns, partitions)
@@ -108,9 +121,12 @@ def min_edges(columns):
     position, there are 4 possible combinations for each sequence: 
     TT, TF, FT and FF.
     If N of these 4 possibilities are found then there must be at least 
-    N-1 tree edges on which mutations occured"""  
+    N-1 tree edges on which mutations occured
+    As a special case, the diagonal values are set to 0 rather than, 
+    as theory suggests, 1.  This is simply a convenience for later 
+    drawing code"""  
     N = len(columns)
-    result = numpy.ones([N, N], int)
+    result = numpy.zeros([N, N], int)
     for i in range(0, N-1):
         (a, mask_a) = columns[i]
         for j in range(i+1, N):
@@ -153,7 +169,25 @@ def intra_region_average(a):
     d = numpy.diag(a)    # ignore the diagonal
     return (a.sum()-d.sum())/(numpy.product(a.shape)-len(d))
     
-def main(alignment, display=False, samples=0):
+def integer_tick_label(sites):
+    def _formatfunc(x, pos, _sites=sites, _n=len(sites)):
+        if 0 < x < _n:
+            return str(_sites[int(x)])
+        else:
+            return ""
+    return _formatfunc    
+
+def boolean_similarity(matrix):
+    # same as numpy.equal.outer(matrix, matrix).trace(axis1=1, axis2=3)
+    # but that would use much memory
+    true = matrix.T.astype(int)
+    false = (~matrix).T.astype(int)
+    both_true = numpy.inner(true, true)
+    both_false = numpy.inner(false, false)
+    return both_true + both_false
+    
+def main(alignment, display=False, samples=0, s_limit=0, title="",
+        include_incomplete=False):
     print "%s sequences in %s bp alignment" % (
             alignment.getNumSeqs(), len(alignment))
     (sites, columns, partitions) = binary_partitions(alignment)
@@ -173,17 +207,15 @@ def main(alignment, display=False, samples=0):
     else:
         print "Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
                 nss_significance(compatiblity, samples=samples)
-    if display:
-        import pylab
-        pylab.matshow(compatiblity, cmap=pylab.cm.gray)
-        pylab.show()
         
     # PARTIMATRIX, JWE 1997
     
     # Remove the incomplete partitions with gaps or other ambiguities
     mask = 2**alignment.getNumSeqs()-1
     complete = [i for (i,(x, xz)) in enumerate(partitions) if xz==mask]
-    partimatrix = partimatrix[:,complete]
+    if not include_incomplete:
+        partimatrix = partimatrix[:,complete]
+        partitions = [partitions[i] for i in complete]
     # For scoring/ordering purposes, also remove the incomplete sequences
     complete_columns = [i for (i,c) in enumerate(columns) if c in complete]
     scoreable_partimatrix = partimatrix[complete_columns, :]
@@ -192,15 +224,14 @@ def main(alignment, display=False, samples=0):
     conflict = (scoreable_partimatrix > 2).sum(axis=0)
     conflict_order = numpy.argsort(conflict)
     partimatrix = partimatrix[:, conflict_order]
+    partitions = [partitions[i] for i in conflict_order]
     scoreable_partimatrix = partimatrix[complete_columns, :]
-    support = (scoreable_partimatrix == 1).sum(axis=0)
+    support = (scoreable_partimatrix == 0).sum(axis=0)
     consist = (scoreable_partimatrix <= 2).sum(axis=0)
     conflict = (scoreable_partimatrix > 2).sum(axis=0)
     
     # Similarity measure between partitions
-    pp1 = (scoreable_partimatrix <= 2).astype(int).T
-    npp = (scoreable_partimatrix > 2).astype(int).T
-    O = numpy.inner(pp1, pp1) + numpy.inner(npp, npp)
+    O = boolean_similarity(scoreable_partimatrix <= 2)
     s = 1.0*len(complete_columns)
     O = O.astype(float) / s
     p,q = consist/s, conflict/s
@@ -217,24 +248,169 @@ def main(alignment, display=False, samples=0):
             order.reverse()
     
     partimatrix = partimatrix[:, order]
-            
+    conflict = conflict[order]
+    support = support[order]
+    partitions = [partitions[i] for i in order]
+    
     if display:
-        import pylab
-        # 3-colour code: support, compatible, conflict
-        partishow = numpy.array([5,4,0]).take(partimatrix-1)
-        pylab.matshow(partishow, cmap=pylab.cm.gray)
-        pylab.show()
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker
+        import matplotlib.colors
+        figwidth = 8.0
+
+        (c_size, p_size) = partimatrix.shape
+        s_size = num_seqs = alignment.getNumSeqs()
+        
+        # Layout (including figure height) chosen to get aspect ratio of
+        # 1.0 for the compatibility matrix, and if possible the other
+        # matrices.
+        
+        if s_size > s_limit:
+            # too many species to show
+            s_size = 0
+        else:
+            # distort squares to give enough space for species names
+            extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
+            p_size *= numpy.sqrt(extra)
+            s_size *= extra
+        
+        bar_height = 0.5
+        margin = 0.35
+        xpad = 0.05
+        ypad = 0.1
+        (x, y) = (c_size + p_size, c_size + s_size)
+        x_scale = y_scale = (figwidth-2*margin-xpad)/x
+        figheight = y_scale * y + 2*margin + 2*ypad + bar_height
+        x_scale /= figwidth
+        y_scale /= figheight
+        x_margin = margin / figwidth
+        y_margin = margin / figheight
+        xpad /= figwidth
+        ypad /= figheight
+        bar_height /= figheight
+        (c_width, c_height) = (c_size*x_scale, c_size*y_scale)
+        (p_width, s_height) = (p_size*x_scale, s_size*y_scale)
+        vert = (x_margin + xpad + c_width)
+        top = (y_margin + c_height + ypad)
+        fig = plt.figure(1, figsize=(figwidth,figheight))
+        kw = dict(axisbg=fig.get_facecolor())
+        axC = plt.axes([x_margin, y_margin, c_width, c_height], **kw)
+        axP = plt.axes([vert, y_margin, p_width, c_height], 
+                sharey=axC, **kw)
+        axS = plt.axes([vert, top, p_width, s_height or .001], 
+                sharex=axP, **kw)
+        axB = plt.axes([vert, top+ypad+s_height, p_width, bar_height], 
+                sharex=axP, **kw)        
+        axP.yaxis.tick_right()
+        axP.yaxis.set_label_position('right')
+        #for ax in [axC, axP, axS]:
+            #ax.set_aspect(adjustable='box', aspect='equal')
+        
+        axC.set_title(title)
+        
+        if not s_size:
+            axS.set_visible(False)
+        # No ticks for these non-float dimensions
+        for axes in [axB, axC, axS, axP]:
+            for axis in [axes.xaxis, axes.yaxis]:
+                for tick in axis.get_major_ticks():
+                    tick.gridOn = False
+                    tick.tick1On = False
+                    tick.tick2On = False
+                    tick.label1.set_size(8)
+                    tick.label2.set_size(8)
+                    if axis is axes.xaxis:
+                        tick.label1.set_rotation('vertical')
+
+        # Partition dimension
+        for axis in [axS.xaxis, axP.xaxis, axB.xaxis, axB.yaxis]:
+            axis.set_major_formatter(matplotlib.ticker.NullFormatter())
+            axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        
+        # Site dimension
+        isl = integer_tick_label(sites)
+        for axis in [axC.yaxis, axC.xaxis]:
+            axis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
+            axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+            axis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
+            axis.set_major_formatter(matplotlib.ticker.FuncFormatter(isl))
+        
+        # Species dimension
+        if s_size:
+            seq_names = [name.split('  ')[0] 
+                    for name in alignment.getSeqNames()]
+            axS.yaxis.set_minor_locator(
+                        matplotlib.ticker.IndexLocator(1,0.5))
+            axS.yaxis.set_minor_formatter(matplotlib.ticker.FixedFormatter(
+                        seq_names))
+            axS.yaxis.set_major_locator(
+                        matplotlib.ticker.IndexLocator(1,0.5))
+            axS.yaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
+            axS.yaxis.grid(False) #, 'minor')
+    
+        # Display the main matrices: compatibility and partimatrix
+        axC.pcolorfast(compatiblity, cmap=plt.cm.gray)
+        partishow = partimatrix <= 2
+        axP.pcolorfast(partishow, cmap=plt.cm.gray)
+        axP.set_autoscale_on(False)
+        axC.plot([0,c_size], [0, c_size], color='lightgreen')
+        (sx, sy) = numpy.nonzero(partimatrix.T==0)
+        axP.scatter(sx+0.5, sy+0.5, color='lightgreen', marker='^',
+            s=15)
+        
+        # Make [partition, sequence] matrix
+        # Not a good idea with too many sequences
+        if s_size:
+            partseq1 = numpy.empty([len(partitions), num_seqs], bool)
+            partseq2 = numpy.empty([len(partitions), num_seqs], bool)
+            for (i, (x, xz)) in enumerate(partitions):
+                partseq1[i] = bit_decode(x, num_seqs)
+                partseq2[i] = bit_decode(xz^x, num_seqs)
+            
+            # Order sequqnces so as to place similar sequences adjacent
+            O = boolean_similarity(partseq1)
+            order = order_to_cluster_similar(O)
+            partseq1 = partseq1[:,order]
+            partseq2 = partseq2[:,order]
+            seq_names = [seq_names[i] for i in order]
+            axS.set_ylim(0, len(seq_names))
+            axS.set_autoscale_on(False)
+    
+            for (halfpart,color) in [(partseq1, 'red'),(partseq2, 'blue')]:
+                (sx, sy) = numpy.nonzero(halfpart)
+                axS.scatter(sx+0.5, sy+0.5, color=color, marker='o')
+            axS.grid(False)
+        
+        # Bar chart of partition support and conflict scores
+        #axB.set_autoscalex_on(False)
+        axB.bar(numpy.arange(len(partitions)), -conflict/conflict.sum(), 
+                1.0, color='black', align='edge')
+        axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
+                1.0, color='lightgreen', align='edge')
+        axB.set_xlim(0.0, len(partitions))
+
+        plt.show()
     
 if __name__ == '__main__':
     from cogent import LoadSeqs, DNA
-    import sys, optparse
+    import sys, optparse, os.path
     parser = optparse.OptionParser("usage: %prog [-ds] alignment")
-    parser.add_option("-d", "--display", action="store_true", default=False, 
-            dest="display", help="show matrices via matplotlib")
+    parser.add_option("-d", "--display", action="store_true", 
+            default=False, dest="display", 
+            help="show matrices via matplotlib")
+    parser.add_option("-i", "--incomplete", action="store_true", 
+            default=False, dest="include_incomplete", 
+            help="include partitions containing ambiguities") 
+    parser.add_option("-t", "--taxalimit", 
+                dest="s_limit", default=20, type="int", 
+                help="maximum nuber of rows for species/partition display") 
     parser.add_option("-s", "--samples",
-                  dest="samples", default=10000, type="int",
-                  help="samples for significance test")
+                dest="samples", default=10000, type="int",
+                help="samples for significance test")
     (options, args) = parser.parse_args()
-    alignment = LoadSeqs(args[0], moltype=DNA)
-    main(alignment, **vars(options))
+    if len(args) == 1:
+        alignment = LoadSeqs(args[0], moltype=DNA)
+        kw = vars(options)
+        kw['title'] = os.path.splitext(os.path.basename(args[0]))[0]
+        main(alignment, **kw)
     
