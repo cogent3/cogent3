@@ -78,10 +78,14 @@ def bit_encode(x, _bool2num=numpy.array(["0","1"]).take):
     return int(_bool2num(x).tostring(), 2)
 
 def bit_decode(x, numseqs):
-    """Convert an integer in a boolean array"""
-    s = bin(x)[2:]
-    s = '0'*(numseqs-len(s)) + s
-    return numpy.fromiter((c=="1" for c in s), bool, len(s))
+    """Convert an integer into a boolean array"""
+    result = numpy.empty([numseqs], bool)
+    bit = 1 << (numseqs-1)
+    for i in range(numseqs):
+        result[i] = bit & x
+        bit >>= 1
+    return result
+
 
 def binary_partitions(alignment):
     """Returns (sites, columns, partitions) 
