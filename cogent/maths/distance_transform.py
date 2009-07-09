@@ -417,7 +417,9 @@ def dist_gower(datamtx, strict=True):
     
     see for example, Faith et al., 1987
     
-
+    
+    * note that the comparison between any two rows is dependent on the entire
+    data matrix, d_ij is a fn of all of datamtx, not just i,j
     * comparisons are between rows (samples)
     * any column containing identical data for all rows is ignored (this
     prevents a 0/0 error in the formula for gower distance
