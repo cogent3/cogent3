@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for distance_transform.py functions.
 """
-
+from __future__ import division
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.distance_transform import *
 from numpy import array, sqrt, shape, ones, diag
@@ -24,7 +24,7 @@ class functionTests(TestCase):
     def setUp(self):
         self.mat_test = asmatrix([[10, 10, 20],
             [10, 15, 10],
-            [15,  5,  5]], float)
+            [15,  5,  5]], 'float')
         
         self.emptyarray = array([], 'd')
         self.mtx1 = array([[1, 3],
