@@ -10,7 +10,7 @@ from cogent.core.tree import PhyloNode
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
-__license__ = "All rights reserved"
+__license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
@@ -365,20 +365,31 @@ def unifrac(branch_lengths, i, j):
     tree. Slicing m (e.g. m[:,i]) returns a vector in the right format; note
     that it should be a row vector (the default), not a column vector.
     """
-    return 1 - (sum(branch_lengths*logical_and(i,j))/\
-        sum(branch_lengths*logical_or(i,j)))
+    return 1 - ((branch_lengths*logical_and(i,j)).sum()/\
+        (branch_lengths*logical_or(i,j)).sum())
 
 def unnormalized_unifrac(branch_lengths, i, j):
     """UniFrac, but omits normalization for frac of tree covered."""
-    return sum(branch_lengths*logical_xor(i,j))/sum(branch_lengths)
+    return (branch_lengths*logical_xor(i,j)).sum()/branch_lengths.sum()
 
 def G(branch_lengths, i, j):
-    """Calculates G(i,j) from branch length and cols i,j of m.
+    """Calculates G(i,j) from branch lengths and cols i,j of m.
 
     This calculates fraction gain in branch length in i with respect to i+j,
-    i.e. normalized for the parts of the tree that i and j cover."""
-    return (sum(branch_lengths*logical_and(i, logical_not(j)))/\
-        sum(branch_lengths*logical_or(i,j)))
+    i.e. normalized for the parts of the tree that i and j cover.
+    
+    Note: G is the metric that we also call "asymmetric unifrac".
+    """
+    return (branch_lengths*logical_and(i, logical_not(j))).sum()/\
+        (branch_lengths*logical_or(i,j)).sum()
+
+def PD(branch_lengths, i):
+    """Calculate PD(i) from branch lengths and col i of m.
+
+    Calculates raw amount of branch length leading to tips in i, including
+    branch length from the root.
+    """
+    return (branch_lengths * i.astype(bool)).sum()
 
 def unnormalized_G(branch_lengths, i, j):
     """Calculates G(i,j) from branch length and cols i,j of m.
@@ -386,7 +397,8 @@ def unnormalized_G(branch_lengths, i, j):
     This calculates the fraction gain in branch length of i with respect to j,
     divided by all the branch length in the tree.
     """
-    return sum(branch_lengths*logical_and(i, logical_not(j)))/sum(branch_lengths)
+    return (branch_lengths*logical_and(i, logical_not(j))).sum()/\
+        branch_lengths.sum()
 
 def unifrac_matrix(branch_lengths, m, metric=unifrac, is_symmetric=True):
     """Calculates unifrac(i,j) for all i,j in m.
@@ -428,9 +440,9 @@ def env_unique_fraction(branch_lengths, m):
 
     Returns unique branch len and unique fraction 
     """ 
-    total_bl = sum(branch_lengths)
+    total_bl = branch_lengths.sum()
     if total_bl <= 0:
-        raise ValueError, "total branch lenght in tree must be > 0"
+        raise ValueError, "total branch length in tree must be > 0"
 
     n_rows_nodes, n_col_envs = m.shape
     env_bl_sums = zeros(n_col_envs)
@@ -442,7 +454,7 @@ def env_unique_fraction(branch_lengths, m):
         sing = (f == col_sum)
         # have  to mask zeros
         put(sing, nonzero(f == 0), 0)
-        env_bl_sums[env_ix] = sum(sing * branch_lengths)
+        env_bl_sums[env_ix] = (sing * branch_lengths).sum()
     
     return env_bl_sums, env_bl_sums/total_bl 
 
@@ -458,10 +470,20 @@ def unifrac_vector(branch_lengths, m, metric=unifrac):
     col_sum = m.sum(1)
     return array([metric(branch_lengths, col, col_sum-col) for col in cols])
 
+def PD_vector(branch_lengths, m, metric=PD):
+    """Calculates metric(i) for each column i of m.
+
+    Parameters as for unifrac_matrix. Use this when you want to calculate
+    PD or some other alpha diversity metric that depends solely on the branches
+    within each state, rather than calculations that compare each state against 
+    each other state.
+    """
+    return array([metric(branch_lengths, col) for col in m.T])
+
 def _weighted_unifrac(branch_lengths, i, j, i_sum, j_sum):
     """Calculates weighted unifrac(i,j) from branch lengths and cols i,j of m.
     """
-    return sum(branch_lengths * abs((i/float(i_sum))-(j/float(j_sum))))
+    return (branch_lengths * abs((i/float(i_sum))-(j/float(j_sum)))).sum()
 
 def _branch_correct(tip_distances, i, j, i_sum, j_sum):
     """Calculates weighted unifrac branch length correction.
@@ -480,8 +502,8 @@ def weighted_unifrac(branch_lengths, i, j, tip_indices):
     the sum each time. More efficient to calculate the sum first and pass it
     into _weighted_unifrac directly, as weighted_unifrac_matrix does.
     """
-    i_sum = sum(take(i, tip_indices))
-    j_sum = sum(take(j, tip_indices))
+    i_sum = (take(i, tip_indices)).sum()
+    j_sum = (take(j, tip_indices)).sum()
     return _weighted_unifrac(branch_lengths, i, j, i_sum, j_sum)
 
 def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
@@ -494,7 +516,7 @@ def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
     """
     num_cols = m.shape[-1]
     cols = [m[:,i] for i in range(num_cols)] #note that these will be row vecs
-    sums = [sum(take(m[:,i], tip_indices)) for i in range(num_cols)]
+    sums = [take(m[:,i], tip_indices).sum() for i in range(num_cols)]
     result = zeros((num_cols,num_cols),float)
     for i in range(1, num_cols):
         i_sum = sums[i]
@@ -523,7 +545,7 @@ def weighted_unifrac_vector(branch_lengths, m, tip_indices, bl_correct=False,
     """
     num_cols = m.shape[-1]
     cols = [m[:,i] for i in range(num_cols)]
-    sums = [sum(take(m[:,i], tip_indices)) for i in range(num_cols)]
+    sums = [take(m[:,i], tip_indices).sum() for i in range(num_cols)]
     sum_of_cols = m.sum(1)
     sum_of_sums = sum(sums)
     result = []

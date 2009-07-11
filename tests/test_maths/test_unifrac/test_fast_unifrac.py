@@ -12,7 +12,7 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     consolidate_skipping_missing_matrices, consolidate_missing_zero,
     consolidate_missing_one, consolidate_skipping_missing_values,
     UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac, 
-    fast_unifrac_whole_tree,
+    fast_unifrac_whole_tree, PD_whole_tree, PD_generic_whole_tree,
     TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length,
     shared_branch_length_to_root)
 from numpy.random import permutation 
@@ -20,7 +20,7 @@ from numpy.random import permutation
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
-__license__ = "All rights reserved"
+__license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
@@ -162,6 +162,39 @@ f B 1
                 sim_ufracs], 1, tail='high')
             result.append(rawp)
         self.assertSimilarMeans(result, 0.047)
+
+    def test_PD_whole_tree(self):
+        """PD_whole_tree should correctly compute PD for test tree."""
+        self.t1 = DndParser('((a:1,b:2):4,(c:3,(d:1,e:1):2):3)', \
+            UniFracTreeNode)
+        self.env_str = """
+        a   A   1
+        a   C   2
+        b   A   1
+        b   B   1
+        c   B   1
+        d   B   3
+        e   C   1"""
+        env_counts = count_envs(self.env_str.splitlines())
+        self.assertEqual(PD_whole_tree(self.t1,self.env_counts), \
+            (['A','B','C'], array([7.,15.,11.])))
+
+    def test_PD_generic_whole_tree(self):
+        """PD_generic_whole_tree should correctly compute PD for test tree."""
+        self.t1 = DndParser('((a:1,b:2):4,(c:3,(d:1,e:1):2):3)', \
+            UniFracTreeNode)
+        self.env_str = """
+        a   A   1
+        a   C   2
+        b   A   1
+        b   B   1
+        c   B   1
+        d   B   3
+        e   C   1"""
+        env_counts = count_envs(self.env_str.splitlines())
+        self.assertEqual(PD_generic_whole_tree(self.t1,self.env_counts), \
+            (['A','B','C'], array([7.,15.,11.])))
+
 
     def test_mcarlo_sig(self):
         """test_mcarlo_sig should calculate monte carlo sig high/low"""
