@@ -17,7 +17,7 @@ __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
     "Justin Kuczynski"]
-__license__ = "All rights reserved"
+__license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
@@ -204,6 +204,36 @@ def fast_unifrac_whole_tree(t, envs, num_iters, permutation_f=permutation):
             count_array)
         sim_ufracs.append(cur_bl_ufracs)
     return real_bl_ufracs, sim_ufracs 
+
+def PD_whole_tree(t, envs):
+    """Run PD on t and envs for each env.
+
+    Note: this is specific for PD per se, use PD_generic_whole_tree if you
+    want to calculate a related metric.
+    """
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, \
+        branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    count_array = count_array.astype(bool)
+    bound_indices = bind_to_array(nodes, count_array)
+    #initialize result
+    bool_descendants(bound_indices)
+    result = (branch_lengths * count_array.T).sum(1)
+    return unique_envs, result
+
+def PD_generic_whole_tree(t, envs, metric=PD):
+    """Run PD on t and envs for each env.
+
+    Note: this is specific for PD per se, use PD_generic_whole_tree if you
+    want to calculate a related metric.
+    """
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, \
+        branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    count_array = count_array.astype(bool)
+    bound_indices = bind_to_array(nodes, count_array)
+    #initialize result
+    bool_descendants(bound_indices)
+    result = PD_vector(branch_lengths, count_array,metric)
+    return unique_envs, result
 
 def fast_unifrac_permutations(t, envs, weighted, num_iters, first_env, 
     second_env, permutation_f=permutation):
@@ -394,10 +424,14 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
 
     using default modes, returns a dictionary with the following (key:value) pairs:
 
-    'distance_matrix': a tuple with a numpy array of pairwise distances between samples and a list of names describing the order of samples in the array 
-    'cluster_envs': cogent.core.PhyloNode object containing results of running UPGMA on the distance matrix.
-    'pcoa': a cogent.util.Table object with the results of running Principal Coordines Analysis on the distance matrix.
+    'distance_matrix': a tuple with a numpy array of pairwise distances between 
+    samples and a list of names describing the order of samples in the array 
     
+    'cluster_envs': cogent.core.PhyloNode object containing results of running 
+    UPGMA on the distance matrix.
+    
+    'pcoa': a cogent.util.Table object with the results of running Principal 
+    Coordines Analysis on the distance matrix.
 
     Usage examples: (these assume the example files exist)
     from cogent.parse.tree import DndParser
@@ -410,8 +444,8 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
     unifrac_result = fast_unifrac(tree, envs)
     G_result = fast_unifrac(tree, envs, metric=G, is_symmetric=False)
 
-    note: pcoa on asymetric distance matrices (e.g.: G metric) is untested,
-    perhaps meaningless.  buyer beware.
+    WARNING: PCoA on asymmetric matrices (e.g.: G metric) is meaningless
+    because these are not distance matrices.
     """
     modes = set(modes)  #allow list, etc. of modes to be passed in.
     if not modes or modes - UNIFRAC_VALID_MODES:
@@ -640,11 +674,11 @@ def meta_unifrac(tree_list, envs_list, weighting_f,
     modes=UNIFRAC_DEFAULT_MODES, **unifrac_params):
     """Perform metagenomic UniFrac on a list of trees and envs.
 
-    tree_list: list of tree objects.
-    env_list: list of sample x env count arrays.
-    weighting_f: f(trees, envs) -> weights.
+    tree_list: list of tree objects
+    env_list: list of sample x env count arrays
+    weighting_f: f(trees, envs) -> weights
     consolidation_f: f(matrix_list, name_list, weight_list, all_env_names) -> matrix
-    unifrac_params: parameters that will be passed to unifrac to build the matrix.
+    unifrac_params: parameters that will be passed to unifrac to build the matrix
 
     Notes:
     - tree list and env list must be same length and consist of matched pairs,

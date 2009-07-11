@@ -9,9 +9,10 @@ from cogent.maths.unifrac.fast_tree import (count_envs, sum_env_dict,
     traverse_reduce, bool_descendants, sum_descendants, fitch_descendants, 
     tip_distances, UniFracTreeNode, FitchCounter, FitchCounterDense,
     permute_selected_rows, prep_items_for_jackknife, jackknife_bool, 
-    jackknife_int, unifrac, unnormalized_unifrac, G, unnormalized_G, 
-    unifrac_matrix, unifrac_vector, weighted_unifrac, weighted_unifrac_matrix, 
-    weighted_unifrac_vector, jackknife_array, env_unique_fraction)
+    jackknife_int, unifrac, unnormalized_unifrac, PD, G, unnormalized_G, 
+    unifrac_matrix, unifrac_vector, PD_vector, weighted_unifrac, 
+    weighted_unifrac_matrix, weighted_unifrac_vector, jackknife_array, 
+    env_unique_fraction)
 from numpy import (arange, reshape, zeros, logical_or, array, sum, nonzero, 
     flatnonzero, newaxis)
 from numpy.random import permutation    
@@ -19,7 +20,7 @@ from numpy.random import permutation
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
 __credits__ = ["Rob Knight", "Micah Hamady"]
-__license__ = "All rights reserved"
+__license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
@@ -427,9 +428,6 @@ f   D"""
         # test that you get orig mat back if too many
         self.assertEqual(jackknife_array(test_array, 20, axis=1), test_array)
 
-
-
-
     def test_unifrac(self):
         """unifrac should return correct results for model tree"""
         m = array([[1,0,1],[1,1,0],[0,1,0],[0,0,1],[0,1,0],[0,1,1],[1,1,1],\
@@ -447,6 +445,15 @@ f   D"""
         self.assertEqual(unnormalized_unifrac(bl, m[:,0], m[:,1]), 10/17.)
         self.assertEqual(unnormalized_unifrac(bl, m[:,0], m[:,2]), 8/17.)
         self.assertEqual(unnormalized_unifrac(bl, m[:,1], m[:,2]), 8/17.)
+
+    def test_PD(self):
+        """PD should return correct results for model tree"""
+        m = array([[1,0,1],[1,1,0],[0,1,0],[0,0,1],[0,1,0],[0,1,1],[1,1,1],\
+            [0,1,1],[1,1,1]])
+        bl = self.branch_lengths
+        self.assertEqual(PD(bl, m[:,0]), 7)
+        self.assertEqual(PD(bl, m[:,1]), 15)
+        self.assertEqual(PD(bl, m[:,2]), 11)
 
     def test_G(self):
         """G should return correct results for model tree"""
@@ -498,6 +505,15 @@ f   D"""
         bl = self.branch_lengths
         result = unifrac_vector(bl, m)
         self.assertFloatEqual(result, array([10./17,6./17,7./17]))
+
+    def test_PD_vector(self):
+        """PD_vector should return correct results for model tree"""
+        m = array([[1,0,1],[1,1,0],[0,1,0],[0,0,1],[0,1,0],[0,1,1],[1,1,1],\
+            [0,1,1],[1,1,1]])
+        bl = self.branch_lengths
+        result = PD_vector(bl, m)
+        self.assertFloatEqual(result, array([7,15,11]))
+
 
     def test_weighted_unifrac_matrix(self):
         """weighted unifrac matrix should return correct results for model tree"""
