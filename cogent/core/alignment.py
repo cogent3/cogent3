@@ -1312,7 +1312,42 @@ class SequenceCollection(object):
         """Returns the reverse complement alignment. A synonymn for rc."""
         return self.rc()
     
-
+    def padSeqs(self, pad_length=None, **kwargs):
+        """Returns copy in which sequences are padded to same length.
+            
+            pad_length: Length all sequences are to be padded to.  Will pad
+                to max sequence length if pad_length is None or less than max
+                length.
+        """
+        #get max length
+        max_len = max([len(s) for s in self.Seqs])
+        #If a pad_length was passed in, make sure it is valid
+        if pad_length is not None:
+            pad_length = int(pad_length)
+            if pad_length < max_len:
+                raise ValueError, \
+        "pad_length must be at greater or equal to maximum sequence length: %s"\
+                    %(str(max_len))
+        #pad_length is max sequence length.
+        else:
+            pad_length = max_len
+            
+        #Get new sequence list
+        new_seqs = []
+        aligned = isinstance(self, Alignment)
+        #for each sequence, pad gaps to end
+        for seq_name in self.Names:
+            if aligned:
+                seq = self.NamedSeqs[seq_name].data
+            else:
+                seq = self.NamedSeqs[seq_name]
+            padded_seq = seq + '-'*(pad_length-len(seq))
+            new_seqs.append((seq_name, padded_seq))
+            
+        #return new SequenceCollection object
+        return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
+        
+        
 class Aligned(object):
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""

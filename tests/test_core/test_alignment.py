@@ -901,7 +901,21 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class(data=[("a", dna),("b", dna)])
         self.assertEqual(seqs.degap().toFasta(), expect)
     
-
+    def test_padSeqs(self):
+        """SequenceCollection padSeqs should work on alignment."""
+        #pad to max length
+        padded1 = self.ragged_padded.padSeqs()
+        seqs1 = list(padded1.iterSeqs(seq_order=['a','b','c']))
+        self.assertEqual(map(str,seqs1),['AAAAAA', 'AAA---', 'AAAA--'])
+        
+        #pad to alternate length
+        padded1 = self.ragged_padded.padSeqs(pad_length=10)
+        seqs1 = list(padded1.iterSeqs(seq_order=['a','b','c']))
+        self.assertEqual(map(str,seqs1),['AAAAAA----', 'AAA-------',\
+            'AAAA------'])
+        
+        #assertRaises error when pad_length is less than max seq length
+        self.assertRaises(ValueError, self.ragged_padded.padSeqs, 5)
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -947,6 +961,22 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
 
         self.assertRaises(ValueError,  align_rag.toPhylip)
+    
+    def test_padSeqs_ragged(self):
+        """SequenceCollection padSeqs should work on ragged alignment."""
+        #pad to max length
+        padded1 = self.ragged.padSeqs()
+        seqs1 = list(padded1.iterSeqs(seq_order=['a','b','c']))
+        self.assertEqual(map(str,seqs1),['AAAAAA', 'AAA---', 'AAAA--'])
+        
+        #pad to alternate length
+        padded1 = self.ragged.padSeqs(pad_length=10)
+        seqs1 = list(padded1.iterSeqs(seq_order=['a','b','c']))
+        self.assertEqual(map(str,seqs1),['AAAAAA----', 'AAA-------',\
+            'AAAA------'])
+        
+        #assertRaises error when pad_length is less than max seq length
+        self.assertRaises(ValueError, self.ragged.padSeqs, 5)
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
     """Tests of basic Alignment functionality. All Alignments should pass these.
