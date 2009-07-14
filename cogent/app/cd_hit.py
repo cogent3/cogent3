@@ -115,6 +115,7 @@ class CD_HIT(CommandLineApplication):
         # print this help
         '-h':ValuedParameter('-',Name='h',Delimiter=' ')
     }
+    _synonyms = {'Similarity':'-c'}
  
     def getHelp(self):
         """Method that points to documentation"""
