@@ -716,18 +716,14 @@ class Table(DictArray):
         raw_data.insert(0, self.Header)
         transposed = numpy.transpose(raw_data)
         
-        # find indices for the header and non header rows
-        header_index = None
-        for index, row in enumerate(transposed):
-            if row[0] == select_as_header:
-                header_index = index
+        # indices for the header and non header rows
+        header_index = self.Header.index(select_as_header)
         
-        assert header_index is not None
         data_indices = range(0, header_index)+range(header_index+1,
                                                     len(transposed))
         
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
-        header = [new_column_name]+header[1:]
+        header = [new_column_name]+header[1:] # [1:] slice excludes old name
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
     
