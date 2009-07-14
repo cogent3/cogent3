@@ -1,5 +1,5 @@
 #/usr/bin/env python
-from cogent.draw.matplotlib.multivariate_plot import (plot_ordination,
+from cogent.draw.multivariate_plot import (plot_ordination,
         map_colors, text_points, scatter_points, plot_points, arrows)
 from cogent.util.unit_test import TestCase, main
 
@@ -20,7 +20,7 @@ __status__ = "Production"
 ######
 # util class
 class TestCasePlot(TestCase):
-    Debug = False
+    Debug = True
 
     def fig(self, fname=None):
         if self.Debug:
