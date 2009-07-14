@@ -11,6 +11,7 @@ New Features
 * phylo.distance.EstimateDistances class has a new argument, modify_lf. This
   allows the use the modify the likelihood function, possibly constraining
   parameters, freeing them, setting bounds, pre-optimising etc..
+* cogent Table now has a transposed method
 
 Changes
 -------

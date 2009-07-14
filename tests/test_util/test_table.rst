@@ -1423,6 +1423,89 @@ We then establish that a join with no values does not cause a failure, just retu
     >>> t4.Title = 't4'
     >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
 
+Transposing a table
+-------------------
+
+Tables can be transposed.
+
+.. doctest::
+    
+    >>> from cogent import LoadTable
+    >>> title='#Full OTU Counts'
+    >>> header = ['#OTU ID', '14SK041', '14SK802']
+    >>> rows = [[-2920, '332', 294], 
+    ...         [-1606, '302', 229], 
+    ...         [-393, 141, 125], 
+    ...         [-2109, 138, 120], 
+    ...         [-5439, 104, 117], 
+    ... [-1834, 70, 75], 
+    ... [-18588, 65, 47], 
+    ... [-1350, 60, 113], 
+    ... [-2160, 57, 52], 
+    ... [-11632, 47, 36]]
+    >>> table = LoadTable(header=header,rows=rows,title=title)
+    >>> print table
+    #Full OTU Counts
+    =============================
+    #OTU ID    14SK041    14SK802
+    -----------------------------
+      -2920        332        294
+      -1606        302        229
+       -393        141        125
+      -2109        138        120
+      -5439        104        117
+      -1834         70         75
+     -18588         65         47
+      -1350         60        113
+      -2160         57         52
+     -11632         47         36
+    -----------------------------
+
+We now transpose this. We require a new column heading for header data and an identifier for which existing column will become the header (default is index 0).
+
+.. doctest::
+    
+    >>> tp = table.transposed(new_column_name='sample',
+    ...             select_as_header='#OTU ID', space=2)
+    ...             
+    >>> print tp
+    ==============================================================================
+     sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
+    ------------------------------------------------------------------------------
+    14SK041    332    302   141    138    104     70      65     60     57      47
+    14SK802    294    229   125    120    117     75      47    113     52      36
+    ------------------------------------------------------------------------------
+
+We test transposition with default value is the same.
+
+.. doctest::
+    
+    >>> tp = table.transposed(new_column_name='sample', space=2)
+    ...             
+    >>> print tp
+    ==============================================================================
+     sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
+    ------------------------------------------------------------------------------
+    14SK041    332    302   141    138    104     70      65     60     57      47
+    14SK802    294    229   125    120    117     75      47    113     52      36
+    ------------------------------------------------------------------------------
+
+We test transposition selecting a different column to become the header.
+
+.. doctest::
+    
+    >>> tp = table.transposed(new_column_name='sample',
+    ...             select_as_header='14SK802', space=2)
+    ...             
+    >>> print tp
+    ==============================================================================
+     sample    294    229   125    120    117     75      47    113     52      36
+    ------------------------------------------------------------------------------
+    #OTU ID  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
+    14SK041    332    302   141    138    104     70      65     60     57      47
+    ------------------------------------------------------------------------------
+
+
 Counting rows
 -------------
 
