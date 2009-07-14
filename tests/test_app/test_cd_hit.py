@@ -86,6 +86,12 @@ class CD_HIT_EST_Tests(TestCase):
         """CD_HIT should return expected seqs"""
         res = cdhit_from_seqs(dna_seqs, DNA, {'-c':0.8})
         self.assertEqual(res.toFasta(), dna_expected)
+        
+    def test_cdhit_from_seqs_synonym(self):
+        """CD_HIT should return expected seqs with -c synonym"""
+        res = cdhit_from_seqs(dna_seqs, DNA, {'Similarity':0.8})
+        self.assertEqual(res.toFasta(), dna_expected)
+        
 
 class CD_HIT_SupportMethodTests(TestCase):
     """Tests for supporting methods"""
