@@ -135,7 +135,7 @@ setup(
             ],
     packages = ['cogent', 'cogent.align', 'cogent.align.weights', 'cogent.app',
                 'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
-                'cogent.db.ensembl', 'cogent.draw', 'cogent.draw.matplotlib',
+                'cogent.db.ensembl', 'cogent.draw',
                 'cogent.evolve', 'cogent.format', 'cogent.maths',
                 'cogent.maths.matrix', 'cogent.maths.stats',
                 'cogent.maths.stats.cai',  'cogent.maths.unifrac',

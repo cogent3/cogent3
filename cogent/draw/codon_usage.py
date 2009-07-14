@@ -8,7 +8,7 @@ use('Agg')  #suppress graphical rendering
 rc('text', usetex=True)
 rc('font', family='serif')  #required to match latex text and equations
 from cogent.core.usage import UnsafeCodonUsage as CodonUsage
-from cogent.draw.matplotlib.util import scatter_classic, \
+from cogent.draw.util import scatter_classic, \
    init_graph_display, init_ticks, set_axis_to_probs, \
     broadcast, plot_scatter, plot_filled_contour, \
     plot_contour_lines, standard_series_colors 

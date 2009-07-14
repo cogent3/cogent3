@@ -1,5 +1,5 @@
 #/usr/bin/env python
-from cogent.draw.matplotlib.dinuc import dinuc_plot
+from cogent.draw.dinuc import dinuc_plot
 from numpy import array, clip
 from numpy.random import random
 from cogent.util.unit_test import TestCase, main
@@ -58,7 +58,7 @@ class dinuc_tests(TestCase):
         dinuc_plot(data, avg_formats={'markersize':5}, \
             point_formats={'s':2, 'alpha':0.2}, graph_name='test.png')
         #note:comment out the next line to see the test file
-        remove('test.png')
+        #remove('test.png')
 
 if __name__ == '__main__':
     main()

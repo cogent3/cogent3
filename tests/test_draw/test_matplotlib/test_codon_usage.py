@@ -8,11 +8,11 @@ from cogent.maths.stats.cai.adaptor import data_from_file, adapt_p12, \
     adapt_p123gc, adapt_cai_p3, adapt_cai_histogram, adapt_fingerprint, \
     adapt_pr2_bias, file_to_codon_list, \
     bin_by_p3
-from cogent.draw.matplotlib.codon_usage import plot_cai_p3_scatter, \
+from cogent.draw.codon_usage import plot_cai_p3_scatter, \
     plot_p12_p3, plot_p123_gc, plot_fingerprint, plot_pr2_bias, \
     plot_p12_p3_contour, \
     plot_p12_p3_contourlines, aa_labels
-from cogent.draw.matplotlib.util import as_species, \
+from cogent.draw.util import as_species, \
     plot_scatter_with_histograms, plot_histograms, \
     plot_filled_contour, format_contour_array
 from pylab import gca, clf
