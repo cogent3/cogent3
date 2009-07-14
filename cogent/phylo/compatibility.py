@@ -49,17 +49,24 @@ def order_to_cluster_similar(S, elts=None, start=None):
         run = run[1:]
     return run
 
+def tied_segments(scores):
+    """(start, end) of each run of equal values in scores
+    
+    >>> tied_segments([1,1,1,2])
+    [(0, 3), (3, 4)]
+    """
+    pos = numpy.flatnonzero(numpy.diff(scores))
+    pos = numpy.concatenate(([0],pos+1,[len(scores)]))
+    return zip(pos[:-1],pos[1:])
+
 def order_tied_to_cluster_similar(S, scores):
     """Use similarity measure S to make similar elements
     adjacent, but only to break ties in the primary order
     defined by the list of scores"""
     assert S.shape == (len(scores), len(scores))
-    (pos,) = numpy.where(numpy.diff(scores) != 0)
-    pos = numpy.concatenate(([0],pos+1,[len(scores)]))
     new_order = []
-    start = None
-    
-    for (a,b) in zip(pos[:-1],pos[1:]):
+    start = None    
+    for (a,b) in tied_segments(scores):
         useful = range(a,b)
         if start is not None:
             useful.append(start)
@@ -277,21 +284,25 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
             extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
-        
         bar_height = 0.5
-        margin = 0.35
+        annot_width = 0.1
+        link_width = 0.3
+        x_margin = 0.60
+        y_margin = 0.35
         xpad = 0.05
-        ypad = 0.1
+        ypad = 0.2
         (x, y) = (c_size + p_size, c_size + s_size)
-        x_scale = y_scale = (figwidth-2*margin-xpad)/x
-        figheight = y_scale * y + 2*margin + 2*ypad + bar_height
+        x_scale = y_scale = (figwidth-2*x_margin-xpad-link_width-annot_width)/x
+        figheight = y_scale * y + 2*y_margin + 2*ypad + bar_height
         x_scale /= figwidth
         y_scale /= figheight
-        x_margin = margin / figwidth
-        y_margin = margin / figheight
+        x_margin /= figwidth
+        y_margin /= figheight
         xpad /= figwidth
         ypad /= figheight
         bar_height /= figheight
+        link_width /= figwidth
+        annot_width /= figwidth
         (c_width, c_height) = (c_size*x_scale, c_size*y_scale)
         (p_width, s_height) = (p_size*x_scale, s_size*y_scale)
         vert = (x_margin + xpad + c_width)
@@ -304,13 +315,17 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         axS = plt.axes([vert, top, p_width, s_height or .001], 
                 sharex=axP, **kw)
         axB = plt.axes([vert, top+ypad+s_height, p_width, bar_height], 
-                sharex=axP, **kw)        
-        axP.yaxis.tick_right()
-        axP.yaxis.set_label_position('right')
+                sharex=axP, **kw)
+        axZ = plt.axes([vert+p_width, y_margin, link_width, c_height], 
+            frameon=False)
+        axA = plt.axes([vert+p_width+link_width, y_margin, annot_width, 
+            c_height])
+            
+        axP.yaxis.set_visible(False)
         #for ax in [axC, axP, axS]:
             #ax.set_aspect(adjustable='box', aspect='equal')
         
-        axC.set_title(title)
+        fig.text(x_margin+c_width/2, .995, title, ha='center', va='top')
         
         if not s_size:
             axS.set_visible(False)
@@ -384,6 +399,8 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
                 (sx, sy) = numpy.nonzero(halfpart)
                 axS.scatter(sx+0.5, sy+0.5, color=color, marker='o')
             axS.grid(False)
+            #axS.yaxis.tick_right()
+            #axS.yaxis.set_label_position('right')
         
         # Bar chart of partition support and conflict scores
         #axB.set_autoscalex_on(False)
@@ -392,6 +409,34 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
                 1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
+        
+        # axA has no content yet, will be alignment features
+        axA.set_ylim(0, len(alignment))
+        axA.yaxis.set_major_formatter(
+                matplotlib.ticker.FuncFormatter(lambda y,pos:str(int(y))))
+        axA.yaxis.tick_right()
+        axA.yaxis.set_label_position('right')
+        axA.xaxis.set_visible(False)
+        
+        # "Zoom lines" linking informative-site coords to alignment coords 
+        from matplotlib.patches import PathPatch
+        from matplotlib.path import Path
+        axZ.set_xlim(0.0,1.0)
+        axZ.set_xticks([])
+        axZ.set_ylim(0, len(alignment))
+        axZ.set_yticks([])
+        zoom = len(alignment) / len(sites)
+        vertices = []
+        for (i,p) in enumerate(sites):
+            vertices.extend([(.1, (i+0.5)*zoom), (.9,p)])
+        ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
+        path = Path(vertices, ops)
+        axZ.add_patch(PathPatch(path, fill=False, linewidth=0.25))
+        
+        # interactive navigation messes up axZ.  Could use callbacks but
+        # probably not worth the extra complexity.
+        for ax in [axC, axP, axS, axB, axZ, axA]:
+            ax.set_navigate(False)
 
         plt.show()
     
