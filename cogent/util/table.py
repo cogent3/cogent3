@@ -695,29 +695,58 @@ class Table(DictArray):
         
         return Table(header=new_header, rows=joined_table, **kwargs)
     
-    def summed(self, index, col_sum=True, strict=True, **kwargs):
-        """returns the sum of row values for column
+    def summed(self, indices=None, col_sum=True, strict=True, **kwargs):
+        """returns the sum of numerical values for column(s)/row(s)
         
         Arguments:
-            - index: a column name or index or row index
+            - indices: column name(s) or indices or row indices
             - col_sum: sums values in the indicated column, the default. If
               False, returns the row sum.
             - strict: if False, ignores cells with non-numeric data in the
               column/row."""
+        
+        all = indices is None
         if 'column' in kwargs:
-            deprecated('argument', 'column', 'index', 1.4)
-            index = kwargs['column']
+            deprecated('argument', 'column', 'indices', 1.4)
+            indices = kwargs['column']
         
-        axis=[0,1][col_sum]
-        if type(index) == str:
-            assert col_sum, "Must use row integer index"
-            index = self.Header.index(index)
+        if type(indices) == str:
+            assert col_sum, "Must use row integer indices"
+            indices = self.Header.index(indices)
+        elif type(indices) == int: # a single index
+            indices = [indices]
+        elif not all:
+            raise RuntimeError("unknown indices type: %s" % indices)
         
-        vals = self.array.take([index], axis=axis).flatten()
-        if strict:
-            return vals.sum()
+        if not all:
+            vals = self.array.take([indices], axis=[0,1][col_sum]).flatten()
+            if strict:
+                result = vals.sum()
+            else:
+                result = sum(v for v in vals if type(v)!=str)
+        else:
+            # a multi-rowed result
+            if col_sum:
+                vals = self.array
+            else:
+                vals = self.array.transpose() 
+            
+            if strict:
+                result = vals.sum(axis=0).tolist()
+            else:
+                result = []
+                append = result.append
+                # we need to iterate over the elements to be summed, so we
+                # have to transpose
+                for row in vals.transpose():
+                    try:
+                        num = row.sum()
+                    except TypeError:
+                        num = sum(r for r in row if type(r) != str)
+                    append(num)
+            
         
-        return sum(v for v in vals if type(v)!=str)
+        return result
     
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.

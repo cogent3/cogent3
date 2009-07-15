@@ -1057,6 +1057,33 @@ We also compute row sums for the pure numerical and mixed non-numerical/numerica
     >>> mix.summed(1, col_sum=False)
     3
 
+We can compute the totals for all columns or rows too.
+
+.. doctest::
+    
+    >>> mix.summed(strict=False)
+    [4, 6]
+    >>> mix.summed(col_sum=False, strict=False)
+    [0, 3, 7]
+
+It is not currently possible to do a subset of columns/rows. We show this for rows here.
+
+.. doctest::
+    
+    >>> mix.summed([0, 2], col_sum=False, strict=False)
+    Traceback (most recent call last):
+    RuntimeError: unknown indices type: [0, 2]
+
+We test these for a strictly numerical table.
+
+.. doctest::
+    
+    >>> non_mix = LoadTable(header=['A', 'B'], rows=[[0,1],[1,2],[3,4]])
+    >>> non_mix.summed()
+    [4, 7]
+    >>> non_mix.summed(col_sum=False)
+    [1, 3, 7]
+
 Extending tables
 ----------------
 
