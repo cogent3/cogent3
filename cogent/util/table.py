@@ -13,6 +13,7 @@ import numpy
 from cogent.format import table as table_format
 
 from cogent.util.dict_array import DictArray
+from cogent.util.warning import deprecated
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -694,10 +695,29 @@ class Table(DictArray):
         
         return Table(header=new_header, rows=joined_table, **kwargs)
     
-    def summed(self, column):
-        """returns the sum of row values for column"""
-        vals = [r[column] for r in self]
-        return sum(vals)
+    def summed(self, index, col_sum=True, strict=True, **kwargs):
+        """returns the sum of row values for column
+        
+        Arguments:
+            - index: a column name or index or row index
+            - col_sum: sums values in the indicated column, the default. If
+              False, returns the row sum.
+            - strict: if False, ignores cells with non-numeric data in the
+              column/row."""
+        if 'column' in kwargs:
+            deprecated('argument', 'column', 'index', 1.4)
+            index = kwargs['column']
+        
+        axis=[0,1][col_sum]
+        if type(index) == str:
+            assert col_sum, "Must use row integer index"
+            index = self.Header.index(index)
+        
+        vals = self.array.take([index], axis=axis).flatten()
+        if strict:
+            return vals.sum()
+        
+        return sum(v for v in vals if type(v)!=str)
     
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.

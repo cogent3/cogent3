@@ -1026,11 +1026,36 @@ or multiple columns
     >>> distinct = new.getDistinctValues(["edge.parent", "z"])
     >>> assert distinct == set([('root', 6.0), ('root', 7.0)]), distinct
 
-We can compute column sums. This will fail if there are non-numerical values in a column.
+We can compute column sums. Assuming only numerical values in a column.
 
 .. doctest::
     
     >>> assert new.summed('z') == 39., new.summed('z')
+
+We construct an example with mixed numerical and non-numerical data. We now compute the column sum with mixed non-numerical/numerical data.
+
+.. doctest::
+    
+    >>> mix = LoadTable(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
+    >>> print mix
+    ======
+    A    B
+    ------
+    0     
+    1    2
+    3    4
+    ------
+    >>> mix.summed('B', strict=False)
+    6
+
+We also compute row sums for the pure numerical and mixed non-numerical/numerical rows. For summing across rows we must specify the actual row index as an ``int``.
+
+.. doctest::
+    
+    >>> mix.summed(0, col_sum=False, strict=False)
+    0
+    >>> mix.summed(1, col_sum=False)
+    3
 
 Extending tables
 ----------------
@@ -1438,11 +1463,11 @@ Tables can be transposed.
     ...         [-393, 141, 125], 
     ...         [-2109, 138, 120], 
     ...         [-5439, 104, 117], 
-    ... [-1834, 70, 75], 
-    ... [-18588, 65, 47], 
-    ... [-1350, 60, 113], 
-    ... [-2160, 57, 52], 
-    ... [-11632, 47, 36]]
+    ...         [-1834, 70, 75], 
+    ...         [-18588, 65, 47], 
+    ...         [-1350, 60, 113], 
+    ...         [-2160, 57, 52], 
+    ...         [-11632, 47, 36]]
     >>> table = LoadTable(header=header,rows=rows,title=title)
     >>> print table
     #Full OTU Counts
@@ -1504,7 +1529,6 @@ We test transposition selecting a different column to become the header.
     #OTU ID  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
     14SK041    332    302   141    138    104     70      65     60     57      47
     ------------------------------------------------------------------------------
-
 
 Counting rows
 -------------
