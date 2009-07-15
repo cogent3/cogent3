@@ -7,7 +7,7 @@ Current output formats include pickle (pythons serialisation format), restructur
 Table can read pickled and delimited formats.
 
 """
-
+from __future__ import division
 import cPickle, csv
 import numpy
 from cogent.format import table as table_format
@@ -747,6 +747,32 @@ class Table(DictArray):
             
         
         return result
+    
+    def normalized(self, by_row=True, func=None, **kwargs):
+        """returns a table with elements expressed as a fraction according
+        to the results from func
+        
+        Arguments:
+            - by_row: normalisation done by row
+            - func: currently restricted to sum"""
+        
+        if func:
+            raise NotImplementedError
+        
+        denominators = self.summed(col_sum=not by_row)
+        
+        if by_row:
+            values = self.array
+        else:
+            values = self.array.transpose()
+        
+        rows = [values[i]/denom for i, denom in enumerate(denominators)]
+        rows = numpy.array(rows)
+        
+        if not by_row:
+            rows = rows.transpose()
+        
+        return Table(header=self.Header, rows=rows, **kwargs)
     
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.

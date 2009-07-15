@@ -1084,6 +1084,32 @@ We test these for a strictly numerical table.
     >>> non_mix.summed(col_sum=False)
     [1, 3, 7]
 
+We can normalise a numerical table by row,
+
+.. doctest::
+    
+    >>> print non_mix.normalized(by_row=True)
+    ================
+         A         B
+    ----------------
+    0.0000    1.0000
+    0.3333    0.6667
+    0.4286    0.5714
+    ----------------
+
+or by column, such that the row/column sums are 1.
+
+.. doctest::
+    
+    >>> print non_mix.normalized(by_row=False)
+    ================
+         A         B
+    ----------------
+    0.0000    0.1429
+    0.2500    0.2857
+    0.7500    0.5714
+    ----------------
+
 Extending tables
 ----------------
 
