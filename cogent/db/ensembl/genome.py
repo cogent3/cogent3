@@ -148,7 +148,7 @@ class Genome(object):
         join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id==gene_table.c.gene_id)
         select_obj = [gene_id_table.c.stable_id, gene_table]
         if db.Type == 'core':
-            join_obj = join_obj.join(xref_table, gene_table.c.display_xref_id==xref_table.c.xref_id)
+            join_obj = join_obj.outerjoin(xref_table, gene_table.c.display_xref_id==xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
         query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
         return query
