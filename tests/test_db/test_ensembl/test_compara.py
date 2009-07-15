@@ -32,7 +32,7 @@ def calc_slope(x1, y1, x2, y2):
     return delta_y/delta_x
 
 class ComparaTestBase(TestCase):
-    comp = Compara(['human', 'mouse', 'rat'], Release=Release, account=account)
+    comp = Compara(['human', 'mouse', 'rat', 'platypus'], Release=Release, account=account)
 
 class TestCompara(ComparaTestBase):
     def test_query_genome(self):
@@ -47,6 +47,14 @@ class TestCompara(ComparaTestBase):
                 Relationship="ortholog_one2one")
         self.assertEquals("ortholog_one2one", Orthologs.Relationships[0])
     
+    def test_get_related_genes2(self):
+        """should handle case where gene is absent from one of the genomes"""
+        clec2d = list(self.comp.Mouse.getGenesMatching(
+                      StableId='ENSMUSG00000030157'))[0]
+        orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
+                        Relationship='ortholog_one2many')
+        self.assertEquals(len(orthologs.Members),2)
+    
     def test_get_collection(self):
         brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
@@ -58,7 +66,7 @@ class TestCompara(ComparaTestBase):
         mid = "ENSMUSG00000041147"
         brca2 = list(self.comp.Mouse.getGenesMatching(StableId=mid))[0]
         result = list(self.comp.getSyntenicRegions(region=brca2,
-                        align_method='ORTHEUS', align_clade='mammal'))[0]
+                        align_method='PECAN', align_clade='vertebrates'))[0]
         aln = result.getAlignment(feature_types='gene')
         self.assertTrue(len(aln) > 1000)
     
@@ -76,12 +84,13 @@ class TestCompara(ComparaTestBase):
         End = Start + 100000
         related = list(self.comp.getSyntenicRegions(Species='mouse',
                         CoordName='1', Start=Start, End=End,
-                        align_method='ORTHEUS', align_clade='mammal'))
+                        align_method='PECAN', align_clade='vertebrates'))
         self.assertEquals(related, [])
     
     def test_get_species_set(self):
         """should return the correct set of species"""
-        expect = set(['Homo sapiens', 'Mus musculus', 'Rattus norvegicus'])
+        expect = set(['Homo sapiens', 'Ornithorhynchus anatinus',
+                      'Mus musculus', 'Rattus norvegicus'])
         brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                         Relationship="ortholog_one2one")
@@ -176,8 +185,8 @@ class TestSyntenicRegions(TestCase):
                                     StableId='ENSG00000215691'))[0]
         # this should simply not raise any exceptions
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
-                                align_method='ORTHEUS',
-                                align_clade='mammal'))
+                                align_method='PECAN',
+                                align_clade='vertebrates'))
         
     
 
