@@ -368,21 +368,19 @@ class Table(DictArray):
             - columns: if None, all data are returned"""
         
         if columns is None:
-            columns = self.Header[:]
+            return self.array.tolist()
         
         if isinstance(columns, str):
             # assumes all column headings are strings.
             columns = (columns,)
         
-        new_twoD = []
-        for row in self:
-            new_row = [row[entry] for entry in columns]
-            new_twoD.append(new_row)
+        column_indices = map(self.Header.index, columns)
+        result = self.array.take(column_indices, axis=1)
         
         if len(columns) == 1:
-            new_twoD = [cell[0] for cell in new_twoD]
+            result = result.flatten()
         
-        return new_twoD
+        return result.tolist()
     
     def _callback(self, callback, row, columns=None, num_columns=None):
         if callable(callback):
