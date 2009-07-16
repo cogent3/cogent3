@@ -35,6 +35,56 @@ def html(text, **kwargs):
     # assuming run from the correct directory
     return publish_string(source=text, writer_name='html', **kwargs)
 
+def _generic_cell_format(value, *args):
+    """simple cast to str for rich_html"""
+    return str(value)
+
+def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
+    element_formatters={}, compact=True):
+    """returns just the html Table string
+    
+    Arguments:
+        - rows: table rows
+        - row_cell_func: callback function that formats the row values. Must
+          take the row value and coordinates (row index, column index).
+        - header: the table header
+        - header_cell_func: callback function that formats the column headings
+          must take the header label value and coordinate
+        - element_formatters: a dictionary of specific callback funcs for
+          formatting individual html table elements.
+          e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+    
+    Note: header_cell_func and row_cell_func override element_formatters.
+    """
+    formatted = element_formatters.get
+    data = [formatted('table', '<table>')]
+    # should use the docutils writer html convertor instead of str
+    if row_cell_func is None:
+        row_cell_func = lambda v,r,c: '<td>%s</td>' % v
+    
+    if header_cell_func is None:
+        header_cell_func = lambda v, c: '<th>%s</th>' % v
+    
+    if header:
+        th = formatted('th', '<th>')
+        row = [header_cell_func(label, i) for i, label in enumerate(header)]
+        data += [formatted('tr', '<tr>')]+row+['</tr>']
+    formatted_rows = []
+    td = formatted('td', '<td>')
+    for ridx, row in enumerate(rows):
+        new = [formatted('tr', '<tr>')]
+        for cidx, cell in enumerate(row):
+            new += [row_cell_func(cell, ridx, cidx)]
+        new += ['</tr>']
+        formatted_rows += new
+    data += formatted_rows
+    data += ['</table>']
+    if compact:
+        data = ''.join(data)
+    else:
+        data = '\n'.join(data)
+    return data
+
 def latex(rows, header=None, caption=None, justify=None, label=None, position = None):
     """Returns the text a LaTeX longtable.
     
