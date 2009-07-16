@@ -572,13 +572,13 @@ class Table(DictArray):
     
     def getDistinctValues(self, column):
         """returns the set of distinct values for the named column(s)"""
-        vals = set()
         columns = [column, [column]][type(column) == str]
-        for row in self:
-            val = [row[column] for column in columns]
-            val = [val, [tuple(val)]][len(columns) > 1]
-            vals.update(val)
-        return vals
+        data = self.getRawData(column)
+        
+        if len(columns) > 1:
+            data = [tuple(row) for row in data]
+        
+        return set(data)
     
     def joined(self, other_table, columns_self=None, columns_other=None,
                 inner_join=True, **kwargs):
