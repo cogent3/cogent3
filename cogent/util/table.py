@@ -240,9 +240,9 @@ class Table(DictArray):
         
         Arguments:
             - format: possible formats are 'rest', 'latex', 'html', 'phylip', or
-             simple text (default)
+              simple text (default)
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
-            Overrides format.
+              Overrides format.
         """
         if format.lower() == 'phylip':
             missing_data = "%.4f" % 0.0
