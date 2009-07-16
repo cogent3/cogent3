@@ -250,7 +250,7 @@ class Table(DictArray):
             missing_data = self._missing_data
         
         # convert self to a 2D list
-        formatted_table = [row.array.tolist() for row in self]
+        formatted_table = self.array.tolist()
         header, formatted_table = table_format.formattedCells(formatted_table,
                                     self.Header,
                                     digits = self._digits,
@@ -278,6 +278,33 @@ class Table(DictArray):
         else:
             return table_format.simpleFormat(*args + (self._max_width,
                                 self._row_ids, borders, self.Space))
+    
+    def toRichHtmlTable(self, row_cell_func=None, header_cell_func=None,
+                element_formatters={}, compact=True):
+        """returns just the table html code.
+        Arguments:
+            - row_cell_func: callback function that formats the row values. Must
+              take the row value and coordinates (row index, column index).
+            - header_cell_func: callback function that formats the column headings
+              must take the header label value and coordinate
+            - element_formatters: a dictionary of specific callback funcs for
+              formatting individual html table elements.
+              e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+        """
+        formatted_table = self.array.tolist()
+        header, formatted_table = table_format.formattedCells(formatted_table,
+                                    self.Header,
+                                    digits = self._digits,
+                                    column_templates = self._column_templates,
+                                    missing_data = self._missing_data)
+        # but we strip the cell spacing
+        header = [v.strip() for v in header]
+        rows = [[c.strip() for c in r] for r in formatted_table]
+        return table_format.rich_html(rows, row_cell_func=row_cell_func,
+                                      header=header,
+                                      header_cell_func=header_cell_func,
+                                      element_formatters=element_formatters,
+                                      compact=compact)
     
     def writeToFile(self, filename, mode = 'w', writer = None, format = None,
                  sep = None, **kwargs):

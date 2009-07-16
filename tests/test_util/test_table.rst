@@ -21,16 +21,16 @@ Before using ``Table``, we exercise some formatting code:
 
 .. doctest::
     
-    >>> from cogent.format.table import formattedCells, drawToPDF, phylipMatrix
-    >>> from cogent.format.table import latex
+    >>> from cogent.format.table import formattedCells, drawToPDF,\
+    ...                              phylipMatrix, latex
 
 Of interest to be able to format an arbitrary 2D list, without a header. We use the ``formattedCells`` function directly. We allow for the case that ``reportlab`` may not be present.
 
 .. doctest::
     
     >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
-    >>> header, formatted = formattedCells(data, header = ['one', 'two',
-    ...  'three'])
+    >>> head = ['one', 'two', 'three']
+    >>> header, formatted = formattedCells(data, header = head)
     >>> print formatted
     [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
     >>> print header
@@ -480,7 +480,8 @@ Test the writing of phylip distance matrix format.
     ...  0.088337278874079342, 0.44083999937417828], ['b', 0.18848582712597683,
     ...  0.088337278874079342, '', 0.44084000179090932], ['e',
     ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
-    >>> dist = Table(rows = rows, header = ['seq1/2', 'a', 'c', 'b', 'e'],
+    >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
+    >>> dist = Table(rows = rows, header = header,
     ...  row_ids = True)
     >>> print dist.tostring(format = 'phylip')
        4
@@ -488,6 +489,37 @@ Test the writing of phylip distance matrix format.
     c           0.0883  0.0000  0.0883  0.4408
     b           0.1885  0.0883  0.0000  0.4408
     e           0.4408  0.4408  0.4408  0.0000
+
+The ``tostring`` method also provides generic html generation via the restructured text format. The ``toRichHtmlTable`` method can be used to generate the html table element by itself, with greater control over formatting. Specifically, users can provide custom callback functions to the ``row_cell_func`` and ``header_cell_func`` arguments to control in detail the formatting of table elements, or use the simpler dictionary based ``element_formatters`` approach. We use the above ``dist`` table to provide a specific callback that will set the background color for diagonal cells. We first write a function that takes the cell value and coordinates, returning the html formmatted text.
+
+.. doctest::
+    
+    >>> def format_cell(value, row_num, col_num):
+    ...     bgcolor=['', ' bgcolor="#0055ff"'][value=='']
+    ...     return '<td%s>%s</td>' % (bgcolor, value)
+
+We then call the method, without this argument, then with it.
+
+.. doctest::
+    
+    >>> straight_html = dist.toRichHtmlTable()
+    >>> print straight_html
+    <table><tr><th>seq1/2</th><th>a...
+    >>> rich_html = dist.toRichHtmlTable(row_cell_func=format_cell,
+    ...                                  compact=False)
+    >>> print rich_html
+    <table>
+    <tr>
+    <th>seq1/2</th>
+    <th>a</th>
+    <th>c</th>
+    <th>b</th>
+    <th>e</th>
+    </tr>
+    <tr>
+    <td>a</td>
+    <td bgcolor="#0055ff"></td>
+    <td>0.0883</td>...
 
 Saving a table for reloading
 ----------------------------
