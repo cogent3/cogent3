@@ -12,10 +12,10 @@ __email__ = "kylebittinger@gmail.com"
 __status__ = "Prototype"
 
 
+from os import remove
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
     FilePath, ResultPath, get_tmp_filename, guess_input_handler, system
-from os import remove
 
 class RdpClassifier(CommandLineApplication):
     """RDP Classifier application controller
