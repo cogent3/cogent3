@@ -264,6 +264,7 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
     partitions = [partitions[i] for i in order]
     
     if display:
+        import cogent.draw
         import matplotlib.pyplot as plt
         import matplotlib.ticker
         import matplotlib.colors
@@ -284,8 +285,9 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
             extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
+        genemap = cogent.draw.Display(alignment, recursive=s_size>0)
+        annot_width = max(genemap.height / 80, 0.1)
         bar_height = 0.5
-        annot_width = 0.1
         link_width = 0.3
         x_margin = 0.60
         y_margin = 0.35
@@ -318,8 +320,10 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
                 sharex=axP, **kw)
         axZ = plt.axes([vert+p_width, y_margin, link_width, c_height], 
             frameon=False)
-        axA = plt.axes([vert+p_width+link_width, y_margin, annot_width, 
-            c_height])
+            
+        axA = genemap.asAxes(
+            fig, [vert+p_width+link_width, y_margin, annot_width, c_height], 
+            vertical=True, labeled=True)
             
         axP.yaxis.set_visible(False)
         #for ax in [axC, axP, axS]:
@@ -404,19 +408,24 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         
         # Bar chart of partition support and conflict scores
         #axB.set_autoscalex_on(False)
-        axB.bar(numpy.arange(len(partitions)), -conflict/conflict.sum(), 
+        if conflict.sum():
+            axB.bar(numpy.arange(len(partitions)), -conflict/conflict.sum(), 
                 1.0, color='black', align='edge')
-        axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
+        if support.sum():
+            axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
                 1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
         
-        # axA has no content yet, will be alignment features
+        # Alignment features
         axA.set_ylim(0, len(alignment))
+        axA.set_autoscale_on(False)
         axA.yaxis.set_major_formatter(
                 matplotlib.ticker.FuncFormatter(lambda y,pos:str(int(y))))
         axA.yaxis.tick_right()
         axA.yaxis.set_label_position('right')
-        axA.xaxis.set_visible(False)
+        axA.xaxis.tick_top()
+        axA.xaxis.set_label_position('top')
+        #axA.xaxis.set_visible(False)
         
         # "Zoom lines" linking informative-site coords to alignment coords 
         from matplotlib.patches import PathPatch
@@ -428,7 +437,8 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         zoom = len(alignment) / len(sites)
         vertices = []
         for (i,p) in enumerate(sites):
-            vertices.extend([(.1, (i+0.5)*zoom), (.9,p)])
+            vertices.extend([(.1, (i+0.5)*zoom), (.9,p+0.5)])
+            axA.axhspan(p, p+1, facecolor='green', edgecolor='green', alpha=0.3)
         ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
         path = Path(vertices, ops)
         axZ.add_patch(PathPatch(path, fill=False, linewidth=0.25))
@@ -452,7 +462,7 @@ if __name__ == '__main__':
             help="include partitions containing ambiguities") 
     parser.add_option("-t", "--taxalimit", 
                 dest="s_limit", default=20, type="int", 
-                help="maximum nuber of rows for species/partition display") 
+                help="maximum number of species that can be displayed") 
     parser.add_option("-s", "--samples",
                 dest="samples", default=10000, type="int",
                 help="samples for significance test")
