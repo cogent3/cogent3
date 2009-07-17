@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-__all__ = ['dendrogram', 'dotplot', 'legend', 'linear', 'colors', 'TrackDefn',
-           'Display', 'DisplayPolicy', 'Area', 'Arrow', 'BluntArrow', 'Box',
-           'Diamond', 'Line', 'Scale', 'Legend'] + [
+__all__ = [ 'dendrogram', 'dotplot', 'linear', 'colors', 'TrackDefn',
+            'Display', 'DisplayPolicy', 'Area', 'Arrow', 'BluntArrow', 
+            'Box', 'Diamond'] + [
             'arrow_rates', 'dinuc', 'fancy_arrow', 'codon_usage','util']
 
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -12,14 +12,8 @@ __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __status__ = "Production"
 
-try:
-    from linear import colors, \
-            TrackDefn, Display, DisplayPolicy, \
-            Area, Arrow, BluntArrow, Box, Diamond, Line, Scale
-
-    from legend import Legend
-except ImportError: #fails if reportlab not installed
-    pass
+from cogent.draw.linear import (colors, TrackDefn, Display, DisplayPolicy, 
+        Area, Arrow, BluntArrow, Box, Diamond)
 
 try:
     import cogent.draw.matplotlib

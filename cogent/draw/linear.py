@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-from reportlab.graphics import shapes, renderPDF
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from __future__ import division
+
+import rlg2mpl
+import matplotlib.colors
+import matplotlib.ticker
+import matplotlib.transforms
+from matplotlib.text import Text
+from matplotlib.patches import PathPatch
+from matplotlib.font_manager import FontProperties
 
 import copy
 import logging
+import warnings
 from cogent.core.location import Map, Span, _norm_slice
 
 __author__ = "Peter Maxwell"
@@ -30,15 +37,19 @@ log = logging.getLogger('cogent')
 #       broken ends, vscales, zero lines, sub-pixel features.
 #       fuzzy ends.  more ids/qualifiers.
 
-def nice_round_step(pixels_per_base):
-    """Pick a scale step given the available resolution"""
-    # xxx redo with log10?
-    assert pixels_per_base > 0
-    step = 1
-    while step * pixels_per_base < 5:
-        step *= 10
-    return step
+MAX_WIDTH = 72*8
 
+class _Colors(object):
+    """colors.white = to_rgb("white"), same as just using "white"
+    except that this lookup also checks the color is valid"""   
+    def __getattr__(self, attr):
+        return matplotlib.colors.colorConverter.to_rgb(attr)
+colors = _Colors()
+
+def llen(label, fontSize=10):
+    # placeholder for better length-of-label code
+    return len(label) * fontSize
+    
 class TrackDefn(object):
     def __init__(self, tag, features, label=None):
         assert tag
@@ -71,14 +82,15 @@ class Track(object):
         self.level = level
         self.needs_border = needs_border
     
-    def getShapes(self, width, length, height, yrange=None, done_border=False):
-        shape_list = [feature.shape(1.0*width/length, height,
-                yrange or self.range) for feature in self.features]
+    def getShapes(self, span, rotated, height, 
+            yrange=None, done_border=False):
+        shape_list = [feature.shape(height,
+                yrange or self.range, rotated) for feature in self.features]
         if self.needs_border and not done_border:
-            border = shapes.Group(
-                    shapes.Line(0, 0, width, 0,
+            border = rlg2mpl.Group(
+                    rlg2mpl.Line(span[0], 0, span[1], 0,
                             strokeWidth=.5, strokeColor=colors.black),
-                    shapes.Line(0, height, width, height,
+                    rlg2mpl.Line(span[0], height, span[1], height,
                             strokeWidth=.5, strokeColor=colors.black)
                     )
             shape_list = [border] + shape_list
@@ -105,21 +117,22 @@ class CompositeTrack(Track):
         self.level = max([track.level for track in tracks])
         self.range = max([track.range for track in tracks])
     
-    def getShapes(self, width, length, height, yrange=None, done_border=False):
+    def getShapes(self, span, rotated, height, 
+            yrange=None, done_border=False):
         if yrange is None:
             yrange = self.range
         shape_list = []
         for track in self.tracks:
             if track.needs_border and not done_border:
-                border = shapes.Group(
-                        shapes.Line(0, 0, width, 0,
+                border = rlg2mpl.Group(
+                        rlg2mpl.Line(span[0], 0, span[1], 0,
                                 strokeWidth=.5, strokeColor=colors.black),
-                        shapes.Line(0, height, width, height,
+                        rlg2mpl.Line(span[0], height, span[1], height,
                                 strokeWidth=.5, strokeColor=colors.black)
                         )
                 shape_list.append(border)
                 done_border = True
-            shape_list.extend(track.getShapes(width, length, height,
+            shape_list.extend(track.getShapes(span, rotated, height,
                     yrange=yrange, done_border=True))
         return shape_list
     
@@ -139,75 +152,54 @@ class Annotation(object):
         return "%s at %s" % (type(self), getattr(self, 'map', '?'))
     
     # xxx styles do this.  what about maps/ others
-    def shape(self, pixels_per_base, height, yrange):
-        g = shapes.Group()
+    def shape(self, height, yrange, rotated):
+        g = rlg2mpl.Group()
         posn = 0
         for span in self.map.spans:
             if not span.lost:
                 g.add(self._item_shape(
                         span, self.values[posn:posn+span.length],
-                        pixels_per_base, height, yrange))
+                        height, yrange, rotated))
             posn += span.length
         return g
     
 
 class Code(Annotation):
     height = 20
-    def _make_values(self, sequence, colours=None):
-        self.characters = []
-        for c in sequence:
-            if c not in self.characters:
-                self.characters.append(c)
-        w = (0, '?')
-        for c in self.characters:
-            w = max(w, (shapes.String(0,0,c, fontSize=20).getEast(), c))
-        self.widest_character = w[1]
+    def _make_values(self, sequence, colours=None, font_properties=None):
+        self.font_properties = font_properties
         self.colours = colours or {}
         for c in self.colours.keys():
             self.colours[c.upper()] = self.colours[c.lower()] = self.colours[c]
         return sequence
     
-    def _item_shape(self, span, values, pixels_per_base, height, yrange):
-        w = pixels_per_base + 1
-        font_size = height + (int(height)/2)
-        while font_size > 6 and w > pixels_per_base:
-            font_size -= 1
-            w = shapes.String(0, 0, self.widest_character,
-                    fontSize=font_size).getEast()
-        g = shapes.Group()
-        if font_size > 6:
-            g.translate(0.0, 1.0+font_size/5) # desenders, rough guess
-            g.scale(1.0, min(float(height-2)/font_size, 2.0))
-            text_transform = shapes.scale([1.0, -1.0][span.Reverse], 1.0)
-            for (i,c) in enumerate(values):
-                offset = [span.Start+0.5, -1*span.End-0.5][span.Reverse]
-                s = shapes.String(
-                    (i+offset)*pixels_per_base, 0, c,
-                    fontSize=font_size, textAnchor='middle',
-                    transform = text_transform,
-                    fillColor = self.colours.get(c, colors.black))
-                g.add(s)
-        else:
-            g.add(shapes.Line(span.Start*pixels_per_base, height/2,
-                    span.End*pixels_per_base, height/2))
-        return g
-    
+    def _item_shape(self, span, values, height, yrange, rotated):
+        x_offset = span.Start+0.5
+        y_offset = 10 # up a bit
+        rot = 0
+        if rotated: rot += 90
+        if span.Reverse: rot+= 180
+        g = rlg2mpl.Group()
+        for (i,c) in enumerate(values):
+            s = Text(
+                x_offset+i, y_offset, c,
+                color=self.colours.get(c, colors.black),
+                ha='center', va='baseline', rotation=rot,
+                font_properties=self.font_properties)
+            g.add(s)
+        return g 
 
 class CodeLine(Annotation):
     height = 10
-    def _item_shape(self, span, values, pixels_per_base, height, yrange):
-        g = shapes.Group()
-        g.add(shapes.Line(span.Start*pixels_per_base, height/2,
-                span.End*pixels_per_base, height/2))
-        return g
-    
+    def _item_shape(self, span, values, height, yrange, rotated):
+        return rlg2mpl.Line(span.Start, height/2, span.End, height/2)    
 
 class DensityGraph(Annotation):
     height = 20
     def _make_values(self, data):
         return data
     
-    def _item_shape(self, span, values, pixels_per_base, height, yrange):
+    def _item_shape(self, span, values, height, yrange, rotated):
         #max_density = int(1.0/pixels_per_base) + 1
         #colours = [colors.linearlyInterpolatedColor(
         #        colors.white, colors.red, 0, height, i)
@@ -215,14 +207,14 @@ class DensityGraph(Annotation):
         mid = colors.linearlyInterpolatedColor(colors.pink, colors.red,
             0, 10, 5)
         
-        g = shapes.Group()
+        g = rlg2mpl.Group()
         yscale = height / yrange
         last_x = -1
         ys = None
         for (p, q) in enumerate(values):
             if q is not None:
-                g.add(shapes.Circle(
-                    p*pixels_per_base, q*yscale, pixels_per_base/2,
+                g.add(rlg2mpl.Circle(
+                    p, q*yscale, 0.5,
                     strokeWidth=0.0, strokeColor=colors.red,
                     fillColor=colors.red))
             
@@ -232,47 +224,15 @@ class DensityGraph(Annotation):
                 #if ys:
                 #    ys.sort()
                 #    c = len(ys)
-                    #g.add(shapes.Line(x, ys[0], x, ys[-1],
+                    #g.add(rlg2mpl.Line(x, ys[0], x, ys[-1],
                     #    strokeColor=colors.pink))
-                    #g.add(shapes.Line(x, ys[c/3], x, ys[2*c/3],
+                    #g.add(rlg2mpl.Line(x, ys[c/3], x, ys[2*c/3],
                     #    strokeColor=mid))
-                    #g.add(shapes.Line(x, ys[c/2]-.5, x, ys[c/2]+.5,
+                    #g.add(rlg2mpl.Line(x, ys[c/2]-.5, x, ys[c/2]+.5,
                     #    strokeColor=colors.red))
             #    ys = []
             #    last_x = x
             #ys.append(y)
-        return g
-    
-
-class Scale(Annotation):
-    height = 15
-    
-    def _make_values(self, length, orientation=1):
-        assert orientation in [-1, 1]
-        self.orientation = orientation
-        # Yes, a span being used as a value.  It acts like a list but
-        # is much more efficiently stored.
-        return Span(0, length)
-    
-    def _item_shape(self, span, values, pixels_per_base, height, yrange):
-        step = nice_round_step(pixels_per_base)
-        g = shapes.Group()
-        skip_zero = 1 #pixels_per_base > 1
-        if self.orientation == -1:
-            (textbase, tick_lo, tick_hi) = (0, height-5, height-1)
-        else:
-            (textbase, tick_lo, tick_hi) = (6, 5, 1)
-        
-        for posn in range(int(values.Start/step+skip_zero)*step,
-                values.End+1, step):
-            x = posn - values.Start
-            x = [span.Start+x, span.End-x][span.Reverse]
-            x = (x-0.5)*pixels_per_base
-            label = posn % (step*10) == 0
-            g.add(shapes.Line(x, tick_lo, x, tick_hi))
-            if label:
-                g.add(shapes.String(x, textbase, str(posn),
-                    textAnchor="middle", fontSize=height-5))
         return g
     
 
@@ -286,9 +246,9 @@ class Feature(Annotation):
         self.height = style.height
         #self.values = self._make_values(*args, **kw)
     
-    def shape(self, pixels_per_base, height, yrange):
-        return self.style(pixels_per_base, height, self.label, self.map,
-                self.value, yrange)
+    def shape(self, height, yrange, rotated):
+        return self.style(height, self.label, self.map, self.value, yrange, 
+                rotated)
     
 
 class _FeatureStyle(object):
@@ -302,11 +262,11 @@ class _FeatureStyle(object):
             opts['strokeColor'] = None
             opts['strokeWidth'] = 0
         else:
-            opts['fillColor'] = None
+            opts['fillColor'] = colors.white # otherwise matplotlib blue!
             opts['strokeColor'] = color
             opts['strokeWidth'] = 1
         self.filled = fill
-        self.closed = closed
+        self.closed = closed or fill
         opts.update(kw)
         self.opts = opts
         self.min_width = min_width
@@ -315,9 +275,9 @@ class _FeatureStyle(object):
         self.proportion_of_track = thickness
         self.one_span = one_span
     
-    def __call__(self, pixels_per_base, height, label, map, value, yrange):
+    def __call__(self, height, label, map, value, yrange, rotated):
         #return self.FeatureClass(label, map)
-        g = shapes.Group()
+        g = rlg2mpl.Group()
         last = first = None
         if self.range_required and not yrange:
             log.warning("'%s' graph values are all zero" % label)
@@ -326,8 +286,7 @@ class _FeatureStyle(object):
             map = map.getCoveringSpan()
         for (i, span) in enumerate(map.spans):
             #if last is not None:
-            #    g.add(shapes.Line(last*pixels_per_base, height,
-            #        part.Start*pixels_per_base, height))
+            #    g.add(rlg2mpl.Line(last, height, part.Start, height))
             if span.lost or (value is None and self.range_required):
                 continue
             if span.Reverse:
@@ -337,151 +296,56 @@ class _FeatureStyle(object):
                 (start, end) = (span.Start, span.End)
                 (tidy_start, tidy_end) = (span.tidy_start, span.tidy_end)
             shape = self._item_shape(
-                start*pixels_per_base, end*pixels_per_base,
-                tidy_start, tidy_end, height, value, yrange,
+                start, end,
+                tidy_start, tidy_end, height, value, yrange, rotated, 
                 last=i==len(map.spans)-1)
             g.add(shape)
             last = end
             if first is None:
                 first = start
         if self.showLabel and label and last is not None and height > 7:
-            label_shape = shapes.String(
-                    (first+last)/2*pixels_per_base, height/4+2, label,
-                    textAnchor="middle", fontSize=height/2-2)
-            # bug in getEast() - it thinks textAnchor=="left"
-            if ((label_shape.getEast()-label_shape.x) <
-                    abs(first-last)*pixels_per_base):
+            font_height = 12 #self.label_font.get_size_in_points()
+            text_width = llen(label, font_height)
+            if (text_width < abs(first-last)):
+                label_shape = Text(
+                    (first+last)/2, height/2, label,
+                    ha="center", va="center", 
+                    rotation=[0,90][rotated],
+                    #font_properties=self.label_font,
+                    )
                 g.add(label_shape)
             else:
                 log.info("couldn't fit feature label '%s'" % label)
         return g
-    
 
 class _VariableThicknessFeatureStyle(_FeatureStyle):
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, last=False):
+            yrange, rotated, last=False):
         if yrange:
             thickness = 1.0*value/yrange*height
         else:
             thickness = height*self.proportion_of_track
         return self._item_shape_scaled(start, end, tidy_start, tidy_end,
-                height/2, max(2, thickness), last)
+                height/2, max(2, thickness), rotated, last)
     
-
-class _End(object):
-    def __init__(self, x_near, x_far, y_first, y_second, **kw):
-        self.x_near = x_near
-        self.x_far = x_far
-        self.y_first = y_first
-        self.y_second = y_second
-        for (n, v) in kw.items():
-            setattr(self, n, v)
-    
-    def moveToStart(self, path):
-        path.moveTo(*self.startPoint())
-    
-    def drawToStart(self, path):
-        path.lineTo(*self.startPoint())
-    
-    def finish(self, path):
-        path.closePath()
-    
-    def startPoint(self):
-        return (self.x_near, self.y_first)
-    
-
-class Open(_End):
-    def finish(self, path):
-        self.drawToStart(path)
-    
-    def drawEnd(self, path):
-        path.moveTo(self.x_near, self.y_second)
-    
-
-class Square(_End):
-    def drawEnd(self, path):
-        path.lineTo(self.x_near, self.y_second)
-    
-
-class Rounded(_End):
-    def startPoint(self):
-        return (self.x_near + self.dx, self.y_first)
-    
-    def drawEnd(self, path):
-        path.curveTo(self.x_near, self.y_first, self.x_near, self.y_first,
-                self.x_near, self.y_first + self.dy)
-        path.lineTo(self.x_near, self.y_second - self.dy)
-        path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
-                self.x_near + self.dx, self.y_second)
-    
-
-class Pointy(_End):
-    def _effective_dx(self):
-        return max(abs(self.dx), abs(self.dy))*self.dx/abs(self.dx)
-    
-    def startPoint(self):
-        return (self.x_near + self._effective_dx(), self.y_first)
-    
-    def drawEnd(self, path):
-        head_start = self.x_near + self._effective_dx()
-        middle = (self.y_first + self.y_second) / 2
-        if self.blunt:
-            for (x, y) in [
-                    (head_start, self.y_first + self.dy),
-                    (self.x_near, self.y_first),
-                    (self.x_near, self.y_second),
-                    (head_start, self.y_second - self.dy),
-                    (head_start, self.y_second)]:
-                path.lineTo(x, y)
-        else:
-            for (x, y) in [
-                    (head_start, self.y_first + self.dy),
-                    (self.x_near, middle),
-                    (head_start, self.y_second - self.dy),
-                    (head_start, self.y_second)]:
-                path.lineTo(x, y)
-    
-
-def sign(x):
-    return x and x/abs(x)
-
 class Box(_VariableThicknessFeatureStyle):
     arrow = False
+    blunt = False
     
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
-            thickness, last):
-        p = shapes.Path(**self.opts)
-        ends = []
+            thickness, rotated, last):
         (top, bottom) = (middle+thickness/2, middle-thickness/2)
-        for (x1, x2, y1, y2, tidy, pointy) in [
-                (start, end, bottom, top, tidy_start, False),
-                (end, start, top, bottom, tidy_end, last and self.arrow)]:
-            inwards = sign(x2 - x1)
-            span = max(abs(x2 - x1), self.min_width)
-            if pointy:
-                head_size = min(thickness, span)
-                head_size = max(head_size, self.min_width/2)
-                height = thickness / self.proportion_of_track
-                spare = (height - thickness) / 2
-                end = Pointy(x1, x2, y1, y2,
-                        dx=inwards*head_size/2, dy=sign(y1-y2)*spare,
-                        blunt=self.blunt)
-            elif not self.closed:
-                end = Open(x1, x2, y1, y2)
-            elif tidy:
-                ry = thickness/4
-                rx = min(span, ry)
-                end = Rounded(x1, x2, y1, y2, dx=rx*inwards, dy=ry*sign(y2-y1))
-            else:
-                end = Square(x1, x2, y1, y2)
-            ends.append(end)
-        ends[0].moveToStart(p)
-        ends[0].drawEnd(p)
-        ends[1].drawToStart(p)
-        ends[1].drawEnd(p)
-        ends[0].finish(p)
-        return p
-    
+        kw = dict(min_width=self.min_width, pointy=False, closed=self.closed, 
+            blunt=self.blunt, proportion_of_track=self.proportion_of_track)
+        kw['rounded'] = tidy_start
+        #kw['closed'] = self.closed or tidy_start
+        end1 = rlg2mpl.End(start, end, bottom, top, **kw)
+        kw['rounded'] = tidy_end
+        #kw['closed'] = self.closed or tidy_end or self.filled
+        kw['pointy'] = last and self.arrow
+        end2 = rlg2mpl.End(end, start, top, bottom, **kw)
+        path = end1 + end2
+        return PathPatch(path, **rlg2mpl.line_options(**self.opts))   
 
 class Arrow(Box):
     arrow = True
@@ -494,44 +358,44 @@ class BluntArrow(Box):
 class Diamond(_VariableThicknessFeatureStyle):
     """diamond"""
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
-            thickness, last):
+            thickness, rotated, last):
         x = (start+end)/2
         spread = max(abs(start-end), self.min_width) / 2
-        return shapes.Polygon(
-            [x-spread, middle, x, middle+thickness/2, x+spread, middle, x,
-                    middle-thickness/2], **self.opts)
+        return rlg2mpl.Polygon(
+            [(x-spread, middle), (x, middle+thickness/2), (x+spread, middle), 
+            (x, middle-thickness/2)], **self.opts)
     
 
 class Line(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, last=False):
+            yrange, rotated, last=False):
         altitude = value * (height-1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
-        return shapes.Line(start, altitude, end, altitude, **self.opts)
+        return rlg2mpl.Line(start, altitude, end, altitude, **self.opts)
     
 
 class Area(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, last=False):
+            yrange, rotated, last=False):
         altitude = value * (height-1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
         if end < start:
             start, end = end, start
             tidy_start, tidy_end = tidy_end, tidy_start
-        return shapes.Rect(start, 0, end-start, altitude, **self.opts)
+        return rlg2mpl.Rect(start, 0, end-start, altitude, **self.opts)
     
 
 class DisplayPolicy(object):
     def _makeFeatureStyles(self):
         return {
             #gene structure
-            'misc_RNA': Box(True, colors.paleturquoise),
+            'misc_RNA': Box(True, colors.lightcyan),
             'precursor_RNA': Box(True, colors.lightcyan),
             'prim_transcript': Box(True, colors.lightcyan),
             "3'clip": Box(True, colors.lightcyan),
@@ -697,6 +561,8 @@ class DisplayPolicy(object):
     dont_merge = []
     show_text = None # auto
     colour_sequences = False
+    seqname = ''
+    rowlen = None
     
     def __init__(self,
             min_feature_height = 20,
@@ -705,6 +571,9 @@ class DisplayPolicy(object):
             keep_unexpected_tracks=None,
             **kw):
         
+        self.seq_font = FontProperties(size=10)
+        #self.label_font = FontProperties()
+
         if min_graph_height is None:
             min_graph_height = min_feature_height * 2
         
@@ -741,27 +610,28 @@ class DisplayPolicy(object):
         self.depth = 0
         self.orientation = -1
         self.show_code = True
-        self.show_alignment_scale = True
-        self.show_scale = True
         self._logged_drops = []
         
-        if kw:
-            self._setattrs(kw)
+        self._setattrs(**kw)
     
-    def _setattrs(self, kw):
+    def _setattrs(self, **kw):                 
         for (n,v) in kw.items():
+            if not hasattr(self, n):
+                warnings.warn('surprising kwarg "%s"' % n, stacklevel=3)
+            if n.endswith('font'):
+                assert isinstance(kw[n], FontProperties)
             setattr(self, n, v)
     
-    def included(self, **kw):
+    def copy(self, **kw):
         new = copy.copy(self)
-        new._setattrs(kw)
+        new._setattrs(**kw)
         return new
     
     def at(self, map):
         if map is None:
             return self
         else:
-            return self.included(map=self.map[map], depth=self.depth+1)
+            return self.copy(map=self.map[map], depth=self.depth+1)
     
     def mergeTracks(self, orig_tracks, keep_unexpected=None):
         # merge tracks with same names
@@ -801,16 +671,9 @@ class DisplayPolicy(object):
     
     def tracksForAlignment(self, alignment):
         annot_tracks = alignment.getAnnotationTracks(self)
-        seq_tracks = alignment.getChildTracks(
-                self.included(show_scale = not self.show_alignment_scale))
-        if self.show_alignment_scale:
-            own_tracks = [Track('scale',
-                    [Scale(self.map, len(alignment), self.orientation)],
-                    level=2, label='')]
-        else:
-            own_tracks = []
+        seq_tracks = alignment.getChildTracks(self)
         annot_tracks = self.mergeTracks(annot_tracks)
-        return seq_tracks + annot_tracks + own_tracks
+        return seq_tracks + annot_tracks
     
     def tracksForSequence(self, sequence=None):
         result = []
@@ -823,7 +686,6 @@ class DisplayPolicy(object):
         if self.show_code and sequence is not None:
             # this should be based on resolution, not rowlen, but that's all
             # we have at this point
-            # also these 2 tracks should be able to share a label.
             show_text = self.show_text
             if show_text is None:
                 show_text = self.rowlen <= 100
@@ -832,20 +694,14 @@ class DisplayPolicy(object):
                     colours = sequence.getColourScheme(colors)
                 else:
                     colours = {}
-                feature = Code(self.map, str(sequence), colours=colours)
-                label1 = label
-                label2 = ''
+                feature = Code(self.map, str(sequence), colours=colours,
+                    font_properties=self.seq_font)
             else:
-                feature = CodeLine(self.map, str(sequence))
-                label1 = label
-                label2 = ''
-            result.append(Track('seq', [feature], level=2, label=label1))
+                feature = CodeLine(self.map, sequence)
+            result.append(Track('seq', [feature], level=2, label=label))
         else:
-            label2 = label
-        if self.show_scale and length is not None:
-            result.append(Track('scale',
-                    [Scale(self.map, length, self.orientation)],
-                    level=2, label=label2))
+            pass
+            # show label somewhere
         
         annot_tracks = sequence.getAnnotationTracks(self)
         annot_tracks = self.mergeTracks(annot_tracks)
@@ -893,28 +749,30 @@ class DisplayPolicy(object):
                 label=variable.Name, level=level)]
     
 
-class Display(object):
+class Display(rlg2mpl.Drawable):
     """Holds a list of tracks and displays them all aligned"""
     
     def __init__(self, base, policy=DisplayPolicy, _policy=None, pad=1,
-            yrange=None, label_width=None, **kw):
+            yrange=None, **kw):
         self.pad = pad
         self.base = base
         self.yrange = yrange
-        self.label_width = label_width
         assert len(base) > 0, len(base)
         
         if _policy is None:
-            policy = policy(**kw).included(
+            policy = policy(**kw).copy(
                 map=Map([(0, len(base))], parent_length=len(base)),
-                        depth=0, rowlen=len(base))
+                depth=0, 
+                rowlen=len(base))
         else:
             policy = _policy
         self.policy = policy
+        self.smap=Map([(0, len(base))], parent_length=len(base))
+
         self._calc_tracks()
     
     def __len__(self):
-        return len(self.policy.map.inverse())
+        return len(self.smap.inverse())
     
     def _calc_tracks(self):
         y = 0
@@ -934,113 +792,114 @@ class Display(object):
             for (y, ym, p) in self._tracks:
                 self.yrange[p.tag] = max(self.yrange.get(p.tag, 0), p.range)
         
-        if self.label_width is None:
-            self.label_width = 0
-            for (y, ym, p) in self._tracks:
-                self.label_width = max(self.label_width,
-                        shapes.String(0, 0, p.label).getEast()+2)
-    
-    def included(self, **kw):
-        import copy
+    def copy(self, **kw):
         new = copy.copy(self)
-        new.policy = self.policy.included(**kw)
+        new.policy = self.policy.copy(**kw)
         new._calc_tracks()
         return new
     
     def __getitem__(self, slice):
-        return self.included(map=self.policy.map.inverse()[slice].inverse())
-    
-    def shape(self, label_width, data_width, border=True):
-        offset = 0
-        g = shapes.Group()
+        c = copy.copy(self)
+        c.smap = self.smap.inverse()[slice].inverse()
+        return c
         
-        if border:
-            g.add(shapes.Rect(label_width, offset, data_width, self.height,
-                fillColor=None, strokeWidth=.5, strokeColor=colors.black))
-        
+    def makeArtist(self, vertical=False):
+        g = rlg2mpl.Group()
         for (y, ym, p) in self._tracks:
-            if p.height>8 and label_width:
-                g.add(shapes.String(0, offset+ym-5, p.label))
-            for s in p.getShapes(data_width, self.policy.rowlen,
-                    float(p.height), yrange=self.yrange[p.tag]):
-                s.translate(label_width, float(y+offset))
+            smap = self.smap.inverse()
+            for s in p.getShapes(
+                    span=(smap.Start, smap.End),
+                    rotated=vertical,
+                    height=float(p.height), 
+                    yrange=self.yrange[p.tag]):
+                trans = matplotlib.transforms.Affine2D()
+                trans.translate(0, y)
+                s.set_transform(s.get_transform() + trans)
                 g.add(s)
+        if vertical:
+            g.rotate(90)
+            g.scale(-1.0, 1.0)
         return g
     
-    def asShapes(self, total_width, rowlen=None, wraps=None,
-                border=True, withTrackLabelColumn=True):
-        # Yields ReportLab group objects, one per wrap of the alignment.
-        # Wrapping is caused by setting 'wraps' or 'rowlen'.
-        if withTrackLabelColumn:
-            label_width = self.label_width
-        else:
-            label_width = 0
+    def asAxes(self, fig, posn, labeled=True, **kw):
+        ax = fig.add_axes(posn)
+        self.applyScaleToAxes(ax, labeled=labeled, **kw)
+        group = self.makeArtist(**kw)
+        ax.add_artist(group)
+        return ax
         
-        data_width = float(total_width) - label_width
-        if data_width <= 0:
-            raise ValueError('margins plus labels too wide')
-        seq_length = len(self)
-        assert seq_length
-        if wraps:
-            assert not rowlen
-            rowlen = seq_length / wraps
-            pixels_per_base = 1.0 * data_width / rowlen
-            step = nice_round_step(pixels_per_base/wraps)
-            rowlen = (rowlen-1 - (rowlen-1) % step) + step
-        if not rowlen:
-            rowlen = seq_length
-        wraps = seq_length / rowlen
-        if seq_length % rowlen:
-            wraps += 1
-        
-        self = self.included(rowlen=rowlen)
-        
-        if wraps > 1:
-            for i in range(wraps):
-                s = self[i*rowlen:(i+1)*rowlen]
-                g2 = s.shape(label_width, data_width, border=border)
-                yield g2
+    def applyScaleToAxes(self, ax, labeled=True, vertical=False):
+        (seqaxis, trackaxis) = [ax.xaxis, ax.yaxis]
+        if vertical:
+            (seqaxis, trackaxis) = (trackaxis, seqaxis) 
+
+        if not labeled:
+            trackaxis.set_ticks([])
         else:
-            yield self.shape(label_width, data_width, border=border)
-    
-    def asShape(self, total_width, border=True, withTrackLabelColumn=True):
-        result = list(self.asShapes(total_width,
-                border=border, withTrackLabelColumn=withTrackLabelColumn))
-        assert len(result) == 1
-        return result[0]
-    
-    def asDrawing(self, total_width, rowlen=None, wraps=None, margin=10,
-                border=True, withTrackLabelColumn=True):
-        panels = self.asShapes(total_width-2*margin, rowlen=rowlen, wraps=wraps,
-                border=border, withTrackLabelColumn=withTrackLabelColumn)
-        panels = list(panels)
-        wraps = len(panels)
-        if wraps == 1:
-            g = panels[0]
+            track_positions = []
+            track_labels = []
+            for (y, ym, p) in self._tracks:
+                if p.height > 8:
+                    track_labels.append(p.label)
+                    track_positions.append(ym)
+            trackaxis.set_ticks(track_positions)
+            trackaxis.set_ticklabels(track_labels)
+            
+        seqaxis.set_major_formatter(
+            matplotlib.ticker.FuncFormatter(lambda x,pos:str(int(x))))
+        
+        smap = self.smap.inverse()
+        seq_lim = (smap.Start, smap.End)
+        if vertical:
+            ax.set_ylim(*seq_lim)
+            ax.set_xlim(0, self.height)
         else:
-            g = shapes.Group()
-            for (i,d) in enumerate(panels):
-                offset = (wraps-i-1) * (self.height+margin)
-                d.translate(0.0, offset)
-                g.add(d)
-        g.translate(margin, margin)
-        D = shapes.Drawing(total_width, self.height*wraps+margin*(wraps+2))
-        D.add(g)
-        return D
+            ax.set_xlim(*seq_lim)
+            ax.set_ylim(0, self.height)
     
-    def asDrawings(self, total_width, rowlen=None, wraps=None, margin=0,
-                border=True, withTrackLabelColumn=True):
-        panels = self.asShapes(total_width-2*margin, rowlen=rowlen, wraps=wraps,
-                border=border, withTrackLabelColumn=withTrackLabelColumn)
-        for g in panels:
-            g.translate(margin, margin)
-            D = shapes.Drawing(total_width, self.height+2*margin)
-            D.add(g)
-            yield D
+    def figureLayout(self, labeled=True, vertical=False, width=None, 
+            height=None, left=None, **kw):
+
+        if left is None:
+            if labeled:
+                left = max(len(p.label) for (y, ym, p) in self._tracks)
+                left *= 12/72 * .5 # guess mixed chars, 12pt, inaccurate!
+            else:
+                left = 0
+            
+        height = height or self.height/72
+        
+        useful_width = len(self)*16/72 # ie bigish font, wide chars
+        
+        fkw = dict(leftovers=True, width=width, height=height, left=left, 
+                useful_width=useful_width, **kw)  
+        (w,h),posn,kw = rlg2mpl.figureLayout(**fkw)
+        
+        #points_per_base = w * posn[3] / len(self)
+        if vertical:
+            (w, h) = (h, w)
+            posn[0:2] = reversed(posn[0:2])
+            posn[2:4] = reversed(posn[2:4])
+        return (w, h), posn, kw
     
-    def drawToPDF(self, filename, total_width, *args, **kw):
-        """rowlen=None, wraps=None, margin=10, border=True,
-        withTrackLabelColumn=True"""
-        D = self.asDrawing(total_width, *args, **kw)
-        renderPDF.drawToFile(D, filename)
+    def makeFigure(self, width=None, height=None, rowlen=None, **kw):
+        if rowlen:
+            rows = [self[i:i+rowlen] for i in range(0, len(self), rowlen)]
+        else:
+            rows = [self]
+            rowlen = len(self)
+        kw.update(width=width, height=height)
+        ((width, height), (x, y, w, h), kw) = self.figureLayout(**kw)
+        N = len(rows)
+        # since scales go below and titles go above, each row
+        # gets the bottom margin, but not the top margin.
+        vzoom = 1 + (y+h) * (N-1)
+        fig = self._makeFigure(width, height * vzoom)
+        for (i, row) in enumerate(rows):
+            i = len(rows) - i - 1
+            posn = [x, (y+i*(y+h))/vzoom, w*len(row)/rowlen, h/vzoom]
+            row.asAxes(fig, posn, **kw)
+        return fig
     
+        
+        

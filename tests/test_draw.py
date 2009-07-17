@@ -2,12 +2,7 @@
 
 from cogent import DNA
 from cogent.core import alignment, alphabet, annotation
-from cogent.draw import *
-
-from reportlab.platypus import Paragraph, SimpleDocTemplate, KeepTogether, Spacer
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.pagesizes import A4
-from xml.sax.saxutils import escape
+from cogent.draw.linear import *
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -19,7 +14,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-WIDTH = A4[0] - 40
+interactive = True
+if not interactive:
+    import matplotlib
+    matplotlib.use('Agg') # or PDF
 
 def makeSampleSequence():
     seq = DNA.makeSequence('aaaccggttt' * 10)
@@ -49,71 +47,54 @@ b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [((0,15),1.5),((15,3
 
 align = makeSampleAlignment()
 
-title_style = ParagraphStyle('normal')
-story = []
+def fig(msg, seq_display, **kw):
+    if interactive:
+        seq_display.showFigure(title=msg, top=.5, **kw)
+    else:
+        seq_display.makeFigure(top=.5, **kw).savefig('draw test %s.pdf' % msg)
 
-def fig(msg, seq_display, width=WIDTH, **kw):
-    kw['total_width'] = width
-    kw['margin'] = 10
-    msg = '<para>' + escape(msg + ' ' + repr(kw)) + '</para>'
-    story.append(KeepTogether([
-        seq_display.asDrawing(**kw),
-        Paragraph(msg, ParagraphStyle(title_style, leftIndent=10)),
-    ]))
-    story.append(Spacer(30, 30))
+# TREES
 
-doc = SimpleDocTemplate("draw.test.pdf",
-        leftMargin=10, rightMargin=10, pagesize=A4)
+from cogent import LoadTree
+treestring = "((A:.1,B:.22)ab:.3,((C:.4,D:.5)cd:.55,E:.6)cde:.7,F:.2)"
+for edge in 'ABCDEF':
+    treestring = treestring.replace(edge, edge+edge.lower()*10)
+t = LoadTree(treestring=treestring)
+from cogent.draw.dendrogram import *
+for klass in [
+        UnrootedDendrogram, 
+        SquareDendrogram, 
+        ContemporaneousDendrogram, 
+        ShelvedDendrogram, 
+#        StraightDendrogram, 
+#        ContemporaneousStraightDendrogram
+    ]:
+    fig(klass.__name__, klass(t), shade_param="length", 
+        show_params=["length"])
 
-for obj in [seq, align]:
-    disp = Display(obj, min_feature_height=10)
-    fig('small', disp, width=200)
-    fig('normal', disp)
-    fig('colour', Display(obj, colour_sequences=True))
-    fig('wrapped', disp, rowlen=50)
-    fig('wrappped slice of display', disp[10:50], rowlen=20)
-    fig('slice of display', disp[10:50])
-    fig('slice of %s' % type(obj).__name__, Display(obj[10:50]))
+def callback(edge):
+    return ["blue", "red"][edge.Name.startswith("A")]
+
+fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
+
+seqd = Display(seq)
+alignd = Display(align, min_feature_height=10, colour_sequences=True)
+fig('sequence wrapped at 50', seqd, rowlen=50)
+small = FontProperties(size=7, stretch='extra-condensed')
+fig('squashed sequence', seqd.copy(seq_font=small), width=300/72)
+fig('seq display slice from 10 to 50', seqd[10:50])
+fig('coloured alignment', alignd)
 
 # LEGEND
-story.append(Spacer(20, 20))
-story.append(KeepTogether([
-            Legend().asDrawing(WIDTH),
-            Paragraph('<para>Legend with default DisplayPolicy</para>',
-                     ParagraphStyle(title_style, leftIndent=10)),
-          ]))
-story.append(Spacer(20, 20))
+from cogent.draw.legend import Legend
+fig('Feature Legend', Legend())
 
 # DOTPLOT
 
 from cogent.draw.dotplot import Display2D
-fig('2d', Display2D(seq, seq))
+fig('2d', Display2D(seq, seq[:40]))
 
 #fig('reversed', Display(seq[50:10]), 500)
 # no good because seqs slice like lists: ie len==0
 # complement() probably doesn't know about annotations either.
 
-# TREES
-def tree_fig(msg, seq_display, **kw):
-    msg = '<para>' + escape(msg + ' ' + repr(kw)) + '</para>'
-    story.append(KeepTogether([
-            seq_display.asDrawing(width=WIDTH, height=200, **kw),
-            Paragraph(msg, ParagraphStyle(title_style)),
-        ]))
-    story.append(Spacer(20, 20))
-
-from cogent import LoadTree
-t = LoadTree(treestring="((A:1,B:2)ab:3,((C:4,D:5)cd:5.5,E:6)cde:7,F:2)")
-from cogent.draw.dendrogram import *
-for klass in [UnrootedDendrogram, SquareDendrogram, ContemporaneousDendrogram, ShelvedDendrogram, StraightDendrogram,
-    ContemporaneousStraightDendrogram]:
-    tree_fig(klass.__name__ + ' Color', klass(t), shade_param="length")
-    tree_fig(klass.__name__ + ' Label', klass(t), show_params=["length"])
-
-def callback(edge):
-    return ["blue", "red"][edge.Name=="A"]
-tree_fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
-
-doc.build(story)
-
-#top = ComparisonDisplay(d, d).shape(300)

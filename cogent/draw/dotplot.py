@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-from reportlab.graphics import shapes, renderPDF
-from reportlab.lib import colors
-
-from cogent.draw import Scale, Display
-from cogent.align.align import dotplot
-
+from __future__ import division
 import logging
+import warnings
+
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+
+from cogent.draw.linear import Display
+from cogent.draw.rlg2mpl import Drawable, figureLayout
+from cogent.align.align import dotplot
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -35,84 +38,115 @@ def suitable_threshold(window, desired_probability):
             break
     return matches
 
-def comparison_display(t1, t2, total_width, margin=10):
-    """'Fat' annotated X and Y axes for a dotplot"""
-    left = max(t1.label_width, t2.height)
-    bottom = max(t2.label_width, t1.height)
-    width = total_width-2*margin-left
-    g1 = t1.asShape(width+t1.label_width)
-    scale = 1.0*width/len(t1.base)
-    height = scale * len(t2.base)
-    g2 = t2.asShape(height, withTrackLabelColumn=False)
+def _reinchify(figsize, posn, *args):
+    (fw, fh) = figsize
+    (x,y,w,h) = posn
+    return [fw*x, fh*y, fw*w, fh*h]
     
-    g1.translate(left+margin-t1.label_width, bottom+margin-t1.height)
+def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
+    """'Fat' annotated X and Y axes for a dotplot
     
-    g2.transform = (0.0, 1.0, -1.0, 0.0, left+margin, margin+bottom)
+    Returns a matplotlib axes object placed and scaled ready for plotting 
+    a sequence vs sequence comparison between the sequences (or alignments) 
+    seq1 and seq2, which are also displayed. The longest dimension of the 
+    figure will be inches + 2*margin and its aspect ratio will depend on the 
+    sequence lengths as the sequences are drawn to the same scale"""
     
-    D = shapes.Drawing(total_width, height+bottom+2*margin)
-    D.add(g1)
-    D.add(g2)
+    import matplotlib.pyplot as plt
     
-    D.add(shapes.Rect(margin+left, margin+bottom, width, height,
-        strokeWidth=0.5, fillColor=None))
-    return (D, left, bottom, scale)
+    if not isinstance(seq1, Display): seq1 = Display(seq1)
+    if not isinstance(seq2, Display): seq2 = Display(seq2)
+    
+    (x1, y1, w1, h1) = _reinchify(*seq1.figureLayout(
+        labeled=True, bottom=bottom, margin=0))
+    (x2, y2, w2, h2) = _reinchify(*seq2.figureLayout(
+        labeled=False, bottom=left, margin=0))
+    
+    # equalize points-per-base scales to get aspect ratio 1.0
+    ipb = min(w1/len(seq1), w2/len(seq2))
+    (w1, w2) = ipb*len(seq1), ipb*len(seq2)
+    
+    # Figure with correct aspect
+    # Indent enough for labels and/or vertical display
+    (w,h), posn = figureLayout(width=w1, height=w2,
+        left=max(x1,y2+h2), bottom=y1+h1, **kw)
+    fig = plt.figure(figsize=(w,h), facecolor='white')
+    
+    fw = fig.get_figwidth()
+    fh = fig.get_figheight()
+    # 2 sequence display axes
+    x = seq1.asAxes(fig, [posn[0], posn[1]-h1/fh, posn[2], h1/fh])
+    y = seq2.asAxes(fig, [posn[0]-h2/fw, posn[1], h2/fw, posn[3]], 
+        vertical=True, labeled=False)
+    
+    # and 1 dotplot axes
+    d = fig.add_axes(posn, sharex=x, sharey=y)
+    d.xaxis.set_visible(False)
+    d.yaxis.set_visible(False)
+    return d
 
-class Display2D(object):
+class Display2D(Drawable):
     def __init__(self, seq1, seq2):
         self.seq1 = seq1
         self.seq2 = seq2
-        self.d1 = Display(self.seq1)
-        self.d2 = Display(self.seq2)
-        self.label_width = self.d1.label_width
         self._cache = {}
     
-    def _calc_lines(self, scale, window, threshold, join_gaps):
+    def _calc_lines(self, window, threshold, min_gap):
         # Cache dotplot line segment coordinates as they can sometimes
         # be re-used at different resolutions, colours etc.
         (len1, len2) = (len(self.seq1), len(self.seq2))
         if threshold is None:
             universe = (len1-window) * (len2-window)
-            acceptable_noise = 1.0*min(len1, len2)/window
+            acceptable_noise = min(len1, len2) / window
             threshold = suitable_threshold(window, acceptable_noise/universe)
             LOG.info('require %s / %s bases' % (threshold, window))
             LOG.info('expect %s / %s matching' % (acceptable_noise, universe))
-        
-        if join_gaps:
-            min_gap = int(1.0/scale)
-        else:
-            min_gap = 0
         
         key = (min_gap, window, threshold)
         if not self._cache.has_key(key):
             fwd = dotplot(self.seq1._seq, self.seq2._seq,
                     window, threshold, min_gap, None, False)
             if hasattr(self.seq1, "reversecomplement"):
-                rev = dotplot(self.seq1.reversecomplement()._seq, self.seq2._seq,
-                        window, threshold, min_gap, None, False)
-                rev = [((len1-x1,y1), (len1-x2,y2)) for ((x1,y1), (x2,y2)) in rev]
+                rev = dotplot(self.seq1.reversecomplement()._seq, 
+                        self.seq2._seq, window, threshold, min_gap, None, False)
+                rev = [((len1-x1,y1),(len1-x2,y2)) for ((x1,y1),(x2,y2)) in rev]
             else:
                 rev = []
             self._cache[key] = (fwd, rev)
         
         return self._cache[key]
-    
-    def asDrawing(self, total_width=600, margin=20, window=20, join_gaps=True):
-        """Drawing of a dotplot with annotated axes"""
-        (D, x, y, scale) = comparison_display(self.d1, self.d2, total_width=total_width, margin=margin)
-        LOG.info('scale %s' %  scale)
-        (fwd, rev) = self._calc_lines(scale, window, None, join_gaps)
+                
+    def makeFigure(self, window=20, join_gaps=None, min_gap=0, **kw):
+        """Drawing of a line segment based dotplot with annotated axes"""
+        # hard to pick min_gap without knowing pixels per base, and
+        # matplotlib is reasonably fast anyway, so:
+        if join_gaps is not None:
+            warnings.warn('"join_gaps" no longer does anything', 
+                    DeprecationWarning, stacklevel=2)
+        ax = comparison_display(self.seq1, self.seq2, **kw)
+        (fwd, rev) = self._calc_lines(window, None, min_gap)
         LOG.info('lines %s fwd, %s rev' % (len(fwd), len(rev)))
-        g = shapes.Group()
-        for lines, colour in [(fwd, colors.blue), (rev, colors.red)]:
-            for ((x1,y1), (x2,y2)) in lines:
-                g.add(shapes.Line(x1, y1, x2, y2,
-                    strokeWidth=1.0/scale, strokeColor=colour))
-        g.translate(margin+x, margin+y)
-        g.scale(scale, scale)
-        D.add(g)
-        return D
+        for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:
+            vertices = []
+            for segment in lines:
+                vertices.extend(segment)
+            if vertices:
+                ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
+                path = Path(vertices, ops)
+                patch = PathPatch(path, edgecolor=colour, fill=False)
+                ax.add_patch(patch)
+        return ax.get_figure()
     
-    def drawToPDF(self, filename, *args, **kw):
-        D = self.asDrawing(*args, **kw)
-        renderPDF.drawToFile(D, filename)
-    
+    def simplerMakeFigure(self):
+        """Drawing of a matrix style dotplot with annotated axes"""
+        import numpy
+        ax = comparison_display(self.seq1, self.seq2)
+        alphabet = self.seq1.MolType.Alphabet
+        seq1 = alphabet.toIndices(self.seq1)
+        seq2 = alphabet.toIndices(self.seq2)
+        ax.pcolorfast(numpy.equal.outer(seq2, seq1))
+        return ax.get_figure()
+        
+        
+        
+        

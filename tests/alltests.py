@@ -168,12 +168,14 @@ def suite():
         ]
         
     try:
-        import reportlab
+        import matplotlib
     except:
-        print >>sys.stderr, "No reportlab so not running test_draw.py"
+        print >>sys.stderr, "No matplotlib so not running test_draw.py"
     else:
-        # modules_to_test.append('test_draw')
-        pass
+        matplotlib.use('Agg') # non interactive
+        # test_draw not yet structured as unit tests
+        #modules_to_test.append('test_draw')
+
     #Try importing modules for app controllers
     apps = [('blastall','test_blast'),
             ('carnac', 'test_carnac'),
