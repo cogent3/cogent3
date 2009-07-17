@@ -1,12 +1,13 @@
 #!/usr/bin/env python
+
+from __future__ import division
 from cogent.core import moltype, annotation
 
+from matplotlib.collections import PatchCollection
+from matplotlib.text import Text
+from matplotlib.transforms import Affine2D
+from cogent.draw.rlg2mpl import Group, Drawable, figureLayout
 from cogent.draw.linear import Display, DisplayPolicy
-
-from reportlab.lib import colors
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Table
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.pagesizes import A4
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -17,28 +18,13 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-class Legend(object):
+class Legend(Drawable):
     """A class for drawing a legend for a display policy
     
     Arguments:
         - policy: a reference to a Display policy class"""
     def __init__(self, policy = DisplayPolicy):
         self.policy = policy
-        self.table_style = [
-                ('GRID',(0,0),(-1,-1),0.5,colors.grey),
-                ('VALIGN',(0,0),(-1,-1),'MIDDLE'),]
-    
-    def _reformat_table(self, table_data, columns):
-        new=[]
-        padding_req = (columns) - (len(table_data) % (columns))
-        if padding_req != columns:
-            table_data += padding_req*[["",""]]
-        for i in range(columns-1,len(table_data),columns):
-            row = []
-            for j in range(i-(columns-1),i+1,1):
-                row += table_data[j]
-            new.append(row)
-        return new
     
     def _makeSampleSequence(self, feature_type):
         seq = moltype.DNA.makeSequence('aaaccggttt' * 7)
@@ -49,63 +35,55 @@ class Legend(object):
         v = seq.addAnnotation(annotation.Feature,
                 feature_type, feature_type, [(20,70)])
         return seq
-    
-    def _makeSubTable(self, track, columns, column_width):
-        diagram_width = column_width * 0.8
-        if track.tag is None:
-            return None
-        temp_table_data = []
-        for feature in track:
-            if feature == 'blueline' or feature == 'redline':
-                continue
-            seq = self._makeSampleSequence(feature)
-            label = Paragraph(feature, ParagraphStyle('normal'))
-            display = Display(seq,
-                    policy = self.policy,
-                    label_width = 0,
-                    min_feature_height = 10,
-                    show_scale = False,
-                    show_code = False,
-                    pad = 0,)
-            sample = display.asDrawing(
-                    total_width=diagram_width,
-                    margin=0,
-                    withTrackLabelColumn=False,
-                    border=False,),
-            temp_table_data.append([label, sample])
-        table_data = [
-            [Paragraph("<b>"+track.tag+"</b>", ParagraphStyle('normal'))] +
-            (2 * columns - 1) * [""]]
-        return table_data + self._reformat_table(temp_table_data, columns)
-    
-    def asDrawing(self, total_width, columns = 3):
-        """ Returns the legend as a reportlab.platypus table
+        
+    def populateAxes(self, ax, columns = 3):
+        """ Returns the legend as a matplotlib artist
         Arguments:
-            - total_width: the width of the table in points
             - columns: the number of columns of feature / representation
               pairs
         """
-        column_width = total_width / (columns *2)
-        table_data = []
+        ax.set_xlim(0, 600)
+        ax.set_ylim(-800, 50)
+        result = []
+        x = y = 0
         for track in self.policy()._makeTrackDefns():
-            sub_table = self._makeSubTable(track, columns, column_width)
-            if sub_table:
-                table_data += sub_table
+            if track.tag is None or track.tag=="Graphs":
+                continue
+            ax.text(10, y*30, track.tag)
+            y -= 1
+            for feature in track:
+                seq = self._makeSampleSequence(feature)
+                display = Display(seq,
+                        policy = self.policy,
+                        min_feature_height = 10,
+                        show_code = False,
+                        pad = 0,)
+                sample = display.makeArtist()
+                #trans = sample.get_transform()
+                #offset = Affine2D()
+                #offset.translate(x*600+20 / columns, y*30)
+                sample.translate(x*600/columns+10, y*30)
+                ax.add_artist(sample)
+                ax.text(x*600/columns+90, y*30, feature)
+                x += 1
+                if x % columns == 0:
+                    x = 0
+                    y -= 1
+            if x:
+                x = 0
+                y -= 1
+            ax.axhline((y+.7)*30)
+    
+    def makeFigure(self, margin=0, default_aspect=1.3, **kw):
+        kw['margin'] = margin
+        kw['default_aspect'] = default_aspect
+        (width, height), posn, kw = figureLayout(leftovers=True, **kw)
+        fig = self._makeFigure(width, height)
+        ax = fig.add_axes(posn, adjustable="datalim",
+            frame_on=False, xticks=[], yticks=[])
+        g = self.populateAxes(ax, **kw)
+        return fig
         
-        return Table(table_data,
-                columns*[column_width,column_width],
-                style=self.table_style)
+if __name__ == '__main__':
+    Legend().showFigure()
     
-    def drawToPDF(self, filename, pagesize=A4, *args, **kw):
-        """ Writes the Legend to a file
-        Arguments:
-            - filename: the name of the file
-            - pagesize: a tuple of the page dimentions (in points)
-              Default is A4
-            - columns: the number of columns of feature / representation
-              pairs"""
-        doc = SimpleDocTemplate(filename,leftMargin=10, rightMargin=10,
-                pagesize=pagesize)
-        doc.build([self.asDrawing(pagesize[0]*0.8, *args, **kw)])
-    
-

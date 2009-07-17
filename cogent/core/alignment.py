@@ -2300,7 +2300,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         tracks =  []
         for label in self.Names:
             seq = self.NamedSeqs[label]
-            tracks += seq.getTracks(policy.included(seqname=label))
+            tracks += seq.getTracks(policy.copy(seqname=label))
         return tracks
     
     
