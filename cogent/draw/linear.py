@@ -563,6 +563,7 @@ class DisplayPolicy(object):
     colour_sequences = False
     seqname = ''
     rowlen = None
+    recursive = True
     
     def __init__(self,
             min_feature_height = 20,
@@ -671,7 +672,10 @@ class DisplayPolicy(object):
     
     def tracksForAlignment(self, alignment):
         annot_tracks = alignment.getAnnotationTracks(self)
-        seq_tracks = alignment.getChildTracks(self)
+        if self.recursive:
+            seq_tracks = alignment.getChildTracks(self)
+        else:
+            seq_tracks = []
         annot_tracks = self.mergeTracks(annot_tracks)
         return seq_tracks + annot_tracks
     
@@ -844,6 +848,10 @@ class Display(rlg2mpl.Drawable):
                     track_positions.append(ym)
             trackaxis.set_ticks(track_positions)
             trackaxis.set_ticklabels(track_labels)
+            if vertical:
+                for tick in trackaxis.get_major_ticks():
+                    tick.label1.set_rotation('vertical')
+                    tick.label2.set_rotation('vertical')
             
         seqaxis.set_major_formatter(
             matplotlib.ticker.FuncFormatter(lambda x,pos:str(int(x))))
