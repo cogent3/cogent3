@@ -126,18 +126,20 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
         return (total_width, total_height), posn
 
 class Drawable(object):
-    # Superclass for objects which can generate a matplotlib figure, in order to supply
-    # consistent and convenient showFigure() and drawToFile() methods.
-    # Subclasses must provide .makeFigure() which will make use of _makeFigure()
-    # matplotlib.pyplot import done at runtime to give the user every chance
-    # to change the matplotlib backend first
-       
+    # Superclass for objects which can generate a matplotlib figure, in order 
+    # to supply consistent and convenient showFigure() and drawToFile() 
+    # methods.
+    # Subclasses must provide .makeFigure() which will make use of 
+    # _makeFigure() matplotlib.pyplot import done at runtime to give the 
+    # user every chance to change the matplotlib backend first
     def _makeFigure(self, width, height, **kw):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(width,height), facecolor='white')
         return fig
                 
     def showFigure(self, title=None, **kw):
+        """Make the figure and immediately pyplot.show() it.  
+        Extra arguments are forwarded to self.makeFigure()"""
         import matplotlib.pyplot as plt
         fig = self.makeFigure(**kw)
         if title is not None:
@@ -145,7 +147,9 @@ class Drawable(object):
         plt.show()
         
     def drawToFile(self, fname, **kw):
-        """Save in a file named 'fname'"""
+        """Save in a file named 'fname'
+        Extra arguments are forwarded to self.makeFigure() unless 
+        they are valid for savefig()"""
         makefig_kw = {}
         savefig_kw = {}
         for (k,v) in kw.items():
