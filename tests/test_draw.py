@@ -4,6 +4,9 @@ from cogent import DNA
 from cogent.core import alignment, alphabet, annotation
 from cogent.draw.linear import *
 
+from cogent import LoadTree
+from cogent.draw.dendrogram import *
+
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
@@ -17,7 +20,8 @@ __status__ = "Production"
 interactive = True
 if not interactive:
     import matplotlib
-    matplotlib.use('Agg') # or PDF
+    matplotlib.use('PDF') # or Agg
+    file_ext = "pdf" # or png
 
 def makeSampleSequence():
     seq = DNA.makeSequence('aaaccggttt' * 10)
@@ -51,50 +55,69 @@ def fig(msg, seq_display, **kw):
     if interactive:
         seq_display.showFigure(title=msg, top=.5, **kw)
     else:
-        seq_display.makeFigure(top=.5, **kw).savefig('draw test %s.pdf' % msg)
+        fname = 'draw_test_%s.%s' % (msg.replace(' ', '_'), file_ext)
+        seq_display.makeFigure(**kw).savefig(fname)
 
-# TREES
+def test_seqs():
+    seqd = Display(seq)
+    fig('sequence wrapped at 50', 
+        seqd, rowlen=50)
+    small = FontProperties(size=7, stretch='extra-condensed')
+    fig('squashed sequence', 
+        seqd.copy(seq_font=small, colour_sequences=True))
+    fig('seq display slice from 10 to 50', 
+        seqd[10:50])
+    
+    alignd = Display(align, colour_sequences=True, min_feature_height=10)
+    fig('coloured text alignment', 
+        alignd)
+    fig('coloured dot alignment', 
+        alignd.copy(show_text=False))
+    fig('alignment with lines only', 
+        alignd.copy(show_text=False, colour_sequences=False))
 
-from cogent import LoadTree
-treestring = "((A:.1,B:.22)ab:.3,((C:.4,D:.5)cd:.55,E:.6)cde:.7,F:.2)"
-for edge in 'ABCDEF':
-    treestring = treestring.replace(edge, edge+edge.lower()*10)
-t = LoadTree(treestring=treestring)
-from cogent.draw.dendrogram import *
-for klass in [
-        UnrootedDendrogram, 
-        SquareDendrogram, 
-        ContemporaneousDendrogram, 
-        ShelvedDendrogram, 
-#        StraightDendrogram, 
-#        ContemporaneousStraightDendrogram
-    ]:
-    fig(klass.__name__, klass(t), shade_param="length", 
-        show_params=["length"])
-
-def callback(edge):
-    return ["blue", "red"][edge.Name.startswith("A")]
-
-fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
-
-seqd = Display(seq)
-alignd = Display(align, min_feature_height=10, colour_sequences=True)
-fig('sequence wrapped at 50', seqd, rowlen=50)
-small = FontProperties(size=7, stretch='extra-condensed')
-fig('squashed sequence', seqd.copy(seq_font=small), width=300/72)
-fig('seq display slice from 10 to 50', seqd[10:50])
-fig('coloured alignment', alignd)
 
 # LEGEND
-from cogent.draw.legend import Legend
-fig('Feature Legend', Legend())
+def test_legend():
+    from cogent.draw.legend import Legend
+    fig('Feature Legend', Legend())
 
 # DOTPLOT
 
-from cogent.draw.dotplot import Display2D
-fig('2d', Display2D(seq, seq[:40]))
+def test_dotplot():
+    from cogent.draw.dotplot import Display2D
+    fig('2d', Display2D(seq, seq[:40]))
 
 #fig('reversed', Display(seq[50:10]), 500)
 # no good because seqs slice like lists: ie len==0
 # complement() probably doesn't know about annotations either.
 
+# TREES
+
+def test_trees():
+    treestring = "((A:.1,B:.22)ab:.3,((C:.4,D:.5)cd:.55,E:.6)cde:.7,F:.2)"
+    for edge in 'ABCDEF':
+        treestring = treestring.replace(edge, edge+edge.lower()*10)
+    t = LoadTree(treestring=treestring)
+    for klass in [
+            UnrootedDendrogram, 
+            SquareDendrogram, 
+            ContemporaneousDendrogram, 
+            ShelvedDendrogram, 
+    #        StraightDendrogram, 
+    #        ContemporaneousStraightDendrogram
+        ]:
+        fig(klass.__name__, klass(t), shade_param="length", 
+            show_params=["length"])
+    
+    def callback(edge):
+        return ["blue", "red"][edge.Name.startswith("A")]
+    
+    fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
+    
+if __name__ == '__main__':
+    test_seqs()
+    test_legend()
+    test_dotplot()
+    test_trees()
+    

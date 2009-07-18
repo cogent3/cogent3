@@ -8,6 +8,8 @@ import matplotlib.transforms
 from matplotlib.text import Text
 from matplotlib.patches import PathPatch
 from matplotlib.font_manager import FontProperties
+from matplotlib.collections import CircleCollection
+from matplotlib.transforms import IdentityTransform
 
 import copy
 import logging
@@ -183,11 +185,26 @@ class Code(Annotation):
         for (i,c) in enumerate(values):
             s = Text(
                 x_offset+i, y_offset, c,
-                color=self.colours.get(c, colors.black),
+                color=self.colours.get(c, 'black'),
                 ha='center', va='baseline', rotation=rot,
                 font_properties=self.font_properties)
             g.add(s)
         return g 
+
+class CodeDots(Code):
+    def _item_shape(self, span, values, height, yrange, rotated):
+        x_offset = span.Start+0.5
+        cvalues = [self.colours.get(c, 'grey') for c in values]
+        radius = 10 # points
+        g = rlg2mpl.Group()
+        a = CircleCollection([2*radius], 
+            edgecolors=cvalues,
+            facecolors=cvalues, 
+            offsets=[(x_offset+i,radius) for i in range(len(values))],
+            transOffset=g.combined_transform)
+        g.add(a)
+        a.set_transform(IdentityTransform())
+        return g
 
 class CodeLine(Annotation):
     height = 10
@@ -690,16 +707,18 @@ class DisplayPolicy(object):
         if self.show_code and sequence is not None:
             # this should be based on resolution, not rowlen, but that's all
             # we have at this point
+            if self.colour_sequences:
+                colours = sequence.getColourScheme(colors)
+            else:
+                colours = {}
             show_text = self.show_text
             if show_text is None:
                 show_text = self.rowlen <= 100
             if show_text and self.rowlen <= 200:
-                if self.colour_sequences:
-                    colours = sequence.getColourScheme(colors)
-                else:
-                    colours = {}
                 feature = Code(self.map, str(sequence), colours=colours,
                     font_properties=self.seq_font)
+            elif colours:
+                feature = CodeDots(self.map, sequence, colours=colours)
             else:
                 feature = CodeLine(self.map, sequence)
             result.append(Track('seq', [feature], level=2, label=label))
@@ -754,7 +773,22 @@ class DisplayPolicy(object):
     
 
 class Display(rlg2mpl.Drawable):
-    """Holds a list of tracks and displays them all aligned"""
+    """Holds a list of tracks and displays them all aligned
+    
+    base: A sequence, alignment, or anything else offering .getTracks(policy)
+    policy: A DisplayPolicy subclass.
+    pad: Gap between tracks in points.
+    
+    Other keyword arguments are used to modify the DisplayPolicy: 
+    show_text: Represent sequences as characters.  Slow.
+    colour_sequences = Colour code sequences if MolType allows.
+    rowlen: wrap at this many characters per line.
+    recursive: include the sequences of the alignment.
+    min_feature_height: minimum feature symbol height in points.
+    min_graph_height: minimum height of any graphed features in points.
+    ignored_features: list of feature type tags to leave out.
+    keep_unexpected_tracks: show features not assigned to a track by the policy.
+"""
     
     def __init__(self, base, policy=DisplayPolicy, _policy=None, pad=1,
             yrange=None, **kw):

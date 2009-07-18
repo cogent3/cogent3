@@ -364,6 +364,10 @@ class _Dendrogram(rlg2mpl.Drawable):
             if max(cys) > min(cys):
                 g.append(renderer.line(self.x2, min(cys), self.x2, max(cys), self.edge))
         
+        if ((self.x1, self.y1) == (self.x2, self.y2)):
+            # avoid labeling zero length line, eg: root
+            return g
+            
         # Main line
         g.append(renderer.line(self.x1, self.y1, self.x2, self.y2, self.edge))
         
