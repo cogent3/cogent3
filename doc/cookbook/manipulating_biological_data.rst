@@ -238,7 +238,7 @@ Computing motif probabilities from an alignment
 For nucleotides.
 
 .. doctest::
-    
+
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
     >>> motif_probs = aln.getMotifProbs()
@@ -248,7 +248,7 @@ For nucleotides.
 For dinucleotides, we need to pass in a dinucleotide alphabet.
 
 .. doctest::
-    
+
     >>> from cogent import LoadSeqs, DNA
     >>> dinuc_alphabet = DNA.Alphabet.getWordAlphabet(2)
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
@@ -702,8 +702,8 @@ or with a new column
 
 .. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``Title`` attribute as that of ``table1``.
 
-Summing column values
----------------------
+Summing a single column
+-----------------------
 
 .. doctest::
 
@@ -711,8 +711,74 @@ Summing column values
     >>> table.summed('Ratio')
     20571166.652847398
 
-Filtering results
------------------
+Summing multiple columns or rows - strictly numerical data
+----------------------------------------------------------
+
+We define a strictly numerical table,
+
+.. doctest::
+
+    >>> all_numeric = LoadTable(header=['A', 'B', 'C'], rows=[range(3),
+    ...                                 range(3,6), range(6,9), range(9,12)])
+    >>> print all_numeric
+    =============
+    A     B     C
+    -------------
+    0     1     2
+    3     4     5
+    6     7     8
+    9    10    11
+    -------------
+
+and sum all columns (default condition)
+
+.. doctest::
+
+    >>> all_numeric.summed()
+    [18, 22, 26]
+
+and all rows
+
+.. doctest::
+
+    >>> all_numeric.summed(col_sum=False)
+    [3, 12, 21, 30]
+
+Summing multiple columns or rows with mixed non-numeric/numeric data
+--------------------------------------------------------------------
+
+We define a table with mixed data, like a distance matrix.
+
+.. doctest::
+
+    >>> mixed = LoadTable(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
+    ...                                                 [6,7,'*']])
+    >>> print mixed
+    ===========
+    A    B    C
+    -----------
+    *    1    2
+    3    *    5
+    6    7    *
+    -----------
+
+and sum all columns (default condition), ignoring non-numerical data
+
+.. doctest::
+
+    >>> mixed.summed(strict=False)
+    [9, 8, 7]
+
+and all rows
+
+.. doctest::
+
+    >>> mixed.summed(col_sum=False, strict=False)
+    [3, 8, 13]
+
+
+Filtering table rows
+--------------------
 
 We can do this by providing a reference to an external function
 
@@ -752,6 +818,24 @@ You can also filter for values in multiple columns
     -----------------------------
     NP_005500    NonCon    0.0000
     -----------------------------
+
+Filtering table columns
+-----------------------
+
+We select only columns that have a sum > 20 from the ``all_numeric`` table constructed above.
+
+.. doctest::
+    
+    >>> big_numeric = all_numeric.filteredByColumn(lambda x: sum(x)>20)
+    >>> print big_numeric
+    ========
+     B     C
+    --------
+     1     2
+     4     5
+     7     8
+    10    11
+    --------
 
 Sorting
 -------
