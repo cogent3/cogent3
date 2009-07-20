@@ -194,6 +194,7 @@ def suite():
             ('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
             ('muscle', 'test_muscle'),
+            ('rdp_classifier-2.0.jar', 'test_rdp_classifier'),
             ('Fold.out', 'test_nupack'),
             ('findphyl', 'test_pfold'),
             ('pknotsRG-1.2-i386-linux-static', 'test_pknotsrg'),
