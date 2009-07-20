@@ -863,8 +863,8 @@ and for multiple columns.
 
 The numerical slice equivalent to the first case above would be ``row[0]``, to the second case either ``row[:]``, ``row[:2]``.
 
-Filtering tables - selecting subsets of rows
---------------------------------------------
+Filtering tables - selecting subsets of rows/columns
+----------------------------------------------------
 
 We want to be able to slice a table, based on some condition(s), to produce a new subset table. For instance, we construct a table with type and probability values.
 
@@ -959,6 +959,33 @@ This can also be done using the string approach.
     NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
     NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
     ---------------------------------------------------------
+
+We can also filter table columns using ``filteredByColumn``. Say we only want the numerical columns, we can write a callback that returns ``False`` if some numerical operation fails, ``True`` otherwise.
+
+.. doctest::
+    
+    >>> def is_numeric(values):
+    ...     try:
+    ...         sum(values)
+    ...     except TypeError:
+    ...         return False
+    ...     return True
+    >>> print t5.filteredByColumn(callback=is_numeric)
+    =======================
+         LR    df      Prob
+    -----------------------
+     2.5386     1    0.1111
+     0.1214     1    0.7276
+     0.9517     1    0.3293
+     0.7383     1    0.3902
+     0.0000     1    0.9997
+    34.3081     1    0.0000
+     3.7986     1    0.0513
+    89.9766     1    0.0000
+    11.8912     1    0.0006
+     0.2121     1    0.6451
+     9.7474     1    0.0018
+    -----------------------
 
 Appending tables
 ----------------

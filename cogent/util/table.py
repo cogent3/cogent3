@@ -449,6 +449,22 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header = self.Header, rows = sub_set, **kw)
     
+    def filteredByColumn(self, callback, **kwargs):
+        """Returns a table with columns identified by callback
+        
+        Arguments:
+            - callback: A function which takes the columns delimited
+            by columns and returns True/False, or a string representing valid
+            python code to be evaluated."""
+        data = self.array.transpose()
+        column_indices = []
+        append = column_indices.append
+        for index, row in enumerate(data):
+            if callback(row):
+                append(index)
+        columns = numpy.take(self.Header, column_indices)
+        return self.getColumns(columns, **kwargs)
+    
     def count(self, callback, columns=None, **kwargs):
         """Returns number of rows for which the provided callback
         function returns True when passed row data from columns. Row data
