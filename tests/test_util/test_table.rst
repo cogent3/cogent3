@@ -1169,6 +1169,32 @@ or by column, such that the row/column sums are 1.
     0.7500    0.5714
     ----------------
 
+We normalize by an arbitrary function (maximum value) by row,
+
+.. doctest::
+    
+    >>> print non_mix.normalized(by_row=True, denominator_func=max)
+    ================
+         A         B
+    ----------------
+    0.0000    1.0000
+    0.5000    1.0000
+    0.7500    1.0000
+    ----------------
+
+by column.
+
+.. doctest::
+    
+    >>> print non_mix.normalized(by_row=False, denominator_func=max)
+    ================
+         A         B
+    ----------------
+    0.0000    0.2500
+    0.3333    0.5000
+    1.0000    1.0000
+    ----------------
+
 Extending tables
 ----------------
 

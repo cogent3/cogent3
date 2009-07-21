@@ -789,18 +789,22 @@ class Table(DictArray):
         
         return result
     
-    def normalized(self, by_row=True, func=None, **kwargs):
+    def normalized(self, by_row=True, denominator_func=None, **kwargs):
         """returns a table with elements expressed as a fraction according
         to the results from func
         
         Arguments:
             - by_row: normalisation done by row
-            - func: currently restricted to sum"""
+            - denominator_func: a callback function that takes an array and
+              returns a value to be used as the denominator. Default is sum."""
         
-        if func:
-            raise NotImplementedError
-        
-        denominators = self.summed(col_sum=not by_row)
+        if denominator_func:
+            data = self.array
+            if not by_row:
+                data = data.transpose()
+            denominators = [denominator_func(row) for row in data]
+        else:
+            denominators = self.summed(col_sum=not by_row)
         
         if by_row:
             values = self.array
