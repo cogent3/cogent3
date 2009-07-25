@@ -19,6 +19,7 @@ _species_common_map = [['Aedes aegypti', 'A.aegypti'],
                        ['Caenorhabditis elegans', 'C.elegans'],
                        ['Canis familiaris', 'Dog'],
                        ['Cavia porcellus', 'Guinea Pig'],
+                       ['Choloepus hoffmanni', 'Sloth'],
                        ['Ciona intestinalis', 'C.intestinalis'],
                        ['Ciona savignyi', 'C.savignyi'],
                        ['Danio rerio', 'Zebrafish'],
@@ -35,6 +36,7 @@ _species_common_map = [['Aedes aegypti', 'A.aegypti'],
                        ['Homo sapiens', 'Human'],
                        ['Loxodonta africana', 'Elephant'],
                        ['Macaca mulatta', 'Macaque'],
+                       ['Macropus eugenii', 'Wallaby'],
                        ['Microcebus murinus', 'Mouse lemur'],
                        ['Monodelphis domestica', 'Opossum'],
                        ['Mus musculus', 'Mouse'],
@@ -63,7 +65,6 @@ _species_common_map = [['Aedes aegypti', 'A.aegypti'],
                        ['Tursiops truncatus', 'Bottlenose dolphin'],
                        ['Vicugna pacos', 'Alpaca'],
                        ['Xenopus tropicalis', 'Xenopus']]
-
 
 class SpeciesNameMap(dict):
     """mapping between common names and latin names"""
