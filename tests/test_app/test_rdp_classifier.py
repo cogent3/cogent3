@@ -60,7 +60,7 @@ class RdpClassifierTests(TestCase):
         test_dir = '/tmp/RdpTest'
 
         app = RdpClassifier(WorkingDir=test_dir)
-        app.Parameters['-jar'].on('/usr/local/rdp_classifier/rdp_classifier-2.0.jar')
+        app.Parameters['-jar'].on('/usr/local/app/rdp_classifier/rdp_classifier-2.0.jar')
 
         results_file = app(rdp_sample_fasta)['StdOut']
         
