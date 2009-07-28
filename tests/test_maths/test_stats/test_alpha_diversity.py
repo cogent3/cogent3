@@ -9,7 +9,7 @@ from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_s
     strong, kempton_taylor_q, fisher_alpha, \
     mcintosh_e, heip_e, simpson_e, robbins, \
     chao1_uncorrected, chao1_bias_corrected, chao1, chao1_var, \
-    chao1_confidence
+    chao1_confidence, ACE
 
 class diversity_tests(TestCase):
     """Tests of top-level functions"""
@@ -219,7 +219,17 @@ class diversity_tests(TestCase):
             (4.08,17.27), eps=0.01)
         self.assertFloatEqualAbs(chao1_confidence(self.NoDoubles, \
             bias_corrected=False), (4.08,17.27), eps=0.01)
-
+    
+    def test_ACE(self):
+        """ACE should match values calculated by hand""" 
+        self.assertFloatEqual(ACE(array([2,0])), 1.0, eps=0.001)
+        # next: just returns the number of species when all are abundant
+        self.assertFloatEqual(ACE(array([12,0,9])), 2.0, eps=0.001)
+        self.assertFloatEqual(ACE(array([12,2,8])), 3.0, eps=0.001)
+        self.assertFloatEqual(ACE(array([12,2,1])), 4.0, eps=0.001)
+        self.assertFloatEqual(ACE(array([12,1,2,1])), 7.0, eps=0.001)
+        self.assertFloatEqual(ACE(array([12,3,2,1])), 4.6, eps=0.001)
+        self.assertFloatEqual(ACE(array([12,3,6,1,10])), 5.62749672, eps=0.001)
 
 
 
