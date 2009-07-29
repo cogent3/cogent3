@@ -7,7 +7,7 @@ from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_s
     doubles, osd, margalef, menhinick, dominance, simpson, reciprocal_simpson,\
     shannon, equitability, berger_parker_d, mcintosh_d, brillouin_d, \
     strong, kempton_taylor_q, fisher_alpha, \
-    mcintosh_e, heip_e, simpson_e, robbins, \
+    mcintosh_e, heip_e, simpson_e, robbins, robbins_confidence, \
     chao1_uncorrected, chao1_bias_corrected, chao1, chao1_var, \
     chao1_confidence, ACE
 
@@ -159,6 +159,16 @@ class diversity_tests(TestCase):
         c = array([1,2,3,0,1])
         r = robbins(c)
         self.assertEqual(r,2./7) 
+
+    def test_robbins_confidence(self):
+        """robbins CI should match hand-calculated value"""
+        c = array([1,2,3,0,1])
+        r = robbins_confidence(c, 0.05)
+        n = 7
+        s = 2
+        k = sqrt(8/0.05)
+        self.assertEqual(r, ((s-k)/(n+1), (s+k)/(n+1))) 
+
 
     def test_observed_species(self):
         """observed_species should return # observed species"""

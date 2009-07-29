@@ -174,6 +174,17 @@ def robbins(counts):
     """
     return float(singles(counts))/counts.sum()
 
+def robbins_confidence(counts, alpha=0.05):
+    """Robbins 1968 confidence interval for counts given alpha.
+    
+    Note: according to Manuel's equation, if alpha=0.05, we get a 95% CI.
+    """
+    s = singles(counts)
+    n = counts.sum()
+    k = sqrt((n+1)/alpha)
+    return (s-k)/(n+1), (s+k)/(n+1)
+
+
 #TODO: SDR-IV also implements NHC, Carmago, Smith & Wilson, Gini indices.
 #possibly worth adding.
 #http://www.pisces-conservation.com/sdrhelp/index.html
