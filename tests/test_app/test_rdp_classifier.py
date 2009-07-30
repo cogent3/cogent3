@@ -22,13 +22,45 @@ class RdpClassifierTests(TestCase):
         self.assertContains(a.Parameters, '-Xmx')
         self.assertEqual(a.Parameters['-Xmx'].Value, '1000m')
 
-    def test_assign_java_vm_parameters(self):
+    def test_parameters_list(self):
+        a = RdpClassifier()
+        parameters = a.Parameters.keys()
+        parameters.sort()
+        self.assertEqual(parameters, ['-Xmx', '-jar', '-training-data'])
+
+    def test_jar_parameters_list(self):
+        a = RdpClassifier()
+        parameters = a.JarParameters.keys()
+        parameters.sort()
+        self.assertEqual(parameters, ['-jar'])
+
+    def test_jvm_parameters_list(self):
+        a = RdpClassifier()
+        parameters = a.JvmParameters.keys()
+        parameters.sort()
+        self.assertEqual(parameters, ['-Xmx'])
+
+    def test_positional_parameters_list(self):
+        a = RdpClassifier()
+        parameters = a.PositionalParameters.keys()
+        parameters.sort()
+        self.assertEqual(parameters, ['-training-data'])
+
+    def test_default_positional_parameters(self):
+        """RdpClassifier should store default positional arguments."""
+        a = RdpClassifier()
+        self.assertContains(a.PositionalParameters, '-training-data')
+        self.assertEqual(a.PositionalParameters['-training-data'].Value, '')        
+
+    def test_assign_jvm_parameters(self):
         """RdpCalssifier should pass alternate parameters to Java VM."""
         app = RdpClassifier()
         app.Parameters['-Xmx'].on('75M')
         exp = ''.join(['cd "', getcwd(), '/"; java -Xmx75M -jar "rdp_classifier-2.0.jar"'])
         self.assertEqual(app.BaseCommand, exp)
 
+    def test_assign_jar_parameters(self):
+        """RdpCalssifier should pass correct jar file to Java VM."""
         app = RdpClassifier()
         app.Parameters['-jar'].on('/jar/jar/binks.jar')
         exp = ''.join(['cd "', getcwd(), '/"; java -Xmx1000m -jar "/jar/jar/binks.jar"'])
@@ -61,6 +93,32 @@ class RdpClassifierTests(TestCase):
 
         app = RdpClassifier(WorkingDir=test_dir)
         app.Parameters['-jar'].on('/usr/local/app/rdp_classifier/rdp_classifier-2.0.jar')
+
+        results_file = app(rdp_sample_fasta)['StdOut']
+        
+        id_line = results_file.readline()
+        self.failUnless(id_line.startswith('>X67228'))
+
+        classification_line = results_file.readline().strip()
+        def all_even_items(list):
+            return [x for (pos, x) in enumerate(list) if (pos % 2 == 0)]
+        obs = all_even_items(classification_line.split('; '))
+        exp = ['Root', 'Bacteria', 'Proteobacteria', 'Alphaproteobacteria', 'Rhizobiales', 'Rhizobiaceae', 'Rhizobium']
+        self.assertEqual(obs, exp)
+
+        rmtree(test_dir)
+
+    def test_custom_training_data(self):
+        """RdpClassifier should use sample training data"""
+        test_dir = '/tmp/RdpTest'
+
+        app = RdpClassifier(WorkingDir=test_dir)
+        app.Parameters['-jar'].on(
+            '/usr/local/app/rdp_classifier/rdp_classifier-2.0.jar'
+            )
+        app.Parameters['-training-data'].on(
+            '/usr/local/app/rdp_classifier/mydata/rRNAClassifier.properties'
+            )
 
         results_file = app(rdp_sample_fasta)['StdOut']
         

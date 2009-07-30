@@ -32,27 +32,36 @@ class RdpClassifier(CommandLineApplication):
     Details on this option may be found at
     http://java.sun.com/j2se/1.5.0/docs/tooldocs/solaris/java.html
 
-    The classifier may optionally use a custom training set.  This
-    ability is not yet implemented.
+    The classifier may optionally use a custom training set.  The full
+    path to the training set may be provided in the option
+    '-training-data'.
     """
     _input_handler = '_input_as_multiline_string'
     _command = "rdp_classifier-2.0.jar"
     _options ={}
-    _java_vm_parameters = {
-        # JAVA VM OPTIONS 
-        #
-        # These are extracted from the parameters dict to construct
-        # the command for the Java virtual machine.
-        #
+
+    # The following are available in the attributes JvmParameters,
+    # JarParameters, and PositionalParameters
+
+    _jvm_synonyms = {}
+    _jvm_parameters = {
         # Maximum heap size for JVM.
         '-Xmx': ValuedParameter('-', Name='Xmx', Delimiter='', Value='1000m'),
-        #
-        # Location of the java archive file.
+        }
+    _jar_synonyms = {}
+    _jar_parameters = {
         '-jar': ValuedParameter('-', Name='jar', Delimiter=' ', Value=_command, IsPath=True),
         }
+    _positional_synonyms = {}
+    _positional_parameters = {
+        '-training-data': ValuedParameter('', Name='', Delimiter='', Value='', IsPath=True),
+        }
+
     _parameters = {}
     _parameters.update(_options)
-    _parameters.update(_java_vm_parameters)
+    _parameters.update(_jvm_parameters)
+    _parameters.update(_jar_parameters)
+    _parameters.update(_positional_parameters)
 
     def getHelp(self):
         """Returns documentation string"""
@@ -85,10 +94,6 @@ class RdpClassifier(CommandLineApplication):
         """
         return help_str
 
-    # The __call__ method has been copied directly from superclass,
-    # for the sake of a single minor change in the command list.  It
-    # may be worth factoring out a _get_full_command method from
-    # __call__ to avoid this.
     def __call__(self, data=None, remove_tmp=True):
         """Run the application with the specified kwargs on data
         
@@ -117,11 +122,14 @@ class RdpClassifier(CommandLineApplication):
         else:
             input_arg = getattr(self,input_handler)(data)
 
+        training_data = self.PositionalParameters['-training-data']
+
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
-        command = self._command_delimiter.join(filter(None,\
-            [self.BaseCommand, str(input_arg), str(outfile),'2>',\
-                str(errfile)]))
+        command = self.__commandline_join(
+            [self.BaseCommand, input_arg, outfile, training_data, 
+             '2>', errfile,]
+            )
 
         if self.HaltExec: 
             raise AssertionError, "Halted exec with command:\n" + command
@@ -146,8 +154,8 @@ class RdpClassifier(CommandLineApplication):
         if not suppress_stderr:
             err = open(errfile,"r")
        
-        result =  CommandLineAppResult(out,err,exit_status,\
-            result_paths=self._get_result_paths(data)) 
+        result = CommandLineAppResult(
+            out, err, exit_status, result_paths=self._get_result_paths(data))
 
         # Clean up the input file if one was created
         if remove_tmp:
@@ -163,28 +171,9 @@ class RdpClassifier(CommandLineApplication):
 
         Does not include input file, output file, and training set.
         """
-        # Repeated pattern; may be useful in superclass
-        def commandline_join(words):
-            return self._command_delimiter.join(map(str, words)).strip()
-
-        # Copy method does not work for self.Parameters, so substitute
-        # with simple key-by-key copy.
-        def copy_by_key(parameters):
-            result = {}
-            for key in parameters:
-                result[key] = parameters[key]
-            return Parameters(result)
-
-        def extract(dict, keys):
-            result = {}
-            for key in keys:
-                if key in dict:
-                    result[key] = dict.pop(key)
-            return result
-
-        # Divy up parameters using local copy of the Parameters class
-        # attribute
-        parameters = copy_by_key(self.Parameters)
+        # Necessary? Preserve for consistency.
+        if self._command is None:
+            raise ApplicationError, '_command has not been set.'
 
         # Append a change directory to the beginning of the command to change 
         # to self.WorkingDir before running the command
@@ -192,22 +181,55 @@ class RdpClassifier(CommandLineApplication):
         cd_command = ''.join(['cd ',str(self.WorkingDir),';'])
 
         jvm_command = "java"
-        jvm_parameters = extract(parameters, ['-Xmx'])
-        jvm_arguments = commandline_join(jvm_parameters.values())
+        jvm_arguments = self.__commandline_join(self.JvmParameters.values())
+        jar_arguments = self.__commandline_join(self.JarParameters.values())
 
-        if self._command is None:
-            raise ApplicationError, '_command has not been set.'
-
-        if '-jar' in parameters:
-            jar_command = parameters.pop('-jar')
-        else:
-            jar_command = "-jar %s" % self._command
-
-        jar_arguments = commandline_join(parameters.values())
-
-        result = commandline_join([cd_command, jvm_command, jvm_arguments,
-                                   jar_command, jar_arguments])
+        result = self.__commandline_join(
+            [cd_command, jvm_command, jvm_arguments, jar_arguments]
+            )
         return result
     
     BaseCommand = property(_get_base_command)
+
+    def __commandline_join(self, tokens):
+        """Formats a list of tokens as a shell command
+
+        This seems to be a repeated pattern; may be useful in
+        superclass.
+        """
+        commands = filter(None, map(str, tokens))
+        return self._command_delimiter.join(commands).strip()
+
+    @property
+    def JarParameters(self):
+        return self.__extract_parameters('jar')
+
+    @property
+    def JvmParameters(self):
+        return self.__extract_parameters('jvm')
+
+    @property
+    def PositionalParameters(self):
+        return self.__extract_parameters('positional')
+
+    def __extract_parameters(self, name):
+        """Extracts parameters in self._<name>_parameters from self.Parameters
+
+        Allows the program to conveniently access a subset of user-
+        adjusted parameters, which are stored in the Parameters
+        attribute.
+        
+        Relies on the convention of providing dicts named according to
+        "_<name>_parameters" and "_<name>_synonyms".  The main
+        parameters object is expected to be initialized with the
+        contents of these dicts.  This method will throw an exception
+        if either convention is not adhered to.
+        """
+        parameters = getattr(self, '_' + name + '_parameters')
+        synonyms   = getattr(self, '_' + name + '_synonyms')
+        result = Parameters(parameters, synonyms)
+        for key in result.keys():
+            result[key] = self.Parameters[key]
+        return result
+
 
