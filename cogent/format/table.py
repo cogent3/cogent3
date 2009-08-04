@@ -433,9 +433,11 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
             except IndexError:
                 entry = '%s' % missing_data
             else:
-                if not entry and not \
-                (isinstance(entry, float) or isinstance(entry, int)):
-                    entry = '%s' % missing_data
+                if not entry:
+                    try:
+                        float(entry) # could numerically be 0, so not missing
+                    except (ValueError, TypeError):
+                        entry = '%s' % missing_data
             
             # attempt formatting
             if col_head in column_templates:
