@@ -334,7 +334,7 @@ class Genome(object):
     def _feature_coord_levels(self):
         if str(self._feature_coord_levels):
             return self._feature_coord_levels
-        feature_types = ['gene', 'est', 'variation']
+        feature_types = ['gene', 'est', 'variation', 'cpg', 'repeat']
         feature_coord_levels = self._get_feature_coord_levels(feature_types)
         return self._feature_coord_levels
     
@@ -381,14 +381,15 @@ class Genome(object):
         
         for feature_type in feature_types:
             target_func, target_class = target_coords_funcs[feature_type]
-            feature_coord = feature_coord_levels[feature_type].level_in_use
             db = [self.CoreDb, self.OtherFeaturesDb][feature_type == 'est']
-            chrom_other_coords = get_coord_conversion(coord, feature_coord,
-                                        db, where=where_feature)
-            for chrom_coord, other_coord in chrom_other_coords:
-                for region in target_func(db, target_class, chrom_coord,
-                                        other_coord, where_feature):
-                    yield region
+            feature_coords = feature_coord_levels[feature_type].levels.split(", ")
+            for feature_coord in feature_coords:
+                chrom_other_coords = get_coord_conversion(coord, feature_coord,
+                                            db, where=where_feature)
+                for chrom_coord, other_coord in chrom_other_coords:
+                    for region in target_func(db, target_class, chrom_coord,
+                                            other_coord, where_feature):
+                        yield region
     
     def getVariation(self, Effect=None, Symbol=None, like=True,
                      validated=False):
