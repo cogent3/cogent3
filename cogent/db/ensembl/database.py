@@ -1,5 +1,6 @@
 import sqlalchemy as sql
 
+from cogent.util import table as cogent_table
 from cogent.db.ensembl.host import DbConnection, get_db_name
 
 __author__ = "Gavin Huttley"
@@ -43,7 +44,8 @@ class Database(object):
                 if "tinyint" in Type:
                     custom_columns.append(sql.Column(Field, sql.Integer))
             
-            table = sql.Table(name,self._meta,autoload=True,*custom_columns)
+            table = sql.Table(name,self._meta,autoload=True,useexisting=True,
+                                *custom_columns)
             self._tables[name] = table
         return table
     
@@ -67,6 +69,26 @@ class Database(object):
                 while len(record) == 1 and type(record) in (tuple, list):
                     record = record[0]
             yield record
+    
+    def getTablesRowCount(self, table_name=None):
+        """returns a cogent Table object with the row count for each table
+        in the database
+        
+        Arguments:
+            - table_name: database table name. If none, all database tables
+              assessed."""
+        if type(table_name) == str:
+            table_name = (table_name,)
+        elif table_name is None:
+            self._meta.reflect()
+            table_name = self._meta.tables.keys()
+        rows = []
+        for name in table_name:
+            table = self.getTable(name)
+            count = table.count().execute().fetchone()[0]
+            rows.append(['%s.%s' % (self.db_name, name), count])
+        
+        return cogent_table.Table(header=['name', 'count'], rows=rows)
     
 
 

@@ -59,6 +59,19 @@ class TestDatabase(TestCase):
         'within_species_paralog'])
         self.assertEquals(len(got&expected), len(expected))
         
+    def test_get_table_row_counts(self):
+        """should return correct row counts for some tables"""
+        expect = {'homo_sapiens_core_55_37.analysis': 54L,
+                  'homo_sapiens_core_55_37.seq_region': 55545L,
+                  'homo_sapiens_core_55_37.assembly': 102003L,
+                  'homo_sapiens_core_55_37.oligo_probe': 0L}
+        human = Database(account=account, release=Release,
+                    species='human', db_type='core')
+        table_names = [n.split('.')[1] for n in expect]
+        print table_names
+        got = dict(human.getTablesRowCount(table_names).getRawData())
+        self.assertEquals(got, expect)
+    
 
 if __name__ == "__main__":
     main()
