@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release=52
+Release = 55
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -112,54 +112,51 @@ class TestSyntenicRegions(TestCase):
                'ATGTCAATCAAAACCAAAGTCTGTATTTATTTGCAGAAAGAGATACTGCATGTTCAAAGATAAATATGGAAC-TTTTTAAAAAGCATTAATGACTTATAC',
                'Pan troglodytes:chromosome:4:102056-102156:-1':
                'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTAAAAAGCATTCATGACTTAGAA'}],
-            [{'CoordName': 18, 'End': 203739, 'Species': 'human', 'Start': 203639, 'Strand':-1},
-                {'Homo sapiens:chromosome:18:203639-203739:-1':
+            [{'CoordName': 18, 'End': 213739, 'Species': 'human', 'Start': 213639, 'Strand':-1},
+                {'Homo sapiens:chromosome:18:213639-213739:-1':
                 'ATAAGCATTTCCCTTTAGGGCTCTAAGATGAGGTCATCATCGTTTTTAATCCTGAAGAAGGGCTACTGAGTGAGTGCAGATTATTCGGTAAACACT----CTTA',
                  'Macaca mulatta:chromosome:18:13858303-13858397:1':
                  '------GTTTCCCTTTAGGGCTCTAAGATGAGGTCATCATTGTTTTTAATCCTGAAGAAGGGCTACTGA----GTGCAGATTATTCTGTAAATGTGCTTACTTG',
                  'Pan troglodytes:chromosome:18:16601082-16601182:1':
                  'ATAAGCATTTCCCTTTAGGGCTCTAAGATGAGGTCATCATCGTTTTTAATCCTGAAGAAGGGCTACTGA----GTGCAGATTATTCTGTAAACACTCACTCTTA'}],
-            [{'CoordName': 5, 'End': 257974, 'Species': 'human', 'Start': 257874, 'Strand':1},
-                {'Homo sapiens:chromosome:5:257874-257974:1':
+            [{'CoordName': 5, 'End': 204974, 'Species': 'human', 'Start': 204874, 'Strand':1},
+                {'Homo sapiens:chromosome:5:204874-204974:1':
                  'AACACTTGGTATTT----CCCCTTTATGGAGTGAGAGAGATCTTTAAAATATAAACCCTTGATAATATAATATTACTACTTCCTATTA---CCTGTTATGCAGTTCT',
                  'Macaca mulatta:chromosome:6:1297736-1297840:-1':
                  'AACTCTTGGTGTTTCCTTCCCCTTTATGG---GAGAGAGATCTTTAAAATAAAAAACCTTGATAATATAATATTACTACTTTCTATTATCATCTGTTATGCAGTTCT',
                  'Pan troglodytes:chromosome:5:335911-336011:1':
                  'AACACTTGGTAGTT----CCCCTTTATGGAGTGAGAGAGATCTTTAAAATATAAACCCTTGATAATATAATATTACTACTTTCTATTA---CCTGTTATGCAGTTCT'}],
-            [{'CoordName': 18, 'End': 193270, 'Species': 'human', 'Start': 193170, 'Strand':-1},
-                {'Homo sapiens:chromosome:18:193170-193270:-1':
+            [{'CoordName': 18, 'End': 203270, 'Species': 'human', 'Start': 203170, 'Strand':-1},
+                {'Homo sapiens:chromosome:18:203170-203270:-1':
                  'GGAATAATGAAAGCAATTGTGAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA',
                  'Macaca mulatta:chromosome:18:13869026-13869126:1':
                  'GGAATAATGAAAGCAATTGTAAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA',
                  'Pan troglodytes:chromosome:18:16611584-16611684:1':
                  'GGAATAATGAAAGCAATTGTAAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA'}],
-            [{'CoordName': 2, 'End': 36445, 'Species': 'human', 'Start': 36345, 'Strand':-1},
-                {'Homo sapiens:chromosome:2:36345-36445:-1':
+            [{'CoordName': 2, 'End': 46445, 'Species': 'human', 'Start': 46345, 'Strand':-1},
+                {'Homo sapiens:chromosome:2:46345-46445:-1':
                  'CTACCACTCGAGCGCGTCTCCGCTGGACCCGGAACCCCGGTCGGTCCATTCCCCGCGAAGATGCGCGCCCTGGCGGCCCTGAGCGCGCCCCCGAACGAGC',
                  'Macaca mulatta:chromosome:13:43921-44021:-1':
                  'CTGCCACTCCAGCGCGTCTCCGCTGCACCCGGAGCGCCGGCCGGTCCATTCCCCGCGAGGATGCGCGCCCTGGCGGCCCTGAACACGTCGGCGAGAGAGC',
                  'Pan troglodytes:chromosome:2a:36792-36892:-1':
                  'CTACCACTCGAGCGCGTCTCCGCTGGACCCGGAACCCCAGTCGGTCCATTCCCCGCGAAGATGCGCGCCCTGGCGGCCCTGAACGCGCCCCCGAACGAGC'}],
-            [{'CoordName': 18, 'End': 258049, 'Species': 'human', 'Start': 257949, 'Strand':-1},
-                {'Homo sapiens:chromosome:18:257949-258049:-1':
+            [{'CoordName': 18, 'End': 268049, 'Species': 'human', 'Start': 267949, 'Strand':-1},
+                {'Homo sapiens:chromosome:18:267949-268049:-1':
                  'GCGCAGTGGCGGGCACGCGCAGCCGAGAAGATGTCTCCGACGCCGCCGCTCTTCAGTTTGCCCGAAGCGCGGACGCGGTTTACGGTGAGCTGTAGAGGGG',
                  'Macaca mulatta:chromosome:18:13805604-13805703:1':
                  'GCGCAG-GGCGGGCACGCGCAGCCGAGAAGATGTCTCCGACGCCGCCGCTCTTCAGTTTGCCCGAAGCGCGGACGCGGTTTACGGTGAGCTGTAGGCGGG',
                  'Pan troglodytes:chromosome:18:16546800-16546900:1':
                  'GCGCAGTGGCGGGCACGCGCAGCCGAGAAGATGTCTCCGACGCCGCCGCTCTTCAGTTTGCCCGAAGCGCGGACGCGGTTTACGGTGAGCTGTAGCGGGG'}],
-            [{'CoordName': 16, 'End': 47443, 'Species': 'human', 'Start': 47343, 'Strand':-1},
-                {'Homo sapiens:chromosome:16:47343-47443:-1':
+            [{'CoordName': 16, 'End': 107443, 'Species': 'human', 'Start': 107343, 'Strand':-1},
+                {'Homo sapiens:chromosome:16:107343-107443:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACAGTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGCATTTGGACCTAGGGAGAGGTCAGTCTCAGGCCAAGTA',
-                 'Macaca mulatta:chromosome:20:13446-13545:-1':
-                 '-AGAAGCACACAGGTTTATTTTATACACAGTGCCAGGCTGTGGCTCTGCCATGTGACCAGGGTCTTTGGACCCAAGGAGAGGTCAGTCTCAGGCCAAGTA',
                  'Pan troglodytes:chromosome:16:48943-49032:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACACTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGAATTTGGACC-----------CAGTCTCAGGCCAAGTA'}]
             ]
-        # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             hum_length = coord['End'] - coord['Start']
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=341, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=427, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
@@ -172,17 +169,13 @@ class TestSyntenicRegions(TestCase):
                 got_start, got_end = map(int, got_names[species][3].split('-'))
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
                 self.assertFloatEqual(abs(slope), 1.0)
-            #
-            # TODO some approach to testing equivalence of alignments
-            # aln = syntenic.getAlignment().todict()
-            # self.assertEquals(aln, expect)
         
     
     def test_failing_region(self):
         """should correctly handle queries where multiple Ensembl have
         genome block associations for multiple coord systems"""
         gene = list(self.comp.Human.getGenesMatching(
-                                    StableId='ENSG00000215691'))[0]
+                                    StableId='ENSG00000188554'))[0]
         # this should simply not raise any exceptions
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
                                 align_method='PECAN',

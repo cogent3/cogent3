@@ -16,7 +16,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release=52
+Release = 55
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -37,8 +37,8 @@ class TestGenome(GenomeTestBase):
         """should correctly return record for ENSESTG00000000020"""
         est = self.human.getEstMatching(StableId='ENSESTG00000000020')
         direct = list(est)[0]
-        ests = self.human.getFeatures(feature_types='est', CoordName=18,
-                                                Start=48686352, End=48693445)
+        ests = self.human.getFeatures(feature_types='est', CoordName=8,
+                                                Start=105711700, End=105715900)
         stable_ids = [est.StableId for est in ests]
         self.assertContains(stable_ids, direct.StableId)
     
@@ -50,12 +50,12 @@ class TestGenome(GenomeTestBase):
     def test_make_location(self):
         """should correctly make a location for an entire chromosome"""
         loc = self.human.makeLocation(CoordName=1)
-        self.assertEquals(len(loc), 247249719)
+        self.assertEquals(len(loc), 249250621)
     
     def test_get_region(self):
         """should return a generic region that extracts correct sequence"""
         chrom = 1
-        Start = 1000
+        Start = 11137
         End = Start+20
         region = self.human.getRegion(CoordName=chrom, Start=Start, End=End,
                         ensembl_coord=True)
@@ -68,8 +68,9 @@ class TestGenome(GenomeTestBase):
     def test_get_assembly_exception_region(self):
         """should return correct sequence for region with an assembly
         exception"""
-        region = self.human.getRegion(CoordName = "Y", Start = 57767412, 
-                            End = 57767433, Strand = 1, ensembl_coord = True)
+        ##old:chrY:57767412-57767433; New: chrY:59358024-59358045
+        region = self.human.getRegion(CoordName = "Y", Start = 59358024, 
+                            End = 59358045, Strand = 1, ensembl_coord = True)
         self.assertEquals(str(region.Seq), 'CGAGGACGACTGGGAATCCTAG')
     
     def test_getting_annotated_seq(self):
@@ -218,7 +219,7 @@ class TestGene(GenomeTestBase):
     
     def test_get_by_biotype(self):
         results = list(self.human.getGenesMatching(BioType='Mt_tRNA'))
-        self.assertEquals(len(results), 625)
+        self.assertEquals(len(results), 22)
     
     def test_get_by_decsr_biotype(self):
         """combining the description and biotype should return a result"""
@@ -231,9 +232,9 @@ class TestVariation(GenomeTestBase):
     snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'G/T', 'CAGCTCCAGCTC/-']
     snp_aa_alleles = ['G/R', 'P/L', 'Y/C', "V/F", "GAGAV/V"]
-    snp_effects = ['NON_SYNONYMOUS_CODING']*5
+    snp_effects = ['INTRONIC']*3+[['REGULATORY_REGION', 'NON_SYNONYMOUS_CODING']]+['NON_SYNONYMOUS_CODING']
     snp_nt_len = [1, 1, 1, 1, 12]
-    map_weights = [1,1,1,2,1]
+    map_weights = [1,1,1,1,1]
     snp_flanks = [
      ('CTGAGGTGAGCCAGCGTTGGAGCTGTTTTTCCTTTCAGTATGAATTCCACAAGGAAATCATCTCAGGAGGAAGGGCTCATACTTGGATCCAGAAAATATCAACATAGCCAAAGAAAAACAATCAAGACATACCTCCAGGAGCTGTGTAACAGCAACCGGAAAGAGAAACAATGGTGTGTTCCTATGTGGGATATAAAGAGCCGGGGCTCAGGGGGCTCCACACCTGCACCTCCTTCTCACCTGCTCCTCTACCTGCTCCACCCTCAATCCACCAGAACCATGGGCTGCTGTGGCTGCTCC',
       'GAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCACCCGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCC'),
@@ -264,6 +265,9 @@ class TestVariation(GenomeTestBase):
         """should correctly infer the peptide alles"""
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
+            if snp.Effect == 'INTRONIC':
+                continue
+            
             self.assertEquals(snp.PeptideAlleles, self.snp_aa_alleles[i])
     
     def test_validation_status(self):
@@ -279,9 +283,6 @@ class TestVariation(GenomeTestBase):
         """should correctly get the flanking sequence"""
         for i in range(4): # only have flanking sequence for 3
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
-            if i == 3:
-                # the other one is under supercontig coordinate
-                snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[1]
             self.assertEquals(snp.FlankingSeq, self.snp_flanks[i])
     
     def test_variation_seq(self):
@@ -384,21 +385,17 @@ class TestFeatures(GenomeTestBase):
     def test_other_feature_data_correct(self):
         """should apply CpG feature data in a manner consistent with strand"""
         human = self.human
-        coord = dict(CoordName=11, Start=2121700,End=2122300)
-        exp = DNA.makeSequence('CGAAGGCCCGAACGGCGCGCGCAAAGCTCCGGGGCAGGCCGGAG'\
-          'GTGGCCACCGGGGGTGCTCCGGGCCCCCAAGCCAAGCCGGGGACTAGCCTGCCCCCGGTGGCGG'\
-          'CTCGGCCGCGGCTTCGCCTAGGCTCGCAGCGCGGAGGCGAGTGGGGCGCAGTGGCGAGGGGGAG'\
-          'CCTGCGGACCTCCCACGCGGGGACCGAGCAGGTATCTGGGAGTCCCGGGAGCGCCCGGGAAGCA'\
-          'GCGTCCTGGTCGCTCCCTCGCGGCCCTTGGGTTTCTTCCTTACACCCGGACGCCCGCTAAGCTC'\
-          'GGGCTGCCGCCACAAACGCGCTCTCCGTGTGGAGAAGGCAAAGAAAAAAAAAAATAAAAGCAAA'\
-          'AGGAAGAAAAACCCCAAAGAACGAAAAGCAGAATTTCAGCCGGCCGTGCGCGCCAGGGCGCTCC'\
-          'GCGCTACCTGCCCGCGCCGCCCGCGCTCGGGTTCCCGGGGAGGGCGCCAGTGCTCCGCGCGCGC'\
-          'CCCAGCCAAGGTGAATCCCCGGCAGCGCCTTCCTTCCGCTGCCCG')
+        coord = dict(CoordName=11, Start=2165124,End=2165724)
+        exp_coord = dict(CoordName=11, Start=2165136, End=2165672)
+        exp_loc = human.getRegion(Strand=1, ensembl_coord=True, **exp_coord)
+        exp = exp_loc.Seq
+        
         ps_feat = human.getRegion(Strand=1, **coord)
         ms_feat = human.getRegion(Strand=-1, **coord)
         
         ps_seq = ps_feat.getAnnotatedSeq(feature_types='CpG')
         ps_cgi = ps_seq.getAnnotationsMatching('CpGisland')[0]
+        
         self.assertEquals(ps_feat.Seq, ms_feat.Seq.rc())
         
         self.assertEquals(ps_cgi.getSlice(), exp)
@@ -409,7 +406,7 @@ class TestFeatures(GenomeTestBase):
     
     def test_other_repeat(self):
         """should apply repeat feature data in a manner consistent with strand"""
-        coord=dict(CoordName=13, Start=31788200, End=31788500)
+        coord=dict(CoordName=13, Start=32890200, End=32890500)
         ps_repeat = self.human.getRegion(Strand=1, **coord)
         ms_repeat = self.human.getRegion(Strand=-1, **coord)
         exp = DNA.makeSequence('CTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTG'\
@@ -429,7 +426,7 @@ class TestFeatures(GenomeTestBase):
         """should correctly return the encompassing gene from 1nt"""
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
         gene=list(self.human.getFeatures(feature_types='gene',region=snp))[0]
-        self.assertEquals(gene.StableId, 'ENSG00000198864')
+        self.assertEquals(gene.StableId, 'ENSG00000204572')
     
 
 class TestAssembly(TestCase):

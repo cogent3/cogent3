@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release=52
+Release = 55
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -41,14 +41,9 @@ class TestDatabase(TestCase):
         db = Database(account=account, release=Release,
                     species='human', db_type='core')
         tn, tc = 'gene', 'biotype'
-        expected = set(['rRNA', 'IG_pseudogene', 'rRNA_pseudogene',
-          'snoRNA_pseudogene', 'snRNA_pseudogene', 'IG_V_gene', 'misc_RNA',
-          'Mt_tRNA', 'misc_RNA_pseudogene', 'IG_J_gene', 'scRNA',
-          'IG_C_gene', 'protein_coding', 'Mt_rRNA', 'scRNA_pseudogene',
-          'pseudogene', 'snRNA',
-          'unprocessed_pseudogene', 'tRNA_pseudogene', 'miRNA', 'IG_D_gene',
-          'retrotransposed', 'Mt_tRNA_pseudogene', 'snoRNA',
-          'processed_pseudogene', 'miRNA_pseudogene'])
+        expected = set(['protein_coding', 'pseudogene', 'processed_transcript', 
+          'polymorphic_pseudogene', 'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene', 
+          'IG_C_gene', 'IG_D_gene', 'miRNA', 'misc_RNA', 'snoRNA', 'snRNA', 'rRNA'])
         got = set(db.getDistinct(tn, tc))
         self.assertEquals(len(got&expected), len(expected))
         
@@ -63,12 +58,11 @@ class TestDatabase(TestCase):
         """should return correct row counts for some tables"""
         expect = {'homo_sapiens_core_55_37.analysis': 54L,
                   'homo_sapiens_core_55_37.seq_region': 55545L,
-                  'homo_sapiens_core_55_37.assembly': 102003L,
+                  'homo_sapiens_core_55_37.assembly': 102007L,
                   'homo_sapiens_core_55_37.oligo_probe': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
-        print table_names
         got = dict(human.getTablesRowCount(table_names).getRawData())
         self.assertEquals(got, expect)
     

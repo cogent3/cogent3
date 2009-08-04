@@ -15,7 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 52
+Release = 55
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -38,7 +38,7 @@ class TestLocation(TestCase):
         self.assertEqual(human_loc.End, 10000)
         self.assertEqual(human_loc.Strand, -1)
         self.assertEqual(human_loc.Species, "Homo sapiens")
-        self.assertEqual(human_loc.seq_region_id, 226054)
+        self.assertEqual(human_loc.seq_region_id, 27516)
     
     def test_get_coord_conversion(self):
         """should correctly map between different coordinate levels"""
@@ -103,8 +103,8 @@ class TestCoordSystem(TestCase):
     def test_call(self):
         human_chrom = CoordSystem('chromosome', core_db = human.CoreDb,
                         species = 'human')
-        human_contig = CoordSystem(4, species = 'human')
-        self.assertEqual(human_chrom.coord_system_id, 17)
+        human_contig = CoordSystem(1, species = 'human')
+        self.assertEqual(human_chrom.coord_system_id, 2)
         self.assertEqual(human_contig.name, 'contig')
         self.assertEqual(human_contig.attr, 'default_version, sequence_level')
     
