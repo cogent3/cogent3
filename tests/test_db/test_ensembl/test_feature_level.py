@@ -35,14 +35,9 @@ class TestFeatureCoordLevels(TestCase):
                     feature_types=['gene', 'cpg', 'est'],
                     core_db=self.chicken.CoreDb,
                     otherfeature_db=self.chicken.OtherFeaturesDb)
-        self.assertEquals(chicken_feature_levels['repeat'].levels, 'contig')
-        self.assertEquals(set(chicken_feature_levels['cpg'].levels.split(", ")),\
+        self.assertEquals(chicken_feature_levels['repeat'].levels, ['contig'])
+        self.assertEquals(set(chicken_feature_levels['cpg'].levels),\
                             set(['contig', 'supercontig', 'chromosome']))
-        self.assertEquals(chicken_feature_levels['cpg'].level_in_use,
-                          'chromosome')
-        # change the feature coord level
-        self.chicken.setFeatureCoordLevel('cpg', 'contig')
-        self.assertEquals(chicken_feature_levels['cpg'].level_in_use, 'contig')
     
     def test_repeat(self):
         # use chicken genome as it need to do conversion
@@ -71,18 +66,10 @@ class TestFeatureCoordLevels(TestCase):
             obs.append((loc.CoordName, loc.Start, loc.End))
         self.assertEquals(set(exp), set(obs))
         
-        # change feature coord level to supercontig
-        self.chicken.setFeatureCoordLevel('cpg', 'supercontig')
-        new_cpgs1 = self.chicken.getFeatures(feature_types='cpg', **coord1)
-        self.assertEquals(len(list(new_cpgs1)), 0)
-        
         # test cpg features record at supercontig level:
         coord2 = dict(CoordName='Un_random', Start=29434117, End=29439117)
         cpgs2 = self.chicken.getFeatures(feature_types='cpg', **coord2)
         self.assertEquals(len(list(cpgs2)), 1)
-        self.chicken.setFeatureCoordLevel('cpg', 'chromosome')
-        new_cpgs2 = self.chicken.getFeatures(feature_types='cpg', **coord2)
-        self.assertEquals(len(list(new_cpgs2)), 0)
     
 
 if __name__ == '__main__':
