@@ -339,11 +339,6 @@ class Genome(object):
         return self._feature_coord_levels
     
     FeatureCoordLevels = property(_feature_coord_levels)
-    def setFeatureCoordLevel(self, feature_type, feature_coord_level):
-        feature_coord_levels = self._get_feature_coord_levels([feature_type])
-        availables = feature_coord_levels[feature_type].levels.split(', ')
-        assert feature_coord_level in availables, 'Invalid Coord system name: %s'%feature_coord_level
-        feature_coord_levels[feature_type].level_in_use = feature_coord_level
     
     def getFeatures(self, region=None, feature_types=None, where_feature=None,
                     CoordName=None, Start=None, End=None, Strand=None,
@@ -382,7 +377,7 @@ class Genome(object):
         for feature_type in feature_types:
             target_func, target_class = target_coords_funcs[feature_type]
             db = [self.CoreDb, self.OtherFeaturesDb][feature_type == 'est']
-            feature_coords = feature_coord_levels[feature_type].levels.split(", ")
+            feature_coords = feature_coord_levels[feature_type].levels
             for feature_coord in feature_coords:
                 chrom_other_coords = get_coord_conversion(coord, feature_coord,
                                             db, where=where_feature)

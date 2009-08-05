@@ -285,39 +285,22 @@ Other Region Types
 
 These can be obtained from the genome instance using the genomes ``getFeatures`` method. At present, only repeats, CpG islands, variation, EST's and genes can be obtained through this method. There's also ``GenericRegion``, which is precisely that.
 
-In ensembl MySQL database, each type of feature may be recorded at multiple coordinate levels. The default level is the highest one. For example, CpG island may be stored at chromosome, supercontig and contig levels, the default will be chromosome.
+In ensembl MySQL database, each type of feature may be recorded at multiple coordinate levels. Accordingly, each level is checked to obtain full information of that feature. 
 
 .. doctest::
 
    >>> chicken = Genome(Species='chook', Release=Release, account=account)
    >>> print chicken.FeatureCoordLevels
    Gallus gallus
-   =============================================================
-        Type                             Levels    Levels_in_use
-   -------------------------------------------------------------
-        gene                         chromosome       chromosome
-      repeat                             contig           contig
-         est                         chromosome       chromosome
-   variation                         chromosome       chromosome
-         cpg    chromosome, supercontig, contig       chromosome
-   -------------------------------------------------------------
-
-The default coordinate level can be changed:
-
-.. doctest::
-
-   >>> chicken.setFeatureCoordLevel('cpg', 'supercontig')
-   >>> print chicken.FeatureCoordLevels
-   Gallus gallus
-   =============================================================
-        Type                             Levels    Levels_in_use
-   -------------------------------------------------------------
-        gene                         chromosome       chromosome
-      repeat                             contig           contig
-         est                         chromosome       chromosome
-   variation                         chromosome       chromosome
-         cpg    chromosome, supercontig, contig      supercontig
-   -------------------------------------------------------------
+   ==============================================
+        Type                             Levels  
+   ----------------------------------------------
+        gene                         chromosome  
+      repeat                             contig  
+         est                         chromosome  
+   variation                         chromosome  
+         cpg    chromosome, supercontig, contig  
+   ----------------------------------------------
 
 
 Comparative Analyses

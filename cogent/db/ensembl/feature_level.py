@@ -15,16 +15,13 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
 class _FeatureLevelRecord(object):
-    def __init__(self, feature_type, coord_system_names, default=None):
+    def __init__(self, feature_type, coord_system_names):
         self.feature_type = feature_type
-        self.levels = ', '.join(coord_system_names)
-        if default is not None:
-            self.level_in_use = default   # should use rank information from coord_system
-        else:
-            self.level_in_use = None
+        self.levels = coord_system_names
     
     def __str__(self):
-        return 'feature = %s; Levels = %s; Level in use = %s'%(self.feature_type, self.levels, self.level_in_use)
+        return 'feature = %s; Levels = %s' % (self.feature_type,
+                ', '.join(self.levels))
     
 
 class FeatureCoordLevelsCache(object):
@@ -35,13 +32,13 @@ class FeatureCoordLevelsCache(object):
     
     def __repr__(self):
         """print table format"""
-        header = ['Type', 'Levels', 'Level_in_use']
+        header = ['Type', 'Levels']
         result = []
         for species in self._species_feature_levels.keys():
             feature_levels = self._species_feature_levels[species]
             collate = []
             for feature in feature_levels.keys():
-                collate.append([feature, feature_levels[feature].levels, feature_levels[feature].level_in_use])
+                collate.append([feature, feature_levels[feature].levels])
             t = Table(header, collate, title=species)
             result.append(str(t))
         result = '\n'.join(result)
@@ -74,10 +71,8 @@ class FeatureCoordLevelsCache(object):
         for feature, table_name in zip(features, tables):
             feature_coord_ids = [r['coord_system_id'] for r in records if r['table_name'] == table_name]
             feature_coord_systems = [coord_system[coord_id] for coord_id in feature_coord_ids]
-            feature_coord_systems = [(s.rank, s.name) for s in feature_coord_systems]
-            feature_coord_systems.sort()
-            levels = [name for rank, name in feature_coord_systems]
-            self._species_feature_levels[species][feature] = _FeatureLevelRecord(feature, levels, levels[0])
+            levels = [s.name for s in feature_coord_systems]
+            self._species_feature_levels[species][feature] = _FeatureLevelRecord(feature, levels)
     
     def _set_species_feature_levels(self, species, core_db, feature_types, var_db, otherfeature_db):
         if species not in self._species_feature_levels:
@@ -117,7 +112,7 @@ class FeatureCoordLevels(FeatureCoordLevelsCache):
     
     def __repr__(self):
         """print table format"""
-        header = ['Type', 'Levels', 'Levels_in_use']
+        header = ['Type', 'Levels']
         if self.Species not in self._species_feature_levels:
             result = ''
         else:
@@ -125,7 +120,7 @@ class FeatureCoordLevels(FeatureCoordLevelsCache):
             feature_levels = self._species_feature_levels[self.Species]
             for feature in feature_levels.keys():
                 record = feature_levels[feature]
-                collate.append([feature, record.levels, record.level_in_use])
+                collate.append([feature, ', '.join(record.levels)])
             result = str(Table(header, collate, title=self.Species))
         return result
     
