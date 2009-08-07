@@ -12,18 +12,23 @@ __email__ = "kylebittinger@gmail.com"
 __status__ = "Prototype"
 
 
-from os import remove
+from os import remove, environ, getenv
+from os.path import exists
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
-    FilePath, ResultPath, get_tmp_filename, guess_input_handler, system
+    FilePath, ResultPath, get_tmp_filename, guess_input_handler, system,\
+    ApplicationNotFoundError
 
 class RdpClassifier(CommandLineApplication):
     """RDP Classifier application controller
 
     The RDP Classifier program is distributed as a java archive (.jar)
-    file, so an option '-jar' is provided to optionally specify the
-    full path to the archive.  By default, the file
-    'rdp_classifier-2.0.jar' is called in the current directory.
+    file.  If the file 'rdp_classifier-2.0.jar' is not found in the
+    current directory, the app controller looks in the directory
+    specified by the environment variable RDP_JAR_PATH.  If this
+    variable is not set, and 'rdp_classifier-2.0.jar' is not found in
+    the current directory, the application controller raises an
+    ApplicationNotFoundError.
 
     The RDP Classifier often requires memory in excess of Java's
     default 64M. To correct this situation, the authors recommend
@@ -48,10 +53,6 @@ class RdpClassifier(CommandLineApplication):
         # Maximum heap size for JVM.
         '-Xmx': ValuedParameter('-', Name='Xmx', Delimiter='', Value='1000m'),
         }
-    _jar_synonyms = {}
-    _jar_parameters = {
-        '-jar': ValuedParameter('-', Name='jar', Delimiter=' ', Value=_command, IsPath=True),
-        }
     _positional_synonyms = {}
     _positional_parameters = {
         '-training-data': ValuedParameter('', Name='', Delimiter='', Value='', IsPath=True),
@@ -60,7 +61,6 @@ class RdpClassifier(CommandLineApplication):
     _parameters = {}
     _parameters.update(_options)
     _parameters.update(_jvm_parameters)
-    _parameters.update(_jar_parameters)
     _parameters.update(_positional_parameters)
 
     def getHelp(self):
@@ -165,6 +165,26 @@ class RdpClassifier(CommandLineApplication):
 
         return result
 
+    def _error_on_missing_application(self,params):
+        """Raise an ApplicationNotFoundError if the app is not accessible
+        """
+        return self._get_jar_fp()
+
+    def _get_jar_fp(self):
+        """Returns the full path to the JAR file.
+
+        Raises an ApplicationNotFoundError if the JAR file cannot be
+        found in the (1) current directory or (2) the path specified
+        in the RDP_JAR_PATH environment variable.
+        """
+        if exists(self._command):
+            return self._command
+        elif 'RDP_JAR_PATH' in environ:
+            return getenv('RDP_JAR_PATH')
+        raise ApplicationNotFoundError (
+            "Cannot find jar file.  Checked current directory and " + \
+            "path specified in environment variable $RDP_JAR_PATH.")
+
     # Overridden to pull out JVM-specific command-line arguments.
     def _get_base_command(self):
         """Returns the base command plus command-line options.
@@ -182,7 +202,7 @@ class RdpClassifier(CommandLineApplication):
 
         jvm_command = "java"
         jvm_arguments = self.__commandline_join(self.JvmParameters.values())
-        jar_arguments = self.__commandline_join(self.JarParameters.values())
+        jar_arguments = '-jar "%s"' % self._get_jar_fp()
 
         result = self.__commandline_join(
             [cd_command, jvm_command, jvm_arguments, jar_arguments]
@@ -199,10 +219,6 @@ class RdpClassifier(CommandLineApplication):
         """
         commands = filter(None, map(str, tokens))
         return self._command_delimiter.join(commands).strip()
-
-    @property
-    def JarParameters(self):
-        return self.__extract_parameters('jar')
 
     @property
     def JvmParameters(self):
