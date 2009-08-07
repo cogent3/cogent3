@@ -5,16 +5,17 @@ from string import strip
 from os import remove, access, F_OK, environ, path
 from cogent.app.parameters import FlagParameter, ValuedParameter, MixedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    get_tmp_filename, guess_input_handler
+    get_tmp_filename, guess_input_handler, ApplicationNotFoundError
 from cogent.parse.fasta import FastaFinder, LabeledRecordFinder, is_fasta_label
 from cogent.parse.blast import LastProteinIds9, QMEBlast9, QMEPsiBlast9, BlastResult
+from cogent.util.misc import app_path
 from random import choice
 from copy import copy
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Micah Hamady", "Jeremy Widmann",
-                    "Catherine Lozupone", "Rob Knight"]
+                    "Catherine Lozupone", "Rob Knight","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Micah Hamady"
@@ -134,6 +135,8 @@ class Blast(CommandLineApplication):
 
     }
 
+    _executable = 'blastall'
+
     _parameters = {}
     _parameters.update(_common_options)
 
@@ -142,7 +145,6 @@ class Blast(CommandLineApplication):
                  params=None,InputHandler=None,
                  SuppressStderr=None, SuppressStdout=None,WorkingDir=None):
         """ Initialize blast """
-
         # update options
         self._parameters.update(cur_options)
 
@@ -151,7 +153,14 @@ class Blast(CommandLineApplication):
             self._command = "export BLASTMAT=%s;%s%s" % (blast_mat_root, 
                                                     extra_env, command)
         else:
+            # Determine if blast is installed and raise an ApplicationError 
+            # if not -- this is done here so the user will get the most 
+            # informative error message available.  
+            self._error_on_missing_application(params)
+                 
+            # Otherwise raise error about $BLASTMAT not being set
             if not ('BLASTMAT' in environ or access(path.expanduser("~/.ncbirc"), F_OK) or access(".ncbirc", F_OK)) :
+                ## SHOULD THIS BE CHANGED TO RAISE AN ApplicationError?
                 raise RuntimeError, \
         """BLAST cannot run if the BLASTMAT environment variable is not set.
 
@@ -189,6 +198,13 @@ call the Standalone BLAST program from or in your root directory.
         super(Blast, self).__init__(params=params,
                     InputHandler=InputHandler,SuppressStderr=SuppressStderr,
                     SuppressStdout=SuppressStdout,WorkingDir=WorkingDir)
+
+    def _error_on_missing_application(self,params):
+        """ Raise an ApplicationNotFoundError if the app is not accessible
+        """
+        if not app_path('blastall'):
+            raise ApplicationNotFoundError,\
+             "Cannot find blastall. Is it installed? Is it in your path?"
 
     def _input_as_seqs(self,data):
         lines = []

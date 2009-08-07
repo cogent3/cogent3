@@ -3,7 +3,7 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
     CommandLineAppResult, ResultPath, ApplicationError, ParameterIterBase,\
-    ParameterCombinations, cmdline_generator
+    ParameterCombinations, cmdline_generator, ApplicationNotFoundError
 from cogent.app.parameters import *
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
@@ -362,6 +362,17 @@ class CommandLineApplicationTests(TestCase):
     def setUp(self):
         """setUp for all CommandLineApplication tests"""
 
+        f = open('/tmp/CLAppTester.py','w')
+        f.write(script)
+        f.close()
+        system('chmod 777 /tmp/CLAppTester.py')
+
+        # create a copy of the script with a space in the name 
+        f = open('/tmp/CLApp Tester.py','w')
+        f.write(script)
+        f.close()
+        system('chmod 777 "/tmp/CLApp Tester.py"')
+
         self.app_no_params = CLAppTester()
         self.app_no_params_no_stderr = CLAppTester(SuppressStderr=True)
         self.app_params =CLAppTester({'-F':'p_file.txt'})
@@ -382,118 +393,75 @@ class CommandLineApplicationTests(TestCase):
         self.app_params_TmpDir_w_space =CLAppTester({'-F':'p_file.txt'},\
             TmpDir='/tmp/tmp space')
         self.data = 42
-        script = """#!/usr/bin/env python
-#This is a test script intended to test the CommandLineApplication
-#class and CommandLineAppResult class
-
-from sys import argv, stderr,stdin
-from os import isatty
-
-out_file_name = None
-
-input_arg = None
-
-# parse input
-try:
-    if argv[1] == '-F':
-        out_file_name = argv[2]
-except IndexError:
-    pass
-try:
-    if out_file_name:
-        input_arg = argv[3]
-    else:
-        input_arg = argv[1]
-except IndexError:
-    pass
-# Create the output string
-out = 'out'
-# get input
-try:
-    f = open(str(input_arg))
-    data = int(f.readline().strip())
-except IOError:
-    try:
-        data = int(input_arg)
-    except TypeError:
-        data = None
-
-if data:
-    data = str(data + 1)
-    out = ' '.join([out,data])
-
-# Write base dependent output files
-base = 'BASE'
-f = open('/tmp/' + base + '.1','w')
-f.writelines(['base dependent 1'])
-f.close()
-f = open('/tmp/' + base + '.2','w')
-f.writelines(['base dependent 2'])
-f.close()
-
-# If output to file, open the file and write output to it
-if out_file_name:
-    filename = argv[2]
-    f = open(''.join([out_file_name]),'w')
-    out = ' '.join([out,out_file_name])
-    f.writelines(out)
-    f.close()
-else:
-    print out
-
-#generate some stderr
-print >> stderr, 'I am stderr'
-
-# Write the fixed file
-f = open('/tmp/fixed.txt','w')
-f.writelines(['I am fixed file'])
-f.close()
-
-"""
-        f = open('/tmp/CLAppTester.py','w')
-        f.write(script)
-        f.close()
-        system('chmod 777 /tmp/CLAppTester.py')
-
-        # create a copy of the script with a space in the name 
-        f = open('/tmp/CLApp Tester.py','w')
-        f.write(script)
-        f.close()
-        system('chmod 777 "/tmp/CLApp Tester.py"')
  
     def test_base_command(self):
         """CLAppTester: BaseCommand correctly composed """
         # No parameters on
         app = CLAppTester()
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; /tmp/CLAppTester.py')
         # ValuedParameter on/off
         app.Parameters['-F'].on('junk.txt')
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "junk.txt"')
         app.Parameters['-F'].off()
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; /tmp/CLAppTester.py')
         # ValuedParameter accessed by synonym turned on/off
         app.Parameters['File'].on('junk.txt')
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "junk.txt"')
         app.Parameters['File'].off()
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; /tmp/CLAppTester.py')
         # Try multiple parameters, must check for a few different options
         # because parameters are printed in arbitrary order
         app.Parameters['-F'].on('junk.txt')
         app.Parameters['--duh'].on()
         self.failUnless(app.BaseCommand ==\
-            'cd "/tmp/"; ./CLAppTester.py -F "junk.txt" --duh'\
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "junk.txt" --duh'\
             or app.BaseCommand ==\
-            'cd "/tmp/"; ./CLAppTester.py --duh -F "junk.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py --duh -F "junk.txt"')
         # Space in _command
         app = CLAppTester_space_in_command()
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; "./CLApp Tester.py"')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; "/tmp/CLApp Tester.py"')
        
     def test_getHelp(self):
         """CLAppTester: getHelp() functions as expected """
         app = CLAppTester()
         self.assertEqual(app.getHelp(),'Duh')
+        
+    def test_error_on_missing_executable(self):
+        """CLAppTester: Useful error message on executable not found
+        """
+        
+        # fake command via self._command
+        class Blah(CLAppTester):
+            _command = 'fake_command_jasdlkfsadlkfskladfkladf'
+            
+        self.assertRaises(ApplicationNotFoundError,Blah)
+        
+        
+        # real command but bad path via self._command
+        class Blah(CLAppTester):
+            _command = '/not/a/real/path/ls'         
+            
+        self.assertRaises(ApplicationNotFoundError,Blah)
+    
+        # alt _error_on_missing_command function works as expected
+        class Blah(CLAppTester):
+            _command = 'ls'
+            def _error_on_missing_application(self,data):
+                raise ApplicationNotFoundError
+                
+        self.assertRaises(ApplicationNotFoundError,Blah)
+        
+        class Blah(CLAppTester):
+            _command = 'fake_app_asfasdasdasdasdasd'
+            def _error_on_missing_application(self,data):
+                pass
+                
+        # no error raised
+        Blah()
+        
+    
     
     def test_no_p_no_d(self):
         """CLAppTester: parameters turned off, no data"""
@@ -503,7 +471,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         #test_command
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; /tmp/CLAppTester.py')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'out\n')
@@ -523,7 +491,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         #test_command
-        self.assertEqual(app.BaseCommand,'cd "/tmp/"; ./CLAppTester.py')
+        self.assertEqual(app.BaseCommand,'cd "/tmp/"; /tmp/CLAppTester.py')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'out 43\n')
@@ -544,7 +512,7 @@ f.close()
         assert app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'')
@@ -566,7 +534,7 @@ f.close()
         assert app.SuppressStdout
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'],None)
@@ -588,7 +556,7 @@ f.close()
         assert not app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -610,7 +578,7 @@ f.close()
         assert not app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; "./CLApp Tester.py" -F "p_file.txt"')
+            'cd "/tmp/"; "/tmp/CLApp Tester.py" -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -633,7 +601,7 @@ f.close()
         assert not app.SuppressStderr
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app(self.data)
         self.assertEqual(result['StdOut'].read(),'')
@@ -680,7 +648,7 @@ f.close()
         self.assertEqual(app.WorkingDir,'/tmp/test/')
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/test/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/test/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -709,7 +677,7 @@ f.close()
         self.assertEqual(app.WorkingDir,'/tmp/test space/')
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/test space/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/test space/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -737,7 +705,7 @@ f.close()
         self.assertEqual(app.TmpDir,'/tmp/tmp2')
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -765,7 +733,7 @@ f.close()
         self.assertEqual(app.TmpDir,'/tmp/tmp space')
         #test_command
         self.assertEqual(app.BaseCommand,\
-            'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
+            'cd "/tmp/"; /tmp/CLAppTester.py -F "p_file.txt"')
         #test_result
         result = app()
         self.assertEqual(result['StdOut'].read(),'')
@@ -1015,12 +983,81 @@ class RemoveTests(TestCase):
 
 #=====================END OF TESTS===================================
 
+script = """#!/usr/bin/env python
+#This is a test script intended to test the CommandLineApplication
+#class and CommandLineAppResult class
+
+from sys import argv, stderr,stdin
+from os import isatty
+
+out_file_name = None
+
+input_arg = None
+
+# parse input
+try:
+    if argv[1] == '-F':
+        out_file_name = argv[2]
+except IndexError:
+    pass
+try:
+    if out_file_name:
+        input_arg = argv[3]
+    else:
+        input_arg = argv[1]
+except IndexError:
+    pass
+# Create the output string
+out = 'out'
+# get input
+try:
+    f = open(str(input_arg))
+    data = int(f.readline().strip())
+except IOError:
+    try:
+        data = int(input_arg)
+    except TypeError:
+        data = None
+
+if data:
+    data = str(data + 1)
+    out = ' '.join([out,data])
+
+# Write base dependent output files
+base = 'BASE'
+f = open('/tmp/' + base + '.1','w')
+f.writelines(['base dependent 1'])
+f.close()
+f = open('/tmp/' + base + '.2','w')
+f.writelines(['base dependent 2'])
+f.close()
+
+# If output to file, open the file and write output to it
+if out_file_name:
+    filename = argv[2]
+    f = open(''.join([out_file_name]),'w')
+    out = ' '.join([out,out_file_name])
+    f.writelines(out)
+    f.close()
+else:
+    print out
+
+#generate some stderr
+print >> stderr, 'I am stderr'
+
+# Write the fixed file
+f = open('/tmp/fixed.txt','w')
+f.writelines(['I am fixed file'])
+f.close()
+
+"""
+
 class CLAppTester(CommandLineApplication):
     _parameters = {
         '-F':ValuedParameter(Prefix='-',Name='F',Delimiter=' ',\
             Value=None, Quote="\""),\
         '--duh':FlagParameter(Prefix='--',Name='duh')}
-    _command = './CLAppTester.py'
+    _command = '/tmp/CLAppTester.py'
     _synonyms = {'File':'-F','file':'-F'}
     _working_dir = '/tmp'
 
@@ -1049,8 +1086,8 @@ class CLAppTester_no_working_dir(CLAppTester):
     _working_dir = None
 
 class CLAppTester_space_in_command(CLAppTester):
-    _command = '"./CLApp Tester.py"'
- 
+    _command = '"/tmp/CLApp Tester.py"'
+
 class ParameterCombinationsApp(CommandLineApplication):
     """ParameterCombinations mock application to wrap"""
     _command = 'testcmd'

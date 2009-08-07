@@ -2,13 +2,14 @@
 import commands
 from sys import platform
 from os import remove,system,mkdir,getcwd,close,sep
-from os.path import isabs
+from random import choice
+from os.path import isabs, exists
+from numpy import zeros, array, nonzero, max
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None, FilePath
 from cogent.util.misc import if_
 from cogent.util.transform import cartesian_product
-from random import choice
-from numpy import zeros, array, nonzero, max
+from cogent.util.misc import app_path
 
 __author__ = "Sandra Smit and Greg Caporaso"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -26,6 +27,9 @@ _all_chars = _chars + _chars.upper() + "0123456790"
 
 
 class ApplicationError(OSError):
+    pass
+   
+class ApplicationNotFoundError(ApplicationError):
     pass
    
 class ResultPath(object):
@@ -158,6 +162,9 @@ class CommandLineApplication(Application):
             HALT_EXEC: if True, raises exception w/ command output just
             before execution, doesn't clean up temp files. Default False.
         """
+        # Determine if the application is installed, and raise an error if not
+        self._error_on_missing_application(params)
+        
         # set attributes to parameter that was passed in or class default
         if InputHandler is not None:
             self.InputHandler = InputHandler
@@ -234,13 +241,21 @@ class CommandLineApplication(Application):
         # We only want to keep the exit status so do a right bitwise shift to 
         # get rid of the signal number byte
         exit_status = system(command) >> 8
-      
+        
         # Determine if error should be raised due to exit status of 
         # appliciation
         if not self._accept_exit_status(exit_status):
             raise ApplicationError, \
              'Unacceptable application exit status: %s, command: %s'\
                 % (str(exit_status),command)
+        # bash returns 127 as the exit status if the command could not
+        # be found -- raise an ApplicationError on status == 127.
+        # elif exit_status == 127:
+        #     raise ApplicationError, \
+        #      "Could not execute %s. Is it installed? Is it in your path?"\
+        #      % self._command
+        # else:
+        #     pass
         
         # open the stdout and stderr if not being suppressed
         out = None
@@ -380,6 +395,29 @@ class CommandLineApplication(Application):
             pass 
 
     WorkingDir = property(_get_WorkingDir,_set_WorkingDir)
+    
+    def _error_on_missing_application(self,params):
+        """ Raise an ApplicationNotFoundError if the app is not accessible
+        
+            This method checks in the system path (usually $PATH) or for
+            the existence of self._command. If self._command is not found
+            in either place, an ApplicationNotFoundError is raised to
+            inform the user that the application they are trying to access is
+            not available.
+            
+            This method should be overwritten when self._command does not
+            represent the relevant executable (e.g., self._command = 'prog -a')
+            or in more complex cases where the file to be executed may be 
+            passed as a parameter (e.g., with java jar files, where the 
+            jar file is passed to java via '-jar'). It can also be overwritten
+            to by-pass testing for application presence by never raising an 
+            error.
+        """
+        command = self._command
+        if not (exists(command) or app_path(command)):
+            raise ApplicationNotFoundError,\
+             "Cannot find %s. Is it installed? Is it in your path?"\
+             % command
 
     
     def _accept_exit_status(self,exit_status):
