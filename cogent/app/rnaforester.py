@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
-from cogent.app.util import CommandLineApplication,\
-    CommandLineAppResult, ResultPath
-from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
-    MixedParameter,Parameters, _find_synonym, is_not_None
 from os import mkdir,getcwd,system,remove,close
 from random import choice
+from cogent.util.misc import app_path
+from cogent.app.util import CommandLineApplication,\
+    CommandLineAppResult, ResultPath, ApplicationNotFoundError
+from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
+    MixedParameter,Parameters, _find_synonym, is_not_None
 
 __author__ = "Shandy Wikman"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__contributors__ = ["Shandy Wikman"]
+__contributors__ = ["Shandy Wikman","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Shandy Wikman"
@@ -43,6 +44,16 @@ class RNAforester(CommandLineApplication):
         """
         data = ' '.join([data,'-o f','|'])
         return data
+
+    def _error_on_missing_application(self,params):
+        """ Raise an ApplicationNotFoundError if the app is not accessible
+        """
+        if not app_path('RNAforester'):
+            raise ApplicationNotFoundError,\
+             "Cannot find RNAforester. Is it installed? Is it in your path?"
+        if not app_path('RNAshapes'):
+            raise ApplicationNotFoundError,\
+             "Cannot find RNAshapes. Is it installed? Is it in your path?"
 
 #Override these functions to biuld up the command  
     def __call__(self,data=None, remove_tmp=True):
