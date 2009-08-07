@@ -13,7 +13,8 @@ from numpy import logical_not, sum
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Amanda Birmingham",
-                    "Sandra Smit", "Zongzhi Liu", "Daniel McDonald"]
+                    "Sandra Smit", "Zongzhi Liu", "Daniel McDonald",
+                    "Kyle Bittinger"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"
@@ -1230,6 +1231,7 @@ def app_path(app):
     Should generalize to work on Windows?
     """
     result = popen('which '+app).read().strip()
-    if not result or result.startswith('no'):
+    # Ends with 'not found' fixes bug in OSX 10.4
+    if not result or result.startswith('no') or result.endswith('not found'):
         return False
     return result
