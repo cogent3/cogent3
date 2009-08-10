@@ -17,7 +17,7 @@ from os.path import exists
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
     FilePath, ResultPath, get_tmp_filename, guess_input_handler, system,\
-    ApplicationNotFoundError
+    ApplicationNotFoundError, ApplicationError
 
 class RdpClassifier(CommandLineApplication):
     """RDP Classifier application controller
@@ -165,25 +165,39 @@ class RdpClassifier(CommandLineApplication):
 
         return result
 
+    def _accept_exit_status(self, status):
+        """Returns false if an error occurred in execution
+        """
+        return (status == 0)
+
     def _error_on_missing_application(self,params):
         """Raise an ApplicationNotFoundError if the app is not accessible
         """
-        return self._get_jar_fp()
+        command = self._get_jar_fp()
+        if not exists(command):
+            raise ApplicationNotFoundError,\
+             "Cannot find jar file. Is it installed? Is $RDP_JAR_PATH"+\
+             " set correctly?"
 
     def _get_jar_fp(self):
         """Returns the full path to the JAR file.
 
-        Raises an ApplicationNotFoundError if the JAR file cannot be
+        Raises an ApplicationError if the JAR file cannot be
         found in the (1) current directory or (2) the path specified
         in the RDP_JAR_PATH environment variable.
         """
+        # handles case where the jar file is in the current working directory
         if exists(self._command):
             return self._command
+        # handles the case where the user has specified the location via
+        # an environment variable
         elif 'RDP_JAR_PATH' in environ:
             return getenv('RDP_JAR_PATH')
-        raise ApplicationNotFoundError (
-            "Cannot find jar file.  Checked current directory and " + \
-            "path specified in environment variable $RDP_JAR_PATH.")
+        # error otherwise
+        else:
+            raise ApplicationError,\
+             "$RDP_JAR_PATH is not set -- this must be set to use the"+\
+             " RDP classifier application controller."
 
     # Overridden to pull out JVM-specific command-line arguments.
     def _get_base_command(self):

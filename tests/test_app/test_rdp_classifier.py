@@ -3,7 +3,8 @@
 
 from os import getcwd, environ, remove
 from shutil import rmtree
-from cogent.app.util import ApplicationNotFoundError, get_tmp_filename
+from cogent.app.util import ApplicationNotFoundError, ApplicationError,\
+    get_tmp_filename
 from cogent.app.rdp_classifier import RdpClassifier
 from cogent.util.unit_test import TestCase, main
 
@@ -18,16 +19,11 @@ __status__ = "Prototype"
 
 class RdpClassifierTests(TestCase):
     def setUp(self):
-        # adjust environment variables
-        self.user_rdp_jar_path = environ.pop('RDP_JAR_PATH', None)
-        environ['RDP_JAR_PATH'] = 'rdp_classifier-2.0.jar'
-
-    def tearDown(self):
-        # reconstitute user's environment variables
-        if self.user_rdp_jar_path is None:
-            environ.pop('RDP_JAR_PATH')
+        # fetch user's RDP_JAR_PATH
+        if 'RDP_JAR_PATH' in environ:
+            self.user_rdp_jar_path = environ['RDP_JAR_PATH']
         else:
-            environ['RDP_JAR_PATH'] = self.user_rdp_jar_path
+            self.user_rdp_jar_path = 'rdp_classifier-2.0.jar'
 
     def test_default_java_vm_parameters(self):
         """RdpClassifier should store default arguments to Java VM."""
@@ -63,7 +59,7 @@ class RdpClassifierTests(TestCase):
         """RdpCalssifier should pass alternate parameters to Java VM."""
         app = RdpClassifier()
         app.Parameters['-Xmx'].on('75M')
-        exp = ''.join(['cd "', getcwd(), '/"; java -Xmx75M -jar "rdp_classifier-2.0.jar"'])
+        exp = ''.join(['cd "', getcwd(), '/"; java -Xmx75M -jar "', self.user_rdp_jar_path, '"'])
         self.assertEqual(app.BaseCommand, exp)
 
     def test_basecommand_property(self):
@@ -74,107 +70,55 @@ class RdpClassifierTests(TestCase):
     def test_base_command(self):
         """RdpClassifier should return expected shell command."""
         app = RdpClassifier()
-        exp = ''.join(['cd "', getcwd(), '/"; java -Xmx1000m -jar "rdp_classifier-2.0.jar"'])
+        exp = ''.join(['cd "', getcwd(), '/"; java -Xmx1000m -jar "', self.user_rdp_jar_path, '"'])
         self.assertEqual(app.BaseCommand, exp)
         
-    def test_get_jar_fp(self):
-        """RdpClassifier should search for jar file in appropriate location"""
-        # Test 1: jar not in current dir, $RDP_JAR_PATH not set
-        environ.pop('RDP_JAR_PATH')
-        self.assertRaises(ApplicationNotFoundError, RdpClassifier)
-
-        # Test 2: Subclass RdpClassifier with different _command
-        # attribute, app should look there
-
-        # create a temporary jar file
-        tmp_jar_fp = get_tmp_filename(
-            prefix='RdpClassifierTest', suffix='.jar')
-        file = open(tmp_jar_fp, 'w')
-        file.write('some stuff')
-        file.close()
-
-        class TestRdpClassifier(RdpClassifier):
-            _command = tmp_jar_fp
-        app = TestRdpClassifier()
-        self.assertEqual(app._get_jar_fp(), tmp_jar_fp)
-
-        remove(tmp_jar_fp)
-
-        # reset environment variable
-        environ['RDP_JAR_PATH'] = 'not None'
-
     def test_change_working_dir(self):
         """RdpClassifier should run program in expected working directory."""
         test_dir = '/tmp/RdpTest'
 
         app = RdpClassifier(WorkingDir=test_dir)
-        exp = ''.join(['cd "', test_dir, '/"; java -Xmx1000m -jar "rdp_classifier-2.0.jar"'])
+        exp = ''.join(['cd "', test_dir, '/"; java -Xmx1000m -jar "', self.user_rdp_jar_path, '"'])
         self.assertEqual(app.BaseCommand, exp)
 
         rmtree(test_dir)
 
     def test_sample_fasta(self):
         """RdpClassifier should classify its own sample data correctly"""
-        # Reconstitute user's $RDP_JAR_PATH variable
-        if self.user_rdp_jar_path is None:
-            environ.pop('RDP_JAR_PATH')
-        else:
-            environ['RDP_JAR_PATH'] = self.user_rdp_jar_path
-
         test_dir = '/tmp/RdpTest'
-        try:
-            app = RdpClassifier(WorkingDir=test_dir)
+        app = RdpClassifier(WorkingDir=test_dir)
 
-            results_file = app(rdp_sample_fasta)['StdOut']
+        results_file = app(rdp_sample_fasta)['StdOut']
         
-            id_line = results_file.readline()
-            self.failUnless(id_line.startswith('>X67228'))
+        id_line = results_file.readline()
+        self.failUnless(id_line.startswith('>X67228'))
 
-            classification_line = results_file.readline().strip()
-            def all_even_items(list):
-                return [x for (pos, x) in enumerate(list) if (pos % 2 == 0)]
-            obs = all_even_items(classification_line.split('; '))
-            exp = ['Root', 'Bacteria', 'Proteobacteria', 'Alphaproteobacteria', 'Rhizobiales', 'Rhizobiaceae', 'Rhizobium']
-            self.assertEqual(obs, exp)
+        classification_line = results_file.readline().strip()
+        obs = parse_rdp(classification_line)
+        exp = ['Root', 'Bacteria', 'Proteobacteria', 'Alphaproteobacteria', 'Rhizobiales', 'Rhizobiaceae', 'Rhizobium']
+        self.assertEqual(obs, exp)
 
-            rmtree(test_dir)
-
-        finally:
-            # reset environment variable
-            environ['RDP_JAR_PATH'] = 'not None'
+        rmtree(test_dir)
 
     def test_custom_training_data(self):
-        """RdpClassifier should use sample training data"""
-        # Reconstitute user's $RDP_JAR_PATH variable
-        if self.user_rdp_jar_path is None:
-            environ.pop('RDP_JAR_PATH')
-        else:
-            environ['RDP_JAR_PATH'] = self.user_rdp_jar_path
-
+        """RdpClassifier should look for custom training data"""
         test_dir = '/tmp/RdpTest'
-        try:
-            app = RdpClassifier(WorkingDir=test_dir)
-            app.Parameters['-training-data'].on(
-                '/usr/local/app/rdp_classifier/mydata/rRNAClassifier.properties'
-                )
+        app = RdpClassifier(WorkingDir=test_dir)
 
-            results_file = app(rdp_sample_fasta)['StdOut']
+        nonexistent_training_data = get_tmp_filename(
+            prefix='RdpTestCustomTrainingData', suffix='.properties')
+        app.Parameters['-training-data'].on(nonexistent_training_data)
+        self.assertRaises(ApplicationError, app, rdp_sample_fasta)
         
-            id_line = results_file.readline()
-            self.failUnless(id_line.startswith('>X67228'))
+        rmtree(test_dir)
 
-            classification_line = results_file.readline().strip()
-            def all_even_items(list):
-                return [x for (pos, x) in enumerate(list) if (pos % 2 == 0)]
-            obs = all_even_items(classification_line.split('; '))
-            exp = ['Root', 'Bacteria', 'Proteobacteria', 'Alphaproteobacteria', 'Rhizobiales', 'Rhizobiaceae', 'Rhizobium']
-            self.assertEqual(obs, exp)
 
-            rmtree(test_dir)
-
-        finally:
-            # reset environment variable
-            environ['RDP_JAR_PATH'] = 'not None'
+def parse_rdp(line):
+    """Returns a list of assigned taxa from an RDP classification line
+    """
+    tokens = line.split('; ')
+    # Keep even-numbered tokens
+    return [t for (pos, t) in enumerate(tokens) if (pos % 2 == 0)]
 
 # Sample data copied from rdp_classifier-2.0, which is licensed under
 # the GPL 2.0 and Copyright 2008 Michigan State University Board of
