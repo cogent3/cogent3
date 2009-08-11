@@ -260,7 +260,8 @@ class SyntenicRegions(_RelatedRegions):
     
     def __str__(self):
         display = ['%s:' % self.Type]
-        display += ['  %r' % m.Location for m in self.Members]
+        display += ['  %r' % m.Location for m in self.Members \
+                                                if m.Region is not None]
         return '\n'.join(display)
     
     def __repr__(self):
