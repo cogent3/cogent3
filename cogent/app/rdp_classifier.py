@@ -4,7 +4,7 @@
 
 __author__ = "Kyle Bittinger"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Kyle Bittinger"]
+__credits__ = ["Kyle Bittinger","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Kyle Bittinger"
@@ -14,7 +14,9 @@ __status__ = "Prototype"
 
 from os import remove, environ, getenv
 from os.path import exists
+from optparse import OptionParser
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
+from cogent.parse.fasta import MinimalFastaParser
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
     FilePath, ResultPath, get_tmp_filename, guess_input_handler, system,\
     ApplicationNotFoundError, ApplicationError
@@ -262,4 +264,125 @@ class RdpClassifier(CommandLineApplication):
             result[key] = self.Parameters[key]
         return result
 
+def parse_command_line_parameters():
+    """ Parses command line arguments """
+    usage =\
+     'usage: %prog [options] input_sequences_filepath'
+    version = 'Version: %prog ' +  __version__
+    parser = OptionParser(usage=usage, version=version)
+          
+    parser.add_option('-o','--output_fp',action='store',\
+          type='string',dest='output_fp',help='Path to store '+\
+          'output file [default: generated from input_sequences_filepath]')
+          
+    parser.add_option('-c','--min_confidence',action='store',\
+          type='float',dest='confidence',help='minimum confidence '+\
+          'level to return a classification [default: %default]')
+
+    parser.set_defaults(verbose=False,min_confidence=0.80)
+
+    opts,args = parser.parse_args()
+    num_args = 1
+    if len(args) != num_args:
+       parser.error('Exactly one argument is required.')
+
+
+    return opts,args
+    
+def _assign_taxonomy(data,min_confidence=0.80):
+    # build a map of seq identifiers as the RDP classifier doesn't 
+    # preserve these perfectly
+    identifier_lookup = {}
+    for seq_id, seq in MinimalFastaParser(data.split('\n')):
+        identifier_lookup[seq_id.split()[0]] = seq_id
+    
+    # build the classifier object
+    app = RdpClassifier()
+    
+    # apply the rdp app controller
+    rdp_result = app(data)
+    # grab standard out
+    result_lines = rdp_result['StdOut']
+    
+    # start a list to store the assignments
+    results = []
+    
+    # iterate over the identifier, assignment strings (this is a bit
+    # of an abuse of the MinimalFastaParser, as these are not truely
+    # fasta lines)
+    for identifier, assignment_str in MinimalFastaParser(result_lines):
+        # get the original identifier from the one in the rdp result
+        identifier = identifier_lookup[\
+         identifier[:identifier.index('reverse=')].strip()]
+        # build a list to store the assignments we're confident in
+        # (i.e., the ones that have a confidence greater than min_confidence)
+        confident_assignments = []
+        # keep track of the lowest acceptable confidence value that
+        # has been encountered
+        lowest_confidence = 0.0
+        
+        # split the taxonomy assignment string
+        assignment_fields = assignment_str.split(';')
+        # iterate over (assignment, assignment confidence) pairs
+        for i in range(0,len(assignment_fields),2):
+            assignment = assignment_fields[i]
+            try:
+                assignment_confidence = float(assignment_fields[i+1])
+            except IndexError:
+                break
+            
+            # check the confidence of the current assignment
+            if assignment_confidence >= min_confidence:
+                # if the current assignment confidence is greater than
+                # the min, store the assignment and confidence value
+                confident_assignments.append(assignment)
+                lowest_confidence = assignment_confidence 
+            else:
+                # otherwise, we've made it to the lowest assignment that
+                # met the confidence threshold, so bail out of the loop
+                break
+
+        # store the identifier, the comma-separated assignments, and the
+        # confidence for the last assignment
+        results.append(\
+             [identifier,','.join(confident_assignments),lowest_confidence])
+            
+    return results
+    
+def assign_taxonomy(input_fp,min_confidence=0.80,output_fp=None):
+    """ Assign taxonomy to all seqs in input_fp
+    
+        input_fp: fasta file containing sequences to classify
+        confidence: minimum support threshold to assign taxonomy to a sequence
+        output_fp: path to write output, will be created from 
+         input file if not provided
+    """
+    
+    output_fp = output_fp or input_fp.replace('.fasta','_rdp_out.fasta')
+    
+    try:
+        input_file = open(input_fp)
+    except OSError:
+        raise OSError, "Can't open input file for reading: %s" % input_fp
+    input_string = input_file.read()
+    input_file.close()
+    
+    try:
+        output_file = open(output_fp,'w')
+    except OSError:
+        raise OSError, "Can't open output file for writing: %s" % output_fp
+        
+    assignments = _assign_taxonomy(input_string,min_confidence)
+    
+    output_file.write('\n'.join(['\t'.join(map(str,l)) for l in assignments]))
+    output_file.close()
+    
+    
+    return output_fp
+
+if __name__ == "__main__":
+    
+    opts,args = parse_command_line_parameters()
+    assign_taxonomy(args[0],min_confidence=opts.min_confidence,\
+     output_fp=opts.output_fp)
 
