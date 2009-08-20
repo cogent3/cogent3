@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from cogent.maths.stats.special import lgam
 from cogent.maths.scipy_optimize import brent
+from cogent.maths.optimisers import Powell
 from math import ceil, e
 from numpy import array, zeros, concatenate, arange, log, sqrt, exp
 
@@ -128,24 +129,27 @@ def strong(counts):
     i = arange(1,len(counts)+1)
     return (sorted_sum/float(n) - (i/float(s))).max()
 
-def fisher_alpha(counts, bounds=(1e-3,1e3), return_f=False):
+def fisher_alpha(counts, bounds=(1e-3,1e12)):
     """Fisher's alpha: S = alpha ln(1+N/alpha) where S=species, N=individuals
     
-    bounds are guess for brent optimizer bracket search.
+    bounds are guess for Powell optimizer bracket search.
 
-    WARNING: may need to adjust bounds for some datasets, if concerned check
-    f(result) to make sure that you're getting a value close to 0.
+    WARNING: may need to adjust bounds for some datasets.
     """
     n = counts.sum()
     s = (counts!=0).sum()
     alpha = array([1.0])
     def f(alpha):
         return (alpha * log(1 + (n/alpha)) - s)**2
-    
-    result = brent(f, brack=bounds)
-    if return_f:
-        return result, f, f(result)
-    return result
+    opt = Powell(f, # the func to be optimised
+             xinit=[1.0], # the vector of initial values
+             bounds=([bounds[0]], [bounds[1]]), # [(lower),(upper)] bounds for the params
+             direction=-1) # -1 is minimise func, 1 is maximise
+    fit, vec = opt.run(show_progress=False)
+    if fit > 1.0:
+        raise RuntimeError("optimizer failed to converge (error > 1.0)," +\
+            " so no fisher alpha returned")
+    return vec
 
 def mcintosh_e(counts):
     """McIntosh's evenness measure: Heip & Engels 1974 p 560 (wrong in SDR-IV)."""
