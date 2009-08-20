@@ -335,7 +335,7 @@ def _assign_taxonomy(data,min_confidence=0.80):
             if assignment_confidence >= min_confidence:
                 # if the current assignment confidence is greater than
                 # the min, store the assignment and confidence value
-                confident_assignments.append(assignment)
+                confident_assignments.append(assignment.strip())
                 lowest_confidence = assignment_confidence 
             else:
                 # otherwise, we've made it to the lowest assignment that
