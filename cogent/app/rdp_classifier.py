@@ -289,23 +289,33 @@ def parse_command_line_parameters():
 
     return opts,args
     
-def _assign_taxonomy(data,min_confidence=0.80):
+def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
+    """ Assign taxonomy to each sequence in data with the RDP classifier 
+    
+        data: open fasta file object or list of fasta lines
+        confidence: minimum support threshold to assign taxonomy to a sequence
+        output_fp: path to write output; if not provided, result will be 
+         returned in a dict of {seq_id:(taxonomy_assignment,confidence)}
+    
+    """
+    data = list(data)
+    
     # build a map of seq identifiers as the RDP classifier doesn't 
     # preserve these perfectly
     identifier_lookup = {}
-    for seq_id, seq in MinimalFastaParser(data.split('\n')):
+    for seq_id, seq in MinimalFastaParser(data):
         identifier_lookup[seq_id.split()[0]] = seq_id
     
     # build the classifier object
     app = RdpClassifier()
     
     # apply the rdp app controller
-    rdp_result = app(data)
+    rdp_result = app('\n'.join(data))
     # grab standard out
     result_lines = rdp_result['StdOut']
     
     # start a list to store the assignments
-    results = []
+    results = {}
     
     # iterate over the identifier, assignment strings (this is a bit
     # of an abuse of the MinimalFastaParser, as these are not truely
@@ -344,41 +354,52 @@ def _assign_taxonomy(data,min_confidence=0.80):
 
         # store the identifier, the comma-separated assignments, and the
         # confidence for the last assignment
-        results.append(\
-             [identifier,','.join(confident_assignments),lowest_confidence])
+        results[identifier] = \
+             (','.join(confident_assignments),lowest_confidence)
             
-    return results
+    if output_fp:
+        try:
+            output_file = open(output_fp,'w')
+        except OSError:
+            raise OSError, "Can't open output file for writing: %s" % output_fp
+            
+        for seq_id, values in results.items():
+            output_file.write('%s\t%s\t%1.3f\n' % (seq_id,values[0],values[1]))
+            
+        output_file.close()
+        return None
+    else:   
+        return results
     
-def assign_taxonomy(input_fp,min_confidence=0.80,output_fp=None):
-    """ Assign taxonomy to all seqs in input_fp
-    
-        input_fp: fasta file containing sequences to classify
-        confidence: minimum support threshold to assign taxonomy to a sequence
-        output_fp: path to write output, will be created from 
-         input file if not provided
-    """
-    
-    output_fp = output_fp or input_fp.replace('.fasta','_rdp_out.fasta')
-    
-    try:
-        input_file = open(input_fp)
-    except OSError:
-        raise OSError, "Can't open input file for reading: %s" % input_fp
-    input_string = input_file.read()
-    input_file.close()
-    
-    try:
-        output_file = open(output_fp,'w')
-    except OSError:
-        raise OSError, "Can't open output file for writing: %s" % output_fp
-        
-    assignments = _assign_taxonomy(input_string,min_confidence)
-    
-    output_file.write('\n'.join(['\t'.join(map(str,l)) for l in assignments]))
-    output_file.close()
-    
-    
-    return output_fp
+# def assign_taxonomy(input_fp,min_confidence=0.80,output_fp=None):
+#     """ Assign taxonomy to all seqs in input_fp
+#     
+#         input_fp: fasta file containing sequences to classify
+#         confidence: minimum support threshold to assign taxonomy to a sequence
+#         output_fp: path to write output, will be created from 
+#          input file if not provided
+#     """
+#     
+#     output_fp = output_fp or input_fp.replace('.fasta','_rdp_out.fasta')
+#     
+#     try:
+#         input_file = open(input_fp)
+#     except OSError:
+#         raise OSError, "Can't open input file for reading: %s" % input_fp
+#     input_string = input_file.read()
+#     input_file.close()
+#     
+#     try:
+#         output_file = open(output_fp,'w')
+#     except OSError:
+#         raise OSError, "Can't open output file for writing: %s" % output_fp
+#         
+#     assignments = _assign_taxonomy(input_string,min_confidence)
+#     
+#     output_file.write('\n'.join(['\t'.join(map(str,l)) for l in assignments]))
+#     output_file.close()
+#     
+#     return output_fp
 
 if __name__ == "__main__":
     
