@@ -276,7 +276,7 @@ def parse_command_line_parameters():
           'output file [default: generated from input_sequences_filepath]')
           
     parser.add_option('-c','--min_confidence',action='store',\
-          type='float',dest='confidence',help='minimum confidence '+\
+          type='float',dest='min_confidence',help='minimum confidence '+\
           'level to return a classification [default: %default]')
 
     parser.set_defaults(verbose=False,min_confidence=0.80)
@@ -340,7 +340,6 @@ def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
                 assignment_confidence = float(assignment_fields[i+1])
             except IndexError:
                 break
-            
             # check the confidence of the current assignment
             if assignment_confidence >= min_confidence:
                 # if the current assignment confidence is greater than
@@ -370,40 +369,12 @@ def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
         return None
     else:   
         return results
-    
-# def assign_taxonomy(input_fp,min_confidence=0.80,output_fp=None):
-#     """ Assign taxonomy to all seqs in input_fp
-#     
-#         input_fp: fasta file containing sequences to classify
-#         confidence: minimum support threshold to assign taxonomy to a sequence
-#         output_fp: path to write output, will be created from 
-#          input file if not provided
-#     """
-#     
-#     output_fp = output_fp or input_fp.replace('.fasta','_rdp_out.fasta')
-#     
-#     try:
-#         input_file = open(input_fp)
-#     except OSError:
-#         raise OSError, "Can't open input file for reading: %s" % input_fp
-#     input_string = input_file.read()
-#     input_file.close()
-#     
-#     try:
-#         output_file = open(output_fp,'w')
-#     except OSError:
-#         raise OSError, "Can't open output file for writing: %s" % output_fp
-#         
-#     assignments = _assign_taxonomy(input_string,min_confidence)
-#     
-#     output_file.write('\n'.join(['\t'.join(map(str,l)) for l in assignments]))
-#     output_file.close()
-#     
-#     return output_fp
+
 
 if __name__ == "__main__":
     
     opts,args = parse_command_line_parameters()
-    assign_taxonomy(args[0],min_confidence=opts.min_confidence,\
+    print  opts.min_confidence
+    assign_taxonomy(open(args[0]),min_confidence=opts.min_confidence,\
      output_fp=opts.output_fp)
 
