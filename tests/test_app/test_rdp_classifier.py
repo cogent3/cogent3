@@ -5,7 +5,7 @@ from os import getcwd, environ, remove
 from shutil import rmtree
 from cogent.app.util import ApplicationNotFoundError, ApplicationError,\
     get_tmp_filename
-from cogent.app.rdp_classifier import RdpClassifier, _assign_taxonomy
+from cogent.app.rdp_classifier import RdpClassifier, assign_taxonomy
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Kyle Bittinger"
@@ -116,26 +116,37 @@ class RdpWrapperTests(TestCase):
     """ Tests of RDP classifier wrapper functions
     """
     def setUp(self):
-        self.test_string1 = rdp_test_fasta
+        self.test_input1 = rdp_test_fasta.split('\n')
         self.expected_assignments1 = rdp_expected_out
         
     def test_assign_taxonomy(self):
-        """_assign_taxonomy wrapper functions as expected 
+        """assign_taxonomy wrapper functions as expected 
         
             This test may fail periodicially, but failure should be rare.
         
         """
+        # convert the expected dict to a list, so it's easier to 
+        # handle the order
+        expected_assignments = \
+         [(k,v[0],v[1]) for k,v in self.expected_assignments1.items()]
+        expected_assignments.sort()
         
         # Because there is some variation in the taxon assignments, 
         # I run the test several times (which can be quite slow) and 
         # each sequence was classified the same as expected at least once
-        taxon_assignment_results = [False] * len(self.expected_assignments1)
+        taxon_assignment_results = [False] * len(expected_assignments)
         all_assigned_correctly = False
         for i in range(10):
-            actual_assignments = _assign_taxonomy(self.test_string1)
-            for j in range(len(self.expected_assignments1)):
+            actual_assignments = assign_taxonomy(self.test_input1)
+            # covert actual_assignments to a list so it's easier to handle
+            # the order
+            actual_assignments = \
+             [(k,v[0],v[1]) for k,v in actual_assignments.items()]
+            actual_assignments.sort()
+            
+            for j in range(len(expected_assignments)):
                 a = actual_assignments[j]
-                e = self.expected_assignments1[j]
+                e = expected_assignments[j]
                 # same description fields
                 self.assertEqual(a[0],e[0])
                 
@@ -157,16 +168,64 @@ class RdpWrapperTests(TestCase):
         self.assertTrue(all_assigned_correctly)
             
     def test_assign_taxonomy_alt_confidence(self):
-        """_assign_taxonomy wrapper functions as expected with alt confidence
+        """assign_taxonomy wrapper functions as expected with alt confidence
         """
         actual_assignments = \
-         _assign_taxonomy(self.test_string1,min_confidence=0.95)
+         assign_taxonomy(self.test_input1,min_confidence=0.95)            
+        # covert actual_assignments to a list so it's easier to handle
+        # the order
+        actual_assignments = \
+             [(k,v[0],v[1]) for k,v in actual_assignments.items()]
+        actual_assignments.sort()
         
-        for a,e in zip(actual_assignments,self.expected_assignments1):
+        # convert the expected dict to a list, so it's easier to 
+        # handle the order
+        expected_assignments = \
+         [(k,v[0],v[1]) for k,v in self.expected_assignments1.items()]
+        expected_assignments.sort()
+        
+        for a,e in zip(actual_assignments,expected_assignments):
             # same description fields
             self.assertEqual(a[0],e[0])
             # confidence >= 0.95
             self.assertTrue(a[2]>=0.95)
+            
+    def test_assign_taxonomy_file_output(self):
+        """ assign_taxonomy wrapper writes correct file output when requested
+        
+            This function tests for sucessful completion of assign_taxonomy
+             when writing to file, that the lines in the file roughly look
+             correct by verifying how many are written (by zipping with 
+             expected), and that each line starts with the correct seq id.
+             Actual testing of taxonomy data is performed elsewhere.
+        
+        """
+        output_fp = get_tmp_filename(\
+         prefix='RDPAssignTaxonomyTests',suffix='.txt')
+        # convert the expected dict to a list of lines to match 
+        # file output
+        expected_file_headers = self.expected_assignments1.keys()
+        expected_file_headers.sort()
+        
+        actual_return_value = assign_taxonomy(\
+         self.test_input1,min_confidence=0.95,output_fp=output_fp)
+        
+        actual_file_output = list(open(output_fp))
+        actual_file_output.sort()
+
+        # remove the output_fp before running the tests, so if they
+        # fail the output file is still cleaned-up
+        remove(output_fp)
+        
+        # None return value on write to file
+        self.assertEqual(actual_return_value,None)
+        
+        # check that each line starts with the correct seq_id -- not 
+        # checking the taxonomies or confidences here as these are variable and
+        # tested elsewhere
+        for a,e in zip(actual_file_output,expected_file_headers):
+            self.assertTrue(a.startswith(e))
+        
             
 def parse_rdp(line):
     """Returns a list of assigned taxa from an RDP classification line
@@ -200,12 +259,13 @@ GATACCCCCGGAAACTGGGGATTATACCGGATATGTGGGGCTGCCTGGAATGGTACCTCATTGAAATGCTCCCGCGCCTA
 TAAAATGACTAGCCTGCGAGTCACGCCGTAAGGCGTGGCATACAGGCTCAGTAACACGTAGTCAACATGCCCAAAGGACGTGGATAACCTCGGGAAACTGAGGATAAACCGCGATAGGCCAAGGTTTCTGGAATGAGCTATGGCCGAAATCTATATGGCCTTTGGATTGGACTGCGGCCGATCAGGCTGTTGGTGAGGTAATGGCCCACCAAACCTGTAACCGGTACGGGCTTTGAGAGAAGTAGCCCGGAGATGGGCACTGAGACAAGGGCCCAGGCCCTATGGGGCGCAGCAGGCGCGAAACCTCTGCAATAGGCGAAAGCCTGACAGGGTTACTCTGAGTGATGCCCGCTAAGGGTATCTTTTGGCACCTCTAAAAATGGTGCAGAATAAGGGGTGGGCAAGTCTGGTGTCAGCCGCCGCGGTAATACCAGCACCCCGAGTTGTCGGGACGATTATTGGGCCTAAAGCATCCGTAGCCTGTTCTGCAAGTCCTCCGTTAAATCCACCTGCTCAACGGATGGGCTGCGGAGGATACCGCAGAGCTAGGAGGCGGGAGAGGCAAACGGTACTCAGTGGGTAGGGGTAAAATCCATTGATCTACTGAAGACCACCAGTGGCGAAGGCGGTTTGCCAGAACGCGCTCGACGGTGAGGGATGAAAGCTGGGGGAGCAAACCGGATTAGATACCCGGGGTAGTCCCAGCTGTAAACGGATGCAGACTCGGGTGATGGGGTTGGCTTCCGGCCCAACCCCAATTGCCCCCAGGCGAAGCCCGTTAAGATCTTGCCGCCCTGTCAGATGTCAGGGCCGCCAATACTCGAAACCTTAAAAGGAAATTGGGCGCGGGAAAAGTCACCAAAAGGGGGTTGAAACCCTGCGGGTTATATATTGTAAACC
 """
 
-rdp_expected_out = [['AY800210 description field','Root,Archaea,Euryarchaeota',0.9],\
-['EU883771','Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae,Methanosphaera',0.92],
-['EF503699','Root,Archaea,Crenarchaeota,Thermoprotei',0.82],
-['random_seq','Root',1.0],
-['DQ260310','Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae',0.93],
-['EF503697','Root,Archaea,Crenarchaeota,Thermoprotei',0.88]]
+rdp_expected_out = {\
+ 'AY800210 description field':('Root,Archaea,Euryarchaeota',0.9),\
+ 'EU883771': ('Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae,Methanosphaera',0.92),\
+ 'EF503699':('Root,Archaea,Crenarchaeota,Thermoprotei',0.82),
+ 'random_seq':('Root',1.0),
+ 'DQ260310':('Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae',0.93),
+ 'EF503697':('Root,Archaea,Crenarchaeota,Thermoprotei',0.88)}
 
 if __name__ == '__main__':
     main()
