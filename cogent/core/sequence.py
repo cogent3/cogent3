@@ -576,7 +576,7 @@ class Sequence(_Annotatable, SequenceI):
         assert mask_char in self.MolType, 'Invalid mask_char %s' % mask_char
         
         annotations = []
-        annot_types = [annot_types, [annot_types]][type(annot_types)==str]
+        annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
         for annot_type in annot_types:
             annotations += self.getAnnotationsMatching(annot_type)
         
@@ -587,10 +587,10 @@ class Sequence(_Annotatable, SequenceI):
         i = 0
         segments = []
         for b, e in region.getCoordinates():
-            segments += [self._seq[i:b]]
-            segments += ['?'*(e-b)]
+            segments.append(self._seq[i:b])
+            segments.append(mask_char * (e-b))
             i = e
-        segments += [self._seq[i:]]
+        segments.append(self._seq[i:])
         
         new = self.__class__(''.join(segments), Name=self.Name, check=False,
                             Info=self.Info)
