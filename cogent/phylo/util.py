@@ -48,14 +48,22 @@ def distanceDictTo2D(dists):
                 d[i, j] = lookupSymmetricDict(dists, a, b)
     return (names, d)
 
+def triangularOrder(keys):
+    """Indices for extracting a 1D representation of a triangular matrix
+    where j > i and i is the inner dimension:
+    Yields (0,1), (0,2), (1, 2), (0,3), (1,3), (2,3), (0,4)..."""
+    N = len(keys)
+    for j in range(1, N):
+        for i in range(0, j):
+            yield (keys[i], keys[j])
+            
 def distanceDictAndNamesTo1D(dists, names):
     """Distances converted into a triangular matrix implemented as a 1D array
     where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     d = []
-    for j in range(1, len(names)):
-        for i in range(0, j):
-            d.append(lookupSymmetricDict(dists, names[i], names[j]))
+    for (name_i, name_j) in triangularOrder(names):
+        d.append(lookupSymmetricDict(dists, name_i, name_j))
     return numpy.array(d)
 
 def distanceDictTo1D(dists):

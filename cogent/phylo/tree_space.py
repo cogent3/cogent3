@@ -70,7 +70,11 @@ def ancestry2tree(A, lengths, tip_names):
     return constructor(free.values(), 'root', {})
 
 def grown(B, split_edge):
-    """Given 'tree' B return tree with one extra edge"""
+    """Ancestry matrix 'B' with one extra leaf added at 'split_edge'.
+    Row/column order within the matrix is independent of the topology it 
+    represents. The added leaf will be the last one in the matrix, which keeps 
+    the leaf node order the same as the order in which they are added, which is 
+    what is assumed by ancestry2tree and ancestry2paths"""
     n = len(B)
     A = numpy.zeros([n+2, n+2], int)
     A[:n, :n] = B
