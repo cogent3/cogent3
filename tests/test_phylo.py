@@ -67,7 +67,11 @@ class TreeReconstructionTests(unittest.TestCase):
         init = LoadTree(treestring='((a,c),b,d)')
         reconstructed = wls(self.dists, start=init)
         self.assertEqual(len(reconstructed.getTipNames()), 5)
-
+        init2 = LoadTree(treestring='((a,d),b,c)')
+        reconstructed = wls(self.dists, start=[init, init2])
+        self.assertEqual(len(reconstructed.getTipNames()), 5)
+        init3 = LoadTree(treestring='((a,d),b,e)')
+        self.assertRaises(Exception, wls, self.dists, start=[init, init3])
 
 class DistancesTests(unittest.TestCase):
     def setUp(self):
