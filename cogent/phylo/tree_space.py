@@ -19,21 +19,25 @@ __status__ = "Production"
 # the pth pair of tips passes through edge j.  For ML calculations the
 # ancestry matrix is converted back into an ordinary cogent tree object.
 
-def tree2ancestry(tree):
+def tree2ancestry(tree, order=None):
     nodes = tree.unrooted().getEdgeVector()[:-1]
+    if order is not None:
+        lookup = dict([(k,i) for (i,k) in enumerate(order)])
+        def _ordered_tips_first(n):
+            if n.Children:
+                return len(order)
+            else:
+                return lookup[n.Name]
+        nodes.sort(key=_ordered_tips_first)
+
     n = len(nodes)
     A = numpy.zeros([n, n], int)
-    seen = []
+    seen = {}
     for (i, node) in enumerate(nodes):
-        seen.append((i, node))
         A[i, i] = 1
+        seen[id(node)] = i
         for c in node.Children:
-            for (j,o) in seen:
-                if o is c:
-                    break
-            else:
-                raise RuntimeError
-            A[:,i] |= A[:,j]
+            A[:,i] |= A[:,seen[id(c)]]
     names = [n.Name for n in nodes if not n.Children]
     lengths = [n.Length for n in nodes]
     return (A, names, lengths)
@@ -124,7 +128,7 @@ class TreeEvaluator(object):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
         'order' is an optional list of tip names.  
-        'trees' is an optional list of initial trees.  Each of the trees must
+        'start' is an optional list of initial trees.  Each of the trees must
         contain the same tips.
         
         Advanced step-wise addition algorithm
@@ -140,9 +144,16 @@ class TreeEvaluator(object):
             (init_tree_size, fixed_names, trees) = checkpointer.load()
             names = self._consistentNameOrder(fixed_names, order)
         elif start is not None:
-            (ancestry, fixed_names, lengths) = tree2ancestry(start)
+            if not isinstance(start, list):
+                start = [start]
+            fixed_names = start[0].getTipNames()
             names = self._consistentNameOrder(fixed_names, order)
-            trees = [(None, None, ancestry)]
+            trees = []
+            for tree in start:
+                (ancestry, fixed_names2, lengths) = tree2ancestry(
+                        tree, order=fixed_names)
+                assert fixed_names2 == fixed_names
+                trees.append((None, None, ancestry))
             init_tree_size = len(fixed_names)
         else:
             trees = [(None, None, numpy.identity(3, int))]
