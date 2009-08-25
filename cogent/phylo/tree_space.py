@@ -17,10 +17,10 @@ __status__ = "Production"
 # ancestor of i.  For LS calculations the ancestry matrix is converted
 # to a "paths" matrix or "split metric" in which S[p,j] iff the path between
 # the pth pair of tips passes through edge j.  For ML calculations the
-# ancestry matrix is converted into an ordinary cogent tree object.
+# ancestry matrix is converted back into an ordinary cogent tree object.
 
 def tree2ancestry(tree):
-    nodes = tree.getEdgeVector()[:-1]
+    nodes = tree.unrooted().getEdgeVector()[:-1]
     n = len(nodes)
     A = numpy.zeros([n, n], int)
     seen = []
@@ -104,10 +104,28 @@ class TreeEvaluator(object):
         (err, result) = evaluate(ancestry, lengths=lengths)
         return err
     
-    def trex(self, a=8, k=1000, show_progress=False,
+    def _consistentNameOrder(self, fixed_names, ordered_names=None):
+        """fixed_names followed by ordered_names without duplicates"""
+        all_names = set(self.names)
+
+        fixed_names_set = set(fixed_names)
+        assert fixed_names_set.issubset(all_names)
+
+        if ordered_names:
+            assert set(ordered_names).issubset(all_names)
+        else:
+            ordered_names = self.names
+        names = list(fixed_names) + [n for n in ordered_names 
+                if n not in fixed_names_set]
+        return names
+    
+    def trex(self, a=8, k=1000, start=None, order=None, show_progress=False,
             return_all=False, checkpoint_filename=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
-        then keep no more than 'k' best trees at each tree size
+        then keep no more than 'k' best trees at each tree size.
+        'order' is an optional list of tip names.  
+        'trees' is an optional list of initial trees.  Each of the trees must
+        contain the same tips.
         
         Advanced step-wise addition algorithm
         M. J. Wolf, S. Easteal, M. Kahn, B. D. McKay, and L. S. Jermiin.
@@ -117,34 +135,41 @@ class TreeEvaluator(object):
         
         printing_cpu = parallel.getCommunicator().Get_rank() == 0
         
-        names = self.names
-        tree_size = len(names)
-        assert tree_size > 3
-        
         checkpointer = checkpointing.Checkpointer(checkpoint_filename)
         if checkpointer.available():
-            (a, old_names, trees) = checkpointer.load()
-            assert sorted(old_names) == sorted(names[:a])
-            names = old_names + names[a:]
+            (init_tree_size, fixed_names, trees) = checkpointer.load()
+            names = self._consistentNameOrder(fixed_names, order)
+        elif start is not None:
+            (ancestry, fixed_names, lengths) = tree2ancestry(start)
+            names = self._consistentNameOrder(fixed_names, order)
+            trees = [(None, None, ancestry)]
+            init_tree_size = len(fixed_names)
         else:
-            # All trees of size a-1, no need to compare them
-            if a > tree_size:
-                a = tree_size
-            if a < 4:
-                a = 4
-            trees = [(None, None, numpy.array([[1,0,0], [0,1,0], [0,0,1]]))]
-            for n in range(4, a):
-                trees2 = []
-                for (err2, lengths2, ancestry) in trees:
-                    for split_edge in range(len(ancestry)):
-                        ancestry2 = grown(ancestry, split_edge)
-                        trees2.append((None, None, ancestry2))
-                trees = trees2
+            trees = [(None, None, numpy.identity(3, int))]
+            names = self._consistentNameOrder([], order)
+            init_tree_size = 3
+            
+        tree_size = len(names)
+        assert tree_size > 3
+        if a > tree_size:
+            a = tree_size
+        if a < 4:
+            a = 4
+
+        # All trees of size a-1, no need to compare them
+        for n in range(init_tree_size+1, a):
+            trees2 = []
+            for (err2, lengths2, ancestry) in trees:
+                for split_edge in range(len(ancestry)):
+                    ancestry2 = grown(ancestry, split_edge)
+                    trees2.append((None, None, ancestry2))
+            trees = trees2
+            init_tree_size = n
         
         if show_progress and printing_cpu:
-            print len(trees), 'trees of size', a-1, 'at start'
+            print len(trees), 'trees of size', init_tree_size, 'at start'
         
-        for n in range(a, tree_size+1):
+        for n in range(init_tree_size+1, tree_size+1):
             # parallel - combine tree heaps up a tree of cpus
             evals = len(trees) * len(trees[0][2])
             if show_progress and printing_cpu:

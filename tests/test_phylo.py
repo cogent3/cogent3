@@ -37,29 +37,37 @@ class ConsensusTests(unittest.TestCase):
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,e:5)')
+        self.dists = self.tree.getDistances()
         
-    def _test_tree(self, method, treestring):
-        t = LoadTree(treestring=treestring)
-        t_distances = t.getDistances()
-        reconstructed = method(t_distances)
-        distances = reconstructed.getDistances()
-        for key in t_distances:
-            self.assertAlmostEqual(t_distances[key], distances[key])
-
-    def _test_phylo_method(self, method):
-        """testing (well, exercising at least), nj"""
-        self._test_tree(method, '((a:3,b:4):20,(c:6,d:7):30,e:5)')
-        self._test_tree(method, '((a:3,b:4):0,(c:6,d:7):30,e:5)')
-        self._test_tree(method, '((a:3,b:4,c:6,d:7):30,e:5)')
+    def assertTreeDistancesEqual(self, t1, t2):
+        d1 = t1.getDistances()
+        d2 = t2.getDistances()
+        for key in d2:
+            self.assertAlmostEqual(d1[key], d2[key])
 
     def test_nj(self):
-        """testing (well, exercising at least), nj"""
-        self._test_phylo_method(nj)
+        """testing nj"""
+        reconstructed = nj(self.dists)
+        self.assertTreeDistancesEqual(self.tree, reconstructed)
         
     def test_wls(self):
-        """testing (well, exercising at least), wls"""
-        self._test_phylo_method(wls)
+        """testing wls"""
+        reconstructed = wls(self.dists)
+        self.assertTreeDistancesEqual(self.tree, reconstructed)
+
+    def test_truncated_wls(self):
+        """testing wls with order option"""
+        order = ['e', 'b', 'c', 'd']
+        reconstructed = wls(self.dists, order=order)
+        self.assertEqual(set(reconstructed.getTipNames()), set(order))
+
+    def test_limited_wls(self):
+        """testing (well, exercising at least), wls with constrained start"""
+        init = LoadTree(treestring='((a,c),b,d)')
+        reconstructed = wls(self.dists, start=init)
+        self.assertEqual(len(reconstructed.getTipNames()), 5)
+
 
 class DistancesTests(unittest.TestCase):
     def setUp(self):
