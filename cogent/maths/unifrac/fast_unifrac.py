@@ -169,6 +169,7 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
 
 def _fast_unifrac_setup(t, envs):
     """Setup shared by fast_unifrac and by significance tests."""
+    t = t.getSubTree(envs.keys())
     #index tree
     node_index, nodes = index_tree(t)
     #get good nodes, defined as those that are in the env file.
