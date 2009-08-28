@@ -12,9 +12,11 @@ __email__ = "kylebittinger@gmail.com"
 __status__ = "Prototype"
 
 
-from os import remove, environ, getenv
+from os import remove, environ, getenv, path
 from os.path import exists
 from optparse import OptionParser
+from shutil import rmtree
+from tempfile import mkdtemp
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
 from cogent.parse.fasta import MinimalFastaParser
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
@@ -128,7 +130,7 @@ class RdpClassifier(CommandLineApplication):
 
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
-        command = self.__commandline_join(
+        command = self._commandline_join(
             [self.BaseCommand, input_arg, outfile, training_data, 
              '2>', errfile,]
             )
@@ -217,17 +219,17 @@ class RdpClassifier(CommandLineApplication):
         cd_command = ''.join(['cd ',str(self.WorkingDir),';'])
 
         jvm_command = "java"
-        jvm_arguments = self.__commandline_join(self.JvmParameters.values())
+        jvm_arguments = self._commandline_join(self.JvmParameters.values())
         jar_arguments = '-jar "%s"' % self._get_jar_fp()
 
-        result = self.__commandline_join(
+        result = self._commandline_join(
             [cd_command, jvm_command, jvm_arguments, jar_arguments]
             )
         return result
     
     BaseCommand = property(_get_base_command)
 
-    def __commandline_join(self, tokens):
+    def _commandline_join(self, tokens):
         """Formats a list of tokens as a shell command
 
         This seems to be a repeated pattern; may be useful in
@@ -264,6 +266,192 @@ class RdpClassifier(CommandLineApplication):
             result[key] = self.Parameters[key]
         return result
 
+
+class RdpTrainer(RdpClassifier):
+    _input_handler = '_input_as_lines'
+    TrainingClass = 'edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker'
+    PropertiesFile = 'RdpClassifier.properties'
+
+    def __call__(self, training_seqs_file, taxonomy_file, model_output_dir,
+        remove_tmp=True):
+        return self._train_with_rdp_files(
+            training_seqs_file, taxonomy_file, model_output_dir, remove_tmp)
+
+    def _train_with_mapping_file(self, training_seqs_file, lineage_file,
+        model_output_dir, remove_tmp=True):
+        """Creates a set of training data for the RDP Classifier
+
+            training_seqs_file: The set of training sequences, in
+                fasta format.
+
+            lineage_file: A File-like object that specifies a lineage
+                for each sequence. Each line must contain a Sequence
+                ID, followed by a tab, then followed by the assigned
+                lineage.  The taxa comprising the lineage must be
+                separated with a comma.
+
+            model_output_dir: Directory in which to store training data.
+
+            remove_tmp: if True, removes tmp files
+
+        To use the resulting model with the RdpClassifier, set
+        '-training_data' to the following path: model_output_dir +
+        RdpClassifier.PropertiesFile
+        """
+
+    def _train_with_rdp_files(self, training_seqs_file, taxonomy_file, 
+        model_output_dir, remove_tmp=True):
+        """Creates a set of training data for the RDP Classifier
+
+            training_seqs_file: A pre-classified set of training
+                sequences, in fasta-like format.  Each sequence must
+                be labelled with an identifier (no spaces) and an
+                assigned lineage (taxa separated by ';'). Example of
+                a valid label: ">seq1 ROOT;Ph1;Fam1;G1;"
+
+            taxonomy_file: A File-like object that specifies a
+                taxonomic heirarchy. Each line in the file must
+                contain a '*'-separated list of the following items:
+                Taxon ID, Taxon Name, Parent Taxon ID, Depth, and
+                Rank.  IDs should have an integer format.  Example of
+                a valid line: "1*Bacteria*0*0*domain"
+
+            model_output_dir: Directory in which to store training data.
+
+            remove_tmp: if True, removes tmp files
+
+        To use the resulting model with the RdpClassifier, set
+        '-training_data' to the following path: model_output_dir +
+        RdpClassifier.PropertiesFile
+        """
+        # Three extra pieces of information are required to create
+        # training data.  Unless we want built-in support for
+        # versioned training sets, these may be set to sensible
+        # defaults.
+        training_set_id = '1'
+        taxonomy_version = 'version1'
+        modification_info = 'cogent'
+
+        # The properties file specifies the names of the files in the
+        # training directory.  We use the example properties file
+        # directly from the rdp_classifier distribution, which lists
+        # the default set of files created by the application.  We
+        # must write this file explicitly after generating the
+        # training data.
+        properties = (
+            "# Sample ResourceBundle properties file\n"
+            "bergeyTree=bergeyTrainingTree.xml\n"
+            "probabilityList=genus_wordConditionalProbList.txt\n"
+            "probabilityIndex=wordConditionalProbIndexArr.txt\n"
+            "wordPrior=logWordPrior.txt\n"
+            "classifierVersion=Naive Bayesian rRNA Classifier Version 1.0, November 2003\n"
+            )
+
+        input_handler = self.InputHandler
+        suppress_stdout = self.SuppressStdout
+        suppress_stderr = self.SuppressStderr
+        if suppress_stdout:
+            outfile = FilePath('/dev/null')
+        else:
+            outfile = self.getTmpFilename(self.TmpDir)
+        if suppress_stderr:
+            errfile = FilePath('/dev/null')
+        else:
+            errfile = FilePath(self.getTmpFilename(self.TmpDir))
+
+        input_handler_function = getattr(self, input_handler)
+        taxonomy_arg = input_handler_function(taxonomy_file)
+        training_seqs_arg = input_handler_function(training_seqs_file)
+
+        # Build up the command, consisting of a BaseCommand followed
+        # by input and output (file) specifications 
+
+        # Example from rdp_classifier/sampledata/README: 
+        # java -Xmx400m -cp rdp_classifier-2.0.jar
+        # edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker
+        # mydata/mytaxon.txt mydata/mytrainseq.fasta 1 version1 test
+        # mydata
+        command = self._commandline_join(
+            [self.BaseCommand, taxonomy_arg, training_seqs_arg, training_set_id,
+             taxonomy_version, modification_info, model_output_dir, 
+             '>', outfile, '2>', errfile,]
+            )
+
+        if self.HaltExec: 
+            raise AssertionError, "Halted exec with command:\n" + command
+        # The return value of system is a 16-bit number containing the signal 
+        # number that killed the process, and then the exit status. 
+        # We only want to keep the exit status so do a right bitwise shift to 
+        # get rid of the signal number byte
+        exit_status = system(command) >> 8
+
+        # Determine if error should be raised due to exit status of 
+        # appliciation
+        if not self._accept_exit_status(exit_status):
+            raise ApplicationError, \
+             'Unacceptable application exit status: %s, command: %s'\
+                % (str(exit_status),command)
+
+        # must write properties file to output directory manually
+        properties_fp = path.join(model_output_dir, self.PropertiesFile)
+        properties_file = open(properties_fp, 'w')
+        properties_file.write(properties)
+        properties_file.close()
+
+        # open the stdout and stderr if not being suppressed
+        out = None
+        if not suppress_stdout:
+            out = open(outfile,"r")
+        err = None        
+        if not suppress_stderr:
+            err = open(errfile,"r")
+       
+        result = CommandLineAppResult(out, err, exit_status, 
+            result_paths=self._get_result_paths(model_output_dir))
+
+        return result
+
+    def _get_result_paths(self, output_dir):
+        files = {
+            'bergeyTree': 'bergeyTrainingTree.xml',
+            'probabilityList': 'genus_wordConditionalProbList.txt',
+            'probabilityIndex': 'wordConditionalProbIndexArr.txt',
+            'wordPrior': 'logWordPrior.txt',
+            'properties': self.PropertiesFile,
+        }
+        result_paths = {}
+        for name, file in files.iteritems():
+            result_paths[name] = ResultPath(
+                Path=path.join(output_dir, file), IsWritten=True)
+        return result_paths
+    
+    # Overridden to pull out JVM-specific command-line arguments.
+    def _get_base_command(self):
+        """Returns the base command plus command-line options.
+
+        Does not include input file, output file, and training set.
+        """
+        # Necessary? Preserve for consistency.
+        if self._command is None:
+            raise ApplicationError, '_command has not been set.'
+
+        # Append a change directory to the beginning of the command to change 
+        # to self.WorkingDir before running the command
+        # WorkingDir should be in quotes -- filenames might contain spaces
+        cd_command = ''.join(['cd ',str(self.WorkingDir),';'])
+
+        jvm_command = "java"
+        jvm_arguments = self._commandline_join(self.JvmParameters.values())
+        jar_arguments = '-cp "%s"' % self._get_jar_fp()
+
+        result = self._commandline_join(
+            [cd_command, jvm_command, jvm_arguments, jar_arguments, self.TrainingClass]
+            )
+        return result
+
+    BaseCommand = property(_get_base_command)
+
+
 def parse_command_line_parameters():
     """ Parses command line arguments """
     usage =\
@@ -289,7 +477,7 @@ def parse_command_line_parameters():
 
     return opts,args
     
-def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
+def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=None):
     """ Assign taxonomy to each sequence in data with the RDP classifier 
     
         data: open fasta file object or list of fasta lines
@@ -309,6 +497,9 @@ def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
     # build the classifier object
     app = RdpClassifier()
     
+    if training_data_fp is not None:
+        app.Parameters['-training-data'].on(training_data_fp)
+
     # apply the rdp app controller
     rdp_result = app('\n'.join(data))
     # grab standard out
@@ -369,6 +560,62 @@ def assign_taxonomy(data,min_confidence=0.80,output_fp=None):
         return None
     else:   
         return results
+
+
+def train_rdp_classifier(training_seqs_file, taxonomy_file, model_output_dir):
+    """ Train RDP Classifier, saving to model_output_dir
+
+        training_seqs_file, taxonomy_file: file-like objects used to
+            train the RDP Classifier (see RdpTrainer documentation for
+            format of training data)
+
+        model_output_dir: directory in which to save the files
+            necessary to classify sequences according to the training
+            data
+
+    Once the model data has been generated, the RDP Classifier may 
+    """
+    app = RdpTrainer()
+    return app(training_seqs_file, taxonomy_file, model_output_dir)
+
+
+def train_rdp_classifier_and_assign_taxonomy(
+    training_seqs_file, taxonomy_file, seqs_to_classify, min_confidence=0.80, 
+    model_output_dir=None, classification_output_fp=None):
+    """ Train RDP Classifier and assign taxonomy in one fell swoop
+
+    The file objects training_seqs_file and taxonomy_file are used to
+    train the RDP Classifier (see RdpTrainer documentation for
+    details).  Model data is stored in model_output_dir.  If
+    model_output_dir is not provided, a temporary directory is created
+    and removed after classification.
+
+    The sequences in seqs_to_classify are classified according to the
+    model and filtered at the desired confidence level (default:
+    0.80).
+
+    The results are saved to classification_output_fp if provided,
+    otherwise a dict of {seq_id:(taxonomy_assignment,confidence)} is
+    returned.
+    """
+    if model_output_dir is None:
+        training_dir = mkdtemp(prefix='RdpTrainer_')
+    else:
+        training_dir = model_output_dir
+
+    trainer = RdpTrainer()
+    training_results = trainer(
+        training_seqs_file, taxonomy_file, training_dir)
+
+    training_data_fp = training_results['properties'].name
+    assignment_results = assign_taxonomy(
+        seqs_to_classify, min_confidence=min_confidence, 
+        output_fp=classification_output_fp, training_data_fp=training_data_fp)
+
+    if model_output_dir is None:
+        rmtree(training_dir)
+
+    return assignment_results
 
 
 if __name__ == "__main__":
