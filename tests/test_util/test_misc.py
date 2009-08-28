@@ -3,6 +3,9 @@
 """Unit tests for utility functions and classes.
 """
 from copy import copy, deepcopy
+from os import remove
+from os.path import exists
+from cogent.app.util import get_tmp_filename
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import iterable, max_index, min_index, \
     flatten, is_iterable, is_char, is_char_or_noniterable,\
@@ -18,7 +21,7 @@ from cogent.util.misc import iterable, max_index, min_index, \
     MappedString, MappedList, MappedDict, \
     generateCombinations, makeNonnegInt, \
     NonnegIntError, revComp, not_none, get_items_except,\
-    NestedSplitter, curry, app_path
+    NestedSplitter, curry, app_path, remove_files
 from numpy import array
 
 __author__ = "Rob Knight"
@@ -428,6 +431,35 @@ class UtilsTests(TestCase):
             ('c','a'), ('c','b'), ('c','c'), \
             ('x','x'), ('x','a'), ('a','x'), \
             ]))
+            
+    def test_remove_files(self):
+        """Remove files functions as expected """
+        # create list of temp file paths
+        test_filepaths = \
+         [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
+        
+        # try to remove them with remove_files and verify that an IOError is 
+        # raises
+        self.assertRaises(OSError,remove_files,test_filepaths)
+        # now get no error when error_on_missing=False
+        remove_files(test_filepaths,error_on_missing=False)
+        
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2],'w').close()
+        # check that an error is raised on trying to remove the files...
+        self.assertRaises(OSError,remove_files,test_filepaths)
+        # ... but that the existing file was still removed
+        self.assertFalse(exists(test_filepaths[2]))
+        
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2],'w').close()
+        # no error is raised on trying to remove the files 
+        # (although 4 don't exist)...
+        remove_files(test_filepaths,error_on_missing=False)
+        # ... and the existing file was removed
+        self.assertFalse(exists(test_filepaths[2]))
+        
+            
 
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
