@@ -7,7 +7,7 @@ from time import clock
 from string import maketrans,strip
 from random import randrange
 from sys import maxint
-from os import popen
+from os import popen, remove
 from numpy import logical_not, sum
 
 __author__ = "Rob Knight"
@@ -1235,3 +1235,17 @@ def app_path(app):
     if not result or result.startswith('no') or result.endswith('not found'):
         return False
     return result
+
+def remove_files(list_of_filepaths,error_on_missing=True):
+    """Remove list of filepaths, optionally raising an error if any are missing
+    """
+    missing = []
+    for fp in list_of_filepaths:
+        try:
+            remove(fp)
+        except OSError:
+            missing.append(fp)
+
+    if error_on_missing and missing:
+        raise OSError, "Some filepaths were not accessible: %s" % '\t'.join(missing)
+
