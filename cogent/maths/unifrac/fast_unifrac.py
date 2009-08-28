@@ -9,7 +9,7 @@ from cogent.maths.unifrac.fast_tree import *
 from cogent.maths.unifrac.fast_tree import _weighted_unifrac, _branch_correct 
 from cogent.parse.tree import DndParser
 from cogent.cluster.metric_scaling import *
-from cogent.core.tree import PhyloNode
+from cogent.core.tree import PhyloNode, TreeError
 from cogent.cluster.UPGMA import UPGMA_cluster
 from cogent.phylo.nj import nj
 
@@ -169,7 +169,12 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
 
 def _fast_unifrac_setup(t, envs):
     """Setup shared by fast_unifrac and by significance tests."""
-    t = t.getSubTree(envs.keys())
+    try:
+        t2 = t.getSubTree(set(envs.keys()).intersection(
+        set([i.Name for i in t.tips()])))
+        t = t2
+    except TreeError:
+        pass
     #index tree
     node_index, nodes = index_tree(t)
     #get good nodes, defined as those that are in the env file.
@@ -181,13 +186,13 @@ def _fast_unifrac_setup(t, envs):
     branch_lengths = get_branch_lengths(node_index)
     if not envs:
         raise ValueError, "No valid envs found. Check whether tips in envs file match tips in tree?"
-    return envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes
+    return envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t
 
 def fast_unifrac_whole_tree(t, envs, num_iters, permutation_f=permutation):
     """Performs UniFrac permutations on whole tree """
     sim_ufracs = []
     envs, count_array, unique_envs, env_to_index, node_to_index, env_names, \
-        branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+        branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
     
     bound_indices = bind_to_array(nodes, count_array)
     orig_count_array = count_array.copy()
@@ -213,7 +218,7 @@ def PD_whole_tree(t, envs):
     want to calculate a related metric.
     """
     envs, count_array, unique_envs, env_to_index, node_to_index, env_names, \
-        branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+        branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
     count_array = count_array.astype(bool)
     bound_indices = bind_to_array(nodes, count_array)
     #initialize result
@@ -228,7 +233,7 @@ def PD_generic_whole_tree(t, envs, metric=PD):
     want to calculate a related metric.
     """
     envs, count_array, unique_envs, env_to_index, node_to_index, env_names, \
-        branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+        branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
     count_array = count_array.astype(bool)
     bound_indices = bind_to_array(nodes, count_array)
     #initialize result
@@ -244,7 +249,7 @@ def fast_unifrac_permutations(t, envs, weighted, num_iters, first_env,
     compare to real values from doing a single unifrac.
     """
     result = []
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
 
     first_index,second_index = env_to_index[first_env], env_to_index[second_env]
     count_array = count_array[:,[first_index,second_index]] #ditch rest of array
@@ -299,7 +304,7 @@ def fast_p_test(t, envs, num_iters, first_env=None, second_env=None,
     compare to real Fitch parsimony values. Sleazy way to get the real values 
     is to set num_iters to 1, permutation_f to identity."""
     result = []
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
 
     # check if doing pairwise
     if not (first_env is None or second_env is None):
@@ -330,7 +335,7 @@ def shared_branch_length(t, envs, env_count=1):
     Returns {(env1,env2,...env_count):shared_branch_length}
     """
 
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
 
     
 
@@ -452,7 +457,7 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
     if not modes or modes - UNIFRAC_VALID_MODES:
         raise ValueError, "Invalid run modes: %s, valid: %s" % (str(modes),str(UNIFRAC_VALID_MODES))
 
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes = _fast_unifrac_setup(t, envs)
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
     bound_indices = bind_to_array(nodes, count_array)
     #initialize result
     result = {}
