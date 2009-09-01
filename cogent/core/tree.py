@@ -1059,13 +1059,13 @@ class TreeNode(object):
                 result = constructor(self, tuple(children))
         return result
     
-    def getSubTree(self, name_list):
+    def getSubTree(self, name_list, ignore_missing=False):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
         """
         edge_names = self.getNodeNames(includeself=1, tipsonly=False)
         for name in name_list:
-            if name not in edge_names:
+            if name not in edge_names and not ignore_missing:
                 raise ValueError("edge %s not found in tree" % name)
         
         new_tree = self._getSubTree(name_list)
