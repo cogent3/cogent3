@@ -202,6 +202,9 @@ class TreeInterfaceForLikelihoodFunction(unittest.TestCase):
         t = t.getSubTree(['b', 'c', 'd'])
         self.assertEqual(t.getNodeMatchingName('b').params,
                                 {'length':7, 'beta':float(2*3+4*5)/(3+4)})
+        self.assertRaises(ValueError, t.getSubTree, ['b','c','xxx'])
+        self.assertEqual(str(t.getSubTree(['b','c','xxx'],ignore_missing=True)),
+            '(b:7,c)root;')
     
     def test_making_from_list(self):
         tipnames_with_spaces = ['a_b','a b',"T'lk"]
