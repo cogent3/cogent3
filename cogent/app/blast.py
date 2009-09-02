@@ -143,7 +143,8 @@ class Blast(CommandLineApplication):
     def __init__(self, cur_options, command, blast_mat_root=None,
                  extra_env="",
                  params=None,InputHandler=None,
-                 SuppressStderr=None, SuppressStdout=None,WorkingDir=None):
+                 SuppressStderr=None, SuppressStdout=None,WorkingDir=None,\
+                 HALT_EXEC=False):
         """ Initialize blast """
         # update options
         self._parameters.update(cur_options)
@@ -197,7 +198,8 @@ call the Standalone BLAST program from or in your root directory.
 
         super(Blast, self).__init__(params=params,
                     InputHandler=InputHandler,SuppressStderr=SuppressStderr,
-                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir)
+                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir,\
+                    HALT_EXEC=HALT_EXEC)
 
     def _error_on_missing_application(self,params):
         """ Raise an ApplicationNotFoundError if the app is not accessible
@@ -318,7 +320,8 @@ class PsiBlast(Blast):
     def __init__(self, blast_mat_root=None, params=None,
                  extra_env="",
                  InputHandler=None,SuppressStderr=None,
-                 SuppressStdout=None,WorkingDir=None):
+                 SuppressStdout=None,WorkingDir=None,
+                 HALT_EXEC=False):
         """ Initialize the Psi-Blast"""
         super(PsiBlast, self).__init__(self._options,
                     "blastpgp",
@@ -326,7 +329,8 @@ class PsiBlast(Blast):
                     blast_mat_root=blast_mat_root,
                     params=params,
                     InputHandler=InputHandler,SuppressStderr=SuppressStderr,
-                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir)
+                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir,
+                    HALT_EXEC=HALT_EXEC)
 
 
 # should probably go into blastall superclass. it's late, works for now
@@ -378,7 +382,8 @@ class Blastall(Blast):
     def __init__(self, blast_mat_root=None, params=None,
                  extra_env="",
                  InputHandler=None,SuppressStderr=None,
-                 SuppressStdout=None,WorkingDir=None):
+                 SuppressStdout=None,WorkingDir=None,
+                 HALT_EXEC=False):
         """ Initialize the blastall"""
         super(Blastall, self).__init__(BLASTALL_OPTIONS,
                     "blastall", 
@@ -386,7 +391,8 @@ class Blastall(Blast):
                     extra_env=extra_env,
                     params=params,
                     InputHandler=InputHandler,SuppressStderr=SuppressStderr,
-                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir)
+                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir,
+                    HALT_EXEC=HALT_EXEC)
 class MpiBlast(Blast):
     """mpblast application controller - Prototype """
 
@@ -466,7 +472,8 @@ class MpiBlast(Blast):
                  config_file="/quicksand2/downloads2/mpiblast/mpiblast.conf",
                  num_db_frags=40,
                  InputHandler=None,SuppressStderr=None,
-                 SuppressStdout=None,WorkingDir=None):
+                 SuppressStdout=None,WorkingDir=None,
+                 HALT_EXEC=False):
         """ Initialize mpiblast"""
         if config_file:
             params["--config-file"] = config_file
@@ -478,7 +485,8 @@ class MpiBlast(Blast):
                         shared_root),
                     params=params,
                     InputHandler=InputHandler,SuppressStderr=SuppressStderr,
-                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir)
+                    SuppressStdout=SuppressStdout,WorkingDir=WorkingDir,
+                    HALT_EXEC=HALT_EXEC)
 
 class FastaCmd(CommandLineApplication):
     """FastaCmd application controller - Prototype"""
@@ -645,7 +653,7 @@ def blast_seqs(seqs,
                    InputHandler=ih,
                    WorkingDir=WorkingDir,
                    SuppressStderr=SuppressStderr,
-                   SuppressStdout=SuppressStdout)
+                   SuppressStdout=SuppressStdout,HALT_EXEC=True)
 
     return blast_app(seqs)
 
