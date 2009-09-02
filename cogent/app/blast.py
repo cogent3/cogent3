@@ -653,7 +653,7 @@ def blast_seqs(seqs,
                    InputHandler=ih,
                    WorkingDir=WorkingDir,
                    SuppressStderr=SuppressStderr,
-                   SuppressStdout=SuppressStdout,HALT_EXEC=True)
+                   SuppressStdout=SuppressStdout)
 
     return blast_app(seqs)
 
