@@ -137,13 +137,20 @@ class Drawable(object):
         fig = plt.figure(figsize=(width,height), facecolor='white')
         return fig
                 
-    def showFigure(self, title=None, **kw):
-        """Make the figure and immediately pyplot.show() it.  
+    def drawFigure(self, title=None, **kw):
+        """Draw the figure.  
         Extra arguments are forwarded to self.makeFigure()"""
         import matplotlib.pyplot as plt
         fig = self.makeFigure(**kw)
         if title is not None:
             fig.suptitle(title)
+        plt.draw_if_interactive()
+        
+    def showFigure(self, title=None, **kw):
+        """Make the figure and immediately pyplot.show() it.  
+        Extra arguments are forwarded to self.makeFigure()"""
+        self.drawFigure(title, **kw)
+        import matplotlib.pyplot as plt
         plt.show()
         
     def drawToFile(self, fname, **kw):
