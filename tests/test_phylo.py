@@ -6,7 +6,7 @@ from cogent.phylo.nj import nj
 from cogent.phylo.least_squares import wls
 from cogent import LoadSeqs, LoadTree
 from cogent.evolve.models import JC69, HKY85, F81
-from cogent.phylo.consensus import majorityRule
+from cogent.phylo.consensus import majorityRule, weightedMajorityRule
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -18,22 +18,26 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+def Tree(t):
+    return LoadTree(treestring=t)
+
 class ConsensusTests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.trees = [
+                (1, Tree("((a,b),(c,d));")),
+                (1, Tree("((a,b),(c,d));")),
+                (1, Tree("((a,c),(b,d));")),
+                (1, Tree("((a,b),c,d);")),]
     
     def test_majorityRule(self):
         """Tests for majority rule consensus trees"""
-        trees = [LoadTree(treestring="((a,b),(c,d));"),
-                 LoadTree(treestring="((a,b),(c,d));"),
-                 LoadTree(treestring="((a,c),(b,d));"),
-                 LoadTree(treestring="((a,b),c,d);"),]
+        trees = [t for (w,t) in self.trees]
         outtrees = majorityRule(trees, strict=False)
         self.assertEqual(len(outtrees), 1)
-        self.assertEqual(repr(outtrees[0]), 'Tree("((c,d),(a,b));")')
+        self.assert_(outtrees[0].sameTopology(Tree("((c,d),(a,b));")))
         outtrees = majorityRule(trees, strict=True)
         self.assertEqual(len(outtrees), 1)
-        self.assertEqual(repr(outtrees[0]),'Tree("(c,d,(a,b));")')
+        self.assert_(outtrees[0].sameTopology(Tree("(c,d,(a,b));")))
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
