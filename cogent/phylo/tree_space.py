@@ -98,6 +98,9 @@ class TreeEvaluator(object):
             (err, lengths, ancestry) = heapq.heappop(trees)
             yield self.result2output(err, ancestry, lengths, names)
     
+    def results2output(self, results):
+        return list(results)
+        
     def evaluateTopology(self, tree):
         """Optimal (score, tree) for the one topology 'tree'"""
         (ancestry, names, lengths) = tree2ancestry(tree)
@@ -238,7 +241,7 @@ class TreeEvaluator(object):
         
         results = self._result_iter(trees, names)
         if return_all:
-            result = list(results)
+            result = self.results2output(results)
         else:
             result = results.next()
         return result
