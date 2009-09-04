@@ -14,41 +14,50 @@ __email__ = "matthew.wakefield@anu.edu.au"
 __status__ = "Production"
 
 def majorityRule(trees, strict=False):
-    """Determines the consensus tree from a list of trees using the majority rules
-    method of Margush and McMorris 1981
+    """Determines the consensus tree from a list of rooted trees using the 
+     majority rules method of Margush and McMorris 1981
     Arguments:
         - trees: A list of cogent.evolve.tree objects
         - strict: A boolean flag for strict majority rule tree
           construction when true only nodes occurring >50% will be used
-          when false the highest scoring < 50% node will be used If
+          when false the highest scoring < 50% node will be used if
           there is more than one node with the same score this will be
           arbitrarily chosen on sort order
     
     Returns:
         a list of cogent.evolve.tree objects
     """
-    replicates = len(trees)
-    
+    trees = [(1, tree) for tree in trees]
+    return weightedMajorityRule(trees, strict, "count")
+
+def weightedMajorityRule(weighted_trees, strict=False, attr="support"):
     cladecounts = {}
-    for tree in trees:
+    edgelengths = {}
+    total = 0
+    for (weight, tree) in weighted_trees:
+        total += weight
         edges = tree.getEdgeVector()
         for edge in edges:
             tips = edge.getTipNames(includeself=True)
             tips = frozenset(tips)
-            if cladecounts.has_key(tips):
-                cladecounts[tips]+= 1
+            if not cladecounts.has_key(tips):
+                cladecounts[tips] = 0
+            cladecounts[tips] += weight
+            length = edge.Length and edge.Length * weight
+            if edgelengths.get(tips, None):
+                edgelengths[tips] += length
             else:
-                cladecounts[tips] = 1
+                edgelengths[tips] = length
     cladecounts = [(count, clade) for (clade, count) in cladecounts.items()]
     cladecounts.sort()
     cladecounts.reverse()
     
-    # Remove < 50%
     if strict:
+        # Remove any with support < 50%
         for index, (count, clade) in enumerate(cladecounts):
-            if count < 0.5 * replicates:
+            if count <= 0.5 * total:
+                cladecounts = cladecounts[:index]
                 break
-        cladecounts = cladecounts[:index-1]
     
     # Remove conflicts
     accepted_clades = set()
@@ -63,13 +72,17 @@ def majorityRule(trees, strict=False):
             accepted_clades.add(clade)
             counts[clade] = count
     
-    
-    tips = [iter(clade).next() for clade in accepted_clades if len(clade) == 1]
-    queue = [(len(clade), clade) for clade in accepted_clades if len(clade) > 1]
-    
-    tree_build = TreeBuilder().createEdge
-    nodes = dict([(name, tree_build([], name, {})) for name in tips])
-    
+    nodes = {}
+    queue = []
+    tree_build = TreeBuilder().createEdge    
+    for clade in accepted_clades:
+        if len(clade) == 1:
+            tip_name = iter(clade).next()
+            params = {'length':edgelengths[clade], attr:counts[clade]}
+            nodes[tip_name] = tree_build([], tip_name, params)
+        else:
+            queue.append(((len(clade), clade)))
+            
     while queue:
         queue.sort()
         (size, clade) = queue.pop(0)
@@ -77,13 +90,14 @@ def majorityRule(trees, strict=False):
         for (size2, ancestor) in queue:
             if clade.issubset(ancestor):
                 new_ancestor = (ancestor - clade) | frozenset([clade])
-                counts[new_ancestor] = counts[ancestor]
-                del counts[ancestor]
+                counts[new_ancestor] = counts.pop(ancestor)
+                edgelengths[new_ancestor] = edgelengths.pop(ancestor)
                 ancestor = new_ancestor
             new_queue.append((len(ancestor), ancestor))
         children = [nodes.pop(c) for c in clade]
         assert len([children])
-        nodes[clade] = tree_build(children, None, {'count':counts[clade]})
+        nodes[clade] = tree_build(children, None, 
+            {attr:counts[clade], 'length':edgelengths[clade]})
         queue = new_queue
     
     for root in nodes.values():
