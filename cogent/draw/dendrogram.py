@@ -49,8 +49,10 @@ def _treemaxof(param):
         params = node.edge.params
         if param in params:
             return max([params[param]] + child_results)
-        else:
+        elif child_results:
             return max(child_results)
+        else:
+            return None
     return _max
 
 def SimpleColormap(color0, color1, name=None):
@@ -182,32 +184,39 @@ class DendrogramLabelStyle(object):
     """Label options"""
     
     def __init__(self, show_params=None, show_internal_labels=False,
-            label_template=None):
-        if label_template is None:
-            if hasattr(show_params, "__contains__"):
-                if len(show_params) == 1:
-                    label_template = "%%(%s)s" % show_params[0]
+            label_template=None, edge_label_callback=None):
+        if edge_label_callback is None:
+            if label_template is None:
+                if hasattr(show_params, "__contains__"):
+                    if len(show_params) == 1:
+                        label_template = "%%(%s)s" % show_params[0]
+                    else:
+                        label_template = "\n".join(
+                            ["%s: %%(%s)s" % (p,p) for p in show_params])
+                elif show_params:
+                    label_template = "%s"
                 else:
-                    label_template = "\n".join(
-                        ["%s: %%(%s)s" % (p,p) for p in show_params])
-            elif show_params:
-                label_template = "%s"
-            else:
-                label_template = ""
-        
-        self.labelTemplate = label_template
+                    label_template = ""
+            
+            def edge_label_callback(edge):
+                try:
+                    if hasattr(label_template, 'substitute'):
+                        # A new style (as of Py 2.4?) string template
+                        return label_template.substitute(edge.params)
+                    else:
+                        return label_template % edge.params
+                except KeyError:
+                    return ""  # param missing - probably just the root edge
+                        
+        self.edgeLabelCallback = edge_label_callback
         self.showInternalLabels = show_internal_labels
     
     def getEdgeLabel(self, edge):
-        try:
-            text = self.labelTemplate % edge.params
-        except KeyError:
-            text = ''  # param missing - probably just the root edge
-        return text
+        return self.edgeLabelCallback(edge)
     
     def getNodeLabel(self, edge):
         if self.showInternalLabels or not edge.Children:
-            return edge.Name or ""
+            return edge.Name
         else:
             return ""
         
@@ -308,13 +317,15 @@ class _Dendrogram(rlg2mpl.Drawable):
     
     def asArtist(self, width, height, margin=20, use_lengths=None,
             scale_bar="left", show_params=None, show_internal_labels=False,
-            label_template=None, **kw):
+            label_template=None, edge_label_callback=None, **kw):
         """A reportlab drawing"""
         
         label_style = DendrogramLabelStyle(
-                show_params=show_params,
-                show_internal_labels=show_internal_labels,
-                label_template=label_template)
+                show_params = show_params,
+                show_internal_labels = show_internal_labels,
+                label_template = label_template,
+                edge_label_callback = edge_label_callback,
+                )
         if kw.get('shade_param', None) is not None and \
                 kw.get('max_value', None) is None:
             kw['max_value'] = self.postorder(_treemaxof(kw['shade_param']))
