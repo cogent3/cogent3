@@ -71,6 +71,8 @@ def weightedMajorityRule(weighted_trees, strict=False, attr="support"):
         else:
             accepted_clades.add(clade)
             counts[clade] = count
+            weighted_length = edgelengths[clade]
+            edgelengths[clade] = weighted_length and weighted_length / total
     
     nodes = {}
     queue = []
