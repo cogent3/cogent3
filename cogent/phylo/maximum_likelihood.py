@@ -75,7 +75,7 @@ class _ScoredTreeCollection(list):
         f = open(filename, 'w')
         for (score, tree) in self:
             f.writelines(
-                [score, '\t', tree.getNewick(with_distances=True),'\n'])
+                [str(score), '\t', tree.getNewick(with_distances=True),'\n'])
         f.close()
         
 class WeightedTreeCollection(_ScoredTreeCollection):
@@ -88,10 +88,10 @@ class LogLikelihoodScoredTreeCollection(_ScoredTreeCollection):
     """An ordered list of scored trees all covering the same set of tip names"""
         
     def __init__(self, trees):
-        # Quick and very dirty check of order
-        assert trees[0][0] >= trees[-1][0]
         list.__init__(self, trees)
-
+        # Quick and very dirty check of order
+        assert self[0][0] >= self[-1][0]
+        
     def getConsensusTree(self, cutoff=None, strict=False):
         return self.getWeightedTrees(cutoff).getConsensusTree(strict)
         
