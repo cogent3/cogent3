@@ -242,7 +242,7 @@ def PD_generic_whole_tree(t, envs, metric=PD):
     return unique_envs, result
 
 def fast_unifrac_permutations(t, envs, weighted, num_iters, first_env, 
-    second_env, permutation_f=permutation):
+    second_env, permutation_f=permutation, unifrac_f=_weighted_unifrac):
     """Performs UniFrac permutations between specified pair of environments.
     
     NOTE: this function just gives you the result of the permutations, need to 
@@ -273,7 +273,7 @@ def fast_unifrac_permutations(t, envs, weighted, num_iters, first_env,
         for i in range(num_iters):
             permute_selected_rows(tip_indices, orig_count_array, count_array, permutation_f)
             sum_descendants(bound_indices)
-            curr = _weighted_unifrac(branch_lengths, first_col, second_col, first_sum, second_sum)
+            curr = unifrac_f(branch_lengths, first_col, second_col, first_sum, second_sum)
             if bl_correct:
                 curr /= _branch_correct(tip_ds, first_col, second_col, first_sum, second_sum)
             result.append(curr)
@@ -412,7 +412,7 @@ def shared_branch_length_to_root(t, envs):
     return result
 
 def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True, 
-    modes=UNIFRAC_DEFAULT_MODES):
+    modes=UNIFRAC_DEFAULT_MODES, weighted_unifrac_f=_weighted_unifrac):
     """ Run fast unifrac.
     
     t: phylogenetic tree relating the sequences.  pycogent phylonode object
@@ -476,12 +476,14 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
         else:
             bl_correct = False
         u = weighted_unifrac_matrix(branch_lengths, count_array, tip_indices, \
-            bl_correct=bl_correct, tip_distances=tip_ds)
+            bl_correct=bl_correct, tip_distances=tip_ds, \
+            unifrac_f=weighted_unifrac_f)
         #figure out if we need the vector
         if UNIFRAC_DIST_VECTOR in modes:
             result[UNIFRAC_DIST_VECTOR] = (weighted_unifrac_vector(
                 branch_lengths, count_array, tip_indices, 
-                bl_correct=bl_correct, tip_distances=tip_ds), env_names)
+                bl_correct=bl_correct, tip_distances=tip_ds, 
+                unifrac_f=weighted_unifrac_f), env_names)
     else:
         bool_descendants(bound_indices)
         u = unifrac_matrix(branch_lengths, count_array, metric=metric, is_symmetric=is_symmetric)
