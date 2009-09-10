@@ -493,7 +493,8 @@ def _branch_correct(tip_distances, i, j, i_sum, j_sum):
     result = tip_distances.ravel()*((i/float(i_sum))+(j/float(j_sum)))
     return result.sum()
 
-def weighted_unifrac(branch_lengths, i, j, tip_indices):
+def weighted_unifrac(branch_lengths, i, j, tip_indices, \
+    unifrac_f=_weighted_unifrac):
     """Returns weighted unifrac(i,j) from branch lengths and cols i,j of m.
 
     Must pass in tip indices to calculate sums.
@@ -504,10 +505,10 @@ def weighted_unifrac(branch_lengths, i, j, tip_indices):
     """
     i_sum = (take(i, tip_indices)).sum()
     j_sum = (take(j, tip_indices)).sum()
-    return _weighted_unifrac(branch_lengths, i, j, i_sum, j_sum)
+    return unifrac_f(branch_lengths, i, j, i_sum, j_sum)
 
 def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
-        tip_distances=None):
+        tip_distances=None, unifrac_f=_weighted_unifrac):
     """Calculates weighted_unifrac(i,j) for all i,j in m.
 
     Requires tip_indices for calculating sums, etc.
@@ -525,7 +526,7 @@ def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
         for j in range(i):
             second_col = cols[j]
             j_sum = sums[j]
-            curr = _weighted_unifrac(branch_lengths, first_col, \
+            curr = unifrac_f(branch_lengths, first_col, \
                 second_col, i_sum, j_sum)
             if bl_correct:
                 curr /= _branch_correct(tip_distances, first_col, \
@@ -536,7 +537,7 @@ def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
     return result
 
 def weighted_unifrac_vector(branch_lengths, m, tip_indices, bl_correct=False,
-    tip_distances=None):
+    tip_distances=None, unifrac_f=_weighted_unifrac):
     """Calculates weighted_unifrac(i,rest) for i in m.
 
     Requires tip_indices for calculating sums, etc.
@@ -554,7 +555,7 @@ def weighted_unifrac_vector(branch_lengths, m, tip_indices, bl_correct=False,
         i_col = cols[i]
         rest_col = sum_of_cols - i_col
         rest_sum = sum_of_sums - i_sum
-        curr = _weighted_unifrac(branch_lengths, i_col, 
+        curr = unifrac_f(branch_lengths, i_col, 
             rest_col, i_sum, rest_sum)
         if bl_correct:
             curr /= _branch_correct(tip_distances, i_col,
