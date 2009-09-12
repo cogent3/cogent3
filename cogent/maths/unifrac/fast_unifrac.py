@@ -171,7 +171,7 @@ def _fast_unifrac_setup(t, envs):
     """Setup shared by fast_unifrac and by significance tests."""
     try:
         t2 = t.getSubTree(set(envs.keys()).intersection(
-        set([i.Name for i in t.tips()])))
+        set([i.Name for i in t.tips()])), ignore_missing=True)
         t = t2
     except TreeError:
         pass
