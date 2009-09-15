@@ -20,7 +20,7 @@ from tempfile import mkdtemp
 from cogent.app.parameters import Parameter, ValuedParameter, Parameters
 from cogent.parse.fasta import MinimalFastaParser
 from cogent.app.util import CommandLineApplication, CommandLineAppResult, \
-    FilePath, ResultPath, get_tmp_filename, guess_input_handler, system,\
+    FilePath, ResultPath, guess_input_handler, system,\
     ApplicationNotFoundError, ApplicationError
 
 class RdpClassifier(CommandLineApplication):
@@ -360,8 +360,8 @@ class RdpTrainer(RdpClassifier):
             errfile = FilePath(self.getTmpFilename(self.TmpDir))
 
         input_handler_function = getattr(self, input_handler)
-        taxonomy_arg = input_handler_function(taxonomy_file)
-        training_seqs_arg = input_handler_function(training_seqs_file)
+        taxonomy_filename = input_handler_function(taxonomy_file)
+        training_seqs_filename = input_handler_function(training_seqs_file)
 
         # Build up the command, consisting of a BaseCommand followed
         # by input and output (file) specifications 
@@ -372,9 +372,9 @@ class RdpTrainer(RdpClassifier):
         # mydata/mytaxon.txt mydata/mytrainseq.fasta 1 version1 test
         # mydata
         command = self._commandline_join(
-            [self.BaseCommand, taxonomy_arg, training_seqs_arg, training_set_id,
-             taxonomy_version, modification_info, model_output_dir, 
-             '>', outfile, '2>', errfile,]
+            [self.BaseCommand, taxonomy_filename, training_seqs_filename,
+             training_set_id, taxonomy_version, modification_info,
+             model_output_dir, '>', outfile, '2>', errfile]
             )
 
         if self.HaltExec: 
@@ -409,7 +409,40 @@ class RdpTrainer(RdpClassifier):
         result = CommandLineAppResult(out, err, exit_status, 
             result_paths=self._get_result_paths(model_output_dir))
 
+        # Clean up the input files
+        if remove_tmp:
+            remove(taxonomy_filename)
+            remove(training_seqs_filename)
+
         return result
+
+    def _input_as_lines(self, data):
+        """ Write a seq of lines to a temp file and return the filename string.
+
+        This method has been overridden for RdpTrainer so that the
+        _input_filename attribute is not assigned.
+
+            data: a sequence to be written to a file, each element of the 
+                sequence will compose a line in the file
+           * Note: the result will be the filename as a FilePath object 
+            (which is a string subclass).
+
+           * Note: '\n' will be stripped off the end of each sequence element
+                before writing to a file in order to avoid multiple new lines
+                accidentally be written to a file
+        """
+        filename = FilePath(self.getTmpFilename(self.TmpDir))
+        data_file = open(filename, 'w')
+        # Parent method does not take advantage of laziness, due to
+        # temporary variable that contains entire file contents --
+        # better to write explicit loop over lines in the data source,
+        # storing only each line in turn.
+        for line in data:
+            line = str(line).strip('\n')
+            data_file.write(line)
+            data_file.write('\n')
+        data_file.close()
+        return filename
 
     def _get_result_paths(self, output_dir):
         files = {
