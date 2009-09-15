@@ -91,7 +91,8 @@ class RdpClassifierTests(TestCase):
         test_dir = '/tmp/RdpTest'
         app = RdpClassifier(WorkingDir=test_dir)
 
-        results_file = app(rdp_sample_fasta)['StdOut']
+        results = app(rdp_sample_fasta)
+        results_file = results['StdOut']
         
         id_line = results_file.readline()
         self.failUnless(id_line.startswith('>X67228'))
@@ -101,18 +102,6 @@ class RdpClassifierTests(TestCase):
         exp = ['Root', 'Bacteria', 'Proteobacteria', 'Alphaproteobacteria', 'Rhizobiales', 'Rhizobiaceae', 'Rhizobium']
         self.assertEqual(obs, exp)
 
-        rmtree(test_dir)
-
-    def test_custom_training_data(self):
-        """RdpClassifier should look for custom training data"""
-        test_dir = '/tmp/RdpTest'
-        app = RdpClassifier(WorkingDir=test_dir)
-
-        nonexistent_training_data = get_tmp_filename(
-            prefix='RdpTestCustomTrainingData', suffix='.properties')
-        app.Parameters['-training-data'].on(nonexistent_training_data)
-        self.assertRaises(ApplicationError, app, rdp_sample_fasta)
-        
         rmtree(test_dir)
 
 
