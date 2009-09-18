@@ -35,12 +35,26 @@ def html(text, **kwargs):
     # assuming run from the correct directory
     return publish_string(source=text, writer_name='html', **kwargs)
 
-def _generic_cell_format(value, *args):
-    """simple cast to str for rich_html"""
-    return str(value)
+def _merge_cells(row):
+    """merges runs of identical row cells.
+    
+    returns a list with structure [((span_start, span_end), cell value),..]"""
+    new_row = []
+    last = 0
+    span = 1 # the minimum
+    for i in range(1, len(row), 1):
+        if row[i-1] != row[i]:
+            new_row.append(((last,last+span), row[i-1]))
+            last=i
+            span=1
+            continue
+        span += 1
+    
+    new_row.append(((last,last+span), row[i]))
+    return new_row
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
-    element_formatters={}, compact=True):
+    element_formatters={}, merge_identical=True, compact=True):
     """returns just the html Table string
     
     Arguments:
@@ -53,27 +67,35 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
         - element_formatters: a dictionary of specific callback funcs for
           formatting individual html table elements.
           e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+        - merge_identical: cells within a row are merged to one span.
     
     Note: header_cell_func and row_cell_func override element_formatters.
     """
     formatted = element_formatters.get
     data = [formatted('table', '<table>')]
-    # should use the docutils writer html convertor instead of str
+    # TODO use the docutils writer html convertor instead of str, for correct
+    # escaping of characters
     if row_cell_func is None:
         row_cell_func = lambda v,r,c: '<td>%s</td>' % v
     
     if header_cell_func is None:
         header_cell_func = lambda v, c: '<th>%s</th>' % v
     
+    if merge_identical:
+        row_iterator = _merge_cells
+    else:
+        row_iterator = enumerate
+    
     if header:
         th = formatted('th', '<th>')
         row = [header_cell_func(label, i) for i, label in enumerate(header)]
         data += [formatted('tr', '<tr>')]+row+['</tr>']
+    
     formatted_rows = []
     td = formatted('td', '<td>')
     for ridx, row in enumerate(rows):
         new = [formatted('tr', '<tr>')]
-        for cidx, cell in enumerate(row):
+        for cidx, cell in row_iterator(row):
             new += [row_cell_func(cell, ridx, cidx)]
         new += ['</tr>']
         formatted_rows += new
