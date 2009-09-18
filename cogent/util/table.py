@@ -280,7 +280,7 @@ class Table(DictArray):
                                 self._row_ids, borders, self.Space))
     
     def toRichHtmlTable(self, row_cell_func=None, header_cell_func=None,
-                element_formatters={}, compact=True):
+                element_formatters={}, merge_identical=True, compact=True):
         """returns just the table html code.
         Arguments:
             - row_cell_func: callback function that formats the row values. Must
@@ -290,6 +290,7 @@ class Table(DictArray):
             - element_formatters: a dictionary of specific callback funcs for
               formatting individual html table elements.
               e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+            - merge_identical: cells within a row are merged to one span.
         """
         formatted_table = self.array.tolist()
         header, formatted_table = table_format.formattedCells(formatted_table,
