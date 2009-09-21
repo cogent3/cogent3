@@ -77,9 +77,16 @@ class _SciPyOptimiser(OptimiserBase):
         t0 = time.time()
         if len(xopt) == 0:
             return function(xopt), xopt, 1, time.time() - t0
+        template = "\tNumber of function evaluations = %d; current F = %f"
+        if show_progress:
+            def _callback(fcalls, x, fval, delta):
+                print template % (fcalls, fval)
+            _callback(1, xopt, function(xopt), None)
+        else:
+            _callback = None
         for i in range((self.max_restarts + 1)):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
-                    function, xopt, disp=show_progress,
+                    function, xopt, disp=show_progress, callback=_callback, 
                     ftol=self.ftol, full_output=True,
                     maxfun=self.max_evaluations)
             xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param
