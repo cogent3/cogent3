@@ -98,7 +98,7 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 
 .. _Python: http://www.python.org
 .. _Cython: http://www.cython.org/
-.. _Numpy: http://www.scipy.org/NumPy
+.. _Numpy: http://numpy.scipy.org/
 .. _Reportlab: http://reportlab.org
 .. _Matplotlib: http://matplotlib.sourceforge.net
 .. _Apple: http://www.apple.com
