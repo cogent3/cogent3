@@ -1901,7 +1901,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         self.ArraySeqs = transpose(self.ArrayPositions)
         self.SeqData = self.ArraySeqs
         self.SeqLen = len(self.ArrayPositions)
-    
+
     def _force_same_data(self, data, Names):
         """Forces array that was passed in to be used as self.ArrayPositions"""
         if isinstance(data, DenseAlignment):
