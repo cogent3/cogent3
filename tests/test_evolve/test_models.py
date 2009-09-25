@@ -1,7 +1,7 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.evolve.models import JC69, F81, HKY85, GTR, \
     MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK, \
-    DSO78, AH96, AH96_mtmammals, JTT92, WG01
+    DSO78, AH96, AH96_mtmammals, JTT92, WG01, CNFGTR, CNFHKY
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -25,8 +25,8 @@ class CannedModelsTest(TestCase):
     
     def test_codon_models(self):
         """excercising codon model construction"""
-        self._instantiate_models([MG94HKY, MG94GTR, GY94, H04G, H04GK,
-                                    H04GGK])
+        self._instantiate_models([CNFGTR, CNFHKY, MG94HKY, MG94GTR, GY94,
+                                  H04G, H04GK, H04GGK])
     
     def test_aa_models(self):
         """excercising aa model construction"""

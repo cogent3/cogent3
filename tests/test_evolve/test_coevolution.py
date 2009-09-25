@@ -22,7 +22,7 @@ from cogent.core.alignment import DenseAlignment
 from cogent.seqsim.tree import RandomTree
 from cogent.app.util import get_tmp_filename
 from cogent.evolve.models import DSO78_matrix, DSO78_freqs
-from cogent.evolve.substitution_model import SubstitutionModel
+from cogent.evolve.substitution_model import SubstitutionModel, Empirical
 from cogent.app.gctmpca import gctmpca_aa_order,\
  default_gctmpca_aa_sub_matrix
 from cogent.util.misc import app_path
@@ -2539,14 +2539,14 @@ class GctmpcaTests(TestCase):
         aa_order_3 = 'ACD'
         count_matrix_3 = [[0,3,9],[3,0,6],[9,6,0]]
         aa_freqs_3 = {'A':0.5,'C':0.3,'D':0.2}
-        sm = SubstitutionModel(\
+        sm = Empirical(\
             rate_matrix=array(count_matrix_3),\
             motif_probs=aa_freqs_3,\
             alphabet=Alphabet(aa_order_3),recode_gaps=True,do_scaling=True,\
             name="",optimise_motif_probs=False)
         wprobs = array([aa_freqs_3[aa] for aa in aa_order_3])
         mprobs_matrix=ones((wprobs.shape[0],wprobs.shape[0]),float)*wprobs
-        q3 = sm.calcRateMatrix().calcQ(wprobs, mprobs_matrix)
+        q3 = sm.calcQ(wprobs, mprobs_matrix)
         aa_freqs_20 = {}.fromkeys('ACDEFGHIKLMNPQRSTVWY',0.0)
         aa_freqs_20['A'] = 0.5
         aa_freqs_20['C'] = 0.3

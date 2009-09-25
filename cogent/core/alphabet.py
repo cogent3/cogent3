@@ -654,6 +654,24 @@ class Alphabet(Enumeration):
         
         return tuple(motif_set)
     
+    def adaptMotifProbs(self, motif_probs):
+        """Prepare an array or dictionary of probabilities for use with
+        this alphabet by checking size and order"""
+        if hasattr(motif_probs, 'keys'):
+            sample = motif_probs.keys()[0]
+            if sample not in self:
+                raise ValueError("Can't find motif %s in alphabet" %
+                                sample)
+            motif_probs = numpy.array(
+                    [motif_probs[motif] for motif in self])
+        else:
+            if len(motif_probs) != len(self):
+                if len(motif_probs) != len(self):
+                    raise ValueError("Can't match %s probs to %s alphabet" %
+                            (len(motif_probs), len(self)))
+            motif_probs = numpy.asarray(motif_probs)
+        assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
+        return motif_probs
 
 class CharAlphabet(Alphabet):
     """Holds an alphabet whose items are single chars.

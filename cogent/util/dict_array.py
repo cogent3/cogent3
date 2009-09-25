@@ -44,11 +44,25 @@ class DictArrayTemplate(object):
                 names = list(names)[:]
             self.names.append(names)
             self.ordinals.append(dict((c,i) for (i,c) in enumerate(names)))
+        self._shape = tuple(len(keys) for keys in self.names)
     
     def __eq__(self, other):
         return self is other or (
             isinstance(other, DictArrayTemplate) and self.names == other.names)
     
+    def unwrap(self, value):
+        """Convert to a simple numpy array"""
+        if isinstance(value, DictArray):
+            if value.template == self:
+                return value.array
+        elif isinstance(value, dict):
+            # should handle dicts as well.
+            raise NotImplementedError
+        else:
+            value = numpy.asarray(value)
+            assert value.shape == self._shape, (value.shape, self._shape)
+            return value
+        
     def wrap(self, array, dtype = None):
         # dtype is numpy
         array = numpy.asarray(array, dtype=dtype)
@@ -152,7 +166,7 @@ class DictArray(object):
     
     def __repr__(self):
         return self.template.array_repr(self.array)
-    
+        
     def __ne__(self, other):
         return not self.__eq__(other)
         

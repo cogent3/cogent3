@@ -146,8 +146,11 @@ class _Defn(object):
         assert not self.assignments, self.assignments
         self.clients.append(client)
     
-    def acrossDimension(self, d, cats):
-        return [SelectFromDimension(self, **{d:k}) for k in cats]
+    def acrossDimension(self, dimension, cats):
+        return [self.selectFromDimension(dimension, cat) for cat in cats]
+    
+    def selectFromDimension(self, dimension, cat):
+        return SelectFromDimension(self, **{dimension:cat})
     
     def getRequiredScopes(self, arg_dimensions):
         # A list of scope dictionaries: [{dimension:value},] that this
@@ -211,6 +214,11 @@ class _Defn(object):
             raise ValueError('Input "%s" is not defined' % value.name)
         if getattr(self, 'array_template', None) is not None:
             value = self.array_template.wrap(value)
+        return value
+    
+    def unwrapValue(self, value):
+        if getattr(self, 'array_template', None) is not None:
+            value = self.array_template.unwrap(value)
         return value
     
     def getCurrentValueForScope(self, *args, **scope):
@@ -401,13 +409,10 @@ class SelectFromDimension(_Defn):
         self._update_from_assignments()
         self.values = [self.arg.values[i] for (i,) in self.uniq]
     
-    def makeEvaluators(self, input_soup, variable=None):
-        cells = []
-        outputs = []
-        ev = input_soup[id(self.arg)]
-        for (input_num,) in self.uniq:
-            outputs.append(ev.outputs[input_num])
-        return [Evaluator(self, [], outputs)]
+    def makeCells(self, input_soup, variable=None):
+        arg = input_soup[id(self.arg)]
+        outputs = [arg[input_num] for (input_num,) in self.uniq]
+        return ([], outputs)     
     
 
 class _NonLeafDefn(_Defn):
@@ -415,7 +420,7 @@ class _NonLeafDefn(_Defn):
         _Defn.__init__(self)
         valid_dimensions = []
         for arg in args:
-            assert isinstance(arg, _Defn), arg
+            assert isinstance(arg, _Defn), type(arg)
             assert not arg.activated, arg.name
             for dimension in arg.valid_dimensions:
                 if dimension not in valid_dimensions:
@@ -448,7 +453,7 @@ class _LeafDefn(_Defn):
     This class is incomplete - subclasses provide:
         makeDefaultSetting()
         adaptSetting(setting)
-        makeEvaluators(input_soup)"""
+        makeCells(input_soup)"""
     
     args = ()
     name = None
@@ -531,23 +536,6 @@ class _LeafDefn(_Defn):
                 assignments.append('Var') # %s' % str(i))
         return '%-20s%s' % (self.name[:19],
                 _fmtrow(col_width+1, assignments, max_width))
-    
-
-class Evaluator(object):
-    """Those aspects of a Defn needed by the Calculator.  This class only
-    exists to isolate the Calculator from the still-mutable ParameterController,
-    so that Calculator methods like getParamValue which use PC attributes
-    are safe."""
-    
-    def __init__(self, defn, cells, outputs):
-        self.name = defn.name
-        self.cells = cells
-        self.outputs = outputs
-        self.__defn = defn
-        self.numeric = getattr(defn, 'numeric', False)
-        self.user_param = getattr(defn, 'user_param', False)
-        self.index = defn.index.copy()
-        self.valid_dimensions = defn.valid_dimensions[:]
     
 
 class _ParameterController(object):

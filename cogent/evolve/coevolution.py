@@ -1127,7 +1127,7 @@ def build_rate_matrix(count_matrix,freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
     num = word_probs.shape[0]
     mprobs_matrix = ones((num,num), float)*word_probs
     
-    return epm.calcRateMatrix().calcQ(word_probs, mprobs_matrix)
+    return epm.calcQ(word_probs, mprobs_matrix)
 
 def create_gctmpca_input(aln,tree):
     """ Generate the four input files as lists of lines. """

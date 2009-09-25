@@ -137,15 +137,9 @@ class _LikelihoodParameterController(_LF):
         motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
         if is_const is None:
             is_const = not self.optimise_motif_probs
-        if self.model.position_specific_mprobs:
-            assert len(self.posn_names) == len(motif_probs), len(motif_probs)
-            for (i,m) in zip(self.posn_names, motif_probs):
-                self.setParamRule('mprobs', is_const=is_const, value=m,
-                        bin=bin, locus=locus, is_independent=is_independent,
-                        position=i)
-        else:
-            self.setParamRule('mprobs', is_const=is_const, value=motif_probs,
-                    bin=bin, locus=locus, is_independent=is_independent)
+        self.model.setParamControllerMotifProbs(self, motif_probs, 
+            is_const=is_const, bin=bin, locus=locus, 
+            is_independent=is_independent)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
     
@@ -189,9 +183,7 @@ class _LikelihoodParameterController(_LF):
         return edges
     
     def setParamRule(self, par_name, is_independent=None, is_const=False,
-            value=None, total=None, lower=None, init=None, upper=None,
-            bin=None, bins=None, locus=None, loci=None, position=None, 
-            **scope_info):
+            value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
         
@@ -201,9 +193,6 @@ class _LikelihoodParameterController(_LF):
               value, if provided, or the likelihood functions current value.
             - is_independent: whether the partition specified by scope/bin
               arguments are to be considered independent.
-            - total: specify that the sum of the parameter values across the
-              specified edges must sum to this amount. Used primarily for
-              length.
             - lower, init, upper: specify the lower bound, initial value and
               upper bound for optimisation. Can be set separately.
             - bin, bins: the name(s) of the bin to apply rule.
@@ -223,40 +212,36 @@ class _LikelihoodParameterController(_LF):
                 arguments.
         """
         par_name = str(par_name)
-        
-        edges = self._process_scope_info(**scope_info)
-        
-        if bin is not None:
-            assert isinstance(bin, basestring), 'bins=, maybe?'
-            assert bins is None
-            bins = [bin]
-        
-        if locus is not None:
-            assert isinstance(locus, basestring), 'loci=, maybe?'
-            assert loci is None
-            loci = [locus]
-        
+                
         scopes = {}
+        for (single, plural) in [
+                ('bin', 'bins'),
+                ('locus', 'loci'),
+                ('position', 'positions'),
+                ('motif', 'motifs'),
+                ]:
+            if single in scope_info:
+                v = scope_info.pop(single)
+                if v:
+                    assert isinstance(v, basestring), ('%s=, maybe?' % plural)
+                    assert plural not in scope_info
+                    scopes[single] = [v]
+            elif plural in scope_info:
+                v = scope_info.pop(plural)
+                if v:
+                    scopes[single] = v
+                
+        edges = self._process_scope_info(**scope_info)
         if edges:
             scopes['edge'] = edges
-        if bins:
-            scopes['bin'] = bins
-        if loci:
-            scopes['locus'] = loci
-        if position:
-            scopes['position'] = position
         
-        if total is not None:
-            assert not (value or is_independent or init or lower or upper or bins or loci)
-            self.real_par_controller.assignTotal(par_name, scopes, total)
-        else:
-            if is_const:
-                assert not (init or lower or upper)
-            elif init is not None:
-                assert not value
-                value = init
-            self.real_par_controller.assignAll(par_name, scopes, value, lower,
-                    upper, is_const, is_independent)
+        if is_const:
+            assert not (init or lower or upper)
+        elif init is not None:
+            assert not value
+            value = init
+        self.real_par_controller.assignAll(par_name, scopes, value, lower,
+                upper, is_const, is_independent)
     
     def setLocalClock(self, tip1name, tip2name):
         """Constrain branch lengths for tip1name and tip2name to be equal.

@@ -134,13 +134,12 @@ class LikelihoodFunction(object):
     def _valuesForDimension(self, dim):
         # in support of __str__
         if dim == 'edge':
-            result = [e.Name for e in self._tree.getEdgeVector()
-                    if not e.isroot()]
+            result = [e.Name for e in self._tree.getEdgeVector()]
         elif dim == 'bin':
             result = self.bin_names[:]
         elif dim == 'locus':
             result = self.locus_names[:]
-        elif dim == 'motif':
+        elif dim.startswith('motif'):
             result = self._mprob_motifs
         elif dim == 'position':
             result = self.posn_names[:]
@@ -178,9 +177,9 @@ class LikelihoodFunction(object):
                 edge.params[par] = d[par][edge.Name]
         return tree
     
-    def getMotifProbs(self, bin=None, locus=None):
+    def getMotifProbs(self, edge=None, bin=None, locus=None):
         motif_probs_array = self.getParamValue(
-                'mprobs', bin=bin, locus=locus)
+                'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
         #return dict(zip(self._motifs, motif_probs_array))
     
@@ -228,8 +227,16 @@ class LikelihoodFunction(object):
         result = []
         group = {}
         param_names = self.getParamNames()
+        
+        mprob_name = [n for n in param_names if 'mprob' in n]
+        if mprob_name:
+            mprob_name = mprob_name[0]
+        else:
+            mprob_name = ''
+        
         if not with_motif_probs:
-            param_names.remove('mprobs')
+            param_names.remove(mprob_name)
+        
         for param in param_names:
             dims = tuple(self.getUsedDimensions(param))
             if dims not in group:
@@ -254,16 +261,23 @@ class LikelihoodFunction(object):
             row_order = self._valuesForDimensions(table_dims)
             for scope in row_order:
                 row = {}
+                row_used = False
                 for param in param_names:
                     d = raw_table[param]
-                    for part in scope:
-                        d = d[part]
+                    try:
+                        for part in scope:
+                            d = d[part]
+                    except KeyError:
+                            d = 'NA'
+                    else:
+                        row_used = True
                     row[param] = d
-                row.update(dict(zip(table_dims, scope)))
-                row = [row[k] for k in heading_names]
-                list_table.append(row)
+                if row_used:
+                    row.update(dict(zip(table_dims, scope)))
+                    row = [row[k] for k in heading_names]
+                    list_table.append(row)
             if table_dims:
-                title = ['', '%s params' % table_dims[0]][with_titles]
+                title = ['', '%s params' % ' '.join(table_dims)][with_titles]
             else:
                 title = ['', 'global params'][with_titles]
             result.append(table.Table(
