@@ -32,6 +32,10 @@ def eig(*a, **kw):
     """make eig to return the same eigvectors as numpy ones"""
     vals, vecs = _eig(*a, **kw)
     return vals, vecs.T
+    
+def inv(a):
+    """make inv return the same contiguous matrix as numpy one"""
+    return numpy.ascontiguousarray(_inv(a))
 
 def inv(a):
     """make inv return the same contiguous matrix as numpy one"""

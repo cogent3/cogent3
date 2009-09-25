@@ -16,7 +16,7 @@ Float = numpy.core.numerictypes.sctype2char(float)
 
 from cogent.recalculation.definition import CalculationDefn, _FuncDefn, \
         CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn, \
-        SelectFromDimension, ParallelSumDefn
+        ParallelSumDefn
 
 from cogent.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent.evolve.simulate import argpick
@@ -90,13 +90,12 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
         for child in edge.Children:
             child_plh = makePartialLikelihoodDefns(child, lht, psubs,
                     fixed_motifs)
-            psub = SelectFromDimension(psubs, edge=child.Name)
+            psub = psubs.selectFromDimension('edge', child.Name)
             child_plh = CalcDefn(numpy.inner)(child_plh, psub)
             children.append(child_plh)
         
         if fixed_motifs:
-            fixed_motif = SelectFromDimension(
-                    fixed_motifs, edge=edge.Name)
+            fixed_motif = fixed_motifs.selectFromDimension('edge', edge.Name)
             plh = PartialLikelihoodProductDefnFixedMotif(
                     fixed_motif, lht_edge, *children, **kw)
         else:
@@ -152,7 +151,8 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
     # be interleaved first, otherwise summing over the CPUs is done last to
     # minimise inter-CPU communicaton.
     
-    lh = CalcDefn(numpy.inner, name='lh')(plh, mprobs)
+    root_mprobs = mprobs.selectFromDimension('edge', 'root')
+    lh = CalcDefn(numpy.inner, name='lh')(plh, root_mprobs)
     if len(bin_names) > 1:
         if sites_independent:
             site_pattern = CalcDefn(BinnedSiteDistribution, name='bdist')(
@@ -163,27 +163,23 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
             site_pattern = CalcDefn(PatchSiteDistribution, name='bdist')(
                     switch, bprobs)
         blh = CallDefn(site_pattern, lht, name='bindex')
-        tll = CallDefn(blh, *selectDefns(lh, 'bin', bin_names),
+        tll = CallDefn(blh, *lh.acrossDimension('bin', bin_names),
                 **dict(name='tll'))
     else:
-        lh = SelectFromDimension(lh, bin=bin_names[0])
+        lh = lh.selectFromDimension('bin', bin_names[0])
         tll = CalcDefn(log_sum_across_sites, name='logsum')(lht, lh)
     
     if len(locus_names) > 1 or parallel_context is None:
         # "or parallel_context is None" only because SelectFromDimension
         # currently has no .makeParamController() method.
-        tll = SumDefn(
-            *[SelectFromDimension(tll, locus=locus) for locus in locus_names])
+        tll = SumDefn(*tll.acrossDimension('locus', locus_names))
     else:
-        tll = SelectFromDimension(tll, locus=locus_names[0])
+        tll = tll.selectFromDimension('locus', locus_names[0])
     
     if parallel_context is not None:
         tll = ParallelSumDefn(parallel_context, tll)
     
     return tll
-
-def selectDefns(arg, dimension, categories):
-    return [SelectFromDimension(arg, **{dimension:cat}) for cat in categories]
 
 def log_sum_across_sites(root, root_lh):
     return root.getLogSumAcrossSites(root_lh)

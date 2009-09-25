@@ -23,7 +23,7 @@ __status__ = "Production"
 
 nucleotide_models = ['JC69','F81','HKY85', 'GTR']
 
-codon_models = ['MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
+codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
 
 protein_models = [ 'DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
@@ -86,6 +86,39 @@ def GTR():
     
 
 # Codon Models
+def CNFGTR():
+    """Conditional nucleotide frequency codon substitution model, GTR variant
+    (with params analagous to the nucleotide GTR model).
+    
+    See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
+    return substitution_model.Codon(
+            motif_probs = None,
+            do_scaling = True,
+            model_gaps = False,
+            recode_gaps = True,
+            name = 'CNFGTR',
+            predicates = _gtr_preds+[_omega],
+            mprob_model='conditional'
+            )
+        
+    
+
+def CNFHKY():
+    """Conditional nucleotide frequency codon substitution model, HKY variant
+    (with kappa, the ratio of transitions to transversions)
+    
+    See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
+    return substitution_model.Codon(
+            motif_probs = None,
+            do_scaling = True,
+            model_gaps = False,
+            recode_gaps = True,
+            name = 'CNFHKY',
+            predicates = [_kappa, _omega],
+            mprob_model='conditional'
+            )
+    
+
 def MG94HKY():
     """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
     the ratio of transitions to transversions)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import unittest
 import os
 
 from cogent import LoadSeqs, CodonAlphabet, DNA, LoadTable
@@ -20,7 +19,7 @@ __status__ = "Production"
 base_path = os.getcwd()
 data_path = os.path.join(base_path, 'data')
 
-class NucleotideModelTestMethods(unittest.TestCase):
+class NucleotideModelTestMethods(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(
                 do_scaling=True, model_gaps=False)
@@ -56,7 +55,7 @@ class NucleotideModelTestMethods(unittest.TestCase):
         self.assertRaises(ValueError, substitution_model.Nucleotide,
                 model_gaps=False, predicates=['transition', 'transversion'])
         
-class MultiLetterMotifSubstModelTests(unittest.TestCase):
+class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
                 model_gaps=True)
@@ -84,7 +83,7 @@ class MultiLetterMotifSubstModelTests(unittest.TestCase):
         # isIndel can now assume it won't get any non-instantaneous pairs
         # assert self.submodel.isIndel('-a', 'a-') == 0
     
-            
+
 class TupleModelMotifProbFuncs(TestCase):
     dinucs = ('TT', 'CT', 'AT', 'GT',
               'TC', 'CC', 'AC', 'GC',
@@ -124,7 +123,7 @@ class ThreeLetterMotifSubstModelTests(TestCase):
         assert not isIndel('AAA', '--A')
         assert not isIndel('C--', 'CTT')
 
-class CodonSubstModelTests(unittest.TestCase):
+class CodonSubstModelTests(TestCase):
     def setUp(self):
         self.standardcode = substitution_model.Codon(model_gaps=True, gc=1)
         self.mitocode = substitution_model.Codon(model_gaps=False, gc=2)
@@ -184,7 +183,7 @@ class CodonSubstModelTests(unittest.TestCase):
         r = repr(self.standardcode)
 
     
-class ModelDataInteractionTestMethods(unittest.TestCase):
+class ModelDataInteractionTestMethods(TestCase):
         
     def test_excludeinggaps(self):
         """testing excluding gaps from model"""
@@ -212,5 +211,5 @@ class ModelDataInteractionTestMethods(unittest.TestCase):
     # need to ensure entering motif probs that sum to 1, that motif sets are the same
 
 if __name__ == '__main__':
-        unittest.main()
+        main()
 

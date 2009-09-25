@@ -13,6 +13,11 @@ New Features
   parameters, freeing them, setting bounds, pre-optimising etc..
 * cogent Table mods; added transposed and normalized methods while the summed
   method can now return column or row sums.
+* Added a new context dependent model class. The conditional nucleotide
+  frequency weighted class has been demonstrated to be superior to the model
+  forms of Goldman and Yang (1994) and Muse and Gaut (1994). The publication
+  supporting this claim is In press at Mol Biol Evol, authored by Yap,
+  Lindsay, Easteal and Huttley.
 
 Changes
 -------

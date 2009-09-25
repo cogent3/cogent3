@@ -166,29 +166,21 @@ class Calculator(object):
     """A complete hierarchical function with N evaluation steps to call
     for each change of inputs.  Made by a ParameterController."""
     
-    def __init__(self, evs, remaining_parallel_context=None,
+    def __init__(self, cells, defns, remaining_parallel_context=None,
                 overall_parallel_context=None, trace=None, with_undo=True):
         if trace is None:
             trace = TRACE_DEFAULT
         self.overall_parallel_context = overall_parallel_context
         self.remaining_parallel_context = remaining_parallel_context
         self.with_undo = with_undo
-        self.evs_by_name = {}
-        self.evs = evs
+        self.results_by_id = defns
         self.opt_pars = []
         other_cells = []
-        for ev in self.evs:
-            if ev.name in self.evs_by_name:
-                assert not ev.numeric, ev.name
-                #print 'duplicate', ev.name
-                self.evs_by_name[ev.name] = None
+        for cell in cells:
+            if isinstance(cell, OptPar):
+                self.opt_pars.append(cell)
             else:
-                self.evs_by_name[ev.name] = ev
-            for cell in ev.cells:
-                if isinstance(cell, OptPar):
-                    self.opt_pars.append(cell)
-                else:
-                    other_cells.append(cell)
+                other_cells.append(cell)
         self._cells = self.opt_pars + other_cells
         data_sets = [[0], [0,1]][self.with_undo]
         self.cell_values = [[None]*len(self._cells) for switch in data_sets]
@@ -269,6 +261,7 @@ class Calculator(object):
                                 (arg.name, arg.rank, cell.name, cell.rank))
         for name in evs:
             all_const = True
+            some_const = False
             enodes = [name.replace('edge', 'QQQ')]
             for cell in nodes[name]:
                 value = self._getCurrentCellValue(cell)
@@ -279,8 +272,10 @@ class Calculator(object):
                 label = '<%s> %s' % (cell.rank, label)
                 enodes.append(label)
                 all_const = all_const and cell.is_const
+                some_const = some_const or cell.is_const
             enodes = '|'.join(enodes)
-            colour = ['', ' fillcolor=gray, style=filled,'][all_const]
+            colour = ['', ' fillcolor=gray90, style=filled,'][some_const]
+            colour = [colour, ' fillcolor=gray, style=filled,'][all_const]
             lines.append('"%s" [shape = "record",%s label="%s"];' %
                     (name, colour, enodes))
         lines.extend(edges)
@@ -646,6 +641,10 @@ class Calculator(object):
     def _getCurrentCellValue(self, cell):
         return self.cell_values[self._switch][cell.rank]
     
+    def getCurrentCellValuesForDefn(self, defn):
+        cells = self.results_by_id[id(defn)]
+        return [self.cell_values[self._switch][cell.rank] for cell in cells]
+
     def __getBoundedRoot(self, func, origX, direction, bound, xtol):
         return find_root(func, origX, direction, bound, xtol=xtol,
                 expected_exception = (
@@ -674,4 +673,5 @@ class Calculator(object):
                 x = opt_par.transformFromOptimiser(x)
             triple.append(x)
         return tuple(triple)
+        
     

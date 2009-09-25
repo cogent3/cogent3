@@ -33,15 +33,15 @@ it may be the case that Ax = Ay = Az, and that may simplify the calculation, but
 we will never even notice if Ax = Bx.
 Each scope dimension (here there is just one, 'category') must be collapsed away
 at some point towards the end of the calculation if the calculation is to produce
-a scalar result.  Here this is done with the SelectFromDimension class.
+a scalar result.  Here this is done with the selectFromDimension method.
 
     >>> A = ParamDefn('A', dimensions = ['category'])
     >>> B = ParamDefn('B', dimensions = ['category'])
     >>> mid = CalcDefn(add, name="mid")(A, B)
     >>> top = CalcDefn(add)(
-    ...     SelectFromDimension(mid, category="x"),
-    ...     SelectFromDimension(mid, category="y"),
-    ...     SelectFromDimension(mid, category="z"))
+    ...     mid.selectFromDimension('category', "x"),
+    ...     mid.selectFromDimension('category', "y"),
+    ...     mid.selectFromDimension('category', "z"))
     ...
     >>> # or equivalently:
     >>> # top = CalcDefn(add, *mid.acrossDimension('category',
@@ -90,20 +90,6 @@ does not exist:
    Traceback (most recent call last):
    InvalidDimensionError: ...
 
-As a special case, variables can be constrained to
-sum to a particular value across a subset of scopes:
-
-    >>> pc.assignTotal('A', scope_spec={'category':['x','y']}, total=3.0)
-    >>> f = pc.makeCalculator()
-    >>> f.getValueArray()
-    [1.0, 0.0]
-
-The ratio appears to the optimiser as 0.0 because log(0.0) = 1.0,
-so the x:y ratio is 1:1, or 1.5 each.  Checking the result:
-
-    >>> f([1.0, 0.0])
-    8.0
-
 It is complicated guesswork matching the parameters you expect with positions in
 the value array, let alone remembering whether or not they are presented to the
 optimiser as logs, so .getValueArray(), .change() and .__call__() should only be
@@ -112,7 +98,7 @@ interface:
     
     >>> pc.updateFromCalculator(f)
     >>> pc.getParamValue('A', category='x')
-    1.5
+    2.0
     >>> pc.getParamValue('B', category=['x', 'y'])
     1.0
 
@@ -120,7 +106,7 @@ Despite the name, .getParamValue can get the value from any step in the
 calculation, so long as it has a unique name.
 
     >>> pc.getParamValue('mid', category='x')
-    2.5
+    3.0
 
 For bulk retrieval of parameter values by parameter name and scope name there is
 the .getParamValueDict() method:
@@ -128,7 +114,7 @@ the .getParamValueDict() method:
     >>> pc.getParamValueDict(['category']).keys()
     ['A', 'B']
     >>> pc.getParamValueDict(['category'])['A']['x']
-    1.5
+    2.0
 
 Here is a function that is more like a likelihood function, in that it has a
 maximum:

@@ -82,6 +82,7 @@ def suite():
         'test_evolve.test_substitution_model',
         'test_evolve.test_scale_rules',
         'test_evolve.test_likelihood_function',
+        'test_evolve.test_newq',
         'test_evolve.test_parameter_controller',
         'test_format.test_mage',
         'test_format.test_fasta',

@@ -3,7 +3,7 @@
 from cogent.maths.markov import SiteClassTransitionMatrix
 from cogent.recalculation.definition import PositiveParamDefn, \
     ProbabilityParamDefn, CalculationDefn, CalcDefn, NonParamDefn, \
-    SelectFromDimension, PartitionDefn
+    PartitionDefn
 from cogent.align import indel_model, pairwise
 import numpy
 
@@ -69,9 +69,6 @@ class BinData(object):
     def __repr__(self):
         return 'Bin(Pi, Qd, %s, %s)' % (self.rate, vars(self.indel))
 
-def selectDefns(arg, dimension, categories):
-    return [SelectFromDimension(arg, **{dimension:cat}) for cat in categories]
-
 class AnnotateFloatDefn(CalculationDefn):
     name = 'annot'
     def calc(self, value, edge):
@@ -123,7 +120,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     args = []
     for child in edge.Children:
         if child.istip():
-            args.append(SelectFromDimension(leaf, edge=child.Name))
+            args.append(leaf.selectFromDimension('edge', child.Name))
         else:
             (child_defn, scores2) = _recursive_defns(
                     child, subst, leaf, edge_defn_constructor, bin_args)
@@ -132,7 +129,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
             args.append(child_defn)
     child_names = [child.Name for child in edge.Children]
     assert len(child_names) == 2, child_names
-    child_lengths = selectDefns(subst['length'], 'edge', child_names)
+    child_lengths = subst['length'].acrossDimension('edge', child_names)
     args.extend(child_lengths)
     args.extend(bin_args)
     edge_defn = edge_defn_constructor(*args)
@@ -160,7 +157,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     
     mprobs = subst['word_probs']
     bin_data = CalcDefn(BinData)(mprobs, indel, subst['Qd'])
-    bin_data = selectDefns(bin_data, 'bin', bin_names)
+    bin_data = bin_data.acrossDimension('bin', bin_names)
     edge_args.extend(bin_data)
     
     (top, scores) = _recursive_defns(tree, subst, leaf, edge_defn_constructor,

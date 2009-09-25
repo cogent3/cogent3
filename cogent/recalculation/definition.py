@@ -69,16 +69,15 @@ import logging
 
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
-# These supply a makeEvaluator() method which instantiates 'Cell'
+# These supply a makeCells() method which instantiates 'Cell'
 # classes from calculation.py
 
 from calculation import EvaluatedCell, OptPar, LogOptPar, ConstCell, \
         Calculator
 
-from scope import Evaluator, _NonLeafDefn, _LeafDefn, _Defn, \
-        _ParameterController, SelectFromDimension
+from scope import _NonLeafDefn, _LeafDefn, _Defn, _ParameterController
 
-from setting import Var, ConstVal, Whole, Part
+from setting import Var, ConstVal
 
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
@@ -127,8 +126,8 @@ class ParameterController(_ParameterController):
                         if not numpy.all(value==s_value):
                             LOG.warning("Used mean of '%s' values" % par_name)
                             break
-            else:
-                s_value = value
+            else:       
+                s_value = PC.unwrapValue(value)
             if const:
                 setting = ConstVal(s_value)
             else:
@@ -139,21 +138,7 @@ class ParameterController(_ParameterController):
             settings.append((scope, setting))
         PC.assign(settings)
         self.update([PC])
-    
-    def assignTotal(self, par_name, scope_spec, total=None):
-        PC = self.defn_for[par_name]
-        for scope in PC.interpretScopes(independent=False, **scope_spec):
-            if total is None:
-                total = sum(PC.getAllDefaultValues(scope))
-            # should check scope is 1D
-            N = len(scope)
-            whole = Whole(N, PartitionDefn,
-                    bounds = (0.0, total/N, total),
-                    default = [1.0*total/N] * N,
-                    name = PC.name + '_partition')
-            PC.assign([(set([s]), whole.getPart()) for s in scope])
-        self.update([PC])
-    
+        
     def makeCalculator(self, force_parallel=None, **kw):
         # self.makeParallelCalculator() actually makes calculators, this just
         # wraps it to find the best degree of parallelisation for this
@@ -208,20 +193,16 @@ class ParameterController(_ParameterController):
         return self._makeCalculator(**kw)
     
     def _makeCalculator(self, calculatorClass=None, variable=None, **kw):
+        cells = []
+        input_soup = {}
+        for defn in self.defns:
+            defn.update()
+            (newcells, outputs) = defn.makeCells(input_soup, variable)
+            cells.extend(newcells)
+            input_soup[id(defn)] = outputs
         if calculatorClass is None:
             calculatorClass = Calculator
-        evs = self._makeEvaluators(variable=variable)
-        return calculatorClass(evs, **kw)
-    
-    def _makeEvaluators(self, variable=None):
-        evs = []
-        input_soup = {}
-        for pd in self.defns:
-            pd.update()
-            pd_evs = pd.makeEvaluators(input_soup, variable)
-            evs.extend(pd_evs)
-            input_soup[id(pd)] = pd_evs[-1]
-        return evs
+        return calculatorClass(cells, input_soup, **kw)
     
     def updateFromCalculator(self, calc):
         changed = []
@@ -257,28 +238,32 @@ class CalculationDefn(_NonLeafDefn):
     def makeCalcFunction(self):
         return self.calc
     
-    def makeEvaluators(self, input_soup, variable=None):
-        # input soups contains all necessary values for calc on self. Going from defns to cells.
+    def makeCell(self, *args):
+        calc = self.makeCalcFunction()
+        # can't calc outside correct parallel context, so can't do
+        # if [arg for arg in args if not arg.is_const]:
+        cell = EvaluatedCell(self.name, calc, args,
+                recycling=self.recycling, default=self.default)
+        return cell
+        
+    def makeCells(self, input_soup, variable=None):
+        # input soups contains all necessary values for calc on self. 
+        # Going from defns to cells.
         cells = []
         for input_nums in self.uniq:
             args = []
-            all_const = True
             for (arg, u) in zip(self.args, input_nums):
-                ev = input_soup[id(arg)]
-                arg = ev.outputs[u]
+                arg = input_soup[id(arg)][u]
                 args.append(arg)
-                all_const = all_const and arg.is_const
-            calc = self.makeCalcFunction()
-            cell = EvaluatedCell(self.name, calc, args,
-                    recycling=self.recycling, default=self.default)
+            cell = self.makeCell(*args)
             cells.append(cell)
-        return [Evaluator(self, cells, cells)]
+        return (cells, cells)
     
 
 class _FuncDefn(CalculationDefn):
-    def __init__(self, calc, name, *args):
+    def __init__(self, calc, *args, **kw):
         self.calc = calc
-        CalculationDefn.__init__(self, *args, **{'name':name})
+        CalculationDefn.__init__(self, *args, **kw)
     
 
 # Use this rather than having to subclass CalculationDefinition
@@ -288,18 +273,15 @@ class CalcDefn(object):
     def __init__(self, calc, name=None, **kw):
         self.calc = calc
         
-        if name is not None:
+        if name is None:
+            name = self.calc.__name__
+        else:
             assert isinstance(name, basestring), name
-            self.name = name
-        
-        if not getattr(self, 'name', None):
-            if hasattr(self.calc, '__name__'):
-                self.name = self.calc.__name__
-        
+        kw['name'] = name        
         self.kw = kw
     
     def __call__(self, *args):
-        return _FuncDefn(self.calc, self.name, *args)
+        return _FuncDefn(self.calc, *args, **self.kw)
 
 class WeightedPartitionDefn(CalculationDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
@@ -372,14 +354,13 @@ class _InputDefn(_LeafDefn):
         return ParameterController(self)
     
     def updateFromCalculator(self, calc):
-        ev = calc.evs_by_name[self.name]
-        for (cell, setting) in zip(ev.outputs, self.uniq):
-            setting.value = calc._getCurrentCellValue(cell)
+        outputs = calc.getCurrentCellValuesForDefn(self)
+        for (output, setting) in zip(outputs, self.uniq):
+            setting.value = output
     
     def getNumFreeParams(self):
-        return sum(len([c for c in ev.cells if isinstance(c, OptPar)])
-                for ev in self.makeEvaluators({}, None))
-    
+        (cells, outputs) = self.makeCells({}, None)
+        return len([c for c in cells if isinstance(c, OptPar)])    
 
 class ParamDefn(_InputDefn):
     """Defn for an optimisable, scalar input to the calculation"""
@@ -400,39 +381,18 @@ class ParamDefn(_InputDefn):
     def checkSettingIsValid(self, setting):
         pass
     
-    def makeEvaluators(self, input_soup={}, variable=None):
+    def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
-        partitions = {}
         for (i, v) in enumerate(self.uniq):
             scope = [key for key in self.assignments
                     if self.assignments[key] is v]
             if v.is_const or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
-            elif isinstance(v, Part):
-                key = id(v.whole)
-                if key not in partitions:
-                    partitions[key] = (v.whole, [])
-                partitions[key][-1].append((i, v.value))
-                cell = None # placeholder, see below
             else:
                 cell = self.opt_par_class(self.name, scope, v.getBounds())
             uniq_cells.append(cell)
         
-        # A partition is used when two adjacent edges have a constant
-        # total length
-        private_evs = []
-        for (whole, parts) in partitions.values():
-            # Hack. 1-scope. No PC involved
-            values = numpy.array([v for (i,v) in parts])
-            sub_evs = whole.makePrivateEvaluators(default=values)
-            private_evs.extend(sub_evs)
-            partition = theOneItemIn(sub_evs[-1].outputs)
-            
-            for (p, (i,v)) in enumerate(parts):
-                assert uniq_cells[i] is None, uniq_cells[i]
-                uniq_cells[i] = EvaluatedCell(
-                        self.name, (lambda x,p=p:x[p]), (partition,))
-        return private_evs + [Evaluator(self, uniq_cells, uniq_cells)]
+        return (uniq_cells, uniq_cells)
     
 
 # Example / basic ParamDefn subclasses
@@ -468,7 +428,7 @@ class NonScalarDefn(_InputDefn):
         if not isinstance(setting, ConstVal):
             raise ValueError("%s can only be constant" % self.name)
     
-    def makeEvaluators(self, input_soup={}, variable=None):
+    def makeCells(self, input_soup={}, variable=None):
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
                 scope = [key for key in self.assignments
@@ -478,7 +438,7 @@ class NonScalarDefn(_InputDefn):
                 msg = 'Unoptimisable input "%s" not given'
             raise ValueError(msg % self.name)
         uniq_cells = [ConstCell(self.name, v.value) for v in self.uniq]
-        return [Evaluator(self, uniq_cells, uniq_cells)]
+        return (uniq_cells, uniq_cells)
     
     def getNumFreeParams(self):
         return 0
@@ -524,6 +484,7 @@ class PartitionDefn(_InputDefn):
             size = len(default)
         elif dimension is not None:
             size = len(dimension[1])
+        self.size = size
         if dimension is not None:
             self.internal_dimension = dimension
             (dim_name, dim_cats) = dimension
@@ -531,22 +492,36 @@ class PartitionDefn(_InputDefn):
             self.array_template = DictArrayTemplate(dim_cats)
             self.internal_dimensions = (dim_name,)
         if default is None:
-            default = numpy.array([1.0/size] * size)
+            default = self._makeDefaultValue()
+        elif self.array_template is not None:
+            default = self.array_template.unwrap(default)
+        else:
+            default = numpy.asarray(default)
         _InputDefn.__init__(self, name=name, default=default,
             dimensions=dimensions, **kw)
-        self.size = size
+        self.checkValueIsValid(default, True)
+    
+    def _makeDefaultValue(self):
+        return numpy.array([1.0/self.size] * self.size)
+        
+    def makeDefaultSetting(self):
+        #return ConstVal(self.default)
+        return Var((None, self.default.copy(), None))
     
     def checkSettingIsValid(self, setting):
-        default = setting.getDefaultValue()
-        if default.shape != (self.size,):
-            raise ValueError("Wrong array shape %s for %s, expected %s" %
-                default.shape, self.name, (self.size,))
-        for part in default:
+        value = setting.getDefaultValue()
+        return self.checkValueIsValid(value, setting.is_const)
+
+    def checkValueIsValid(self, value, is_const):
+        if value.shape != (self.size,):
+            raise ValueError("Wrong array shape %s for %s, expected (%s,)" % 
+                    (value.shape, self.name, self.size))
+        for part in value:
             if part < 0:
                 raise ValueError("Negative probability in %s" % self.name)                
             if part > 1:
                 raise ValueError("Probability > 1 in %s" % self.name)                
-            if not setting.is_const:
+            if not is_const:
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
                     raise ValueError("Zeros allowed in %s only when constant" % 
@@ -554,30 +529,25 @@ class PartitionDefn(_InputDefn):
                 if part == 1:
                     raise ValueError("Ones allowed in %s only when constant" % 
                         self.name)
-        if abs(sum(default) - 1.0) > .00001:
+        if abs(sum(value) - 1.0) > .00001:
             raise ValueError("Elements of %s must sum to 1.0, not %s" %
-                self.name, sum(default))
-    
-    def makeDefaultSetting(self):
-        #return ConstVal(self.default)
-        return Var((None, self.default.copy(), None))
+                (self.name, sum(value)))
     
     def _makePartitionCell(self, name, scope, value):
-        # This is in its own function so as to provide a closure containing
-        # the correct value of 'total'
-        # for calc's involving pars that need to sum to amount,
-        # like a root branch
+        # This was originally put in its own function so as to provide a 
+        # closure containing the value of sum(value), which is no longer 
+        # required since it is now always 1.0.
         N = len(value)
-        total = sum(value)
+        assert abs(sum(value) - 1.0) < .00001
         ratios = _unpack_proportions(value)
         ratios = [LogOptPar(name+'_ratio', scope, (1e-6,r,1e+6))
                 for r in ratios]
         def r2p(*ratios):
-            return numpy.asarray(_proportions(total, ratios))
+            return numpy.asarray(_proportions(1.0, ratios))
         partition = EvaluatedCell(name, r2p, tuple(ratios))
         return (ratios, partition)
     
-    def makeEvaluators(self, input_soup={}, variable=None):
+    def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
         all_cells = []
         for (i, v) in enumerate(self.uniq):
@@ -598,9 +568,8 @@ class PartitionDefn(_InputDefn):
                 all_cells.extend(ratios)
             all_cells.append(partition)
             uniq_cells.append(partition)
-        return [Evaluator(self, all_cells, uniq_cells)]
+        return (all_cells, uniq_cells)
     
-
 def NonParamDefn(name, dimensions=None, **kw):
     # Just to get 2nd arg as dimensions
     return NonScalarDefn(name=name, dimensions=dimensions, **kw)
@@ -656,16 +625,14 @@ class SelectForDimension(_Defn):
     def _select(self, arg, p):
         return arg[p]
     
-    def makeEvaluators(self, input_soup, variable=None):
+    def makeCells(self, input_soup, variable=None):
         cells = []
-        outputs = []
-        distribs = input_soup[id(self.arg)].outputs
+        distribs = input_soup[id(self.arg)]
         for (input_num, bin_num) in self.uniq:
             cell = EvaluatedCell(
                 self.name, (lambda x,p=bin_num:x[p]), (distribs[input_num],))
             cells.append(cell)
-            outputs.append(cell)
-        return [Evaluator(self, cells, outputs)]
+        return (cells, cells)
     
 
 # Some simple CalcDefns
@@ -675,6 +642,24 @@ class SelectForDimension(_Defn):
 #CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
 #ParallelSumDefn = CalcDefn(lambda comm,local:comm.sum(local), 'parallel_sum')
 
+class SwitchDefn(CalculationDefn):
+    name = 'switch'
+    def calc(self, condition, *args):
+        return args[condition]
+
+    def getShortcutCell(self, condition, *args):
+        if condition.is_const:
+            return self.calc(self, condition.value, *args)
+
+class VectorMatrixInnerDefn(CalculationDefn):
+    name = 'evolve'
+    def calc(self, pi, psub):
+        return numpy.inner(pi, psub)
+        
+    def getShortcutCell(self, pi, psub):
+        if psub.is_stationary:
+            return pi
+    
 class SumDefn(CalculationDefn):
     name = 'sum'
     def calc(self, *args):
