@@ -451,7 +451,7 @@ class CommandLineApplication(Application):
 
 
     def getTmpFilename(self, tmp_dir="/tmp",prefix='tmp',suffix='.txt',\
-        include_class_id=False):
+        include_class_id=False,result_constructor=FilePath):
         """ Return a temp filename
 
             tmp_dir: path for temp file
@@ -464,6 +464,11 @@ class CommandLineApplication(Application):
              testing: if temp files are being left behind by tests, you can
              turn this on in here (temporarily) to find out which tests are
              leaving the temp files.
+            result_constructor: the constructor used to build the result
+             (default: cogent.app.parameters.FilePath). Note that joining 
+             FilePath objects with one another or with strings, you must use
+             the + operator. If this causes trouble, you can pass str as the 
+             the result_constructor.
         """
 
         # check not none
@@ -489,10 +494,10 @@ class CommandLineApplication(Application):
             # Directory already exists
             pass
         # note: it is OK to join FilePath objects with + 
-        return FilePath(tmp_dir) + FilePath(prefix) + \
-            FilePath(''.join([choice(_all_chars) \
+        return result_constructor(tmp_dir) + result_constructor(prefix) + \
+            result_constructor(''.join([choice(_all_chars) \
              for i in range(self.TmpNameLen)])) +\
-            FilePath(suffix)
+            result_constructor(suffix)
 
 class ParameterIterBase:
     """Base class for parameter iteration objects
@@ -677,9 +682,22 @@ def cmdline_generator(param_iter, PathToBin=None, PathToCmd=None, \
         
             yield ' '.join(cmdline)
        
-def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
-    """
-    Generate temp filename
+def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt",\
+    result_constructor=FilePath):
+    """ Generate a temporary filename and return as a FilePath object
+    
+        tmp_dir: the directory to house the tmp_filename (default: '/tmp')
+        prefix: string to append to beginning of filename (default: 'tmp')
+            Note: It is very useful to have prefix be descriptive of the
+            process which is creating the temporary file. For example, if 
+            your temp file will be used to build a temporary blast database, 
+            you might pass prefix=TempBlastDB
+        suffix: the suffix to be appended to the temp filename (default '.txt')
+        result_constructor: the constructor used to build the result filename
+            (default: cogent.app.parameters.FilePath). Note that joining 
+            FilePath objects with one another or with strings, you must use
+            the + operator. If this causes trouble, you can pass str as the 
+            the result_constructor.
     """
     # check not none
     if not tmp_dir:
@@ -690,8 +708,8 @@ def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt"):
 
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
-    return FilePath(tmp_dir) + FilePath(prefix) +\
-        FilePath("%s%s" % \
+    return result_constructor(tmp_dir) + result_constructor(prefix) +\
+        result_constructor("%s%s" % \
         (''.join([choice(picks) for i in range(20)]),suffix))
 
 def guess_input_handler(seqs, add_seq_names=False):

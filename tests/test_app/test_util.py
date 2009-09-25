@@ -3,7 +3,8 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
     CommandLineAppResult, ResultPath, ApplicationError, ParameterIterBase,\
-    ParameterCombinations, cmdline_generator, ApplicationNotFoundError
+    ParameterCombinations, cmdline_generator, ApplicationNotFoundError,\
+    get_tmp_filename
 from cogent.app.parameters import *
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
@@ -944,8 +945,8 @@ class CommandLineApplicationTests(TestCase):
             + len('tmp') + len('.txt'))
         assert obs.startswith(app.TmpDir)
 
-    def test_getTmpFilename_prefix_suffix(self):
-        """TmpFilename should return filename with correct prefix and suffix"""
+    def test_getTmpFilename_prefix_suffix_result_constructor(self):
+        """TmpFilename: result has correct prefix, suffix, type"""
         app = CLAppTester()
         obs = app.getTmpFilename(prefix='blah',include_class_id=False)
         self.assertTrue(obs.startswith('/tmp/blah'))
@@ -959,6 +960,71 @@ class CommandLineApplicationTests(TestCase):
         obs = app.getTmpFilename(include_class_id=True)
         self.assertTrue(obs.startswith('/tmp/tmpCLAppTester'))
         self.assertTrue(obs.endswith('.txt'))
+        
+        # result as FilePath
+        obs = app.getTmpFilename(result_constructor=FilePath)
+        self.assertEqual(type(obs),FilePath)
+    
+        # result as str (must check that result is a str and is not a FilePath
+        # since a FilePath is a str)
+        obs = app.getTmpFilename(result_constructor=str)
+        self.assertEqual(type(obs),str)
+        self.assertNotEqual(type(obs),FilePath)
+
+class ConvenienceFunctionTests(TestCase):
+    """
+    """
+    def setUp(self):
+        """
+        """
+        self.tmp_dir = '/tmp'
+        self.tmp_name_len = 20
+    
+    def test_get_tmp_filename(self):
+        """get_tmp_filename should return filename of correct length
+        
+            Adapted from the CommandLineApplication tests of the member function
+        
+        """
+        obs = get_tmp_filename()
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(self.tmp_dir) + len('/') + self.tmp_name_len \
+            + len('tmp') + len('.txt'))
+        self.assertTrue(obs.startswith('/tmp'))
+
+        # different results on different calls
+        self.assertNotEqual(get_tmp_filename(),get_tmp_filename())
+        
+        obs = get_tmp_filename()
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(self.tmp_dir) + len('/') + self.tmp_name_len \
+            + len('tmp') + len('.txt'))
+        assert obs.startswith(self.tmp_dir)
+
+    def test_get_tmp_filename_prefix_suffix_constructor(self):
+        """get_tmp_filename: result has correct prefix, suffix, type
+        
+            Adapted from the CommandLineApplication tests of the member function
+        """
+        obs = get_tmp_filename(prefix='blah')
+        self.assertTrue(obs.startswith('/tmp/blah'))
+        obs = get_tmp_filename(suffix='.blah')
+        self.assertTrue(obs.endswith('.blah'))
+        
+        # result as FilePath
+        obs = get_tmp_filename(result_constructor=FilePath)
+        self.assertEqual(type(obs),FilePath)
+    
+        # result as str (must check that result is a str and is not a FilePath
+        # since a FilePath is a str)
+        obs = get_tmp_filename(result_constructor=str)
+        self.assertEqual(type(obs),str)
+        self.assertNotEqual(type(obs),FilePath)
+        
+        
+        
 
 class RemoveTests(TestCase):
     def test_remove(self):
