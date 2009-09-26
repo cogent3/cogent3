@@ -522,8 +522,7 @@ class Empirical(_ContinuousSubstitutionModel):
 class SubstitutionModel(_ContinuousSubstitutionModel):
     """Basic services for markov models of molecular substitution"""
     
-    def __init__(self, alphabet, predicates=None, scales=None,
-            rate_matrix=None, with_rate=False, 
+    def __init__(self, alphabet, predicates=None, scales=None, with_rate=False, 
             ordered_param=None, distribution=None, partitioned_params=None,
             **kw):
         
@@ -559,7 +558,6 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         #   parameter names
         # - distribution: choices of 'free' or 'gamma' or an instance of some
         #   distribution. Could probably just deprecate free
-        # - rate_matrix: for empirical matrices
         # - partitioned_params: params to be partitioned across bins
         
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
