@@ -125,9 +125,18 @@ class _LikelihoodParameterController(_LF):
                 self.setParamRule('length', edge=edge.Name, init=edge.Length)
     
     def setMotifProbsFromData(self, align, locus=None, is_const=None, 
-                include_ambiguity=False, is_independent=None, auto=False):
+                include_ambiguity=False, is_independent=None, auto=False,
+                pseudocount=None):
         counts = self.model.countMotifs(align, 
                 include_ambiguity=include_ambiguity)
+        if is_const is None:
+            is_const = not self.optimise_motif_probs
+        if pseudocount is None:
+            if is_const:
+                pseudocount = 0.0
+            else:
+                pseudocount = 0.5
+        counts += pseudocount
         mprobs = counts/(1.0*sum(counts))
         self.setMotifProbs(mprobs, locus=locus, is_const=is_const, 
                 is_independent=is_independent, auto=auto)
@@ -291,7 +300,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             defns['bprobs'], self.bin_names, self.locus_names,
             sites_independent)
     
-    def setAlignment(self, aligns):
+    def setAlignment(self, aligns, motif_pseudocount=None):
         """set the alignment to be used for computing the likelihood."""
         if type(aligns) is not list:
             aligns = [aligns]
@@ -312,7 +321,8 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                     'alignment', {'locus':[locus_name]},
                     value=align, const=True)
             if self.mprobs_from_alignment:
-                self.setMotifProbsFromData(align, locus=locus_name, auto=True)
+                self.setMotifProbsFromData(align, locus=locus_name, auto=True,
+                        pseudocount=motif_pseudocount)
     
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):

@@ -1069,7 +1069,7 @@ class SequenceCollection(object):
         return self.Names[:]
     
     def getMotifProbs(self, alphabet=None, include_ambiguity=False,
-            exclude_unobserved=False, allow_gap=False):
+            exclude_unobserved=False, allow_gap=False, pseudocount=0):
         """Return a dictionary of motif probs.
         
         Arguments:
@@ -1105,7 +1105,7 @@ class SequenceCollection(object):
         probs = {}
         if not exclude_unobserved:
             for motif in alphabet:
-                probs[motif] = 0
+                probs[motif] = pseudocount
         
         for (motif, count) in counts.items():
             motif_set = alphabet.resolveAmbiguity(motif)
@@ -1115,7 +1115,7 @@ class SequenceCollection(object):
                 else:
                     continue
             for motif in motif_set:
-                probs[motif] = probs.get(motif, 0) + count
+                probs[motif] = probs.get(motif, pseudocount) + count
         
         total = float(sum(probs.values()))
         for motif in probs:
