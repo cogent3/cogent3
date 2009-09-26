@@ -76,14 +76,16 @@ class test_parameter_controller(unittest.TestCase):
         lf.setMotifProbs(mprobs)
         self.assertEqual(lf.getMotifProbs(), mprobs)
         
-        lf.setMotifProbsFromData(self.al[:1])
-        self.assertEqual(
-                lf.getMotifProbs()['G'], 0.6)
+        lf.setMotifProbsFromData(self.al[:1], is_const=True)
+        self.assertEqual(lf.getMotifProbs()['G'], 0.6)
+        
+        lf.setMotifProbsFromData(self.al[:1], pseudocount=1)
+        self.assertNotEqual(lf.getMotifProbs()['G'], 0.6)
         
         # test with consideration of ambiguous states
         al = LoadSeqs(data = {'seq1': 'ACGTAAGNA', 'seq2': 'ACGTANGTC',
                                'seq3': 'ACGTACGTG'})
-        lf.setMotifProbsFromData(al, include_ambiguity=True)
+        lf.setMotifProbsFromData(al, include_ambiguity=True, is_const=True)
         motif_probs = dict(lf.getMotifProbs())
         correct_probs = {'A': 8.5/27, 'C': 5.5/27, '-': 0.0, 'T': 5.5/27,
                          'G': 7.5/27}

@@ -192,60 +192,66 @@ class LikelihoodCalcs(TestCase):
     def test_codon(self):
         """test a three taxa codon model."""
         submod = substitution_model.Codon(
+            equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
             predicates={'kappa': 'transition', 'omega': 'replacement'})
         
         self.par_values.update({'omega':0.5})
-        likelihood_function = self._makeLikelihoodFunction(submod, self.alignment)
+        likelihood_function = self._makeLikelihoodFunction(
+                submod, self.alignment)
                     
         for par, val in self.par_values.items():
             likelihood_function.setpar(par, val)
             
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
-        self.assertEqual("%.6f" % -57.8379659216, "%.6f" % evolve_lnL)
+        self.assertFloatEqual(evolve_lnL, -80.67069614541883)
     
     def test_nucleotide(self):
         """test a nucleotide model."""
         submod = Nucleotide(
+            equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
             predicates={'kappa': 'transition'})
         # now do using the evolve
-        likelihood_function = self._makeLikelihoodFunction(submod, self.alignment)
+        likelihood_function = self._makeLikelihoodFunction(
+                submod, self.alignment)
         for par, val in self.par_values.items():
             likelihood_function.setpar(par, val)
             
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
-        self.assertEqual("%.6f" % -155.775725365, "%.6f" % evolve_lnL)
+        self.assertFloatEqual(evolve_lnL, -157.49363874840455)
     
     def test_dinucleotide(self):
         """test a dinucleotide model."""
         submod = substitution_model.Dinucleotide(
+                equal_motif_probs=True,
                 do_scaling=False,
                 motif_probs = None,
                 predicates = {'kappa': 'transition'})
-        likelihood_function = self._makeLikelihoodFunction(submod, self.alignment)
+        likelihood_function = self._makeLikelihoodFunction(
+                submod, self.alignment)
         for par, val in self.par_values.items():
             likelihood_function.setpar(par, val)
             
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
-        self.assertEqual("%.6f" % -85.2399172216, "%.6f" % evolve_lnL)
+        self.assertFloatEqual(evolve_lnL, -102.48145536663735)
     
     def test_protein(self):
         """test a protein model."""
         submod = substitution_model.Protein(
-            do_scaling=False, motif_probs=None)
+            do_scaling=False, equal_motif_probs=True)
         alignment = self.alignment.getTranslation()
         
         likelihood_function = self._makeLikelihoodFunction(submod, alignment)
         
         likelihood_function.setpar("length", self.length)
         evolve_lnL = likelihood_function.testfunction()
-        self.assertEqual("%.6f" % -76.301896714, "%.6f" % evolve_lnL)
+        self.assertFloatEqual(evolve_lnL, -89.830370754876185)
     
 
 class LikelihoodFunctionTests(TestCase):
