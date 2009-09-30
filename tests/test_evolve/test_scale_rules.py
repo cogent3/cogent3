@@ -118,7 +118,8 @@ class ScaleRuleTests(unittest.TestCase):
             'CCG': 0.00021146119687037428, 'AGT': 0.03742863184605625,
             'CAG': 0.024106576443222668, 'CCA': 0.021357580883907802,
             'CCC': 0.0069782194967223515},
-            scales = {'dN': replacement, 'dS': ~replacement}
+            scales = {'dN': replacement, 'dS': ~replacement},
+            mprob_model = 'tuple',
             )
         length = 0.1115
 

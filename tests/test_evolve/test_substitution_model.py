@@ -58,12 +58,13 @@ class NucleotideModelTestMethods(TestCase):
 class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
-                model_gaps=True)
+                model_gaps=True, mprob_model='tuple')
         
     def test_asciiArt(self):
-        model = substitution_model.Dinucleotide(predicates=['k:transition'])
+        model = substitution_model.Dinucleotide(mprob_model='tuple', 
+            predicates=['k:transition'])    
         model.asciiArt()
-        model = substitution_model.Dinucleotide()
+        model = substitution_model.Dinucleotide(mprob_model='tuple')
         model.asciiArt()
         
     def test_isIndel(self):
@@ -108,7 +109,8 @@ class TupleModelMotifProbFuncs(TestCase):
 
 class ThreeLetterMotifSubstModelTests(TestCase):
     def setUp(self):
-        self.submodel = substitution_model.Nucleotide(motif_length=3)
+        self.submodel = substitution_model.Nucleotide(motif_length=3,
+            mprob_model='tuple')
         
     def test_isIndel(self):
         """testing indel comparison for trinucleotide model"""
@@ -125,8 +127,10 @@ class ThreeLetterMotifSubstModelTests(TestCase):
 
 class CodonSubstModelTests(TestCase):
     def setUp(self):
-        self.standardcode = substitution_model.Codon(model_gaps=True, gc=1)
-        self.mitocode = substitution_model.Codon(model_gaps=False, gc=2)
+        self.standardcode = substitution_model.Codon(model_gaps=True, gc=1,
+            mprob_model='tuple')
+        self.mitocode = substitution_model.Codon(model_gaps=False, gc=2,
+            mprob_model='tuple')
         
     def test_isTransition(self):
         """testing codon isTransition"""
