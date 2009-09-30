@@ -170,6 +170,7 @@ def Y98():
                 'kappa' : 'transition',
                 'omega' : 'replacement',
                 },
+            mprob_model = 'tuple',
             )
     
 
@@ -185,6 +186,7 @@ def H04G():
             recode_gaps = True,
             name = 'H04G',
             predicates = [_cg, _kappa, _omega],
+            mprob_model = 'tuple',
             )
     
 
@@ -200,6 +202,7 @@ def H04GK():
             recode_gaps = True,
             name = 'H04GK',
             predicates = [_cg_k, _kappa, _omega],
+            mprob_model = 'tuple',
             )
     
 
@@ -215,6 +218,7 @@ def H04GGK():
             recode_gaps = True,
             name = 'H04GGK',
             predicates = [_cg, _cg_k, _kappa, _omega],
+            mprob_model = 'tuple',
             )
     
 

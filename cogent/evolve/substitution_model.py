@@ -151,9 +151,15 @@ class _SubstitutionModel(object):
         
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:
-            mprob_model = 'word'
-        if model_gaps and mprob_model != 'word':
-            raise ValueError("Gapped new-Q context models not yet possible")
+            mprob_model = 'tuple' # 'conditional' in future
+            if self._word_length > 1:
+                warnings.warn('Default mprob_model will change to "conditional"'
+                    ' in version 1.5, so specify mprob_model="tuple"',
+                    stacklevel=4)
+        elif mprob_model == 'word':
+            mprob_model = 'tuple'
+        elif model_gaps and mprob_model != 'tuple':
+            raise ValueError("mprob_model must be 'tuple' to model gaps")
         
         isinst = self._isInstantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)

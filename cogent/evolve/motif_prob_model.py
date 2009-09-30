@@ -10,7 +10,7 @@ def makeModel(mprob_model, tuple_alphabet, mask):
         return MonomerProbModel(tuple_alphabet, mask)
     elif mprob_model == "conditional":
         return ConditionalMotifProbModel(tuple_alphabet, mask)
-    elif mprob_model == "word" or mprob_model == None:
+    elif mprob_model in ["word", "tuple", None]:
         return SimpleMotifProbModel(tuple_alphabet)
     else:
         raise ValueError("Unknown mprob model '%s'" % str(mprob_model))

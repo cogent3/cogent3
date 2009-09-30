@@ -144,7 +144,7 @@ class LikelihoodCalcs(TestCase):
         """just rate is gamma distributed"""
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='rate', distribution='gamma')
+            ordered_param='rate', distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, self.alignment, bins=3)
         try:
             values = lf.getParamValueDict(['bin'])['omega_factor'].values()
@@ -161,7 +161,8 @@ class LikelihoodCalcs(TestCase):
         """rate is gamma distributed omega follows"""
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='rate', partitioned_params='omega', distribution='gamma')
+            ordered_param='rate', partitioned_params='omega', 
+            distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, self.alignment,bins=3) 
         values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
@@ -171,7 +172,8 @@ class LikelihoodCalcs(TestCase):
     def test_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='rate', partitioned_params='omega', distribution='free')
+            ordered_param='rate', partitioned_params='omega', 
+            distribution='free', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, self.alignment, bins=3)
         values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
@@ -180,7 +182,8 @@ class LikelihoodCalcs(TestCase):
     def test_complex_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='kappa', partitioned_params=['omega'])
+            ordered_param='kappa', partitioned_params=['omega'], 
+            mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, self.alignment,
                     bins=['slow', 'fast'])
         lf.setParamRule('kappa', value=1.0, is_const=True)
@@ -195,7 +198,8 @@ class LikelihoodCalcs(TestCase):
             equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
-            predicates={'kappa': 'transition', 'omega': 'replacement'})
+            predicates={'kappa': 'transition', 'omega': 'replacement'},
+            mprob_model='tuple')
         
         self.par_values.update({'omega':0.5})
         likelihood_function = self._makeLikelihoodFunction(
@@ -231,7 +235,8 @@ class LikelihoodCalcs(TestCase):
                 equal_motif_probs=True,
                 do_scaling=False,
                 motif_probs = None,
-                predicates = {'kappa': 'transition'})
+                predicates = {'kappa': 'transition'},
+                mprob_model='tuple')
         likelihood_function = self._makeLikelihoodFunction(
                 submod, self.alignment)
         for par, val in self.par_values.items():
@@ -375,7 +380,7 @@ motif    mprobs
         "Simulate alignment with dinucleotide model"
         al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
         t = LoadTree(treestring="(a,c);")
-        sm = substitution_model.Dinucleotide()
+        sm = substitution_model.Dinucleotide(mprob_model='tuple')
         pc = sm.makeParamController(t)
         lf = pc.makeCalculator(al)
         simalign = lf.simulateAlignment()
@@ -408,7 +413,7 @@ motif    mprobs
         def use_root_seq(root_sequence):
             al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
             t = LoadTree(treestring="(a,c);")
-            sm = substitution_model.Dinucleotide()
+            sm = substitution_model.Dinucleotide(mprob_model='tuple')
             pc = sm.makeParamController(t)
             lf = pc.makeCalculator(al)
             simalign = lf.simulateAlignment(exclude_internal=False,

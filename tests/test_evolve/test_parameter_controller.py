@@ -139,7 +139,8 @@ class test_parameter_controller(unittest.TestCase):
         al = LoadSeqs(data={'a':'agct','b':'ggct'})
         tree = LoadTree(treestring='(a,b);')
         model = cogent.evolve.substitution_model.Dinucleotide(
-                do_scaling=True, equal_motif_probs=True, model_gaps=True)
+                do_scaling=True, equal_motif_probs=True, model_gaps=True,
+                mprob_model='tuple')
         lf = model.makeLikelihoodFunction(tree)
         lf.setLocalClock('a','b')
         lf.setAlignment(al)

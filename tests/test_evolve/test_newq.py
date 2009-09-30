@@ -55,16 +55,16 @@ class NewQ(TestCase):
     # from any of the simpler models applied to the same data.  
     ordered_by_complexity = [
             # P(AA) == P(GG) == P(AG)
-            [symm_root_probs, dict()],
+            [symm_root_probs, 'tuple'],
             
             # P(GA) == P(AG) but P(AA) != P(GG)
-            [asymm_root_probs, dict(mprob_model='monomer')],
+            [asymm_root_probs, 'monomer'],
             
             # P(AG) == P(A?)*P(?G) but P(A?) != P(?A)
-            [posn_root_probs, dict(mprob_model='monomers')],
+            [posn_root_probs, 'monomers'],
             
             # P(AG) != P(A?)*P(?G)
-            [cond_root_probs, dict(mprob_model='conditional')],
+            [cond_root_probs, 'conditional'],
             ]
     
     def test_newQ_is_nuc_process(self):
@@ -86,16 +86,17 @@ class NewQ(TestCase):
     
     def test_lf_display(self):
         """str of likelihood functions should not fail"""
-        for (dummy, options) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, **options)
+        for (dummy, model) in self.ordered_by_complexity:
+            di = Nucleotide(motif_length=2, mprob_model=model)
             di.adaptMotifProbs(self.cond_root_probs, auto=True)
             lf = di.makeLikelihoodFunction(self.tree)
             s = str(lf)
     
     def test_get_statistics(self):
         """get statistics should correctly apply arguments"""
-        for (mprobs, options) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, motif_probs=mprobs, **options)
+        for (mprobs, model) in self.ordered_by_complexity:
+            di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+                    mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
                            (False, False)]:
@@ -103,8 +104,9 @@ class NewQ(TestCase):
     
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
-        for (mprobs, options) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, motif_probs=mprobs, **options)
+        for (mprobs, model) in self.ordered_by_complexity:
+            di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+                    mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
@@ -113,8 +115,8 @@ class NewQ(TestCase):
     def test_reconstruct_ancestor(self):
         """should be able to reconstruct ancestral sequences under all
         models"""
-        for (mprobs, options) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, **options)
+        for (mprobs, model) in self.ordered_by_complexity:
+            di = Nucleotide(motif_length=2, mprob_model=model)
             di.adaptMotifProbs(mprobs, auto=True)
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
@@ -124,8 +126,9 @@ class NewQ(TestCase):
     def test_results_different(self):
         for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
             results = []
-            for (dummy, options) in self.ordered_by_complexity:
-                di = Nucleotide(motif_length=2, motif_probs=mprobs, **options)
+            for (dummy, model) in self.ordered_by_complexity:
+                di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+                        mprob_model=model)
                 lf = di.makeLikelihoodFunction(self.tree)
                 lf.setParamRule('length', is_independent=False, init=0.4)
                 lf.setAlignment(self.aln)
