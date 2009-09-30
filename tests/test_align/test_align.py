@@ -101,7 +101,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             tree = cogent.LoadTree(tip_names=seqs.keys())
             tree = cogent.LoadTree(treestring="(A:.1,B:.1)")
         else:
-            tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1),D:.1)")
+            tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent.align.progressive.TreeAlign(model, seqs,
                 tree=tree, show_progress=False, param_vals=param_vals, **kw)
         return aln
