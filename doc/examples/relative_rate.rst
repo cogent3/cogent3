@@ -28,8 +28,7 @@ Make the controller object and limit the display precision (to decrease the chan
 
 .. doctest::
 
-    >>> lf = sm.makeLikelihoodFunction(t)
-    >>> lf.setTablesFormat(digits=2, space=3)
+    >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=3)
 
 Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``setParamRules`` method.
 

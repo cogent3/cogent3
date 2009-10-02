@@ -333,6 +333,8 @@ class LikelihoodFunction(object):
     def setTablesFormat(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results
         of str(lf) too."""
+        space = [space, 4][type(space)!=int]
+        digits = [digits, 4][type(digits)!=int]
         self._format = dict(space=space, digits=digits)
     
     def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
