@@ -72,7 +72,8 @@ class AlignmentTestCase(unittest.TestCase):
         s1 = DNA.makeSequence('tacgccgta', Name="A")
         s2 = DNA.makeSequence('tacgta', Name="B")
         codon_model = cogent.evolve.substitution_model.Codon(
-            model_gaps=False, equal_motif_probs=True)
+                                 model_gaps=False, equal_motif_probs=True,
+                                 mprob_model='conditional')
         tree = cogent.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.makeLikelihoodFunction(tree, aligned=False)
         lf.setSequences(dict(A=s1, B=s2))
