@@ -29,8 +29,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
 
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="free")
-    >>> lf = model.makeLikelihoodFunction(tree, bins=2)
-    >>> lf.setTablesFormat(digits=2,space=3)
+    >>> lf = model.makeLikelihoodFunction(tree, bins=2, digits=2, space=3)
     >>> lf.setAlignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2, show_progress = False)
 

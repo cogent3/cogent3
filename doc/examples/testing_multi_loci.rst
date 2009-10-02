@@ -29,10 +29,9 @@ To make a likelihood function with multiple alignments we provide the list of lo
 
 .. doctest::
 
-    >>> lf = mod.makeLikelihoodFunction(tree, loci=loci_names)
+    >>> lf = mod.makeLikelihoodFunction(tree,loci=loci_names,digits=2,space=3)
     >>> lf.setParamRule("length", is_independent=False)
     >>> lf.setParamRule('kappa', loci = ALL)
-    >>> lf.setTablesFormat(digits=2,space=3)
     >>> lf.setAlignment(loci)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print lf

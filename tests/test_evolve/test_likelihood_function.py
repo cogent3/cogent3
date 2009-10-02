@@ -275,8 +275,8 @@ class LikelihoodFunctionTests(TestCase):
         self.tree = LoadTree(
                 filename = os.path.join(data_path, 'brca1_5.tree'))
     
-    def _makeLikelihoodFunction(self):
-        lf = self.submodel.makeLikelihoodFunction(self.tree)
+    def _makeLikelihoodFunction(self, **kw):
+        lf = self.submodel.makeLikelihoodFunction(self.tree, **kw)
         lf.setParamRule('beta', is_independent=True)
         lf.setAlignment(self.data)
         return lf
@@ -327,6 +327,29 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
+    
+        likelihood_function = self._makeLikelihoodFunction(digits=2,space=2)
+        self.assertEqual(str(likelihood_function), \
+"""Likelihood Function Table\n\
+===============================
+     edge  parent  length  beta
+-------------------------------
+    Human  edge.0    1.00  1.00
+HowlerMon  edge.0    1.00  1.00
+   edge.0  edge.1    1.00  1.00
+    Mouse  edge.1    1.00  1.00
+   edge.1    root    1.00  1.00
+NineBande    root    1.00  1.00
+ DogFaced    root    1.00  1.00
+-------------------------------
+=============
+motif  mprobs
+-------------
+    T    0.25
+    C    0.25
+    A    0.25
+    G    0.25
+-------------""")
     
     def test_calclikelihood(self):
         likelihood_function = self._makeLikelihoodFunction()

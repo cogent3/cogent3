@@ -230,7 +230,8 @@ class _SubstitutionModel(object):
         return self.mprob_model.setParamControllerMotifProbs(pc, mprobs, **kw)
     
     def makeLikelihoodFunction(self, tree, motif_probs_from_align=None,
-            optimise_motif_probs=None, aligned=True, expm=None, **kw):
+            optimise_motif_probs=None, aligned=True, expm=None, digits=None,
+            space=None, **kw):
         
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
@@ -258,6 +259,9 @@ class _SubstitutionModel(object):
             expm = self._default_expm_setting
         if expm is not None:
             result.setExpm(expm)
+        
+        if digits or space:
+            result.setTablesFormat(digits=digits, space=space)
         
         return result
     

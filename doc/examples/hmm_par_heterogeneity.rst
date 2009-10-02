@@ -40,8 +40,7 @@ We specify a null model with no bins, and optimise it.
 
 .. doctest::
 
-    >>> lf_one = model.makeLikelihoodFunction(tree)
-    >>> lf_one.setTablesFormat(digits=2,space=3)
+    >>> lf_one = model.makeLikelihoodFunction(tree, digits=2, space=3)
     >>> lf_one.setAlignment(aln)
     >>> lf_one.optimise(show_progress=False)
     >>> lnL_one = lf_one.getLogLikelihood()
@@ -83,8 +82,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     >>> bin_submod = Nucleotide(predicates=[kappa], ordered_param='rate',
     ...                      distribution='gamma', **treat_gap)
     >>> lf_bins = bin_submod.makeLikelihoodFunction(tree, bins=2,
-    ...                                         sites_independent=True)
-    >>> lf_bins.setTablesFormat(digits=2,space=3)
+    ...                             sites_independent=True, digits=2, space=3)
     >>> lf_bins.setParamRule('bprobs', is_const=True)
     >>> lf_bins.setAlignment(aln)
     >>> lf_bins.optimise(local=True, show_progress=False)
@@ -132,8 +130,7 @@ We then specify a model with switches for changing between site-classes, the HMM
 .. doctest::
 
     >>> lf_patches = bin_submod.makeLikelihoodFunction(tree, bins=2,
-    ...                                         sites_independent=False)
-    >>> lf_patches.setTablesFormat(digits=2,space=3)
+    ...                         sites_independent=False, digits=2, space=3)
     >>> lf_patches.setParamRule('bprobs', is_const=True)
     >>> lf_patches.setAlignment(aln)
     >>> lf_patches.optimise(local=True, show_progress=False)
@@ -229,7 +226,8 @@ We then construct the substitution model in a different way to that when evaluat
     
     >>> kappa_bin_submod = Nucleotide(predicates=[kappa], **treat_gap)
     >>> lf_kappa = kappa_bin_submod.makeLikelihoodFunction(tree,
-    ...      bins = ['slow', 'fast'], sites_independent=False)
+    ...      bins = ['slow', 'fast'], sites_independent=False, digits=1,
+    ...      space=3)
 
 To improve the likelihood fitting it is desirable to set starting values in the model that result in it's initial likelihood being that of the null model (or as close as possible). To do this, we're going to define an arbitrarily small value (``epsilon``) which we use to provide the starting value to the two bins as slightly smaller/greater than ``single_kappa`` for the slow/fast bins respectively. At the same time we set the upper/lower bin boundaries.
 
@@ -246,9 +244,8 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
 .. doctest::
     
     >>> lf_kappa.setParamRule('bprobs',
-    ...                        init=array([1.0-epsilon, 0.0+epsilon]))
+    ...             init=array([1.0-epsilon, 0.0+epsilon]))
     >>> lf_kappa.setAlignment(aln)
-    >>> lf_kappa.setTablesFormat(digits=1, space=3)
     >>> lf_kappa.optimise(local=True, show_progress = False)
     >>> print lf_kappa
     Likelihood Function Table
