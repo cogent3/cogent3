@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import numpy
-from cogent.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent,\
-    bracket, golden
+from cogent.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
 from optimiser import OptimiserBase
 import time
 
@@ -14,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def bound_brent(func, brack=None, tol=1.48e-8, full_output=0, **kw):
+def bound_brent(func, brack=None, **kw):
     """Given a function and an initial point, find another
     point within the bounds, then use the two points to
     bracket a minimum.
@@ -43,7 +42,7 @@ def bound_brent(func, brack=None, tol=1.48e-8, full_output=0, **kw):
         xb = xa + dx
         fb = func(xb)
     assert xb != xa, "Can't find a second in-bounds point on this line"
-    return brent(func, (xa, xb), tol, full_output, **kw)
+    return brent(func, brack=(xa, xb), **kw)
 
 
 class _SciPyOptimiser(OptimiserBase):
@@ -91,8 +90,8 @@ class _SciPyOptimiser(OptimiserBase):
                     maxfun=self.max_evaluations)
             xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param
             if warnflag:
-                print "FORCED EXIT from optimiser after %s evaluations" % \
-                        self.max_evaluations
+                print ("FORCED EXIT from optimiser after %s evaluations" % 
+                        func_calls)
             total_evaluations += func_calls
             
             # same check as in fmin_powell
