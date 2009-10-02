@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # We don't want to depend on the monolithic, fortranish,
 # Num-overlapping, mac-unfriendly SciPy.  But this
-# module is too good to pass up, so I've eliminated
-# its scipy dependencies and lightly customised it for
-# bounded problems.
+# module is too good to pass up. It has been lightly customised for 
+# use in Cogent.  Changes made to fmin_powell and brent: allow custom 
+# line search function (to allow bound_brent to be passed in), cope with 
+# infinity, tol specified as an absolute value, not a proportion of f,
+# and more info passed out via callback.
 
 # ******NOTICE***************
 # optimize.py module by Travis E. Oliphant
@@ -19,6 +21,8 @@ __all__ = ['fmin', 'fmin_powell','fmin_bfgs', 'fmin_ncg', 'fmin_cg',
            'fminbound','brent', 'golden','bracket','rosen','rosen_der',
            'rosen_hess', 'rosen_hess_prod', 'brute', 'approx_fprime',
            'line_search', 'check_grad']
+
+__docformat__ = "restructuredtext en"
 
 import numpy
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
@@ -42,6 +46,12 @@ def min(m,axis=0):
     """
     m = asarray(m)
     return numpy.minimum.reduce(m,axis)
+
+def is_array_scalar(x):
+    """Test whether `x` is either a scalar or an array scalar.
+
+    """
+    return len(atleast_1d(x) == 1)
 
 abs = absolute
 import __builtin__
@@ -1189,13 +1199,12 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
 
     """
     # Test bounds are of correct form
-    x1 = atleast_1d(x1)
-    x2 = atleast_1d(x2)
-    if len(x1) != 1 or len(x2) != 1:
-        raise ValueError, "Optimisation bounds must be scalars" \
-                " or length 1 arrays"
+
+    if not (is_array_scalar(x1) and is_array_scalar(x2)):
+        raise ValueError("Optimisation bounds must be scalars"
+                         " or array scalars.")
     if x1 > x2:
-        raise ValueError, "The lower bound exceeds the upper bound."
+        raise ValueError("The lower bound exceeds the upper bound.")
 
     flag = 0
     header = ' Func-count     x          f(x)          Procedure'
@@ -1310,10 +1319,8 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
 
 class Brent:
     #need to rethink design of __init__
-    def __init__(self, func, args=(), tol=1.48e-8, maxiter=500,
-                 full_output=0):
+    def __init__(self, func, tol=1.48e-8, maxiter=500):
         self.func = func
-        self.args = args
         self.tol = tol
         self.maxiter = maxiter
         self._mintol = 1.0e-11
@@ -1322,41 +1329,47 @@ class Brent:
         self.fval = None
         self.iter = 0
         self.funcalls = 0
+        self.brack = None
+        self._brack_info = None
 
     #need to rethink design of set_bracket (new options, etc)
     def set_bracket(self, brack = None):
         self.brack = brack
+        self._brack_info = self.get_bracket_info()
+        
     def get_bracket_info(self):
         #set up
         func = self.func
-        args = self.args
         brack = self.brack
         ### BEGIN core bracket_info code ###
         ### carefully DOCUMENT any CHANGES in core ##
         if brack is None:
-            xa,xb,xc,fa,fb,fc,funcalls = bracket(func, args=args)
+            xa,xb,xc,fa,fb,fc,funcalls = bracket(func)
         elif len(brack) == 2:
-            xa,xb,xc,fa,fb,fc,funcalls = bracket(func, xa=brack[0], xb=brack[1], args=args)
+            xa,xb,xc,fa,fb,fc,funcalls = bracket(func, xa=brack[0], xb=brack[1])
         elif len(brack) == 3:
             xa,xb,xc = brack
             if (xa > xc):  # swap so xa < xc can be assumed
                 dum = xa; xa=xc; xc=dum
             assert ((xa < xb) and (xb < xc)), "Not a bracketing interval."
-            fa = func(*((xa,)+args))
-            fb = func(*((xb,)+args))
-            fc = func(*((xc,)+args))
+            fa = func(xa)
+            fb = func(xb)
+            fc = func(xc)
             assert ((fb<fa) and (fb < fc)), "Not a bracketing interval."
             funcalls = 3
         else:
             raise ValueError, "Bracketing interval must be length 2 or 3 sequence."
         ### END core bracket_info code ###
 
-        return xa,xb,xc,fa,fb,fc,funcalls
+        self.funcalls += funcalls
+        return xa,xb,xc,fa,fb,fc
 
     def optimize(self):
         #set up for optimization
         func = self.func
-        xa,xb,xc,fa,fb,fc,funcalls = self.get_bracket_info()
+        if self._brack_info is None:
+            self.set_bracket(None)
+        xa,xb,xc,fa,fb,fc = self._brack_info
         _mintol = self._mintol
         _cg = self._cg
         #################################
@@ -1364,7 +1377,7 @@ class Brent:
         #we are making NO CHANGES in this
         #################################
         x=w=v=xb
-        fw=fv=fx=func(*((x,)+self.args))
+        fw=fv=fx=func(x)
         if (xa < xc):
             a = xa; b = xc
         else:
@@ -1379,7 +1392,8 @@ class Brent:
             if abs(x-xmid) < (tol2-0.5*(b-a)):  # check for convergence
                 xmin=x; fval=fx
                 break
-            if (abs(deltax) <= tol1):
+            infinities_present = [f for f in [fw, fv, fx] if numpy.isposinf(f)]
+            if infinities_present or (abs(deltax) <= tol1):
                 if (x>=xmid): deltax=a-x       # do a golden section step
                 else: deltax=b-x
                 rat = _cg*deltax
@@ -1409,7 +1423,7 @@ class Brent:
                 else: u = x - tol1
             else:
                 u = x + rat
-            fu = func(*((u,)+self.args))      # calculate new output value
+            fu = func(u)      # calculate new output value
             funcalls += 1
 
             if (fu > fx):                 # if it's bigger than current
@@ -1449,7 +1463,7 @@ def brent(func, brack=None, tol=1.48e-8, full_output=0, maxiter=500):
 
     :Parameters:
 
-        func : callable f(x,*args)
+        func : callable f(x)
             Objective function.
         brack : tuple
             Triple (a,b,c) where (a<b<c) and func(b) <
@@ -1479,96 +1493,11 @@ def brent(func, brack=None, tol=1.48e-8, full_output=0, maxiter=500):
     of golden section method.
 
     """
-    _mintol = 1.0e-11
-    _cg = 0.3819660
-    if brack is None:
-        xa,xb,xc,fa,fb,fc,funcalls = bracket(func)
-    elif len(brack) == 2:
-        xa,xb,xc,fa,fb,fc,funcalls = bracket(func, xa=brack[0], xb=brack[1])
-    elif len(brack) == 3:
-        xa,xb,xc = brack
-        if (xa > xc):  # swap so xa < xc can be assumed
-            dum = xa; xa=xc; xc=dum
-        assert ((xa < xb) and (xb < xc)), "Not a bracketing interval."
-        fa = func(xa)
-        fb = func(xb)
-        fc = func(xc)
-        assert ((fb<fa) and (fb < fc)), "Not a bracketing interval."
-        funcalls = 3
-    else:
-        raise ValueError, "Bracketing interval must be length 2 or 3 sequence."
-    
-    x=w=v=xb
-    fw=fv=fx=func(x)
-    if (xa < xc):
-        a = xa; b = xc
-    else:
-        a = xc; b = xa
-    deltax= 0.0
-    funcalls = 1
-    iter = 0
-    while (iter < maxiter):
-        tol1 = tol*abs(x) + _mintol
-        tol2 = 2.0*tol1
-        xmid = 0.5*(a+b)
-        if abs(x-xmid) < (tol2-0.5*(b-a)):  # check for convergence
-            xmin=x; fval=fx
-            break
-        infinities_present = [f for f in [fw, fv, fx] if numpy.isposinf(f)]
-        if infinities_present or (abs(deltax) <= tol1):
-            if (x>=xmid): deltax=a-x       # do a golden section step
-            else: deltax=b-x
-            rat = _cg*deltax
-        else:                              # do a parabolic step
-            tmp1 = (x-w)*(fx-fv)
-            tmp2 = (x-v)*(fx-fw)
-            p = (x-v)*tmp2 - (x-w)*tmp1;
-            tmp2 = 2.0*(tmp2-tmp1)
-            if (tmp2 > 0.0): p = -p
-            tmp2 = abs(tmp2)
-            dx_temp = deltax
-            deltax= rat
-            # check parabolic fit
-            if ((p > tmp2*(a-x)) and (p < tmp2*(b-x)) and (abs(p) < abs(0.5*tmp2*dx_temp))):
-                rat = p*1.0/tmp2        # if parabolic step is useful.
-                u = x + rat
-                if ((u-a) < tol2 or (b-u) < tol2):
-                    if xmid-x >= 0: rat = tol1
-                    else: rat = -tol1
-            else:
-                if (x>=xmid): deltax=a-x # if it's not do a golden section step
-                else: deltax=b-x
-                rat = _cg*deltax
-        
-        if (abs(rat) < tol1):            # update by at least tol1
-            if rat >= 0: u = x + tol1
-            else: u = x - tol1
-        else:
-            u = x + rat
-        fu = func(u)                  # calculate new output value
-        funcalls += 1
-        
-        if (fu > fx):                 # if it's bigger than current
-            if (u<x): a=u
-            else: b=u
-            if (fu<=fw) or (w==x):
-                v=w; w=u; fv=fw; fw=fu
-            elif (fu<=fv) or (v==x) or (v==w):
-                v=u; fv=fu
-        else:
-            if (u >= x): a = x
-            else: b = x
-            v=w; w=x; x=u
-            fv=fw; fw=fx; fx=fu
-        
-        iter += 1
-    
-    xmin = x
-    fval = fx
-    if full_output:
-        return xmin, fval, iter, funcalls
-    else:
-        return xmin
+    brent = Brent(func=func, tol=tol, maxiter=maxiter)
+    brent.set_bracket(brack)
+    brent.optimize()
+    return brent.get_result(full_output=full_output)
+
 
 def golden(func, args=(), brack=None, tol=_epsilon, full_output=0):
     """ Given a function of one-variable and a possible bracketing interval,
@@ -1738,6 +1667,7 @@ def _linesearch_powell(linesearch, func, p, xi, tol):
     """Line-search algorithm using fminbound.
 
     Find the minimium of the function ``func(x0+ alpha*direc)``.
+
     """
     def myfunc(alpha):
         return func(p + alpha * xi)
@@ -1790,7 +1720,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
       xtol : float
           Line-search error tolerance.
       ftol : float
-          Relative error in ``func(xopt)`` acceptable for convergence.
+          Absolute error in ``func(xopt)`` acceptable for convergence.
       maxiter : int
           Maximum number of iterations to perform.
       maxfun : int
@@ -1825,6 +1755,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
     if maxfun is None:
         maxfun = N * 1000
 
+
     if direc is None:
         direc = eye(N, dtype=float)
     else:
@@ -1841,7 +1772,8 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
         for i in ilist:
             direc1 = direc[i]
             fx2 = fval
-            fval, x, direc1 = _linesearch_powell(linesearch, func, x, direc1, xtol)
+            fval, x, direc1 = _linesearch_powell(linesearch, 
+                    func, x, direc1, xtol*100)
             if (fx2 - fval) > delta:
                 delta = fx2 - fval
                 bigind = i
@@ -1850,7 +1782,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             callback(fcalls[0], x, fval, delta)
         if retall:
             allvecs.append(x)
-        if (2.0*(fx - fval) < ftol*(abs(fx)+abs(fval))+1e-20): break
+        if abs(fx - fval) < ftol: break
         if fcalls[0] >= maxfun: break
         if iter >= maxiter: break
 
@@ -1868,10 +1800,10 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             t -= delta*temp*temp
             if t < 0.0:
                 fval, x, direc1 = _linesearch_powell(linesearch, 
-                        func, x, direc1, xtol)
+                        func, x, direc1, xtol*100)
                 direc[bigind] = direc[-1]
                 direc[-1] = direc1
-    
+
     warnflag = 0
     if fcalls[0] >= maxfun:
         warnflag = 1
