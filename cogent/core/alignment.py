@@ -147,8 +147,8 @@ def seqs_from_dict(seqs, Alphabet=None):
     which the keys are the names and the values are the sequences
     (sequence only, no whitespace or other formatting) into a
     SequenceCollection. Because the dict doesn't preserve order, the result
-    will be in arbitrary order."""
-    names, seqs = map(list, zip(*seqs.items()))
+    will be in alphabetical order."""
+    names, seqs = map(list, zip(*sorted(seqs.items())))
     return seqs, names
 
 def seqs_from_kv_pairs(seqs, Alphabet=None):
@@ -1782,7 +1782,7 @@ def aln_from_dict(aln, array_type=None, Alphabet=None):
     This is an InputHandler for Alignment. It converts a dict in which the
     keys are the names and the values are the sequences (sequence only, no
     whitespace or other formatting) into an alignment. Because the dict
-    doesn't preserve order, the result will be in arbitrary order."""
+    doesn't preserve order, the result will be in alphabetical order."""
     names, seqs = zip(*sorted(aln.items()))
     result = array(map(Alphabet.toIndices, seqs), array_type)
     return result, list(names)
@@ -2470,4 +2470,3 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             yield [seq[pos] for seq in seqs]
     
     Positions = property(iterPositions)
-
