@@ -1455,7 +1455,16 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(result[2].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
         self.assertEqual(result[3].todict(), {'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
  
-
+    def test_withGapsFrom(self):
+        """withGapsFrom should overwrite with gaps."""
+        gapless   = self.Class({'seq1': 'TCG', 'seq2': 'TCG'})
+        pregapped = self.Class({'seq1': '-CG', 'seq2': 'TCG'})
+        template  = self.Class({'seq1': 'A-?', 'seq2': 'ACG'})
+        r1 = gapless.withGapsFrom(template).todict()
+        r2 = pregapped.withGapsFrom(template).todict()
+        self.assertEqual(r1, {'seq1': 'T-G', 'seq2': 'TCG'}) 
+        self.assertEqual(r2, {'seq1': '--G', 'seq2': 'TCG'}) 
+        
 class DenseAlignmentSpecificTests(TestCase):
     """Tests of the DenseAlignment object and its methods"""
 
