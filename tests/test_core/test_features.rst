@@ -140,10 +140,10 @@ Sequence features can be accessed via a containing ``Alignment``:
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
     >>> print aln
-    >y
-    TTTT--TTTT
     >x
     -AAAAAAAAA
+    >y
+    TTTT--TTTT
     <BLANKLINE>
     >>> exon = aln.getSeq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
@@ -158,10 +158,10 @@ But these will be returned as **alignment** features with locations in alignment
     >>> print aln_exons[0]
     exon "fred" at [4:9]/10
     >>> print aln_exons[0].getSlice()
-    >y
-    --TTT
     >x
     AAAAA
+    >y
+    --TTT
     <BLANKLINE>
     >>> aln_exons[0].attach()
     >>> len(aln.annotations)
@@ -199,19 +199,19 @@ We consider cases where there are terminal gaps.
     >>> print aln_exons
     [exon "fred" at [4:9]/10]
     >>> print aln_exons[0].getSlice()
-    >y
-    --TTT
     >x
     AAAAA
+    >y
+    --TTT
     <BLANKLINE>
     >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--T---'})
     >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print aln_exons[0].getSlice()
-    >y
-    --T--
     >x
     AAAAA
+    >y
+    --T--
     <BLANKLINE>
 
 In this case, only those residues included within the feature are covered - note the omission of the T in ``y`` opposite the gap in ``x``.
@@ -220,10 +220,10 @@ In this case, only those residues included within the feature are covered - note
     
     >>> aln = LoadSeqs(data={'x':'C-CCCAAAAA', 'y':'-T----TTTT'})
     >>> print aln
-    >y
-    -T----TTTT
     >x
     C-CCCAAAAA
+    >y
+    -T----TTTT
     <BLANKLINE>
     >>> exon = aln.getSeq('x').addFeature('exon', 'ex1', [(0,4)])
     >>> print exon
@@ -234,10 +234,10 @@ In this case, only those residues included within the feature are covered - note
     >>> print aln_exons
     [exon "ex1" at [0:1, 2:5]/10]
     >>> print aln_exons[0].getSlice()
-    >y
-    ----
     >x
     CCCC
+    >y
+    ----
     <BLANKLINE>
 
 
@@ -246,10 +246,10 @@ In this case, only those residues included within the feature are covered - note
 .. doctest::
     
     >>> print aln_exons[0].asOneSpan().getSlice()
-    >y
-    -T---
     >x
     C-CCC
+    >y
+    -T---
     <BLANKLINE>
 
 Features can provide their coordinates, useful for custom analyses.
@@ -268,10 +268,10 @@ We create an alignment with a sequence that has two different annotation types.
     
     >>> aln = LoadSeqs(data={'x':'C-CCCAAAAAGGGAA', 'y':'-T----TTTTG-GTT'})
     >>> print aln
-    >y
-    -T----TTTTG-GTT
     >x
     C-CCCAAAAAGGGAA
+    >y
+    -T----TTTTG-GTT
     <BLANKLINE>
     >>> exon = aln.getSeq('x').addFeature('exon', 'norwegian', [(0,4)])
     >>> print exon.getSlice()
@@ -311,40 +311,40 @@ The same methods can be applied to annotated Alignment's.
 .. doctest::
     
     >>> print aln.withMaskedAnnotations('exon', mask_char='?')
-    >y
-    -T----TTTTG-GTT
     >x
     ?-???AAAAAGGGAA
+    >y
+    -T----TTTTG-GTT
     <BLANKLINE>
     >>> print aln.withMaskedAnnotations('exon', mask_char='?', shadow=True)
-    >y
-    -?----?????-???
     >x
     C-CCC??????????
+    >y
+    -?----?????-???
     <BLANKLINE>
     >>> print aln.withMaskedAnnotations('repeat', mask_char='?')
-    >y
-    -T----TTTT?-?TT
     >x
     C-CCCAAAAA???AA
-    <BLANKLINE>
-    >>> print aln.withMaskedAnnotations('repeat', mask_char='?', shadow=True)
-    >y
-    -?----????G-G??
-    >x
-    ?-????????GGG??
-    <BLANKLINE>
-    >>> print aln.withMaskedAnnotations(['repeat', 'exon'], mask_char='?')
     >y
     -T----TTTT?-?TT
-    >x
-    ?-???AAAAA???AA
     <BLANKLINE>
-    >>> print aln.withMaskedAnnotations(['repeat', 'exon'],shadow=True)
+    >>> print aln.withMaskedAnnotations('repeat', mask_char='?', shadow=True)
+    >x
+    ?-????????GGG??
     >y
     -?----????G-G??
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations(['repeat', 'exon'], mask_char='?')
+    >x
+    ?-???AAAAA???AA
+    >y
+    -T----TTTT?-?TT
+    <BLANKLINE>
+    >>> print aln.withMaskedAnnotations(['repeat', 'exon'],shadow=True)
     >x
     C-CCC?????GGG??
+    >y
+    -?----????G-G??
     <BLANKLINE>
 
 It shouldn't matter whether annotated coordinates are entered separately, or as a series.
@@ -383,17 +383,17 @@ These different constructions should generate the same output.
     
     >>> serial = as_series.withMaskedAnnotations(['cpgsite'])
     >>> print serial
-    >mouse
-    CTAAA??T??
     >human
     ??AAA??TTT
+    >mouse
+    CTAAA??T??
     <BLANKLINE>
     >>> itemwise = as_items.withMaskedAnnotations(['cpgsite'])
     >>> print itemwise
-    >mouse
-    CTAAA??T??
     >human
     ??AAA??TTT
+    >mouse
+    CTAAA??T??
     <BLANKLINE>
 
 Annotations should be correctly masked, whether the sequence has been reverse complemented or not. We use the plus/minus strand CDS containing sequences created above.
