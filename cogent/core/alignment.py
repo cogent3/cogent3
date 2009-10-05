@@ -2470,3 +2470,29 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             yield [seq[pos] for seq in seqs]
     
     Positions = property(iterPositions)
+    
+    def withGapsFrom(self, template):
+        """Same alignment but overwritten with the gaps from 'template'"""
+        if len(self) != len(template):
+            raise ValueError("Template alignment must be same length")
+        gap = self.Alphabet.Gap
+        tgp = template.Alphabet.Gap
+        result = {}
+        for name in self.Names:
+            seq = self.getGappedSeq(name)
+            if name not in template.Names:
+                raise ValueError("Template alignment doesn't have a '%s'" 
+                        % name)
+            gsq = template.getGappedSeq(name)
+            assert len(gsq) == len(seq)
+            combo = []
+            for (s,g) in zip(seq, gsq):
+                if g == tgp:
+                    combo.append(gap)
+                else:
+                    combo.append(s)
+            result[name] = combo
+        return Alignment(result, Alphabet=self.Alphabet.withGapMotif())
+         
+        
+
