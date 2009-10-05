@@ -306,7 +306,7 @@ class RdpWrapperTests(TestCase):
         obs = train_rdp_classifier_and_assign_taxonomy(self.reference_file,
             self.taxonomy_file, self.test_trained_input, min_confidence=0.80,
             model_output_dir=self.training_dir)
-        exp = {'X67228': ('Bacteria,Proteobacteria,Alphaproteobacteria,Rhizobiales,Rhizobiaceae,Rhizobium', 1.0)}
+        exp = {'X67228': ('Bacteria;Proteobacteria;Alphaproteobacteria;Rhizobiales;Rhizobiaceae;Rhizobium', 1.0)}
         self.assertEqual(obs, exp)
 
             
@@ -390,12 +390,12 @@ TAAAATGACTAGCCTGCGAGTCACGCCGTAAGGCGTGGCATACAGGCTCAGTAACACGTAGTCAACATGCCCAAAGGACG
 """
 
 rdp_expected_out = {\
- 'AY800210 description field':('Root,Archaea,Euryarchaeota',0.9),\
- 'EU883771': ('Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae,Methanosphaera',0.92),\
- 'EF503699':('Root,Archaea,Crenarchaeota,Thermoprotei',0.82),
+ 'AY800210 description field':('Root;Archaea;Euryarchaeota',0.9),\
+ 'EU883771': ('Root;Archaea;Euryarchaeota;Methanobacteria;Methanobacteriales;Methanobacteriaceae;Methanosphaera',0.92),\
+ 'EF503699':('Root;Archaea;Crenarchaeota;Thermoprotei',0.82),
  'random_seq':('Root',1.0),
- 'DQ260310':('Root,Archaea,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae',0.93),
- 'EF503697':('Root,Archaea,Crenarchaeota,Thermoprotei',0.88)}
+ 'DQ260310':('Root;Archaea;Euryarchaeota;Methanobacteria;Methanobacteriales;Methanobacteriaceae',0.93),
+ 'EF503697':('Root;Archaea;Crenarchaeota;Thermoprotei',0.88)}
 
 if __name__ == '__main__':
     main()
