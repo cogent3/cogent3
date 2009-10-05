@@ -575,10 +575,10 @@ def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=
                 # met the confidence threshold, so bail out of the loop
                 break
 
-        # store the identifier, the comma-separated assignments, and the
+        # store the identifier, the semi-colon-separated assignments, and the
         # confidence for the last assignment
         results[identifier] = \
-             (','.join(confident_assignments),lowest_confidence)
+             (';'.join(confident_assignments),lowest_confidence)
             
     if output_fp:
         try:
@@ -654,7 +654,6 @@ def train_rdp_classifier_and_assign_taxonomy(
 if __name__ == "__main__":
     
     opts,args = parse_command_line_parameters()
-    print  opts.min_confidence
     assign_taxonomy(open(args[0]),min_confidence=opts.min_confidence,\
      output_fp=opts.output_fp)
 
