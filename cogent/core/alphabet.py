@@ -595,7 +595,8 @@ class Alphabet(Enumeration):
         
         Always returns the same object.
         """
-        assert not self.includesGapMotif()
+        if self.includesGapMotif():
+            return self
         if not hasattr(self, 'Gapped'):
             self.Gapped = self._with(list(self) + [self.getGapMotif()])
         return self.Gapped
