@@ -88,6 +88,12 @@ class DistancesTests(unittest.TestCase):
                             'c':'GTACGTACGTTC',
                             'e':'GTACGTACTGGT'}, aligned=False)
     
+    def assertDistsAlmostEqual(self, expected, observed, precision=4):
+        observed = dict([(frozenset(k),v) for (k,v) in observed.items()])
+        expected = dict([(frozenset(k),v) for (k,v) in expected.items()])
+        for key in expected:
+            self.assertAlmostEqual(expected[key], observed[key], precision)
+            
     def test_EstimateDistances(self):
         """testing (well, exercising at least), EstimateDistances"""
         d = EstimateDistances(self.al, JC69())
@@ -97,10 +103,9 @@ class DistancesTests(unittest.TestCase):
                         ('a', 'c'): 0.088337,
                         ('a', 'b'): 0.188486,
                         ('a', 'e'): 0.440840,
-                        ('c', 'b'): 0.0883373}
+                        ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
-        for key in canned_result:
-            self.assertAlmostEqual(canned_result[key],result[key],4)
+        self.assertDistsAlmostEqual(canned_result, result)
         
         # excercise writing to file
         d.writeToFile('junk.txt')
@@ -115,14 +120,13 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
         d.run()
         canned_result = {('a', 'c'): 0.07537,
-                        ('c', 'b'): 0.07537,
+                       ('b', 'c'): 0.07537,
                         ('a', 'e'): 0.39921,
                         ('a', 'b'): 0.15096,
                         ('b', 'e'): 0.39921,
                         ('c', 'e'): 0.37243}
         result = d.getPairwiseDistances()
-        for key in canned_result:
-            self.assertAlmostEqual(canned_result[key],result[key],4)
+        self.assertDistsAlmostEqual(canned_result, result)
     
     def test_EstimateDistances_fromThreeway(self):
         """testing (well, exercising at least), EsimateDistances fromThreeway"""
@@ -133,10 +137,9 @@ class DistancesTests(unittest.TestCase):
                         ('a', 'c'): 0.089934,
                         ('a', 'b'): 0.190021,
                         ('a', 'e'): 0.495305,
-                        ('c', 'b'): 0.0899339}
+                        ('b', 'c'): 0.0899339}
         result = d.getPairwiseDistances(summary_function="mean")
-        for key in canned_result:
-            self.assertAlmostEqual(canned_result[key],result[key],4)
+        self.assertDistsAlmostEqual(canned_result, result)
     
     def test_EstimateDistances_fromUnaligned(self):
         """Excercising estimate distances from unaligned sequences"""
@@ -148,10 +151,9 @@ class DistancesTests(unittest.TestCase):
                         ('a', 'c'): 0.088337,
                         ('a', 'b'): 0.188486,
                         ('a', 'e'): 0.440840,
-                        ('c', 'b'): 0.0883373}
+                        ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
-        for key in canned_result:
-            self.assertAlmostEqual(canned_result[key],result[key],4)
+        self.assertDistsAlmostEqual(canned_result, result)
         
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
                                 rigorous_align=False)
@@ -161,10 +163,9 @@ class DistancesTests(unittest.TestCase):
                         ('a', 'c'): 0.088337,
                         ('a', 'b'): 0.188486,
                         ('a', 'e'): 0.440840,
-                        ('c', 'b'): 0.0883373}
+                        ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
-        for key in canned_result:
-            self.assertAlmostEqual(canned_result[key],result[key],4)
+        self.assertDistsAlmostEqual(canned_result, result)
     
     def test_EstimateDistances_other_model_params(self):
         """test getting other model params from EstimateDistances"""
@@ -190,8 +191,7 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, F81())
         d.run()
         expect = d.getPairwiseDistances()
-        for key in result:
-            self.assertAlmostEqual(expect[key], result[key],4)
+        self.assertDistsAlmostEqual(expect, result)
         
     
 
