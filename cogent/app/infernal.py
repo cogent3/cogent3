@@ -1306,7 +1306,8 @@ def cmbuild_from_file(stockholm_file_path, refine=False,return_alignment=False,\
     return res
 
 def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
-    include_aln=True,refine=False, return_stdout=False,params=None):
+    include_aln=True,refine=False, return_stdout=False,params=None,\
+    cmbuild_params=None):
     """Uses cmbuild to build a CM file, then cmalign to build an alignment.
     
         - aln: an Alignment object or something that can be used to construct
@@ -1334,7 +1335,7 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
     int_map = SequenceCollection(int_map,MolType=moltype)
     
     cm_file, aln_file_string = cmbuild_from_alignment(aln, structure_string,\
-        refine=refine,return_alignment=True)
+        refine=refine,return_alignment=True,params=cmbuild_params)
     
     app = Cmalign(InputHandler='_input_as_paths',WorkingDir='/tmp',\
         params=params)
