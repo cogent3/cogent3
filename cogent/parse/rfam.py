@@ -6,6 +6,7 @@ from cogent.parse.record import RecordError
 from cogent.parse.record_finder import DelimitedRecordFinder
 from cogent.parse.clustal import ClustalParser
 from cogent.core.sequence import RnaSequence as Rna
+from cogent.core.sequence import DnaSequence as Dna
 from cogent.core.sequence import Sequence
 from cogent.core.moltype import BYTES
 from cogent.core.info import Info
@@ -190,6 +191,11 @@ def ChangedRnaSequence(data, seq_constructor=Rna):
     """
     return seq_constructor(str(data).replace('.','-'))
 
+def ChangedDnaSequence(data, seq_constructor=Dna):
+    """Returns new RNA Sequence object, replaces dots with dashes in sequence.
+    """
+    return seq_constructor(str(data).replace('.','-'))
+
 def ChangedSequence(data, seq_constructor=Sequence):
     """Returns new Sequence object, replaces dots with dashes in sequence.
     """
@@ -200,7 +206,7 @@ def MinimalRfamParser(infile,strict=True,seq_constructor=ChangedRnaSequence):
     """Yield successive sequences as (header, sequences, structure) tuples.
     
     header is a list of header lines
-    sequences is an Alignment object. Sequences are Rna objects keyed by the
+    sequences is an Alignment object. Sequences are objects keyed by the
         original labels in the database.
     structure is a WussStructure
     """
