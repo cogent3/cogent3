@@ -6,6 +6,7 @@ from cogent.parse.record import RecordError
 from cogent.parse.record_finder import DelimitedRecordFinder
 from cogent.parse.clustal import ClustalParser
 from cogent.core.sequence import RnaSequence as Rna
+from cogent.core.sequence import Sequence
 from cogent.core.moltype import BYTES
 from cogent.core.info import Info
 from cogent.struct.rna2d import WussStructure
@@ -15,7 +16,7 @@ from cogent.core.alignment import Alignment, DataError, SequenceCollection
 __author__ = "Sandra Smit and Greg Caporaso"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Gavin Huttley",
-                    "Rob Knight"]
+                    "Rob Knight", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Sandra Smit"
@@ -184,12 +185,18 @@ def is_structure_line(line):
     """Returns True if line is a structure line"""
     return line.startswith('#=GC SS_cons')
 
-def ChangedSequence(data, seq_constructor=Rna):
+def ChangedRnaSequence(data, seq_constructor=Rna):
     """Returns new RNA Sequence object, replaces dots with dashes in sequence.
     """
     return seq_constructor(str(data).replace('.','-'))
 
-def MinimalRfamParser(infile,strict=True):
+def ChangedSequence(data, seq_constructor=Sequence):
+    """Returns new Sequence object, replaces dots with dashes in sequence.
+    """
+    return seq_constructor(str(data).replace('.','-'))
+
+
+def MinimalRfamParser(infile,strict=True,seq_constructor=ChangedRnaSequence):
     """Yield successive sequences as (header, sequences, structure) tuples.
     
     header is a list of header lines
@@ -225,7 +232,7 @@ def MinimalRfamParser(infile,strict=True):
         #join all sequence parts together, construct label
         try:
             new_seqs = load_from_clustal(sequences,strict=strict,
-                seq_constructor=ChangedSequence)
+                seq_constructor=seq_constructor)
             sequences = new_seqs
         except (DataError, RecordError), e:
             if strict:
@@ -246,7 +253,7 @@ def MinimalRfamParser(infile,strict=True):
                 structure = None
         yield header, sequences, structure
                 
-def RfamParser(lines, seq_constructor=Rna, label_constructor=\
+def RfamParser(lines, seq_constructor=ChangedRnaSequence, label_constructor=\
     HeaderToInfo,struct_constructor=WussStructure,strict=True):
     """Yields (family_info, sequences, structure).
 
@@ -258,7 +265,7 @@ def RfamParser(lines, seq_constructor=Rna, label_constructor=\
     Structure is the consensus structure of the alignment, in Wuss format
     """
     for header, alignment, structure in MinimalRfamParser\
-        (lines,strict=strict):
+        (lines,strict=strict,seq_constructor=seq_constructor):
         if strict:
             try:
                 family_info = label_constructor(header,strict=strict)
@@ -281,6 +288,7 @@ def RfamParser(lines, seq_constructor=Rna, label_constructor=\
                 structure = struct_constructor(structure)
                 yield family_info, alignment, structure
             except Exception, e:
+                print Exception, e
                 continue
 
 def _process_seq(seq, strict):
