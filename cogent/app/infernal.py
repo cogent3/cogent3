@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Provides an application controller for the commandline version of:
-Infernal 1.0rc1
+Infernal 1.0
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
@@ -1267,7 +1267,6 @@ def cmbuild_from_alignment(aln, structure_string, refine=False, \
     
     cm_file = res['CmFile'].read()
     
-    
     if return_alignment:
         #If alignment was refined, return refined alignment and structure,
         # otherwise return original alignment and structure.
@@ -1341,31 +1340,40 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
         params=params)
     app.Parameters['--informat'].on('FASTA')
     
+    #files to remove that aren't cleaned up by ResultPath object
+    to_remove = []    
     #turn on --withali flag if True.
     if include_aln:
         app.Parameters['--withali'].on(\
             app._tempfile_as_multiline_string(aln_file_string))
+        #remove this file at end
+        to_remove.append(app.Parameters['--withali'].Value)
     
     seqs_path = app._input_as_multiline_string(int_map.toFasta())
     cm_path = app._tempfile_as_multiline_string(cm_file)
-    paths = [cm_path,seqs_path]
     
+    #add cm_path to to_remove
+    to_remove.append(cm_path)
+    paths = [cm_path,seqs_path]
+
     app.Parameters['-o'].on(get_tmp_filename(app.WorkingDir))
+    
     res = app(paths)
     
     info, aligned, struct_string = \
         list(MinimalRfamParser(res['Alignment'].readlines()))[0]
     
-    
     #Make new dict mapping original IDs
     new_alignment={}
-    for k,v in aligned.items():
+    for k,v in aligned.NamedSeqs.items():
         new_alignment[int_keys.get(k,k)]=v
     #Create an Alignment object from alignment dict
     new_alignment = Alignment(new_alignment,MolType=moltype)
     
     std_out = res['StdOut'].read()
+    #clean up files
     res.cleanUp()
+    for f in to_remove: remove(f)
     
     if return_stdout:
         return new_alignment, struct_string, std_out
@@ -1405,7 +1413,7 @@ def cmalign_from_file(cm_file_path, seqs, moltype, alignment_file_path=None,\
     app = Cmalign(InputHandler='_input_as_paths',WorkingDir='/tmp',\
         params=params)
     app.Parameters['--informat'].on('FASTA')
-    
+        
     #turn on --withali flag if True.
     if include_aln:
         if alignment_file_path is None:
@@ -1471,9 +1479,12 @@ def cmsearch_from_alignment(aln, structure_string, seqs, moltype, cutoff=0.0,\
     app.Parameters['--informat'].on('FASTA')
     app.Parameters['-T'].on(cutoff)
     
+    to_remove = []
+    
     seqs_path = app._input_as_multiline_string(int_map.toFasta())
     cm_path = app._tempfile_as_multiline_string(cm_file)
     paths = [cm_path,seqs_path]
+    to_remove.append(cm_path)
     
     app.Parameters['--tabfile'].on(get_tmp_filename(app.WorkingDir))
     res = app(paths)
@@ -1486,7 +1497,8 @@ def cmsearch_from_alignment(aln, structure_string, seqs, moltype, cutoff=0.0,\
             search_results[i][0]=int_keys.get(label,label)
     
     res.cleanUp()
-
+    for f in to_remove:remove(f)
+    
     return search_results
 
 def cmsearch_from_file(cm_file_path, seqs, moltype, cutoff=0.0, params=None):
