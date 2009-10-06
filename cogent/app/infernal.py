@@ -6,7 +6,8 @@ Infernal 1.0
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from cogent.parse.fasta import MinimalFastaParser
-from cogent.parse.rfam import MinimalRfamParser,RfamParser
+from cogent.parse.rfam import MinimalRfamParser, ChangedSequence, \
+    ChangedRnaSequence, ChangedDnaSequence
 from cogent.parse.infernal import CmsearchParser
 from cogent.core.moltype import DNA, RNA
 from cogent.core.alignment import SequenceCollection, Alignment, DataError
@@ -24,9 +25,17 @@ __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
 
 MOLTYPE_MAP = {'DNA':'--dna',\
+                DNA:'--dna',\
                'RNA':'--rna',\
+                RNA:'--rna',\
                }
                
+SEQ_CONSTRUCTOR_MAP = {'DNA':ChangedDnaSequence,\
+                        DNA:ChangedDnaSequence,\
+                       'RNA':ChangedRnaSequence,\
+                        RNA:ChangedRnaSequence,\
+                       }
+
 class Cmalign(CommandLineApplication):
     """cmalign application controller."""
     _options = {
@@ -1297,7 +1306,8 @@ def cmbuild_from_file(stockholm_file_path, refine=False,return_alignment=False,\
     """
     #get alignment and structure string from stockholm file.
     info, aln, structure_string = \
-        list(MinimalRfamParser(open(stockholm_file_path,'U')))[0]
+        list(MinimalRfamParser(open(stockholm_file_path,'U'),\
+            seq_constructor=ChangedSequence))[0]
     
     #call cmbuild_from_alignment.
     res = cmbuild_from_alignment(aln, structure_string, refine=refine, \
@@ -1336,6 +1346,10 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
     cm_file, aln_file_string = cmbuild_from_alignment(aln, structure_string,\
         refine=refine,return_alignment=True,params=cmbuild_params)
     
+    if params is None:
+        params = {}    
+    params.update({MOLTYPE_MAP[moltype]:True})
+    
     app = Cmalign(InputHandler='_input_as_paths',WorkingDir='/tmp',\
         params=params)
     app.Parameters['--informat'].on('FASTA')
@@ -1361,7 +1375,8 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
     res = app(paths)
     
     info, aligned, struct_string = \
-        list(MinimalRfamParser(res['Alignment'].readlines()))[0]
+        list(MinimalRfamParser(res['Alignment'].readlines(),\
+            seq_constructor=SEQ_CONSTRUCTOR_MAP[moltype]))[0]
     
     #Make new dict mapping original IDs
     new_alignment={}
@@ -1410,6 +1425,10 @@ def cmalign_from_file(cm_file_path, seqs, moltype, alignment_file_path=None,\
     #Create SequenceCollection from int_map.
     int_map = SequenceCollection(int_map,MolType=moltype)
     
+    if params is None:
+        params = {}
+    params.update({MOLTYPE_MAP[moltype]:True})
+    
     app = Cmalign(InputHandler='_input_as_paths',WorkingDir='/tmp',\
         params=params)
     app.Parameters['--informat'].on('FASTA')
@@ -1428,7 +1447,8 @@ def cmalign_from_file(cm_file_path, seqs, moltype, alignment_file_path=None,\
     res = app(paths)
     
     info, aligned, struct_string = \
-        list(MinimalRfamParser(res['Alignment'].readlines()))[0]
+        list(MinimalRfamParser(res['Alignment'].readlines(),\
+            seq_constructor=SEQ_CONSTRUCTOR_MAP[moltype]))[0]
     
     
     #Make new dict mapping original IDs
