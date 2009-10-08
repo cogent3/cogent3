@@ -260,7 +260,7 @@ def MinimalRfamParser(infile,strict=True,seq_constructor=ChangedRnaSequence):
         yield header, sequences, structure
                 
 def RfamParser(lines, seq_constructor=ChangedRnaSequence, label_constructor=\
-    HeaderToInfo,struct_constructor=WussStructure,strict=True):
+    HeaderToInfo,struct_constructor=WussStructure,strict=True,verbose=False):
     """Yields (family_info, sequences, structure).
 
     Treats lines as a stream of Rfam records.
@@ -294,7 +294,8 @@ def RfamParser(lines, seq_constructor=ChangedRnaSequence, label_constructor=\
                 structure = struct_constructor(structure)
                 yield family_info, alignment, structure
             except Exception, e:
-                print Exception, e
+                if verbose:
+                    print Exception, e
                 continue
 
 def _process_seq(seq, strict):
