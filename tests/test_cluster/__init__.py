@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-__all__ = ['test_UPGMA', 'test_metric_scaling', 'test_nmds']
+__all__ = ['test_UPGMA', 'test_metric_scaling', 'test_procrustes', 'test_nmds']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Peter Maxwell", "Rob Knight"]
+__credits__ = ["Catherine Lozuopone", "Peter Maxwell", "Rob Knight", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"
