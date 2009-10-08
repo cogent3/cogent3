@@ -3,10 +3,11 @@
 
 
 from __future__ import with_statement
+from cStringIO import StringIO
 from os import remove, rmdir
 from tempfile import mkdtemp, mkstemp
 from cogent.util.unit_test import TestCase, main
-from cogent.app.mothur import Mothur
+from cogent.app.mothur import Mothur, mothur_from_file
 
 
 __author__ = "Kyle Bittinger"
@@ -30,6 +31,21 @@ class MothurTests(TestCase):
             'unique\t3\tcccccc\tbbbbbb\taaaaaa\t\n'
             '0.62\t2\tbbbbbb,cccccc\taaaaaa\t\n'
             '0.67\t1\taaaaaa,bbbbbb,cccccc\t\n'
+            )
+        self.small_otus_parsed = [
+            (float('0'), [['cccccc'], ['bbbbbb'], ['aaaaaa']]),
+            (float('0.62'), [['bbbbbb', 'cccccc'], ['aaaaaa']]),
+            (float('0.67'), [['aaaaaa', 'bbbbbb', 'cccccc']]),
+            ]
+        self.complement_fasta = (
+            '>a\n--AGGGGTAATAA--\n'
+            '>b\n--TTATTACCCCT--\n'
+            '>c\n-------AAAAAA--\n'
+            )
+        self.complement_otus = (
+            'unique\t3\tc\ta\tb\t\n'
+            '0.50\t2\ta,c\tb\t\n'
+            '1.00\t1\tb,a,c\t\n'
             )
 
     def test_get_help(self):
@@ -116,6 +132,20 @@ class MothurTests(TestCase):
         result.cleanUp()
         rmdir(working_dir)
 
+    def test_call_with_complement(self):
+        """Mothur.__call__() should return correct otu's for input sequences which are reverse complements"""
+        app = Mothur()
+        result = app(self.complement_fasta)
+        observed_otus = result['otu list'].read()
+        self.assertEquals(observed_otus, self.complement_otus)
+        result.cleanUp()
+
+    def test_mothur_from_file(self):
+        """mothur_from_file() should return parsed otus"""
+        f = StringIO(self.small_fasta)
+        f.seek(0)
+        parsed_otus = mothur_from_file(f)
+        self.assertEquals(parsed_otus, self.small_otus_parsed)
 
 if __name__ == '__main__':
     main()
