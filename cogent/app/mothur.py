@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Provides an application controller for the commandline version of
-mothur v.1.4.1
+mothur Version 1.6.0
 """
 
 
@@ -11,6 +11,7 @@ from subprocess import Popen
 from cogent.app.parameters import ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     CommandLineAppResult, ApplicationError
+from cogent.parse.mothur import parse_otu_list
 
 
 __author__ = "Kyle Bittinger"
@@ -321,4 +322,11 @@ class Mothur(CommandLineApplication):
 
     WorkingDir = property(_get_WorkingDir, _set_WorkingDir)
 
+def mothur_from_file(file):
+    app = Mothur(InputHandler='_input_as_lines')
+    result = app(file)
+    # Force evaluation, so we can safely clean up files
+    otus = list(parse_otu_list(result['otu list']))
+    result.cleanUp()
+    return otus
 
