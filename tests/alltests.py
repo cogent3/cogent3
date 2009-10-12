@@ -53,6 +53,7 @@ def suite():
         'test_align.test_weights.test_util',
         'test_app.test_parameters',
         'test_app.test_util',
+        'test_cluster.test_goodness_of_fit',
         'test_cluster.test_metric_scaling',
         'test_cluster.test_procrustes',
         'test_cluster.test_UPGMA',
