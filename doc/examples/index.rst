@@ -46,6 +46,7 @@ General data analysis
 .. toctree::
     :maxdepth: 1
 
+    goodness_of_fit
     perform_PCoA_analysis
     perform_nmds
     motif_results
