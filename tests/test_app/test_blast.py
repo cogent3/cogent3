@@ -134,6 +134,8 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
         self.assertEqual(gih('>ab\nTCAG'), '_input_as_multiline_string')
         self.assertEqual(gih(['ACC','TGA'], True), '_input_as_seqs')
         self.assertEqual(gih(['>a','ACC','>b','TGA']), '_input_as_lines')
+        self.assertEqual(gih([('a','ACC'),('b','TGA')]),\
+         '_input_as_seq_id_seq_pairs')
 
     def test_seqs_to_stream(self):
         """seqs_to_stream should iterate over seqs"""

@@ -215,6 +215,14 @@ call the Standalone BLAST program from or in your root directory.
             lines.append(''.join(['>',str(i+1)]))
             lines.append(s)
         return self._input_as_lines(lines)
+        
+    def _input_as_seq_id_seq_pairs(self,data):
+        lines = []
+        for seq_id,seq in data:
+            #will number the sequences 1,2,3,etc.
+            lines.append(''.join(['>',str(seq_id)]))
+            lines.append(seq)
+        return self._input_as_lines(lines)
 
     def _input_as_lines(self,data):
         if data:
