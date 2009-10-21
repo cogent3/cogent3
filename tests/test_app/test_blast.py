@@ -5,7 +5,7 @@ from os import popen, remove
 from glob import glob
 from cogent.util.unit_test import TestCase, main
 from cogent.parse.blast import QMEBlast9
-from cogent.app.blast import guess_input_handler, seqs_to_stream,\
+from cogent.app.blast import seqs_to_stream,\
     make_subject_match_scorer, make_shotgun_scorer, keep_everything_scorer, \
     ids_from_seq_lower_threshold, PsiBlast, psiblast_n_neighbors
 
@@ -126,16 +126,6 @@ MKKLVIFDLDGTLLNTIADLAHSTNHALRQNGFPTHDVKEYNFFVGNGINKLFERALPEGEKTAENILKVREEFLKHYDL
 >gi|100002559| Bd2562 Bd2562 conserved hypothetical protein 3099382:3100299 forward MW:35872
 MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVALTDVSVDFQIRYFTITESFYSDILSGISRFSPHFFFYMRQHYYFKMEDVETLSFVDFFELLIRKAVDPENQYRRESVILLLRILFLDIYNHYKVNSLDSTATIDVHKKELTHKFFQLVMSNYKVNRSVTFYANSLCITPKYLTMVVKEVSGKSAKDWITEYMILELKGLLTNSTLNIQEIVEKTQFSNQSSLGRFFRRHTGLSPLQYRKKYLTTEQRTNFSKNNTI
 """
-
-    def test_guess_input_handler(self):
-        """guess_input_handler should correctly identify input"""
-        gih = guess_input_handler
-        self.assertEqual(gih('abc.txt'), '_input_as_string')
-        self.assertEqual(gih('>ab\nTCAG'), '_input_as_multiline_string')
-        self.assertEqual(gih(['ACC','TGA'], True), '_input_as_seqs')
-        self.assertEqual(gih(['>a','ACC','>b','TGA']), '_input_as_lines')
-        self.assertEqual(gih([('a','ACC'),('b','TGA')]),\
-         '_input_as_seq_id_seq_pairs')
 
     def test_seqs_to_stream(self):
         """seqs_to_stream should iterate over seqs"""
