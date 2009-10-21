@@ -13,7 +13,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.app.util import get_tmp_filename
 from cogent.util.misc import remove_files
 from cogent.app.blast import blastn
-from formatdb import FormatDb, build_blast_db_from_seqs,\
+from cogent.app.formatdb import FormatDb, build_blast_db_from_seqs,\
     build_blast_db_from_fasta_path
 
 
