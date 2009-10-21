@@ -4,7 +4,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
     CommandLineAppResult, ResultPath, ApplicationError, ParameterIterBase,\
     ParameterCombinations, cmdline_generator, ApplicationNotFoundError,\
-    get_tmp_filename
+    get_tmp_filename, guess_input_handler
 from cogent.app.parameters import *
 from os import remove,system,mkdir,rmdir,removedirs,getcwd, walk
 
@@ -979,6 +979,17 @@ class ConvenienceFunctionTests(TestCase):
         """
         self.tmp_dir = '/tmp'
         self.tmp_name_len = 20
+        
+    def test_guess_input_handler(self):
+        """guess_input_handler should correctly identify input"""
+        gih = guess_input_handler
+        self.assertEqual(gih('abc.txt'), '_input_as_string')
+        self.assertEqual(gih('>ab\nTCAG'), '_input_as_multiline_string')
+        self.assertEqual(gih(['ACC','TGA'], True), '_input_as_seqs')
+        self.assertEqual(gih(['>a','ACC','>b','TGA']), '_input_as_lines')
+        self.assertEqual(gih([('a','ACC'),('b','TGA')]),\
+         '_input_as_seq_id_seq_pairs')
+        self.assertEqual(gih([]),'_input_as_lines')
     
     def test_get_tmp_filename(self):
         """get_tmp_filename should return filename of correct length
