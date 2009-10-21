@@ -721,6 +721,8 @@ def guess_input_handler(seqs, add_seq_names=False):
             ih = '_input_as_string'
             #Uncommenting the next line causes errors in muscle tests - Micah?
             #ih = '_input_as_path'
+    elif isinstance(seqs,list) and isinstance(seqs[0],tuple):
+        ih = '_input_as_seq_id_seq_pairs'
     elif add_seq_names:
         ih = '_input_as_seqs'
     else:
