@@ -147,8 +147,8 @@ def seqs_from_dict(seqs, Alphabet=None):
     which the keys are the names and the values are the sequences
     (sequence only, no whitespace or other formatting) into a
     SequenceCollection. Because the dict doesn't preserve order, the result
-    will be in alphabetical order."""
-    names, seqs = map(list, zip(*sorted(seqs.items())))
+    will not necessarily be in alphabetical order."""
+    names, seqs = map(list, zip(*seqs.items()))
     return seqs, names
 
 def seqs_from_kv_pairs(seqs, Alphabet=None):

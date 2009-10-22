@@ -138,7 +138,7 @@ Sequence features can be accessed via a containing ``Alignment``:
 .. doctest::
     
     >>> from cogent import LoadSeqs
-    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
+    >>> aln = LoadSeqs(data=[['x','-AAAAAAAAA'], ['y','TTTT--TTTT']])
     >>> print aln
     >x
     -AAAAAAAAA
@@ -181,7 +181,7 @@ We copy the annotations from another sequence.
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--TTTT'})
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
     >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.getSeq('x').copyAnnotations(s)
@@ -193,7 +193,7 @@ We consider cases where there are terminal gaps.
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'------TTTT'})
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', '------TTTT']])
     >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print aln_exons
@@ -204,7 +204,7 @@ We consider cases where there are terminal gaps.
     >y
     --TTT
     <BLANKLINE>
-    >>> aln = LoadSeqs(data={'x':'-AAAAAAAAA', 'y':'TTTT--T---'})
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']])
     >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print aln_exons[0].getSlice()
@@ -218,7 +218,7 @@ In this case, only those residues included within the feature are covered - note
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data={'x':'C-CCCAAAAA', 'y':'-T----TTTT'})
+    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
     >>> print aln
     >x
     C-CCCAAAAA
@@ -266,7 +266,7 @@ We create an alignment with a sequence that has two different annotation types.
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data={'x':'C-CCCAAAAAGGGAA', 'y':'-T----TTTTG-GTT'})
+    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'], ['y', '-T----TTTTG-GTT']])
     >>> print aln
     >x
     C-CCCAAAAAGGGAA
@@ -351,7 +351,7 @@ It shouldn't matter whether annotated coordinates are entered separately, or as 
 
 .. doctest::
     
-    >>> data = {"human": 'CGAAACGTTT', 'mouse':'CTAAACGTCG'}
+    >>> data = [['human', 'CGAAACGTTT'], ['mouse', 'CTAAACGTCG']]
     >>> as_series = LoadSeqs(data = data)
     >>> as_items = LoadSeqs(data = data)
 
