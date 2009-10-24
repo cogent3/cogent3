@@ -83,6 +83,10 @@ def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\
     fasta_dir, fasta_filename = split(fasta_path)
     if not output_dir:
         output_dir = fasta_dir or '.'
+        # Will cd to this directory, so just pass the filename
+        # so the app is not confused by relative paths
+        fasta_path = fasta_filename
+        
     if not output_dir.endswith('/'):
         db_name = output_dir + '/' + fasta_filename
     else:
