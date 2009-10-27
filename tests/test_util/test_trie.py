@@ -8,7 +8,7 @@ __credits__ = ["Jens Reeder"]
 __license__ = "GPL"
 __version__ = "0.1"
 __maintainer__ = "Jens Reeder"
-__email__ = "jreeder@gmail.com"
+__email__ = "jens.reeder@gmail.com"
 __status__ = "Prototype"
 
 
