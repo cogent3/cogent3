@@ -12,6 +12,7 @@ from cogent.cluster.metric_scaling import *
 from cogent.core.tree import PhyloNode, TreeError
 from cogent.cluster.UPGMA import UPGMA_cluster
 from cogent.phylo.nj import nj
+from StringIO import StringIO
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
