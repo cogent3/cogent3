@@ -12,10 +12,13 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     chi_square_from_Dict2D, MonteCarloP, \
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
     regress_R2, permute_2d, mantel, kendall_correlation, std, median,\
-    get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test
+    get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test,\
+    ANOVA_one_way
+
 from numpy import array, reshape, arange, ones, testing, cov, sqrt
 from cogent.util.dict2d import Dict2D
 import math
+from cogent.maths.stats.util import Numbers
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -961,7 +964,21 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(distance_matrix_permutation_test(\
             m,[(0,0),(0,1),(0,2)],\
             n=5,f=fake_stat_test,return_scores=True),(42.,42.,0.,[42.]*5))
- 
+    
+    def test_ANOVA_one_way(self):
+        """ANOVA one way returns same values as ANOVA on a stats package
+        """
+        g1 = Numbers([10.0, 11.0, 10.0, 5.0, 6.0])
+        g2 = Numbers([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
+        g3 = Numbers([6.0, 7.0, 5.0, 6.0, 7.0])
+        i = [g1, g2, g3]
+        dfn, dfd, F, between_MS, within_MS, prob = ANOVA_one_way(i)
+        self.assertEqual(dfn, 2)
+        self.assertEqual(dfd, 13)
+        self.assertFloatEqual(F, 18.565450643776831)
+        self.assertFloatEqual(between_MS, 55.458333333333343)
+        self.assertFloatEqual(within_MS, 2.9871794871794868)
+        self.assertFloatEqual(prob, 0.00015486238993089464)
 
 #execute tests if called from command line
 if __name__ == '__main__':

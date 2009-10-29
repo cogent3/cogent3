@@ -16,7 +16,7 @@ from numpy import array, asarray, transpose, ravel, take, nonzero, log, sum,\
         sqrt, exp, median as _median
         #, std - currently incorrect
 from numpy.random import permutation
-
+from cogent.maths.stats.util import Numbers
 from operator import add
 from random import choice
 
@@ -816,6 +816,43 @@ def f_two_sample(a, b, tails=None):
             side='left'
         return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
 
+def ANOVA_one_way(a):
+    """Performs a one way analysis of variance
+
+    a is a list of lists of observed values. Each list is the values
+    within a category. The analysis must include 2 or more categories(lists).
+    the lists must have a Mean and variance attribute. Recommende to make
+    the Numbers objects
+    
+    An F value is first calculated as the variance of the group means
+    divided by the mean of the within-group variances.
+    """
+    group_means = []
+    group_variances = []
+    num_cases = 0
+    all_vals = []
+    for i in a:
+        num_cases += len(i)
+        group_means.append(i.Mean)
+        group_variances.append(i.Variance * (len(i)-1))
+        all_vals.extend(i)
+    group_means = Numbers(group_means)
+    #get within group variances (denominator)
+    group_variances = Numbers(group_variances)
+    dfd = num_cases - len(group_means)
+    within_MS = sum(group_variances)/dfd
+    #get between group variances (numerator)
+    grand_mean = Numbers(all_vals).Mean
+    between_MS = 0
+    for i in a:
+        diff = i.Mean - grand_mean
+        diff_sq = diff * diff
+        x = diff_sq * len(i)
+        between_MS += x
+    dfn = len(group_means) - 1
+    between_MS = between_MS/dfn
+    F = between_MS/within_MS
+    return dfn, dfd, F, between_MS, within_MS, f_high(dfn, dfd, F)
 
 def MonteCarloP(value, rand_values, tail = 'high'):
     """takes a true value and a list of random values as
