@@ -972,12 +972,13 @@ class TestDistMatrixPermutationTest(TestCase):
         g2 = Numbers([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
         g3 = Numbers([6.0, 7.0, 5.0, 6.0, 7.0])
         i = [g1, g2, g3]
-        dfn, dfd, F, between_MS, within_MS, prob = ANOVA_one_way(i)
+        dfn, dfd, F, between_MS, within_MS, group_means, prob = ANOVA_one_way(i)
         self.assertEqual(dfn, 2)
         self.assertEqual(dfd, 13)
         self.assertFloatEqual(F, 18.565450643776831)
         self.assertFloatEqual(between_MS, 55.458333333333343)
         self.assertFloatEqual(within_MS, 2.9871794871794868)
+        self.assertFloatEqual(group_means, [8.4000000000000004, 2.1666666666666665, 6.2000000000000002])
         self.assertFloatEqual(prob, 0.00015486238993089464)
 
 #execute tests if called from command line
