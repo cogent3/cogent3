@@ -852,7 +852,7 @@ def ANOVA_one_way(a):
     dfn = len(group_means) - 1
     between_MS = between_MS/dfn
     F = between_MS/within_MS
-    return dfn, dfd, F, between_MS, within_MS, f_high(dfn, dfd, F)
+    return dfn, dfd, F, between_MS, within_MS, group_means, f_high(dfn, dfd, F)
 
 def MonteCarloP(value, rand_values, tail = 'high'):
     """takes a true value and a list of random values as
