@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""tests for sff parser
-"""
+"""tests for sff parser"""
 
 __author__ = "Julia Goodrich, Jens Reeder"
 __copyright__ = "Copyright 2009, The Cogent Project"
@@ -13,8 +12,8 @@ __status__ = "Development"
 
 from types import GeneratorType
 from cogent.util.unit_test import TestCase, main
-from cogent.parse.flowgram_parser import getHeaderInfo, getSummaries,\
-    getAllSummaries, splitSummary, SFFParser, LazySFFParser
+from cogent.parse.flowgram_parser import get_header_info, get_summaries,\
+    get_all_summaries, split_summary, parse_sff, lazy_parse_sff_handle
 
 class SFFParserTests(TestCase):
     """Tests sff parser functions"""
@@ -80,30 +79,30 @@ Quality Scores:	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	38	38	3
 
 """.split('\n')
 
-    def test_getHeaderInfo(self):
-        """getHeaderInfo should return a sff file common header as a dict"""
-        header = getHeaderInfo(self.rec)
+    def test_get_header_info(self):
+        """get_header_info should return a sff file common header as a dict"""
+        header = get_header_info(self.rec)
         self.assertEqual(len(header), 11)
         self.assertEqual(header['Key Length'], '4')
         self.assertEqual(header['Key Sequence'], 'TCAG')
 
-    def test_getSummaries(self):
-        """getSummaries should return a generator of the summaries"""
-        summaries = getSummaries(self.rec,number_list = [1])
+    def test_get_summaries(self):
+        """get_summaries should return a generator of the summaries"""
+        summaries = get_summaries(self.rec,number_list = [1])
         sum_list = list(summaries)
         self.assertEqual(len(sum_list), 1)
         self.assertEqual(isinstance(summaries, GeneratorType), True)
         self.assertEqual(len(sum_list[0]), 18)
         self.assertEqual(sum_list[0][0], '>FIQU8OX05F8ILF')
         
-        summaries = getSummaries(self.rec,name_list = ['FIQU8OX05GCVRO'])
+        summaries = get_summaries(self.rec,name_list = ['FIQU8OX05GCVRO'])
         sum_list = list(summaries)
         self.assertEqual(len(sum_list), 1)
         self.assertEqual(isinstance(summaries, GeneratorType), True)
         self.assertEqual(len(sum_list[0]), 18)
         self.assertEqual(sum_list[0][0], '>FIQU8OX05GCVRO')
         
-        summaries = getSummaries(self.rec,all_sums = True )
+        summaries = get_summaries(self.rec,all_sums = True )
         sum_list = list(summaries)
         self.assertEqual(len(sum_list), 2)
         self.assertEqual(isinstance(summaries, GeneratorType), True)
@@ -111,40 +110,40 @@ Quality Scores:	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	38	38	3
         self.assertEqual(sum_list[0][0], '>FIQU8OX05GCVRO')
         self.assertEqual(sum_list[1][0], '>FIQU8OX05F8ILF')
         
-        summaries = getSummaries(self.rec,number_list = [0],
+        summaries = get_summaries(self.rec,number_list = [0],
                                  name_list =['FIQU8OX05GCVRO'])
         self.assertRaises(AssertionError,list,summaries)
 
-        summaries = getSummaries(self.rec)
+        summaries = get_summaries(self.rec)
         self.assertRaises(ValueError,list, summaries)
         
-    def test_getAllSummaries(self):
-        """getAllSummaries should return a list of the summaries"""
-        summaries = getAllSummaries(self.rec)
+    def test_get_all_summaries(self):
+        """get_all_summaries should return a list of the summaries"""
+        summaries = get_all_summaries(self.rec)
         self.assertEqual(len(summaries), 2)
         self.assertEqual(isinstance(summaries,list), True)
         self.assertEqual(len(summaries[0]), 18)
         self.assertEqual(summaries[0][0], '>FIQU8OX05GCVRO')
         self.assertEqual(summaries[1][0], '>FIQU8OX05F8ILF')
 
-    def test_splitSummary(self):
-        """splitSummary should return the info of a flowgram header."""
-        summaries = getAllSummaries(self.rec)
-        sum_dict = splitSummary(summaries[0])
+    def test_split_summary(self):
+        """split_summary should return the info of a flowgram header."""
+        summaries = get_all_summaries(self.rec)
+        sum_dict = split_summary(summaries[0])
         self.assertEqual(len(sum_dict), 18)
         self.assertEqual(sum_dict['Name'], 'FIQU8OX05GCVRO')
         assert 'Flowgram' in sum_dict
         assert 'Bases' in sum_dict
 
-        sum_dict = splitSummary(summaries[1])
+        sum_dict = split_summary(summaries[1])
         self.assertEqual(len(sum_dict), 18)
         self.assertEqual(sum_dict['Name'], 'FIQU8OX05F8ILF')
         assert 'Flowgram' in sum_dict
         assert 'Bases' in sum_dict
         
-    def test_SFFParser(self):
+    def test_parse_sff(self):
         """SFParser should read in the SFF file correctly."""
-        flows, head = SFFParser(self.rec)
+        flows, head = parse_sff(self.rec)
         self.assertEqual(len(flows),2)
         self.assertEqual(len(head), 11)
         self.assertEqual(head['Key Length'], '4')
@@ -152,9 +151,9 @@ Quality Scores:	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	38	38	3
         self.assertEqual(flows[0].Name, 'FIQU8OX05GCVRO')
         self.assertEqual(flows[1].Name, 'FIQU8OX05F8ILF')
 
-    def test_LazySFFParser(self):
+    def test_lazy_parse_sff_handle(self):
         """LazySFParser should read in the SFF file correctly."""
-        flows, head = LazySFFParser(self.rec)
+        flows, head = lazy_parse_sff_handle(self.rec)
         flows = list(flows)
         self.assertEqual(len(flows),2)
         self.assertEqual(len(head), 11)

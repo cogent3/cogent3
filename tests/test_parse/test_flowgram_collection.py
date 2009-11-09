@@ -297,7 +297,7 @@ class FlowgramCollectionTests(TestCase):
         self.assertEqual(result, """Common Header:\n  Flow Chars:\tTACG\n\n>a\n  Name Length:\t14\nBases:\tTACCCCTTGG\nFlowgram:\t0.5\t1.0\t4.0\t0.0\t1.5\t0.0\t0.0\t2.0\n\n>b\n  Name Length:\t14\nBases:\tTTATTTACCG\nFlowgram:\t1.5\t1.0\t0.0\t0.0\t2.5\t1.0\t2.0\t1.0\n""")
         remove(fn)
 
-    def test_create_common_header(self):
+    def test_createCommonHeader(self):
         """create_commor_header should return lines for sff common header"""
         a = [Flowgram('0.5 1.0 4.0 0.0 1.5 0.0 0.0 2.0', Name='a',
                       header_info = {'Bases':'TACCCCTTGG','Name Length':'14'}),
@@ -305,7 +305,7 @@ class FlowgramCollectionTests(TestCase):
               header_info = {'Bases':'TTATTTACCG','Name Length':'14'})]
         f = FlowgramCollection(a, header_info = {'Flow Chars':'TACG'})
 
-        self.assertEqual('\n'.join(f.create_common_header()),
+        self.assertEqual('\n'.join(f.createCommonHeader()),
                          """Common Header:\n  Flow Chars:\tTACG""")
     def test_toFasta(self):
         """FlowgramCollection should return correct FASTA string"""
@@ -491,16 +491,15 @@ class FlowgramCollectionTests(TestCase):
         self.assertEqual(im,int_map)
 
 
-    def test_todict(self):
-        """FlowgramCollection.todict should return dict of strings (not obj)"""
+    def test_toDict(self):
+        """FlowgramCollection.toDict should return dict of strings (not obj)"""
         f = self.Class({'a': '0.5 1.0 4.0 0.0 1.5 0.0 0.0 2.0'
                           , 'b': '1.5 1.0 0.0 0.0 2.5 1.0 2.0 1.0'})
-        self.assertEqual(f.todict(), {'a':'0.5 1.0 4.0 0.0 1.5 0.0 0.0 2.0'
+        self.assertEqual(f.toDict(), {'a':'0.5 1.0 4.0 0.0 1.5 0.0 0.0 2.0'
                                       ,'b':'1.5 1.0 0.0 0.0 2.5 1.0 2.0 1.0'})
-        for i in f.todict().values():
+        for i in f.toDict().values():
             assert isinstance(i, str)
             
-
     def test_omitAmbiguousFlows(self):
         """FlowgramCollection omitAmbiguousFlows should return flows w/o N's"""
         
@@ -517,7 +516,6 @@ class FlowgramCollectionTests(TestCase):
                               self.ambiguous)
         self.assertTrue(isinstance(self.ambiguous.omitAmbiguousFlows(
                         Bases = True), FlowgramCollection))
-
 
     def test_setBases(self):
         """FlowgramCollection setBases should set Bases property correctly"""

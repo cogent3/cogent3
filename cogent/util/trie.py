@@ -69,29 +69,26 @@ class _Compressed_Node:
         label: The value that should be stored for this key
         """
 
-        #follow the key into the tree
-        index = 0
         node_key_len = len(self.key)
-
         length = min(node_key_len, len(key))
-     
-        while(index < length):
-                if(key[index] != self.key[index]):
-                    #split up node
-                    new_key_node = _Compressed_Node(key[index:], [label])
+        #follow the key into the tree
+        index=0
+        while index < length:
+            if(key[index] != self.key[index]):
+                #split up node
+                new_key_node = _Compressed_Node(key[index:], [label])
 
-                    old_key_node = _Compressed_Node(self.key[index:], self.labels)
-                    old_key_node.children = self.children
+                old_key_node = _Compressed_Node(self.key[index:], self.labels)
+                old_key_node.children = self.children
                     
-                    self.children = {key[index]: new_key_node,
-                                     self.key[index]: old_key_node}
-                    self.key = self.key[:index]
-                    self.labels = []
-                    return
-                index +=1
-
+                self.children = {key[index]: new_key_node,
+                                 self.key[index]: old_key_node}
+                self.key = self.key[:index]
+                self.labels = []
+                return
+            index += 1
         #new key matches node key exactly
-        if (index == len(self.key) and index== len(key)):
+        if (index == len(self.key) and index == len(key)):
             self.labels.append(label)
             return
 
@@ -117,15 +114,19 @@ class _Compressed_Node:
         return   
 
     def find(self, key):
-        """Searches for key and returns values stored for the key."""
+        """Searches for key and returns values stored for the key.
+
+        key: the key whose values should be retuned.
+        """
 
         #key exhausted
         if(len(key) == 0):
             return self.labels
         
         #find matching part of key and node_key
-        index = 0    
-        while(index < len(key) and index < len(self.key)):
+        min_length = min(len(key), len(self.key))
+        index = 0   
+        while index < min_length:
             if(key[index] != self.key[index]):
                 return []
             index+=1
@@ -141,7 +142,7 @@ class _Compressed_Node:
         else:
             return []
 
-    def prefix_map(self):
+    def prefixMap(self):
         """Builds a prefix map from sequences stored in Trie."""
         
         labels = []
@@ -153,7 +154,7 @@ class _Compressed_Node:
         # we are at an internal node
         else: 
             for child in self.children.values():
-                mapping.update(child.prefix_map())
+                mapping.update(child.prefixMap())
             # get largest group
             n = -1
             key_largest = None
@@ -198,9 +199,9 @@ class Compressed_Trie:
         """Returns number of nodes in Trie"""
         return self.root.size()
 
-    def prefix_map(self):
+    def prefixMap(self):
         """builds a prefix map of seqeunces stored in Trie."""
-        return self.root.prefix_map()
+        return self.root.prefixMap()
 
 
 ###################
@@ -234,7 +235,8 @@ class _Node:
         label: The value that should be stored for this key
         
         Returns label of key if unique or label of containing key.
-        Note: Tries build with this function will only have labels on their leaves.
+        Note: Tries built with this function will only have labels
+              on their leaves. 
         """
         
         curr_node = self
@@ -244,7 +246,7 @@ class _Node:
             if curr_node.labels != []:
                 labels.extend(curr_node.labels)
                 curr_node.labels = []
-            curr_node = curr_node.children.setdefault(ch, _Node())                
+            curr_node = curr_node.children.setdefault(ch, _Node())
 
         if (curr_node.children=={} and curr_node.labels==[]):
             # we have a new prefix
@@ -302,7 +304,7 @@ class Trie:
         return node.labels
 
 def _build_prefix_map(seqs):
-    """Builds a prefix map.
+    """Builds a prefix map using an atomic Trie.
 
     seqs: dict like sequence collection
     """
@@ -322,7 +324,6 @@ def _build_prefix_map(seqs):
             mapping[label2].append(label)
 
     return mapping
-
 
 def build_trie(seqs, classname=Compressed_Trie):
     """ build a Trie for a list of (label,seq) pairs.
@@ -347,11 +348,14 @@ def build_prefix_map(seqs, classname=Compressed_Trie):
 
     classname: Constructor to use for tree building
                Compressed_Trie (default) or Trie
+
+    This method can be used to filter sequences for identity and for identical prefixes.
+    Due to the nature of tries a list of n seqs of length l can be filtered in O(nl) time.
     """
     if (not(classname==Trie or classname==Compressed_Trie)):
         raise ValueError, "Wrong classname for build_trie."
     if (classname == Compressed_Trie):
         t = build_trie(seqs)
-        return t.prefix_map()
+        return t.prefixMap()
     else:
         return _build_prefix_map(seqs)

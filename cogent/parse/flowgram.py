@@ -12,10 +12,6 @@ __email__ = "jreeder@colorado.edu"
 __status__ = "Development"
 
 from copy import copy
-from types import GeneratorType
-
-from numpy.random import multinomial
-from numpy import round as roun, bincount, array, transpose
 
 from cogent.util.unit_test import FakeRandom
 from cogent.core.sequence import Sequence
@@ -85,16 +81,16 @@ class Flowgram(object):
         """returns the length of the flowgram"""
         return len(self.flowgram)
 
-    def cmp_seq_to_string(self, other):
+    def cmpSeqToString(self, other):
         """compares the flowgram's sequence to other which is a string
-        will first try to compare by self.Bases, then by self.to_sequence"""
+        will first try to compare by self.Bases, then by self.toSeq"""
         
         if hasattr(self,'Bases') and self.Bases == other:
             return True
         else:
-            return self.to_sequence() == other
+            return self.toSeq() == other
 
-    def cmp_by_name(self, other):
+    def cmpByName(self, other):
         """compares based on the name, other must also be a flowgram object"""
         if self is other:
             return 0
@@ -103,7 +99,7 @@ class Flowgram(object):
         except AttributeError:
             return cmp(type(self), type(other))
 
-    def cmp_by_seqs(self, other):
+    def cmpBySeqs(self, other):
         """compares by the sequences they represent
             other must also be a flowgram object
         """
@@ -112,13 +108,14 @@ class Flowgram(object):
         try:
             return cmp(self.Bases,other.Bases)
         except AttributeError:
-            return cmp(self.to_sequence(), other.to_sequence())
+            return cmp(self.toSeq(), other.toSeq())
   
     def hasProperKey(self, keyseq=DEFAULT_KEYSEQ):
         """Checks for the proper key sequence"""
 
         keylen = len(keyseq)
-        keyseq_from_flow = self.to_sequence(truncate=False, Bases=False)[:keylen]
+        keyseq_from_flow = self.toSeq(truncate=False,
+                                            Bases=False)[:keylen]
         return (keyseq_from_flow == keyseq)
          
     def __cmp__(self, other):
@@ -141,7 +138,7 @@ class Flowgram(object):
         """__contains__ checks whether other is in the flowgram string."""
         return other in self._flowgram
 
-    def to_sequence(self, Bases=True, truncate=True):
+    def toSeq(self, Bases=True, truncate=True):
         """Translates flowgram to sequence and returns sequence object
             if Bases is True then a sequence object will be made using
             self.Bases instead of translating the flowgram
@@ -187,14 +184,14 @@ class Flowgram(object):
               returns a label str
         """
         if hasattr(self,'Bases'):
-            seq = self.to_sequence(Bases = True)
+            seq = self.toSeq(Bases = True)
         else:
-            seq = self.to_sequence()
+            seq = self.toSeq()
 
         seq.LineWrap = LineWrap
         return seq.toFasta(make_seqlabel = make_seqlabel)
      
-    def get_quality_trimmed_flowgram(self):
+    def getQualityTrimmedFlowgram(self):
         """Returns trimmed flowgram according to Clip Qual Right"""
         flow_copy = copy(self)
         if (hasattr(self, "Clip Qual Right") and hasattr(self, "Flow Indexes")):
@@ -226,7 +223,7 @@ class Flowgram(object):
  
         return flow_copy
                 
-    def get_primer_trimmed_flowgram(self, primerseq):
+    def getPrimerTrimmedFlowgram(self, primerseq):
         """Cuts the key and primer sequences of a flowgram.
         
         primerseq: the primer seq to be truncated from flowgram
@@ -258,7 +255,7 @@ class Flowgram(object):
                 flow_copy.flowgram = flow_copy.flowgram[pos:]
                 # and pad flowgram to the left to sync with floworder
                 flow_copy.flowgram[:0] = pad_num*[0.00]
-                #Update "Flow Indixes" attribute
+                #Update "Flow Indexes" attribute
                 #shift all flow indices by the deleted amount
                 setattr(flow_copy, "Flow Indexes", 
                     "\t".join([ str(a-pos+pad_num) for a in\
@@ -267,6 +264,7 @@ class Flowgram(object):
             if (signal > 1.5):
                 # we are cutting within a signal, need to do some flowgram arithmetic
                 lastchar = primerseq[-1]
+                #get the position before the homopolymer
                 num_lastchar = len(primerseq) - len(primerseq.rstrip(lastchar))
                                                     
                 flow_copy.flowgram = flow_copy.flowgram[pos-1:]
@@ -306,7 +304,7 @@ class Flowgram(object):
 
             return flow_copy
 
-    def create_flow_header(self):
+    def createFlowHeader(self):
         """header_info dict turned into flowgram header"""
         lines = [">%s\n"%self.Name]
         flow_info = []
@@ -336,15 +334,17 @@ def seq_to_flow(seq, id = None, keyseq = None, floworder = DEFAULT_FLOWORDER):
     keyseq
     """
 
-    if('N' in seq):
-        raise ValueError,"No Ns allwed in seq_to_flow"
-
     complete_flow = floworder * len(seq) # worst case length
     i = 0  # iterates over seq
     j = 0  # iterates over the flow sequence tcagtcagtcag...
     mask = ""
 
     while (j < len(complete_flow) and i<len(seq)):
+        if(seq[i] == 'N'):
+            mask+="0.00 0.00 0.00 0.00"
+            i+=1
+            j+=4
+            continue
         if (complete_flow[j] == seq[i]):
             #check for more than one of this nuc
             c = 1
@@ -368,7 +368,6 @@ def seq_to_flow(seq, id = None, keyseq = None, floworder = DEFAULT_FLOWORDER):
 
     return Flowgram(map(float, mask), id, keyseq, floworder)
 
-
 def build_averaged_flowgram(flowgrams):
     """Builds an averaged flowgram from a list of raw signals."""
 
@@ -384,26 +383,3 @@ def build_averaged_flowgram(flowgrams):
                 sum +=element
         result.append(round(sum/k,2))
     return result
-
-def merge_flowgrams(f1, f2, weight=1):
-    """Produce an average flowgrams from f2 and f2.
-    
-    weight: weight f1 stronger than f2.
-    """
-    flow1 = f1.flowgram
-    flow2 = f2.flowgram
-    
-    flow_ave = [round(_ave(a, b, weight),2) for (a,b) in map(None, flow1, flow2)]
-    
-    return (Flowgram(flow_ave, f1.Name, f1.keySeq, floworder=f1.floworder, header_info=f1.header_info))
-        
-def _ave(s1, s2, weight=1):
-    """Compute a weighted average."""
-    if (s1!=None and s2!=None):
-        return ((s1*weight)+s2)/(weight+1)
-    elif(s1==None):
-        return s2
-    elif(s2==None):
-        return s1
-    else:
-        raise ValueError,"_ave called with two None values"
