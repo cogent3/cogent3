@@ -133,7 +133,7 @@ def _sff_parser(handle, header):
         
         yield flowgram
 
-def get_random_flows_from_SFF(filename, num=100, size=None):
+def get_random_flows_from_sff(filename, num=100, size=None):
     """Reads size many flows from filename and return sample of num randoms.
     
     Note: size has to be the exact number of flowgrams in the file, otherwise 
@@ -151,7 +151,7 @@ def get_random_flows_from_SFF(filename, num=100, size=None):
     if (size<num):
         size = num
     
-    (flowgrams, header) =  lazy_parse_sff(open(filename))
+    (flowgrams, header) =  lazy_parse_sff_handle(open(filename))
     idxs = sample(xrange(size), num)
     idxs.sort()
     i = 0   
@@ -172,7 +172,7 @@ def count_sff(sff_fh):
     return i
 
 
-def SFFtoFasta(sff_fp, out_fp):
+def sff_to_fasta(sff_fp, out_fp):
     """Transform an sff file to fasta"""
     (flowgrams, header) = lazy_parse_sff_handle(open(sff_fp))
 
