@@ -155,10 +155,10 @@ key
         self.assertEqual(t.find("cacgchagc"), [])
 
 
-    def test_prefix_map(self):
+    def test_prefixMap(self):
         """prefix_map (Compressed_Trie) should map prefix strings."""
         
-        self.assertEqual(self.trie.prefix_map(),
+        self.assertEqual(self.trie.prefixMap(),
                          {'1': ['6', '2', '0', '5'],
                           '8': ['7'],
                           '3': [], 
@@ -302,10 +302,10 @@ key
         self.assertEqual(t.find("cacgchagc"), [])
 
 
-    def test_prefix_map(self):
+    def test_prefixMap(self):
         """prefix_map (Compressed_Trie) should map prefix strings."""
         
-        self.assertEqual(self.trie.prefix_map(),
+        self.assertEqual(self.trie.prefixMap(),
                          {'1': ['6', '2', '0', '5'],
                           '8': ['7'],
                           '3': [], 

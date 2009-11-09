@@ -12,12 +12,12 @@ __Status__ = "Development"
 from copy import copy
 from types import GeneratorType
 
-from numpy import round as roun, bincount, array, transpose
+from numpy import transpose
 from numpy.random import multinomial
 
 from cogent.util.unit_test import FakeRandom
 from cogent.core.sequence import Sequence
-from cogent.parse.flowgram_parser import SFFParser
+from cogent.parse.flowgram_parser import parse_sff
 from cogent.parse.flowgram import Flowgram
 from cogent.core.alignment import SequenceCollection
 
@@ -46,7 +46,6 @@ def flows_from_flowCollection(flow):
     array of numbers into Flowgram objects and leaves the flowgrams unlabeled.
     """
     return flow.flows, flow.Names, [f.header_info for f in flow.flows]
-
 
 def flows_from_kv_pairs(flows):
     """SequenceCollection from list of (key, val) pairs.
@@ -82,7 +81,7 @@ def flows_from_sff(flows):
     if isinstance(flows, str):
         flows = flows.splitlines()
         
-    flows, head = SFFParser(flows)
+    flows, head = parse_sff(flows)
     return flows_from_generic(flows)
 
 def flows_from_generic(flows):
@@ -148,7 +147,6 @@ class FlowgramCollection(object):
         header_info: contains info to be printed in the common header of an sff
                     file, it is a dictionary. ex: Key Sequence:"ATCG"
         """
-
 
         #read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
@@ -336,9 +334,9 @@ class FlowgramCollection(object):
 
     def __str__(self):
         """returns string like sff file given the flowgrams and header_info"""
-        lines = self.create_common_header()
+        lines = self.createCommonHeader()
         lines.append('')
-        lines.extend([f.create_flow_header() for f in self.flows])
+        lines.extend([f.createFlowHeader() for f in self.flows])
         return '\n'.join(lines)
 
     def __cmp__(self, other):
@@ -364,7 +362,6 @@ class FlowgramCollection(object):
         """items returns (name, value) pairs."""
         return [(n, self.NamedFlows[n]) for n in self.Names]
     
-
     def writeToFile(self, filename=None, **kwargs):
         """Write the flowgrams to a file.
         
@@ -380,8 +377,7 @@ class FlowgramCollection(object):
         f.write(str(self))
         f.close()
 
-
-    def create_common_header(self):
+    def createCommonHeader(self):
         """header_info dict turned into flowgram common header"""
         lines = ["Common Header:"]
         
@@ -462,7 +458,7 @@ class FlowgramCollection(object):
     def toSequenceCollection(self, Bases = False):
         names = self.Names
         flow_dict = self.NamedFlows
-        flows = [flow_dict[f].to_sequence(Bases = Bases) for f in names]
+        flows = [flow_dict[f].toSeq(Bases = Bases) for f in names]
         return SequenceCollection(flows)
 
     def addFlows(self, other):
@@ -586,7 +582,7 @@ class FlowgramCollection(object):
             new_f = f
         #get all the seqs where the function is True
         return [key for key in self.Names \
-               if new_f(get(key).to_sequence(Bases = Bases))]
+               if new_f(get(key).toSeq(Bases = Bases))]
     
     def takeFlowsIf(self, f, negate=False, Bases = False, **kwargs):
         """Returns new Alignment containing seqs where f(row) is True.
@@ -622,7 +618,7 @@ class FlowgramCollection(object):
         int_map = dict([(k, copy(get(v))) for k,v in int_keys.items()])
         return int_map, int_keys
 
-    def todict(self):
+    def toDict(self):
         """Returns the collection as dict of names -> strings.
 
         Note: returns strings, NOT Flowgram objects.
@@ -634,7 +630,6 @@ class FlowgramCollection(object):
         
         return collection_dict
     
-
     def omitAmbiguousFlows(self, Bases = False):
         """Returns an object containing only the sequences without N's"""
         is_ambiguous = lambda x: 'N' not in x
@@ -642,9 +637,9 @@ class FlowgramCollection(object):
         return self.takeFlowsIf(is_ambiguous, Bases = Bases)
 
     def setBases(self):
-        """Sets the Bases property for each flowgram using to_sequence"""
+        """Sets the Bases property for each flowgram using toSeq"""
         for f in self.values():
-            f.Bases = f.to_sequence()
+            f.Bases = f.toSeq()
     
 
 def pick_from_prob_density(pvals,bin_size):
@@ -717,6 +712,3 @@ def seqs_to_flows(seqs, keyseq = default_keyseq, floworder = default_floworder,
     header_info.update({'Key Sequence':keyseq,'Flow Chars':floworder,
                         'Key Length':keylen})
     return FlowgramCollection(flows, header_info = header_info)
-        
-
-
