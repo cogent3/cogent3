@@ -105,6 +105,8 @@ class _SubstitutionModel(object):
     # Subclasses must provide
     #  .makeParamControllerDefns()
     _scalableQ = False
+    with_rate = False
+    scale_masks = ()
     
     def __init__(self, alphabet, 
             motif_probs=None, optimise_motif_probs=False,
@@ -449,7 +451,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 class General(_ContinuousSubstitutionModel):
     """One free parameter for each and every instantaneous substitution"""
     _do_scaling = False
-    with_rate = False
     symmetric = False
     
     # k = self.param_pick[i,j], 0<=k<=N+1
@@ -479,7 +480,6 @@ class GeneralStationary(_ContinuousSubstitutionModel):
     except the last in each column.  As general as can be while still having 
     stationary motif probabilities"""
     _do_scaling = False
-    with_rate = False
     symmetric = False
     
     def setupRateParams(self):
@@ -531,6 +531,9 @@ class Empirical(_ContinuousSubstitutionModel):
 
 class SubstitutionModel(_ContinuousSubstitutionModel):
     """Basic services for markov models of molecular substitution"""
+    
+    with_rate = None  # overridden by __init__
+    scale_masks = None  # overridden by __init__
     
     def __init__(self, alphabet, predicates=None, scales=None, with_rate=False, 
             ordered_param=None, distribution=None, partitioned_params=None,
