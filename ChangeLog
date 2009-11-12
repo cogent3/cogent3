@@ -24,6 +24,10 @@ New Features
 Changes
 -------
 
+* cogent.format.table.asReportlabTable is being discontinued in version 1.5.
+  This is the last dependency on reportlab and removal will simplify
+  installation.
+
 Bug Fixes
 ---------
 
