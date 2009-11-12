@@ -7,6 +7,7 @@ Current formats include restructured text (keyed by 'rest'), latex, html,
 columns separated by a provided string, and a simple text format.
 """
 import textwrap
+from cogent.util.warning import discontinued
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -392,6 +393,7 @@ def asReportlabTable(header, formatted_table, total_width=476, table_style = Non
         - total_width: table width
         - table_style: reportlab compliant table style settings.
     """
+    discontinued('function', 'asReportlabTable', 1.5)
     from reportlab.platypus import Table as reportlabTable
     from reportlab.lib import colors
     if not table_style:
