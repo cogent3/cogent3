@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 55
+Release = 56
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -42,7 +42,7 @@ class TestDatabase(TestCase):
                     species='human', db_type='core')
         tn, tc = 'gene', 'biotype'
         expected = set(['protein_coding', 'pseudogene', 'processed_transcript', 
-          'polymorphic_pseudogene', 'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene', 
+          'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene',
           'IG_C_gene', 'IG_D_gene', 'miRNA', 'misc_RNA', 'snoRNA', 'snRNA', 'rRNA'])
         got = set(db.getDistinct(tn, tc))
         self.assertEquals(len(got&expected), len(expected))
@@ -56,10 +56,10 @@ class TestDatabase(TestCase):
         
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_55_37.analysis': 54L,
-                  'homo_sapiens_core_55_37.seq_region': 55545L,
-                  'homo_sapiens_core_55_37.assembly': 102007L,
-                  'homo_sapiens_core_55_37.oligo_probe': 0L}
+        expect = {'homo_sapiens_core_56_37a.analysis': 57L,
+                  'homo_sapiens_core_56_37a.seq_region': 55604L,
+                  'homo_sapiens_core_56_37a.assembly': 102068L,
+                  'homo_sapiens_core_56_37a.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
