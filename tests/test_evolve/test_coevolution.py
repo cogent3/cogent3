@@ -2088,12 +2088,12 @@ class AncestorCoevolve(TestCase):
         aln = DenseAlignment(data={'A':'AA','B':'AA','C':'AC'},MolType=PROTEIN)
         expected = DenseAlignment(data={'root':'AA','edge.0':'AA'},\
             MolType=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln,t),expected)
+        self.assertEqual(get_ancestral_seqs(aln,t, optimise=False),expected)
         t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
         aln = DenseAlignment(data={'A':'AA','B':'AA','C':'AC'},\
             MolType=PROTEIN)
         expected = DenseAlignment(data={'root':'AA'},MolType=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln,t),expected)
+        self.assertEqual(get_ancestral_seqs(aln,t, optimise=False),expected)
        
         t = LoadTree(treestring='(((A1:0.5,A2:0.5):0.5,B:0.5):0.5,\
             (C:0.5,D:0.5):0.5);')
@@ -2101,7 +2101,7 @@ class AncestorCoevolve(TestCase):
             'C':'AC','D':'AC'},MolType=PROTEIN)
         expected = DenseAlignment(data={'root':'AC','edge.0':'AD',\
             'edge.1':'AC','edge.2':'AC'},MolType=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln,t),expected)
+        self.assertEqual(get_ancestral_seqs(aln,t, optimise=False),expected)
 
     def test_get_ancestral_seqs_handles_gaps(self): 
         """get_ancestral_seqs: handles gaps """
@@ -2109,14 +2109,14 @@ class AncestorCoevolve(TestCase):
         t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
         aln = DenseAlignment(data={'A':'A-','B':'AA','C':'AA'},MolType=PROTEIN)
         expected = DenseAlignment(data={'root':'AA'},MolType=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln,t),expected)
+        self.assertEqual(get_ancestral_seqs(aln,t, optimise=False),expected)
     
     def test_get_ancestral_seqs_handles_ambiguous_residues(self): 
         """get_ancestral_seqs: handles ambiguous residues """
         # Non-canonical residues handled OK
         t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
         aln = DenseAlignment(data={'A':'AX','B':'Z-','C':'BC'},MolType=PROTEIN)
-        actual = get_ancestral_seqs(aln,t)
+        actual = get_ancestral_seqs(aln,t, optimise=False)
         self.assertEqual(len(actual),2)
         self.assertEqual(actual.getNumSeqs(),1) 
 
