@@ -20,6 +20,9 @@ New Features
   forms of Goldman and Yang (1994) and Muse and Gaut (1994). The publication
   supporting this claim is In press at Mol Biol Evol, authored by Yap,
   Lindsay, Easteal and Huttley.
+* added new argument to LoadTable to facilitate speedier loading of large
+  files. The static_column_types argument auto-generates a separator format
+  parser with column conversion for numeric columns.
 
 Changes
 -------

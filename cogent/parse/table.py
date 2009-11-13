@@ -54,6 +54,34 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
     
     return callable
 
+def autogen_reader(infile, sep, with_title):
+    """returns a SeparatorFormatParser with field convertor for numeric column
+    types."""
+    seen_title_line = False
+    for first_data_row in infile:
+        if seen_title_line:
+            break
+        if sep in first_data_row and not seen_title_line:
+            seen_title_line = True
+    
+    infile.seek(0) # reset to start of file
+    
+    numeric_fields = []
+    cast = None
+    for index, value in enumerate(first_data_row.strip().split(sep)):
+        try:
+            v = float(value)
+        except ValueError:
+            try:
+                v = long(value)
+            except ValueError:
+                continue
+        
+        numeric_fields += [(index, eval(value).__class__)]
+    
+    return SeparatorFormatParser(converter=ConvertFields(numeric_fields),
+                                 sep=sep)
+
 def load_delimited(filename, header = True, delimiter = ',',
         with_title = False, with_legend = False):
     f = file(filename, "U")
