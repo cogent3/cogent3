@@ -618,7 +618,7 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
 
 A few things to note about the delimited file saving: formatting arguments are lost in saving to a delimited format; the ``header`` argument specifies whether the first line of file should be treated as the header; the ``with_title`` and ``with_legend`` arguments are necessary if the file contains them, otherwise the become the header or part of the file. Importantly, if you wish to preserve numerical precision use the ``pickle`` format.
 
-cPickle should be able to load a useful object from the pickled Table alone.
+``cPickle`` should be able to load a useful object from the pickled ``Table`` alone.
 
 .. doctest::
     
@@ -664,6 +664,42 @@ We can read in a delimited format using a custom reader, which we'll now import.
        edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
        edge.1         root  4.0000  1.0000  3.0000  6.0000
     ------------------------------------------------------
+
+In the above example, the data type in a column is static, e.g. all values in ``x`` are floats. Rather than providing a custom reader, you can get the ``Table`` to construct such a reader based on the first data row using the ``static_column_types`` argument.
+
+.. doctest::
+    
+    >>> t3a = LoadTable(filename="t3.tab", static_column_types=True, digits=1,
+    ...                 sep='\t')
+    >>> print t3a
+    =======================================================
+    edge.name    edge.parent    length      x      y      z
+    -------------------------------------------------------
+        Human         edge.0       4.0    1.0    3.0    6.0
+    HowlerMon         edge.0       4.0    1.0    3.0    6.0
+        Mouse         edge.1       4.0    1.0    3.0    6.0
+    NineBande           root       4.0    1.0    3.0    6.0
+     DogFaced           root       4.0    1.0    3.0    6.0
+       edge.0         edge.1       4.0    1.0    3.0    6.0
+       edge.1           root       4.0    1.0    3.0    6.0
+    -------------------------------------------------------
+
+If you invoke the ``static_column_types`` argument and the column data are not static, you'll get a ``ValueError``. We show this by first creating a simple table with mixed data types in a column, write to file and then try to load with  ``static_column_types=True``.
+
+.. doctest::
+    
+    >>> t3b = LoadTable(header=['A', 'B'], rows=[[1,1], ['a', 2]], sep=2)
+    >>> print t3b
+    ======
+    A    B
+    ------
+    1    1
+    a    2
+    ------
+    >>> t3b.writeToFile('test3b.txt', sep='\t')
+    >>> t3b = LoadTable('test3b.txt', sep = '\t', static_column_types=True)
+    Traceback (most recent call last):
+    ValueError: invalid literal for int() with base 10: 'a'
 
 We also test the reader function for a '\t' delimited format with missing data at the end.
 
@@ -1687,7 +1723,7 @@ We can count the number of rows for which a condition holds. This method uses th
     :hide:
     
     >>> import os
-    >>> to_delete = ['t3.pickle', 'junk.pdf', 't2.csv', 't3.tab']
+    >>> to_delete = ['t3.pickle', 'junk.pdf', 't2.csv', 't3.tab', 'test3b.txt']
     >>> for f in to_delete:
     ...     try:
     ...         os.remove(f)
