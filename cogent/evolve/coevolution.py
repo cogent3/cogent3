@@ -1008,17 +1008,26 @@ def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
 ## End Resampled Mutual Information Analysis
 
 ## Begin ancestral_states analysis        
-def get_ancestral_seqs(aln,tree):
+def get_ancestral_seqs(aln, tree, sm = None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
-
+    
+    Arguments:
+        - sm: a SubstitutionModel instance. If not provided, one is
+          constructed from the alignment Alphabet
+        - pseudocount: unobserved sequence states must not be zero, this value
+          is assigned to sequence states not observed in the alignment.
+        - optimise: whether to optimise the likelihood function.
+    
         Note: for the sake of reduced alphabets, we calculate the 
          substitution model from the alignment. This also appears
          to be what what described in Tuffery 2000, although they're 
          not perfectly clear about it.
     """
-    sm = SubstitutionModel(aln.Alphabet)
+    sm = sm or SubstitutionModel(aln.Alphabet, recode_gaps=True)
     lf = sm.makeLikelihoodFunction(tree,sm.motif_probs)
-    lf.setAlignment(aln)
+    lf.setAlignment(aln, motif_pseudocount=pseudocount)
+    if optimise:
+        lf.optimise(local=True, show_progress=False)
     return DenseAlignment(lf.likelyAncestralSeqs(),MolType=aln.MolType)
     
 
