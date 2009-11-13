@@ -126,21 +126,27 @@ class Genome(object):
     
     OtherFeaturesDb = property(_get_other_db)
     
-    def _get_biotype_description_condition(self, gene_table, Description=None, BioType=None):
+    def _get_biotype_description_condition(self, gene_table, Description=None, BioType=None, like=True):
         assert Description or BioType, "no valid argument provided"
-        btype_like, descr_like = None, None
+        btype, descr = None, None
         
         if BioType:
-            btype_like = gene_table.c.biotype.like('%'+BioType+'%')
+            if like:
+                btype = gene_table.c.biotype.like('%'+BioType+'%')
+            else:
+                btype = gene_table.c.biotype==BioType
         if Description:
-            descr_like = gene_table.c.description.like('%'+Description+'%')
+            if like:
+                descr = gene_table.c.description.like('%'+Description+'%')
+            else:
+                descr = gene_table.c.description==Description
         
-        if btype_like and descr_like:
-            condition = sql.and_(btype_like, descr_like)
-        elif btype_like:
-            condition = btype_like
-        elif descr_like:
-            condition = descr_like
+        if btype and descr:
+            condition = sql.and_(btype, descr)
+        elif btype:
+            condition = btype
+        elif descr:
+            condition = descr
         
         return condition
     
@@ -154,7 +160,7 @@ class Genome(object):
         return query
     
     def _get_gene_query(self, db, Symbol=None, Description=None, StableId=None,
-                         BioType=None):
+                         BioType=None, like=True):
         xref_table = [None, db.getTable('xref')][db.Type == 'core']
         gene_table = db.getTable('gene')
         gene_id_table = db.getTable('gene_stable_id')
@@ -165,7 +171,7 @@ class Genome(object):
         elif StableId:
             condition = gene_id_table.c.stable_id==StableId
         else:
-            condition = self._get_biotype_description_condition(gene_table, Description, BioType)
+            condition = self._get_biotype_description_condition(gene_table, Description, BioType, like)
         
         query = self._build_gene_query(db, condition, gene_table, gene_id_table, xref_table)
         
@@ -178,7 +184,7 @@ class Genome(object):
                             Strand=Strand, ensembl_coord=ensembl_coord)
     
     def getGenesMatching(self, Symbol=None, Description=None, StableId=None,
-                         BioType=None):
+                         BioType=None, like=True):
         """Symbol: HGC gene symbol, case doesn't matter
         description: a functional description
         StableId: the ensebl identifier
@@ -186,7 +192,6 @@ class Genome(object):
         # TODO additional arguments to satisfy: external_ref, go_terms
         if Symbol is not None:
             Symbol = Symbol.lower()
-        
         # biotype -> gene
         # description -> gene
         # Symbols -> xref
@@ -200,7 +205,7 @@ class Genome(object):
         # TODO catch codnitions where user passes in both a symbol and a
         # biotype
         args = dict(Symbol=Symbol, Description=Description, 
-                     StableId=StableId, BioType=BioType)
+                     StableId=StableId, BioType=BioType, like=like)
         query = self._get_gene_query(self.CoreDb, **args)
         records = query.execute()
         for record in records:
