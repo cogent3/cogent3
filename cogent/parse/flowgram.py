@@ -255,11 +255,7 @@ class Flowgram(object):
                 flow_copy.flowgram = flow_copy.flowgram[pos:]
                 # and pad flowgram to the left to sync with floworder
                 flow_copy.flowgram[:0] = pad_num*[0.00]
-                #Update "Flow Indexes" attribute
-                #shift all flow indices by the deleted amount
-                setattr(flow_copy, "Flow Indexes", 
-                    "\t".join([ str(a-pos+pad_num) for a in\
-                                    flow_indices[primer_len:]]))
+                #check that first 4 flows not are all zero
 
             if (signal > 1.5):
                 # we are cutting within a signal, need to do some flowgram arithmetic
@@ -272,12 +268,19 @@ class Flowgram(object):
                 #pad flowgram to the left to sync with floworder
                 flow_copy.flowgram[:0] = (pad_num-1)*[0.00]
 
-                #Update "Flow Indixes" attribute
-                #shift all flow indices by the deleted amount
-                setattr(flow_copy, "Flow Indexes", 
-                        "\t".join([ str(a-(pos-1)+(pad_num-1))\
-                                        for a in flow_indices[primer_len:]]))
-
+            if(any([sign>0.5 for sign in flow_copy.flowgram[:4]])):
+              #We are ok
+                extra_shift=0
+                pass
+            else:
+                    #we truncate the first 4 flows
+                flow_copy.flowgram = flow_copy.flowgram[4:]
+                extra_shift=4
+            #Update "Flow Indexes" attribute
+            #shift all flow indices by the deleted amount
+            setattr(flow_copy, "Flow Indexes", 
+                    "\t".join([ str(a-(pos+extra_shift)+pad_num) for a in\
+                                    flow_indices[primer_len:]]))
             #Update flowgram string representation
             flow_copy._flowgram = "\t".join(map(lambda a:"%.2f"%a,
                                                 flow_copy.flowgram)) 
