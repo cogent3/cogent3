@@ -2,6 +2,7 @@ from host import HostAccount
 from species import Species
 from genome import Genome
 from compara import Compara
+from util import NoItemError
 
 __all__ = ['assembly', 'compara', 'database', 'genome', 'host', 'name',
            'region', 'related_region', 'sequence', 'species', 'util',
