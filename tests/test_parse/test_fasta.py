@@ -300,16 +300,18 @@ class LabelParsingTest(TestCase):
     """Test generic fasta label parsing"""
     def test_rich_label(self):
         """rich label correctly constructs label strings"""
-        # labels should be equal based on the result of applying their attributes to
-        # their string template
+        # labels should be equal based on the result of applying their
+        # attributes to their string template
         k = RichLabel(Info(species="rat"), "%(species)s")
         l = RichLabel(Info(species="rat", seq_id="xy5"), "%(species)s")
         self.assertEqual(k, l)
         
         # labels should construct from Info components correctly
-        k = RichLabel(Info(species="rat", seq_id="xy5"), "%(seq_id)s:%(species)s")
+        k = RichLabel(Info(species="rat", seq_id="xy5"),
+                      "%(seq_id)s:%(species)s")
         self.assertEqual(k, "xy5:rat")
-        k = RichLabel(Info(species="rat", seq_id="xy5"), "%(species)s:%(seq_id)s")
+        k = RichLabel(Info(species="rat", seq_id="xy5"),
+                      "%(species)s:%(seq_id)s")
         self.assertEqual(k, "rat:xy5")
         
         # extra components should be ignored
@@ -319,6 +321,9 @@ class LabelParsingTest(TestCase):
         # the label should have Info object
         self.assertEqual(k.Info.species, "rat")
         self.assertEqual(k.Info.seq_id, "xy5")
+        
+        # label should be constructable just like a normal string
+        self.assertEqual(RichLabel('a'), 'a')
     
     def test_label_parser(self):
         """label parser factory function cope with mixed structure labels"""

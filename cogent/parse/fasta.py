@@ -185,11 +185,12 @@ class RichLabel(str):
     attributes from the fasta label. The str is created from a provided format
     template that uses the keys from the Info object."""
     
-    def __new__(cls, info, template):
+    def __new__(cls, info, template="%s"):
         """Arguments:
         
             - info: a cogent.core.info.Info instance
-            - a string template, using a subset of the keys in info
+            - template: a string template, using a subset of the keys in info.
+              Defaults to just '%s'.
         
         Example:
             label = RichLabel(Info(name='rat', species='Rattus norvegicus'),
