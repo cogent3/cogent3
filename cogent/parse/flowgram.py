@@ -228,7 +228,7 @@ class Flowgram(object):
         
         primerseq: the primer seq to be truncated from flowgram
         """
-
+      
         if(primerseq==""):
             return self
         else:
@@ -244,43 +244,47 @@ class Flowgram(object):
             primer_len = len(primerseq)
             pos = flow_indices[primer_len-1]
             signal = flow_copy.flowgram[pos-1] 
-            pad_num = pos % 4
 
             if (signal < 0.5):
                 #Flowgram is not consistent with primerseq
                 return None
 
-            if (signal < 1.5):
+            elif (signal < 1.5):
+                pad_num = pos % 4
                 #we can simply cut off
                 flow_copy.flowgram = flow_copy.flowgram[pos:]
                 # and pad flowgram to the left to sync with floworder
                 flow_copy.flowgram[:0] = pad_num*[0.00]
                 #check that first 4 flows not are all zero
 
-            if (signal > 1.5):
+            else:
+                pad_num = (pos-1)%4
                 # we are cutting within a signal, need to do some flowgram arithmetic
                 lastchar = primerseq[-1]
-                #get the position before the homopolymer
-                num_lastchar = len(primerseq) - len(primerseq.rstrip(lastchar))
+                #get the position in the homopolyemer 
+                pos_in_homopoly = len(primerseq) - len(primerseq.rstrip(lastchar))
                                                     
                 flow_copy.flowgram = flow_copy.flowgram[pos-1:]
-                flow_copy.flowgram[0] =  max(0.00, flow_copy.flowgram[0] - num_lastchar)
+                flow_copy.flowgram[0] =  max(0.00, flow_copy.flowgram[0] - pos_in_homopoly)
                 #pad flowgram to the left to sync with floworder
-                flow_copy.flowgram[:0] = (pad_num-1)*[0.00]
+                flow_copy.flowgram[:0] = (pad_num)*[0.00]
 
-            if(any([sign>0.5 for sign in flow_copy.flowgram[:4]])):
-              #We are ok
+            # delete first flow cycle if all <0.5 (otherwise an N would be called)
+            if(any([sign>=0.5 for sign in flow_copy.flowgram[:4]])):
+                #We are ok
                 extra_shift=0
                 pass
             else:
-                    #we truncate the first 4 flows
+                #we truncate the first 4 flows
                 flow_copy.flowgram = flow_copy.flowgram[4:]
                 extra_shift=4
             #Update "Flow Indexes" attribute
             #shift all flow indices by the deleted amount
-            setattr(flow_copy, "Flow Indexes", 
-                    "\t".join([ str(a-(pos+extra_shift)+pad_num) for a in\
-                                    flow_indices[primer_len:]]))
+            # WARNING: this sets wrong flow indexes, so better set to nothing     
+#            setattr(flow_copy, "Flow Indexes", 
+#                    "\t".join([ str(a-(pos+extra_shift)+pad_num) for a in\
+#                                    flow_indices[primer_len:]]))
+            setattr(flow_copy, "Flow Indexes", "")
             #Update flowgram string representation
             flow_copy._flowgram = "\t".join(map(lambda a:"%.2f"%a,
                                                 flow_copy.flowgram)) 
