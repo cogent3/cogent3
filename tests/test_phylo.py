@@ -76,6 +76,11 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertEqual(len(reconstructed.getTipNames()), 5)
         init3 = LoadTree(treestring='((a,d),b,e)')
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
+        # if start tree has all seq names, should raise an error
+        self.assertRaises(Exception, wls, self.dists,
+                start=[LoadTree(treestring='((a,c),b,(d,e))')])
+        
+    
 
 class DistancesTests(unittest.TestCase):
     def setUp(self):
