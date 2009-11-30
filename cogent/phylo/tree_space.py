@@ -157,6 +157,10 @@ class TreeEvaluator(object):
             names = self._consistentNameOrder(fixed_names, order)
             trees = []
             for tree in start:
+                # check the start tree represents a subset of tips
+                assert set(tree.getTipNames()) < set(self.names), \
+                    "Starting tree names not a subset of the sequence names"
+                
                 (ancestry, fixed_names2, lengths) = tree2ancestry(
                         tree, order=fixed_names)
                 assert fixed_names2 == fixed_names
