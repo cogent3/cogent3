@@ -2,8 +2,7 @@
 Accessing databases
 *******************
 
-.. sectionauthor:: Kristian Rother, Patrick Yannul, Gavin Huttley
-
+.. Gavin Huttley, Kristian Rother, Patrick Yannul
 
 NCBI
 ====
@@ -162,6 +161,7 @@ For structures
 Rfam
 ====
 
+For RNA secondary structures, alignments, functions
 ---------------------------------------------------
 
 *To be written.*
@@ -171,6 +171,7 @@ GoldenPath (not yet implemented)
 
 *To be written.*
 
+Whole-genome alignments, orthologs, annotation tracks
 -----------------------------------------------------
 
 *To be written.*

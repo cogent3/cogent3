@@ -2,6 +2,7 @@
 Building alignments
 *******************
 
+.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
 Using the cogent aligners
 =========================
