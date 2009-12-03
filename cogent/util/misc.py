@@ -7,7 +7,7 @@ from time import clock
 from string import maketrans, strip
 from random import randrange
 from sys import maxint
-from os import popen
+from os import popen, remove
 from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
