@@ -64,6 +64,7 @@ def suite():
         'test_core.test_bitvector',
         'test_core.test_core_standalone',
         'test_core.test_features.rst',
+        'test_core.test_entity',
         'test_core.test_genetic_code',
         'test_core.test_info',
         'test_core.test_location',
@@ -92,6 +93,7 @@ def suite():
         'test_maths.test_geometry',
         'test_maths.test_matrix_logarithm',
         'test_maths.test_matrix.test_distance',
+        'test_maths.test_spatial.test_ckd3',
         'test_maths.test_stats.test_alpha_diversity',
         'test_maths.test_stats.test_distribution',
         'test_maths.test_stats.test_histogram',
@@ -160,6 +162,11 @@ def suite():
         'test_struct.test_knots',
         'test_struct.test_pairs_util',
         'test_struct.test_rna2d',
+        'test_struct.test_asa',
+        'test_struct.test_contact',
+        'test_struct.test_annotation',
+        'test_struct.test_selection',
+        'test_struct.test_manipulation',
         'test_util.test_unit_test',
         'test_util.test_array',
         'test_util.test_dict2d',
@@ -169,21 +176,21 @@ def suite():
         'test_util.test_table.rst',
         'test_util.test_transform',
         ]
-        
+
     try:
         import matplotlib
     except:
-        print >>sys.stderr, "No matplotlib so not running test_draw.py"
+        print >> sys.stderr, "No matplotlib so not running test_draw.py"
     else:
         matplotlib.use('Agg') # non interactive
         # test_draw not yet structured as unit tests
         #modules_to_test.append('test_draw')
 
     #Try importing modules for app controllers
-    apps = [('blastall','test_blast'),
+    apps = [('blastall', 'test_blast'),
             ('carnac', 'test_carnac'),
-            ('clearcut','test_clearcut'),
-            ('clustalw','test_clustalw'),
+            ('clearcut', 'test_clearcut'),
+            ('clustalw', 'test_clustalw'),
             ('cmfinder.pl', 'test_cmfinder'),
             ('comrna', 'test_comrna'),
             ('contrafold', 'test_contrafold'),
@@ -206,25 +213,26 @@ def suite():
             ('RNAfold', 'test_vienna_package'),
             ('raxmlHPC', 'test_raxml'),
             ('sfold.X86_64.LINUX', 'test_sfold'),
+            ('stride', 'test_stride'),
             ('hybrid-ss-min', 'test_unafold'),
             ('mlagan', 'test_lagan'),
             ('cd-hit', 'test_cd_hit'),
-            ('calculate_likelihood','test_gctmpca')
+            ('calculate_likelihood', 'test_gctmpca')
             ]
     for app, test_name in apps:
         if app_path(app):
-            modules_to_test.append('test_app.'+test_name)
+            modules_to_test.append('test_app.' + test_name)
         else:
-            print >>sys.stderr,"Can't find %s executable: skipping test" % app
+            print >> sys.stderr, "Can't find %s executable: skipping test" % app
 
     if app_path('muscle'):
         modules_to_test.append('test_format.test_pdb_color')
-    
+
     # we now toggle the db tests, based on an environment flag
     if int(os.environ.get('TEST_DB', 0)):
         db_tests = ['test_db.test_ncbi', 'test_db.test_pdb',
                         'test_db.test_rfam', 'test_db.test_util']
-        
+
         # we check for an environment flag for ENSEMBL
         # we expect this to have the username and account for a localhost
         # installation of the Ensembl MySQL databases
@@ -233,10 +241,10 @@ def suite():
             test_ensembl = True
             for module in ['MySQLdb', 'sqlalchemy']:
                 if not module_present(module):
-                    test_ensembl=False
-                    print >>sys.stderr, \
+                    test_ensembl = False
+                    print >> sys.stderr, \
                         "Module '%s' not present: skipping test" % module
-            
+
             if test_ensembl:
                 db_tests += ['test_db.test_ensembl.test_assembly',
                      'test_db.test_ensembl.test_database',
@@ -246,22 +254,22 @@ def suite():
                      'test_db.test_ensembl.test_species',
                       'test_db.test_ensembl.test_feature_level']
         else:
-            print >>sys.stderr,  "Environment variable ENSEMBL_ACCOUNT not "\
+            print >> sys.stderr, "Environment variable ENSEMBL_ACCOUNT not "\
             "set: skipping db.ensembl tests"
-        
+
         for db_test in db_tests:
             modules_to_test.append(db_test)
     else:
-        print >>sys.stderr, \
+        print >> sys.stderr, \
                 "Environment variable TEST_DB=1 not set: skipping db tests"
-    
+
     assert sys.version_info >= (2, 4)
-    
+
     alltests = unittest.TestSuite()
-    
+
     for module in modules_to_test:
         if module.endswith('.rst'):
-            module = os.path.join(*module.split(".")[:-1])+".rst"
+            module = os.path.join(*module.split(".")[:-1]) + ".rst"
             test = doctest.DocFileSuite(module, optionflags=
                 doctest.REPORT_ONLY_FIRST_FAILURE |
                 doctest.ELLIPSIS)
@@ -273,7 +281,7 @@ def suite():
 class BoobyTrappedStream(object):
     def __init__(self, output):
         self.output = output
-    
+
     def write(self, text):
         self.output.write(text)
         raise RuntimeError, "Output not allowed in tests"

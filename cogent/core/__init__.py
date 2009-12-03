@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-__all__ = ['alignment', 'alphabet', 'annotation', 'bitvector', 'genetic_code',
-           'info', 'location', 'moltype', 'profile', 'sequence', 'tree',
-           'usage']
+__all__ = ['alignment', 'alphabet', 'annotation', 'bitvector', 'entity',
+           'genetic_code', 'info', 'location', 'moltype', 'profile', 'sequence',
+           'tree', 'usage']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight",
-                    "Sandra Smit", "Peter Maxwell", "Matthew Wakefield", 
-                    "Greg Caporaso" ]
+                    "Sandra Smit", "Peter Maxwell", "Matthew Wakefield",
+                    "Greg Caporaso", "Marcin Cieslik" ]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Gavin Huttley"

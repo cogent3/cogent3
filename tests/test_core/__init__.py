@@ -5,6 +5,7 @@ __all__ = ['test_alignment',
            'test_annotation',
            'test_bitvector',
            'test_core_standalone',
+           'test_entity',
            'test_genetic_code',
            'test_info',
            'test_location',
@@ -19,8 +20,8 @@ __all__ = ['test_alignment',
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
-                    "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso", 
-                    "Sandra Smit", "Justin Kuczynski"]
+                    "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso",
+                    "Sandra Smit", "Justin Kuczynski", "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"

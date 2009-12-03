@@ -9,9 +9,9 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
                     "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                     "Edward Lang", "Greg Caporaso", "Mike Robeson",
-                    "Micah Hamady", "Sandra Smit", "Zongzhi Liu", 
+                    "Micah Hamady", "Sandra Smit", "Zongzhi Liu",
                     "Andrew Butterfield", "Amanda Birmingham", "Brett Easton",
-                    "Hua Ying", "Jason Carnes", "Raymond Sammut", 
+                    "Hua Ying", "Jason Carnes", "Raymond Sammut",
                     "Helen Lindsay", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
@@ -42,13 +42,14 @@ version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 from cogent.util.table import Table as _Table
-from cogent.parse.table import load_delimited, autogen_reader
+from cogent.parse.table import load_delimited
 from cogent.core.tree import TreeBuilder, TreeError
 from cogent.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent.parse.newick import parse_string as newick_parse_string
 from cogent.core.alignment import SequenceCollection
 from cogent.core.alignment import Alignment
 from cogent.parse.sequence import FromFilenameParser
+from cogent.parse.structure import FromFilenameStructureParser
 #note that moltype has to be imported last, because it sets the moltype in
 #the objects created by the other modules.
 from cogent.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
@@ -101,11 +102,11 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
-    
+
     if name_conversion_f:
         deprecated('argument', 'name_conversion_f', 'label_to_name', 1.4)
         label_to_name = name_conversion_f
-    
+
     if filename is None:
         assert data is not None
         assert format is None
@@ -113,33 +114,40 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     else:
         assert data is None, (filename, data)
         data = list(FromFilenameParser(filename, format, **parser_kw))
-    
+
     # the following is a temp hack until we have the load API sorted out.
     if aligned: #if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
-            return aligned(data=data, MolType=moltype, Name=name, 
+            return aligned(data=data, MolType=moltype, Name=name,
                 label_to_name=label_to_name, **constructor_kw)
         else:   #was not callable, but wasn't False
-            return Alignment(data=data, MolType=moltype, Name=name, 
+            return Alignment(data=data, MolType=moltype, Name=name,
                 label_to_name=label_to_name, **constructor_kw)
     else:   #generic case: return SequenceCollection
-        return SequenceCollection(data, MolType=moltype, Name=name, 
+        return SequenceCollection(data, MolType=moltype, Name=name,
             label_to_name=label_to_name, **constructor_kw)
 
-def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None, 
+def LoadStructure(filename, format=None, parser_kw={}):
+    """Initialize a Structure from data contained in filename.
+    Arguments:
+        - filename: name of the filename to create structure from.
+        - format: the optional file format extension.
+        - parser_kw: optional keyword arguments for the parser."""
+    # currently there is no support for string-input
+    assert filename is not None, 'No filename given.'
+    return FromFilenameStructureParser(filename, format, **parser_kw)
+
+
+def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
             row_order=None, digits=4, space=4, title='', missing_data='',
-            max_width = 1e100, row_ids=False, legend='', column_templates=None,
-            dtype=None, static_column_types=False, **kwargs):
+            max_width=1e100, row_ids=False, legend='', column_templates=None,
+            dtype=None, **kwargs):
     """
     Arguments:
     - filename: path to file containing a pickled table
     - sep: the delimiting character between columns
     - reader: a parser for reading filename. This approach assumes the first
       row returned by the reader will be the header row.
-    - static_column_types: if True, and reader is None, identifies columns
-      with a numeric data type (int, float) from the first non-header row.
-      This assumes all subsequent entries in that column are of the same type.
-      Default is False.
     - header: column headings
     - rows: a 2D dict, list or tuple. If a dict, it must have column
       headings as top level keys, and common row labels as keys in each
@@ -158,33 +166,29 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     - dtype: optional numpy array typecode.
     """
     # 
-    if filename is not None and not (reader or static_column_types):
-        if filename[filename.rfind(".")+1:] == 'pickle':
+    if filename is not None and reader is None:
+        if filename[filename.rfind(".") + 1:] == 'pickle':
             f = file(filename, 'U')
             loaded_table = cPickle.load(f)
             f.close()
             return _Table(**loaded_table)
-        
+
         sep = sep or kwargs.pop('delimiter', None)
         header, rows, loaded_title, legend = load_delimited(filename,
-                                        delimiter = sep, **kwargs)
+                                        delimiter=sep, **kwargs)
         title = title or loaded_title
-    elif filename and (reader or static_column_types):
+    elif filename and reader:
         f = file(filename, "r")
-        if not reader:
-            reader = autogen_reader(f, sep,
-                        with_title=kwargs.get('with_title', False))
-        
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
-    
+
     table = _Table(header=header, rows=rows, digits=digits, row_order=row_order,
                 title=title,
                 dtype=dtype, column_templates=column_templates, space=space,
                 missing_data=missing_data, max_width=max_width, row_ids=row_ids,
                 legend=legend)
-    
+
     return table
 
 def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
