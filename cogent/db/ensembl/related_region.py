@@ -29,8 +29,10 @@ class _RelatedRegions(LazyRecord):
     def __str__(self):
         # temporary string method, just to demo correct assembly
         # TODO StableID, Species and Description
+        my_type = self.__class__.__name__
+        
         data = map(repr, self.Members)
-        data.insert(0, '%s(' % self.Type)
+        data.insert(0, '%s(' % my_type)
         data.append(')')
         return "\n\t".join(data)
     
@@ -65,7 +67,10 @@ class RelatedGenes(_RelatedRegions):
         self.Relationships = Relationships
     
     def __str__(self):
-        display = ['%s:' % self.Type,' Relationships=%s' % self.Relationships]
+        my_type = self.__class__.__name__
+        
+        display = ['%s:' % my_type,
+                   ' Relationships=%s' % self.Relationships]
         display += ['  %s' % m for m in self.Members]
         return '\n'.join(display)
     
@@ -259,7 +264,9 @@ class SyntenicRegions(_RelatedRegions):
         self._do_rc = None
     
     def __str__(self):
-        display = ['%s:' % self.Type]
+        my_type = self.__class__.__name__
+        
+        display = ['%s:' % my_type]
         display += ['  %r' % m.Location for m in self.Members \
                                                 if m.Region is not None]
         return '\n'.join(display)

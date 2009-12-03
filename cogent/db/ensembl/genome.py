@@ -88,7 +88,8 @@ class Genome(object):
         self._feature_coord_levels = FeatureCoordLevels(self.Species)
     
     def __str__(self):
-        return "Genome(Species='%s'; Release='%s')" % (self.Species,
+        my_type = self.__class__.__name__
+        return "%s(Species='%s'; Release='%s')" % (my_type, self.Species,
                                                        self.Release)
     
     def __repr__(self):
