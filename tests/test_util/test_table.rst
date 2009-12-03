@@ -1086,6 +1086,7 @@ We can compute column sums. Assuming only numerical values in a column.
 We construct an example with mixed numerical and non-numerical data. We now compute the column sum with mixed non-numerical/numerical data.
 
 .. doctest::
+    :options: +NORMALIZE_WHITESPACE
     
     >>> mix = LoadTable(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
     >>> print mix
