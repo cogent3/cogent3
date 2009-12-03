@@ -62,22 +62,31 @@ Retrieving PubMed abstracts from NCBI via EUtils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-
+    :options: +NORMALIZE_WHITESPACE
+    
     >>> from cogent.db.ncbi import EUtils
     >>> e = EUtils(db='pubmed',rettype='brief')
-    >>> result = e['Michalsky Preissner'].read()
+    >>> result = e['Simon Easteal'].read()
     >>> print result
     <BLANKLINE>
-    1: Hildebrand PW et al. SuperLooper--a prediction ser...[PMID: 19429894] 
+    1: Yap VB et al. Estimates of the effect of na...[PMID: 19815689] 
     <BLANKLINE>
-    2: Fest S et al. Survivin minigene DNA vaccina...[PMID: 19291796]...
+    2: Cherbuin N et al. Risk factors of transition fr...[PMID: 19628940] ...
     >>> e = EUtils(db='pubmed',rettype='abstract')
-    >>> result = e['Michalsky Preissner'].read()
+    >>> result = e['19815689'].read()
     >>> print result
     <BLANKLINE>
-    1: Nucleic Acids Res. 2009 May 8; [Epub ahead of print] 
+    1: Mol Biol Evol. 2009 Oct 8; [Epub ahead of print] 
     <BLANKLINE>
-    SuperLooper--a prediction server for the...
+    Estimates of the effect of natural selection on protein coding content.
+    <BLANKLINE>
+    Yap VB, Lindsay H, Easteal S, Huttley G.
+    <BLANKLINE>
+    Department of Statistics and Applied Probability, National University of
+    Singapore, Singapore.
+    <BLANKLINE>
+    Analysis of natural selection is key to understanding many core biological
+    processes, including the emergence of competition, co-operation, and complexity,...
 
 Retrieving PubMed abstracts via PMID
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -111,7 +120,7 @@ Connecting
 
 .. Hosts and species
 
-get genomic features
+Get genomic features
 --------------------
 
 Get alignments
