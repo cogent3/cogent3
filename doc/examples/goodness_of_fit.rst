@@ -1,19 +1,16 @@
 The ``goodness_of_fit`` module
 ==============================
 
-:Authors: Andreas Wilm
-:Version: 0.1 of 2009/10/12
+.. sectionauthor:: Andreas Wilm
 
-This is a short example of how to use the goodness_of_fit
-module. 
+This is a short example of how to use the goodness_of_fit module.
 
-goodness_of_fit will measure the degree of correspondence (or
-goodness of fit) between a multidimensional scaling (i.e. a lower
-dimensional representation of distances between objects) and the input
-distance matrix.
+``goodness_of_fit`` will measure the degree of correspondence (or goodness of fit) between a multidimensional scaling (i.e. a lower dimensional representation of distances between objects) and the input distance matrix.
 
 Let's setup some example data:
 
+.. doctest::
+    
     >>> import numpy
     >>> import cogent.cluster.goodness_of_fit as goodness_of_fit
     >>> distmat = numpy.array([
@@ -37,7 +34,6 @@ Let's setup some example data:
     ...   0.200869,  0.21291 ,  0.      ,  0.011481],
     ... [ 0.064283,  0.027869,  0.025505,  0.206866,  0.0208  ,  0.064283,
     ...   0.206866,  0.219002,  0.011481,  0.      ]])
-
     >>> mds_coords = numpy.array([
     ... [ 0.065233,  0.035019,  0.015413],
     ... [ 0.059604,  0.00168 , -0.003254],
@@ -50,9 +46,7 @@ Let's setup some example data:
     ... [ 0.06072 , -0.01622 , -0.007721],
     ... [ 0.065009, -0.025254, -0.005257]])
 
-
 You are now good to compute stress values as shown in the following.
-
 
 ``Stress.calcKruskalStress()``
 ------------------------------
@@ -73,22 +67,24 @@ Stress [%]  Goodness of fit
 
 Our example data gives a very good stress value:
 
+.. doctest::
+    
     >>> stress = goodness_of_fit.Stress(distmat, mds_coords)
-    >>> "%0.6f" % stress.calcKruskalStress()
-    '0.022555'
-
+    >>> print stress.calcKruskalStress()
+    0.02255...
 
 ``Stress.calcSstress()``
 ------------------------
 
-This computes S-Stress (Takane, 1977). S-Stress emphasises larger dissimilarities more than
-smaller ones. S-Stress values behave nicer then Stress-1 values:
+This computes S-Stress (Takane, 1977). S-Stress emphasises larger dissimilarities more than smaller ones. S-Stress values behave nicer then Stress-1 values:
 
 - The value of S-Stress is always between 0 and 1
 - Values less then 0.1 mean good representation. 
 
 Using the example data again:
 
+.. doctest::
+    
     >>> stress = goodness_of_fit.Stress(distmat, mds_coords)
-    >>> "%0.6f" % stress.calcSstress()
-    '0.008832'
+    >>> print stress.calcSstress()
+    0.00883...
