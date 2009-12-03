@@ -12,51 +12,7 @@ Data Manipulation using ``Table``
     Email, gavin.huttley@anu.edu.au
     Status, Production
 
-The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting statistics for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The table module is located within ``cogent.format``.
-
-Testing a sub-component
------------------------
-
-Before using ``Table``, we exercise some formatting code:
-
-.. doctest::
-    
-    >>> from cogent.format.table import formattedCells, drawToPDF,\
-    ...                              phylipMatrix, latex
-
-Of interest to be able to format an arbitrary 2D list, without a header. We use the ``formattedCells`` function directly. We allow for the case that ``reportlab`` may not be present.
-
-.. doctest::
-    
-    >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
-    >>> head = ['one', 'two', 'three']
-    >>> header, formatted = formattedCells(data, header = head)
-    >>> print formatted
-    [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
-    >>> print header
-    ['one', '  two', ' three']
-    >>> try:
-    ...     drawToPDF(['one', 'two', 'three'], formatted, "junk.pdf")
-    ... except ImportError:
-    ...     pass
-
-We directly test the latex formatting.
-
-.. doctest::
-    
-    >>> print latex(formatted, header, justify='lrl', caption='A legend',
-    ...             label="table:test")
-    \begin{longtable}[htp!]{ l r l }
-    \hline
-    \bf{one} & \bf{two} & \bf{three} \\
-    \hline
-    \hline
-    230 & acdef & 1.3000 \\
-      6 &    cc & 1.9876 \\
-    \hline
-    \caption{A legend}
-    \label{table:test}
-    \end{longtable}
+The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent.util``. The ``LoadTable`` convenience function is provided as a top-level ``cogent`` import.
 
 Table creation
 --------------
@@ -374,7 +330,7 @@ We apply this to a table with mixed string, integer and floating point data.
 Table output
 ------------
 
-Other formats are also possible, including restructured text or 'rest' and delimited. These can be obtained using the ``tostring`` method and ``format`` argument as follows. Using table ``t`` from above,
+Table can output in multiple formats, including restructured text or 'rest' and delimited. These can be obtained using the ``tostring`` method and ``format`` argument as follows. Using table ``t`` from above,
 
 .. doctest::
     
@@ -407,7 +363,7 @@ Other formats are also possible, including restructured text or 'rest' and delim
     | From ISI                     |
     +------------------------------+
 
-Arguments such as ``space`` have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or excel).
+Arguments such as ``space`` have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or a spreadsheet program).
 
 Here is the latex format, note how the title and legend are joined into the latex table caption. We also provide optional arguments for the column alignment (fist column left aligned, second column right aligned and remaining columns centred) and a label for table referencing.
 
@@ -524,7 +480,7 @@ We then call the method, without this argument, then with it.
 Saving a table for reloading
 ----------------------------
 
-Saving a table object to file for later reloading can be done using the standard ``writeToFile`` method and ``filename`` argument to the ``Table`` constructor and either the ``pickle`` or a delimited format (eg ',', '|'). The ``writeToFile`` saves the raw data in the appropriate format, the constructor recreates a table from raw data located at ``filename``. We first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
+Saving a table object to file for later reloading can be done using the standard ``writeToFile`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
@@ -616,9 +572,9 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
     And
     a legend too
 
-A few things to note about the delimited file saving: formatting arguments are lost in saving to a delimited format; the ``header`` argument specifies whether the first line of file should be treated as the header; the ``with_title`` and ``with_legend`` arguments are necessary if the file contains them, otherwise the become the header or part of the file. Importantly, if you wish to preserve numerical precision use the ``pickle`` format.
+A few things to note about the delimited file saving: formatting arguments are lost in saving to a delimited format; the ``header`` argument specifies whether the first line of the file should be treated as the header; the ``with_title`` and ``with_legend`` arguments are necessary if the file contains them, otherwise they become the header or part of the table. Importantly, if you wish to preserve numerical precision use the ``pickle`` format.
 
-``cPickle`` should be able to load a useful object from the pickled ``Table`` alone.
+``cPickle`` can load a useful object from the pickled ``Table`` by itself, without needing to know anything about the ``Table`` class.
 
 .. doctest::
     
@@ -701,7 +657,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     Traceback (most recent call last):
     ValueError: invalid literal for int() with base 10: 'a'
 
-We also test the reader function for a '\t' delimited format with missing data at the end.
+We also test the reader function for a tab delimited format with missing data at the end.
 
 .. doctest::
     
@@ -748,7 +704,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
        edge.1         root     4.0  1.0  3.0  6.0
     ---------------------------------------------
 
-.. note:: There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader, to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.
+.. note:: There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader (or specify ``static_column_types=True``), to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.
 
 Table slicing and iteration
 ---------------------------
@@ -863,7 +819,7 @@ You can get disjoint rows.
      DogFaced           root    4.0000    1.0000    3.0000    6.0000
     ----------------------------------------------------------------
 
-You can iterate over the table one row at a time and slice the rows. We illustrate this slicing a single column,
+You can iterate over the table one row at a time and slice the rows. We illustrate this for slicing a single column,
 
 .. doctest::
     
@@ -1716,6 +1672,45 @@ We can count the number of rows for which a condition holds. This method uses th
     >>> print c.joined(d,inner_join=False).count("index==3 and D_index==5")
     2
 
+Testing a sub-component
+-----------------------
+
+Before using ``Table``, we exercise some formatting code:
+
+.. doctest::
+    
+    >>> from cogent.format.table import formattedCells, phylipMatrix, latex
+
+We check we can format an arbitrary 2D list, without a header, using the ``formattedCells`` function directly.
+
+.. doctest::
+    
+    >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
+    >>> head = ['one', 'two', 'three']
+    >>> header, formatted = formattedCells(data, header = head)
+    >>> print formatted
+    [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
+    >>> print header
+    ['one', '  two', ' three']
+
+We directly test the latex formatting.
+
+.. doctest::
+    
+    >>> print latex(formatted, header, justify='lrl', caption='A legend',
+    ...             label="table:test")
+    \begin{longtable}[htp!]{ l r l }
+    \hline
+    \bf{one} & \bf{two} & \bf{three} \\
+    \hline
+    \hline
+    230 & acdef & 1.3000 \\
+      6 &    cc & 1.9876 \\
+    \hline
+    \caption{A legend}
+    \label{table:test}
+    \end{longtable}
+
 ..
     Import the ``os`` module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where ``junk.pdf`` wasn't created due to ``reportlab`` not being present.
 
@@ -1723,7 +1718,7 @@ We can count the number of rows for which a condition holds. This method uses th
     :hide:
     
     >>> import os
-    >>> to_delete = ['t3.pickle', 'junk.pdf', 't2.csv', 't3.tab', 'test3b.txt']
+    >>> to_delete = ['t3.pickle', 't2.csv', 't3.tab', 'test3b.txt']
     >>> for f in to_delete:
     ...     try:
     ...         os.remove(f)
