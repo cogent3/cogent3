@@ -377,14 +377,22 @@ Only difference here to above is our span's cover 2 positions.
 Translation
 ^^^^^^^^^^^
 
+*To be written.*
+
 RNA
 ---
+
+*To be written.*
 
 Protein
 -------
 
+*To be written.*
+
 Arbitrary
 ---------
+
+*To be written.*
 
 Alignments
 ==========
@@ -475,11 +483,17 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 Filtering positions
 -------------------
 
+*To be written.*
+
 Filtering sequences
 -------------------
 
+*To be written.*
+
 Translating
 -----------
+
+*To be written.*
 
 Trees
 =====
@@ -487,8 +501,12 @@ Trees
 Selecting subtrees
 ------------------
 
+*To be written.*
+
 Drawing trees
 -------------
+
+*To be written.*
 
 .. pdf, asciiArt
 
@@ -1048,11 +1066,17 @@ Structure data
 2D
 --
 
+*To be written.*
+
 3D
 --
 
+*To be written.*
+
 Visualisation
 -------------
+
+*To be written.*
 
 Sequence metadata
 =================
@@ -1060,24 +1084,40 @@ Sequence metadata
 Annotations with coordinates
 ----------------------------
 
+*To be written.*
+
 Automated introduction from reading genbank files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*To be written.*
 
 Manipulating annotated regions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+*To be written.*
+
 Annotation display
 ^^^^^^^^^^^^^^^^^^
+
+*To be written.*
 
 Introducing your own
 ^^^^^^^^^^^^^^^^^^^^
 
+*To be written.*
+
 Displaying them
 ^^^^^^^^^^^^^^^
+
+*To be written.*
 
 Generic metadata
 ----------------
 
+*To be written.*
+
 Info object
 ^^^^^^^^^^^
+
+*To be written.*
 
