@@ -85,7 +85,7 @@ class SpeciesNameMap(dict):
             ensembl = self._species_ensembl[species]
             rows += [[common, species, ensembl]]
         return str(Table(['Common Name', 'Species Name', 'Ensembl Db Prefix'],
-                    rows=rows).sorted())
+                    rows=rows, space=2).sorted())
     
     def __repr__(self):
         return 'Available species: %s' % ("'"+\
