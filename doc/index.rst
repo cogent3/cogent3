@@ -41,7 +41,7 @@ Contacts and contributing
 If you find a bug, have feature or documentation requests then please post comments on the corresponding tracker_ page at sourceforge. If you have any questions please post on the appropriate projects forums_ page at sourceforge. We appreciate your input!
 
 .. _tracker: http://sourceforge.net/tracker2/?group_id=186234
-.. _forums: http://sourceforge.net/forum/?group_id=186234
+.. _forums: http://sourceforge.net/projects/pycogent/forums
 
 ********
 Citation
