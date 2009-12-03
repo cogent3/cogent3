@@ -623,7 +623,8 @@ def blast_seqs(seqs,
                  WorkingDir=None,
                  SuppressStderr=None,
                  SuppressStdout=None,
-                 input_handler=None
+                 input_handler=None,
+                 HALT_EXEC=False
                  ):
     """Blast list of sequences.
 
@@ -661,7 +662,8 @@ def blast_seqs(seqs,
                    InputHandler=ih,
                    WorkingDir=WorkingDir,
                    SuppressStderr=SuppressStderr,
-                   SuppressStdout=SuppressStdout)
+                   SuppressStdout=SuppressStdout,
+                   HALT_EXEC=HALT_EXEC)
 
     return blast_app(seqs)
 
