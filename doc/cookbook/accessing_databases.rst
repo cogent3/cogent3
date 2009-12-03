@@ -25,11 +25,13 @@ Fetching FASTA or Genpept sequences from NCBI using GI's
 Retrieving GenPept files from NCBI via Eutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+We query for just one accession to illustrate the process. A more general query can be executed by replacing ``'BAB52044`` with ``'"lysyl tRNA-synthetase"[ti] AND bacteria[orgn]'`` in the snippet below.
+
 .. doctest::
 
     >>> from cogent.db.ncbi import EUtils
     >>> e = EUtils(numseqs=100, db='protein', rettype='gp')
-    >>> result = e['"lysyl tRNA-synthetase"[ti] AND bacteria[orgn]']
+    >>> result = e['BAB52044']
     >>> print result.read()
     LOCUS       BAB52044                 548 aa            linear   BCT 16-MAY-2009
     DEFINITION  lysyl tRNA synthetase [Mesorhizobium loti MAFF303099].
@@ -50,13 +52,17 @@ Retrieving and parsing GenBank entries
     >>> result = e['"lysyl tRNA-synthetase"[ti] AND bacteria[orgn]']
     >>> parser = RichGenbankParser(result.readlines())
     >>> gb = [(accession, seq) for accession, seq in parser]
-    >>> print gb
-    [('BAB52044', Sequence(MAGSNTI... 548)),...
+
+Printing the resulting list (``gb``) will generate output like:
+
+.. code::
+    
+    [('AAA83071', Sequence(MSEQHAQ... 505)), ('ACS40931', ...
 
 For other
 ---------
 
-.. OMIM, PUBMED, ??
+.. OMIM, ??
 
 Retrieving PubMed abstracts from NCBI via EUtils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
