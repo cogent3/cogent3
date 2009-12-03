@@ -55,7 +55,7 @@ Retrieving and parsing GenBank entries
 
 Printing the resulting list (``gb``) will generate output like:
 
-.. code::
+.. code-block:: python
     
     [('AAA83071', Sequence(MSEQHAQ... 505)), ('ACS40931', ...
 
