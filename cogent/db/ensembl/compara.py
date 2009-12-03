@@ -47,8 +47,10 @@ class Compara(object):
             setattr(self, common, genome)
     
     def __str__(self):
-        return "Compara(Species=%s; Release=%s; connected=%s)" % \
-                    (self.Species, self.Release, self.ComparaDb is not None)
+        my_type = self.__class__.__name__
+        return "%s(Species=%s; Release=%s; connected=%s)" % \
+                    (my_type, self.Species, self.Release,
+                    self.ComparaDb is not None)
     
     def _connect_db(self):
         # TODO can the connection be all done in init?

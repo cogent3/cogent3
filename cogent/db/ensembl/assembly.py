@@ -77,9 +77,9 @@ class Coordinate(object):
         # TODO allow creation with just seq_region_id
         self.Species = genome.Species
         self.CoordType = DisplayString(CoordType, repr_length=4,
-                                       with_quotes=True)
+                                       with_quotes=False)
         self.CoordName = DisplayString(CoordName, repr_length=4,
-                                       with_quotes=True)
+                                       with_quotes=False)
         # if Start == End, we +1 to End, unless these are ensembl_coord's
         if ensembl_coord:
             Start -= 1
@@ -119,10 +119,12 @@ class Coordinate(object):
                     self.CoordName, self.Start, self.End, self.Strand)
     
     def __repr__(self):
+        my_type = self.__class__.__name__
         name = _Species.getCommonName(self.Species)
         coord_type = self.CoordType
-        return 'Coordinate(%r:%r:%r:%d-%d:%d)'%(name, coord_type,
+        c = '%s(%r,%r,%r,%d-%d,%d)'%(my_type, name, coord_type,
                     self.CoordName, self.Start, self.End, self.Strand)
+        return c.replace("'", "")
     
     def adopted(self, other, shift=False):
         """adopts the seq_region_id (including CoordName and CoordType) of
@@ -194,7 +196,7 @@ class _CoordRecord(object):
     
     def __str__(self):
         return "coord_system_id = %d; name = %s; rank = %d; attr = %s "\
-                %(self.coord_system_id, self.name, self.rank, self.attr)
+                % (self.coord_system_id, self.name, self.rank, self.attr)
 
 
 class CoordSystemCache(object):

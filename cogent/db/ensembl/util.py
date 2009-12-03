@@ -28,8 +28,9 @@ class DisplayString(str):
             new = self
         if len(self) > len(new):
             new += '...'
-        new = [new, '"%s"' % new][self.with_quotes]
+        new = [new, "'%s'" % new][self.with_quotes]
         return new
+    
 
 class CaseInsensitiveString(str):
     """A case insensitive string class. Comparisons are case insensitive."""

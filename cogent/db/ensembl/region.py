@@ -147,7 +147,9 @@ class _Region(LazyRecord):
 
 class GenericRegion(_Region):
     """a generic genomic region"""
+    
     Type = 'generic_region'
+    
     def __init__(self, genome, db, Location=None, CoordName=None, Start=None,
                  End=None, Strand=1, ensembl_coord=False):
         super(GenericRegion, self).__init__()
@@ -169,8 +171,10 @@ class GenericRegion(_Region):
             self._cached['Location'] = Location
     
     def __str__(self):
+        my_type = self.__class__.__name__
         return "%s(Species='%s'; CoordName='%s'; Start=%s; End=%s;"\
-                " length=%s; Strand='%s')" %  (self.Type, self.genome.Species,
+                " length=%s; Strand='%s')" %  (my_type,
+                self.genome.Species,
                 self.Location.CoordName, self.Location.Start,
                 self.Location.End, len(self), '-+'[self.Location.Strand>0])
     
@@ -269,11 +273,12 @@ class Gene(_StableRegion):
             func() # this populates the attributes
     
     def __str__(self):
+        my_type = self.__class__.__name__
         vals = ['%s=%r' % (key, val) for key, val in self._cached.items() \
                                 if val is not None]
         vals.sort()
-        vals.insert(0, 'Species=%s' % self.genome.Species)
-        return '%s(%s)' % (self.Type, '; '.join(vals))
+        vals.insert(0, "Species='%s'" % self.genome.Species)
+        return '%s(%s)' % (my_type, '; '.join(vals))
     
     def __repr__(self):
         vals = ['%s=%r' % (key, val) for key, val in self._cached.items() \
@@ -730,7 +735,8 @@ class Exon(_StableRegion):
         return self.__repr__()
     
     def __repr__(self):
-        return '%s(StableId=%s, Rank=%s)' % (self.Type,self.StableId,self.Rank)
+        my_type = self.__class__.__name__
+        return '%s(StableId=%s, Rank=%s)' % (my_type, self.StableId,self.Rank)
     
     def __cmp__(self, other):
         return cmp(self.Rank, other.Rank)
@@ -810,8 +816,10 @@ class Variation(_Region):
         return max(map(len, self._split_alleles()))
     
     def __str__(self):
-        return "%s(Symbol=%r; Effect=%r; Alleles=%r)" %(self.Type,self.Symbol,
-                                                self.Effect, self.Alleles)
+        my_type = self.__class__.__name__
+        
+        return "%s(Symbol=%r; Effect=%r; Alleles=%r)" % \
+            (my_type, self.Symbol, self.Effect, self.Alleles)
     
     def _get_variation_table_record(self):
         attr_name_map = [('Effect', 'consequence_type', _set_to_string),
@@ -961,9 +969,14 @@ class CpGisland(GenericRegion):
         self.Score = Score
     
     def __str__(self):
+        my_type = self.__class__.__name__
+        
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
-            " Strand='%s', Score=%s)" % (self.Type, self.Location.CoordName,
-            self.Location.Start, self.Location.End, len(self),
+            " Strand='%s', Score=%s)" % (my_type,
+            self.Location.CoordName,
+            self.Location.Start,
+            self.Location.End,
+            len(self),
             '-+'[self.Location.Strand>0], self.Score)
     
 
@@ -981,8 +994,11 @@ class Repeat(GenericRegion):
         self._table_rows['repeat_feature']= data
     
     def __str__(self):
+        my_type = self.__class__.__name__
+        
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
-        " Strand='%s', Score=%s)" %  (self.Type, self.Location.CoordName,
+        " Strand='%s', Score=%s)" %  (my_type,
+            self.Location.CoordName,
             self.Location.Start, self.Location.End, len(self),
             '-+'[self.Location.Strand>0], self.Score)
     
