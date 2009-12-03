@@ -4,7 +4,7 @@ import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield", 
+__contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
                     "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
@@ -54,13 +54,17 @@ def build_html():
 
 # Compiling Pyrex modules to .c and .so
 include_path = os.path.join(os.getcwd(), 'include')
-distutils_extras = {"include_dirs": [include_path]}
+import numpy
+# find arrayobject.h on every system an alternative would be to put
+# arrayobject.h into pycogent/include, but why .. 
+numpy_include_path = numpy.get_include()
+distutils_extras = {"include_dirs": [include_path, numpy_include_path]}
 try:
     if 'DONT_USE_PYREX' in os.environ:
         raise ImportError
     from Cython.Compiler.Version import version
     version = tuple([int(v) \
-        for v in re.split("[^\d]",version) if v.isdigit()])
+        for v in re.split("[^\d]", version) if v.isdigit()])
     if version < (0, 11, 2):
         print "Your Cython version is too old"
         raise ImportError
@@ -92,7 +96,7 @@ else:
         'build_ext': build_ext,
         'pyrexc': build_wrappers,
         'cython': build_wrappers,
-        'predist': build_wrappers_and_html}    
+        'predist': build_wrappers_and_html}
 
 # predist python setup.py predist --inplace --force, this is in _darcs/prefs/prefs for instructing darcs predist to execute the subsequent, predist is a darcs word
 
@@ -114,18 +118,18 @@ Version %s.
 """ % __version__
 
 setup(
-    name = "cogent",
-    version = __version__,
-    url = "http://sourceforge.net/projects/pycogent",
-    author = "Gavin Huttley, Rob Knight",
-    author_email = "gavin.huttley@anu.edu.au, rob@spot.colorado.edu",
-    description = short_description,
-    long_description = long_description,
-    platforms = ["any"],
-    license = ["GPL"],
-    keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution",
+    name="cogent",
+    version=__version__,
+    url="http://sourceforge.net/projects/pycogent",
+    author="Gavin Huttley, Rob Knight",
+    author_email="gavin.huttley@anu.edu.au, rob@spot.colorado.edu",
+    description=short_description,
+    long_description=long_description,
+    platforms=["any"],
+    license=["GPL"],
+    keywords=["biology", "genomics", "statistics", "phylogeny", "evolution",
                 "bioinformatics"],
-    classifiers = [
+    classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Science/Research",
             "License :: OSI Approved :: GNU General Public License (GPL)",
@@ -133,21 +137,25 @@ setup(
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Operating System :: OS Independent",
             ],
-    packages = ['cogent', 'cogent.align', 'cogent.align.weights', 'cogent.app',
+    packages=['cogent', 'cogent.align', 'cogent.align.weights', 'cogent.app',
                 'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
                 'cogent.db.ensembl', 'cogent.draw',
                 'cogent.evolve', 'cogent.format', 'cogent.maths',
                 'cogent.maths.matrix', 'cogent.maths.stats',
-                'cogent.maths.stats.cai',  'cogent.maths.unifrac',
-                'cogent.motif', 'cogent.parse', 'cogent.phylo',
-                'cogent.recalculation', 'cogent.seqsim', 'cogent.struct',
-                'cogent.util'],
+                'cogent.maths.stats.cai', 'cogent.maths.unifrac',
+                'cogent.maths.spatial', 'cogent.motif', 'cogent.parse',
+                'cogent.phylo', 'cogent.recalculation', 'cogent.seqsim',
+                'cogent.struct', 'cogent.util'],
     ext_modules=[
         CogentExtension("cogent.align._compare"),
         CogentExtension("cogent.align._pairwise_seqs"),
         CogentExtension("cogent.align._pairwise_pogs"),
         CogentExtension("cogent.maths._matrix_exponentiation"),
         CogentExtension("cogent.evolve._likelihood_tree"),
+        CogentExtension("cogent.struct._asa"),
+        CogentExtension("cogent.struct._contact"),
+        CogentExtension("cogent.maths.spatial.ckd3"),
+
     ],
     **distutils_extras
 )

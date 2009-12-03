@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __all__ = """
-test_dynalign       test_raxml
+test_dynalign       test_raxml          test_stride  
 test_blast          test_foldalign      test_rnaalifold
 test_carnac         test_ilm            test_rnaforester
 test_clustalw       test_knetfold       test_rnaview
@@ -15,7 +15,8 @@ test_dialign        test_pknotsrg       test_fasttree
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight", "Catherine Lozupone",
-                    "Sandra Smit", "Gavin Huttley", "Greg Caporaso"]
+                    "Sandra Smit", "Gavin Huttley", "Greg Caporaso",
+                    "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"

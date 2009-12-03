@@ -38,6 +38,7 @@ __all__ = ['aaindex',
            'nupack',
            'paml',
            'paml_matrix',
+           'pdb',
            'pfold',
            'phylip',
            'pknotsrg',
@@ -59,14 +60,14 @@ __all__ = ['aaindex',
            'tree_xml',
            'unafold',
            'unigene']
-  
+
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Catherine Lozupone", "Jeremy Widmann", "Matthew Wakefield",
-                    "Sandra Smit", "Greg Caporaso", "Zongzhi Liu", 
-                    "Micah Hamady", "Jason Carnes", "Raymond Sammut", 
-                    "Hua Ying", "Andrew Butterfield"]
+                    "Sandra Smit", "Greg Caporaso", "Zongzhi Liu",
+                    "Micah Hamady", "Jason Carnes", "Raymond Sammut",
+                    "Hua Ying", "Andrew Butterfield", "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Rob Knight"

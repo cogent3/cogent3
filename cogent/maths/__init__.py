@@ -11,6 +11,7 @@ __all__ = ['function_optimisation',
            'scipy_optimize',
            'simannealingoptimiser',
            'solve',
+           'spatial',
            'svd']
 
 

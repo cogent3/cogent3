@@ -23,6 +23,8 @@ Data manipulation
     aln_profile
     genetic_code_aa_index
     handling_tabular_data
+    handling_3dstructures
+    entity_selection
     query_ncbi
     query_ensembl
     manipulating_tree_nodes

@@ -7,6 +7,14 @@ Cogent 1.3 - 1.4
 
 New Features
 ------------
+* added support for manipulating and handling macromolecular structures.
+  This includes a PDB file format parser, a hierarchical data structure
+  to represent molecules. Various utilities to manipulate e.g. clean-up
+  molecules, efficient surface area and proximity-contact calculation via
+  cython. Expansion into unit-cells and crystal lattices is also possible.
+* added a KD-Tree class for fast nearest neighbor look-ups.
+  Supports k-nearest neighbours and all neighbours within radius queries
+  currently only in 3D.
 * added new tools for evaluating clustering stresses, goodness_of_fit.
   In cogent.cluster .
 * added a new clustering tool, procrustes analysis.  In cogent.cluster .
