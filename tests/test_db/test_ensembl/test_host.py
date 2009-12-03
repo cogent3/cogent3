@@ -3,8 +3,7 @@ import os
 from cogent.util.unit_test import TestCase, main
 from cogent.db.ensembl.name import EnsemblDbName
 from cogent.db.ensembl.host import get_db_name, get_latest_release,\
-                        get_db_name, DbConnection, HostAccount,\
-                        get_ensembl_account
+                        DbConnection, HostAccount, get_ensembl_account
 from cogent.db.ensembl.species import Species
 
 __author__ = "Gavin Huttley, Hua Ying"
