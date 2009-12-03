@@ -549,20 +549,11 @@ We load a comma separated data file using the generic ``LoadTable`` function.
 Reading large files
 -------------------
 
-For really large files, the automated conversion used by the standard read mechanism can be quite slow. Explicit type casting of columns significantly improves reading. We illustrate here, first creating the converter, then the parser, finally loading the table using the ``LoadTable`` mechanism.
+For really large files the automated conversion used by the standard read mechanism can be quite slow. If the data within a column is consistently of one type, set the ``LoadTable`` argument ``static_column_types=True``. This causes the ``Table`` object to create a custom reader.
 
 .. doctest::
 
-    >>> from cogent.parse.table import ConvertFields, SeparatorFormatParser
-
-In creating the converter, any column not specifically referenced is converted as a ``str``.
-
-.. doctest::
-
-    >>> converter = ConvertFields([(2, float)])
-    >>> table_reader = SeparatorFormatParser(with_header=True,
-    ...                 converter=converter, sep=',')
-    >>> table = LoadTable('stats.txt', reader=table_reader)
+    >>> table = LoadTable('stats.txt', static_column_types=True)
     >>> print table
     ====================================
         Locus    Region            Ratio
@@ -573,8 +564,6 @@ In creating the converter, any column not specifically referenced is converted a
     NP_005500    NonCon           0.0000
     NP_055852    NonCon    10933217.7090
     ------------------------------------
-
-.. note:: The ``ConvertFields`` mechanism is also useful for overloading, e.g. converting all numerical value > 100 to the boolean ``True``, otherwise ``False``.
 
 Formatting
 ----------
