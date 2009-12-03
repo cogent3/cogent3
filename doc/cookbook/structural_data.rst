@@ -10,7 +10,6 @@ Protein structures
 Calculating euclidean distances between atoms
 ---------------------------------------------
 
-
 .. doctest::
     
     >>> from numpy import array

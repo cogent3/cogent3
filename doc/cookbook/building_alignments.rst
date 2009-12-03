@@ -2,7 +2,6 @@
 Building alignments
 *******************
 
-.. sectionauthor:: Kristian Rother, Patrick Yannul, Gavin Huttley
 
 Using the cogent aligners
 =========================
@@ -73,6 +72,8 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
 
 3rd-party apps
 ==============
+
+*To be written.*
 
 Converting gaps from aa-seq alignment to nuc seq alignment
 ==========================================================

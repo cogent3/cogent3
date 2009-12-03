@@ -109,14 +109,22 @@ KEGG
 Complete genomes
 ----------------
 
+*To be written.*
+
 Orthologs
 ---------
+
+*To be written.*
 
 Functional assignments
 ----------------------
 
+*To be written.*
+
 Pathway assignments
 -------------------
+
+*To be written.*
 
 Ensembl
 =======
@@ -124,32 +132,45 @@ Ensembl
 Connecting
 ----------
 
+*To be written.*
+
 .. Hosts and species
 
 Get genomic features
 --------------------
 
+*To be written.*
+
 Get alignments
 --------------
+
+*To be written.*
 
 Get SNPs
 --------
 
+*To be written.*
+
 PDB
 ===
 
-for structures
+For structures
 --------------
+
+*To be written.*
 
 Rfam
 ====
 
-for rna secondary structures, alignments, functions
 ---------------------------------------------------
+
+*To be written.*
 
 GoldenPath (not yet implemented)
 ================================
 
-whole-genome alignments, orthologs, annotation tracks
+*To be written.*
+
 -----------------------------------------------------
 
+*To be written.*
