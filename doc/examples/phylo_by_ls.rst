@@ -84,7 +84,8 @@ Lets inspect the resulting statistics. First, the object ``trees`` is a list of 
 
 The ``wls_stats`` is a list which, if printed, looks like
 
-    >>> print wls_stats[:15]
+.. code-block:: python
+    
     [1.3308768548934439e-05, 0.0015588630350439783, ...
 
 From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print the first two of the these trees after balancing them (in order to make their representations as equal as possible).
