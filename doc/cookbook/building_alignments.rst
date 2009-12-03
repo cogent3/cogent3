@@ -77,3 +77,50 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
 Converting gaps from aa-seq alignment to nuc seq alignment
 ==========================================================
 
+We load some unaligned DNA sequences and show their translation.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA, PROTEIN
+    >>> seqs = [('hum', 'AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT'),
+    ...         ('mus', 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'),
+    ...         ('rat', 'CTGAACAAGCAGCCACTTTCAAACAAGAAA')]
+    >>> unaligned_DNA = LoadSeqs(data=seqs, moltype = DNA, aligned = False)
+    >>> print unaligned_DNA.toFasta()
+    >hum
+    AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
+    >mus
+    AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
+    >rat
+    CTGAACAAGCAGCCACTTTCAAACAAGAAA
+    >>> print unaligned_DNA.getTranslation()
+    >hum
+    KQIQESSENGSLAARQERQAQVNLT
+    >mus
+    KQIQESGESGSLAARQERQAQVNLT
+    >rat
+    LNKQPLSNKK
+    <BLANKLINE>
+
+We load an alignment of these protein sequences.
+
+.. doctest::
+    
+    >>> aligned_aa_seqs = [('hum', 'KQIQESSENGSLAARQERQAQVNLT'),
+    ...                    ('mus', 'KQIQESGESGSLAARQERQAQVNLT'),
+    ...                    ('rat', 'LNKQ------PLS---------NKK')]
+    >>> aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
+
+We then obtain an alignment of the DNA sequences from the alignment of their translation.
+
+.. doctest::
+    
+    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA)
+    >>> print aligned_DNA
+    >hum
+    AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
+    >mus
+    AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
+    >rat
+    CTGAACAAGCAG------------------CCACTTTCA---------------------------AACAAGAAA
+    <BLANKLINE>
