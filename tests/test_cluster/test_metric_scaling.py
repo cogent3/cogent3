@@ -70,6 +70,9 @@ class MetricScalingTests(TestCase):
         #right
         matrix = self.real_matrix
         pcs, eigvals= principal_coordinates_analysis(matrix)
+        bigfirstorder = eigvals.argsort()[::-1]
+        pcs = pcs[bigfirstorder]
+        eigvals = eigvals[bigfirstorder]
         self.assertEqual(len(pcs), 14)
         self.assertFloatEqual(abs(pcs[0,0]), 0.240788133045)
         self.assertFloatEqual(abs(pcs[1,0]), 0.233677162)
@@ -155,20 +158,19 @@ Eigenvectors               env3       2.00       0.57      -0.02
         e = make_E_matrix(u)
         f = make_F_matrix(e)
         eigvals, eigvecs = run_eig(f)
+        bigfirstorder = eigvals.argsort()[::-1]
+        #eigvecs = eigvecs[bigfirstorder]
+        #eigvals = eigvals[bigfirstorder]
         principal_coords = get_principal_coordinates(eigvals, eigvecs)
-        self.assertFloatEqualAbs(principal_coords, \
-            array([[  5.69047493e-09,   5.69047493e-09,   5.69047493e-09,
-          5.69047493e-09,   5.69047493e-09,   5.69047493e-09],
-       [  2.83986686e-01,  -1.87103662e-01,  -5.02155335e-02,
-         -4.82607521e-03,  -2.11416317e-01,   1.69574901e-01],
-       [  2.85970001e-02,  -3.74940557e-01,   3.35175925e-01,
-         -2.54123944e-01,   2.82568441e-01,  -1.72768652e-02],
-       [  2.29038532e-01,   2.23340550e-01,  -2.38559794e-01,
-         -4.12346397e-01,   1.86069108e-01,   1.24580018e-02],
-       [ -2.61635763e-01,  -5.05739521e-02,  -1.15217868e-01,
-         -6.40316842e-02,   6.45563520e-02,   4.26902915e-01],
-       [  7.05527166e-02,  -2.08929136e-01,  -3.09988697e-01,
-          2.33436419e-01,   2.88756308e-01,  -7.38276099e-02]]))
+        principal_coords = principal_coords[bigfirstorder]
+        expected = array([
+                   [  2.85970001e-02,  -3.74940557e-01,   3.35175925e-01,
+                     -2.54123944e-01,   2.82568441e-01,  -1.72768652e-02],
+                   [  2.29038532e-01,   2.23340550e-01,  -2.38559794e-01,
+                     -4.12346397e-01,   1.86069108e-01,   1.24580018e-02],
+                   [  7.05527166e-02,  -2.08929136e-01,  -3.09988697e-01,
+                      2.33436419e-01,   2.88756308e-01,  -7.38276099e-02]])
+        self.assertFloatEqual(abs(principal_coords[[0,1,2]]), abs(expected))
                                                                                 
 #run if called from the command line
 if __name__ == '__main__':
