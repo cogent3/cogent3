@@ -78,8 +78,11 @@ class _Region(LazyRecord):
             try:
                 seq = get_sequence(self.Location)
             except NoItemError:
-                alt_loc = assembly_exception_coordinate(self.Location)
-                seq = get_sequence(alt_loc)
+                try:
+                    alt_loc = assembly_exception_coordinate(self.Location)
+                    seq = get_sequence(alt_loc)
+                except NoItemError:
+                    seq = DNA.makeSequence("N"*len(self))
             seq.Name = str(self.Location)
             self._cached['Seq'] = seq
         return self._cached['Seq']
