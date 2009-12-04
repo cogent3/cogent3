@@ -7,7 +7,7 @@ Principles of Multivariate analysis: A User's Perspective. W.J. Krzanowski
 Oxford University Press, 2000. p106.
 """
 from numpy import shape, add, sum, sqrt, argsort, transpose, newaxis
-from numpy.linalg import eig
+from numpy.linalg import eigh
 from cogent.util.dict2d import Dict2D
 from cogent.util.table import Table
 from cogent.cluster.UPGMA import inputs_from_dict2D
@@ -50,6 +50,7 @@ def principal_coordinates_analysis(distance_matrix):
     point_matrix: each row is an axis and the columns are points within the axis
     eigvals: correspond to the rows and indicate the amount of the variation
         that that the axis in that row accounts for
+    NOT NECESSARILY SORTED
     """
     E_matrix = make_E_matrix(distance_matrix)
     F_matrix = make_F_matrix(E_matrix)
@@ -98,8 +99,10 @@ def run_eig(F_matrix):
     #use eig to get vector of eigenvalues and matrix of eigenvectors
     #these are already normalized such that
     # vi'vi = 1 where vi' is the transpose of eigenvector i
-    eigvals, eigvecs = eig(F_matrix)
-    return eigvals, eigvecs.transpose() #NOTE: numpy produces transpose of Numeric!
+    eigvals, eigvecs = eigh(F_matrix)
+    #NOTE: numpy produces transpose of Numeric!
+
+    return eigvals, eigvecs.transpose()
 
 def get_principal_coordinates(eigvals, eigvecs):
     """converts eigvals and eigvecs to point matrix
