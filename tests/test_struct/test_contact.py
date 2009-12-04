@@ -55,18 +55,6 @@ class asaTest(TestCase):
         self.assertFloatEqual(res.values()[63]['CONTACTS'][('2E12', 0, 'A', \
                      ('ALA', 16, ' '), ('CB', ' '))][0], 5.7914192561064004)
 
-    def test_chains(self):
-        """compares contacts diff chains"""
-        self.input_file = os.path.join('data', '1A1X.pdb') # one chain
-        self.input_structure = PDBParser(open(self.input_file))
-        res = contact.contacts_xtra(self.input_structure)
-        self.assertTrue(res == {})
-        self.input_file = os.path.join('data', '2E12.pdb') # one chain
-        self.input_structure = PDBParser(open(self.input_file))
-        res = contact.contacts_xtra(self.input_structure)
-        self.assertTrue(res)
-        self.assertFloatEqual(res.values()[63]['CONTACTS'][('2E12', 0, 'A', \
-                     ('ALA', 16, ' '), ('CB', ' '))][0], 5.7914192561064004)
 
     def test_symmetry(self):
         """compares contacts diff symmetry mates"""

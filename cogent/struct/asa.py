@@ -40,9 +40,9 @@ def _run_asa(atoms, lattice_coords, spoints, probe=1.4, bucket_size=5, \
         - MAXSYM (int): maximum number of symmetry generated atoms.
     """
     # get array of radii inflated by probe size of the selection of atoms.
-    atom_radii = array(atoms.data_children('radius', forgiving=False)) + probe
+    atom_radii = array(atoms.getData('radius', forgiving=False)) + probe
     # get array of coordinates
-    atom_coords = array(atoms.data_children('coords', forgiving=False))
+    atom_coords = array(atoms.getData('coords', forgiving=False))
     # calculate bounding box in a form of an array
     search_limit = 2 * (2.0 + probe)    # 2.0 is maximum atom radius
     atom_box = r_[atom_coords.min(axis=0) - search_limit, \
@@ -64,22 +64,22 @@ def _prepare_entities(entities):
     # First we mask all water residues and chains with all residues masked 
     # (water chains).
     lattice_residues = einput(entities, 'R')
-    lattice_residues.mask_children('H_HOH', 'eq', 'name')
+    lattice_residues.maskChildren('H_HOH', 'eq', 'name')
     lattice_chains = einput(entities, 'C')
-    lattice_chains.mask_children([], 'eq', 'values', method=True)
+    lattice_chains.maskChildren([], 'eq', 'values', method=True)
     # if not residues or chains are left - not atoms to work with, 
     # abort with warning.
     if not lattice_chains.values():
-        lattice_structures.set_unmasked(force=True)
+        lattice_structures.setUnmasked(force=True)
         raise ValueError('No unmasked atoms to build lattice.')
     # these are all atoms we can work with
     lattice_atoms = einput(entities, 'A')
-    lattice_atoms.dispatch('set_radius')
+    lattice_atoms.dispatch('setRadius')
 
 def _postpare_entities(entities):
     """Restores entities after ASA calculation, which includes unmasking."""
     structures = einput(entities, 'S')
-    structures.set_unmasked(force=True)
+    structures.setUnmasked(force=True)
 
 
 def _prepare_asa(entities, symmetry_mode=None, crystal_mode=None, points=960, \
@@ -113,9 +113,9 @@ def _prepare_asa(entities, symmetry_mode=None, crystal_mode=None, points=960, \
     atoms = einput(entities, 'A')
     if not symmetry_mode and not crystal_mode:
 
-        coords = array(atoms.data_children('coords', forgiving=False))
+        coords = array(atoms.getData('coords', forgiving=False))
         coords = array([[coords]]) # fake 3D and 4D
-        idx_to_id = dict(enumerate(atoms.data_children('get_full_id', \
+        idx_to_id = dict(enumerate(atoms.getData('getFull_id', \
                                                 forgiving=False, method=True)))
         asas = _run_asa(atoms, coords, spoints, **kwargs)
         for idx in xrange(asas.shape[0]):
@@ -124,8 +124,8 @@ def _prepare_asa(entities, symmetry_mode=None, crystal_mode=None, points=960, \
     elif symmetry_mode in ('table', 'uc'):
         structure = einput(entities, 'S').values()[0]
         sh = structure.header
-        coords = array(atoms.data_children('coords', forgiving=False))
-        idx_to_id = dict(enumerate(atoms.data_children('get_full_id', \
+        coords = array(atoms.getData('coords', forgiving=False))
+        idx_to_id = dict(enumerate(atoms.getData('getFull_id', \
                                                 forgiving=False, method=True)))
         # expand to unit-cell, real 3D
         coords = coords_to_symmetry(coords, \
@@ -152,10 +152,10 @@ def _prepare_asa(entities, symmetry_mode=None, crystal_mode=None, points=960, \
         sh = structure.header
         start = 0
         for chain_ids, mx_num in sh['bio_cmx']:
-            sel = chains.select_children(chain_ids, 'contains', 'id').values()
+            sel = chains.selectChildren(chain_ids, 'contains', 'id').values()
             atoms = einput(sel, 'A')
-            coords = array(atoms.data_children('coords', forgiving=False))
-            idx_to_id = dict(enumerate(atoms.data_children('get_full_id', \
+            coords = array(atoms.getData('coords', forgiving=False))
+            idx_to_id = dict(enumerate(atoms.getData('getFull_id', \
                                               forgiving=False, method=True)))
             stop = start + mx_num
             coords = coords_to_symmetry(coords, \

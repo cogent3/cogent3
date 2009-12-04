@@ -64,11 +64,11 @@ def _prepare_contacts(query, model=None, level='A', search_limit=6.0, \
     # if not specified otherwise the lattice is the first model
     lattice = model or structure[(0,)]
     lents = einput(lattice, level)
-    lents_ids = lents.data_children('get_full_id', forgiving=False, method=True)
-    lcoords = array(lents.data_children('coords', forgiving=False))
+    lents_ids = lents.getData('getFull_id', forgiving=False, method=True)
+    lcoords = array(lents.getData('coords', forgiving=False))
     qents = einput(query, level)
-    qents_ids = qents.data_children('get_full_id', forgiving=False, method=True)
-    qcoords = array(qents.data_children('coords', forgiving=False))
+    qents_ids = qents.getData('getFull_id', forgiving=False, method=True)
+    qcoords = array(qents.getData('coords', forgiving=False))
 
     if symmetry_mode:
         if symmetry_mode == 'table':

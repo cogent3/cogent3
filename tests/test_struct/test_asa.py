@@ -2,6 +2,7 @@
 
 import os
 import numpy as np
+from numpy import sum
 try:
     from cogent.util.unit_test import TestCase, main
     from cogent.app.util import ApplicationNotFoundError
@@ -70,13 +71,13 @@ class asaTest(TestCase):
         for i in range(len(result)):
             self.assertEquals(result.values()[i]['ASA'], a[result.keys()[i]].xtra['ASA'])
         r = einput(self.input_structure, 'R')
-        for water in  r.select_children('H_HOH', 'eq', 'name').values():
+        for water in  r.selectChildren('H_HOH', 'eq', 'name').values():
             self.assertFalse('ASA' in water.xtra)
-        for residue in  r.select_children('H_HOH', 'ne', 'name').values():
+        for residue in  r.selectChildren('H_HOH', 'ne', 'name').values():
             for a in residue:
                 self.assertTrue('ASA' in a.xtra)
         result = asa.asa_xtra(self.input_structure, xtra_key='SASA')
-        for residue in  r.select_children('H_HOH', 'ne', 'name').values():
+        for residue in  r.selectChildren('H_HOH', 'ne', 'name').values():
             for a in residue:
                 a.xtra['ASA'] == a.xtra['SASA']
 
@@ -100,11 +101,11 @@ class asaTest(TestCase):
         except ApplicationNotFoundError: 
             return            
         asa.asa_xtra(self.input_structure)
-        self.input_structure.data_propagate('sum', 'A', 'ASA', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA', xtra=True)
         residues = einput(self.input_structure, 'R')
         asa1 = []
         asa2 = []
-        for residue in  residues.select_children('H_HOH', 'ne', 'name').values():
+        for residue in  residues.selectChildren('H_HOH', 'ne', 'name').values():
             asa1.append(residue.xtra['ASA'])
             asa2.append(residue.xtra['STRIDE_ASA'])
         self.assertAlmostEqual(correlation(asa1, asa2)[1], 0.)
@@ -115,8 +116,8 @@ class asaTest(TestCase):
         self.input_structure = PDBParser(open(self.input_file))
         asa.asa_xtra(self.input_structure, symmetry_mode='uc', xtra_key='ASA_UC')
         asa.asa_xtra(self.input_structure)
-        self.input_structure.data_propagate('sum', 'A', 'ASA', xtra=True)
-        self.input_structure.data_propagate('sum', 'A', 'ASA_UC', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA_UC', xtra=True)
         residues = einput(self.input_structure, 'R')
         x = residues[('2E12', 0, 'B', ('GLU', 77, ' '))].xtra.values()
         self.assertTrue(x[0] != x[1])
@@ -126,8 +127,8 @@ class asaTest(TestCase):
         self.input_structure = PDBParser(open(self.input_file))
         asa.asa_xtra(self.input_structure, symmetry_mode='uc', xtra_key='ASA_XTAL')
         asa.asa_xtra(self.input_structure)
-        self.input_structure.data_propagate('sum', 'A', 'ASA', xtra=True)
-        self.input_structure.data_propagate('sum', 'A', 'ASA_XTAL', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA_XTAL', xtra=True)
         residues = einput(self.input_structure, 'R')
         r1 = residues[('1LJO', 0, 'A', ('ARG', 65, ' '))]
         r2 = residues[('1LJO', 0, 'A', ('ASN', 46, ' '))]
@@ -142,8 +143,8 @@ class asaTest(TestCase):
         self.input_structure = PDBParser(open(self.input_file))
         asa.asa_xtra(self.input_structure, symmetry_mode='uc', crystal_mode=2, xtra_key='ASA_XTAL')
         asa.asa_xtra(self.input_structure)
-        self.input_structure.data_propagate('sum', 'A', 'ASA', xtra=True)
-        self.input_structure.data_propagate('sum', 'A', 'ASA_XTAL', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA_XTAL', xtra=True)
         residues = einput(self.input_structure, 'R')
         r1 = residues[('2E12', 0, 'A', ('ALA', 42, ' '))]
         r2 = residues[('2E12', 0, 'A', ('VAL', 8, ' '))]
@@ -161,8 +162,8 @@ class asaTest(TestCase):
         self.input_structure = PDBParser(open(self.input_file))
         asa.asa_xtra(self.input_structure, symmetry_mode='bio', xtra_key='ASA_BIO')
         asa.asa_xtra(self.input_structure)
-        self.input_structure.data_propagate('sum', 'A', 'ASA', xtra=True)
-        self.input_structure.data_propagate('sum', 'A', 'ASA_BIO', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA', xtra=True)
+        self.input_structure.propagateData(sum, 'A', 'ASA_BIO', xtra=True)
         residues = einput(self.input_structure, 'R')
         r1 = residues[('1A1X', 0, 'A', ('GLU', 37, ' '))]
         r2 = residues[('1A1X', 0, 'A', ('TRP', 15, ' '))]

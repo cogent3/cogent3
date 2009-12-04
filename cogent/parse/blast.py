@@ -27,17 +27,24 @@ def iteration_set_finder(line):
     """Split record on rows that begin a new iteration."""
     return line.startswith("# Iteration: 1")
 
-def _is_junk(line, t_str):
+def _is_junk(line, t_strs):
     """Ignore empty line, line with blast info, or whitespace line"""
-    return (not line or line.startswith("# %s" % t_str) or not line.strip())
+    # empty or white space
+    if not line or not line.strip():
+        return True
+    # blast info line
+    for t_str in t_strs:
+        if line.startswith("# %s" % t_str):
+            return True
+    return False
 
 def is_blast_junk(line):
     """Ignore empty line or lines with blast info"""
-    return _is_junk(line, "BLAST")
+    return _is_junk(line, ("BLAST","TBLAS"))
 
 def is_blat_junk(line):
     """Ignore empty line or lines with blat info"""
-    return _is_junk(line, "BLAT")
+    return _is_junk(line, ("BLAT",))
 
 label_constructors = {'ITERATION': int} #add other label constructors here
 

@@ -135,9 +135,9 @@ dictionary.
                                                                                                                                                                                                                                        
     >>> structure.id # the static id tuple. 
     ('4TSV',)                                                                                                                                                                                                            
-    >>> structure.get_id() # the dynamic id tuple, use calls to get_id whenever possible.                                                                                                                                                               
+    >>> structure.getId() # the dynamic id tuple, use calls to get_id whenever possible.                                                                                                                                                               
     ('4TSV',)
-    >>> structure.get_full_id() # only for the structure entity is the full_id identical to the id.                                                                                                                                                     
+    >>> structure.getFull_id() # only for the structure entity is the full_id identical to the id.                                                                                                                                                     
     ('4TSV',)
     >>> structure.header.keys() # the pdb header is parsed in to a dictionary as the header attribute                                                                                                                                                   
     ['bio_cmx', 'uc_mxs', 'name', 'solvent_content', 'expdta', 'bio_mxs', \
@@ -171,19 +171,19 @@ structure is just a dictionary of models.
     >>> structure.keys()
     [(0,)]                                                                                  
     >>> first_model = structure.values()[0] # we name the first(and only) model in the structure                             
-    >>> first_model_id = first_model.get_id()                                                                                
+    >>> first_model_id = first_model.getId()                                                                                
                                                                                                                          
 But pycogent provides more specific methods to work with entities. The one which
 is useful  to access the contents of an entity is ``get_children``.
 
 .. doctest::     
                                                                                                                      
-    >>> structure.get_children() # the output should be the same as structure.values()                                                   
+    >>> structure.getChildren() # the output should be the same as structure.values()                                                   
     [<Model id=0>]
     # the optional argument to the get_children methods is a list of ids (e.g.  to
     # access only a subset of children) more concise and sophisticated methods to
     # work with children will be introduced later
-    >>> children_list = structure.get_children([first_model_id])                                                                       
+    >>> children_list = structure.getChildren([first_model_id])                                                                       
                                                                                                                                      
 A typical way to change a property of all children in a MultiEntity would be to 
 write a loop. In this example we change the name of every residue to 'UNK'.
@@ -193,7 +193,7 @@ write a loop. In this example we change the name of every residue to 'UNK'.
    >>> some_model = structure.values()[0]                                                                                                
    >>> some_chain = some_model.values()[0]                                                                                               
    >>> for residue in some_chain.values():                                                                                               
-   ...    residue.set_name('UNK')
+   ...    residue.setName('UNK')
    ...                                                                                                   
                                                                                                                                      
 Pycogent allows to make it much shorter. Whenever a structure is created the
@@ -219,7 +219,7 @@ e.g. a chain if you need it.
                                                                                                                                                                              
    >>> some_model = structure.values()[0]                                                                                                                                                         
    >>> some_chain = some_model.values()[0]                                                                                                                                                        
-   >>> some_chain.set_table()                                                                                                                                                                     
+   >>> some_chain.setTable()                                                                                                                                                                     
    >>> # some_chain.table['R'] # all the residues
   
 There is however a catch. Tables are not dynamic, this means that they are not
@@ -232,22 +232,22 @@ it's name.
 
     >>> from cogent.core.entity import Chain # the chain entity
     >>> new_chain = Chain('J') # an ampty chain named 'J'
-    >>> new_chain.get_id()
+    >>> new_chain.getId()
     ('J',)
     >>> some_residue = structure.table['R'].values()[0] # a semi-random residue from structure
     # a possible output: <Residue UNK resseq=39 icode= >
-    some_residue.set_name('001') # change the name to '001'
-    >>> some_residue.get_id() # should return e.g. (('001', 39, ' '),)
-    >>> some_residue.get_full_id() # should return ('4TSV', 0, 'A', ('001', 39, ' '))
-    >>> new_chain.add_child(some_residue) # move from chain 'A' in 4TSV into chain 'J'
-    >>> new_chain.keys() # should return: [(('001', 39, ' '),)]
-    >>> new_chain.set_table()
-    >>> new_chain.table['R'].keys() # should return: [('J', ('001', 39, ' '))]
-    >>> some_residue.set_name('002') # change the name to '002'
-    >>> new_chain.keys() # should return: [(('002', 39, ' '),)] # updated!
-    >>> new_chain.table['R'].keys() # should return [('J', ('001', 39, ' '))] not updated
-    >>> new_chain.set_table(force =True) # update table
-    >>> new_chain.table['R'].keys() # should return [('J', ('002', 39, ' '))] updated
+    some_residue.setName('001') # change the name to '001'
+    >>> # some_residue.getId() # should return e.g. (('001', 39, ' '),)
+    >>> # some_residue.getFull_id() # should return ('4TSV', 0, 'A', ('001', 39, ' '))
+    >>> new_chain.addChild(some_residue) # move from chain 'A' in 4TSV into chain 'J'
+    >>> # new_chain.keys() # should return: [(('001', 39, ' '),)]
+    >>> new_chain.setTable()
+    >>> # new_chain.table['R'].keys() # should return: [('J', ('001', 39, ' '))]
+    >>> some_residue.setName('002') # change the name to '002'
+    >>> # new_chain.keys() # should return: [(('002', 39, ' '),)] # updated!
+    >>> # new_chain.table['R'].keys() # should return [('J', ('001', 39, ' '))] not updated
+    >>> new_chain.setTable(force =True) # update table
+    >>> # new_chain.table['R'].keys() # should return [('J', ('002', 39, ' '))] updated
                                                                                                                                                                                                                                                                                                                                                 
 It is important to realize that Python dictionaries are not sorted so the order
 of two equal dictionaries is not the same. Each time a child is changed in a way
@@ -258,20 +258,20 @@ entity has a particular order.
 .. doctest::          
                                                                                                                                                                                                                                
    >>> some_residue = some_chain.values()[0]                                                                                                                                                                                                            
-   >>> old_id = some_residue.get_id() # e.g. (('ILE', 154, ' '),)                                                                                                                                                                                       
-   >>> some_residue.set_name('VAL')                                                                                                                                                                                                          
-   >>> new_id = some_residue.get_id() # e.g. (('VAL', 154, ' '),)                                                                                                                                                                                       
-   >>> some_chain.get_children([old_id]) # nothin... not valid anymore                                                                                                                                                                                  
+   >>> old_id = some_residue.getId() # e.g. (('ILE', 154, ' '),)                                                                                                                                                                                       
+   >>> some_residue.setName('VAL')                                                                                                                                                                                                          
+   >>> new_id = some_residue.getId() # e.g. (('VAL', 154, ' '),)                                                                                                                                                                                       
+   >>> some_chain.getChildren([old_id]) # nothin... not valid anymore                                                                                                                                                                                  
    []
-   >>> some_chain.get_children([new_id]) # e.g. [<Residue VAL resseq=154 icode= >]                                                                                                                                                                      
+   >>> # some_chain.getChildren([new_id]) # e.g. [<Residue VAL resseq=154 icode= >]                                                                                                                                                                      
                                                                                                                                                                                                                                                     
 But the The table of an entity is static and does not get updated.
 
 .. doctest::
 
-   >>> some_full_id = some_residue.get_full_id() # entities in tables are stored using their full ids!!                                                                                                                                                 
-   >>> some_chain.table['R'][some_full_id] # should raise a KeyError                                                                                                                                                                                    
-   >>> some_chain.set_table() # we make a new table                                                                                                                                                                                                     
+   >>> some_full_id = some_residue.getFull_id() # entities in tables are stored using their full ids!!                                                                                                                                                 
+   >>> # some_chain.table['R'][some_full_id] # should raise a KeyError                                                                                                                                                                                    
+   >>> some_chain.setTable() # we make a new table                                                                                                                                                                                                     
    >>> some_chain.table['R'][some_full_id] # e.g. <Residue VAL resseq=154 icode= >                                                                                                                                                                      
                                                                                                                                                                                                                                                     
 It is important to note that the table is a simple dictionary the entity
@@ -282,20 +282,22 @@ the table is up-to-date (or at least I hope I managed to code it right)
                                                                                                                                                                                                                                       
    >>> some_chain.modified                                                                                                                                                                                                                           
    # if the result is True the residue has been modified and might require to
-   >>> some_chain.set_table()
+   >>> some_chain.setTable()
    # and in some cases
    >>> some_chain.update_ids()
 
 Do not run those methods if you do not need it as they take some time.
 
-The loop to run a child method can be implicitly ommitted by using the dispatch 
+The loop to run a child method can be implicitly omitted by using the dispatch 
 method. It calls the method for every child.
 
 .. doctest::
 
    >>> some_model = structure.values()[0]
    >>> some_chain = some_model.values()[1]
-   >>> some_chain.dispatch('set_name', 'UNK')
+   >>> some_chain.dispatch('setName', 'UNK')
+   >>> some_chain.modified
+   True
 
 The above method has exactly the same effect as the loop. All residues within 
 the chain will have the name set to 'UNK'. You can verify that the id's and 
@@ -303,5 +305,5 @@ dictionary keys got updated.:
 
 .. doctest::
 
-   >>> some_chain.keys()[0] # output random e.g. (('UNK', 260, ' '),)
-   >>> some_chain.values()[0] # e.g. <Residue UNK resseq=260 icode= >
+   >>> # some_chain.keys()[0] # output random e.g. (('UNK', 260, ' '),)
+   >>> # some_chain.values()[0] # e.g. <Residue UNK resseq=260 icode= >

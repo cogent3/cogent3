@@ -15,19 +15,19 @@ __status__ = "Development"
 
 
 def select(entities, level, *args, **kwargs):
-    """Shorthand for ``einput`` and subsequent ``select_children``. Returns
+    """Shorthand for ``einput`` and subsequent ``selectChildren``. Returns
     
     Returns a ``Holder`` instance. The "name" can be specified.
     
     Additional arguments and keyworded arguments are passed to the 
-    ``select_children`` method of the holder instance.
+    ``selectChildren`` method of the holder instance.
     """
     try:
         name = kwargs.pop('name')
     except KeyError:
         name = 'select'
     holder = einput(entities, level)
-    selection = holder.select_children(*args, **kwargs)
+    selection = holder.selectChildren(*args, **kwargs)
     try:
         holder = einput(selection.values(), level, name)
     except ValueError:
@@ -53,7 +53,7 @@ def einput(entities, level, name=None):
         elif  index < HIERARCHY.index(entity.level):    # call for parents
             all.update(get_parent(entity, level))
         else:
-            all.update({entity.get_full_id():entity})   # call for self
+            all.update({entity.getFull_id():entity})   # call for self
     higher_level = HIERARCHY[index - 1]                 # one up;)
     if all:
         name = name or higher_level
@@ -69,7 +69,7 @@ def einput(entities, level, name=None):
             holder = StructureHolder(name, all)
     else:
         raise ValueError, "einput got no input entites."
-    holder.set_sort_tuple()
+    holder.setSort_tuple()
     return holder
 
 def get_children(entity, level):
@@ -80,7 +80,7 @@ def get_children(entity, level):
         - entity: any ``Entity`` instance.
         - level: one of 'H', 'S', 'M', 'C', 'R', 'A'
     """
-    entity.set_table()
+    entity.setTable()
     return entity.table[level]
 
 def get_parent(entity, level):
@@ -91,5 +91,5 @@ def get_parent(entity, level):
         - entity: any ``Entity`` instance.
         - level: one of 'H', 'S', 'M', 'C', 'R', 'A'
     """
-    parent = entity.get_parent(level) # get the correct parent
-    return {parent.get_full_id(): parent}
+    parent = entity.getParent(level) # get the correct parent
+    return {parent.getFull_id(): parent}

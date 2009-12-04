@@ -6,9 +6,11 @@ from copy import deepcopy, copy
 import cPickle
 try:
     from cogent.util.unit_test import TestCase, main
+    from cogent.core.entity import Atom
     from cogent.parse.pdb import PDBParser
 except ImportError:
     from zenpdb.cogent.util.unit_test import TestCase, main
+    from zenpdb.core.entity import Atom
     from zenpdb.cogent.parse.pdb import PDBParser
 
 
@@ -1242,48 +1244,48 @@ class EntityTests(TestCase):
     def setUp(self):
         self.structure = PDBParser(dummy_file)
         self.working_model = self.structure.values()[0]
-        self.working_chain = self.working_model.sorted_values()[0] # waters have only one atom
+        self.working_chain = self.working_model.sortedvalues()[0] # waters have only one atom
         self.working_residue = self.working_chain.values()[0]
         self.working_residue2 = self.working_chain.values()[1]
         self.working_atom = self.working_residue.values()[0]
 
-    def test_set_id(self):
+    def test_setId(self):
         """Test setting an id."""
         # structure
         self.structure.name = '4TSV'
         self.structure.id = ('4TSV',)
-        self.structure.set_id(('4TSV',))
+        self.structure.setId(('4TSV',))
         self.assertFalse(self.structure.modified)
-        self.structure.set_id(('4TSX',))
+        self.structure.setId(('4TSX',))
         self.assertTrue(self.structure.modified)
         self.assertEqual('4TSX', self.structure.name)
         self.structure.modified = False
-        self.structure.set_id()
+        self.structure.setId()
         self.assertFalse(self.structure.modified)
         # residue 
         self.working_residue.modified = False
         (self.working_residue.name, self.working_residue.res_id, self.working_residue.res_ic) = ('XYZ', 666, 'W')
         self.working_residue.id = (('XYZ', 666, 'W'),)
-        self.working_residue.set_id()
+        self.working_residue.setId()
         self.assertFalse(self.working_residue.modified)
-        self.working_residue.set_id((('XYZ', 666, 'W'),))
+        self.working_residue.setId((('XYZ', 666, 'W'),))
         self.assertFalse(self.working_residue.modified)
-        self.working_residue.set_id((('ABC', 999, 'M'),))
+        self.working_residue.setId((('ABC', 999, 'M'),))
         self.assertTrue(self.working_residue.modified)
         self.assertEqual((self.working_residue.name, self.working_residue.res_id, self.working_residue.res_ic), ('ABC', 999, 'M'))
-        self.assertEqual(self.working_residue.get_id(), (('ABC', 999, 'M'),))
+        self.assertEqual(self.working_residue.getId(), (('ABC', 999, 'M'),))
         # atom
         self.working_atom.modified = False
         (self.working_atom.at_id, self.working_atom.alt_loc) = ('X', 'W')
         self.working_atom.id = (('X', 'W'),)
-        self.working_atom.set_id()
+        self.working_atom.setId()
         self.assertFalse(self.working_atom.modified)
-        self.working_atom.set_id((('X', 'W'),))
+        self.working_atom.setId((('X', 'W'),))
         self.assertFalse(self.working_atom.modified)
-        self.working_atom.set_id((('W', 'X'),))
+        self.working_atom.setId((('W', 'X'),))
         self.assertTrue(self.working_atom.modified)
         self.assertEqual((self.working_atom.at_id, self.working_atom.alt_loc), ('W', 'X'))
-        self.assertEqual(self.working_atom.get_id(), (('W', 'X'),))
+        self.assertEqual(self.working_atom.getId(), (('W', 'X'),))
 
     def test_masking(self):
         """Test entity masking."""
@@ -1292,7 +1294,7 @@ class EntityTests(TestCase):
         self.assertFalse(self.working_chain.masked)
         self.assertFalse(self.working_residue.masked)
         self.assertFalse(self.working_atom.masked)
-        self.structure.set_masked()
+        self.structure.setMasked()
         self.assertTrue(self.structure.masked)
         self.assertTrue(self.working_model.masked)
         self.assertTrue(self.working_chain.masked)
@@ -1300,14 +1302,14 @@ class EntityTests(TestCase):
         self.assertTrue(self.working_residue2.masked)
         # Entity
         self.assertTrue(self.working_atom.masked)
-        self.working_atom.set_unmasked()
+        self.working_atom.setUnmasked()
         self.assertFalse(self.working_atom.masked)
-        self.working_atom.set_masked()
+        self.working_atom.setMasked()
         self.assertTrue(self.working_atom.masked)
         # all should be masked     
         # MultiyEntity
-        self.structure.set_unmasked()
-        self.structure.set_unmodified(True, True)
+        self.structure.setUnmasked()
+        self.structure.setUnmodified(True, True)
         self.assertFalse(self.structure.masked)
         self.assertFalse(self.working_model.masked)
         self.assertFalse(self.working_chain.masked)
@@ -1319,7 +1321,7 @@ class EntityTests(TestCase):
         self.assertFalse(self.working_chain.modified)
         self.assertFalse(self.working_residue.modified)
         self.assertFalse(self.working_atom.modified)
-        self.working_residue.set_masked()
+        self.working_residue.setMasked()
         self.assertTrue(self.working_residue.masked)
         self.assertTrue(self.working_atom.masked)
         self.assertTrue(self.structure.modified)
@@ -1336,69 +1338,69 @@ class EntityTests(TestCase):
         self.assertTrue(self.working_residue.parent)
         self.assertTrue(self.working_atom.parent)
         # atom
-        self.working_atom.set_unmodified()
-        self.working_residue.set_unmodified()
-        self.working_residue2.set_unmodified()
-        self.working_atom.set_parent(self.working_residue2) # the other residue
+        self.working_atom.setUnmodified()
+        self.working_residue.setUnmodified()
+        self.working_residue2.setUnmodified()
+        self.working_atom.setParent(self.working_residue2) # the other residue
         self.assertTrue(self.working_atom.modified)
         self.assertTrue(self.working_residue.modified)
         self.assertTrue(self.working_residue2.modified)
 
-        self.working_atom.set_unmodified()
-        self.working_atom.set_parent(self.working_residue2) # the other residue
+        self.working_atom.setUnmodified()
+        self.working_atom.setParent(self.working_residue2) # the other residue
         self.assertFalse(self.working_atom.modified)
 
-        self.working_atom.set_parent(self.working_residue) # the first residue
+        self.working_atom.setParent(self.working_residue) # the first residue
         self.assertTrue(self.working_atom.modified)
 
-        self.working_atom.set_unmodified(True, False)
+        self.working_atom.setUnmodified(True, False)
         self.assertFalse(self.working_atom.modified)
         self.assertFalse(self.working_residue.modified)
         self.assertTrue(self.working_residue2.modified)
 
         #get parrent
-        self.assertEqual(self.working_atom.get_parent(), self.working_residue)
-        self.assertEqual(self.working_atom.get_parent('R'), self.working_residue)
-        self.assertEqual(self.working_atom.get_parent('C'), self.working_chain)
-        self.assertEqual(self.working_atom.get_parent('M'), self.working_model)
-        self.assertEqual(self.working_atom.get_parent('S'), self.structure)
-        self.assertNotEqual(self.working_atom.get_parent(), self.working_residue2)
-        self.assertEqual(self.working_atom.get_parent('C'), self.working_residue.get_parent())
-        self.assertEqual(self.working_atom.get_parent('C'), self.working_residue2.get_parent()) # should be the same chain
+        self.assertEqual(self.working_atom.getParent(), self.working_residue)
+        self.assertEqual(self.working_atom.getParent('R'), self.working_residue)
+        self.assertEqual(self.working_atom.getParent('C'), self.working_chain)
+        self.assertEqual(self.working_atom.getParent('M'), self.working_model)
+        self.assertEqual(self.working_atom.getParent('S'), self.structure)
+        self.assertNotEqual(self.working_atom.getParent(), self.working_residue2)
+        self.assertEqual(self.working_atom.getParent('C'), self.working_residue.getParent())
+        self.assertEqual(self.working_atom.getParent('C'), self.working_residue2.getParent()) # should be the same chain
 
     def test_child(self):
         """Test child manipulation"""
-        self.structure.set_unmodified()
-        self.assertNotSameObj(self.working_residue2.get(self.working_atom.get_id()), self.working_atom)
-        self.assertSameObj(self.working_residue.get(self.working_atom.get_id()), self.working_atom)
-        self.working_residue2.add_child(self.working_atom)
-        self.assertSameObj(self.working_residue2.get(self.working_atom.get_id()), self.working_atom)
-        self.assertFalse(self.working_residue.get(self.working_atom.get_id()))
+        self.structure.setUnmodified()
+        self.assertNotSameObj(self.working_residue2.get(self.working_atom.getId()), self.working_atom)
+        self.assertSameObj(self.working_residue.get(self.working_atom.getId()), self.working_atom)
+        self.working_residue2.addChild(self.working_atom)
+        self.assertSameObj(self.working_residue2.get(self.working_atom.getId()), self.working_atom)
+        self.assertFalse(self.working_residue.get(self.working_atom.getId()))
         self.assertTrue(self.structure.modified)
         self.assertTrue(self.working_model.modified)
         self.assertTrue(self.working_chain.modified)
         self.assertTrue(self.working_residue.modified)
         self.assertTrue(self.working_residue2.modified)
         self.assertTrue(self.working_atom.modified)
-        self.structure.set_unmodified()
-        self.assertSameObj(self.working_chain.get(self.working_residue.get_id()), self.working_residue)
-        self.working_chain.del_child(self.working_residue.get_id())
-        self.assertFalse(self.working_chain.get(self.working_residue.get_id()))
-        self.working_chain.add_child(self.working_residue)
-        self.assertSameObj(self.working_chain.get(self.working_residue.get_id()), self.working_residue)
+        self.structure.setUnmodified()
+        self.assertSameObj(self.working_chain.get(self.working_residue.getId()), self.working_residue)
+        self.working_chain.delChild(self.working_residue.getId())
+        self.assertFalse(self.working_chain.get(self.working_residue.getId()))
+        self.working_chain.addChild(self.working_residue)
+        self.assertSameObj(self.working_chain.get(self.working_residue.getId()), self.working_residue)
 
-    def test_get_children(self):
+    def test_getChildren(self):
         """Tests if can retrieve children."""
-        id1 = self.working_residue.get_id()
-        id2 = self.working_residue2.get_id()
-        (child1, child2) = self.working_chain.get_children([id1, id2])
+        id1 = self.working_residue.getId()
+        id2 = self.working_residue2.getId()
+        (child1, child2) = self.working_chain.getChildren([id1, id2])
         self.assertSameObj(self.working_residue, child1)
         self.assertSameObj(self.working_residue2, child2)
-        self.working_residue.set_masked()
-        self.assertEqual(len(self.working_chain.get_children([id1, id2])), 1)
-        self.assertEqual(len(self.working_chain.get_children([id1, id2], unmask=True)), 2)
-        self.working_residue.set_unmasked()
-        self.assertEqual(len(self.working_chain.get_children([id1, id2])), 2)
+        self.working_residue.setMasked()
+        self.assertEqual(len(self.working_chain.getChildren([id1, id2])), 1)
+        self.assertEqual(len(self.working_chain.getChildren([id1, id2], unmask=True)), 2)
+        self.working_residue.setUnmasked()
+        self.assertEqual(len(self.working_chain.getChildren([id1, id2])), 2)
 
     def test_modif(self):
         """Tests modifications."""
@@ -1407,25 +1409,25 @@ class EntityTests(TestCase):
         self.assertTrue(self.working_chain.modified)
         self.assertTrue(self.working_residue.modified)
         self.assertTrue(self.working_atom.modified)
-        self.working_model.set_unmodified()
-        self.working_chain.set_unmodified()
-        self.working_residue.set_unmodified()
-        self.working_atom.set_unmodified()
+        self.working_model.setUnmodified()
+        self.working_chain.setUnmodified()
+        self.working_residue.setUnmodified()
+        self.working_atom.setUnmodified()
         self.assertFalse(self.working_model.modified)
         self.assertFalse(self.working_chain.modified)
         self.assertFalse(self.working_residue.modified)
         self.assertFalse(self.working_atom.modified)
-        self.structure.set_modified(False, True)
+        self.structure.setModified(False, True)
         self.assertTrue(self.working_model.modified)
         self.assertTrue(self.working_chain.modified)
         self.assertTrue(self.working_residue.modified)
         self.assertTrue(self.working_atom.modified)
-        self.working_atom.set_unmodified(True, False)
+        self.working_atom.setUnmodified(True, False)
         self.assertFalse(self.working_model.modified)
         self.assertFalse(self.working_chain.modified)
         self.assertFalse(self.working_residue.modified)
         self.assertFalse(self.working_atom.modified)
-        self.working_chain.set_modified(True, True)
+        self.working_chain.setModified(True, True)
         self.assertTrue(self.structure.modified)
         self.assertTrue(self.working_model.modified)
         self.assertTrue(self.working_chain.modified)
@@ -1435,26 +1437,47 @@ class EntityTests(TestCase):
     def test__link(self):
         """Tests linking for cPickle."""
         self.structure._unlink()
-        self.assertFalse(self.structure.get_children()[0].values()[0].\
+        self.assertFalse(self.structure.getChildren()[0].values()[0].\
                                               values()[0].values()[0].parent)
         self.structure._link()
-        self.assertTrue(self.structure.get_children()[0].values()[0].\
+        self.assertTrue(self.structure.getChildren()[0].values()[0].\
                                              values()[0].values()[0].parent)
 
     def test_iter(self):
         """Tests iterations."""
         self.assertTrue(self.working_chain.values())
-        self.working_chain.set_masked()
+        self.working_chain.setMasked()
         self.assertFalse(self.working_chain.values())
         self.assertTrue(self.working_chain.values(unmask=True))
         i = False
         for residue in self.working_chain:
             i = True
         self.assertFalse(i)
-        self.working_chain.set_unmasked()
+        self.working_chain.setUnmasked()
         for residue in self.working_chain:
             i = True
         self.assertTrue(i)
+        
+    def test_propagateData(self):
+        from string import join
+        result = self.working_chain.propagateData(join, 'A', 'element')
+        assert self.working_chain.element is result
+        assert isinstance(result, str)
+        self.working_atom.xtra['what'] = 'this'
+        result = self.working_chain.propagateData(join, 'A', 'what', xtra=True)
+        assert result.strip() == 'this'
+        
+
+    def test_table_set_del_get(self):
+        """test table creation
+        """
+        table = copy(self.working_chain.table)
+        self.working_chain.setTable()
+        assert self.working_chain.table != table
+        self.working_chain.delTable()
+        assert self.working_chain.table == table
+        self.working_chain.setTable()
+        assert self.working_chain.table['R'] is self.working_chain.getTable('R') != {}
 
 #    def test_deepcopy(self):
 #        """Tests deepcopy if nothing is lost."""
@@ -1516,16 +1539,22 @@ class EntityTests(TestCase):
         self.assertTrue(self.working_residue[(('N', ' '),)].parent is self.working_residue)
         self.assertTrue(wr_copied[(('N', ' '),)].parent is wr_copied)
 
-    def test_update_ids(self):
+    def test_removeHydrogens(self):
+        self.working_atom.setElement(' H')
+        withh = len(self.working_residue.keys())
+        self.working_residue.removeHydrogens()
+        assert len(self.working_residue.keys()) == withh - 1
+
+    def test_updateIds(self):
         """Test if ids get updated."""
         self.working_residue.name = 'XXX'
         try:
-            self.working_chain[self.working_residue.get_id()]
+            self.working_chain[self.working_residue.getId()]
             raise AssertionError
         except KeyError:
             pass
-        self.working_chain.update_ids()
-        self.assertTrue(self.working_chain[self.working_residue.get_id()])
+        self.working_chain.updateIds()
+        self.assertTrue(self.working_chain[self.working_residue.getId()])
 
     def test_table(self):
         """ Tests the creation of the SMCRA table."""
@@ -1533,46 +1562,68 @@ class EntityTests(TestCase):
             self.assertTrue(category)
         for category in self.structure.values()[0].table.values():
             self.assertFalse(category)
-        self.structure.values()[0].set_table()
+        self.structure.values()[0].setTable()
         for category in self.structure.values()[0].table.values():
             self.assertTrue(category)
-        self.structure.values()[0].set_name(1)
+        self.structure.values()[0].setName(1)
         self.assertEqual(self.structure.table['M'].keys(), [(None, 0)]) # old id
-        self.structure.set_table()
+        self.structure.setTable()
         self.assertEqual(self.structure.table['M'].keys(), [(None, 1)]) # new id
 
+    def test_del_parent(self):
+        """tests parent removal"""
+        assert self.working_atom.getId() in self.working_residue
+        self.working_atom.delParent()
+        assert not self.working_atom.getId() in self.working_residue
+        assert self.working_atom.parent is None
+        
     def test_dispatch(self):
         """Tests method dispatching."""
-        self.working_chain.dispatch('set_masked')
+        self.working_chain.dispatch('setMasked')
         self.assertTrue(self.working_residue.masked)
         self.assertTrue(self.working_chain.modified)
         self.assertFalse(self.working_chain.masked)
         self.assertFalse(self.working_chain.values())
         self.assertFalse(self.working_chain.values(unmask=False))
         self.assertTrue(self.working_chain.values(unmask=True))
-        self.working_chain.dispatch('set_unmasked')
+        self.working_chain.dispatch('setUnmasked')
         self.assertTrue(self.working_residue.masked)  # dispatch should obey masking
         self.assertFalse(self.working_chain.values()) # -//-
-        self.working_chain.set_unmasked(force=True)
+        self.working_chain.setUnmasked(force=True)
         self.assertFalse(self.working_residue.masked)
         self.assertTrue(self.working_chain.values())
 
-    def test_strip_children(self):
+    def test_getMasked(self):
+        """tests if masking works."""
+        assert self.working_chain.getMasked() is False
+        assert self.working_atom.getMasked() is False
+        self.working_chain.setMasked()
+        assert self.working_atom.getMasked() is True
+        assert self.working_chain.getMasked() is True
+        
+        
+    def test_selectChildren(self):
+        from operator import eq
+        assert self.working_chain.selectChildren('ALA', eq, 'name') == \
+        self.working_chain.selectChildren('ALA', 'eq', 'name')
+        assert self.working_chain.selectChildren('ALA', 'eq', 'name')
+
+    def test_stripChildren(self):
         """Tests if removing children works."""
         i = 0
         res_num = len(self.working_chain)
         for residue in self.working_chain:
             if residue.name == 'ALA': i += 1
-        self.working_chain.strip_children('ALA', 'eq', 'name')
+        self.working_chain.stripChildren('ALA', 'eq', 'name')
         self.assertEqual(len(self.working_chain) + i, res_num)
         self.assertEqual(len(self.working_chain.values()) + i, res_num)
 
-    def test_mask_children(self):
+    def test_maskChildren(self):
         i = 0
         res_num = len(self.working_chain)
         for residue in self.working_chain:
             if residue.name == 'ALA': i += 1
-        self.working_chain.mask_children('ALA', 'eq', 'name')
+        self.working_chain.maskChildren('ALA', 'eq', 'name')
         self.assertEqual(len(self.working_chain), res_num)
         self.assertEqual(len(self.working_chain.values()) + i, res_num)
 
@@ -1587,41 +1638,43 @@ class EntityTests(TestCase):
         from numpy import array
         result_array = array([0., 0., 0.])
         i = 0
-        for atom in self.working_residue.get_children():
+        for atom in self.working_residue.getChildren():
             i += 1
             result_array += atom.coords
         self.assertFloatEqual(self.working_residue.coords, result_array / i)
         # recursive set/update
         self.working_atom.coords = array([0., 0., 0.])
-        self.structure.recursive_set_coords()
+        self.structure.setCoordsRecursively()
         self.assertNotEqual(self.structure.coords, first_coords)
 
     def test_coords2(self):
         from numpy import array, mean
         for residue in self.working_chain:
-            residue.set_coords()
+            residue.setCoords()
             atom_coords = []
             for atom in residue:
                 atom_coords.append(atom.coords)
             residue_coords = mean(array(atom_coords), axis=0)
             self.assertFloatEqual(residue.coords, residue_coords)
         for residue in self.working_chain:
-            residue.set_coords(' CA ', 'eq', 'name')
+            residue.setCoords(' CA ', 'eq', 'name')
             for atom in residue:
                 if atom.name == ' CA ': break
             atom_coords = atom.coords
+            assert atom_coords is atom.getCoords()
             self.assertFloatEqual(residue.coords, atom_coords)
+        
 
-    def test_recursive_move(self):
+    def test_moveRecursively(self):
         from numpy import array
         first_coords = self.working_residue.coords
-        self.structure.recursive_move(self.structure.coords)
+        self.structure.moveRecursively(self.structure.coords)
         self.assertFloatEqual(self.structure.coords, array([0., 0., 0.]))
         self.assertNotEqual(self.working_residue.coords, first_coords)
 
     def test_sorted(self):
         pass
-        #print self.working_chain.sorted_values()        
+        #print self.working_chain.sortedvalues()        
 
     def tearDown(self):
         self.structure = None

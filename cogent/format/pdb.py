@@ -37,8 +37,8 @@ def write_header(header):
 def write_coords(atoms):
     old_fields = defaultdict(str)
     coords = ['MODEL        1\n']
-    for atom in atoms.sorted_values():
-        fields = atom.get_dict()
+    for atom in atoms.sortedvalues():
+        fields = atom.getDict()
         if (old_fields['chain_id'] != fields['chain_id']) and old_fields['chain_id'] and old_fields['res_name'] in AA_NAMES:
                 coords.append(dict2ter(old_fields))
         if (old_fields['model'] != fields['model']) and old_fields['model'] != '': # model can be 0 :)
@@ -100,7 +100,7 @@ def PDBXWriter(f, entities, level, b_key, b_mode=None, b_val=0.0, q_key=None, \
     return the length (``len``) of the sequence.
     The B and Q columns can contain only numeric values, thus any data which we 
     wish to store in those columns needs to be converted. The following 
-    functions convert data to numerica form. boolean type can also be treated as
+    functions convert data to numeric form. boolean type can also be treated as
     number.
     """
 
@@ -117,13 +117,13 @@ def PDBXWriter(f, entities, level, b_key, b_mode=None, b_val=0.0, q_key=None, \
             atoms = einput(entity, 'A')
             for atom in atoms:
                 if b_key:
-                    atom.set_bfactor(b_data)
+                    atom.setBfactor(b_data)
                 if q_key:
-                    atom.set_occupancy(q_data)
+                    atom.setOccupancy(q_data)
         else:
             if b_key:
-                entity.set_bfactor(b_data)
+                entity.setBfactor(b_data)
             if q_key:
-                entity.set_occupancy(q_data)
+                entity.setOccupancy(q_data)
     PDBWriter(f, entities)  # we try to preserve the headers
 

@@ -45,14 +45,14 @@ Let's see what we got
 WOW, thats descriptive. At least we know it is an X-Ray structure. Now how many
 chains does it have?
 
-    >>> structure[(0,)].get_children()
+    >>> structure[(0,)].getChildren()
     [<Chain id=A>]
    
 We found the 'A' chain of the first (0-based indexing) model. We can dig deeper
 
 .. doctest::
 
-    >>> structure[(0,)][('A',)].sorted_keys()[0:2]
+    >>> structure[(0,)][('A',)].sortedkeys()[0:2]
     [(('H_HOH', 1, ' '),), (('H_HOH', 2, ' '),)]
     
 Only waters? Probably not. You can see what is inside a chain by looking inside
@@ -95,7 +95,7 @@ is stored as the ``name`` attribute.
 
     >>> chain_A.name
     'A'
-    >>> first_child = chain_A.sorted_values()[0]
+    >>> first_child = chain_A.sortedvalues()[0]
     >>> first_child.name
     'H_HOH'
     
@@ -117,13 +117,13 @@ to select children based on a property ``select_children``. The equivalent of
 the above expression is:
 
 .. doctest::
-    >>> non_water = chain_A.select_children('H_HOH', 'ne', 'name').values()
+    >>> non_water = chain_A.selectChildren('H_HOH', 'ne', 'name').values()
     
 or
 
 .. doctest::
 
-    >>> non_water = all_residues.select_children('H_HOH', 'ne', 'name').values()
+    >>> non_water = all_residues.selectChildren('H_HOH', 'ne', 'name').values()
     >>> len(non_water)
     95
     
@@ -155,7 +155,7 @@ Is there a serines in the sequence?
 .. doctest::
 
     >>> serines = select(structure, 'R', 'SER', 'eq', 'name')
-    >>> serines.sorted_keys()[0]
+    >>> serines.sortedkeys()[0]
     ('2E1F', 0, 'A', ('SER', 1146, ' '))
     
 The function raises a ``ValueError`` if no entities can be selected.

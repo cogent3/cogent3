@@ -44,9 +44,9 @@ class ManipulationTest(TestCase):
         self.assertTrue(leu25icA.parent is None)
         self.assertTrue(leu25icA is not leu25)
         self.assertTrue(leu25icA[(('N', ' '),)] is not leu25[(('N', ' '),)])
-        leu25icA.set_ic('A')
-        self.assertEquals(leu25icA.get_id(), (('LEU', 25, 'A'),))
-        chainB.add_child(leu25icA)
+        leu25icA.setIc('A')
+        self.assertEquals(leu25icA.getId(), (('LEU', 25, 'A'),))
+        chainB.addChild(leu25icA)
         self.assertFalse(chainB[(('LEU', 25, 'A'),)] is \
                          chainB[(('LEU', 25, ' '),)])
         self.assertEquals(clean_ical(self.input_structure), \
@@ -58,7 +58,7 @@ class ManipulationTest(TestCase):
         self.assertFalse((('LEU', 25, 'A'),) in chainB)
         self.assertTrue((('LEU', 25, 'A'),) in chainB.keys(unmask=True))
 
-        self.input_structure.set_unmasked(force=True)
+        self.input_structure.setUnmasked(force=True)
         self.assertEquals(clean_ical(self.input_structure), \
                           ([], [('2E12', 0, 'B', ('LEU', 25, 'A'))]))
         clean_ical(self.input_structure, pretend=False, mask=False)
@@ -88,7 +88,7 @@ class ManipulationTest(TestCase):
         fh = open(fn2, 'w')
         a1 = einput(input_structure, 'A')
         a2 = einput(sh.values()[3], 'A')
-        k = a1.values()[99].get_full_id()
+        k = a1.values()[99].getFull_id()
         name = sh.values()[3].name
         a1c = a1[k].coords
         a2c = a2[(name,) + k[1:]].coords
