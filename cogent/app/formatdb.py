@@ -8,8 +8,9 @@ File created on 16 Sep 2009.
 """
 from __future__ import division
 from optparse import OptionParser
-from os.path import split
+from os.path import split, splitext
 from os import remove
+from glob import glob
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from cogent.app.parameters import ValuedParameter, FilePath
 
@@ -24,7 +25,9 @@ class FormatDb(CommandLineApplication):
      '-i':ValuedParameter(Prefix='-',Name='i',Delimiter=' ',IsPath=True),\
      '-l':ValuedParameter(Prefix='-',Name='l',Delimiter=' ',IsPath=True),\
      '-o':ValuedParameter(Prefix='-',Name='o',Delimiter=' ',Value='T'),\
-     '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' ',Value='F')}
+     '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' ',Value='F'),\
+     '-n':ValuedParameter(Prefix='-',Name='n',Delimiter=' ')
+     }
     _input_handler = '_input_as_parameter'
     _suppress_stdout = True
     _suppress_stderr = True
@@ -37,8 +40,11 @@ class FormatDb(CommandLineApplication):
         # to a FilePath
         input_filepath = self.Parameters['-i'].Value
         input_file_dir, input_filename = split(input_filepath)
-        self.Parameters['-l'].on(\
-         FilePath('%s.log') % input_filename)
+        input_file_base, input_file_ext = splitext(input_filename)
+        # FIXME: the following all other options
+        # formatdb ignores the working directory if not name is passed.
+        self.Parameters['-l'].on(FilePath('%s.log') % input_filename)
+        self.Parameters['-n'].on(FilePath(input_filename))
         return ''
 
     def _get_result_paths(self,data):
@@ -46,22 +52,22 @@ class FormatDb(CommandLineApplication):
         """
         # access data through self.Parameters so we know it's been cast
         # to a FilePath
+        wd = self.WorkingDir
         input_filepath = self.Parameters['-i'].Value
-        input_file_dir, input_filename = split(input_filepath)
+        db_name = self.Parameters['-n'].Value
+        log_name = self.Parameters['-l'].Value
         result = {}
-        result['log'] = ResultPath(\
-         Path=self.WorkingDir + self.Parameters['-l'].Value,\
-         IsWritten=True)
-        
+        result['log'] = ResultPath(Path=wd + log_name, IsWritten=True)
         if self.Parameters['-p'].Value == 'F':
             extensions = ['nhr','nin','nsq','nsd','nsi']
         else:
             extensions = ['phr','pin','psq','psd','psi']
-            
         for extension in extensions:
-            result[extension] = ResultPath(\
-             Path=self.WorkingDir + input_filename + '.' + extension,\
-             IsWritten=True)
+            for file_path in glob(wd + (db_name + '*' + extension)):
+                # this will match e.g. nr.01.psd and nr.psd
+                key = file_path.split(db_name + '.')[1]
+                result_path = ResultPath(Path=file_path, IsWritten=True)
+                result[key] = result_path
         return result
         
 def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\

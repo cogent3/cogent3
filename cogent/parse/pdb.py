@@ -184,7 +184,7 @@ def parse_coords(builder, coords, forgive=1):
         record_type = line[0:6]
 
         if record_type == 'MODEL ':
-            builder.init_model(current_model_id)
+            builder.initModel(current_model_id)
             current_model_id += 1
             model_open = True
             current_chain_id = None
@@ -197,7 +197,7 @@ def parse_coords(builder, coords, forgive=1):
 
         elif record_type == 'ATOM  ' or record_type == 'HETATM':
             if not model_open:
-                builder.init_model(current_model_id)
+                builder.initModel(current_model_id)
                 current_model_id += 1
                 model_open = 1
             new_chain = False
@@ -205,13 +205,13 @@ def parse_coords(builder, coords, forgive=1):
 
             if current_seg_id != fields['seg_id']:
                 current_seg_id = fields['seg_id']
-                builder.init_seg(current_seg_id)
+                builder.initSeg(current_seg_id)
 
             if current_chain_id != fields['chain_id']:
                 current_chain_id = fields['chain_id']
                 new_chain = True
                 try:
-                    builder.init_chain(current_chain_id)
+                    builder.initChain(current_chain_id)
                 except ConstructionWarning:
                     if not forgive:
                         raise ConstructionError
@@ -220,14 +220,14 @@ def parse_coords(builder, coords, forgive=1):
                 current_res_long_id = fields['res_long_id']
                 current_res_name = fields['res_name']
                 try:
-                    builder.init_residue(fields['res_long_id'], fields['h_flag'])
+                    builder.initResidue(fields['res_long_id'], fields['h_flag'])
                 except ConstructionWarning:
                     if not forgive:
                         raise ConstructionError
 
                 new_chain = False
             try:
-                builder.init_atom(fields['at_long_id'], fields['at_name'], fields['ser_num'], \
+                builder.initAtom(fields['at_long_id'], fields['at_name'], fields['ser_num'], \
                                   fields['coords'], fields['occupancy'], fields['bfactor'], \
                                   fields['element'])
             except ConstructionError:
@@ -235,7 +235,7 @@ def parse_coords(builder, coords, forgive=1):
                     raise ConstructionError
 
 
-    return builder.get_structure()
+    return builder.getStructure()
 
 def parse_trailer(trailer):
     return {}
@@ -255,7 +255,7 @@ def PDBParser(open_file, structure_id=None, forgive=2):
     parsed_header = parse_header(raw_header)
     parsed_trailer = parse_trailer(raw_trailer)
     structure_id = (structure_id or parsed_header.get('id'))
-    builder.init_structure(structure_id)
+    builder.initStructure(structure_id)
     structure = parse_coords(builder, raw_coords, forgive)
 
     # only X-ray structures will contain crystallographic data

@@ -40,41 +40,41 @@ def clean_ical(entities, pretend=True, mask=True):
     changes = []
     residues = einput(entities, 'R')
     id_r = [[None, None, None]]
-    for r in residues.sorted_values():  # sort by id, ic, name
+    for r in residues.sortedvalues():  # sort by id, ic, name
         id_a = [[None, None]]
         if r.res_id == id_r[0][1]:      # on collision choose first ...
-            conflicts.append(r.get_full_id())
+            conflicts.append(r.getFull_id())
             if not pretend:
                 if mask:
-                    r.set_masked(True)
+                    r.setMasked(True)
                 else:
-                    r.parent.del_child(r.id)
+                    r.parent.delChild(r.id)
             continue                    # an entity could be in other holders
         # keep it there as-is
-        for a in r.sorted_values():     # sort by id, alt_loc (' ', 'A' ...)
+        for a in r.sortedvalues():     # sort by id, alt_loc (' ', 'A' ...)
             if a.at_id == id_a[0][0]:   # on collision choose first
-                conflicts.append(a.get_full_id())
+                conflicts.append(a.getFull_id())
                 if not pretend:
                     if mask:
-                        a.set_masked(True)
+                        a.setMasked(True)
                     else:
-                        r.del_child(a.id)
+                        r.delChild(a.id)
             else:
                 if a.id[0][1] != ' ':
-                    changes.append((a.get_full_id(), ((a.id[0][0], ' '),)))
+                    changes.append((a.getFull_id(), ((a.id[0][0], ' '),)))
                     if not pretend:
                         a.set_alt_loc(' ')
                         try:
-                            a.parent.update_ids()
+                            a.parent.updateIds()
                         except AttributeError:
                             pass
                 id_a = a.id
         if r.id[0][2] != ' ':
-            changes.append((r.get_full_id(), ((r.id[0][0], r.id[0][1], ' '),)))
+            changes.append((r.getFull_id(), ((r.id[0][0], r.id[0][1], ' '),)))
             if not pretend:
                 r.set_res_ic(' ')
                 try:
-                    r.parent.update_ids()
+                    r.parent.updateIds()
                 except AttributeError:
                     pass
         id_r = r.id
@@ -92,14 +92,14 @@ def expand_symmetry(model, mode='uc', name='UC', **kwargs):
     
     Requires a PDB file with a correct CRYST1 field and space group information.
     """
-    structure = model.get_parent('S')
+    structure = model.getParent('S')
     sh = structure.header
     fmx = sh['uc_fmx']
     omx = sh['uc_omx']
     mxs = sh['uc_mxs']
     # get initial coordinates
     atoms = einput(model, 'A')
-    coords = array(atoms.data_children('coords'))
+    coords = array(atoms.getData('coords'))
     # expand the coordinates to symmetry
     all_coords = coords_to_symmetry(coords, fmx, omx, mxs, mode)
     models = ModelHolder(name)
@@ -114,8 +114,8 @@ def expand_symmetry(model, mode='uc', name='UC', **kwargs):
             new_atoms[atom_id[1:]].coords = new_coord
         # give it an id: the models are numbered by the symmetry operations with
         # identity being the first model
-        new_model.set_name(i)
-        models.add_child(new_model)
+        new_model.setName(i)
+        models.addChild(new_model)
     return models
 
 def expand_crystal(structure, n=1, name='XTAL'):
@@ -136,7 +136,7 @@ def expand_crystal(structure, n=1, name='XTAL'):
     omx = sh['uc_omx']
     # get initial coorinates
     atoms = einput(structure, 'A')
-    coords = array([atoms.data_children('coords')]) # fake 3D
+    coords = array([atoms.getData('coords')]) # fake 3D
     # expand the coordinates to crystal
     all_coords = coords_to_crystal(coords, fmx, omx, n)
     structures = StructureHolder(name)
@@ -148,7 +148,7 @@ def expand_crystal(structure, n=1, name='XTAL'):
         new_coords = all_coords[i, 0]
         for (atom_id, new_coord) in izip(atoms.keys(), new_coords):
             new_atoms[atom_id].coords = new_coord
-        new_structure.set_name("%s_%s%s%s" % (sn, u, v, w))
-        structures.add_child(new_structure)
+        new_structure.setName("%s_%s%s%s" % (sn, u, v, w))
+        structures.addChild(new_structure)
     return structures
 
