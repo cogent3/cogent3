@@ -42,7 +42,7 @@ version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 from cogent.util.table import Table as _Table
-from cogent.parse.table import load_delimited
+from cogent.parse.table import load_delimited, autogen_reader
 from cogent.core.tree import TreeBuilder, TreeError
 from cogent.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent.parse.newick import parse_string as newick_parse_string
@@ -140,14 +140,18 @@ def LoadStructure(filename, format=None, parser_kw={}):
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
             row_order=None, digits=4, space=4, title='', missing_data='',
-            max_width=1e100, row_ids=False, legend='', column_templates=None,
-            dtype=None, **kwargs):
+            max_width = 1e100, row_ids=False, legend='', column_templates=None,
+            dtype=None, static_column_types=False, **kwargs):
     """
     Arguments:
     - filename: path to file containing a pickled table
     - sep: the delimiting character between columns
     - reader: a parser for reading filename. This approach assumes the first
       row returned by the reader will be the header row.
+    - static_column_types: if True, and reader is None, identifies columns
+      with a numeric data type (int, float) from the first non-header row.
+      This assumes all subsequent entries in that column are of the same type.
+      Default is False.
     - header: column headings
     - rows: a 2D dict, list or tuple. If a dict, it must have column
       headings as top level keys, and common row labels as keys in each
@@ -166,8 +170,8 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     - dtype: optional numpy array typecode.
     """
     # 
-    if filename is not None and reader is None:
-        if filename[filename.rfind(".") + 1:] == 'pickle':
+    if filename is not None and not (reader or static_column_types):
+        if filename[filename.rfind(".")+1:] == 'pickle':
             f = file(filename, 'U')
             loaded_table = cPickle.load(f)
             f.close()
@@ -175,10 +179,14 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
 
         sep = sep or kwargs.pop('delimiter', None)
         header, rows, loaded_title, legend = load_delimited(filename,
-                                        delimiter=sep, **kwargs)
+                                        delimiter = sep, **kwargs)
         title = title or loaded_title
-    elif filename and reader:
+    elif filename and (reader or static_column_types):
         f = file(filename, "r")
+        if not reader:
+            reader = autogen_reader(f, sep,
+                        with_title=kwargs.get('with_title', False))
+        
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
