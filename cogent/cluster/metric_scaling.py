@@ -15,7 +15,7 @@ from cogent.cluster.UPGMA import inputs_from_dict2D
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
-               "Gavin Huttley"]
+               "Gavin Huttley", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Catherine Lozupone"
