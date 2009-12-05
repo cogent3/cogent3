@@ -12,6 +12,7 @@ Welcome to PyCogent's documentation!
     install
     README
     coding_guidelines
+    data_file_links
     examples/index
     cookbook/index
     developer_notes
