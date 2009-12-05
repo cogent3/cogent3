@@ -258,6 +258,16 @@ For dinucleotides, we need to pass in a dinucleotide alphabet.
 
 The same holds for codons or other arbitrary alphabets, as long as they match the alignment ``MolType``.
 
+Some calculations in cogent require there to be no-zero's in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than that.
+
+.. doctest::
+    
+    >>> aln = LoadSeqs(data=[('a', 'AACAAC'),('b', 'AAGAAG')], moltype=DNA)
+    >>> motif_probs = aln.getMotifProbs()
+    >>> assert motif_probs['T'] == 0.0
+    >>> motif_probs = aln.getMotifProbs(pseudocount=1e-6)
+    >>> assert 0 < motif_probs['T'] <= 1e-6
+
 Calculating gap fractions for each column in an alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
