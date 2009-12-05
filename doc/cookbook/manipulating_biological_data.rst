@@ -493,7 +493,48 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 Filtering positions
 -------------------
 
-*To be written.*
+We sometimes want to eliminate ambiguous or gap data from our alignments. We show how to exclude alignment columns by the characters they contain. In the first instance we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons).
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGGTG---'),
+    ...                       ('seq2', 'ATGAAGGTGATG'),
+    ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
+
+We now just define a one-line function that returns ``True`` if the passed data contains only nucleotide characters, ``False`` otherwise. The function works by converting the aligned column into a ``set`` and checking it is equal to, or a subset of, all nucleotides. This function, which works for nucleotides or codons, has the effect of eliminating the (nucleotide/trinucleotide) columns with the 'N' and '-' characters.
+
+.. doctest::
+    
+    >>> just_nucs = lambda x: set(''.join(x)) <= set('ACGT')
+
+We apply to nucleotides,
+
+.. doctest::
+    
+    >>> nucs = aln.filtered(just_nucs)
+    >>> print nucs
+    >seq1
+    ATGAAGGG
+    >seq2
+    ATGAAGGG
+    >seq3
+    ATGAAGGG
+    <BLANKLINE>
+
+and trinucleotides (specified by setting ``motif_length=3``).
+
+.. doctest::
+    
+    >>> trinucs = aln.filtered(just_nucs, motif_length=3)
+    >>> print trinucs
+    >seq1
+    ATGAAG
+    >seq2
+    ATGAAG
+    >seq3
+    ATGAAG
+    <BLANKLINE>
 
 Filtering sequences
 -------------------
