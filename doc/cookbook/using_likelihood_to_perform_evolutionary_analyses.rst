@@ -1,6 +1,6 @@
-*************************************************
-Using likelihood to perform evolutionary analyses
-*************************************************
+**************************************
+Evolutionary analysis using likelihood
+**************************************
 
 Specifying substitution models
 ==============================
