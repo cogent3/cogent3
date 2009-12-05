@@ -79,6 +79,8 @@ The new documentation checklist
 Things you should check before committing your new document:
 
 - Add a line at the beginning with yourself as author (``.. sectionauthor:: My Name``) so people can contact you with feedback.
+- Add any data files used in your documentation under ``PyCogent/doc/data/``
+- Add a download link to those files to ``PyCogent/doc/data_file_links.rst`` following the style employed in that file.
 - Spellcheck!!
 - Check what you wrote is valid restructured text by building the documents for both html and latex. If your document isn't connected into the table of contents, Sphinx will print a warning to screen.
 - Check you have correctly marked up the content and that it looks OK. Make sure that python code and shell commands are correctly highlighted and that literals are marked up as literals. In particular, check the latex build since it is common for text to span beyond the page margins. If the latter happens, revise your document!
@@ -86,6 +88,7 @@ Things you should check before committing your new document:
 
    $ cd path/to/PyCogent/doc
    $ python doctest_rsts.py examples/reverse_complement.rst
+
 
 Adding TODOs
 ^^^^^^^^^^^^
