@@ -210,7 +210,6 @@ class SequenceCollection(object):
             Name=None, Info=None, conversion_f=None, is_array=False, \
             force_same_data=False, \
             remove_duplicate_names=False, label_to_name=None,
-            name_conversion_f=None,
             suppress_named_seqs=False):
         """Initialize self with data and optionally Info.
         
@@ -274,9 +273,6 @@ class SequenceCollection(object):
         
         label_to_name: if present, converts name into f(name).
         """
-        if name_conversion_f:
-            deprecated('argument', 'name_conversion_f', 'label_to_name', 1.4)
-            label_to_name = name_conversion_f
         
         #read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):

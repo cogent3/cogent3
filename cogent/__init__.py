@@ -55,8 +55,6 @@ from cogent.parse.structure import FromFilenameStructureParser
 from cogent.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
         CodonAlphabet
 
-from cogent.util.warning import deprecated
-
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
         for (a_name, a_seq) in FromFilenameParser(filename, format):
@@ -75,8 +73,8 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     return seq
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
-            name=None, aligned=True, label_to_name=None, name_conversion_f=None,
-            parser_kw={}, constructor_kw={}, **kw):
+            name=None, aligned=True, label_to_name=None, parser_kw={},
+            constructor_kw={}, **kw):
     """Initialize an alignment or collection of sequences.
     
     Arguments:
@@ -102,11 +100,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
-
-    if name_conversion_f:
-        deprecated('argument', 'name_conversion_f', 'label_to_name', 1.4)
-        label_to_name = name_conversion_f
-
+    
     if filename is None:
         assert data is not None
         assert format is None

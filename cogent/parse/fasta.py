@@ -5,7 +5,6 @@ from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.parse.record import RecordError
 from cogent.core.info import Info, DbRef
 from cogent.core.moltype import BYTES, ASCII
-from cogent.util.warning import deprecated
 
 from string import strip
 import cogent
@@ -40,12 +39,6 @@ def is_blank(x):
 
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
-def default_label_to_name(label):
-    """Default transformation of label to name: does nothing"""
-    deprecated('function', 'default_label_to_name', 'str', 1.4)
-    return label
-
-
 def MinimalFastaParser(infile, strict=True, \
     label_to_name=str, finder=FastaFinder, \
     is_label=None, label_characters='>'):
@@ -53,12 +46,9 @@ def MinimalFastaParser(infile, strict=True, \
 
     If strict is True (default), raises RecordError when label or seq missing.
     """
-    if is_label:
-        deprecated('argument', 'is_label', 'label_characters', 1.4)
-    else:
-        # use an re to search for line starting
-        label_pattern = re.compile('^[%s]' % label_characters)
-        is_label = label_pattern.search
+    # use an re to search for line starting
+    label_pattern = re.compile('^[%s]' % label_characters)
+    is_label = label_pattern.search
     
     for rec in finder(infile):
         #first line must be a label line
