@@ -31,6 +31,17 @@ New Features
 * added new argument to LoadTable to facilitate speedier loading of large
   files. The static_column_types argument auto-generates a separator format
   parser with column conversion for numeric columns.
+* added BLAST XML parser + tests.
+* Add compatibility matrix module for determining reticulate evolution.
+* Added 'start' and 'order' options to the WLS and ML tree finding method
+  .trex() These allow the search of tree-space to be constrained to start at a
+  particular subtree and to proceed in a specified order of leaf additions.
+* Consensus tree of weighted trees from phylo.maximum_likelihood.
+* Add Alignment.withGapsFrom() aka mirrorGaps, mirrors the gaps into a
+  provided alignment.
+* added ANOVA to maths.stats.test
+* LoadTable gets an optional argument (static_column_types) to simplify speedy
+  loading of big files.
 
 Changes
 -------
@@ -38,9 +49,21 @@ Changes
 * cogent.format.table.asReportlabTable is being discontinued in version 1.5.
   This is the last dependency on reportlab and removal will simplify
   installation.
+* the conditional nucleotide model (Yap et al 2009) will be made the default
+   model form for context dependent models in version 1.5.
+* Change required MPI library from PyxMPI to mpi4py.
+* Move all of the cogent.draw.matplotlib.* modules up to cogent.draw.*
+* Substitute matplotlib for reportlab throughout cogent.draw
+* cogent.db.ensembl code updated to work with the latest Ensembl release (56)
+* motif prob pseudocount option, used for initial values of optimisable mprobs
 
 Bug Fixes
 ---------
+* Fix and test for two bugs in multiple alignment, One in the pairwise.py
+  Hirschberg code and the other in indel_positions.py where gaps at the end
+  were effectively taken to be deletions and never insertions, unlike gaps at
+  the start.
+* fix #2811993 alignment getMotifProbs. allow_gap argument now has an effect.
 
 Cogent 1.2 - 1.3
 ================
