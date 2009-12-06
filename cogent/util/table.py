@@ -13,7 +13,6 @@ import numpy
 from cogent.format import table as table_format
 
 from cogent.util.dict_array import DictArray
-from cogent.util.warning import deprecated
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -748,9 +747,6 @@ class Table(DictArray):
               column/row."""
         
         all = indices is None
-        if 'column' in kwargs:
-            deprecated('argument', 'column', 'indices', 1.4)
-            indices = kwargs['column']
         
         if type(indices) == str:
             assert col_sum, "Must use row integer indices"

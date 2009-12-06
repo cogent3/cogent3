@@ -33,7 +33,6 @@ from cogent.util.transform import comb
 from cogent.maths.stats.test import correlation
 from operator import or_
 from cogent.util.misc import InverseDict
-from cogent.util.warning import deprecated
 from random import shuffle
 
 LOG = logging.getLogger('cogent.tree')
@@ -619,9 +618,7 @@ class TreeNode(object):
         in the order they will appear as columns in the final array. Internal
         nodes will appear as rows in preorder traversal order.
         """
-        deprecated('Method','TreeNode.descendantArray',\
-                       'TreeNode.makeTreeArray',1.4)
-
+        
         #get a list of internal nodes
         node_list = [node for node in self.traverse() if node.Children]
         node_list.sort()
@@ -937,10 +934,6 @@ class TreeNode(object):
             - A list of (name, path length) pairs.
             - A dictionary of (tip1,tip2):distance pairs
         """
-        if not isinstance(self, PhyloNode):
-            deprecated('Method','TreeNode._getDistances',\
-                       'PhyloNode._getDistances',1.4)
-
         ## linearize the tips in postorder.
         # .__start, .__stop compose the slice in tip_order.
         if endpoints is None:
@@ -998,10 +991,7 @@ class TreeNode(object):
             Grabs the branch lengths (evolutionary distances) as
             a complete matrix (i.e. a,b and b,a).
         """
-        if not isinstance(self, PhyloNode):
-            deprecated('Method','TreeNode.getDistances',\
-                       'PhyloNode.getDistances',1.4)
-
+        
         (root_dists, endpoint_dists) = self._getDistances(endpoints)
         return endpoint_dists
    
@@ -1010,10 +1000,6 @@ class TreeNode(object):
         
         Also returns the tip names  that it is between as a tuple
         """
-        if not isinstance(self, PhyloNode):
-            deprecated('Method','TreeNode.maxTipTipDistance',\
-                       'PhyloNode.maxTipTipDistance',1.4)
-
         dists = self.getDistances()
         dists = InverseDict(dists)
         max_dist = max(dists)
@@ -1387,10 +1373,6 @@ class TreeNode(object):
         tip_order contains the actual node objects, not their names (may be
         confusing in some cases).
         """
-        if not isinstance(self, PhyloNode):
-            deprecated('Method','TreeNode.tipToTipDistances',\
-                       'PhyloNode.tipToTipDistances',1.4)
-
         ## linearize the tips in postorder.
         # .__start, .__stop compose the slice in tip_order.
         tip_order = list(self.tips())
@@ -1443,10 +1425,6 @@ class TreeNode(object):
         match, and because we need to reorder the names in the two trees to 
         match up the distance matrices).
         """
-        if not isinstance(self, PhyloNode):
-            deprecated('Method','TreeNode.compareByTipDistances',\
-                       'PhyloNode.compareByTipDistances',1.4)
-
         self_names = [i.Name for i in self.tips()]
         other_names = [i.Name for i in other.tips()]
         common_names = frozenset(self_names) & frozenset(other_names)

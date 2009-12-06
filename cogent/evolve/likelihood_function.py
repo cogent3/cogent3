@@ -5,7 +5,7 @@ import random, numpy
 from cogent.core.alignment import Alignment
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
-from cogent.util import parallel, table, warning
+from cogent.util import parallel, table
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -70,12 +70,6 @@ class LikelihoodFunction(object):
             root_lht = self.getParamValue('root', locus=locus)
             root_lh = self.getParamValue('lh', locus=locus)
             return root_lht.getFullLengthLikelihoods(root_lh)
-    
-    def reconstructAncestralSequences(self, locus=None):
-        """deprecated, use reconstructAncestralSeqs"""
-        warning.deprecated("method", "reconstructAncestralSequences",
-            "reconstructAncestralSeqs", 1.4)
-        return self.reconstructAncestralSeqs(locus=locus)
     
     def reconstructAncestralSeqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
