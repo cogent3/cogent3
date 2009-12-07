@@ -10,7 +10,7 @@
 # - common stack size constant, how?
 
 cimport numpy as np
-from numpy cimport NPY_DOUBLE, NPY_UINT, npy_intp
+from numpy cimport NPY_DOUBLE, NPY_ULONGLONG, npy_intp
 from stdlib cimport malloc, realloc, free
 
 cdef extern from "numpy/arrayobject.h":
@@ -18,10 +18,10 @@ cdef extern from "numpy/arrayobject.h":
                                             int typenum, void *data)
     cdef void import_array()
 
-cdef kdpoint *points(DTYPE_t *c_array, unsigned int points, unsigned int dims):
+cdef kdpoint *points(DTYPE_t *c_array, UTYPE_t points, UTYPE_t dims):
     """creates an array of kdpoints from c-array of numpy doubles."""
     cdef kdpoint *pnts = <kdpoint *>malloc(sizeof(kdpoint)*points)
-    cdef unsigned int i
+    cdef UTYPE_t i
     for 0 <= i < points:
         pnts[i].index = i
         pnts[i].coords = c_array+i*dims
@@ -34,20 +34,20 @@ cdef inline void swap(kdpoint *a, kdpoint *b):
     a[0] = b[0]
     b[0] = t
 
-cdef inline DTYPE_t dist(kdpoint *a, kdpoint *b, unsigned int dims):
+cdef inline DTYPE_t dist(kdpoint *a, kdpoint *b, UTYPE_t dims):
     """calculates the squared distance between two points."""
-    cdef unsigned int i
+    cdef UTYPE_t i
     cdef DTYPE_t dif, dst = 0
     for 0 <= i < dims:
         dif = a.coords[i] - b.coords[i]
         dst += dif * dif
     return dst
 
-cdef void qsort(kdpoint *A, unsigned int l, unsigned int r, unsigned int dim):
+cdef void qsort(kdpoint *A, UTYPE_t l, UTYPE_t r, UTYPE_t dim):
     """implements the quick sort algorithm on kdpoint arrays."""
-    cdef unsigned int i, j, jstack = 0
+    cdef UTYPE_t i, j, jstack = 0
     cdef DTYPE_t v
-    cdef unsigned int *istack = <unsigned int *>malloc(NSTACK * sizeof(unsigned int))
+    cdef UTYPE_t *istack = <UTYPE_t *>malloc(NSTACK * sizeof(UTYPE_t))
     while True:
         if r - l > 2:
             i = (l + r) >> 1
@@ -89,11 +89,11 @@ cdef void qsort(kdpoint *A, unsigned int l, unsigned int r, unsigned int dim):
             jstack-=1
     free(istack)
 
-cdef kdnode *build_tree(kdpoint *point_list, unsigned int start, unsigned int end,\
-                unsigned int dims, unsigned int bucket_size, unsigned int depth):
+cdef kdnode *build_tree(kdpoint *point_list, UTYPE_t start, UTYPE_t end,\
+                UTYPE_t dims, UTYPE_t bucket_size, UTYPE_t depth):
     """recursive tree building function."""
     # cannot make variable in if/else
-    cdef unsigned int split, i
+    cdef UTYPE_t split, i
     cdef kdnode *node = <kdnode*>malloc(sizeof(kdnode))
     node.dimension = depth % dims
     node.start = start
@@ -116,13 +116,13 @@ cdef kdnode *build_tree(kdpoint *point_list, unsigned int start, unsigned int en
     return node
 
 cdef void *knn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t *dst,\
-                unsigned int *idx, unsigned int k, unsigned int dims):
+                UTYPE_t *idx, UTYPE_t k, UTYPE_t dims):
     """finds the K-Nearest Neighbors."""
     # arrays of pointers will be used as a stack for left and right nodes
     # left nodes will be explored first.
     cdef kdnode *lstack[100]
 
-    cdef unsigned int i, j, jold, ia, kmin # counter and index
+    cdef UTYPE_t i, j, jold, ia, kmin # counter and index
     cdef DTYPE_t a, i_dist, diff
     cdef kdnode *node
 
@@ -178,16 +178,16 @@ cdef void *knn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t *dst,\
                 jstack+=1
                 lstack[jstack] = node.right
 
-cdef unsigned int rn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t **dstptr,\
-                unsigned int **idxptr, DTYPE_t r, unsigned int dims, unsigned int buf):
+cdef UTYPE_t rn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t **dstptr,\
+                UTYPE_t **idxptr, DTYPE_t r, UTYPE_t dims, UTYPE_t buf):
     """finds points within radius of query."""
     # arrays of pointers will be used as a stack for left and right nodes
     # left nodes will be explored first.
     cdef kdnode *lstack[100]
     dstptr[0] = <DTYPE_t *>malloc(buf * sizeof(DTYPE_t))
-    idxptr[0] = <unsigned int *>malloc(buf * sizeof(unsigned int))
+    idxptr[0] = <UTYPE_t *>malloc(buf * sizeof(UTYPE_t))
 
-    cdef unsigned int i, count # counter and index
+    cdef UTYPE_t i, count # counter and index
     cdef DTYPE_t i_dist, diff
     cdef kdnode *node
 
@@ -208,7 +208,7 @@ cdef unsigned int rn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t *
                     count += 1
                     if count % buf == 0:
                         dstptr[0] = <DTYPE_t *>realloc(dstptr[0], (count + buf) * sizeof(DTYPE_t))
-                        idxptr[0] = <unsigned int *>realloc(idxptr[0], (count + buf) * sizeof(unsigned int))
+                        idxptr[0] = <UTYPE_t *>realloc(idxptr[0], (count + buf) * sizeof(UTYPE_t))
         else:
             diff = point.coords[node.dimension] - node.position
             if diff < 0:
@@ -224,7 +224,7 @@ cdef unsigned int rn(kdnode *root, kdpoint *point_list, kdpoint point, DTYPE_t *
                 jstack+=1
                 lstack[jstack] = node.right
     dstptr[0] = <DTYPE_t *>realloc(dstptr[0], count * sizeof(DTYPE_t))
-    idxptr[0] = <unsigned int *>realloc(idxptr[0], count * sizeof(unsigned int))
+    idxptr[0] = <UTYPE_t *>realloc(idxptr[0], count * sizeof(UTYPE_t))
     return count
 
 cdef class KDTree:
@@ -233,11 +233,11 @@ cdef class KDTree:
     cdef DTYPE_t *c_array
     cdef kdpoint *kdpnts
     cdef kdnode *tree
-    cdef readonly unsigned int dims
-    cdef readonly unsigned int pnts
-    cdef readonly unsigned int bucket_size
+    cdef readonly UTYPE_t dims
+    cdef readonly UTYPE_t pnts
+    cdef readonly UTYPE_t bucket_size
     def __init__(self, np.ndarray[DTYPE_t, ndim =2] n_array, \
-                        unsigned int bucket_size =5):
+                        UTYPE_t bucket_size =5):
         self.bucket_size = bucket_size
         self.pnts = n_array.shape[0]
         self.dims = n_array.shape[1]
@@ -249,8 +249,6 @@ cdef class KDTree:
                                self.dims,self.bucket_size,0)
         import_array()
 
-
-
     def knn(self, np.ndarray[DTYPE_t, ndim =1] point, npy_intp k):
         """Finds the K-Nearest Neighbors of given point.
         Arguments:
@@ -258,46 +256,36 @@ cdef class KDTree:
             - k: number of neighbors to find."""
         if self.pnts < k:
             return 1
-        cdef unsigned int i
+        cdef UTYPE_t i
         cdef kdpoint pnt
         pnt.coords = <DTYPE_t *>point.data
-        cdef unsigned int size = point.size
+        cdef UTYPE_t size = point.size
         cdef DTYPE_t *dst = <DTYPE_t *>malloc(k * sizeof(DTYPE_t))
-        cdef unsigned int *idx = \
-                                <unsigned int *>malloc(k * sizeof(unsigned int))
-        cdef unsigned int *ridx = \
-                                <unsigned int *>malloc(k * sizeof(unsigned int))
+        cdef UTYPE_t *idx = <UTYPE_t *>malloc(k * sizeof(UTYPE_t))
+        cdef UTYPE_t *ridx = <UTYPE_t *>malloc(k * sizeof(UTYPE_t))
         knn(self.tree, self.kdpnts, pnt, dst, idx, k, self.dims)
-        cdef np.ndarray dist = \
-                        PyArray_SimpleNewFromData(1, &k, NPY_DOUBLE, <void*>dst)
+        cdef np.ndarray dist = PyArray_SimpleNewFromData(1, &k, NPY_DOUBLE, <void*>dst)
         for 0 <= i < k:
             ridx[i] = self.kdpnts[idx[i]].index
-        cdef np.ndarray index = \
-                        PyArray_SimpleNewFromData(1, &k, NPY_UINT, <void*>ridx)
+        cdef np.ndarray index = PyArray_SimpleNewFromData(1, &k, NPY_ULONGLONG, <void*>ridx)
         free(idx)
         return (index, dist)
 
     def rn(self, np.ndarray[DTYPE_t, ndim =1] point, DTYPE_t r):
         """Returns Radius Neighbors i.e. within radius from query point."""
-        cdef unsigned int i
+        cdef UTYPE_t i
         cdef npy_intp j
         cdef kdpoint pnt
         pnt.coords = <DTYPE_t *>point.data
-        cdef unsigned int size = point.size
+        cdef UTYPE_t size = point.size
         cdef DTYPE_t **dstptr = <DTYPE_t **>malloc(sizeof(DTYPE_t*))
-        cdef unsigned int **idxptr = \
-                          <unsigned int **>malloc(sizeof(unsigned int*))
-        j = <npy_intp>rn(self.tree, self.kdpnts, pnt, dstptr, \
-                                                      idxptr, r, self.dims, 100)
-        cdef np.ndarray dist = \
-             PyArray_SimpleNewFromData(1, &j, NPY_DOUBLE, <void*>dstptr[0])
-
-        cdef unsigned int *ridx = \
-                           <unsigned int *>malloc(j * sizeof(unsigned int))
+        cdef UTYPE_t **idxptr = <UTYPE_t **>malloc(sizeof(UTYPE_t*))
+        j = <npy_intp>rn(self.tree, self.kdpnts, pnt, dstptr, idxptr, r, self.dims, 100)
+        cdef np.ndarray dist = PyArray_SimpleNewFromData(1, &j, NPY_DOUBLE, <void*>dstptr[0])
+        cdef UTYPE_t *ridx = <UTYPE_t *>malloc(j * sizeof(UTYPE_t))
         for 0 <= i < j:
             ridx[i] = self.kdpnts[idxptr[0][i]].index
-        cdef np.ndarray index = \
-             PyArray_SimpleNewFromData(1, &j, NPY_UINT, <void*>ridx)
+        cdef np.ndarray index = PyArray_SimpleNewFromData(1, &j, NPY_ULONGLONG, <void*>ridx)
         free(idxptr[0])
         free(idxptr)
         free(dstptr)

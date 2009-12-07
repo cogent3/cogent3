@@ -1,13 +1,13 @@
 cimport cython
 import numpy as np
 cimport numpy as np
-from numpy cimport NPY_OWNDATA, NPY_DOUBLE, NPY_FLOAT, NPY_UINT, npy_intp
+from numpy cimport npy_intp
 from cogent.maths.spatial.ckd3 cimport kdpoint, points, kdnode, build_tree, rn
 from stdlib cimport malloc, free
 
 cdef extern from "numpy/arrayobject.h":
-    cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
-                                          int typenum, void *data)
+#    cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
+#                                          int typenum, void *data)
     cdef void import_array()
 #    cdef enum requirements:
 #        NPY_OWNDATA
@@ -16,17 +16,17 @@ def cnt_loop(   np.ndarray[DTYPE_t, ndim =2] qcoords,\
                 np.ndarray[DTYPE_t, ndim =2] lcoords,\
                 np.ndarray[LTYPE_t, ndim =1] qc,\
                 np.ndarray[LTYPE_t, ndim =1] lc,\
-                unsigned int shape1,\
-                unsigned int shape2,\
-                unsigned int zero_tra,\
-                unsigned int mode,\
+                UTYPE_t shape1,\
+                UTYPE_t shape2,\
+                UTYPE_t zero_tra,\
+                UTYPE_t mode,\
                 DTYPE_t search_limit,\
                 np.ndarray[DTYPE_t, ndim =1] box,\
-                unsigned int bucket_size =10,\
-                unsigned int MAXSYM =200000,\
+                UTYPE_t bucket_size =10,\
+                UTYPE_t MAXSYM =200000,\
                 npy_intp MAXCNT =100000):
     #const
-    cdef unsigned int asu_atoms = shape1 * shape2
+    cdef UTYPE_t asu_atoms = shape1 * shape2
     search_limit = search_limit * search_limit
 
     #looping indexes query atom, lattice atom, neighbor, result
@@ -38,36 +38,31 @@ def cnt_loop(   np.ndarray[DTYPE_t, ndim =2] qcoords,\
     cdef DTYPE_t *box_c = <DTYPE_t *>box.data
 
     #malloc'ed pointers
-    cdef unsigned int **idxptr = <unsigned int **>malloc(sizeof(unsigned int*))
-    cdef DTYPE_t      **dstptr = <DTYPE_t      **>malloc(sizeof(DTYPE_t*))
+    cdef UTYPE_t **idxptr = <UTYPE_t **>malloc(sizeof(UTYPE_t*))
+    cdef DTYPE_t **dstptr = <DTYPE_t **>malloc(sizeof(DTYPE_t*))
 
     # temp
-    cdef DTYPE_t      *t_ptr # temporary pointer
-    cdef unsigned int  t_idx # index
-    cdef unsigned int  t_asu # reduced index
-    cdef unsigned int  t_sym # symmetry
-    cdef unsigned int  t_tra # translationunsigned int
-    cdef DTYPE_t       t_dst # distance
-    cdef DTYPE_t      *t_arr = <DTYPE_t      *>malloc(3 * MAXSYM * sizeof(DTYPE_t))         # temporary array of symmetry
-    cdef unsigned int *t_lid = <unsigned int *>malloc(    MAXSYM * sizeof(unsigned int))    # maping to original indices
+    cdef DTYPE_t *t_ptr # temporary pointer
+    cdef UTYPE_t  t_idx # index
+    cdef UTYPE_t  t_asu # reduced index
+    cdef UTYPE_t  t_sym # symmetry
+    cdef UTYPE_t  t_tra # translation UTYPE_t
+    cdef DTYPE_t  t_dst # distance
+    cdef DTYPE_t *t_arr = <DTYPE_t *>malloc(3 * MAXSYM * sizeof(DTYPE_t))    # temporary array of symmetry
+    cdef UTYPE_t *t_lid = <UTYPE_t *>malloc(    MAXSYM * sizeof(UTYPE_t))    # maping to original indices
 
     # result
-    #cdef unsigned int *c_src = <unsigned int *>malloc(MAXCNT * sizeof(unsigned int))  # source indices
-    #cdef unsigned int *c_asu = <unsigned int *>malloc(MAXCNT * sizeof(unsigned int))  # target indices
-    #cdef unsigned int *c_sym = <unsigned int *>malloc(MAXCNT * sizeof(unsigned int))  # symmetries
-    #cdef unsigned int *c_tra = <unsigned int *>malloc(MAXCNT * sizeof(unsigned int))  # translations
-    #cdef DTYPE_t      *c_dst = <DTYPE_t      *>malloc(MAXCNT * sizeof(DTYPE_t))       # distances
+    #cdef UTYPE_t *c_src = <UTYPE_t *>malloc(MAXCNT * sizeof(UTYPE_t))  # source indices
+    #cdef UTYPE_t *c_asu = <UTYPE_t *>malloc(MAXCNT * sizeof(UTYPE_t))  # target indices
+    #cdef UTYPE_t *c_sym = <UTYPE_t *>malloc(MAXCNT * sizeof(UTYPE_t))  # symmetries
+    #cdef UTYPE_t *c_tra = <UTYPE_t *>malloc(MAXCNT * sizeof(UTYPE_t))  # translations
+    #cdef DTYPE_t *c_dst = <DTYPE_t *>malloc(MAXCNT * sizeof(DTYPE_t))  # distances
     
-    cdef np.ndarray[UTYPE_t, ndim=1] c_src = np.ndarray((MAXCNT,), dtype=np.uint)
-    cdef np.ndarray[UTYPE_t, ndim=1] c_asu = np.ndarray((MAXCNT,), dtype=np.uint)
-    cdef np.ndarray[UTYPE_t, ndim=1] c_sym = np.ndarray((MAXCNT,), dtype=np.uint)
-    cdef np.ndarray[UTYPE_t, ndim=1] c_tra = np.ndarray((MAXCNT,), dtype=np.uint)
-    cdef np.ndarray[DTYPE_t, ndim=1] c_dst = np.ndarray((MAXCNT,), dtype=np.double)
-
-
-
-
-
+    cdef np.ndarray[UTYPE_t, ndim=1] c_src = np.ndarray((MAXCNT,), dtype=np.uint64)
+    cdef np.ndarray[UTYPE_t, ndim=1] c_asu = np.ndarray((MAXCNT,), dtype=np.uint64)
+    cdef np.ndarray[UTYPE_t, ndim=1] c_sym = np.ndarray((MAXCNT,), dtype=np.uint64)
+    cdef np.ndarray[UTYPE_t, ndim=1] c_tra = np.ndarray((MAXCNT,), dtype=np.uint64)
+    cdef np.ndarray[DTYPE_t, ndim=1] c_dst = np.ndarray((MAXCNT,), dtype=np.float64)
 
     # create a temporary array of lattice points, which are within a box around
     # the query atoms. The kd-tree will be constructed from those filterd atoms.
