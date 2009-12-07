@@ -1,16 +1,16 @@
 cimport cython
 cimport numpy as np
 import numpy as np
-from numpy cimport NPY_DOUBLE, NPY_UINT, NPY_CORDER, npy_intp
+from numpy cimport npy_intp
 from cogent.maths.spatial.ckd3 cimport kdpoint, points, kdnode, build_tree, rn
 from stdlib cimport malloc, free
 
 cdef extern from "numpy/arrayobject.h":
-    cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
-                                            int typenum, void *data)
+#    cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
+#                                            int typenum, void *data)
     cdef void import_array()
-    cdef enum requirements:
-        NPY_OWNDATA
+#    cdef enum requirements:
+#        NPY_OWNDATA
 
 cdef extern from "math.h":
     float pi "M_PI"  # Aliasing the C define to "pi"
@@ -19,14 +19,14 @@ cdef extern from "math.h":
 def asa_loop(np.ndarray[DTYPE_t, ndim =2] qcoords, np.ndarray[DTYPE_t, ndim =2] lcoords,\
              np.ndarray[DTYPE_t, ndim =1] qradii,  np.ndarray[DTYPE_t, ndim =1] lradii,\
              np.ndarray[DTYPE_t, ndim =2] spoints, np.ndarray[DTYPE_t, ndim =1] box,\
-             DTYPE_t probe, unsigned int bucket_size, MAXSYM =200000):
+             DTYPE_t probe, UTYPE_t bucket_size, MAXSYM =200000):
 
     # looping indexes atom, neighbor, sphere
     cdef int idx, idxn, idxn_skip, idxs, lidx, lidx_c
     # flags
     cdef int is_accessible
     # initialize variables
-    cdef unsigned int n_acc_points
+    cdef UTYPE_t n_acc_points
     cdef DTYPE_t qradius, lradius, search_limit
     cdef DTYPE_t lradius_max = 2.0 + probe
     #malloc'ed
@@ -34,30 +34,30 @@ def asa_loop(np.ndarray[DTYPE_t, ndim =2] qcoords, np.ndarray[DTYPE_t, ndim =2] 
     cdef DTYPE_t *distance = <DTYPE_t *>malloc(3 * sizeof(DTYPE_t))
     cdef DTYPE_t *distance_sq = <DTYPE_t *>malloc(3 * sizeof(DTYPE_t))
     cdef DTYPE_t **dstptr = <DTYPE_t **>malloc(sizeof(DTYPE_t*))
-    cdef unsigned int **idxptr = <unsigned int **>malloc(sizeof(unsigned int*))
+    cdef UTYPE_t **idxptr = <UTYPE_t **>malloc(sizeof(UTYPE_t*))
     # cdef DTYPE_t *areas = <DTYPE_t *>malloc(qcoords.shape[0] * sizeof(DTYPE_t))
-    cdef np.ndarray[DTYPE_t, ndim=1] areas = np.ndarray((qcoords.shape[0],), dtype=np.double)
+    cdef np.ndarray[DTYPE_t, ndim=1] areas = np.ndarray((qcoords.shape[0],), dtype=np.float64)
     
     #c arrays from numpy
     cdef DTYPE_t *qcoords_c = <DTYPE_t *>qcoords.data
     cdef DTYPE_t *lcoords_c = <DTYPE_t *>lcoords.data
     cdef DTYPE_t *spoints_c = <DTYPE_t *>spoints.data
     #datas
-    cdef unsigned int ssize = spoints.shape[0]
-    cdef unsigned int lsize = lradii.shape[0]
+    cdef UTYPE_t ssize = spoints.shape[0]
+    cdef UTYPE_t lsize = lradii.shape[0]
     cdef npy_intp qpnts = qcoords.shape[0]
     cdef DTYPE_t const_pi = pi * 4.0 / ssize
 
     #pointers
-    cdef unsigned int *ridx
-    cdef unsigned int *ridx_div
+    cdef UTYPE_t *ridx
+    cdef UTYPE_t *ridx_div
         
     # create a temporary array of lattice points, which are within a box around
     # the query atoms. The kd-tree will be constructed from those filterd atoms.
-    cdef DTYPE_t      *box_c = <DTYPE_t *>box.data
-    cdef DTYPE_t      *t_ptr                                                                # temporary pointer
-    cdef DTYPE_t      *t_arr = <DTYPE_t      *>malloc(3 * MAXSYM * sizeof(DTYPE_t))         # temporary array of symmetry
-    cdef unsigned int *t_lid = <unsigned int *>malloc(    MAXSYM * sizeof(unsigned int))    # maping to original indices
+    cdef DTYPE_t *box_c = <DTYPE_t *>box.data
+    cdef DTYPE_t *t_ptr                                                      # temporary pointer
+    cdef DTYPE_t *t_arr = <DTYPE_t *>malloc(3 * MAXSYM * sizeof(DTYPE_t))    # temporary array of symmetry
+    cdef UTYPE_t *t_lid = <UTYPE_t *>malloc(    MAXSYM * sizeof(UTYPE_t))    # maping to original indices
     lidx_c = 0
     for 0 <= lidx < lcoords.shape[0]:
         t_ptr = lcoords_c + lidx * 3
@@ -86,8 +86,8 @@ def asa_loop(np.ndarray[DTYPE_t, ndim =2] qcoords, np.ndarray[DTYPE_t, ndim =2] 
         neighbor_number = <npy_intp>rn(tree, kdpnts, search_point, dstptr, idxptr, search_limit, 3, 100)
         #print neighbor_number
         #create array of real indices
-        ridx = <unsigned int *>malloc(neighbor_number * sizeof(unsigned int))
-        ridx_div = <unsigned int *>malloc(neighbor_number * sizeof(unsigned int))
+        ridx = <UTYPE_t *>malloc(neighbor_number * sizeof(UTYPE_t))
+        ridx_div = <UTYPE_t *>malloc(neighbor_number * sizeof(UTYPE_t))
 
         idxn_skip = 0
         for 0 <= idxn < neighbor_number:

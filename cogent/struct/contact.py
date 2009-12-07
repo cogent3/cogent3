@@ -7,7 +7,7 @@ from cogent.maths.geometry import coords_to_symmetry, \
                                   coords_to_crystal
 from _contact import cnt_loop
 from collections import defaultdict
-from numpy import array, r_, sqrt
+from numpy import array, r_, sqrt, int64
 
 
 __author__ = "Marcin Cieslik"
@@ -126,8 +126,8 @@ def _prepare_contacts(query, model=None, level='A', search_limit=6.0, \
         lc.append(chain2id[lent_id[2]])
     for qent_id in qents_ids:
         qc.append(chain2id[qent_id[2]])
-    lc = array(lc)
-    qc = array(qc)
+    lc = array(lc, dtype=int64)
+    qc = array(qc, dtype=int64)
     # here we leave python
     (idxc, n_src, n_asu, n_sym, n_tra, n_dst) = cnt_loop(\
                             qcoords, lcoords, qc, lc, shape[1], shape[2], \

@@ -52,8 +52,9 @@ class asaTest(TestCase):
         self.input_structure = PDBParser(open(self.input_file))
         res = contact.contacts_xtra(self.input_structure)
         self.assertTrue(res)
-        self.assertFloatEqual(res.values()[63]['CONTACTS'][('2E12', 0, 'A', \
-                     ('ALA', 16, ' '), ('CB', ' '))][0], 5.7914192561064004)
+        self.assertFloatEqual(\
+        res[('2E12', 0, 'B', ('THR', 17, ' '), ('OG1', ' '))]['CONTACTS']\
+        [('2E12', 0, 'A', ('ALA', 16, ' '), ('CB', ' '))][0], 5.7914192561064004)
 
 
     def test_symmetry(self):
