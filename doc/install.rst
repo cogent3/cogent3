@@ -6,7 +6,7 @@ Quick installation
 For systems with ``easy_install``
 ---------------------------------
 
-The following assumes you have ``easy_install`` on your system (this comes standard with new Mac's for instance), that you have administrator privileges and that you're connected to the internet.
+The following assumes you have ``easy_install`` on your system (this comes standard with new Mac's for instance), that you have administrator privileges and that you're connected to the internet. See below if you don't have ``easy_install``.
 
 The key steps for the minimal install are:
 
@@ -71,8 +71,12 @@ You need to install matplotlib_ (version 0.99+) to use the drawing code. However
 Installing ``easy_install``
 ---------------------------
 
-If your system doesn't have ``easy_install``, then execute the following::
+If your system doesn't have ``easy_install``, you can execute the following::
 
     $ sudo curl http://peak.telecommunity.com/dist/ez_setup.py | python
 
-and following the instructions for the pip based installation.
+or, if you are on a linux system that has a package manager, you may only need to do something like::
+
+    $ sudo apt-get install python-setuptools
+
+Use the approach to getting ``easy_install`` that best suites your system, then follow the (above) instructions for the ``pip`` based installation.
