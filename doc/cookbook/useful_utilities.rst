@@ -18,7 +18,7 @@ We write a simple factory function that uses a provided value for omega to compu
     ...         return abs(omega-omega_est)**2
     ...     return omega_from_S
 
-We then import the ``Powell`` optimiser, specify a value of omega and instantiate an optimiser instance. Note that we provide lower and upper bounds and an initial guess for our parameter of interest (``S``).
+We then import the ``Powell`` optimiser, create our optimisable function with a value of omega to solve for S and instantiate an optimiser instance. Note that we provide lower and upper bounds and an initial guess for our parameter of interest (``S``).
 
 .. doctest::
     
