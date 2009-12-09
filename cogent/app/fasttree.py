@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Application controller for FastTree v1.1.0"""
+"""Application controller for FastTree
+
+designed for FastTree v1.1.0 .  Also functions with v2.0.1, and v2.1.0,
+though only with basic functionality"""
 
 from cogent.app.parameters import ValuedParameter, FlagParameter, \
        MixedParameter
@@ -11,7 +14,7 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
-__credits__ = ["Daniel McDonald"]
+__credits__ = ["Daniel McDonald", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.4.0.dev"
 __maintainer__ = "Daniel McDonald"

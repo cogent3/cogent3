@@ -27,7 +27,7 @@ Next, we'll load up a test set of sequences and construct an ``Alignment``:
 
 Now, let's construct some trees with default parameters!
 
-.. note:: We are explicitly seeding Clearcut and RAxML to ensure reproducible results
+.. note:: We are explicitly seeding Clearcut and RAxML to ensure reproducible results, and FastTree's output depends slightly on which version of FastTree is installed
 
 .. doctest::
 
@@ -40,12 +40,15 @@ Now, let's construct some trees with default parameters!
     Tree("(Mouse,(((HowlerMon,Human),DogFaced),NineBande));")
     >>> clustalw_tree
     Tree("((DogFaced,(HowlerMon,Human)),Mouse,NineBande);")
-    >>> fasttree_tree
-    Tree("(Mouse,NineBande,(DogFaced,(HowlerMon,Human)0.851)0.671);")
     >>> muscle_tree
     Tree("(Mouse,(DogFaced,(Human,(HowlerMon,NineBande))));")
     >>> raxml_tree
     Tree("((HowlerMon,Human),(DogFaced,Mouse),NineBande);")
+
+.. code-block:: python
+
+    >>> fasttree_tree
+    Tree("(Mouse,NineBande,(DogFaced,(HowlerMon,Human)0.752)0.508);")
 
 These methods allow the programmer to specify any of the applications parameters. Let's look at an example where we tell Clearcut to use traditional neighbor-joining, shuffle the distance matrix, use Kimura distance correction and explicitly seed the random number generator:
 
