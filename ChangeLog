@@ -56,6 +56,7 @@ Changes
 * Substitute matplotlib for reportlab throughout cogent.draw
 * cogent.db.ensembl code updated to work with the latest Ensembl release (56)
 * motif prob pseudocount option, used for initial values of optimisable mprobs
+* The mlagan application controller has been removed.
 
 Bug Fixes
 ---------
