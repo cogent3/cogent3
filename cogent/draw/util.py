@@ -23,7 +23,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-use('Agg')  #suppress graphical rendering
+#use('Agg')  #suppress graphical rendering
 #rc('text', usetex=True)
 rc('font', family='serif')  #required to match latex text and equations
 try:
