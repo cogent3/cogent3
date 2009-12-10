@@ -2,7 +2,7 @@
 import unittest, os
 
 from cogent.phylo.distance import *
-from cogent.phylo.nj import nj
+from cogent.phylo.nj import nj, gnj
 from cogent.phylo.least_squares import wls
 from cogent import LoadSeqs, LoadTree
 from cogent.evolve.models import JC69, HKY85, F81
@@ -47,6 +47,7 @@ class TreeReconstructionTests(unittest.TestCase):
     def assertTreeDistancesEqual(self, t1, t2):
         d1 = t1.getDistances()
         d2 = t2.getDistances()
+        self.assertEqual(len(d1), len(d2))
         for key in d2:
             self.assertAlmostEqual(d1[key], d2[key])
 
@@ -55,6 +56,25 @@ class TreeReconstructionTests(unittest.TestCase):
         reconstructed = nj(self.dists)
         self.assertTreeDistancesEqual(self.tree, reconstructed)
         
+    def test_gnj(self):
+        """testing gnj"""
+        (length, reconstructed) = gnj(self.dists, keep=1)[0]
+        self.assertTreeDistancesEqual(self.tree, reconstructed)
+        
+        (length, reconstructed) = gnj(self.dists, keep=10)[0]
+        self.assertTreeDistancesEqual(self.tree, reconstructed)
+
+        # From GNJ paper. Pearson, Robins, Zhang 1999.
+        tied_dists = {
+                ('a', 'b'):3, ('a', 'c'):3, ('a', 'd'):4, ('a', 'e'):3, 
+                ('b', 'c'):3, ('b', 'd'):3, ('b', 'e'):4,
+                ('c', 'd'):3, ('c', 'e'):3, 
+                ('d', 'e'):3}
+        results = gnj(tied_dists, keep=3)
+        scores = [score for (score, tree) in results]
+        self.assertEqual(scores[:2], [7.75, 7.75])
+        self.assertNotEqual(scores[2], 7.75)
+
     def test_wls(self):
         """testing wls"""
         reconstructed = wls(self.dists)
