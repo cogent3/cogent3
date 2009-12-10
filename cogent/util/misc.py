@@ -1278,9 +1278,11 @@ def NestedSplitter(delimiters=[None], same_level=False,
 def app_path(app):
     """Returns path to an app, or empty string if no path.
 
-    Should generalize to work on Windows?
+    Should generalize to work on Windows? No.
     """
-    result = popen('which ' + app).read().strip()
+    # redirect stderr to avoid junk that isn't collected by popen
+    cmd = ' '.join(['which', app, '2> /dev/null'])
+    result = popen(cmd).read().strip()
     # Ends with 'not found' fixes bug in OSX 10.4
     if not result or result.startswith('no') or result.endswith('not found'):
         return False
