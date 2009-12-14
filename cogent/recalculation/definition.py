@@ -139,7 +139,7 @@ class ParameterController(_ParameterController):
         PC.assign(settings)
         self.update([PC])
         
-    def makeCalculator(self, force_parallel=None, **kw):
+    def makeCalculator(self, force_parallel=True, **kw):
         # self.makeParallelCalculator() actually makes calculators, this just
         # wraps it to find the best degree of parallelisation for this
         # particular calculation on the current hardware/MPI system.
