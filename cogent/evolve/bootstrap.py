@@ -65,53 +65,55 @@ class ParametricBootstrapCore(object):
         opt_args['show_progress'] = show_progress
         if 'random_series' not in opt_args and not opt_args.get('local', None):
             opt_args['random_series'] = random.Random()
-        opt_args['return_calculator'] = True
         
         self._observed = []
         starting_points = []
-        parallel.inefficiency_forgiven = True
         for pc in self.parameter_controllers:
             pc.setAlignment(self.alignment)
-            lf = pc.optimise(**opt_args)
+            lf = pc.optimise(return_calculator=True, **opt_args)
             starting_points.append(lf)
             self._observed.append(lf)
-        
-        parallel.inefficiency_forgiven = False
-        
         self.observed = self.simplify(*self.parameter_controllers)
-        
+
         (parallel_context, parallel_subcontext) = parallel.getSplitCommunicators(self._numreplicates)
-        cpu_count = parallel_context.Get_size()
-        this_cpu = parallel_context.Get_rank()
-        split_results = [None] * cpu_count
-        split_results[this_cpu] = []
-        for round in range((self._numreplicates-1) / cpu_count + 1):
-            for cpu in range(cpu_count):
+        parallel.push(parallel_subcontext)
+        try:
+            # pc needs to be told that it can't use all the CPUs it did initially
+            # which seems less than ideal (it should be able to discover that itself), 
+            # but here's the 2 line workaround: 
+            for pc in self.parameter_controllers:
+                pc.setParamRule('parallel_context', is_const=True, value=parallel_subcontext)
+            cpu_count = parallel_context.Get_size()
+            this_cpu = parallel_context.Get_rank()
+            local_results = []
+            for i in range(self._numreplicates):
                 # making the simulated alignment on every node keeps alignment_randomness in sync
                 # across all cpus.  This is only a good way of doing it so long as making the alignment
                 # is much faster than optimising the likelihood function.
                 self.parameter_controllers[0].setAlignment(self.alignment)
                 simalign = self.parameter_controllers[0].simulateAlignment(random_series=alignment_randomness)
-                if cpu == this_cpu:
-                    local_results = []
+                #print "simulated", simalign[:5]
+                if i % cpu_count == this_cpu:
                     for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
-                        parallel.push(parallel_subcontext)
-                        try:
                             pc.real_par_controller.updateFromCalculator(starting_point) # reset
                             pc.setAlignment(simalign)
                             pc.optimise(**opt_args)
-                        finally:
-                            parallel.pop(parallel_subcontext)
-                    local_results = self.simplify(*self.parameter_controllers)
-                    split_results[cpu].append(local_results)
+                    local_result = self.simplify(*self.parameter_controllers)
+                    local_results.append(local_result)
+                    print 'replicate', i, 'on cpu', this_cpu
+            print len(local_results), 'from cpu', this_cpu
+        finally:
+            parallel.pop(parallel_subcontext)
         
-        for cpu in range(cpu_count):
-            split_results[cpu] = parallel_context.bcast(split_results[cpu], cpu)
+        #split_results = []
+        #for cpu in range(cpu_count):
+        #    split_results.append(parallel_context.bcast(local_results, cpu))
+        #    print 's1', this_cpu, [type(x) for x in split_results]
+        split_results = parallel_context.allgather(local_results)
         
         self.results = []
-        for round in range((self._numreplicates-1) / cpu_count + 1):
-            for cpu in range(cpu_count):
-                self.results.append(split_results[cpu][round])
+        for results in split_results:
+            self.results.extend(results)
     
 
 class EstimateProbability(ParametricBootstrapCore):

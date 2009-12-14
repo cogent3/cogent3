@@ -27,6 +27,8 @@ class _FakeCommunicator(object):
         return (self, self)
     def allreduce(self, value, op=None):
         return value
+    def allgather(self, value):
+        return [value]
     def bcast(self, obj, source):
         return obj
     def Bcast(self, array, source):
