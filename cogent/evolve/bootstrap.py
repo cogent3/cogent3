@@ -100,15 +100,9 @@ class ParametricBootstrapCore(object):
                             pc.optimise(**opt_args)
                     local_result = self.simplify(*self.parameter_controllers)
                     local_results.append(local_result)
-                    print 'replicate', i, 'on cpu', this_cpu
-            print len(local_results), 'from cpu', this_cpu
         finally:
             parallel.pop(parallel_subcontext)
         
-        #split_results = []
-        #for cpu in range(cpu_count):
-        #    split_results.append(parallel_context.bcast(local_results, cpu))
-        #    print 's1', this_cpu, [type(x) for x in split_results]
         split_results = parallel_context.allgather(local_results)
         
         self.results = []
