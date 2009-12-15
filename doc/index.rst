@@ -61,3 +61,11 @@ Search
 .. _`Science 2008 320:1647-51`: http://www.ncbi.nlm.nih.gov/pubmed/18497261?ordinalpos=12&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_DefaultReportPanel.Pubmed_RVDocSum
 .. _`Nature 2008 453: 175-83`: http://www.ncbi.nlm.nih.gov/pubmed/18464734?dopt=Citation
 .. _`Nat Genet 2007 39: 1261-5`: http://www.ncbi.nlm.nih.gov/pubmed/17828264?dopt=Citation
+
+**********************
+News and Announcements
+**********************
+
+PyCogent News and Annoucements are available via the News and Announcements Blog at http://pycogent.wordpress.com.
+
+`Subscribe to the News and Annoucements RSS Feed <http://pycogent.wordpress.com/feed>`_

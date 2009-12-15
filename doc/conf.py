@@ -27,7 +27,7 @@ extensions = ['sphinx.ext.todo', 'sphinx.ext.doctest', 'sphinx.ext.pngmath']
 # todo_include_todos=True # to expose the TODOs, uncomment this line
 
 # Add any paths that contain templates here, relative to this directory.
-# templates_path = ['_templates']
+templates_path = ['templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
