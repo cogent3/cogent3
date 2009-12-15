@@ -6,6 +6,8 @@ Quick installation
 For systems with ``easy_install``
 ---------------------------------
 
+For the list of dependencies see the :ref:`required` software list.
+
 The following assumes you have ``easy_install`` on your system (this comes standard with new Mac's for instance), that you have administrator privileges and that you're connected to the internet. See below if you don't have ``easy_install``.
 
 The key steps for the minimal install are:
@@ -59,10 +61,11 @@ Just replace the first line of the requirements file with ``https://pycogent.svn
 To use the graphics capabilities
 """"""""""""""""""""""""""""""""
 
-You need to install matplotlib_ (version 0.99+) to use the drawing code. However, compiling matplotlib can be a challenge. We therefore suggest you obtain a prebuilt binary for your platform from the matplotlib_ project page rather than modify the requirements file.
+You need to install matplotlib_ (version 0.99+) to use the drawing code. However, compiling matplotlib can be a challenge. We therefore suggest you obtain a prebuilt binary for your platform from the matplotlib_ project page rather than modify the requirements file. For OSX, we suggest reading the following instructions on how to `compiling matplotlib`_.
 
 .. _pip: http://pypi.python.org/pypi/pip
 .. _matplotlib: http://matplotlib.sourceforge.net/
+.. _`compiling matplotlib`: http://bioinformatics.anu.edu.au/groups/huttleylab/wiki/da9fe/Building_matplotlib_for_Snow_Leopard.html
 
 .. todo::
 

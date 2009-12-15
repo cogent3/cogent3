@@ -13,31 +13,25 @@ The toolkit requires Python 2.4.3 or greater, and Numpy 1.0 or greater. Aside fr
     
     While Numpy 1.0 is supported, we encourage users to use the latest stable Numpy release (currently 1.3) since we will be upgrading the required version soon.
 
+.. _required:
+
 Required
 ^^^^^^^^
 
 - Python_: the language the toolkit is primarily written in, and in which the user writes control scripts.
 - Numpy_: This is a python module used for speeding up matrix computations. It is available as source code for \*nix.
-    .. note:: For installing Numpy, unless you know what you are doing we recommend not linking Numpy against ATLAS or LAPACK libraries. On systems where these have been installed, this can be achieved by setting shell environment variables prior to building Numpy as
-    
-    .. code-block:: guess
-    
-        $ export ATLAS=None
-        $ export LAPACK=None
+- zlib_: This is a compression library which is available for all platforms and comes pre-installed on most too. If, by chance, your platform doesn't have this installed then download the source from the zlib_ site and follow the install instructions, or refer to the instructions for `compiling matplotlib`_.
 
-.. todo::
-    
-    **FOR RELEASE** is this advice still valid?
+.. note:: On some linux platforms (like Ubuntu), you must specifically install a ``python-dev`` package so that the Python_ header files required for building some external dependencies are available.
 
 Optional
 ^^^^^^^^
 
 - C compiler: This is standard on most \*nix platforms. On Macos X this is available for free in the Developer tools which, if you don't already have them, can be obtained from Apple_.
-- ReportLab_: required for drawing trees and alignments to pdf.
-- Matplotlib_: used to plot several kinds of graphs related to codon usage.
+- Matplotlib_: used to plot several kinds of graphs related to codon usage. For installation, see these instructions for `compiling matplotlib`_.
 - Cython_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
 - mpi4py_: Message Passing Interface interface, required for parallel computation.
-- SQLAlchemy_ and `MySQL-python`_ : These are required for the Ensembl querying code.
+- SQLAlchemy_ and `MySQL-python`_: These are required for the Ensembl querying code.
 
 If you use the :ref:`quick-install` approach, these are all specified in the requirements file.
 
@@ -99,7 +93,6 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 .. _Python: http://www.python.org
 .. _Cython: http://www.cython.org/
 .. _Numpy: http://numpy.scipy.org/
-.. _Reportlab: http://reportlab.org
 .. _Matplotlib: http://matplotlib.sourceforge.net
 .. _Apple: http://www.apple.com
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
@@ -109,3 +102,5 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 .. _gcc: http://gcc.gnu.org/
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _`MySQL-python`: http://sourceforge.net/projects/mysql-python
+.. _zlib: http://www.zlib.net/
+.. _`compiling matplotlib`: http://bioinformatics.anu.edu.au/groups/huttleylab/wiki/da9fe/Building_matplotlib_for_Snow_Leopard.html
