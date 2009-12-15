@@ -45,7 +45,8 @@ New Features
 
 Changes
 -------
-
+* Python 2.4 is no longer supported.
+* zlib is now a dependency.
 * cogent.format.table.asReportlabTable is being discontinued in version 1.5.
   This is the last dependency on reportlab and removal will simplify
   installation.
