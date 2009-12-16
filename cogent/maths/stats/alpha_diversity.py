@@ -5,6 +5,15 @@ from cogent.maths.optimisers import Powell
 from math import ceil, e
 from numpy import array, zeros, concatenate, arange, log, sqrt, exp
 
+__author__ = "Rob Knight"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 def expand_counts(counts):
     """Converts vector of counts at each index to vector of indices."""
     result = []

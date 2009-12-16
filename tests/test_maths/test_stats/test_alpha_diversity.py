@@ -11,6 +11,15 @@ from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_s
     chao1_uncorrected, chao1_bias_corrected, chao1, chao1_var, \
     chao1_confidence, ACE
 
+__author__ = "Rob Knight"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 class diversity_tests(TestCase):
     """Tests of top-level functions"""
 

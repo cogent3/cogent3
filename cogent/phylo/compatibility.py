@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Visualisation of phylogenetic compatibility within an alignment.
 Jakobsen & Easteal, CABIOS 12(4), 1996
 Jakobsen, Wilson & Easteal, Mol. Biol. Evol. 14(5), 1997 
@@ -7,6 +9,15 @@ from __future__ import division
 import numpy
 import numpy.random
 import operator
+
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Peter Maxwell"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Peter Maxwell"
+__email__ = "pm67nz@gmail.com"
+__status__ = "Production"
 
 def order_to_cluster_similar(S, elts=None, start=None):
     """Order so as to keep the most similar parts adjacent to each other

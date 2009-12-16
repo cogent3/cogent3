@@ -1,8 +1,19 @@
+#!/usr/bin/env python
+
 import numpy
 import warnings
 import substitution_calculation
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
-        
+
+__author__ = "Gavin Huttley and Andrew Butterfield"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Gavin Huttley"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Production"
+
 def makeModel(mprob_model, tuple_alphabet, mask):        
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
