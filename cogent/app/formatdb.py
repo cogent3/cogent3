@@ -14,6 +14,15 @@ from glob import glob
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from cogent.app.parameters import ValuedParameter, FilePath
 
+__author__ = "Greg Caporaso"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Greg Caporaso"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Greg Caporaso"
+__email__ = "gregcaporaso@gmail.com"
+__status__ = "Production"
+
 class FormatDb(CommandLineApplication):
     """ ApplicationController for formatting blast databases
     

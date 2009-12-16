@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import warnings
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
@@ -10,6 +12,15 @@ from cogent.evolve.substitution_model import Nucleotide
 from cogent.evolve.predicate import MotifChange
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
+
+__author__ = "Peter Maxwell and  Gavin Huttley"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Gavin Huttley"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Production"
 
 def _dinuc_root_probs(x,y=None):
     if y is None:

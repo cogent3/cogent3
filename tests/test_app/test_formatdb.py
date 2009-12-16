@@ -16,6 +16,14 @@ from cogent.app.blast import blastn
 from cogent.app.formatdb import FormatDb, build_blast_db_from_seqs,\
     build_blast_db_from_fasta_path
 
+__author__ = "Greg Caporaso"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Greg Caporaso"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Greg Caporaso"
+__email__ = "gregcaporaso@gmail.com"
+__status__ = "Production"
 
 class FormatDbTests(TestCase):
     

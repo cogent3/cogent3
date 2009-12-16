@@ -5,6 +5,15 @@ from cogent.util.unit_test import TestCase, main
 from cogent.maths.stats.rarefaction import subsample, naive_histogram, wrap_numpy_histogram, \
     rarefaction
 
+__author__ = "Rob Knight"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 class TopLevelTests(TestCase):
     """Tests of top-level functions"""
 
