@@ -4,6 +4,15 @@ from numpy.random import permutation
 
 """Given array of objects (counts or indices), perform rarefaction analyses."""
 
+__author__ = "Sandra Smit"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Rob Knight"]
+__license__ = "GPL"
+__version__ = "1.4.0.dev"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Development"
+
 def subsample(counts, n):
     """Subsamples new vector from vector of orig items.
     
@@ -37,7 +46,7 @@ def naive_histogram(vals, max_val=None, result=None):
 def wrap_numpy_histogram(max_val):
     """return convenience wrapper for numpy histogram"""
     bins = arange(max_val+2, dtype = int)   #+1 for length, +1 for leading 0
-    def f(vals, max_val='ignored'): return histogram(vals, bins, new=True)[0]
+    def f(vals, max_val='ignored'): return histogram(vals, bins)[0]
     return f
 
 def rarefaction(data, start=0, stop=None, stride=1, histogram_f=None, \

@@ -26,8 +26,8 @@ if sys.version_info < (2, 5):
 
 numpy_version = re.split("[^\d]", numpy.__version__)
 numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
-if numpy_version_info < (1, 0):
-    raise RuntimeError("Numpy-1.0 is required, %s found." % numpy_version)
+if numpy_version_info < (1, 3):
+    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
 
 LOG = logging.getLogger('cogent')
 LOG.addHandler(logging.StreamHandler())

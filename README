@@ -7,11 +7,7 @@ The Readme
 Dependencies
 ------------
 
-The toolkit requires Python 2.5.1 or greater, and Numpy 1.0 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.
-
-.. note::
-    
-    While Numpy 1.0 is supported, we encourage users to use the latest stable Numpy release (currently 1.3) since we will be upgrading the required version soon.
+The toolkit requires Python 2.5.1 or greater, and Numpy 1.3 or greater. Aside from these the dependencies below are optional and the code will work as is. A C compiler, however, will allow external C module's responsible for the likelihood and matrix exponentiation calculations to be compiled, resulting in significantly improved performance.
 
 .. _required:
 
