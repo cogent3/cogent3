@@ -34,7 +34,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Zongzhi Liu", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.4"
+__version__ = "1.5.0.dev"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
