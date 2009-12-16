@@ -9,7 +9,7 @@ cdef extern from "math.h":
     double log (double x)
 
 version_info = (3, 0)
-__version__ = "('1', '4')"
+__version__ = "('1', '5', '0', 'dev')"
 
 cdef double SCALE_STEP, MIN_FLOAT_VALUE
 SCALE_STEP = 2.0**50
