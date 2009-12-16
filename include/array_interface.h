@@ -1,6 +1,6 @@
 #include "Python.h"
 
-#define PYCOGENT_VERSION "1.4.0.dev"
+#define PYCOGENT_VERSION "1.4"
 
 /* Array Interface flags */
 #define CONTIGUOUS    0x001

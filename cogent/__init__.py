@@ -14,7 +14,7 @@ __credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
                     "Hua Ying", "Jason Carnes", "Raymond Sammut",
                     "Helen Lindsay", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.4.0.dev"
+__version__ = "1.4"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
