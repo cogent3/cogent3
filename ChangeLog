@@ -54,7 +54,7 @@ Changes
   This is the last dependency on reportlab and removal will simplify
   installation.
 * the conditional nucleotide model (Yap et al 2009) will be made the default
-   model form for context dependent models in version 1.5.
+  model form for context dependent models in version 1.5.
 * Change required MPI library from PyxMPI to mpi4py.
 * Move all of the cogent.draw.matplotlib.* modules up to cogent.draw.*
 * Substitute matplotlib for reportlab throughout cogent.draw
