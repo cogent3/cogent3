@@ -6,6 +6,15 @@ from cogent.recalculation.definition import (NonParamDefn, CalcDefn,
     
 from cogent.evolve.substitution_model import _SubstitutionModel
 
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Peter Maxwell"]
+__license__ = "GPL"
+__version__ = "1.5.0.dev"
+__maintainer__ = "Peter Maxwell"
+__email__ = "pm67nz@gmail.com"
+__status__ = "Production"
+
 class PsubMatrixDefn(PartitionDefn):
     "Square 2D array made of 1D partitions"
     
