@@ -5,10 +5,12 @@ import warnings
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")
 
-from numpy import ones, dot
+from numpy import ones, dot, array
 
 from cogent import LoadSeqs, DNA, LoadTree, LoadTable
-from cogent.evolve.substitution_model import Nucleotide
+from cogent.evolve.substitution_model import Nucleotide, General, \
+                                                GeneralStationary
+from cogent.evolve.discrete_markov import DiscreteSubstitutionModel
 from cogent.evolve.predicate import MotifChange
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
@@ -292,6 +294,143 @@ class NewQ(TestCase):
         self.assertFloatEqual(prob_vectors['d'].array, d)
         self.assertFloatEqual(prob_vectors['edge.0'].array, e)
     
+
+def _make_likelihood(model, tree, results, is_discrete=False):
+    """creates the likelihood function"""
+    # discrete model fails to make a likelihood function if tree has
+    # lengths
+    if is_discrete:
+        kwargs={}
+    else:
+        kwargs=dict(expm='pade')
+    
+    lf = model.makeLikelihoodFunction(tree,
+            optimise_motif_probs=True, **kwargs)
+    
+    if not is_discrete:
+        for param in lf.getParamNames():
+            if param in ('length', 'mprobs'):
+                continue
+            lf.setParamRule(param, is_independent=True, upper=5)
+    
+    lf.setAlignment(results['aln'])
+    return lf
+
+def MakeCachedObjects(model, tree, seq_length, opt_args):
+    """simulates an alignment under F81, all models should be the same"""
+    lf = model.makeLikelihoodFunction(tree)
+    lf.setMotifProbs(dict(A=0.1,C=0.2,G=0.3,T=0.4))
+    aln = lf.simulateAlignment(seq_length)
+    results = dict(aln=aln)
+    discrete_tree = LoadTree(tip_names=aln.Names)
+    
+    def fit_general(results=results):
+        if 'general' in results:
+            return
+        gen = General(DNA.Alphabet)
+        gen_lf = _make_likelihood(gen, tree, results)
+        gen_lf.optimise(**opt_args)
+        results['general'] = gen_lf
+        return
+    
+    def fit_gen_stat(results=results):
+        if 'gen_stat' in results:
+            return
+        gen_stat = GeneralStationary(DNA.Alphabet)
+        gen_stat_lf = _make_likelihood(gen_stat, tree, results)
+        gen_stat_lf.optimise(**opt_args)
+        results['gen_stat'] = gen_stat_lf
+    
+    def fit_constructed_gen(results=results):
+        if 'constructed_gen' in results:
+            return
+        preds = [MotifChange(a,b, forward_only=True) for a,b in [['A', 'C'],
+                        ['A', 'G'], ['A', 'T'], ['C', 'A'], ['C', 'G'],
+                        ['C', 'T'], ['G', 'C'], ['G', 'T'], ['T', 'A'],
+                        ['T', 'C'], ['T', 'G']]]
+        nuc = Nucleotide(predicates=preds)
+        nuc_lf = _make_likelihood(nuc, tree, results)
+        nuc_lf.optimise(**opt_args)
+        results['constructed_gen'] = nuc_lf
+    
+    def fit_discrete(results=results):
+        if 'discrete' in results:
+            return
+        dis_lf = _make_likelihood(DiscreteSubstitutionModel(DNA.Alphabet),
+                            discrete_tree, results, is_discrete=True)
+        dis_lf.optimise(**opt_args)
+        results['discrete'] = dis_lf
+    
+    funcs = dict(general=fit_general, gen_stat=fit_gen_stat,
+                 discrete=fit_discrete, constructed_gen=fit_constructed_gen)
+    
+    def call(self, obj_name):
+        if obj_name not in results:
+            funcs[obj_name]()
+        return results[obj_name]
+    
+    return call
+
+
+# class DiscreteGeneral(TestCase):
+#     """test discrete and general markov"""
+#     tree = LoadTree(treestring='(a:0.4,b:0.4,c:0.6)')
+#     opt_args = dict(max_restarts=1, local=True, show_progress=False)
+#     make_cached = MakeCachedObjects(Nucleotide(), tree, 100000, opt_args)
+#     
+#     def _setup_discrete_from_general(self, gen_lf):
+#         dis_lf = self.make_cached('discrete')
+#         for edge in self.tree:
+#             init = gen_lf.getPsubForEdge(edge.Name)
+#             dis_lf.setParamRule('psubs', edge=edge.Name, init=init)
+#         dis_lf.setMotifProbs(gen_lf.getMotifProbs())
+#         return dis_lf
+#     
+#     def test_discrete_vs_general1(self):
+#         """compares fully general models"""
+#         gen_lf = self.make_cached('general')
+#         gen_lnL = gen_lf.getLogLikelihood()
+#         dis_lf = self._setup_discrete_from_general(gen_lf)
+#         self.assertFloatEqual(gen_lnL, dis_lf.getLogLikelihood())
+#     
+#     def test_general_vs_constructed_general(self):
+#         """a constructed general lnL should be identical to General"""
+#         sm_lf = self.make_cached('constructed_gen')
+#         sm_lnL = sm_lf.getLogLikelihood()
+#         gen_lf = self.make_cached('general')
+#         gen_lnL = gen_lf.getLogLikelihood()
+#         self.assertFloatEqualAbs(sm_lnL, gen_lnL, eps=0.1)
+#     
+#     def test_general_stationary(self):
+#         """General stationary should be close to General"""
+#         gen_stat_lf = self.make_cached('gen_stat')
+#         gen_lf = self.make_cached('general')
+#         gen_stat_lnL = gen_stat_lf.getLogLikelihood()
+#         gen_lnL = gen_lf.getLogLikelihood()
+#         self.assertLessThan(gen_stat_lnL, gen_lnL)
+#     
+#     def test_general_stationary_is_stationary(self):
+#         """should be stationary"""
+#         gen_stat_lf = self.make_cached('gen_stat')
+#         mprobs = gen_stat_lf.getMotifProbs()
+#         mprobs = array([mprobs[nuc] for nuc in DNA.Alphabet])
+#         for edge in self.tree:
+#             psub = gen_stat_lf.getPsubForEdge(edge.Name)
+#             pi = dot(mprobs, psub.array)
+#             self.assertFloatEqual(mprobs, pi)
+#     
+#     def test_general_is_not_stationary(self):
+#         """should not be stationary"""
+#         gen_lf = self.make_cached('general')
+#         mprobs = gen_lf.getMotifProbs()
+#         mprobs = array([mprobs[nuc] for nuc in DNA.Alphabet])
+#         for edge in self.tree:
+#             psub = gen_lf.getPsubForEdge(edge.Name)
+#             pi = dot(mprobs, psub.array)
+#             try:
+#                 self.assertFloatEqual(mprobs, pi)
+#             except AssertionError:
+#                 pass
 
 if __name__ == "__main__":
     main()
