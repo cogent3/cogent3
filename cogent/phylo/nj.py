@@ -12,6 +12,8 @@ Generalised as described by Pearson, Robins & Zhang, 1999.
 import numpy
 from cogent.core.tree import TreeBuilder
 from util import distanceDictTo2D
+from collections import deque
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -44,18 +46,17 @@ class LightweightTreeNode(frozenset):
         return type(self)(frozenset.__or__(self, other))
         
 class PartialTree(object):
-    # A candidate tree stored as
-    #  (distance matrix, list of subtrees, list of tip sets, set of partitions, score)
-    #  at each iteration (ie: call of the join method) the number of subtrees is 
-    #  reduced as 2 of them are joined, while
-    #  the number of partitions is increased as a new edge is introduced.
-    def __init__(self, d, nodes, tips, topology, score, encode_partition):
+    """A candidate tree stored as
+      (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
+      At each iteration (ie: call of the join method) the number of subtrees 
+      is reduced as 2 of them are joined, while the number of partitions is 
+      increased as a new edge is introduced.
+      """
+    def __init__(self, d, nodes, tips, score):
         self.d = d
         self.nodes = nodes
         self.tips = tips
-        self.topology = topology
         self.score = score
-        self._encode_partition = encode_partition
         
     def getDistSavedJoinScoreMatrix(self):
         d = self.d
@@ -64,15 +65,9 @@ class PartialTree(object):
         Q = d - numpy.add.outer(r, r)/(L-2.0)
         return Q/2.0 + sum(r)/(L-2.0)/2 + self.score
 
-    def join(self, i, j, topologies=None):
+    def join(self, i, j):
         tips = self.tips[:]
         new_tip_set = tips[i] | tips[j]
-        # check is new topology
-        topology = self.topology | frozenset(
-                [self._encode_partition(new_tip_set)])
-        if topologies is not None and topology in topologies:
-            return None
-        
         nodes = self.nodes[:]
         d = self.d.copy()
 
@@ -110,28 +105,71 @@ class PartialTree(object):
         tips[j] = tips[L-1]
         tips.pop()
         
-        return type(self)(d, nodes, tips, topology, score, self._encode_partition)
+        return type(self)(d, nodes, tips, score)
     
     def asScoreTreeTuple(self):
-        assert len(self.nodes) == 2
-        nodes = self.nodes
-        if not isinstance(nodes[0], frozenset):
-            nodes = nodes[::-1]
-        length = max(self.d[0,1], 0.0)
-        root = nodes[0] | LightweightTreeNode([(length, nodes[1])])
+        assert len(self.nodes) == 3 # otherwise next line needs generalizing
+        lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d)/4
+        root = LightweightTreeNode(zip(lengths, self.nodes))
         tree = root.convert()
         tree.Name = "root"
-        return (self.score + length, tree)
+        return (self.score + sum(lengths), tree)
 
-def gnj(dists, keep=None, show_progress=False):
+class Pair(object):
+    """A candidate neighbour join, not turned into an actual PartialTree until
+    and unless we decide to use it, because calculating just the topology is 
+    faster than calculating the whole new distance matrix etc. as well."""
+    
+    __slots__ = ['tree', 'i', 'j', 'topology', 'new_partition']
+    def __init__(self, tree, i, j, topology, new_partition):
+        self.tree = tree
+        self.i = i
+        self.j = j
+        self.topology = topology
+        self.new_partition = new_partition
+        
+    def joined(self):
+        new_tree = self.tree.join(self.i,self.j)
+        new_tree.topology = self.topology
+        return new_tree
+        
+
+def uniq_neighbour_joins(trees, encode_partition):
+    """Generate all joinable pairs from all trees, best first, 
+    filtering out any duplicates"""
+    L = len(trees[0].nodes)
+    scores = numpy.zeros([len(trees), L, L])
+    for (k, tree) in enumerate(trees):
+        scores[k] = tree.getDistSavedJoinScoreMatrix()
+    topologies = set()
+    order = numpy.argsort(scores.flat)
+    for index in order:
+        (k, ij) = divmod(index, L*L)
+        (i, j) = divmod(ij, L)
+        if i == j:
+            continue
+        tree = trees[k]
+        new_tip_set = tree.tips[i] | tree.tips[j]
+        new_partition = encode_partition(new_tip_set)
+        # check is new topology
+        topology = tree.topology | frozenset([new_partition])
+        if topology in topologies:
+            continue
+        yield Pair(tree, i, j, topology, new_partition)
+        topologies.add(topology)
+
+
+def gnj(dists, keep=None, dkeep=0, show_progress=False):
     """Arguments:
         - dists: dict of (name1, name2): distance
-        - keep: maximum number of partial trees to keep at each iteration, and 
-          therefore to return.  Same as Q parameter in original GNJ paper.
+        - keep: number of best partial trees to keep at each iteration,  
+          and therefore to return.  Same as Q parameter in original GNJ paper.
+        - dkeep: number of diverse partial trees to keep at each iteration, 
+          and therefore to return.  Same as D parameter in original GNJ paper.
     Result:
         - a sorted list of (tree length, tree) tuples
     """
-        
+     
     (names, d) = distanceDictTo2D(dists)
 
     if keep is None:
@@ -145,51 +183,69 @@ def gnj(dists, keep=None, show_progress=False):
         included = frozenset(tips)
         if arbitrary_anchor not in included:
             included = all_tips - included
-        # could also convert to long int, would be faster?
         return included
-        
+        # could also convert to long int, or cache, would be faster?    
+    
     tips = [frozenset([n]) for n in names]
-    star_topology = frozenset(encode_partition(tip) for tip in tips)
     nodes = [LightweightTreeTip(name) for name in names]
-    star_tree = PartialTree(d, nodes, tips, star_topology, 0.0, encode_partition)
+    star_tree = PartialTree(d, nodes, tips, 0.0)
+    star_tree.topology = frozenset([])
     trees = [star_tree]
     
-    for L in range(len(names), 2, -1):
-        scores = numpy.zeros([len(trees), L, L])
-        # scores[k,i,j] is score of the kth tree with its ith and jth nodes joined.
-        for (k, tree) in enumerate(trees):
-            scores[k] = tree.getDistSavedJoinScoreMatrix()
+    for L in range(len(names), 3, -1):
+        # Generator of candidate joins, best first.
+        # Note that with dkeep>0 this generator is used up a bit at a time
+        # by 2 different interupted 'for' loops below.
+        candidates = uniq_neighbour_joins(trees, encode_partition)
         
+        # First take up to 'keep' best ones
         next_trees = []
-        topologies = set()
-        order = numpy.argsort(scores.flat)
-        for index in order:
+        for pair in candidates:
+            next_trees.append(pair)
             if len(next_trees) == keep:
                 break
-            (k, ij) = divmod(index, L*L)
-            (i, j) = divmod(ij, L)
-            if i == j:
-                continue
-            
-            tree = trees[k].join(i,j, topologies)
-            if tree is None: # ie: a duplicate topology
-                continue
-            
-            topologies.add(tree.topology)
-            next_trees.append(tree)
-            #if len(next_trees) > 1:
-            #    print len(next_trees[0].topology ^ tree.topology)
         
-        trees = next_trees
+        # The very best one is used as an anchor for measuring the 
+        # topological distance to others
+        best_topology = next_trees[0].topology
+        prior_td = [len(best_topology ^ tree.topology) for tree in trees]
+        
+        # Maintain a separate queue of joins for each possible 
+        # topological distance 
+        max_td = (max(prior_td) + 1) // 2
+        queue = [deque() for g in range(max_td+1)]
+        queued = 0
+        
+        # Now take up to dkeep joins, an equal number of the best at each 
+        # topological distance, while not calculating any more TDs than 
+        # necessary.
+        all_keep = len(next_trees) + dkeep
+        prior_td = dict(zip(map(id, trees), prior_td))
+        target_td = 1
+        while (candidates or queued) and len(next_trees) < all_keep:
+            if candidates and not queue[target_td]:
+                for pair in candidates:
+                    diff = pair.new_partition not in best_topology
+                    td = (prior_td[id(pair.tree)] + [-1,+1][diff]) // 2
+                    # equiv, slower: td = len(best_topology ^ topology) // 2
+                    queue[td].append(pair)
+                    queued += 1
+                    if td == target_td:
+                        break
+                else:
+                    candidates = None
+            if queue[target_td]:
+                next_trees.append(queue[target_td].popleft())
+                queued -= 1
+            target_td = target_td % max_td + 1
+        
+        trees = [pair.joined() for pair in next_trees]
         
         if show_progress:
             print L
         
-    result = []
-    for tree in trees:
-        result.append(tree.asScoreTreeTuple())
+    result = [tree.asScoreTreeTuple() for tree in trees]
     result.sort()
-    
     return result
 
 def nj(dists, no_negatives=True):
