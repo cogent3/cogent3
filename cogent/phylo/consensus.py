@@ -13,6 +13,7 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "matthew.wakefield@anu.edu.au"
 __status__ = "Production"
 
+
 def majorityRule(trees, strict=False):
     """Determines the consensus tree from a list of rooted trees using the 
      majority rules method of Margush and McMorris 1981
@@ -106,6 +107,7 @@ def weightedMajorityRule(weighted_trees, strict=False, attr="support"):
         root.Name = 'root' # Yuk
     
     return [root for root in nodes.values()]
+
 
 if __name__ == "__main__":
     import sys

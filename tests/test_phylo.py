@@ -58,11 +58,17 @@ class TreeReconstructionTests(unittest.TestCase):
         
     def test_gnj(self):
         """testing gnj"""
-        (length, reconstructed) = gnj(self.dists, keep=1)[0]
+        results = gnj(self.dists, keep=1)
+        (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
         
-        (length, reconstructed) = gnj(self.dists, keep=10)[0]
+        results = gnj(self.dists, keep=10)
+        (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
+        
+        # Results should be a TreeCollection
+        len(results)
+        results.getConsensusTree()
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
         tied_dists = {
