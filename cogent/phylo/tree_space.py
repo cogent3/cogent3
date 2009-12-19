@@ -2,6 +2,7 @@
 import heapq
 import numpy
 from cogent.core.tree import TreeBuilder
+from cogent.phylo.tree_collection import ScoredTreeCollection
 from cogent.util import parallel, checkpointing
 
 __author__ = "Peter Maxwell"
@@ -12,6 +13,7 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
 
 # Trees are represented as "ancestry" matricies in which A[i,j] iff j is an
 # ancestor of i.  For LS calculations the ancestry matrix is converted
@@ -99,7 +101,7 @@ class TreeEvaluator(object):
             yield self.result2output(err, ancestry, lengths, names)
     
     def results2output(self, results):
-        return list(results)
+        return ScoredTreeCollection(results)
         
     def evaluateTopology(self, tree):
         """Optimal (score, tree) for the one topology 'tree'"""

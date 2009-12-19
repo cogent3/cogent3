@@ -11,6 +11,7 @@ Generalised as described by Pearson, Robins & Zhang, 1999.
 
 import numpy
 from cogent.core.tree import TreeBuilder
+from cogent.phylo.tree_collection import ScoredTreeCollection
 from util import distanceDictTo2D
 from collections import deque
 
@@ -246,7 +247,8 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
         
     result = [tree.asScoreTreeTuple() for tree in trees]
     result.sort()
-    return result
+    return ScoredTreeCollection(result)
+
 
 def nj(dists, no_negatives=True):
     """Arguments:
