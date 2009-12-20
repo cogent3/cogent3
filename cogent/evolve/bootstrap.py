@@ -7,7 +7,7 @@ The estimation of probabilities is done by the EstimateProbability class.
 Functions that provide ParameterController objects for the 'null' and
 'alternative' cases are provided to the constructor. Numerous aspects of the
 bootstrapping can be controlled such as the choice of numerical optimiser, and
-the number of sample's from which to estimate the probability. This class
+the number of samples from which to estimate the probability. This class
 can be run in serial or in parallel (at the level of each random sample).
 
 An observed Likelihood Ratio (LR) statistic is estimated using the provided
@@ -21,7 +21,7 @@ simultaneously. Similar setup, and parallelisation options as provided by
 the EstimateProbability class.
 
 """
-
+from __future__ import with_statement
 from cogent.util import parallel
 from cogent.maths import optimisers
 
@@ -75,39 +75,26 @@ class ParametricBootstrapCore(object):
             self._observed.append(lf)
         self.observed = self.simplify(*self.parameter_controllers)
 
-        (parallel_context, parallel_subcontext) = parallel.getSplitCommunicators(self._numreplicates)
-        parallel.push(parallel_subcontext)
-        try:
-            # pc needs to be told that it can't use all the CPUs it did initially
-            # which seems less than ideal (it should be able to discover that itself), 
-            # but here's the 2 line workaround: 
-            for pc in self.parameter_controllers:
-                pc.setParamRule('parallel_context', is_const=True, value=parallel_subcontext)
-            cpu_count = parallel_context.Get_size()
-            this_cpu = parallel_context.Get_rank()
-            local_results = []
-            for i in range(self._numreplicates):
-                # making the simulated alignment on every node keeps alignment_randomness in sync
-                # across all cpus.  This is only a good way of doing it so long as making the alignment
-                # is much faster than optimising the likelihood function.
-                self.parameter_controllers[0].setAlignment(self.alignment)
-                simalign = self.parameter_controllers[0].simulateAlignment(random_series=alignment_randomness)
-                #print "simulated", simalign[:5]
-                if i % cpu_count == this_cpu:
-                    for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
-                            pc.real_par_controller.updateFromCalculator(starting_point) # reset
-                            pc.setAlignment(simalign)
-                            pc.optimise(**opt_args)
-                    local_result = self.simplify(*self.parameter_controllers)
-                    local_results.append(local_result)
-        finally:
-            parallel.pop(parallel_subcontext)
+        # making the simulated alignment on every node keeps alignment_randomness in sync
+        # across all cpus.  This is only a good way of doing it so long as making the alignment
+        # is much faster than optimising the likelihood function.
+        simaligns = [self.parameter_controllers[0].simulateAlignment(
+                random_series=alignment_randomness) for i in range(self._numreplicates)]
+
+        def _one_replicate(simalign):
+            for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
+                with pc.real_par_controller.updatesPostponed():
+                    # using a calculator as a memo object to rest the parameter values
+                    pc.real_par_controller.updateFromCalculator(starting_point)
+                    # but alignment is different each time
+                    pc.setAlignment(simalign)
+                    # pc needs to be told that it can't use all the CPUs it did initially
+                    # which seems less than ideal (it should be able to discover that itself) 
+                    pc.real_par_controller.setupParallelContext()
+                pc.optimise(**opt_args)
+            return self.simplify(*self.parameter_controllers)
         
-        split_results = parallel_context.allgather(local_results)
-        
-        self.results = []
-        for results in split_results:
-            self.results.extend(results)
+        self.results = parallel.map(_one_replicate, simaligns, show_progress=False)#opt shows anyway
     
 
 class EstimateProbability(ParametricBootstrapCore):

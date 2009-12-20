@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import with_statement
 import heapq
 import numpy
 from cogent.core.tree import TreeBuilder
@@ -194,20 +195,12 @@ class TreeEvaluator(object):
             print len(trees), 'trees of size', init_tree_size, 'at start'
         
         for n in range(init_tree_size+1, tree_size+1):
-            # parallel - combine tree heaps up a tree of cpus
             evals = len(trees) * len(trees[0][2])
             if show_progress and printing_cpu:
                 print evals, 'trees of size', n, '...',
             
-            (comm, leftover) = parallel.getSplitCommunicators(evals)
-            parallel.push(leftover)
-            (cpu_count, cpu_rank) = (comm.Get_size(), comm.Get_rank())
-            try:
-                # tree of cpus
-                parent = (cpu_rank+1) // 2 - 1
-                left = (cpu_rank+1) * 2 - 1
-                children = [child for child in [left, left+1]
-                        if child < cpu_count]
+            with parallel.mpi_split(evals) as comm:
+                (cpu_count, cpu_rank) = (comm.Get_size(), comm.Get_rank())
                 
                 trees2 = []
                 evaluate = self.makeTreeScorer(names[:n])
@@ -220,30 +213,23 @@ class TreeEvaluator(object):
                         ancestry2 = grown(ancestry, split_edge)
                         (err, lengths) = evaluate(ancestry2)
                         trees2.append((err, lengths, ancestry2))
-                
-                for child in children:
-                    trees2.extend(comm.recv(source=child))
-                
-                if len(trees2) > k and (n < tree_size or not return_all):
-                    trees2 = heapq.nsmallest(k, trees2)
-                
+                        
+                trees2 = heapq.nsmallest(k, trees2)
+                                
+                # collect trees from all CPUs
+                trees = []
+                for local_trees in comm.allgather(trees2):
+                    trees.extend(local_trees)
+                trees = heapq.nsmallest(k, trees)
+                                
                 if show_progress and printing_cpu:
                     if n < tree_size:
-                        print 'kept', len(trees2), 'trees'
+                        print 'kept', len(trees), 'trees'
                     else:
                         print 'done'
-                
-                if cpu_rank > 0:
-                    comm.send(trees2, parent)
-                    trees2 = comm.recv(source=parent)
-                
-                for child in children:
-                    comm.send(trees2, child)
-            finally:
-                parallel.pop(leftover)
-            trees = trees2
-            if printing_cpu:
-                checkpointer.record((n, names[:n], trees))
+                            
+                if printing_cpu:
+                    checkpointer.record((n, names[:n], trees))
         
         results = self._result_iter(trees, names)
         if return_all:

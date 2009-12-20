@@ -4,12 +4,12 @@ This file defines a class for controlling the scope and heterogeneity of
 parameters involved in a maximum-likelihood based tree analysis.
 """
 
+from __future__ import with_statement
 from cogent.core.tree import TreeError
 from cogent.evolve import likelihood_calculation
 from cogent.align import dp_calculation
 from cogent.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent.recalculation.scope import _indexed
-from cogent.util import parallel
 
 import numpy
 import pickle
@@ -108,21 +108,22 @@ class _LikelihoodParameterController(_LF):
         free to be optimised independently.
         Other parameters are scoped based on the unique values found in the
         tree (if any) or default to having one value shared across the whole
-        tree"""
-        edges = self.tree.getEdgeVector()
-        for par_name in self.model.getParamList():
-            try:
-                values = dict([(edge.Name, edge.params[par_name])
-                        for edge in edges if not edge.isroot()])
-                (uniq, index) = _indexed(values)
-            except KeyError:
-                continue  # new parameter
-            for (u, value) in enumerate(uniq):
-                group = [edge for (edge, i) in index.items() if i==u]
-                self.setParamRule(par_name, edges=group, init=value)
-        for edge in edges:
-            if edge.Length is not None:
-                self.setParamRule('length', edge=edge.Name, init=edge.Length)
+        tree""" 
+        with self.real_par_controller.updatesPostponed():
+            edges = self.tree.getEdgeVector()
+            for par_name in self.model.getParamList():
+                try:
+                    values = dict([(edge.Name, edge.params[par_name])
+                            for edge in edges if not edge.isroot()])
+                    (uniq, index) = _indexed(values)
+                except KeyError:
+                    continue  # new parameter
+                for (u, value) in enumerate(uniq):
+                    group = [edge for (edge, i) in index.items() if i==u]
+                    self.setParamRule(par_name, edges=group, init=value)
+            for edge in edges:
+                if edge.Length is not None:
+                    self.setParamRule('length', edge=edge.Name, init=edge.Length)
     
     def setMotifProbsFromData(self, align, locus=None, is_const=None, 
                 include_ambiguity=False, is_independent=None, auto=False,
@@ -274,18 +275,17 @@ class _LikelihoodParameterController(_LF):
         if tree is None:
             tree = self.tree
         
-        for edge in tree.getEdgeVector():
-            if edge.Length is None or edge.Name in exclude_list:
-                continue
-            self.setParamRule("length", edge=edge.Name, is_const=1,
-                                    value=edge.Length)
+        with self.real_par_controller.updatesPostponed():
+            for edge in tree.getEdgeVector():
+                if edge.Length is None or edge.Name in exclude_list:
+                    continue
+                self.setParamRule("length", edge=edge.Name, is_const=1,
+                                        value=edge.Length)
     
 
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
     
     def setDefaultParamRules(self):
-        self.setParamRule('parallel_context', is_const=True,
-                value=parallel.getCommunicator())
         try:
             self.real_par_controller.assignAll(
                 'fixed_motif', None, value=-1, const=True, independent=True)
@@ -316,13 +316,14 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                                 (self.tree.getTipNames(), aln.getSeqNames(),
                                 locus_name)
             assert not "root" in aln.getSeqNames(), "'root' is a reserved name."
-        for (locus_name, align) in zip(self.locus_names, aligns):
-            self.real_par_controller.assignAll(
-                    'alignment', {'locus':[locus_name]},
-                    value=align, const=True)
-            if self.mprobs_from_alignment:
-                self.setMotifProbsFromData(align, locus=locus_name, auto=True,
-                        pseudocount=motif_pseudocount)
+        with self.real_par_controller.updatesPostponed():
+            for (locus_name, align) in zip(self.locus_names, aligns):
+                self.real_par_controller.assignAll(
+                        'alignment', {'locus':[locus_name]},
+                        value=align, const=True)
+                if self.mprobs_from_alignment:
+                    self.setMotifProbsFromData(align, locus=locus_name, auto=True,
+                            pseudocount=motif_pseudocount)
     
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):
@@ -351,11 +352,12 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         self.setPogs(leaves, locus=locus)
     
     def setPogs(self, leaves, locus=None):
-        for (name, pog) in leaves.items():
-            self.setParamRule('leaf', edge=name, value=pog, is_const=True)
-        if self.mprobs_from_alignment:
-            counts = numpy.sum([pog.leaf.getMotifCounts()
-                for pog in leaves.values()], 0)
-            mprobs = counts/(1.0*sum(counts))
-            self.setMotifProbs(mprobs, locus=locus, is_const=True, auto=True)
+        with self.real_par_controller.updatesPostponed():
+            for (name, pog) in leaves.items():
+                self.setParamRule('leaf', edge=name, value=pog, is_const=True)
+            if self.mprobs_from_alignment:
+                counts = numpy.sum([pog.leaf.getMotifCounts()
+                    for pog in leaves.values()], 0)
+                mprobs = counts/(1.0*sum(counts))
+                self.setMotifProbs(mprobs, locus=locus, is_const=True, auto=True)
     
