@@ -24,6 +24,7 @@ from indel_positions import leaf2pog
 from cogent import LoadSeqs
 from cogent.core.alignment import Aligned
 from cogent.align.traceback import map_traceback
+from cogent.util import parallel
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
@@ -627,7 +628,7 @@ class PairEmissionProbs(object):
         """linear-space alignment algorithm
         A linear space algorithm for computing maximal common subsequences.
         Comm. ACM 18,6 (1975) 341-343.
-        Dan Hirshberg
+        Dan Hirschberg
         """
         (states, T) = TM
         
@@ -639,29 +640,36 @@ class PairEmissionProbs(object):
         # attractive": for them there is only one link in the list:
         links = self.pair.children[0].midlinks()
 
-        T2 = T.copy()
-        T2[1:-1:,-1] = 1.0  # don't count the end state transition twice
-        last_row1 = self.scores_at_rows(
-                (states, T2), dp_options, last_row=[i for (i,j) in links])
-        
-        T2 = T.copy()
-        T2[0, 1:-1] = 1.0  # don't count the begin state transition twice
-        last_row2 = self.scores_at_rows(
+        def _half_row_scores(backward):
+            T2 = T.copy()
+            if backward:
+                T2[0, 1:-1] = 1.0  # don't count the begin state transition twice
+            else:
+                T2[1:-1:,-1] = 1.0  # don't count the end state transition twice
+            return self.scores_at_rows(
                 (states, T2), dp_options, 
-                last_row=[j for (i,j) in links], 
-                backward=True)
+                last_row=[link[backward] for link in links],
+                backward = not not backward)
+        
+        (last_row1, last_row2) = parallel.map(_half_row_scores, [0,1])
         middle_row = (last_row1 + last_row2)
         (link, anchor, anchor_state) = numpy.unravel_index(
             numpy.argmax(middle_row.flat), middle_row.shape)
         score = middle_row[link, anchor, anchor_state]
         (join1, join2) = links[link]
-        T2 = T.copy()
-        T2[-1] = 0.0
-        T2[anchor_state, -1] = 1.0  # Must end with the anchor's state
-        (s1, tb_a) = self[:join1, :anchor].dp((states, T2), dp_options)
-        T2 = T.copy()
-        T2[0, :] = T[anchor_state, :]  # Starting from the anchor's state
-        (s2, tb_b) = self[join2:, anchor:].dp((states, T2), dp_options)
+        
+        def _half_solution(part):
+            T2 = T.copy()
+            if part == 0:
+                T2[-1] = 0.0
+                T2[anchor_state, -1] = 1.0  # Must end with the anchor's state
+                part = self[:join1, :anchor]
+            else:
+                T2[0, :] = T[anchor_state, :]  # Starting from the anchor's state
+                part = self[join2:, anchor:]
+            return part.dp((states, T2), dp_options)
+        
+        [(s1, tb_a), (s2, tb_b)] = parallel.map(_half_solution, [0,1])
         tb = tb_a + tb_b.offset(join2, anchor)
         # Same return as for self.dp(..., tb=...)
         return score, tb
@@ -703,15 +711,19 @@ class PairEmissionProbs(object):
             encoder = self.pair.getPointerEncoding(len(T))
             problem_dimensions = self.pair.size + [len(T)]
             problem_size = numpy.product(problem_dimensions)
-            if problem_size > HIRSCHBERG_LIMIT and self.pair.size[0]-2 >= 3:
-                memory = problem_size * encoder.bytes / 10**6
-                if dp_options.local:
-                    LOG.warn('Local alignment will use > %sMb.' % memory)
-                elif cells is not None:
-                    LOG.warn('Posterior probs will use > %sMb.' % memory)
-                else:
-                    assert not backward
-                    return self.hirschberg(TM, dp_options)
+            memory = problem_size * encoder.bytes / 10**6
+            if dp_options.local:
+                msg = 'Local alignment'
+            elif cells is not None:
+                msg = 'Posterior probs'
+            elif self.pair.size[0]-2 >= 3 and not backward and (
+                    problem_size > HIRSCHBERG_LIMIT or 
+                    parallel.getCommunicator().Get_size() > 1):
+                 return self.hirschberg(TM, dp_options)
+            else:
+                msg = 'dp'
+            if memory > 500:
+                LOG.warn('%s will use > %sMb.' % (msg, memory))
             track = encoder.getEmptyArray(problem_dimensions)
         else:
             track = encoder = None
