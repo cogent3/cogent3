@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, with_statement
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 import time, logging, warnings
@@ -202,9 +202,7 @@ class Calculator(object):
                     self.arg_ranks[i].append(arg.rank)
                     cell.arg_ranks.append(arg.rank)
                 
-                if self.remaining_parallel_context is not None:
-                    parallel.push(self.remaining_parallel_context)
-                try:
+                with parallel.mpi_context(self.remaining_parallel_context):
                     try:
                         cell.prime(self.cell_values)
                     except KeyboardInterrupt:
@@ -213,9 +211,6 @@ class Calculator(object):
                         LOG.exception("Failed initial calculation of %s"
                                 % cell.name)
                         raise
-                finally:
-                    if self.remaining_parallel_context is not None:
-                        parallel.pop(self.remaining_parallel_context)
             else:
                 raise RuntimeError('Unexpected Cell type %s' % type(cell))
         
@@ -442,6 +437,7 @@ class Calculator(object):
         
         t0 = time.time()
         self.evaluations += 1
+        assert parallel.getCommunicator() is self.overall_parallel_context
         
         # If ALL of the changes made in the last step are reversed in this step
         # then it is safe to undo them first, taking advantage of the 1-deep
@@ -488,9 +484,7 @@ class Calculator(object):
             else:
                 data[i] = v
         
-        if self.remaining_parallel_context is not None:
-            parallel.push(self.remaining_parallel_context)
-        try:
+        with parallel.mpi_context(self.remaining_parallel_context):
             try:
                 if self.trace:
                     self.tracingUpdate(changes, program, data)
@@ -512,10 +506,9 @@ class Calculator(object):
                 self.last_undo = []
                 (cell, exception) = detail.args
                 raise exception
-        finally:
-            if self.remaining_parallel_context is not None:
-                parallel.pop(self.remaining_parallel_context)
-            self.elapsed_time += time.time() - t0
+            
+            finally:
+                self.elapsed_time += time.time() - t0
         
         return self.cell_values[self._switch][-1]
     
@@ -606,6 +599,7 @@ class Calculator(object):
         samples = []
         elapsed = 0.0
         rounds_per_sample = 2
+        comm = parallel.getCommunicator()
         while elapsed < time_limit and len(samples) < 5:
             time.sleep(0.01)
             t0 = now()
@@ -620,8 +614,7 @@ class Calculator(object):
                         last = []
             # Use one agreed on delta otherwise different cpus will finish the
             # loop at different times causing chaos.
-            delta = self.overall_parallel_context.allreduce(
-                    now()-t0, parallel.MPI.MAX)
+            delta = comm.allreduce(now()-t0, parallel.MPI.MAX)
             if delta < 0.1:
                 # time.clock is low res, so need to ensure each sample
                 # is long enough to take SOME time.

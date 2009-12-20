@@ -198,37 +198,15 @@ class EstimateDistances(object):
             combination_aligns = self.__make_threeway_comparison_sets()
         else:
             combination_aligns = self.__make_pairwise_comparison_sets()
-        
-        (parallel_context, parallel_subcontext) = \
-                parallel.getSplitCommunicators(len(combination_aligns))
-        
-        count_progress = 0
-        cpu_count = parallel_context.Get_size()
-        this_cpu = parallel_context.Get_rank()
-        local_values = []
-        for _round in range((len(combination_aligns)-1)/cpu_count + 1):
-            i = _round * cpu_count + this_cpu
-            if i >= len(combination_aligns):
-                continue
-            comp = combination_aligns[i]
-            parallel.push(parallel_subcontext)
-            try:
-                count_progress += 1
-                if count_progress % progress_interval == 0 and\
-                        show_progress:
-                    print 'Doing [%s/%s]: %s' % \
-                        (i+1, len(combination_aligns), ' <-> '.join(comp))
-                self.__doset(comp, show_progress, dist_opt_args,
-                            aln_opt_args)
-            finally:
-                # back up to analysis level
-                parallel.pop(parallel_subcontext)
-            local_value = self.__param_ests[comp]
-            local_values.append((comp, local_value))
-        
-        for per_cpu_set in parallel_context.allgather(local_values):
-            for (comp, value) in per_cpu_set:
-                self.__param_ests[comp] = value
+                            
+        def _one_alignment(comp):
+            self.__doset(comp, show_progress, dist_opt_args,
+                        aln_opt_args)
+            return (comp, self.__param_ests[comp])
+            
+        for (comp, value) in parallel.map(_one_alignment, combination_aligns,
+                show_progress=show_progress):
+            self.__param_ests[comp] = value
     
     def getPairwiseParam(self, param, summary_function="mean"):
         """Return the pairwise statistic estimates as a dictionary keyed by

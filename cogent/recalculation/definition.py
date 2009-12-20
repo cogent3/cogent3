@@ -63,7 +63,7 @@ Recycling:
   stored for each cell - current, previous and spare.  The spare value is
   the one to be used next for recycling.
 """
-from __future__ import division
+from __future__ import division, with_statement
 import numpy
 import logging
 
@@ -139,60 +139,22 @@ class ParameterController(_ParameterController):
         PC.assign(settings)
         self.update([PC])
         
-    def makeCalculator(self, force_parallel=True, **kw):
-        # self.makeParallelCalculator() actually makes calculators, this just
-        # wraps it to find the best degree of parallelisation for this
-        # particular calculation on the current hardware/MPI system.
+    def measureEvalsPerSecond(self):
+        return self.makeCalculator().measureEvalsPerSecond()
+    
+    def setupParallelContext(self, parallel_split=None):
         comm = parallel.getCommunicator()
         cpu_count = comm.Get_size()
-        if force_parallel:
-            return self._makeParallelCalculator(split=cpu_count, **kw)
-        best_lf = self._makeParallelCalculator(split=1, **kw)
-        if (cpu_count == 1 or
-                'parallel_context' not in self.defn_for or
-                len(best_lf.getValueArray()) == 0 or
-                force_parallel is not None):
-            return best_lf
-        best_speed = baseline_speed = best_lf.measureEvalsPerSecond()
-        parallelisation_achieved = 1
-        desc = "no"
-        for split in range(2, cpu_count+1):
-            if cpu_count % split:
-                continue
-            lf = self._makeParallelCalculator(split=split, **kw)
-            speed = lf.measureEvalsPerSecond()
-            LOG.info("%s-way parallelisation gave %s speedup" % (
-                    split, speed / baseline_speed))
-            if speed > best_speed:
-                best_lf = lf
-                best_speed = speed
-                parallelisation_achieved = split
-                desc = "%s-way" % parallelisation_achieved
-            else:
-                break
-        if parallelisation_achieved < cpu_count:
-            # assuming no other part of the LF can use them:
-            if not parallel.inefficiency_forgiven:
-                LOG.warning("Using %s parallelism even though %s cpus are "\
-                    "available, MPI overhead greater than gain, CPUs are "\
-                    "being wasted" % (desc, cpu_count))
-        return best_lf
+        if parallel_split is None:
+            parallel_split = cpu_count
+        with parallel.mpi_split(parallel_split) as parallel_context:
+            self.remaining_parallel_context = parallel.getCommunicator()
+            if 'parallel_context' in self.defn_for:
+                self.assignAll(
+                    'parallel_context', value=parallel_context, const=True)
+            self.overall_parallel_context = comm
     
-    def _makeParallelCalculator(self, split=None, **kw):
-        comm = parallel.getCommunicator()
-        kw['overall_parallel_context'] = comm
-        if split is None:
-            split = 1
-        (parallel_context, parallel_subcontext) = \
-                parallel.getSplitCommunicators(split)
-        if 'parallel_context' in self.defn_for:
-            self.assignAll(
-                'parallel_context', value=parallel_context, const=True)
-        if parallel_subcontext.Get_size() < comm.Get_size():
-            kw['remaining_parallel_context'] = parallel_subcontext
-        return self._makeCalculator(**kw)
-    
-    def _makeCalculator(self, calculatorClass=None, variable=None, **kw):
+    def makeCalculator(self, calculatorClass=None, variable=None, **kw):
         cells = []
         input_soup = {}
         for defn in self.defns:
@@ -202,6 +164,8 @@ class ParameterController(_ParameterController):
             input_soup[id(defn)] = outputs
         if calculatorClass is None:
             calculatorClass = Calculator
+        kw['overall_parallel_context'] = self.overall_parallel_context
+        kw['remaining_parallel_context'] = self.remaining_parallel_context
         return calculatorClass(cells, input_soup, **kw)
     
     def updateFromCalculator(self, calc):
@@ -442,6 +406,10 @@ class NonScalarDefn(_InputDefn):
     
     def getNumFreeParams(self):
         return 0
+        
+    def updateFromCalculator(self, calc):
+        pass # don't reset parallel_context etc.
+
     
 
 def _proportions(total, params):
@@ -584,10 +552,7 @@ class ConstDefn(NonScalarDefn):
     def checkSettingIsValid(self, setting):
         if setting is not None and setting.value is not self.default:
             raise ValueError("%s is constant" % self.name)
-    
-    def updateFromCalculator(self, calc):
-        pass
-    
+
 
 class SelectForDimension(_Defn):
     """A special kind of Defn used to bridge from Defns where a particular

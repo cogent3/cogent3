@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
+from contextlib import contextmanager
 import logging
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
@@ -590,7 +591,10 @@ class _ParameterController(object):
             else:
                 self.defn_for[defn.name] = defn
         
+        self._changed = set()
+        self._update_suspended = False
         self.update(self.defns)
+        self.setupParallelContext()
     
     def getParamNames(self, scalar_only=False):
         return [defn.name for defn in self.defns if defn.user_param and
@@ -646,16 +650,30 @@ class _ParameterController(object):
                 return lc._getCurrentCellInterval(opt_par, dropoff, xtol)
         return callback
     
+    @contextmanager
+    def updatesPostponed(self):
+        (old, self._update_suspended) = (self._update_suspended, True)
+        yield
+        self._update_suspended = old
+        self._update()
+        
     def update(self, changed=None):
         if changed is None:
             changed = self.defns # all
+        self._changed.update(id(defn) for defn in changed)
+        self._update()
+    
+    def _update(self):
+        if self._update_suspended:
+            return
         # use topological sort order
-        Q = set(id(defn) for defn in changed)
+        # xxx parallel context check?
         for defn in self.defns:
-            if id(defn) in Q:
+            if id(defn) in self._changed:
                 defn.update()
                 for c in defn.clients:
-                    Q.add(id(c))
+                    self._changed.add(id(c))
+        self._changed.clear()
     
     def __repr__(self):
         col_width = 6

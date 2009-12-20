@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
+from __future__ import with_statement
 import os, logging
+from contextlib import contextmanager
+
 
 __author__ = "Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -63,15 +65,6 @@ else:
     get_processor_name = MPI.Get_processor_name
     _ParallelisationStack = [MPI.COMM_WORLD]
 
-def push(context):
-    _ParallelisationStack.append(context)
-
-def pop(context=None):
-    context2 = _ParallelisationStack.pop()
-    if context is not None:
-        assert context2 is context
-    return context2
-
 def sync_random(r):
     if _ParallelisationStack[-1].Get_size() > 1:
         state = _ParallelisationStack[-1].bcast(r.getstate(), 0)
@@ -85,6 +78,8 @@ def getSplitCommunicators(jobs):
     assert jobs > 0
     (size, rank) = (comm.Get_size(), comm.Get_rank())
     group_count = min(jobs, size)
+    while size % group_count:
+        group_count += 1
     if group_count == 1:
         (next, sub) = (_FakeCommunicator(), comm)
     elif group_count == size:
@@ -94,40 +89,39 @@ def getSplitCommunicators(jobs):
         sub = comm.Split(rank % group_count, rank)
     return (next, sub)
 
+@contextmanager
+def mpi_context(comm):
+    _ParallelisationStack.append(comm)
+    try:
+        yield
+    finally:
+        popped = _ParallelisationStack.pop()    
+        assert popped is comm
 
-# These two classes should be one simple generator definition,
-# but can't wrap a 'yield' in a 'try ... finally' and I want it to
-# be safe for loops with 'break' etc.
-class _ParallelIter(object):
-    def __init__(self, values, cpus, leftover):
-        self.values = values
-        self.leftover = leftover
-        self.cpus = cpus
-        self.i = cpus.Get_rank()
-        push(self.leftover)
-    
-    def next(self):
-        self.leftover.Barrier()
-        if self.i >= len(self.values):
-            raise StopIteration
-        result = self.values[self.i]
-        self.i += self.cpus.Get_size()
-        return result
-    
-    def __del__(self):
-        self.cpus.Barrier()
-        pop(self.leftover)
-    
+@contextmanager
+def mpi_split(jobs):
+    (next, sub) = getSplitCommunicators(jobs)
+    with mpi_context(sub):
+        yield next
 
-class localShareOf(object):
-    """For task in localShareOf(tasks): ..."""
-    def __init__(self, values):
-        self.values = values
-        (self.cpus, self.leftover) = getSplitCommunicators(len(values))
-    
-    def __iter__(self):
-        return _ParallelIter(self.values, self.cpus, self.leftover)
-    
+def map(f,s,show_progress=False):
+    result = []
+    with mpi_split(len(s)) as comm:
+        (size, rank) = (comm.Get_size(), comm.Get_rank())
+        for start in range(0, len(s), size):
+            chunk = s[start:start+size]
+            if rank < len(chunk):
+                local_result = f(chunk[rank])
+            else:
+                local_result = None
+            split_results = comm.allgather(local_result)[:len(chunk)]
+            result.extend(split_results)
+            if show_progress and output_cpu:
+                print ".", #start+len(chunk)
+    if show_progress and output_cpu:
+        print 
+    return result
+        
 
 class ParaRandom:
     """Converts any random number generator with a .random() method
