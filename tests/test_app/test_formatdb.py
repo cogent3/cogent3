@@ -14,7 +14,7 @@ from cogent.app.util import get_tmp_filename
 from cogent.util.misc import remove_files
 from cogent.app.blast import blastn
 from cogent.app.formatdb import FormatDb, build_blast_db_from_seqs,\
-    build_blast_db_from_fasta_path
+    build_blast_db_from_fasta_path, build_blast_db_from_fasta_file
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -42,6 +42,7 @@ class FormatDbTests(TestCase):
         self.in_aln1_file.write(in_aln1)
         self.in_aln1_file.close()
         self.in_aln1 = LoadSeqs(self.in_aln1_fp)
+        
         
         self.files_to_remove = [self.in_seqs1_fp,self.in_aln1_fp]
     
@@ -119,7 +120,8 @@ class FormatDbTests(TestCase):
     def test_build_blast_db_from_fasta_path(self):
         """build_blast_db_from_fasta_path convenience function works as expected
         """
-        blast_db, db_files = build_blast_db_from_fasta_path(self.in_seqs1_fp)
+        blast_db, db_files = \
+         build_blast_db_from_fasta_path(self.in_seqs1_fp)
         self.assertEqual(blast_db,self.in_seqs1_fp)
         expected_db_files = set([self.in_seqs1_fp + ext\
          for ext in ['.nhr','.nin','.nsq','.nsd','.nsi','.log']])
@@ -146,6 +148,31 @@ class FormatDbTests(TestCase):
         blast_db, db_files = build_blast_db_from_fasta_path(self.in_aln1_fp)
         self.assertEqual(blast_db,self.in_aln1_fp)
         expected_db_files = set([blast_db + ext\
+         for ext in ['.nhr','.nin','.nsq','.nsd','.nsi','.log']])
+        self.assertEqual(set(db_files),expected_db_files)
+        # result returned when blasting against new db
+        self.assertEqual(\
+            len(blastn(self.test_seq,blast_db=blast_db,e_value=0.0)),1)
+        
+        # Make sure all db_files exist
+        for fp in db_files:
+            self.assertTrue(exists(fp))
+        
+        # Remove all db_files exist   
+        remove_files(db_files)
+        
+        # Make sure nothing weird happened in the remove
+        for fp in db_files:
+            self.assertFalse(exists(fp))
+            
+    def test_build_blast_db_from_fasta_file(self):
+        """build_blast_db_from_fasta_file works with open files as input
+        """
+        blast_db, db_files = \
+         build_blast_db_from_fasta_file(open(self.in_aln1_fp),output_dir='/tmp/')
+        self.assertTrue(blast_db.startswith('/tmp/BLAST_temp_db'))
+        self.assertTrue(blast_db.endswith('.fasta'))
+        expected_db_files = set([blast_db] + [blast_db + ext\
          for ext in ['.nhr','.nin','.nsq','.nsd','.nsi','.log']])
         self.assertEqual(set(db_files),expected_db_files)
         # result returned when blasting against new db
