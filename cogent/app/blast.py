@@ -160,40 +160,11 @@ class Blast(CommandLineApplication):
             self._error_on_missing_application(params)
                  
             # Otherwise raise error about $BLASTMAT not being set
-            if not ('BLASTMAT' in environ or access(path.expanduser("~/.ncbirc"), F_OK) or access(".ncbirc", F_OK)) :
+            if not ('BLASTMAT' in environ or \
+                    access(path.expanduser("~/.ncbirc"), F_OK) or \
+                    access(".ncbirc", F_OK)):
                 ## SHOULD THIS BE CHANGED TO RAISE AN ApplicationError?
-                raise RuntimeError, \
-        """BLAST cannot run if the BLASTMAT environment variable is not set.
-
-Usually, the BLASTMAT environment variable points to the NCBI data directory,
-which contains matrices like PAM30 and PAM70, etc.
-
-Alternatively, you may create a .ncbirc file to define these variables.
-
-From help file:
-
-2) Create a .ncbirc file. In order for Standalone BLAST to operate, you
-have will need to have a .ncbirc file that contains the following lines:
-
-[NCBI] 
-Data="path/data/"
-
-Where "path/data/" is the path to the location of the Standalone BLAST
-"data" subdirectory. For Example: 
-
-Data=/root/blast/data
-
-The data subdirectory should automatically appear in the directory where
-the downloaded file was extracted. Please note that in many cases it may
-be necessary to delimit the entire path including the machine name and
-or the net work you are located on. Your systems administrator can help
-you if you do not know the entire path to the data subdirectory.
-
-Make sure that your .ncbirc file is either in the directory that you
-call the Standalone BLAST program from or in your root directory.
-"""
-
-
+                raise RuntimeError, blastmat_error_message
             self._command = command
 
         super(Blast, self).__init__(params=params,
@@ -219,7 +190,6 @@ call the Standalone BLAST program from or in your root directory.
     def _input_as_seq_id_seq_pairs(self,data):
         lines = []
         for seq_id,seq in data:
-            #will number the sequences 1,2,3,etc.
             lines.append(''.join(['>',str(seq_id)]))
             lines.append(seq)
         return self._input_as_lines(lines)
@@ -263,8 +233,37 @@ call the Standalone BLAST program from or in your root directory.
             result['BlastOut'] = ResultPath(Path=out_name,IsWritten=True)
         return result
 
+blastmat_error_message =\
+"""BLAST cannot run if the BLASTMAT environment variable is not set.
 
- 
+Usually, the BLASTMAT environment variable points to the NCBI data directory,
+which contains matrices like PAM30 and PAM70, etc.
+
+Alternatively, you may create a .ncbirc file to define these variables.
+
+From help file:
+
+2) Create a .ncbirc file. In order for Standalone BLAST to operate, you
+have will need to have a .ncbirc file that contains the following lines:
+
+[NCBI] 
+Data="path/data/"
+
+Where "path/data/" is the path to the location of the Standalone BLAST
+"data" subdirectory. For Example: 
+
+Data=/root/blast/data
+
+The data subdirectory should automatically appear in the directory where
+the downloaded file was extracted. Please note that in many cases it may
+be necessary to delimit the entire path including the machine name and
+or the net work you are located on. Your systems administrator can help
+you if you do not know the entire path to the data subdirectory.
+
+Make sure that your .ncbirc file is either in the directory that you
+call the Standalone BLAST program from or in your root directory.
+"""
+
 class PsiBlast(Blast):
     """PSI-BLAST application controller - Prototype"""
     _options ={
