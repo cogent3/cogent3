@@ -122,7 +122,7 @@ class Flowgram(object):
         """compares flowgram to other which is a string or another flowgram"""
 
         if isinstance(other, Flowgram):
-            other = self._flowgram
+            other = other._flowgram
         return cmp(self._flowgram, other)
         
     def __iter__(self):
