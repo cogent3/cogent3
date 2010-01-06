@@ -121,6 +121,19 @@ class FlowgramTests(TestCase):
         assert '2.0' not in f
         assert '5.0' not in f
 
+    def test_cmp(self):
+        """_cmp_ should compare the flowgram strings."""
+
+        f1 = Flowgram(['1 2 3 4'])
+        f2 = Flowgram(['2 2 3 4'])
+        self.assertNotEqual(f1,f2)
+        self.assertEqual(f1,f1)
+
+        #works also with string
+        self.assertNotEqual(f1,"1 2 3 5")
+        self.assertEqual(f1,"1 2 3 4")
+        self.assertNotEqual(f1,"")
+        
     def test_iter(self):
        """Flowgram iter should iterate over sequence"""
        f = Flowgram('0.5 1.0 4.0 0.0')
