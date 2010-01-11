@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-__all__ = ['test_mage', 'test_fasta', 'test_pdb_color']
+__all__ = ['test_mage', 'test_fasta', 'test_pdb_color', 'test_xyzrn']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Sandra Smit",
-                    "Jeremy Widmann"]
+               "Marcin Cieslik", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"

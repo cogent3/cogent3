@@ -21,6 +21,7 @@ __all__ = ['blast',
            'knetfold',
            'mfold',
            'muscle',
+           'msms',
            'nupack',
            'parameters',
            'pfold',
@@ -39,8 +40,9 @@ __all__ = ['blast',
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
-                    "Rob Knight", "Zongzhi Liu", "Sandra Smit", "Micah Hamady",
-                    "Greg Caporaso", "Mike Robeson", "Daniel McDonald"]
+               "Rob Knight", "Zongzhi Liu", "Sandra Smit", "Micah Hamady",
+               "Greg Caporaso", "Mike Robeson", "Daniel McDonald", 
+               "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Rob Knight"

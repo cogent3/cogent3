@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """Function for XYZRN (coordinates followed by radius and id_hash) format 
-output."""
-# This is a rather free implementation of the no-standard.
+output. This is a rather free implementation of the no-standard, but is 
+compatible with MSMS."""
 
 from itertools import chain
 from cogent.struct.selection import einput
@@ -30,7 +30,7 @@ def write_coords(atoms, radius_type):
     which identifies the radius type."""
     lines = []
     radius_type = eval(radius_type)
-    for atom in atoms.sorted_values():
+    for atom in atoms.sortedvalues():
         residue_name = atom.parent.name
         atom_name = atom.name
         radius = radius_type[(residue_name, atom_name)]
