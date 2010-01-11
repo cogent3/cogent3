@@ -6,13 +6,14 @@ Currently provides:
     xml:  xml base class
     file: general functions to read and write files
 """
-__all__ = ['alignment', 'fasta', 'mage', 'nexus', 'pdb_color', 'phylip', 
-           'table']
+__all__ = ['alignment', 'clustal', 'fasta', 'mage', 'motif', 'nexus', 
+           'pdb_color', 'pdb', 'phylip', 'rna_struct', 'stockholm', 'structure', 
+           'table', 'text_tree', 'xyzrn']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Matthew Wakefield",
-                    "Rob Knight", "Sandra Smit", "Peter Maxwell"]
+               "Rob Knight", "Sandra Smit", "Peter Maxwell", "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"
