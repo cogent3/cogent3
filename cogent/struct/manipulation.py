@@ -63,7 +63,7 @@ def clean_ical(entities, pretend=True, mask=True):
                 if a.id[0][1] != ' ':
                     changes.append((a.getFull_id(), ((a.id[0][0], ' '),)))
                     if not pretend:
-                        a.set_alt_loc(' ')
+                        a.setAlt_loc(' ')
                         try:
                             a.parent.updateIds()
                         except AttributeError:
