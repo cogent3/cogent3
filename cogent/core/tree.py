@@ -704,7 +704,7 @@ class TreeNode(object):
                 #Set current node's parent to None (this deletes node)
                 node.Parent=None
                 #While there are no chilren at node and not at root
-                while (not curr_parent.Children) and (curr_parent is not None):
+                while (curr_parent is not None) and (not curr_parent.Children):
                     #Save old parent
                     old_parent=curr_parent
                     #Get new parent
