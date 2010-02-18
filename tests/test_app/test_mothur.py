@@ -70,19 +70,23 @@ class MothurTests(TestCase):
 
     def test_get_result_paths(self):
         """Mothur._get_result_paths() should guess correct output paths"""
-        # Implicitly tests all of the _derive_<something>_path() methods.
         app = Mothur()
         app._input_filename = 'test.fasta'
-        paths = app._get_result_paths()
-        observed_paths = dict([(k, v.Path) for (k, v) in paths.items()])
+        observed_paths = {
+            'distance matrix': app._derive_dist_path(),
+            'otu list': app._derive_list_path(),
+            'rank abundance': app._derive_rank_abundance_path(),
+            'species abundance': app._derive_species_abundance_path(),
+            'unique names': app._derive_names_path(),
+            'unique seqs': app._derive_unique_path(),
+            }
         expected_paths = {
-            'log': 'mothur.logFile',
-            'otu list': 'test.unique.fn.list',
             'distance matrix': 'test.unique.dist',
-            'unique seqs': 'test.unique.fasta',
+            'otu list': 'test.unique.fn.list',
             'rank abundance': 'test.unique.fn.rabund',
-            'unique names': 'test.names',
             'species abundance': 'test.unique.fn.sabund',
+            'unique names': 'test.names',
+            'unique seqs': 'test.unique.fasta',
             }
         self.assertEqual(observed_paths, expected_paths)
 
