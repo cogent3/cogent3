@@ -47,15 +47,17 @@ def _get_default_connection():
 class EngineCache(object):
     """storage of active connections, indexed by account, database name"""
     _db_account = {}
-    def __call__(self, account, db_name=None):
+    def __call__(self, account, db_name=None, pool_recycle=None):
         """returns an active SQLAlchemy connection engine"""
         assert account and db_name,"Must provide an account and a db"
+        pool_recycle = pool_recycle or 3600
         if account not in self._db_account.get(db_name, []):
             if db_name == "PARENT":
                 engine = MySQLdb.connect(host=account.host, user=account.user,
                                     passwd=account.passwd, port=account.port)
             else:
-                engine = sql.create_engine("mysql://%s/%s" % (account,db_name))
+                engine = sql.create_engine("mysql://%s/%s" % (account, 
+                                        db_name), pool_recycle=pool_recycle)
             if db_name not in self._db_account:
                 self._db_account[db_name] = {}
             self._db_account[db_name][account] = engine

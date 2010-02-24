@@ -87,9 +87,18 @@ class TestDBconnects(TestCase):
         """connecting to a database on a specified server should be done once
         only, but same database on a different server should be done"""
         ensembl_acct = get_ensembl_account(release='46')
-        engine1 = DbConnection(account=ensembl_acct,db_name="homo_sapiens_core_46_36h")
-        engine2 = DbConnection(account=ensembl_acct,db_name="homo_sapiens_core_46_36h")
+        engine1 = DbConnection(account=ensembl_acct,
+                    db_name="homo_sapiens_core_46_36h")
+        engine2 = DbConnection(account=ensembl_acct,
+                    db_name="homo_sapiens_core_46_36h")
         self.assertEqual(engine1, engine2)
+    
+    def test_pool_recycle_option(self):
+        """excercising ability to specify a pool recycle option"""
+        ensembl_acct = get_ensembl_account(release='56')
+        engine1 = DbConnection(account=ensembl_acct,
+                    db_name="homo_sapiens_core_46_36h", pool_recycle=1000)
+        
 
 if __name__ == "__main__":
     main()

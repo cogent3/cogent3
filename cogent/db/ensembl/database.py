@@ -14,7 +14,8 @@ __status__ = "alpha"
 
 class Database(object):
     """holds the data-base connection and table attributes"""
-    def __init__(self, account, species=None, db_type=None, release=None):
+    def __init__(self, account, species=None, db_type=None, release=None,
+            pool_recycle=None):
         self._tables = {}
         self.db_name = get_db_name(account=account, species=species,
                             release=release, db_type=db_type)
@@ -22,7 +23,8 @@ class Database(object):
             raise RuntimeError, "%s db doesn't exist for '%s' on '%s'" % (db_type, species, account.host)
         else:
             self.db_name = self.db_name[0]
-        self._db = DbConnection(account=account, db_name=self.db_name)
+        self._db = DbConnection(account=account, db_name=self.db_name,
+                                pool_recycle=pool_recycle)
         self._meta = sql.MetaData(self._db)
         self.Type = db_type
         

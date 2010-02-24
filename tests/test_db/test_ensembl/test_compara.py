@@ -95,6 +95,12 @@ class TestCompara(ComparaTestBase):
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                         Relationship="ortholog_one2one")
         self.assertEquals(Orthologs.getSpeciesSet(), expect)
+        
+    def test_pool_connection(self):
+        """excercising ability to specify pool connection"""
+        dog = Compara(['chimp', 'dog'], Release=Release, account=account,
+                pool_recycle=1000)
+        
     
 
 class TestSyntenicRegions(TestCase):

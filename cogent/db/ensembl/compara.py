@@ -20,12 +20,13 @@ __status__ = "alpha"
 
 class Compara(object):
     """comaparison among genomes"""
-    def __init__(self, species, Release, account=None):
+    def __init__(self, species, Release, account=None, pool_recycle=None):
         assert Release, 'invalid release specified'
         self.Release = str(Release)
         if account is None:
             account = get_ensembl_account(release=Release)
         self._account = account
+        self._pool_recycle = pool_recycle
         self._compara_db = None
         sp = sorted([_Species.getSpeciesName(sp) for sp in set(species)])
         self.Species = tuple(sp)
@@ -54,7 +55,8 @@ class Compara(object):
     
     def _connect_db(self):
         # TODO can the connection be all done in init?
-        connection = dict(account=self._account, release=self.Release)
+        connection = dict(account=self._account, release=self.Release,
+                        pool_recycle=self._pool_recycle)
         if self._compara_db is None:
             self._compara_db = Database(db_type='compara', **connection)
     
