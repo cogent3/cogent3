@@ -95,6 +95,11 @@ class TestGenome(GenomeTestBase):
         self.assertEquals(convert_strand(-1.0), -1)
         self.assertEquals(convert_strand(1.0), 1)
     
+    def test_pool_connection(self):
+        """excercising ability to specify pool connection"""
+        dog = Genome(Species="dog", Release=Release, account=account,
+                pool_recycle=1000)
+
 
 class TestGene(GenomeTestBase):
     def _eval_brca2(self, brca2):

@@ -63,7 +63,7 @@ class FeatureTypeCache(LazyRecord):
 
 class Genome(object):
     """An Ensembl Genome"""
-    def __init__(self, Species, Release, account=None):
+    def __init__(self, Species, Release, account=None, pool_recycle=None):
         super(Genome, self).__init__()
         
         assert Release, 'invalid release specified'
@@ -71,6 +71,7 @@ class Genome(object):
             account = get_ensembl_account(release=Release)
         
         self._account = account
+        self._pool_recycle = pool_recycle
         
         # TODO: check Release may not be necessary because: assert Release above
         if Release is None:
@@ -100,14 +101,13 @@ class Genome(object):
     
     def _connect_db(self, db_type):
         connection = dict(account=self._account, release=self.Release,
-                        species=self.Species)
+                        species=self.Species, pool_recycle=self._pool_recycle)
         if self._core_db is None and db_type == 'core':
             self._core_db = Database(db_type='core', **connection)
         elif self._var_db is None and db_type == 'variation':
             self._var_db = Database(db_type='variation', **connection)
         elif self._other_db is None and db_type == 'otherfeatures':
             self._other_db = Database(db_type='otherfeatures', **connection)
-        pass
     
     def _get_core_db(self):
         self._connect_db('core')
