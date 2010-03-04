@@ -104,6 +104,16 @@ class _Region(LazyRecord):
                                         feature_types=feature_types,
                                         where_feature=where_feature)
     
+    def _get_variants(self):
+        """constructs the variants attribute"""
+        if 'Variants' not in self._cached:
+            variants = self.genome.getFeatures(feature_types='variation', region=self)
+            self._cached['Variants'] = tuple(variants)
+        
+        return self._cached['Variants']
+    
+    Variants = property(_get_variants)
+    
     def featureData(self, parent_map):
         symbol = self.Symbol or getattr(self, 'StableId', '')
         assert not parent_map.Reverse
@@ -791,6 +801,7 @@ class Variation(_Region):
                                 MapWeight='variation_feature',
                                 FlankingSeq='flanking_sequence',
                                 PeptideAlleles='transcript_variation',
+                                TranslationLocation='transcript_variation',
                                 Location='variation_feature')
     
     def __init__(self, genome, db=None, Effect=None, Symbol=None, data=None):
@@ -914,10 +925,14 @@ class Variation(_Region):
         
         if 'NON_SYNONYMOUS_CODING' not in self.Effect:
             self._cached['PeptideAlleles'] = self.NULL_VALUE
+            self._cached['TranslationLocation'] = self.NULL_VALUE
             return
         
         table_name = self._attr_ensembl_table_map['PeptideAlleles']
-        attr_column_map = [('PeptideAlleles','peptide_allele_string',_quoted)]
+        loc = lambda x: int(x)-1
+        attr_column_map = [
+                ('PeptideAlleles','peptide_allele_string', _quoted),
+                ('TranslationLocation', 'translation_start', loc)]
         
         if table_name in self._table_rows:
             self._populate_cache_from_record(attr_column_map, table_name)
@@ -929,23 +944,30 @@ class Variation(_Region):
         self_effect = set([self.Effect,[self.Effect]][type(self.Effect)==str])
         query = sql.select([table.c.variation_feature_id,
                            table.c.peptide_allele_string,
+                           table.c.translation_start,
                            table.c.consequence_type],
                     sql.and_(table.c.variation_feature_id == var_feature_id,
                             table.c.peptide_allele_string != None))
         records = query.execute().fetchall()
         pep_alleles = []
+        translation_location = []
         for record in records:
             if not record['consequence_type'] & self_effect:
                 continue
             pep_alleles += [record['peptide_allele_string']]
+            translation_location += [record['translation_start']]
         
         if not pep_alleles:
             print 'Expected at least a single record'
             raise RuntimeError
+        
         # we only want unique allele strings
+        allele_location = dict(zip(pep_alleles, translation_location))
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
-        self._table_rows[table_name] = dict(peptide_allele_string=pep_alleles)
+        translation_location = allele_location[pep_alleles]
+        self._table_rows[table_name] = dict(peptide_allele_string=pep_alleles,
+                                            translation_start=translation_location)
         self._populate_cache_from_record(attr_column_map, table_name)
     
     def _get_peptide_variation(self):
@@ -953,6 +975,12 @@ class Variation(_Region):
                                 self._get_transcript_record)
     
     PeptideAlleles = property(_get_peptide_variation)
+    
+    def _get_translation_location(self):
+        return self._get_cached_value('TranslationLocation',
+                                self._get_transcript_record)
+    
+    TranslationLocation = property(_get_translation_location)
     
     def _split_alleles(self):
         return self.Alleles.split('/')
