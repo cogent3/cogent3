@@ -100,13 +100,18 @@ def _extract_kw(substring, kw):
 def _isSymmetrical(matrix):
     return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
 
+def extend_docstring_from(cls, pre=False): 
+    def docstring_inheriting_decorator(fn):
+        parts = [getattr(cls,fn.__name__).__doc__, fn.__doc__]
+        if pre: parts.reverse()
+        fn.__doc__ = ''.join(parts) 
+        return fn 
+    return docstring_inheriting_decorator
 
 class _SubstitutionModel(object):
     # Subclasses must provide
     #  .makeParamControllerDefns()
     _scalableQ = False
-    with_rate = False
-    scale_masks = ()
     
     def __init__(self, alphabet, 
             motif_probs=None, optimise_motif_probs=False,
@@ -114,8 +119,37 @@ class _SubstitutionModel(object):
             motif_probs_alignment=None, mprob_model=None,  
             model_gaps=False, recode_gaps=False, motif_length=None,
             name="", motifs=None, do_scaling=None,
-            ):
+            **kw):
+        # subclasses can extend this incomplete docstring
+        """
+         
+        Alphabet:
+         - alphabet - An Alphabet object
+         - motif_length: Use a tuple alphabet based on 'alphabet'.
+         - motifs: Use a subalphabet that only contains those motifs.
+         - model_gaps: Whether the gap motif should be included as a state.
+         - recode_gaps: Whether gaps in an alignment should be treated as an 
+           ambiguous state instead.
+           
+        Motif Probability:
+         - motif_probs: Dictionary of probabilities.
+         - equal_motif_probs: Flag to set alignment motif probs equal.
+         - motif_probs_alignment: An alignment from which motif probs are set.
         
+         If none of these options are set then motif probs will be derived 
+         from the data: ie the particular alignment provided later.
+          
+         - optimise_motif_probs: Treat like other free parameters.  Any values
+           set by the other motif_prob options will be used as initial values.
+          
+         - mprob_model: 'tuple', 'conditional' or 'monomer' to specify how
+           tuple-alphabet (including codon) motif probs are used.
+           
+        Substitution Rate:
+         - do_scaling: Scale branch lengths as the expected number of 
+           substitutions.  Reduces the maximum substitution df by 1.
+        """
+            
         # MISC
         assert len(alphabet) < 65, "Alphabet too big. Try explicitly "\
             "setting alphabet to PROTEIN or DNA"
@@ -192,11 +226,11 @@ class _SubstitutionModel(object):
                 motif_probs_from_data = True
         self.motif_probs_from_align = motif_probs_from_data
         
-        self.setupRateParams()
-    
-    def setupRateParams(self):
+        self.setupSubstitutionParams(**kw)
+ 
+    def setupSubstitutionParams(self):
         pass
-        
+            
     def getParamList(self):
         return []
     
@@ -322,7 +356,19 @@ class _SubstitutionModel(object):
 
 
 class _ContinuousSubstitutionModel(_SubstitutionModel):
-    # subclass must provide calcExchangeabilityMatrix()
+    # subclass must provide:
+    #
+    # - setupSubstitutionParams()
+    #   use alphabet, do_scaling and instantaneous_mask to set up any params.
+    #   setting at least self.parameter_order
+    # 
+    # - calcExchangeabilityMatrix(*params)
+    #   convert len(self.parameter_order) params to a matrix
+    
+    """A substitution model for which the rate matrix (P) is derived from an 
+    instantaneous rate matrix (Q).  The nature of the parameters used to define 
+    Q is up to the subclasses.  
+    """
 
     # At some point this can be made variable, and probably
     # the default changed to False
@@ -331,10 +377,74 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     _scalableQ = True
     _exponentiator = None
     _default_expm_setting = 'either'
-      
-    def setupRateParams(self):
+    
+    def setupSubstitutionParams(self):
         self.parameter_order = []
 
+    @extend_docstring_from(_SubstitutionModel)
+    def __init__(self, alphabet, with_rate=False, ordered_param=None, 
+            distribution=None, partitioned_params=None, **kw):
+
+        """
+         - with_rate: Add a 'rate' parameter which varies by bin. 
+         - ordered_param: name of a single parameter which distinguishes any bins.
+         - distribution: choices of 'free' or 'gamma' or an instance of some
+           distribution. Could probably just deprecate free
+         - partitioned_params: names of params to be partitioned across bins
+        """
+        
+        _SubstitutionModel.__init__(self, alphabet, **kw)
+        alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
+               
+        # BINS
+        if not ordered_param:
+            if ordered_param is not None:
+                warnings.warn('ordered_param should be a string or None')
+                ordered_param = None
+            if distribution:
+                if with_rate:
+                    ordered_param = 'rate'
+                else:
+                    raise ValueError('distribution provided without ordered_param')      
+        elif not isinstance(ordered_param, str):
+            warnings.warn('ordered_param should be a string or None')
+            assert len(ordered_param) == 1, 'More than one ordered_param'
+            ordered_param = ordered_param[0]
+            assert ordered_param, "False value hidden in list"
+        self.ordered_param = ordered_param
+        
+        if distribution == "gamma":
+            distribution = GammaDefn
+        elif distribution in [None, "free"]:
+            distribution = MonotonicDefn
+        elif isinstance(distribution, basestring):
+            raise ValueError('Unknown distribution "%s"' % distribution)
+        self.distrib_class = distribution
+        
+        if not partitioned_params:
+            partitioned_params = ()
+        elif isinstance(partitioned_params, str):
+            partitioned_params = (partitioned_params,)
+        else:
+            partitioned_params = tuple(partitioned_params)
+        if self.ordered_param:
+            if self.ordered_param not in partitioned_params:
+                partitioned_params += (self.ordered_param,)
+        
+        for param in partitioned_params:
+            if param not in self.parameter_order and param != 'rate':
+                desc = ['partitioned', 'ordered'][param==ordered_param]
+                raise ValueError('%s param "%s" unknown' % (desc, param))
+        self.partitioned_params = partitioned_params
+        
+        if 'rate' in partitioned_params:
+            with_rate = True
+        self.with_rate = with_rate  
+
+        # CACHED SHORTCUTS
+        self._exponentiator = None
+        #self._ident = numpy.identity(len(self.alphabet), float)
+        
     def _isInstantaneous(self, x, y):
         diffs = sum([X!=Y for (X,Y) in zip(x,y)])
         return diffs == 1 or (diffs > 1 and
@@ -380,11 +490,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         Qd = CallDefn(exp, Q, name='Qd')
         return Qd
     
-    def makeRateParams(self, bprobs):
-        assert bprobs is None
-        return [ParamDefn(name, dimensions=['edge', 'locus'])
-                for name in self.parameter_order]
-
     def makeSubstitutionDefns(self, bprobs):
         (input_probs, word_probs, mprobs_matrix) = \
                 self.mprob_model.makeMotifWordProbDefns()
@@ -400,12 +505,40 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
              }
         return defns    
 
+    def _makeBinParamDefn(self, edge_par_name, bin_par_name, bprob_defn):
+        # if no ordered param defined, behaves as old, everything indexed by and edge
+        if edge_par_name not in self.partitioned_params:
+            return ParamDefn(dimensions=['bin'], name=bin_par_name)
+        
+        if edge_par_name == self.ordered_param:
+            whole = self.distrib_class(bprob_defn, bin_par_name)
+        else:
+            # this forces them to average to one, but no forced order
+            # this means you can't force a param value to be shared across bins
+            # so 1st above approach has to be used
+            whole = WeightedPartitionDefn(bprob_defn, bin_par_name+'_partn')
+        whole.bin_names = bprob_defn.bin_names
+        return SelectForDimension(whole, 'bin', name=bin_par_name)
+    
+    def makeRateParams(self, bprobs):
+        params = []
+        for param_name in self.parameter_order:
+            if bprobs is None or param_name not in self.partitioned_params:
+                defn = ParamDefn(param_name)
+            else:
+                e_defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
+                # should be weighted by bprobs*rates not bprobs
+                b_defn = self._makeBinParamDefn(
+                        param_name, param_name+'_factor', bprobs)
+                defn = ProductDefn(b_defn, e_defn, name=param_name+'_BE')
+            params.append(defn)
+        return params
+
     def makeLengthDefns(self, bprobs):
         length = LengthDefn()
         if self.with_rate and bprobs is not None:
             b_rate = self._makeBinParamDefn('rate', 'rate', bprobs)
-            distance = ProductDefn(length, b_rate,
-                name="distance")
+            distance = ProductDefn(length, b_rate, name="distance")
         else:
             distance = length
         return {'length':length, 'distance':distance}               
@@ -449,47 +582,45 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         return self._exponentiator
 
 class General(_ContinuousSubstitutionModel):
-    """One free parameter for each and every instantaneous substitution"""
-    _do_scaling = False
-    symmetric = False
+    """A continuous substitution model with one free parameter for each and 
+    every possible instantaneous substitution."""
     
     # k = self.param_pick[i,j], 0<=k<=N+1
     # k==0:   not instantaneous, should be 0.0 in Q
     # k<=N:   apply Kth exchangeability parameter
     # k==N+1: no parameter, should be 1.0 in unscaled Q
 
-    def setupRateParams(self):
+    def setupSubstitutionParams(self):
         alphabet = self.getAlphabet()
+        mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N,N], int)
         self.parameter_order = []
         for (i,x) in enumerate(alphabet):
-            for j in numpy.flatnonzero(self._instantaneous_mask[i]):
+            for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
                 self.parameter_order.append('%s/%s'%(x,y))
                 self.param_pick[i,j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
+        self.symmetric = False
     
     def calcExchangeabilityMatrix(self, mprobs, *params):
         return numpy.array((0.0,)+params+(1.0,)).take(self.param_pick)
-    
 
 class GeneralStationary(_ContinuousSubstitutionModel):
-    """One free parameter for each and every instantaneous substitution,
-    except the last in each column.  As general as can be while still having 
-    stationary motif probabilities"""
-    _do_scaling = False
-    symmetric = False
+    """A continuous substitution model with one free parameter for each and 
+    every possible instantaneous substitution, except the last in each column.
+    As general as can be while still having stationary motif probabilities"""
     
-    def setupRateParams(self):
+    def setupSubstitutionParams(self):
         alphabet = self.getAlphabet()
+        mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N,N], int)
         self.parameter_order = []
         self.last_in_column = []
-        R = self._instantaneous_mask
-        for (d, (row, col)) in enumerate(zip(R, R.T)):
+        for (d, (row, col)) in enumerate(zip(mask, mask.T)):
             row = list(numpy.flatnonzero(row[d:])+d)
             col = list(numpy.flatnonzero(col[d:])+d)
             if col:
@@ -504,6 +635,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
                 self.param_pick[i,j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
+        self.symmetric = False
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
         R = numpy.array((0.0,)+params+(1.0,)).take(self.param_pick)
@@ -518,77 +650,75 @@ class GeneralStationary(_ContinuousSubstitutionModel):
         return R
 
 class Empirical(_ContinuousSubstitutionModel):
+    """A continuous substitution model with a predefined instantaneous rate 
+    matrix."""
+    
+    @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, rate_matrix, **kw):
-        _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
-        assert rate_matrix.shape == (len(self.alphabet),)*2
+        """
+         - rate_matrix: The instantaneous rate matrix
+        """
+        _ContinuousSubstitutionModel.__init__(self, alphabet, 
+                rate_matrix=rate_matrix, **kw)
+    
+    def setupSubstitutionParams(self, rate_matrix):
+        alphabet = self.getAlphabet()
+        N = len(alphabet)
+        assert rate_matrix.shape == (N, N)
         assert numpy.alltrue(numpy.diagonal(rate_matrix) == 0)
         self._instantaneous_mask_f = rate_matrix * 1.0
         self._instantaneous_mask = (self._instantaneous_mask_f != 0.0)
         self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
+        self.parameter_order = []
 
     def calcExchangeabilityMatrix(self, mprobs):
         return self._instantaneous_mask_f.copy()
 
 class SubstitutionModel(_ContinuousSubstitutionModel):
-    """Basic services for markov models of molecular substitution"""
+    """A continuous substitution model with only user-specified substitution
+    parameters."""
     
-    with_rate = None  # overridden by __init__
-    scale_masks = None  # overridden by __init__
-    
-    def __init__(self, alphabet, predicates=None, scales=None, with_rate=False, 
-            ordered_param=None, distribution=None, partitioned_params=None,
-            **kw):
-        
-        """Initialise the model.
-        
-        Arguments:
-            - alphabet: an alphabet object
-            - predicates: a dict of {name:(motif,motif)->bool}
-            - optimise_motif_probs: flag for whether the motifs are treated as
-              free parameters for an optimisation, default is False.
-            - motif_probs: dictionary of probabilities, or None if they are to
-              be calculated from the alignment. If optimise_motif_probs is set
-              these will only be used as initial values.
-            - use_monomer_probs: If True, the model Alphabet monomer
-              motif probabilities will be computed from motif probabilities.
-              Rate matrix elements then include the probability of the monomer
-              end state, eg an interchange between dinucleotide ij <=> ik
-              will be scaled by the probability P(k), not P(ik).
-            - model_gaps: specifies whether the gap motif should be included
-              as a state in the Markov chain.
-            - recode_gaps: specifies whether gaps in an alignment should be
-              treated as an ambiguous state instead.
-            - do_scaling: automatically scale branch lengths as the expected
-              number of substitutions, default is True.
-            """
-        
-        # - with_rate: pertinent only for binned lengths
-        # - scales: scale rules, dict with predicates
-        # - motif_probs_alignment: motif probs from full alignment, see
-        #   Vestige
-        # - motifs: make a subalphabet that only contains those motifs
-        # - ordered_param: a single parameter name (str) or a series of
-        #   parameter names
-        # - distribution: choices of 'free' or 'gamma' or an instance of some
-        #   distribution. Could probably just deprecate free
-        # - partitioned_params: params to be partitioned across bins
-        
-        _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
-        
-        # MATRIX
+    @extend_docstring_from(_ContinuousSubstitutionModel)
+    def __init__(self, alphabet, predicates=None, **kw):
+        """
+         - predicates: a dict of {name:predicate}. See cogent.evolve.predicate
+        """
+#         - scales: scale rules, dict with predicates
         self._canned_predicates = None
-        
-        # truth (_instantaneous_mask) mask may not be needed
-        isinst = self._isInstantaneous
-        self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
-        self._instantaneous_mask_f = self._instantaneous_mask * 1.0
-        
-        self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
+        _ContinuousSubstitutionModel.__init__(self, alphabet, 
+                predicates=predicates, **kw)
+
+    def setupSubstitutionParams(self, predicates, scales=None):
         predicate_masks = self._adaptPredicates(predicates or [])
-        self.checkPredicateMasks(predicate_masks)
+
+        # Check for redundancy in predicates, ie: 1 or more than combine
+        # to be equivalent to 1 or more others, or the distance params.
+        # Give a clearer error in simple cases like always false or true.
+        for (name, matrix) in predicate_masks.items():
+            if numpy.alltrue((matrix == 0).flat):
+                raise ValueError("Predicate %s is always false." % name)
+        predicates_plus_scale = predicate_masks.copy()
+        predicates_plus_scale[None] = self._instantaneous_mask
+        if self._do_scaling:
+            for (name, matrix) in predicate_masks.items():
+                if numpy.alltrue((matrix == self._instantaneous_mask).flat):
+                    raise ValueError("Predicate %s is always true." % name)
+            if redundancyInPredicateMasks(predicate_masks):
+                raise ValueError("Redundancy in predicates.")
+            if redundancyInPredicateMasks(predicates_plus_scale):
+                raise ValueError("Some combination of predicates is"
+                        " equivalent to the overall rate parameter.")
+        else:
+            if redundancyInPredicateMasks(predicate_masks):
+                raise ValueError("Redundancy in predicates.")
+            if redundancyInPredicateMasks(predicates_plus_scale):
+                LOG.warning("do_scaling=True would be more efficient than"
+                        " these overly general predicates")
+
         self.predicate_masks = predicate_masks
         self.parameter_order = []
         self.predicate_indices = []
+        self.symmetric = _isSymmetrical(self._instantaneous_mask)
         for (pred, mask) in predicate_masks.items():
             if not _isSymmetrical(mask):
                 self.symmetric = False
@@ -598,49 +728,9 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             self.predicate_indices.append(indices)
         if not self.symmetric:
             warnings.warn('Model not reversible')
-        
+
         self.scale_masks = self._adaptPredicates(scales or [])
             
-        # BINS
-        if isinstance(ordered_param, str):
-            ordered_param = (ordered_param,)
-        else:
-            ordered_param = [(), ordered_param][ordered_param is not None]
-            ordered_param = tuple(ordered_param)
-        
-        if isinstance(partitioned_params, str):
-            partitioned_params = (partitioned_params,)
-        else:
-            partitioned_params = [(), partitioned_params][partitioned_params is not None]
-        
-        if ordered_param:
-            partitioned_params = tuple(set(ordered_param) | \
-                                       set(partitioned_params))
-        # for a bin model, one param needs to be defined as the ordered_param
-        else:
-            assert not partitioned_params, \
-                "you must specify an ordered_param for a binned model"
-        
-        self.with_rate = with_rate or 'rate' in ordered_param
-        self.ordered_param = ordered_param
-        
-        if partitioned_params:
-            assert set(partitioned_params) & set(['rate']+self.parameter_order),\
-                (partitioned_params, self.parameter_order)
-        self.partitioned_params = partitioned_params
-        
-        if distribution == "gamma":
-            distribution = GammaDefn
-        elif distribution in [None, "free"]:
-            distribution = MonotonicDefn
-        elif isinstance(distribution, basestring):
-            raise ValueError('Unknown distribution "%s"' % distribution)
-        self.distrib_class = distribution
-        
-        # CACHED SHORTCUTS
-        self._exponentiator = None
-        self._ident = numpy.identity(len(self.alphabet), float)
-    
     def calcExchangeabilityMatrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
@@ -770,32 +860,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         if self._canned_predicates is None:
             self._canned_predicates = self.getPredefinedPredicates()
         return self._canned_predicates[name].interpret(self)
-    
-    def checkPredicateMasks(self, predicate_masks):
-        # Check for redundancy in predicates, ie: 1 or more than combine
-        # to be equivalent to 1 or more others, or the distance params.
-        # Give a clearer error in simple cases like always false or true.
-        for (name, matrix) in predicate_masks.items():
-            if numpy.alltrue((matrix == 0).flat):
-                raise ValueError("Predicate %s is always false." % name)
-        predicates_plus_scale = predicate_masks.copy()
-        predicates_plus_scale[None] = self._instantaneous_mask
-        if self._do_scaling:
-            for (name, matrix) in predicate_masks.items():
-                if numpy.alltrue((matrix == self._instantaneous_mask).flat):
-                    raise ValueError("Predicate %s is always true." % name)
-            if redundancyInPredicateMasks(predicate_masks):
-                raise ValueError("Redundancy in predicates.")
-            if redundancyInPredicateMasks(predicates_plus_scale):
-                raise ValueError("Some combination of predicates is"
-                        " equivalent to the overall rate parameter.")
-        else:
-            if redundancyInPredicateMasks(predicate_masks):
-                raise ValueError("Redundancy in predicates.")
-            if redundancyInPredicateMasks(predicates_plus_scale):
-                LOG.warning("do_scaling=True would be more efficient than"
-                        " these overly general predicates")
-    
+        
     def _adaptPredicates(self, rules):
         # dict or list of callables, predicate objects or predicate strings
         if isinstance(rules, dict):
@@ -829,36 +894,6 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         else:
             (label, mask) = self.adaptPredicate(pred)
         return mask
-       
-    def _makeBinParamDefn(self, edge_par_name, bin_par_name, bprob_defn):
-        # if no ordered param defined, behaves as old, everything indexed by and edge
-        if edge_par_name not in self.partitioned_params:
-            return ParamDefn(dimensions=['bin'], name=bin_par_name)
-        
-        if edge_par_name in self.ordered_param:
-            whole = self.distrib_class(bprob_defn, bin_par_name)
-        else:
-            # this forces them to average to one, but no forced order
-            # this means you can't force a param value to be shared across bins
-            # so 1st above approach has to be used
-            whole = WeightedPartitionDefn(bprob_defn, bin_par_name+'_partn')
-        whole.bin_names = bprob_defn.bin_names
-        return SelectForDimension(whole, 'bin', name=bin_par_name)
-        
-    def makeRateParams(self, bprobs):
-        params = []
-        for param_name in self.parameter_order:
-            if param_name not in self.partitioned_params:
-                defn = ParamDefn(name=param_name)
-            else:
-                defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
-                if bprobs is not None:
-                    # should be weighted by bprobs*rates not bprobs
-                    b_defn = self._makeBinParamDefn(
-                            param_name, param_name+'_factor', bprobs)
-                    defn = ProductDefn(b_defn, defn, name=param_name+'_BE')
-            params.append(defn)
-        return params
 
 
 class _Nucleotide(SubstitutionModel):
@@ -892,11 +927,11 @@ class Protein(SubstitutionModel):
     
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
-        recode_gaps=True, do_scaling=True, name=""):
+        recode_gaps=True, do_scaling=True, **kw):
     alph = moltype.PROTEIN.Alphabet.getSubset('U', excluded=True)
     return Empirical(alph, rate_matrix=matrix, motif_probs=motif_probs,
             model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
-            optimise_motif_probs=optimise_motif_probs, name=name)
+            optimise_motif_probs=optimise_motif_probs, **kw)
     
 
 class Codon(_Nucleotide):

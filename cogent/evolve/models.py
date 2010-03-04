@@ -656,7 +656,7 @@ WG01_freqs = {
             'T': 0.061012706101270617, 'W': 0.014385901438590145,
             'V': 0.070895607089560719, 'Y': 0.035274203527420354}
 
-def DSO78():
+def DSO78(**kw):
     """Dayhoff et al 1978 empirical protein model
     Dayhoff, MO, Schwartz RM, and Orcutt, BC. 1978
     A model of evolutionary change in proteins. Pp. 345-352.
@@ -664,22 +664,22 @@ def DSO78():
     National Biomedical Research Foundation,  Washington D. C
     Matrix imported from PAML dayhoff.dat file"""
     sm = substitution_model.EmpiricalProteinMatrix(
-                    DSO78_matrix, DSO78_freqs, name='DSO78')
+                    DSO78_matrix, DSO78_freqs, name='DSO78', **kw)
                         
     return sm
     
-def JTT92():
+def JTT92(**kw):
     """Jones, Taylor and Thornton 1992 empirical protein model
     Jones DT, Taylor WR, Thornton JM.
     The rapid generation of mutation data matrices from protein sequences.
     Comput Appl Biosci. 1992 Jun;8(3):275-82.
     Matrix imported from PAML jones.dat file"""
     sm = substitution_model.EmpiricalProteinMatrix(
-                    JTT92_matrix, JTT92_freqs, name='JTT92')
+                    JTT92_matrix, JTT92_freqs, name='JTT92', **kw)
                         
     return sm
     
-def AH96():
+def AH96(**kw):
     """Adachi and Hasegawa 1996 empirical model for mitochondrial proteins.
     Adachi J, Hasegawa M.
     Model of amino acid substitution in proteins encoded by mitochondrial DNA.
@@ -688,14 +688,15 @@ def AH96():
     sm = substitution_model.EmpiricalProteinMatrix(
                     AH96_matrix,
                     AH96_freqs,
-                    name='AH96_mtREV24')
+                    name='AH96_mtREV24',
+                    **kw)
                         
     return sm
     
-def mtREV():
-    return AH96()
+def mtREV(**kw):
+    return AH96(**kw)
 
-def AH96_mtmammals():
+def AH96_mtmammals(**kw):
     """Adachi and Hasegawa 1996 empirical model for mammalian mitochondrial
     proteins.
     Adachi J, Hasegawa M.
@@ -705,14 +706,15 @@ def AH96_mtmammals():
     sm = substitution_model.EmpiricalProteinMatrix(
                     AH96_mtmammals_matrix,
                     AH96_mtmammals_freqs,
-                    name='AH96_mtmammals')
+                    name='AH96_mtmammals',
+                    **kw)
     
     return sm
     
-def mtmam():
-    return AH96_mtmammals()
+def mtmam(**kw):
+    return AH96_mtmammals(**kw)
     
-def WG01():
+def WG01(**kw):
     """Whelan and Goldman 2001 empirical model for globular proteins.
     Whelan S, Goldman N.
     A general empirical model of protein evolution derived from multiple protein
@@ -722,7 +724,8 @@ def WG01():
     sm = substitution_model.EmpiricalProteinMatrix(
                     WG01_matrix,
                     WG01_freqs,
-                    name='WG01')
+                    name='WG01',
+                    **kw)
                     
     return sm
 
