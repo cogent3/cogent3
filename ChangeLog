@@ -10,6 +10,8 @@ New Features
 
 * Simplified getting genetic variation from Ensembl and provide the protein
   location of nonsynonymous variants.
+* rate heterogeneity variants of pre-canned continuous time substitution
+  models easier to define.
 
 Changes
 -------
