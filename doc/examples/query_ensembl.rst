@@ -246,7 +246,7 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
     Homo sapiens:chromosome:MT:3316-3317:1
     >>> assert nsyn_variant.NumAlleles == 2
 
-They also have ``PeptideAlleles`` (when appropriate), ``FlankingSeq`` and even ``Seq`` which, of course, in the case of a SNP is a single nucleotide long and should correspond to one of the alleles. In the latter case, this property is a tuple with the 0th entry being the 5'- 300 nucleotides and the 1st entry being the 3' nucleotides.
+``Variation`` objects have ``FlankingSeq`` and ``Seq`` attributes which, of course, in the case of a SNP is a single nucleotide long and should correspond to one of the alleles. In the latter case, this property is a tuple with the 0th entry being the 5'- 300 nucleotides and the 1st entry being the 3' nucleotides.
 
 .. doctest::
 
@@ -256,7 +256,20 @@ They also have ``PeptideAlleles`` (when appropriate), ``FlankingSeq`` and even `
     CCAACCTCATA...
     >>> assert str(nsyn_variant.Seq) in nsyn_variant.Alleles, str(nsyn_variant.Seq)
 
-As a standard feature, ``Variation`` within a specific interval can also be obtained. For instance, we can use the ``brca2`` gene region instance created above to find all the variants within the gene of a specific type. Not all done in the one query, mind, but in a relatively straightforward manner.
+As a standard feature, ``Variation`` within a specific interval can also be obtained. Using the ``brca2`` gene region instance created above, we can find all the genetic variants using the ``Variants`` property of genome regions. We use this example to also demonstrate the ``PeptideAlleles`` and ``TranslationLocation`` attributes. ``PeptideAlleles`` is the amino-acid variation resulting from the nucleotide variation while ``TranslationLocation`` is the position in the translated peptide of the variant. If a variant does not affect protein coding sequence (either it's not exonic or it's a synonymous variant) then these properties have the value ``None``.
+We illustrate their use.
+
+.. doctest::
+
+    >>> for variant in brca2.Variants:
+    ...     if variant.PeptideAlleles is None:
+    ...         continue
+    ...     print variant.PeptideAlleles, variant.TranslationLocation
+    Y/C 41...
+
+.. note:: These are Python coordinates, add 1 to get the Ensembl value.
+
+We can also use a slightly more involved query to find all variants within the gene of a specific type. (Of course, you could also simply iterate over the ``Variants`` attribute to grab these out too.)
 
 .. doctest::
 
@@ -269,6 +282,7 @@ As a standard feature, ``Variation`` within a specific interval can also be obta
     Variation(Symbol='rs4987046'; Effect='NON_SYNONYMOUS_CODING'; Alleles='A/G')
     >>> print snp.Location
     Homo sapiens:chromosome:13:32893270-32893271:1
+
 
 Other Region Types
 ^^^^^^^^^^^^^^^^^^

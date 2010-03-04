@@ -234,6 +234,10 @@ class TestGene(GenomeTestBase):
                     Description="cancer"))
         self.assertTrue(len(results) > 100)
     
+    def test_variant(self):
+        """variant attribute correctly constructed"""
+        self.assertTrue(len(self.brca2.Variants) > 880)
+    
 
 class TestVariation(GenomeTestBase):
     snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
@@ -276,6 +280,12 @@ class TestVariation(GenomeTestBase):
                 continue
             
             self.assertEquals(snp.PeptideAlleles, self.snp_aa_alleles[i])
+    
+    def test_get_peptide_location(self):
+        """should return correct location for aa variants"""
+        index = self.snp_names.index('rs11545807')
+        snp = list(self.human.getVariation(Symbol=self.snp_names[index]))[0]
+        self.assertEquals(snp.TranslationLocation, 95)
     
     def test_validation_status(self):
         """should return correct validation status"""
