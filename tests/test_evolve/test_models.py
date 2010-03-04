@@ -16,9 +16,9 @@ __status__ = "Production"
 class CannedModelsTest(TestCase):
     """Check each canned model can actually be instantiated."""
     
-    def _instantiate_models(self, models):
+    def _instantiate_models(self, models, **kwargs):
         for model in models:
-            model()
+            model(**kwargs)
     
     def test_nuc_models(self):
         """excercising nucleotide model construction"""
@@ -34,13 +34,17 @@ class CannedModelsTest(TestCase):
         self._instantiate_models([DSO78, AH96, AH96_mtmammals, JTT92, WG01])
     
     def test_bin_options(*self):
-        model = WG01(with_rate=True, distribution='gamma')
-
+        kwargs = dict(with_rate=True, distribution='gamma')
+        model = WG01(**kwargs)
+        model = GTR(**kwargs)
+    
     def test_empirical_values_roundtrip(*self):
         model = WG01()
         assert model.getMotifProbs() == WG01_freqs
         assert (model.calcExchangeabilityMatrix('dummy_mprobs') == 
                 WG01_matrix).all()
         
+    
+
 if __name__ == '__main__':
     main()

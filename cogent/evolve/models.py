@@ -28,18 +28,18 @@ codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK
 protein_models = [ 'DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
 # Nucleotide Models
-def JC69():
+def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
     return substitution_model.Nucleotide(
             equal_motif_probs = True,
             do_scaling = True,
             model_gaps = False,
             recode_gaps = True,
-            name = 'JC69'
-            )
+            name = 'JC69',
+            **kw)
     
 
-def F81():
+def F81(**kw):
     """Felsenstein's 1981 model"""
     return substitution_model.Nucleotide(
             motif_probs = None,
@@ -47,7 +47,7 @@ def F81():
             model_gaps = False,
             recode_gaps = True,
             name = 'F81',
-            )
+            **kw)
     
 # Substitution model rate matrix predicates
 MotifChange = predicate.MotifChange
@@ -57,7 +57,7 @@ _omega = predicate.replacement.aliased('omega')
 _cg = predicate.MotifChange('CG').aliased('G')
 _cg_k = (_cg & _kappa).aliased('G.K')
 
-def HKY85():
+def HKY85(**kw):
     """Hasegawa, Kishino and Yanamo 1985 model"""
     return substitution_model.Nucleotide(
             motif_probs = None,
@@ -68,10 +68,10 @@ def HKY85():
             predicates = {
                 'kappa' : 'transition',
                 },
-            )
+            **kw)
     
 
-def GTR():
+def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
     MotifChange = predicate.MotifChange
     preds = [MotifChange(x,y) for x,y in ['AC', 'AG', 'AT', 'CG', 'CT']]
@@ -81,12 +81,12 @@ def GTR():
             model_gaps = False,
             recode_gaps = True,
             name = 'GTR',
-            predicates = _gtr_preds
-            )
+            predicates = _gtr_preds,
+            **kw)
     
 
 # Codon Models
-def CNFGTR():
+def CNFGTR(**kw):
     """Conditional nucleotide frequency codon substitution model, GTR variant
     (with params analagous to the nucleotide GTR model).
     
@@ -98,12 +98,12 @@ def CNFGTR():
             recode_gaps = True,
             name = 'CNFGTR',
             predicates = _gtr_preds+[_omega],
-            mprob_model='conditional'
-            )
+            mprob_model='conditional',
+            **kw)
         
     
 
-def CNFHKY():
+def CNFHKY(**kw):
     """Conditional nucleotide frequency codon substitution model, HKY variant
     (with kappa, the ratio of transitions to transversions)
     
@@ -115,11 +115,11 @@ def CNFHKY():
             recode_gaps = True,
             name = 'CNFHKY',
             predicates = [_kappa, _omega],
-            mprob_model='conditional'
-            )
+            mprob_model='conditional',
+            **kw)
     
 
-def MG94HKY():
+def MG94HKY(**kw):
     """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
     the ratio of transitions to transversions)
     
@@ -131,10 +131,11 @@ def MG94HKY():
             recode_gaps = True,
             name = 'MG94',
             predicates = [_kappa, _omega],
-            mprob_model='monomer'
-            )
+            mprob_model='monomer',
+            **kw)
     
-def MG94GTR():
+
+def MG94GTR(**kw):
     """Muse and Gaut 1994 codon substitution model, GTR variant (with params
     analagous to the nucleotide GTR model)
     
@@ -146,18 +147,17 @@ def MG94GTR():
             recode_gaps = True,
             name = 'MG94',
             predicates = _gtr_preds+[_omega],
-            mprob_model='monomer'
-            )
+            mprob_model='monomer',
+            **kw)
     
 
-def GY94():
+def GY94(**kw):
     """Goldman and Yang 1994 codon substitution model.
     
     see, N Goldman and Z Yang, Mol. Biol. Evol., 11(5):725-36, 1994."""
-    return Y98()
-    
+    return Y98(**kw)
 
-def Y98():
+def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
     see Z Yang. Mol. Biol. Evol., 15(5):568-73, 1998"""
     return substitution_model.Codon(
@@ -171,10 +171,10 @@ def Y98():
                 'omega' : 'replacement',
                 },
             mprob_model = 'tuple',
-            )
+            **kw)
     
 
-def H04G():
+def H04G(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for substitutions
     to or from CpG's.
     
@@ -187,10 +187,10 @@ def H04G():
             name = 'H04G',
             predicates = [_cg, _kappa, _omega],
             mprob_model = 'tuple',
-            )
+            **kw)
     
 
-def H04GK():
+def H04GK(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for transition
     substitutions to or from CpG's.
     
@@ -203,10 +203,10 @@ def H04GK():
             name = 'H04GK',
             predicates = [_cg_k, _kappa, _omega],
             mprob_model = 'tuple',
-            )
+            **kw)
     
 
-def H04GGK():
+def H04GGK(**kw):
     """Huttley 2004 CpG substitution model. Includes a general term for
     substitutions to or from CpG's and an adjustment for CpG transitions.
     
@@ -219,7 +219,7 @@ def H04GGK():
             name = 'H04GGK',
             predicates = [_cg, _cg_k, _kappa, _omega],
             mprob_model = 'tuple',
-            )
+            **kw)
     
 
 # Protein Models
