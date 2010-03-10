@@ -46,13 +46,10 @@ def MinimalFastaParser(infile, strict=True, \
 
     If strict is True (default), raises RecordError when label or seq missing.
     """
-    # use an re to search for line starting
-    label_pattern = re.compile('^[%s]' % label_characters)
-    is_label = label_pattern.search
     
     for rec in finder(infile):
         #first line must be a label line
-        if not is_label(rec[0]):
+        if not rec[0][0] in label_characters:
             if strict:
                 raise RecordError, "Found Fasta record without label line: %s"%\
                     rec
