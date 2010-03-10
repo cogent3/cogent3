@@ -998,12 +998,11 @@ class TreeNode(object):
     def maxTipTipDistance(self):
         """returns the max distance between any pair of tips
         
-        Also returns the tip names  that it is between as a tuple
-        """
-        dists = self.getDistances()
-        dists = InverseDict(dists)
-        max_dist = max(dists)
-        return max_dist, dists[max_dist]
+        Also returns the tip names  that it is between as a tuple"""
+        distmtx, tip_order = self.tipToTipDistances()
+        idx_max = divmod(distmtx.argmax(),distmtx.shape[1])
+        max_pair = (tip_order[idx_max[0]].Name, tip_order[idx_max[1]].Name)
+        return distmtx[idx_max], max_pair
  
     def _getSubTree(self, included_names, constructor=None):
         """An equivalent node with possibly fewer children, or None"""
@@ -1685,44 +1684,55 @@ class PhyloNode(TreeNode):
         return tip.Parent.unrootedDeepcopy()
 
     def rootAtMidpoint(self):
-        """A new tree with Midpoint rooting
-
-        root is at the midpoint of the two tips with the max distance between
-        them.
+        """ return a new tree rooted at midpoint of the two tips farthest apart
+    
+        this fn doesn't preserve the internal node naming or structure,
+        but does keep tip to tip distances correct.  uses unrootedDeepcopy()
         """
-        #get the max distance between any two tips
+        # max_dist, tip_names = tree.maxTipTipDistance()
+        # this is slow
+    
         max_dist, tip_names = self.maxTipTipDistance()
-        tip_pair = (self.getNodeMatchingName(tip_names[0]), \
-                self.getNodeMatchingName(tip_names[1]))
-        #get the internal nodes that flank the midpoint (when traversing 
-        #from tip_pair[0] to tip_pair[1] - node_far is furthest from the 
-        #midpoint and node_near is nearest to the midpoint
-        node_far, node_near = self._find_midpoint_nodes(max_dist, tip_names)
-        cum_dist = tip_pair[0].distance(node_far)
-        BL1 = cum_dist - max_dist/2.0
-        new_root = self.__class__()
-        dist = node_far.distance(node_near)
-        if node_far.Parent == node_near:
-            NR_child = node_far
-            NR_parent = node_near
-            NR_child.Length = BL1
-            new_root.Length = dist-BL1
-        elif node_near.Parent == node_far:
-            NR_child = node_near
-            NR_parent = node_far
-            NR_child.Length = dist-BL1
-            new_root.Length = BL1
-        #reset the root to the midpoint
-        new_root.Parent = NR_parent
-        new_root.append(NR_child)
-        result = new_root.unrootedDeepcopy()
-        result.prune()
-        return result
+        half_max_dist = max_dist/2.0
+        # print tip_names
+        tip1 = self.getNodeMatchingName(tip_names[0])
+        tip2 = self.getNodeMatchingName(tip_names[1])
+        lca = self.getConnectingNode(tip_names[0],tip_names[1]) # last comm ancestor
+        if tip1.distance(lca) > half_max_dist:
+            climb_node = tip1
+        else:
+            climb_node = tip2
+        
+        dist_climbed = climb_node.Length
+        while dist_climbed <= half_max_dist:
+            climb_node = climb_node.Parent
+            dist_climbed += climb_node.Length
+    
+        dist_climbed -= climb_node.Length # dist is now dist from tip to climb_node
+        
+        # now midpt is either at climb_node or on the branch to its parent
+        # print dist_climbed, half_max_dist, 'dists cl hamax'
+        if dist_climbed == half_max_dist:
+            if climb_node.isTip():
+                raise RuntimeError('error trying to root tree at tip')
+            else:
+                # print climb_node.Name, 'clmb node'
+                return climb_node.unrootedDeepcopy()
+        
+        else:
+            old_br_len = climb_node.Length
+            new_root = type(self)()
+            new_root.Parent = climb_node.Parent
+            climb_node.Parent = new_root
+            climb_node.Length = half_max_dist - dist_climbed
+            new_root.Length = old_br_len - climb_node.Length
+            return new_root.unrootedDeepcopy()
+
     
     def _find_midpoint_nodes(self, max_dist, tip_pair):
         """returns the nodes surrounding the maxTipTipDistance midpoint 
         
-        used for midpoint rooting.
+        WAS used for midpoint rooting.  ORPHANED NOW
         max_dist: The maximum distance between any 2 tips
         tip_pair: Names of the two tips associated with max_dist
         """
@@ -1849,15 +1859,6 @@ class PhyloNode(TreeNode):
 
         (root_dists, endpoint_dists) = self._getDistances(endpoints)
         return endpoint_dists
-
-    def maxTipTipDistance(self):
-        """returns the max distance between any pair of tips
-        
-        Also returns the tip names  that it is between as a tuple"""
-        dists = self.getDistances()
-        dists = InverseDict(dists)
-        max_dist = max(dists)
-        return max_dist, dists[max_dist]
 
     def tipToTipDistances(self, endpoints=None, default_length=1):
         """Returns distance matrix between all pairs of tips, and a tip order.
