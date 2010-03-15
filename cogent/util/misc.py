@@ -1307,7 +1307,7 @@ def remove_files(list_of_filepaths, error_on_missing=True):
 def get_random_directory_name(suppress_mkdir=False,\
     timestamp_pattern='%Y%m%d%H%M%S',\
     rand_length=20,\
-    output_dir='./',\
+    output_dir=None,\
     prefix='',
     suffix=''):
     """Build a random directory name and create the directory 
@@ -1323,6 +1323,7 @@ def get_random_directory_name(suppress_mkdir=False,\
         suffix: suffix for directory name
     
     """
+    output_dir = output_dir or './'
     # Define a set of characters to be used in the random directory name
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
