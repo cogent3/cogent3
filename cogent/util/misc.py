@@ -4,10 +4,12 @@
 
 import types
 from time import clock
+from datetime import datetime
 from string import maketrans, strip
-from random import randrange
+from random import randrange, choice
 from sys import maxint
-from os import popen, remove
+from os import popen, remove, makedirs
+from os.path import join, abspath
 from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
@@ -1301,3 +1303,46 @@ def remove_files(list_of_filepaths, error_on_missing=True):
     if error_on_missing and missing:
         raise OSError, "Some filepaths were not accessible: %s" % '\t'.join(missing)
 
+
+def get_random_directory_name(suppress_mkdir=False,\
+    timestamp_pattern='%Y%m%d%H%M%S',\
+    rand_length=20,\
+    output_dir='./',\
+    prefix='',
+    suffix=''):
+    """Build a random directory name and create the directory 
+    
+        suppress_mkdir: only build the directory name, don't
+         create the directory (default: False)
+        timestamp_pattern: string passed to strftime() to generate
+         the timestamp (pass '' to suppress the timestamp)
+        rand_length: length of random string of characters
+        output_dir: the directory which should contain the 
+         random directory
+        prefix: prefix for directory name
+        suffix: suffix for directory name
+    
+    """
+    # Define a set of characters to be used in the random directory name
+    chars = "abcdefghigklmnopqrstuvwxyz"
+    picks = chars + chars.upper() + "0123456790"
+    
+    # Get a time stamp
+    timestamp = datetime.now().strftime(timestamp_pattern)
+        
+    # Construct the directory name
+    dirname = '%s%s%s%s' % (prefix,timestamp,\
+                        ''.join([choice(picks) for i in range(rand_length)]),\
+                        suffix)
+    dirpath = abspath(join(output_dir,dirname))
+    
+    # Make the directory
+    if not suppress_mkdir:
+        try:
+            makedirs(dirpath)
+        except OSError:
+            raise OSError,\
+             "Cannot make directory %s. Do you have write access?" % dirpath
+             
+    # Return the path to the directory
+    return dirpath
