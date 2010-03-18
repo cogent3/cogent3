@@ -9,11 +9,12 @@ Contents:
     
     introduction
     tips_for_using_python
-    accessing_databases
     manipulating_biological_data
+    accessing_databases
     analysis_of_sequence_composition
     sequence_similarity_search
     controlling_third_party_applications
+    blast
     building_alignments
     building_phylogenies
     structural_data

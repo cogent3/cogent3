@@ -1,3 +1,5 @@
+.. _seq-annotations:
+
 Advanced sequence handling
 ==========================
 
