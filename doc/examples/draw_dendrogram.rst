@@ -1,3 +1,5 @@
+.. _draw-trees:
+
 Drawing dendrograms and saving to PDF
 =====================================
 
