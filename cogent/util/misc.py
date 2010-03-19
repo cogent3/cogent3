@@ -1303,13 +1303,13 @@ def remove_files(list_of_filepaths, error_on_missing=True):
     if error_on_missing and missing:
         raise OSError, "Some filepaths were not accessible: %s" % '\t'.join(missing)
 
-
 def get_random_directory_name(suppress_mkdir=False,\
     timestamp_pattern='%Y%m%d%H%M%S',\
     rand_length=20,\
     output_dir=None,\
     prefix='',
-    suffix=''):
+    suffix='',
+    return_absolute_path=True):
     """Build a random directory name and create the directory 
     
         suppress_mkdir: only build the directory name, don't
@@ -1321,7 +1321,7 @@ def get_random_directory_name(suppress_mkdir=False,\
          random directory
         prefix: prefix for directory name
         suffix: suffix for directory name
-    
+        return_absolute_path: If False, returns the local (relative) path to the new directory
     """
     output_dir = output_dir or './'
     # Define a set of characters to be used in the random directory name
@@ -1335,15 +1335,18 @@ def get_random_directory_name(suppress_mkdir=False,\
     dirname = '%s%s%s%s' % (prefix,timestamp,\
                         ''.join([choice(picks) for i in range(rand_length)]),\
                         suffix)
-    dirpath = abspath(join(output_dir,dirname))
-    
+    dirpath = join(output_dir,dirname)
+    abs_dirpath = abspath(dirpath)
+
     # Make the directory
     if not suppress_mkdir:
         try:
-            makedirs(dirpath)
+            makedirs(abs_dirpath)
         except OSError:
             raise OSError,\
              "Cannot make directory %s. Do you have write access?" % dirpath
              
     # Return the path to the directory
+    if return_absolute_path:
+        return abs_dirpath
     return dirpath
