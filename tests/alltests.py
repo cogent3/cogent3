@@ -222,6 +222,7 @@ def suite():
             ('calculate_likelihood', 'test_gctmpca'),
             ('sfffile', 'test_sfffile'),
             ('sffinfo', 'test_sffinfo'),
+            ('uclust','test_uclust')
             ]
     for app, test_name in apps:
         if app_path(app):
