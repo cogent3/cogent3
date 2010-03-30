@@ -36,10 +36,22 @@ class UclustTests(TestCase):
         
         self.tmp_unsorted_fasta_filepath = \
          get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
+        tmp_unsorted_fasta.write('\n'.join(raw_dna_seqs))
+        tmp_unsorted_fasta.close()
+        
         self.tmp_sorted_fasta_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "fasta")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".fasta")
+        tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath,"w")
+        tmp_sorted_fasta.write('\n'.join(sorted_dna_seqs))
+        tmp_sorted_fasta.close()
+        
         self.tmp_uc_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "uc")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".uc")
+        tmp_uc = open(self.tmp_uc_filepath,"w")
+        tmp_uc.write('\n'.join(uc_dna_clusters))
+        tmp_uc.close()
+         
         self.tmp_clstr_filepath = \
          get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
          
@@ -63,13 +75,6 @@ class UclustTests(TestCase):
         controller, and the resulting sorted file is compared to the expected
         results to ensure proper function of uclust as called by this app
         controller."""
-        
-
-        tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
-        for line in raw_dna_seqs:
-            tmp_unsorted_fasta.write(line)
-
-        tmp_unsorted_fasta.close()
 
         test_app = Uclust({'--tmpdir':self.tmpdir})
 
@@ -78,12 +83,11 @@ class UclustTests(TestCase):
          {'--mergesort':self.tmp_unsorted_fasta_filepath,\
          '--output':self.tmp_sorted_fasta_filepath})
 
-        sorted_fasta = open(test_app_res['Output'].name,"U")
-        sorted_fasta_res = []
-        for line in sorted_fasta:
-            sorted_fasta_res.append(line)
+        sorted_fasta_actual = [l.strip() 
+            for l in open(test_app_res['Output'].name,"U")]
+        sorted_fasta_expected = [l.strip() for l in sorted_dna_seqs if l]
             
-        self.assertEqual(sorted_fasta_res, sorted_dna_seqs)
+        self.assertEqual(sorted_fasta_actual,sorted_fasta_expected)
         
         test_app_res.cleanUp()
 
@@ -98,29 +102,20 @@ class UclustTests(TestCase):
         controller."""
         
         
-        tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath,"w")
-        tmp_sorted_fasta.write(''.join(sorted_dna_seqs))
-        tmp_sorted_fasta.close()
 
         test_app = Uclust({'--id':0.9},HALT_EXEC=False)
         test_app_res = test_app(data = \
          {'--input':self.tmp_sorted_fasta_filepath,\
          '--uc':self.tmp_uc_filepath})
-
         
         uc_file = open(test_app_res['ClusterFile'].name,"U")
-        uc_file_res = []
-        # Not appending comment lines of file, since the source data files
-        # will change with each run, actual results are what we are 
-        # interested in.
-        for line in uc_file:
-            if not(line.startswith("#")):
-                parsed_line = "\t".join(line.split("\t")[:9])
-                if not parsed_line.endswith('\n'):
-                    parsed_line += '\n'
-                uc_file_res.append(parsed_line)
-            
-        self.assertEqual(uc_file_res, uc_dna_clusters)
+        # compare the actual and expect uc files, ignoring comment lines
+        uc_file_actual = [l.strip() for l in uc_file 
+         if not l.startswith('#')]
+        uc_file_expected = [l.strip() for l in uc_dna_clusters 
+         if not l.startswith('#')]
+        
+        self.assertEqual(uc_file_actual, uc_file_expected)
     
         test_app_res.cleanUp()
 
@@ -133,15 +128,6 @@ class UclustTests(TestCase):
         controller, and the resulting .clstr file is compared to the expected
         results to ensure proper function of uclust as called by this app
         controller."""
-        
-
-        tmp_uc = open(self.tmp_uc_filepath,"w")
-        for line in uc_dna_clusters:
-            # Need extra fields to be compatable with uclust 1.1
-            tmp_uc.write(line.replace('\n','\t\n'))
-
-        tmp_uc.close()
-
         test_app = Uclust()
         
         test_app_res = test_app(data = \
@@ -162,20 +148,33 @@ class UclustConvenienceWrappers(TestCase):
     def setUp(self):
         
         self.tmp_unsorted_fasta_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "fasta")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".fasta")
+        tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
+        tmp_unsorted_fasta.write('\n'.join(raw_dna_seqs))
+        tmp_unsorted_fasta.close()
+         
+         
         self.tmp_sorted_fasta_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "fasta")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".fasta")
+        tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath,"w")
+        tmp_sorted_fasta.write('\n'.join(sorted_dna_seqs))
+        tmp_sorted_fasta.close()
+        
         self.tmp_uc_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "uc")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".uc")
+        tmp_uc = open(self.tmp_uc_filepath,"w")
+        tmp_uc.write('\n'.join(uc_dna_clusters))
+        tmp_uc.close()
+        
         self.tmp_clstr_filepath = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "clstr")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         
         self.search_align_out1_expected = search_align_out1_expected
         self.search_align_query1_fp = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "clstr")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         open(self.search_align_query1_fp,'w').write(search_align_query1)
         self.search_align_template1_fp = \
-         get_tmp_filename(prefix = "uclust_test", suffix = "clstr")
+         get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         open(self.search_align_template1_fp,'w').write(search_align_template1)
         
         self.search_align_out_uc1 = search_align_out_uc1
@@ -194,33 +193,22 @@ class UclustConvenienceWrappers(TestCase):
 
     def test_uclust_fasta_sort_from_filepath(self):
         """ Given an unsorted fasta filepath, will return sorted file """
-
-        tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
-        for line in raw_dna_seqs:
-            tmp_unsorted_fasta.write(line)
-
-        tmp_unsorted_fasta.close()
         
         app_res = \
          uclust_fasta_sort_from_filepath(self.tmp_unsorted_fasta_filepath)
         
-        sorted_fasta = open(app_res['Output'].name,"U")
-        sorted_fasta_res = []
-        for line in sorted_fasta:
-            sorted_fasta_res.append(line)
-            
-        self.assertEqual(sorted_fasta_res, sorted_dna_seqs)
+        sorted_fasta_actual = [l.strip() 
+            for l in open(app_res['Output'].name,"U")]
+        sorted_fasta_expected = [l.strip() for l in sorted_dna_seqs if l]
+        
+        self.assertEqual(sorted_fasta_actual,sorted_fasta_expected)
+        
         app_res.cleanUp()
         
         
     def test_uclust_cluster_from_sorted_fasta_filepath(self):
         """ Given a sorted fasta filepath, will return uclust (.uc) file """
         
-        tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath,"w")
-        for line in sorted_dna_seqs:
-            tmp_sorted_fasta.write(line)
-
-        tmp_sorted_fasta.close()
 
         app_res = \
          uclust_cluster_from_sorted_fasta_filepath(self.tmp_sorted_fasta_filepath, \
@@ -228,29 +216,17 @@ class UclustConvenienceWrappers(TestCase):
 
         
         uc_file = open(app_res['ClusterFile'].name,"U")
-        uc_file_res = []
-        # Not appending comment lines of file, since the source data files
-        # will change with each run, actual results are what we are 
-        # interested in.
-        for line in uc_file:
-            if not(line.startswith("#")):
-                parsed_line = "\t".join(line.split("\t")[:9])
-                if not parsed_line.endswith('\n'):
-                    parsed_line += '\n'
-                uc_file_res.append(parsed_line)
-            
-        self.assertEqual(uc_file_res, uc_dna_clusters)
+        # compare the actual and expect uc files, ignoring comment lines
+        uc_file_actual = [l.strip() for l in uc_file 
+         if not l.startswith('#')]
+        uc_file_expected = [l.strip() for l in uc_dna_clusters 
+         if not l.startswith('#')]
+        
+        self.assertEqual(uc_file_actual, uc_file_expected)
         app_res.cleanUp()
         
     def test_uclust_convert_uc_to_cdhit_from_filepath(self):
         """ Given a uclust (.uc) file will return converted clstr file """
-        
-        tmp_uc = open(self.tmp_uc_filepath,"w")
-        for line in uc_dna_clusters:
-            # Need extra field to be compatable with uclust 1.1
-            tmp_uc.write(line.replace('\n','\t\n'))
-
-        tmp_uc.close()
 
         app_res = uclust_convert_uc_to_cdhit_from_filepath(self.tmp_uc_filepath)
 
@@ -290,12 +266,6 @@ class UclustConvenienceWrappers(TestCase):
         
     def test_get_clusters_from_fasta_filepath(self):
         """ Tests for return of lists of OTUs from given fasta filepath """
-        
-        tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
-        for line in raw_dna_seqs:
-            tmp_unsorted_fasta.write(line)
-
-        tmp_unsorted_fasta.close()
         
         clusters_res = \
          get_clusters_from_fasta_filepath(self.tmp_unsorted_fasta_filepath, \
@@ -341,96 +311,80 @@ class UclustConvenienceWrappers(TestCase):
         self.assertTrue(version >= (1,1,577),\
          "Unsupported uclust version. 1.1.577 or later "+\
          "is required, but running %s." % version_string)
-            
-        
 
-raw_dna_seqs = ['>uclust_test_seqs_0\n',
-'ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT\n',
-'>uclust_test_seqs_1\n',
-'GCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT\n',
-'>uclust_test_seqs_2\n',
-'CCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT\n',
-'>uclust_test_seqs_3\n',
-'CCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT\n',
-'>uclust_test_seqs_4\n',
-'ACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT\n',
-'>uclust_test_seqs_5\n',
-'CCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA\n',
-'>uclust_test_seqs_6\n',
-'CGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT\n',
-'>uclust_test_seqs_7\n',
-'AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT\n',
-'>uclust_test_seqs_8\n',
-'CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT\n',
-'>uclust_test_seqs_9\n',
-'GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA']
+raw_dna_seqs = """>uclust_test_seqs_0
+ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+>uclust_test_seqs_1
+GCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+>uclust_test_seqs_2
+CCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+>uclust_test_seqs_3
+CCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+>uclust_test_seqs_4
+ACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+>uclust_test_seqs_5
+CCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+>uclust_test_seqs_6
+CGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+>uclust_test_seqs_7
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+>uclust_test_seqs_8
+CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+>uclust_test_seqs_9
+GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+""".split('\n')
 
-sorted_dna_seqs=['>uclust_test_seqs_7\n',
-'AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT\n',
-'>uclust_test_seqs_4\n',
-'ACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT\n',
-'>uclust_test_seqs_2\n',
-'CCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT\n',
-'>uclust_test_seqs_3\n',
-'CCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT\n',
-'>uclust_test_seqs_1\n',
-'GCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT\n',
-'>uclust_test_seqs_5\n',
-'CCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA\n',
-'>uclust_test_seqs_6\n',
-'CGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT\n',
-'>uclust_test_seqs_0\n',
-'ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT\n',
-'>uclust_test_seqs_8\n',
-'CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT\n',
-'>uclust_test_seqs_9\n',
-'GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA\n']
+sorted_dna_seqs=""">uclust_test_seqs_7
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+>uclust_test_seqs_4
+ACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+>uclust_test_seqs_2
+CCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+>uclust_test_seqs_3
+CCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+>uclust_test_seqs_1
+GCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+>uclust_test_seqs_5
+CCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+>uclust_test_seqs_6
+CGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+>uclust_test_seqs_0
+ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+>uclust_test_seqs_8
+CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+>uclust_test_seqs_9
+GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+""".split('\n')
 
 # Clusters are created at a 0.90% identity
-uc_dna_clusters=[
-'S	0	80	*	*	*	*	*	uclust_test_seqs_7\n',
-'S	1	79	*	*	*	*	*	uclust_test_seqs_4\n',
-'S	2	78	*	*	*	*	*	uclust_test_seqs_2\n',
-'S	3	77	*	*	*	*	*	uclust_test_seqs_3\n',
-'S	4	76	*	*	*	*	*	uclust_test_seqs_1\n',
-'S	5	75	*	*	*	*	*	uclust_test_seqs_5\n',
-'S	6	74	*	*	*	*	*	uclust_test_seqs_6\n',
-'S	7	73	*	*	*	*	*	uclust_test_seqs_0\n',
-'H	6	72	91.7	+	0	0	2I72M	uclust_test_seqs_8\n',
-'S	8	71	*	*	*	*	*	uclust_test_seqs_9\n',
-'C	0	1	*	*	*	*	*	uclust_test_seqs_7\n',
-'C	1	1	*	*	*	*	*	uclust_test_seqs_4\n',
-'C	2	1	*	*	*	*	*	uclust_test_seqs_2\n',
-'C	3	1	*	*	*	*	*	uclust_test_seqs_3\n',
-'C	4	1	*	*	*	*	*	uclust_test_seqs_1\n',
-'C	5	1	*	*	*	*	*	uclust_test_seqs_5\n',
-'C	6	2	91.7	*	*	*	*	uclust_test_seqs_6\n',
-'C	7	1	*	*	*	*	*	uclust_test_seqs_0\n',
-'C	8	1	*	*	*	*	*	uclust_test_seqs_9\n']
+uc_dna_clusters= """# uclust --input /tmp/uclust_testBGwZvcikrbNefYGRTk0u.fasta --id 0.9 --uc /tmp/uclust_testrbcO0CyBVpV9AwH3OIK1.uc
+# version=1.1.577
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	0	80	*	*	*	*	*	uclust_test_seqs_7	*
+S	1	79	*	*	*	*	*	uclust_test_seqs_4	*
+S	2	78	*	*	*	*	*	uclust_test_seqs_2	*
+S	3	77	*	*	*	*	*	uclust_test_seqs_3	*
+S	4	76	*	*	*	*	*	uclust_test_seqs_1	*
+S	5	75	*	*	*	*	*	uclust_test_seqs_5	*
+S	6	74	*	*	*	*	*	uclust_test_seqs_6	*
+S	7	73	*	*	*	*	*	uclust_test_seqs_0	*
+H	6	72	91.7	+	0	0	2I72M	uclust_test_seqs_8	uclust_test_seqs_6
+S	8	71	*	*	*	*	*	uclust_test_seqs_9	*
+C	0	1	*	*	*	*	*	uclust_test_seqs_7	*
+C	1	1	*	*	*	*	*	uclust_test_seqs_4	*
+C	2	1	*	*	*	*	*	uclust_test_seqs_2	*
+C	3	1	*	*	*	*	*	uclust_test_seqs_3	*
+C	4	1	*	*	*	*	*	uclust_test_seqs_1	*
+C	5	1	*	*	*	*	*	uclust_test_seqs_5	*
+C	6	2	91.7	*	*	*	*	uclust_test_seqs_6	*
+C	7	1	*	*	*	*	*	uclust_test_seqs_0	*
+C	8	1	*	*	*	*	*	uclust_test_seqs_9	*""".split('\n')
 
-"""
-# Old version, incompatible with uclust 1.1 format
-# Clusters are created at a 0.90% identity
-uc_dna_clusters=[
-'S	0	80	*	*	*	*	*	uclust_test_seqs_7	*\n',
-'S	1	79	*	*	*	*	*	uclust_test_seqs_4	*\n',
-'S	2	78	*	*	*	*	*	uclust_test_seqs_2	*\n',
-'S	3	77	*	*	*	*	*	uclust_test_seqs_3	*\n',
-'S	4	76	*	*	*	*	*	uclust_test_seqs_1	*\n',
-'S	5	75	*	*	*	*	*	uclust_test_seqs_5	*\n',
-'S	6	74	*	*	*	*	*	uclust_test_seqs_6	*\n',
-'S	7	73	*	*	*	*	*	uclust_test_seqs_0	*\n',
-'H	6	72	91.7	+	0	0	2I72M	uclust_test_seqs_8	*\n',
-'S	8	71	*	*	*	*	*	uclust_test_seqs_9	*\n',
-'C	0	1	*	*	*	*	*	uclust_test_seqs_7	*\n',
-'C	1	1	*	*	*	*	*	uclust_test_seqs_4	*\n',
-'C	2	1	*	*	*	*	*	uclust_test_seqs_2	*\n',
-'C	3	1	*	*	*	*	*	uclust_test_seqs_3	*\n',
-'C	4	1	*	*	*	*	*	uclust_test_seqs_1	*\n',
-'C	5	1	*	*	*	*	*	uclust_test_seqs_5	*\n',
-'C	6	2	91.7	*	*	*	*	uclust_test_seqs_6	*\n',
-'C	7	1	*	*	*	*	*	uclust_test_seqs_0	*\n',
-'C	8	1	*	*	*	*	*	uclust_test_seqs_9	*\n'] """
 
 clstr_clusters=['>Cluster 0\n',
 '0       80nt, >uclust_test_seqs_7... *\n',
