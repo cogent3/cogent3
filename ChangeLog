@@ -12,12 +12,17 @@ New Features
   location of nonsynonymous variants.
 * rate heterogeneity variants of pre-canned continuous time substitution
   models easier to define.
+* Added implementation of generalised neighbour joining.
+* New capabilities for examining genetic variants using Ensembl.
+* Phylogenetic methods that can return collections of trees do so as a
+  TreeCollections object, which has writeToFile and getConsensusTree methods.
 
 Changes
 -------
 
 * Major additions to Cookbook documentation courtesy of Tom Elliot. Thanks
   Tom!
+* Improvements to parallelisation.
 
 Bug Fixes
 ---------
