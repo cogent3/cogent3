@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Application controller for uclust version 1.1.577
+"""Application controller for uclust version 1.1.579
 
 Includes application controllers for uclust and
 convenience wrappers for different functions of uclust including
@@ -433,7 +433,7 @@ def get_clusters_from_fasta_filepath(
         if isfile(clstr_filepath):
             remove(clstr_filepath)
         raise ApplicationError, ('Error running uclust, make sure the proper '+\
-         'version (1.0.50 or greater) is installed and the input fasta file '+\
+         'version (1.1.579 or greater) is installed and the input fasta file '+\
          'is properly formatted.')
     except ApplicationNotFoundError:
         if isfile(sorted_fasta_filepath):
