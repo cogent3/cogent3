@@ -170,6 +170,8 @@ class UclustConvenienceWrappers(TestCase):
          get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         
         self.search_align_out1_expected = search_align_out1_expected
+        self.search_align_out_fasta_pairs1 = search_align_out_fasta_pairs1
+        self.search_align_out_uc1 = search_align_out_uc1
         self.search_align_query1_fp = \
          get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         open(self.search_align_query1_fp,'w').write(search_align_query1)
@@ -177,15 +179,23 @@ class UclustConvenienceWrappers(TestCase):
          get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
         open(self.search_align_template1_fp,'w').write(search_align_template1)
         
-        self.search_align_out_uc1 = search_align_out_uc1
-        self.search_align_out_fasta_pairs1 = search_align_out_fasta_pairs1
+        
+        self.search_align_out2_expected = search_align_out2_expected
+        self.search_align_query2_fp = \
+         get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
+        open(self.search_align_query2_fp,'w').write(search_align_query2)
+        self.search_align_template2_fp = \
+         get_tmp_filename(prefix = "uclust_test", suffix = ".clstr")
+        open(self.search_align_template2_fp,'w').write(search_align_template2)
         
         self.files_to_remove = [self.tmp_unsorted_fasta_filepath,
                                 self.tmp_sorted_fasta_filepath,
                                 self.tmp_uc_filepath,
                                 self.tmp_clstr_filepath,
                                 self.search_align_query1_fp,
-                                self.search_align_template1_fp]
+                                self.search_align_template1_fp,
+                                self.search_align_query2_fp,
+                                self.search_align_template2_fp]
         
     def tearDown(self):
         remove_files(self.files_to_remove,error_on_missing=False)
@@ -299,6 +309,13 @@ class UclustConvenienceWrappers(TestCase):
          self.search_align_query1_fp,self.search_align_template1_fp,
          enable_rev_strand_matching=False))
         self.assertEqual(actual,self.search_align_out1_expected[:2])
+        
+    def test_uclust_search_and_align_from_fasta_filepath_protein(self):
+        """ uclust_search_and_align_from_fasta_filepath functions with protein """
+        # rev comp matches allowed (default)
+        actual = list(uclust_search_and_align_from_fasta_filepath(
+         self.search_align_query2_fp,self.search_align_template2_fp))
+        self.assertEqual(actual,self.search_align_out2_expected)
         
     def test_uclust_supported_version(self):
         """uclust version is supported """
@@ -423,6 +440,24 @@ AGAAAGGAGGTGATCCAGCCGCACCTTCCGATACGGCTACCTTGTTACGACTTCACCCCAATCATTTGTTCCACCTTCGA
 >2
 AGCCCAAATCATAAGGGGCATGATGATTTGACGTCATCCCCACCTTCCTCCGGTTTGTCACCGGGATGGCAACTAAGCTTAAGGGTTGCGCT
 """
+
+search_align_query2 = """>1_like
+PRTEINACYYPL
+>2_like
+AGGYTPPLVN
+>rand
+GGTYPARREE
+"""
+
+search_align_template2 = """>1
+PRTELNACYYPL
+>2
+AGGYTRPPLVN
+"""
+
+search_align_out2_expected = [
+ ('1_like','1','PRTEINACYYPL','PRTELNACYYPL',91.70000),
+ ('2_like','2','AGGYT-PPLVN','AGGYTRPPLVN',100.0)]
 
 search_align_out_fasta_pairs1 = """>1_like
 -------------------------------TACGGCTACCTTGTTACGACTTCATCCCAATCATTTGTTCCACCTTCGACGGCTA------------------------------------------
