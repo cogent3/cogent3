@@ -190,8 +190,14 @@ def process_uclust_pw_alignment_results(fasta_pairs_lines,uc_lines):
     for hit in get_next_hit_record(uc_lines):
         matching_strand = hit[4]
         if matching_strand == '-':
+            strand_id = '-'
             target_rev_match = True
         elif matching_strand == '+':
+            strand_id = '+'
+            target_rev_match = False
+        elif matching_strand == '.':
+            # protein sequence, so no strand information
+            strand_id = ''
             target_rev_match = False
         else:
             raise UclustParseError, "Unknown strand type: %s" % matching_strand
@@ -213,11 +219,11 @@ def process_uclust_pw_alignment_results(fasta_pairs_lines,uc_lines):
         fasta_target_id = fasta_pair[1][0]
         aligned_target = fasta_pair[1][1]
             
-        if fasta_target_id != uc_target_id + matching_strand:
+        if fasta_target_id != uc_target_id + strand_id:
             raise UclustParseError, \
              "Order of fasta and uc files do not match."+\
              " Got target %s but expected %s." %\
-              (fasta_target_id, uc_target_id + matching_strand)
+              (fasta_target_id, uc_target_id + strand_id)
             
         if target_rev_match:
             query_id = uc_query_id + ' RC'
