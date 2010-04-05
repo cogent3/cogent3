@@ -286,7 +286,10 @@ def uclust_search_and_align_from_fasta_filepath(
     # yield the pairwise alignments
     for result in process_uclust_pw_alignment_results(
      app_result['PairwiseAlignments'],app_result['ClusterFile']):
-        yield result
+        try:
+            yield result
+        except GeneratorExit:
+            break
     
     # clean up the temp files that were generated
     app_result.cleanUp()
