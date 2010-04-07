@@ -16,6 +16,7 @@ New Features
 * New capabilities for examining genetic variants using Ensembl.
 * Phylogenetic methods that can return collections of trees do so as a
   TreeCollections object, which has writeToFile and getConsensusTree methods.
+* Added uclust application controller which currently supports uclust v1.1.579.
 
 Changes
 -------
