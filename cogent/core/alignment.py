@@ -49,7 +49,7 @@ __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                     "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                     "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.4.1"
+__version__ = "1.5.0.dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
