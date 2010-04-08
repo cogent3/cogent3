@@ -104,4 +104,18 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
             }
         return defns
 
+class PartialyDiscretePsubsDefn(object):
+    def __init__(self, alphabet, psubs, discrete_edges):
+        motifs = tuple(alphabet)
+        dpsubs = PsubMatrixDefn(
+            name="dpsubs", dimension = ('motif', motifs), default=None, 
+            dimensions=('locus', 'edge'))
+        self.choices = [psubs, dpsubs]
+        self.discrete_edges = discrete_edges
+    
+    def selectFromDimension(self, dimension, category):
+        assert dimension == 'edge', dimension
+        special = category in self.discrete_edges
+        return self.choices[special].selectFromDimension(dimension, category)
+    
 
