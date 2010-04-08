@@ -61,7 +61,7 @@ We won't display this tree, because we are doing more below.
 A more rigourous tree space search
 ----------------------------------
 
-We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change ``a`` to be larger, but in the current case we just adjust ``k``. We also set the argument ``return_all = True``, the effect of which is to return the complete set of 145 trees. These, and their support statistic, can then be inspected.
+We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change ``a`` to be larger, but in the current case we just adjust ``k``. We also set the argument ``return_all = True``, the effect of which is to return the complete set of saved trees. These, and their support statistic, can then be inspected.
 
 .. doctest::
 
@@ -76,7 +76,7 @@ Remember the sum-of-squares statistic will be smaller for 'good' trees. The orde
     >>> print len(trees)
     5
 
-Lets inspect the resulting statistics. First, the object ``trees`` is a list of (wls, Tree) tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct ``for`` loop.
+Lets inspect the resulting statistics. First, the object ``trees`` is a list of ``(wls, Tree)`` tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct ``for`` loop.
 
 .. doctest::
 
