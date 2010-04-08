@@ -295,8 +295,9 @@ class LikelihoodFunction(object):
         
         stats_dict = self.getParamValueDict(['edge'])
         
-        for predicate in self.model.scale_masks:
-            stats_dict[predicate] = self.getScaledLengths(predicate)
+        if hasattr(self.model, 'scale_masks'):
+            for predicate in self.model.scale_masks:
+                stats_dict[predicate] = self.getScaledLengths(predicate)
         
         edge_vector = [e for e in self._tree.getEdgeVector() if not e.isroot()]
         
