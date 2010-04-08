@@ -292,9 +292,12 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         except KeyError:
             pass
     
-    def makeLikelihoodDefn(self, sites_independent=True):
-        defns = self.model.makeParamControllerDefns(
-                bin_names=self.bin_names)
+    def makeLikelihoodDefn(self, sites_independent=True, discrete_edges=None):
+        defns = self.model.makeParamControllerDefns(bin_names=self.bin_names)
+        if discrete_edges is not None:
+            from discrete_markov import PartialyDiscretePsubsDefn
+            defns['psubs'] = PartialyDiscretePsubsDefn(
+                    self.motifs, defns['psubs'], discrete_edges)
         return likelihood_calculation.makeTotalLogLikelihoodDefn(
             self.tree, defns['align'], defns['psubs'], defns['word_probs'],
             defns['bprobs'], self.bin_names, self.locus_names,

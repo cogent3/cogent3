@@ -224,6 +224,20 @@ class LikelihoodCalcs(TestCase):
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -157.49363874840455)
     
+    def test_discrete_nucleotide(self):
+        """test that partially discrete nucleotide model can be constructed, 
+        differs from continuous, and has the expected number of free params"""
+        submod = Nucleotide(
+            equal_motif_probs=True,
+            do_scaling=False,
+            motif_probs=None,
+            predicates={'kappa': 'transition'})
+        likelihood_function = self._makeLikelihoodFunction(
+                submod, discrete_edges=['Human'])
+        self.assertEqual(likelihood_function.getNumFreeParams(), 12)
+        evolve_lnL = likelihood_function.getLogLikelihood()
+        self.assertNotEqual(evolve_lnL,  -157.49363874840455)
+        
     def test_dinucleotide(self):
         """test a dinucleotide model."""
         submod = substitution_model.Dinucleotide(
