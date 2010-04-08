@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import random, numpy
+import random, numpy, warnings
 
 from cogent.core.alignment import Alignment
 from cogent.util.dict_array import DictArrayTemplate
@@ -25,11 +25,13 @@ __status__ = "Production"
 
 class LikelihoodFunction(object):
     def setpar(self, param_name, value, edge=None, **scope):
-        # for tests only
+        warnings.warn("'setpar()' deprecated, use 'setParamRule()'", 
+            DeprecationWarning)
         return self.setParamRule(param_name, edge=edge, value=value, is_const=True, **scope)
     
     def testfunction(self):
-        # for tests only
+        warnings.warn("'testfunction()' deprecated, use 'getLogLikelihood()'", 
+            DeprecationWarning)
         return self.getLogLikelihood()
     
     def getParamValue(self, *args, **kw):

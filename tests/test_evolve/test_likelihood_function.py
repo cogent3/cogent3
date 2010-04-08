@@ -108,12 +108,16 @@ class LikelihoodCalcs(TestCase):
     def setUp(self):
         self.alignment = ALIGNMENT.takeSeqs(OTU_NAMES)[0: 42]
         self.tree = LoadTree(tip_names=OTU_NAMES)
-        self.par_values = {'kappa': 3.0}
-        self.length = 1.0
     
-    def _makeLikelihoodFunction(self, submod, alignment, **kw):
+    def _makeLikelihoodFunction(self, submod, translate=False, **kw):
+        alignment = self.alignment
+        if translate:
+            alignment = alignment.getTranslation()
         calc = submod.makeLikelihoodFunction(self.tree, **kw)
         calc.setAlignment(alignment)
+        calc.setParamRule('length', value=1.0, is_const=True)
+        if not translate:
+            calc.setParamRule('kappa', value=3.0, is_const=True)
         return calc
     
     def test_no_seq_named_root(self):
@@ -139,14 +143,13 @@ class LikelihoodCalcs(TestCase):
             lf.setSequences(collection)
         except AssertionError:
             pass
-        
     
     def test_binned_gamma(self):
         """just rate is gamma distributed"""
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', distribution='gamma', mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, self.alignment, bins=3)
+        lf = self._makeLikelihoodFunction(submod, bins=3)
         try:
             values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         except KeyError:
@@ -164,7 +167,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', partitioned_params='omega', 
             distribution='gamma', mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, self.alignment,bins=3) 
+        lf = self._makeLikelihoodFunction(submod,bins=3) 
         values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
@@ -175,7 +178,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', partitioned_params='omega', 
             distribution='free', mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, self.alignment, bins=3)
+        lf = self._makeLikelihoodFunction(submod, bins=3)
         values = lf.getParamValueDict(['bin'])['omega_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
@@ -185,7 +188,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='kappa', partitioned_params=['omega'], 
             mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, self.alignment,
+        lf = self._makeLikelihoodFunction(submod, 
                     bins=['slow', 'fast'])
         lf.setParamRule('kappa', value=1.0, is_const=True)
         lf.setParamRule('kappa', edge="Human", init=1.0, is_const=False)
@@ -202,15 +205,9 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             mprob_model='tuple')
         
-        self.par_values.update({'omega':0.5})
-        likelihood_function = self._makeLikelihoodFunction(
-                submod, self.alignment)
-                    
-        for par, val in self.par_values.items():
-            likelihood_function.setpar(par, val)
-            
-        likelihood_function.setpar("length", self.length)
-        evolve_lnL = likelihood_function.testfunction()
+        likelihood_function = self._makeLikelihoodFunction(submod)
+        likelihood_function.setParamRule('omega', value=0.5, is_const=True)
+        evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -80.67069614541883)
     
     def test_nucleotide(self):
@@ -222,12 +219,9 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition'})
         # now do using the evolve
         likelihood_function = self._makeLikelihoodFunction(
-                submod, self.alignment)
-        for par, val in self.par_values.items():
-            likelihood_function.setpar(par, val)
-            
-        likelihood_function.setpar("length", self.length)
-        evolve_lnL = likelihood_function.testfunction()
+                submod)
+        self.assertEqual(likelihood_function.getNumFreeParams(), 0)
+        evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -157.49363874840455)
     
     def test_dinucleotide(self):
@@ -238,25 +232,19 @@ class LikelihoodCalcs(TestCase):
                 motif_probs = None,
                 predicates = {'kappa': 'transition'},
                 mprob_model='tuple')
-        likelihood_function = self._makeLikelihoodFunction(
-                submod, self.alignment)
-        for par, val in self.par_values.items():
-            likelihood_function.setpar(par, val)
-            
-        likelihood_function.setpar("length", self.length)
-        evolve_lnL = likelihood_function.testfunction()
+        likelihood_function = self._makeLikelihoodFunction(submod)
+        evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -102.48145536663735)
     
     def test_protein(self):
         """test a protein model."""
         submod = substitution_model.Protein(
             do_scaling=False, equal_motif_probs=True)
-        alignment = self.alignment.getTranslation()
         
-        likelihood_function = self._makeLikelihoodFunction(submod, alignment)
+        likelihood_function = self._makeLikelihoodFunction(submod, 
+                translate=True)
         
-        likelihood_function.setpar("length", self.length)
-        evolve_lnL = likelihood_function.testfunction()
+        evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -89.830370754876185)
     
 
@@ -289,14 +277,16 @@ class LikelihoodFunctionTests(TestCase):
                 ("Human", 0.3),
                 ("HowlerMon", 0.4),
                 ("Mouse",  0.5)]:
-            likelihood_function.setpar("length", length, edge=species)
+            likelihood_function.setParamRule("length", value=length, 
+                    edge=species, is_const=True)
         for (species1, species2, length) in [
                 ("Human", "HowlerMon", 0.7),
                 ("Human", "Mouse", 0.6)]:
             LCA = self.tree.getConnectingNode(species1, species2).Name
-            likelihood_function.setpar("length", length, edge=LCA)
+            likelihood_function.setParamRule("length", value=length, 
+                    edge=LCA, is_const=True)
         
-        likelihood_function.setpar("beta", 4.0)
+        likelihood_function.setParamRule("beta", value=4.0, is_const=True)
     
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()
@@ -356,7 +346,7 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEquals(-250.686745262,
-            likelihood_function.testfunction(),places=9)
+            likelihood_function.getLogLikelihood(),places=9)
     
     def test_ancestralsequences(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -461,8 +451,8 @@ motif  mprobs
     
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setpar("length", 4.0)
-        likelihood_function.setpar("beta", 6.0)
+        likelihood_function.setParamRule("length", value=4.0, is_const=True)
+        likelihood_function.setParamRule("beta", value=6.0, is_const=True)
         self.assertEqual(str(likelihood_function), \
 """Likelihood Function Table
 ======
@@ -531,7 +521,7 @@ motif    mprobs
     
     def test_getAnnotatedTree(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setpar("length", 4.0, edge="Human")
+        likelihood_function.setParamRule("length", value=4.0, edge="Human", is_const=True)
         result = likelihood_function.getAnnotatedTree()
         self.assertEqual(result.getNodeMatchingName('Human').params['length'], 4.0)
         self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
