@@ -22,6 +22,7 @@ from cogent.evolve import substitution_model, predicate
 from cogent import DNA, LoadSeqs, LoadTree
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
+from cogent.evolve.models import JTT92
 
 Nucleotide = substitution_model.Nucleotide
 MotifChange = predicate.MotifChange
@@ -567,6 +568,16 @@ motif    mprobs
       'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
  'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
         'edge.0': 1.0, 'Mouse': 1.0,'HowlerMon': 1.0}})
+    
+    def test_get_statistics_from_empirical_model(self):
+        """should return valid dict from an empirical substitution model"""
+        submod = JTT92()
+        aln = self.data.getTranslation()
+        
+        lf = submod.makeLikelihoodFunction(self.tree)
+        lf.setAlignment(aln)
+        stats = lf.getStatisticsAsDict()
+        
     
     def test_constant_to_free(self):
         """excercise setting a constant param rule, then freeing it"""
