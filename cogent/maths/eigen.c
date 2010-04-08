@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define PYCOGENT_VERSION "1.5.0.dev"
+#define PYCOGENT_VERSION "1.4.1"
 
 typedef struct { double re, im; } complex;
 #define csize(a) (fabs(a.re)+fabs(a.im))

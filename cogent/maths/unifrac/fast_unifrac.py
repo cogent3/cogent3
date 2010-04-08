@@ -19,7 +19,7 @@ __copyright = "Copyright 2007, the authors."
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
     "Justin Kuczynski"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.4.1"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
 __status__ = "Prototype"

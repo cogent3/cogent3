@@ -5,12 +5,30 @@ import sys, os, re, subprocess
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
-                    "Greg Caporaso"]
+                    "Greg Caporaso", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.4.1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
+# Check Python version, no point installing if unsupported version inplace
+if sys.version_info < (2, 5):
+    py_version = ".".join([str(n) for n in sys.version_info])
+    raise RuntimeError("Python-2.5 or 2.6 is required, Python-%s used." % py_version)
+
+
+# Check Numpy version, no point installing if unsupported version inplace
+try:
+    import numpy
+except ImportError:
+    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
+
+numpy_version = re.split("[^\d]", numpy.__version__)
+numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
+if numpy_version_info < (1, 3):
+    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
+
 
 doc_imports_failed = False
 try:
@@ -54,7 +72,6 @@ def build_html():
 
 # Compiling Pyrex modules to .c and .so
 include_path = os.path.join(os.getcwd(), 'include')
-import numpy
 # find arrayobject.h on every system an alternative would be to put
 # arrayobject.h into pycogent/include, but why .. 
 numpy_include_path = numpy.get_include()
