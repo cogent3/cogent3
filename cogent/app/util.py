@@ -16,7 +16,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Micah Hamady",
                     "Jeremy Widmann", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.4.1"
+__version__ = "1.5.0.dev"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
