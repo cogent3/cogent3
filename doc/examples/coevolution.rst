@@ -56,7 +56,7 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
     >>> coevolve_alignment(coevolve_alignment_functions['mi'],aln)
     array([[        NaN,         NaN,         NaN],
            [        NaN,  0.81127812,  0.31127812],
-           [        NaN,  0.31127812, 1.        ]])
+           [        NaN,  0.31127812,  1.        ]])
 
 View the available algorithms for computing coevolution values:
 
