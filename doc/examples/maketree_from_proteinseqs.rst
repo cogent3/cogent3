@@ -9,12 +9,11 @@ In this example we pull together the distance calculation and tree building with
 
     >>> from cogent import LoadSeqs, PROTEIN
 
-We will use an empirical protein substitution matrix, this requires a file format parser also.
+We will use an empirical protein substitution matrix.
 
 .. doctest::
 
-    >>> from cogent.evolve.substitution_model import EmpiricalProteinMatrix
-    >>> from cogent.parse.paml_matrix import PamlMatrixParser
+    >>> from cogent.evolve.models import JTT92
 
 The next components we need are for computing the matrix of pairwise sequence distances and then for estimating a neighbour joining tree from those distances.
 
@@ -29,17 +28,11 @@ Now load our sequence alignment, explicitly setting the alphabet to be protein.
     >>> aln = LoadSeqs('data/abglobin_aa.phylip', interleaved=True,
     ...                 moltype=PROTEIN)
 
-We open the file that contains the empirical matrix and parse the matrix and frequencies.
-
-.. doctest::
-
-    >>> matrix_file = open('data/dayhoff.dat')
-
 Create an Empirical Protein Matrix Substitution model object. This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.
 
 .. doctest::
 
-    >>> sm = EmpiricalProteinMatrix(*PamlMatrixParser(matrix_file))
+    >>> sm = JTT92()
 
 We now use this and the alignment to construct a distance calculator.
 
