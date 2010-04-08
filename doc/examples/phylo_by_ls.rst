@@ -69,12 +69,12 @@ We change the asaa settings, so we keep more trees and then look at the distribu
     3 trees of size 4 at start
     15 trees of size 5 ... done
 
-Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. As indicated above, ``trees`` has length 145.
+Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. The number of returned ``trees`` is the same as the number requested to be retained at each step.
 
 .. doctest::
 
     >>> print len(trees)
-    15
+    5
 
 Lets inspect the resulting statistics. First, the object ``trees`` is a list of (wls, Tree) tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct ``for`` loop.
 
