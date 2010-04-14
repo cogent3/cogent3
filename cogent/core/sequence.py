@@ -685,7 +685,7 @@ class Sequence(_Annotatable, SequenceI):
     def gettype(self):
         """Return the sequence type."""
         
-        return self.MolType._type
+        return self.MolType.label
     
     def resolveambiguities(self):
         """Returns a list of tuples of strings."""
