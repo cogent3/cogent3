@@ -71,10 +71,10 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
     >>> aln
     5 x 60 text alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
-3rd-party apps
-==============
+Building alignments with 3rd-party apps such as muscle or clustalw
+==================================================================
 
-*To be written.*
+See `this document <../examples/alignment_app_controllers.html>`_.
 
 Converting gaps from aa-seq alignment to nuc seq alignment
 ==========================================================
