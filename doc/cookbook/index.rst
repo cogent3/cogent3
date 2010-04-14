@@ -29,3 +29,13 @@ Contents:
     code_development
     simple_trees
     phylonodes
+    DNA_and_RNA_sequences
+    alignments
+    annotations
+    code_development
+    genetic_code
+    managing_trees
+    protein_sequences
+    structural_contacts
+    tables
+    
