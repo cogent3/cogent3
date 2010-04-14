@@ -63,8 +63,4 @@ Hierarchical clustering (UPGMA, NJ)
 
 *To be written.*
 
-k-means clustering
-==================
-
-*To be written.*
 
