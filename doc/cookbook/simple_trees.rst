@@ -535,8 +535,8 @@ Create a full unrooted copy of the tree
     (((Human,HowlerMon),Mouse),NineBande,DogFaced);
 
 
-Make tree into a bifurcating tree
-"""""""""""""""""""""""""""""""""
+Transform tree into a bifurcating tree
+""""""""""""""""""""""""""""""""""""""
 
 Add internal nodes so that every node has 2 or fewer children.
 
@@ -568,7 +568,7 @@ Add internal nodes so that every node has 2 or fewer children.
 
     
 Transform tree into a balanced tree
-""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""
 
 Using a balanced tree can substantially improve performance of 
 likelihood calculations. Note that the resulting tree has a 
@@ -617,10 +617,32 @@ Branch lengths don't matter.
     
 
 
-setTipDistances()
-"""""""""""""""""
-Sets distance from each node to the most distant tip.
+Calculate each node's maximum distance to a tip
+"""""""""""""""""""""""""""""""""""""""""""""""
 
+Sets each node's "TipDistance" attribute to be
+the distance from that node to its most distant tip.
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr = LoadTree(treestring="(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
+    >>> print tr.asciiArt()
+              /-B
+    -G-------|
+             |          /-C
+              \F-------|
+                        \-D
+    >>> tr.setTipDistances()
+    >>> for t in tr.preorder():
+    ...     print t.Name, t.TipDistance
+    ... 
+    G 0.9
+    B 0
+    F 0.4
+    C 0
+    D 0
+    
 
 scaleBranchLengths()
 """"""""""""""""""""
