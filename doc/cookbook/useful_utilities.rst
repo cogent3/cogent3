@@ -192,7 +192,7 @@ Simply calling ``tuple`` will not convert the nested items:
 Testing if an item is between two values
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Same as: min_ <= number <= max_, although it is quickly readable within code
+Same as: min <= number <= max, although it is quickly readable within code
 
 .. doctest::
 
