@@ -495,7 +495,7 @@ One way to do it
 
 
 Tree manipulation methods
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pruning the tree
 """"""""""""""""
@@ -678,20 +678,24 @@ and a list of the tip nodes.
 
 
 
-compareByTipDistances()
-"""""""""""""""""""""""
-        """Compares self to other using tip-to-tip distance matrices.
 
-        Value returned is dist_f(m1, m2) for the two matrices. Default is
-        to use the Pearson correlation coefficient, with +1 giving a distance
-        of 0 and -1 giving a distance of +1 (the madimum possible value).
-        Depending on the application, you might instead want to use
-        distance_from_r_squared, which counts correlations of both +1 and -1
-        as identical (0 distance).
+Compare two trees using tip-to-tip distance matrices
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Score ranges from 0 (minimum distance) to 1 (maximum 
+distance). The default is to use Pearson's correlation,
+in which case a score of 0 means that the Pearson's
+correlation was perfectly good (1), and a score of 1
+means that the Pearson's correlation was perfectly bad (-1).
         
-        Note: automatically strips out the names that don't match (this is
-        necessary for this method because the distance between non-matching 
-        names and matching names is undefined in the tree where they don't 
-        match, and because we need to reorder the names in the two trees to 
-        match up the distance matrices).
-        """
+Note: automatically strips out the names that don't match.
+
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr1 = LoadTree(treestring="(B:2,(C:3,D:4)F:5)G;")
+    >>> tr2 = LoadTree(treestring="(C:2,(B:3,D:4)F:5)G;")
+    >>> tr1.compareByTipDistances(tr2)
+    0.0835...
+
