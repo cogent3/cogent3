@@ -293,9 +293,9 @@ Calculating euclidean distances between atoms
     
     >>> from cogent.maths.geometry import distance
     >>> atom1 = resi[('N', ' '),]
-    >>> atom2 = resi[('CG1', ' '),]
+    >>> atom2 = resi[('CA', ' '),]
     >>> distance(atom1.coords, atom2.coords)
-    3.2331596001434955
+    1.4691967192993618
 
 
 Calculating euclidean distances between coordinates
@@ -309,4 +309,71 @@ Calculating euclidean distances between coordinates
     >>> a2 = array([1.0, 4.0, 9.0])
     >>> distance(a1,a2)
     6.324...
+
+
+Calculating flat angles from atoms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent.struct.dihedral import angle
+    >>> atom3 = resi[('C', ' '),]
+    >>> a12 = atom2.coords-atom1.coords
+    >>> a23 = atom3.coords-atom2.coords
+    >>> angle(a12,a23)
+    1.2847745455747765
+
+
+Calculates the angle in radians.
+
+
+Calculating flat angles from coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent.struct.dihedral import angle
+    >>> a1 = array([0.0, 0.0, 1.0])
+    >>> a2 = array([0.0, 0.0, 0.0])
+    >>> a3 = array([0.0, 1.0, 0.0])    
+    >>> a12 = a2-a1
+    >>> a23 = a3-a2
+    >>> angle(a12,a23)
+    1.5707963267948966
+
+
+Calculates the angle in radians.
+
+
+
+Calculating dihedral angles from atoms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent.struct.dihedral import dihedral
+    >>> atom4 = resi[('CG1', ' '),]
+    >>> dihedral(atom1.coords,atom2.coords,atom3.coords, atom4.coords)
+    259.49277688244217
+
+Calculates the torsion in degrees.
+
+
+Calculating dihedral angles from coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+    
+    >>> from cogent.struct.dihedral import dihedral
+    >>> a1 = array([0.0, 0.0, 1.0])
+    >>> a2 = array([0.0, 0.0, 0.0])
+    >>> a3 = array([0.0, 1.0, 0.0])
+    >>> a4 = array([1.0, 1.0, 0.0])
+    >>> dihedral(a1,a2,a3,a4)
+    90.0
+
+
+Calculates the torsion in degrees.
+
+
 
