@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Parser for RNAPlot.
+Parser for RNAPlot postscript output.
 """
 
 from cogent.parse.record_finder import LabeledRecordFinder
@@ -17,8 +17,11 @@ __status__ = "Development"
 def get_sequence(lines):
     """Returns sequence string.
     """
-    seq_line = ''.join(lines)
-    seq = seq_line.split('(')[1].split(') def')[0].strip('\n\\')
+    if lines:
+        seq_line = ''.join(lines)
+        seq = seq_line.split('(')[1].split(') def')[0].strip('\n\\')
+    else:
+        seq = ''
     return seq
     
 def get_coordinates(lines):
@@ -34,6 +37,8 @@ def get_coordinates(lines):
 
 def get_pairs(lines):
     """Returns list of pairing indices.
+    
+        - Changes indices to zero based rather than 1 based.
     """
     pairs = []
     for l in lines:
@@ -47,25 +52,29 @@ def get_pairs(lines):
 def RnaPlotParser(lines):
     """Returns sequence, coordinates, and pairing indices.
     """
-    #Split on sequence block
-    sequence_finder = LabeledRecordFinder(is_label_line=\
-        lambda x: x.startswith('/sequence'))
-    prefix, seq_block = list(sequence_finder(lines))
-    
-    #split on coordinate block
-    coordinate_finder = LabeledRecordFinder(is_label_line=\
-        lambda x: x.startswith('/coor'))
-    #sequence block is first item in list
-    sequence_block, coord_block = list(coordinate_finder(seq_block))
-    
-    #split on pairs block
-    pairs_finder = LabeledRecordFinder(is_label_line=\
-        lambda x: x.startswith('/pairs'))
-    #coordinate block is first item in list
-    coordinate_block, pairs_block = list(pairs_finder(coord_block))
-    
-    sequence = get_sequence(sequence_block)
-    coordinates = get_coordinates(coordinate_block)
-    pairs = get_pairs(pairs_block)
+    sequence = ''
+    coordinates = []
+    pairs = []
+    if lines:
+        #Split on sequence block
+        sequence_finder = LabeledRecordFinder(is_label_line=\
+            lambda x: x.startswith('/sequence'))
+        prefix, seq_block = list(sequence_finder(lines))
+        
+        #split on coordinate block
+        coordinate_finder = LabeledRecordFinder(is_label_line=\
+            lambda x: x.startswith('/coor'))
+        #sequence block is first item in list
+        sequence_block, coord_block = list(coordinate_finder(seq_block))
+        
+        #split on pairs block
+        pairs_finder = LabeledRecordFinder(is_label_line=\
+            lambda x: x.startswith('/pairs'))
+        #coordinate block is first item in list
+        coordinate_block, pairs_block = list(pairs_finder(coord_block))
+        
+        sequence = get_sequence(sequence_block)
+        coordinates = get_coordinates(coordinate_block)
+        pairs = get_pairs(pairs_block)
     
     return sequence, coordinates, pairs
