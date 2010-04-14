@@ -87,10 +87,10 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
       instance is returned instead. If callable, will use as a constructor
       (e.g. can pass in DenseAlignment or CodonAlignment).
     - label_to_name: function for converting original name into another
-      name. Default behavior is to split on first whitespace, i.e. to provide
-      FASTA labels. 
-      To force names to be left alone, pass in: 
-            label_to_name=lambda x: x
+      name. Default behavior is to preserve the original FASTA label and
+      comment. 
+      To remove all FASTA label comments, and pass in only the label, pass in: 
+            label_to_name=lambda x: x.split()[0]
       To look up names in a dict, pass in:
             label_to_name = lambda x: d.get(x, default_name)
       ...where d is a dict that's in scope, and default_name is what you want
