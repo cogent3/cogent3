@@ -37,6 +37,7 @@ Controlling 3rd party applications
     :maxdepth: 1
 
     application_controller_framework
+    building_and_using_an_application_controller
     alignment_app_controllers
     phylogeny_app_controllers
     generating_app_commandlines

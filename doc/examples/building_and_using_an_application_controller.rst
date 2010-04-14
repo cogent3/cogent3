@@ -1,6 +1,6 @@
-**************************************
-Building a new application controller
-**************************************
+***********************************************
+Building and using a new application controller
+***********************************************
 
 .. sectionauthor:: Greg Caporaso
 
