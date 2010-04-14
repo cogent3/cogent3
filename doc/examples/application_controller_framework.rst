@@ -6,15 +6,7 @@
 
 About this document
 ===================
-
-This document was written by Greg Caporaso and Sandra Smit, the developers of
-the application controller framework in PyCogent. Since its beginnings, the 
-application controller framework has been
-further developed and improved by multiple people involved in the PyCogent
-project, and of course many application controllers have been implemented.
-Thanks!
-
-The purpose of this document (together with the code in the PyCogent library) is
+The purpose of this document is
 to serve as a guideline for new users who want to implement application
 controllers. It should also be helpful as a reference document for more
 experienced coders. To meet the different needs of these people, this document
@@ -22,6 +14,8 @@ is split up into multiple sections that discuss the framework in different
 levels of detail. We first provide a summary, then documentation for application
 controller users, then documentation for application controller developers, and
 finally a developer's reference detailing the underlying objects.
+
+An addition example of building and applying a new application controller is provided `here <./building_and_using_an_application_controller.html>`_.
 
 Feedback from users of this document will help us to improve it, so please don't
 hesitate to contact us: gregcaporaso@gmail.com or sandra_smit at users.sourceforge.net.
