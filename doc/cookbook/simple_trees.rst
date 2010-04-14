@@ -306,6 +306,39 @@ At the midpoint
              |
               \-DogFaced
 
+Near a given tip
+""""""""""""""""
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr = LoadTree('data/test.tree')
+    >>> print tr.asciiArt()
+                                  /-Human
+                        /edge.0--|
+              /edge.1--|          \-HowlerMon
+             |         |
+             |          \-------- /-Mouse
+    -root----|
+             |--NineBande
+             |
+              \-DogFaced
+    >>> print tr.rootedWithTip("Mouse").asciiArt()
+              /-Mouse
+             |
+    -root----|                    /-Human
+             |          /edge.0--|
+             |         |          \-HowlerMon
+              \edge.0.2|
+                       |          /-NineBande
+                        \edge.1--|
+                                  \-DogFaced
+        
+                       |          /-NineBande
+                        \edge.1--|
+                                  \-DogFaced
+
+
 Tree representations
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -459,3 +492,171 @@ One way to do it
     >>> from cogent.util.misc import remove_files
     >>> remove_files(['data/temp.tree', 'data/temp.pdf'],
     ...                 error_on_missing=False)
+
+
+Tree manipulation methods
+^^^^^^^^^^^^^
+
+Pruning the tree
+""""""""""""""""
+
+Remove internal nodes with only one child. Create new connections
+and branch lengths (if tree is a PhyloNode) to reflect the change. 
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> simple_tree_string="(B:0.2,(D:0.4)E:0.5)F;"
+    >>> simple_tree=LoadTree(treestring=simple_tree_string)
+    >>> print simple_tree.asciiArt()
+              /-B
+    -F-------|
+              \E------- /-D
+    >>> simple_tree.prune()
+    >>> print simple_tree.asciiArt()
+              /-B
+    -F-------|
+              \-D
+    >>> print simple_tree
+    (B:0.2,D:0.9)F;
+
+
+Create a full unrooted copy of the tree
+"""""""""""""""""""""""""""""""""""""""
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr1 = LoadTree('data/test.tree')
+    >>> print tr1.getNewick()
+    (((Human,HowlerMon),Mouse),NineBande,DogFaced);
+    >>> tr2 = tr1.unrootedDeepcopy()
+    >>> print tr2.getNewick()
+    (((Human,HowlerMon),Mouse),NineBande,DogFaced);
+
+
+Make tree into a bifurcating tree
+"""""""""""""""""""""""""""""""""
+
+Add internal nodes so that every node has 2 or fewer children.
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tree_string="(B:0.2,H:0.2,(C:0.3,D:0.4,E:0.1)F:0.5)G;"
+    >>> tr = LoadTree(treestring=tree_string)
+    >>> print tr.asciiArt()
+              /-B
+             |
+             |--H
+    -G-------|
+             |          /-C
+             |         |
+              \F-------|--D
+                       |
+                        \-E
+    >>> print tr.bifurcating().asciiArt()
+              /-B
+    -G-------|
+             |          /-H
+              \root.2--|
+                       |          /-C
+                        \F-------|
+                                 |          /-D
+                                  \root----|
+                                            \-E
+
+    
+Transform tree into a balanced tree
+""""""""""""""""""""""""""""""""""
+
+Using a balanced tree can substantially improve performance of 
+likelihood calculations. Note that the resulting tree has a 
+different orientation with the effect that specifying clades or 
+stems for model parameterization should be done using the 
+"outgroup_name" argument.
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr = LoadTree('data/test.tree')
+    >>> print tr.asciiArt()
+                                  /-Human
+                        /edge.0--|
+              /edge.1--|          \-HowlerMon
+             |         |
+             |          \-Mouse
+    -root----|
+             |--NineBande
+             |
+              \-DogFaced
+    >>> print tr.balanced().asciiArt()
+                        /-Human
+              /edge.0--|
+             |          \-HowlerMon
+             |
+    -root----|--Mouse
+             |
+             |          /-NineBande
+              \edge.1--|
+                        \-DogFaced
+    
+
+Test two trees for same topology
+""""""""""""""""""""""""""""""""
+
+Branch lengths don't matter.
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr1 = LoadTree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
+    >>> tr2 = LoadTree(treestring="((C:0.1,D:0.1)F:0.1,B:0.1)G;")
+    >>> tr1.sameTopology(tr2)
+    True
+    
+
+
+setTipDistances()
+"""""""""""""""""
+Sets distance from each node to the most distant tip.
+
+
+scaleBranchLengths()
+""""""""""""""""""""
+Scales BranchLengths in place to integers for ascii output.
+
+        Warning: tree might not be exactly the length you specify.
+
+        Set ultrametric=True if you want all the root-tip distances to end
+        up precisely the same.
+
+
+tipToTipDistances()
+"""""""""""""""""""
+           """Returns distance matrix between all pairs of tips, and a tip order.
+            
+        Warning: .__start and .__stop added to self and its descendants.
+
+        tip_order contains the actual node objects, not their names (may be
+        confusing in some cases).
+        """
+
+
+compareByTipDistances()
+"""""""""""""""""""""""
+        """Compares self to other using tip-to-tip distance matrices.
+
+        Value returned is dist_f(m1, m2) for the two matrices. Default is
+        to use the Pearson correlation coefficient, with +1 giving a distance
+        of 0 and -1 giving a distance of +1 (the madimum possible value).
+        Depending on the application, you might instead want to use
+        distance_from_r_squared, which counts correlations of both +1 and -1
+        as identical (0 distance).
+        
+        Note: automatically strips out the names that don't match (this is
+        necessary for this method because the distance between non-matching 
+        names and matching names is undefined in the tree where they don't 
+        match, and because we need to reorder the names in the two trees to 
+        match up the distance matrices).
+        """
