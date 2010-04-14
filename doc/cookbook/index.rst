@@ -38,4 +38,4 @@ Contents:
     protein_sequences
     structural_contacts
     tables
-    
+    managing_alphabet
