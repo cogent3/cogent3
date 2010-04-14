@@ -15,6 +15,7 @@ Contents:
     sequence_similarity_search
     controlling_third_party_applications
     blast
+    loading_sequences
     building_alignments
     building_phylogenies
     structural_data
