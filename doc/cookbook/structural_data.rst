@@ -319,9 +319,9 @@ Calculating flat angles from atoms
     >>> from cogent.struct.dihedral import angle
     >>> atom3 = resi[('C', ' '),]
     >>> a12 = atom2.coords-atom1.coords
-    >>> a23 = atom3.coords-atom2.coords
+    >>> a23 = atom2.coords-atom3.coords
     >>> angle(a12,a23)
-    1.2847745455747765
+    1.8568181080150168
 
 
 Calculates the angle in radians.
@@ -337,7 +337,7 @@ Calculating flat angles from coordinates
     >>> a2 = array([0.0, 0.0, 0.0])
     >>> a3 = array([0.0, 1.0, 0.0])    
     >>> a12 = a2-a1
-    >>> a23 = a3-a2
+    >>> a23 = a2-a3
     >>> angle(a12,a23)
     1.5707963267948966
 
@@ -374,6 +374,68 @@ Calculating dihedral angles from coordinates
 
 
 Calculates the torsion in degrees.
+
+
+Other stuff
+-----------
+
+How to count the atoms in a structure?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+    
+    >>> len(struc.table['A'].values())
+    1187
+
+How to iterate over chains in canonical PDB order?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In PDB, the chain with space as ID comes last, the 
+others in alphabetical order.
+
+.. doctest::
+    
+    >>> for chain in model.sortedvalues(): print chain
+    <Chain id=A>
+    <Chain id= >
+
+
+How to iterate over chains in alphabetical order?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want the chains in purely alphabetical order:
+
+.. doctest::
+    
+    >>> # KR 2 ROB: Is this what you requested or is the above example enough?
+    >>> keys = model.keys()
+    >>> keys.sort()
+    >>> for chain in [model[id] for id in keys]: print chain
+    <Chain id= >
+    <Chain id=A>
+
+
+How to iterate over all residues in a chain?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+    
+    >>> residues = [resi for resi in chain.values()]
+    >>> len(residues)
+    148
+
+
+How to remove all water molecules from a structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+    
+    >>> water = [r for r in struc.table['R'].values() if r.name=='H_HOH']
+    >>> for resi in water: resi.parent.delChild(resi.id)
+    >>> # KR: I THINK struc.table IS NOT UPDATED AUTOMATICALLY
+    >>> len(struc.table['A'].values())
+    1117
+
 
 
 
