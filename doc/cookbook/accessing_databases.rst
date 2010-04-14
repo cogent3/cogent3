@@ -10,7 +10,7 @@ NCBI
 EUtils is a web service offered by the NCBI to access the sequence, literature and other databases by a special format of URLs. PyCogent offers an interface to construct the URLs and retrieve the results in text format.
 
 For sequences
-------------
+-------------
 
 Fetching FASTA or Genpept sequences from NCBI using EFetch with GI's
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
