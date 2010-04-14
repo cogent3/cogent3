@@ -124,7 +124,7 @@ A SequenceCollection cannot be sliced (it's unaligned)
     >>> seqs = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=False)
     >>> try:
     ...     print seqs[:24]
-    ... except TypeError as e:
+    ... except TypeError, e:
     ...     print e
     ...
     'SequenceCollection' object is unsubscriptable
@@ -342,7 +342,7 @@ but a ``SequenceCollection`` cannot be sliced
     >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
     >>> try:
     ...     print seqs[:24]
-    ... except TypeError as e:
+    ... except TypeError, e:
     ...     print e
     ...
     'SequenceCollection' object is unsubscriptable

@@ -82,7 +82,7 @@ Use the method ``getInMotifSize()``
     ['ATG', 'CAC', 'TGG', 'TAA']
     >>> try:
     ...     pep = my_seq.getTranslation()
-    ... except AlphabetError as e:
+    ... except AlphabetError, e:
     ...     print 'AlphabetError', e
     ...
     AlphabetError TAA
