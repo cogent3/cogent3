@@ -15,7 +15,7 @@ By distance method
 
 *To be written.*
 
-3rd-party apps for phylogeny
-============================
+Building phylogenies with 3rd-party apps such as FastTree or RAxML
+==================================================================
 
-*To be written.*
+See `this document <../examples/phylogeny_app_controllers.html>`_.
