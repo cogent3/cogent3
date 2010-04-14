@@ -667,7 +667,7 @@ To count all occurrences of a given dinucleotide in a DNA sequence, one could us
     >>> sum([nn == 'AA' for nn in di_nucs])
     3
 
-Calculating gap fractions for each column in an alignment
+Working with alignment gaps
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Filtering extracted columns for the gap character
@@ -701,4 +701,49 @@ Calculating the gap fraction
     0.666666666667
     0.0
     0.0...
+
+Extracting maps of aligned to unaligned positions (i.e., gap maps)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+It's often important to know how an alignment position relates to a position in one or more of the sequences in the alignment. The ``gapMaps`` method of the individual sequences is useful for this. To get a map of sequence to alignment positions for a specific sequence in your alignment, do the following:
+
+.. doctest::
+
+    >>> from cogent import LoadSeqs
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGG-TG--'),
+    ...                       ('seq2', 'ATG-AGGTGATG'),
+    ...                       ('seq3', 'ATGAAG--GATG')], moltype=DNA)
+    >>> seq_to_aln_map = aln.getGappedSeq('seq1').gapMaps()[0]
+
+It's now possible to look up positions in the ``seq1``, and find out what they map to in the alignment:
+
+.. doctest::
+
+    >>> seq_to_aln_map[3]
+    3
+    >>> seq_to_aln_map[8]
+    9
+
+This tells us that in position 3 in ``seq1`` corresponds to position 3 in ``aln``, and that position 8 in ``seq1`` corresponds to position 9 in ``aln``.
+
+Notice that we grabbed the first result from the call to ``gapMaps()``. This is the sequence position to alignment position map. The second value returned is the alignment position to sequence position map, so if you want to find out what sequence positions the alignment positions correspond to (opposed to what alignment positions the sequence positions correspond to) for a given sequence, you would take the following steps:
+
+.. doctest::
+
+    >>> aln_to_seq_map = aln.getGappedSeq('seq1').gapMaps()[1]
+    >>> aln_to_seq_map[3]
+    3
+    >>> aln_to_seq_map[8]
+    7
+
+If an alignment position is a gap, and therefore has no corresponding sequence position, you'll get a ``KeyError``. You can catch this in your code and handle it as makes sense for your application:
+
+.. doctest::
+
+   >>> try:
+   ...     seq_pos = aln_to_seq_map[7]
+   ... except KeyError:
+   ...     seq_pos = None
+   >>> print seq_pos
+   None
 
