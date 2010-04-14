@@ -87,6 +87,9 @@ Modelling Evolution
     coevolution
     rate_heterogeneity
     hmm_par_heterogeneity
+    seqsim_alignment_simulation
+    seqsim_aln_sim_user_alphabet
+    seqsim_tree_sim
 
 ***************************
 Phylogenetic Reconstruction
