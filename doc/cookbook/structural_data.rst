@@ -270,8 +270,10 @@ How to add entities to each other?
     >>> m.addChild(c)
     >>> c.addChild(r)
     >>> r.addChild(a)
+    >>> s.setTable(force=True)
     >>> s.table
-    >>> # SHOULD NOT BE {'A': {}, 'C': {}, 'R': {}, 'M': {}}
+    {'A': {('my_struc', 0, 'A', ('ALA', 1, ' '), ('C  ', ' ')): <Atom ('C  ', ' ')>}, 'C': {('my_struc', 0, 'A'): <Chain id=A>}, 'R': {('my_struc', 0, 'A', ('ALA', 1, ' ')): <Residue ALA resseq=1 icode= >}, 'M': {('my_struc', 0): <Model id=0>}}
+
 
 How to remove a residue from a chain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -432,7 +434,7 @@ How to remove all water molecules from a structure
     
     >>> water = [r for r in struc.table['R'].values() if r.name=='H_HOH']
     >>> for resi in water: resi.parent.delChild(resi.id)
-    >>> # KR: I THINK struc.table IS NOT UPDATED AUTOMATICALLY
+    >>> struc.setTable(force=True)
     >>> len(struc.table['A'].values())
     1117
 
