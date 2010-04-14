@@ -61,6 +61,22 @@ def angle(v1,v2):
     angle = acos(fix_rounding_error(cosine))
     return angle
 
+
+def calc_angle(vec1,vec2,vec3):
+    """Calculates a flat angle from three coordinates."""
+    if len(vec1) == 3:
+        v1, v2, v3 = map(create_vector,[vec1,vec2,vec3])
+    else:
+        v1, v2, v3 = map(create_vector2d,[vec1,vec2,vec3])
+    v12 = v2 - v1
+    v23 = v2 - v3
+    return angle(v12, v23)
+
+def create_vector2d(vec):
+    """Returns a vector as a numpy array."""
+    return array([vec[0],vec[1]])
+    
+
 def create_vector(vec):
     """Returns a vector as a numpy array."""
     return array([vec[0],vec[1],vec[2]])

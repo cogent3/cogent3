@@ -19,7 +19,7 @@ __status__ = "Production"
 
 from cogent.util.unit_test import main, TestCase
 from cogent.struct.dihedral import dihedral, scalar, angle, \
-    DihedralGeometryError, AngleGeometryError
+    calc_angle, DihedralGeometryError, AngleGeometryError
 from random import random
 from numpy import array
 from math import pi, cos, sin
@@ -81,6 +81,24 @@ class DihedralTests(TestCase):
         self.assertEqual(angle(array([0,7,7]),array([0,14,14])),0.0)
         self.assertAlmostEqual(angle(array([100000000.0,0,1]),\
             array([1,0,0])),0.0)
+
+    def test_calc_angle_simple(self):
+        """Tests the calc_angle function for one- and two-dimensional vectors."""
+        # test two-dimensional vectors (not arrays!)
+        self.assertEqual(calc_angle(array([0,1]),array([0,0]),array([1,0])),0.5*pi)
+        self.assertEqual(calc_angle(array([5,0]),array([0,0]),array([13,0])),0.0)
+        self.assertEqual(calc_angle(array([4,3]),array([2,0]),array([28,39])),0.0)
+        self.assertEqual(calc_angle(array([2,-13]),array([0,-10]),array([-3,-12])),0.5*pi)        
+        self.assertEqual(calc_angle(array([-5,0]),array([0,0]),array([13,0])),pi)
+        # test three-dimensional vectors (not arrays!)        
+        self.assertEqual(calc_angle(array([0,0,-1]),array([0,0,0]),array([0,0,1])),pi)
+        self.assertEqual(calc_angle(array([0,15,-1]),array([0,0,0]),array([0,-15,1])),pi)
+        self.assertEqual(calc_angle(array([0,10,7]),array([0,10,0]),array([14,24,0])),0.5*pi)
+        self.assertEqual(calc_angle(array([0,7,7]),array([0,0,0]),array([0,14,14])),0.0)
+        self.assertAlmostEqual(calc_angle(array([100000000.0,0,1]),\
+            array([0,0,0]),array([1,0,0])),0.0)
+
+
 
     ##    def make_scipy_angles(self):
     ##        """Generates the test data given below. Was commented out 
