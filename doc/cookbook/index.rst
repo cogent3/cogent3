@@ -27,3 +27,4 @@ Contents:
     hpc_environments
     useful_utilities
     code_development
+    managing_trees
