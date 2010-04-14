@@ -8,7 +8,7 @@ alpha diversity
 Phylogenetic Diversity (PD)
 ---------------------------
 
-For each environment (i.e. sample), calculates the amount of branchlength in a phylogenetic tree that lead to its sequences.  
+For each environment (i.e. sample), calculates the amount of branch length in a phylogenetic tree that lead to its sequences.  
 
 First we will load in a Newick formatted tree.
 
@@ -66,7 +66,7 @@ The Fast UniFrac implementation in PyCogent is the source code for the Fast UniF
 Calculate a UniFrac Distance Matrix and apply PCoA and UPGMA
 ------------------------------------------------------------
 
-The UniFrac analysis is run on open tree and environment file objects. The resulting dictionary has a distance matrix of pairwise UniFrac values ('distance_matrix'), a Newick string representing the results of performing UPGMA clustering on this distance matrix ('cluster_envs') and the results of running Principal Coordinates Analysis on the distance matrix ('pcoa'). To run an unweighted analysis is specified (weighted=False).
+The UniFrac analysis is run on open tree and environment file objects. The resulting dictionary has a distance matrix of pairwise UniFrac values ('distance_matrix'), a Newick string representing the results of performing UPGMA clustering on this distance matrix ('cluster_envs') and the results of running Principal Coordinates Analysis on the distance matrix ('pcoa'). One can specify weighted UniFrac with weighted=True. Here we run an unweighted analysis.
 
 .. doctest::
 
@@ -93,7 +93,7 @@ The UniFrac analysis is run on open tree and environment file objects. The resul
 Perform pairwise tests of whether samples are significantly different with UniFrac
 ----------------------------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. That the analysis should use unweighted unifrac (weighted=False), the number of times to permute the environment assignments on the tree (num_iters=50) and that a pairwise significance test is to be performed (test_on="Pairwise") are specified. A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
+The analysis is run on open tree and environment file objects. In this example, we use unweighted unifrac (weighted=False), we permute the environment assignments on the tree 50 times (num_iters=50) and we perform UniFrac on all pairs of environments (test_on="Pairwise"). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
 
 .. doctest::
 
@@ -107,7 +107,7 @@ The analysis is run on open tree and environment file objects. That the analysis
 Perform a single UniFrac significance test on the whole tree
 ------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. That the analysis should use weighted unifrac (weighted=True), the number of times to permute the environment assignments on the tree (num_iters=50) and that a significance test on the whole tree is to be performed (test_on="Tree") are specified. The resulting list has only one item since a single test was performed. It is a 3 item tuple with 0 - the first environment, 1 - the p-value and 2 - the p-value again.
+The analysis is run on open tree and environment file objects. In this example, we use weighted unifrac (weighted=True), we permute the environment assignments on the tree 50 times (num_iters=50) and we perform a unifrac significance test on the whole tree (test_on="Tree"). The resulting list has only one item since a single test was performed. It is a 3 item tuple where the second and third values are the p-value.
 
 .. doctest::
 
@@ -124,7 +124,7 @@ P-test
 Perform pairwise tests of whether samples are significantly different with the P-test (Martin, 2002)
 ----------------------------------------------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. The number of times to permute the environment assignments on the tree (num_iters=50) and that a pairwise significance test is to be performed (test_on="Pairwise") are specified. A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
+The analysis is run on open tree and environment file objects. In this example, we permute the environment assignments on the tree 50 times (num_iters=50) and perform the p test for all pairs of environments (test_on="Pairwise"). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
 
 .. doctest::
 
