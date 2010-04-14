@@ -20,8 +20,9 @@ from cogent.util.misc import iterable, max_index, min_index, \
     ConstrainedString, ConstrainedList, ConstrainedDict, \
     MappedString, MappedList, MappedDict, \
     generateCombinations, makeNonnegInt, \
-    NonnegIntError, revComp, not_none, get_items_except,\
-    NestedSplitter, curry, app_path, remove_files, get_random_directory_name
+    NonnegIntError, reverse_complement, not_none, get_items_except,\
+    NestedSplitter, curry, app_path, remove_files, get_random_directory_name,\
+    revComp
 from numpy import array
 
 __author__ = "Rob Knight"
@@ -1254,66 +1255,71 @@ class makeNonnegIntTests(TestCase):
     #end test_makeNonnegInt_noncastable
 #end makeNonnegIntTests
 
-class revCompTests(TestCase):
-    """Tests of the public revComp function"""
+class reverse_complementTests(TestCase):
+    """Tests of the public reverse_complement function"""
     
-    def test_revComp_DNA(self):
-        """revComp should correctly return reverse complement of DNA"""
+    def test_reverse_complement_DNA(self):
+        """reverse_complement should correctly return reverse complement of DNA"""
         
         #input and correct output taken from example at 
         #http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/
         #Reverse_Comp/reverse_comp.html
         user_input = "ATGCAGGGGAAACATGATTCAGGAC"
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
+        real_output = reverse_complement(user_input)
+        self.assertEquals(real_output, correct_output)
+        
+        # revComp is a pointer to reverse_complement (for backward 
+        # compatibility)
         real_output = revComp(user_input)
         self.assertEquals(real_output, correct_output)
-    #end test_revComp_DNA
+    #end test_reverse_complement_DNA
     
-    def test_revComp_RNA(self):
-        """revComp should correctly return reverse complement of RNA"""
+    def test_reverse_complement_RNA(self):
+        """reverse_complement should correctly return reverse complement of RNA"""
         
-        #input and correct output taken from test_revComp_DNA test,
+        #input and correct output taken from test_reverse_complement_DNA test,
         #with all Ts changed to Us
         user_input = "AUGCAGGGGAAACAUGAUUCAGGAC"
         correct_output = "GUCCUGAAUCAUGUUUCCCCUGCAU"
         
         #remember to use False toggle to get RNA instead of DNA
-        real_output = revComp(user_input, False)
+        real_output = reverse_complement(user_input, False)
         self.assertEquals(real_output, correct_output)        
-    #end test_revComp_RNA
+    #end test_reverse_complement_RNA
     
-    def test_revComp_caseSensitive(self):
-        """revComp should convert bases without changing case"""
+    def test_reverse_complement_caseSensitive(self):
+        """reverse_complement should convert bases without changing case"""
         
         user_input = "aCGtAcgT"
         correct_output = "AcgTaCGt"
-        real_output = revComp(user_input)
+        real_output = reverse_complement(user_input)
         self.assertEquals(real_output, correct_output) 
-    #end test_revComp_caseSensitive
+    #end test_reverse_complement_caseSensitive
     
-    def test_revComp_nonNucleicSeq(self):
-        """revComp should just reverse any chars but ACGT/U"""
+    def test_reverse_complement_nonNucleicSeq(self):
+        """reverse_complement should just reverse any chars but ACGT/U"""
         
         user_input = "BDeF"
         correct_output = "FeDB"
-        real_output = revComp(user_input)
+        real_output = reverse_complement(user_input)
         self.assertEquals(real_output, correct_output)   
-    #end test_revComp_nonNucleicSeq
+    #end test_reverse_complement_nonNucleicSeq
     
-    def test_revComp_emptySeq(self):
-        """revComp should return empty string if given empty sequence"""
+    def test_reverse_complement_emptySeq(self):
+        """reverse_complement should return empty string if given empty sequence"""
         
         #shouldn't matter whether in DNA or RNA mode
-        real_output = revComp("")
+        real_output = reverse_complement("")
         self.assertEquals(real_output, "") 
-    #end test_revComp_emptySeq
+    #end test_reverse_complement_emptySeq
     
-    def test_revComp_noSeq(self):
-        """revComp should return error if given no sequence argument"""
+    def test_reverse_complement_noSeq(self):
+        """reverse_complement should return error if given no sequence argument"""
         
-        self.assertRaises(TypeError, revComp)
-    #end test_revComp_noSeq
-#end revCompTests
+        self.assertRaises(TypeError, reverse_complement)
+    #end test_reverse_complement_noSeq
+#end reverse_complementTests
 
     def test_not_none(self):
         """not_none should return True if none of the items is None"""

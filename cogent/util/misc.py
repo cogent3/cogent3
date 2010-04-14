@@ -1166,7 +1166,7 @@ def makeNonnegInt(n):
     return n
 #end makeNonnegInt
 
-def revComp(seq, use_DNA=True):
+def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
     
     seq: a string
@@ -1190,6 +1190,10 @@ def revComp(seq, use_DNA=True):
 
     #join the reverse-complemented list and return
     return "".join(comp_list)
+# The reverse_complement function was previously called revComp, but that 
+# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but 
+# keeping the old name around to not break existing code.
+revComp = reverse_complement
 #end revComp
 
 def timeLimitReached(start_time, time_limit):
