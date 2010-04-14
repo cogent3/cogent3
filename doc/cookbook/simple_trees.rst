@@ -644,25 +644,38 @@ the distance from that node to its most distant tip.
     D 0
     
 
-scaleBranchLengths()
-""""""""""""""""""""
-Scales BranchLengths in place to integers for ascii output.
+Scale branch lengths in place to integers for ascii output
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-        Warning: tree might not be exactly the length you specify.
+.. doctest::
 
-        Set ultrametric=True if you want all the root-tip distances to end
-        up precisely the same.
+    >>> from cogent import LoadTree
+    >>> tr = LoadTree(treestring="(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
+    >>> print tr
+    (B:0.2,(C:0.3,D:0.4)F:0.5)G;
+    >>> tr.scaleBranchLengths()
+    >>> print tr
+    (B:22,(C:33,D:44)F:56)G;
 
 
-tipToTipDistances()
-"""""""""""""""""""
-           """Returns distance matrix between all pairs of tips, and a tip order.
-            
-        Warning: .__start and .__stop added to self and its descendants.
+Get tip-to-tip distances
+""""""""""""""""""""""""
+Get a distance matrix between all pairs of tips
+and a list of the tip nodes.
 
-        tip_order contains the actual node objects, not their names (may be
-        confusing in some cases).
-        """
+
+.. doctest::
+
+    >>> from cogent import LoadTree
+    >>> tr = LoadTree(treestring="(B:3,(C:2,D:4)F:5)G;")
+    >>> d,tips = tr.tipToTipDistances()
+    >>> for i,t in enumerate(tips):
+    ...     print t.Name,d[i]
+    ... 
+    B [  0.  10.  11.]
+    C [ 10.   0.   7.]
+    D [ 11.   7.   0.]
+
 
 
 compareByTipDistances()
