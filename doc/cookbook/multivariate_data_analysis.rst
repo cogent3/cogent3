@@ -5,7 +5,7 @@ Multivariate data analysis
 Principal Coordinates Analysis
 ==============================
 
-Principal Coordinates Analysis works on a matrix of pairwise distances. In this example we start by calculating the pairwise distances for a set of aligned sequences.
+Principal Coordinates Analysis works on a matrix of pairwise distances. In this example we start by calculating the pairwise distances for a set of aligned sequences, though any distance matrix can be used with PCoA, relating any objects, not only sequences.
 
 .. doctest::
 
@@ -95,8 +95,8 @@ Then compute a distance matrix of your choosing, and perform nmds on that matrix
 
 .. doctest::
 
-    >>> distmtx = dist_euclidean(abundance)
-    >>> nm = NMDS(distmtx, verbosity=0)
+    >>> euc_distmtx = dist_euclidean(abundance)
+    >>> nm = NMDS(euc_distmtx, verbosity=0)
 
 The NMDS object provides a list of points, which can be plotted if desired
 
@@ -110,50 +110,71 @@ With matplotlib installed, we could then do ``plt.plot(pts[:,0], pts[:,1])``
 Hierarchical clustering (UPGMA, NJ)
 ===================================
 
-Hierarchical clustering techniques work on a matrix of pairwise distances. In this case, we generate the distance matrix between a set of sequences.
+Hierarchical clustering techniques work on a matrix of pairwise distances. In this case, we use the distance matrix from the NMDS example, relating samples of species to one another.
 
-**NOTE:** UPGMA should not be used for phylogenetic reconstruction.
+:note: UPGMA should not be used for phylogenetic reconstruction.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
-    >>> from cogent.phylo import distance
     >>> from cogent.cluster.UPGMA import upgma
 
-Import a substitution model (or create your own)
+we start with the distance matrix and list of sample names:
 
-.. doctest::
+    >>> sample_names = ['sample'+str(i) for i in range(len(euc_distmtx))]
+    
+make 2d dict:
 
-    >>> from cogent.evolve.models import HKY85
+    >>> euc_distdict = {}
+    >>> for i in range(len(sample_names)):
+    ...    for j in range(len(sample_names)):
+    ...        euc_distdict[(sample_names[i],sample_names[j])]=euc_distmtx[i,j]
 
-Load the alignment.
-
-.. doctest::
-
-    >>> al = LoadSeqs("data/test.paml")
-
-Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
-
-.. doctest::
-
-    >>> d = distance.EstimateDistances(al, submodel= HKY85())
-    >>> d.run(show_progress=False)
+e.g.: `euc_distdict[('sample6', 'sample5')] == 3.7416573867739413`
 
 Now use this matrix to build a UPGMA cluster.
 
 .. doctest::
 
-    >>> mycluster = upgma(d.getPairwiseDistances())
+    >>> mycluster = upgma(euc_distdict)
     >>> print mycluster.asciiArt()
-                                  /-NineBande
+                                                      /-sample10
+                                            /edge.3--|
+                                  /edge.2--|          \-sample8
+                                 |         |
+                                 |          \-sample9
                         /edge.1--|
-                       |         |          /-HowlerMon
-              /edge.0--|          \edge.2--|
-             |         |                    \-Human
-    -root----|         |
-             |          \-DogFaced
+                       |         |                    /-sample12
+                       |         |          /edge.5--|
+                       |         |         |          \-sample11
+                       |          \edge.4--|
+                       |                   |          /-sample6
+                       |                    \edge.6--|
+              /edge.0--|                              \-sample7
+             |         |
+             |         |                                        /-sample15
+             |         |                              /edge.10-|
+             |         |                    /edge.9--|          \-sample14
+             |         |                   |         |
+             |         |          /edge.8--|          \-sample13
+             |         |         |         |
+             |          \edge.7--|          \-sample16
+    -root----|                   |
+             |                   |          /-sample17
+             |                    \edge.11-|
+             |                              \-sample18
              |
-              \-Mouse
+             |                              /-sample5
+             |                    /edge.14-|
+             |          /edge.13-|          \-sample4
+             |         |         |
+             |         |          \-sample3
+              \edge.12-|
+                       |                    /-sample2
+                       |          /edge.16-|
+                        \edge.15-|          \-sample1
+                                 |
+                                  \-sample0
+
 
 We demonstrate saving this UPGMA cluster to a file.
 
@@ -170,3 +191,48 @@ We demonstrate saving this UPGMA cluster to a file.
     >>> import os
     >>> os.remove('test_upgma.tree')
 
+
+We can use neighbor joining instead of UPGMA:
+
+.. doctest::
+    
+    >>> from cogent.phylo.nj import nj
+    >>> njtree = nj(euc_distdict)
+    >>> print njtree.asciiArt()
+              /-sample16
+             |
+             |                    /-sample12
+             |          /edge.2--|
+             |         |         |          /-sample13
+             |         |          \edge.1--|
+             |         |                   |          /-sample14
+             |         |                    \edge.0--|
+             |         |                              \-sample15
+             |         |
+             |         |                              /-sample7
+             |-edge.14-|                    /edge.5--|
+             |         |                   |         |          /-sample8
+             |         |                   |          \edge.4--|
+             |         |          /edge.6--|                   |          /-sample10
+             |         |         |         |                    \edge.3--|
+             |         |         |         |                              \-sample9
+    -root----|         |         |         |
+             |         |         |          \-sample11
+             |         |         |
+             |          \edge.13-|                    /-sample6
+             |                   |                   |
+             |                   |                   |                              /-sample4
+             |                   |          /edge.10-|                    /edge.7--|
+             |                   |         |         |          /edge.8--|          \-sample3
+             |                   |         |         |         |         |
+             |                   |         |          \edge.9--|          \-sample5
+             |                    \edge.12-|                   |
+             |                             |                    \-sample2
+             |                             |
+             |                             |          /-sample0
+             |                              \edge.11-|
+             |                                        \-sample1
+             |
+             |          /-sample18
+              \edge.15-|
+                        \-sample17
