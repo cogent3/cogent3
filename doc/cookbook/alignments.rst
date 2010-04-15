@@ -71,25 +71,46 @@ Constructing a SequenceCollection or Alignment object from strings
 To recover a single DNA sequence from the collection or alignment by name
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+Using the ``getSeq`` method allows for extracting an unaligned sequence from a collection or alignment by name. 
+
+
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=True)
-    >>> aln.Names
-    ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
-    >>> seq = aln.getSeq('Human')
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> seq = aln.getSeq('seq1')
     >>> seq.Name
-    'Human'
-    >>> seq
-    DnaSequence(TGTGGCA... 2532)
+    'seq1'
     >>> type(seq)
     <class 'cogent.core.sequence.DnaSequence'>
+    >>> seq.isGapped()
+    False
+
+Alternativey, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``getGappedSeq``:
+
+.. doctest::
+
+    >>> seq = aln.getGappedSeq('seq1')
+    >>> seq.isGapped()
+    True
+
+To see the names of the sequences in a sequence collection, you can use either ``Names`` or ``getSeqNames``:
+
+.. doctest::
+
+    >>> aln.Names
+    ['seq1', 'seq2', 'seq3']
+    >>> aln.getSeqNames()
+    ['seq1', 'seq2', 'seq3']
 
 One can also slice the sequences from an alignment like a list
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
+    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=True)
     >>> aln.Seqs[0]
     [0:2532]/2532 of DnaSequence(TGTGGCA... 2532)
 
@@ -746,4 +767,58 @@ If an alignment position is a gap, and therefore has no corresponding sequence p
    ...     seq_pos = None
    >>> print seq_pos
    None
+
+**Important: Notice that the first position in alignments and sequences is always numbered position 0.**
+
+Filtering alignments based on gaps
+++++++++++++++++++++++++++++++++++
+The ``omitGapRuns()`` method can be applied to remove long stretches of gaps in an alignment. In following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
+
+.. doctest::
+
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> print aln.omitGapRuns(2).toFasta()
+    >seq2
+    ATG-AGTGATG
+    >seq3
+    AT--AG-GATG
+
+If instead, we just wanted to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omitGapPositions`` function. For example:
+
+.. doctest::
+
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> print aln.omitGapPositions(0.40).toFasta()
+    >seq1
+    ATGA--TG-
+    >seq2
+    ATGAGGATG
+    >seq3
+    AT-AGGATG
+
+You'll notice that the 4th and 7th columns of the alignment have been removed because they contained 66% gaps -- more than the allowed 40%. 
+
+If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omitGapSeqs()`` method. This is commonly applied to filter partial sequences from an alignment. 
+
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> filtered_aln = aln.omitGapSeqs(0.50)
+    >>> print filtered_aln.toFasta()
+    >seq2
+    ATG-AGTGATG
+    >seq3
+    AT--AG-GATG
+
+Note that following this call to ``omitGapSeqs()``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omitGapSeqs()`` is frequently followed with a call to ``omitGapPositions()`` with no parameters -- this defaults to removing positions which are all gaps:
+
+    >>> print filtered_aln.omitGapPositions().toFasta()
+    >seq2
+    ATGAGTGATG
+    >seq3
+    AT-AG-GATG
 
