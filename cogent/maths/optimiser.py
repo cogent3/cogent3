@@ -105,14 +105,14 @@ class OptimiserBase(object):
         self.vector = numpy.array(xinit, Float)
         self.__original_f = f
     
-    def setCheckpointing(self, filename = None, interval = 1800, restore = None):
+    def setCheckpointing(self, filename=None, interval=None, restore=None):
         """
         Set the checkpointing filename and time interval.
         Arguments:
         - filename: name of the file to which data will be written. If None, no
           checkpointing will be done.
         - interval: time expressed in seconds
-        - restore: flag to restore from this filenamne or not. will be set to 0 after
+        - restore: flag to restore from this filename or not. will be set to 0 after
           restoration
         """
         self.checkpointer = Checkpointer(filename, interval)

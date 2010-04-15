@@ -11,7 +11,9 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 class Checkpointer(object):
-    def __init__(self, filename, interval=600, noisy=True):
+    def __init__(self, filename, interval=None, noisy=True):
+        if interval is None:
+            interval = 1800
         self.filename = filename
         self.interval = interval
         self.last_time = time.time()
