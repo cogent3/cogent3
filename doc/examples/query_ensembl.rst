@@ -1,3 +1,5 @@
+.. _query-ensembl:
+
 Querying Ensembl
 ================
 

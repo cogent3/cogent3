@@ -449,27 +449,7 @@ Pathway assignments
 Ensembl
 =======
 
-Connecting
-----------
-
-*To be written.*
-
-.. Hosts and species
-
-Get genomic features
---------------------
-
-*To be written.*
-
-Get alignments
---------------
-
-*To be written.*
-
-Get SNPs
---------
-
-*To be written.*
+.. include:: ensembl.rst
 
 PDB
 ===
