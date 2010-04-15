@@ -134,12 +134,13 @@ class TreeEvaluator(object):
         return names
     
     def trex(self, a=8, k=1000, start=None, order=None, show_progress=False,
-            return_all=False, checkpoint_filename=None):
+            return_all=False, filename=None, interval=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
         'order' is an optional list of tip names.  
         'start' is an optional list of initial trees.  Each of the trees must
         contain the same tips.
+        'filename' and 'interval' control checkpointing.
         
         Advanced step-wise addition algorithm
         M. J. Wolf, S. Easteal, M. Kahn, B. D. McKay, and L. S. Jermiin.
@@ -149,7 +150,7 @@ class TreeEvaluator(object):
         
         printing_cpu = parallel.getCommunicator().Get_rank() == 0
         
-        checkpointer = checkpointing.Checkpointer(checkpoint_filename)
+        checkpointer = checkpointing.Checkpointer(filename, interval)
         if checkpointer.available():
             (init_tree_size, fixed_names, trees) = checkpointer.load()
             names = self._consistentNameOrder(fixed_names, order)
