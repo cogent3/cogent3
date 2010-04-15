@@ -374,10 +374,10 @@ Obtain the indices for items in sort order. This is similar to numpy.argsort, bu
     >>> sort_order('dcba')
     [3, 2, 1, 0]
 
-Find overlapping pattern occurances
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Find overlapping pattern occurrences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Find all of the overlapping occurances of a pattern within a text
+Find all of the overlapping occurrences of a pattern within a text
 
 .. doctest::
 
@@ -391,10 +391,10 @@ Find all of the overlapping occurances of a pattern within a text
     >>> find_all(text, pattern)
     [0, 2, 4]
 
-Find multiple pattern occurances
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Find multiple pattern occurrences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Find all of the overlapping occurances of multiple patterns within a text. Returned indices are sorted, each index is the start position of one of the patterns
+Find all of the overlapping occurrences of multiple patterns within a text. Returned indices are sorted, each index is the start position of one of the patterns
 
 .. doctest::
 
