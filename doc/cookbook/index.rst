@@ -15,7 +15,6 @@ Contents:
     sequence_similarity_search
     controlling_third_party_applications
     blast
-    loading_sequences
     building_alignments
     building_phylogenies
     structural_data
@@ -28,15 +27,6 @@ Contents:
     hpc_environments
     useful_utilities
     code_development
-    simple_trees
-    phylonodes
-    DNA_and_RNA_sequences
-    alignments
-    annotations
-    code_development
-    genetic_code
-    managing_trees
-    protein_sequences
-    structural_contacts
-    tables
-    managing_alphabet
+
+
+.. managing_alphabet

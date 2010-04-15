@@ -12,6 +12,8 @@ Sequences
 
     DNA_and_RNA_sequences
     protein_sequences
+    moltypesequence
+    loading_sequences
     alignments
     annotations
 
@@ -30,6 +32,8 @@ Trees
     :maxdepth: 1
 
     simple_trees
+    phylonodes
+    managing_trees
 
 Tables
 ======
@@ -46,3 +50,4 @@ Structures
     :maxdepth: 1
     
     structural_data
+    structural_contacts
