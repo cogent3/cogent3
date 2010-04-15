@@ -18,4 +18,4 @@ By distance method
 Building phylogenies with 3rd-party apps such as FastTree or RAxML
 ==================================================================
 
-See `this document <../examples/phylogeny_app_controllers.html>`_.
+A thorough description is :ref:`appcontroller-phylogeny`.
