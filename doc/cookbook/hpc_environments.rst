@@ -2,4 +2,11 @@
 HPC environments
 ****************
 
-*To be written.*
+.. sectionauthor Gavin Huttley
+
+.. toctree::
+    :maxdepth: 1
+    
+    parallel_tasks
+    checkpointing_long_running
+
