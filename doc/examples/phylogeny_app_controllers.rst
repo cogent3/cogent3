@@ -1,3 +1,5 @@
+.. _appcontroller-phylogeny:
+
 Using phylogeny application controllers to construct phylogenetic trees from alignments
 =======================================================================================
 
