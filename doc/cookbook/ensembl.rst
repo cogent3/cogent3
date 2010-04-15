@@ -3,6 +3,8 @@ Note that much more extensive documentation is available in :ref:`query-ensembl`
 Connecting
 ----------
 
+.. Gavin Huttley
+
 `Ensembl <http://www.ensembl.org>`_ provides access to their MySQL databases directly or users can download and run those databases on a local machine. To use the Ensembl's UK servers for running queries, nothing special needs to be done as this is the default setting for PyCogent's ``ensembl`` module. To use a different Ensembl installation, you create an account instance:
 
 .. doctest::
