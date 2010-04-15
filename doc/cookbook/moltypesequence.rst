@@ -6,6 +6,7 @@ Using the MolType and Sequence objects
 
 MolType
 =======
+
 MolType provides services for resolving ambiguities, or providing the
 correct ambiguity for recoding. It also maintains the mappings between
 different kinds of alphabets, sequences and alignments.
