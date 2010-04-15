@@ -20,12 +20,7 @@ Welcome to PyCogent's documentation!
     ChangeLog
 
 
-
 .. todolist::
-
-.. todo::
-
-    **FOR RELEASE:** unlink cookbook until it's complete
 
 ********
 Overview
