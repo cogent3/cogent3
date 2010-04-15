@@ -1,6 +1,8 @@
 Annotations
 ^^^^^^^^^^^
 
+.. Gavin Huttley, Tom Elliot
+
 Annotations with coordinates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
