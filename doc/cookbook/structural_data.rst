@@ -35,13 +35,11 @@ How to parse a PDB file?
     >>> struc
     <Structure id=4TSV>
 
-
 What happens if a PDB file does not exist
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the wrong filename is given to the PDBParser function, you will 
-get an *IOError*.
-
+get an ``IOError``.
 
 How to parse a PDB entry directly from the web
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +50,6 @@ How to parse a PDB entry directly from the web
     >>> # struc = PDBParser(p['1cse'])
     >>> # KR commented because this takes long.
 
-
 How to access PDB header information?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -60,13 +57,10 @@ How to access PDB header information?
     
     >>> struc.header['id']
     '4TSV'
-
     >>> struc.header['resolution']
     '1.80'
-
     >>> struc.header['r_free']
     '0.262'
-
     >>> struc.header['space_group']
     'H 3'
 
@@ -76,13 +70,11 @@ Navigating structure objects
 What does a structure object contain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A **cogent.parse.pdb.Structure** object as returned by PDBParser
-contains a tree-like hierarchy of **Entity** objects. They are organized 
-such that **Structures** that contain **Models** that contain **Chains** 
-that contain ''Residues** that in turn contain **Atoms**. 
-You can read more about the entity model on
-[URL of Marcins example page].
-
+A ``cogent.parse.pdb.Structure`` object as returned by ``PDBParser``
+contains a tree-like hierarchy of ``Entity`` objects. They are organized 
+such that ``Structures`` that contain ``Models`` that contain ``Chains`` 
+that contain ``Residues`` that in turn contain ``Atoms``. 
+You can read more about the entity model on [URL of Marcins example page].
 
 How to access a model from a structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,7 +89,6 @@ To get the first model out of a structure:
 
 The key contains the model number as a tuple.
 
-
 How to access a chain from a model?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -108,7 +99,6 @@ To get a particular chain:
     >>> chain = model[('A',)]
     >>> chain
     <Chain id=A>
-
 
 How to access a residue from a chain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,8 +111,6 @@ To get a particular residue:
     >>> resi
     <Residue ILE resseq=154 icode= >
 
-
-
 What properties does a residue have?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -130,13 +118,10 @@ What properties does a residue have?
     
     >>> resi.res_id
     154
-
     >>> resi.name
     'ILE'
-
     >>> resi.h_flag
     ' '
-
     >>> resi.seg_id
     '    '
 
@@ -151,7 +136,6 @@ To get a particular atom:
     >>> atom
     <Atom ('N', ' ')>
 
-
 What properties does an atom have?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -159,46 +143,37 @@ What properties does an atom have?
     
     >>> atom.name
     ' N  '
-
     >>> atom.element
     ' N'
-
     >>> atom.coords
     array([ 142.986,   36.523,    6.838])
-
     >>> atom.bfactor
     13.35
-
     >>> atom.occupancy
     1.0
-
 
 What happens if a model/chain/residue/atom does not exist?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If any entity does not exist, you will get a **KeyError**.
-
+If any entity does not exist, you will get a ``KeyError``.
 
 Is there something special about heteroatoms to consider?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Yes, they have the **h_flag** attribute set in residues.
-
+Yes, they have the ``h_flag`` attribute set in residues.
 
 How are Altlocs/insertion codes represented?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Both are part of the residue/atom ID.
 
-
 Useful methods to access Structure objects
 ------------------------------------------
-
 
 How to access all atoms, residues etc via a dictionary 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The **table** property of a structure returns a two-dimensional
+The ``table`` property of a structure returns a two-dimensional
 dictionary containing all atoms. The keys are 1) the entity level
 (any of 'A','R','C','M') and
 2) the combined IDs of Structure, Model, Chain, Residue, Atom
@@ -209,8 +184,6 @@ as a tuple.
     >>> struc.table['A'][('4TSV', 0, 'A', ('HIS', 73, ' '), ('O', ' '))]
     <Atom ('O', ' ')>
 
-
-
 How to calculate the center of mass of a model or chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -219,10 +192,8 @@ How to calculate the center of mass of a model or chain
     >>> # NEEDS TO BE CHECKED WITH MARCIN
     >>> model.coords
     array([ 147.35930713,   35.30383834,   -3.48538525])
-
     >>> chain.coords
     array([ 145.42204284,   34.6970624 ,   -3.82628478])
-
 
 How to get a list of all residues in a chain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -232,7 +203,6 @@ How to get a list of all residues in a chain?
     >>> chain.values()[0]
     <Residue ILE resseq=154 icode= >
 
-
 How to get a list of all atoms in a chain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -241,14 +211,13 @@ How to get a list of all atoms in a chain?
     >>> resi.values()[0]
     <Atom ('N', ' ')>
 
-
 Constructing structures
 -----------------------
 
 How to create a new entity?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Structure/Model/Chain/Residue/Atom objects can be created as follows:
+``Structure``/``Model``/``Chain``/``Residue``/``Atom`` objects can be created as follows:
 
 .. doctest::
     
@@ -259,7 +228,6 @@ How to create a new entity?
     >>> c = Chain(('A'),)
     >>> r = Residue(('ALA', 1, ' ',),False,' ')
     >>> a = Atom(('C  ',' ',), 'C', 1, array([0.0,0.0,0.0]), 1.0, 0.0, 'C')
-
 
 How to add entities to each other?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -282,8 +250,7 @@ How to remove a residue from a chain?
     
     >>> c.delChild(r.id)
     >>> s.table
-    {'A': {}, 'C': {}, 'R': {}, 'M': {}}
-
+    {'A': {('my_struc', 0, 'A', ('ALA', 1, ' '), ...
 
 Geometrical analyses
 --------------------
@@ -299,7 +266,6 @@ Calculating euclidean distances between atoms
     >>> distance(atom1.coords, atom2.coords)
     1.4691967192993618
 
-
 Calculating euclidean distances between coordinates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -312,7 +278,6 @@ Calculating euclidean distances between coordinates
     >>> distance(a1,a2)
     6.324...
 
-
 Calculating flat angles from atoms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -323,11 +288,9 @@ Calculating flat angles from atoms
     >>> a12 = atom2.coords-atom1.coords
     >>> a23 = atom2.coords-atom3.coords
     >>> angle(a12,a23)
-    1.8568181080150168
-
+    1.856818...
 
 Calculates the angle in radians.
-
 
 Calculating flat angles from coordinates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -343,10 +306,7 @@ Calculating flat angles from coordinates
     >>> angle(a12,a23)
     1.5707963267948966
 
-
 Calculates the angle in radians.
-
-
 
 Calculating dihedral angles from atoms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -359,7 +319,6 @@ Calculating dihedral angles from atoms
     259.49277688244217
 
 Calculates the torsion in degrees.
-
 
 Calculating dihedral angles from coordinates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -374,9 +333,7 @@ Calculating dihedral angles from coordinates
     >>> dihedral(a1,a2,a3,a4)
     90.0
 
-
 Calculates the torsion in degrees.
-
 
 Other stuff
 -----------
@@ -401,7 +358,6 @@ others in alphabetical order.
     <Chain id=A>
     <Chain id= >
 
-
 How to iterate over chains in alphabetical order?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -416,7 +372,6 @@ If you want the chains in purely alphabetical order:
     <Chain id= >
     <Chain id=A>
 
-
 How to iterate over all residues in a chain?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -425,7 +380,6 @@ How to iterate over all residues in a chain?
     >>> residues = [resi for resi in chain.values()]
     >>> len(residues)
     148
-
 
 How to remove all water molecules from a structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -437,7 +391,4 @@ How to remove all water molecules from a structure
     >>> struc.setTable(force=True)
     >>> len(struc.table['A'].values())
     1117
-
-
-
 
