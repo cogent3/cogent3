@@ -1,3 +1,5 @@
+.. _scope-params-on-trees:
+
 Allowing substitution model parameters to differ between branches
 =================================================================
 

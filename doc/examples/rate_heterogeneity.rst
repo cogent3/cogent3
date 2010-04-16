@@ -1,3 +1,5 @@
+.. _rate-heterogeneity:
+
 Analysis of rate heterogeneity
 ==============================
 
