@@ -146,6 +146,7 @@ def _parse_subtrees(tokens, constructor, sentinals):
     """A list of tree nodes from the 'tokens' generator.
     An ordinary newick file _should_ give a list of length 1.
     Calls constructor(children, name, attributes)"""
+    stack = []
     nodes = []
     children = name = expected_attribute = None
     attributes = {}
@@ -165,20 +166,22 @@ def _parse_subtrees(tokens, constructor, sentinals):
             elif name or attributes:
                 raise tokens._parse_error(
                     "Subtree must be first element of the node.")
-            children = _parse_subtrees(tokens, constructor, sentinals=[')'])
+            stack.append((nodes, sentinals, attributes))
+            (nodes, sentinals, attributes) = ([], [')'], {})
         elif token == ':':
             if 'length' in attributes:
                 raise tokens._parse_error("Already have a length.")
             expected_attribute = ('length', float)
         elif token in [')', ';', ',', EOT]:
-            if not (name or attributes or children or nodes) and token == ')':
-                pass #  "();" as empty tree, not root with one unnamed tip.
-            else:
-                nodes.append(constructor(children, name, attributes))
+            nodes.append(constructor(children, name, attributes))
             children = name = expected_attribute = None
             attributes = {}
             if token in sentinals:
-                break
+                if stack:
+                    children = nodes
+                    (nodes, sentinals, attributes) = stack.pop()
+                else:
+                    break
             elif token == ',' and ')' in sentinals:
                 pass
             else:
@@ -190,6 +193,7 @@ def _parse_subtrees(tokens, constructor, sentinals):
             elif attributes:
                 raise tokens._parse_error("Name should come before length.")
             name = token
+    assert not stack
     return nodes
                 
 def parse_string(text, constructor, underscore_unmunge=True):

@@ -2,14 +2,16 @@
 """Unit tests for tree parsers.
 """
 from cogent.parse.tree import DndParser, DndTokenizer, RecordError
-
-#def DndParser(data):
-#    assert isinstance(data, basestring), data
-#    constructor = TreeBuilder().createEdge
-#    return parse_string(data, constructor)
-    
 from cogent.core.tree import PhyloNode
 from cogent.util.unit_test import TestCase, main
+
+#from cogent.parse.newick import parse_string, TreeParseError as RecordError
+#def DndParser(data, NodeClass=PhyloNode, unescape_name=True):
+#    if not unescape_name:
+#        raise NotImplementedError
+#    def constructor(children, name, attribs):
+#        return NodeClass(Children = list(children or []), Name=name, Params=attribs)
+#    return parse_string(data, constructor)    
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
