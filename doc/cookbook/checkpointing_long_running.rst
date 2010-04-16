@@ -32,11 +32,34 @@ Recovering from a real run that was interrupted generates an additional notifica
     >>> print data
     <cogent.maths.simannealingoptimiser.AnnealingRun object...
 
+Checkpointing phylogenetic optimisation runs
+============================================
+
+The built-in phylogeny code is also capable of checkpointing it's internal state. We illustrate here for the least-squares approach but the same approach also holds for maximum-likelihood. We load some stored distances.
+
+.. doctest::
+
+    >>> import cPickle
+    >>> dists = cPickle.load(open('data/dists_for_phylo.pickle'))
+
+We make the weighted least-squares calculator.
+
+.. doctest::
+
+    >>> from cogent.phylo import distance, least_squares
+    >>> ls = least_squares.WLS(dists)
+
+We start searching for trees, providing the name of file to checkpoint to.
+
+.. doctest::
+    
+    >>> checkpoint_phylo_fn = 'checkpoint_phylo.txt'
+    >>> score, tree = ls.trex(a = 5, k = 1, filename=checkpoint_phylo_fn, interval=100)
+
 .. following cleans up files
 
 .. doctest::
     :hide:
     
     >>> from cogent.util.misc import remove_files
-    >>> remove_files([checkpoint_fn], error_on_missing=False)
-
+    >>> remove_files([checkpoint_fn, checkpoint_phylo_fn], error_on_missing=False)
