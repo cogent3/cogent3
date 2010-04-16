@@ -1,3 +1,5 @@
+.. _checkpointing-optimisation:
+
 Checkpointing optimisation runs
 ===============================
 

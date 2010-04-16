@@ -1,3 +1,5 @@
+.. _parametric-bootstrap:
+
 Performing a parametric bootstrap
 =================================
 

@@ -1,3 +1,5 @@
+.. _rate-heterogeneity-hmm:
+
 Evaluate process heterogeneity using a Hidden Markov Model
 ==========================================================
 
