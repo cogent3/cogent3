@@ -32,7 +32,7 @@ class TreeParseError(FileFormatError):
 
 
 class _Tokeniser(object):
-    """An iterable stream of Newick tokens from 'text'
+    """Supplies an iterable stream of Newick tokens from 'text'
     
     By default this is very forgiving of non-standard unquoted labels.
     Two options can change how unquoted labels are interpreted:
@@ -48,59 +48,48 @@ class _Tokeniser(object):
         self.posn = None
         self.strict_unquoted_labels = strict_labels
         self.underscore_unmunge = underscore_unmunge
-        self._generator = self._tokens()
         
-    def __iter__(self):
-        return self
-        
-    def next(self):
-        return self._generator.next()
-        
-    def _errmsg(self):
-        msg = 'Unexpected "%s"' % self.token
-        if self.posn:
-            (line, column) = self.posn
-            if line == 'EOT':
-                sample = line
-            else:
-                sample = self.text.split('\n')[line-1][
-                        max(column-10, 0):column+len(self.token or '')-1]
-            if line > 1:
-                msg += ' at line %s:%s "%s"' % (line, column, sample)
-            else:
-                msg += ' at char %s "%s"' % (column, sample)
-        return msg
-        
-    def _parse_error(self, detail=""):
-        return TreeParseError(self._errmsg() + '. ' + detail)
+    def error(self, detail=""):
+        if self.token:
+            msg = 'Unexpected "%s" at ' % self.token
+        else:
+            msg = 'At '
+        (line, column) = self.posn
+        sample = self.text.split('\n')[line][:column]
+        if column > 30:
+            sample = "..." + sample[-20:]
+        if line > 0:
+            msg += 'line %s:%s "%s"' % (line+1, column, sample)
+        else:
+            msg += 'char %s "%s"' % (column, sample)
+        return TreeParseError(msg + '. ' + detail)
                             
-    def _tokens(self):
+    def tokens(self):
         closing_quote_token = None
-        column = 1
-        line = 1
+        column = 0
+        line = 0
         text = None
         closing_quote_token = None
         in_comment = False
         for token in re.split("""([\\t ]+|\\n|''|""|[]['"(),:;])""", self.text)+[EOT]:
             label_complete = False
             token_consumed = True
-            
             self.token = token
-            self.posn = (line, column)
             column += len(token or '')
+            self.posn = (line, column)
             
             if token == "":
                 pass
             elif in_comment:
                 if token is EOT:
-                    raise self._parse_error('Ended with unclosed comment')
+                    raise self.error('Ended with unclosed comment')
                 if token == ']':
                     in_comment = False
             elif closing_quote_token:
                 if token is EOT:
-                    raise self._parse_error('Text ended inside quoted label')
+                    raise self.error('Text ended inside quoted label')
                 if token == '\n':
-                    raise self._parse_error('Line ended inside quoted label')
+                    raise self.error('Line ended inside quoted label')
                 if token == closing_quote_token:
                     label_complete = True
                     closing_quote_token = None
@@ -111,7 +100,7 @@ class _Tokeniser(object):
             elif token is EOT or token in '\n[():,;':
                 if text:
                     text = text.strip()
-                    if self.underscore_unmunge:
+                    if self.underscore_unmunge and '_' in text:
                         text = text.replace('_', ' ')
                     label_complete = True
                 if token == '\n':
@@ -134,7 +123,7 @@ class _Tokeniser(object):
                 label_complete = self.strict_unquoted_labels
             
             if label_complete:
-                self.token = text
+                self.token = None
                 yield text
                 text = None
                 
@@ -142,35 +131,45 @@ class _Tokeniser(object):
                 self.token = token
                 yield token  
 
-def _parse_subtrees(tokens, constructor, sentinals):
-    """A list of tree nodes from the 'tokens' generator.
-    An ordinary newick file _should_ give a list of length 1.
-    Calls constructor(children, name, attributes)"""
+def parse_string(text, constructor, **kw):
+    """Parses a Newick-format string, using specified constructor for tree.
+    
+    Calls constructor(children, name, attributes)
+
+    Note: underscore_unmunge, if True, replaces underscores with spaces in
+    the data that's read in. This is part of the Newick format, but it is
+    often useful to suppress this behavior.
+    """
+    if "(" not in text and ";" not in text and text.strip():
+         # otherwise "filename" is a valid (if small) tree
+        raise TreeParseError('Not a Newick tree: "%s"' % text[:10])
+    sentinals = [';', EOT]
     stack = []
     nodes = []
     children = name = expected_attribute = None
     attributes = {}
-    for token in tokens:
+    tokeniser = _Tokeniser(text, **kw)
+    for token in tokeniser.tokens():
         if expected_attribute is not None:
             (attr_name, attr_cast) = expected_attribute
             try:
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
-                raise tokens._parse_error("Can't convert %s '%s'" % 
+                raise tokeniser.error("Can't convert %s '%s'" % 
                         (attr_name, token))
             expected_attribute = None
         elif token == '(':
             if children is not None:
-                raise tokens._parse_error(
+                raise tokeniser.error(
                     "Two subtrees in one node, missing comma?")
             elif name or attributes:
-                raise tokens._parse_error(
+                raise tokeniser.error(
                     "Subtree must be first element of the node.")
             stack.append((nodes, sentinals, attributes))
             (nodes, sentinals, attributes) = ([], [')'], {})
         elif token == ':':
             if 'length' in attributes:
-                raise tokens._parse_error("Already have a length.")
+                raise tokeniser.error("Already have a length.")
             expected_attribute = ('length', float)
         elif token in [')', ';', ',', EOT]:
             nodes.append(constructor(children, name, attributes))
@@ -185,28 +184,14 @@ def _parse_subtrees(tokens, constructor, sentinals):
             elif token == ',' and ')' in sentinals:
                 pass
             else:
-                raise tokens._parse_error("Was expecting to end with %s" % 
+                raise tokeniser.error("Was expecting to end with %s" % 
                     ' or '.join([repr(s) for s in sentinals]))
         else:
             if name is not None:
-                raise tokens._parse_error("Already have a name '%s' for this node." % name)
+                raise tokeniser.error("Already have a name '%s' for this node." % name)
             elif attributes:
-                raise tokens._parse_error("Name should come before length.")
+                raise tokeniser.error("Name should come before length.")
             name = token
-    assert not stack
-    return nodes
-                
-def parse_string(text, constructor, underscore_unmunge=True):
-    """Parses a Newick-format string, using specified constructor for tree.
-
-    Note: underscore_unmunge, if True, replaces underscores with spaces in
-    the data that's read in. This is part of the Newick format, but it is
-    often useful to suppress this behavior.
-    """
-    if text.strip()[0] not in  ["(", ";", ""]:
-         # otherwise "filename" is a valid (if small) tree
-        raise TreeParseError('Tree must start with "(", not "%s"' % text[:10])
-    tokens = iter(_Tokeniser(text,underscore_unmunge=underscore_unmunge))
-    trees = _parse_subtrees(tokens, constructor, [';', EOT])
-    assert len(trees) ==  1, len(trees)
-    return trees[0]
+    assert not stack, stack
+    assert len(nodes) ==  1, len(nodes)
+    return nodes[0]
