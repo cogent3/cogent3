@@ -51,7 +51,7 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
         predicates = {}
         par_rules = []
     subMod = modelClass(equal_motif_probs=True, optimise_motif_probs=opt_mprobs,
-            predicates=predicates, recode_gaps=True)
+            predicates=predicates, recode_gaps=True, mprob_model="conditional")
     (pc, aln) = brca_test(subMod, taxa, tree, length, par_rules, **kw)
     return (pc, aln)
 
