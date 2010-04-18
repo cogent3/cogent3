@@ -83,14 +83,14 @@ class ParametricBootstrapCore(object):
 
         def _one_replicate(simalign):
             for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
-                with pc.real_par_controller.updatesPostponed():
+                with pc.updatesPostponed():
                     # using a calculator as a memo object to rest the parameter values
-                    pc.real_par_controller.updateFromCalculator(starting_point)
+                    pc.updateFromCalculator(starting_point)
                     # but alignment is different each time
                     pc.setAlignment(simalign)
                     # pc needs to be told that it can't use all the CPUs it did initially
                     # which seems less than ideal (it should be able to discover that itself) 
-                    pc.real_par_controller.setupParallelContext()
+                    pc.setupParallelContext()
                 pc.optimise(**opt_args)
             return self.simplify(*self.parameter_controllers)
         
@@ -154,7 +154,7 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
         self.func_calcstats = func_calcstats
     
     def simplify(self, result):
-        return (result.getLogLikelihood(), self.func_calcstats(result)) #.getStatisticsAsDict())
+        return (result.getLogLikelihood(), self.func_calcstats(result))
     
     def getObservedStats(self):
         return self.observed[1]

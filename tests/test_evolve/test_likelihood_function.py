@@ -409,8 +409,8 @@ motif  mprobs
         al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
         t = LoadTree(treestring="(a,c);")
         sm = substitution_model.Dinucleotide(mprob_model='tuple')
-        pc = sm.makeParamController(t)
-        lf = pc.makeCalculator(al)
+        lf = sm.makeParamController(t)
+        lf.setAlignment(al)
         simalign = lf.simulateAlignment()
         self.assertEqual(len(simalign), 6)
     
@@ -424,9 +424,9 @@ motif  mprobs
             'c':'-a-c-ctat-',
             'd':'-a-c-ctat-'})
         sm = Nucleotide(recode_gaps=True)
-        pc = sm.makeParamController(t)
+        lf = sm.makeParamController(t)
         #pc.setConstantLengths()
-        lf=pc.makeCalculator(al)
+        lf.setAlignment(al)
         #print lf.simulateAlignment(sequence_length=10)
         simulated = lf.simulateAlignment()
         self.assertEqual(len(simulated.getSeqNames()), 4)
@@ -442,8 +442,8 @@ motif  mprobs
             al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
             t = LoadTree(treestring="(a,c);")
             sm = substitution_model.Dinucleotide(mprob_model='tuple')
-            pc = sm.makeParamController(t)
-            lf = pc.makeCalculator(al)
+            lf = sm.makeParamController(t)
+            lf.setAlignment(al)
             simalign = lf.simulateAlignment(exclude_internal=False,
                                             root_sequence=root_sequence)
             root = simalign.NamedSeqs['root']
@@ -458,8 +458,8 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         tree = likelihood_function.getAnnotatedTree()
-        pc = self.submodel.makeParamController(tree)
-        lf = pc.makeCalculator(self.data)
+        lf = self.submodel.makeParamController(tree)
+        lf.setAlignment(self.data)
         self.assertEqual(lf.getParamValue("length", "Human"), 0.3)
         self.assertEqual(lf.getParamValue("beta", "Human"), 4.0)
     
@@ -540,7 +540,7 @@ motif    mprobs
         self.assertEqual(result.getNodeMatchingName('Human').params['length'], 4.0)
         self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
     
-    def test_getstatsasdict(self):
+    def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setName("TEST")
         self.assertEqual(str(likelihood_function),\
@@ -564,10 +564,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-        self.assertEqual(likelihood_function.getStatisticsAsDict(),
-{'edge.parent': {'NineBande': 'root', 'edge.1': 'root', 'DogFaced': 'root',
-         'Human': 'edge.0', 'edge.0': 'edge.1', 'Mouse': 'edge.1',
-         'HowlerMon': 'edge.0'},
+        self.assertEqual(likelihood_function.getParamValueDict(['edge']), {
  'beta': {'NineBande': 1.0, 'edge.1': 1.0,'DogFaced': 1.0, 'Human': 1.0,
       'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
  'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
@@ -580,8 +577,7 @@ motif    mprobs
         
         lf = submod.makeLikelihoodFunction(self.tree)
         lf.setAlignment(aln)
-        stats = lf.getStatisticsAsDict()
-        
+        stats = lf.getParamValueDict(['edge'], params=['length'])
     
     def test_constant_to_free(self):
         """excercise setting a constant param rule, then freeing it"""
@@ -590,10 +586,8 @@ motif    mprobs
         lf.setAlignment(self.data)
         lf.setParamRule('beta', is_const=True, value=2.0, 
                         edges=['NineBande', 'DogFaced'], is_clade=True)
-        lf.real_par_controller.makeCalculator()
         lf.setParamRule('beta', init=2.0, is_const=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
-        lf.real_par_controller.makeCalculator()
     
 
 if __name__ == '__main__':

@@ -40,13 +40,7 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
 
 def measure_evals_per_sec(pc, aln):
     pc.setAlignment(aln)
-    lf = pc.real_par_controller.makeCalculator()
-    return lf.measureEvalsPerSecond(time_limit=2.0, wall=False)
-
-def profile(pc, aln):
-    pc.makeCalculator(aln)
-    p = hotshot.Profile('cogent.profile')
-    lf.measureEvalsPerSecond(time_limit=1.0, wall=False)
+    return pc.measureEvalsPerSecond(time_limit=2.0, wall=False)
 
 def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     modelClass = eval(modelClass)
@@ -152,7 +146,7 @@ else:
 
 parallel.inefficiency_forgiven = True
 
-if parallel.getCommunicator().rank > 0:
+if parallel.getCommunicator().Get_rank() > 0:
     #benchmarks(test)
     quiet(benchmarks, test)
 else:

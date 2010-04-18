@@ -72,12 +72,9 @@ import logging
 # These supply a makeCells() method which instantiates 'Cell'
 # classes from calculation.py
 
-from calculation import EvaluatedCell, OptPar, LogOptPar, ConstCell, \
-        Calculator
-
-from scope import _NonLeafDefn, _LeafDefn, _Defn, _ParameterController
-
-from setting import Var, ConstVal
+from .calculation import EvaluatedCell, OptPar, LogOptPar, ConstCell
+from .scope import _NonLeafDefn, _LeafDefn, _Defn, ParameterController
+from .setting import Var, ConstVal
 
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
@@ -94,91 +91,6 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-def theOneItemIn(items):
-    assert len(items) == 1, items
-    return items[0]
-
-
-class ParameterController(_ParameterController):
-    
-    def assignAll(self, par_name, scope_spec=None, value=None,
-            lower=None, upper=None, const=None, independent=None):
-        settings = []
-        PC = self.defn_for[par_name]
-        if not isinstance(PC, _LeafDefn):
-            args = ' and '.join(['"%s"' % a.name for a in PC.args])
-            msg = '"%s" is not settable as it is derived from %s.' % (
-                    par_name, args)
-            raise ValueError(msg)
-        
-        if const is None:
-            const = PC.const_by_default
-        
-        for scope in PC.interpretScopes(
-                independent=independent, **(scope_spec or {})):
-            if value is None:
-                values = PC.getAllDefaultValues(scope)
-                if len(values) == 1:
-                    s_value = values[0]
-                else:
-                    s_value = sum(values) / len(values)
-                    for value in values:
-                        if not numpy.all(value==s_value):
-                            LOG.warning("Used mean of '%s' values" % par_name)
-                            break
-            else:       
-                s_value = PC.unwrapValue(value)
-            if const:
-                setting = ConstVal(s_value)
-            else:
-                (s_lower, s_upper) = PC.getCurrentBounds(scope)
-                if lower is not None: s_lower = lower
-                if upper is not None: s_upper = upper
-                setting = Var((s_lower, s_value, s_upper))
-            settings.append((scope, setting))
-        PC.assign(settings)
-        self.update([PC])
-        
-    def measureEvalsPerSecond(self):
-        return self.makeCalculator().measureEvalsPerSecond()
-    
-    def setupParallelContext(self, parallel_split=None):
-        comm = parallel.getCommunicator()
-        cpu_count = comm.Get_size()
-        if parallel_split is None:
-            parallel_split = cpu_count
-        with parallel.mpi_split(parallel_split) as parallel_context:
-            self.remaining_parallel_context = parallel.getCommunicator()
-            if 'parallel_context' in self.defn_for:
-                self.assignAll(
-                    'parallel_context', value=parallel_context, const=True)
-            self.overall_parallel_context = comm
-    
-    def makeCalculator(self, calculatorClass=None, variable=None, **kw):
-        cells = []
-        input_soup = {}
-        for defn in self.defns:
-            defn.update()
-            (newcells, outputs) = defn.makeCells(input_soup, variable)
-            cells.extend(newcells)
-            input_soup[id(defn)] = outputs
-        if calculatorClass is None:
-            calculatorClass = Calculator
-        kw['overall_parallel_context'] = self.overall_parallel_context
-        kw['remaining_parallel_context'] = self.remaining_parallel_context
-        return calculatorClass(cells, input_soup, **kw)
-    
-    def updateFromCalculator(self, calc):
-        changed = []
-        for defn in self.defn_for.values():
-            if isinstance(defn, _LeafDefn):
-                defn.updateFromCalculator(calc)
-                changed.append(defn)
-        self.update(changed)
-    
-    def getNumFreeParams(self):
-        return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
-    
 
 class CalculationDefn(_NonLeafDefn):
     """Defn for a derived value.  In most cases use CalcDefn instead

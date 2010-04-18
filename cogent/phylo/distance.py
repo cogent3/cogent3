@@ -69,7 +69,7 @@ class EstimateDistances(object):
         self._modify_lf = modify_lf
         # store for the results
         self.__param_ests = {}
-        self.__est_params = est_params or []
+        self.__est_params = list(est_params or [])
         
         self.__run = False # a flag indicating whether estimation completed
         # whether we're on the master CPU or not
@@ -152,7 +152,8 @@ class EstimateDistances(object):
             print lf
         
         # get the statistics
-        stats_dict = lf.getStatisticsAsDict()
+        stats_dict = lf.getParamValueDict(['edge'], 
+                params=['length'] + self.__est_params)
         
         # if two-way, grab first distance only
         if not self.__threeway:
