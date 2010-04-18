@@ -6,6 +6,7 @@ from cogent.core.alignment import Alignment
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
+from cogent.recalculation.definition import ParameterController
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -23,38 +24,19 @@ __status__ = "Production"
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
 
-class LikelihoodFunction(object):
+class LikelihoodFunction(ParameterController):
     def setpar(self, param_name, value, edge=None, **scope):
         warnings.warn("'setpar()' deprecated, use 'setParamRule()'", 
-            DeprecationWarning)
+            DeprecationWarning, stacklevel=2)
         return self.setParamRule(param_name, edge=edge, value=value, is_const=True, **scope)
     
     def testfunction(self):
         warnings.warn("'testfunction()' deprecated, use 'getLogLikelihood()'", 
-            DeprecationWarning)
+            DeprecationWarning, stacklevel=2)
         return self.getLogLikelihood()
     
-    def getParamValue(self, *args, **kw):
-        return self.real_par_controller.getParamValue(*args, **kw)
-    
-    def getParamInterval(self, *args, **kw):
-        return self.real_par_controller.getParamInterval(*args, **kw)
-    
-    def getParamValueDict(self, *args, **kw):
-        return self.real_par_controller.getParamValueDict(*args, **kw)
-    
-    def getParamNames(self, *args, **kw):
-        return self.real_par_controller.getParamNames(*args, **kw)
-    
-    def getUsedDimensions(self, param_name, **kw):
-        return self.real_par_controller.getUsedDimensions(param_name, **kw)
-    
     def getLogLikelihood(self):
-        return self.real_par_controller.getFinalResult()
-    
-    def getNumFreeParams(self):
-        """returns the number of free parameters."""
-        return self.real_par_controller.getNumFreeParams()
+        return self.getFinalResult()
     
     def getPsubForEdge(self, name):
         array = self.getParamValue('psubs', edge=name)
@@ -164,7 +146,7 @@ class LikelihoodFunction(object):
         return '\n'.join(map(str, result))
     
     def getAnnotatedTree(self):
-        d = self.getStatisticsAsDict(with_parent_names=False)
+        d = self.getParamValueDict(['edge'])
         tree = self._tree.deepcopy()
         for edge in tree.getEdgeVector():
             if edge.Name == 'root':
@@ -294,6 +276,10 @@ class LikelihoodFunction(object):
               included under the top-level key 'edge.names'. Default is
               False.
         """
+        
+        warnings.warn("'getStatisticsAsDict()' deprecated. "
+                "'getParamValueDict(['edge'])' is nearly equivalent", 
+                DeprecationWarning, stacklevel=2)
         
         stats_dict = self.getParamValueDict(['edge'])
         

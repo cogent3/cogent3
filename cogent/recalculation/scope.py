@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, with_statement
+import numpy
 from contextlib import contextmanager
 import logging
-from cogent.util.dict_array import DictArrayTemplate
+from .setting import Var, ConstVal
+from .calculation import Calculator
+from cogent.util import parallel
 from cogent.maths.stats.distribution import chdtri
 
 LOG = logging.getLogger('cogent')
@@ -331,6 +334,10 @@ class _Defn(object):
         return result
     
     def fillParValueDict(self, result, dimensions, cell_value_lookup):
+        """Low level method for extracting values.  Pushes values of this 
+        particular parameter/defn into the dict tree 'result', 
+        eg: length_defn.fillParValueDict(['edge']) populates 'result' like
+        {'length':{'human':1.0, 'mouse':1.0}}"""
         
         assert self.name not in result, self.name
         
@@ -539,7 +546,7 @@ class _LeafDefn(_Defn):
                 _fmtrow(col_width+1, assignments, max_width))
     
 
-class _ParameterController(object):
+class ParameterController(object):
     """Holds a set of activated CalculationDefns, including their parameter
     scopes.  Makes calculators on demand."""
     
@@ -593,10 +600,11 @@ class _ParameterController(object):
         
         self._changed = set()
         self._update_suspended = False
-        self.update(self.defns)
+        self.updateIntermediateValues(self.defns)
         self.setupParallelContext()
     
     def getParamNames(self, scalar_only=False):
+        """The names of the numerical inputs to the calculation."""
         return [defn.name for defn in self.defns if defn.user_param and
             (defn.numeric or not scalar_only)]
     
@@ -604,12 +612,18 @@ class _ParameterController(object):
         return self.defn_for[par_name].usedDimensions()
     
     def getParamValue(self, par_name, *args, **kw):
+        """The value for 'par_name'.  Additional arguments specify the scope.
+        Despite the name intermediate values can also be retrieved this way."""
         callback = self._makeValueCallback(None, None)
         defn = self.defn_for[par_name]
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
     
     def getParamInterval(self, par_name, *args, **kw):
+        """Confidence interval for 'par_name' found by adjusting the 
+        single parameter until the final result falls by 'dropoff', which
+        can be specified directly or via 'p' as chdtri(1, p).  Additional
+        arguments are taken to specify the scope."""
         dropoff = kw.pop('dropoff', None)
         p = kw.pop('p', None)
         if dropoff is None and p is None:
@@ -624,6 +638,11 @@ class _ParameterController(object):
     
     def getParamValueDict(self, dimensions, p=None, dropoff=None,
             params=None, xtol=None):
+        """A dict tree of parameter values, with parameter names as the
+        top level keys, and the various dimensions ('edge', 'bin', etc.)
+        supplying lower level keys: edge names, bin names etc.
+        If 'p' or 'dropoff' is specified returns chi-square intervals instead
+        of simple values."""
         callback = self._makeValueCallback(dropoff, p, xtol)
         if params is None:
             params = self.getParamNames(scalar_only=True)
@@ -652,18 +671,19 @@ class _ParameterController(object):
     
     @contextmanager
     def updatesPostponed(self):
+        "Temporarily turn off calculation for faster input setting"
         (old, self._update_suspended) = (self._update_suspended, True)
         yield
         self._update_suspended = old
-        self._update()
+        self._updateIntermediateValues()
         
-    def update(self, changed=None):
+    def updateIntermediateValues(self, changed=None):
         if changed is None:
             changed = self.defns # all
         self._changed.update(id(defn) for defn in changed)
-        self._update()
+        self._updateIntermediateValues()
     
-    def _update(self):
+    def _updateIntermediateValues(self):
         if self._update_suspended:
             return
         # use topological sort order
@@ -675,10 +695,95 @@ class _ParameterController(object):
                     self._changed.add(id(c))
         self._changed.clear()
     
-    def __repr__(self):
-        col_width = 6
-        max_width = 60
-        parts = [defn._local_repr(col_width, max_width) for defn in self.defns
-                if not isinstance(defn, SelectFromDimension)]
-        return '\n'.join(parts)
+    def assignAll(self, par_name, scope_spec=None, value=None,
+            lower=None, upper=None, const=None, independent=None):
+        settings = []
+        defn = self.defn_for[par_name]
+        if not isinstance(defn, _LeafDefn):
+            args = ' and '.join(['"%s"' % a.name for a in defn.args])
+            msg = '"%s" is not settable as it is derived from %s.' % (
+                    par_name, args)
+            raise ValueError(msg)
+        
+        if const is None:
+            const = defn.const_by_default
+        
+        for scope in defn.interpretScopes(
+                independent=independent, **(scope_spec or {})):
+            if value is None:
+                values = defn.getAllDefaultValues(scope)
+                if len(values) == 1:
+                    s_value = values[0]
+                else:
+                    s_value = sum(values) / len(values)
+                    for value in values:
+                        if not numpy.all(value==s_value):
+                            LOG.warning("Used mean of '%s' values" % par_name)
+                            break
+            else:       
+                s_value = defn.unwrapValue(value)
+            if const:
+                setting = ConstVal(s_value)
+            else:
+                (s_lower, s_upper) = defn.getCurrentBounds(scope)
+                if lower is not None: s_lower = lower
+                if upper is not None: s_upper = upper
+                setting = Var((s_lower, s_value, s_upper))
+            settings.append((scope, setting))
+        defn.assign(settings)
+        self.updateIntermediateValues([defn])
+        
+    def measureEvalsPerSecond(self, *args, **kw):
+        return self.makeCalculator().measureEvalsPerSecond(*args, **kw)
     
+    def setupParallelContext(self, parallel_split=None):
+        comm = parallel.getCommunicator()
+        cpu_count = comm.Get_size()
+        if parallel_split is None:
+            parallel_split = cpu_count
+        with parallel.mpi_split(parallel_split) as parallel_context:
+            self.remaining_parallel_context = parallel.getCommunicator()
+            if 'parallel_context' in self.defn_for:
+                self.assignAll(
+                    'parallel_context', value=parallel_context, const=True)
+            self.overall_parallel_context = comm
+    
+    def makeCalculator(self, calculatorClass=None, variable=None, **kw):
+        cells = []
+        input_soup = {}
+        for defn in self.defns:
+            defn.update()
+            (newcells, outputs) = defn.makeCells(input_soup, variable)
+            cells.extend(newcells)
+            input_soup[id(defn)] = outputs
+        if calculatorClass is None:
+            calculatorClass = Calculator
+        kw['overall_parallel_context'] = self.overall_parallel_context
+        kw['remaining_parallel_context'] = self.remaining_parallel_context
+        return calculatorClass(cells, input_soup, **kw)
+    
+    def updateFromCalculator(self, calc):
+        changed = []
+        for defn in self.defn_for.values():
+            if isinstance(defn, _LeafDefn):
+                defn.updateFromCalculator(calc)
+                changed.append(defn)
+        self.updateIntermediateValues(changed)
+    
+    def getNumFreeParams(self):
+        return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
+
+    def optimise(self, *args, **kw):
+        return_calculator = kw.pop('return_calculator', False)
+        lc = self.makeCalculator()
+        lc.optimise(*args, **kw)
+        self.updateFromCalculator(lc)
+        if return_calculator:
+            return lc
+    
+    def graphviz(self, **kw):
+        lc = self.makeCalculator()
+        return lc.graphviz(**kw)
+        
+
+

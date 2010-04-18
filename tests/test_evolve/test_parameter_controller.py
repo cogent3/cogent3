@@ -145,7 +145,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setLocalClock('a','b')
         lf.setAlignment(al)
         lf.optimise(local=True, show_progress=False)
-        rd = lf.getStatisticsAsDict()
+        rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-10.1774488956)
         self.assertEqual(rd['length']['a'],rd['length']['b'])
 
@@ -155,7 +155,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setAlignment(self.al)
         lf.optimise(local=True, show_progress=False, 
                 tolerance=1e-8, max_restarts=2)
-        rd = lf.getStatisticsAsDict()
+        rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-27.84254174)
         self.assertEqual(rd['length']['c'],rd['length']['d'])
         self.assertNotEqual(rd['length']['a'],rd['length']['e'])
@@ -177,7 +177,7 @@ class test_parameter_controller(unittest.TestCase):
         #print self.pc
         lf.setAlignment(self.al)
         lf.optimise(show_progress=False, local=True)
-        rd = lf.getStatisticsAsDict()
+        rd = lf.getParamValueDict(['edge'], params=['kappa'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-27.3252, 3)
         self.assertEqual(rd['kappa']['b'],rd['kappa']['d'])
         self.assertNotEqual(rd['kappa']['a'],rd['kappa']['b'])

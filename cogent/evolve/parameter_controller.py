@@ -13,6 +13,7 @@ from cogent.recalculation.scope import _indexed
 
 import numpy
 import pickle
+import warnings
 
 from cogent.align.pairwise import AlignableSeq
 
@@ -64,7 +65,7 @@ class _LikelihoodParameterController(_LF):
         self.motifs = self._motifs = model.getMotifs()
         self._mprob_motifs = list(model.getMprobAlphabet())
         defn = self.makeLikelihoodDefn(**kw)
-        self.real_par_controller = defn.makeParamController()
+        super(_LF, self).__init__(defn)
         self.setDefaultParamRules()
         self.setDefaultTreeParameterRules()
         self.mprobs_from_alignment = motif_probs_from_align
@@ -76,32 +77,14 @@ class _LikelihoodParameterController(_LF):
         f = open(filename, 'w')
         temp = {}
         try:
-            for d in self.real_par_controller.defns:
+            for d in self.defns:
                 temp[id(d)] = d.values
                 del d.values
             pickle.dump((1.0, None, self), f)
         finally:
-            for d in self.real_par_controller.defns:
+            for d in self.defns:
                 if id(d) in temp:
                     d.values = temp[id(d)]
-    
-    def updateIntermediateValues(self):
-        self.real_par_controller.update()
-    
-    def optimise(self, *args, **kw):
-        return_calculator = kw.pop('return_calculator', False)
-        lc = self.real_par_controller.makeCalculator()
-        lc.optimise(*args, **kw)
-        self.real_par_controller.updateFromCalculator(lc)
-        if return_calculator:
-            return lc
-    
-    def graphviz(self, **kw):
-        lc = self.real_par_controller.makeCalculator()
-        return lc.graphviz(**kw)
-    
-    def __repr__(self):
-        return repr(self.real_par_controller)
     
     def setDefaultTreeParameterRules(self):
         """Lengths are set to the values found in the tree (if any), and
@@ -109,7 +92,7 @@ class _LikelihoodParameterController(_LF):
         Other parameters are scoped based on the unique values found in the
         tree (if any) or default to having one value shared across the whole
         tree""" 
-        with self.real_par_controller.updatesPostponed():
+        with self.updatesPostponed():
             edges = self.tree.getEdgeVector()
             for par_name in self.model.getParamList():
                 try:
@@ -157,13 +140,18 @@ class _LikelihoodParameterController(_LF):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.setParamRule('expm', is_const=True, value=expm)
 
-    def makeCalculator(self, aligns):
-        # deprecate
-        self.setAlignment(aligns)
-        if getattr(self, 'used_as_calculator', False):
-            warnings.warn('PC used as two different calculators', stacklevel=2)
-        self.used_as_calculator = True
-        return self
+    def makeCalculator(self, *args, **kw):
+        if args:
+            warnings.warn("makeCalculator(aligns) long Deprecated", 
+                DeprecationWarning, stacklevel=2)
+            # and shadowing a quite different superclass method.
+            self.setAlignment(*args)
+            if getattr(self, 'used_as_calculator', False):
+                warnings.warn('PC used as two different calculators', stacklevel=2)
+            self.used_as_calculator = True
+            return self
+        else:
+            return super(_LF, self).makeCalculator(**kw)
     
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
             is_clade=None, is_stem=None, outgroup_name=None):
@@ -250,8 +238,8 @@ class _LikelihoodParameterController(_LF):
         elif init is not None:
             assert not value
             value = init
-        self.real_par_controller.assignAll(par_name, scopes, value, lower,
-                upper, is_const, is_independent)
+        self.assignAll(par_name, scopes, value, lower, upper, is_const, 
+                is_independent)
     
     def setLocalClock(self, tip1name, tip2name):
         """Constrain branch lengths for tip1name and tip2name to be equal.
@@ -275,7 +263,7 @@ class _LikelihoodParameterController(_LF):
         if tree is None:
             tree = self.tree
         
-        with self.real_par_controller.updatesPostponed():
+        with self.updatesPostponed():
             for edge in tree.getEdgeVector():
                 if edge.Length is None or edge.Name in exclude_list:
                     continue
@@ -287,7 +275,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
     
     def setDefaultParamRules(self):
         try:
-            self.real_par_controller.assignAll(
+            self.assignAll(
                 'fixed_motif', None, value=-1, const=True, independent=True)
         except KeyError:
             pass
@@ -319,9 +307,9 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                                 (self.tree.getTipNames(), aln.getSeqNames(),
                                 locus_name)
             assert not "root" in aln.getSeqNames(), "'root' is a reserved name."
-        with self.real_par_controller.updatesPostponed():
+        with self.updatesPostponed():
             for (locus_name, align) in zip(self.locus_names, aligns):
-                self.real_par_controller.assignAll(
+                self.assignAll(
                         'alignment', {'locus':[locus_name]},
                         value=align, const=True)
                 if self.mprobs_from_alignment:
@@ -355,7 +343,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         self.setPogs(leaves, locus=locus)
     
     def setPogs(self, leaves, locus=None):
-        with self.real_par_controller.updatesPostponed():
+        with self.updatesPostponed():
             for (name, pog) in leaves.items():
                 self.setParamRule('leaf', edge=name, value=pog, is_const=True)
             if self.mprobs_from_alignment:

@@ -129,12 +129,6 @@ Get out an annotated tree, it looks just like a tree, but has the maximum-likeli
 
     >>> at = lf.getAnnotatedTree()
 
-Getting the maximum likelihood estimates for post-processing out can be done in numerous ways. Here I use the ``getStatisticsAsDict`` method.
-
-.. doctest::
-
-    >>> sd = lf.getStatisticsAsDict(with_edge_names=True)
-
 The lnL's from the two models are now used to calculate the likelihood ratio statistic (``LR``) it's degrees-of-freedom (``df``) and the probability (``P``) of observing the LR.
 
 .. doctest::
