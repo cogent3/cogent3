@@ -8,8 +8,8 @@ from datetime import datetime
 from string import maketrans, strip
 from random import randrange, choice
 from sys import maxint
-from os import popen, remove, makedirs
-from os.path import join, abspath
+from os import popen, remove, makedirs, getenv
+from os.path import join, abspath, exists
 from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
@@ -1281,18 +1281,23 @@ def NestedSplitter(delimiters=[None], same_level=False,
     return parser
 #end NestedSplitter
 
-def app_path(app):
-    """Returns path to an app, or empty string if no path.
-
-    Should generalize to work on Windows? No.
+def app_path(app,env_variable='PATH'):
+    """Returns path to an app, or False if app does not exist in env_variable
+    
+     This functions in the same way as which in that it returns
+     the first path that contains the app.
+    
     """
-    # redirect stderr to avoid junk that isn't collected by popen
-    cmd = ' '.join(['which', app, '2> /dev/null'])
-    result = popen(cmd).read().strip()
-    # Ends with 'not found' fixes bug in OSX 10.4
-    if not result or result.startswith('no') or result.endswith('not found'):
-        return False
-    return result
+    # strip off " characters, in case we got a FilePath object
+    app = app.strip('"')
+    paths = getenv(env_variable).split(':')
+    for path in paths:
+        p = join(path,app)
+        if exists(p):
+            return p
+    return False
+
+
 
 def remove_files(list_of_filepaths, error_on_missing=True):
     """Remove list of filepaths, optionally raising an error if any are missing
