@@ -138,6 +138,8 @@ def suite():
         'test_parse.test_ncbi_taxonomy',
         'test_parse.test_nexus',
         'test_parse.test_nupack',
+        'test_parse.test_pdb',
+        'test_parse.test_structure',
         'test_parse.test_phylip',
         'test_parse.test_pknotsrg',
         'test_parse.test_rdb',
