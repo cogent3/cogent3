@@ -152,8 +152,13 @@ class UclustConvenienceWrappers(TestCase):
         tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath,"w")
         tmp_unsorted_fasta.write('\n'.join(raw_dna_seqs))
         tmp_unsorted_fasta.close()
-         
-         
+        
+        self.tmp_raw_dna_seqs_rc_filepath = \
+         get_tmp_filename(prefix = "uclust_test", suffix = ".fasta")
+        tmp_rc_fasta = open(self.tmp_raw_dna_seqs_rc_filepath,"w")
+        tmp_rc_fasta.write('\n'.join(raw_dna_seqs_rc))
+        tmp_rc_fasta.close()
+        
         self.tmp_sorted_fasta_filepath = \
          get_tmp_filename(prefix = "uclust_test", suffix = ".fasta")
         tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath,"w")
@@ -189,6 +194,7 @@ class UclustConvenienceWrappers(TestCase):
         open(self.search_align_template2_fp,'w').write(search_align_template2)
         
         self.files_to_remove = [self.tmp_unsorted_fasta_filepath,
+                                self.tmp_raw_dna_seqs_rc_filepath,
                                 self.tmp_sorted_fasta_filepath,
                                 self.tmp_uc_filepath,
                                 self.tmp_clstr_filepath,
@@ -282,6 +288,50 @@ class UclustConvenienceWrappers(TestCase):
           percent_ID = 0.90)
 
         self.assertEqual(clusters_res, expected_cluster_list)
+
+    def test_get_clusters_from_fasta_filepath_optimal(self):
+        """ Test OTUs from filepath functions with optimal
+        """
+        # need to compile a small test where optimal has an affect --
+        # this currently is only testing that we don't get a failure with
+        # optimal
+        clusters_res = \
+         get_clusters_from_fasta_filepath(self.tmp_unsorted_fasta_filepath,
+          percent_ID = 0.90, optimal = True)
+        
+        self.assertEqual(clusters_res, expected_cluster_list)
+
+        
+    def test_get_clusters_from_fasta_filepath_suppress_sort(self):
+        """ Test OTUs from filepath functions with suppress sort
+        """
+        expected = [['uclust_test_seqs_0'], ['uclust_test_seqs_1'],
+                    ['uclust_test_seqs_2'], ['uclust_test_seqs_3'],
+                    ['uclust_test_seqs_4'], ['uclust_test_seqs_5'],
+                    ['uclust_test_seqs_6', 'uclust_test_seqs_8'],
+                    ['uclust_test_seqs_7'], ['uclust_test_seqs_9']]
+        clusters_res = \
+         get_clusters_from_fasta_filepath(self.tmp_unsorted_fasta_filepath,
+          percent_ID = 0.90, suppress_sort = True)
+        
+        self.assertEqual(clusters_res, expected)
+        
+    def test_get_clusters_from_fasta_filepath_rev_strand_match(self):
+        """ Test OTUs from filepath functions with rev strand match
+        """
+        # seq and its rc don't cluster when enable_rev_strand_matching = False
+        expected = [['uclust_test_seqs_0'], ['uclust_test_seqs_0_rc']]
+        clusters_res = \
+         get_clusters_from_fasta_filepath(self.tmp_raw_dna_seqs_rc_filepath,
+          percent_ID = 0.90, enable_rev_strand_matching = False)
+        self.assertEqual(clusters_res, expected)
+        
+        # seq and its rc cluster when enable_rev_strand_matching = False
+        expected = [['uclust_test_seqs_0', 'uclust_test_seqs_0_rc']]
+        clusters_res = \
+         get_clusters_from_fasta_filepath(self.tmp_raw_dna_seqs_rc_filepath,
+          percent_ID = 0.90, enable_rev_strand_matching = True)
+        self.assertEqual(clusters_res, expected)
         
     def test_process_uclust_pw_alignment_results(self):
         """parsing of pairwise alignment fasta pairs file functions as expected
@@ -349,6 +399,12 @@ AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
 CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
 >uclust_test_seqs_9
 GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+""".split('\n')
+
+raw_dna_seqs_rc = """>uclust_test_seqs_0
+ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+>uclust_test_seqs_0_rc
+AGCTCTGACACAAAACTGACGTGATGTGCCTTAAGTATCCAACCCGTTGGATGGGACGTCTTGTAGCCACCGT
 """.split('\n')
 
 sorted_dna_seqs=""">uclust_test_seqs_7

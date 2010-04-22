@@ -25,7 +25,7 @@ from cogent.parse.fasta import MinimalFastaParser
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath,\
  get_tmp_filename, ApplicationError, ApplicationNotFoundError
-from cogent.util.misc import reverse_complement
+from cogent.util.misc import reverse_complement, remove_files
 
 class UclustParseError(Exception):
     pass
@@ -88,6 +88,13 @@ class Uclust(CommandLineApplication):
         # input filename, .uc format
         '--uc2clstr':ValuedParameter('--', Name='uc2clstr', Delimiter=' ',
             IsPath=True),
+
+        # Don't assume input is sorted by length (default assume sorted).
+        '--usersort':FlagParameter('--',Name='usersort'),
+        
+        # Same as --maxrejects 0 --maxaccepts 0 --nowordcountreject -- 
+        # comes with a performance hit.
+        '--optimal':FlagParameter('--',Name='optimal'),
         
     }
      
@@ -300,6 +307,8 @@ def uclust_cluster_from_sorted_fasta_filepath(
     fasta_filepath,
     output_filepath=None, 
     percent_ID=0.97, 
+    optimal = False,
+    suppress_sort = False,
     enable_rev_strand_matching=False,
     HALT_EXEC=False):
     """ Returns clustered uclust file from sorted fasta"""
@@ -307,10 +316,12 @@ def uclust_cluster_from_sorted_fasta_filepath(
      get_tmp_filename(prefix='uclust_clusters',suffix='.uc')
     
     params = {'--id':percent_ID}
-    
-    if enable_rev_strand_matching:
-        params['--rev'] = True
     app = Uclust(params,HALT_EXEC=HALT_EXEC)
+    
+    # Set any additional parameters specified by the user
+    if enable_rev_strand_matching: app.Parameters['--rev'].on()
+    if optimal: app.Parameters['--optimal'].on()
+    if suppress_sort: app.Parameters['--usersort'].on()
     
     app_result = app({'--input':fasta_filepath,'--uc':output_filepath})
     return app_result
@@ -376,6 +387,8 @@ def get_output_filepaths(output_dir, fasta_filepath):
 def get_clusters_from_fasta_filepath(
     fasta_filepath,
     percent_ID=0.97,
+    optimal=False,
+    suppress_sort=False,
     output_dir=None,
     enable_rev_strand_matching=False):
     """ Main convenience wrapper for using uclust to generate cluster files
@@ -413,20 +426,28 @@ def get_clusters_from_fasta_filepath(
 
 
     # Error check in case any app controller fails
+    files_to_remove = []
     try:
-        # Sort fasta input file from largest to smallest sequence 
-        sort_fasta = uclust_fasta_sort_from_filepath(fasta_filepath, \
-        fasta_output_filepath)
-        # Get sorted fasta name from application wrapper
-        sorted_fasta_filepath = sort_fasta['Output'].name
+        if not suppress_sort:
+            # Sort fasta input file from largest to smallest sequence 
+            sort_fasta = uclust_fasta_sort_from_filepath(fasta_filepath, \
+            fasta_output_filepath)
+            # Get sorted fasta name from application wrapper
+            sorted_fasta_filepath = sort_fasta['Output'].name
+            files_to_remove.append(sorted_fasta_filepath)
+        else:
+            sort_fasta = None
+            sorted_fasta_filepath = fasta_filepath
     
         # Generate uclust cluster file (.uc format)
         uclust_cluster = \
-         uclust_cluster_from_sorted_fasta_filepath(sorted_fasta_filepath, \
-         uc_output_filepath, percent_ID = percent_ID, \
+         uclust_cluster_from_sorted_fasta_filepath(sorted_fasta_filepath,
+         uc_output_filepath, percent_ID = percent_ID,
+         optimal = optimal, suppress_sort = suppress_sort,
          enable_rev_strand_matching = enable_rev_strand_matching)
         # Get cluster file name from application wrapper
         uc_filepath = uclust_cluster['ClusterFile'].name
+        files_to_remove.append(uc_filepath)
 
         # Convert the .uc file to a cdhit (.clstr) format
         cdhit_conversion = \
@@ -434,23 +455,14 @@ def get_clusters_from_fasta_filepath(
 
         # Get the open file object from the cdhit conversion wrapper
         clstr_filepath = cdhit_conversion['Output']
+        files_to_remove.append(clstr_filepath)
     except ApplicationError:
-        if isfile(sorted_fasta_filepath):
-            remove(sorted_fasta_filepath)
-        if isfile(uc_filepath):
-            remove(uc_filepath)
-        if isfile(clstr_filepath):
-            remove(clstr_filepath)
+        remove_files(files_to_remove)
         raise ApplicationError, ('Error running uclust, make sure the proper '+\
          'version (1.1.579 or greater) is installed and the input fasta file '+\
          'is properly formatted.')
     except ApplicationNotFoundError:
-        if isfile(sorted_fasta_filepath):
-            remove(sorted_fasta_filepath)
-        if isfile(uc_filepath):
-            remove(uc_filepath)
-        if isfile(clstr_filepath):
-            remove(clstr_filepath)
+        remove_files(files_to_remove)
         raise ApplicationNotFoundError('uclust not found, is it properly '+\
          'installed?')
     
@@ -459,7 +471,10 @@ def get_clusters_from_fasta_filepath(
     
     # Remove temp files unless user specifies output filepath
     if not output_dir:
-        sort_fasta.cleanUp()
+        try:
+            sort_fasta.cleanUp()
+        except AttributeError:
+            pass
         uclust_cluster.cleanUp()
         cdhit_conversion.cleanUp()
     
