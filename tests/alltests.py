@@ -74,7 +74,6 @@ def suite():
         'test_core.test_seq_aln_integration',
         'test_core.test_sequence',
         'test_core.test_tree',
-        'test_core.test_tree2',
         'test_core.test_usage',
         'test_data.test_molecular_weight',
         'test_evolve.test_best_likelihood',
