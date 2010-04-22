@@ -148,7 +148,7 @@ def get_trailer_offset(line_list):
 
 def parse_header(header):
     """Parse parts of the PDB header."""
-    id = (compile('HEADER\s{4}\S+.*\S+\s+\S{9}\s+(\S{4})\s*$'), 'id')
+    id = (compile('HEADER\s{4}\S+.*\S+\s*\S{9}\s+(\S{4})\s*$'), 'id')
     dt = (compile('HEADER\s{4}\S+.*\S+\s+(\S{9})\s+\S{4}\s*$'), 'date')
     nm = (compile('HEADER\s{4}(\S+.*\S+)\s+\S{9}\s+\S{4}\s*$'), 'name')
     mc = (compile('REMARK 280\s+MATTHEWS COEFFICIENT,\s+VM\s+\(ANGSTROMS\*\*3/DA\):\s+(\d+\.\d+)'), 'matthews')
@@ -159,8 +159,11 @@ def parse_header(header):
     rf = (compile('REMARK   3\s+FREE R VALUE\s+:\s+(\d+\.\d+)'), 'r_free')
     xd = (compile('EXPDTA\s+([\w\-]+).*'), 'expdta')
     c1 = (compile('CRYST1\s+((\d+\.\d+\s+){6})'), 'cryst1')
+    ra = (compile('DBREF\s+\S{4}\s+\S\s+\d+\s+\d+\s+\S+\s+(\S+)\s+\S+\s+\d+\s+\d+\s+$'), 'dbref_acc')
+    rx = (compile('DBREF\s+\S{4}\s+\S\s+\d+\s+\d+\s+\S+\s+\S+\s+(\S+)\s+\d+\s+\d+\s+$'), 'dbref_acc_full')
     #CRYST1   60.456   60.456   82.526  90.00  90.00  90.00 P 41          4
-    tests = [id, dt, nm, mc, sc, sg, xt, rs, rf, xd, c1]
+    #DBREF  1UI9 A    1   122  UNP    Q84FH6   Q84FH6_THETH     1    122             \n'
+    tests = [id, dt, nm, mc, sc, sg, xt, rs, rf, xd, c1, ra, rx]
     results = {}
     for line in header:
         for (regexp, name) in tests:

@@ -15,6 +15,7 @@ __maintainer__ = "Marcin Cieslik"
 __email__ = "mpc4p@virginia.edu"
 __status__ = "Development"
 
+
 def FromFilenameStructureParser(filename, format=None, **kw):
     """
     Returns a structure parser for a specified format for given filename.
@@ -33,6 +34,8 @@ def FromFileStructureParser(f, format, dialign_recode=False, **kw):
         - filename: name of the structure file
         - format: the structure file format
     """
+    if not type(f) is file:
+        raise TypeError('%s is not a file' % f)
     format = format.lower()
     if format in XML_PARSERS:
         doctype = format
