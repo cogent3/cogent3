@@ -2,6 +2,8 @@
 Useful Utilities
 ****************
 
+.. authors, Daniel McDonald
+
 Using PyCogent's optimisers for your own functions
 ==================================================
 
