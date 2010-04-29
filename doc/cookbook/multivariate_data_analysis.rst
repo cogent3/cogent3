@@ -2,6 +2,8 @@
 Multivariate data analysis
 **************************
 
+authors, Justin Kuczynski, Catherine Lozupone
+
 Principal Coordinates Analysis
 ==============================
 
@@ -37,7 +39,7 @@ Now use this matrix to perform principal coordinates analysis.
 .. doctest::
 
     >>> PCoA_result = PCoA(d.getPairwiseDistances())
-    >>> print PCoA_result
+    >>> print PCoA_result # doctest: +SKIP
     ======================================================================================
             Type              Label  vec_num-0  vec_num-1  vec_num-2  vec_num-3  vec_num-4
     --------------------------------------------------------------------------------------
