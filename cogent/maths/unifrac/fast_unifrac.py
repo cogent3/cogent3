@@ -168,15 +168,14 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
 
     return result
 
-def _fast_unifrac_setup(t, envs, make_subtree=True):
+def _fast_unifrac_setup(t, envs):
     """Setup shared by fast_unifrac and by significance tests."""
-    if make_subtree:
-        try:
-            t2 = t.getSubTree(set(envs.keys()).intersection(
-            set([i.Name for i in t.tips()])), ignore_missing=True)
-            t = t2
-        except TreeError:
-            pass
+    try:
+        t2 = t.getSubTree(set(envs.keys()).intersection(
+        set([i.Name for i in t.tips()])), ignore_missing=True)
+        t = t2
+    except TreeError:
+        pass
     #index tree
     node_index, nodes = index_tree(t)
     #get good nodes, defined as those that are in the env file.
@@ -498,44 +497,6 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
         result.update(unifrac_tasks_from_matrix(u, env_names, modes=modes))
     return result
 
-def fast_unifrac_one_sample(one_sample_name, t, envs, weighted=False, metric=unifrac,
-    weighted_unifrac_f=_weighted_unifrac, make_subtree=False):
-    """ returns zeros of len (env_names + 1) if one_sample has no valid seqs"""
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs, make_subtree)
-    bound_indices = bind_to_array(nodes, count_array)
-    #initialize result
-    result = {}
-    try:
-        one_sample_idx = env_names.index(one_sample_name)
-    except ValueError:
-        env_names.append(one_sample_name)
-        res = (array([1]*len(env_names) + [0]), env_names)
-        print "warning, one_sample not in unifrac result.  using:", res
-        return res
-    #figure out whether doing weighted or unweighted analysis: for weighted,
-    #need to figure out root-to-tip distances, but can skip this step if
-    #doing unweighted analysis.
-    if weighted:
-        tip_indices = [n._leaf_index for n in t.tips()]
-        sum_descendants(bound_indices)
-        tip_ds = branch_lengths.copy()[:,newaxis]
-        bindings = bind_to_parent_array(t, tip_ds)
-        tip_distances(tip_ds, bindings, tip_indices)
-        if weighted == 'correct':
-            bl_correct = True
-        else:
-            bl_correct = False
-        u = weighted_one_sample(one_sample_idx, branch_lengths, count_array, tip_indices, \
-            bl_correct=bl_correct, tip_distances=tip_ds, \
-            unifrac_f=weighted_unifrac_f)
-        #figure out if we need the vector
-    else:
-        bool_descendants(bound_indices)
-        u = unifrac_one_sample(one_sample_idx, branch_lengths, count_array, 
-            metric=metric)
-
-    return (u, env_names)
-        
 def unifrac_tasks_from_matrix(u, env_names, modes=UNIFRAC_DEFAULT_MODES):
     """Returns the UniFrac matrix, PCoA, and/or cluster from the matrix."""
     result = {}
