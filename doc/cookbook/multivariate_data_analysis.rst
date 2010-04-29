@@ -93,7 +93,7 @@ We start with an abundance matrix, samples (rows) by sequences/species (cols)
     ...        [0,0,0,2,4,0,0,0,1],
     ...        [0,0,0,1,7,0,0,0,0]], 'float')
 
-Then compute a distance matrix of your choosing, and perform nmds on that matrix
+Then compute a distance matrix using euclidean distance, and perform nmds on that matrix
 
 .. doctest::
 
@@ -112,7 +112,7 @@ With matplotlib installed, we could then do ``plt.plot(pts[:,0], pts[:,1])``
 Hierarchical clustering (UPGMA, NJ)
 ===================================
 
-Hierarchical clustering techniques work on a matrix of pairwise distances. In this case, we use the distance matrix from the NMDS example, relating samples of species to one another.
+Hierarchical clustering techniques work on a matrix of pairwise distances. In this case, we use the distance matrix from the NMDS example, relating samples of species to one another using UPGMA (NJ below).
 
 :note: UPGMA should not be used for phylogenetic reconstruction.
 
@@ -194,7 +194,7 @@ We demonstrate saving this UPGMA cluster to a file.
     >>> os.remove('test_upgma.tree')
 
 
-We can use neighbor joining instead of UPGMA:
+We can use neighbor joining (NJ) instead of UPGMA:
 
 .. doctest::
     
