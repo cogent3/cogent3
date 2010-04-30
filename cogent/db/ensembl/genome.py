@@ -142,11 +142,11 @@ class Genome(object):
             else:
                 descr = gene_table.c.description==Description
         
-        if btype and descr:
+        if btype is not None and descr is not None:
             condition = sql.and_(btype, descr)
-        elif btype:
+        elif btype is not None:
             condition = btype
-        elif descr:
+        elif descr is not None:
             condition = descr
         
         return condition

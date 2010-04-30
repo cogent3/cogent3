@@ -22,7 +22,7 @@ def location_query(table, query_start, query_end,
     # in which it's being employed
     # should we be setting default values here regarding the columns that start/end
     # are pulled from, or explicitly state which columns
-    if not query:
+    if query is None:
         query = sql.select([table])
     
     if where == 'within':
