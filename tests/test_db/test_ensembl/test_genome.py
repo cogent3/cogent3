@@ -16,7 +16,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 56
+Release = 57
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -34,11 +34,11 @@ class GenomeTestBase(TestCase):
 class TestGenome(GenomeTestBase):
     
     def test_other_features(self):
-        """should correctly return record for ENSESTG00000000020"""
-        est = self.human.getEstMatching(StableId='ENSESTG00000000020')
+        """should correctly return record for ENSESTG00007281025"""
+        est = self.human.getEstMatching(StableId='ENSESTG00007281025')
         direct = list(est)[0]
         ests = self.human.getFeatures(feature_types='est', CoordName=8,
-                                                Start=105711700, End=105715900)
+                                                Start=145164000, End=145166000)
         stable_ids = [est.StableId for est in ests]
         self.assertContains(stable_ids, direct.StableId)
     
@@ -203,7 +203,7 @@ class TestGene(GenomeTestBase):
     def test_get_by_description(self):
         """if get by description, all attributes should be correctly
         constructed"""
-        description='breast cancer type 2'
+        description='breast cancer 2'
         results = list(self.human.getGenesMatching(Description=description))
         self.assertEquals(len(results), 1)
         self._eval_brca2(results[0])
@@ -232,7 +232,7 @@ class TestGene(GenomeTestBase):
         """combining the description and biotype should return a result"""
         results = list(self.human.getGenesMatching(BioType="protein_coding",
                     Description="cancer"))
-        self.assertTrue(len(results) > 100)
+        self.assertTrue(len(results) > 50)
     
     def test_variant(self):
         """variant attribute correctly constructed"""

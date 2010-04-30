@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 56
+Release = 57
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -53,7 +53,7 @@ class TestCompara(ComparaTestBase):
                       StableId='ENSMUSG00000030157'))[0]
         orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
                         Relationship='ortholog_one2many')
-        self.assertEquals(len(orthologs.Members),3)
+        self.assertEquals(len(orthologs.Members),2)
     
     def test_get_collection(self):
         brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
@@ -162,7 +162,7 @@ class TestSyntenicRegions(TestCase):
         for coord, expect in coords_expected[1:]:
             hum_length = coord['End'] - coord['Start']
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=435, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=457, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
