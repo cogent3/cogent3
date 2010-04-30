@@ -170,6 +170,10 @@ class Compara(object):
             "No identifier provided"
         assert Relationship is not None, "No Relationship specified"
         
+        # TODO understand why this has become necessary to suppress warnings
+        # in SQLAlchemy 0.6
+        Relationship = u'%s' % Relationship
+        
         StableId = StableId or gene_region.StableId
         
         member_table = self.ComparaDb.getTable('member')
