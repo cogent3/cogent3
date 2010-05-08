@@ -12,7 +12,7 @@ from cogent.maths.unifrac.fast_tree import (count_envs, sum_env_dict,
     jackknife_int, unifrac, unnormalized_unifrac, PD, G, unnormalized_G, 
     unifrac_matrix, unifrac_vector, PD_vector, weighted_unifrac, 
     weighted_unifrac_matrix, weighted_unifrac_vector, jackknife_array, 
-    env_unique_fraction)
+    env_unique_fraction, unifrac_one_sample, weighted_one_sample)
 from numpy import (arange, reshape, zeros, logical_or, array, sum, nonzero, 
     flatnonzero, newaxis)
 from numpy.random import permutation    
@@ -498,6 +498,27 @@ f   D"""
             0.4706], [0.6154, 0.4707, 0]])
         assert (abs(result - exp)).max() < 0.001
 
+    def test_unifrac_one_sample(self):
+        """unifrac_one_sample should match unifrac_matrix"""
+        m = array([[1,0,1],[1,1,0],[0,1,0],[0,0,1],[0,1,0],[0,1,1],[1,1,1],\
+            [0,1,1],[1,1,1]])
+        bl = self.branch_lengths
+        result = unifrac_matrix(bl, m)
+        
+        for i in range(len(result)):
+            one_sam_res = unifrac_one_sample(i, bl, m)
+            self.assertEqual(result[i], one_sam_res)
+            self.assertEqual(result[:,i], one_sam_res)
+        
+        #should work ok on asymmetric metrics
+        result = unifrac_matrix(bl,m,metric=unnormalized_G,is_symmetric=False)
+        
+        for i in range(len(result)):
+            one_sam_res = unifrac_one_sample(i, bl, m, metric=unnormalized_G)
+            self.assertEqual(result[i], one_sam_res)
+            # only require row for asym
+            # self.assertEqual(result[:,i], one_sam_res)
+        
     def test_unifrac_vector(self):
         """unifrac_vector should return correct results for model tree"""
         m = array([[1,0,1],[1,1,0],[0,1,0],[0,0,1],[0,1,0],[0,1,1],[1,1,1],\
@@ -516,7 +537,7 @@ f   D"""
 
 
     def test_weighted_unifrac_matrix(self):
-        """weighted unifrac matrix should return correct results for model tree"""
+        """weighted unifrac matrix should ret correct results for model tree"""
         #should match web site calculations
         envs = self.count_array
         bound_indices = bind_to_array(self.nodes, envs)
@@ -537,9 +558,37 @@ f   D"""
         exp = array([[0, 9.1/11.5, 4.5/(10.5+1./3)], [9.1/11.5, 0, \
             6.4/(11+1./3)], [4.5/(10.5+1./3), 6.4/(11+1./3), 0]])
         assert (abs(result - exp)).max() < 0.001
+        
+    def test_weighted_one_sample(self):
+        """weighted one sample should match weighted matrix"""
+        #should match web site calculations
+        envs = self.count_array
+        bound_indices = bind_to_array(self.nodes, envs)
+        sum_descendants(bound_indices)
+        bl = self.branch_lengths
+        tip_indices = [n._leaf_index for n in self.t.tips()]
+        result = weighted_unifrac_matrix(bl, envs, tip_indices)
+        for i in range(len(result)):
+            one_sam_res = weighted_one_sample(i, bl, envs, tip_indices)
+            self.assertEqual(result[i], one_sam_res)
+            self.assertEqual(result[:,i], one_sam_res)
+
+        #should work with branch length corrections
+        td = bl.copy()[:,newaxis]
+        tip_bindings = bind_to_parent_array(self.t, td)
+        tips = [n._leaf_index for n in self.t.tips()]
+        tip_distances(td, tip_bindings, tips)
+        result = weighted_unifrac_matrix(bl, envs, tip_indices, bl_correct=True,
+            tip_distances=td)
+        for i in range(len(result)):
+            one_sam_res = weighted_one_sample(i, bl, envs, tip_indices,
+                bl_correct=True, tip_distances=td)
+            self.assertEqual(result[i], one_sam_res)
+            self.assertEqual(result[:,i], one_sam_res)
+
 
     def test_weighted_unifrac_vector(self):
-        """weighted_unifrac_vector should return correct results for model tree"""
+        """weighted_unifrac_vector should ret correct results for model tree"""
         envs = self.count_array
         bound_indices = bind_to_array(self.nodes, envs)
         sum_descendants(bound_indices)

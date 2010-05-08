@@ -1049,9 +1049,11 @@ class TreeNode(object):
         listed in name_list.
         """
         edge_names = self.getNodeNames(includeself=1, tipsonly=False)
-        for name in name_list:
-            if name not in edge_names and not ignore_missing:
-                raise ValueError("edge %s not found in tree" % name)
+        if not ignore_missing:
+            # this takes a long time
+            for name in name_list:
+                if name not in edge_names:
+                    raise ValueError("edge %s not found in tree" % name)
         
         new_tree = self._getSubTree(name_list)
         if new_tree is None:

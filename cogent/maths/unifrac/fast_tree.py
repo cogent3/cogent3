@@ -434,6 +434,34 @@ def unifrac_matrix(branch_lengths, m, metric=unifrac, is_symmetric=True):
             result[i] = [metric(branch_lengths, first_col, cols[j]) for \
                 j in range(num_cols)]
     return result
+    
+def unifrac_one_sample(one_sample_idx, branch_lengths, m, metric=unifrac):
+    """Calculates unifrac(one_sample_idx,j) for all environments j in m.
+    
+    branch_lengths is the array of branch lengths.
+    
+    m is 2D count array: rows are taxa (corresponding to branch_lenths),
+    samples/states/envs are columns. 
+    Assumes that ancestral 
+    states have already been calculated (either by logical_or or Fitch).
+
+    metric: metric to use for when comparing two environments. Default
+    is unifrac. must be called like: 
+    metric(branch_lengths, env1_counts, env2counts)
+    
+    returns a numpy 1d array
+    if asymmetric metric, returns metric(one_sample, other), usually a row in
+    the mtx returned by unifrac_matrix
+    """
+    num_cols = m.shape[-1]
+    cols = [m[:,i] for i in range(num_cols)]
+    # result = zeros((num_cols), float)
+        
+    first_col = cols[one_sample_idx]
+    # better to do loop into preallocated numpy array here?
+    result = array([metric(branch_lengths, first_col, cols[j]) for \
+        j in range(num_cols)],'float')
+    return result
 
 def env_unique_fraction(branch_lengths, m):
     """ Calculates unique branch length for each env. 
@@ -534,6 +562,33 @@ def weighted_unifrac_matrix(branch_lengths, m, tip_indices, bl_correct=False,
             row_result.append(curr)
         result[i,:j+1] = row_result
     result = result + transpose(result)
+    return result
+    
+def weighted_one_sample(one_sample_idx, branch_lengths, m, tip_indices, 
+    bl_correct=False, tip_distances=None, unifrac_f=_weighted_unifrac):
+    """Calculates weighted_unifrac(one_sample_idx,j) for all environments j in m
+
+    Requires tip_indices for calculating sums, etc.
+    bl_correct: if True (default: False), applies branch length correction.
+        tip_distances is required for normalization for weighted unifrac.
+    """
+    num_cols = m.shape[-1]
+    cols = [m[:,i] for i in range(num_cols)] #note that these will be row vecs
+    sums = [take(m[:,i], tip_indices).sum() for i in range(num_cols)]
+    result = zeros((num_cols),float)
+
+    i_sum = sums[one_sample_idx]
+    first_col = cols[one_sample_idx]
+    row_result = []
+    for j in range(num_cols):
+        second_col = cols[j]
+        j_sum = sums[j]
+        curr = unifrac_f(branch_lengths, first_col, \
+            second_col, i_sum, j_sum)
+        if bl_correct:
+            curr /= _branch_correct(tip_distances, first_col, \
+                second_col, i_sum, j_sum)
+        result[j] = curr
     return result
 
 def weighted_unifrac_vector(branch_lengths, m, tip_indices, bl_correct=False,
