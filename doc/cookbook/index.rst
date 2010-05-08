@@ -5,7 +5,7 @@ PyCogent Cookbook
 Contents:
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
     
     introduction
     tips_for_using_python
