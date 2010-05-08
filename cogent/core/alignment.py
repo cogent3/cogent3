@@ -1691,9 +1691,10 @@ class AlignmentI(object):
         """
         start = [start, 0][start is None]
         end = [end, len(self)-window+1][end is None]
-        
-        for pos in range(start, end, step):
-            yield self[pos:pos+window]
+        end = min(len(self)-window+1, end)
+        if start < end and len(self)-end >= window-1:
+            for pos in xrange(start, end, step):
+                yield self[pos:pos+window]
         
     
   
