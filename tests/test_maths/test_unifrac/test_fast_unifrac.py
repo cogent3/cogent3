@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for fast unifrac."""
 
-from numpy import array, logical_not
+from numpy import array, logical_not, argsort
 from cogent.util.unit_test import TestCase, main
 from cogent.parse.tree import DndParser
 from cogent.maths.unifrac.fast_tree import (count_envs, index_tree, index_envs,
@@ -14,7 +14,7 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
     UniFracTreeNode, mcarlo_sig, num_comps, fast_unifrac, 
     fast_unifrac_whole_tree, PD_whole_tree, PD_generic_whole_tree,
     TEST_ON_TREE, TEST_ON_ENVS, TEST_ON_PAIRWISE, shared_branch_length,
-    shared_branch_length_to_root)
+    shared_branch_length_to_root, fast_unifrac_one_sample)
 from numpy.random import permutation 
 
 __author__ = "Rob Knight and Micah Hamady"
@@ -149,10 +149,60 @@ f B 1
         res = fast_unifrac(self.t, self.extra_tip_counts)
         self.assertRaises(ValueError,  fast_unifrac, self.t, \
             self.wrong_tip_counts)
+            
+    def test_fast_unifrac_one_sample(self):
+        """ fu one sample should match whole unifrac result, for env 'B'"""
+        # first get full unifrac matrix
+        res = fast_unifrac(self.t, self.env_counts)
+        dmtx, env_order =  res['distance_matrix']
+        dmtx_vec = dmtx[env_order.index('B')]
+        dmtx_vec = dmtx_vec[argsort(env_order)]
+        
+        # then get one sample unifrac vector
+        one_sam_dvec, one_sam_env_order = \
+            fast_unifrac_one_sample('B', self.t, self.env_counts)
+        one_sam_dvec = one_sam_dvec[argsort(one_sam_env_order)]
+        self.assertFloatEqual(one_sam_dvec, dmtx_vec)
+
+    def test_fast_unifrac_one_sample2(self):
+        """fu one sam should match whole weighted unifrac result, for env 'B'"""
+        # first get full unifrac matrix
+        res = fast_unifrac(self.t, self.env_counts, weighted=True)
+        dmtx, env_order =  res['distance_matrix']
+        dmtx_vec = dmtx[env_order.index('B')]
+        dmtx_vec = dmtx_vec[argsort(env_order)]
+        
+        # then get one sample unifrac vector
+        one_sam_dvec, one_sam_env_order = \
+            fast_unifrac_one_sample('B', self.t, self.env_counts,weighted=True)
+        one_sam_dvec = one_sam_dvec[argsort(one_sam_env_order)]
+        self.assertFloatEqual(one_sam_dvec, dmtx_vec)
+        
+    def test_fast_unifrac_one_sample3(self):
+        """fu one sam should match missing env unifrac result, for env 'B'"""
+        # first get full unifrac matrix
+        res = fast_unifrac(self.t, self.missing_env_counts, weighted=False)
+        dmtx, env_order =  res['distance_matrix']
+        dmtx_vec = dmtx[env_order.index('C')]
+        dmtx_vec = dmtx_vec[argsort(env_order)]
+        
+        # then get one sample unifrac vector
+        one_sam_dvec, one_sam_env_order = \
+            fast_unifrac_one_sample('C', self.t, 
+            self.missing_env_counts,weighted=False)
+        one_sam_dvec = one_sam_dvec[argsort(one_sam_env_order)]
+        self.assertFloatEqual(one_sam_dvec, dmtx_vec)
+        
+        # and should raise valueerror when 'B'
+        self.assertRaises(ValueError, fast_unifrac_one_sample, 'B', self.t, 
+            self.missing_env_counts,weighted=False)
+            
+
 
     def test_fast_unifrac_whole_tree(self):
         """ should correctly compute one p-val for whole tree """
-        # "should test with fake permutation but using same as old envs nodefor now"
+        # "should test with fake permutation but 
+        # using same as old envs nodefor now"
         result = []
         num_to_do = 10
         for i in range(num_to_do):
