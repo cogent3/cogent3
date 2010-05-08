@@ -173,6 +173,13 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
         self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
         
+        # start conditions < window-size from end don't return a window
+        # specify a ending window position
+        result = []
+        for bit in alignment.slidingWindows(5, 1, start=5):
+            result+=[bit]
+        self.assertEqual(result, [])
+        
         result = []
         for bit in alignment.slidingWindows(5,1):
             result+=[bit]                    
@@ -465,6 +472,12 @@ class SequenceTestMethods(unittest.TestCase):
             result+=[bit]
         self.assertEqual([str(x) for x in result],
                          ['ACGTT', 'CGTTG', 'GTTGC'])
+        
+        # should not get a window when starting conditions don't generate one
+        result = []
+        for bit in self.seq.slidingWindows(20, 1, start=6):
+            result += [bit]
+        self.assertEqual(result, [])
     
     def test_reversecomplement(self):
         """testing reversal and complementing of a sequence"""

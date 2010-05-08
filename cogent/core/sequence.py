@@ -704,9 +704,10 @@ class Sequence(_Annotatable, SequenceI):
         """
         start = [start, 0][start is None]
         end = [end, len(self)-window+1][end is None]
-        
-        for pos in xrange(start, end, step):
-            yield self[pos:pos+window]
+        end = min(len(self)-window+1, end)
+        if start < end and len(self)-end >= window-1:
+            for pos in xrange(start, end, step):
+                yield self[pos:pos+window]
     
     def getInMotifSize(self, motif_length=1, log_warnings=True):
         """returns sequence as list of non-overlapping motifs
