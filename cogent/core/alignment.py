@@ -1679,16 +1679,23 @@ class AlignmentI(object):
         sample = Map(positions, parent_length=len(self))
         return self.gappedByMap(sample, Info=self.Info)
 
-    def slidingWindows(self, window, step):
+    def slidingWindows(self, window, step, start=None, end=None):
         """Generator yielding new Alignments of given length and interval.
 
         Arguments:
             - window: The length of each returned alignment.
             - step: The interval between the start of the successive
               alignment objects returned.
+            - start: first window start position
+            - end: last window start position
         """
-        for pos in range(0, len(self)-window+1,step):
+        start = [start, 0][start is None]
+        end = [end, len(self)-window+1][end is None]
+        
+        for pos in range(start, end, step):
             yield self[pos:pos+window]
+        
+    
   
 def aln_from_array(a, array_type=None, Alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.

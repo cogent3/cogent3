@@ -153,13 +153,27 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_slidingWindows(self):          
         """test slicing of sequences"""      
         alignment = LoadSeqs(data = {'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
-        result = []                          
+        result = []
         for bit in alignment.slidingWindows(5,2):
-            result+=[bit]                    
+            result+=[bit]
         self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
-                                             
-        result = []                          
+        
+        # specify a starting window position
+        result = []
+        for bit in alignment.slidingWindows(5,2, start=1):
+            result+=[bit]
+        self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+        self.assertEqual(result[1].todict(), {'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
+        
+        # specify a ending window position
+        result = []
+        for bit in alignment.slidingWindows(5, 1, start=1, end=3):
+            result+=[bit]
+        self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+        self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+        
+        result = []
         for bit in alignment.slidingWindows(5,1):
             result+=[bit]                    
         self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
@@ -445,6 +459,12 @@ class SequenceTestMethods(unittest.TestCase):
                           'GTTGC', 'TTGCG', 'TGCGT', 'GCGTA', 'CGTAG',
                           'GTAGC', 'TAGCA', 'AGCAT', 'GCATA', 'CATAG',
                           'ATAGC', 'TAGCT', 'AGCTC', 'GCTCG', 'CTCGA'])
+    
+        result = []
+        for bit in self.seq.slidingWindows(5, 1, start=3, end=6):
+            result+=[bit]
+        self.assertEqual([str(x) for x in result],
+                         ['ACGTT', 'CGTTG', 'GTTGC'])
     
     def test_reversecomplement(self):
         """testing reversal and complementing of a sequence"""
