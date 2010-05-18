@@ -1048,9 +1048,9 @@ class TreeNode(object):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
         """
-        edge_names = self.getNodeNames(includeself=1, tipsonly=False)
+        edge_names = set(self.getNodeNames(includeself=1, tipsonly=False))
         if not ignore_missing:
-            # this takes a long time
+            # this may take a long time
             for name in name_list:
                 if name not in edge_names:
                     raise ValueError("edge %s not found in tree" % name)
