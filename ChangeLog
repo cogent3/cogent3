@@ -8,6 +8,8 @@ Cogent 1.4.1 - 1.5
 New Features
 ------------
 
+* added AlleleFreqs attribute to ensembl Variation objects.
+
 Changes
 -------
 

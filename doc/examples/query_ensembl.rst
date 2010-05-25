@@ -234,12 +234,22 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
     >>> nsyn_variants = human.getVariation(Effect='NON_SYNONYMOUS_CODING',
     ...                             like=True)
     >>> for nsyn_variant in nsyn_variants:
+    ...     print nsyn_variant.AlleleFreqs
     ...     print nsyn_variant
     ...     if nsyn_variant.Symbol == 'rs2853516':
     ...         break
-    Variation(Symbol='rs28358582'; Effect=['SPLICE_SITE', 'NON_SYNONYMOUS_CODING']; ...
+    =============================
+    allele      freq    sample_id
+    -----------------------------
+         T    1.0000          659
+         T    1.0000          660
+         T    1.0000          661
+         T    0.8167          662
+         C    0.1833          662
+    -----------------------------
+    Variation(Symbol='rs28358582'; Effect=['SPLICE_SITE',... 'NON_SYNONYMOUS_CODING']...
 
-``Variation`` objects also have other useful properties, such as a location, the number of alleles. The length of a ``Variation`` instance is the length of it's longest allele.
+``Variation`` objects also have other useful properties, such as a location, the number of alleles and the allele frequencies. The length of a ``Variation`` instance is the length of it's longest allele.
 
 .. doctest::
 
