@@ -4,6 +4,7 @@ import sqlalchemy as sql
 from cogent import DNA
 from cogent.core.annotation import Feature
 from cogent.core.location import Map
+from cogent.util.table import Table
 from cogent.db.ensembl.util import LazyRecord, asserted_one, DisplayString, \
                                     NoItemError
 from cogent.db.ensembl.assembly import Coordinate, CoordSystem, \
@@ -802,7 +803,8 @@ class Variation(_Region):
                                 FlankingSeq='flanking_sequence',
                                 PeptideAlleles='transcript_variation',
                                 TranslationLocation='transcript_variation',
-                                Location='variation_feature')
+                                Location='variation_feature',
+                                AlleleFreqs='allele')
     
     def __init__(self, genome, db=None, Effect=None, Symbol=None, data=None):
         self.genome = genome
@@ -811,6 +813,7 @@ class Variation(_Region):
         self.variation_feature_table = get_table('variation_feature')
         self.transcript_variation_table = get_table('transcript_variation')
         self.flanking_sequence_table = get_table('flanking_sequence')
+        self.allele_table = get_table('allele')
         
         super(Variation, self).__init__()
         
@@ -900,6 +903,28 @@ class Variation(_Region):
                         self._get_variation_table_record)
     
     Alleles = property(_get_alleles)
+    
+    def _get_allele_table_record(self):
+        variation_id = self._table_rows['variation_feature']['variation_id']
+        allele_table = self.allele_table
+        query = sql.select([allele_table],
+                allele_table.c.variation_id == variation_id)
+        records = [r for r in query.execute()]
+        
+        if len(records) == 0:
+            self._cached[('AlleleFreqs')] = self.NULL_VALUE
+            return
+        
+        self._table_rows['allele_table'] = records
+        data = [(rec['allele'], rec['frequency'], rec['sample_id']) for rec in records]
+        table = Table(header='allele freq sample_id'.split(), rows=data)
+        self._cached[('AlleleFreqs')] = table.sorted('sample_id')
+    
+    def _get_allele_freqs(self):
+        return self._get_cached_value('AlleleFreqs',
+                        self._get_allele_table_record)
+    
+    AlleleFreqs = property(_get_allele_freqs)
     
     def _get_symbol(self):
         return self._get_cached_value('Symbol',

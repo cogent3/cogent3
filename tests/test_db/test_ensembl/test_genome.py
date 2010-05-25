@@ -313,6 +313,15 @@ class TestVariation(GenomeTestBase):
         for symbol, status in snp_status:
             snp = list(self.human.getVariation(Symbol=symbol, validated=True))
             self.assertEquals(snp!=[], status)
+        
+    def test_allele_freqs(self):
+        """exercising getting AlleleFreq data"""
+        snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
+        expect = dict(A=0.030303, G=0.969697)
+        allele_freqs = snp.AlleleFreqs.getRawData(['allele', 'freq'])
+        for allele, freq in allele_freqs:
+            self.assertFloatEqual(freq, expect[allele], eps=1e-3)
+        
     
 
 class TestFeatures(GenomeTestBase):

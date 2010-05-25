@@ -227,6 +227,9 @@ We query the genome for CpG islands within a specific coordinate range on chromo
 Get SNPs
 --------
 
+For a gene
+^^^^^^^^^^
+
 We find the genetic variants for the canonical transcript of *BRCA2*.
 
 .. note:: The output is significantly truncated!
@@ -244,6 +247,22 @@ We find the genetic variants for the canonical transcript of *BRCA2*.
     ...     print variant
     ...     break
     Variation(Symbol='rs55880202'; Effect='5PRIME_UTR'; Alleles='C/T')...
+
+Get a single SNP
+^^^^^^^^^^^^^^^^
+
+We get a single SNP and print it's allele frequencies.
+
+.. doctest::
+    
+    >>> snp = list(human.getVariation(Symbol='rs34213141'))[0]
+    >>> print snp.AlleleFreqs
+    =============================
+    allele      freq    sample_id
+    -----------------------------
+         A    0.0303          913
+         G    0.9697          913
+    -----------------------------
 
 What alignment types available
 ------------------------------
