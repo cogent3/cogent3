@@ -1,11 +1,9 @@
-import numpy
+import numpy, warnings
 
 from cogent.recalculation.definition import (NonParamDefn, CalcDefn, 
     EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
     DictArrayTemplate)
     
-from cogent.evolve.substitution_model import _SubstitutionModel
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
@@ -72,37 +70,12 @@ class PsubMatrixDefn(PartitionDefn):
             uniq_cells.append(matrix)
         return (all_cells, uniq_cells)
 
-class DiscreteSubstitutionModel(_SubstitutionModel):
-    _default_expm_setting = None
-    
-    def _isInstantaneous(self, x, y):
-        return True
-    
-    def getParamList(self):
-        return []
-        
-    def makePsubsDefn(self, **kw):
-        motifs = tuple(self.getAlphabet())
-        psub = PsubMatrixDefn(
-            name="psubs", dimension = ('motif', motifs), default=None, 
-            dimensions=('locus', 'edge'))
-        return psub
-        
-    def makeFundamentalParamControllerDefns(self, bin_names):                
-        (input_probs, word_probs, mprobs_matrix) = \
-                self.mprob_model.makeMotifWordProbDefns()
-        
-        # XXX absorb 1 unneeded input
-        word_probs = CalcDefn(
-                lambda x,y:x, name='hack')(
-                word_probs, mprobs_matrix)
-        
-        defns = {
-            'motif_probs': input_probs,  
-            'word_probs': word_probs,
-            'bprobs': None,
-            }
-        return defns
+def DiscreteSubstitutionModel(*args, **kw):
+    warnings.warn("cogent.evolve.discrete_markov.DiscreteSubstitutionModel has"
+        " moved to cogent.evolve.substitution_model.DiscreteSubstitutionModel",
+        DeprecationWarning)
+    from cogent.evolve.substitution_model import DiscreteSubstitutionModel
+    return DiscreteSubstitutionModel(*args, **kw)
 
 class PartialyDiscretePsubsDefn(object):
     def __init__(self, alphabet, psubs, discrete_edges):
