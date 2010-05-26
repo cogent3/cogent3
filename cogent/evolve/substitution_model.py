@@ -42,6 +42,7 @@ from cogent.evolve.substitution_calculation import (
     PartitionDefn, NonParamDefn, AlignmentAdaptDefn, ExpDefn, 
     ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension, 
     WeightedPartitionDefn, chooseFastExponentiators)
+from cogent.evolve.discrete_markov import PsubMatrixDefn
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent.maths.optimiser import ParameterOutOfBoundsError
 
@@ -352,6 +353,39 @@ class _SubstitutionModel(object):
             'align': self.makeAlignmentDefn(model),
             'psubs': self.makePsubsDefn(**defns),
             })
+        return defns
+
+
+class DiscreteSubstitutionModel(_SubstitutionModel):
+    _default_expm_setting = None
+    
+    def _isInstantaneous(self, x, y):
+        return True
+    
+    def getParamList(self):
+        return []
+        
+    def makePsubsDefn(self, **kw):
+        motifs = tuple(self.getAlphabet())
+        psub = PsubMatrixDefn(
+            name="psubs", dimension = ('motif', motifs), default=None, 
+            dimensions=('locus', 'edge'))
+        return psub
+        
+    def makeFundamentalParamControllerDefns(self, bin_names):                
+        (input_probs, word_probs, mprobs_matrix) = \
+                self.mprob_model.makeMotifWordProbDefns()
+        
+        # XXX absorb 1 unneeded input
+        word_probs = CalcDefn(
+                lambda x,y:x, name='hack')(
+                word_probs, mprobs_matrix)
+        
+        defns = {
+            'motif_probs': input_probs,  
+            'word_probs': word_probs,
+            'bprobs': None,
+            }
         return defns
 
 
