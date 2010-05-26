@@ -53,15 +53,10 @@ def llen(label, fontSize=10):
     return len(label) * fontSize
     
 class TrackDefn(object):
-    def __init__(self, tag, features, label=None):
+    def __init__(self, tag, features):
         assert tag
         self.tag = tag
-        self.label = label
         self.feature_types = features
-    
-    def makeTrack(self, features, **kw):
-        """level=0, label=None, needs_border=False, max_y=None, height=None"""
-        return Track(self.tag, features, **kw)
     
     def __iter__(self):
         return iter(self.feature_types)
