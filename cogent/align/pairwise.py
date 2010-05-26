@@ -723,7 +723,7 @@ class PairEmissionProbs(object):
             else:
                 msg = 'dp'
             if memory > 500:
-                LOG.warn('%s will use > %sMb.' % (msg, memory))
+                warnings.warn('%s will use > %sMb.' % (msg, memory))
             track = encoder.getEmptyArray(problem_dimensions)
         else:
             track = encoder = None
