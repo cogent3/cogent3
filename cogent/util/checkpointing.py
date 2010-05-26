@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os, time, cPickle
+from cogent.util import parallel
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -18,6 +19,7 @@ class Checkpointer(object):
         self.interval = interval
         self.last_time = time.time()
         self.noisy = noisy
+        self._redundant = parallel.getCommunicator().Get_rank() > 0
     
     def available(self):
         return self.filename is not None and os.path.exists(self.filename)
@@ -31,7 +33,7 @@ class Checkpointer(object):
         return obj
     
     def record(self, obj, msg=None, always=False):
-        if self.filename is None:
+        if self.filename is None or self._redundant:
             return
         now = time.time()
         elapsed = now - self.last_time
