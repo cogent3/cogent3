@@ -26,6 +26,8 @@ data_path = os.path.join(base_path, 'data')
 seqnames = ['Chimpanzee', 'Rhesus', 'Orangutan',
             'Human']
 
+REPLICATES = 2
+
 def float_ge_zero(num, epsilon=1e-6):
     """compare whether a floating point value is >= zero with epsilon
     tolerance."""
@@ -91,7 +93,7 @@ class BootstrapTests(unittest.TestCase):
         
         bstrap = bootstrap.EstimateConfidenceIntervals(
                 self.create_null_controller(alignobj), self.calclength, alignobj)
-        bstrap.setNumReplicates(2)
+        bstrap.setNumReplicates(REPLICATES)
         bstrap.setSeed(1984)
         bstrap.run(show_progress=False, local=True)
         samplelnL = bstrap.getSamplelnL()
@@ -106,8 +108,8 @@ class BootstrapTests(unittest.TestCase):
         for stat in samplestats:
             assert float_ge_zero(stat)
         
-        assert len(samplelnL) == 2
-        assert len(samplestats) == 2
+        self.assertEqual(len(samplelnL), REPLICATES)
+        self.assertEqual(len(samplestats), REPLICATES)
         
     def test_prob(self):
         """testing estimation of probability."""
@@ -117,12 +119,11 @@ class BootstrapTests(unittest.TestCase):
                 self.create_null_controller(alignobj),
                 self.create_alt_controller(alignobj),
                 alignobj)
-        prob_bstrap.setNumReplicates(2)
+        prob_bstrap.setNumReplicates(REPLICATES)
         prob_bstrap.setSeed(1984)
         prob_bstrap.run(show_progress=False, local=True)
         
-
-        assert len(prob_bstrap.getSampleLRList()) == 2
+        self.assertEqual(len(prob_bstrap.getSampleLRList()), REPLICATES)
         
         assert float_ge_zero(prob_bstrap.getObservedLR())
         
