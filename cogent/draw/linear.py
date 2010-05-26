@@ -102,7 +102,7 @@ class CompositeTrack(Track):
     def __init__(self, tag, tracks, label=None):
         if label is None:
             labels = dict([(track.label, True)
-                    for track in tracks if track.label]).keys()
+                    for track in tracks]).keys()
             if len(labels) == 1:
                 label = labels[0]
             else:
@@ -722,9 +722,7 @@ class DisplayPolicy(object):
             # show label somewhere
         
         annot_tracks = sequence.getAnnotationTracks(self)
-        annot_tracks = self.mergeTracks(annot_tracks)
-        
-        return annot_tracks + result
+        return self.mergeTracks(annot_tracks + result)
     
     def getStyleDefnForFeature(self, feature):
         if feature.type in self._track_map:
