@@ -21,7 +21,7 @@ simultaneously. Similar setup, and parallelisation options as provided by
 the EstimateProbability class.
 
 """
-from __future__ import with_statement
+from __future__ import with_statement, division
 from cogent.util import parallel
 from cogent.maths import optimisers
 
@@ -58,44 +58,39 @@ class ParametricBootstrapCore(object):
         # self.simplify() is used as the entire LF result might not be picklable
         # for MPI. Subclass must provide self.alignment and
         # self.parameter_controllers
-        alignment_randomness = random.Random()
-        alignment_randomness.seed(self.seed)
-        parallel.sync_random(alignment_randomness)
+        opt_args['show_progress'] = opt_args.get('show_progress', show_progress)
         
-        opt_args['show_progress'] = show_progress
         if 'random_series' not in opt_args and not opt_args.get('local', None):
             opt_args['random_series'] = random.Random()
-        
-        self._observed = []
+                
+        null_pc = self.parameter_controllers[0]
         starting_points = []
         for pc in self.parameter_controllers:
             pc.setAlignment(self.alignment)
             lf = pc.optimise(return_calculator=True, **opt_args)
             starting_points.append(lf)
-            self._observed.append(lf)
         self.observed = self.simplify(*self.parameter_controllers)
-
-        # making the simulated alignment on every node keeps alignment_randomness in sync
-        # across all cpus.  This is only a good way of doing it so long as making the alignment
-        # is much faster than optimising the likelihood function.
-        simaligns = [self.parameter_controllers[0].simulateAlignment(
-                random_series=alignment_randomness) for i in range(self._numreplicates)]
-
-        def _one_replicate(simalign):
-            for (pc, starting_point) in zip(self.parameter_controllers, starting_points):
-                with pc.updatesPostponed():
-                    # using a calculator as a memo object to rest the parameter values
-                    pc.updateFromCalculator(starting_point)
-                    # but alignment is different each time
-                    pc.setAlignment(simalign)
-                    # pc needs to be told that it can't use all the CPUs it did initially
-                    # which seems less than ideal (it should be able to discover that itself) 
-                    pc.setupParallelContext()
+        alignment_random_state = random.Random(self.seed).getstate()
+        if self.seed is None:
+            comm  = parallel.getCommunicator()
+            alignment_random_state = comm.bcast(alignment_random_state, 0)
+        
+        def one_replicate(i):
+            for (pc, start_point) in zip(self.parameter_controllers, starting_points):
+                # using a calculator as a memo object to reset the params
+                pc.updateFromCalculator(start_point)
+            aln_rnd = random.Random(0)
+            aln_rnd.setstate(alignment_random_state)
+            aln_rnd.jumpahead(i*10**9)
+            simalign = null_pc.simulateAlignment(random_series=aln_rnd)
+        
+            for pc in self.parameter_controllers:
+                pc.setAlignment(simalign)
                 pc.optimise(**opt_args)
             return self.simplify(*self.parameter_controllers)
         
-        self.results = parallel.map(_one_replicate, simaligns, show_progress=False)#opt shows anyway
-    
+        self.results = parallel.map(one_replicate, range(self._numreplicates))
+
 
 class EstimateProbability(ParametricBootstrapCore):
     # 2 parameter controllers, LR
