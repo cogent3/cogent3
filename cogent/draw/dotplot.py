@@ -48,14 +48,10 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     
     Returns a matplotlib axes object placed and scaled ready for plotting 
     a sequence vs sequence comparison between the sequences (or alignments) 
-    seq1 and seq2, which are also displayed. The longest dimension of the 
-    figure will be inches + 2*margin and its aspect ratio will depend on the 
-    sequence lengths as the sequences are drawn to the same scale"""
+    seq1 and seq2, which are also displayed. The aspect ratio will depend on 
+    the sequence lengths as the sequences are drawn to the same scale"""
     
     import matplotlib.pyplot as plt
-    
-    if not isinstance(seq1, Display): seq1 = Display(seq1)
-    if not isinstance(seq2, Display): seq2 = Display(seq2)
     
     (x1, y1, w1, h1) = _reinchify(*seq1.figureLayout(
         labeled=True, bottom=bottom, margin=0))
@@ -86,10 +82,19 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     return d
 
 class Display2D(Drawable):
-    def __init__(self, seq1, seq2):
-        self.seq1 = seq1
-        self.seq2 = seq2
+    def __init__(self, seq1, seq2, **kw):
+        if not isinstance(seq1, Display):
+            seq1 = Display(seq1, **kw)
+        if not isinstance(seq2, Display):
+            seq2 = Display(seq2, **kw)
+        self.seq1 = seq1.base
+        self.seq1d = seq1
+        self.seq2 = seq2.base
+        self.seq2d = seq2
         self._cache = {}
+        # Check inputs are sufficiently sequence-like
+        assert len(self.seq1) == len(str(self.seq1))
+        assert len(self.seq2) == len(str(self.seq2))
     
     def _calc_lines(self, window, threshold, min_gap):
         # Cache dotplot line segment coordinates as they can sometimes
@@ -104,11 +109,11 @@ class Display2D(Drawable):
         
         key = (min_gap, window, threshold)
         if not self._cache.has_key(key):
-            fwd = dotplot(self.seq1._seq, self.seq2._seq,
+            fwd = dotplot(str(self.seq1), str(self.seq2),
                     window, threshold, min_gap, None, False)
             if hasattr(self.seq1, "reversecomplement"):
-                rev = dotplot(self.seq1.reversecomplement()._seq, 
-                        self.seq2._seq, window, threshold, min_gap, None, False)
+                rev = dotplot(str(self.seq1.reversecomplement()), 
+                        str(self.seq2), window, threshold, min_gap, None, False)
                 rev = [((len1-x1,y1),(len1-x2,y2)) for ((x1,y1),(x2,y2)) in rev]
             else:
                 rev = []
@@ -123,7 +128,7 @@ class Display2D(Drawable):
         if join_gaps is not None:
             warnings.warn('"join_gaps" no longer does anything', 
                     DeprecationWarning, stacklevel=2)
-        ax = comparison_display(self.seq1, self.seq2, **kw)
+        ax = comparison_display(self.seq1d, self.seq2d, **kw)
         (fwd, rev) = self._calc_lines(window, None, min_gap)
         LOG.info('lines %s fwd, %s rev' % (len(fwd), len(rev)))
         for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:
