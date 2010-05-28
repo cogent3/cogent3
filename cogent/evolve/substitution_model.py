@@ -46,9 +46,6 @@ from cogent.evolve.discrete_markov import PsubMatrixDefn
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent.maths.optimiser import ParameterOutOfBoundsError
 
-import logging
-LOG = logging.getLogger('cogent')
-
 __author__ = "Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
@@ -167,7 +164,7 @@ class _SubstitutionModel(object):
         # ALPHABET        
         if recode_gaps:
             if model_gaps:
-                LOG.warning("Converting gaps to wildcards AND modeling gaps")
+                warnings.warn("Converting gaps to wildcards AND modeling gaps")
             else:
                 model_gaps = False
         
@@ -746,7 +743,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             if redundancyInPredicateMasks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
             if redundancyInPredicateMasks(predicates_plus_scale):
-                LOG.warning("do_scaling=True would be more efficient than"
+                warnings.warn("do_scaling=True would be more efficient than"
                         " these overly general predicates")
 
         self.predicate_masks = predicate_masks

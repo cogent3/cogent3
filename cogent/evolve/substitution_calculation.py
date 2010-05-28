@@ -3,8 +3,7 @@ import numpy
 
 Float = numpy.core.numerictypes.sctype2char(float)
 
-import logging
-LOG = logging.getLogger('cogent.evolve.substitution')
+import warnings
 
 from cogent.recalculation.definition import PositiveParamDefn, RatioParamDefn, \
         CalculationDefn, MonotonicDefn, ProductDefn, ConstDefn, PartitionDefn, \
@@ -73,7 +72,7 @@ class ExpDefn(CalculationDefn):
                     return eigen(Q)
                 except (ArithmeticError, LinAlgError), detail:
                     if not _both.given_expm_warning:
-                        LOG.warning("using slow exponentiator because '%s'"
+                        warnings.warn("using slow exponentiator because '%s'"
                                 % str(detail))
                         _both.given_expm_warning = True
                     return PadeExponentiator(Q)

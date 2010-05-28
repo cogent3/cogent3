@@ -11,13 +11,11 @@
 # Taylor     instant        very slow
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
+import warnings
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 from numpy.linalg import inv as _inv, eig as _eig,\
                         solve as solve_linear_equations, LinAlgError
-
-import logging
-LOG = logging.getLogger('cogent.maths.exponentiation')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -43,7 +41,7 @@ def inv(a):
 
 try:
     pyrex = importVersionedModule('_matrix_exponentiation', globals(),
-            (1, 2), LOG, "pure Python/NumPy exponentiation")
+            (1, 2), "pure Python/NumPy exponentiation")
 except ExpectedImportError:
     pyrex = None
 else:
@@ -127,7 +125,7 @@ class TaylorExponentiator(_Exponentiator):
             trm = numpy.dot(trm, A/float(k))
             eA += trm
         if k >= self.q:
-            LOG.warning("Taylor series lengthened from %s to %s" % (self.q, k+1))
+            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k+1))
             self.q = k + 1
         return eA
     
@@ -241,12 +239,13 @@ def _chooseFastExponentiators(Q):
 
 def chooseFastExponentiators(Q):
     ex = _chooseFastExponentiators(Q)
-    LOG.info('Strategy for Q Size %s: PyrexEig:%s PyrexInv:%s PyrexExp:%s'
-        % (
-        Q.shape[0],
-        (ex[0].eigenvectors is not eig),
-        (ex[0].inverse is not inv),
-        (ex[0].exponentiator is not EigenExponentiator)))
+    if False:
+        used_pyrex = [['numpy','pyrex'][u] for u in [
+            (ex[0].eigenvectors is not eig),
+            (ex[0].inverse is not inv),
+            (ex[0].exponentiator is not EigenExponentiator)]]
+        print ('Strategy for Q Size %2s: ' % Q.shape[0] + 
+                'Eig:%s Inv:%s Exp:%s' % tuple(used_pyrex))
     return ex
 
 def FastExponentiator(Q):

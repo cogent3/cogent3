@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from __future__ import division
-import logging
 import warnings
 
 from matplotlib.path import Path
@@ -18,8 +17,6 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-LOG = logging.getLogger("cogent.draw")
 
 def suitable_threshold(window, desired_probability):
     """Use cumulative binomial distribution to find the number of identical
@@ -104,8 +101,8 @@ class Display2D(Drawable):
             universe = (len1-window) * (len2-window)
             acceptable_noise = min(len1, len2) / window
             threshold = suitable_threshold(window, acceptable_noise/universe)
-            LOG.info('require %s / %s bases' % (threshold, window))
-            LOG.info('expect %s / %s matching' % (acceptable_noise, universe))
+            # print 'require %s / %s bases' % (threshold, window)
+            # print 'expect %s / %s matching' % (acceptable_noise, universe)
         
         key = (min_gap, window, threshold)
         if not self._cache.has_key(key):
@@ -130,7 +127,6 @@ class Display2D(Drawable):
                     DeprecationWarning, stacklevel=2)
         ax = comparison_display(self.seq1d, self.seq2d, **kw)
         (fwd, rev) = self._calc_lines(window, None, min_gap)
-        LOG.info('lines %s fwd, %s rev' % (len(fwd), len(rev)))
         for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:
             vertices = []
             for segment in lines:

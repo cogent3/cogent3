@@ -9,10 +9,7 @@ import numpy
 
 numpy.seterr(all='ignore')
 
-import logging
-
 numerictypes = numpy.core.numerictypes.sctype2char
-LOG = logging.getLogger('cogent')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -25,7 +22,7 @@ __status__ = "Production"
 
 try:
     pyrex = importVersionedModule('_likelihood_tree', globals(), 
-            (2, 1), LOG, "pure Python/NumPy likelihood tree")
+            (2, 1), "pure Python/NumPy likelihood tree")
 except ExpectedImportError:
     pyrex = None
         

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import os, logging
-LOG = logging.getLogger('cogent.output')
+import os
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -139,7 +138,7 @@ class PhylipWriter(_AlignmentWriter):
                 if not block:
                     # write the otu name
                     if len(seqname) > 9:
-                        LOG.warning('Warning: name (%s) is too long, truncated to %s'
+                        warnings.warn('Name "%s" too long, truncated to "%s"'
                             % (seqname, seqname[:9]))
                         prefix = '%-10s' % seqname[:9]
                     else: prefix = '%-10s' % seqname

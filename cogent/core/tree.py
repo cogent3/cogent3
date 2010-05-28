@@ -28,14 +28,11 @@ Definition of relevant terms or abbreviations:
 from numpy import zeros
 from copy import deepcopy
 import re
-import logging
 from cogent.util.transform import comb
 from cogent.maths.stats.test import correlation
 from operator import or_
 from cogent.util.misc import InverseDict
 from random import shuffle
-
-LOG = logging.getLogger('cogent.tree')
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"

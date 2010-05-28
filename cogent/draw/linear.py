@@ -12,7 +12,6 @@ from matplotlib.collections import CircleCollection
 from matplotlib.transforms import IdentityTransform
 
 import copy
-import logging
 import warnings
 from cogent.core.location import Map, Span, _norm_slice
 
@@ -24,8 +23,6 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
-
-log = logging.getLogger('cogent')
 
 # map - a 1D space.  must support len() and in some cases [i]
 # track - a panel within a sequence display holding annotations
@@ -292,7 +289,7 @@ class _FeatureStyle(object):
         g = rlg2mpl.Group()
         last = first = None
         if self.range_required and not yrange:
-            log.warning("'%s' graph values are all zero" % label)
+            warnings.warn("'%s' graph values are all zero" % label)
             yrange = 1.0
         if map.useful and self.one_span:
             map = map.getCoveringSpan()
@@ -327,7 +324,7 @@ class _FeatureStyle(object):
                     )
                 g.add(label_shape)
             else:
-                log.info("couldn't fit feature label '%s'" % label)
+                pass #warnings.warn("couldn't fit feature label '%s'" % label)
         return g
 
 class _VariableThicknessFeatureStyle(_FeatureStyle):
@@ -667,7 +664,7 @@ class DisplayPolicy(object):
         if keep_unexpected:
             track_order += unexpected
         elif unexpected:
-            log.warning('dropped tracks ' + ','.join(unexpected), stacklevel=2)
+            warnings.warn('dropped tracks ' + ','.join(unexpected), stacklevel=2)
         
         sorted_tracks = []
         for track_tag in track_order:
@@ -731,12 +728,12 @@ class DisplayPolicy(object):
             (track_defn, level, style) = self._track_map['misc_feature']
         else:
             if feature.type not in self._logged_drops:
-                log.warning('dropped feature ' + repr(feature.type))
+                warnings.warn('dropped feature ' + repr(feature.type))
                 self._logged_drops.append(feature.type)
             return (None, None, None)
         
         if track_defn is None:
-            log.info('dropped feature ' + repr(feature.type))
+            warnings.warn('dropped feature ' + repr(feature.type))
             return (None, None, None)
         else:
             track_tag = track_defn.tag or feature.type

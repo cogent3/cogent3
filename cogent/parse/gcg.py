@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import logging
-LOG = logging.getLogger('cogent.input')
-
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
@@ -11,6 +8,8 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "matthew.wakefield@anu.edu.au"
 __status__ = "Production"
+
+import warnings
 
 def MsfParser(f):
     """Read sequences from a msf format file"""
@@ -42,11 +41,11 @@ def MsfParser(f):
             sequences[line[0]] = ''.join(line[1:])
     #consistency check
     if len(sequences) != len(seqinfo):
-        LOG.warning("Number of loaded seqs[%s] not same as "\
+        warnings.warn("Number of loaded seqs[%s] not same as "\
             "expected[%s]." % (len(sequences), len(seqinfo)))
     for name in sequences:
         if len(sequences[name]) != seqinfo[name]:
-            LOG.warning("Length of loaded seqs [%s] is [%s] not "\
+            warnings.warn("Length of loaded seqs [%s] is [%s] not "\
             "[%s] as expected." % (name,len(sequences[name]),seqinfo[name]))
     
     #yield sequences

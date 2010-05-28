@@ -2,17 +2,16 @@
 
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-import logging
-LOG = logging.getLogger('cogent.align')
 
 from cogent.align import pairwise, indel_model
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
+import sys
 
 try:
     from _compare import dotplot
 except ImportError:
     from pycompare import dotplot
-    LOG.warning('Using slow Python dotplot implementation')
+    print >>sys.stderr, 'Using slow Python dotplot implementation'
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"

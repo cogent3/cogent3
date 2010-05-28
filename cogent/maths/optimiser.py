@@ -8,7 +8,7 @@ Contains a base class for numerical optimisers.
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 import random
-import logging
+import warnings
 
 from cogent.util.checkpointing import Checkpointer
 
@@ -21,8 +21,6 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-LOG = logging.getLogger('cogent')
 
 class ParameterOutOfBoundsError(Exception):
     pass
@@ -60,7 +58,7 @@ def bounds_exception_catching_function(f, direction):
             result = f(x, **kw)
             if not numpy.isfinite(result):
                 if not acceptable_inf(result):
-                    LOG.warning('Non-finite f %s from %s' % (result, x))
+                    warnings.warn('Non-finite f %s from %s' % (result, x))
                     raise ParameterOutOfBoundsError
         except (ArithmeticError, ParameterOutOfBoundsError), detail:
             result = out_of_bounds_value
