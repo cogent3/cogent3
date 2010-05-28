@@ -1,7 +1,7 @@
 """The most commonly used constructors are available from this toplevel module.
 The rest are in the subpackages: phylo, evolve, maths, draw, parse and format."""
 
-import sys, os, logging, re, cPickle
+import sys, os, re, cPickle
 import numpy
 
 __author__ = ""
@@ -29,17 +29,9 @@ numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
 if numpy_version_info < (1, 3):
     raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
 
-LOG = logging.getLogger('cogent')
-LOG.addHandler(logging.StreamHandler())
-
-if 'COGENT_LOG_LEVEL' in os.environ:
-    level = os.environ['COGENT_LOG_LEVEL']
-    valid_log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
-    assert level in valid_log_levels, valid_log_levels
-    logging.basicConfig(level=getattr(logging, level))
-
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
+
 
 from cogent.util.table import Table as _Table
 from cogent.parse.table import load_delimited, autogen_reader

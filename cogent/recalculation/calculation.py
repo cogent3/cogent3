@@ -2,7 +2,7 @@
 from __future__ import division, with_statement
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-import time, logging, warnings
+import time, warnings
 import cogent.maths.optimisers
 from cogent.maths.solve import find_root
 from cogent.util import parallel
@@ -10,8 +10,6 @@ from cogent.maths.optimiser import ParameterOutOfBoundsError
 
 import os
 TRACE_DEFAULT = os.environ.has_key('COGENT_TRACE')
-
-LOG = logging.getLogger('cogent')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -136,14 +134,14 @@ class EvaluatedCell(object):
     def reportError(self, detail, data):
         self.failure_count += 1
         if self.failure_count <= 5:
-            LOG.exception("%s in calculating %s:",
+            print ("%s in calculating %s:",
                     detail.__class__.__name__, self.name)
         if self.failure_count == 5:
-            LOG.error("Additional failures of this type will not be logged.")
+            print "Additional failures of this type will not be reported."
         if self.failure_count < 2:
-            LOG.error('%s inputs were:', len(self.arg_ranks))
+            print '%s inputs were:', len(self.arg_ranks)
             for (i, arg) in enumerate(self.arg_ranks):
-                LOG.error('%s: ' % i + repr(data[arg]))
+                print '%s: ' % i + repr(data[arg])
     
 
 class ConstCell(object):
@@ -208,7 +206,7 @@ class Calculator(object):
                     except KeyboardInterrupt:
                         raise
                     except Exception, detail:
-                        LOG.exception("Failed initial calculation of %s"
+                        print ("Failed initial calculation of %s"
                                 % cell.name)
                         raise
             else:
@@ -333,7 +331,7 @@ class Calculator(object):
             opt.run(show_progress=show_progress)
         else:
             for k in kw:
-                LOG.warning('Unused arg for local alignment: ' + k)
+                warnings.warn('Unused arg for local alignment: ' + k)
         
         # Local optimisation
         if local or local is None:

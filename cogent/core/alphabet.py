@@ -21,8 +21,6 @@ from cogent.util.array import cartesian_product
 
 import re
 import string
-import logging
-LOG = logging.getLogger('cogent.data')
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
     ravel, asarray, fromstring, take, uint8, uint16, uint32, take
 from string import maketrans, translate

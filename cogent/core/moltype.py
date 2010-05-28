@@ -41,8 +41,6 @@ from random import choice
 
 import re
 import string
-import logging
-LOG = logging.getLogger('cogent.data')
 
 import numpy
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \

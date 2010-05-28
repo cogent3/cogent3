@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 from __future__ import division, with_statement
+import warnings
 import numpy
 from contextlib import contextmanager
-import logging
 from .setting import Var, ConstVal
 from .calculation import Calculator
 from cogent.util import parallel
 from cogent.maths.stats.distribution import chdtri
-
-LOG = logging.getLogger('cogent')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -718,7 +716,8 @@ class ParameterController(object):
                     s_value = sum(values) / len(values)
                     for value in values:
                         if not numpy.all(value==s_value):
-                            LOG.warning("Used mean of '%s' values" % par_name)
+                            warnings.warn("Used mean of %s values" % par_name,
+                                    stacklevel=3)
                             break
             else:       
                 s_value = defn.unwrapValue(value)

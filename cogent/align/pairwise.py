@@ -15,8 +15,6 @@ import numpy
 #numpy.seterr(all='ignore')
 
 import warnings
-import logging
-LOG = logging.getLogger('cogent.align')
 
 from cogent.align.traceback import alignment_traceback
 from cogent.evolve.likelihood_tree import LikelihoodTreeEdge
@@ -29,12 +27,12 @@ from cogent.util import parallel
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
     pyrex_align_module = importVersionedModule('_pairwise_pogs', globals(),
-            (3, 0), LOG, "slow Python alignment implementation")
+            (3, 0), "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_align_module = None
 try:
     pyrex_seq_align_module = importVersionedModule('_pairwise_seqs', globals(),
-            (3, 0), LOG, "slow Python alignment implementation")
+            (3, 0), "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_seq_align_module = None
 

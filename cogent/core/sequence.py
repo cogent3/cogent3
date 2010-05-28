@@ -27,8 +27,7 @@ from numpy.random import permutation
 from operator import eq, ne
 from random import shuffle
 import re
-import logging
-LOG = logging.getLogger('cogent.data')
+import warnings
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -722,7 +721,7 @@ class Sequence(_Annotatable, SequenceI):
             length = len(seq)
             remainder = length % motif_length
             if remainder and log_warnings:
-                LOG.warning('Dropped remainder "%s" from end of sequence' %
+                warnings.warn('Dropped remainder "%s" from end of sequence' %
                         seq[-remainder:])
             return [seq[i:i+motif_length]
                     for i in range(0, length-remainder, motif_length)]

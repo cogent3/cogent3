@@ -64,8 +64,8 @@ Recycling:
   the one to be used next for recycling.
 """
 from __future__ import division, with_statement
+import warnings
 import numpy
-import logging
 
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
@@ -79,8 +79,6 @@ from .setting import Var, ConstVal
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.maths.stats.distribution import chdtri
 from cogent.util import parallel
-
-LOG = logging.getLogger('cogent')
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"

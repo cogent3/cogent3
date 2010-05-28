@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from cogent.parse.record import RecordError
 from cogent.core.alignment import Alignment
-import logging
-LOG = logging.getLogger('cogent.input')
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -106,10 +104,10 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
             join_seq = ''.join(seq_parts)
 
             if len(join_seq) != seq_len:
-                LOG.warning("Length of seq '%s' is %s not %s" % \
-                    (interleaved_id_map[curr_id_ix], len(join_seq), seq_len))
-                raise RecordError, "Sequence length is not the same as header"\
-                "specification. Found %d, Expected %d" % (len(join_seq), seq_len)
+                raise RecordError(
+                    "Length of sequence '%s' is not the same as in header "
+                    "Found %d, Expected %d" % (
+                    interleaved_id_map[curr_id_ix], len(join_seq), seq_len))
 
             yield interleaved_id_map[curr_id_ix], join_seq
     #return last seq if not interleaved

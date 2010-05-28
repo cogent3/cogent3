@@ -9,8 +9,6 @@ validating accuracy. The calculations can be performed for tree's that have poly
 in addition to binary trees.
 """
 import numpy
-import logging
-LOG = logging.getLogger('cogent.evolve')
 
 Float = numpy.core.numerictypes.sctype2char(float)
 
@@ -120,9 +118,7 @@ class LikelihoodTreeDefn(CalculationDefn):
         self.tree = tree
     
     def calc(self, leaves):
-        lht = recursive_lht_build(self.tree, leaves)
-        LOG.info('LT root length: %s/%s' % (len(lht.uniq),len(lht.index)))
-        return lht
+        return recursive_lht_build(self.tree, leaves)
     
 
 class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):

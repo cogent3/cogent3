@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import with_statement
-import os, logging
+import os
 from contextlib import contextmanager
 
 
@@ -13,8 +13,6 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin Huttley"
 __status__ = "Production"
-
-LOG = logging.getLogger('cogent')
 
 # A flag to control if excess CPUs are worth a warning.
 inefficiency_forgiven = False
@@ -51,12 +49,10 @@ else:
         MPI = None
     else:
         size = MPI.COMM_WORLD.Get_size()
-        LOG.info('MPI: %s processors' % size)
         if size == 1:
             MPI = None
 
 if MPI is None:
-    LOG.info('Not using MPI')
     def get_processor_name():
         return os.environ.get('HOSTNAME', 'one')
     _ParallelisationStack = [_FakeCommunicator()]
@@ -64,7 +60,7 @@ if MPI is None:
 else:
     get_processor_name = MPI.Get_processor_name
     _ParallelisationStack = [MPI.COMM_WORLD]
-
+        
 def sync_random(r):
     if _ParallelisationStack[-1].Get_size() > 1:
         state = _ParallelisationStack[-1].bcast(r.getstate(), 0)

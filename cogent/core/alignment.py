@@ -37,8 +37,6 @@ from numpy import nonzero, array, logical_or, logical_and, logical_not, \
 from numpy.random import randint, permutation
 
 from cogent.util.dict2d import Dict2D
-import logging
-LOG = logging.getLogger('cogent.data')
 
 from copy import copy
 from cogent.core.profile import Profile
