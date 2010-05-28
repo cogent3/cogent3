@@ -23,8 +23,10 @@ if not interactive:
     matplotlib.use('PDF') # or Agg
     file_ext = "pdf" # or png
 
-def makeSampleSequence():
-    seq = DNA.makeSequence('aaaccggttt' * 10)
+def makeSampleSequence(mut=False):
+    repeat = 'aaaccggtwt'
+    if mut: repeat = repeat[:-1]
+    seq = DNA.makeSequence(repeat * 10)
     v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20,35)])
     v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'repeat_unit', [(39,49)])
     v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'rep2', [(49,60)])
@@ -35,7 +37,7 @@ def makeSampleAlignment():
     from cogent.align.align import global_pairwise, make_dna_scoring_dict
     DNA = make_dna_scoring_dict(10, -8, -8)
     seq1 = makeSampleSequence()[:-2]
-    seq2 = makeSampleSequence()[2:]
+    seq2 = makeSampleSequence(mut=True)[2:]
     seq1.Name = 'FAKE01'
     seq2.Name = 'FAKE02'
     names = (seq1.getName(), seq2.getName())
@@ -58,6 +60,19 @@ def fig(msg, seq_display, **kw):
         fname = 'draw_test_%s.%s' % (msg.replace(' ', '_'), file_ext)
         seq_display.makeFigure(**kw).savefig(fname)
 
+def green_cg(seq):
+    seq = str(seq)
+    posn = 0
+    result = []
+    while True:
+        last = posn
+        posn = seq.find('CG', posn)
+        if posn < 0: break
+        result.append('k' * (posn-last)+'gg')
+        posn += 2
+    result.append('k' * (len(seq)-last))
+    return list(''.join(result))
+
 def test_seqs():
     seqd = Display(seq)
     fig('sequence wrapped at 50', 
@@ -65,17 +80,23 @@ def test_seqs():
     small = FontProperties(size=7, stretch='extra-condensed')
     fig('squashed sequence', 
         seqd.copy(seq_font=small, colour_sequences=True))
-    fig('seq display slice from 10 to 50', 
-        seqd[10:50])
-    
+    fig('seq display slice from 5 to 45 starts "GGT"', 
+        seqd[5:45])
+
+def test_alns():
     alignd = Display(align, colour_sequences=True, min_feature_height=10)
     fig('coloured text alignment', 
         alignd)
-    fig('coloured dot alignment', 
+    fig('coloured alignment no text', 
         alignd.copy(show_text=False))
-    fig('alignment with lines only', 
+    fig('no text and no colour', 
         alignd.copy(show_text=False, colour_sequences=False))
-
+    fig('no shapes', 
+        alignd.copy(show_text=False, draw_bases=False))            
+    fig('no text or colour or shapes', 
+        alignd.copy(show_text=False, colour_sequences=False, draw_bases=False))
+    fig('green seqs', 
+        alignd.copy(seq_color_callback=green_cg))
 
 # LEGEND
 def test_legend():
@@ -86,7 +107,7 @@ def test_legend():
 
 def test_dotplot():
     from cogent.draw.dotplot import Display2D
-    fig('2d', Display2D(seq, seq[:40]))
+    fig('2d', Display2D(seq, seq[:40], show_text=False, draw_bases=False))
 
 #fig('reversed', Display(seq[50:10]), 500)
 # no good because seqs slice like lists: ie len==0
@@ -117,6 +138,7 @@ def test_trees():
     
 if __name__ == '__main__':
     test_seqs()
+    test_alns()
     test_legend()
     test_dotplot()
     test_trees()

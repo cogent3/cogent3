@@ -8,12 +8,16 @@ import matplotlib.transforms
 from matplotlib.text import Text
 from matplotlib.patches import PathPatch
 from matplotlib.font_manager import FontProperties
-from matplotlib.collections import CircleCollection
-from matplotlib.transforms import IdentityTransform
+from matplotlib.collections import (CircleCollection, PolyCollection, 
+    LineCollection, RegularPolyCollection)
+from matplotlib.transforms import (IdentityTransform, 
+    blended_transform_factory, Affine2DBase)
+import numpy
 
 import copy
 import warnings
 from cogent.core.location import Map, Span, _norm_slice
+from cogent.core.moltype import DNA
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -38,6 +42,62 @@ __status__ = "Production"
 
 MAX_WIDTH = 72*8
 
+def dna_shapes():
+    w = .5 / 2
+    s = .75 / 2
+    m = (w+s) / 2
+    r = 8
+    y = 5
+    n = (r+y) / 2
+    def rectangle(x,y):
+        return [(-x, 0), (-x, y), (x, y), (x, 0)]
+    shapes = {}
+    for (motif, width, height) in [
+            ('A', w, r),
+            ('G', s, r),
+            ('C', s, y),
+            ('T', w, y),
+            ('R', m, r),
+            ('Y', m, y),
+            ('S', s, n),
+            ('W', w, n),
+            ('N', m, n)]:
+        shapes[motif] = rectangle(width, height)
+    return shapes
+    
+dna_shapes = dna_shapes()
+
+class TransformScalePart(Affine2DBase):
+    """Just the translation factors of the child transform, no
+    rotation or translation. 
+    
+    a: Child transform from which scale is extracted
+    source_dims: the dimensions (0:X, 1:Y, 2:I) from which the
+    resulting X and Y scales are taken."""
+    
+    def __init__(self, a, source_dims=[0,1]):
+        self.input_dims = a.input_dims
+        self.output_dims = a.output_dims
+        self._a = a
+        self._scale_source_dims = source_dims
+        self._mtx = a.get_affine().get_matrix().copy()
+        self._mtx[:] = 0
+        self._mtx[2,2] = 1
+        self._invalid = True
+        self.set_children(a)
+        Affine2DBase.__init__(self)
+
+    def get_matrix(self):
+        if self._invalid:
+            a = self._a.get_affine().get_matrix()
+            for dim in [0,1]:
+                sdim = self._scale_source_dims[dim]
+                self._mtx[dim,dim] = a[sdim,sdim]
+            self._inverted = None
+            self._invalid = 0
+        return self._mtx
+
+        
 class _Colors(object):
     """colors.white = to_rgb("white"), same as just using "white"
     except that this lookup also checks the color is valid"""   
@@ -157,93 +217,191 @@ class Annotation(object):
             posn += span.length
         return g
     
-
-class Code(Annotation):
+class _SeqRepresentation(object):
     height = 20
-    def _make_values(self, sequence, colours=None, font_properties=None):
+    y_offset = 10
+    x_offset = 0
+
+    def __init__(self, map, sequence, cvalues=None, colour_sequences=True, 
+            font_properties=None):
         self.font_properties = font_properties
-        self.colours = colours or {}
-        for c in self.colours.keys():
-            self.colours[c.upper()] = self.colours[c.lower()] = self.colours[c]
-        return sequence
-    
-    def _item_shape(self, span, values, height, yrange, rotated):
-        x_offset = span.Start+0.5
-        y_offset = 10 # up a bit
+        
+        alphabet = self.alphabet = sequence.MolType.Alphabets.Degen
+        
+        alphabet_colours = None 
+        if cvalues:
+            assert len(cvalues) == len(sequence)
+            cvalues = numpy.asarray(cvalues)
+        elif colour_sequences:
+            colour_map = sequence.getColourScheme(colors)
+            color_specs = [colour_map.get(m,'grey') for m in self.alphabet]
+            alphabet_colours = numpy.array([
+                matplotlib.colors.colorConverter.to_rgba(c, alpha=.5)
+                for c in color_specs])
+        
+        # this could be faster is sequence were known to be a ModelSequence
+        sequence = numpy.asarray(self.alphabet.toIndices(str(sequence)))
+        
+        posn = 0
+        used_count = 0
+        offsets = []
+        lengths = []
+        used = numpy.zeros([len(sequence)], bool)
+        x_offset = self.x_offset * 1.0
+        for span in map.spans:
+            if not span.lost or span.Reversed:
+                offsets.append(x_offset + span.Start - used_count)
+                lengths.append(span.length)
+                used[posn:posn+span.length] = True
+                used_count += span.length
+            posn += span.length
+        seq = sequence[used]
+        if cvalues is None:
+            cvals = None
+        else:
+            cvals = cvalues[used]
+        x_offsets = numpy.repeat(offsets, lengths) + numpy.arange(used_count)
+        y_offsets = numpy.zeros_like(x_offsets) + self.y_offset
+        offsets = numpy.vstack([x_offsets, y_offsets]).T
+        self._calc_values(seq, cvals, alphabet_colours, offsets)
+
+    def shape(self, height, yrange, rotated):
+        raise NotImplementedError
+        
+
+class _MultiShapeSeqRepresentation(_SeqRepresentation):
+    def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
+        motifs = range(len(self.alphabet))
+        values = []
+        for motif in motifs:
+            positions = numpy.flatnonzero(sequence==motif)
+            if len(positions) == 0:
+                continue
+            if cvalues is not None:
+                cvs = cvalues.take(positions, axis=0)
+            elif alphabet_colours is not None:
+                cvs = [alphabet_colours[motif]]
+            else:
+                cvs = [colors.black]
+            values.append((motif, cvs, offsets[positions]))
+        self.per_shape_values = values
+            
+
+class _SingleShapeSeqRepresentation(_SeqRepresentation):
+    def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
+        if cvalues:
+            cvs = cvalues
+        elif alphabet_colours is not None:
+            cvs = alphabet_colours.take(sequence, axis=0)
+        else:
+            cvs = [colors.black] 
+        self.cvalues = cvs
+        self.offsets = offsets
+
+
+class SeqText(_MultiShapeSeqRepresentation):
+    height = 20
+    x_offset = 0.5
+
+    def shape(self, height, yrange, rotated):
         rot = 0
         if rotated: rot += 90
-        if span.Reverse: rot+= 180
+        #if span.Reverse: rot+= 180
         g = rlg2mpl.Group()
-        for (i,c) in enumerate(values):
-            s = Text(
-                x_offset+i, y_offset, c,
-                color=self.colours.get(c, 'black'),
-                ha='center', va='baseline', rotation=rot,
+        kw = dict(ha='center', va='baseline', rotation=rot,
                 font_properties=self.font_properties)
-            g.add(s)
-        return g 
-
-class CodeDots(Code):
-    def _item_shape(self, span, values, height, yrange, rotated):
-        x_offset = span.Start+0.5
-        cvalues = [self.colours.get(c, 'grey') for c in values]
-        radius = 10 # points
-        g = rlg2mpl.Group()
-        a = CircleCollection([2*radius], 
-            edgecolors=cvalues,
-            facecolors=cvalues, 
-            offsets=[(x_offset+i,radius) for i in range(len(values))],
-            transOffset=g.combined_transform)
-        g.add(a)
-        a.set_transform(IdentityTransform())
+        for (motif, cvalues, offsets) in self.per_shape_values:
+            letter = self.alphabet[motif]
+            c = len(cvalues)
+            for (i, (x,y)) in enumerate(offsets):
+                s = Text(x, y, letter, color=cvalues[i%c], **kw)
+                g.add(s)
         return g
 
-class CodeLine(Annotation):
+class SeqShapes(_MultiShapeSeqRepresentation):
     height = 10
-    def _item_shape(self, span, values, height, yrange, rotated):
-        return rlg2mpl.Line(span.Start, height/2, span.End, height/2)    
-
-class DensityGraph(Annotation):
-    height = 20
-    def _make_values(self, data):
-        return data
+    x_offset = 0.5
+    y_offset = 0
     
-    def _item_shape(self, span, values, height, yrange, rotated):
-        #max_density = int(1.0/pixels_per_base) + 1
-        #colours = [colors.linearlyInterpolatedColor(
-        #        colors.white, colors.red, 0, height, i)
-        #        for i in range(max_density)]
-        mid = colors.linearlyInterpolatedColor(colors.pink, colors.red,
-            0, 10, 5)
+    def __init__(self, map, sequence, *args, **kw):
+        super(SeqShapes, self).__init__(map, sequence, *args, **kw)
+        default = dna_shapes['N']
+        self.shapes = [dna_shapes.get(m, default) for m in self.alphabet]
+        self.rshapes = [[(y,x) for (x,y) in v] for v in self.shapes]
         
+    def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
-        yscale = height / yrange
-        last_x = -1
-        ys = None
-        for (p, q) in enumerate(values):
-            if q is not None:
-                g.add(rlg2mpl.Circle(
-                    p, q*yscale, 0.5,
-                    strokeWidth=0.0, strokeColor=colors.red,
-                    fillColor=colors.red))
-            
-            #x = int(p * pixels_per_base)
-            #y = int(q * yscale)
-            #if x > last_x:
-                #if ys:
-                #    ys.sort()
-                #    c = len(ys)
-                    #g.add(rlg2mpl.Line(x, ys[0], x, ys[-1],
-                    #    strokeColor=colors.pink))
-                    #g.add(rlg2mpl.Line(x, ys[c/3], x, ys[2*c/3],
-                    #    strokeColor=mid))
-                    #g.add(rlg2mpl.Line(x, ys[c/2]-.5, x, ys[c/2]+.5,
-                    #    strokeColor=colors.red))
-            #    ys = []
-            #    last_x = x
-            #ys.append(y)
+        (X, Y, I) = (0, 1, 2)
+        shapes = [self.shapes, self.rshapes][rotated]
+        trans = TransformScalePart(g.combined_transform)
+        artists = []
+        for (motif, cvalues, offsets) in self.per_shape_values:
+            shape = shapes[motif]
+            a = PolyCollection([shape], closed=True,
+                facecolors=cvalues, edgecolors=cvalues, offsets=offsets, 
+                transOffset=g.combined_transform)
+            g.add(a)
+            a.set_transform(trans)
         return g
-    
+
+class SeqDots(_SingleShapeSeqRepresentation):
+    # Something wrong with this one.
+    height = 5
+    x_offset = 0.5
+    y_offset = 5
+
+    def shape(self, height, yrange, rotated):
+        g = rlg2mpl.Group()
+        (X, Y, I) = (0, 1, 2)
+        #scaled_axes = [[X, I], [I, Y]][rotated]
+        scaled_axes = [[X, X], [Y, Y]][rotated]
+        scaled_axes = [[X, Y], [X, Y]][rotated]
+        trans = TransformScalePart(g.combined_transform, scaled_axes)
+        a = CircleCollection([.5], edgecolors=self.cvalues,
+                facecolors=self.cvalues, offsets=self.offsets,
+                transOffset=g.combined_transform)
+        g.add(a)
+        a.set_transform(trans)
+        return g
+
+class SeqLineSegments(_SingleShapeSeqRepresentation):
+    height = 5
+    x_offset = 0.0
+    y_offset = 2.5
+
+    def shape(self, height, yrange, rotated):
+        g = rlg2mpl.Group()
+        trans = TransformScalePart(g.combined_transform)
+        segment = [(.1,0),(.9,0)]
+        if rotated:
+            segment = [(y,x) for (x,y) in segment]
+        a = LineCollection([segment], colors=self.cvalues, 
+                offsets=self.offsets, transOffset=g.combined_transform)
+        a.set_linewidth(3)
+        g.add(a)
+        a.set_transform(trans)
+        return g
+
+
+class SeqLine(object):
+    height = 20
+
+    def __init__(self, map, *args, **kw):
+        x_offset = 0.0
+        self.segments = [(span.Start+x_offset, span.End+x_offset)
+            for span in map.spans if not span.lost]
+            
+    def shape(self, height, yrange, rotated):
+        g = rlg2mpl.Group()
+        trans = TransformScalePart(g.combined_transform)
+        y = height/2.0
+        segments = [[(x1,y),(x2,y)] for (x1,x2) in self.segments]
+        a = LineCollection(segments, edgecolor='k', facecolor='k')
+        a.set_linewidth(2)
+        g.add(a)
+        a.set_transform(g.combined_transform)
+        return g
+
 
 class Feature(Annotation):
     """An Annotation with a style and location rather than values"""
@@ -569,7 +727,10 @@ class DisplayPolicy(object):
     
     dont_merge = []
     show_text = None # auto
-    colour_sequences = False
+    draw_bases = None
+    show_gaps = None
+    colour_sequences = None
+    seq_color_callback = None
     seqname = ''
     rowlen = None
     recursive = True
@@ -682,7 +843,11 @@ class DisplayPolicy(object):
     def tracksForAlignment(self, alignment):
         annot_tracks = alignment.getAnnotationTracks(self)
         if self.recursive:
-            seq_tracks = alignment.getChildTracks(self)
+            if self.show_gaps is None:
+                seqs_policy = self.copy(show_gaps=True)
+            else:
+                seqs_policy = self
+            seq_tracks = alignment.getChildTracks(seqs_policy)
         else:
             seq_tracks = []
         annot_tracks = self.mergeTracks(annot_tracks)
@@ -699,21 +864,37 @@ class DisplayPolicy(object):
         if self.show_code and sequence is not None:
             # this should be based on resolution, not rowlen, but that's all
             # we have at this point
-            if self.colour_sequences:
-                colours = sequence.getColourScheme(colors)
+            if self.seq_color_callback is not None:
+                cvalues = self.seq_color_callback(sequence)
             else:
-                colours = {}
+                cvalues = None
             show_text = self.show_text
+            draw_bases = self.draw_bases
+            if draw_bases is None:
+                draw_bases = self.rowlen <= 500 and sequence.MolType is DNA
+            self.rowlen <= 500 and sequence.MolType is DNA and self.draw_bases
             if show_text is None:
                 show_text = self.rowlen <= 100
             if show_text and self.rowlen <= 200:
-                feature = Code(self.map, str(sequence), colours=colours,
-                    font_properties=self.seq_font)
-            elif colours:
-                feature = CodeDots(self.map, sequence, colours=colours)
+                seqrepr_class = SeqText
+            elif draw_bases:
+                seqrepr_class = SeqShapes
+            elif self.rowlen <= 1000 and (self.colour_sequences 
+                    or cvalues is not None):
+                seqrepr_class = SeqLineSegments
+            elif self.show_gaps:
+                seqrepr_class = SeqLine
             else:
-                feature = CodeLine(self.map, sequence)
-            result.append(Track('seq', [feature], level=2, label=label))
+                seqrepr_class = None
+            if seqrepr_class is not None:
+                colour_sequences = self.colour_sequences 
+                if colour_sequences is None:
+                    colour_sequences = seqrepr_class != SeqText
+                feature = seqrepr_class(self.map, sequence, 
+                        colour_sequences = colour_sequences,
+                        font_properties = self.seq_font,
+                        cvalues = cvalues)
+                result.append(Track('seq', [feature], level=2, label=label))
         else:
             pass
             # show label somewhere
@@ -770,15 +951,24 @@ class Display(rlg2mpl.Drawable):
     pad: Gap between tracks in points.
     
     Other keyword arguments are used to modify the DisplayPolicy: 
-    show_text: Represent sequences as characters.  Slow.
-    colour_sequences = Colour code sequences if MolType allows.
+    
+    Sequence display:
+    show_text: Represent bases as characters.  Slow.
+    draw_bases: Represent bases as rectangles if MolType allows.
+    show_gaps: Represent bases as line segments.
+    colour_sequences: Colour code sequences if MolType allows.
+    seq_color_callback: f(seq)->[colours] for flexible seq coloring.
+    
+    Layout:
     rowlen: wrap at this many characters per line.
-    recursive: include the sequences of the alignment.
     min_feature_height: minimum feature symbol height in points.
     min_graph_height: minimum height of any graphed features in points.
+    
+    Inclusion:
+    recursive: include the sequences of the alignment.
     ignored_features: list of feature type tags to leave out.
     keep_unexpected_tracks: show features not assigned to a track by the policy.
-"""
+    """
     
     def __init__(self, base, policy=DisplayPolicy, _policy=None, pad=1,
             yrange=None, **kw):
@@ -849,11 +1039,11 @@ class Display(rlg2mpl.Drawable):
             g.scale(-1.0, 1.0)
         return g
     
-    def asAxes(self, fig, posn, labeled=True, **kw):
+    def asAxes(self, fig, posn, labeled=True, vertical=False):
         ax = fig.add_axes(posn)
-        self.applyScaleToAxes(ax, labeled=labeled, **kw)
-        group = self.makeArtist(**kw)
-        ax.add_artist(group)
+        self.applyScaleToAxes(ax, labeled=labeled, vertical=vertical)
+        g = self.makeArtist(vertical=vertical)
+        ax.add_artist(g)
         return ax
         
     def applyScaleToAxes(self, ax, labeled=True, vertical=False):
