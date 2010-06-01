@@ -56,7 +56,7 @@ from __future__ import division
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
     mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
     sum, square, asmatrix, asarray, multiply, min, rank, any, all, isfinite,
-    nonzero, nan_to_num, geterr, seterr)
+    nonzero, nan_to_num, geterr, seterr, isnan)
 # any, all from numpy override built in any, all, preventing:
 # ValueError: The truth value of an array with more than one element is 
 # ambiguous. Use a.any() or a.all()
@@ -66,7 +66,7 @@ from numpy.linalg import norm
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
-                    "Zongzhi Liu", "Catherine Lozupone"]
+                    "Zongzhi Liu", "Catherine Lozupone", "Antonio Gonzalez Pena"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Justin Kuczynski"
@@ -391,6 +391,7 @@ def dist_euclidean(datamtx, strict=True):
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
+    datamtx = asarray(datamtx, 'float')
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
@@ -409,7 +410,10 @@ def dist_euclidean(datamtx, strict=True):
     for r in range(numrows):
         for c in range(r):
             dist = norm(datamtx[r] - datamtx[c])
+            if isnan(dist):
+                raise RuntimeError('ERROR: int overflow when computing euclidean distance')
             dists[r,c] = dists[c,r] = dist
+
     return dists
 
 def dist_gower(datamtx, strict=True):
