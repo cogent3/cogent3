@@ -4,11 +4,13 @@ from cogent.maths.stats.special import lgam
 from cogent.maths.scipy_optimize import brent
 from cogent.maths.optimisers import Powell
 from math import ceil, e
-from numpy import array, zeros, concatenate, arange, log, sqrt, exp
+from numpy import array, zeros, concatenate, arange, log, sqrt, exp, asarray
+from cogent.maths.scipy_optimize import fmin_powell
+import cogent.maths.stats.rarefaction as rarefaction
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Rob Knight"]
+__credits__ = ["Rob Knight", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Rob Knight"
@@ -203,17 +205,56 @@ def robbins_confidence(counts, alpha=0.05):
 #possibly worth adding.
 #http://www.pisces-conservation.com/sdrhelp/index.html
 
-def michaelis_menten_fit(counts):
-    """Michaelis-Menten fit to rarefaction curve.
+def michaelis_menten_fit(counts, num_repeats=1, params_guess=None,
+    return_b=False):
+    """Michaelis-Menten fit to rarefaction curve of observed species
 
     Note: there is some controversy about how to do the fitting. The ML model
     givem by Raaijmakers 1987 is based on the assumption that error is roughly
     proportional to magnitude of observation, reasonable for enzyme kinetics
     but not reasonable for rarefaction data. Here we just do a nonlinear
-    curve fit for the parameters using least-squares. Mean and variance can
-    be obtained by running the procedure on many random orderings of the data.
+    curve fit for the parameters using least-squares.
+    
+
+    S = Smax*n/(B + n) . n: number of individuals, S: # of species
+    returns Smax
+    
+    inputs:
+    num_repeats: will perform rarefaction (subsampling without replacement)
+    this many times at each value of n
+    params_guess: intial guess of Smax, B (None => default)
+    return_b: if True will return the estimate for Smax, B. Default is just Smax
+    
+    the fit is made to datapoints where n = 1,2,...counts.sum(),
+    S = species represented in random sample of n individuals
+    
     """
-    pass #TODO: finish this
+    counts = asarray(counts)
+    if params_guess is None:
+        params_guess = array([100,500])
+
+    # observed # of species vs # of individuals sampled, S vs n
+    xvals = arange(1,counts.sum()+1)
+    ymtx = []
+    for i in range(num_repeats):
+        ymtx.append( array([observed_species(rarefaction.subsample(counts,n)) \
+        for n in xvals]))
+    ymtx = asarray(ymtx)
+    yvals = ymtx.mean(0)
+    
+    # fit to obs_sp = max_sp * num_idiv / (num_indiv + B)
+    # return max_sp
+    def fitfn(p,n): # works with vectors of n, returns vector of S
+        return p[0]*n/(p[1] + n)
+    
+    def errfn(p,n,y): # vectors of actual vals y and number of individuals n
+        return ((fitfn(p,n) - y)**2).sum()
+
+    p1 = fmin_powell(errfn, params_guess, args=(xvals,yvals), disp=0)
+    if return_b:
+        return p1
+    else:
+        return p1[0] # return only S_max, not the K_m (B) param
 
 def chao1_uncorrected(observed, singles, doubles):
     """Calculates chao1 given counts. Eq. 1 in EstimateS manual.
