@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 from cogent.maths.stats.special import lgam
 from cogent.maths.scipy_optimize import brent
 from cogent.maths.optimisers import Powell
