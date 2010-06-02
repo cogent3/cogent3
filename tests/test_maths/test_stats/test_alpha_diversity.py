@@ -10,11 +10,11 @@ from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_s
     strong, kempton_taylor_q, fisher_alpha, \
     mcintosh_e, heip_e, simpson_e, robbins, robbins_confidence, \
     chao1_uncorrected, chao1_bias_corrected, chao1, chao1_var, \
-    chao1_confidence, ACE
+    chao1_confidence, ACE, michaelis_menten_fit
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Rob Knight"]
+__credits__ = ["Rob Knight","Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Rob Knight"
@@ -251,6 +251,16 @@ class diversity_tests(TestCase):
         self.assertFloatEqual(ACE(array([12,3,2,1])), 4.6, eps=0.001)
         self.assertFloatEqual(ACE(array([12,3,6,1,10])), 5.62749672, eps=0.001)
 
+    def test_michaelis_menten_fit(self):
+        """ michaelis_menten_fit should match hand values in limiting cases"""
+        res = michaelis_menten_fit([22])
+        self.assertFloatEqual(res,1.0,eps=.01)
+        res =  michaelis_menten_fit([42])
+        self.assertFloatEqual(res,1.0,eps=.01)
+        res =  michaelis_menten_fit([34],num_repeats=3,params_guess=[13,13])
+        self.assertFloatEqual(res,1.0,eps=.01)
+        res =  michaelis_menten_fit([70,70],num_repeats=5)
+        self.assertFloatEqual(res,2.0,eps=.01)
 
 
 if __name__ == '__main__':
