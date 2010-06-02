@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #file test_alpha_diversity.py
+from __future__ import division
 from numpy import array, log, sqrt, exp
 from math import e
 from cogent.util.unit_test import TestCase, main
