@@ -22,7 +22,7 @@ So the first step is to specify what host and account are to be used. On my lab'
 .. doctest::
     
     >>> import os
-    >>> Release = 56
+    >>> Release = 58
     >>> from cogent.db.ensembl import HostAccount
     >>> if 'ENSEMBL_ACCOUNT' in os.environ:
     ...     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -70,7 +70,7 @@ As implied above, Ensembl databases are versioned, hence you must explicitly sta
     >>> from cogent.db.ensembl import HostAccount, Genome
     >>> human = Genome(Species='human', Release=Release, account=account)
     >>> print human
-    Genome(Species='Homo sapiens'; Release='56')
+    Genome(Species='Homo sapiens'; Release='58')
 
 Notice I used the common name rather than full name. The ``Genome`` provides an interface to obtaining different attributes. It's primary role is to allow selection of genomic regions according to some search criteria. The type of region is presently limited to ``Gene``, ``Est``, ``CpGisland``, ``Repeat`` and ``Variation``. There's also a ``GenericRegion``. The specific types are also capable of identifying information related to themselves, as we will demonstrate below.
 
@@ -100,9 +100,9 @@ Because there can be multiple hits from a query, and because we wish to not spen
     >>> print brca2.Symbol
     BRCA2
     >>> print brca2.Description
-    Breast cancer type...
+    breast cancer 2...
     >>> print brca2
-    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='Breast...
+    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast...
 
 This code serves to illustrate a few things. First, the sorts of properties that exist on the object. These can be directly accessed as illustrated above. Secondly, that the argument names to ``getGenesMatching`` match the properties.
 
@@ -136,7 +136,7 @@ It is also possible to iterate over a transcript's exons, over their translated 
 
 .. doctest::
     
-    >>> transcript = brca2.Transcripts[1]
+    >>> transcript = brca2.Transcripts[0]
     >>> for exon in transcript.Exons:
     ...     print exon, exon.Location
     Exon(StableId=ENSE00001184784, Rank=1) Homo sapiens:chromosome:13:...
@@ -155,7 +155,7 @@ The ``Gene`` region also has convenience methods for examining properties of it'
 .. doctest::
 
     >>> print brca2.getCdsLengths()
-    [842, 10257]
+    [10257, 842]
     >>> longest = brca2.getLongestCdsTranscript()
     >>> print longest.Cds
     ATGCCTATTGGATCCAAA...
@@ -176,7 +176,7 @@ There are obviously different types of genes, and the ``Genome`` object provides
 .. doctest::
 
     >>> print human.getDistinct('BioType')
-    ['IG_C_gene', 'IG_J_gene', ...
+    ['lincRNA', 'protein_coding'...
 
 The genome can be queried for any of these types, for instance we'll query for ``rRNA``. We'll get the first few records and then exit.
 
@@ -221,7 +221,7 @@ Getting Variation
 .. doctest::
 
     >>> print human.getDistinct('Effect')
-    ['INTRONIC', 'NON_SYNONYMOUS_CODING', ...
+    ['INTERGENIC', 'DOWNSTREAM', ...
 
 and that information can be used to query the genome for all variation of that effect. 
 
@@ -244,8 +244,8 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
          T    1.0000          659
          T    1.0000          660
          T    1.0000          661
-         T    0.8167          662
          C    0.1833          662
+         T    0.8167          662
     -----------------------------
     Variation(Symbol='rs28358582'; Effect=['SPLICE_SITE',... 'NON_SYNONYMOUS_CODING']...
 
@@ -255,7 +255,7 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
 
     >>> assert len(nsyn_variant) == 1
     >>> print nsyn_variant.Location
-    Homo sapiens:chromosome:MT:3316-3317:1
+    Homo sapiens:chromosome:MT:3315-3316:1
     >>> assert nsyn_variant.NumAlleles == 2
 
 ``Variation`` objects have ``FlankingSeq`` and ``Seq`` attributes which, of course, in the case of a SNP is a single nucleotide long and should correspond to one of the alleles. In the latter case, this property is a tuple with the 0th entry being the 5'- 300 nucleotides and the 1st entry being the 3' nucleotides.
@@ -331,7 +331,7 @@ The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compa
     >>> compara = Compara(['human', 'mouse', 'rat'], account=account,
     ...                  Release=Release)
     >>> print compara
-    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=56...
+    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=58...
 
 The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes. The genome instances are named according to their common name in CamelCase. For instance, if we had created a ``Compara`` instance with the American pika species included, then that genome would be accessed as ``compara.AmericanPika``. We access the human genome in this ``Compara`` instance and conduct a gene search.
 
@@ -340,7 +340,7 @@ The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to
     >>> gene = compara.Human.getGenesMatching(StableId='ENSG00000139618')
     >>> brca2 = list(gene)[0]
     >>> print brca2
-    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='Breast...
+    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast...
 
 .. note:: I've used ``list`` here as it causes the generator to be iterated over fully which I know is safe since I know there will only be 1 record returned.
 
@@ -350,7 +350,7 @@ We can now use this result to search compara for related genes. We note here tha
 
     >>> relationships = compara.getDistinct('relationship')
     >>> print relationships
-    ['within_species_paralog', 'ortholog_one2one', ...
+    ['ortholog_one2one', 'within_species_paralog', ...
 
 So we use the ``brca2`` instance above and search for orthologs among the human, mouse, rat genomes.
 
@@ -361,7 +361,7 @@ So we use the ``brca2`` instance above and search for orthologs among the human,
     >>> print orthologs
     RelatedGenes:
      Relationships=ortholog_one2one
-      Gene(Species='Mus musculus'; BioType='protein_coding'; Description='Breast cancer ...
+      Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Description='Breast cancer ...
 
 I could also have done that query using a ``StableId``, which I now do using the Ensembl mouse identifier for *Brca2*.
 
@@ -372,23 +372,23 @@ I could also have done that query using a ``StableId``, which I now do using the
     >>> print orthologs
     RelatedGenes:
      Relationships=ortholog_one2one
-      Gene(Species='Mus musculus'; BioType='protein_coding'; Description='Breast cancer ...
+      Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Description='Breast cancer...
 
 The ``RelatedGenes`` object has a number of properties allowing you to get access to data. A ``Members`` attribute holds each of the ``Gene`` instances displayed above. The length of this attribute tells you how many hits there were, while each member has all of the capabilities described for ``Gene`` above, eg. a ``Cds`` property. There is also a ``getSeqLengths`` method which returns the vector of sequence lengths for the members. This method returns just the lengths of the individual genes.
 
 .. doctest::
 
     >>> print orthologs.Members
-    (gene(Species='Mus musculus'; BioType='protein_coding'; Descr...
+    (gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
     >>> print orthologs.getSeqLengths()
-    [47...
+    [40742, 47117, 83737]
 
 In addition there's a ``getMaxCdsLengths`` method for returning the lengths of the longest ``Cds`` from each member.
 
 .. doctest::
 
     >>> print orthologs.getMaxCdsLengths()
-    [99...
+    [10032, 9990, 10257]
 
 You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unaligned), with the ability to have those sequences annotated as described above. The sequences are named in accordance with their genomic coordinates.
 
@@ -396,7 +396,7 @@ You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unalig
 
     >>> seqs = orthologs.getSeqCollection(feature_types='gene')
     >>> print seqs.Names
-    ['Mus musculus:chromosome:5:15...
+    ['Rattus norvegicus:chromosome:12:428...
 
 We can also search for other relationship types, which we do here for a histone.
 
@@ -407,7 +407,7 @@ We can also search for other relationship types, which we do here for a histone.
     >>> print paralogs
     RelatedGenes:
      Relationships=within_species_paralog
-      Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='Histone...
+      Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='H2A...
 
 Getting Comparative Alignments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -416,13 +416,13 @@ Ensembl stores multiple sequence alignments for selected species. For a given gr
 
     >>> print compara.method_species_links
     Align Methods/Clades
-    ===================================================================================...
-    method_link_species_set_id  method_link_id  species_set_id      align_method       ...
-    -----------------------------------------------------------------------------------...
-                           424              10           32309             PECAN       ...
-                           435              13           32422               EPO       ...
-                           431              14           32315  EPO_LOW_COVERAGE  31 eu...
-    -----------------------------------------------------------------------------------...
+    ======================================================================================...
+    method_link_species_set_id  method_link_id  species_set_id      align_method          ...
+    --------------------------------------------------------------------------------------...
+                           469              10           33006             PECAN          ...
+                           467              13           32905               EPO          ...
+                           465              14           32904  EPO_LOW_COVERAGE  33 euthe...
+    --------------------------------------------------------------------------------------...
 
 The ``align_method`` and ``align_clade`` columns can be used as arguments to ``getSyntenicRegions``. This method is responsible for returning ``SyntenicRegions`` instances for a given coordinate from a species. As it's possible that multiple records may be found from the multiple alignment for a given set of coordinates, the result of calling this method is a python generator. The returned regions have a length, defined by the full set of aligned sequences. If the ``omit_redundant`` argument is used, then positions with gaps in all sampled species will be removed in the alignment to be returned. The length of the syntenic region, however, is the length of the unfiltered alignment.
 
@@ -437,15 +437,11 @@ The ``align_method`` and ``align_clade`` columns can be used as arguments to ``g
     ...     print len(syntenic_region)
     ...     print repr(syntenic_region.getAlignment(omit_redundant=False))
     SyntenicRegions:
-      Coordinate(Human,chro...,13,32889610-32900662,1)
-    16558
-    1 x 16558 dna alignment: Homo sapiens:chromosome:13:32889610-32900662:1[GGGCTTGTGGC...]
-    SyntenicRegions:
-      Coordinate(Human,chro...,13,32900662-32973347,1)
-      Coordinate(Rat,chro...,12,4282971-4317299,-1)
-      Coordinate(Mouse,chro...,5,151334889-151372291,1)
-    146017
-    3 x 146017 dna alignment: Homo sapiens:chromosome:13:32900662-32973347:1[GAAAGTCTAGG...], Rattus norvegicus:chromosome:12:4282971-4317299:-1[GAAAGTCTGGG...], Mus musculus:chromosome:5:151334889-151372291:1[GAGAGTCTGGG...]
+      Coordinate(Human,chro...,13,32889610-32907347,1)
+      Coordinate(Rat,chro...,12,4313281-4324025,1)
+      Coordinate(Mouse,chro...,5,151325195-151339535,-1)
+    59766
+    3 x 59766 dna alignment: Rattus norvegicus:chromosome:12:4313281-4324025:-1[GGGCTTTTCGC...], Homo sapiens:chromosome:13:32889610-32907347:1[GGGCTTGTGGC...], Mus musculus:chromosome:5:151325195-151339535:1[GGGCTTTTCGC...]
 
 We consider a species for which pairwise alignments are available -- the bush baby.
 
@@ -454,19 +450,19 @@ We consider a species for which pairwise alignments are available -- the bush ba
     >>> compara_pair = Compara(['Human', 'Bushbaby'], Release=Release,
     ...                        account=account)
     >>> print compara_pair
-    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=56; connected=True)
+    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=58; connected=True)
 
 
 Printing the ``method_species_links`` table provides all the necessary information for specifying selection conditions.
 
     >>> print compara_pair.method_species_links
     Align Methods/Clades
-    ===================================================================================...
-    method_link_species_set_id  method_link_id  species_set_id      align_method       ...
-    -----------------------------------------------------------------------------------...
-                           399               1           32285        BLASTZ_NET      H...
-                           431              14           32315  EPO_LOW_COVERAGE  31 eu...
-    -----------------------------------------------------------------------------------...
+    ==============================================================================...
+    method_link_species_set_id  method_link_id  species_set_id      align_method  ...
+    ------------------------------------------------------------------------------...
+                           399               1           32285        BLASTZ_NET  ...
+                           465              14           32904  EPO_LOW_COVERAGE  ...
+    ------------------------------------------------------------------------------...
 
 .. doctest::
     
