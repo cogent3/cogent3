@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 57
+Release = 58
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -49,17 +49,16 @@ class TestDatabase(TestCase):
         
         db = Database(account=account, release=Release, db_type='compara')
         got = set(db.getDistinct('homology', 'description'))
-        expected = set(['apparent_ortholog_one2one', 'between_species_paralog',
-        'ortholog_many2many', 'ortholog_one2many', 'ortholog_one2one',
-        'within_species_paralog'])
+        expected = set(['apparent_ortholog_one2one', 'ortholog_many2many',
+          'ortholog_one2many', 'ortholog_one2one', 'within_species_paralog'])
         self.assertEquals(len(got&expected), len(expected))
-        
+    
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_57_37b.analysis': 59L,
-                  'homo_sapiens_core_57_37b.seq_region': 55605L,
-                  'homo_sapiens_core_57_37b.assembly': 102068L,
-                  'homo_sapiens_core_57_37b.qtl': 0L}
+        expect = {'homo_sapiens_core_58_37c.analysis': 61L,
+                  'homo_sapiens_core_58_37c.seq_region': 55616L,
+                  'homo_sapiens_core_58_37c.assembly': 102090L,
+                  'homo_sapiens_core_58_37c.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
