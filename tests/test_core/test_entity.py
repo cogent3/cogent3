@@ -4,14 +4,10 @@ independent from the PDBParser. Tests entity.py.
 """
 from copy import deepcopy, copy
 import cPickle
-try:
-    from cogent.util.unit_test import TestCase, main
-    from cogent.core.entity import Atom
-    from cogent.parse.pdb import PDBParser
-except ImportError:
-    from zenpdb.cogent.util.unit_test import TestCase, main
-    from zenpdb.core.entity import Atom
-    from zenpdb.cogent.parse.pdb import PDBParser
+from cogent.util.unit_test import TestCase, main
+from cogent.core.entity import Atom
+from cogent.core.sequence import ProteinSequence
+from cogent.parse.pdb import PDBParser
 
 
 __author__ = "Marcin Cieslik"
@@ -1678,6 +1674,13 @@ class EntityTests(TestCase):
 
     def tearDown(self):
         self.structure = None
+        
+    def test_getSeq(self):
+        testSeq = self.working_chain.getSeq()
+        assert isinstance(testSeq, ProteinSequence)
+        assert testSeq == "DKPVAHVVANPQAEGQLQWSNRRANALLANGVELRDNQLVVPIEGL" \
+        "FLIYSQVLFKGQGCPSTHVLLTHTISRIAVSYQTKVNLLSAIKSPCQRETPEGAEAKPWYEPI" \
+        "YLGGVFQLEKGDRLSAEINRPDYLDFAESGQVYFGIIAL"
 
 
 
