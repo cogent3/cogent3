@@ -12,11 +12,12 @@ inside the SMCRA hierarchy). Holders of entities are like normal MultiEntities,
 but are temporary and are outside the parent-children axes.
 """
 
-
+import cogent
+from cogent.core.annotation import SimpleVariable
 from numpy import (sqrt, arctan2, power, array, mean, sum)
 from cogent.data.protein_properties import AA_NAMES, AA_ATOM_BACKBONE_ORDER, \
                                    AA_ATOM_REMOTE_ORDER, AREAIMOL_VDW_RADII, \
-                                   DEFAULT_AREAIMOL_VDW_RADIUS
+                                   DEFAULT_AREAIMOL_VDW_RADIUS, AA_NAMES_3to1
 from cogent.data.ligand_properties import HOH_NAMES, LIGAND_AREAIMOL_VDW_RADII
 from operator import itemgetter, gt, ge, lt, le, eq, ne, or_, and_, contains, \
                                                                  is_, is_not
@@ -587,6 +588,8 @@ class MultiEntity(Entity):
             for child in self.itervalues():
                 child.propagateData(function, level, attr, **kwargs)
         datas = self.getData(attr, **kwargs)
+        if isinstance(function, basestring):
+             function = eval(function)        
         transformed_datas = function(datas)
         if kwargs.get('xtra'):
             self.xtra[attr] = transformed_datas
@@ -802,6 +805,32 @@ class Chain(MultiEntity):
     def residueFreq(self):
         """Calculate residue frequency (based on ``name``)."""
         return self.freqChildren('name')
+
+    def getSeq(self, moltype ='PROTEIN'):
+        """Returns a Sequence object from the ordered residues.
+        The "seq_type" determines allowed residue names."""
+        if moltype == 'PROTEIN':
+            valid_names = AA_NAMES
+            moltype = cogent.PROTEIN
+        elif moltype == 'DNA':
+            raise NotImplementedError('The sequence type: %s is not implemented' % moltype)
+        elif moltype == 'RNA':
+            raise NotImplementedError('The sequence type: %s is not implemented' % moltype)
+        else:
+            raise ValueError('The \'seq_type\' is not supported.')
+        aa = ResidueHolder('aa', self.selectChildren(valid_names, contains, 'name'))
+        aa_noic = ResidueHolder('noic', aa.selectChildren(' ', eq, 'res_ic'))
+        
+        raw_seq = []
+        full_ids = []
+        for res in aa_noic.sortedvalues():
+            raw_seq.append(AA_NAMES_3to1[res.name])
+            full_ids.append(res.getFull_id()[1:]) 
+        raw_seq = "".join(raw_seq)
+        
+        seq = cogent.Sequence(moltype, raw_seq, self.getName())
+        seq.addAnnotation(SimpleVariable, 'entity_id', 'S_id', full_ids)
+        return seq
 
     def getDict(self):
         """See: ``Entity.getDict``."""
