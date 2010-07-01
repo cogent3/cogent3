@@ -82,13 +82,23 @@ The positions employed on Ensembl's web-site, and in their MySQL database differ
 Selecting Gene's
 ^^^^^^^^^^^^^^^^
 
-The genome can be queried for gene's in a number of ways through the ``Genome.getGenesMatching`` method. The method allows querying for gene(s) by the following identifiers: HGNC symbol; Ensembl ``stable_id``; description; or coding type. In general for such queries, case shouldn't matter. For instance, find the *BRCA2* gene by it's HGNC symbol.
+The genome can be queried for gene's in a number of ways. You can search for genes using the ``Genome.getGeneByStableId`` method which requires you know the Ensembl stable id.
+
+.. doctest::
+    
+    >>> brca1 = human.getGeneByStableId(StableId='ENSG00000012048')
+    >>> print brca1.Description
+    breast cancer 1, early onset...
+
+Alternatively, you can query using the ``Genome.getGenesMatching`` method. This method allows querying for gene(s) by the following identifiers: HGNC symbol; Ensembl ``stable_id``; description; or coding type.
+
+In general for such queries, case shouldn't matter. For instance, find the *BRCA2* gene by it's HGNC symbol.
 
 .. doctest::
 
     >>> genes = human.getGenesMatching(Symbol='brca2')
 
-Because there can be multiple hits from a query, and because we wish to not spend time doing things (like talking to the database) unnecessarily, the result of the query is a python generator. This acts like a series and allows you to iterate over the database hits until you find the one you want and then terminate the record collection.
+Because there can be multiple hits from a ``getGenesMatching`` query, and because we wish to not spend time doing things (like talking to the database) unnecessarily, the result of the query is a python generator. This acts like a series and allows you to iterate over the database hits until you find the one you want and then terminate the record collection.
 
 .. doctest::
 
@@ -244,8 +254,8 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
          T    1.0000          659
          T    1.0000          660
          T    1.0000          661
-         C    0.1833          662
          T    0.8167          662
+         C    0.1833          662
     -----------------------------
     Variation(Symbol='rs28358582'; Effect=['SPLICE_SITE',... 'NON_SYNONYMOUS_CODING']...
 
@@ -337,12 +347,9 @@ The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to
 
 .. doctest::
 
-    >>> gene = compara.Human.getGenesMatching(StableId='ENSG00000139618')
-    >>> brca2 = list(gene)[0]
+    >>> brca2 = compara.Human.getGeneByStableId(StableId='ENSG00000139618')
     >>> print brca2
     Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast...
-
-.. note:: I've used ``list`` here as it causes the generator to be iterated over fully which I know is safe since I know there will only be 1 record returned.
 
 We can now use this result to search compara for related genes. We note here that like ``Genome``, ``Compara`` has the ``getDistinct`` method to assist in identifying appropriate search criteria. What are the distinct types of gene relationships recorded in Ensembl, for instance?
 
@@ -466,11 +473,10 @@ Printing the ``method_species_links`` table provides all the necessary informati
 
 .. doctest::
     
-    >>> gene = compara_pair.Bushbaby.getGenesMatching(
+    >>> gene = compara_pair.Bushbaby.getGeneByStableId(
     ...                             StableId='ENSOGAG00000003166'
     ...                             )
     ...
-    >>> gene=list(gene)[0]
     >>> print gene
     Gene(Species='Otolemur garnettii'; BioType='protein_coding'...
     >>> syntenic = compara_pair.getSyntenicRegions(region=gene,

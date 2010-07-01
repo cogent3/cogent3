@@ -29,7 +29,7 @@ class GenomeTestBase(TestCase):
     mouse = Genome(Species="mouse", Release=Release, account=account)
     rat = Genome(Species="rat", Release=Release, account=account)
     macaq = Genome(Species="macaque", Release=Release, account=account)
-    brca2 = list(human.getGenesMatching(StableId="ENSG00000139618"))[0]
+    brca2 = human.getGeneByStableId(StableId="ENSG00000139618")
 
 class TestGenome(GenomeTestBase):
     
@@ -131,13 +131,11 @@ class TestGene(GenomeTestBase):
     def test_translated_exons(self):
         """should correctly translate a gene with 2 exons but 1st exon
         transcribed"""
-        gene = self.mouse.getGenesMatching(StableId='ENSMUSG00000036136')
-        gene = list(gene)[0]
+        gene = self.mouse.getGeneByStableId(StableId='ENSMUSG00000036136')
         transcript = gene.getMember('ENSMUST00000041133')
         self.assertTrue(len(transcript.ProteinSeq) > 0)
         # now one on the - strand
-        gene = self.mouse.getGenesMatching(StableId='ENSMUSG00000045912')
-        gene = list(gene)[0]
+        gene = self.mouse.getGeneByStableId(StableId='ENSMUSG00000045912')
         transcript = gene.Transcripts[0]
         self.assertTrue(len(transcript.ProteinSeq) > 0)
     
@@ -147,8 +145,7 @@ class TestGene(GenomeTestBase):
         # always right. This case has a macaque gene which we correctly
         # infer the CDS boundaries for according to Ensembl, but the CDS
         # length is not divisible by 3, hence our code fails.
-        gene = self.macaq.getGenesMatching(StableId='ENSMMUG00000001551')
-        gene = list(gene)[0]
+        gene = self.macaq.getGeneByStableId(StableId='ENSMMUG00000001551')
         transcript = gene.getMember('ENSMMUT00000002194')
         try:
             # this fails because of the above length issue
@@ -167,7 +164,7 @@ class TestGene(GenomeTestBase):
     def test_gene_transcripts(self):
         """should return multiple transcripts"""
         stable_id = 'ENSG00000012048'
-        gene = list(self.human.getGenesMatching(StableId=stable_id))[0]
+        gene = self.human.getGeneByStableId(StableId=stable_id)
         self.assertTrue(len(gene.Transcripts) > 1)
         # .. and correctly construct the Cds and location
         for transcript in gene.Transcripts:
@@ -177,14 +174,13 @@ class TestGene(GenomeTestBase):
     def test_get_longest_cds_transcript(self):
         """should correctly return transcript with longest cds"""
         stable_id = 'ENSG00000178591'
-        gene = list(self.human.getGenesMatching(StableId=stable_id))[0]
+        gene = self.human.getGeneByStableId(StableId=stable_id)
         ts = gene.getLongestCdsTranscript()
         self.assertEquals(ts.getCdsLength(), max(gene.getCdsLengths()))
     
     def test_rna_transcript_cds(self):
         """should return a Cds for an RNA gene too"""
-        rna_gene = self.human.getGenesMatching(StableId='ENSG00000210049')
-        rna_gene = list(rna_gene)[0]
+        rna_gene = self.human.getGeneByStableId(StableId='ENSG00000210049')
         self.assertTrue(rna_gene.Transcripts[0].getCdsLength() > 0)
     
     def test_gene_annotation(self):
@@ -237,6 +233,17 @@ class TestGene(GenomeTestBase):
     def test_variant(self):
         """variant attribute correctly constructed"""
         self.assertTrue(len(self.brca2.Variants) > 880)
+    
+    def test_get_gene_by_stable_id(self):
+        """should correctly handle getting gene by stable_id"""
+        stable_id = 'ENSG00000012048'
+        gene = self.human.getGeneByStableId(StableId=stable_id)
+        self.assertEquals(gene.StableId, stable_id)
+        
+        # if invalid stable_id, should just return None
+        stable_id = 'ENSG00000XXXXX'
+        gene = self.human.getGeneByStableId(StableId=stable_id)
+        self.assertEquals(gene, None)
     
 
 class TestVariation(GenomeTestBase):
@@ -322,12 +329,10 @@ class TestVariation(GenomeTestBase):
         for allele, freq in allele_freqs:
             self.assertFloatEqual(freq, expect[allele], eps=1e-3)
         
-    
 
 class TestFeatures(GenomeTestBase):
     def setUp(self):
-        self.igf2 = list(
-                  self.human.getGenesMatching(StableId='ENSG00000167244'))[0]
+        self.igf2 = self.human.getGeneByStableId(StableId='ENSG00000167244')
     
     def test_CpG_island(self):
         """should return correct CpG islands"""

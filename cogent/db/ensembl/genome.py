@@ -184,6 +184,16 @@ class Genome(object):
         return Coordinate(self, CoordName=CoordName, Start=Start, End=End,
                             Strand=Strand, ensembl_coord=ensembl_coord)
     
+    def getGeneByStableId(self, StableId):
+        """returns the gene matching StableId, or None if no record found"""
+        query = self._get_gene_query(self.CoreDb, StableId=StableId)
+        try:
+            record = list(query.execute())[0]
+            gene = Gene(self, self.CoreDb, data=record)
+        except IndexError:
+            gene = None
+        return gene
+    
     def getGenesMatching(self, Symbol=None, Description=None, StableId=None,
                          BioType=None, like=True):
         """Symbol: HGC gene symbol, case doesn't matter
