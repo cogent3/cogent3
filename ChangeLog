@@ -9,6 +9,7 @@ New Features
 ------------
 
 * added AlleleFreqs attribute to ensembl Variation objects.
+* added getGeneByStableId method to genome objects.
 
 Changes
 -------

@@ -32,31 +32,32 @@ def calc_slope(x1, y1, x2, y2):
     return delta_y/delta_x
 
 class ComparaTestBase(TestCase):
-    comp = Compara(['human', 'mouse', 'rat', 'platypus'], Release=Release, account=account)
+    comp = Compara(['human', 'mouse', 'rat', 'platypus'], Release=Release,
+                    account=account)
 
 class TestCompara(ComparaTestBase):
     def test_query_genome(self):
         """compara should attach valid genome attributes by common name"""
-        brca2 = list(self.comp.Mouse.getGenesMatching(Symbol="brca2"))[0]
+        brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         self.assertEquals(brca2.Symbol.lower(), 'brca2')
     
     def test_get_related_genes(self):
         """should correctly return the related gene regions from each genome"""
-        brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
+        brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                 Relationship="ortholog_one2one")
         self.assertEquals("ortholog_one2one", Orthologs.Relationships[0])
     
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
-        clec2d = list(self.comp.Mouse.getGenesMatching(
-                      StableId='ENSMUSG00000030157'))[0]
+        clec2d = self.comp.Mouse.getGeneByStableId(
+                                        StableId='ENSMUSG00000030157')
         orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
                         Relationship='ortholog_one2many')
         self.assertEquals(len(orthologs.Members),2)
     
     def test_get_collection(self):
-        brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
+        brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                         Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
@@ -64,7 +65,7 @@ class TestCompara(ComparaTestBase):
     
     def test_getting_alignment(self):
         mid = "ENSMUSG00000041147"
-        brca2 = list(self.comp.Mouse.getGenesMatching(StableId=mid))[0]
+        brca2 = self.comp.Mouse.getGeneByStableId(StableId=mid)
         result = list(self.comp.getSyntenicRegions(region=brca2,
                         align_method='PECAN', align_clade='vertebrates'))[0]
         aln = result.getAlignment(feature_types='gene')
@@ -96,7 +97,7 @@ class TestCompara(ComparaTestBase):
         """should return the correct set of species"""
         expect = set(['Homo sapiens', 'Ornithorhynchus anatinus',
                       'Mus musculus', 'Rattus norvegicus'])
-        brca2 = list(self.comp.Human.getGenesMatching(StableId="ENSG00000139618"))[0]
+        brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                         Relationship="ortholog_one2one")
         self.assertEquals(Orthologs.getSpeciesSet(), expect)
@@ -165,7 +166,6 @@ class TestSyntenicRegions(TestCase):
                  'AAGAAGCAAACAGGTTTATTTTATACACTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGAATTTGGACC-----------CAGTCTCAGGCCAAGTA'}]
             ]
         for coord, expect in coords_expected[1:]:
-            hum_length = coord['End'] - coord['Start']
             syntenic = list(
                 self.comp.getSyntenicRegions(method_clade_id=467, **coord))[0]
             # check the slope computed from the expected and returned
@@ -185,8 +185,7 @@ class TestSyntenicRegions(TestCase):
     def test_failing_region(self):
         """should correctly handle queries where multiple Ensembl have
         genome block associations for multiple coord systems"""
-        gene = list(self.comp.Human.getGenesMatching(
-                                    StableId='ENSG00000188554'))[0]
+        gene = self.comp.Human.getGeneByStableId(StableId='ENSG00000188554')
         # this should simply not raise any exceptions
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
                                 align_method='PECAN',
