@@ -172,9 +172,15 @@ def _fast_unifrac_setup(t, envs, make_subtree=True):
     """Setup shared by fast_unifrac and by significance tests."""
     if make_subtree:
         try:
-            t2 = t.getSubTree(set(envs.keys()).intersection(
-            set([i.Name for i in t.tips()])), ignore_missing=True)
-            t = t2
+            wanted = set(envs.keys()).intersection(
+                set([i.Name for i in t.tips()]))
+            #t2 = t.getSubTree(wanted, ignore_missing=True)
+            #t = t2
+
+            for tip in list(t.tips()):
+                if tip not in wanted:
+                    tip.Parent.removeNode(id(tip))
+            t.prune()
         except TreeError:
             pass
     #index tree
