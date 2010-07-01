@@ -1,4 +1,5 @@
 import sqlalchemy as sql
+from numpy import empty
 
 from cogent.util.table import Table
 from cogent.db.ensembl.species import Species as _Species
@@ -151,6 +152,10 @@ class Compara(object):
             clade_name = record['name']
             aln_name = method_link_ids[ml_id]['type']
             rows += [[ml_sp_set_id, ml_id, sp_set_id, aln_name, clade_name]]
+        
+        if rows == []:
+            rows = empty((0,len(header)))
+        
         t = Table(header=header, rows=rows, space=2, row_ids=True,
                   title='Align Methods/Clades')
         self._method_species_link = t
