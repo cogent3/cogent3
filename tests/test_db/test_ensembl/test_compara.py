@@ -77,6 +77,11 @@ class TestCompara(ComparaTestBase):
         # cogent.util.Table instance
         self.assertTrue(self.comp.method_species_links.Shape > (0,0))
     
+    def test_no_method_clade_data(self):
+        """generate a Table with no rows if no alignment data"""
+        compara = Compara(['S.cerevisiae'], Release=Release, account=account)
+        self.assertEquals(compara.method_species_links.Shape[0], 0)
+    
     def test_get_syntenic_returns_nothing(self):
         """should correctly return None for a SyntenicRegion with golden-path
         assembly gap"""
