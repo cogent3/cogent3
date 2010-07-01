@@ -17,6 +17,9 @@ Changes
 Bug Fixes
 ---------
 
+* Fixed a Bug in cogent.core.alphabet that resulted in 4 tests err'ing out 
+  when using NumPy v1.4.1
+
 Cogent 1.4 - 1.4.1
 ==================
 
