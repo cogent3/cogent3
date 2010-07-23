@@ -40,36 +40,55 @@ def _assemble_seq(frags, start, end, frag_positions):
 def _make_coord(genome, coord_name, start, end, strand):
     """returns a Coordinate"""
     return Coordinate(CoordName=coord_name, Start=start, End=end,
-                Strand=strand, genome = genome)
+                Strand=strand, genome=genome)
 
-def get_sequence(coord=None, genome=None, coord_name=None, start=None,
-                                        end=None, strand = 1, DEBUG=False):
+
+def get_lower_coord_conversion(coord, species, core_db):
+    coord_system = CoordSystem(species=species, core_db=core_db)
+    seq_level_coord_type = CoordSystem(species=species,core_db=core_db,
+                             seq_level=True)
+    query_rank = coord_system[coord.CoordType].rank
+    seq_level_rank = coord_system[seq_level_coord_type].rank
+    
+    for rank in range(query_rank+1, seq_level_rank):
+        coord_type = None
+        for key in coord_system.keys():
+            if coord_system[key].rank == rank:
+                coord_type = coord_system[key].name
+                break
+        
+        if coord_type is None:
+            continue
+        
+        assemblies = get_coord_conversion(coord, coord_type, core_db)
+        
+        if assemblies: 
+            break
+        
+    
+    return assemblies
+
+def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
     # TODO clean up use of a coord
-    if coord is None:
-        coord = _make_coord(genome, coord_name, start, end, 1)
-    else:
-        coord = coord.copy()
-    
-    start, end, strand = coord.Start, coord.End, coord.Strand
-    coord_name = coord.CoordName
-    
     genome = coord.genome
     # no matter what strand user provide, we get the + sequence first
     coord.Strand = 1
     species = genome.Species
     coord_type = CoordSystem(species=species,core_db=genome.CoreDb,
                              seq_level=True)
+    
     if DEBUG:
         print 'Created Coordinate:',coord,coord.EnsemblStart,coord.EnsemblEnd
         print coord.CoordType, coord_type
-    assemblys = get_coord_conversion(coord, coord_type, genome.CoreDb)
     
-    if not assemblys:
+    assemblies = get_coord_conversion(coord, coord_type, genome.CoreDb)
+    
+    if not assemblies:
         raise NoItemError, 'no assembly for %s' % coord
     
     dna = genome.CoreDb.getTable('dna')
     seqs, positions = [], []
-    for q_loc, t_loc in assemblys:
+    for q_loc, t_loc in assemblies:
         assert q_loc.Strand == 1
         length = len(t_loc)
         # get MySQL to do the string slicing via substr function
@@ -85,6 +104,45 @@ def get_sequence(coord=None, genome=None, coord_name=None, start=None,
         seqs.append(str(seq))
         positions.append((q_loc.Start, q_loc.End))
     sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
+    return sequence
+
+def _get_sequence_from_lower_assembly(coord, DEBUG):
+    assemblies = get_lower_coord_conversion(coord, coord.genome.Species,
+                                            coord.genome.CoreDb)
+    if not assemblies:
+        raise NoItemError, 'no assembly for %s' % coord
+    
+    if DEBUG:
+        print '\nMedium_level_assemblies = ', assemblies
+    
+    seqs, positions = [], []
+    for q_loc, t_loc in assemblies: 
+        temp_seq = _get_sequence_from_direct_assembly(t_loc, DEBUG)
+        
+        if DEBUG:
+            print q_loc
+            print t_loc
+            print 'temp_seq = ', temp_seq[:10], '\n'
+        
+        seqs.append(str(temp_seq))
+        positions.append((q_loc.Start, q_loc.End))
+    
+    sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
+    return sequence
+
+def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None, strand=1, DEBUG=False):
+    if coord is None:
+        coord = _make_coord(genome, coord_name, start, end, 1)
+    else:
+        coord = coord.copy()
+    
+    strand = coord.Strand
+    
+    try: 
+        sequence = _get_sequence_from_direct_assembly(coord, DEBUG)
+    except NoItemError:
+        ## means there is no assembly, so we do a thorough assembly by converting according to the "rank"
+        sequence = _get_sequence_from_lower_assembly(coord, DEBUG)
     
     if strand == -1:
         sequence = sequence.rc()
