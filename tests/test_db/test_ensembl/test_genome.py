@@ -99,7 +99,13 @@ class TestGenome(GenomeTestBase):
         """excercising ability to specify pool connection"""
         dog = Genome(Species="dog", Release=Release, account=account,
                 pool_recycle=1000)
-
+    
+    def test_gorilla(self):
+        """should correctly return a gorilla gene"""
+        gorilla = Genome(Species="gorilla", Release=Release, account=account)
+        gene = gorilla.getGeneByStableId('ENSGGOG00000005730')
+        self.assertEquals(str(gene.Seq[:10]), 'TGGGAGTCCA')
+    
 
 class TestGene(GenomeTestBase):
     def _eval_brca2(self, brca2):
