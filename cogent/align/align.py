@@ -37,7 +37,7 @@ def make_dna_scoring_dict(match, transition, transversion):
             DNA[a,b] = score
     return DNA
 
-def _align_pairwise(s1, s2, mprobs, psub, TM, local, **kw):
+def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_score=False, **kw):
     """Generic alignment with any substitution model and indel model"""
     [p1, p2] = [makeLikelihoodTreeLeaf(seq) for seq in [s1, s2]]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
@@ -48,9 +48,13 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local, **kw):
         (score, alignment) = hmm.getLocalViterbiScoreAndAlignment(**kw)
     else:
         (score, alignment) = hmm.getViterbiScoreAndAlignment(**kw)
-    return alignment
+    
+    if return_score:
+        return alignment, score
+    else:
+        return alignment
 
-def classic_align_pairwise(s1, s2, Sd, d, e, local, **kw):
+def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     """Alignment specified by gap costs and a score matrix"""
     TM = indel_model.ClassicGapScores(d, e)
     a1 = s1.MolType.Alphabet
@@ -61,13 +65,13 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, **kw):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), Float) / len(psub)
-    return _align_pairwise(s1, s2, mprobs, psub, TM, local, **kw)
+    return _align_pairwise(s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw)
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM
 # may not give same answer's as algorithm
-def local_pairwise(s1, s2, S, d, e):
-    return classic_align_pairwise(s1, s2, S, d, e, True)
+def local_pairwise(s1, s2, S, d, e, return_score=False):
+    return classic_align_pairwise(s1, s2, S, d, e, True, return_score=return_score)
 
-def global_pairwise(s1, s2, S, d, e):
-    return classic_align_pairwise(s1, s2, S, d, e, False)
+def global_pairwise(s1, s2, S, d, e, return_score=False):
+    return classic_align_pairwise(s1, s2, S, d, e, False, return_score=return_score)

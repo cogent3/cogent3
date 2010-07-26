@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from cogent import DNA
-from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict
+from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict,\
+        local_pairwise, global_pairwise
 from cogent.evolve.models import HKY85
 import cogent.evolve.substitution_model
 dna_model = cogent.evolve.substitution_model.Nucleotide(
@@ -67,6 +68,14 @@ class AlignmentTestCase(unittest.TestCase):
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 5)
             self.assertEqual(len(a), 7)
+    
+    def test_pairwise_returns_score(self):
+        """exercise pairwise local/global returns alignment score"""
+        S = make_dna_scoring_dict(10, -1, -8)
+        aln, score = local_pairwise(seq1, seq2, S, 10, 2, return_score=True)
+        self.assertTrue(score > 100)
+        aln, score = global_pairwise(seq1, seq2, S, 10, 2, return_score=True)
+        self.assertTrue(score > 100)
     
     def test_codon(self):
         s1 = DNA.makeSequence('tacgccgta', Name="A")
