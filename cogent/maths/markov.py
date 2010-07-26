@@ -63,7 +63,7 @@ class TransitionMatrix(object):
             state = bisect.bisect_left(partitions[state], x)
     
     def __repr__(self):
-        from cogent import Table
+        from cogent.util.table import Table
         labels = []
         for (i, label) in enumerate(self.Tags):
             if hasattr(label, '__len__') and not isinstance(
