@@ -13,9 +13,9 @@ from cogent.maths.stats.special import Gamma
 
 from numpy import array, asarray, transpose, ravel, take, nonzero, log, sum,\
         mean, cov, corrcoef, fabs, any, reshape, clip, nan, isnan, isinf, \
-        sqrt, exp, median as _median
+        sqrt, exp, median as _median, zeros, ones
         #, std - currently incorrect
-from numpy.random import permutation
+from numpy.random import permutation, randint
 from cogent.maths.stats.util import Numbers
 from operator import add
 from random import choice
@@ -922,36 +922,37 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     # translation from R 2.4
     num_x = len(x)
     num_y = None
-    x = [(x[i], 0) for i in range(num_x)]
+    x = zip(x, zeros(len(x), int))
     lo = ["less", "lo", "lower", "l", "lt"]
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
     if y is not None: # in anticipation of actually implementing the 1-sample cases
         num_y = len(y)
-        y = [(y[i], 1) for i in range(num_y)]
+        y = zip(y, ones(len(y), int))
         n = num_x * num_y / (num_x + num_y)
-        combined =  x + y
-        combined.sort()
-        cumsum = [0.0]
-        for index, (val, origin) in enumerate(combined):
-            scale = [1/num_x, -1/num_y][origin]
-            cumsum.append(scale + cumsum[-1])
-        cumsum.pop(0)
-        if exact == None:
-            exact = num_x * num_y < 1e4
-        
+        combined = x + y
         if len(set(combined)) < num_x + num_y:
             ties = True
         else:
             ties = False
         
+        combined = array(combined, dtype=[('stat', float), ('sample', int)])
+        combined.sort(order='stat')
+        cumsum = zeros(combined.shape[0], float)
+        scales = array([1/num_x, -1/num_y])
+        indices = combined['sample']
+        cumsum = scales.take(indices)
+        cumsum = cumsum.cumsum()
+        if exact == None:
+            exact = num_x * num_y < 1e4
+        
         if alt in two:
             stat = max(fabs(cumsum))
         elif alt in lo:
-            stat = -min(cumsum)
+            stat = -cumsum.min()
         elif alt in hi:
-            stat = max(cumsum)
+            stat = cumsum.max()
         else:
             raise RuntimeError, "Unknown alt: %s" % alt
         if exact and alt in two and not ties:
@@ -987,14 +988,15 @@ def ks_boot(x, y, alt = "two sided", num_reps=1000):
     # One important difference is I preserve the original sample sizes
     # instead of making them equal
     tol = MACHEP * 100
-    combined = list(x) + list(y)
+    combined = array(list(x) + list(y))
     observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
     total_obs = len(combined)
     num_x = len(x)
     num_greater = 0
     for i in range(num_reps):
         # sampling with replacement
-        sampled = [choice(combined) for i in range(total_obs)]
+        indices = randint(0, total_obs, total_obs)
+        sampled = combined.take(indices)
         # split into the two populations
         sampled_x = sampled[:num_x]
         sampled_y = sampled[num_x:]
