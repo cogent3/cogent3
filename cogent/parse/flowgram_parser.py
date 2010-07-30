@@ -24,20 +24,11 @@ def get_header_info(lines):
 
     lines can be a a list or a file handle
     """
-    # a (hopefully) safe way of not having to load the whole file into mem
-    just_header_lines = []
-    if isinstance(lines, list):
-        just_header_lines = lines[1:100]
-    else:
-        # assuming some time of generator
-        # and dropping first line
-        lines.next()
-        for i in range(100):
-            just_header_lines.append(lines.next())
-
     header_dict = {}
 
-    for line in just_header_lines:
+    for line in lines:
+        if line.startswith('Common Header'):
+            continue
         if is_empty(line):
             break
        
