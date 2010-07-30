@@ -34,7 +34,10 @@ def get_header_info(lines):
        
         key, value = line.strip().split(':')
         header_dict[key] = value.strip()
-        
+    
+    if isinstance(lines, file):
+        lines.seek(0)
+
     return header_dict
 
 def get_summaries(handle, number_list = None, name_list=None, all_sums = False):
