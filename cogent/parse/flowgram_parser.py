@@ -3,7 +3,7 @@
 
 __author__ = "Jens Reeder, Julia Goodrich"
 __copyright__ = "Copyright 2009, The Cogent Project"
-__credits__ = ["Jens Reeder","Julia Goodrich"]
+__credits__ = ["Jens Reeder","Julia Goodrich", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Jens Reeder"
@@ -24,10 +24,20 @@ def get_header_info(lines):
 
     lines can be a a list or a file handle
     """
+    # a (hopefully) safe way of not having to load the whole file into mem
+    just_header_lines = []
+    if isinstance(lines, list):
+        just_header_lines = lines[1:100]
+    else:
+        # assuming some time of generator
+        # and dropping first line
+        lines.next()
+        for i in range(100):
+            just_header_lines.append(lines.next())
 
     header_dict = {}
 
-    for line in lines[1::]:
+    for line in just_header_lines:
         if is_empty(line):
             break
        

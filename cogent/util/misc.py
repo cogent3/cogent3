@@ -15,7 +15,7 @@ from os.path import join, abspath, exists
 from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
-
+import hashlib
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Amanda Birmingham",
@@ -26,6 +26,20 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+def safe_md5(open_file, block_size=2**20):
+    """Computes an md5 sum without loading the file into memory
+
+    This method is based on the answers given in:
+    http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
+    """
+    md5 = hashlib.md5()
+    data = True
+    while data:
+        data = open_file.read(block_size)
+        if data:
+            md5.update(data)
+    return md5.hexdigest()
 
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
