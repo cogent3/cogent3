@@ -22,7 +22,7 @@ from cogent.util.misc import iterable, max_index, min_index, \
     generateCombinations, makeNonnegInt, \
     NonnegIntError, reverse_complement, not_none, get_items_except,\
     NestedSplitter, curry, app_path, remove_files, get_random_directory_name,\
-    revComp, parse_command_line_parameters
+    revComp, parse_command_line_parameters, safe_md5
 from numpy import array
 
 __author__ = "Rob Knight"
@@ -37,6 +37,11 @@ __status__ = "Production"
 
 class UtilsTests(TestCase):
     """Tests of individual functions in utils"""
+
+    def test_safe_md5(self):
+        """Make sure we have the expected md5"""
+        exp = 'd5cff1e08a8ed0c96a327dd2ca1530cc'
+        self.assertEqual(safe_md5(open('__init__.py')),exp)
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
