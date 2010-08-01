@@ -9,10 +9,12 @@ Biological sequence analysis by Durbin et al
 Generalised as described by Pearson, Robins & Zhang, 1999.
 """
 
+from __future__ import division
 import numpy
 from cogent.core.tree import TreeBuilder
 from cogent.phylo.tree_collection import ScoredTreeCollection
-from util import distanceDictTo2D
+from cogent.phylo.util import distanceDictTo2D
+from cogent.util import progress_display as UI
 from collections import deque
 
 
@@ -160,7 +162,8 @@ def uniq_neighbour_joins(trees, encode_partition):
         topologies.add(topology)
 
 
-def gnj(dists, keep=None, dkeep=0, show_progress=False):
+@UI.display_wrap
+def gnj(dists, keep=None, dkeep=0, ui=None):
     """Arguments:
         - dists: dict of (name1, name2): distance
         - keep: number of best partial trees to keep at each iteration,  
@@ -175,6 +178,7 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
 
     if keep is None:
         keep = len(names) * 5
+    all_keep = keep + dkeep
         
     # For recognising duplicate topologies, encode partitions (ie: edges) as 
     # frozensets of tip names, which should be quickly comparable.
@@ -193,6 +197,21 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
     star_tree.topology = frozenset([])
     trees = [star_tree]
     
+    # Progress display auxiliary code
+    template = ' size %%s/%s  trees %%%si' % (len(names), len(str(all_keep)))
+    total_work = 0
+    max_candidates = 1
+    total_work_before = {}
+    for L in range(len(names), 3, -1):
+        total_work_before[L] = total_work
+        max_candidates = min(all_keep, max_candidates*L*(L-1)//2)
+        total_work += max_candidates
+        
+    def _show_progress():
+        t = len(next_trees)
+        work_done = total_work_before[L] + t
+        ui.display(msg=template % (L, t), progress=work_done/total_work)
+    
     for L in range(len(names), 3, -1):
         # Generator of candidate joins, best first.
         # Note that with dkeep>0 this generator is used up a bit at a time
@@ -201,11 +220,13 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
         
         # First take up to 'keep' best ones
         next_trees = []
+        _show_progress()
         for pair in candidates:
             next_trees.append(pair)
             if len(next_trees) == keep:
-                break
-        
+                break 
+        _show_progress()
+
         # The very best one is used as an anchor for measuring the 
         # topological distance to others
         best_topology = next_trees[0].topology
@@ -220,7 +241,6 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
         # Now take up to dkeep joins, an equal number of the best at each 
         # topological distance, while not calculating any more TDs than 
         # necessary.
-        all_keep = len(next_trees) + dkeep
         prior_td = dict(zip(map(id, trees), prior_td))
         target_td = 1
         while (candidates or queued) and len(next_trees) < all_keep:
@@ -238,13 +258,12 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
             if queue[target_td]:
                 next_trees.append(queue[target_td].popleft())
                 queued -= 1
+                _show_progress()
+
             target_td = target_td % max_td + 1
         
         trees = [pair.joined() for pair in next_trees]
-        
-        if show_progress:
-            print L
-        
+                
     result = [tree.asScoreTreeTuple() for tree in trees]
     result.sort()
     return ScoredTreeCollection(result)

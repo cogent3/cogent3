@@ -7,6 +7,8 @@ import cogent.maths.optimisers
 from cogent.maths.solve import find_root
 from cogent.util import parallel
 from cogent.maths.optimiser import ParameterOutOfBoundsError
+import cogent.util.progress_display as UI
+
 
 import os
 TRACE_DEFAULT = os.environ.has_key('COGENT_TRACE')
@@ -314,31 +316,39 @@ class Calculator(object):
         x = self.getValueArray()
         return optimiser_class(self, x, bounds, **kw)
     
+    @UI.display_wrap
     def optimise(self, local=None, filename=None, interval=None,
-            show_progress=True, max_restarts=None, max_evaluations=None,
-            tolerance=1e-6, global_tolerance=1e-1, **kw):
+            max_restarts=None, max_evaluations=None,
+            tolerance=1e-6, global_tolerance=1e-1, ui=None, **kw):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run
         both the global and local optimisers. 'filename' and 'interval'
         control checkpointing.  Unknown keyword arguments get passed on to
         the optimiser(s)."""
+        do_global = (not local) or local is None
+        do_local = local or local is None
+        per_opt = 1.0/int(do_global+do_local)
+        
         # Global optimisation
-        if not local or local is None:
-            gtol = [tolerance, global_tolerance][local is None]
+        if do_global:
+            ui.display('global opt', 0.0, per_opt)
+            gtol = [tolerance, global_tolerance][do_local]
             opt = self.getOptimiser(False, tolerance=gtol,
                     max_evaluations=max_evaluations, **kw)
             opt.setCheckpointing(filename=filename, interval=interval)
-            opt.run(show_progress=show_progress)
+            opt.run()
         else:
             for k in kw:
                 warnings.warn('Unused arg for local alignment: ' + k)
-        
+    
         # Local optimisation
-        if local or local is None:
+
+        if do_local:
+            ui.display('local opt', 1.0-per_opt, per_opt)
             opt = self.getOptimiser(True, tolerance=tolerance,
                 max_restarts=max_restarts, max_evaluations=max_evaluations)
-            opt.run(show_progress=show_progress)
-        
+            opt.run()
+       
         self.optimised = True
     
     def setTracing(self, trace=False):

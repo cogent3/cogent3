@@ -3,15 +3,9 @@
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
-from cogent.align import pairwise, indel_model
+from cogent.align import pairwise, indel_model, pycompare
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 import sys
-
-try:
-    from _compare import dotplot
-except ImportError:
-    from pycompare import dotplot
-    print >>sys.stderr, 'Using slow Python dotplot implementation'
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -21,6 +15,12 @@ __version__ = "1.5.0.dev"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
+def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, **kw):
+    #warnings.warn("cogent.align.align.dotplot moved to cogent.align.compare.dotplot",
+    #    DeprecationWarning)
+    return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length, 
+            band, **kw)
 
 def make_dna_scoring_dict(match, transition, transversion):
     DNA = {}

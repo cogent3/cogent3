@@ -8,12 +8,12 @@ citation is "Global Optimization of Statistical Functions with Simulated
 Annealing," Goffe, Ferrier and Rogers, Journal of Econometrics, vol. 60, no. 1/2,
 Jan./Feb. 1994, pp. 65-100.
 """
-
+from __future__ import division
 from optimiser import OptimiserBase
-
 import numpy
-Float = numpy.core.numerictypes.sctype2char(float)
 import time
+from collections import deque
+
 
 __author__ = "Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -41,6 +41,10 @@ class AnnealingSchedule(object):
             if getattr(self, attr) != getattr(other, attr):
                 raise ValueError('Checkpoint file ignored - %s different' % attr)
     
+    def roundsToReach(self, T):
+        from math import log
+        return int(-log(self.initial_temp/T) / log(self.temp_reduction)) + 1
+        
     def cool(self):
         self.T = self.temp_reduction * self.T
     
@@ -53,22 +57,27 @@ class AnnealingHistory(object):
     """Keeps the last few results, for convergence testing"""
     
     def __init__(self, sample=4):
-        self.values = [None] * sample
-        self.i = 0
+        self.sample_size = sample
+        #self.values = deque([None]*sample, sample) Py2.6
+        self.values = deque([None]*sample)
     
     def note(self, F):
-        self.values[self.i] = F
-        self.i = (self.i + 1) % len(self.values)
-    
-    def hasConverged(self, tolerance):
-        return None not in self.values and max(self.values) - min(self.values) < tolerance
+        self.values.append(F)
+        # Next 2 lines not required once above Py2.6 line is uncommented
+        if len(self.values) > self.sample_size:
+            self.values.popleft()
+            
+    def minRemainingRounds(self, tolerance):
+        last = self.values[-1]
+        return max([0]+[i+1 for (i,v) in enumerate(self.values)
+                if v is None or abs(v-last)>tolerance])
     
 
 class AnnealingState(object):
     def __init__(self, X, function, random_series):
         self.random_series = random_series
         self.NFCNEV = 1
-        self.VM = numpy.ones(len(X), Float)
+        self.VM = numpy.ones(len(X), float)
         self.setX(X, function(X))
         (self.XOPT, self.FOPT) = (X, self.F)
         self.NACP = [0] * len(X)
@@ -76,7 +85,7 @@ class AnnealingState(object):
         self.elapsed_time = 0
     
     def setX(self, X, F):
-        self.X = numpy.array(X, Float)
+        self.X = numpy.array(X, float)
         self.F = F
     
     def step(self, function, accept_test):
@@ -135,20 +144,25 @@ class AnnealingRun(object):
                 "Function to optimise doesn't match checkpoint file " \
                 "'%s': F=%s now, %s in file." % (
                     checkpointing_filename, now, then))
-    
+        
     def run(self, function, tolerance, max_iterations, checkpointer,
-                show_progress):
+                show_remaining):
         state = self.state
         history = self.history
         schedule = self.schedule
         
-        while not history.hasConverged(tolerance):
-            if show_progress:
-                print "Outer loop = %d" % self.test_count
-            
+        est_anneal_remaining = schedule.roundsToReach(tolerance/10) + 3
+        while True:
+            min_history_remaining = history.minRemainingRounds(tolerance)
+            if min_history_remaining == 0:
+                break
             self.save(checkpointer)
+            remaining = max(min_history_remaining, est_anneal_remaining)
+            est_anneal_remaining += -1
             
             for i in range(self.schedule.dwell):
+                show_remaining(remaining + 1 - i/self.schedule.dwell, 
+                        state.FOPT, schedule.T, state.NFCNEV)
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
                 if max_iterations and self.test_count >= max_iterations:
@@ -157,8 +171,6 @@ class AnnealingRun(object):
                     state.adjustStepSizes()
             
             history.note(state.F)
-            if show_progress:
-                print "\tF = %f EVALS = %s" % (state.FOPT, state.NFCNEV)
             state.setX(state.XOPT, state.FOPT)
             schedule.cool()
         
@@ -182,6 +194,8 @@ You can increase max_evaluations or decrease tolerance."""
 class SimulatedAnnealing(OptimiserBase):
     """Simulated annealing optimiser for bounded functions
     """
+    label = "global"
+    
     # this is a maximiser
     algorithm_direction = +1
     
@@ -214,7 +228,7 @@ class SimulatedAnnealing(OptimiserBase):
             if value is not None:
                 setattr(self, attr, value)
     
-    def runInner(self, function, xopt, show_progress, random_series):
+    def runInner(self, function, xopt, show_remaining, random_series):
         """Optimise the vector within the bounds specified by the base class.
         
         Arguments:
@@ -244,7 +258,7 @@ class SimulatedAnnealing(OptimiserBase):
                 self.tolerance,
                 max_iterations,
                 checkpointer = self.checkpointer,
-                show_progress = show_progress)
+                show_remaining = show_remaining)
         except MaximumEvaluationsReached, detail:
             print detail.__doc__
             result = detail.args[0]

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from __future__ import with_statement
+from __future__ import with_statement, division
 import heapq
 import numpy
 from cogent.core.tree import TreeBuilder
 from cogent.phylo.tree_collection import ScoredTreeCollection
-from cogent.util import parallel, checkpointing
+from cogent.util import parallel, checkpointing, progress_display as UI
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -132,9 +132,10 @@ class TreeEvaluator(object):
         names = list(fixed_names) + [n for n in ordered_names 
                 if n not in fixed_names_set]
         return names
-    
-    def trex(self, a=8, k=1000, start=None, order=None, show_progress=False,
-            return_all=False, filename=None, interval=None):
+        
+    @UI.display_wrap
+    def trex(self, a=8, k=1000, start=None, order=None, return_all=False, 
+            filename=None, interval=None, ui=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
         'order' is an optional list of tip names.  
@@ -147,8 +148,6 @@ class TreeEvaluator(object):
         Trexml: a maximum-likelihood approach for extensive tree-space
         exploration.
         Bioinformatics, 16(4):383 94, 2000."""
-        
-        printing_cpu = parallel.getCommunicator().Get_rank() == 0
         
         checkpointer = checkpointing.Checkpointer(filename, interval)
         if checkpointer.available():
@@ -192,13 +191,16 @@ class TreeEvaluator(object):
             trees = trees2
             init_tree_size = n
         
-        if show_progress and printing_cpu:
-            print len(trees), 'trees of size', init_tree_size, 'at start'
+        tree_count = len(trees)
+        total_work = 0
+        for n in range(init_tree_size+1, tree_size+1):
+            evals = tree_count * (n*2-3)
+            total_work += evals * n
+            tree_count = min(k, evals)
         
+        work_done = 0
         for n in range(init_tree_size+1, tree_size+1):
             evals = len(trees) * len(trees[0][2])
-            if show_progress and printing_cpu:
-                print evals, 'trees of size', n, '...',
             
             with parallel.mpi_split(evals) as comm:
                 (cpu_count, cpu_rank) = (comm.Get_size(), comm.Get_rank())
@@ -208,13 +210,17 @@ class TreeEvaluator(object):
                 evaluation_count = 0
                 for (err2, lengths2, ancestry) in trees:
                     for split_edge in range(len(ancestry)):
+                        template = ' size = %s/%s tree = %s/%s'
                         evaluation_count += 1
+                        ui.display(progress=work_done/total_work, 
+                                current=n/total_work, msg=template % (
+                                n, tree_size, evaluation_count, len(ancestry)*len(trees)))
+                        work_done += n
                         if evaluation_count % cpu_count != cpu_rank:
                             continue
                         ancestry2 = grown(ancestry, split_edge)
                         (err, lengths) = evaluate(ancestry2)
                         trees2.append((err, lengths, ancestry2))
-                        
                 trees2 = heapq.nsmallest(k, trees2)
                                 
                 # collect trees from all CPUs
@@ -223,14 +229,7 @@ class TreeEvaluator(object):
                     trees.extend(local_trees)
                 trees = heapq.nsmallest(k, trees)
                                 
-                if show_progress and printing_cpu:
-                    if n < tree_size:
-                        print 'kept', len(trees), 'trees'
-                    else:
-                        print 'done'
-                            
-                if printing_cpu:
-                    checkpointer.record((n, names[:n], trees))
+                checkpointer.record((n, names[:n], trees))
         
         results = self._result_iter(trees, names)
         if return_all:

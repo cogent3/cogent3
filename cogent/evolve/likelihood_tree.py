@@ -53,11 +53,8 @@ class _LikelihoodTreeEdge(object):
                         u = len(c.uniq)-1 # gap
                     else:
                         u = c.index[col]
-                        if not ( 0 <= u < len(c.uniq)-1):
-                            print len(c.uniq)
-                            print c.uniq[-1]
-                            print align_index
-                            raise RuntimeError
+                        assert 0 <= u < len(c.uniq)-1, (
+                                u, len(c.uniq), c.uniq[-1], align_index)
                     a.append(u)
                 assignments.append(a)
         (uniq, counts, self.index) = _indexed(zip(*assignments))
