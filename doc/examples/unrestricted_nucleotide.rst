@@ -52,7 +52,7 @@ We now construct the parameter controller with each predicate constant across th
     >>> lf = sm.makeLikelihoodFunction(tr, digits=2, space=3)
     >>> lf.setAlignment(al)
     >>> lf.setName('Unrestricted model')
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
 
 We just used the Powell optimiser, as this works quite well.
 

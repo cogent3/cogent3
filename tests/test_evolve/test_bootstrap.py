@@ -95,7 +95,7 @@ class BootstrapTests(unittest.TestCase):
                 self.create_null_controller(alignobj), self.calclength, alignobj)
         bstrap.setNumReplicates(REPLICATES)
         bstrap.setSeed(1984)
-        bstrap.run(show_progress=False, local=True)
+        bstrap.run(local=True)
         samplelnL = bstrap.getSamplelnL()
         for lnL in samplelnL:
             assert lnL < 0.0, lnL
@@ -121,7 +121,7 @@ class BootstrapTests(unittest.TestCase):
                 alignobj)
         prob_bstrap.setNumReplicates(REPLICATES)
         prob_bstrap.setSeed(1984)
-        prob_bstrap.run(show_progress=False, local=True)
+        prob_bstrap.run(local=True)
         
         self.assertEqual(len(prob_bstrap.getSampleLRList()), REPLICATES)
         

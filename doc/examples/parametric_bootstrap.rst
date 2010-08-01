@@ -61,9 +61,9 @@ Run it.
 
 .. doctest::
 
-    >>> estimateP.run(show_progress = False)
+    >>> estimateP.run()
 
-``show_progress`` sets whether individual optimisations are printed to screen. Get the estimated probability.
+Get the estimated probability.
 
 .. doctest::
 

@@ -100,7 +100,7 @@ def mpi_split(jobs):
     with mpi_context(sub):
         yield next
 
-def map(f,s,show_progress=False):
+def map(f,s):
     result = []
     with mpi_split(len(s)) as comm:
         (size, rank) = (comm.Get_size(), comm.Get_rank())
@@ -112,10 +112,6 @@ def map(f,s,show_progress=False):
                 local_result = None
             split_results = comm.allgather(local_result)[:len(chunk)]
             result.extend(split_results)
-            if show_progress and output_cpu:
-                print ".", #start+len(chunk)
-    if show_progress and output_cpu:
-        print 
     return result
 
 output_cpu = getCommunicator().Get_rank() == 0

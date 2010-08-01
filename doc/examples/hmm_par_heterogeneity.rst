@@ -44,7 +44,7 @@ We specify a null model with no bins, and optimise it.
 
     >>> lf_one = model.makeLikelihoodFunction(tree, digits=2, space=3)
     >>> lf_one.setAlignment(aln)
-    >>> lf_one.optimise(show_progress=False)
+    >>> lf_one.optimise()
     >>> lnL_one = lf_one.getLogLikelihood()
     >>> df_one = lf_one.getNumFreeParams()
     >>> print lf_one
@@ -87,7 +87,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     ...                             sites_independent=True, digits=2, space=3)
     >>> lf_bins.setParamRule('bprobs', is_const=True)
     >>> lf_bins.setAlignment(aln)
-    >>> lf_bins.optimise(local=True, show_progress=False)
+    >>> lf_bins.optimise(local=True)
     >>> lnL_bins = lf_bins.getLogLikelihood()
     >>> df_bins = lf_bins.getNumFreeParams()
     >>> assert df_bins == 9
@@ -135,7 +135,7 @@ We then specify a model with switches for changing between site-classes, the HMM
     ...                         sites_independent=False, digits=2, space=3)
     >>> lf_patches.setParamRule('bprobs', is_const=True)
     >>> lf_patches.setAlignment(aln)
-    >>> lf_patches.optimise(local=True, show_progress=False)
+    >>> lf_patches.optimise(local=True)
     >>> lnL_patches = lf_patches.getLogLikelihood()
     >>> df_patches = lf_patches.getNumFreeParams()
     >>> print lf_patches
@@ -248,7 +248,7 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
     >>> lf_kappa.setParamRule('bprobs',
     ...             init=array([1.0-epsilon, 0.0+epsilon]))
     >>> lf_kappa.setAlignment(aln)
-    >>> lf_kappa.optimise(local=True, show_progress = False)
+    >>> lf_kappa.optimise(local=True)
     >>> print lf_kappa
     Likelihood Function Table
     ==========

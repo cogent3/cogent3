@@ -49,7 +49,7 @@ Which in this case is to simply indicate nothing has been done.
 
 .. doctest::
 
-    >>> d.run(show_progress=False)
+    >>> d.run()
     >>> print d
     =====================================================================
     Seq1 \ Seq2     Human    HowlerMon     Mouse    NineBande    DogFaced

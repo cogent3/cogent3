@@ -144,7 +144,7 @@ class test_parameter_controller(unittest.TestCase):
         lf = model.makeLikelihoodFunction(tree)
         lf.setLocalClock('a','b')
         lf.setAlignment(al)
-        lf.optimise(local=True, show_progress=False)
+        lf.optimise(local=True)
         rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-10.1774488956)
         self.assertEqual(rd['length']['a'],rd['length']['b'])
@@ -153,7 +153,7 @@ class test_parameter_controller(unittest.TestCase):
         lf = self.model.makeLikelihoodFunction(self.tree)
         lf.setLocalClock('c','d')
         lf.setAlignment(self.al)
-        lf.optimise(local=True, show_progress=False, 
+        lf.optimise(local=True, 
                 tolerance=1e-8, max_restarts=2)
         rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-27.84254174)
@@ -176,7 +176,7 @@ class test_parameter_controller(unittest.TestCase):
                             treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
         #print self.pc
         lf.setAlignment(self.al)
-        lf.optimise(show_progress=False, local=True)
+        lf.optimise(local=True)
         rd = lf.getParamValueDict(['edge'], params=['kappa'])
         self.assertAlmostEquals(lf.getLogLikelihood(),-27.3252, 3)
         self.assertEqual(rd['kappa']['b'],rd['kappa']['d'])

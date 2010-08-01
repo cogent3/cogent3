@@ -19,7 +19,7 @@ We'll create a simple model, optimise it and save it for later reuse
     >>> sm = MG94HKY()
     >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=2)
     >>> lf.setAlignment(aln)
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
     ============
@@ -68,7 +68,7 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     >>> new_lf.setParamRule('omega', edge='Human',
     ...                     is_independent=True)
     >>> new_lf.setAlignment(aln)
-    >>> new_lf.optimise(local=True, show_progress=False)
+    >>> new_lf.optimise(local=True)
     >>> print new_lf
     Likelihood Function Table
     =====

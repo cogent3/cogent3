@@ -129,7 +129,7 @@ maximum:
 Now ask it to find the maximum.  It is a simple function with only one local
 maximum so local optimisation should be enough:
     
-    >>> f.optimise(local=True, show_progress=False)
+    >>> f.optimise(local=True)
     >>> pc.updateFromCalculator(f)
 
 There were two parameters, X and Y, and at the maximum they should both be 0.0:

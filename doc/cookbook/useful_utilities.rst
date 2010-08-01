@@ -35,7 +35,7 @@ We then optimise the function, obtaining the fit statistic and the associated es
 
 .. doctest::
     
-    >>> fit, vec = opt.run(show_progress=False)
+    >>> fit, vec = opt.run()
     >>> assert 0.0 <= fit < 1e-6
     >>> print 'S=%.4f' % vec[0]
     S=-3.6150

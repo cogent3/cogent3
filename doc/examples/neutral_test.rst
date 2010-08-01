@@ -40,7 +40,7 @@ By default, parameters other than branch lengths are treated as global in scope,
 
 .. doctest::
 
-    >>> lf.optimise(global_tolerance = 1.0, show_progress=False)
+    >>> lf.optimise(global_tolerance = 1.0)
 
 View the resulting maximum-likelihood parameter values
 
@@ -90,7 +90,7 @@ Optimise the likelihood function, this time just using the local optimiser.
 
 .. doctest::
 
-    >>> lf.optimise(local = True, show_progress=False)
+    >>> lf.optimise(local = True)
 
 View the resulting maximum-likelihood parameter values.
 

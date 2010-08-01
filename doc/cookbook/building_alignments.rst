@@ -42,7 +42,7 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
 
 .. doctest::
     
-    >>> aln, tree = TreeAlign(HKY85(), seqs, show_progress=False)
+    >>> aln, tree = TreeAlign(HKY85(), seqs)
     >>> aln
     5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
@@ -52,8 +52,7 @@ We then align using a guide tree (pre-estimated) and specifying the ratio of tra
     
     >>> tree = LoadTree(treestring='(((NineBande:0.0128202449453,Mouse:0.184732725695):0.0289459522137,DogFaced:0.0456427810916):0.0271363715538,Human:0.0341320714654,HowlerMon:0.0188456837006)root;')
     >>> params={'kappa': 4.0}
-    >>> aln, tree = TreeAlign(HKY85(), seqs, tree=tree, param_vals=params,
-    ...                      show_progress=False)
+    >>> aln, tree = TreeAlign(HKY85(), seqs, tree=tree, param_vals=params)
     >>> aln
     5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
@@ -67,7 +66,7 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
     >>> from cogent.evolve.models import MG94HKY
     >>> tree = LoadTree(treestring='((NineBande:0.0575781680031,Mouse:0.594704139406):0.078919659556,DogFaced:0.142151930069,(HowlerMon:0.0619991555435,Human:0.10343006422):0.0792423439112)')
     >>> params={'kappa': 4.0, 'omega': 1.3}
-    >>> aln, tree = TreeAlign(MG94HKY(), seqs, tree=tree, param_vals=params, show_progress=False)
+    >>> aln, tree = TreeAlign(MG94HKY(), seqs, tree=tree, param_vals=params)
     >>> aln
     5 x 60 text alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 

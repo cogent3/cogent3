@@ -46,7 +46,7 @@ Optimise the function capturing the return optimised lnL, and parameter value ve
 
 .. doctest::
 
-    >>> lf.optimise(show_progress = False)
+    >>> lf.optimise()
 
 View the resulting maximum-likelihood parameter values.
 
@@ -97,7 +97,7 @@ Run the optimiser capturing the return optimised lnL, and parameter value vector
 
 .. doctest::
 
-    >>> lf.optimise(show_progress=False)
+    >>> lf.optimise()
 
 View the resulting maximum-likelihood parameter values.
 

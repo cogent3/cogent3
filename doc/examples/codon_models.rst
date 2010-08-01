@@ -68,8 +68,7 @@ We then provide an alignment and optimise the model. In the current case we just
 
 .. doctest::
     
-    >>> optimiser_args = dict(local=True, max_restarts=5,
-    ...                     show_progress=False, tolerance=1e-8)
+    >>> optimiser_args = dict(local=True, max_restarts=5, tolerance=1e-8)
     >>> lf.setAlignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> print lf

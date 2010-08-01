@@ -375,7 +375,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 # class DiscreteGeneral(TestCase):
 #     """test discrete and general markov"""
 #     tree = LoadTree(treestring='(a:0.4,b:0.4,c:0.6)')
-#     opt_args = dict(max_restarts=1, local=True, show_progress=False)
+#     opt_args = dict(max_restarts=1, local=True)
 #     make_cached = MakeCachedObjects(Nucleotide(), tree, 100000, opt_args)
 #     
 #     def _setup_discrete_from_general(self, gen_lf):

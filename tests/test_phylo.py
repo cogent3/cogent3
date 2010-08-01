@@ -213,7 +213,7 @@ class DistancesTests(unittest.TestCase):
         """tests modifying the lf"""
         def constrain_fit(lf):
             lf.setParamRule('kappa', is_const=True)
-            lf.optimise(local=True, show_progress=False)
+            lf.optimise(local=True)
             return lf
         
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)

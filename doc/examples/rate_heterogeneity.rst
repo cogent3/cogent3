@@ -33,7 +33,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
     ...                    distribution="free")
     >>> lf = model.makeLikelihoodFunction(tree, bins=2, digits=2, space=3)
     >>> lf.setAlignment(aln3)
-    >>> lf.optimise(local=True, max_restarts=2, show_progress = False)
+    >>> lf.optimise(local=True, max_restarts=2)
 
 We want to know the bin probabilities and the posterior probabilities.
 
@@ -62,4 +62,4 @@ We'll now use a gamma distribution on the sample alignment, specifying the numbe
     >>> lf = model.makeLikelihoodFunction(tree, bins=4)
     >>> lf.setParamRule('bprobs', is_const=True)
     >>> lf.setAlignment(aln3)
-    >>> lf.optimise(local=True, max_restarts=2, show_progress = False)
+    >>> lf.optimise(local=True, max_restarts=2)

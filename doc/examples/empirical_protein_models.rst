@@ -51,7 +51,7 @@ Make a parameter controller, likelihood function object and optimise.
 
     >>> lf = sm.makeLikelihoodFunction(t)
     >>> lf.setAlignment(al)
-    >>> lf.optimise(show_progress = False)
+    >>> lf.optimise()
     >>> print lf.getLogLikelihood()
     -1706...
     >>> print lf

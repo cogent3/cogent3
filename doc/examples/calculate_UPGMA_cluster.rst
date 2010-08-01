@@ -30,7 +30,7 @@ Create a pairwise distances object calculator for the alignment, providing a sub
 .. doctest::
 
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
-    >>> d.run(show_progress=False)
+    >>> d.run()
 
 Now use this matrix to build a UPGMA cluster.
 
