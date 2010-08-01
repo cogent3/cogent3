@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+from __future__ import with_statement
 from cogent import LoadTree
 from cogent.phylo import nj as NJ
 from cogent.phylo.distance import EstimateDistances
 from cogent.core.info import Info
+from cogent.util import progress_display as UI
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -14,8 +16,9 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+@UI.display_wrap
 def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
-    show_progress = True, ests_from_pairwise=True, param_vals=None):
+    ui = None, ests_from_pairwise=True, param_vals=None):
     """Returns a multiple alignment and tree.
     
     Uses the provided substitution model and a tree for determining the
@@ -58,8 +61,6 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         tree = LoadTree(tip_names=seqs.getSeqNames())
         ests_from_pairwise = False
     else:
-        if show_progress:
-            print "\nEstimating pairwise distances to build NJ tree"
         if ests_from_pairwise:
             est_params = [param for param in model.getParamList() \
                                     if param not in _exclude_params]
@@ -67,7 +68,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
             est_params = None
         dcalc = EstimateDistances(seqs, model, do_pair_align=True,
                                     est_params=est_params)
-        dcalc.run(show_progress=show_progress)
+        dcalc.run()
         dists = dcalc.getPairwiseDistances()
         tree = NJ.nj(dists)
     
@@ -77,22 +78,17 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         param_vals = {}
         for param in est_params:
             numbers = dcalc.getParamValues(param)
-            if show_progress:
-                print "\nParam Estimate Summary Stats: %s" % param
-                print numbers.summarize()
+            print "Param Estimate Summary Stats: %s" % param
+            print numbers.summarize()
             param_vals[param] = numbers.Median
     
-    for param, val in param_vals.items():
-        LF.setParamRule(param, value=val, is_const=True)
-    
-    if show_progress:
-        msg = "\nDoing %s alignment" % ["progressive", "pairwise"][two_seqs]
-        print msg
-    
-    LF.setParamRule('indel_rate', value=indel_rate, is_const=True)
-    LF.setParamRule('indel_length', value=indel_length, is_const=True)
-    
-    LF.setSequences(seqs)
+    ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
+    with LF.updatesPostponed():
+        for param, val in param_vals.items():
+            LF.setParamRule(param, value=val, is_const=True)
+        LF.setParamRule('indel_rate', value=indel_rate, is_const=True)
+        LF.setParamRule('indel_length', value=indel_length, is_const=True)
+        LF.setSequences(seqs)
     edge = LF.getLogLikelihood().edge
     (vtLnL, align) = edge.getViterbiScoreAndAlignment(0.5)
     info = Info()

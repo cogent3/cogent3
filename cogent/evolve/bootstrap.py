@@ -24,6 +24,7 @@ the EstimateProbability class.
 from __future__ import with_statement, division
 from cogent.util import parallel
 from cogent.maths import optimisers
+from cogent.util import progress_display as UI
 
 import random
 
@@ -52,24 +53,41 @@ class ParametricBootstrapCore(object):
     def setSeed(self, seed):
         self.seed = seed
     
-    def run(self, show_progress=False, **opt_args):
+    @UI.display_wrap
+    def run(self, ui, **opt_args):
         # Sets self.observed and self.results (a list _numreplicates long) to
         # whatever is returned from self.simplify([LF result from each PC]).
         # self.simplify() is used as the entire LF result might not be picklable
         # for MPI. Subclass must provide self.alignment and
         # self.parameter_controllers
-        opt_args['show_progress'] = opt_args.get('show_progress', show_progress)
-        
         if 'random_series' not in opt_args and not opt_args.get('local', None):
             opt_args['random_series'] = random.Random()
-                
+        
         null_pc = self.parameter_controllers[0]
-        starting_points = []
-        for pc in self.parameter_controllers:
-            pc.setAlignment(self.alignment)
-            lf = pc.optimise(return_calculator=True, **opt_args)
-            starting_points.append(lf)
-        self.observed = self.simplify(*self.parameter_controllers)
+        pcs = len(self.parameter_controllers)
+        if pcs == 1:
+            model_label = ['']
+        elif pcs == 2:
+            model_label = ['null', 'alt ']
+        else:
+            model_label = ['null'] + ['alt%s'%i for i in range(1,pcs)]
+        
+        @UI.display_wrap
+        def each_model(alignment, ui):
+            def one_model(pc):
+                pc.setAlignment(alignment)
+                return pc.optimise(return_calculator=True, **opt_args)
+            memos = ui.eager_map(one_model, self.parameter_controllers, 
+                    labels=model_label)
+            concise_result = self.simplify(*self.parameter_controllers)
+            return (memos, concise_result)
+        
+        #optimisations = pcs * (self._numreplicates + 1)
+        init_work = pcs / (self._numreplicates + pcs)
+        ui.display('Original data', 0.0, init_work)
+        (starting_points, self.observed) = each_model(self.alignment)
+        
+        ui.display('Randomness', init_work, 0.0)
         alignment_random_state = random.Random(self.seed).getstate()
         if self.seed is None:
             comm  = parallel.getCommunicator()
@@ -83,13 +101,13 @@ class ParametricBootstrapCore(object):
             aln_rnd.setstate(alignment_random_state)
             aln_rnd.jumpahead(i*10**9)
             simalign = null_pc.simulateAlignment(random_series=aln_rnd)
+            (dummy, result) = each_model(simalign)
+            return result
         
-            for pc in self.parameter_controllers:
-                pc.setAlignment(simalign)
-                pc.optimise(**opt_args)
-            return self.simplify(*self.parameter_controllers)
-        
-        self.results = parallel.map(one_replicate, range(self._numreplicates))
+        ui.display('Bootstrap', init_work)
+        self.results = ui.eager_map(
+                one_replicate, range(self._numreplicates), noun='replicate',
+                start=init_work)
 
 
 class EstimateProbability(ParametricBootstrapCore):

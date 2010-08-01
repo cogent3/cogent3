@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 optimiser.py
 
@@ -6,11 +7,11 @@ Contains a base class for numerical optimisers.
 """
 
 import numpy
-Float = numpy.core.numerictypes.sctype2char(float)
 import random
 import warnings
 
-from cogent.util.checkpointing import Checkpointer
+from cogent.util import checkpointing, progress_display as UI
+
 
 __author__ = "Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -26,6 +27,16 @@ class ParameterOutOfBoundsError(Exception):
     pass
 
 epsilon = 1e-9 # intended for dealing with rounding errors
+
+def unsteadyProgressIndicator(display_progress, 
+        template='f = % #10.6g  ±  % 9.3e   evals = %6i'):
+    goal = [1.0e-20]
+    def _display_progress(remaining, *args):
+        if remaining > goal[0]:
+            goal[0] = remaining
+        progress = (goal[0]-remaining)/goal[0]
+        return display_progress(template % args, progress=progress, current=0)
+    return _display_progress
 
 # The following functions are used to wrap the optimised function to
 # adapt it to the optimiser in various ways.  They can be combined.
@@ -100,7 +111,7 @@ class OptimiserBase(object):
         self.setConditions(**kw)
         self.setVectorBounds(*bounds)
         self.vector_length = len(xinit)   #risks irrelevance
-        self.vector = numpy.array(xinit, Float)
+        self.vector = numpy.array(xinit, float)
         self.__original_f = f
     
     def setCheckpointing(self, filename=None, interval=None, restore=None):
@@ -113,7 +124,7 @@ class OptimiserBase(object):
         - restore: flag to restore from this filename or not. will be set to 0 after
           restoration
         """
-        self.checkpointer = Checkpointer(filename, interval)
+        self.checkpointer = checkpointing.Checkpointer(filename, interval)
         if restore is not None:
             self.restore = restore
     
@@ -129,18 +140,13 @@ class OptimiserBase(object):
         
         return self.__total_evaluations
     
-    def run(self, show_progress = True):
+    @UI.display_wrap
+    def run(self, ui):
         """
-        In principle this would call the virtually overriden function, ie be the
-        public interface to the protected overridable.
-        
-        Arguments:
-        - show_progress: whether the function values are printed as
-          the optimisation proceeds. Default is True.
-        
         Returns the optimised function value and the corresponding parameter
         vector.
         """
+        show_remaining = unsteadyProgressIndicator(ui.display)
         
         f = self.__original_f
         vector = self.vector
@@ -161,7 +167,7 @@ class OptimiserBase(object):
         f = bounds_exception_catching_function(f, self.algorithm_direction)
         
         (fval, xopt, func_calls, elapsed_time) = self.runInner(f, vector,
-                show_progress=show_progress, random_series = self._random_series)
+                show_remaining=show_remaining, random_series = self._random_series)
         
         # ensure state of calculator reflects optimised result
         f(xopt)

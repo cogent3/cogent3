@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import numpy
+
+from __future__ import division
+import numpy, time, math
 from cogent.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
-from optimiser import OptimiserBase
-import time
+from cogent.maths.optimiser import OptimiserBase
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -51,6 +52,7 @@ class _SciPyOptimiser(OptimiserBase):
     
     Since these are local optimisers, we sometimes restart them to
     check the result is stable.  Cost is less than 2-fold slowdown"""
+    label = "local"
     
     default_max_restarts = 0
     # These are minimisers
@@ -67,8 +69,8 @@ class _SciPyOptimiser(OptimiserBase):
         if tolerance is not None:
             self.ftol = tolerance
         self.max_evaluations = max_evaluations
-    
-    def runInner(self, function, xopt, show_progress, random_series=None):
+
+    def runInner(self, function, xopt, show_remaining, random_series=None):
         # random_series isn't used - these optimisers are deterministic -
         # but optimiser_base doesn't know that.
         fval_last = fval = numpy.inf
@@ -77,15 +79,15 @@ class _SciPyOptimiser(OptimiserBase):
         if len(xopt) == 0:
             return function(xopt), xopt, 1, time.time() - t0
         template = "\tNumber of function evaluations = %d; current F = %f"
-        if show_progress:
+        if show_remaining:
             def _callback(fcalls, x, fval, delta):
-                print template % (fcalls, fval)
-            _callback(1, xopt, function(xopt), None)
+                remaining = math.log(max(abs(delta)/self.ftol, 1.0))
+                show_remaining(remaining, -fval, delta, fcalls)
         else:
             _callback = None
         for i in range((self.max_restarts + 1)):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
-                    function, xopt, disp=show_progress, callback=_callback, 
+                    function, xopt, disp=False, callback=_callback, 
                     ftol=self.ftol, full_output=True,
                     maxfun=self.max_evaluations)
             xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param

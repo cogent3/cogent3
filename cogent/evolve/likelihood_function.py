@@ -43,8 +43,6 @@ class LikelihoodFunction(ParameterController):
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
     
     def getFullLengthLikelihoods(self, locus=None):
-        # XXX These will not really be full length if MPI is
-        # being used!
         if self.bin_names and len(self.bin_names) > 1:
             root_lh = self.getParamValue('bindex', locus=locus)
             root_lhs = [self.getParamValue('lh', locus=locus, bin=bin) for

@@ -621,7 +621,7 @@ class PairEmissionProbs(object):
     def __getitem__(self, index):
         assert len(index) == 2, index
         return PairEmissionProbs(self.pair[index], self.bins)
-                
+    
     def hirschberg(self, TM, dp_options):
         """linear-space alignment algorithm
         A linear space algorithm for computing maximal common subsequences.

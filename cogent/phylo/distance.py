@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Estimating pairwise distances between sequences.
 """
-from cogent.util import parallel, table, warning
+from cogent.util import parallel, table, warning, progress_display as UI
 from cogent.maths.stats.util import Numbers
 from cogent import LoadSeqs, LoadTree
 
@@ -97,10 +97,7 @@ class EstimateDistances(object):
                     comps.append((names[i], names[j], names[k]))
         return comps
     
-    def __make_pair_alignment(self, seqs, show_progress, opt_kwargs):
-        if show_progress:
-            print "\tPairwise aligning: %s" % \
-                        " <-> ".join(seqs.NamedSeqs.keys())
+    def __make_pair_alignment(self, seqs, opt_kwargs):
         lf = self.__sm.makeLikelihoodFunction(\
                     LoadTree(tip_names=seqs.getSeqNames()),
                     aligned=False)
@@ -116,15 +113,18 @@ class EstimateDistances(object):
         (vtLnL, aln) = lnL.edge.getViterbiScoreAndAlignment()
         return aln
     
-    def __doset(self, sequence_names, show_progress, dist_opt_args,
-                    aln_opt_args):
+    @UI.display_wrap
+    def __doset(self, sequence_names, dist_opt_args, aln_opt_args, ui):
         # slice the alignment
         seqs = self.__seq_collection.takeSeqs(sequence_names)
         if self._do_pair_align:
-            align = self.__make_pair_alignment(seqs, show_progress,
-                                                aln_opt_args)
+            ui.display('Aligning', progress=0.0, current=.5)
+            align = self.__make_pair_alignment(seqs, aln_opt_args)
+            ui.display('', progress=.5, current=.5)
+            
         else:
             align = seqs
+            ui.display('', progress=0.0, current=1.0)
         # note that we may want to consider removing the redundant gaps
         
         # create the tree object
@@ -144,31 +144,26 @@ class EstimateDistances(object):
         if self._modify_lf:
             lf = self._modify_lf(lf)
         
-        if dist_opt_args['show_progress']:
-            print "\tEstimating distance:"
         lf.optimise(**dist_opt_args)
-        
-        if dist_opt_args['show_progress']:
-            print lf
-        
+                
         # get the statistics
         stats_dict = lf.getParamValueDict(['edge'], 
                 params=['length'] + self.__est_params)
         
         # if two-way, grab first distance only
         if not self.__threeway:
-            self.__param_ests[sequence_names] = \
-                {'length': stats_dict['length'].values()[0] * 2.0}
+            result = {'length': stats_dict['length'].values()[0] * 2.0}
         else:
-            self.__param_ests[sequence_names] = {'length': stats_dict['length']}
+            result = {'length': stats_dict['length']}
         
         # include any other params requested
         for param in self.__est_params:
-            self.__param_ests[sequence_names][param] = \
-                        stats_dict[param].values()[0]
+            result[param] = stats_dict[param].values()[0]
+            
+        return result
     
-    def run(self, show_progress = False, dist_opt_args=None, aln_opt_args=None,
-            progress_interval = 1, **kwargs):
+    @UI.display_wrap
+    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs):
         """Start estimating the distances between sequences. Distance estimation
         is done using the Powell local optimiser. This can be changed using the
         dist_opt_args and aln_opt_args.
@@ -178,35 +173,34 @@ class EstimateDistances(object):
               information from individual optimisation is controlled by the
               ..opt_args.
             - dist_opt_args, aln_opt_args: arguments for the optimise method for
-              the distance estimation and alignment estimation respectively.
-            - progress_interval: progress reported every # pairs done"""
+              the distance estimation and alignment estimation respectively."""
         
         if 'local' in kwargs:
               warn("local argument ignored, provide it to dist_opt_args or"\
               " aln_opt_args", DeprecationWarning, stacklevel=2)
         
+        ui.display("Distances")
         dist_opt_args = dist_opt_args or {}
         aln_opt_args = aln_opt_args or {}
-        # set the optimiser and progress defaults
-        dist_opt_args['show_progress'] = dist_opt_args.get('show_progress',
-                                            False)
-        aln_opt_args['show_progress'] = aln_opt_args.get('show_progress', False)
+        # set the optimiser defaults
         dist_opt_args['local'] = dist_opt_args.get('local', True)
         aln_opt_args['local'] = aln_opt_args.get('local', True)
         # generate the list of unique sequence sets (pairs or triples) to be
         # analysed
         if self.__threeway:
             combination_aligns = self.__make_threeway_comparison_sets()
+            desc = "triplet "
         else:
             combination_aligns = self.__make_pairwise_comparison_sets()
+            desc = "pair "
+        labels = [desc + ','.join(names) for names in combination_aligns]
                             
         def _one_alignment(comp):
-            self.__doset(comp, show_progress, dist_opt_args,
-                        aln_opt_args)
-            return (comp, self.__param_ests[comp])
-            
-        for (comp, value) in parallel.map(_one_alignment, combination_aligns,
-                show_progress=show_progress):
+            result = self.__doset(comp, dist_opt_args, aln_opt_args)
+            return (comp, result)
+        
+        for (comp, value) in ui.imap(_one_alignment, combination_aligns,
+                labels=labels):
             self.__param_ests[comp] = value
     
     def getPairwiseParam(self, param, summary_function="mean"):
@@ -320,12 +314,8 @@ class EstimateDistances(object):
             - format: output format of distance matrix
         """
         
-        if not self._on_master_cpu:
-            return None # we only write output from 0th node
-        
-        table = self.getTable(summary_function=summary_function, **kwargs)
-        
-        table.writeToFile(filename, format=format)
-        
-        return
+        if self._on_master_cpu:
+             # only write output from 0th node
+             table = self.getTable(summary_function=summary_function, **kwargs)
+             table.writeToFile(filename, format=format)
     
