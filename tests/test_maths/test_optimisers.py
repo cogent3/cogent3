@@ -57,14 +57,14 @@ class OptimiserTestCase(unittest.TestCase):
         
     def test_simanneal_limited(self):
         self._test_optimisation(SimulatedAnnealing,
-                {'max_evaluations': 50}, {'show_progress':True}, 0.5)
+                {'max_evaluations': 50}, {}, 0.5)
 
     def test_powell(self):
         self._test_optimisation(Powell, {}, {}, 0.0001)
 
     def test_powell_limited(self):
         self._test_optimisation(Powell,
-                {'max_evaluations': 10}, {'show_progress':True}, 0.1)
+                {'max_evaluations': 10}, {}, 0.1)
                 
     def test_checkpointing(self):
         (f,x,b) = easilyOptimised(1)
