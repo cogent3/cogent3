@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
 from cogent.maths.stats.special import lgam
-from cogent.maths.scipy_optimize import brent
 from cogent.maths.optimisers import Powell
 from math import ceil, e
 from numpy import array, zeros, concatenate, arange, log, sqrt, exp, asarray
@@ -157,7 +156,7 @@ def fisher_alpha(counts, bounds=(1e-3,1e12)):
              xinit=[1.0], # the vector of initial values
              bounds=([bounds[0]], [bounds[1]]), # [(lower),(upper)] bounds for the params
              direction=-1) # -1 is minimise func, 1 is maximise
-    fit, vec = opt.run(show_progress=False)
+    fit, vec = opt.run()
     if fit > 1.0:
         raise RuntimeError("optimizer failed to converge (error > 1.0)," +\
             " so no fisher alpha returned")

@@ -3,11 +3,10 @@ from __future__ import division, with_statement
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 import time, warnings
-import cogent.maths.optimisers
+from cogent.maths.optimisers import optimise
 from cogent.maths.solve import find_root
 from cogent.util import parallel
 from cogent.maths.optimiser import ParameterOutOfBoundsError
-import cogent.util.progress_display as UI
 
 
 import os
@@ -306,49 +305,19 @@ class Calculator(object):
             time.sleep(5)
             os.remove(fn)
     
-    def getOptimiser(self, local=False, optimiser_class=None, **kw):
-        if optimiser_class is None:
-            if local:
-                optimiser_class = cogent.maths.optimisers.Powell
-            else:
-                optimiser_class = cogent.maths.optimisers.SimulatedAnnealing
-        bounds = self.getBoundsVectors()
-        x = self.getValueArray()
-        return optimiser_class(self, x, bounds, **kw)
-    
-    @UI.display_wrap
     def optimise(self, local=None, filename=None, interval=None,
-            max_restarts=None, max_evaluations=None,
-            tolerance=1e-6, global_tolerance=1e-1, ui=None, **kw):
+            max_evaluations=None, tolerance=1e-6, global_tolerance=1e-1, **kw):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run
         both the global and local optimisers. 'filename' and 'interval'
         control checkpointing.  Unknown keyword arguments get passed on to
         the optimiser(s)."""
-        do_global = (not local) or local is None
-        do_local = local or local is None
-        per_opt = 1.0/int(do_global+do_local)
-        
-        # Global optimisation
-        if do_global:
-            ui.display('global opt', 0.0, per_opt)
-            gtol = [tolerance, global_tolerance][do_local]
-            opt = self.getOptimiser(False, tolerance=gtol,
-                    max_evaluations=max_evaluations, **kw)
-            opt.setCheckpointing(filename=filename, interval=interval)
-            opt.run()
-        else:
-            for k in kw:
-                warnings.warn('Unused arg for local alignment: ' + k)
-    
-        # Local optimisation
-
-        if do_local:
-            ui.display('local opt', 1.0-per_opt, per_opt)
-            opt = self.getOptimiser(True, tolerance=tolerance,
-                max_restarts=max_restarts, max_evaluations=max_evaluations)
-            opt.run()
-       
+        for n in ['local', 'filename', 'interval', 'max_evaluations', 
+                'tolerance', 'global_tolerance']:
+            kw[n] = locals()[n]
+        x = self.getValueArray()
+        bounds = self.getBoundsVectors()
+        optimise(self, x, bounds, **kw)
         self.optimised = True
     
     def setTracing(self, trace=False):

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 optimiser.py
 
@@ -10,7 +9,7 @@ import numpy
 import random
 import warnings
 
-from cogent.util import checkpointing, progress_display as UI
+from cogent.util import checkpointing
 
 
 __author__ = "Andrew Butterfield"
@@ -28,16 +27,9 @@ class ParameterOutOfBoundsError(Exception):
 
 epsilon = 1e-9 # intended for dealing with rounding errors
 
-def unsteadyProgressIndicator(display_progress, 
-        template='f = % #10.6g  ±  % 9.3e   evals = %6i'):
-    goal = [1.0e-20]
-    def _display_progress(remaining, *args):
-        if remaining > goal[0]:
-            goal[0] = remaining
-        progress = (goal[0]-remaining)/goal[0]
-        return display_progress(template % args, progress=progress, current=0)
-    return _display_progress
-
+def noop(*args, **kw):
+    pass
+    
 # The following functions are used to wrap the optimised function to
 # adapt it to the optimiser in various ways.  They can be combined.
 
@@ -140,13 +132,13 @@ class OptimiserBase(object):
         
         return self.__total_evaluations
     
-    @UI.display_wrap
-    def run(self, ui):
+    def run(self, show_remaining=None):
         """
         Returns the optimised function value and the corresponding parameter
         vector.
         """
-        show_remaining = unsteadyProgressIndicator(ui.display)
+        if show_remaining is None:
+            show_remaining = noop
         
         f = self.__original_f
         vector = self.vector
