@@ -15,7 +15,7 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     >>> from cogent.evolve.models import HKY85
     >>> al = LoadSeqs("data/long_testseqs.fasta")
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
-    >>> d.run(show_progress=False)
+    >>> d.run()
     >>> import cPickle
     >>> f = open('dists_for_phylo.pickle', "w")
     >>> cPickle.dump(d.getPairwiseDistances(), f)
@@ -51,7 +51,7 @@ In this use case we are after just 1 tree. We specify up to what taxa size all p
 
 .. doctest::
     
-    >>> score, tree = ls.trex(a = 5, k = 1, show_progress = True)
+    >>> score, tree = ls.trex(a = 5, k = 1)
     3 trees of size 4 at start
     15 trees of size 5 ... done
     >>> assert score < 1e-4
@@ -65,7 +65,7 @@ We change the asaa settings, so we keep more trees and then look at the distribu
 
 .. doctest::
 
-    >>> trees = ls.trex(a = 5, k = 5, show_progress = True, return_all = True)
+    >>> trees = ls.trex(a = 5, k = 5, return_all = True)
     3 trees of size 4 at start
     15 trees of size 5 ... done
 

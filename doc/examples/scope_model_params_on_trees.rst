@@ -192,7 +192,7 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_const=True)
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
     =====
@@ -230,7 +230,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
     
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_const=False)
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
     =====
@@ -268,7 +268,7 @@ Finally I'll allow all primate edges to have different values of ``omega``.
     
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
     =====
@@ -305,7 +305,7 @@ We now allow ``omega`` to be different on all edges.
 .. doctest::
     
     >>> lf.setParamRule('omega', is_independent=True)
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
     =====

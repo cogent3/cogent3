@@ -113,7 +113,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         else:
             tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent.align.progressive.TreeAlign(model, seqs,
-                tree=tree, show_progress=False, param_vals=param_vals, **kw)
+                tree=tree, param_vals=param_vals, **kw)
         return aln
     
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):

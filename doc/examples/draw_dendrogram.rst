@@ -24,7 +24,7 @@ Do a model, see the neutral test example for more details of this
     >>> nonneutral_lf = sm.makeLikelihoodFunction(t)
     >>> nonneutral_lf.setParamRule("omega", is_independent = True)
     >>> nonneutral_lf.setAlignment(aln)
-    >>> nonneutral_lf.optimise(show_progress=False)
+    >>> nonneutral_lf.optimise()
 
 We will draw two different dendrograms -- one with branch lengths contemporaneous, the other where length is scaled.
 

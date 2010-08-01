@@ -1027,7 +1027,7 @@ def get_ancestral_seqs(aln, tree, sm = None, pseudocount=1e-6, optimise=True):
     lf = sm.makeLikelihoodFunction(tree,sm.motif_probs)
     lf.setAlignment(aln, motif_pseudocount=pseudocount)
     if optimise:
-        lf.optimise(local=True, show_progress=False)
+        lf.optimise(local=True)
     return DenseAlignment(lf.likelyAncestralSeqs(),MolType=aln.MolType)
     
 

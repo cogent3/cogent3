@@ -42,7 +42,7 @@ Optimise with the local optimiser
 
 .. doctest::
 
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
 
 Next use the whole alignment
 
@@ -54,7 +54,7 @@ and the faster Powell optimiser that will only find the best result near the pro
 
 .. doctest::
     
-    >>> lf.optimise(local=True, show_progress=False)
+    >>> lf.optimise(local=True)
 
 .. doctest::
     
