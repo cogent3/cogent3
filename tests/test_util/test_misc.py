@@ -41,7 +41,8 @@ class UtilsTests(TestCase):
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
         exp = 'd5cff1e08a8ed0c96a327dd2ca1530cc'
-        self.assertEqual(safe_md5(open('test_util/__init__.py')),exp)
+        obs = safe_md5(open('test_util/__init__.py'))
+        self.assertEqual(obs.hexdigest(),exp)
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
