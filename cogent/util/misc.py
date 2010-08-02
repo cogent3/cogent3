@@ -39,7 +39,7 @@ def safe_md5(open_file, block_size=2**20):
         data = open_file.read(block_size)
         if data:
             md5.update(data)
-    return md5.hexdigest()
+    return md5
 
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
