@@ -1,6 +1,7 @@
 # Copyright: 2008 Nadia Alramli
 # License: BSD
 
+import sys
 try:
     import curses
 except ImportError:
@@ -22,11 +23,11 @@ class TerminalUnavailableError(RuntimeError):
     
 class CursesOutput(object):
     def __init__(self):
-        if curses is None:
+        if curses is None or not hasattr(sys.stdout, 'fileno'):
             raise TerminalUnavailableError("No curses modules")
         try:
             curses.setupterm()
-        except TypeError, detail:
+        except curses.error, detail:
             raise TerminalUnavailableError(detail)
     
     def getColumns(self):
