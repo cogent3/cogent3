@@ -17,7 +17,7 @@ import warnings
 
 from cogent.align.pairwise import AlignableSeq
 
-__author__ = "Andrew Butterfield"
+__author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                     "Helen Lindsay"]

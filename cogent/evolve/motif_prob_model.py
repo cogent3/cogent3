@@ -5,9 +5,9 @@ import warnings
 import substitution_calculation
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 
-__author__ = "Gavin Huttley and Andrew Butterfield"
+__author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Gavin Huttley"

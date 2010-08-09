@@ -15,7 +15,7 @@ import time
 from collections import deque
 
 
-__author__ = "Andrew Butterfield"
+__author__ = "Andrew Butterfield and Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell"]
 __license__ = "GPL"

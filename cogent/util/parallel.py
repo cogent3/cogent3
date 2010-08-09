@@ -4,7 +4,7 @@ import os
 from contextlib import contextmanager
 
 
-__author__ = "Andrew Butterfield"
+__author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                 "Matthew Wakefield", "Edward Lang"]
