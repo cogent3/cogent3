@@ -8,7 +8,7 @@ cdef extern from "Python.h":
 cdef extern from "math.h":
     double log (double x)
 
-version_info = (3, 0)
+version_info = (3, 1)
 __version__ = "('1', '5', '0', 'dev')"
 
 cdef double SCALE_STEP, MIN_FLOAT_VALUE
@@ -346,7 +346,7 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 if local and dx and dy:
                     if (use_scaling and max_exponent > overall_max_exponent) or (
                             (not use_scaling or max_exponent == overall_max_exponent) and (
-                            mantissa >= overall_max_mantissa)):
+                            mantissa > overall_max_mantissa)):
                         overall_max_exponent = max_exponent
                         overall_max_mantissa = mantissa
                         last_i = i
