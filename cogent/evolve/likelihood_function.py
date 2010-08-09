@@ -8,7 +8,7 @@ from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
 
-__author__ = "Gavin Huttley"
+__author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Rob Knight", "Brett Easton"]

@@ -25,6 +25,12 @@ import sys, time, contextlib, functools, warnings
 import os, atexit
 from cogent.util import parallel, terminal
 
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2009, The Cogent Project"
+__credits__ = ["Peter Maxwell"]
+__license__ = "GPL"
+__version__ = "1.5.0.dev"
+
 try:
     curses_terminal = terminal.CursesOutput()
 except terminal.TerminalUnavailableError:

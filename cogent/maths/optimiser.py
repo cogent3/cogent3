@@ -12,7 +12,7 @@ import warnings
 from cogent.util import checkpointing
 
 
-__author__ = "Andrew Butterfield"
+__author__ = "Andrew Butterfield and Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Edward Lang",
                     "Gavin Huttley"]

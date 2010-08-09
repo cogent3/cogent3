@@ -18,7 +18,7 @@ from cogent.util import progress_display as UI
 from collections import deque
 
 
-__author__ = "Gavin Huttley"
+__author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
