@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tests Numbers and Freqs objects, and their Unsafe versions.
 """
-
 from math import sqrt
+import numpy
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.stats.util import SummaryStatistics, SummaryStatisticsError,\
         Numbers, UnsafeNumbers, Freqs, UnsafeFreqs, NumberFreqs, \
@@ -1810,7 +1810,25 @@ class NumberFreqsTestsI(object):
         self.assertFloatEqual(self.NumericDuplicated.StandardDeviation,1.108678)
         self.assertFloatEqual(self.PosNeg.StandardDeviation, 1.825742)
         self.assertFloatEqual(self.Constant.StandardDeviation, 0.0)
-
+    
+    def test_NumberFreqsQuantiles(self):
+        """quantiles should match Numbers, including Median"""
+        data={32: 60L, 33: 211L, 34: 141L, 35: 70L,
+             36: 26L, 10: 30L, 11: 5L, 18: 43L, 19: 10L,
+             21: 1L, 22: 1L, 23: 58L, 24: 12L, 25: 3L,
+             26: 74L, 27: 10L, 28: 77L, 29: 20L, 30: 102L,
+             31: 47L}
+        
+        nums = Numbers(NumberFreqs(data=data).expand())
+        number_freqs = self.ClassToTest()
+        number_freqs.update(data)
+        for quantile in numpy.arange(0.05, 0.96, 0.05):
+            num_q = nums.quantile(quantile)
+            num_f = number_freqs.quantile(quantile)
+            self.assertFloatEqual(num_f, num_q)
+        
+        self.assertFloatEqual(number_freqs.Median, nums.Median)
+    
     def test_normalize(self):
         """NumberFreqs should allow normalization on any type"""
         self.Empty.normalize()

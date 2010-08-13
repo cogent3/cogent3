@@ -108,7 +108,7 @@ from __future__ import division
 from cogent.util.misc import FunctionWrapper, MappedList, MappedDict, \
     ConstraintError
 from cogent.util.table import Table
-from numpy import sqrt, log2, e, floor, ceil
+from numpy import array, sqrt, log2, e, floor, ceil
 from random import choice, random
 from operator import gt, ge, lt, le, add, sub
 
@@ -478,6 +478,7 @@ class NumbersI(object):
     def _get_median(self):
         """Returns the median"""
         return self.quantile(0.5)
+    
     Median = property(_get_median)
     
     def summarize(self):
@@ -1216,6 +1217,36 @@ class NumberFreqsI(FreqsI):
         return f.Uncertainty
         
     Uncertainty = property(_get_uncertainty)
+    
+    def quantile(self, quantile):
+        """Returns the specified quantile.
+        
+        Uses method type 7 from R."""
+        def value_at_expanded_index(values, counts, index):
+            cumsum = counts.cumsum()
+            for i in range(cumsum.shape[0]):
+                if cumsum[i] > index:
+                    return values[i]
+            
+        vals = sorted(self.keys())
+        counts = array([self[val] for val in vals])
+        index = quantile * (counts.sum()-1)
+        lo = int(floor(index))
+        hi = int(ceil(index))
+        diff = index - lo
+        lo_val = value_at_expanded_index(vals, counts, lo)
+        if diff != 0:
+            hi_val = value_at_expanded_index(vals, counts, hi)
+        else:
+            hi_val = 0
+        stat = (1-diff) * lo_val + diff * hi_val
+        return stat
+    
+    def _get_median(self):
+        """returns the median"""
+        return self.quantile(0.5)
+    
+    Median = property(_get_median)
 
 
 class UnsafeNumberFreqs(NumberFreqsI, dict):
