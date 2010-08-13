@@ -395,7 +395,17 @@ class NumbersTestsI(object):
         self.assertEqual(self.empty.Mean, None)
         self.assertEqual(self.zero.Mean, 0)
         self.assertEqual(self.ints.Mean, 3)
-
+    
+    def test_NumberQuantiles(self):
+        """quantiles should be correct"""
+        num = Numbers(range(1,11))
+        self.assertFloatEqual(num.quantile(.1), 1.9)
+        self.assertFloatEqual(num.quantile(.2), 2.8)
+        self.assertFloatEqual(num.quantile(.25), 3.25)
+        self.assertFloatEqual(num.Median, 5.5)
+        self.assertFloatEqual(num.quantile(.75), 7.75)
+        self.assertFloatEqual(num.quantile(.77), 7.93)
+    
     def test_summarize(self):
         """Numbers summarize should return SummaryStatistics object"""
         self.assertEqual(self.ints.summarize(), SummaryStatistics(Mean=3,\
