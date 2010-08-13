@@ -13,7 +13,7 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
     regress_R2, permute_2d, mantel, kendall_correlation, std, median,\
     get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test,\
-    ANOVA_one_way
+    ANOVA_one_way, mw_test, mw_boot
 
 from numpy import array, reshape, arange, ones, testing, cov, sqrt
 from cogent.util.dict2d import Dict2D
@@ -739,6 +739,25 @@ class Ftest(TestCase):
         #not related -- should not be significant
         m = mantel(a,c,1000)
         assert m > 0.3, m
+
+class MannWhitneyTests(TestCase):
+    """check accuracy of Mann-Whitney implementation"""
+    x = map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
+            " 126 128 128 128".split())
+    y = map(int, "100 105 107 107 108 111 116 120 121 123".split())
+    
+    def test_mw_test(self):
+        """mann-whitney test results should match Sokal & Rohlf"""
+        U, p = mw_test(self.x, self.y)
+        self.assertFloatEqual(U, 123.5)
+        self.assertTrue(0.02 <= p <= 0.05)
+    
+    def test_mw_boot(self):
+        """excercising the Monte-carlo variant of mann-whitney"""
+        U, p = mw_boot(self.x, self.y, 10)
+        self.assertFloatEqual(U, 123.5)
+        self.assertTrue(0 <= p <= 0.5)
+    
 
 class KendallTests(TestCase):
     """check accuracy of Kendall tests against values from R"""
