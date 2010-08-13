@@ -975,6 +975,20 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
         pass
     return stat, Pval
 
+def _get_bootstrap_sample(x, y, num_reps):
+    """yields num_reps random samples drawn with replacement from x and y"""
+    combined = array(list(x) + list(y))
+    total_obs = len(combined)
+    num_x = len(x)
+    for i in range(num_reps):
+        # sampling with replacement
+        indices = randint(0, total_obs, total_obs)
+        sampled = combined.take(indices)
+        # split into the two populations
+        sampled_x = sampled[:num_x]
+        sampled_y = sampled[num_x:]
+        yield sampled_x, sampled_y
+
 def ks_boot(x, y, alt = "two sided", num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
     for when there are ties.
@@ -993,15 +1007,90 @@ def ks_boot(x, y, alt = "two sided", num_reps=1000):
     total_obs = len(combined)
     num_x = len(x)
     num_greater = 0
-    for i in range(num_reps):
-        # sampling with replacement
-        indices = randint(0, total_obs, total_obs)
-        sampled = combined.take(indices)
-        # split into the two populations
-        sampled_x = sampled[:num_x]
-        sampled_y = sampled[num_x:]
+    for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
         sample_stat, _p = ks_test(sampled_x, sampled_y, alt=alt, exact=False,
                                     warn_for_ties=False)
+        if sample_stat >= (observed_stat - tol):
+            num_greater += 1
+    return observed_stat, num_greater / num_reps
+
+def _average_rank(start_rank, end_rank):
+    ave_rank = sum(range(start_rank, end_rank+1)) / (1+end_rank-start_rank)
+    return ave_rank
+
+def mw_test(x, y):
+    """computes the Mann-Whitney U statistic and the probability using the
+    normal approximation"""
+    if len(x) > len(y):
+        x, y = y, x
+    
+    num_x = len(x)
+    num_y = len(y)
+    
+    x = zip(x, zeros(len(x), int), zeros(len(x), int))
+    y = zip(y, ones(len(y), int), zeros(len(y), int))
+    combined = x+y
+    combined = array(combined, dtype=[('stat', float), ('sample', int),
+                                      ('rank', float)])
+    combined.sort(order='stat')
+    prev = None
+    start = None
+    ties = False
+    T = 0.0
+    for index in range(combined.shape[0]):
+        value = combined['stat'][index]
+        sample = combined['sample'][index]
+        if value == prev and start is None:
+            start = index
+            continue
+        
+        if value != prev and start is not None:
+            ties = True
+            ave_rank = _average_rank(start, index)
+            num_tied = index - start + 1
+            T += (num_tied**3 - num_tied)
+            for i in range(start-1, index):
+                combined['rank'][i] = ave_rank
+            start = None
+        combined['rank'][index] = index+1
+        prev = value
+    
+    if start is not None:
+        ave_rank = _average_rank(start, index)
+        num_tied = index - start + 2
+        T += (num_tied**3 - num_tied)
+        for i in range(start-1, index+1):
+            combined['rank'][i] = ave_rank
+    
+    total = combined.shape[0]
+    x_ranks_sum = sum(combined['rank'][i] for i in range(total) if combined['sample'][i] == 0)
+    prod = num_x * num_y
+    U1 = prod + (num_x * (num_x+1) / 2) - x_ranks_sum
+    U2 = prod - U1
+    U = max([U1, U2])
+    numerator = U - prod / 2
+    denominator = sqrt((prod / (total * (total-1)))*((total**3 - total - T)/12))
+    z = (numerator/denominator)
+    p = zprob(z)
+    return U, p
+
+def mw_boot(x, y, num_reps=1000):
+    """Monte Carlo (bootstrap) variant of the Mann-Whitney test.
+    
+    Arguments:
+        - x, y: vectors of numbers
+        - num_reps: number of replicates for the  bootstrap
+    
+    Uses the same Monte-Carlo resampling code as kw_boot
+    """
+    tol = MACHEP * 100
+    combined = array(list(x) + list(y))
+    observed_stat, obs_p = mw_test(x, y)
+    total_obs = len(combined)
+    num_x = len(x)
+    num_greater = 0
+    for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
+        sample_stat, sample_p = mw_test(sampled_x, sampled_y)
         if sample_stat >= (observed_stat - tol):
             num_greater += 1
     return observed_stat, num_greater / num_reps
