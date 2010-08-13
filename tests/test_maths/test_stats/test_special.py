@@ -6,7 +6,6 @@ from cogent.maths.stats.special import permutations, permutations_exact, \
     ln_permutations, combinations, combinations_exact, \
     ln_combinations, ln_binomial, log_one_minus, one_minus_exp, igami,\
     ndtri, incbi, log1p
-from cogent.maths.stats.util import Numbers
 
 import math
 
@@ -21,16 +20,6 @@ __status__ = "Production"
 
 class SpecialTests(TestCase):
     """Tests miscellaneous functions."""
-    
-    def test_Numbers(self):
-        """quantiles should be correct"""
-        num = Numbers(range(1,11))
-        self.assertFloatEqual(num.quantile(.1), 1.9)
-        self.assertFloatEqual(num.quantile(.2), 2.8)
-        self.assertFloatEqual(num.quantile(.25), 3.25)
-        self.assertFloatEqual(num.Median, 5.5)
-        self.assertFloatEqual(num.quantile(.75), 7.75)
-        self.assertFloatEqual(num.quantile(.77), 7.93)
     
     def test_permutations(self):
         """permutations should return expected results"""
