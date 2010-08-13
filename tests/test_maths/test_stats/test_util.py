@@ -398,7 +398,7 @@ class NumbersTestsI(object):
     
     def test_NumberQuantiles(self):
         """quantiles should be correct"""
-        num = Numbers(range(1,11))
+        num = self.ClassToTest(range(1,11))
         self.assertFloatEqual(num.quantile(.1), 1.9)
         self.assertFloatEqual(num.quantile(.2), 2.8)
         self.assertFloatEqual(num.quantile(.25), 3.25)
