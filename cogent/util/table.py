@@ -411,7 +411,7 @@ class Table(DictArray):
     
     def _callback(self, callback, row, columns=None, num_columns=None):
         if callable(callback):
-            row_segment = [row[col] for col in columns]
+            row_segment = row.take(columns)
             if num_columns == 1:
                 row_segment = row_segment[0]
             return callback(row_segment)
@@ -439,10 +439,17 @@ class Table(DictArray):
             num_columns = None
         
         row_indexes = []
-        for rdex, row in enumerate(self):
-            if self._callback(callback, row, columns, num_columns):
+        if not callable(callback):
+            data = self
+            cols = columns
+        else:
+            data = self.array
+            cols = map(self.Header.index, columns)
+        
+        for rdex, row in enumerate(data):
+            if self._callback(callback, row, cols, num_columns):
                 row_indexes.append(rdex)
-                
+            
         sub_set = numpy.take(self, row_indexes, 0)
         
         kw = self._get_persistent_attrs()
@@ -486,8 +493,15 @@ class Table(DictArray):
             num_columns = None
         
         count = 0
-        for row in self:
-            if self._callback(callback, row, columns, num_columns):
+        if not callable(callback):
+            data = self
+            cols = columns
+        else:
+            data = self.array
+            cols = map(self.Header.index, columns)
+        
+        for row in data:
+            if self._callback(callback, row, cols, num_columns):
                 count += 1
         return count
     
@@ -606,8 +620,15 @@ class Table(DictArray):
         else:
             num_columns = None
         
-        twoD = [list(row) + [self._callback(callback, row, columns,
-                num_columns)] for row in self]
+        if not callable(callback):
+            data = self
+            cols = columns
+        else:
+            data = self.array
+            cols = map(self.Header.index, columns)
+        
+        twoD = [list(row) + [self._callback(callback, row, cols,
+                num_columns)] for row in data]
         
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
