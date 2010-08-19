@@ -1690,9 +1690,12 @@ class PhyloNode(TreeNode):
         """
         # max_dist, tip_names = tree.maxTipTipDistance()
         # this is slow
-    
+
+
         max_dist, tip_names = self.maxTipTipDistance()
         half_max_dist = max_dist/2.0
+        if max_dist == 0.0: # only pathological cases with no lengths
+            return self.unrootedDeepcopy()
         # print tip_names
         tip1 = self.getNodeMatchingName(tip_names[0])
         tip2 = self.getNodeMatchingName(tip_names[1])
@@ -1702,16 +1705,17 @@ class PhyloNode(TreeNode):
         else:
             climb_node = tip2
         
-        dist_climbed = climb_node.Length
-        while dist_climbed <= half_max_dist:
-            climb_node = climb_node.Parent
+        dist_climbed = 0.0
+        while dist_climbed + climb_node.Length < half_max_dist:
             dist_climbed += climb_node.Length
-    
-        dist_climbed -= climb_node.Length # dist is now dist from tip to climb_node
-        
-        # now midpt is either at climb_node or on the branch to its parent
+            climb_node = climb_node.Parent
+            
+        # now midpt is either at on the branch to climb_node's  parent
+        # or midpt is at climb_node's parent
         # print dist_climbed, half_max_dist, 'dists cl hamax'
-        if dist_climbed == half_max_dist:
+        if dist_climbed + climb_node.Length == half_max_dist:
+            # climb to midpoint spot
+            climb_node = climb_node.Parent
             if climb_node.isTip():
                 raise RuntimeError('error trying to root tree at tip')
             else:
@@ -1719,6 +1723,7 @@ class PhyloNode(TreeNode):
                 return climb_node.unrootedDeepcopy()
         
         else:
+            # make a new node on climb_node's branch to its parent
             old_br_len = climb_node.Length
             new_root = type(self)()
             new_root.Parent = climb_node.Parent
