@@ -1336,6 +1336,22 @@ class PhyloNodeTests(TestCase):
         self.assertTrue(tmid.isRoot())
         self.assertEqual(tmid.distance(\
             tmid.getNodeMatchingName('d')), 3)
+            
+    def test_rootAtMidpoint5(self):
+        """midpoint should be selected correctly when on an even 2tip tree
+        """
+        tree = DndParser('''(BLO_1:0.649351,BLO_2:0.649351):0.0;''')
+        tmid = tree.rootAtMidpoint()
+        self.assertEqual(tmid.getDistances(),tree.getDistances())
+        tipnames = tree.getTipNames()
+        nontipnames = [t.Name for t in tree.nontips()]
+
+        self.assertTrue(tmid.isRoot())
+        self.assertFloatEqual(tmid.distance(\
+            tmid.getNodeMatchingName('BLO_2')), 0.649351)
+        self.assertFloatEqual(tmid.distance(\
+            tmid.getNodeMatchingName('BLO_1')), 0.649351)
+        self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0* 0.649351)
     
     def test_setTipDistances(self):
         """setTipDistances should correctly set tip distances."""
