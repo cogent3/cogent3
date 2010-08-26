@@ -100,6 +100,8 @@ class TestGoldman93(TestCase):
         obs = BestLogLikelihood(self.aln, DNA.Alphabet)
         expect = math.log(math.pow(4/13.0, 4)) + 3*math.log(math.pow(3/13.0, 3))
         self.assertFloatEqual(obs,expect)
+        lnL, l = BestLogLikelihood(self.aln, DNA.Alphabet, return_length=True)
+        self.assertEqual(l, len(self.aln))
 
 if __name__ == '__main__':
     main()
