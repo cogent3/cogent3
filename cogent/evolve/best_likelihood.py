@@ -38,21 +38,28 @@ def _take(array, indices):
         new_array.append(array[index])
     return new_array
 
-def aligned_columns_to_rows(aln, motif_len, exclude_chars = '-N?'):
+def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars='ACGT'):
     """return alignment broken into motifs as a transposed list with
     sequences as columns and aligned columns as rows
     
     Arguments:
         exclude_chars: a character string suitable for use as a regular expression"""
-    exclude_chars = re.compile("[%s]" % exclude_chars)
+    if exclude_chars:
+        exclude_chars = set(exclude_chars)
+        exclude_func = exclude_chars.intersection
+    else:
+        allowed_chars = set(allowed_chars)
+        exclude_func = lambda x: not allowed_chars.issuperset(x)
+    
     exclude_indices = set()
     array = []
     for name in aln.Names:
         motifs = list(aln.getGappedSeq(name).getInMotifSize(motif_len))
         array.append(motifs)
         for motif_index, motif in enumerate(motifs):
-            if exclude_chars.findall(motif):
-                exclude_indices.update([motif_index])
+            if exclude_func(motif):
+                    exclude_indices.update([motif_index])
+    
     include_indices = set(range(len(array[0]))).difference(exclude_indices)
     include_indices = list(include_indices)
     include_indices.sort()
@@ -94,17 +101,29 @@ def get_G93_lnL_from_array(columns_list):
         log_likelihood += pattern_lnL
     return log_likelihood
 
-def BestLogLikelihood(aln, alphabet, exclude_chars = '-N?'):
+def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
+    allowed_chars='ACGT', motif_length=None):
     """returns the best log-likelihood according to Goldman 1993.
     
     Arguments:
-        - exclude_chars: a character string suitable for use as a regular
-          expression
+        - alphabet: a sequence alphabet object.
+        - motif_length: 1 for nucleotide, 2 for dinucleotide, etc ..
+        - exclude_chars: a series of characters used to exclude motifs
+        - allowed_chars: only motifs that contain a subset of these are
+          allowed
     """
+    assert alphabet or motif_length, "Must provide either an alphabet or a"\
+                                     " motif_length"
     # need to use the alphabet, so we can enforce character compliance
-    aln = LoadSeqs(data=aln.todict(), moltype=alphabet.MolType)
-    motif_len = alphabet.getMotifLen()
-    columns = aligned_columns_to_rows(aln, motif_len, exclude_chars)
+    if alphabet:
+        kwargs = dict(moltype=alphabet.MolType)
+        motif_length = alphabet.getMotifLen()
+    else:
+        kwargs = {}
+    
+    aln = LoadSeqs(data=aln.todict(), **kwargs)
+    columns = aligned_columns_to_rows(aln, motif_length, exclude_chars,
+                                        allowed_chars)
     log_likelihood = get_G93_lnL_from_array(columns)
     return log_likelihood
 

@@ -46,11 +46,11 @@ class TestGoldman93(TestCase):
                    ['T','A','C'],['T','A','C'],['T','A','C'],
                    ['A','C','G']]
         assert obs == expect, (obs, expect)
-        obs = aligned_columns_to_rows(self.gapped_aln[:-1], 3)
+        obs = aligned_columns_to_rows(self.gapped_aln[:-1], 3, allowed_chars='ACGT')
         expect = [['TTT','TAT','TTT']]
         assert obs == expect, (obs, expect)
         
-        obs = aligned_columns_to_rows(self.ambig_aln, 2, IUPAC_DNA_ambiguities)
+        obs = aligned_columns_to_rows(self.ambig_aln, 2, exclude_chars=IUPAC_DNA_ambiguities)
         expect = [['AA','CC','CA'],['CC','CC','CC'],['TT','TT','TG']]
         assert obs == expect, (obs, expect)
     
