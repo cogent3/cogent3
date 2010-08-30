@@ -26,7 +26,7 @@ def ConvertFields(conversions):
     
     return callable
 
-def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
+def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
                 sep=",", strip_wspace=True, **kw):
     """Returns a parser for a delimited tabular file.
     
@@ -34,22 +34,35 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
         - with_header: when True, first line is taken to be the header. Not
           passed to converter.
         - converter: a callable that returns a correctly formatted line.
-        - ignore: lines for which ignore returns True are ignored
+        - ignore: lines for which ignore returns True are ignored. White-space
+          lines are always skipped.
         - sep: the delimiter deparating fields.
         - strip_wspace: removes redundant white-space from strings."""
     sep = kw.get("delim", sep)
+    if ignore is None: # keep all lines
+        ignore = lambda x: False
+    
     def callable(lines):
         header = None
         for line in lines:
-            if ignore(line):
+            if is_empty(line):
                 continue
+            
             line = line.strip('\n').split(sep)
             if strip_wspace:
                 line = [field.strip() for field in line]
+            
             if with_header and not header:
                 header = True
-            elif converter:
+                yield line
+                continue
+            
+            if converter:
                 line = converter(line)
+            
+            if ignore(line):
+                continue
+            
             yield line
     
     return callable
