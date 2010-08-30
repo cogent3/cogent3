@@ -607,6 +607,7 @@ We can read in a delimited format using a custom reader, which we'll now import.
     ...      sep="\t")
     >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
     ...       space=2)
+    ...         
     >>> print t3a
     new title
     ======================================================
@@ -620,6 +621,28 @@ We can read in a delimited format using a custom reader, which we'll now import.
        edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
        edge.1         root  4.0000  1.0000  3.0000  6.0000
     ------------------------------------------------------
+
+We can use the ``SeparatorFormatParser`` to ignore reading certain lines by using a callback function. We illustrate this using the above data, skipping any rows with ``edge.name`` starting with ``edge``.
+
+.. doctest::
+    
+    >>> def ignore_internal_nodes(line):
+    ...     return line[0].startswith('edge')
+    ...     
+    >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
+    ...      sep="\t", ignore=ignore_internal_nodes)
+    ...     
+    >>> tips = LoadTable(filename="t3.tab", reader=reader, digits=1, space=2)
+    >>> print tips
+    =============================================
+    edge.name  edge.parent  length    x    y    z
+    ---------------------------------------------
+        Human       edge.0     4.0  1.0  3.0  6.0
+    HowlerMon       edge.0     4.0  1.0  3.0  6.0
+        Mouse       edge.1     4.0  1.0  3.0  6.0
+    NineBande         root     4.0  1.0  3.0  6.0
+     DogFaced         root     4.0  1.0  3.0  6.0
+    ---------------------------------------------
 
 In the above example, the data type in a column is static, e.g. all values in ``x`` are floats. Rather than providing a custom reader, you can get the ``Table`` to construct such a reader based on the first data row using the ``static_column_types`` argument.
 
