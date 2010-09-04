@@ -521,32 +521,44 @@ class Table(DictArray):
         elif isinstance(columns, str):
             columns = [columns]
         
+        indices = [self.Header.index(col) for col in columns]
+        
         if not reverse:
             is_reversed = [False] * len(columns)
+            reverse_indices = []
         else:
+            if type(reverse) == str:
+                reverse = [reverse]
+            reverse_indices = []
+            for index, header_index in enumerate(indices):
+                col = self.Header[header_index]
+                if col in reverse:
+                    reverse_indices += [index]
+            
             is_reversed = [col in reverse for col in columns]
         
-        indices = zip([self.Header.index(col) for col in columns],
-                       is_reversed)
+        reverse_indices = numpy.array(reverse_indices)
+        
+        dtypes = [(self.Header[i], self.array.dtype) for i in indices]
         
         # applying the decorate-sort-undecorate approach
-        aux_list = []
-        for row in self:
-            new_row = []
-            for index, reverse in indices:
-                if reverse is False:
-                    new_row.append(row[index])
-                    continue
-                
-                try:
-                    new_row.append(-row[index])
-                except TypeError:
-                    new_row.append(row[index].translate(_reversed_chrs))
-            aux_list.append((new_row, row))
+        aux_list = self.array.take(indices, axis=1)
         
-        aux_list.sort()
+        # we figure out the casting funcs for any reversed elements
+        cast = []
+        for index in reverse_indices:
+            val = aux_list[0, index]
+            try:
+                val = val.translate(_reversed_chrs)
+                func = lambda x: x.translate(_reversed_chrs)
+            except AttributeError:
+                func = lambda x: x * -1
+            func = numpy.vectorize(func)
+            aux_list[:, index] = func(aux_list[:, index])
         
-        new_twoD = [list(row[-1]) for row in aux_list]
+        aux_list = numpy.rec.fromarrays(aux_list.copy().T, dtype=dtypes)
+        indices = aux_list.argsort()
+        new_twoD = self.array.take(indices, axis=0)
         
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
