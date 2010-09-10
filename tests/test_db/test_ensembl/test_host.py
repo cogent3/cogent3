@@ -20,6 +20,7 @@ Release = 58
 if 'ENSEMBL_ACCOUNT' in os.environ:
     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
     account = HostAccount('127.0.0.1', username, password)
+    account = HostAccount('cg.anu.edu.au', username, password)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -36,6 +37,20 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.Prefix, "pongo_pygmaeus")
         self.assertEqual(n.Type, "core")
         self.assertEqual(n.Build, '1')
+    
+    def test_ensemblgenomes_names(self):
+        """correctly handle the ensemblgenomes naming system"""
+        n = EnsemblDbName('aedes_aegypti_core_5_58_1e')
+        self.assertEqual(n.Prefix, 'aedes_aegypti')
+        self.assertEqual(n.Type, 'core')
+        self.assertEqual(n.Release, '5')
+        self.assertEqual(n.GeneralRelease, '58')
+        self.assertEqual(n.Build, '1e')
+        n = EnsemblDbName('ensembl_compara_metazoa_6_59')
+        self.assertEqual(n.Release, '6')
+        self.assertEqual(n.GeneralRelease, '59')
+        self.assertEqual(n.Type, 'compara')
+    
 
 class TestDBconnects(TestCase):
     

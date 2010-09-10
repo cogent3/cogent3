@@ -14,21 +14,24 @@ __status__ = "alpha"
 _release = re.compile("\d+")
 def get_version_from_name(name):
     """returns the release and build identifiers from an ensembl db_name"""
-    name = _name_delim.split(name)
-    # if last entry has a release and build
-    release, build = None, None
-    if _release.findall(name[-2]):
-        release = _release.findall(name[-2])[0]
-        build = name[-1]
-    else:
-        release = _release.findall(name[-1])[0]
-    return release, build
+    r = _release.search(name)
+    if r is None:
+        return None, None
+    
+    # first number run is release, followed by build
+    # note, for the ensemblgenomes naming system, the second digit run is the
+    # standard Ensembl release and the first is for the specified genome
+    release = name[r.start(): r.end()]
+    b = [s for s in _name_delim.split(name[r.end():]) if s]
+    
+    return release, b
 
 _name_delim = re.compile("_")
 def get_dbtype_from_name(name):
     """returns the data base type from the name"""
     try:
-        name = _name_delim.split(name)
+        name = _release.split(name)
+        name = [s for s in _name_delim.split(name[0]) if s]
     except TypeError, msg:
         print "Error:"
         print name, type(name), msg
@@ -37,7 +40,7 @@ def get_dbtype_from_name(name):
     if name[0] == "ensembl":
         dbtype = name[1]
     else:
-        dbtype = "_".join(name[2:-2])
+        dbtype = "_".join(name[2:])
     return dbtype
 
 def get_db_prefix(name):
@@ -61,9 +64,23 @@ class EnsemblDbName(object):
         self.Name = db_name
         self.Type = get_dbtype_from_name(db_name)
         self.Prefix = get_db_prefix(db_name)
+        
         release, build = get_version_from_name(db_name)
         self.Release = release
-        self.Build = build
+        self.GeneralRelease = self.Release
+        
+        if len(build) == 1:
+            if self.Type != 'compara':
+                self.Build = build[0]
+            else:
+                self.Build = None
+                self.GeneralRelease = build[0]
+        elif build:
+            self.Build = build[1]
+            self.GeneralRelease = build[0]
+        else:
+            self.Build  = None
+        
         self.Species = None
         self.Species = Species.getSpeciesName(self.Prefix)
     
