@@ -54,6 +54,7 @@ General data analysis
     perform_nmds
     motif_results
     unifrac
+    period_estimation
 
 ******************
 Data Visualisation

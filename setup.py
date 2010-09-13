@@ -171,6 +171,7 @@ setup(
         CogentExtension("cogent.evolve._likelihood_tree"),
         CogentExtension("cogent.struct._asa"),
         CogentExtension("cogent.struct._contact"),
+        CogentExtension("cogent.maths._period"),
         CogentExtension("cogent.maths.spatial.ckd3"),
 
     ],
