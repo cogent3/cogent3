@@ -249,7 +249,7 @@ class _SeqRepresentation(object):
         used = numpy.zeros([len(sequence)], bool)
         x_offset = self.x_offset * 1.0
         for span in map.spans:
-            if not span.lost or span.Reversed:
+            if not (span.lost or span.Reverse):
                 offsets.append(x_offset + span.Start - used_count)
                 lengths.append(span.length)
                 used[posn:posn+span.length] = True
