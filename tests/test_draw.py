@@ -127,13 +127,15 @@ def test_trees():
             ShelvedDendrogram, 
     #        StraightDendrogram, 
     #        ContemporaneousStraightDendrogram
-        ]:
-        fig(klass.__name__, klass(t), shade_param="length", 
+            ]:
+        dendro = klass(t)
+        dendro.getConnectingNode('Ccccccccccc', 'Eeeeeeeeeee').setCollapsed(
+            color="green", label="C, D and E")
+        fig(klass.__name__, dendro, shade_param="length", 
             show_params=["length"])
-    
+ 
     def callback(edge):
         return ["blue", "red"][edge.Name.startswith("A")]
-    
     fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
     
 if __name__ == '__main__':
