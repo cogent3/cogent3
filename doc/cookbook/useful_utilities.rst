@@ -482,8 +482,8 @@ Get mapping from sequence item to all positions
     >>> DictFromPos(seq)
     {'a': [0, 1, 10, 11, 22, 24], 'c': [14, 15, 17, 18, 25], 't': [2, 3, 6, 7, 20, 21], 'g': [4, 5, 8, 9, 12, 13, 16, 19, 23, 26]}
 
-Get the first index of occurance for each item in a sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get the first index of occurrence for each item in a sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``DictFromFirst`` will return the first location of each item in a sequence
 
@@ -494,8 +494,8 @@ Get the first index of occurance for each item in a sequence
     >>> DictFromFirst(seq)
     {'a': 0, 'c': 14, 't': 2, 'g': 4}
 
-Get the last index of occurance for each item in a sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get the last index of occurrence for each item in a sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``DictFromLast`` will return the last location of each item in a sequence
 
@@ -569,7 +569,7 @@ Check an object against base classes or derived classes to see if it is acceptab
     True
 
 Delegate to a separate object
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Delegate object method calls, properties and variables to the appropriate object. Useful to combine multiple objects together while assuring that the calls will go to the correct object.
 
@@ -652,6 +652,3 @@ Determine if an application is available on a system
     '/bin/ls'
     >>> app_path('does_not_exist')
     False
-
-
-
