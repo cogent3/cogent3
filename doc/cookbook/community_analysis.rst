@@ -8,7 +8,7 @@ alpha diversity
 Phylogenetic Diversity (PD)
 ---------------------------
 
-For each environment (i.e. sample), calculates the amount of branch length in a phylogenetic tree that lead to its sequences.  
+For each environment (i.e. sample), calculates the amount of branch length in a phylogenetic tree that lead to its sequences.
 
 First we will load in a Newick formatted tree.
 
@@ -18,7 +18,7 @@ First we will load in a Newick formatted tree.
     >>> from cogent.maths.unifrac.fast_tree import UniFracTreeNode
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> tree = DndParser(tree_in, UniFracTreeNode)
-    
+
 Next we will load information on which sequences in the tree come from which environment.
 
 .. doctest::
@@ -38,7 +38,7 @@ Finally, we can calculate the PD values for each environment in the tree
     >>> print PD_vals#doctest: +SKIP
     [ 5.85389  7.60352  2.19215  2.81821  3.93728  3.7534 ]
 
-PD_vals is a numpy array with the values representing each environment in envs.
+``PD_vals`` is a ``numpy`` ``array`` with the values representing each environment in envs.
 
 Rarefaction
 -------------
@@ -61,12 +61,12 @@ beta diversity
 Unifrac
 -------
 
-The Fast UniFrac implementation in PyCogent is the source code for the Fast UniFrac web tool available at http://bmf2.colorado.edu/fastunifrac and the QIIME pipeline for Microbial community analysis http://qiime.sourceforge.net
+The Fast UniFrac implementation in PyCogent is the source code for the `Fast UniFrac web tool <http://bmf2.colorado.edu/fastunifrac>`_ and the `QIIME pipeline <http://qiime.sourceforge.net>`_ for Microbial community analysis.
 
 Calculate a UniFrac Distance Matrix and apply PCoA and UPGMA
 ------------------------------------------------------------
 
-The UniFrac analysis is run on open tree and environment file objects. The resulting dictionary has a distance matrix of pairwise UniFrac values ('distance_matrix'), a Newick string representing the results of performing UPGMA clustering on this distance matrix ('cluster_envs') and the results of running Principal Coordinates Analysis on the distance matrix ('pcoa'). One can specify weighted UniFrac with weighted=True. Here we run an unweighted analysis.
+The UniFrac analysis is run on open tree and environment file objects. The resulting dictionary has a distance matrix of pairwise UniFrac values ('distance_matrix'), a Newick string representing the results of performing UPGMA clustering on this distance matrix ('cluster_envs') and the results of running Principal Coordinates Analysis on the distance matrix ('pcoa'). One can specify weighted UniFrac with ``weighted=True``. Here we run an unweighted analysis.
 
 .. doctest::
 
@@ -93,7 +93,7 @@ The UniFrac analysis is run on open tree and environment file objects. The resul
 Perform pairwise tests of whether samples are significantly different with UniFrac
 ----------------------------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. In this example, we use unweighted unifrac (weighted=False), we permute the environment assignments on the tree 50 times (num_iters=50) and we perform UniFrac on all pairs of environments (test_on="Pairwise"). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
+The analysis is run on open tree and environment file objects. In this example, we use unweighted unifrac (``weighted=False``), we permute the environment assignments on the tree 50 times (``num_iters=50``) and we perform UniFrac on all pairs of environments (``test_on="Pairwise"``). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
 
 .. doctest::
 
@@ -107,7 +107,7 @@ The analysis is run on open tree and environment file objects. In this example, 
 Perform a single UniFrac significance test on the whole tree
 ------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. In this example, we use weighted unifrac (weighted=True), we permute the environment assignments on the tree 50 times (num_iters=50) and we perform a unifrac significance test on the whole tree (test_on="Tree"). The resulting list has only one item since a single test was performed. It is a 3 item tuple where the second and third values are the p-value.
+The analysis is run on open tree and environment file objects. In this example, we use weighted unifrac (``weighted=True``), we permute the environment assignments on the tree 50 times (``num_iters=50``) and we perform a unifrac significance test on the whole tree (``test_on="Tree"``). The resulting list has only one item since a single test was performed. It is a 3 item tuple where the second and third values are the p-value.
 
 .. doctest::
 
@@ -124,7 +124,7 @@ P-test
 Perform pairwise tests of whether samples are significantly different with the P-test (Martin, 2002)
 ----------------------------------------------------------------------------------------------------
 
-The analysis is run on open tree and environment file objects. In this example, we permute the environment assignments on the tree 50 times (num_iters=50) and perform the p test for all pairs of environments (test_on="Pairwise"). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
+The analysis is run on open tree and environment file objects. In this example, we permute the environment assignments on the tree 50 times (``num_iters=50``) and perform the p test for all pairs of environments (``test_on="Pairwise"``). A list is returned with a tuple for each pairwise comparison with items: 0 - the first environment, 1 - the second environment, 2- the uncorrected p-value and 3 - the p-value after correcting for multiple comparisons with the Bonferroni correction.
 
 .. doctest::
 
@@ -135,39 +135,35 @@ The analysis is run on open tree and environment file objects. In this example, 
     >>> print result[0]#doctest: +SKIP
     ('E_FL', 'E_PA', 0.040000000000000001, 0.59999999999999998)
 
-
 Taxon-based
 -----------
 
 Computing a distance matrix between samples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-pycogent provides many different ways to compute pairwise distances between objects.  cogent/maths/distance_transform.py provides a set of functions to calculate dissimilarities/distances between samples, given an abundance matrix.  Here is one example:
+PyCogent provides many different ways to compute pairwise distances between objects. ``cogent/maths/distance_transform.py`` provides a set of functions to calculate dissimilarities/distances between samples, given an abundance matrix. Here is one example:
+
 .. doctest::
 
->>> from cogent.maths.distance_transform import dist_euclidean
-    
-    .. note:: see distance_transform.py for other metrics than euclidean
+    >>> from cogent.maths.distance_transform import dist_euclidean
+    >>> from numpy import array
+    >>> abundance_data = array([[1, 3],
+    ...                        [5, 2],
+    ...                        [0.1, 22]],'float')
 
->>> from numpy import array
+.. note:: see ``distance_transform.py`` for other metrics than euclidean
 
->>> abundance_data = array([[1, 3],
-...                        [5, 2],
-...                        [0.1, 22]],'float')
-    
 We now have 3 samples, and the abundance of each column (e.g.: species) in that sample.  The first sample has 1 individual of species 1, 3 individuals of species 2.  We now compute the relatedness between these samples, using euclidean distance between the rows:
 
->>> dists = dist_euclidean(abundance_data)
-
 .. doctest::
-
+    
+    >>> dists = dist_euclidean(abundance_data)
     >>> print str(dists.round(2)) # doctest: +SKIP
     [[  0.        ,   4.12,  19.02]
     [  4.12,   0.        ,  20.59 ]
     [ 19.02,  20.59 ,   0.        ]]
-    
-    
-this distance matrix can be visualized via multivariate reduction techniques such as `PCoA or NMDS <./multivariate_data_analysis.html>`_.
+
+this distance matrix can be visualized via multivariate reduction techniques such as :ref:`multivariate-analysis`.
 
 Taxonomy
 ========
@@ -175,4 +171,3 @@ Taxonomy
 *To be written.*
 
 .. need to decide on methods here
-

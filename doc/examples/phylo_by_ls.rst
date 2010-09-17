@@ -52,8 +52,6 @@ In this use case we are after just 1 tree. We specify up to what taxa size all p
 .. doctest::
     
     >>> score, tree = ls.trex(a = 5, k = 1)
-    3 trees of size 4 at start
-    15 trees of size 5 ... done
     >>> assert score < 1e-4
 
 We won't display this tree, because we are doing more below.
@@ -66,8 +64,6 @@ We change the asaa settings, so we keep more trees and then look at the distribu
 .. doctest::
 
     >>> trees = ls.trex(a = 5, k = 5, return_all = True)
-    3 trees of size 4 at start
-    15 trees of size 5 ... done
 
 Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. The number of returned ``trees`` is the same as the number requested to be retained at each step.
 

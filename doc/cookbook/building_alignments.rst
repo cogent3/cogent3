@@ -43,6 +43,17 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
 .. doctest::
     
     >>> aln, tree = TreeAlign(HKY85(), seqs)
+    Param Estimate Summary Stats: kappa
+    ==============================
+            Statistic        Value
+    ------------------------------
+                Count           10
+                  Sum        1e+06
+               Median        4.256
+                 Mean        1e+05
+    StandardDeviation    3.162e+05
+             Variance        1e+11
+    ------------------------------
     >>> aln
     5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
@@ -73,7 +84,7 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
 Building alignments with 3rd-party apps such as muscle or clustalw
 ==================================================================
 
-See `this document <../examples/alignment_app_controllers.html>`_.
+See :ref:`alignment-controllers`.
 
 Converting gaps from aa-seq alignment to nuc seq alignment
 ==========================================================

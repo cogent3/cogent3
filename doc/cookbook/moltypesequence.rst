@@ -1,28 +1,25 @@
-**************************************
-Using the MolType and Sequence objects
-**************************************
+**********************************************
+Using the ``MolType`` and ``Sequence`` objects
+**********************************************
 
-.. Meg Pirrung
+.. authors Meg Pirrung
 
 MolType
 =======
 
-MolType provides services for resolving ambiguities, or providing the
-correct ambiguity for recoding. It also maintains the mappings between
-different kinds of alphabets, sequences and alignments.
+``MolType`` provides services for resolving ambiguities, or providing the correct ambiguity for recoding. It also maintains the mappings between different kinds of alphabets, sequences and alignments.
 
-One issue with MolTypes is that they need to know about Sequence, Alphabet,
-and other objects, but, at the same time, those objects need to know about
-the MolType. It is thus essential that the connection between these other
-types and the MolType can be made after the objects are created.
+One issue with ``MolType``'s is that they need to know about ``Sequence``, ``Alphabet``, and other objects, but, at the same time, those objects need to know about the ``MolType``. It is thus essential that the connection between these other types and the ``MolType`` can be made after the objects are created.
 
-Setting up a MolType object with an RNA sequence
-------------------------------------------------
+Setting up a ``MolType`` object with an RNA sequence
+----------------------------------------------------
 
 .. doctest::
 
-   >>> from cogent.core.moltype import *
-   >>> from cogent.core.sequence import *
+   >>> from cogent.core.moltype import MolType, IUPAC_RNA_chars,\
+   ...   IUPAC_RNA_ambiguities, RnaStandardPairs, RnaMW,\
+   ...   IUPAC_RNA_ambiguities_complements
+   >>> from cogent.core.sequence import NucleicAcidSequence
    >>> testrnaseq = 'ACGUACGUACGUACGU'
    >>> RnaMolType = MolType(
    ...     Sequence = NucleicAcidSequence(testrnaseq),
@@ -37,11 +34,14 @@ Setting up a MolType object with an RNA sequence
    ...     make_alphabet_group=True,
    ...     )
 
-Setting up a MolType object with a DNA sequence
------------------------------------------------
+Setting up a ``MolType`` object with a DNA sequence
+---------------------------------------------------
 
 .. doctest::
 
+    >>> from cogent.core.moltype import MolType, IUPAC_DNA_chars,\
+    ...   IUPAC_DNA_ambiguities, DnaMW, IUPAC_DNA_ambiguities_complements,\
+    ...   DnaStandardPairs
    >>> testdnaseq = 'ACGTACGTACGUACGT'
    >>> DnaMolType = MolType(
    ...     Sequence = NucleicAcidSequence(testdnaseq),
@@ -57,13 +57,14 @@ Setting up a MolType object with a DNA sequence
    ...     )
 
 
-Setting up a MolType object with a protein sequence
----------------------------------------------------
+Setting up a ``MolType`` object with a protein sequence
+-------------------------------------------------------
 
 .. doctest::
 
-   >>> from cogent.core.moltype import *
-   >>> from cogent.core.sequence import *
+    >>> from cogent.core.moltype import MolType, IUPAC_PROTEIN_chars,\
+    ...   IUPAC_PROTEIN_ambiguities, ProteinMW
+   >>> from cogent.core.sequence import ProteinSequence, ModelProteinSequence
    >>> protstr = 'TEST'
    >>> ProteinMolType = MolType(
    ...     Sequence = ProteinSequence(protstr),
@@ -89,73 +90,11 @@ Verify sequences
    >>> RnaMolType.isValid(NucleicAcidSequence(dnastr).toRna())
    True
 
-Sequence
-========
-The sequence object contains classes that represent biological sequence data. These
-provide generic biological sequence manipulation functions, plus functions
-that are critical for the EVOLVE calculations.
+``Sequence``
+============
 
-.. Warning::
-   Do not import sequence classes directly! It is expected that you will
-   access them through the moltype module. Sequence classes depend on information
-   from the MolType that is **only** available after MolType has been imported.
+The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-   Sequences are intended to be immutable. This is not enforced by the code for
-   performance reasons, but don't alter the MolType or the sequence data after
-   creation.
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in cogent (e.g. ``cogent.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
 
-Convert an RNA sequence to DNA
----------------------------------
-
-.. doctest::
-
-   >>> rnaseq = NucleicAcidSequence('ACGUACGUACGUACGU')
-   >>> print rnaseq.toDna()
-   ACGTACGTACGTACGT
-
-Convert a DNA sequence to RNA
------------------------------
-
-.. doctest::
-
-   >>> dnaseq = NucleicAcidSequence('ACGTACGTACGTACGT')
-   >>> print dnaseq.toRna()
-   ACGUACGUACGUACGU
-
-Translate DNA into protein
---------------------------
-
-.. doctest::
-
-   >>> s = NucleicAcidSequence('GCTTGGGAAAGTCAAATGGAA')
-   >>> print s.getTranslation()
-   AWESQME
-
-Convert a sequence to FASTA format
-----------------------------------
-
-.. doctest::
-
-   >>> rnaseq.toFasta()
-   '>0\nACGUACGUACGUACGU'
-
-
-Return a randomized version of the sequence
--------------------------------------------
-
-.. doctest::
-
-   >>> print rnaseq.shuffle()
-   ACAACUGGCUCUGAUG
-
-
-
-Remove gaps from a sequence
----------------------------
-
-.. doctest::
-
-   >>> s = Sequence('--AUUAUGCUAU-UAu--')
-   >>> print s.degap()
-   AUUAUGCUAUUAU
-
+More detailed usage of sequence objects can be found in :ref:`dna-rna-seqs`.

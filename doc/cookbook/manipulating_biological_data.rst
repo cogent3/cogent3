@@ -9,11 +9,12 @@ Sequences
 
 .. toctree::
     :maxdepth: 1
-
+    
+    loading_sequences
+    moltypesequence
+    alphabet
     DNA_and_RNA_sequences
     protein_sequences
-    moltypesequence
-    loading_sequences
     alignments
     annotations
 
@@ -50,4 +51,5 @@ Structures
     :maxdepth: 1
     
     structural_data
+    structural_data_2
     structural_contacts

@@ -87,7 +87,7 @@ Currently the ``PDBParser`` parses quite a lot information from the header of th
     >>> structure.getFull_id() # only for the structure entity is the full_id identical to the id.
     ('4TSV',)
     >>> structure.header.keys() # the pdb header is parsed in to a dictionary as the header attribute
-    ['bio_cmx', 'uc_mxs', 'name', 'solvent_content', 'expdta', 'bio_mxs',...
+    ['bio_cmx', 'uc_mxs',...
     >>> structure.header['id'] # this is the 4-char PDB ID parsed from the header and used to construct the structure.id
     '4TSV'
     >>> structure.header['expdta'] # if this is 'X-RAY' we probably deal with a x-ray structre and thus a lot crystallografic data is store in the header.
@@ -95,7 +95,7 @@ Currently the ``PDBParser`` parses quite a lot information from the header of th
 
 Not all information from the PDB header is currently parsed, If you are interested in some special data you can access the unparsed header through the ``raw_header`` attribute, the same is true for the trailer. If you manage to extract the data from the ``raw_header`` you are ready to modify the modular code of the ``PDBParser`` class, please submit a patch!
 
-::
+.. code-block:: python
 
     structure.raw_header
     structure.raw_trailer

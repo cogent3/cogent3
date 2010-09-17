@@ -51,7 +51,7 @@ We make the weighted least-squares calculator.
     >>> from cogent.phylo import distance, least_squares
     >>> ls = least_squares.WLS(dists)
 
-We start searching for trees, providing the name of file to checkpoint to.
+We start searching for trees, providing the name of the file to checkpoint to.
 
 .. doctest::
     

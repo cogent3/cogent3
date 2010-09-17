@@ -1,3 +1,32 @@
+Getting a genetic code
+----------------------
+
+The standard genetic code.
+
+.. doctest::
+    
+    >>> from cogent.core.genetic_code import GeneticCodes
+    >>> standard_code = GeneticCodes[1]
+
+The vertebrate mt genetic code.
+
+.. doctest::
+    
+    >>> from cogent.core.genetic_code import GeneticCodes
+    >>> mt_gc = GeneticCodes[2]
+    >>> print mt_gc.Name
+    Vertebrate Mitochondrial
+
+To see the key -> genetic code mapping, use a loop.
+
+.. doctest::
+    
+    >>> for key, code in GeneticCodes.items():
+    ...     print key, code.Name
+    1 Standard Nuclear
+    2 Vertebrate Mitochondrial
+    3 Yeast Mitochondrial...
+
 Translate DNA sequences
 -----------------------
 
@@ -7,7 +36,7 @@ Translate DNA sequences
     >>> standard_code.translate('TTTGCAAAC')
     'FAN'
 
-Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown here :ref:`translation`.
+Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
 
 Translate a codon
 -----------------
@@ -70,22 +99,23 @@ Converting the ``CodonAlphabet`` to codon series
 Obtaining the codons from a ``DnaSequence`` object
 --------------------------------------------------
 
-Use the method ``getInMotifSize()``
+Use the method ``getInMotifSize``
 
 .. doctest::
 
     >>> from cogent import LoadSeqs,DNA
-    >>> from cogent.core.alphabet import AlphabetError
     >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
     >>> codons = my_seq.getInMotifSize(3)
     >>> print codons
     ['ATG', 'CAC', 'TGG', 'TAA']
-    >>> try:
-    ...     pep = my_seq.getTranslation()
-    ... except AlphabetError, e:
-    ...     print 'AlphabetError', e
-    ...
-    AlphabetError TAA
+
+You can't translate a sequence that contains a stop codon.
+
+.. doctest::
+    
+    >>> pep = my_seq.getTranslation()
+    Traceback (most recent call last):
+    AlphabetError: TAA
 
 Remove the stop codon first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -108,10 +138,9 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 .. doctest::
 
     >>> from cogent import LoadSeqs,DNA
-    >>> from cogent.core.alphabet import AlphabetError
-    >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
+    >>> my_seq = DNA.makeSequence('CAAATGTATTAA','my_gene')
     >>> pep = my_seq[:-3].getTranslation().toFasta()
     >>> print pep
     >my_gene
-    MHW
+    QMY
 

@@ -1,7 +1,7 @@
 Easy distribution of tasks across multiple CPUs
 ===============================================
 
-.. warning:: This example requires execution on 2 CPUs. It can be run using: $ mpirun -n 2 python path/to/parallel_tasks.rst
+.. warning:: This example requires execution on 2 CPUs. It can be run using: ``$ mpirun -n 2 python path/to/parallel_tasks.rst``
 
 All I'm doing here is illustrating the use of ``parallel.map`` with the simplest example I could come up with. I create a list which will have an integer appended to it -- hardly useful, but hopefully demonstrates how a series of data can be mapped onto a function in parallel. In this case, the data is just a list of numbers.
 

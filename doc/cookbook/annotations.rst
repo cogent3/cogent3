@@ -60,7 +60,7 @@ What features of a certain type are available?
 Getting all features of a type, or everything but that type
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The annotation methods ``getRegionCoveringAll()`` and ``getShadow()`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
+The annotation methods ``getRegionCoveringAll`` and ``getShadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
 
 .. doctest::
 
@@ -82,7 +82,7 @@ The annotation methods ``getRegionCoveringAll()`` and ``getShadow()`` can be use
 Getting sequence features when you have an alignment object
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Sequence features can be accessed via a containing ``Alignment``:
+Sequence features can be accessed via a containing ``Alignment``.
 
 .. doctest::
 

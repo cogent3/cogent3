@@ -1,8 +1,10 @@
+.. _multivariate-analysis:
+
 **************************
 Multivariate data analysis
 **************************
 
-authors, Justin Kuczynski, Catherine Lozupone
+.. sectionauthor Justin Kuczynski, Catherine Lozupone
 
 Principal Coordinates Analysis
 ==============================
@@ -60,6 +62,7 @@ We can save these results to a file in a delimited format (we'll use tab here) t
 
 NMDS
 ====
+
 NMDS (Non-metric MultiDimensional Scaling) works on a matrix of pairwise distances. In this example, we generate a matrix based on the euclidean distances of an abundance matrix.
 
 .. doctest::
@@ -114,7 +117,7 @@ Hierarchical clustering (UPGMA, NJ)
 
 Hierarchical clustering techniques work on a matrix of pairwise distances. In this case, we use the distance matrix from the NMDS example, relating samples of species to one another using UPGMA (NJ below).
 
-:note: UPGMA should not be used for phylogenetic reconstruction.
+.. note:: UPGMA should not be used for phylogenetic reconstruction.
 
 .. doctest::
 
@@ -122,16 +125,20 @@ Hierarchical clustering techniques work on a matrix of pairwise distances. In th
 
 we start with the distance matrix and list of sample names:
 
-    >>> sample_names = ['sample'+str(i) for i in range(len(euc_distmtx))]
+.. doctest::
     
+    >>> sample_names = ['sample'+str(i) for i in range(len(euc_distmtx))]
+
 make 2d dict:
 
+.. doctest::
+    
     >>> euc_distdict = {}
     >>> for i in range(len(sample_names)):
     ...    for j in range(len(sample_names)):
     ...        euc_distdict[(sample_names[i],sample_names[j])]=euc_distmtx[i,j]
 
-e.g.: `euc_distdict[('sample6', 'sample5')] == 3.7416573867739413`
+e.g.: ``euc_distdict[('sample6', 'sample5')] == 3.7416573867739413``
 
 Now use this matrix to build a UPGMA cluster.
 
@@ -177,7 +184,6 @@ Now use this matrix to build a UPGMA cluster.
                                  |
                                   \-sample0
 
-
 We demonstrate saving this UPGMA cluster to a file.
 
 .. doctest::
@@ -192,7 +198,6 @@ We demonstrate saving this UPGMA cluster to a file.
     
     >>> import os
     >>> os.remove('test_upgma.tree')
-
 
 We can use neighbor joining (NJ) instead of UPGMA:
 

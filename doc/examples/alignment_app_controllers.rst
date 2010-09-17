@@ -1,3 +1,5 @@
+.. _alignment-controllers:
+
 Using alignment application controllers to align unaligned sequences
 ====================================================================
 

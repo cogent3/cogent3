@@ -3,58 +3,13 @@ Collections and Alignments
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott
 
-Loading sequences from a file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-As an alignment
-"""""""""""""""
-
-The function ``LoadSeqs()`` creates either a sequence collection or an alignment depending on the keyword argument ``aligned`` (the default is ``True``).
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA)
-    >>> type(aln)
-    <class 'cogent.core.alignment.Alignment'>
-
-This example and those following used the file named `long_testseqs.fasta` available in the `data` directory. You can find it here :download:`long_testseqs.fasta <../data/long_testseqs.fasta>`.
-
-As a sequence collection (unaligned)
-""""""""""""""""""""""""""""""""""""
-
-Setting the ``LoadSeqs()`` function keyword argument ``aligned=False`` returns a sequence collection.
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> seqs = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=False)
-    >>> print type(seqs)
-    <class 'cogent.core.alignment.SequenceCollection'>
-
-.. note:: An alignment can be sliced, but a ``SequenceCollection`` can not.
-
-Specifying the file format
-""""""""""""""""""""""""""
-
-``LoadSeqs`` uses the filename suffix to infer the file format. This can be overridden using the format argument.
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA,
-    ...                  format='fasta')
-    ...
-    >>> aln
-    5 x 2532 dna alignment: Human[TGTGGCACAAA...
+For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
 
 Basic Collection objects
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. _load-seqs:
-
-Constructing a SequenceCollection or Alignment object from strings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
@@ -68,91 +23,8 @@ Constructing a SequenceCollection or Alignment object from strings
     >>> print type(seqs)
     <class 'cogent.core.alignment.SequenceCollection'>
 
-To recover a single DNA sequence from the collection or alignment by name
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Using the ``getSeq`` method allows for extracting an unaligned sequence from a collection or alignment by name. 
-
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> seq = aln.getSeq('seq1')
-    >>> seq.Name
-    'seq1'
-    >>> type(seq)
-    <class 'cogent.core.sequence.DnaSequence'>
-    >>> seq.isGapped()
-    False
-
-Alternativey, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``getGappedSeq``:
-
-.. doctest::
-
-    >>> seq = aln.getGappedSeq('seq1')
-    >>> seq.isGapped()
-    True
-
-To see the names of the sequences in a sequence collection, you can use either ``Names`` or ``getSeqNames``:
-
-.. doctest::
-
-    >>> aln.Names
-    ['seq1', 'seq2', 'seq3']
-    >>> aln.getSeqNames()
-    ['seq1', 'seq2', 'seq3']
-
-One can also slice the sequences from an alignment like a list
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-.. doctest::
-
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=True)
-    >>> aln.Seqs[0]
-    [0:2532]/2532 of DnaSequence(TGTGGCA... 2532)
-
-An alignment can be sliced "vertically"
-"""""""""""""""""""""""""""""""""""""""
-
-Alignments are organised with sequences as 'rows' and aligned residues in 'columns'. Hence, vertical slicing returns columns.
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=True)
-    >>> print aln[:24]
-    >Human
-    TGTGGCACAAATACTCATGCCAGC
-    >HowlerMon
-    TGTGGCACAAATACTCATGCCAGC
-    >Mouse
-    TGTGGCACAGATGCTCATGCCAGC
-    >NineBande
-    TGTGGCACAAATACTCATGCCAAC
-    >DogFaced
-    TGTGGCACAAATACTCATGCCAAC
-    <BLANKLINE>
-
-A SequenceCollection cannot be sliced (it's unaligned)
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-.. doctest::
-
-    >>> from cogent import LoadSeqs, DNA
-    >>> seqs = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=False)
-    >>> try:
-    ...     print seqs[:24]
-    ... except TypeError, e:
-    ...     print e
-    ...
-    'SequenceCollection' object is unsubscriptable
-
-
-Converting a SequenceCollection to FASTA format
-"""""""""""""""""""""""""""""""""""""""""""""""
+Converting a ``SequenceCollection`` to FASTA format
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
@@ -174,25 +46,46 @@ Converting a SequenceCollection to FASTA format
 The elements of a collection or alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Accessing individual sequences by name
-""""""""""""""""""""""""""""""""""""""
+Accessing individual sequences from a collection or alignment by name
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Using the ``getSeq`` method allows for extracting an unaligned sequence from a collection or alignment by name.
 
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=True)
-    >>> aln.Names
-    ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
-    >>> seq = aln.getSeq('Human')
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> seq = aln.getSeq('seq1')
     >>> seq.Name
-    'Human'
-    >>> seq
-    DnaSequence(TGTGGCA... 2532)
+    'seq1'
     >>> type(seq)
     <class 'cogent.core.sequence.DnaSequence'>
+    >>> seq.isGapped()
+    False
 
-Accessing individual sequences by position
-""""""""""""""""""""""""""""""""""""""""""
+Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``getGappedSeq``.
+
+.. doctest::
+
+    >>> seq = aln.getGappedSeq('seq1')
+    >>> seq.isGapped()
+    True
+    >>> print seq
+    ATGAA------
+
+To see the names of the sequences in a sequence collection, you can use either the ``Names`` attribute or ``getSeqNames`` method.
+
+.. doctest::
+
+    >>> aln.Names
+    ['seq1', 'seq2', 'seq3']
+    >>> aln.getSeqNames()
+    ['seq1', 'seq2', 'seq3']
+
+Slice the sequences from an alignment like a list
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object as a dictionary, obtaining the individual sequences using the titles as "keys" (above).  However, one can also iterate through the collection like a list.
 
@@ -214,7 +107,7 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
     >>> print aln.Seqs[0][:24]
     TGTGGCACAAATACTCATGCCAGC
 
-Keeping a subset of sequences from the alignment
+Getting a subset of sequences from the alignment
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
@@ -241,8 +134,8 @@ Note the subset contain references to the original sequences, not copies.
 Alignments
 ^^^^^^^^^^
 
-Creating an Alignment object from a SequenceCollection
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Creating an ``Alignment`` object from a ``SequenceCollection``
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
@@ -361,14 +254,11 @@ but a ``SequenceCollection`` cannot be sliced
     >>> from cogent import LoadSeqs, DNA
     >>> fn = 'data/long_testseqs.fasta'
     >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
-    >>> try:
-    ...     print seqs[:24]
-    ... except TypeError, e:
-    ...     print e
-    ...
-    'SequenceCollection' object is unsubscriptable
+    >>> print seqs[:24]
+    Traceback (most recent call last):
+    TypeError: 'SequenceCollection' object is unsubscriptable
 
-Getting a single column from an Alignment
+Getting a single column from an alignment
 """""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
@@ -423,6 +313,8 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     >seq1
     GGG-
     <BLANKLINE>
+
+.. _filter-positions:
 
 Filtering positions
 """""""""""""""""""
@@ -567,7 +459,7 @@ Filtering sequences
 Extracting sequences by sequence identifier into a new alignment object
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You can use ``takeSeqs()`` to extract some sequences by sequence identifier from an alignment to a new alignment object:
+You can use ``takeSeqs`` to extract some sequences by sequence identifier from an alignment to a new alignment object:
 
 .. doctest::
 
@@ -586,7 +478,7 @@ Alternatively, you can extract only the sequences which are not specified by pas
 Extracting sequences using an arbitrary function into a new alignment object
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You can use ``takeSeqsIf()`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
+You can use ``takeSeqsIf`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
 
 .. doctest::
 
@@ -612,7 +504,7 @@ Computing alignment statistics
 Computing motif probabilities from an alignment
 """""""""""""""""""""""""""""""""""""""""""""""
 
-The method ``getMotifProbs()`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
+The method ``getMotifProbs`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
 
 .. doctest::
 
@@ -689,7 +581,7 @@ To count all occurrences of a given dinucleotide in a DNA sequence, one could us
     3
 
 Working with alignment gaps
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""
 
 Filtering extracted columns for the gap character
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -747,7 +639,7 @@ It's now possible to look up positions in the ``seq1``, and find out what they m
 
 This tells us that in position 3 in ``seq1`` corresponds to position 3 in ``aln``, and that position 8 in ``seq1`` corresponds to position 9 in ``aln``.
 
-Notice that we grabbed the first result from the call to ``gapMaps()``. This is the sequence position to alignment position map. The second value returned is the alignment position to sequence position map, so if you want to find out what sequence positions the alignment positions correspond to (opposed to what alignment positions the sequence positions correspond to) for a given sequence, you would take the following steps:
+Notice that we grabbed the first result from the call to ``gapMaps``. This is the sequence position to alignment position map. The second value returned is the alignment position to sequence position map, so if you want to find out what sequence positions the alignment positions correspond to (opposed to what alignment positions the sequence positions correspond to) for a given sequence, you would take the following steps:
 
 .. doctest::
 
@@ -757,22 +649,22 @@ Notice that we grabbed the first result from the call to ``gapMaps()``. This is 
     >>> aln_to_seq_map[8]
     7
 
-If an alignment position is a gap, and therefore has no corresponding sequence position, you'll get a ``KeyError``. You can catch this in your code and handle it as makes sense for your application:
+If an alignment position is a gap, and therefore has no corresponding sequence position, you'll get a ``KeyError``.
 
 .. doctest::
 
-   >>> try:
-   ...     seq_pos = aln_to_seq_map[7]
-   ... except KeyError:
-   ...     seq_pos = None
-   >>> print seq_pos
-   None
+   >>> seq_pos = aln_to_seq_map[7]
+   Traceback (most recent call last):
+   KeyError: 7
 
-**Important: Notice that the first position in alignments and sequences is always numbered position 0.**
+.. note:: The first position in alignments and sequences is always numbered position 0.
 
 Filtering alignments based on gaps
 ++++++++++++++++++++++++++++++++++
-The ``omitGapRuns()`` method can be applied to remove long stretches of gaps in an alignment. In following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
+
+.. note:: An alternate, computationally faster, approach to removing gaps is to use the ``filtered`` method as discussed in :ref:`filter-positions`.
+
+The ``omitGapRuns`` method can be applied to remove long stretches of gaps in an alignment. In the following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
 
 .. doctest::
 
@@ -802,7 +694,7 @@ If instead, we just wanted to remove positions from the alignment which are gaps
 
 You'll notice that the 4th and 7th columns of the alignment have been removed because they contained 66% gaps -- more than the allowed 40%. 
 
-If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omitGapSeqs()`` method. This is commonly applied to filter partial sequences from an alignment. 
+If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omitGapSeqs`` method. This is commonly applied to filter partial sequences from an alignment. 
 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
@@ -814,7 +706,7 @@ If you wanted to remove sequences which contain more than a certain percent gap 
     >seq3
     AT--AG-GATG
 
-Note that following this call to ``omitGapSeqs()``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omitGapSeqs()`` is frequently followed with a call to ``omitGapPositions()`` with no parameters -- this defaults to removing positions which are all gaps:
+Note that following this call to ``omitGapSeqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omitGapSeqs`` is frequently followed with a call to ``omitGapPositions`` with no parameters -- this defaults to removing positions which are all gaps:
 
     >>> print filtered_aln.omitGapPositions().toFasta()
     >seq2
