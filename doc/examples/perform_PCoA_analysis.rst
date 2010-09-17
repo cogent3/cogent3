@@ -39,11 +39,11 @@ Now use this matrix to perform principal coordinates analysis.
     ======================================================================================
             Type              Label  vec_num-0  vec_num-1  vec_num-2  vec_num-3  vec_num-4
     --------------------------------------------------------------------------------------
-    Eigenvectors          NineBande      -0.02       0.01      -0.04       0.01       0.00
-    Eigenvectors           DogFaced      -0.04      -0.06       0.01       0.00       0.00
-    Eigenvectors          HowlerMon      -0.07       0.01      -0.01      -0.02       0.00
-    Eigenvectors              Mouse       0.20       0.01       0.01      -0.00       0.00
-    Eigenvectors              Human      -0.07       0.04       0.03       0.01       0.00
+    Eigenvectors          NineBande      -0.02       0.01       0.04       0.01       0.00
+    Eigenvectors           DogFaced      -0.04      -0.06      -0.01       0.00       0.00
+    Eigenvectors          HowlerMon      -0.07       0.01       0.01      -0.02       0.00
+    Eigenvectors              Mouse       0.20       0.01      -0.01      -0.00       0.00
+    Eigenvectors              Human      -0.07       0.04      -0.03       0.01       0.00
      Eigenvalues        eigenvalues       0.05       0.01       0.00       0.00      -0.00
      Eigenvalues  var explained (%)      85.71       9.60       3.73       0.95      -0.00
     --------------------------------------------------------------------------------------
@@ -54,10 +54,8 @@ We can save these results to a file in a delimited format (we'll use tab here) t
 
     >>> PCoA_result.writeToFile('PCoA_results.txt',sep='\t')
 
-Cleanup
--------
-
-We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.
+..
+    We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.
 
 .. doctest::
 

@@ -29,8 +29,6 @@ We'll make some synonyms for the objects for simplicity, and then look at the di
     >>> differences
     [('AGA', 'R*'), ('AGG', 'R*'), ('ATA', 'IM'), ('TGA', '*W')]
 
-
-
 Next, let's load the Woese Polar Requirement ``AAIndex`` data, and find the effect of an ATA to ATG substitution with each of the two ``GeneticCode`` objects.
 
 .. doctest::

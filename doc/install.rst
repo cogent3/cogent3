@@ -3,10 +3,10 @@
 Quick installation
 ==================
 
-Installing QIIME virtual machine
---------------------------------
+By virtual machine
+------------------
 
-The easiest way to install PyCogent is to install the QIIME vitual machine using VirtualBox. The installation instructions can be found `here <http://qiime.sourceforge.net/install/virtual_box.html>`_.
+One way to install PyCogent is to install the QIIME virtual machine using VirtualBox. The installation instructions can be found `here <http://qiime.sourceforge.net/install/virtual_box.html>`_.
 
 Please, note that this is the only installation method supported for Windows and that natively Windows does not support gz files properly so to uncompress a gz file in Windows use `7-zip <http://www.7-zip.org/>`_.
 

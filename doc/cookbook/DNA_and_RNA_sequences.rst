@@ -1,13 +1,12 @@
+.. _dna-rna-seqs:
+
 DNA and RNA sequences
 ---------------------
 
-.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott
-
-DNA sequence objects
-^^^^^^^^^^^^^^^^^^^^
+.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Tony Walters, Meg Pirrung
 
 Creating a DNA sequence from a string
-"""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All sequence and alignment objects have a molecular type, or ``MolType`` which provides key properties for validating sequence characters. Here we use the ``DNA`` ``MolType`` to create a DNA sequence.
 
@@ -22,8 +21,16 @@ All sequence and alignment objects have a molecular type, or ``MolType`` which p
     >>> str(my_seq)
     'AGTACACTGGT'
 
+Creating a RNA sequence from a string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent import RNA
+    >>> rnaseq = RNA.makeSequence('ACGUACGUACGUACGU')
+
 Converting to FASTA format
-""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -33,8 +40,18 @@ Converting to FASTA format
     >0
     AGTACACTGGT
 
+Convert a RNA sequence to FASTA format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent import RNA
+    >>> rnaseq = RNA.makeSequence('ACGUACGUACGUACGU')
+    >>> rnaseq.toFasta()
+    '>0\nACGUACGUACGUACGU'
+
 Creating a named sequence
-"""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -46,7 +63,7 @@ Creating a named sequence
     <class 'cogent.core.sequence.DnaSequence'>
 
 Setting or changing the name of a sequence
-""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -57,8 +74,8 @@ Setting or changing the name of a sequence
     >my_gene
     AGTACACTGGT
 
-Inverting a DNA sequence
-""""""""""""""""""""""""
+Complementing a DNA sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -66,6 +83,12 @@ Inverting a DNA sequence
     >>> my_seq = DNA.makeSequence("AGTACACTGGT")
     >>> print my_seq.complement()
     TCATGTGACCA
+
+Reverse complementing a DNA sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
     >>> print my_seq.reversecomplement()
     ACCAGTGTACT
 
@@ -78,30 +101,42 @@ The ``rc`` method name is easier to type
 
 .. _translation:
 
-Converting a DnaSequence object to protein
-""""""""""""""""""""""""""""""""""""""""""
+Translate a ``DnaSequence`` to protein
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
     >>> from cogent import DNA
-    >>> my_seq = DNA.makeSequence("AGTACACTGGT",'X')
+    >>> my_seq = DNA.makeSequence('GCTTGGGAAAGTCAAATGGAA','protein-X')
     >>> pep = my_seq.getTranslation()
     >>> type(pep)
     <class 'cogent.core.sequence.ProteinSequence'>
     >>> print pep.toFasta()
-    >X
-    STL
+    >protein-X
+    AWESQME
 
 Converting a DNA sequence to RNA
-""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
+    >>> from cogent import DNA
+    >>> my_seq = DNA.makeSequence('ACGTACGTACGTACGT')
     >>> print my_seq.toRna()
-    AGUACACUGGU
+    ACGUACGUACGUACGU
+
+Convert an RNA sequence to DNA
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent import RNA
+   >>> rnaseq = RNA.makeSequence('ACGUACGUACGUACGU')
+   >>> print rnaseq.toDna()
+   ACGTACGTACGTACGT
 
 Testing complementarity
-"""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -113,7 +148,7 @@ Testing complementarity
     True
 
 Joining two DNA sequences
-"""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -127,7 +162,7 @@ Joining two DNA sequences
     'AGTACACTGGTCTGAC'
 
 Slicing DNA sequences
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -135,7 +170,7 @@ Slicing DNA sequences
     DnaSequence(GTACA)
 
 Getting 3rd positions from codons
-"""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
@@ -159,7 +194,7 @@ Create the sequence feature and use it to slice the sequence.
     >>> assert str(pos3) == 'GGGG'
 
 Getting 1st and 2nd positions from codons
-"""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The only difference here to above is that our spans cover 2 positions.
 
@@ -172,92 +207,20 @@ The only difference here to above is that our spans cover 2 positions.
     >>> pos12 = pos12.getSlice()
     >>> assert str(pos12) == 'ATATATAT'
 
-Creating a general sequence object
-""""""""""""""""""""""""""""""""""
+Return a randomized version of the sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. note:: the import statement
+::
 
-.. doctest::
+   print rnaseq.shuffle()
+   ACAACUGGCUCUGAUG
 
-    >>> from cogent.core.sequence import Sequence
-    >>> seq = Sequence('ABCDEF','Name')
-    >>> print seq.toFasta()
-    >Name
-    ABCDEF
-    >>> print type(seq)
-    <class 'cogent.core.sequence.Sequence'>
-
-Loading sequences from a file
-"""""""""""""""""""""""""""""
-
-For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
-
-Loading FASTA sequences from an open file or list of lines
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-To load sequences from a fasta file directly, you can use the ``MinimalFastaParser``.
-
-.. note:: This returns the sequences as strings.
+Remove gaps from a sequence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> from cogent.parse.fasta import MinimalFastaParser
-    >>> f=open('data/long_testseqs.fasta')
-    >>> seqs = [(name, seq) for name, seq in MinimalFastaParser(f)]
-    >>> print seqs
-    [('Human', 'TGTGGCACAAATAC...
-
-Handling overloaded FASTA sequence labels
-+++++++++++++++++++++++++++++++++++++++++
-
-The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the ``LabelParser``. By creating a custom label parser, we can decided which part we use as the sequence name. We show how convert a field into something specific.
-
-.. doctest::
-    
-    >>> from cogent.parse.fasta import LabelParser
-    >>> def latin_to_common(latin):
-    ...     return {'Homo sapiens': 'human',
-    ...             'Pan troglodtyes': 'chimp'}[latin]
-    >>> label_parser = LabelParser("%(species)s",
-    ...             [[1, "species", latin_to_common]], split_with=':')
-    >>> for label in ">abcd:Homo sapiens:misc", ">abcd:Pan troglodtyes:misc":
-    ...     label = label_parser(label)
-    ...     print label, type(label)
-    human <class 'cogent.parse.fasta.RichLabel'>
-    chimp <class 'cogent.parse.fasta.RichLabel'>
-
-The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
-
-.. doctest::
-    
-    >>> from cogent.parse.fasta import MinimalFastaParser, LabelParser
-    >>> fasta_data = ['>gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]',
-    ...  'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL',
-    ... 'SEIQNIKSELKYVPKAEQ',
-    ... '>gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]',
-    ... 'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY',
-    ... 'PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD']
-    ... 
-    >>> label_to_name = LabelParser("%(ref)s",
-    ...                              [[1,"gi", str],
-    ...                               [3, "ref", str],
-    ...                               [4, "description", str]],
-    ...                               split_with="|")
-    ... 
-    >>> for name, seq in MinimalFastaParser(fasta_data, label_to_name=label_to_name):
-    ...     print name
-    ...     print name.Info.gi
-    ...     print name.Info.description
-    NP_055147.1
-    10047090
-     small muscle protein, X-linked [Homo sapiens]
-    NP_037391.1
-    10047092
-     neuronal protein [Homo sapiens]
-
-Loading DNA sequences from a GenBank file
-+++++++++++++++++++++++++++++++++++++++++
-
-.. todo:: get sample data for this
-
-*To be written.*
+    >>> from cogent import RNA
+   >>> s = RNA.makeSequence('--AUUAUGCUAU-UAu--')
+   >>> print s.degap()
+   AUUAUGCUAUUAU

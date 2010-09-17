@@ -17,7 +17,6 @@ Contents:
     blast
     building_alignments
     building_phylogenies
-    structural_data
     using_likelihood_to_perform_evolutionary_analyses
     sequence_simulation
     standard_statistical_analyses
