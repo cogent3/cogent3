@@ -79,7 +79,6 @@ try:
     from cogent.maths._period import seq_to_symbols
     #raise ImportError
 except ImportError:
-    print 'ImportError happened'
     seq_to_symbols = _seq_to_symbols
 
 class SeqToSymbols(object):
