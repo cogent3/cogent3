@@ -1374,7 +1374,16 @@ class PhyloNodeTests(TestCase):
         tree.scaleBranchLengths(max_length=100,ultrametric=True)
         expected_tree = '(((A1:20,B1:20):20,(A2:20,B2:20):20):60,((A3:20,B3:20):20,(A4:20,B4:20):20):60);'
         self.assertEqual(str(tree),expected_tree)
-
+    
+    def test_unrooted(self):
+        """unrooted should preserve tips, drop a node"""
+        rooted = LoadTree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
+        unrooted = rooted.unrooted()
+        self.assertEqual(sorted(rooted.getTipNames()),
+            sorted(unrooted.getTipNames()))
+        self.assertLessThan(len(unrooted.getNodeNames()),
+            len(rooted.getNodeNames()))
+    
 
 class Test_tip_tip_distances_I(object):
     """Abstract class for testing different implementations of tip_to_tip."""
