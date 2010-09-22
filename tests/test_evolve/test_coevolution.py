@@ -2624,11 +2624,11 @@ class ResampledMiTests(TestCase):
             weights_j = make_weights(col_j.copy(), col_j.Sum)
             entropy = mi(col_i.Uncertainty, col_j.Uncertainty,
                          pair_freqs.Uncertainty)
-            self.assertEqual(entropy, _calc_mi())
+            self.assertFloatEqual(entropy, _calc_mi())
             scales = calc_pair_scale(data, col_i, col_j, weights_i, weights_j)
             scaled_mi = 1-sum([w*pair_freqs[pr] for pr, e, w in scales\
                                                             if entropy <= e])
-            self.assertEqual(scaled_mi, expected_smi)
+            self.assertFloatEqual(scaled_mi, expected_smi)
         
         data = ['BN', 'BN', 'BP', 'BN', 'PN', 'BN', 'BN', 'BN', 'BN', 'BN',
                 'BN', 'BN', 'BN', 'PN', 'BN', 'PN', 'BN', 'BN', 'BN', 'BN',
