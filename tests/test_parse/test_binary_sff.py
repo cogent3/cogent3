@@ -1,44 +1,139 @@
 import copy
 import os
+import tempfile
 from unittest import TestCase, main
 
 from cogent.parse.binary_sff import (
-    pad, parse_common_header, parse_read_header, parse_read_data,
+    seek_pad, parse_common_header, parse_read_header, parse_read_data,
     validate_common_header, parse_read, parse_binary_sff, UnsupportedSffError,
+    write_pad, write_common_header, write_read_header, write_read_data,
+    write_read, write_binary_sff,
     )
 
 TEST_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 SFF_FP = os.path.join(TEST_DIR, 'data', 'F6AVWTA01.sff')
 
 
-class FunctionTests(TestCase):
+class WritingFunctionTests(TestCase):
+    def setUp(self):
+        self.output_file = tempfile.TemporaryFile()
+
+    def test_write_pad(self):
+        self.output_file.write('\x01\x02\x03\x04')
+        write_pad(self.output_file)
+        self.output_file.seek(0)
+        buff = self.output_file.read()
+        self.assertEqual(buff, '\x01\x02\x03\x04\x00\x00\x00\x00')
+
+    def test_write_common_header(self):
+        write_common_header(self.output_file, COMMON_HEADER)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+        self.output_file.seek(0)
+        observed = parse_common_header(self.output_file)
+        self.assertEqual(observed, COMMON_HEADER)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+    def test_write_read_header(self):
+        write_read_header(self.output_file, READ_HEADER)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+        self.output_file.seek(0)
+        observed = parse_read_header(self.output_file)
+        self.assertEqual(observed, READ_HEADER)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+    def test_write_read_data(self):
+        write_read_data(self.output_file, READ_DATA)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+        self.output_file.seek(0)
+        num_flows = len(READ_DATA['flowgram_values'])
+        num_bases = len(READ_DATA['Bases'])
+        observed = parse_read_data(self.output_file, num_bases, num_flows)
+        self.assertEqual(observed, READ_DATA)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+    def test_write_read(self):
+        read = READ_HEADER.copy()
+        read.update(READ_DATA)
+        write_read(self.output_file, read)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+        self.output_file.seek(0)
+        num_flows = len(read['flowgram_values'])
+        observed = parse_read(self.output_file)
+        self.assertEqual(observed, read)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+    def test_write_binary_sff(self):
+        read = READ_HEADER.copy()
+        read.update(READ_DATA)
+
+        header = COMMON_HEADER.copy()
+        header['number_of_reads'] = 1
+
+        write_binary_sff(self.output_file, header, [read])
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+        self.output_file.seek(0)
+        observed_header, observed_reads = parse_binary_sff(
+            self.output_file, native_flowgram_values=True)
+        observed_reads = list(observed_reads)
+        self.assertEqual(observed_header, header)
+        self.assertEqual(observed_reads[0], read)
+        self.assertEqual(len(observed_reads), 1)
+
+        file_pos = self.output_file.tell()
+        self.assertTrue(file_pos % 8 == 0)
+
+
+class ParsingFunctionTests(TestCase):
     def setUp(self):
         self.sff_file = open(SFF_FP)
 
-    def test_pad(self):
+    def test_seek_pad(self):
         f = self.sff_file
         f.seek(8)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 8)
         f.seek(9)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 16)
         f.seek(10)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 16)
         f.seek(15)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 16)
         f.seek(16)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 16)
         f.seek(17)
-        pad(f)
+        seek_pad(f)
         self.assertEqual(f.tell(), 24)
 
     def test_parse_common_header(self):
         observed = parse_common_header(self.sff_file)
-        self.assertEqual(observed, expected_common_header)
+        self.assertEqual(observed, COMMON_HEADER)
 
     def test_validate_common_header(self):
         header = {
@@ -61,22 +156,22 @@ class FunctionTests(TestCase):
     def test_parse_read_header(self):
         self.sff_file.seek(440)
         observed = parse_read_header(self.sff_file)
-        self.assertEqual(observed, expected_read_header)
+        self.assertEqual(observed, READ_HEADER)
 
     def test_parse_read_data(self):
         self.sff_file.seek(440 + 32)
         observed = parse_read_data(self.sff_file, 271, 400)
-        self.assertEqual(observed, expected_read_data)
+        self.assertEqual(observed, READ_DATA)
 
     def test_parse_read(self):
         self.sff_file.seek(440)
         observed = parse_read(self.sff_file, 400)
-        expected = dict(expected_read_header.items() + expected_read_data.items())
+        expected = dict(READ_HEADER.items() + READ_DATA.items())
         self.assertEqual(observed, expected)
 
     def test_parse_sff(self):
         header, reads = parse_binary_sff(self.sff_file)
-        self.assertEqual(header, expected_common_header)
+        self.assertEqual(header, COMMON_HEADER)
         counter = 0
         for read in reads:
             self.assertEqual(
@@ -85,7 +180,7 @@ class FunctionTests(TestCase):
         self.assertEqual(counter, 20)
 
 
-expected_common_header = {
+COMMON_HEADER = {
     'header_length': 440,
     'flowgram_format_code': 1,
     'index_length': 900,
@@ -99,7 +194,7 @@ expected_common_header = {
     'index_offset': 33464,
     }
 
-expected_read_header = {
+READ_HEADER = {
     'name_length': 14,
     'Name': 'GA202I001ER3QL',
     'clip_adapter_left': 0,
@@ -110,7 +205,7 @@ expected_read_header = {
     'clip_qual_right': 271,
     }
 
-expected_read_data = {
+READ_DATA = {
     'flow_index_per_base': (
         1, 2, 3, 2, 3, 3, 2, 1, 1, 2, 1, 2, 0, 2, 3, 3, 2, 3, 3, 0, 2, 0, 2, 0,
         1, 1, 1, 2, 0, 2, 2, 1, 0, 0, 3, 0, 2, 1, 0, 1, 1, 3, 1, 2, 2, 2, 3, 2,
