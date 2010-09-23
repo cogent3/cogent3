@@ -32,11 +32,18 @@ class NamedStruct(struct.Struct):
         """Read the struct from a file object and return the values as a dict.
         """
         buff = file.read(self.size)
-        vals = self.unpack(buff)
+        return self.unpack(buff)
+
+    def pack(self, dict_of_vals):
+        vals = [dict_of_vals[k] for k in self.keys]
+        return super(NamedStruct, self).pack(*vals)
+
+    def unpack(self, buffer):
+        vals = super(NamedStruct, self).unpack(buffer)
         return dict(zip(self.keys, vals))
 
 
-def pad(file, unit=8):
+def seek_pad(file, unit=8):
     """Set a file's position to the next multiple of a given number.
     """
     position = file.tell()
@@ -44,6 +51,17 @@ def pad(file, unit=8):
     if rem != 0:
         padding = unit - rem
         file.seek(padding, 1)        
+
+
+def write_pad(file, unit=8):
+    """Write zeros until the file's position is a multiple of the given number.
+    """
+    position = file.tell()
+    rem = position % unit
+    if rem != 0:
+        num_bytes = unit - rem
+        padding_bytes = '\x00' * num_bytes
+        file.write(padding_bytes)
 
 
 def parse_common_header(sff_file):
@@ -58,8 +76,18 @@ def parse_common_header(sff_file):
     h = common_header_struct.read_from(sff_file)
     h['flow_chars'] = sff_file.read(h['number_of_flows_per_read'])
     h['key_sequence'] = sff_file.read(h['key_length'])
-    pad(sff_file)
+    seek_pad(sff_file)
     return h
+
+
+def write_common_header(sff_file, header):
+    """Write a common header section to a binary SFF file.
+    """
+    header_bytes = common_header_struct.pack(header)
+    sff_file.write(header_bytes)
+    sff_file.write(header['flow_chars'])
+    sff_file.write(header['key_sequence'])
+    write_pad(sff_file)
 
 
 common_header_struct = NamedStruct('>IIQIIHHHB', [
@@ -108,9 +136,17 @@ def parse_read_header(sff_file):
     """
     data = read_header_struct.read_from(sff_file)
     data['Name'] = sff_file.read(data['name_length'])
-    total_bytes = read_header_struct.size + data['name_length']
-    pad(sff_file)
+    seek_pad(sff_file)
     return data
+
+
+def write_read_header(sff_file, header):
+    """Write a read header section to a binary SFF file.
+    """
+    header_bytes = read_header_struct.pack(header)
+    sff_file.write(header_bytes)
+    sff_file.write(header['Name'])
+    write_pad(sff_file)
 
 
 read_header_struct = NamedStruct('>HHIHHHH', [
@@ -150,8 +186,30 @@ def parse_read_data(sff_file, number_of_bases, number_of_flows=400):
     buff = sff_file.read(base_fmt_size)
     data['quality_scores'] = struct.unpack(base_fmt, buff)
 
-    pad(sff_file)
+    seek_pad(sff_file)
     return data
+
+
+def write_read_data(sff_file, data):
+    """Write a read data section to a binary SFF file.
+    """
+    number_of_flows = len(data['flowgram_values'])
+    number_of_bases = len(data['quality_scores'])
+    flow_fmt = '>' + ('H' * number_of_flows)
+    base_fmt = '>' + ('B' * number_of_bases)
+
+    flow_bytes = struct.pack(flow_fmt, *data['flowgram_values'])
+    sff_file.write(flow_bytes)
+
+    index_bytes = struct.pack(base_fmt, *data['flow_index_per_base'])
+    sff_file.write(index_bytes)
+    
+    sff_file.write(data['Bases'])
+
+    qual_bytes = struct.pack(base_fmt, *data['quality_scores'])
+    sff_file.write(qual_bytes)
+
+    write_pad(sff_file)
 
 
 def parse_read(sff_file, number_of_flows=400):
@@ -168,6 +226,13 @@ def parse_read(sff_file, number_of_flows=400):
         sff_file, header_data['number_of_bases'], number_of_flows)
     read_data.update(header_data)
     return read_data
+
+
+def write_read(sff_file, read):
+    """Write a single read to a binary SFF file.
+    """
+    write_read_header(sff_file, read)
+    write_read_data(sff_file, read)
 
 
 def parse_binary_sff(sff_file, native_flowgram_values=False):
@@ -196,3 +261,12 @@ def parse_binary_sff(sff_file, native_flowgram_values=False):
 
             yield read
     return header, get_reads()
+
+def write_binary_sff(sff_file, header, reads):
+    """Write a binary SFF file, using provided header and read dicts.
+    """
+    sff_file.seek(0)
+    sff_file.truncate()
+    write_common_header(sff_file, header)
+    for read in reads:
+        write_read(sff_file, read)
