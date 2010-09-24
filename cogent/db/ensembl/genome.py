@@ -392,7 +392,10 @@ class Genome(object):
         
         for feature_type in feature_types:
             target_func, target_class = target_coords_funcs[feature_type]
-            db = [self.CoreDb, self.OtherFeaturesDb][feature_type == 'est']
+            db = self.CoreDb
+            if feature_type == 'est':
+                db = self.OtherFeaturesDb
+            
             feature_coords = feature_coord_levels[feature_type].levels
             for feature_coord in feature_coords:
                 chrom_other_coords = get_coord_conversion(coord, feature_coord,
