@@ -223,7 +223,11 @@ def cdhit_clusters_from_seqs(seqs, moltype, params=None):
     """
     # keys are not remapped. Tested against seq_ids of 100char length
     seqs = SequenceCollection(seqs, MolType=moltype)
-
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = seqs.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+    
     # setup params and make sure the output argument is set
     if params is None:
         params = {}
@@ -242,15 +246,20 @@ def cdhit_clusters_from_seqs(seqs, moltype, params=None):
         raise ValueError, "Moltype must be either PROTEIN, RNA, or DNA"
 
     # grab result
-    res = app(seqs.toFasta())
+    res = app(int_map.toFasta())
     clusters = parse_cdhit_clstr_file(res['CLSTR'].readlines())
+
+    remapped_clusters = []
+    for c in clusters:
+        curr = [int_keys[i] for i in c]
+        remapped_clusters.append(curr)
 
     # perform cleanup
     res.cleanUp()
     shutil.rmtree(working_dir)
     remove(params['-o'] + '.bak.clstr')
 
-    return clusters
+    return remapped_clusters
 
 def cdhit_from_seqs(seqs, moltype, params=None):
     """Returns the CD-HIT results given seqs
