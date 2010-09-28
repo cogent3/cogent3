@@ -23,6 +23,7 @@ def long_running_function(..., ui)
 from __future__ import with_statement, division
 import sys, time, contextlib, functools, warnings
 import os, atexit
+import threading
 from cogent.util import parallel, terminal
 
 __author__ = "Peter Maxwell"
@@ -283,7 +284,8 @@ class CursesTerminalProgressBar(object):
 
 
 NULL_CONTEXT = NullContext()
-CURRENT = None
+CURRENT = threading.local()
+CURRENT.context = None
 
 class RootProgressContext(object):
     """The context between long running jobs, when there is no progress bar"""
@@ -299,7 +301,6 @@ class RootProgressContext(object):
 
 def setupRootUiContext(progressBarConstructor=None, rate=None):
     """Select a UI Context type depending on system environment"""
-    global CURRENT
     if parallel.getCommunicator().Get_rank() != 0:
         klass = None
     elif progressBarConstructor is not None:
@@ -314,11 +315,11 @@ def setupRootUiContext(progressBarConstructor=None, rate=None):
         klass = None
     
     if klass is None:
-        CURRENT = NULL_CONTEXT
+        CURRENT.context = NULL_CONTEXT
     else:
         if rate is None:
             rate = 0.1
-        CURRENT = RootProgressContext(klass, rate)
+        CURRENT.context = RootProgressContext(klass, rate)
 
 
 def display_wrap(slow_function):
@@ -327,21 +328,20 @@ def display_wrap(slow_function):
     which is used to report progress etc."""
     @functools.wraps(slow_function)
     def f(*args, **kw):
-        global CURRENT
-        if CURRENT is None:
+        if getattr(CURRENT, 'context', None) is None:
             setupRootUiContext()
-        parent = CURRENT
+        parent = CURRENT.context
         show_progress = kw.pop('show_progress', None)
         if show_progress is False:
             # PendingDeprecationWarning?
             subcontext = NULL_CONTEXT
         else:
-            subcontext = CURRENT.subcontext()
-        kw['ui'] = CURRENT = subcontext
+            subcontext = parent.subcontext()
+        kw['ui'] = CURRENT.context = subcontext
         try:
             result = slow_function(*args, **kw)
         finally:
-            CURRENT = parent
+            CURRENT.context = parent
             subcontext.done()
         return result
     return f
