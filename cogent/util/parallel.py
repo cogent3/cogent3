@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import with_statement
-import os
+import os, sys
 from contextlib import contextmanager
 
 
@@ -41,11 +41,13 @@ class _FakeMPI(object):
     SUM = MAX = DOUBLE = 'fake'   
 
 if os.environ.get('DONT_USE_MPI', 0):
-    mpi = None
+    print >>sys.stderr, 'Not using MPI'
+    MPI = None
 else:
     try:
         from mpi4py import MPI
     except ImportError:
+        print >>sys.stderr, 'Not using MPI as mpi4py not found'
         MPI = None
     else:
         size = MPI.COMM_WORLD.Get_size()
