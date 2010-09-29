@@ -103,6 +103,9 @@ class NMDS(object):
             self.points = initial_pts
         
         self.points = self._center(self.points)
+        #init dists
+        self.dists = zeros(len(self.order), 'd')
+        
         self._rescale()
         self._calc_distances() 
         # sets self.dists, ordered according to self.order
@@ -212,11 +215,12 @@ class NMDS(object):
     def _calc_distances(self):
         """Returns a list of pairwise distances, ordered by self.order
         """
-        
         # cProfile indicates this call is the speed bottleneck
-        dists = [norm(self.points[i] - self.points[j]) for i, j in self.order]
-        
-        self.dists = array(dists, 'd')
+        for i,order in enumerate(self.order):
+            v1, v2 = order
+            diffv = self.points[v1] - self.points[v2]
+            self.dists[i] = sqrt((diffv*diffv.T).sum())
+
 
 
     def _update_dhats(self):
