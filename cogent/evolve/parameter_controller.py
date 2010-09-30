@@ -10,6 +10,7 @@ from cogent.evolve import likelihood_calculation
 from cogent.align import dp_calculation
 from cogent.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent.recalculation.scope import _indexed
+from cogent.maths.stats.information_criteria import aic, bic
 
 import numpy
 import pickle
@@ -270,6 +271,29 @@ class _LikelihoodParameterController(_LF):
                 self.setParamRule("length", edge=edge.Name, is_const=1,
                                         value=edge.Length)
     
+    def getAic(self, second_order=False):
+        """returns Aikake Information Criteria
+        
+        Arguments:
+            - second_order: if true, the second-order AIC is returned,
+              adjusted by the alignment length"""
+        if second_order:
+            sequence_length = sum(len(self.getParamValue('lht', locus=l).index)
+                                    for l in self.locus_names)
+        else:
+            sequence_length = None
+        
+        lnL = self.getLogLikelihood()
+        nfp = self.getNumFreeParams()
+        return aic(lnL, nfp, sequence_length)
+    
+    def getBic(self):
+        """returns the Bayesian Information Criteria"""
+        sequence_length = sum(len(self.getParamValue('lht', locus=l).index)
+                                for l in self.locus_names)
+        lnL = self.getLogLikelihood()
+        nfp = self.getNumFreeParams()
+        return bic(lnL, nfp, sequence_length)
 
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
     
