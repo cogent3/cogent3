@@ -351,6 +351,41 @@ We get the sequences as a sequence collection, with annotations for gene.
     
     >>> seqs = orthologs.getSeqCollection(feature_types='gene')
 
+Get CDS for all one-to-one orthologs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We sample all one-to-one orthologs for a group of species, generating a FASTA formatted string that can be written to file. We check all species have an ortholog and that all are translatable.
+
+.. doctest::
+    
+    >>> from cogent.core.alphabet import AlphabetError
+    >>> common_names = ["mouse", "rat", "human", "opossum"]
+    >>> latin_names = set([Species.getSpeciesName(n) for n in common_names])
+    >>> latin_to_common = dict(zip(latin_names, common_names))
+    >>> compara = Compara(common_names, Release=58, account=account)
+    >>> for gene in compara.Human.getGenesMatching(BioType='protein_coding'):
+    ...     orthologs = compara.getRelatedGenes(gene,
+    ...                                  Relationship='ortholog_one2one')
+    ...     # make sure all species represented
+    ...     if orthologs is None or orthologs.getSpeciesSet() != latin_names:
+    ...         continue
+    ...     seqs = []
+    ...     for m in orthologs.Members:
+    ...         try: # if sequence can't be translated, we ignore it
+    ...             # get the CDS without the ending stop
+    ...             seq = m.CanonicalTranscript.Cds.withoutTerminalStopCodon()
+    ...             # make the sequence name
+    ...             seq.Name = '%s:%s:%s' % \
+    ...         (latin_to_common[m.genome.Species], m.StableId, m.Location)
+    ...             aa = seq.getTranslation()
+    ...             seqs += [seq]
+    ...         except (AlphabetError, AssertionError):
+    ...             seqs = [] # exclude this gene
+    ...             break
+    ...     if len(seqs) == len(common_names):
+    ...         fasta = '\n'.join(s.toFasta() for s in seqs)
+    ...         break
+
 Get within species paralogs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
