@@ -22,6 +22,7 @@ from cogent.evolve import substitution_model, predicate
 from cogent import DNA, LoadSeqs, LoadTree
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
+from cogent.maths.stats.information_criteria import aic, bic
 from cogent.evolve.models import JTT92
 
 Nucleotide = substitution_model.Nucleotide
@@ -301,6 +302,18 @@ class LikelihoodFunctionTests(TestCase):
                     edge=LCA, is_const=True)
         
         likelihood_function.setParamRule("beta", value=4.0, is_const=True)
+    
+    def test_information_criteria(self):
+        """test get information criteria from a model."""
+        lf = self._makeLikelihoodFunction()
+        nfp = lf.getNumFreeParams()
+        lnL = lf.getLogLikelihood()
+        l = len(self.data)
+        self.assertFloatEqual(lf.getAic(), aic(lnL, nfp))
+        self.assertFloatEqual(lf.getAic(second_order=True),
+            aic(lnL, nfp, l))
+        
+        self.assertFloatEqual(lf.getBic(), bic(lnL, nfp, l))
     
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()

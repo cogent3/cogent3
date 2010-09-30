@@ -335,6 +335,9 @@ Getting statistics out of likelihood functions
 Model fit statistics
 --------------------
 
+Log likelihood and number of free parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
@@ -357,6 +360,53 @@ We get the log-likelihood and the number of free parameters.
     16
 
 .. warning:: The number of free parameters (nfp) refers only to the number of parameters that were modifiable by the optimiser. Typically, the degrees-of-freedom of a likelihood ratio test statistic is computed as the difference in nfp between models. This will not be correct for models in which boundary conditions exist (rate heterogeneity models where a parameter value boundary is set between bins).
+
+Information theoretic measures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aikake Information Criterion
+""""""""""""""""""""""""""""
+
+..note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
+
+.. doctest::
+    
+    >>> from cogent import LoadTree, LoadSeqs
+    >>> from cogent.evolve.models import GTR
+    >>> sm = GTR()
+    >>> tree = LoadTree('data/primate_brca1.tree')
+    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> lf.setAlignment(aln)
+    >>> AIC = lf.getAic()
+    >>> AIC
+    49235.869...
+
+We can also get the second-order AIC.
+
+.. doctest::
+    
+    >>> AICc = lf.getAic(second_order=True)
+    >>> AICc
+    49236.064...
+
+Bayesian Information Criterion
+""""""""""""""""""""""""""""""
+
+..note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
+
+.. doctest::
+    
+    >>> from cogent import LoadTree, LoadSeqs
+    >>> from cogent.evolve.models import GTR
+    >>> sm = GTR()
+    >>> tree = LoadTree('data/primate_brca1.tree')
+    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> lf.setAlignment(aln)
+    >>> BIC = lf.getBic()
+    >>> BIC
+    49330.9475...
 
 Getting maximum likelihood estimates
 ------------------------------------

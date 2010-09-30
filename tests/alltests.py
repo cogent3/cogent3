@@ -98,6 +98,7 @@ def suite():
         'test_maths.test_stats.test_alpha_diversity',
         'test_maths.test_stats.test_distribution',
         'test_maths.test_stats.test_histogram',
+        'test_maths.test_stats.test_information_criteria',
         'test_maths.test_stats.test_period',
         'test_maths.test_stats.test_special',
         'test_maths.test_stats.test_test',
