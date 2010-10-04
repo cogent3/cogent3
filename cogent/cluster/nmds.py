@@ -7,7 +7,7 @@ Kruskal 1964: Nonmetric multidimensional scaling
 """
 from __future__ import division
 from numpy import array, multiply, sum, zeros, size, shape, diag, dot, mean,\
-    sqrt, transpose, trace, argsort
+    sqrt, transpose, trace, argsort, newaxis, finfo, all
 from numpy.random import seed, normal as random_gauss
 from numpy.linalg import norm, svd
 from operator import itemgetter
@@ -16,7 +16,7 @@ from cogent.cluster.metric_scaling import principal_coordinates_analysis
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
-__credits__ = ["Justin Kuczynski"]
+__credits__ = ["Justin Kuczynski", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Justin Kuczynski"
@@ -103,19 +103,16 @@ class NMDS(object):
             self.points = initial_pts
         
         self.points = self._center(self.points)
-        #init dists
-        self.dists = zeros(len(self.order), 'd')
         
         self._rescale()
         self._calc_distances() 
-        # sets self.dists, ordered according to self.order
         # dists relates to points, not to input data
         
         self._update_dhats()
-        # self.dhats are constrained to be monotonic
+        # dhats are constrained to be monotonic
         
         self._calc_stress()
-        # self.stress is calculated from self.dists and self.dhats
+        # self.stress is calculated from dists and dhats
         
         self.stresses = [self.stress]
         # stress is the metric of badness of fit used in this code
@@ -154,7 +151,20 @@ class NMDS(object):
         # normalize the scaling, which should not change the stress
         self._rescale()
     
-    
+    @property
+    def dhats(self):
+        """The dhats in order."""
+        # Probably not required, but here in case needed for backward
+        # compatibility.  self._dhats is the full 2D array
+        return [self._dhats[i,j] for (i,j) in self.order]
+        
+    @property
+    def dists(self):
+        """The dists in order"""
+        # Probably not required, but here in case needed for backward
+        # compatibility.  self._dists is the full 2D array
+        return [self._dists[i,j] for (i,j) in self.order]
+
     def getPoints(self):
         """Returns (ordered in a list) the n points in k space 
         
@@ -213,21 +223,20 @@ class NMDS(object):
         return array(points, 'd')
 
     def _calc_distances(self):
-        """Returns a list of pairwise distances, ordered by self.order
-        """
-        # cProfile indicates this call is the speed bottleneck
-        for i,order in enumerate(self.order):
-            v1, v2 = order
-            diffv = self.points[v1] - self.points[v2]
-            self.dists[i] = sqrt((diffv*diffv.T).sum())
-
-
-
+        """Update distances between the points"""
+        diffv = self.points[newaxis, :, :] - self.points[:, newaxis, :]
+        squared_dists = (diffv**2).sum(axis=-1)
+        self._dists = sqrt(squared_dists)
+        self._squared_dist_sums = squared_dists.sum(axis=-1)
+             
     def _update_dhats(self):
-        """updates self.dhats based on self.dists data"""
-        dhats = self.dists.copy()
-        dhats = self._do_monotone_regression(dhats)
-        self.dhats = array(dhats, 'd')
+        """Update dhats based on distances"""
+        new_dhats = self._dists.copy()
+        ordered_dhats = [new_dhats[i,j] for (i,j) in self.order]
+        ordered_dhats = self._do_monotone_regression(ordered_dhats)
+        for ((i,j),d) in zip(self.order, ordered_dhats):
+            new_dhats[i,j] = new_dhats[j, i] = d
+        self._dhats = new_dhats
         
     def _do_monotone_regression(self, dhats):
         """Performs a monotone regression on dhats, returning the result
@@ -240,59 +249,50 @@ class NMDS(object):
         if an element is smaller than its preceeding one, the two are averaged
         and grouped together in a block.  The process is repeated until
         the blocks are monotonic, that is block i <= block i+1.
-        
-        As the list gets long, it is likely that a deviation from monotinicity 
-        would not propagate back to the beginning.  
-        The current implementation restarts from the beginning
-        after fixing each non-monotonicity, potentially needlessly rechecking 
-        many blocks.  It could be rewritten to fix the entire list in one pass.
-        However, the _move_points step is more likely to be the 
-        speed bottleneck here.
         """
         
-        initial_len = len(dhats)
-        blocklist = [[dhat, 1] for dhat in dhats] 
-        # each element is [value, blocksize]
-        
-        block_idx = 0
-        while True:
-            if block_idx == (len(blocklist) - 1):
-                # we are at the last block => list is monotonic
-                are_blocks_monotonic = True
-                break
-            
-            if blocklist[block_idx][0] > blocklist[block_idx+1][0]:
-                # fix non-monotonicity and restart from beginning of blocklist
-                b1_val = blocklist[block_idx][0]
-                b1_size = blocklist[block_idx][1]
-                b2_val = blocklist[block_idx+1][0]
-                b2_size = blocklist[block_idx+1][1]
-                blocklist[block_idx][0] = (b1_val*b1_size + b2_val*b2_size)\
-                    /(b1_size + b2_size)
-                blocklist[block_idx][1] = b1_size + b2_size
-                blocklist.pop(block_idx+1)
-                block_idx = 0
-            else:
-                block_idx += 1
-                
-        # remake dhats as a flat list, not a blocklist
+        blocklist = []
+        for top_dhat in dhats:
+            top_total = top_dhat
+            top_size = 1
+            while blocklist and top_dhat <= blocklist[-1][0]:
+                (dhat, total, size) = blocklist.pop()
+                top_total += total
+                top_size += size
+                top_dhat = top_total / top_size
+            blocklist.append((top_dhat, top_total, top_size))
         result_dhats = []
-        for block in blocklist:
-            for j in range(block[1]):
-                result_dhats.append(block[0])
-                
-        if len(result_dhats) != initial_len:
-            raise RuntimeError("monotone regression changed list size")
-        
+        for (val, total, size) in blocklist:
+            result_dhats.extend([val]*size)
         return result_dhats
         
     def _calc_stress(self):
-        """calculates the stress, or badness of fit from self.dhats, self.dists
+        """calculates the stress, or badness of fit between the distances and dhats
+        Caches some intermediate values for gradient calculations.
         """
-        diff = self.dists - self.dhats
-        top = sum(multiply(diff, diff))
-        self.stress = sqrt(top/sum(multiply(self.dists, self.dists)))
+        diffs = (self._dists - self._dhats)
+        diffs **= 2
+        self._squared_diff_sums = diffs.sum(axis=-1)
+        self._total_squared_diff = self._squared_diff_sums.sum() / 2
+        self._total_squared_dist = self._squared_dist_sums.sum() / 2
+        self.stress = sqrt(self._total_squared_diff/self._total_squared_dist)
         
+    def _nudged_stress(self, v, d, epsilon):
+        """Calculates the stress with point v moved epsilon in the dth dimension
+        """
+        delta_epsilon = zeros([self.dimension], float)
+        delta_epsilon[d] = epsilon
+        moved_point = self.points[v] + delta_epsilon
+        squared_dists = ((moved_point - self.points)**2).sum(axis=-1)
+        squared_dists[v] = 0.0
+        delta_squared_dist = squared_dists.sum() - self._squared_dist_sums[v]
+        diffs = sqrt(squared_dists) - self._dhats[v]
+        diffs **= 2
+        delta_squared_diff = diffs.sum() - self._squared_diff_sums[v]
+        return sqrt(
+            (self._total_squared_diff + delta_squared_diff) /
+            (self._total_squared_dist + delta_squared_dist))
+
     def _rescale(self):
         """ assumes centered, rescales to mean ot-origin dist of 1
         """
@@ -320,7 +320,6 @@ class NMDS(object):
         optimization algorithm 0 is justin's hack (steepest descent method)
         """
 
-        
         if self.optimization_method == 0:
             self._steep_descent_move()
         
@@ -328,6 +327,7 @@ class NMDS(object):
             numrows, numcols = shape(self.points)
             pts = self.points.ravel().copy()
             optpts = optimize.fmin_bfgs(self._recalc_stress_from_pts, pts,
+                fprime=self._calc_stress_gradients, 
                 disp=self.verbosity, maxiter=100, gtol=1e-3)
             self.points = optpts.reshape((numrows, numcols))
         else:
@@ -396,12 +396,26 @@ class NMDS(object):
         
         a special function for use with external optimization routines.
         pts here is a 1D numpy array"""
-        numrows, numcols = shape(self.points)
-        self.points = pts.reshape((numrows, numcols))
-        self._calc_distances()
+        pts = pts.reshape(self.points.shape)
+
+        changed = not all(pts == self.points)
+        self.points = pts
+        if changed:
+            self._calc_distances()
         self._calc_stress()
         return self.stress
     
+    def _calc_stress_gradients(self, pts):
+        """Approx first derivatives of stress at pts, for optimisers"""
+        epsilon = sqrt(finfo(float).eps)
+        f0 = self._recalc_stress_from_pts(pts)
+        grad = zeros(pts.shape, float)
+        for k in range(len(pts)):
+            (point, dim) = divmod(k, self.dimension)
+            f1 = self._nudged_stress(point, dim, epsilon)
+            grad[k] = (f1 - f0)/epsilon
+        return grad
+
 
 def metaNMDS(iters, *args, **kwargs):
     """ runs NMDS, first with pcoa init, then iters times with random init
