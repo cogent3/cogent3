@@ -4,7 +4,7 @@
 Multivariate data analysis
 **************************
 
-.. sectionauthor Justin Kuczynski, Catherine Lozupone
+.. sectionauthor Justin Kuczynski, Catherine Lozupone, Andreas Wilm
 
 Principal Coordinates Analysis
 ==============================
@@ -59,6 +59,87 @@ We can save these results to a file in a delimited format (we'll use tab here) t
 .. doctest::
 
     >>> PCoA_result.writeToFile('PCoA_results.txt',sep='\t')
+
+
+Fast-MDS
+========
+
+The eigendecomposition step in Principal Coordinates Analysis (PCoA)
+doesn't scale very well. And for thousands of objects the computation
+of all pairwise distance alone can get very slow, because it scales
+quadratically. For a huge number of objects this might even pose a
+memory problem. Fast-MDS methods approximate an MDS/PCoA solution and
+do not suffer from these problems.
+
+First, let's simulate a big data sample by creating 4000 objects living
+in 10 dimension. Then compute their pairwise distances and perform a
+principal coordinates analysis on it. Note that the last two steps might take
+already a couple of minutes.
+
+.. doctest::
+
+    >>> from cogent.maths.distance_transform import dist_euclidean
+    >>> from cogent.cluster.metric_scaling import principal_coordinates_analysis
+    >>> from numpy import random
+    >>> objs = random.random((4000, 10))
+    >>> distmtx = dist_euclidean(objs);
+    >>> full_pcoa = principal_coordinates_analysis(distmtx)
+
+
+PyCogent implements two fast MDS approximations called
+Split-and-Combine MDS (SCMDS, still in development) and Nystrom (also known as
+Landmark-MDS). Both can easily handle many thousands objects. One
+reason is that they don't require all distances to be computed.
+Instead you pass down the distance function and only required
+distances are calculated.
+
+Nystrom works by using a so called seed-matrix, which contains (only) k by
+n distances, where n is the total number of objects and k<<n. The
+bigger k, the more exact the approximation will be and the longer the
+computation will take. One further difference to normal Principal
+Coordinates Analysis is, that no eigenvalues, but only approximate
+eigenvectors of length dim will be returned.
+
+.. doctest::
+
+   >>> from cogent.cluster.fast_metric_scaling_nystrom import nystrom_frontend
+   >>> n_full = 4000
+   >>> n_seeds = 100
+   >>> dim = 4
+   >>> dist_func = lambda x, y: distmtx[x, y]
+   >>> nystrom_frontend(n_full, n_seeds, dim, dist_func)
+
+A good rule of thumb for picking n_seeds is log(n), log(n)**2 or
+sqrt(n).
+
+
+SCMDS works by dividing the pairwise distance matrix into chunks of
+certain size and overlap. MDS is performed on each chunk individually
+and the resulting solutions are progressively joined. As in the case
+of Nystrom not all distances will be computed, but only those of the
+overlapping tiles. The size and overlap of the tiles determine the
+quality of the approximation as well as the run-time.
+
+.. doctest::
+
+   >>> from cogent.cluster.fast_metric_scaling_scmds import scmds_frontend
+   >>> n_full = 4000
+   >>> tile_size = 500
+   >>> tile_overlap = 50
+   >>> dim = 4
+   >>> dist_func = lambda x, y: distmtx[x, y]
+   >>> scmds_frontend(n_full, tile_size, tile_overlap, dim, dist_func)
+
+
+If you want to know how good the returned approximations are, you will
+have to perform principal_coordinates_analysis() on a smallish
+submatrix and perform a goodness_of_fit analysis.
+
+
+
+
+
+
 
 NMDS
 ====
@@ -126,13 +207,13 @@ Hierarchical clustering techniques work on a matrix of pairwise distances. In th
 we start with the distance matrix and list of sample names:
 
 .. doctest::
-    
+
     >>> sample_names = ['sample'+str(i) for i in range(len(euc_distmtx))]
 
 make 2d dict:
 
 .. doctest::
-    
+
     >>> euc_distdict = {}
     >>> for i in range(len(sample_names)):
     ...    for j in range(len(sample_names)):
@@ -195,14 +276,14 @@ We demonstrate saving this UPGMA cluster to a file.
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> os.remove('test_upgma.tree')
 
 We can use neighbor joining (NJ) instead of UPGMA:
 
 .. doctest::
-    
+
     >>> from cogent.phylo.nj import nj
     >>> njtree = nj(euc_distdict)
     >>> print njtree.asciiArt()

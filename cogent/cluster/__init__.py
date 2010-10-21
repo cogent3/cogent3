@@ -2,7 +2,8 @@
 """cluster: provides tools for clustering
 """
 
-__all__ = ['goodness_of_fit', 'metric_scaling', 'procrustes', 'UPGMA', 'nmds']
+__all__ = ['goodness_of_fit', 'metric_scaling', 'procrustes', 'UPGMA', 'nmds',
+           'fast_metric_scaling_nystrom']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
