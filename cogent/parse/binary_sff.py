@@ -10,9 +10,11 @@ __maintainer__ = 'Kyle Bittinger'
 __email__ = 'kylebittinger@gmail.com'
 __status__ = 'Prototype'
 
+from cStringIO import StringIO
+import string
 import struct
 
-# Inspired by, but not derived from, several other implementations:
+# Sections were inspired by, but not derived from, several other implementations:
 # * BioPython (biopython.org)
 # * sff_extract (www.melogen.upv.es/sff_extract)
 # * Mothur (mothur.org)
@@ -64,6 +66,22 @@ def write_pad(file, unit=8):
         file.write(padding_bytes)
 
 
+common_header_fields = [
+    'magic_number',
+    'version',
+    'index_offset',
+    'index_length',
+    'number_of_reads',
+    'header_length',
+    'key_length',
+    'number_of_flows_per_read',
+    'flowgram_format_code',
+    ]
+
+
+common_header_struct = NamedStruct('>IIQIIHHHB', common_header_fields)
+
+
 def parse_common_header(sff_file):
     """Parse a Common Header section from a binary SFF file.
     
@@ -90,17 +108,30 @@ def write_common_header(sff_file, header):
     write_pad(sff_file)
 
 
-common_header_struct = NamedStruct('>IIQIIHHHB', [
-    'magic_number',
-    'version',
-    'index_offset',
-    'index_length',
-    'number_of_reads',
-    'header_length',
-    'key_length',
-    'number_of_flows_per_read',
-    'flowgram_format_code',
-    ])
+common_header_formats = [
+    '  Magic Number:  0x%X\n',
+    '  Version:       %04d\n',
+    '  Index Offset:  %d\n',
+    '  Index Length:  %d\n',
+    '  # of Reads:    %d\n',
+    '  Header Length: %d\n',
+    '  Key Length:    %d\n',
+    '  # of Flows:    %d\n',
+    '  Flowgram Code: %d\n',
+    ]
+
+
+def format_common_header(header):
+    """Format a dictionary representation of an SFF common header as text.
+    """
+    out = StringIO()
+    out.write('Common Header:\n')
+    for key, fmt in zip(common_header_fields, common_header_formats):
+        val = header[key]
+        out.write(fmt % val)
+    out.write('  Flow Chars:    %s\n' % header['flow_chars'])
+    out.write('  Key Sequence:  %s\n' % header['key_sequence'])
+    return out.getvalue()
 
 
 class UnsupportedSffError(Exception):
@@ -125,6 +156,20 @@ def validate_common_header(header):
                     attr_name, expected_value, observed_value))
 
 
+read_header_fields = [
+    'read_header_length',
+    'name_length',
+    'number_of_bases',
+    'clip_qual_left', 
+    'clip_qual_right',
+    'clip_adapter_left',
+    'clip_adapter_right',
+    ]
+
+
+read_header_struct = NamedStruct('>HHIHHHH', read_header_fields)
+
+
 def parse_read_header(sff_file):
     """Parse a Read Header section from a binary SFF file.
     
@@ -140,24 +185,40 @@ def parse_read_header(sff_file):
     return data
 
 
-def write_read_header(sff_file, header):
+def write_read_header(sff_file, read_header):
     """Write a read header section to a binary SFF file.
     """
-    header_bytes = read_header_struct.pack(header)
+    header_bytes = read_header_struct.pack(read_header)
     sff_file.write(header_bytes)
-    sff_file.write(header['Name'])
+    sff_file.write(read_header['Name'])
     write_pad(sff_file)
 
 
-read_header_struct = NamedStruct('>HHIHHHH', [
-    'read_header_length',
-    'name_length',
-    'number_of_bases',
-    'clip_qual_left', 
-    'clip_qual_right',
-    'clip_adapter_left',
-    'clip_adapter_right',
-    ])
+read_header_formats = [
+    '  Read Header Len:  %d\n',
+    '  Name Length:      %d\n',
+    '  # of Bases:       %d\n',
+    '  Clip Qual Left:   %d\n',
+    '  Clip Qual Right:  %d\n',
+    '  Clip Adap Left:   %d\n',
+    '  Clip Adap Right:  %d\n',
+    ]
+
+
+def format_read_header(read_header):
+    """Format a dictionary representation of an SFF read header as text.
+    """
+    out = StringIO()
+    out.write('\n>%s\n' % read_header['Name'])
+    timestamp, hashchar, region, location = decode_accession(read_header['Name'])
+    out.write('  Run Prefix:   R_%d_%02d_%02d_%02d_%02d_%02d_\n' % timestamp)
+    out.write('  Region #:     %d\n' % region)
+    out.write('  XY Location:  %04d_%04d\n' % location)
+    out.write('\n')
+    for key, fmt in zip(read_header_fields, read_header_formats):
+        val = read_header[key]
+        out.write(fmt % val)
+    return out.getvalue()
 
 
 def parse_read_data(sff_file, number_of_bases, number_of_flows=400):
@@ -190,26 +251,66 @@ def parse_read_data(sff_file, number_of_bases, number_of_flows=400):
     return data
 
 
-def write_read_data(sff_file, data):
+def write_read_data(sff_file, read_data):
     """Write a read data section to a binary SFF file.
     """
-    number_of_flows = len(data['flowgram_values'])
-    number_of_bases = len(data['quality_scores'])
+    number_of_flows = len(read_data['flowgram_values'])
+    number_of_bases = len(read_data['quality_scores'])
     flow_fmt = '>' + ('H' * number_of_flows)
     base_fmt = '>' + ('B' * number_of_bases)
 
-    flow_bytes = struct.pack(flow_fmt, *data['flowgram_values'])
+    flow_bytes = struct.pack(flow_fmt, *read_data['flowgram_values'])
     sff_file.write(flow_bytes)
 
-    index_bytes = struct.pack(base_fmt, *data['flow_index_per_base'])
+    index_bytes = struct.pack(base_fmt, *read_data['flow_index_per_base'])
     sff_file.write(index_bytes)
     
-    sff_file.write(data['Bases'])
+    sff_file.write(read_data['Bases'])
 
-    qual_bytes = struct.pack(base_fmt, *data['quality_scores'])
+    qual_bytes = struct.pack(base_fmt, *read_data['quality_scores'])
     sff_file.write(qual_bytes)
 
     write_pad(sff_file)
+
+
+def format_read_data(read_data, read_header):
+    """Format a dictionary representation of an SFF read data as text.
+    """
+    out = StringIO()
+    out.write('\n')
+
+    out.write('Flowgram:')
+    flow_vals = read_data['flowgram_values']
+    if any((x > 10 for x in flow_vals)):
+        flow_vals = [x * 0.01 for x in flow_vals]
+    for x in flow_vals:
+        out.write('\t%01.2f' % x)
+    out.write('\n')
+
+    out.write('Flow Indexes:')
+    current_index = 0
+    for i in read_data['flow_index_per_base']:
+        current_index = current_index + i
+        out.write('\t%d' % current_index)
+    out.write('\n')
+
+    out.write('Bases:\t')
+    # Roche uses 1-based indexing
+    left_idx = read_header['clip_qual_left'] - 1
+    right_idx = read_header['clip_qual_right'] - 1
+    for i, base in enumerate(read_data['Bases']):
+        if (i < left_idx) or (i > right_idx):
+            out.write(base.lower())
+        else:
+            out.write(base.upper())
+    out.write('\n')
+
+    out.write('Quality Scores:')
+    for score in read_data['quality_scores']:
+        out.write('\t%d' % score)
+    out.write('\n')
+
+    return out.getvalue()
 
 
 def parse_read(sff_file, number_of_flows=400):
@@ -233,6 +334,15 @@ def write_read(sff_file, read):
     """
     write_read_header(sff_file, read)
     write_read_data(sff_file, read)
+
+
+def format_read(read):
+    """Format a dictionary representation of an SFF read as text.
+    """
+    out = StringIO()
+    out.write(format_read_header(read))
+    out.write(format_read_data(read, read))
+    return out.getvalue()
 
 
 def parse_binary_sff(sff_file, native_flowgram_values=False):
@@ -262,6 +372,7 @@ def parse_binary_sff(sff_file, native_flowgram_values=False):
             yield read
     return header, get_reads()
 
+
 def write_binary_sff(sff_file, header, reads):
     """Write a binary SFF file, using provided header and read dicts.
     """
@@ -270,3 +381,103 @@ def write_binary_sff(sff_file, header, reads):
     write_common_header(sff_file, header)
     for read in reads:
         write_read(sff_file, read)
+
+
+def format_binary_sff(sff_file, output_file=None):
+    """Write a text version of a binary SFF file to an output file.
+
+    If no output file is provided, an in-memory file-like buffer is
+    used (namely, a StringIO object).
+    """
+    if output_file is None:
+        output_file = StringIO()
+    header, reads = parse_binary_sff(sff_file)
+    output_file.write(format_common_header(header))
+    for read in reads:
+        output_file.write(format_read(read))
+    return output_file
+
+
+def base36_encode(n):
+    """Convert a positive integer to a base36 string.
+
+    Following the conventions outlined in the Roche 454 manual, the
+    numbers 0-25 are represented by letters, and the numbers 36-35 are
+    represented by digits.
+
+    Based on the code example at http://en.wikipedia.org/wiki/Base_36
+    """
+    if n < 0:
+        raise ValueError('Only poitive numbers are supported.')
+    chars = []
+    while n != 0:
+        n, remainder = divmod(n, 36)
+        chars.append(base36_encode.alphabet[remainder])
+    return ''.join(chars)
+
+
+base36_encode.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+
+
+def base36_decode(base36_str):
+    """Convert a base36 string to a positive integer.
+
+    Following the conventions outlined in the Roche 454 manual, the
+    numbers 0-25 are represented by letters, and the numbers 36-35 are
+    represented by digits.
+    """
+    base36_str = base36_str.translate(base36_decode.translation)
+    return int(base36_str, 36)
+
+
+base36_decode.translation = string.maketrans(
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    )
+
+
+def decode_location(location_str):
+    """Decode a base36-encoded well location, in Roche 454 format.
+
+    Such timestamps are embedded in the final 5 characters of Roche
+    \"universal\" accession numbers.
+    """
+    return divmod(base36_decode(location_str), 4096)
+
+
+def decode_timestamp(timestamp_str):
+    """Decode a base36-encoded timestamp, in Roche 454 format.
+
+    Such timestamps are embedded in the first 6 characters of Roche
+    \"universal\" accession numbers and SFF filenames.
+    """
+    n = base36_decode(timestamp_str)
+    year, n = divmod(n, 13 * 32 * 24 * 60 * 60)
+    year = year + 2000
+    month, n = divmod(n, 32 * 24 * 60 * 60)
+    day, n = divmod(n, 24 * 60 * 60)
+    hour, n = divmod(n, 60 * 60)
+    minute, second = divmod(n, 60)
+    return year, month, day, hour, minute, second
+
+
+def decode_accession(accession):
+    """Decode a Roche 454 \"universal\" accession number.
+    """
+    assert len(accession) == 14
+    timestamp = decode_timestamp(accession[:6])
+    hashchar = accession[6]
+    region = int(accession[7:9])
+    location = decode_location(accession[9:14])
+    return timestamp, hashchar, region, location
+
+
+def decode_sff_filename(sff_filename):
+    """Decode a Roche 454 SFF filename, returning a timestamp and other info.
+    """
+    assert len(sff_filename) == 13
+    assert sff_filename.endswith('.sff')
+    timestamp = decode_timestamp(sff_filename[:6])
+    hashchar = sff_filename[6]
+    region = int(sff_filename[7:9])
+    return timestamp, hashchar, region

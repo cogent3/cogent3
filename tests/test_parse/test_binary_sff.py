@@ -7,7 +7,9 @@ from cogent.parse.binary_sff import (
     seek_pad, parse_common_header, parse_read_header, parse_read_data,
     validate_common_header, parse_read, parse_binary_sff, UnsupportedSffError,
     write_pad, write_common_header, write_read_header, write_read_data,
-    write_read, write_binary_sff,
+    write_read, write_binary_sff, format_common_header, format_read_header,
+    format_read_data, format_binary_sff, base36_encode, base36_decode,
+    decode_location, decode_timestamp, decode_accession, decode_sff_filename,
     )
 
 TEST_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -180,6 +182,57 @@ class ParsingFunctionTests(TestCase):
         self.assertEqual(counter, 20)
 
 
+class FormattingFunctionTests(TestCase):
+    def setUp(self):
+        self.output_file = tempfile.TemporaryFile()
+
+    def test_format_common_header(self):
+        self.assertEqual(
+            format_common_header(COMMON_HEADER), COMMON_HEADER_TXT)
+
+    def test_format_read_header(self):
+        self.assertEqual(
+            format_read_header(READ_HEADER), READ_HEADER_TXT)
+
+    def test_format_read_header(self):
+        self.assertEqual(
+            format_read_data(READ_DATA, READ_HEADER), READ_DATA_TXT)
+
+    def test_format_binary_sff(self):
+        output_buffer = format_binary_sff(open(SFF_FP))
+        output_buffer.seek(0)
+        expected = COMMON_HEADER_TXT + READ_HEADER_TXT + READ_DATA_TXT
+        observed = output_buffer.read(len(expected))
+        self.assertEqual(observed, expected)
+
+
+class Base36Tests(TestCase):
+    def test_base36_encode(self):
+        self.assertEqual(base36_encode(2), 'C')
+        self.assertEqual(base36_encode(37), 'BB')
+
+    def test_base36_decode(self):
+        self.assertEqual(base36_decode('C'), 2)
+        self.assertEqual(base36_decode('BB'), 37)
+
+    def test_decode_location(self):
+        self.assertEqual(decode_location('C'), (0, 2))
+
+    def test_decode_timestamp(self):
+        self.assertEqual(decode_timestamp('C3U5GW'), (2004, 9, 22, 16, 59, 10))
+        self.assertEqual(decode_timestamp('GA202I'), (2010, 1, 22, 13, 28, 56))
+
+    def test_decode_accession(self):
+        self.assertEqual(
+            decode_accession('GA202I001ER3QL'),
+            ((2010, 1, 22, 13, 28, 56), '0', 1, (1843, 859)))
+
+    def test_decode_sff_filename(self):
+        self.assertEqual(
+            decode_sff_filename('F6AVWTA01.sff'),
+            ((2009, 11, 25, 14, 30, 19), 'A', 1))
+
+
 COMMON_HEADER = {
     'header_length': 440,
     'flowgram_format_code': 1,
@@ -194,6 +247,21 @@ COMMON_HEADER = {
     'index_offset': 33464,
     }
 
+COMMON_HEADER_TXT = """\
+Common Header:
+  Magic Number:  0x2E736666
+  Version:       0001
+  Index Offset:  33464
+  Index Length:  900
+  # of Reads:    20
+  Header Length: 440
+  Key Length:    4
+  # of Flows:    400
+  Flowgram Code: 1
+  Flow Chars:    TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACG
+  Key Sequence:  TCAG
+"""
+
 READ_HEADER = {
     'name_length': 14,
     'Name': 'GA202I001ER3QL',
@@ -204,6 +272,21 @@ READ_HEADER = {
     'clip_qual_left': 5,
     'clip_qual_right': 271,
     }
+
+READ_HEADER_TXT = """
+>GA202I001ER3QL
+  Run Prefix:   R_2010_01_22_13_28_56_
+  Region #:     1
+  XY Location:  1843_0859
+
+  Read Header Len:  32
+  Name Length:      14
+  # of Bases:       271
+  Clip Qual Left:   5
+  Clip Qual Right:  271
+  Clip Adap Left:   0
+  Clip Adap Right:  0
+"""
 
 READ_DATA = {
     'flow_index_per_base': (
@@ -266,6 +349,13 @@ READ_DATA = {
         31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 32, 32, 31, 30, 30, 25, 25, 25,
         25),
     }
+
+READ_DATA_TXT = """
+Flowgram:	1.01	0.00	0.98	0.03	0.00	1.04	0.02	0.95	0.01	0.00	0.97	0.03	0.00	1.10	0.02	1.02	1.02	1.10	0.02	0.99	1.01	0.00	1.95	0.05	1.02	0.00	0.05	0.96	0.07	0.00	0.95	0.07	1.01	0.00	0.08	0.98	0.09	0.00	1.90	0.09	2.01	0.00	1.94	1.01	1.07	1.04	0.12	1.98	0.13	1.04	0.02	1.05	2.95	0.07	0.04	1.97	0.10	1.01	1.95	0.98	1.01	0.03	0.10	1.00	1.02	0.00	1.00	0.07	1.01	0.00	0.96	0.08	0.11	1.02	0.12	1.02	2.03	0.09	1.96	0.08	0.13	2.06	0.13	0.06	1.03	0.10	0.04	1.03	1.02	0.03	0.07	4.79	0.09	1.02	2.02	0.10	1.98	0.06	1.95	0.09	1.02	0.00	1.00	0.05	1.00	0.02	1.03	0.08	0.08	1.00	0.06	1.02	0.07	2.00	3.88	0.10	0.97	1.00	0.08	0.05	1.00	0.12	1.97	0.07	0.13	1.03	0.08	0.07	1.04	0.10	1.01	1.04	0.12	2.01	0.12	0.99	0.08	0.99	1.06	0.13	1.03	1.02	0.08	2.02	1.08	0.09	0.13	2.93	0.07	0.04	2.03	1.03	2.02	1.07	3.76	1.03	0.08	0.11	1.88	0.08	0.99	1.01	1.04	0.08	0.92	1.01	0.12	0.04	0.92	0.11	1.01	0.07	0.96	2.02	0.08	0.12	0.93	0.11	0.11	2.02	0.07	1.95	1.01	1.02	0.06	0.00	1.01	0.07	0.07	1.06	0.02	0.06	1.07	0.04	4.04	0.12	0.06	1.04	0.08	0.10	0.98	0.02	1.05	1.10	1.00	0.08	0.95	0.03	1.05	1.02	2.08	2.01	0.13	1.95	0.14	0.00	0.99	0.86	2.02	0.09	3.01	2.06	0.08	0.08	0.85	0.06	1.01	0.06	0.09	1.03	0.08	0.09	0.96	0.04	0.07	1.02	1.11	0.00	0.08	0.93	0.07	1.94	1.11	0.05	0.10	0.95	0.05	0.10	1.04	0.02	0.06	0.98	1.03	0.00	0.11	0.99	0.15	1.92	1.10	0.05	0.98	0.08	0.91	0.08	0.10	0.92	0.05	0.10	1.02	0.08	0.07	1.05	0.15	1.02	0.07	0.09	1.00	0.02	0.03	1.02	0.06	0.09	2.03	0.06	0.14	1.07	0.12	0.08	1.07	0.01	1.03	0.13	2.02	0.02	0.06	1.08	1.03	0.99	0.11	0.02	2.01	2.07	0.14	0.08	0.94	0.04	0.95	0.09	1.95	0.13	1.93	0.09	3.06	0.13	1.00	0.11	0.06	0.75	0.13	0.91	0.12	2.05	0.07	2.03	0.10	0.03	1.07	0.17	1.11	0.12	0.04	1.05	1.06	0.07	2.08	0.05	0.09	2.02	0.08	1.08	0.06	0.84	0.16	1.03	1.08	0.92	0.16	0.93	0.08	0.95	0.94	2.07	0.17	0.10	1.03	0.03	0.00	1.04	0.00	2.02	2.17	0.16	0.12	1.97	0.04	0.90	0.15	0.17	1.08	0.98	1.25	1.04	0.88	0.14	0.15	0.99	1.87	1.06	1.09	0.12	1.00	0.11	0.81	0.08	0.11	0.92	3.04	1.12	1.07	0.02	0.11	0.94	0.07	0.06	0.86	0.97	0.19	0.03	2.25	2.06
+Flow Indexes:	1	3	6	8	11	14	16	17	18	20	21	23	23	25	28	31	33	36	39	39	41	41	43	43	44	45	46	48	48	50	52	53	53	53	56	56	58	59	59	60	61	64	65	67	69	71	74	76	77	77	79	79	82	82	85	88	89	92	92	92	92	92	94	95	95	97	97	99	99	101	103	105	107	110	112	114	114	115	115	115	115	117	118	121	123	123	126	129	131	132	134	134	136	138	139	141	142	144	144	145	148	148	148	151	151	152	153	153	154	155	155	155	155	156	159	159	161	162	163	165	166	169	171	173	174	174	177	180	180	182	182	183	184	187	190	193	195	195	195	195	198	201	203	204	205	207	209	210	211	211	212	212	214	214	217	218	219	219	221	221	221	222	222	225	227	230	233	236	237	240	242	242	243	246	249	252	253	256	258	258	259	261	263	266	269	272	274	277	280	283	283	286	289	291	293	293	296	297	298	301	301	302	302	305	307	309	309	311	311	313	313	313	315	318	320	322	322	324	324	327	329	332	333	335	335	338	338	340	342	344	345	346	348	350	351	352	352	355	358	360	360	361	361	364	364	366	369	370	371	372	373	376	377	377	378	379	381	383	386	387	387	387	388	389	392	395	396	399	399	400	400
+Bases:	tcagCAGTAGTCCTGCTGCCTTCCGTAGGAGTTTGGACCGTGTCTCAGTTCCAATGTGGGGGACCTTCCTCTCAGAACCCCTATCCATCGAAGACTAGGTGGGCCGTTACCCCGCCTACTATCTAATGGAACGCATCCCCATCGTCTACCGGAATACCTTTAATCATGTGAACATGTGAACTCATGATGCCATCTTGTATTAATCTTCCTTTCAGAAGGCTGTCCAAGAGTAGACGGCAGGTTGGATACGTGTTACTCACCCGTGCGCCGG
+Quality Scores:	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	40	37	37	37	37	37	37	37	37	34	34	34	34	34	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	38	32	32	32	32	38	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	37	38	38	38	38	40	40	40	38	38	38	38	38	38	38	40	38	38	38	38	38	38	37	38	38	36	37	37	36	33	28	28	31	31	31	31	31	31	31	31	31	31	31	32	32	31	30	30	25	25	25	25
+"""
 
 if __name__ == '__main__':
     main()
