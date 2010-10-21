@@ -55,6 +55,7 @@ def suite():
         'test_app.test_util',
         'test_cluster.test_goodness_of_fit',
         'test_cluster.test_metric_scaling',
+        'test_cluster.test_fast_metric_scaling',
         'test_cluster.test_procrustes',
         'test_cluster.test_UPGMA',
         'test_cluster.test_nmds',
