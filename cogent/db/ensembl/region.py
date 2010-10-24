@@ -217,7 +217,8 @@ class _StableRegion(GenericRegion):
         super(_StableRegion, self).__init__(genome, db, **kwargs)
     
     def __repr__(self):
-        return '%s(%s; %s)' % (self.Type, self.genome.Species, self.StableId)
+        my_type = self.__class__.__name__
+        return '%s(%s; %s)' % (my_type, self.genome.Species, self.StableId)
     
     def _get_record_for_stable_id(self):
         # subclasses need to provide a function for loading the correct
@@ -295,11 +296,12 @@ class Gene(_StableRegion):
         return '%s(%s)' % (my_type, '; '.join(vals))
     
     def __repr__(self):
+        my_type = self.__class__.__name__
         vals = ['%s=%r' % (key, val) for key, val in self._cached.items() \
                                 if val is not None]
         vals.sort()
         vals.insert(0, 'Species=%r' % self.genome.Species)
-        return '%s(%s)' % (self.Type, '; '.join(vals))
+        return '%s(%s)' % (my_type, '; '.join(vals))
     
     def _get_gene_record(self):
         """adds the gene data to self._table_rows"""
