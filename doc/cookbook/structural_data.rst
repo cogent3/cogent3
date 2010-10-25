@@ -16,11 +16,10 @@ Retrieve a structure from PDB
 
     >>> from cogent.db.pdb import Pdb
     >>> p = Pdb()
-    >>> # KR commented because this takes long.
-    >>> pdb_file = p['1cse']
+    >>> pdb_file = p['4tsv']
     >>> pdb = pdb_file.read()
     >>> len(pdb)
-    283986
+    135027
 
 This example will retrieve the structure as a PDB file string.
 
@@ -40,7 +39,7 @@ Parse a PDB entry directly from the web
 .. doctest::
 
     >>> from cogent.parse.pdb import PDBParser
-    >>> struc = PDBParser(p['1cse'])
+    >>> struc = PDBParser(p['4tsv'])
 
 Accessing PDB header information
 ++++++++++++++++++++++++++++++++
@@ -113,6 +112,7 @@ What properties does a residue have?
     >>> resi.seg_id
     '    '
 
+
 Access an atom from a residue
 +++++++++++++++++++++++++++++
 
@@ -176,9 +176,10 @@ Calculate the center of mass of a model or chain
 .. doctest::
 
     >>> model.coords
-    array([ 147.35930713,   35.30383834,   -3.48538525])
+    array([ 146.66615752,   35.08673503,   -3.60735847])
     >>> chain.coords
-    array([ 145.42204284,   34.6970624 ,   -3.82628478])
+    array([ 146.66615752,   35.08673503,   -3.60735847])
+
 
 How to get a list of all residues in a chain?
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -341,7 +342,6 @@ others in alphabetical order.
     >>> for chain in model.sortedvalues():
     ...     print chain
     <Chain id=A>
-    <Chain id= >
 
 How to iterate over chains in alphabetical order?
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -356,7 +356,6 @@ If you want the chains in purely alphabetical order:
     >>> keys.sort()
     >>> for chain in [model[id] for id in keys]:
     ...     print chain
-    <Chain id= >
     <Chain id=A>
 
 How to iterate over all residues in a chain?
@@ -366,7 +365,7 @@ How to iterate over all residues in a chain?
 
     >>> residues = [resi for resi in chain.values()]
     >>> len(residues)
-    148
+    218
 
 How to remove all water molecules from a structure
 ++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -379,4 +378,7 @@ How to remove all water molecules from a structure
     >>> struc.setTable(force=True)
     >>> len(struc.table['A'].values())
     1117
+    >>> residues = [resi for resi in chain.values()]
+    >>> len(residues)
+    148
 
