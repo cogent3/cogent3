@@ -198,19 +198,19 @@ Measuring statistical significance of periodic signals
 For numerical (continuous data)
 -------------------------------
 
-We use the signal provided above. Because significance testing is being done using a permutation approach, we define a calculator which precomputes some values to improve compute performance. For a continuous signal, we'll use the Goertzel algorithm.
+We use the signal provided above. Because significance testing is being done using a resampling approach, we define a calculator which precomputes some values to improve compute performance. For a continuous signal, we'll use the Goertzel algorithm.
 
 .. doctest::
     
     >>> from cogent.maths.period import Goertzel
     >>> goertzel_calc = Goertzel(len(sig), period=10)
 
-Having defined this, we then just pass this calculator to the ``permutation_test`` function. The other critical settings are the ``block_size`` which specifies the size of segments of contiguous sequence positions to use for sampling and ``num_reps`` which is the number of permuted replicate sequences to generate.
+Having defined this, we then just pass this calculator to the ``blockwise_bootstrap`` function. The other critical settings are the ``block_size`` which specifies the size of segments of contiguous sequence positions to use for sampling and ``num_reps`` which is the number of permuted replicate sequences to generate.
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import permutation_test
-    >>> obs_stat, p = permutation_test(sig, calc=goertzel_calc, block_size=10,
+    >>> from cogent.maths.stats.period import blockwise_bootstrap
+    >>> obs_stat, p = blockwise_bootstrap(sig, calc=goertzel_calc, block_size=10,
     ...                              num_reps=1000)
     >>> print obs_stat
     50.7685934719
@@ -245,8 +245,8 @@ The rest is as per the analysis using ``Goertzel`` above.
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import permutation_test
-    >>> stat, p = permutation_test(s, calc=hybrid_calculator,
+    >>> from cogent.maths.stats.period import blockwise_bootstrap
+    >>> stat, p = blockwise_bootstrap(s, calc=hybrid_calculator,
     ...      block_size=10, num_reps=1000, seq_to_symbols=seq_to_symbols)
     ...     
     >>> print stat

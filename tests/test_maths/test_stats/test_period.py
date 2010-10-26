@@ -2,7 +2,7 @@ import numpy
 from cogent.util.unit_test import TestCase, main
 
 from cogent.maths.stats.period import chi_square, factorial, g_statistic, \
-        circular_indices, _seq_to_symbols, seq_to_symbols, permutation_test, \
+        circular_indices, _seq_to_symbols, seq_to_symbols, blockwise_bootstrap, \
         SeqToSymbols
 from cogent.maths.period import ipdft, hybrid, auto_corr, Hybrid, Ipdft, \
         AutoCorrelation
@@ -78,10 +78,10 @@ class TestPeriodStat(TestCase):
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         hybrid_calc = Hybrid(len(s), llim=2, period = 4)
         ipdft_calc = Ipdft(len(s), llim=2, period = 4)
-        stat, p = permutation_test(s, hybrid_calc, block_size=10,
+        stat, p = blockwise_bootstrap(s, hybrid_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol)
         # print 's=%.4f; p=%.3f' % (stat, p)
-        stat, p = permutation_test(s, ipdft_calc, block_size=10,
+        stat, p = blockwise_bootstrap(s, ipdft_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol)
         # print 's=%.4f; p=%.3f' % (stat, p)
     
@@ -92,7 +92,7 @@ class TestPeriodStat(TestCase):
             'AATTTTTAACCGCGGAATTGCGTC'
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         hybrid_calc = Hybrid(len(s), period = 4, return_all=True)
-        stat, p = permutation_test(s, hybrid_calc, block_size=10,
+        stat, p = blockwise_bootstrap(s, hybrid_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol)
         # print 's=%s; p=%s' % (stat, p)
     
@@ -112,7 +112,7 @@ class TestPeriodStat(TestCase):
         s = 'N' * 150
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         ipdft_calc = Ipdft(len(s), llim=2, period = 4)
-        stat, p = permutation_test(s, ipdft_calc, block_size=10,
+        stat, p = blockwise_bootstrap(s, ipdft_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol, num_stats=1)
         self.assertEqual(stat, 0.0)
         self.assertEqual(p, 1.0)
