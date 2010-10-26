@@ -11,7 +11,7 @@ from string import maketrans, strip
 from random import randrange, choice
 from sys import maxint
 from os import popen, remove, makedirs, getenv
-from os.path import join, abspath, exists
+from os.path import join, abspath, exists, isdir
 from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
@@ -1313,7 +1313,88 @@ def app_path(app,env_variable='PATH'):
             return p
     return False
 
+#some error codes for creating a dir
+def get_create_dir_error_codes():
+    return {'NO_ERROR':      0,
+            'DIR_EXISTS':    1,
+            'FILE_EXISTS':   2,
+            'OTHER_OS_ERROR':3}
 
+def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
+    """Create a dir safely and fail meaningful.
+
+    dir_name: name of directory to create
+
+    fail_on_exist: if true raise an error if dir already exists
+    
+    handle_errors_externally: if True do not raise Errors, but return
+                   failure codes. This allows to handle errors locally and
+                   e.g. hint the user at a --force_overwrite options.
+                   
+    returns values (if no Error raised):
+    
+         0:  dir could be safely made
+         1:  directory already existed
+         2:  a file with the same name exists          
+         3:  any other unspecified OSError
+
+
+    See qiime/denoiser.py for an example of how to use this mechanism.
+
+    Note: Depending  of how thorough we want to be we could add tests,
+          e.g. for testing actual write permission in an existing dir.
+    """
+    error_code_lookup = get_create_dir_error_codes()
+    #pre-instanciate function with
+    ror = curry(handle_error_codes, dir_name, handle_errors_externally)
+
+    if exists(dir_name):
+        if isdir(dir_name):
+            #dir is there
+            if fail_on_exist:
+                return ror(error_code_lookup['DIR_EXISTS'])
+            else:
+                return error_code_lookup['DIR_EXISTS']
+        else:
+            #must be file with same name
+            return ror(error_code_lookup['FILE_EXISTS'])
+    else:
+        #no dir there, try making it
+        try:
+            makedirs(dir_name)
+        except OSError:
+            return ror(error_code_lookup['OTHER_OS_ERROR'])
+    
+    return error_code_lookup['NO_ERROR']
+
+def handle_error_codes(dir_name, supress_errors=False,
+                       error_code=None):
+    """Wrapper function for error_handling.
+
+    dir_name: name of directory that raised the error
+    suppress_errors: if True raise Errors, otherwise return error_code
+    error_code: the code for the error
+    """
+    error_code_lookup = get_create_dir_error_codes()
+    
+    if error_code == None:
+        error_code = error_code_lookup['NO_ERROR']
+    
+    error_strings = \
+        {error_code_lookup['DIR_EXISTS'] :
+          "Directory already exists: %s" % dir_name,
+         error_code_lookup['FILE_EXISTS'] : 
+          "File with same name exists: %s" % dir_name,
+         error_code_lookup['OTHER_OS_ERROR']: 
+          "Could not create output directory: %s. " % dir_name +
+          "Check the permissions."}
+
+    if error_code == error_code_lookup['NO_ERROR']:
+        return error_code_lookup['NO_ERROR']
+    if supress_errors:
+        return error_code
+    else:
+        raise OSError, error_strings[error_code]
 
 def remove_files(list_of_filepaths, error_on_missing=True):
     """Remove list of filepaths, optionally raising an error if any are missing
