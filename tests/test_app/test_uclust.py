@@ -12,14 +12,13 @@ from cogent.util.misc import remove_files
 from cogent.core.moltype import DNA
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import get_tmp_filename, ApplicationError
-from cogent.app.uclust import (Uclust,
+from qiime.pycogent_backports.uclust import (Uclust, 
  uclust_fasta_sort_from_filepath,
  uclust_cluster_from_sorted_fasta_filepath,
- get_output_filepaths,
- clusters_from_uc_file,
+ get_output_filepaths,clusters_from_uc_file,
  get_clusters_from_fasta_filepath,
  uclust_search_and_align_from_fasta_filepath,
- process_uclust_pw_alignment_results)
+ process_uclust_pw_alignment_results, UclustParseError)
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -192,6 +191,8 @@ class UclustConvenienceWrappers(TestCase):
         self.ref_test_new_seeds2 = ref_test_new_seeds2
         self.uc_dna_clusters = uc_dna_clusters
         self.uc_lines1 = uc_lines1
+        self.uc_lines_overlapping_lib_input_seq_ids = \
+         uc_lines_overlapping_lib_input_seq_ids
         
     def tearDown(self):
         remove_files(self.files_to_remove,error_on_missing=False)
@@ -220,6 +221,12 @@ class UclustConvenienceWrappers(TestCase):
         expected_new_seeds = ['s2']
         self.assertEqual(clusters_from_uc_file(self.uc_lines1),
          (expected_clusters,expected_failures,expected_new_seeds))
+    
+    def test_clusters_from_uc_file_error(self):
+        """ clusters_from_uc_file raises error when lib/input seq ids overlap"""
+        self.assertRaises(UclustParseError,
+                          clusters_from_uc_file,
+                          self.uc_lines_overlapping_lib_input_seq_ids)
         
         
     def test_uclust_cluster_from_sorted_fasta_filepath(self):
@@ -442,10 +449,15 @@ class UclustConvenienceWrappers(TestCase):
         proc = Popen(command,shell=True,universal_newlines=True,\
                          stdout=PIPE,stderr=STDOUT)
         stdout = proc.stdout.read()
-        version_string = stdout.strip().split('v')[-1]
-        version = tuple(map(int,version_string.split('.')))
-        self.assertTrue(version >= (1,1,577),\
-         "Unsupported uclust version. 1.1.577 or later "+\
+        version_string = stdout.strip().split('v')[-1].strip('q')
+        try:
+            version = tuple(map(int,version_string.split('.')))
+            acceptable_version = version >= (1,2,21)
+        except ValueError:
+            acceptable_version = False
+        
+        self.assertTrue(acceptable_version,\
+         "Unsupported uclust version. 1.2.21 or later "+\
          "is required, but running %s." % version_string)
 
 raw_dna_seqs = """>uclust_test_seqs_0
@@ -647,6 +659,21 @@ N	*	80	*	*	*	*	*	s1 some comment	*
 S	4	80	*	*	*	*	*	s2 some other comment	*
 H	2	78	100.0	+	0	0	5I78M10I	s3 yet another comment	s2""".split('\n')
 
-         
+uc_lines_overlapping_lib_input_seq_ids = """# uclust --maxrejects 32 --input /tmp/OtuPickerbb092OWRWLWqlBR2BmTZ.fasta --id 0.97 --uc /tmp/uclust_clustersLf5Oqv0SvGTZo1mVWBqK.uc --rev --usersort --maxaccepts 8 --lib r.fasta
+# version=1.1.16
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	1	24	*	*	*	*	*	3	*
+H	1	24	100.0	+	0	0	24M	4	3
+L	0	54	*	*	*	*	*	3	*
+H	0	54	100.0	+	0	0	54M	2	3
+D	0	2	*	*	*	*	100.0	3	*
+C	1	2	100.0	*	*	*	*	3	*
+""".split('\n')
+
 if __name__ == '__main__':
     main()
