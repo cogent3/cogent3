@@ -7,22 +7,23 @@ from os import remove, rmdir
 from os.path import exists
 from cogent.app.util import get_tmp_filename
 from cogent.util.unit_test import TestCase, main
-from cogent.util.misc import iterable, max_index, min_index, \
-    flatten, is_iterable, is_char, is_char_or_noniterable,\
-    is_str_or_noniterable, not_list_tuple, list_flatten,\
-    recursive_flatten, unflatten, unzip, select, sort_order, find_all, \
-    find_many, unreserve,\
-    extract_delimited, caps_from_underscores,\
-    add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst, \
-    DictFromLast, DistanceFromMatrix, PairsFromGroups, \
-    ClassChecker, Delegator, FunctionWrapper, \
-    ConstraintError, ConstrainedContainer,\
-    ConstrainedString, ConstrainedList, ConstrainedDict, \
-    MappedString, MappedList, MappedDict, \
-    generateCombinations, makeNonnegInt, \
-    NonnegIntError, reverse_complement, not_none, get_items_except,\
-    NestedSplitter, curry, app_path, remove_files, get_random_directory_name,\
-    revComp, parse_command_line_parameters, safe_md5
+from cogent.util.misc import (iterable, max_index, min_index,
+    flatten, is_iterable, is_char, is_char_or_noniterable,
+    is_str_or_noniterable, not_list_tuple, list_flatten,
+    recursive_flatten, unflatten, unzip, select, sort_order, find_all,
+    find_many, unreserve,
+    extract_delimited, caps_from_underscores,
+    add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
+    DictFromLast, DistanceFromMatrix, PairsFromGroups,
+    ClassChecker, Delegator, FunctionWrapper,
+    ConstraintError, ConstrainedContainer,
+    ConstrainedString, ConstrainedList, ConstrainedDict,
+    MappedString, MappedList, MappedDict,
+    generateCombinations, makeNonnegInt,
+    NonnegIntError, reverse_complement, not_none, get_items_except,
+    NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
+    revComp, parse_command_line_parameters, safe_md5, 
+    create_dir, handle_error_codes)
 from numpy import array
 
 __author__ = "Rob Knight"
@@ -37,6 +38,14 @@ __status__ = "Production"
 
 class UtilsTests(TestCase):
     """Tests of individual functions in utils"""
+    
+    def setUp(self):
+        """ """
+        self.files_to_remove = []
+        
+    def TearDown(self):
+        """ """
+        remove_files(self.files_to_remove)
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
@@ -125,6 +134,39 @@ class UtilsTests(TestCase):
             ['aa',[8,'cc','dd'], ['ee',['ff','gg']]],
             is_leaf=is_str_or_noniterable),
             ['aa',8,'cc','dd','ee','ff','gg'])
+            
+    def test_create_dir(self):
+        """create_dir creates dir and fails meaningful."""
+
+        tmp_dir_path = get_random_directory_name()
+        tmp_dir_path2 = get_random_directory_name(suppress_mkdir=True)
+        tmp_dir_path3 = get_random_directory_name(suppress_mkdir=True)
+
+        self.files_to_remove.append(tmp_dir_path)
+        self.files_to_remove.append(tmp_dir_path2)
+        self.files_to_remove.append(tmp_dir_path3)
+
+        # create on existing dir raises OSError if fail_on_exist=True
+        self.assertRaises(OSError, create_dir, tmp_dir_path,
+                          fail_on_exist=True)
+        self.assertEquals(create_dir(tmp_dir_path,
+                                     fail_on_exist=True,
+                                     handle_errors_externally=True), 1)
+
+        # return should be 1 if dir exist and fail_on_exist=False 
+        self.assertEqual(create_dir(tmp_dir_path, fail_on_exist=False), 1)
+
+        # if dir not there make it and return always 0
+        self.assertEqual(create_dir(tmp_dir_path2), 0)
+        self.assertEqual(create_dir(tmp_dir_path3, fail_on_exist=True), 0)
+
+    def test_handle_error_codes(self):
+        """handle_error_codes raises the right error."""
+
+        self.assertRaises(OSError, handle_error_codes, "test", False,1)
+        self.assertEqual(handle_error_codes("test", True, 1), 1)
+        self.assertEqual(handle_error_codes("test", False, 0), 0)
+        self.assertEqual(handle_error_codes("test"), 0)
 
     def test_not_list_tuple(self):
         """not_list_tuple(obj) should return False when obj is list or tuple"""
