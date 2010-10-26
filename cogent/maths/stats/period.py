@@ -1,7 +1,12 @@
 from __future__ import division
 from random import shuffle, random, choice
 import numpy
-from math import factorial
+
+try:
+    from math import factorial
+except ImportError: # python version < 2.6
+    from cogent.maths.stats.special import Gamma
+    factorial = lambda x: Gamma(x+1)
 
 from cogent.maths.stats.special import igam
 
