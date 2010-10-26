@@ -43,9 +43,9 @@ class UtilsTests(TestCase):
         """ """
         self.files_to_remove = []
         
-    def TearDown(self):
+    def tearDown(self):
         """ """
-        remove_files(self.files_to_remove)
+        map(rmdir,self.files_to_remove)
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
