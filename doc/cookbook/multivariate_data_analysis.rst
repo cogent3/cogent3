@@ -102,12 +102,10 @@ eigenvectors of length dim will be returned.
 
 .. doctest::
 
-   >>> from cogent.cluster.fast_metric_scaling_nystrom import nystrom_frontend
-   >>> n_full = 4000
+   >>> from cogent.cluster.approximate_mds import nystrom
    >>> n_seeds = 100
    >>> dim = 4
-   >>> dist_func = lambda x, y: distmtx[x, y]
-   >>> nystrom_frontend(n_full, n_seeds, dim, dist_func)
+   >>> nystrom_frontend(distmtx[:n_seeds], dim)
 
 A good rule of thumb for picking n_seeds is log(n), log(n)**2 or
 sqrt(n).
@@ -122,13 +120,13 @@ quality of the approximation as well as the run-time.
 
 .. doctest::
 
-   >>> from cogent.cluster.fast_metric_scaling_scmds import scmds_frontend
+   >>> from cogent.cluster.approximate_mds import scmds
    >>> n_full = 4000
    >>> tile_size = 500
    >>> tile_overlap = 50
    >>> dim = 4
    >>> dist_func = lambda x, y: distmtx[x, y]
-   >>> scmds_frontend(n_full, tile_size, tile_overlap, dim, dist_func)
+   >>> scmds(n_full, tile_size, tile_overlap, dim, dist_func)
 
 
 If you want to know how good the returned approximations are, you will
