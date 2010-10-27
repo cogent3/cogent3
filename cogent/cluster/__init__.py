@@ -3,7 +3,7 @@
 """
 
 __all__ = ['goodness_of_fit', 'metric_scaling', 'procrustes', 'UPGMA', 'nmds',
-           'fast_metric_scaling_nystrom']
+           'approximate_mds']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
