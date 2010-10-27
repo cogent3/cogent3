@@ -7,11 +7,14 @@ from cogent.cluster.approximate_mds \
     import nystrom
 from cogent.cluster.approximate_mds \
     import calc_matrix_a, calc_matrix_b, build_seed_matrix
+from cogent.cluster.approximate_mds import rowmeans, \
+    affine_mapping, adjust_mds_to_ref, recenter, combine_mds, \
+    cmds_tzeng, CombineMds
 from numpy import array, matrix, random, argsort
 
 __author__ = "Andreas Wilm"
 __copyright__ = "FIXME"
-__credits__ = []
+__credits__ = ["Andreas Wilm"]
 __license__ = "GPL"
 __version__ = "FIXME"
 __maintainer__ = "Andreas Wilm"
@@ -19,6 +22,7 @@ __email__ = "andreas.wilm@ucd.ie"
 __status__ = "FIXME"
 
 PRINT_STRESS = False
+
 
 # Bigish symmetrical matrix for testing: The following is a distance
 # matrix of 100 points making up a 16-dimensional spiral. Idea was
@@ -1728,6 +1732,189 @@ FULL_SYM_MATRIX =  array([
           39.63076,  37.48156,  32.34705,  32.02712,  30.03519,  26.50431,
           24.09327,  23.08624,  18.89004,  18.51871,  14.52224,  12.76638,
           9.98474,   8.80103,   7.46263,   0.     ]])
+
+
+
+class FastMetricScmdsScalingTests(TestCase):
+    """test the functions to do metric scaling"""
+
+
+    def setUp(self):
+        """creates inputs"""
+
+        self.dist_func = lambda x, y: (FULL_SYM_MATRIX[x, y])
+        self.num_objects =  FULL_SYM_MATRIX.shape[0]
+
+
+    def test_scmds_cmds_tzeng(self):
+        """cmds_tzeng() should return eigenvectors and eigenvalues,
+        sorted by the eigenvalues
+        """
+
+        dim = 3
+        (eigvec, eigval) = cmds_tzeng(FULL_SYM_MATRIX, dim)
+        self.assertTrue(len(eigval) == dim)
+        self.assertTrue(eigvec.shape == (FULL_SYM_MATRIX.shape[0], dim))
+        self.assertTrue(sorted(eigval, reverse=True) == eigval.tolist())
+
+        self.assertFloatEqual(eigval[0], 27336.883436)
+        self.assertFloatEqual(eigval[-1], 536.736247)
+        self.assertFloatEqual(eigvec[0, 0], -14.978621)
+        self.assertFloatEqual(eigvec[-1, -1], 0.673001)
+
+        # full pcoa
+        dim = FULL_SYM_MATRIX.shape[0]
+        (eigvec, eigval) = cmds_tzeng(FULL_SYM_MATRIX, dim)
+        self.assertTrue(len(eigval) == dim)
+        self.assertTrue(eigvec.shape == (FULL_SYM_MATRIX.shape[0], dim))
+        self.assertTrue(sorted(eigval, reverse=True) == eigval.tolist())
+
+        self.assertFloatEqual(eigval[0], 27336.883436043929)
+        self.assertFloatEqual(eigval[-1], 0.000000)
+        self.assertFloatEqual(eigvec[0, 0], -14.978621)
+        self.assertFloatEqual(eigvec[-1, -1], 0.000000)
+
+
+    def test_scmds_rowmeans(self):
+        """rowmeans() should return a vector of row-means for a 2d matrix.
+        """
+
+        rm = rowmeans(FULL_SYM_MATRIX[:10])
+        self.assertTrue(rm.shape[0] == 10)
+        self.assertFloatEqual(float(rm[0]),  25.983320)
+        self.assertFloatEqual(float(rm[-1]), 23.967050)
+
+
+
+    def test_scmds_recenter(self):
+        """recenter() should recenter an mds solution
+        """
+
+        mds_coords = matrix([
+                [-3.78333558, -2.90925004,  2.75333034],
+                [ 5.18887751, -1.2130882 , -0.86476508],
+                [-3.10404298, -0.6620052 , -3.91668873],
+                [-2.53758526,  3.99102424,  0.86289149],
+                [ 4.23608631,  0.7933192 ,  1.16523198]])
+        
+        centered_coords = recenter(mds_coords)
+        self.assertTrue(centered_coords.shape == mds_coords.shape)
+        center_of_gravity = sum([centered_coords[:, x].sum() \
+                                     for x in range(centered_coords.shape[1])])
+        self.assertFloatEqual(center_of_gravity, 0.0)
+
+
+    def test_scmds_affine_mapping(self):
+        """affine_mapping() should return a touple of two matrices of
+        certain shape
+        """
+
+        matrix_x = matrix([
+                [-24.03457111,  10.10355666, -23.17039728,  28.48438894,
+                  22.57322482],
+                [  0.62716392,  20.84502664,   6.42317521,  -7.66901011,
+                   14.37923852],
+                [ -2.60793417,   2.83532649,   2.91024821,   1.37414959,
+                   -4.22916659]])
+        matrix_y = matrix([
+                [-29.81089477,  -2.01312927, -30.5925487 ,  23.05985801,
+                  11.68581751],
+                [ -4.68879117,  23.62633294,   1.07934315,   0.57461989,
+                   20.52800221],
+                [ -0.51503505,   1.18377044,   0.83671471,   1.81751358,
+                   -3.28812925]])
+
+        dim = matrix_x.shape[0]
+
+        (tu, tb) = affine_mapping(matrix_x, matrix_y)
+        self.assertTrue(tu.shape[0] == dim and tb.shape[0] == dim)
+        self.assertTrue(tu.shape[0] == tu.shape[1])
+        self.assertFloatEqual(tu[0, 0], 0.966653)
+        self.assertFloatEqual(tu[-1, -1], 0.994816)
+        self.assertFloatEqual(tb[0, 0], -6.480975)
+        self.assertFloatEqual(tb[-1, -1], 0.686521)
+
+
+
+    def test_scmds_adjust_mds_to_ref(self):
+        """adjust_mds_to_ref() should return an adjusted mds solutions"""
+
+        overlap = 5
+        dim = 3
+        size = 10
+        fake_mds_coords_ref = FULL_SYM_MATRIX[:size, :dim]
+        fake_mds_coords_add = FULL_SYM_MATRIX[overlap:size+overlap, :dim]
+
+        mds_adj = adjust_mds_to_ref(fake_mds_coords_ref,
+                                    fake_mds_coords_add, overlap)
+        self.assertTrue(mds_adj.shape == fake_mds_coords_add.shape)
+        self.assertFloatEqual(mds_adj[0, 0],  7.526609)
+        self.assertFloatEqual(mds_adj[-1, -1], 18.009350)
+
+
+        
+    def test_scmds_combine_mds(self):
+        """combine_mds() should merge two mds solutions
+        """
+
+        overlap = 3
+        dim = 3
+        mds_coords_1 = matrix([
+                [-3.78333558, -2.90925004,  2.75333034],
+                [ 5.18887751, -1.2130882 , -0.86476508],
+                [-3.10404298, -0.6620052 , -3.91668873],
+                [-2.53758526,  3.99102424,  0.86289149],
+                [ 4.23608631,  0.7933192 ,  1.16523198]])
+        mds_coords_2 = matrix([
+                [-3.78333558, -2.90925004,  2.75333034],
+                [ 5.18887751, -1.2130882 , -0.86476508],
+                [-3.10404298, -0.6620052 , -3.91668873],
+                [-2.53758526,  3.99102424,  0.86289149],
+                [ 4.23608631,  0.7933192 ,  1.16523198]])
+
+        comb_mds = combine_mds(mds_coords_1,
+                               mds_coords_2, overlap)
+        self.assertTrue(comb_mds.shape == (
+                mds_coords_1.shape[0]*2-overlap, dim))
+        self.assertFloatEqual(comb_mds[0, 0], -3.783335)
+        #self.assertFloatEqual(comb_mds[-1, -1], 0.349951)
+
+
+    def test_scmds_class_combinemds(self):
+        """class CombineMds() should be able to join MDS solutions
+        """
+
+        # tmp note
+        # tile1 = FULL_SYM_MATRIX[0:5, 0:5]
+        # tile2 = FULL_SYM_MATRIX[2:7, 2:7]
+        # mds_coords_1 = cmds_tzeng(tile1, 3)
+        # mds_coords_2 = cmds_tzeng(tile2, 3)
+        overlap = 3
+        mds_coords_1 = matrix([
+                [-3.78333558, -2.90925004,  2.75333034],
+                [ 5.18887751, -1.2130882 , -0.86476508],
+                [-3.10404298, -0.6620052 , -3.91668873],
+                [-2.53758526,  3.99102424,  0.86289149],
+                [ 4.23608631,  0.7933192 ,  1.16523198]])
+        mds_coords_2 = matrix([
+                [-3.78333558, -2.90925004,  2.75333034],
+                [ 5.18887751, -1.2130882 , -0.86476508],
+                [-3.10404298, -0.6620052 , -3.91668873],
+                [-2.53758526,  3.99102424,  0.86289149],
+                [ 4.23608631,  0.7933192 ,  1.16523198]])
+
+        comb_mds = CombineMds()
+        comb_mds.add(mds_coords_1, overlap)
+        comb_mds.add(mds_coords_2, overlap)
+        final_mds = comb_mds.getFinalMDS()
+
+        self.assertTrue(final_mds.shape == (mds_coords_1.shape[0]*2-overlap, 
+                                            mds_coords_1.shape[1]))
+        #self.assertFloatEqual(final_mds[0, 0], 0.0393279)
+        #self.assertFloatEqual(final_mds[-1, -1], -5.322599)
+
+
+
 
 class FastMetricNystromScalingTests(TestCase):
     """test the functions to do metric scaling"""
