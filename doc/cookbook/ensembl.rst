@@ -168,6 +168,23 @@ We show just for the canonical transcript.
     >>> print brca2.CanonicalTranscript.Exons[0]
     Exon(StableId=ENSE00001184784, Rank=1)
 
+Get the introns for a transcript
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We show just for the canonical transcript.
+
+.. doctest::
+
+    >>> from cogent.db.ensembl import Genome
+    >>> human = Genome('human', Release=58, account=account)
+    >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
+    >>> for intron in brca2.CanonicalTranscript.Introns:
+    ...     print intron
+    Intron(TranscriptId=ENST00000380152, Rank=1)
+    Intron(TranscriptId=ENST00000380152, Rank=2)
+    Intron(TranscriptId=ENST00000380152, Rank=3)...
+
+
 Inspect the genomic coordinate for a feature
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

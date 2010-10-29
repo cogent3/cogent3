@@ -129,7 +129,7 @@ Gene's also have a location. The length of a gene is the difference between its 
 
 Each location is directly tied to the parent genome and the coordinate above also shows the coordinates' *type* (chromosome in this case), name (13), start, end and strand. The start and end positions are python indices and will differ from the Ensembl indices in that start will be the Ensembl index - 1. This is because python counts from 0, not 1. In querying for regions using a specific set of coordinates, it is possible to put in the Ensembl coordinates (demonstrated below).
 
-``Gene`` has several useful properties, including the ability to directly get their own DNA sequence and their ``CanonicalTranscript`` and ``Transcripts``. ``CanonicalTranscript`` is the characteristic transcript for a gene, as defined by Ensembl. ``Transcripts`` is a tuple attribute containing individual region instances of type ``Transcript``. A ``Transcript`` has ``Exons``, a ``Cds`` and, if the ``BioType`` is protein coding, a protein sequence. In the following we grab the cannonical transcript from ``brca2``
+``Gene`` has several useful properties, including the ability to directly get their own DNA sequence and their ``CanonicalTranscript`` and ``Transcripts``. ``CanonicalTranscript`` is the characteristic transcript for a gene, as defined by Ensembl. ``Transcripts`` is a tuple attribute containing individual region instances of type ``Transcript``. A ``Transcript`` has ``Exons``, ``Introns``, a ``Cds`` and, if the ``BioType`` is protein coding, a protein sequence. In the following we grab the cannonical transcript from ``brca2``
 
 .. doctest::
 
@@ -158,7 +158,16 @@ It is also possible to iterate over a transcript's exons, over their translated 
 
 The ``Cds`` sequence includes the stop-codon, if present. The reason for this is there are many annotated transcripts in the Ensembl database the length of whose transcribed exons are not divisible by 3. Hence we leave it to the user to decide how to deal with that, but mention here that determining the number of complete codons is trivial and you can slice the ``Cds`` so that it's length is divisible by 3.
 
-The ``Exons`` and ``TranslatedExons`` properties are tuples that are evaluated on demand and can be sliced. Each ``Exons/TranslatedExons`` is itself a region, with all of the properties of generic regions (like having a ``Seq`` attribute).
+The ``Exons`` and ``TranslatedExons`` properties are tuples that are evaluated on demand and can be sliced. Each ``Exon/TranslatedExon`` is itself a region, with all of the properties of generic regions (like having a ``Seq`` attribute). Similar descriptions apply to the ``Introns`` property and ``Intron`` class. We show just for the canonical transcript.
+
+.. doctest::
+
+    >>> for intron in brca2.CanonicalTranscript.Introns:
+    ...     print intron
+    Intron(TranscriptId=ENST00000380152, Rank=1)
+    Intron(TranscriptId=ENST00000380152, Rank=2)
+    Intron(TranscriptId=ENST00000380152, Rank=3)...
+
 
 The ``Gene`` region also has convenience methods for examining properties of it's transcripts, in presenting the ``Cds`` lengths and getting the ``Transcript`` encoding the longest ``Cds``.
 
@@ -254,8 +263,8 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
          T    1.0000          659
          T    1.0000          660
          T    1.0000          661
-         T    0.8167          662
          C    0.1833          662
+         T    0.8167          662
     -----------------------------
     Variation(Symbol='rs28358582'; Effect=['SPLICE_SITE',... 'NON_SYNONYMOUS_CODING']...
 
@@ -386,7 +395,7 @@ The ``RelatedGenes`` object has a number of properties allowing you to get acces
 .. doctest::
 
     >>> print orthologs.Members
-    (gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
+    (Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
     >>> print orthologs.getSeqLengths()
     [40742, 47117, 83737]
 
