@@ -7,7 +7,6 @@ process, but its likelihood indicates the maximum possible likelihood value
 for a site-independent evolutionary process.
 """
 from __future__ import division
-import re
 from numpy import log
 
 from cogent import LoadSeqs
@@ -43,7 +42,7 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars=
     sequences as columns and aligned columns as rows
     
     Arguments:
-        exclude_chars: a character string suitable for use as a regular expression"""
+        exclude_chars: columns containing these characters will be excluded"""
     if exclude_chars:
         exclude_chars = set(exclude_chars)
         exclude_func = exclude_chars.intersection
