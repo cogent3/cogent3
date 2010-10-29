@@ -6,6 +6,7 @@ from cogent.db.ensembl.host import HostAccount, get_ensembl_account
 from cogent.db.ensembl.util import convert_strand
 from cogent.db.ensembl.genome import Genome
 from cogent.db.ensembl.sequence import _assemble_seq
+from cogent.db.ensembl.util import asserted_one
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -250,6 +251,74 @@ class TestGene(GenomeTestBase):
         stable_id = 'ENSG00000XXXXX'
         gene = self.human.getGeneByStableId(StableId=stable_id)
         self.assertEquals(gene, None)
+    
+    def test_intron_number(self):
+        """number of introns should be correct"""
+        for gene_id, transcript_id, exp_number in [
+                            ('ENSG00000234914', 'ENST00000434799', 0), 
+                            ('ENSG00000132199', 'ENST00000319815', 14), 
+                            ('ENSG00000132199', 'ENST00000383578', 15)]:
+            gene = asserted_one(self.human.getGenesMatching(StableId=gene_id))
+            transcript = asserted_one(
+                [t for t in gene.Transcripts if t.StableId==transcript_id])
+            if exp_number == 0:
+                self.assertEqual(transcript.Introns, None)
+            else:
+                self.assertEqual(len(transcript.Introns), exp_number)
+        
+    
+    def test_intron(self):
+        """should get correct Intron sequence, regardless of strand"""
+        # IL2 is on - strand, IL13 is on + strand, both have three introns
+        IL2_exp_introns = [
+                    (1, 123377358, 123377448, 'gtaagtatat', 'actttcttag'),
+                    (2, 123375008, 123377298, 'gtaagtacaa', 'attattctag'),
+                    (3, 123373017,123374864, 'gtaaggcatt', 'tcttttatag')]
+        IL13_exp_introns = [
+                    (1, 131994052, 131995109, 'gtgagtgtcg', 'gctcccacag'),
+                    (2, 131995163, 131995415, 'gtaaggacct', 'ctccccacag'),
+                    (3, 131995520, 131995866, 'gtaaggcatc', 'tgtcctgcag')]
+        
+        for symbol, stable_id, exp_introns in [
+                    ('IL2', 'ENST00000226730', IL2_exp_introns), 
+                    ('IL13', 'ENST00000304506', IL13_exp_introns)]:
+            gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
+            strand = gene.Location.Strand
+            transcript = asserted_one(
+                [t for t in gene.Transcripts if t.StableId==stable_id])
+            introns = transcript.Introns
+            self.assertEqual(len(introns), len(exp_introns))
+            idx = 0
+            for intron in introns:
+                loc = intron.Location
+                start, end = loc.Start, loc.End
+                seq = str(intron.Seq)
+                exp_rank, exp_start, exp_end, exp_seq5, \
+                                    exp_seq3 = exp_introns[idx]
+                self.assertEqual(loc.Strand, strand)
+                # test the order using rank
+                self.assertEqual(intron.Rank, exp_rank)
+                # test position 
+                self.assertEqual(start, exp_start)
+                self.assertEqual(end, exp_end)
+                # test sequence
+                self.assertEqual(seq[:10], exp_seq5.upper())
+                self.assertEqual(seq[-10:], exp_seq3.upper())
+                idx += 1
+    
+    def test_intron_annotation(self):
+        """sequences annotated with Introns should return correct seq"""
+        for symbol, stable_id, rank, exp_seq5, exp_seq3 in [
+                ('IL2', 'ENST00000226730', 1, 'gtaagtatat', 'actttcttag'), 
+                ('IL13', 'ENST00000304506', 3, 'gtaaggcatc', 'tgtcctgcag')]:
+            gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
+            seq = gene.getAnnotatedSeq(feature_types='gene')
+            intron = asserted_one(seq.getAnnotationsMatching('intron',
+                                                '%s-%d'%(stable_id, rank)))
+            intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
+            self.assertEqual(intron_seq[:10], exp_seq5.upper())
+            self.assertEqual(intron_seq[-10:], exp_seq3.upper())
+        
     
 
 class TestVariation(GenomeTestBase):

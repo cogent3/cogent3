@@ -478,6 +478,42 @@ class Transcript(_StableRegion):
     
     Exons = property(_get_exons)
     
+    def _get_intron_transcript_records(self):
+        if len(self.Exons) < 2:
+            self._set_null_values(["Introns"])
+            return
+        
+        exon_positions = [(exon.Location.Start, exon.Location.End) 
+                            for exon in self.Exons]
+        exon_positions.sort()
+        end = exon_positions[-1][-1]
+        exon_map = Map(locations=exon_positions, parent_length=end)
+        intron_map = exon_map.shadow()
+        
+        intron_positions = [(span.Start, span.End) 
+                            for span in intron_map.spans if span.Start != 0]
+        
+        chrom = self.Location.CoordName
+        strand = self.Location.Strand
+        introns = []
+        rank = 1
+        if strand == -1:
+            intron_positions.reverse()
+        for s, e in intron_positions:
+            coord = self.genome.makeLocation(CoordName=chrom, Start=s, End=e, 
+                                            Strand=strand, ensembl_coord=False)
+            introns.append(Intron(self.genome, self.db, rank, self.StableId,
+                                    coord))
+            rank += 1
+        
+        self._cached['Introns'] = tuple(introns)
+    
+    def _get_introns(self):
+        return self._get_cached_value('Introns', 
+                        self._get_intron_transcript_records)
+    
+    Introns = property(_get_introns)
+    
     def _get_translation_record(self):
         transcript_id = self.transcript_id
         translation_table = self.db.getTable('translation')
@@ -684,6 +720,18 @@ class Transcript(_StableRegion):
             features.append(feature_data)
         return features
     
+    def _get_intron_feature_data(self, parent_map):
+        """return the intron feature data"""
+        features = []
+        if self.Introns is self.NULL_VALUE:
+            return features
+        for intron in self.Introns:
+            feature_data = intron.featureData(parent_map)
+            if feature_data is None:
+                continue
+            features.append(feature_data)
+        return features
+    
     def _get_translated_exon_feature_data(self, parent_map):
         """returns featureD data for translated exons"""
         features = []
@@ -731,6 +779,7 @@ class Transcript(_StableRegion):
         self lies outside parent's span.
         """
         features = self._get_exon_feature_data(parent_map)
+        features += self._get_intron_feature_data(parent_map)
         features += self._get_translated_exon_feature_data(parent_map)
         if self.TranslatedExons:
             features += self._get_Utr_feature_data(parent_map)
@@ -752,7 +801,7 @@ class Exon(_StableRegion):
     
     def __repr__(self):
         my_type = self.__class__.__name__
-        return '%s(StableId=%s, Rank=%s)' % (my_type, self.StableId,self.Rank)
+        return '%s(StableId=%s, Rank=%s)' % (my_type, self.StableId, self.Rank)
     
     def __cmp__(self, other):
         return cmp(self.Rank, other.Rank)
@@ -781,6 +830,31 @@ class Exon(_StableRegion):
     
     Symbol = property(_get_symbol)
     
+
+
+class Intron(GenericRegion):
+    Type = 'intron'
+    def __init__(self, genome, db, rank, transcript_stable_id, Location=None):
+        GenericRegion.__init__(self, genome, db, Location=Location)
+        self.TranscriptStableId = transcript_stable_id
+        self.Rank = rank
+    
+    def __str__(self):
+        return self.__repr__()
+    
+    def __repr__(self):
+        my_type = self.__class__.__name__
+        return '%s(TranscriptId=%s, Rank=%s)' % (my_type,
+                            self.TranscriptStableId, self.Rank)
+    
+    def _make_symbol(self):
+        self._cached['Symbol'] = '%s-%s'%(self.TranscriptStableId, self.Rank)
+    
+    def _get_symbol(self):
+        return self._get_cached_value('Symbol', self._make_symbol)
+    
+    Symbol = property(_get_symbol)
+
 
 class Est(Gene):
     """an EST region"""
@@ -920,7 +994,7 @@ class Variation(_Region):
         self._table_rows['allele_table'] = records
         data = [(rec['allele'], rec['frequency'], rec['sample_id']) for rec in records]
         table = Table(header='allele freq sample_id'.split(), rows=data)
-        self._cached[('AlleleFreqs')] = table.sorted('sample_id')
+        self._cached[('AlleleFreqs')] = table.sorted(['sample_id', 'allele'])
     
     def _get_allele_freqs(self):
         return self._get_cached_value('AlleleFreqs',
