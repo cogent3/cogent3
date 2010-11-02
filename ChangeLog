@@ -12,6 +12,8 @@ New Features
 * added getGeneByStableId method to genome objects.
 * added Introns attribute to Transcript objects and an Intron class. (Thanks
   to Hua Ying for this patch!)
+* added parser for illumina HiSeq2000 and GAiix sequence files as 
+  cogent.parse.illumina_sequence.MinimalIlluminaSequenceParser.
 
 Changes
 -------
