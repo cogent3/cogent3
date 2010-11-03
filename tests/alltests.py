@@ -135,6 +135,7 @@ def suite():
         'test_parse.test_genbank',
         'test_parse.test_gff',
         'test_parse.test_ilm',
+        'test_parse.test_illumina_sequence',
         'test_parse.test_locuslink',
         'test_parse.test_mage',
         'test_parse.test_meme',
