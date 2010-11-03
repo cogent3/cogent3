@@ -131,6 +131,7 @@ def suite():
         'test_parse.test_dialign',
         'test_parse.test_ebi',
         'test_parse.test_fasta',
+        'test_parse.test_fastq',
         'test_parse.test_gibbs',
         'test_parse.test_genbank',
         'test_parse.test_gff',
