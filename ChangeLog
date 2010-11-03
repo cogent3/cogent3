@@ -8,12 +8,16 @@ Cogent 1.4.1 - 1.5
 New Features
 ------------
 
+* major additions to Cookbook. Thanks to the many contributors (too many to
+  list here)!
 * added AlleleFreqs attribute to ensembl Variation objects.
 * added getGeneByStableId method to genome objects.
 * added Introns attribute to Transcript objects and an Intron class. (Thanks
   to Hua Ying for this patch!)
 * added parser for illumina HiSeq2000 and GAiix sequence files as 
   cogent.parse.illumina_sequence.MinimalIlluminaSequenceParser.
+* added parser to FASTQ files, one of the output options for illumina's
+  workflow, also added cookbook demo.
 
 Changes
 -------
