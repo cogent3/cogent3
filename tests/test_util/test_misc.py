@@ -1445,15 +1445,28 @@ class CommandLineParserTests(TestCase):
         option_parser, opts, args = parse_command_line_parameters(
           script_description="My script",
           script_usage=[('Print help','%prog -h','')],
-          version='1.0',help_on_no_arguments=False)
+          version='1.0',help_on_no_arguments=False,
+          command_line_args=[])
         self.assertEqual(len(args),0)
         
         d = {'script_description':"My script",\
              'script_usage':[('Print help','%prog -h','')],\
              'version':'1.0',
-             'help_on_no_arguments':False}
+             'help_on_no_arguments':False,
+             'command_line_args':[]}
         option_parser, opts, args = parse_command_line_parameters(**d)
         self.assertEqual(len(args),0)
+        
+        # allowing positional arguments functions as expected as does
+        # passing a positional argument
+        d = {'script_description':"My script",\
+             'script_usage':[('Print help','%prog -h','')],\
+             'version':'1.0',
+             'help_on_no_arguments':False,
+             'command_line_args':['hello'],
+             'disallow_positional_arguments':False}
+        option_parser, opts, args = parse_command_line_parameters(**d)
+        self.assertEqual(len(args),1)
 
 #run tests on command-line invocation
 

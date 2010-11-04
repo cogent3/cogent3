@@ -1552,6 +1552,9 @@ def parse_command_line_parameters(**kwargs):
         '[] indicates optional input (order unimportant)')
     required_input_line = set_parameter('required_input_line',kwargs,\
         '{} indicates required input (order unimportant)')
+    # command_line_text will usually be nothing, but can be passed for
+    # testing purposes
+    command_line_args = set_parameter('command_line_args',kwargs,None)
     
     # Build the usage and version strings
     usage = build_usage_lines(required_options,script_description,script_usage,\
@@ -1591,7 +1594,9 @@ def parse_command_line_parameters(**kwargs):
     map(parser.add_option,optional_options)
     
     # Parse the command line
-    opts,args = parser.parse_args()
+    # command_line_text will None except in test cases, in which 
+    # case sys.argv[1:] will be parsed
+    opts,args = parser.parse_args(command_line_args)
     
     # If positional arguments are not allowed, and any were provided,
     # raise an error.
