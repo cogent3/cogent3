@@ -14,6 +14,12 @@ New Features
 * added getGeneByStableId method to genome objects.
 * added Introns attribute to Transcript objects and an Intron class. (Thanks
   to Hua Ying for this patch!)
+* added Mann-Whitney test and a Monte-Carlo version
+* exploratory and confirmatory period estimation techniques (suitable for
+symbolic and continuous data)
+* Information theoretic measures (AIC and BIC) added
+* drawing of trees with collapsed nodes
+* progress display indicator support for terminal and GUI apps
 * added parser for illumina HiSeq2000 and GAiix sequence files as 
   cogent.parse.illumina_sequence.MinimalIlluminaSequenceParser.
 * added parser to FASTQ files, one of the output options for illumina's
@@ -21,6 +27,9 @@ New Features
 
 Changes
 -------
+
+* thousand fold performance improvement to nmds
+* >10-fold performance improvements to some Table operations
 
 Bug Fixes
 ---------
