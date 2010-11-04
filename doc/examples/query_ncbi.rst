@@ -67,8 +67,8 @@ We convert the sequences to a ``SequenceCollection`` using ``LoadSeqs`` and then
     
     >>> from cogent import LoadSeqs
     >>> seqs = LoadSeqs(data=seqs, aligned=False)
-    >>> print seqs.NamedSeqs['Clup.Q28295'].toFasta()
-    >Clup.Q28295
+    >>> print seqs.NamedSeqs['Clup.VWF_CANFA'].toFasta()
+    >Clup.VWF_CANFA
     MSPTRLVRVLLALALI...
 
 We convert the features into a PyCogent ``Table`` object, which requires we specify column headings. This can be saved to file if desired, but we don't do that here. For display purposes, we just print the first 10 records.
