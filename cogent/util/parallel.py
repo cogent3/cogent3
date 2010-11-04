@@ -2,7 +2,7 @@
 from __future__ import with_statement
 import os, sys
 from contextlib import contextmanager
-
+import warnings
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -47,7 +47,7 @@ else:
     try:
         from mpi4py import MPI
     except ImportError:
-        print >>sys.stderr, 'Not using MPI as mpi4py not found'
+        warnings.warn('Not using MPI as mpi4py not found', stacklevel=2)
         MPI = None
     else:
         size = MPI.COMM_WORLD.Get_size()
