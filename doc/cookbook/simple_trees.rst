@@ -240,7 +240,6 @@ Getting the two nodes that are farthest apart
     >>> tr.maxTipTipDistance()
     (0.4102925130849, ('Mouse', 'DogFaced'))
 
-
 Get the nodes within a given distance
 """""""""""""""""""""""""""""""""""""
 
@@ -318,26 +317,21 @@ Near a given tip
                         /edge.0--|
               /edge.1--|          \-HowlerMon
              |         |
-             |          \-------- /-Mouse
+             |          \-Mouse
     -root----|
              |--NineBande
              |
               \-DogFaced
     >>> print tr.rootedWithTip("Mouse").asciiArt()
-              /-Mouse
+                        /-Human
+              /edge.0--|
+             |          \-HowlerMon
              |
-    -root----|                    /-Human
-             |          /edge.0--|
-             |         |          \-HowlerMon
-              \edge.0.2|
-                       |          /-NineBande
-                        \edge.1--|
-                                  \-DogFaced
-        
-                       |          /-NineBande
-                        \edge.1--|
-                                  \-DogFaced
-
+    -root----|--Mouse
+             |
+             |          /-NineBande
+              \edge.1--|
+                        \-DogFaced
 
 Tree representations
 ^^^^^^^^^^^^^^^^^^^^
@@ -393,7 +387,6 @@ Write to PDF
     
     >>> from cogent.util.misc import remove_files
     >>> remove_files('temp.pdf', error_on_missing=False)
-
 
 Tree traversal
 ^^^^^^^^^^^^^^
@@ -493,7 +486,6 @@ One way to do it
     >>> remove_files(['data/temp.tree', 'data/temp.pdf'],
     ...                 error_on_missing=False)
 
-
 Tree manipulation methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -534,7 +526,6 @@ Create a full unrooted copy of the tree
     >>> print tr2.getNewick()
     (((Human,HowlerMon),Mouse),NineBande,DogFaced);
 
-
 Transform tree into a bifurcating tree
 """"""""""""""""""""""""""""""""""""""
 
@@ -566,7 +557,6 @@ Add internal nodes so that every node has 2 or fewer children.
                                   \root----|
                                             \-E
 
-    
 Transform tree into a balanced tree
 """""""""""""""""""""""""""""""""""
 
@@ -600,7 +590,6 @@ stems for model parameterization should be done using the
              |          /-NineBande
               \edge.1--|
                         \-DogFaced
-    
 
 Test two trees for same topology
 """"""""""""""""""""""""""""""""
@@ -614,8 +603,6 @@ Branch lengths don't matter.
     >>> tr2 = LoadTree(treestring="((C:0.1,D:0.1)F:0.1,B:0.1)G;")
     >>> tr1.sameTopology(tr2)
     True
-    
-
 
 Calculate each node's maximum distance to a tip
 """""""""""""""""""""""""""""""""""""""""""""""
@@ -642,7 +629,6 @@ the distance from that node to its most distant tip.
     F 0.4
     C 0
     D 0
-    
 
 Scale branch lengths in place to integers for ascii output
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -663,7 +649,6 @@ Get tip-to-tip distances
 Get a distance matrix between all pairs of tips
 and a list of the tip nodes.
 
-
 .. doctest::
 
     >>> from cogent import LoadTree
@@ -672,12 +657,9 @@ and a list of the tip nodes.
     >>> for i,t in enumerate(tips):
     ...     print t.Name,d[i]
     ... 
-    B [  0.  10.  11.]
-    C [ 10.   0.   7.]
-    D [ 11.   7.   0.]
-
-
-
+    B [  0.  10.  12.]
+    C [ 10.   0.   6.]
+    D [ 12.   6.   0.]
 
 Compare two trees using tip-to-tip distance matrices
 """"""""""""""""""""""""""""""""""""""""""""""""""""
@@ -687,9 +669,8 @@ distance). The default is to use Pearson's correlation,
 in which case a score of 0 means that the Pearson's
 correlation was perfectly good (1), and a score of 1
 means that the Pearson's correlation was perfectly bad (-1).
-        
-Note: automatically strips out the names that don't match.
 
+Note: automatically strips out the names that don't match.
 
 .. doctest::
 
