@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 import unittest, os
+import warnings
+
+warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
 from cogent.phylo.distance import *
 from cogent.phylo.nj import nj, gnj
