@@ -16,7 +16,7 @@ New Features
   to Hua Ying for this patch!)
 * added Mann-Whitney test and a Monte-Carlo version
 * exploratory and confirmatory period estimation techniques (suitable for
-symbolic and continuous data)
+  symbolic and continuous data)
 * Information theoretic measures (AIC and BIC) added
 * drawing of trees with collapsed nodes
 * progress display indicator support for terminal and GUI apps
@@ -51,7 +51,8 @@ New Features
 * New capabilities for examining genetic variants using Ensembl.
 * Phylogenetic methods that can return collections of trees do so as a
   TreeCollections object, which has writeToFile and getConsensusTree methods.
-* Added uclust application controller which currently supports uclust v1.1.579.
+* Added uclust application controller which currently supports uclust
+  v1.1.579.
 
 Changes
 -------
