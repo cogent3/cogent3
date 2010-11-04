@@ -366,7 +366,7 @@ We can now use this result to search compara for related genes. We note here tha
 
     >>> relationships = compara.getDistinct('relationship')
     >>> print relationships
-    ['ortholog_one2one', 'within_species_paralog', ...
+    [u'ortholog_one2one', u'within_species_paralog', ...
 
 So we use the ``brca2`` instance above and search for orthologs among the human, mouse, rat genomes.
 
