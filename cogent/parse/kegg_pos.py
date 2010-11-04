@@ -6,10 +6,15 @@ __license__ = "GPL"
 __version__ = "0.1.0.dev"
 __maintainer__ = "Jesse Zaneveld"
 __email__ = "zaneveld@gmail.com"
-__status__ = "Development"
+__status__ = "Release"
 
 """
-Parser for kegg 
+Parser for kegg .pos files 
+
+Currently this is quite bare-bones, and primarily useful 
+for associating the species name with the results, which is
+essential if combining multiple .pos files into a single
+database.
 """
 # Pos file parsers
 def parse_pos_file(fname):
