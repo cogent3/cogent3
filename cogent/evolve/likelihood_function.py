@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import random, numpy, warnings
+import random, numpy
 
 from cogent.core.alignment import Alignment
 from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
+
+from cogent.util.warning import discontinued, deprecated
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -26,13 +28,11 @@ __status__ = "Production"
 
 class LikelihoodFunction(ParameterController):
     def setpar(self, param_name, value, edge=None, **scope):
-        warnings.warn("'setpar()' deprecated, use 'setParamRule()'", 
-            DeprecationWarning, stacklevel=2)
+        deprecated('method', 'setpar','setParamRule', '1.6')
         return self.setParamRule(param_name, edge=edge, value=value, is_const=True, **scope)
     
     def testfunction(self):
-        warnings.warn("'testfunction()' deprecated, use 'getLogLikelihood()'", 
-            DeprecationWarning, stacklevel=2)
+        deprecated('method', 'testfunction','getLogLikelihood', '1.6')
         return self.getLogLikelihood()
     
     def getLogLikelihood(self):
@@ -275,9 +275,9 @@ class LikelihoodFunction(ParameterController):
               False.
         """
         
-        warnings.warn("'getStatisticsAsDict()' deprecated. "
-                "'getParamValueDict(['edge'])' is nearly equivalent", 
-                DeprecationWarning, stacklevel=2)
+        discontinued('method', "'getStatisticsAsDict' "
+                "use 'getParamValueDict(['edge'])' is nearly equivalent", 
+                '1.6')
         
         stats_dict = self.getParamValueDict(['edge'])
         

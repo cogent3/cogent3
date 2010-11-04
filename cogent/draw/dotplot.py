@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from __future__ import division
-import warnings
 
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 
+from cogent.util.warning import discontinued
 from cogent.draw.linear import Display
 from cogent.draw.rlg2mpl import Drawable, figureLayout
 from cogent.align.align import dotplot
@@ -123,8 +123,7 @@ class Display2D(Drawable):
         # hard to pick min_gap without knowing pixels per base, and
         # matplotlib is reasonably fast anyway, so:
         if join_gaps is not None:
-            warnings.warn('"join_gaps" no longer does anything', 
-                    DeprecationWarning, stacklevel=2)
+            discontinued('argument', 'join_gaps', '1.6')
         ax = comparison_display(self.seq1d, self.seq2d, **kw)
         (fwd, rev) = self._calc_lines(window, None, min_gap)
         for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:

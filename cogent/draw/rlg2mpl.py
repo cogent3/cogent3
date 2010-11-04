@@ -12,7 +12,8 @@ import matplotlib.artist
 import matplotlib.transforms
 import matplotlib.colors
 import numpy
-import warnings
+
+from cogent.util.warning import discontinued
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -185,8 +186,7 @@ class Drawable(object):
         kw2 = {}
         for (k,v) in kw.items():
             if k in ['wraps', 'border', 'withTrackLabelColumn']:
-                warnings.warn("'%s' no longer does anything" % k,
-                        DeprecationWarning, stacklevel=2)
+                discontinued('argument', "%s" % k, '1.6')
             else:
                 kw2[k] = v
         kw2['format'] = 'pdf'

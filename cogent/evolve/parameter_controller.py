@@ -5,6 +5,10 @@ parameters involved in a maximum-likelihood based tree analysis.
 """
 
 from __future__ import with_statement
+
+import numpy
+import pickle, warnings
+
 from cogent.core.tree import TreeError
 from cogent.evolve import likelihood_calculation
 from cogent.align import dp_calculation
@@ -12,11 +16,9 @@ from cogent.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent.recalculation.scope import _indexed
 from cogent.maths.stats.information_criteria import aic, bic
 
-import numpy
-import pickle
-import warnings
 
 from cogent.align.pairwise import AlignableSeq
+from cogent.util.warning import discontinued
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -143,8 +145,7 @@ class _LikelihoodParameterController(_LF):
 
     def makeCalculator(self, *args, **kw):
         if args:
-            warnings.warn("makeCalculator(aligns) long Deprecated", 
-                DeprecationWarning, stacklevel=2)
+            discontinued('method', "makeCalculator(aligns)", '1.6')
             # and shadowing a quite different superclass method.
             self.setAlignment(*args)
             if getattr(self, 'used_as_calculator', False):
