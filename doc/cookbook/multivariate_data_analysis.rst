@@ -82,7 +82,7 @@ already a couple of minutes.
     >>> from cogent.cluster.metric_scaling import principal_coordinates_analysis
     >>> from numpy import random
     >>> objs = random.random((4000, 10))
-    >>> distmtx = dist_euclidean(objs);
+    >>> distmtx = dist_euclidean(objs)
     >>> full_pcoa = principal_coordinates_analysis(distmtx)
 
 
