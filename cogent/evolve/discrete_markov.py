@@ -1,5 +1,6 @@
-import numpy, warnings
+import numpy
 
+from cogent.util.warning import deprecated
 from cogent.recalculation.definition import (NonParamDefn, CalcDefn, 
     EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
     DictArrayTemplate)
@@ -71,9 +72,10 @@ class PsubMatrixDefn(PartitionDefn):
         return (all_cells, uniq_cells)
 
 def DiscreteSubstitutionModel(*args, **kw):
-    warnings.warn("cogent.evolve.discrete_markov.DiscreteSubstitutionModel has"
-        " moved to cogent.evolve.substitution_model.DiscreteSubstitutionModel",
-        DeprecationWarning)
+    deprecated("class",
+        "cogent.evolve.discrete_markov.DiscreteSubstitutionModel",
+        "cogent.evolve.substitution_model.DiscreteSubstitutionModel",
+        '1.6')
     from cogent.evolve.substitution_model import DiscreteSubstitutionModel
     return DiscreteSubstitutionModel(*args, **kw)
 
