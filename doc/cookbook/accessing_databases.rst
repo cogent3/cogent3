@@ -136,8 +136,8 @@ You'll probably notice that the lines look suspiciously like FASTA-format record
     >>> for line in lines:
     ...     print line
     ... 
-    1:  D28543. Hepatitis C virus...[gi:459567] 
-    -
+    D28543 Hepatitis C virus... [gi:459567]
+
 
 The current ``rettypes`` (as of this writing on 4/14/2010) for the 'core' NCBI databases are native, fasta, gb, gp, gbwithparts, gbc, gpc, est, gss, seqid, acc, ft. Formerly, but not currently, 'genbank' was a synonym for 'gb' and 'genpept' was a synonym for 'gp': however, these synonyms no longer work and need to be fixed if you encounter them in old code. For more information check NCBI's `format documentation <http://www.ncbi.nlm.nih.gov/corehtml/query/static/efetchseq_help.html>`_.
 
@@ -178,8 +178,8 @@ For example:
     ...     print line[:40]
     ... 
     <?xml version="1.0"?>
-    <!DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI 
-    <TSeqSet>
+     <!DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI
+     <TSeqSet>
     <TSeq>
       <TSeq_seqtype value="nucleotide"/>
       <TSeq_gi>459567</TSeq_gi>
@@ -190,8 +190,8 @@ For example:
       <TSeq_length>282</TSeq_length>
       <TSeq_sequence>GAGCACGACATCTACCAATGTTG
     </TSeq>
-    </TSeqSet>
     <BLANKLINE>
+    </TSeqSet>
 
 You'll notice that the second case is some funny-looking html. Thanks, NCBI! This is not our fault, please don't file a bug report. To figure out whether something is actually surprising behavior at NCBI, you can always capture the command-line and run it in a web browser. You can do this by calling str() on the ``ef``, or by printing it. For example:
 
@@ -214,7 +214,7 @@ You can also select multiple ids (pass in as comma-delimited list):
 
     >>> ef = EFetch(id='459567,459568', rettype='brief')
     >>> ef.read()
-    '1:  D28543. Hepatitis C virus...[gi:459567] \n1:  BAA05896. NS5 protein [Hepa...[gi:459568] \n'
+    'D28543 Hepatitis C virus... [gi:459567]\nBAA05896 NS5 protein [Hepa... [gi:459568]'
 
 Retrieving GenPept files from NCBI via Eutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
