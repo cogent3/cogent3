@@ -15,7 +15,7 @@ from cogent.cluster.UPGMA import inputs_from_dict2D
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
-               "Gavin Huttley", "Justin Kuczynski"]
+               "Gavin Huttley", "Justin Kuczynski", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Catherine Lozupone"
@@ -80,17 +80,23 @@ def make_F_matrix(E_matrix):
     """
     num_rows, num_cols = shape(E_matrix)
     #make a vector of the means for each row and column
-    column_means = add.reduce(E_matrix) / num_rows
+    #column_means = (add.reduce(E_matrix) / num_rows)
+    column_means = (add.reduce(E_matrix) / num_rows)[:,newaxis]
     trans_matrix = transpose(E_matrix)
     row_sums = add.reduce(trans_matrix)
     row_means = row_sums / num_cols
     #calculate the mean of the whole matrix
     matrix_mean = sum(row_sums) / (num_rows * num_cols)
     #adjust each element in the E matrix to make the F matrix
-    for i, row in enumerate(E_matrix):
-        for j, val in enumerate(row):
-            E_matrix[i,j] = E_matrix[i,j] - row_means[i] - \
-                    column_means[j] + matrix_mean
+
+    E_matrix -= row_means
+    E_matrix -= column_means
+    E_matrix += matrix_mean
+
+    #for i, row in enumerate(E_matrix):
+    #    for j, val in enumerate(row):
+    #        E_matrix[i,j] = E_matrix[i,j] - row_means[i] - \
+    #                column_means[j] + matrix_mean
     return E_matrix
 
 def run_eig(F_matrix):

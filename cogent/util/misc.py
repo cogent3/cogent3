@@ -1072,11 +1072,11 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return super(MappedDict, self).has_key(self.Mask(item))
 
-def getNewId():
+def getNewId(rand_f=randrange):
     """Creates a random 12-digit integer to be used as an id."""
 
     NUM_DIGITS = 12
-    return ''.join(map(str, [randrange(10) for i in range(NUM_DIGITS)]))
+    return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
 #end function getNewId
 
 def generateCombinations(alphabet, combination_length):

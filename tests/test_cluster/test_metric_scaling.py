@@ -11,7 +11,7 @@ Float = numpy.core.numerictypes.sctype2char(float)
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
-                "Justin Kuczynski"]
+                "Justin Kuczynski", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.0.dev"
 __maintainer__ = "Catherine Lozupone"
@@ -106,9 +106,12 @@ class MetricScalingTests(TestCase):
 
     def test_make_F_matrix(self):
         """make_F_matrix converts an E_matrix to an F_matrix"""
-        matrix = self.matrix
+        #matrix = self.matrix
+        matrix = array([[1,2,3],[4,5,6],[7,8,9]])
         F_matrix = make_F_matrix(matrix)
-        self.assertEqual(F_matrix, array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]))
+        self.assertEqual(F_matrix, array([[0.0, -2.0, -4.0], 
+                                          [2.0, 0.0, -2.0],
+                                          [4.0, 2.0, 0.0]]))
 
     def test_run_eig(self):
         """run_eig returns eigenvectors and values"""

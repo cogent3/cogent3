@@ -17,14 +17,15 @@ __author__ = "Mike Robeson"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Mike Robeson", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.4.1"
 __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"
 
 class QueryNotFoundError(Exception): pass
 
-eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
+#eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
+eutils_base='http://www.ncbi.nlm.nih.gov/entrez/eutils'
 
 #EUtils requires a tool and and email address
 default_tool_string = 'PyCogent'
@@ -217,7 +218,7 @@ class EUtils(object):
         self.__dict__.update(kwargs)
         self.filename = filename
         self.wait = wait
-        self.retstart = 1
+        self.retstart = 0  # was originally set to 1
         self.DEBUG = DEBUG
         self.retmax = retmax
         self.max_recs = max_recs
