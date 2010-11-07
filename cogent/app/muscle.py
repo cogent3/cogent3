@@ -608,13 +608,22 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     app.Parameters['-tree1'].on(get_tmp_filename(app.WorkingDir))
     app.Parameters['-seqtype'].on(moltype.label)
 
-    seq_collection = SequenceCollection(aln)
+    seq_collection = SequenceCollection(aln, MolType=moltype)
+
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = seq_collection.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+
 
     # Collect result
-    result = app(seq_collection.toFasta())
+    result = app(int_map.toFasta())
 
     # Build tree
     tree = DndParser(result['Tree1Out'].read(), constructor=PhyloNode)
+    
+    for tip in tree.tips():
+        tip.Name = int_keys[tip.Name]
 
     # Clean up
     result.cleanUp()

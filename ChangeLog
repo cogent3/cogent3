@@ -24,6 +24,8 @@ New Features
   cogent.parse.illumina_sequence.MinimalIlluminaSequenceParser.
 * added parser to FASTQ files, one of the output options for illumina's
   workflow, also added cookbook demo.
+* added functionality for parsing of SFF files without the Roche tools in
+  cogent.parse.binary_sff
 
 Changes
 -------
@@ -36,6 +38,8 @@ Bug Fixes
 
 * Fixed a Bug in cogent.core.alphabet that resulted in 4 tests err'ing out 
   when using NumPy v1.4.1
+* Sourceforge bugs 2909181, 2987289, 2987277, 2987378, 2987272, 2987269 were 
+  addressed and fixed
 
 Cogent 1.4 - 1.4.1
 ==================

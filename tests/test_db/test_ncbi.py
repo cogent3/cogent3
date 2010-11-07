@@ -12,7 +12,7 @@ __author__ = "Mike Robeson"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Mike Robeson", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.4.1"
 __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"
@@ -124,7 +124,7 @@ class NcbiTests(TestCase):
     """Tests of top-level convenience wrappers."""
     def setUp(self):
         """Define some lengthy data."""
-        self.mouse_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus'.split(';'))
+        self.mouse_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus; Mus'.split(';'))
         self.human_taxonomy = map(strip, 'cellular organisms; Eukaryota; Fungi/Metazoa group; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Primates; Haplorrhini; Simiiformes; Catarrhini; Hominoidea; Hominidae; Homininae; Homo'.split(';'))
 
     def test_get_primary_ids(self):
@@ -158,6 +158,7 @@ class NcbiTests(TestCase):
         taxon_ids = ['10090', '9606']
         result = [self.mouse_taxonomy, self.human_taxonomy]
         self.assertEqualItems(list(taxon_ids_to_lineages(taxon_ids)), result)
+
     
     def test_taxon_ids_to_names(self):
         """taxon_ids_to_names should return names from taxon ids"""

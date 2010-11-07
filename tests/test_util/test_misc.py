@@ -23,8 +23,11 @@ from cogent.util.misc import (iterable, max_index, min_index,
     NonnegIntError, reverse_complement, not_none, get_items_except,
     NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
     revComp, parse_command_line_parameters, safe_md5, 
-    create_dir, handle_error_codes)
+    create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
+    combinate,gzip_dump,gzip_load,recursive_flatten_old,getNewId,toString,
+    timeLimitReached)
 from numpy import array
+from time import clock, sleep
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -46,6 +49,81 @@ class UtilsTests(TestCase):
     def tearDown(self):
         """ """
         map(rmdir,self.files_to_remove)
+
+    def test_identity(self):
+        """should return same object"""
+        foo = [1,'a',lambda x: x]
+        exp = id(foo)
+        self.assertEqual(id(identity(foo)), exp)
+
+    def test_if_(self):
+        """implementation of c-like tertiary operator"""
+        exp = 'yay'
+        obs = if_(True, 'yay', 'nay')
+        self.assertEqual(obs, exp)
+        exp = 'nay'
+        obs = if_(False, 'yay', 'nay')
+        self.assertEqual(obs, exp)
+
+    def test_deep_list(self):
+        """should convert nested tuple to nested list"""
+        input = ((1,(2,3)),(4,5),(6,7))
+        exp = [[1,[2,3]],[4,5],[6,7]]
+        obs = deep_list(input)
+        self.assertEqual(obs, exp)
+
+    def test_deep_tuple(self):
+        """Should convert a nested list to a nested tuple"""
+        exp = ((1,(2,3)),(4,5),(6,7))
+        input = [[1,[2,3]],[4,5],[6,7]]
+        obs = deep_tuple(input)
+        self.assertEqual(obs, exp)
+
+    def test_combinate(self):
+        """Should return combinations"""
+        input = [1,2,3,4]
+        n = 2
+        exp = [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]
+        obs = list(combinate(input, n))
+        self.assertEqual(obs, exp)
+
+    def test_recursive_flatten_old(self):
+        """Should flatten nested lists"""
+        input = [[[1,2],[3,[4,5]],[6,7]],8]
+        exp = [1,2,3,4,5,6,7,8]
+        obs = recursive_flatten_old(input)
+        self.assertEqual(obs, exp)
+        
+    def test_getNewId(self):
+        """should return a random 12 digit id"""
+        rand_f = lambda x: 1
+        obs = getNewId(rand_f=rand_f)
+        exp = '111111111111'
+        self.assertEqual(obs,exp)
+
+    def test_toString(self):
+        """should stringify an object"""
+        class foo(object):
+            def __init__(self):
+                self.bar = 5
+        exp = 'bar: 5'
+        obs = toString(foo())
+        self.assertEqual(obs, exp)
+
+    def test_timeLimitReached(self):
+        """should return true if timelimit has been reached, else return false"""
+        # this _might_ be architecture dependent
+        start = clock()
+        timelimit = .0002
+        exp = False
+        sleep(1)
+        obs = timeLimitReached(start, timelimit)
+        self.assertEqual(obs, exp)
+        sleep(1)
+        exp = True
+        obs = timeLimitReached(start, timelimit)
+        self.assertEqual(obs, exp)
+
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
