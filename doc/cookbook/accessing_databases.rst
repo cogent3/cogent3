@@ -198,7 +198,7 @@ You'll notice that the second case is some funny-looking html. Thanks, NCBI! Thi
 .. doctest::
 
     >>> print ef
-    http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmax=100&retmode=xml&tool=PyCogent&db=nucleotide&id=459567&rettype=fasta&retstart=0&email=Michael.Robeson%40colorado.edu
+    http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmax=100&retmod...
 
 If you paste the resulting string into your web browser and you get the same incorrect result that you get using PyCogent, you know that you should direct your support requests NCBI's way. If you want to use your own email address instead of leaving it as the default (the module developer), you can do that just by passing it in as a parameter. For example, in the unlikely event that I want NCBI to contact me instead of Mike if something goes wrong with my script, I can achieve that as follows:
 
@@ -206,7 +206,7 @@ If you paste the resulting string into your web browser and you get the same inc
 
     >>> ef = EFetch(id='459567', rettype='fasta', retmode='xml', email='rob@spot.colorado.edu')
     >>> print ef
-    http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmax=100&retmode=xml&tool=PyCogent&db=nucleotide&email=rob%40spot.colorado.edu&rettype=fasta&retstart=0&id=459567
+    http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmax=100&retmod...
 
 You can also select multiple ids (pass in as comma-delimited list):
 
