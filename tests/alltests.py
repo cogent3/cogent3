@@ -203,6 +203,7 @@ def suite():
             ('carnac', 'test_carnac'),
             ('clearcut', 'test_clearcut'),
             ('clustalw', 'test_clustalw'),
+            ('cmalign', 'test_infernal'),
             ('cmfinder.pl', 'test_cmfinder'),
             ('comrna', 'test_comrna'),
             ('contrafold', 'test_contrafold'),
