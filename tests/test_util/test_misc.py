@@ -34,7 +34,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Rob Knight", "Amanda Birmingham", "Sandra Smit",
                     "Zongzhi Liu", "Peter Maxwell", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.5.0"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -128,7 +128,7 @@ class UtilsTests(TestCase):
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
-        exp = 'd5cff1e08a8ed0c96a327dd2ca1530cc'
+        exp = '29fa8614a884efe6a5604b7ef1af7378'
         obs = safe_md5(open('test_util/__init__.py'))
         self.assertEqual(obs.hexdigest(),exp)
 
