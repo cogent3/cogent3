@@ -35,7 +35,7 @@ Finally, we can calculate the PD values for each environment in the tree
     >>> envs, PD_values = PD_whole_tree(tree, envs)
     >>> print envs
     ['E_FL', 'E_PA', 'O_FL', 'O_UN', 'R_FL', 'R_PA']
-    >>> print PD_vals#doctest: +SKIP
+    >>> print PD_values#doctest: +SKIP
     [ 5.85389  7.60352  2.19215  2.81821  3.93728  3.7534 ]
 
 ``PD_vals`` is a ``numpy`` ``array`` with the values representing each environment in envs.
@@ -74,9 +74,9 @@ The UniFrac analysis is run on open tree and environment file objects. The resul
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> result = fast_unifrac_file(tree_in, envs_in, weighted=False)
-    >>> print result['cluster_envs']
+    >>> print result['cluster_envs']#doctest: +SKIP
     ((((('E_FL':0.339607103063,'R_FL':0.339607103063):0.0279991540511,'R_PA':0.367606257114):0.0103026524101,'E_PA':0.377908909524):0.0223322024492,'O_UN':0.400241111973):0.00976759866402,'O_FL':0.410008710637);
-    >>> print result['pcoa']
+    >>> print result['pcoa']#doctest: +SKIP
     =================================================================================================
             Type              Label  vec_num-0  vec_num-1  vec_num-2  vec_num-3  vec_num-4  vec_num-5
     -------------------------------------------------------------------------------------------------
