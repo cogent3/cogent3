@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+
+__author__ = "Nadia Alramli"
+__copyright__ = "Nadia Alramli"
+__credits__ = ["Nadia Alramli"]
+__license__ = "BSD"
+__version__ = "1.5.0.dev"
+__maintainer__ = "Peter Maxwell"
+__email__ = "pm67nz@gmail.com"
+__status__ = "Production"
+
 # Copyright: 2008 Nadia Alramli
 # License: BSD
 

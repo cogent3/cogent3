@@ -4,13 +4,13 @@ from cogent.util.unit_test import TestCase, main
 from cogent.parse.kegg_pos import parse_pos_lines, parse_pos_file
 
 __author__ = "Jesse Zaneveld"
-__copyright__ = "Copyright 2010, The GenomeDB project"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jesse Zaneveld", "Rob Knight"]
 __license__ = "GPL"
-_version__ = "1.0-dev"
+__version__ = "1.5.0.dev"
 __maintainer__ = "Jesse Zaneveld"
 __email__ = "zaneveld@gmail.com"
-__status__ = "Release"
+__status__ = "Production"
 
 """
 Test code for kegg_pos.py in cogent.parse.  
