@@ -71,7 +71,7 @@ quadratically. For a huge number of objects this might even pose a
 memory problem. Fast-MDS methods approximate an MDS/PCoA solution and
 do not suffer from these problems.
 
-First, let's simulate a big data sample by creating 4000 objects living
+First, let's simulate a big data sample by creating 1500 objects living
 in 10 dimension. Then compute their pairwise distances and perform a
 principal coordinates analysis on it. Note that the last two steps might take
 already a couple of minutes.
@@ -81,7 +81,7 @@ already a couple of minutes.
     >>> from cogent.maths.distance_transform import dist_euclidean
     >>> from cogent.cluster.metric_scaling import principal_coordinates_analysis
     >>> from numpy import random
-    >>> objs = random.random((4000, 10))
+    >>> objs = random.random((1500, 10))
     >>> distmtx = dist_euclidean(objs)
     >>> full_pcoa = principal_coordinates_analysis(distmtx)
 
@@ -103,10 +103,13 @@ eigenvectors of length dim will be returned.
 .. doctest::
 
    >>> from cogent.cluster.approximate_mds import nystrom
+   >>> from random import sample
+   >>> from numpy import array
    >>> n_seeds = 100
-   >>> dim = 4
-   >>> nystrom_frontend(distmtx[:n_seeds], dim)
-
+   >>> seeds = array(sample(distmtx,n_seeds))
+   >>> dims = 3
+   >>> nystrom_3d = nystrom(seeds, dims)
+   
 A good rule of thumb for picking n_seeds is log(n), log(n)**2 or
 sqrt(n).
 
@@ -120,22 +123,23 @@ quality of the approximation as well as the run-time.
 
 .. doctest::
 
-   >>> from cogent.cluster.approximate_mds import scmds
-   >>> n_full = 4000
-   >>> tile_size = 500
-   >>> tile_overlap = 50
-   >>> dim = 4
-   >>> dist_func = lambda x, y: distmtx[x, y]
-   >>> scmds(n_full, tile_size, tile_overlap, dim, dist_func)
-
+   >>> from cogent.cluster.approximate_mds import CombineMds, cmds_tzeng
+   >>> combine_mds = CombineMds()
+   >>> tile_overlap = 100
+   >>> dims = 3
+   >>> tile_eigvecs, tile_eigvals = cmds_tzeng(distmtx[0:500,0:500], dims)
+   >>> combine_mds.add(tile_eigvecs, tile_overlap)
+   >>> tile_eigvecs, tile_eigvals = cmds_tzeng(distmtx[400:900,400:900], dims)
+   >>> combine_mds.add(tile_eigvecs, tile_overlap)
+   >>> tile_eigvecs, tile_eigvals = cmds_tzeng(distmtx[800:1300,800:1300], dims)
+   >>> combine_mds.add(tile_eigvecs, tile_overlap)
+   >>> tile_eigvecs, tile_eigvals = cmds_tzeng(distmtx[1200:1500,1200:1500], dims)
+   >>> combine_mds.add(tile_eigvecs, tile_overlap)
+   >>> combien_mds_3d = combine_mds.getFinalMDS()
 
 If you want to know how good the returned approximations are, you will
 have to perform principal_coordinates_analysis() on a smallish
 submatrix and perform a goodness_of_fit analysis.
-
-
-
-
 
 
 
