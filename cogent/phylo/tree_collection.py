@@ -4,7 +4,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2009, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.5.0.dev"
+__version__ = "1.5.0"
 
 class _UserList(list):
     def __getitem__(self, index):

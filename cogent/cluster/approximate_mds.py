@@ -100,7 +100,7 @@ __copyright__ = "FIXME"
 __credits__ = ["Fabian Sievers <fabian.sievers@ucd.ie>",
                "Daniel McDonald <wasade@gmail.com>", "Antonio Gonzalez Pena"]
 __license__ = "GPL"
-__version__ = "FIXME"
+__version__ = "1.5.0"
 __maintainer__ = "Andreas Wilm"
 __email__ = "andreas.wilm@ucd.ie"
 __status__ = "Development"
