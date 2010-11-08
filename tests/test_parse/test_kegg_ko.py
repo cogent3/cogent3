@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 __author__ = "Jesse Zaneveld"
-__copyright__ = "Copyright 2010, The GenomeDB project"
-__credits__ = ["Jesse Zaneveld", "Rob Knight"]
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Jesse Zaneveld"]
 __license__ = "GPL"
-_version__ = "1.0-dev"
+__version__ = "1.5.0.dev"
 __maintainer__ = "Jesse Zaneveld"
 __email__ = "zaneveld@gmail.com"
-__status__ = "Release"
+__status__ = "Production"
 
 """
 Test code for kegg_ko.py in cogent.parse.  

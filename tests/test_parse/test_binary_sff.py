@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import copy
 import os
 import tempfile
@@ -11,6 +13,16 @@ from cogent.parse.binary_sff import (
     format_read_data, format_binary_sff, base36_encode, base36_decode,
     decode_location, decode_timestamp, decode_accession, decode_sff_filename,
     )
+
+__author__ = "Kyle Bittinger"
+__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__credits__ = ["Kyle Bittinger"]
+__license__ = "GPL"
+__version__ = "1.5.0.dev"
+__maintainer__ = "Kyle Bittinger"
+__email__ = "kylebittinger@gmail.com"
+__status__ = "Production"
+
 
 TEST_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 SFF_FP = os.path.join(TEST_DIR, 'data', 'F6AVWTA01.sff')
