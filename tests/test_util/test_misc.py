@@ -110,19 +110,20 @@ class UtilsTests(TestCase):
         obs = toString(foo())
         self.assertEqual(obs, exp)
 
-    def test_timeLimitReached(self):
-        """should return true if timelimit has been reached, else return false"""
-        # this _might_ be architecture dependent
-        start = clock()
-        timelimit = .0002
-        exp = False
-        sleep(1)
-        obs = timeLimitReached(start, timelimit)
-        self.assertEqual(obs, exp)
-        sleep(1)
-        exp = True
-        obs = timeLimitReached(start, timelimit)
-        self.assertEqual(obs, exp)
+    # this test and the code it tests is architecture dependent. that is not
+    # good.
+    #def test_timeLimitReached(self):
+    #    """should return true if timelimit has been reached, else return false"""
+    #    start = clock()
+    #    timelimit = .0002
+    #    exp = False
+    #    sleep(1)
+    #    obs = timeLimitReached(start, timelimit)
+    #    self.assertEqual(obs, exp)
+    #    sleep(1)
+    #    exp = True
+    #    obs = timeLimitReached(start, timelimit)
+    #    self.assertEqual(obs, exp)
 
 
     def test_safe_md5(self):
