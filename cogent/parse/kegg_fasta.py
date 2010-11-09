@@ -10,7 +10,7 @@ __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Jesse Zaneveld"
 __email__ = "zaneveld@gmail.com"
-__status__ = "Release"
+__status__ = "Production"
 
 """
 Parser for KEGG fasta files 
