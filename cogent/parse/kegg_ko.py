@@ -126,22 +126,6 @@ def make_tab_delimited_line_parser(columns_to_convert):
 
     return parse_tab_delimited_line
 
-def kegg_label_fields(line):
-    """Splits line into KEGG label fields.
-
-    Format is species:gene_id [optional gene_name]; description.
-    """
-    fields = map(strip, line.split(None, 1))
-    id_ = fields[0]
-    species, gene_id = map(strip, id_.split(':',1))
-    #check if we got a description
-    gene_name = description = ''
-    if len(fields) > 1:
-        description = fields[1]
-        if ';' in description:
-            gene_name, description = map(strip, description.split(';',1))
-    return id_, species, gene_id, gene_name, description
-
 def ko_default_parser(lines):
     """Handle default KEGG KO entry lines
      lines -- default format of space separated lines.
