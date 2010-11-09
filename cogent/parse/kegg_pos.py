@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 __author__ = "Jesse Zaneveld"
 __copyright__ = "Copyright 2007-2010, The Cogent Project"
 __credits__ = ["Jesse Zaneveld", "Rob Knight"]
@@ -39,5 +40,5 @@ def parse_pos_lines(lines, file_name):
 if __name__ == '__main__':
     from sys import argv
     filename = argv[1]
-    for result_line in parse_pos_file(open(filename)):
+    for result_line in parse_pos_file(filename):
         print result_line
