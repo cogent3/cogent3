@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Unit tests for fast unifrac."""
+from __future__ import division
 
 from numpy import array, logical_not, argsort
 from cogent.util.unit_test import TestCase, main
@@ -19,7 +20,8 @@ from numpy.random import permutation
 
 __author__ = "Rob Knight and Micah Hamady"
 __copyright = "Copyright 2007, the authors."
-__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald"]
+__credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
+"Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Rob Knight, Micah Hamady"
@@ -213,20 +215,56 @@ f B 1
             result.append(rawp)
         self.assertSimilarMeans(result, 0.047)
 
-    def test_PD_whole_tree(self):
-        """PD_whole_tree should correctly compute PD for test tree."""
-        self.t1 = DndParser('((a:1,b:2):4,(c:3,(d:1,e:1):2):3)', \
-            UniFracTreeNode)
-        self.env_str = """
+    def test_unifrac_explicit(self):
+        """unifrac should correctly compute correct values.
+        
+        environment M contains only tips not in tree, tip j is in no envs
+        values were calculated by hand
+        """
+        t1 = DndParser('((a:1,b:2):4,((c:3, j:17),(d:1,e:1):2):3)', \
+            UniFracTreeNode) # note c,j is len 0 node
+        env_str = """
         a   A   1
         a   C   2
         b   A   1
         b   B   1
         c   B   1
         d   B   3
-        e   C   1"""
-        env_counts = count_envs(self.env_str.splitlines())
-        self.assertEqual(PD_whole_tree(self.t1,self.env_counts), \
+        e   C   1
+        m   M   88"""
+        env_counts = count_envs(env_str.splitlines())
+        self.assertFloatEqual(fast_unifrac(t1,env_counts)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+        # changing tree topology relative to c,j tips shouldn't change anything
+        t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)', \
+            UniFracTreeNode)
+        self.assertFloatEqual(fast_unifrac(t2,env_counts)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+
+    def test_PD_whole_tree(self):
+        """PD_whole_tree should correctly compute PD for test tree.
+        
+        environment M contains only tips not in tree, tip j is in no envs
+        """
+        t1 = DndParser('((a:1,b:2):4,((c:3, j:17),(d:1,e:1):2):3)', \
+            UniFracTreeNode)
+        env_str = """
+        a   A   1
+        a   C   2
+        b   A   1
+        b   B   1
+        c   B   1
+        d   B   3
+        e   C   1
+        m   M   88"""
+        env_counts = count_envs(env_str.splitlines())
+        self.assertEqual(PD_whole_tree(t1,env_counts), \
             (['A','B','C'], array([7.,15.,11.])))
 
     def test_PD_generic_whole_tree(self):
