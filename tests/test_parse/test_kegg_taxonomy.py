@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from cogent.util.unit_test import TestCase, main
 
-from cogent.parse.kegg_ko import parse_kegg_taxonomy
+from cogent.parse.kegg_taxonomy import parse_kegg_taxonomy
 
 __author__ = "Jesse Zaneveld"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
