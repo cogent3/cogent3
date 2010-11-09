@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Provides an application controller for the commandline version of:
-Infernal 1.0
+Infernal 1.0 and 1.0.2 only.
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
@@ -1510,11 +1510,10 @@ def cmsearch_from_alignment(aln, structure_string, seqs, moltype, cutoff=0.0,\
     res = app(paths)
     
     search_results = list(CmsearchParser(res['SearchResults'].readlines()))
-
     if search_results:
         for i,line in enumerate(search_results):
-            label = line[0]
-            search_results[i][0]=int_keys.get(label,label)
+            label = line[1]
+            search_results[i][1]=int_keys.get(label,label)
     
     res.cleanUp()
     for f in to_remove:remove(f)
@@ -1558,8 +1557,8 @@ def cmsearch_from_file(cm_file_path, seqs, moltype, cutoff=0.0, params=None):
     
     if search_results:    
         for i,line in enumerate(search_results):
-            label = line[0]
-            search_results[i][0]=int_keys.get(label,label)
+            label = line[1]
+            search_results[i][1]=int_keys.get(label,label)
     
     res.cleanUp()
 

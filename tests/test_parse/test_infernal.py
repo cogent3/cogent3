@@ -28,15 +28,15 @@ class CmsearchParserTests(TestCase):
         self.basic_results_hits = """# command data
 # date
 # CM summary
-  Target_1  1   10  1   10  25.25   -   50
-  Target_2  3   13  1   10  14.2    -   49
+  Model_1   Target_1  1   10  1   10  25.25   -   50
+  Model_1   Target_2  3   13  1   10  14.2    -   49
 # Post search summary
         """
-        self.basic_res = [['Target_1', 1, 10, 1, 10, 25.25, '-', 50],\
-                          ['Target_2', 3, 13, 1, 10, 14.2, '-',  49]]
+        self.basic_res = [['Model_1','Target_1', 1, 10, 1, 10, 25.25, '-', 50],\
+                          ['Model_1','Target_2', 3, 13, 1, 10, 14.2, '-',  49]]
         
-        self.search_res = [['seq_a', 5, 23, 1, 19, 12.85, '-', 37],\
-                           ['seq_b', 1, 19, 1, 19, 14.36, '-', 47]]
+        self.search_res = [['model1.cm','seq_0', 5, 23, 1, 19, 12.85, '-', 37],\
+                           ['model1.cm','seq_1', 1, 19, 1, 19, 14.36, '-', 47]]
     
     def test_cmsearch_parser_no_data(self):
         """CmsearchParser should return correct result given no data.
@@ -63,34 +63,34 @@ class CmsearchParserTests(TestCase):
         self.assertEqual(list(parser),self.search_res)
 
 
-SEARCH_DATA = """# command:    cmsearch --tabfile aln1_seqs2_searchres.txt aln1.cm seqs2.fasta
-# date:       Tue Oct 7 17:11:59 2008
-# num seqs:   6
-# dbsize(Mb): 0.000230
+SEARCH_DATA = """# command:    cmsearch -T 0.0 --tabfile /tmp/tmpQGr0PGVeaEvGUkw2TM3e.txt --informat FASTA /tmp/tmp40hq0MqFPLn2lAymQeAD.txt /tmp/tmplTEQNgv0UA7sFSV0Z2RL.txt
+# date:       Mon Nov  8 13:51:12 2010
+# num seqs:   3
+# dbsize(Mb): 0.000124
 #
-# Pre-search info for CM 1: aln1-1
+# Pre-search info for CM 1: model1.cm
 #
 # rnd  mod  alg  cfg   beta  bit sc cut
 # ---  ---  ---  ---  -----  ----------
 #   1  hmm  fwd  loc      -        3.00
-#   2   cm  cyk  loc  1e-07        0.00
+#   2   cm  cyk  loc  1e-10        0.00
 #   3   cm  ins  loc  1e-15        0.00
 #
-# CM: aln1-1
-#                        target coord   query coord                         
-#              ----------------------  ------------                         
-# target name       start        stop  start   stop    bit sc   E-value  GC%
-# -----------  ----------  ----------  -----  -----  --------  --------  ---
-  seq_a                 5          23      1     19     12.85         -   37
-  seq_b                 1          19      1     19     14.36         -   47
+# CM: model1.cm
+#                                                         target coord   query coord                         
+#                                               ----------------------  ------------                         
+# model name                       target name       start        stop  start   stop    bit sc   E-value  GC%
+# -------------------------------  -----------  ----------  ----------  -----  -----  --------  --------  ---
+  model1.cm  seq_0                 5          23      1     19     12.85         -   37
+  model1.cm  seq_1                 1          19      1     19     14.36         -   47
 #
-# Post-search info for CM 1: aln1-1
+# Post-search info for CM 1: /tmp/tmpWmLUo5hsKH6nyib4nGMq.cm
 #
 # rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
 # ---  ---  ---  ---  -----  ----------  --------  ----------
-#   1  hmm  fwd  loc      -        3.00         2      0.2217
-#   2   cm  cyk  loc  1e-07        0.00         2      0.2217
-#   3   cm  ins  loc  1e-15        0.00         2      0.1652
+#   1  hmm  fwd  loc      -        3.00         2      0.4113
+#   2   cm  cyk  loc  1e-10        0.00         2      0.4113
+#   3   cm  ins  loc  1e-15        0.00         2      0.3065
 #
 #    run time
 # -----------

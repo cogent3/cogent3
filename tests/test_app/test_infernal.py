@@ -437,8 +437,8 @@ class CmsearchTests(GeneralSetUp):
         search_res = cmsearch_from_alignment(aln=self.seqs2_aligned,\
             structure_string=self.struct2_aligned_string,\
             seqs=self.seqs2_unaligned,moltype=RNA)
-        
-        self.assertEqual(search_res,exp_search_res)
+        for search, exp in zip(search_res, exp_search_res):
+            self.assertEqual(search[1:],exp)
     
     def test_cmsearch_from_file_no_hits(self):
         """cmsearch_from_file should work as expected
@@ -454,7 +454,8 @@ class CmsearchTests(GeneralSetUp):
                           ['b', 1, 19, 1, 19, 14.359999999999999, '-', 47]]
         search_res = cmsearch_from_file(cm_file_path=self.cmfile,\
             seqs=self.seqs2_unaligned,moltype=RNA)
-        self.assertEqual(search_res,exp_search_res)
+        for search, exp in zip(search_res, exp_search_res):
+            self.assertEqual(search[1:],exp)
         
 class CmstatTests(GeneralSetUp):
     """Tests for the Cmstat application controller"""
