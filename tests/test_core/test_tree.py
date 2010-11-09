@@ -1707,6 +1707,40 @@ class TestTree(TestCase):
         self.assertEqual(*[len(t.Children) for t in (subtree,new_tree)])
         self.assertEqual(str(subtree), str(new_tree))
     
+    def test_getsubtree_2(self):
+        """tree.getSubTree() has same pairwise tip dists as tree (len0 node)"""
+        t1 = DndParser('((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)', \
+            PhyloNode) # note c,j is len 0 node
+        orig_dists = t1.getDistances()
+        subtree = t1.getSubTree(set(['a','b','d','e','c']))
+        sub_dists = subtree.getDistances()
+        for pair, dist in sub_dists.items():
+            self.assertEqual((pair,dist), (pair,orig_dists[pair]))
+
+    def test_getsubtree_3(self):
+        """tree.getSubTree() has same pairwise tip dists as tree (nonzero nodes)
+        """
+        t1 = DndParser('((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)', \
+            PhyloNode) # note c,j is len 0 node
+        orig_dists = t1.getDistances()
+        subtree = t1.getSubTree(set(['a','b','d','e','c']))
+        sub_dists = subtree.getDistances()
+        # for pair, dist in sub_dists.items():
+            # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
+        t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)', \
+            PhyloNode) # note c,j similar to above
+        t2_dists = t2.getDistances()
+        # ensure t2 is same as t1, except j->c or c->j
+        for pair, dist in t2_dists.items():
+            if (pair == ('c','j')) or (pair == ('j','c')):
+                continue
+            self.assertEqual((pair,dist), (pair,orig_dists[pair]))
+        sub2 = t2.getSubTree(set(['a','b','d','e','c']))
+        sub2_dists = sub2.getDistances()
+        for pair, dist in sub2_dists.items():
+            self.assertEqual((pair,dist), (pair,orig_dists[pair]))        
+        
+    
     def test_ascii(self):
         self.tree.asciiArt()
         # unlabeled internal node
