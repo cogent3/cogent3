@@ -39,5 +39,5 @@ def parse_pos_lines(lines, file_name):
 if __name__ == '__main__':
     from sys import argv
     filename = argv[1]
-    for result_line in parse_pos_file(filename):
+    for result_line in parse_pos_file(open(filename)):
         print result_line
