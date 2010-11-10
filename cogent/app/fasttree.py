@@ -11,6 +11,7 @@ from cogent.app.util import CommandLineApplication, FilePath, system, \
 from cogent.core.tree import PhyloNode
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA, RNA, PROTEIN
+from cogent.core.alignment import SequenceCollection
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2008, The Cogent Project"
@@ -144,9 +145,18 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     if best_tree:
         params['-slow'] = True
 
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = aln.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+
     app = FastTree(params=params)
     
-    result = app(aln.toFasta())
+    result = app(int_map.toFasta())
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
+    #remap tip names
+    for tip in tree.tips():
+        tip.Name = int_keys[tip.Name]
+
     return tree
     
