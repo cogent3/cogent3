@@ -575,7 +575,12 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                                         Name=rec['locus'])
         except KeyError:
             if not skip_contigs:
-                yield rec['locus'], rec['contig']
+                if 'contig' in rec:
+                    yield rec['locus'], rec['contig']
+                elif 'WGS' in rec:
+                    yield rec['locus'], rec['WGS']
+                else:
+                    yield rec['locus'], None
             continue
         
         for feature in rec['features']:
