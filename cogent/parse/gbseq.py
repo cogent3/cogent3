@@ -1,19 +1,42 @@
 #!/usr/bin/env python
-#from xml.dom.minidom import parse as xmlparse
+"""Parser for NCBI Sequence Set XML format.
+DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
+"""
+
+import xml.dom.minidom
 from cogent.core import annotation, moltype
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2010, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Matthew Wakefield"
-__email__ = "matthew.wakefield@anu.edu.au"
+__email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
 def GbSeqXmlParser(doc):
-    for record in doc.getElementsByTagName('GBSeq'):
+    """Parser for NCBI Sequence Set XML format.
+    DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
+    Arguments:
+        - doc: An xml.dom.minidom.Document, file object of string
+    Yields:
+        - name, cogent sequence
+    
+    CAUTION:
+    This XML PARSER uses minidom. This means a bad performance for 
+    big files (>5MB), and huge XML files will for sure crash the program!
+    """
+    if isinstance(doc,xml.dom.minidom.Document):
+        dom_obj = doc
+    elif isinstance(doc,file):
+        dom_obj = xml.dom.minidom.parse(doc)
+    elif isinstance(doc,str):
+        dom_obj = xml.dom.minidom.parseString(doc)
+    else:
+        raise TypeError
+    for record in dom_obj.getElementsByTagName('GBSeq'):
         raw_seq = record.getElementsByTagName(
                         'GBSeq_sequence')[0].childNodes[0].nodeValue
         name = record.getElementsByTagName(
