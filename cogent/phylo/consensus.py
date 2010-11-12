@@ -10,7 +10,7 @@ __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Matthew Wakefield"
-__email__ = "matthew.wakefield@anu.edu.au"
+__email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
 
