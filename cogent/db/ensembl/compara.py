@@ -257,7 +257,7 @@ class Compara(object):
         
         # column renamed between versions
         prefix = coord.genome.Species.lower()
-        if int(self.Release) > 59:
+        if int(self.Release) > 58:
             prefix = _Species.getEnsemblDbPrefix(prefix)
         
         query = sql.select([dnafrag_table.c.dnafrag_id,
