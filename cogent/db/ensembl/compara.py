@@ -254,11 +254,17 @@ class Compara(object):
         """returns the dnafrag_id for the coordnate"""
         dnafrag_table = self.ComparaDb.getTable('dnafrag')
         genome_db_table = self.ComparaDb.getTable('genome_db')
+        
+        # column renamed between versions
+        prefix = coord.genome.Species.lower()
+        if int(self.Release) > 59:
+            prefix = _Species.getEnsemblDbPrefix(prefix)
+        
         query = sql.select([dnafrag_table.c.dnafrag_id,
                            dnafrag_table.c.coord_system_name],
                   sql.and_(dnafrag_table.c.genome_db_id ==\
-                                                genome_db_table.c.genome_db_id,
-                                genome_db_table.c.name == coord.genome.Species,
+                                            genome_db_table.c.genome_db_id,
+                                genome_db_table.c.name == prefix,
                                 dnafrag_table.c.name == coord.CoordName))
         try:
             record = asserted_one(query.execute().fetchall())
