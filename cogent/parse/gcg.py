@@ -35,9 +35,9 @@ def MsfParser(f):
     sequences = {}
     for line in f:
         line = line.strip().split()
-        if line and sequences.has_key(line[0]):
+        if line and line[0] in sequences:
             sequences[line[0]] += ''.join(line[1:])
-        elif line and seqinfo.has_key(line[0]):
+        elif line and line[0] in seqinfo:
             sequences[line[0]] = ''.join(line[1:])
     #consistency check
     if len(sequences) != len(seqinfo):
