@@ -16,6 +16,12 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
+"""
+CAUTION:
+This XML PARSER uses minidom. This means a bad performance for 
+big files (>5MB), and huge XML files will for sure crash the program!
+"""
+
 def GbSeqXmlParser(doc):
     """Parser for NCBI Sequence Set XML format.
     DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"

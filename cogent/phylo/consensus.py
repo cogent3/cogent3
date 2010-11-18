@@ -41,7 +41,7 @@ def weightedMajorityRule(weighted_trees, strict=False, attr="support"):
         for edge in edges:
             tips = edge.getTipNames(includeself=True)
             tips = frozenset(tips)
-            if not cladecounts.has_key(tips):
+            if tips not in cladecounts:
                 cladecounts[tips] = 0
             cladecounts[tips] += weight
             length = edge.Length and edge.Length * weight
