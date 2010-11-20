@@ -6,7 +6,7 @@ Quick installation
 By virtual machine
 ------------------
 
-One way to install PyCogent is to install the QIIME virtual machine using VirtualBox. The installation instructions can be found `here <http://qiime.sourceforge.net/install/virtual_box.html>`_.
+One way to install PyCogent is to install the QIIME virtual machine using VirtualBox. The installation instructions can be found `here <http://qiime.sourceforge.net/install/virtual_box.html>`_. As QIIME does not yet support the latest version of matplotlib, some PyCogent drawing capabilities are broken.
 
 Please, note that this is the only installation method supported for Windows and that natively Windows does not support gz files properly so to uncompress a gz file in Windows use `7-zip <http://www.7-zip.org/>`_.
 
