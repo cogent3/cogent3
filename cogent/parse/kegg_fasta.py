@@ -46,4 +46,4 @@ if __name__ == '__main__':
     from sys import argv
     filename = argv[1]
     for result_line in parse_fasta(open(filename)):
-        print result_line
+        print result_line.strip()
