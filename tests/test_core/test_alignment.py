@@ -24,7 +24,7 @@ import re
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
-                    "Rob Knight", "Daniel McDonald"]
+               "Rob Knight", "Daniel McDonald", "Jan Kosinski"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Rob Knight"
@@ -711,19 +711,39 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
 
     def test_addSeqs(self):
-        """addSeqs should return an alignment with the new sequences appended"""
-        a = [('s4', 'ACDEFGHIKLMNPQRSTUVWY-'), ('s3', 'ACDEFGHIKLMNPQRSUUVWF-')]
-        b = [('s1', 'ACDEFGHIKLMNPERSKUVWC-'), ('s2', 'ACNEFGHIKLMNPQRS-UVWP-')]
-        aln1 = self.Class(a)
-        aln2 = self.Class(b)
-        self.assertEqual(aln1.addSeqs(aln2).toFasta(), self.Class(a+b).toFasta())
-        if isinstance(aln1, Alignment) or isinstance(aln1, DenseAlignment):
-            self.assertRaises((DataError, ValueError), aln1.addSeqs, aln2+aln2)
+        """addSeqs should return an alignment with the new sequences appended or inserted"""
+        data = [('name1', 'AAA'), ('name2', 'AAA'), ('name3', 'AAA'), ('name4', 'AAA')]
+        data1 = [('name1', 'AAA'), ('name2', 'AAA')]
+        data2 = [('name3', 'AAA'), ('name4', 'AAA')]
+        data3 = [('name5', 'BBB'), ('name6', 'CCC')]
+        aln = self.Class(data)
+        aln3 = self.Class(data3)
+
+        out_aln = aln.addSeqs(aln3)
+        self.assertEqual(str(out_aln), str(self.Class(data+data3))) #test append at the end
+        
+        out_aln = aln.addSeqs(aln3, before_name='name3') 
+        self.assertEqual(str(out_aln), str(self.Class(data1+data3+data2))) # test insert before
+        
+        out_aln = aln.addSeqs(aln3, after_name='name2')
+        self.assertEqual(str(out_aln), str(self.Class(data1+data3+data2))) # test insert after
+
+        out_aln = aln.addSeqs(aln3, before_name='name1') 
+        self.assertEqual(str(out_aln), str(self.Class(data3+data))) #test if insert before first seq works
+        
+        out_aln = aln.addSeqs(aln3, after_name='name4') 
+        self.assertEqual(str(out_aln), str(self.Class(data+data3))) #test if insert after last seq works
+
+        self.assertRaises(ValueError, aln.addSeqs, aln3, before_name='name5') #wrong after/before name
+        self.assertRaises(ValueError, aln.addSeqs, aln3, after_name='name5') #wrong after/before name
+        
+        if isinstance(aln, Alignment) or isinstance(aln, DenseAlignment):
+            self.assertRaises((DataError, ValueError), aln.addSeqs, aln3+aln3)
         else:
-            exp = set([seq for name, seq in a])
-            exp.update([seq+seq for name, seq in b])
+            exp = set([seq for name, seq in data])
+            exp.update([seq+seq for name, seq in data3])
             got = set()
-            for seq in aln1.addSeqs(aln2+aln2).Seqs:
+            for seq in aln.addSeqs(aln3+aln3).Seqs:
                 got.update([str(seq).strip()])
             self.assertEqual(got, exp)
 
@@ -916,6 +936,7 @@ class SequenceCollectionBaseTests(object):
         
         #assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged_padded.padSeqs, 5)
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -1465,6 +1486,99 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(r1, {'seq1': 'T-G', 'seq2': 'TCG'}) 
         self.assertEqual(r2, {'seq1': '--G', 'seq2': 'TCG'}) 
         
+    def test_getDegappedRelativeTo(self):
+        """should remove all columns with a gap in sequence with given name"""
+        aln = self.Class([ 
+                    ['name1', '-AC-DEFGHI---'],
+                    ['name2', 'XXXXXX--XXXXX'],
+                    ['name3', 'YYYY-YYYYYYYY'],
+                    ['name4', '-KL---MNPR---'],
+                    ])
+        out_aln = self.Class([ 
+                    ['name1', 'ACDEFGHI'],
+                    ['name2', 'XXXX--XX'],
+                    ['name3', 'YY-YYYYY'],
+                    ['name4', 'KL--MNPR'],
+                    ])
+        self.assertEqual(aln.getDegappedRelativeTo('name1'), out_aln)
+        
+        self.assertRaises(ValueError, aln.getDegappedRelativeTo, 'nameX')
+
+    def test_addFromReferenceAln(self):
+        """should add or insert seqs based on align to reference"""
+        aln1 = self.Class([
+                     ['name1', '-AC-DEFGHI---'],
+                     ['name2', 'XXXXXX--XXXXX'],
+                     ['name3', 'YYYY-YYYYYYYY'],
+                     ])
+        
+        aln2 = self.Class([
+                     ['name1', 'ACDEFGHI'],
+                     ['name4', 'KL--MNPR'],
+                     ['name5', 'KLACMNPR'],
+                     ['name6', 'KL--MNPR'],
+                    ])
+        
+        aligned_to_ref_out_aln_inserted = self.Class([ 
+                    ['name1', '-AC-DEFGHI---'],
+                    ['name4', '-KL---MNPR---'],
+                    ['name5', '-KL-ACMNPR---'],
+                    ['name6', '-KL---MNPR---'],
+                    ['name2', 'XXXXXX--XXXXX'],
+                    ['name3', 'YYYY-YYYYYYYY'],
+                    ])
+        
+        aln2_wrong_refseq = self.Class((
+                     ('name1', 'ACDXFGHI'),
+                     ('name4', 'KL--MNPR'),
+                    ))
+        
+        aln2_wrong_refseq_name = self.Class([
+                     ['nameY', 'ACDEFGHI'],
+                     ['name4', 'KL--MNPR'],
+                    ])
+        
+        aln2_different_aln_class = DenseAlignment([
+                     ['name1', 'ACDEFGHI'],
+                     ['name4', 'KL--MNPR'],
+                    ])
+        
+        aln2_list = [
+                     ['name1', 'ACDEFGHI'],
+                     ['name4', 'KL--MNPR'],
+                    ]
+        
+        aligned_to_ref_out_aln = self.Class([ 
+                    ['name1', '-AC-DEFGHI---'],
+                    ['name2', 'XXXXXX--XXXXX'],
+                    ['name3', 'YYYY-YYYYYYYY'],
+                    ['name4', '-KL---MNPR---'],
+                    ])     
+        
+        out_aln = aln1.addFromReferenceAln(aln2, after_name='name1')
+        self.assertEqual(str(aligned_to_ref_out_aln_inserted),
+                         str(out_aln)) #test insert_after 
+        
+        out_aln = aln1.addFromReferenceAln(aln2, before_name='name2') 
+        self.assertEqual(aligned_to_ref_out_aln_inserted,
+                         out_aln) #test insert_before
+        
+        self.assertRaises(ValueError, aln1.addFromReferenceAln,
+                          aln2_wrong_refseq_name) #test wrong_refseq_name
+        
+        aln = aln1.addFromReferenceAln(aln2_different_aln_class)
+        self.assertEqual(aligned_to_ref_out_aln,
+                         aln) #test_align_to_refseq_different_aln_class
+        
+        aln = aln1.addFromReferenceAln(aln2_list)
+        self.assertEqual(aligned_to_ref_out_aln,
+                         aln) #test from_list
+        
+        self.assertRaises(ValueError, aln1.addFromReferenceAln,
+                          aln2_wrong_refseq) #test wrong_refseq
+        
+    
+
 class DenseAlignmentSpecificTests(TestCase):
     """Tests of the DenseAlignment object and its methods"""
 

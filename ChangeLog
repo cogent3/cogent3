@@ -8,12 +8,20 @@ Cogent 1.5 - 1.6
 New Features
 ------------
 
+* Alignments can now add sequences that are pairwise aligned to a sequence
+  already present in the alignment.
+* Alignment.addSeqs has more flexibility with the specific order of sequences
+  now controllable by the user. Thanks to Jan Kosinski for these two very
+  useful patches!
+
 Changes
 -------
 
 Bug Fixes
 ---------
 
+* fixed bug that crept into doing consensus trees from tree collections. 
+  Thanks to Klara Verbyla for catching this one!
 
 Cogent 1.4.1 - 1.5
 ==================
