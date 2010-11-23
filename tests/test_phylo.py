@@ -1,13 +1,14 @@
 #! /usr/bin/env python
 import unittest, os
 import warnings
-
+from numpy import log
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
-from cogent.phylo.distance import *
+from cogent.phylo.distance import EstimateDistances
 from cogent.phylo.nj import nj, gnj
 from cogent.phylo.least_squares import wls
 from cogent import LoadSeqs, LoadTree
+from cogent.phylo.tree_collection import LogLikelihoodScoredTreeCollection
 from cogent.evolve.models import JC69, HKY85, F81
 from cogent.phylo.consensus import majorityRule, weightedMajorityRule
 
@@ -27,20 +28,51 @@ def Tree(t):
 class ConsensusTests(unittest.TestCase):
     def setUp(self):
         self.trees = [
-                (1, Tree("((a,b),(c,d));")),
-                (1, Tree("((a,b),(c,d));")),
-                (1, Tree("((a,c),(b,d));")),
-                (1, Tree("((a,b),c,d);")),]
+                Tree("((a,b),(c,d));"),
+                Tree("((a,b),(c,d));"),
+                Tree("((a,c),(b,d));"),
+                Tree("((a,b),c,d);")]
+        
+        data = zip(map(log, [0.4,0.4,0.05,0.15]), # emphasizing the a,b clade
+        self.trees)
+        data.sort()
+        data.reverse()
+        self.scored_trees = data
     
     def test_majorityRule(self):
         """Tests for majority rule consensus trees"""
-        trees = [t for (w,t) in self.trees]
+        trees = self.trees
         outtrees = majorityRule(trees, strict=False)
         self.assertEqual(len(outtrees), 1)
         self.assert_(outtrees[0].sameTopology(Tree("((c,d),(a,b));")))
         outtrees = majorityRule(trees, strict=True)
         self.assertEqual(len(outtrees), 1)
         self.assert_(outtrees[0].sameTopology(Tree("(c,d,(a,b));")))
+    
+    def test_consensus_from_scored_trees_collection(self):
+        """tree collection should get same consensus as direct approach"""
+        sct = LogLikelihoodScoredTreeCollection([(1, t) for t in self.trees])
+        ct = sct.getConsensusTree()
+        self.assertTrue(ct.sameTopology(Tree("((c,d),(a,b));")))
+    
+    def test_weighted_consensus_from_scored_trees_collection(self):
+        """weighted consensus from a tree collection should be different"""
+        sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
+        ct = sct.getConsensusTree()
+        self.assertTrue(ct.sameTopology(Tree("((a,b),(c,d));")))
+    
+    def test_weighted_trees_satisyfing_cutoff(self):
+        """build consensus tree from those satisfying cutoff"""
+        sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
+        cts = sct.getWeightedTrees(cutoff=0.8)
+        expected_trees = [Tree(t) for t in "((a,b),(c,d));", "((a,b),(c,d));",
+                                "((a,b),c,d);"]
+        for i in range(len(cts)):
+            cts[i][1].sameTopology(expected_trees[i])
+        
+        ct = cts.getConsensusTree()
+        self.assertTrue(ct.sameTopology(Tree("((a,b),(c,d));")))
+    
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
@@ -110,7 +142,6 @@ class TreeReconstructionTests(unittest.TestCase):
                 start=[LoadTree(treestring='((a,c),b,(d,e))')])
         
     
-
 class DistancesTests(unittest.TestCase):
     def setUp(self):
         self.al = LoadSeqs(data = {'a':'GTACGTACGATC',
