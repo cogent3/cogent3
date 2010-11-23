@@ -472,7 +472,7 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
             elif isinstance(entry, float):
                 entry = float_template % float(entry)
             else: # for any other python object
-                entry = '%s' % entry
+                entry = '%s' % str(entry)
             
             formatted.append(entry)
             col_widths[cdex] = max(col_widths[cdex], len(entry))
