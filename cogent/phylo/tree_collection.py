@@ -1,3 +1,4 @@
+from numpy import exp
 import consensus
 
 __author__ = "Peter Maxwell"
