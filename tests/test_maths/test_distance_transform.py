@@ -116,6 +116,21 @@ class functionTests(TestCase):
                             [ 19.9,  24.90,  0.0 ]],'d')
         self.assertFloatEqual(dist_manhattan(self.dense1), dense1expected)
     
+    def test_dist_abund_jaccard(self):
+        """dist_abund_jaccard should compute distances for dense1 and mtx1"""
+        mtx1_expected = array([[0, 0.25], [0.25, 0]], 'd')
+        self.assertEqual(dist_abund_jaccard(self.mtx1), mtx1_expected)
+
+        dense1_expected = zeros((3,3), 'd')
+        self.assertEqual(dist_abund_jaccard(self.dense1), dense1_expected)
+
+        sparse1_expected = array([
+            [0.0, 0.0, 1.0, 1.0],
+            [0.0, 0.0, 1.0, 1.0],
+            [1.0, 1.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0, 0.0]], 'd')
+        self.assertEqual(dist_abund_jaccard(self.sparse1), sparse1_expected)
+ 
     def test_dist_morisita_horn(self):
         """tests dist_morisita_horn
         

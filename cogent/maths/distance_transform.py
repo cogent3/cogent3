@@ -612,6 +612,77 @@ def dist_manhattan(datamtx, strict=True):
             
     return dists
 
+def dist_abund_jaccard(datamtx, strict=True):
+    """Calculate abundance-based Jaccard distance between rows
+
+    The abundance-based Jaccard index is defined in Chao et. al.,
+    Ecology Lett. 8, 148 (2005), eq. 5:
+
+    J_abd = UV / (U + V - UV), where
+
+    U = sum of relative abundances of shared species in a
+    V = sum of relative abundances of shared species in b
+
+    The Chao-Jaccard distance is 1 - J_abd
+    
+    * comparisons are between rows (samples)
+    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    strict==False
+    * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
+    for sane input data
+    * two rows of all zeros returns 0 distance between them
+    * an all zero row compared with a not all zero row returns a distance of 1
+    * if strict==True, raises ValueError if any of the input data is negative,
+    not finite, or if the input data is not a rank 2 array (a matrix).
+    * if strict==False, assumes input data is a matrix with nonnegative 
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
+    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
+    """
+    if strict:
+        if not all(isfinite(datamtx)):
+            raise ValueError("non finite number in input matrix")
+        if any(datamtx<0.0):
+            raise ValueError("negative value in input matrix")
+        if rank(datamtx) != 2:
+            raise ValueError("input matrix not 2D")
+        numrows, numcols = shape(datamtx)
+    else:
+        try:
+            numrows, numcols = shape(datamtx)
+        except ValueError:
+            return zeros((0,0),'d')
+
+    if numrows == 0 or numcols == 0:
+        return zeros((0,0),'d')
+    dists = zeros((numrows,numrows),'d')
+    
+    rowsums = datamtx.sum(axis=1, dtype='float')
+
+    for i in range(numrows):
+        row1 = datamtx[i]
+        N1 = rowsums[i]
+
+        for j in range(i):
+            row2 = datamtx[j]
+            N2 = rowsums[j]
+
+            if N1 == 0.0 and N2 == 0.0:
+                similarity = 1.0
+            elif N1 == 0.0 or N2 == 0.0:
+                similarity = 0.0
+            else:
+                shared = logical_and(row1, row2)
+                u = sum(row1[shared]) / N1
+                v = sum(row2[shared]) / N2
+                # Verified by graphical inspection
+                if u == 0.0 and v == 0.0:
+                    similarity = 0.0
+                else:
+                    similarity = (u * v) / (u + v - (u * v))
+
+            dists[i][j] = dists[j][i] = 1 - similarity
+    return dists
+
 def dist_morisita_horn(datamtx, strict=True):
     """ returns morisita-horn distance between rows
 
