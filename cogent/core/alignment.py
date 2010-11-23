@@ -44,8 +44,8 @@ from cogent.core.profile import Profile
 __author__ = "Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
-                    "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
-                    "Micah Hamady", "Daniel McDonald"]
+               "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
+               "Micah Hamady", "Daniel McDonald", "Jan Kosinski"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Rob Knight"
@@ -909,10 +909,21 @@ class SequenceCollection(object):
             new.annotations = left + right
         return new
     
-    def addSeqs(self, other):
-        """Adds sequences from other to self. Returns a new object.
+    def addSeqs(self, other, before_name=None, after_name=None):
+        """Returns new object of class self with sequences from other added.
         
-        other must be of same class as self or coerceable to that class..
+        By default the sequence is appended to the end of the alignment,
+        this can be changed by using either before_name or after_name arguments.
+        
+        Arguments:
+            - other: same class as self or coerceable to that class
+            - before_name: str - [default:None] name of the sequence before
+              which sequence is added
+            - after_name: str - [default:None] name of the sequence after
+              which sequence is added
+              
+        If both before_name and after_name are specified, the seqs will be
+        inserted using before_name.
         """
         assert not isinstance(other, str), "Must provide a series of seqs "+\
                                             "or an alignment"
@@ -926,7 +937,41 @@ class SequenceCollection(object):
             assert seq.__class__ == self_seq_class,\
                 "Seq classes different: Expected %s, Got %s" % \
                     (seq.__class__, self_seq_class)
-        return self.__class__(data=combined)
+                    
+        combined_aln = self.__class__(data=combined)
+        
+        if before_name is None and after_name is None:
+            return combined_aln
+        
+        if (before_name and before_name not in self.Names) \
+            or \
+            (after_name and after_name not in self.Names):
+            name = before_name or after_name
+            raise ValueError("The alignment doesn't have a sequence named '{0}'" 
+                .format(name))
+        
+        if before_name is not None: # someone might have seqname of int(0)
+            index = self.Names.index(before_name)
+        elif after_name is not None:
+            index = self.Names.index(after_name) + 1
+        
+        names_before = self.Names[:index]
+        names_after = self.Names[index:]
+        new_names = combined_aln.Names[len(self.Names):]
+        
+        aln_new = combined_aln.takeSeqs(new_names)
+        if len(names_before) > 0:
+            aln_before = self.takeSeqs(names_before)
+            combined_aln = aln_before
+            combined_aln = combined_aln.addSeqs(aln_new)
+        else:                
+            combined_aln = aln_new
+        
+        if len(names_after) > 0:
+            aln_after = self.takeSeqs(names_after)
+            combined_aln = combined_aln.addSeqs(aln_after)
+        
+        return combined_aln
     
     def writeToFile(self, filename=None, format=None, **kwargs):
         """Write the alignment to a file, preserving order of sequences.
@@ -1904,6 +1949,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         self.SeqData = self.ArraySeqs
         self.SeqLen = len(self.ArrayPositions)
 
+
     def _force_same_data(self, data, Names):
         """Forces array that was passed in to be used as self.ArrayPositions"""
         if isinstance(data, DenseAlignment):
@@ -2496,5 +2542,99 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result[name] = combo
         return Alignment(result, Alphabet=self.Alphabet.withGapMotif())
          
+    def getDegappedRelativeTo(self, name):
+        """Remove all columns with gaps in sequence with given name.
         
-
+        Returns Alignment object of the same class.
+        Note that the seqs in the new Alignment are always new objects.
+        
+        Arguments:
+            - name: sequence name
+        """
+        if name not in self.Names:
+            raise ValueError("The alignment doesn't have a sequence named '{0}'"
+                .format(name))
+        
+        gap = self.Alphabet.Gap
+        non_gap_cols = [i for i, col in enumerate(self.getGappedSeq(name)) 
+                                    if col != gap]
+        
+        return self.takePositions(non_gap_cols)
+    
+    def addFromReferenceAln(self, ref_aln, before_name=None, after_name=None):
+        """
+        Insert sequence(s) to self based on their alignment to a reference
+        sequence. Assumes the first sequence in ref_aln.Names[0] is the
+        reference.
+        
+        By default the sequence is appended to the end of the alignment,
+        this can be changed by using either before_name or after_name
+        arguments.
+        
+        Returns Alignment object of the same class.
+        
+        Arguments:
+            - ref_aln: reference alignment (Alignment object/series) of
+              reference sequence and sequences to add.
+              New sequences in ref_aln (ref_aln.Names[1:] are sequences to add.
+              If series is used as ref_aln, it must have the structure
+              [['ref_name', SEQ], ['name', SEQ]]
+            - before_name: name of the sequence before which
+              sequence is added
+            - after_name: name of the sequence after which sequence is added
+              If both before_name and after_name are specified seqs will be
+              inserted using before_name.
+        
+        Example:
+        Aln1:
+        -AC-DEFGHI (name: seq1) 
+        XXXXXX--XX (name: seq2)
+        YYYY-YYYYY (name: seq3) 
+        
+        Aln2:
+        ACDEFGHI   (name: seq1) 
+        KL--MNPR   (name: seqX)
+        KLACMNPR   (name: seqY)
+        KL--MNPR   (name: seqZ)
+        
+        Out:
+        -AC-DEFGHI (name: seq1) 
+        XXXXXX--XX (name: seq2)
+        YYYY-YYYYY (name: seq3)
+        -KL---MNPR (name: seqX)
+        -KL-ACMNPR (name: seqY)
+        -KL---MNPR (name: seqZ)
+        """
+        
+        if type(ref_aln) != type(self): # let the seq class try and guess
+            ref_aln = self.__class__(ref_aln)
+        
+        ref_seq_name = ref_aln.Names[0]
+        
+        if ref_seq_name not in self.Names:
+            raise ValueError, "The name of reference sequence ({0})"\
+            "not found in the alignment \n(names in the alignment:\n{1}\n)"\
+            .format(ref_seq_name, "\n".join(self.Names))
+        
+        if str(ref_aln.getGappedSeq(ref_seq_name)) \
+            != str(self.getSeq(ref_seq_name)):
+            raise ValueError, "Reference sequences are unequal."\
+            "The reference sequence must not contain gaps"
+        
+        temp_aln = None
+        for seq_name in ref_aln.Names[1:]:
+            if seq_name in self.Names:
+                raise ValueError, "The name of a sequence being added ({0})"\
+                        "is already present".format(seq_name)
+            
+            seq = ref_aln.getGappedSeq(seq_name)
+            new_seq = Aligned(self.NamedSeqs[ref_seq_name].map, seq)
+            if not temp_aln:
+                temp_aln = self.__class__({new_seq.Name: str(new_seq)})
+            else:
+                temp_aln = temp_aln.addSeqs(self.__class__({new_seq.Name:
+                                            str(new_seq)}))
+        
+        aln = self.addSeqs(temp_aln, before_name, after_name)
+        
+        return aln
