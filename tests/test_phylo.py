@@ -1,16 +1,18 @@
 #! /usr/bin/env python
 import unittest, os
 import warnings
-from numpy import log
+from numpy import log, exp
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
 from cogent.phylo.distance import EstimateDistances
 from cogent.phylo.nj import nj, gnj
 from cogent.phylo.least_squares import wls
 from cogent import LoadSeqs, LoadTree
-from cogent.phylo.tree_collection import LogLikelihoodScoredTreeCollection
+from cogent.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
+    WeightedTreeCollection, LoadTrees
 from cogent.evolve.models import JC69, HKY85, F81
 from cogent.phylo.consensus import majorityRule, weightedMajorityRule
+from cogent.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -72,6 +74,20 @@ class ConsensusTests(unittest.TestCase):
         
         ct = cts.getConsensusTree()
         self.assertTrue(ct.sameTopology(Tree("((a,b),(c,d));")))
+    
+    def test_tree_collection_read_write_file(self):
+        """should correctly read / write a collection from a file"""
+        def eval_klass(coll):
+            coll.writeToFile('sample.trees')
+            read = LoadTrees('sample.trees')
+            self.assertTrue(type(read) == type(coll))
+        
+        eval_klass(LogLikelihoodScoredTreeCollection(self.scored_trees))
+        
+        # convert lnL into p
+        eval_klass(WeightedTreeCollection([(exp(s), t) 
+                                    for s,t in self.scored_trees]))
+        remove_files(['sample.trees'], error_on_missing=False)
     
 
 class TreeReconstructionTests(unittest.TestCase):

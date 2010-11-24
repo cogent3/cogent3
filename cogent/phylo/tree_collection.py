@@ -21,21 +21,24 @@ class ScoredTreeCollection(_UserList):
     def writeToFile(self, filename):
         f = open(filename, 'w')
         for (score, tree) in self:
-            f.writelines(self.scoredTreeFormat(str(score), tree.getNewick(with_distances=True)))
+            f.writelines(
+                self.scoredTreeFormat(tree.getNewick(with_distances=True),
+                str(score)))
         f.close()
-
+    
     def scoredTreeFormat(self, tree, score):
         return [tree, '\t[', score, ']\n']
-
+    
     def getConsensusTree(self, strict=None):
         ctrees = self.getConsensusTrees(strict)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
-
+    
     def getConsensusTrees(self, strict=True):
         if strict is None: strict = True
         return consensus.weightedMajorityRule(self, strict)
-        
+    
+
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
     def scoredTreeFormat(self, tree, score):
         return [score, '\t', tree, '\n']
@@ -75,7 +78,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
                 break
         denominator = sum(weights)
         weights.reverse()
-        return WeightedTreeCollection((weight/denominator, tree) 
+        return WeightedTreeCollection((weight/denominator, tree)
                 for (weight, (lnL, tree)) in zip(weights, self))
         
 
@@ -86,6 +89,7 @@ def LoadTrees(filename):
     infile = open(filename, 'r')
     trees = []
     klass = list
+    # expect score, tree
     for line in infile:
         line = line.split(None, 1)
         lnL = float(line[0])
