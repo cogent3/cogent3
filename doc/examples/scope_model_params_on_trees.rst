@@ -163,7 +163,7 @@ The general use-cases for which a tree scope can be applied are:
 1. constraining all edges identified by a rule to have a specific value which is constant and not modifiable
 
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_const=True)
+    ...      outgroup_name='Mouse', is_clade=True, is_constant=True)
 
 2. all edges identified by a rule have the same but different value to the rest of the tree
     
@@ -191,7 +191,7 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
 .. doctest::
     
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_const=True)
+    ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_constant=True)
     >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
@@ -229,7 +229,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
 .. doctest::
     
     >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_const=False)
+    ...      outgroup_name='Mouse', is_clade=True, is_constant=False)
     >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table

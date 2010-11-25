@@ -16,7 +16,7 @@ class Setting(object):
 
 class Var(Setting):
     # placeholder for a single optimiser parameter
-    is_const = False
+    is_constant = False
     
     def __init__(self, bounds = None):
         if bounds is None:
@@ -49,7 +49,7 @@ class ConstVal(Setting):
     # not to be confused with defns.Const.  This is like a Var,
     # assigned to a parameter which may have other Var values
     # for other scopes.
-    is_const = True
+    is_constant = True
     
     # Val interface
     def __init__(self, value):

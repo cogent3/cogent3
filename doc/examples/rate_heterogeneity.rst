@@ -19,9 +19,9 @@ Make an alignment with equal split between rates 0.6 and 0.2, and then concatena
     >>> model = Nucleotide(equal_motif_probs=True)
     >>> tree = LoadTree("data/test.tree")
     >>> lf = model.makeLikelihoodFunction(tree)
-    >>> lf.setParamRule('length', value=0.6, is_const=True)
+    >>> lf.setParamRule('length', value=0.6, is_constant=True)
     >>> aln1 = lf.simulateAlignment(sequence_length=10000)
-    >>> lf.setParamRule('length', value=0.2, is_const=True)
+    >>> lf.setParamRule('length', value=0.2, is_constant=True)
     >>> aln2 = lf.simulateAlignment(sequence_length=10000)
     >>> aln3 = aln1 + aln2
 
@@ -53,13 +53,13 @@ Print the ``bprobs`` sorted by ``'rate'`` will generate a table like
     bin1     0.51   1.48
     --------------------
 
-We'll now use a gamma distribution on the sample alignment, specifying the number of bins as 4. We specify that the bins have equal density using the ``lf.setParamRule('bprobs', is_const=True)`` command.
+We'll now use a gamma distribution on the sample alignment, specifying the number of bins as 4. We specify that the bins have equal density using the ``lf.setParamRule('bprobs', is_constant=True)`` command.
 
 .. doctest::
 
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="gamma")
     >>> lf = model.makeLikelihoodFunction(tree, bins=4)
-    >>> lf.setParamRule('bprobs', is_const=True)
+    >>> lf.setParamRule('bprobs', is_constant=True)
     >>> lf.setAlignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2)

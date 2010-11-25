@@ -85,9 +85,9 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
     with LF.updatesPostponed():
         for param, val in param_vals.items():
-            LF.setParamRule(param, value=val, is_const=True)
-        LF.setParamRule('indel_rate', value=indel_rate, is_const=True)
-        LF.setParamRule('indel_length', value=indel_length, is_const=True)
+            LF.setParamRule(param, value=val, is_constant=True)
+        LF.setParamRule('indel_rate', value=indel_rate, is_constant=True)
+        LF.setParamRule('indel_length', value=indel_length, is_constant=True)
         LF.setSequences(seqs)
     edge = LF.getLogLikelihood().edge
     (vtLnL, align) = edge.getViterbiScoreAndAlignment(0.5)

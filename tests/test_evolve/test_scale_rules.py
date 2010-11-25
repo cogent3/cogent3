@@ -33,7 +33,7 @@ class ScaleRuleTests(unittest.TestCase):
     def _getScaledLengths(self, model, params):
         LF = model.makeLikelihoodFunction(TREE)
         for param in params:
-            LF.setParamRule(param, value=params[param], is_const=True)
+            LF.setParamRule(param, value=params[param], is_constant=True)
         result = {}
         for predicate in model.scale_masks:
             result[predicate] = LF.getScaledLengths(predicate)['a']
@@ -53,9 +53,9 @@ class ScaleRuleTests(unittest.TestCase):
             'ts':trans, 'tv': ~trans})
                     
         LF = model.makeLikelihoodFunction(TREE, bins=2)
-        LF.setParamRule('length', value=4.0, is_const=True)
-        LF.setParamRule('k', value=6.0, bin='bin0', is_const=True)
-        LF.setParamRule('k', value=1.0, bin='bin1', is_const=True)
+        LF.setParamRule('length', value=4.0, is_constant=True)
+        LF.setParamRule('k', value=6.0, bin='bin0', is_constant=True)
+        LF.setParamRule('k', value=1.0, bin='bin1', is_constant=True)
 
         for (bin, expected) in [('bin0', 3.0), ('bin1', 4.0/3), (None, 13.0/6)]:
             self.assertEqual(LF.getScaledLengths('ts', bin=bin)['a'], expected)

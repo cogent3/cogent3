@@ -60,7 +60,7 @@ We construct a likelihood function and constrain omega parameter (the ratio of n
 .. doctest::
 
     >>> lf = cnf.makeLikelihoodFunction(tree, digits=2, space=3)
-    >>> lf.setParamRule('omega', is_const=True, value=1.0)
+    >>> lf.setParamRule('omega', is_constant=True, value=1.0)
 
 We then provide an alignment and optimise the model. In the current case we just use the local optimiser (hiding progress to keep this document succinct). We then print the results.
 
@@ -113,7 +113,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
 
     >>> neutral_lnL = lf.getLogLikelihood()
     >>> neutral_nfp = lf.getNumFreeParams()
-    >>> lf.setParamRule('omega', is_const=False)
+    >>> lf.setParamRule('omega', is_constant=False)
     >>> lf.optimise(**optimiser_args)
     >>> print lf
     Likelihood Function Table
@@ -301,7 +301,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     ...                              digits=2, space=3)
     >>> rate_lf.setParamRule('omega', bin='0', upper=1.0-epsilon,
     ...                      init=1-epsilon)
-    >>> rate_lf.setParamRule('omega', bins='1', is_const=True, value=1.0)
+    >>> rate_lf.setParamRule('omega', bins='1', is_constant=True, value=1.0)
     >>> rate_lf.setAlignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
     >>> tables = rate_lf.getStatistics(with_titles=True)
@@ -355,11 +355,11 @@ binned parameter values,
     
     >>> rate_branch_lf.setParamRule('omega', bins=['0', '2a'], upper=1.0,
     ...                 init=rate_class_omegas['0'])
-    >>> rate_branch_lf.setParamRule('omega', bins=['1', '2b'], is_const=True,
+    >>> rate_branch_lf.setParamRule('omega', bins=['1', '2b'], is_constant=True,
     ...                 value=1.0)
     >>> rate_branch_lf.setParamRule('omega', bins=['2a', '2b'],
     ...                    edges=['Chimpanzee', 'Human'], init=99,
-    ...                    lower=1.0, upper=100.0, is_const=False)
+    ...                    lower=1.0, upper=100.0, is_constant=False)
 
 and the bin probabilities.
 
