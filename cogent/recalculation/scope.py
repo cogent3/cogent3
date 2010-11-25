@@ -533,7 +533,7 @@ class _LeafDefn(_Defn):
         for (i,a) in self.assignments.items():
             if a is None:
                 assignments.append('None')
-            elif a.is_const:
+            elif a.is_constant:
                 if isinstance(a.value, float):
                     assignments.append(template % a.value)
                 else:

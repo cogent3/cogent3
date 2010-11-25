@@ -85,7 +85,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     ...                      distribution='gamma', **treat_gap)
     >>> lf_bins = bin_submod.makeLikelihoodFunction(tree, bins=2,
     ...                             sites_independent=True, digits=2, space=3)
-    >>> lf_bins.setParamRule('bprobs', is_const=True)
+    >>> lf_bins.setParamRule('bprobs', is_constant=True)
     >>> lf_bins.setAlignment(aln)
     >>> lf_bins.optimise(local=True)
     >>> lnL_bins = lf_bins.getLogLikelihood()
@@ -133,7 +133,7 @@ We then specify a model with switches for changing between site-classes, the HMM
 
     >>> lf_patches = bin_submod.makeLikelihoodFunction(tree, bins=2,
     ...                         sites_independent=False, digits=2, space=3)
-    >>> lf_patches.setParamRule('bprobs', is_const=True)
+    >>> lf_patches.setParamRule('bprobs', is_constant=True)
     >>> lf_patches.setAlignment(aln)
     >>> lf_patches.optimise(local=True)
     >>> lnL_patches = lf_patches.getLogLikelihood()
@@ -195,7 +195,7 @@ The stationary bin probabilities are labelled as ``bprobs`` and can be obtained 
     >>> print "%.1f : %.1f" % tuple(bprobs)
     0.5 : 0.5
 
-Of greater interest here (given the model was set up so the bin probabilities were equal, i.e. ``is_const=True``) are the posterior probabilities as those allow classification of sites. The result is a ``DictArray`` class instance, which behaves like a dictionary.
+Of greater interest here (given the model was set up so the bin probabilities were equal, i.e. ``is_constant=True``) are the posterior probabilities as those allow classification of sites. The result is a ``DictArray`` class instance, which behaves like a dictionary.
 
 .. doctest::
 

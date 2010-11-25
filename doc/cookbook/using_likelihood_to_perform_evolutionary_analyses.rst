@@ -181,7 +181,7 @@ This means the parameter will not be modified during likelihood maximisation. We
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', is_const=True)
+    >>> lf.setParamRule('omega', is_constant=True)
 
 Providing a starting value for a parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -239,7 +239,7 @@ We extend the simple gamma distributed rate heterogeneity case for nucleotides f
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, digits=2)
-    >>> lf.setParamRule('bprobs', is_const=True)
+    >>> lf.setParamRule('bprobs', is_constant=True)
 
 For more detailed discussion of defining and using these models see :ref:`rate-heterogeneity`.
 
@@ -254,7 +254,7 @@ Specifying Phylo-HMMs
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, sites_independent=False,
     ...                                 digits=2)
-    >>> lf.setParamRule('bprobs', is_const=True)
+    >>> lf.setParamRule('bprobs', is_constant=True)
 
 For more detailed discussion of defining and using these models see :ref:`rate-heterogeneity-hmm`.
 

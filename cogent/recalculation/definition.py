@@ -115,7 +115,7 @@ class CalculationDefn(_NonLeafDefn):
     def makeCell(self, *args):
         calc = self.makeCalcFunction()
         # can't calc outside correct parallel context, so can't do
-        # if [arg for arg in args if not arg.is_const]:
+        # if [arg for arg in args if not arg.is_constant]:
         cell = EvaluatedCell(self.name, calc, args,
                 recycling=self.recycling, default=self.default)
         return cell
@@ -260,7 +260,7 @@ class ParamDefn(_InputDefn):
         for (i, v) in enumerate(self.uniq):
             scope = [key for key in self.assignments
                     if self.assignments[key] is v]
-            if v.is_const or (variable is not None and variable is not v):
+            if v.is_constant or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
             else:
                 cell = self.opt_par_class(self.name, scope, v.getBounds())
@@ -388,9 +388,9 @@ class PartitionDefn(_InputDefn):
     
     def checkSettingIsValid(self, setting):
         value = setting.getDefaultValue()
-        return self.checkValueIsValid(value, setting.is_const)
+        return self.checkValueIsValid(value, setting.is_constant)
 
-    def checkValueIsValid(self, value, is_const):
+    def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size,):
             raise ValueError("Wrong array shape %s for %s, expected (%s,)" % 
                     (value.shape, self.name, self.size))
@@ -399,7 +399,7 @@ class PartitionDefn(_InputDefn):
                 raise ValueError("Negative probability in %s" % self.name)                
             if part > 1:
                 raise ValueError("Probability > 1 in %s" % self.name)                
-            if not is_const:
+            if not is_constant:
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
                     raise ValueError("Zeros allowed in %s only when constant" % 
@@ -438,7 +438,7 @@ class PartitionDefn(_InputDefn):
             scope = [key for key in self.assignments
                     if self.assignments[key] is v]
             assert value is not None
-            if v.is_const or (variable is not None and variable is not v):
+            if v.is_constant or (variable is not None and variable is not v):
                 partition = ConstCell(self.name, value)
             else:
                 (ratios, partition) = self._makePartitionCell(
@@ -523,7 +523,7 @@ class SwitchDefn(CalculationDefn):
         return args[condition]
 
     def getShortcutCell(self, condition, *args):
-        if condition.is_const:
+        if condition.is_constant:
             return self.calc(self, condition.value, *args)
 
 class VectorMatrixInnerDefn(CalculationDefn):

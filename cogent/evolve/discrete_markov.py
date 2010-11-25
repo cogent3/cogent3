@@ -36,12 +36,12 @@ class PsubMatrixDefn(PartitionDefn):
         diag = numpy.identity(self.size, float)
         return (flat + diag) / 2
 
-    def checkValueIsValid(self, value, is_const):
+    def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size,self.size):
             raise ValueError("Wrong array shape %s for %s, expected (%s,%s)" % 
                     (value.shape, self.name, self.size, self.size))
         for part in value:
-            PartitionDefn.checkValueIsValid(self, part, is_const)
+            PartitionDefn.checkValueIsValid(self, part, is_constant)
     
     def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
@@ -55,7 +55,7 @@ class PsubMatrixDefn(PartitionDefn):
             assert value.shape == (self.size,self.size)
             scope = [key for key in self.assignments
                     if self.assignments[key] is v]
-            if v.is_const or (variable is not None and variable is not v):
+            if v.is_constant or (variable is not None and variable is not v):
                 matrix = ConstCell(self.name, value)
             else:
                 rows = []

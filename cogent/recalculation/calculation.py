@@ -33,7 +33,7 @@ class OptPar(object):
     An OptPar reports changes to the ParameterValueSet for its parameter.
     """
     
-    is_const = False
+    is_constant = False
     recycled = False
     args = ()
     # Use of __slots__ here and in Cell gives 8% speedup on small calculators.
@@ -90,7 +90,7 @@ class LogOptPar(OptPar):
     
 
 class EvaluatedCell(object):
-    __slots__ = ['client_ranks', 'rank', 'calc', 'args', 'is_const',
+    __slots__ = ['client_ranks', 'rank', 'calc', 'args', 'is_constant',
         'clients', 'failure_count', 'name', 'arg_ranks',
         'consequences', 'recycled', 'default']
     
@@ -105,11 +105,11 @@ class EvaluatedCell(object):
         if recycling:
             self.args = (self,) + self.args
         
-        self.is_const = True
+        self.is_constant = True
         for arg in args:
             arg.addClient(self)
-            if not arg.is_const:
-                self.is_const = False
+            if not arg.is_constant:
+                self.is_constant = False
         
         self.clients = []
         self.client_ranks = []
@@ -123,7 +123,7 @@ class EvaluatedCell(object):
                 *[data[arg_rank] for arg_rank in self.arg_ranks])
     
     def prime(self, data_sets):
-        if self.is_const:
+        if self.is_constant:
             # Just calc once
             self.update(data_sets[0])
             for data in data_sets[1:]:
@@ -149,7 +149,7 @@ class ConstCell(object):
     __slots__ = ['name', 'scope', 'value', 'rank', 'consequences', 'clients']
     
     recycled = False
-    is_const = True
+    is_constant = True
     args = ()
     
     def __init__(self, name, value):
@@ -265,8 +265,8 @@ class Calculator(object):
                     label = '[]'
                 label = '<%s> %s' % (cell.rank, label)
                 enodes.append(label)
-                all_const = all_const and cell.is_const
-                some_const = some_const or cell.is_const
+                all_const = all_const and cell.is_constant
+                some_const = some_const or cell.is_constant
             enodes = '|'.join(enodes)
             colour = ['', ' fillcolor=gray90, style=filled,'][some_const]
             colour = [colour, ' fillcolor=gray, style=filled,'][all_const]
@@ -328,14 +328,14 @@ class Calculator(object):
         if trace:
             print
             n_opars = len(self.opt_pars)
-            n_cells = len([c for c in self._cells if not c.is_const])
+            n_cells = len([c for c in self._cells if not c.is_constant])
             print n_opars, "OptPars and", n_cells - n_opars, "cells"
             print self.opt_pars
             
             groups = []
             groupd = {}
             for cell in self._cells:
-                if cell.is_const or not isinstance(cell, EvaluatedCell):
+                if cell.is_constant or not isinstance(cell, EvaluatedCell):
                     continue
                 if cell.name not in groupd:
                     group = []

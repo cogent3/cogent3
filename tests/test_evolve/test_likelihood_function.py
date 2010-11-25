@@ -116,9 +116,9 @@ class LikelihoodCalcs(TestCase):
             alignment = alignment.getTranslation()
         calc = submod.makeLikelihoodFunction(self.tree, **kw)
         calc.setAlignment(alignment)
-        calc.setParamRule('length', value=1.0, is_const=True)
+        calc.setParamRule('length', value=1.0, is_constant=True)
         if not translate:
-            calc.setParamRule('kappa', value=3.0, is_const=True)
+            calc.setParamRule('kappa', value=3.0, is_constant=True)
         return calc
     
     def test_no_seq_named_root(self):
@@ -191,8 +191,8 @@ class LikelihoodCalcs(TestCase):
             mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, 
                     bins=['slow', 'fast'])
-        lf.setParamRule('kappa', value=1.0, is_const=True)
-        lf.setParamRule('kappa', edge="Human", init=1.0, is_const=False)
+        lf.setParamRule('kappa', value=1.0, is_constant=True)
+        lf.setParamRule('kappa', edge="Human", init=1.0, is_constant=False)
         values = lf.getParamValueDict(['bin'])['kappa_factor'].values()
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
@@ -207,7 +207,7 @@ class LikelihoodCalcs(TestCase):
             mprob_model='tuple')
         
         likelihood_function = self._makeLikelihoodFunction(submod)
-        likelihood_function.setParamRule('omega', value=0.5, is_const=True)
+        likelihood_function.setParamRule('omega', value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -80.67069614541883)
     
@@ -293,15 +293,15 @@ class LikelihoodFunctionTests(TestCase):
                 ("HowlerMon", 0.4),
                 ("Mouse",  0.5)]:
             likelihood_function.setParamRule("length", value=length, 
-                    edge=species, is_const=True)
+                    edge=species, is_constant=True)
         for (species1, species2, length) in [
                 ("Human", "HowlerMon", 0.7),
                 ("Human", "Mouse", 0.6)]:
             LCA = self.tree.getConnectingNode(species1, species2).Name
             likelihood_function.setParamRule("length", value=length, 
-                    edge=LCA, is_const=True)
+                    edge=LCA, is_constant=True)
         
-        likelihood_function.setParamRule("beta", value=4.0, is_const=True)
+        likelihood_function.setParamRule("beta", value=4.0, is_constant=True)
     
     def test_information_criteria(self):
         """test get information criteria from a model."""
@@ -478,8 +478,8 @@ motif  mprobs
     
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setParamRule("length", value=4.0, is_const=True)
-        likelihood_function.setParamRule("beta", value=6.0, is_const=True)
+        likelihood_function.setParamRule("length", value=4.0, is_constant=True)
+        likelihood_function.setParamRule("beta", value=6.0, is_constant=True)
         self.assertEqual(str(likelihood_function), \
 """Likelihood Function Table
 ======
@@ -548,7 +548,7 @@ motif    mprobs
     
     def test_getAnnotatedTree(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setParamRule("length", value=4.0, edge="Human", is_const=True)
+        likelihood_function.setParamRule("length", value=4.0, edge="Human", is_constant=True)
         result = likelihood_function.getAnnotatedTree()
         self.assertEqual(result.getNodeMatchingName('Human').params['length'], 4.0)
         self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
@@ -597,9 +597,9 @@ motif    mprobs
         # checks by just trying to make the calculator
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
-        lf.setParamRule('beta', is_const=True, value=2.0, 
+        lf.setParamRule('beta', is_constant=True, value=2.0, 
                         edges=['NineBande', 'DogFaced'], is_clade=True)
-        lf.setParamRule('beta', init=2.0, is_const=False,
+        lf.setParamRule('beta', init=2.0, is_constant=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
     
 

@@ -29,7 +29,7 @@ __status__ = "Production"
 class LikelihoodFunction(ParameterController):
     def setpar(self, param_name, value, edge=None, **scope):
         deprecated('method', 'setpar','setParamRule', '1.6')
-        return self.setParamRule(param_name, edge=edge, value=value, is_const=True, **scope)
+        return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
     
     def testfunction(self):
         deprecated('method', 'testfunction','getLogLikelihood', '1.6')
@@ -69,7 +69,7 @@ class LikelihoodFunction(ParameterController):
                 for motif in range(len(self._motifs)):
                     self.setParamRule('fixed_motif', value=motif,
                             edge=restricted_edge.Name, locus=locus,
-                            is_const=True)
+                            is_constant=True)
                     likelihoods = self.getFullLengthLikelihoods(locus=locus)
                     r.append(likelihoods)
                     if array_template is None:
@@ -78,7 +78,7 @@ class LikelihoodFunction(ParameterController):
             finally:
                 self.setParamRule('fixed_motif', value=-1,
                         edge=restricted_edge.Name, locus=locus,
-                        is_const=True)
+                        is_constant=True)
             # dict of site x motif arrays
             result[restricted_edge.Name] = array_template.wrap(
                     numpy.transpose(numpy.asarray(r)))

@@ -76,7 +76,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setMotifProbs(mprobs)
         self.assertEqual(lf.getMotifProbs(), mprobs)
         
-        lf.setMotifProbsFromData(self.al[:1], is_const=True)
+        lf.setMotifProbsFromData(self.al[:1], is_constant=True)
         self.assertEqual(lf.getMotifProbs()['G'], 0.6)
         
         lf.setMotifProbsFromData(self.al[:1], pseudocount=1)
@@ -85,7 +85,7 @@ class test_parameter_controller(unittest.TestCase):
         # test with consideration of ambiguous states
         al = LoadSeqs(data = {'seq1': 'ACGTAAGNA', 'seq2': 'ACGTANGTC',
                                'seq3': 'ACGTACGTG'})
-        lf.setMotifProbsFromData(al, include_ambiguity=True, is_const=True)
+        lf.setMotifProbsFromData(al, include_ambiguity=True, is_constant=True)
         motif_probs = dict(lf.getMotifProbs())
         correct_probs = {'A': 8.5/27, 'C': 5.5/27, '-': 0.0, 'T': 5.5/27,
                          'G': 7.5/27}
@@ -101,8 +101,8 @@ class test_parameter_controller(unittest.TestCase):
         mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
         mprobs_b = dict(A=.1, T=.2, C=.3, G=.4)
         
-        for is_const in [False, True]:
-            lf.setMotifProbs(mprobs_a, is_const=is_const)
+        for is_constant in [False, True]:
+            lf.setMotifProbs(mprobs_a, is_constant=is_constant)
             s = str(lf)
             lf.setMotifProbs(mprobs_b, locus="b")
             self.assertEqual(lf.getMotifProbs(locus="a"), mprobs_a)
@@ -129,7 +129,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_setConstantLengths(self):
         t = LoadTree(treestring='((a:1,b:2):3,(c:4,d:5):6,e:7);')
         lf = self.model.makeLikelihoodFunction(t)#self.tree)
-        lf.setParamRule('length', is_const=True)
+        lf.setParamRule('length', is_constant=True)
         # lf.setConstantLengths(t)
         lf.setAlignment(self.al)
         self.assertEqual(lf.getParamValue('length', 'b'), 2)

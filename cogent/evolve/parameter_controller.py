@@ -18,7 +18,7 @@ from cogent.maths.stats.information_criteria import aic, bic
 
 
 from cogent.align.pairwise import AlignableSeq
-from cogent.util.warning import discontinued
+from cogent.util.warning import discontinued, deprecated
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -111,37 +111,45 @@ class _LikelihoodParameterController(_LF):
                 if edge.Length is not None:
                     self.setParamRule('length', edge=edge.Name, init=edge.Length)
     
-    def setMotifProbsFromData(self, align, locus=None, is_const=None, 
+    def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
                 include_ambiguity=False, is_independent=None, auto=False,
-                pseudocount=None):
-        counts = self.model.countMotifs(align, 
+                pseudocount=None, **kwargs):
+        if 'is_const' in kwargs:
+            is_constant = kwargs.pop('is_const')
+            deprecated('argument', 'is_const', 'is_constant', 1.6)
+        
+        counts = self.model.countMotifs(align,
                 include_ambiguity=include_ambiguity)
-        if is_const is None:
-            is_const = not self.optimise_motif_probs
+        if is_constant is None:
+            is_constant = not self.optimise_motif_probs
         if pseudocount is None:
-            if is_const:
+            if is_constant:
                 pseudocount = 0.0
             else:
                 pseudocount = 0.5
         counts += pseudocount
         mprobs = counts/(1.0*sum(counts))
-        self.setMotifProbs(mprobs, locus=locus, is_const=is_const, 
+        self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant, 
                 is_independent=is_independent, auto=auto)
     
-    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_const=None, 
-                is_independent=None, auto=False):
+    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None, 
+                is_independent=None, auto=False, **kwargs):
+        if 'is_const' in kwargs:
+            is_constant = kwargs.pop('is_const')
+            deprecated('argument', 'is_const', 'is_constant', 1.6)
+        
         motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
-        if is_const is None:
-            is_const = not self.optimise_motif_probs
+        if is_constant is None:
+            is_constant = not self.optimise_motif_probs
         self.model.setParamControllerMotifProbs(self, motif_probs, 
-            is_const=is_const, bin=bin, locus=locus, 
+            is_constant=is_constant, bin=bin, locus=locus, 
             is_independent=is_independent)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
     
     def setExpm(self, expm):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
-        self.setParamRule('expm', is_const=True, value=expm)
+        self.setParamRule('expm', is_constant=True, value=expm)
 
     def makeCalculator(self, *args, **kw):
         if args:
@@ -182,14 +190,14 @@ class _LikelihoodParameterController(_LF):
         
         return edges
     
-    def setParamRule(self, par_name, is_independent=None, is_const=False,
+    def setParamRule(self, par_name, is_independent=None, is_constant=False,
             value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
         
         Arguments:
             - par_name: The model parameter being modified.
-            - is_const, value: if True, the parameter is held constant at
+            - is_constant, value: if True, the parameter is held constant at
               value, if provided, or the likelihood functions current value.
             - is_independent: whether the partition specified by scope/bin
               arguments are to be considered independent.
@@ -211,6 +219,10 @@ class _LikelihoodParameterController(_LF):
                 common ancestor defined by the tip_names+outgroup_name
                 arguments.
         """
+        if 'is_const' in scope_info:
+            is_constant = scope_info.pop('is_const')
+            deprecated('argument', 'is_const', 'is_constant', 1.6)
+        
         par_name = str(par_name)
                 
         scopes = {}
@@ -235,12 +247,12 @@ class _LikelihoodParameterController(_LF):
         if edges:
             scopes['edge'] = edges
         
-        if is_const:
+        if is_constant:
             assert not (init or lower or upper)
         elif init is not None:
             assert not value
             value = init
-        self.assignAll(par_name, scopes, value, lower, upper, is_const, 
+        self.assignAll(par_name, scopes, value, lower, upper, is_constant, 
                 is_independent)
     
     def setLocalClock(self, tip1name, tip2name):
@@ -269,7 +281,7 @@ class _LikelihoodParameterController(_LF):
             for edge in tree.getEdgeVector():
                 if edge.Length is None or edge.Name in exclude_list:
                     continue
-                self.setParamRule("length", edge=edge.Name, is_const=1,
+                self.setParamRule("length", edge=edge.Name, is_constant=1,
                                         value=edge.Length)
     
     def getAic(self, second_order=False):
@@ -370,10 +382,10 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def setPogs(self, leaves, locus=None):
         with self.updatesPostponed():
             for (name, pog) in leaves.items():
-                self.setParamRule('leaf', edge=name, value=pog, is_const=True)
+                self.setParamRule('leaf', edge=name, value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum([pog.leaf.getMotifCounts()
                     for pog in leaves.values()], 0)
                 mprobs = counts/(1.0*sum(counts))
-                self.setMotifProbs(mprobs, locus=locus, is_const=True, auto=True)
+                self.setMotifProbs(mprobs, locus=locus, is_constant=True, auto=True)
     
