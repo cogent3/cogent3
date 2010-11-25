@@ -864,7 +864,8 @@ class Table(DictArray):
         
         raw_data = self.getRawData()
         raw_data.insert(0, self.Header)
-        transposed = numpy.transpose(raw_data)
+        transposed = numpy.array(raw_data, dtype='O')
+        transposed = transposed.transpose()
         
         # indices for the header and non header rows
         header_index = self.Header.index(select_as_header)
