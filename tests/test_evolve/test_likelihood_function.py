@@ -14,6 +14,7 @@ import warnings
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")
+warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 
 import os
 from numpy import ones, dot
@@ -602,6 +603,26 @@ motif    mprobs
         lf.setParamRule('beta', init=2.0, is_constant=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
     
+    def test_get_psub_rate_matrix(self):
+        """lf should return consistent rate matrix and psub"""
+        lf = self.submodel.makeLikelihoodFunction(self.tree)
+        lf.setAlignment(self.data)
+        Q = lf.getRateMatrixForEdge('NineBande')
+        P = lf.getPsubForEdge('NineBande')
+        self.assertFloatEqual(expm(Q.array)(1.0), P.array)
+        
+        # should return None for a discrete Markov model
+        dm = substitution_model.DiscreteSubstitutionModel(DNA.Alphabet)
+        lf = dm.makeLikelihoodFunction(self.tree)
+        lf.setAlignment(self.data)
+        Q = lf.getRateMatrixForEdge('NineBande')
+        self.assertTrue(Q is None)
+    
+    def test_make_discrete_markov(self):
+        """lf ignores tree lengths if a discrete Markov model"""
+        t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
+        dm = substitution_model.DiscreteSubstitutionModel(DNA.Alphabet)
+        lf = dm.makeLikelihoodFunction(t)
 
 if __name__ == '__main__':
     main()

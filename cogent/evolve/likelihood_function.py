@@ -39,8 +39,20 @@ class LikelihoodFunction(ParameterController):
         return self.getFinalResult()
     
     def getPsubForEdge(self, name):
+        """returns the substitution probability matrix for the named edge"""
         array = self.getParamValue('psubs', edge=name)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
+    
+    def getRateMatrixForEdge(self, name):
+        """returns the rate matrix (Q) for the named edge
+        
+        Note: expm(Q) will give the same result as getPsubForEdge(name)"""
+        try:
+            array = self.getParamValue('Q', edge=name)
+            result = DictArrayTemplate(self._motifs, self._motifs).wrap(array)
+        except KeyError:
+            result = None
+        return result
     
     def getFullLengthLikelihoods(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:

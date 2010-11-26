@@ -109,7 +109,15 @@ class _LikelihoodParameterController(_LF):
                     self.setParamRule(par_name, edges=group, init=value)
             for edge in edges:
                 if edge.Length is not None:
-                    self.setParamRule('length', edge=edge.Name, init=edge.Length)
+                    try:
+                        self.setParamRule('length', edge=edge.Name,
+                                    init=edge.Length)
+                    except KeyError:
+                        # hopefully due to being a discrete model
+                        warnings.warn('Ignoring tree edge lengths',
+                                        stacklevel=4)
+                        break
+        
     
     def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
                 include_ambiguity=False, is_independent=None, auto=False,
