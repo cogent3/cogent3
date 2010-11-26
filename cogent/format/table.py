@@ -200,10 +200,11 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
             if start > identifiers: # we are doing a sub-table
                 table.append("continued: %s" % title)
             
+            subhead = space.join([space.join(header[:identifiers]),
+                    space.join(header[start: end])])
+            width = len(subhead)
             table.append("=" * width)
-            subhead = [space.join(header[:identifiers]),
-                    space.join(header[start: end])]
-            table.append(space.join(subhead))
+            table.append(subhead)
             table.append("-" * width)
             for row in formatted_table:
                 row = [space.join(row[:identifiers]),

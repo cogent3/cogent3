@@ -270,7 +270,7 @@ class LikelihoodFunction(ParameterController):
                 title = ['', 'global params'][with_titles]
             result.append(table.Table(
                         heading_names, list_table,
-                        max_width = 80, row_ids = True,
+                        max_width = 80, row_ids = table_dims,
                         title=title, **self._format))
         return result
     

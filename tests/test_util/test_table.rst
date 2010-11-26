@@ -216,6 +216,45 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
 
 In the above we specify a maximum width of the table, and also specify row identifiers (using ``row_ids``, the integer corresponding to the column at which data begin, preceding columns are taken as the identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``row_ids`` are keys for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
 
+Wrapping generate neat looking tables whether or not you index the table rows. We demonstrate here
+
+.. doctest::
+    
+    >>> from cogent import LoadTable
+    >>> h = ['A/C', 'A/G', 'A/T', 'C/A']
+    >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
+    >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30)
+    >>> print wrap_table
+    ==============================
+           A/C       A/G       A/T
+    ------------------------------
+        0.0425    0.1424    0.0226
+    ------------------------------
+    <BLANKLINE>
+    continued: 
+    ==========
+           C/A
+    ----------
+        0.0391
+    ----------
+    <BLANKLINE>
+    >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30,
+    ...  row_ids=True)
+    >>> print wrap_table
+    ==========================
+       A/C       A/G       A/T
+    --------------------------
+    0.0425    0.1424    0.0226
+    --------------------------
+    <BLANKLINE>
+    continued: 
+    ================
+       A/C       C/A
+    ----------------
+    0.0425    0.0391
+    ----------------
+    <BLANKLINE>
+
 We can also customise the formatting of individual columns.
 
 .. doctest::
