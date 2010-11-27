@@ -22,7 +22,7 @@ At a minimum, you need to be using Python 2.5.x. If you have Python installed, o
 
 In this case, Python 2.6.4 is installed. If you don't have Python installed or your version is older than 2.5.x, download the most recent 2.x release of Python `here <http://www.python.org/download/>`_.
 
-.. warning:: **DO NOT** install Python 3.x or above. This version of the language was significantly restructured and is will currently not work with PyCogent.
+.. warning:: **DO NOT** install Python 3.x or above. This version of the language was significantly restructured and will currently not work with PyCogent.
 
 Getting help
 ============
