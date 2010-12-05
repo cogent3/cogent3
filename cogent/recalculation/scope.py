@@ -504,12 +504,19 @@ class _LeafDefn(_Defn):
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
     
-    #def getNumFreeParams(self):
-    #    return sum(setting.getNumFreeParams() for setting in self.uniq)
-    
-    def getAllDefaultValues(self, scope):
-        return [self.assignments[s].getDefaultValue() for s in scope]
-    
+    def getMeanCurrentValue(self, scope):
+        values = [self.assignments[s].getDefaultValue() for s in scope]
+        if len(values) == 1:
+            s_value = values[0]
+        else:
+            s_value = sum(values) / len(values)
+            for value in values:
+                if not numpy.all(value==s_value):
+                    warnings.warn("Used mean of %s %s values" % 
+                            (len(values), self.name), stacklevel=4)
+                    break
+        return s_value
+                    
     def getCurrentBounds(self, scope):
         lowest = highest = None
         for s in scope:
@@ -709,24 +716,28 @@ class ParameterController(object):
         for scope in defn.interpretScopes(
                 independent=independent, **(scope_spec or {})):
             if value is None:
-                values = defn.getAllDefaultValues(scope)
-                if len(values) == 1:
-                    s_value = values[0]
-                else:
-                    s_value = sum(values) / len(values)
-                    for value in values:
-                        if not numpy.all(value==s_value):
-                            warnings.warn("Used mean of %s values" % par_name,
-                                    stacklevel=3)
-                            break
+                s_value = defn.getMeanCurrentValue(scope)
             else:       
                 s_value = defn.unwrapValue(value)
             if const:
                 setting = ConstVal(s_value)
             else:
                 (s_lower, s_upper) = defn.getCurrentBounds(scope)
-                if lower is not None: s_lower = lower
-                if upper is not None: s_upper = upper
+                if lower is not None:
+                    s_lower = lower
+                if upper is not None:
+                    s_upper = upper
+                    
+                if s_lower > s_upper:
+                    raise ValueError("Bounds: upper < lower")
+                elif (s_lower is not None) and s_value < s_lower:
+                    s_value = s_lower
+                    warnings.warn("Value of %s increased to keep within bounds" 
+                                % par_name, stacklevel=3)
+                elif (s_upper is not None) and s_value > s_upper:
+                    s_value = s_upper
+                    warnings.warn("Value of %s decreased to keep within bounds" 
+                                % par_name, stacklevel=3)
                 setting = Var((s_lower, s_value, s_upper))
             settings.append((scope, setting))
         defn.assign(settings)
