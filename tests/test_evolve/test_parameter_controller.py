@@ -1,8 +1,11 @@
 #! /usr/bin/env python
 # Matthew Wakefield Feb 2004
 
+from __future__ import with_statement
 import unittest
 import os
+import sys
+import warnings
 
 from cogent import LoadSeqs, LoadTree
 import cogent.evolve.parameter_controller, cogent.evolve.substitution_model
@@ -182,6 +185,20 @@ class test_parameter_controller(unittest.TestCase):
         self.assertEqual(rd['kappa']['b'],rd['kappa']['d'])
         self.assertNotEqual(rd['kappa']['a'],rd['kappa']['b'])
         
+    def test_bounds(self):
+        """Test setting upper and lower bounds for parameters"""
+        lf = self.model.makeLikelihoodFunction(self.tree)
+        lf.setParamRule('length', value=1, lower=0, upper=2)
+        
+        if sys.version_info >= (2, 6):
+            with warnings.catch_warnings(record=True) as w:
+                lf.setParamRule('length', value=3, lower=0, upper=2)
+                self.assertTrue(len(w), 'No warning issued')
+            self.assertEqual(lf.getParamValue('length', edge='a'), 2)
+        
+        self.assertRaises(ValueError, lf.setParamRule, 
+            'length', lower=2, upper=0)
+         
         
 if __name__ == '__main__':
     unittest.main()
