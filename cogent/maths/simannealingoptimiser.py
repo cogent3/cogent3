@@ -9,10 +9,10 @@ Annealing," Goffe, Ferrier and Rogers, Journal of Econometrics, vol. 60, no. 1/2
 Jan./Feb. 1994, pp. 65-100.
 """
 from __future__ import division
-from optimiser import OptimiserBase
 import numpy
-import time
+import random
 from collections import deque
+from cogent.util import checkpointing
 
 
 __author__ = "Andrew Butterfield and Peter Maxwell"
@@ -29,7 +29,7 @@ class AnnealingSchedule(object):
     
     def __init__(self, temp_reduction, initial_temp, temp_iterations, step_cycles):
         if initial_temp < 0.0 :
-            raise RuntimeError, "Initial temperature not +ve"
+            raise ValueError, "Initial temperature not +ve"
         self.T = self.initial_temp = initial_temp
         self.temp_reduction = temp_reduction
         self.temp_iterations = temp_iterations
@@ -82,7 +82,6 @@ class AnnealingState(object):
         (self.XOPT, self.FOPT) = (X, self.F)
         self.NACP = [0] * len(X)
         self.NTRY = 0
-        self.elapsed_time = 0
     
     def setX(self, X, F):
         self.X = numpy.array(X, float)
@@ -90,7 +89,6 @@ class AnnealingState(object):
     
     def step(self, function, accept_test):
         # One attempted move in each dimension
-        t0 = time.time()
         X = self.X
         self.NTRY += 1
         for H in range(len(X)):
@@ -107,7 +105,6 @@ class AnnealingState(object):
                     (self.FOPT, self.XOPT) = (F, X.copy())
             else:
                 X[H] = current_value
-        self.elapsed_time += time.time() - t0
     
     def adjustStepSizes(self):
         # Adjust velocity in each dimension to keep acceptance ratios near 50%
@@ -145,8 +142,7 @@ class AnnealingRun(object):
                 "'%s': F=%s now, %s in file." % (
                     checkpointing_filename, now, then))
         
-    def run(self, function, tolerance, max_iterations, checkpointer,
-                show_remaining):
+    def run(self, function, tolerance, checkpointer, show_remaining):
         state = self.state
         history = self.history
         schedule = self.schedule
@@ -165,8 +161,6 @@ class AnnealingRun(object):
                         state.FOPT, schedule.T, state.NFCNEV)
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
-                if max_iterations and self.test_count >= max_iterations:
-                    raise MaximumEvaluationsReached(state)
                 if self.test_count % schedule.step_cycles == 0:
                     state.adjustStepSizes()
             
@@ -182,67 +176,57 @@ class AnnealingRun(object):
         msg = "Number of function evaluations = %d; current F = %s" % \
                 (self.state.NFCNEV, self.state.FOPT)
         checkpointer.record(self, msg, final)
-    
-
-class MaximumEvaluationsReached(Exception):
-    # Used to pass out the results when iteration has to stop early
-    """FORCED EXIT from SimulatedAnnealing:
-Too many function evaluations, results are likely to be poor.
-You can increase max_evaluations or decrease tolerance."""
 
 
-class SimulatedAnnealing(OptimiserBase):
+class SimulatedAnnealing(object):
     """Simulated annealing optimiser for bounded functions
     """
-    label = "global"
     
-    # this is a maximiser
-    algorithm_direction = +1
+    def __init__(self, filename=None, interval=None, restore=True):
+        """
+        Set the checkpointing filename and time interval.
+        Arguments:
+        - filename: name of the file to which data will be written. If None, no
+          checkpointing will be done.
+        - interval: time expressed in seconds
+        - restore: flag to restore from this filename or not. will be set to 0 after
+          restoration
+        """
+        self.checkpointer = checkpointing.Checkpointer(filename, interval)
+        self.restore = restore
     
-    def _setdefaults(self):
-        """set all the conditions for the sim annealing algorithm to default values"""
-        self.setConditions(tolerance = 1E-6, temp_reduction = 0.5, init_temp=5.0,
-                temp_iterations = 5, step_cycles = 20, max_evaluations=1e100)
-    
-    def setConditions(self, tolerance = None, temp_reduction = None, init_temp=None,
-                temp_iterations = None, step_cycles = None, max_evaluations=None):
-        """Set the conditions that control the optimisation.
+    def maximise(self, function, xopt, show_remaining, 
+            random_series = None, seed = None, 
+            tolerance = None, temp_reduction = 0.5, init_temp=5.0,
+            temp_iterations = 5, step_cycles = 20):
+                
+        """Optimise function(xopt).
         
         Arguments:
-            - tolerance: the error condition for termination, default is
-              1E-6
+            - show_progress: whether the function values are printed as
+              the optimisation proceeds. Default is True.
+            - tolerance: the error condition for termination, default is 1E-6
             - temp_reduction: the factor by which the annealing
               "temperature" is reduced, default is 0.5
             - temp_iterations: the number of iterations before a
               temperature reduction, default is 5
             - step_cycles: the number of cycles after which the step size
               is modified, default is 20
-            - max_evaluations: the maximum number of function
-              evaluations, default is 1E100. Note that a full run across
-              the vector will be always be performed, with the outcome that
-              the program will excape number of evaluations is greater than
-              or equal to max_evaluations.
+        
+        Returns optimised parameter vector xopt
         """
+        if tolerance is None:
+            tolerance = 1E-6
         
-        for (attr, value) in locals().items():
-            if value is not None:
-                setattr(self, attr, value)
-    
-    def runInner(self, function, xopt, show_remaining, random_series):
-        """Optimise the vector within the bounds specified by the base class.
-        
-        Arguments:
-            - show_progress: whether the function values are printed as
-              the optimisation proceeds. Default is True.
-        
-        Returns function value, parameter vector, evaluation count
-        """
         if len(xopt) == 0:
-            return function(xopt), xopt, 0, 0.0
-        
+            return xopt
+
+        random_series = random_series or random.Random()
+        if seed is not None:
+            random_series.seed(seed)
+
         schedule = AnnealingSchedule(
-            self.temp_reduction, self.init_temp, self.temp_iterations, self.step_cycles)
-        max_iterations = (self.max_evaluations-1) / len(xopt) + 1
+            temp_reduction, init_temp, temp_iterations, step_cycles)
         
         if self.restore and self.checkpointer.available():
             run = self.checkpointer.load()
@@ -252,15 +236,11 @@ class SimulatedAnnealing(OptimiserBase):
             run = AnnealingRun(function, xopt, schedule, random_series)
         self.restore = False
         
-        try:
-            result = run.run(
-                function,
-                self.tolerance,
-                max_iterations,
-                checkpointer = self.checkpointer,
-                show_remaining = show_remaining)
-        except MaximumEvaluationsReached, detail:
-            print detail.__doc__
-            result = detail.args[0]
-        return result.FOPT, result.XOPT, result.NFCNEV, result.elapsed_time
+        result = run.run(
+            function,
+            tolerance,
+            checkpointer = self.checkpointer,
+            show_remaining = show_remaining)
+                
+        return result.XOPT
     

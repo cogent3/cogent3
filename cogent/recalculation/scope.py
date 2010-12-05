@@ -7,6 +7,7 @@ from .setting import Var, ConstVal
 from .calculation import Calculator
 from cogent.util import parallel
 from cogent.maths.stats.distribution import chdtri
+from cogent.maths.optimisers import MaximumEvaluationsReached
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -783,11 +784,33 @@ class ParameterController(object):
     def getNumFreeParams(self):
         return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
 
-    def optimise(self, *args, **kw):
-        return_calculator = kw.pop('return_calculator', False)
+    def optimise(self, local=None, 
+            filename=None, interval=None,
+            limit_action='warn',  max_evaluations=None, 
+            tolerance=1e-6, global_tolerance=1e-1, **kw):
+        """Find input values that optimise this function.
+        'local' controls the choice of optimiser, the default being to run
+        both the global and local optimisers. 'filename' and 'interval'
+        control checkpointing.  Unknown keyword arguments get passed on to
+        the optimiser(s)."""
+        return_calculator = kw.pop('return_calculator', False) # only for debug
+        for n in ['local', 'filename', 'interval', 'max_evaluations', 
+                'tolerance', 'global_tolerance']:
+            kw[n] = locals()[n]
         lc = self.makeCalculator()
-        lc.optimise(*args, **kw)
-        self.updateFromCalculator(lc)
+        try:
+            lc.optimise(**kw)
+        except MaximumEvaluationsReached, detail:
+            evals = detail[0]
+            err_msg = 'FORCED EXIT from optimiser after %s evaluations' % evals
+            if limit_action == 'ignore':
+                pass
+            elif limit_action == 'warn':
+                warnings.warn(err_msg, stacklevel=2)
+            else:
+                raise ArithmeticError(err_msg)    
+        finally:
+            self.updateFromCalculator(lc)
         if return_calculator:
             return lc
     
