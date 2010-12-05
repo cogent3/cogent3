@@ -3,10 +3,9 @@ from __future__ import division, with_statement
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 import time, warnings
-from cogent.maths.optimisers import optimise
 from cogent.maths.solve import find_root
 from cogent.util import parallel
-from cogent.maths.optimiser import ParameterOutOfBoundsError
+from cogent.maths.optimisers import maximise, ParameterOutOfBoundsError
 
 
 import os
@@ -305,19 +304,10 @@ class Calculator(object):
             time.sleep(5)
             os.remove(fn)
     
-    def optimise(self, local=None, filename=None, interval=None,
-            max_evaluations=None, tolerance=1e-6, global_tolerance=1e-1, **kw):
-        """Find input values that optimise this function.
-        'local' controls the choice of optimiser, the default being to run
-        both the global and local optimisers. 'filename' and 'interval'
-        control checkpointing.  Unknown keyword arguments get passed on to
-        the optimiser(s)."""
-        for n in ['local', 'filename', 'interval', 'max_evaluations', 
-                'tolerance', 'global_tolerance']:
-            kw[n] = locals()[n]
+    def optimise(self, **kw):
         x = self.getValueArray()
         bounds = self.getBoundsVectors()
-        optimise(self, x, bounds, **kw)
+        maximise(self, x, bounds, **kw)
         self.optimised = True
     
     def setTracing(self, trace=False):

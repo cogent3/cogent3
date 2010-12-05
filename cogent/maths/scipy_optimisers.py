@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import division
-import numpy, time, math
+import numpy, math, warnings
 from cogent.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
-from cogent.maths.optimiser import OptimiserBase
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -46,67 +45,52 @@ def bound_brent(func, brack=None, **kw):
     return brent(func, brack=(xa, xb), **kw)
 
 
-class _SciPyOptimiser(OptimiserBase):
+class _SciPyOptimiser(object):
     """This class is abstract.  Subclasses must provide a
     _minimise(self, f, x) that can sanely handle +inf.
     
     Since these are local optimisers, we sometimes restart them to
     check the result is stable.  Cost is less than 2-fold slowdown"""
-    label = "local"
     
-    default_max_restarts = 0
-    # These are minimisers
-    algorithm_direction = -1
-    
-    def _setdefaults(self):
-        self.max_restarts = self.default_max_restarts
-        self.ftol = 1e-6
-    
-    def setConditions(self, max_restarts=None, tolerance=None,
-                      max_evaluations=None):
-        if max_restarts is not None:
-            self.max_restarts = max_restarts
-        if tolerance is not None:
-            self.ftol = tolerance
-        self.max_evaluations = max_evaluations
+    def maximise(self, function, *args, **kw):
+        def nf(x):
+            return -1 * function(x)
+        return self.minimise(nf, *args, **kw)
 
-    def runInner(self, function, xopt, show_remaining, random_series=None):
-        # random_series isn't used - these optimisers are deterministic -
-        # but optimiser_base doesn't know that.
+    def minimise(self, function, xopt, show_remaining, 
+                max_restarts=None, tolerance=None):
+        if max_restarts is None:
+            max_restarts = 0
+        if tolerance is None:
+            tolerance = 1e-6
+            
         fval_last = fval = numpy.inf
-        total_evaluations = 0
-        t0 = time.time()
         if len(xopt) == 0:
-            return function(xopt), xopt, 1, time.time() - t0
-        template = "\tNumber of function evaluations = %d; current F = %f"
+            return function(xopt), xopt
+            
         if show_remaining:
             def _callback(fcalls, x, fval, delta):
-                remaining = math.log(max(abs(delta)/self.ftol, 1.0))
+                remaining = math.log(max(abs(delta)/tolerance, 1.0))
                 show_remaining(remaining, -fval, delta, fcalls)
         else:
             _callback = None
-        for i in range((self.max_restarts + 1)):
+        
+        for i in range((max_restarts + 1)):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
                     function, xopt, disp=False, callback=_callback, 
-                    ftol=self.ftol, full_output=True,
-                    maxfun=self.max_evaluations)
+                    ftol=tolerance, full_output=True)
+                    
             xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param
+
             if warnflag:
-                print ("FORCED EXIT from optimiser after %s evaluations" % 
-                        func_calls)
-            total_evaluations += func_calls
-            
-            # same check as in fmin_powell
-            if abs(fval_last - fval) < self.ftol:
+                warnings.warn('Unexpected warning from scipy %s' % warnflag)
+                
+            # same tolerance check as in fmin_powell
+            if abs(fval_last - fval) < tolerance:
                 break
             fval_last = fval  # fval <= fval_last
         
-        # Correct the sign of the result. If we reversed the direction of
-        # the function for the benefit of the optimiser then we now have to
-        # flip it back.
-        # fval = self._optimisable_object.direction * fval
-        
-        return fval, xopt, total_evaluations, time.time() - t0
+        return xopt
     
 
 class Powell(_SciPyOptimiser):
@@ -116,27 +100,11 @@ class Powell(_SciPyOptimiser):
         # same length full-results tuple as simplex:
         (xopt, fval, directions, iterations, func_calls, warnflag) = result
         return (xopt, fval, iterations, func_calls, warnflag)
-    
 
-class BoundPowell(_SciPyOptimiser):
-    """Uses a line search between the bounds.  Only works for fully bounded problems!
-    And seems slower than the other Powell class, which only avoids bounds when it
-    hits them."""
-    def _minimise(self, f, x, **kw):
-        (lower_bounds, upper_bounds) = self._optimisable_object.getbounds()
-        result = fmin_powell(f, x,
-                linesearch=None,
-                bounds=(lower_bounds, upper_bounds),
-                **kw)
-        # same length full-results tuple as simplex:
-        (xopt, fval, directions, iterations, func_calls, warnflag) = result
-        return (xopt, fval, iterations, func_calls, warnflag)
-    
 
 class DownhillSimplex(_SciPyOptimiser):
     """On a small brca1 tree this fails to find a minimum as good as the
     other optimisers.  Restarts help a lot though."""
-    default_max_restarts = 5
     def _minimise(self, f, x, **kw):
         return fmin(f, x, **kw)
     

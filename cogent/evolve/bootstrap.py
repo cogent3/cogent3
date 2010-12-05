@@ -23,7 +23,6 @@ the EstimateProbability class.
 """
 from __future__ import with_statement, division
 from cogent.util import parallel
-from cogent.maths import optimisers
 from cogent.util import progress_display as UI
 
 import random

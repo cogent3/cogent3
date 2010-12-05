@@ -44,7 +44,7 @@ from cogent.evolve.substitution_calculation import (
     WeightedPartitionDefn, chooseFastExponentiators)
 from cogent.evolve.discrete_markov import PsubMatrixDefn
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
-from cogent.maths.optimiser import ParameterOutOfBoundsError
+from cogent.maths.optimisers import ParameterOutOfBoundsError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
