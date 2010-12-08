@@ -10,6 +10,7 @@ from cogent.maths.optimisers import maximise, ParameterOutOfBoundsError
 
 import os
 TRACE_DEFAULT = os.environ.has_key('COGENT_TRACE')
+TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -319,9 +320,10 @@ class Calculator(object):
             print
             n_opars = len(self.opt_pars)
             n_cells = len([c for c in self._cells if not c.is_constant])
-            print n_opars, "OptPars and", n_cells - n_opars, "cells"
-            print self.opt_pars
-            
+            print n_opars, "OptPars and", n_cells - n_opars, "derived values"
+            print 'OptPars: ', ', '.join([par.name for par in self.opt_pars])
+            print "Times in 1/%sths of a second" % TRACE_SCALE
+
             groups = []
             groupd = {}
             for cell in self._cells:
@@ -510,9 +512,8 @@ class Calculator(object):
     def tracingUpdate(self, changes, program, data):
         # Does the same thing as plainUpdate, but also produces lots of
         # output showing how long each step of the calculation takes.
-        # One line per call, '-' for undo, '+' for calculation, times
-        # in 10000ths of a second.
-        
+        # One line per call, '-' for undo, '+' for calculation
+                
         exception = None
         elapsed = {}
         for cell in program:
@@ -533,7 +534,7 @@ class Calculator(object):
                 edge_width = min(len(text), (width - 4 - 3)) // 2
                 elipsis = ['   ','...'][not not text.strip()]
                 text = text[:edge_width] + elipsis + text[-edge_width:]
-            tds.append('%s%4s' % (text, int((10000*(elap))) or ''))
+            tds.append('%s%4s' % (text, int(TRACE_SCALE*elap+0.5) or ''))
         
         par_descs = []
         for (i,v) in changes:
