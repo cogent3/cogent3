@@ -167,14 +167,11 @@ class _SubstitutionModel(object):
         
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:
-            mprob_model = 'tuple' # 'conditional' in future
-            if self._word_length > 1:
-                warnings.warn('Default mprob_model will change to "conditional"'
-                    ' in version 1.5, so specify mprob_model="tuple"',
-                    stacklevel=4)
+            mprob_model = 'tuple' if self._word_length==1 else 'conditional'
         elif mprob_model == 'word':
             mprob_model = 'tuple'
-        elif model_gaps and mprob_model != 'tuple':
+        
+        if model_gaps and mprob_model != 'tuple':
             raise ValueError("mprob_model must be 'tuple' to model gaps")
         
         isinst = self._isInstantaneous
