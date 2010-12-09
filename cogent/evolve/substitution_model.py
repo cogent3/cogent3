@@ -492,14 +492,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         return True
     
     def calcQ(self, word_probs, mprobs_matrix, *params):
-        R = self.calcExchangeabilityMatrix(word_probs, *params)
-        sum = numpy.sum
-        Q = R * mprobs_matrix
-        row_totals = sum(Q, axis=1)
+        Q = self.calcExchangeabilityMatrix(word_probs, *params)
+        Q *= mprobs_matrix
+        row_totals = Q.sum(axis=1)
         Q -= numpy.diag(row_totals)
         if self._do_scaling:
-            scale = 1.0 / sum(word_probs * row_totals)
-            Q *= scale
+            Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
     
     def makeQdDefn(self, word_probs, mprobs_matrix, rate_params):
@@ -730,8 +728,8 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         for (pred, mask) in predicate_masks.items():
             if not _isSymmetrical(mask):
                 self.symmetric = False
-            indices = numpy.nonzero(mask.ravel())[0]
-            assert numpy.alltrue(numpy.take(mask.flat, indices, 0) == 1)
+            indices = numpy.nonzero(mask)
+            assert numpy.alltrue(mask[indices] == 1)
             self.parameter_order.append(pred)
             self.predicate_indices.append(indices)
         if not self.symmetric:
@@ -742,11 +740,8 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def calcExchangeabilityMatrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
-        work = numpy.ones(R.shape, float)
         for (indices, par) in zip(self.predicate_indices, params):
-            numpy.put(work, indices, par)
-            R *= work
-            work[:] = 1.0
+            R[indices] *= par
         return R
     
     def asciiArt(self, delim='', delim2='|', max_width=70):
