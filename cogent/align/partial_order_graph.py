@@ -9,7 +9,7 @@ Christopher Lee, Catherine Grasso, & Mark Sharlow
 """
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

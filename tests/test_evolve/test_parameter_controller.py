@@ -12,7 +12,7 @@ import cogent.evolve.parameter_controller, cogent.evolve.substitution_model
 from cogent.maths import optimisers
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

@@ -7,7 +7,7 @@ from cogent.app.cd_hit import CD_HIT, CD_HIT_EST, cdhit_from_seqs, \
         cdhit_clusters_from_seqs, clean_cluster_seq_id, parse_cdhit_clstr_file
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

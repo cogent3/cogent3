@@ -6,7 +6,7 @@ from cogent.db.ensembl.util import asserted_one, convert_strand, DisplayString
 from cogent.db.ensembl.host import DbConnection
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Hua Ying"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

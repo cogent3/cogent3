@@ -2,7 +2,7 @@
 """Parser for 454 Flowgram files in native binary format."""
 
 __author__ = 'Kyle Bittinger'
-__copyright__ = 'Copyright 2010, The Cogent Project'
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __license__ = 'GPL'
 __version__ = "1.6.0.dev"
 __credits__ = ['Kyle Bittinger']

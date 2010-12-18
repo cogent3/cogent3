@@ -11,7 +11,7 @@ __all__ = ['alignment', 'clustal', 'fasta', 'mage', 'motif', 'nexus',
            'table', 'text_tree', 'xyzrn']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Matthew Wakefield",
                "Rob Knight", "Sandra Smit", "Peter Maxwell", "Marcin Cieslik"]
 __license__ = "GPL"

@@ -16,7 +16,7 @@ __all__ = ['function_optimisation',
 
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
                     "Rob Knight", "Edward Lang", "Sandra Smit"]
 __license__ = "GPL"

@@ -9,7 +9,7 @@ from cogent.util.transform import find_any, find_no, find_all,\
 from cogent.util.unit_test import TestCase,main
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

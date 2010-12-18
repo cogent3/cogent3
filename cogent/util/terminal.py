@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__ = "Nadia Alramli"
-__copyright__ = "Nadia Alramli"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Nadia Alramli"]
 __license__ = "BSD"
 __version__ = "1.6.0.dev"

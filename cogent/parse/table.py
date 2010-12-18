@@ -4,7 +4,7 @@ import cPickle, csv
 from record_finder import is_empty
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

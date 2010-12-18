@@ -15,7 +15,7 @@ from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
 from cogent.parse.fasta import MinimalFastaParser
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight", "Daniel McDonald",\
                "Jeremy Widmann"]
 __license__ = "GPL"

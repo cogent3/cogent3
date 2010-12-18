@@ -11,7 +11,7 @@ from cogent.db.ensembl.genome import Genome
 from cogent.db.ensembl.related_region import RelatedGenes, SyntenicRegions
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Hua Ying"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

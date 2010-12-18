@@ -7,7 +7,7 @@ from cogent.parse.record import RecordError
 from string import strip, upper
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

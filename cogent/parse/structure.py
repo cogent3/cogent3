@@ -7,7 +7,7 @@ from cogent.parse.sequence import format_from_filename
 from cogent.parse.record import FileFormatError
 
 __author__ = "Marcin Cieslik"
-__copyright__ = "Copyright 2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

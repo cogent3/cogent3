@@ -9,7 +9,7 @@ from pylab import arange, axvline, array, plot, scatter, legend, gca, xlim, \
     savefig
 
 __author__ = "Stephanie Wilson"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Stephanie Wilson"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

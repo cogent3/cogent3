@@ -9,7 +9,7 @@ from cogent.core.annotation import Feature
 from cogent.core.info import Info
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
                     "Gavin Huttley"]
 __license__ = "GPL"

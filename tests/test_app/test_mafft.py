@@ -9,7 +9,7 @@ from cogent.app.mafft import Mafft, align_unaligned_seqs, \
     add_seqs_to_alignment, align_two_alignments
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

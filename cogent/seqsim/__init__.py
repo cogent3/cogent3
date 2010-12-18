@@ -13,7 +13,7 @@ __all__ = ['analysis',
            'usage']
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Daniel McDonald", "Mike Robeson", \
                "Jesse Zaneveld"]
 __license__ = "GPL"

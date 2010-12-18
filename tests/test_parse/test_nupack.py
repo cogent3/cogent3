@@ -5,7 +5,7 @@ from cogent.core.info      import Info
 from cogent.parse.nupack   import nupack_parser
 
 __author__ = "Shandy Wikman"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Shandy Wikman"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

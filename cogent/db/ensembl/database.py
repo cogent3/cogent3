@@ -4,7 +4,7 @@ from cogent.util import table as cogent_table
 from cogent.db.ensembl.host import DbConnection, get_db_name
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

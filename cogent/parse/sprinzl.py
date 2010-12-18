@@ -7,7 +7,7 @@ from cogent.core.sequence import RnaSequence
 from cogent.core.info import Info as InfoClass
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Jeremy Widmann", "Sandra Smit"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

@@ -9,7 +9,7 @@ from cogent.db.ensembl.sequence import _assemble_seq
 from cogent.db.ensembl.util import asserted_one
 
 __author__ = "Gavin Huttley, Hua Ying"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "hua Ying"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

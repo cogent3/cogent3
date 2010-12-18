@@ -12,7 +12,7 @@ from cogent.util.transform import cartesian_product
 from cogent.util.misc import app_path
 
 __author__ = "Sandra Smit and Greg Caporaso"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Micah Hamady",
                     "Jeremy Widmann", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"

@@ -4,7 +4,7 @@
 Currently just reads the codons and their counts into a dict.
 """
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

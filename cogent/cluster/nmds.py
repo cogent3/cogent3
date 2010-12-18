@@ -15,7 +15,7 @@ import cogent.maths.scipy_optimize as optimize
 from cogent.cluster.metric_scaling import principal_coordinates_analysis
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Justin Kuczynski", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

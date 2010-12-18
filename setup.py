@@ -3,7 +3,7 @@ from distutils.core import setup
 import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
                     "Greg Caporaso", "Daniel McDonald"]
 __license__ = "GPL"

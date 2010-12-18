@@ -7,7 +7,7 @@ from cogent import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
                 LoadSeqs
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

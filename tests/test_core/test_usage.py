@@ -9,7 +9,7 @@ from cogent.core.usage import InfoFreqs, AminoAcidUsage, BaseUsage, CodonUsage,\
 from cogent.core.genetic_code import GeneticCodes, GeneticCode
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

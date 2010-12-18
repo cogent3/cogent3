@@ -8,7 +8,7 @@ from cogent.util.misc import NonnegIntError
 from cogent.seqsim.searchpath import SearchPath, SearchNode
 
 __author__ = "Amanda Birmingham"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Amanda Birmingham"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

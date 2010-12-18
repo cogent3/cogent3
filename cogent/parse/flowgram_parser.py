@@ -2,7 +2,7 @@
 """Parser for 454 Flowgram files"""
 
 __author__ = "Jens Reeder, Julia Goodrich"
-__copyright__ = "Copyright 2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jens Reeder","Julia Goodrich", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

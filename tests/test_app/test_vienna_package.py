@@ -7,7 +7,7 @@ from cogent.app.vienna_package import RNAfold, RNAsubopt, RNAplot,\
     plot_from_seq_and_struct, DataError, get_constrained_fold
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

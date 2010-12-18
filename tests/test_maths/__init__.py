@@ -8,7 +8,7 @@ __all__ = ['test_geometry',
            'test_spatial']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Catherine Lozupone",
                "Gavin Huttley", "Sandra Smit", "Marcin Cieslik"]
 __license__ = "GPL"

@@ -8,7 +8,7 @@ from cogent.db.ensembl.name import EnsemblDbName
 from cogent.db.ensembl.util import asserted_one
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
