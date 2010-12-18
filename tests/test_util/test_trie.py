@@ -3,7 +3,7 @@
 """tests for Trie and compressed Trie class."""
 
 __author__ = "Jens Reeder"
-__copyright__ = "Copyright 2009, the PyCogent Project" 
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jens Reeder"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

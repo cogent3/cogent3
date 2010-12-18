@@ -3,7 +3,7 @@
 """
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2008, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"

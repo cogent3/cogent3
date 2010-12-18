@@ -15,7 +15,7 @@ sequence is self-complementary (seq = revComp of seq)
 """
 
 __author__ = "Amanda Birmingham"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Amanda Birmingham", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

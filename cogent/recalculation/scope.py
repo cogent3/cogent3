@@ -10,7 +10,7 @@ from cogent.maths.stats.distribution import chdtri
 from cogent.maths.optimisers import MaximumEvaluationsReached
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

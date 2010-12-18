@@ -21,7 +21,7 @@ from cogent.format.table import formattedCells
 import numpy #from cogent.util.unit_test import numpy_err
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight"
                     "Peter Maxwell"]
 __license__ = "GPL"

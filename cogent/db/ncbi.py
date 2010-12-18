@@ -14,7 +14,7 @@ from cogent.parse.record_finder import DelimitedRecordFinder, never_ignore
 from string import strip
 
 __author__ = "Mike Robeson"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Mike Robeson", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

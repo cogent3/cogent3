@@ -15,7 +15,7 @@ from cogent.phylo.consensus import majorityRule, weightedMajorityRule
 from cogent.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",\
         "Daniel McDonald"]
 __license__ = "GPL"

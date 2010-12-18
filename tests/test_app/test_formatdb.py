@@ -17,7 +17,7 @@ from cogent.app.formatdb import FormatDb, build_blast_db_from_seqs,\
     build_blast_db_from_fasta_path, build_blast_db_from_fasta_file
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

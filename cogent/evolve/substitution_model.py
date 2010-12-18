@@ -48,7 +48,7 @@ from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent.maths.optimisers import ParameterOutOfBoundsError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Brett Easton", "Rob Knight",
                     "Von Bing Yap"]

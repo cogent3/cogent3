@@ -42,7 +42,7 @@ from copy import copy
 from cogent.core.profile import Profile
 
 __author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                "Micah Hamady", "Daniel McDonald", "Jan Kosinski"]

@@ -6,7 +6,7 @@ from tempfile import mktemp, tempdir
 from os import remove, system, getcwd
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

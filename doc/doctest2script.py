@@ -5,7 +5,7 @@ This takes doctest files and turns them into standalone scripts.
 import doctest, sys, os
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.3.0.dev"

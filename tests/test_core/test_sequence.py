@@ -15,7 +15,7 @@ from pickle import dumps
 from numpy import array
 
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell",
                     "Matthew Wakefield"]
 __license__ = "GPL"

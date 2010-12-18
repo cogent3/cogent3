@@ -7,7 +7,7 @@ import xml.dom.minidom
 from cogent.core import annotation, moltype
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2010, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"

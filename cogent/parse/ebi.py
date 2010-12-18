@@ -13,7 +13,7 @@ from cogent.util.misc import identity, curry,\
 from cogent.core.sequence import Sequence
 
 __author__ = "Zongzhi Liu and Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Sandra Smit", "Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

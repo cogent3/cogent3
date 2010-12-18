@@ -21,7 +21,7 @@ import math
 from cogent.maths.stats.util import Numbers
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
                     "Sandra Smit", "Daniel McDonald"]
 __license__ = "GPL"

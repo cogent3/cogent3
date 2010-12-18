@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __author__ = "Jesse Zaneveld"
-__copyright__ = "Copyright 2007-2010, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jesse Zaneveld", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

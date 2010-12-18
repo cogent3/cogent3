@@ -8,7 +8,7 @@ from cogent import LoadTree
 from cogent.draw.dendrogram import *
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield"]
 __license__ = "GPL"

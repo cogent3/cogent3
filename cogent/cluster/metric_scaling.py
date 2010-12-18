@@ -13,7 +13,7 @@ from cogent.util.table import Table
 from cogent.cluster.UPGMA import inputs_from_dict2D
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
                "Gavin Huttley", "Justin Kuczynski", "Daniel McDonald"]
 __license__ = "GPL"

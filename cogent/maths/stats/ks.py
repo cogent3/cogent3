@@ -10,7 +10,7 @@ from numpy import sqrt, log, pi, exp, fabs, floor, zeros, asarray,\
 from cogent.maths.stats.special import combinations
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

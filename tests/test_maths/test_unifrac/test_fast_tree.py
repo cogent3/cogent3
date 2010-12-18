@@ -18,7 +18,7 @@ from numpy import (arange, reshape, zeros, logical_or, array, sum, nonzero,
 from numpy.random import permutation    
 
 __author__ = "Rob Knight and Micah Hamady"
-__copyright = "Copyright 2007, the authors."
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

@@ -7,7 +7,7 @@ __all__ = ["best_likelihood", "bootstrap", "likelihood_calculation",
            "coevolution"]
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Andrew Butterfield",
                     "Rob Knight", "Matthrew Wakefield", "Brett Easton", 
                     "Edward Lang","Greg Caporaso"]

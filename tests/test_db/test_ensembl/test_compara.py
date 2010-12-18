@@ -6,7 +6,7 @@ from cogent.db.ensembl.host import HostAccount, get_ensembl_account
 from cogent.db.ensembl.compara import Compara
 
 __author__ = "Gavin Huttley, Hua Ying"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "hua Ying"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

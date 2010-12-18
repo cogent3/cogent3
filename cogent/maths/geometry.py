@@ -5,7 +5,7 @@ from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
                   vstack, dot, ones
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight", "Daniel McDonald",
                "Marcin Cieslik"]
 __license__ = "GPL"

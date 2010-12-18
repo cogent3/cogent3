@@ -30,7 +30,7 @@ Nucleotide = substitution_model.Nucleotide
 MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield", "Brett Easton"]
 __license__ = "GPL"

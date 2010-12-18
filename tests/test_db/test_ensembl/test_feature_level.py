@@ -8,7 +8,7 @@ from cogent.db.ensembl.assembly import CoordSystem, Coordinate, get_coord_conver
 from cogent.db.ensembl.feature_level import FeatureCoordLevels
 
 __author__ = "Gavin Huttley, Hua Ying"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "hua Ying"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

@@ -10,7 +10,7 @@ from cogent.draw.rlg2mpl import Group, Drawable, figureLayout
 from cogent.draw.linear import Display, DisplayPolicy
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

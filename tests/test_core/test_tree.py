@@ -11,7 +11,7 @@ from cogent.util.unit_test import TestCase, main
 from numpy import array, arange
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald",
                "Peter Maxwell", "Gavin Huttley", "Andrew Butterfield",
                "Matthew Wakefield", "Justin Kuczynski","Jens Reeder"]

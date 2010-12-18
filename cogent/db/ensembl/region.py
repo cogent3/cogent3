@@ -12,7 +12,7 @@ from cogent.db.ensembl.assembly import Coordinate, CoordSystem, \
 from cogent.db.ensembl.sequence import get_sequence
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"

@@ -14,7 +14,7 @@ from cogent.core.profile import Profile, ProfileError, CharMeaningProfile
 from cogent.core.alignment import DenseAlignment as Alignment
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight",
                     "Peter Maxwell"]
 __license__ = "GPL"

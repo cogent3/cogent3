@@ -6,7 +6,7 @@ from cogent.parse.fasta import MinimalFastaParser
 from numpy import array
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2009, The Cogent Project"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
