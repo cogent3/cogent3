@@ -289,11 +289,11 @@ def suite():
     else:
         print >> sys.stderr, \
                 "Environment variable TEST_DB=1 not set: skipping db tests"
-
-    assert sys.version_info >= (2, 4)
-
+    
+    assert sys.version_info >= (2, 6)
+    
     alltests = unittest.TestSuite()
-
+    
     for module in modules_to_test:
         if module.endswith('.rst'):
             module = os.path.join(*module.split(".")[:-1]) + ".rst"

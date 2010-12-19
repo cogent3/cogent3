@@ -17,10 +17,12 @@ New Features
 Changes
 -------
 
+* python 2.6 is now the minimum required version
+
 Bug Fixes
 ---------
 
-* fixed bug that crept into doing consensus trees from tree collections. 
+* fixed bug that crept into doing consensus trees from tree collections.
   Thanks to Klara Verbyla for catching this one!
 
 Cogent 1.4.1 - 1.5
