@@ -107,7 +107,9 @@ def minimise(f, *args, **kw):
 @UI.display_wrap
 def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         max_restarts=None, max_evaluations=None, limit_action='warn',
-        tolerance=1e-6, global_tolerance=1e-1, ui=None, **kw):
+        tolerance=1e-6, global_tolerance=1e-1, ui=None,
+        return_eval_count=False,
+        **kw):
     """Find input values that optimise this function.
     'local' controls the choice of optimiser, the default being to run
     both the global and local optimisers. 'filename' and 'interval'
@@ -121,7 +123,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     (get_best, f) = limited_use(f, max_evaluations)
 
     x = numpy.array(xinit, float)
-    multidimensional_input = x.shape != ()                
+    multidimensional_input = x.shape != ()
     if not multidimensional_input:
         x = numpy.atleast_1d(x)
     
@@ -179,8 +181,9 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     # potentially applicable optimising non-caching pure functions too.
     if not multidimensional_input:
         x = numpy.squeeze(x)
-    return x
-                    
     
-            
+    if return_eval_count:
+        return x, evals
+    
+    return x
 
