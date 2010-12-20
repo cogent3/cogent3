@@ -1,7 +1,7 @@
 Collections and Alignments
 --------------------------
 
-.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott
+.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Jan Kosinski
 
 For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
 
@@ -42,6 +42,133 @@ Converting a ``SequenceCollection`` to FASTA format
     GCAGTGAGCCAGCAGAGCAGATGGGCTGCAAGTAAAGGAACATGTAACGACAGGCAGGTT
     >NineBande
     GCAAGGCGCCAACAGAGCAGATGGGCTGAAAGTAAGGAAACATGTAATGATAGGCAGACT
+
+Adding new sequences to an existing collection or alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+New sequences can be either appended or inserted using the ``addSeqs`` method. More than one sequence can be added at the same time. Note that ``addSeqs`` does not modify the existing collection/alignment, it creates new one.
+
+Appending the sequences
+"""""""""""""""""""""""
+
+``addSeqs`` without additional parameters will append the sequences to the end of the collection/alignment. 
+
+.. doctest::
+
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> print aln
+    >seq1
+    ATGAA------
+    >seq2
+    ATG-AGTGATG
+    >seq3
+    AT--AG-GATG
+    <BLANKLINE>
+    >>> new_seqs = LoadSeqs(data= [('seq0', 'ATG-AGT-AGG'),
+    ...                            ('seq4', 'ATGCC------')], moltype=DNA)
+    >>> new_aln = aln.addSeqs(new_seqs)
+    >>> print new_aln
+    >seq1
+    ATGAA------
+    >seq2
+    ATG-AGTGATG
+    >seq3
+    AT--AG-GATG
+    >seq0
+    ATG-AGT-AGG
+    >seq4
+    ATGCC------
+    <BLANKLINE>
+
+.. note:: The order is not preserved if you use ``toFasta`` method, which sorts sequences by name.
+
+Inserting the sequences
+"""""""""""""""""""""""
+
+Sequences can be inserted into an alignment at the specified position using either the ``before_name`` or ``after_name`` arguments.
+
+.. doctest::
+
+   >>> new_aln = aln.addSeqs(new_seqs, before_name='seq2')
+   >>> print new_aln
+   >seq1
+   ATGAA------
+   >seq0
+   ATG-AGT-AGG
+   >seq4
+   ATGCC------
+   >seq2
+   ATG-AGTGATG
+   >seq3
+   AT--AG-GATG
+   <BLANKLINE>
+   >>> new_aln = aln.addSeqs(new_seqs, after_name='seq2')
+   >>> print new_aln
+   >seq1
+   ATGAA------
+   >seq2
+   ATG-AGTGATG
+   >seq0
+   ATG-AGT-AGG
+   >seq4
+   ATGCC------
+   >seq3
+   AT--AG-GATG
+   <BLANKLINE>
+
+Inserting sequence(s) based on their alignment to a reference sequence
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``addFromReferenceAln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.Names[0]`` is the reference.
+
+.. doctest::
+
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> ref_aln = LoadSeqs(data= [('seq3', 'ATAGGATG'),
+    ...                           ('seq0', 'ATG-AGCG'),
+    ...                           ('seq4', 'ATGCTGGG')], moltype=DNA)
+    >>> new_aln = aln.addFromReferenceAln(ref_aln)
+    >>> print new_aln
+    >seq1
+    ATGAA------
+    >seq2
+    ATG-AGTGATG
+    >seq3
+    AT--AG-GATG
+    >seq0
+    AT--G--AGCG
+    >seq4
+    AT--GC-TGGG
+    <BLANKLINE>
+
+``addFromReferenceAln`` has the same arguments as ``addSeqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
+
+.. note:: This method does not work with the ``DenseAlignment`` class.
+
+Removing all columns with gaps in a named sequence
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. doctest::
+
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
+    ...                       ('seq2', 'ATG-AGTGATG'),
+    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> new_aln = aln.getDegappedRelativeTo('seq1')
+    >>> print new_aln
+    >seq1
+    ATGAATG
+    >seq2
+    ATG-AAT
+    >seq3
+    AT--AAT
+    <BLANKLINE>
 
 The elements of a collection or alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
