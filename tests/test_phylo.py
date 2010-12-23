@@ -92,7 +92,7 @@ class ConsensusTests(unittest.TestCase):
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
-        self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,e:5)')
+        self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
         self.dists = self.tree.getDistances()
         
     def assertTreeDistancesEqual(self, t1, t2):
@@ -134,7 +134,7 @@ class TreeReconstructionTests(unittest.TestCase):
 
     def test_wls(self):
         """testing wls"""
-        reconstructed = wls(self.dists)
+        reconstructed = wls(self.dists, a=4)
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
     def test_truncated_wls(self):
@@ -147,15 +147,15 @@ class TreeReconstructionTests(unittest.TestCase):
         """testing (well, exercising at least), wls with constrained start"""
         init = LoadTree(treestring='((a,c),b,d)')
         reconstructed = wls(self.dists, start=init)
-        self.assertEqual(len(reconstructed.getTipNames()), 5)
+        self.assertEqual(len(reconstructed.getTipNames()), 6)
         init2 = LoadTree(treestring='((a,d),b,c)')
         reconstructed = wls(self.dists, start=[init, init2])
-        self.assertEqual(len(reconstructed.getTipNames()), 5)
-        init3 = LoadTree(treestring='((a,d),b,e)')
+        self.assertEqual(len(reconstructed.getTipNames()), 6)
+        init3 = LoadTree(treestring='((a,d),b,z)')
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
         # if start tree has all seq names, should raise an error
         self.assertRaises(Exception, wls, self.dists,
-                start=[LoadTree(treestring='((a,c),b,(d,e))')])
+                start=[LoadTree(treestring='((a,c),b,(d,(e,f)))')])
         
     
 class DistancesTests(unittest.TestCase):
