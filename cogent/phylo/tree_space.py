@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import with_statement, division
-import heapq
+from __future__ import division
 import numpy
+import itertools
 from cogent.core.tree import TreeBuilder
 from cogent.phylo.tree_collection import ScoredTreeCollection
 from cogent.util import parallel, checkpointing, progress_display as UI
@@ -15,6 +15,28 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
+def ismallest(data, size):
+    """There are many ways to get the k smallest items from an N sequence, and
+    which one performs best depends on k, N and k/N.  This algorithm appears to
+    beat anything heapq can do, and stays with a factor of 2 of sort() and
+    min().  Is uses memory O(2*k) and so is particularly suitable for lazy 
+    application to large N.  It returns the smallest k sorted too."""
+    limit = 2 * size
+    data = iter(data)
+    best = list(itertools.islice(data, limit))
+    while True:
+        best.sort()
+        if len(best) <= size:
+            break
+        del best[size:]
+        worst_of_best = best[-1]
+        for item in data:
+            if item < worst_of_best:
+                best.append(item)
+                if len(best) > limit:
+                    break
+    return best
 
 # Trees are represented as "ancestry" matricies in which A[i,j] iff j is an
 # ancestor of i.  For LS calculations the ancestry matrix is converted
@@ -94,12 +116,6 @@ def grown(B, split_edge):
 
 class TreeEvaluator(object):
     """Subclass must provide makeTreeScorer and result2output"""
-    
-    def _result_iter(self, trees, names):
-        heapq.heapify(trees)
-        while trees:
-            (err, lengths, ancestry) = heapq.heappop(trees)
-            yield self.result2output(err, ancestry, lengths, names)
     
     def results2output(self, results):
         return ScoredTreeCollection(results)
@@ -191,47 +207,43 @@ class TreeEvaluator(object):
             trees = trees2
             init_tree_size = n
         
+        # Pre calculate how much work is to be done, for progress display
         tree_count = len(trees)
         total_work = 0
+        work_done = [0] * (init_tree_size+1)
         for n in range(init_tree_size+1, tree_size+1):
-            evals = tree_count * (n*2-3)
+            evals = tree_count * (n*2-5)
             total_work += evals * n
             tree_count = min(k, evals)
+            work_done.append(total_work)
         
-        work_done = 0
+        # For each tree size, grow at each edge of each tree. Keep best k.
         for n in range(init_tree_size+1, tree_size+1):
-            evals = len(trees) * len(trees[0][2])
+            evaluate = self.makeTreeScorer(names[:n])            
+
+            def grown_tree(spec):
+                (tree_ordinal, tree, split_edge) = spec
+                (old_err, old_lengths, old_ancestry) = tree
+                ancestry = grown(old_ancestry, split_edge)
+                (err, lengths) = evaluate(ancestry)
+                return (err, tree_ordinal, split_edge, lengths, ancestry)
             
-            with parallel.mpi_split(evals) as comm:
-                (cpu_count, cpu_rank) = (comm.Get_size(), comm.Get_rank())
-                
-                trees2 = []
-                evaluate = self.makeTreeScorer(names[:n])
-                evaluation_count = 0
-                for (err2, lengths2, ancestry) in trees:
-                    for split_edge in range(len(ancestry)):
-                        template = ' size = %s/%s tree = %s/%s'
-                        evaluation_count += 1
-                        ui.display(progress=work_done/total_work, 
-                                current=n/total_work, msg=template % (
-                                n, tree_size, evaluation_count, len(ancestry)*len(trees)))
-                        work_done += n
-                        if evaluation_count % cpu_count != cpu_rank:
-                            continue
-                        ancestry2 = grown(ancestry, split_edge)
-                        (err, lengths) = evaluate(ancestry2)
-                        trees2.append((err, lengths, ancestry2))
-                trees2 = heapq.nsmallest(k, trees2)
-                                
-                # collect trees from all CPUs
-                trees = []
-                for local_trees in comm.allgather(trees2):
-                    trees.extend(local_trees)
-                trees = heapq.nsmallest(k, trees)
-                                
-                checkpointer.record((n, names[:n], trees))
+            specs = [(i, tree, edge) 
+                        for (i,tree) in enumerate(trees) 
+                        for edge in range(n*2-5)]
+
+            candidates = ui.imap(grown_tree, specs, noun=('%s leaf tree' % n),
+                start=work_done[n-1]/total_work, end=work_done[n]/total_work)
+            
+            best = ismallest(candidates, k)
+            
+            trees = [(err, lengths, ancestry) for (err, parent_ordinal, 
+                    split_edge, lengths, ancestry) in best]
+            
+            checkpointer.record((n, names[:n], trees))
         
-        results = self._result_iter(trees, names)
+        results = (self.result2output(err, ancestry, lengths, names)
+                    for (err, lengths, ancestry) in trees)
         if return_all:
             result = self.results2output(results)
         else:
