@@ -201,7 +201,7 @@ class Calculator(object):
                     self.arg_ranks[i].append(arg.rank)
                     cell.arg_ranks.append(arg.rank)
                 
-                with parallel.mpi_context(self.remaining_parallel_context):
+                with parallel.parallel_context(self.remaining_parallel_context):
                     try:
                         cell.prime(self.cell_values)
                     except KeyboardInterrupt:
@@ -406,7 +406,8 @@ class Calculator(object):
         
         t0 = time.time()
         self.evaluations += 1
-        assert parallel.getCommunicator() is self.overall_parallel_context
+        assert parallel.getContext() is self.overall_parallel_context, (
+            parallel.getContext(), self.overall_parallel_context)
         
         # If ALL of the changes made in the last step are reversed in this step
         # then it is safe to undo them first, taking advantage of the 1-deep
@@ -453,7 +454,7 @@ class Calculator(object):
             else:
                 data[i] = v
         
-        with parallel.mpi_context(self.remaining_parallel_context):
+        with parallel.parallel_context(self.remaining_parallel_context):
             try:
                 if self.trace:
                     self.tracingUpdate(changes, program, data)

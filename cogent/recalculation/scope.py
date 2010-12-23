@@ -748,16 +748,13 @@ class ParameterController(object):
         return self.makeCalculator().measureEvalsPerSecond(*args, **kw)
     
     def setupParallelContext(self, parallel_split=None):
-        comm = parallel.getCommunicator()
-        cpu_count = comm.Get_size()
-        if parallel_split is None:
-            parallel_split = cpu_count
-        with parallel.mpi_split(parallel_split) as parallel_context:
-            self.remaining_parallel_context = parallel.getCommunicator()
+        self.overall_parallel_context = parallel.getContext()
+        with parallel.split(parallel_split) as parallel_context:
+            parallel_context = parallel_context.getCommunicator()
+            self.remaining_parallel_context = parallel.getContext()
             if 'parallel_context' in self.defn_for:
                 self.assignAll(
                     'parallel_context', value=parallel_context, const=True)
-            self.overall_parallel_context = comm
     
     def makeCalculator(self, calculatorClass=None, variable=None, **kw):
         cells = []
