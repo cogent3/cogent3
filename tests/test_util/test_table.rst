@@ -975,15 +975,15 @@ Using the above table we test the function to extract the raw data for a single 
     
     >>> raw = sub_table1.getRawData('LR')
     >>> raw
-    [34.308100000000003, 89.976600000000005, 11.8912, 9.7474000000000007]
+    [34.3081..., 89.9766..., 11.8912, 9.7474...]
 
 and from multiple columns.
 
 .. doctest::
     
-    >>> raw = sub_table1.getRawData(columns = ['LR', 'df', 'Prob'])
+    >>> raw = sub_table1.getRawData(columns = ['df', 'Prob'])
     >>> raw
-    [[34.308100000000003, 1, 0.0], [89.976600000000005, 1, 0.0],...
+    [[1, 0.0], [1, 0.0],...
 
 We can also do filtering using an external function, in this case we use a ``lambda`` to obtain only those rows of type 'Unco' that contain probabilities < 0.05, modifying our callback function.
 
