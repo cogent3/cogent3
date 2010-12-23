@@ -24,6 +24,7 @@ from __future__ import with_statement, division
 import sys, time, contextlib, functools, warnings
 import os, atexit
 import threading
+import itertools
 from cogent.util import parallel, terminal
 
 __author__ = "Peter Maxwell"
@@ -56,6 +57,12 @@ class TextBuffer(object):
         
     def write(self, text):
         self.chunks.append(text)
+    
+    # multiprocessing calls these
+    def flush(self):
+        pass
+    def isatty(self):
+        return False
         
     def regurgitate(self, out):
         if self.chunks:
@@ -159,42 +166,34 @@ class ProgressContext(object):
     #    For terminal UIs this is equivalent to printing"""
     #    raise NotImplementedError
         
-    def series(self, items, noun='', labels=None, start=None, end=1.0):
+    def series(self, items, noun='', labels=None, start=None, end=1.0, count=None):
         """Wrap a looped-over list with a progress bar"""
-        if not hasattr(items, '__len__'):
-            items = list(items)
+        if count is None:
+            if not hasattr(items, '__len__'):
+                items = list(items)
+            count = len(items)
         if start is None:
             start = 0.0
-        step = (end-start) / len(items)
+        step = (end-start) / count
         if labels:
-            assert len(labels) == len(items)
-        elif len(items) == 1:
+            assert len(labels) == count
+        elif count == 1:
             labels = ['']
         else:
             if noun:
                 noun += ' '
-            goal = len(items)
-            template = '%s%%%sd/%s' % (noun, len(str(goal)), goal)
-            labels = [template % i for i in range(0, len(items))]
+            template = '%s%%%sd/%s' % (noun, len(str(count)), count)
+            labels = [template % i for i in range(0, count)]
         for (i, item) in enumerate(items):
             self.display(msg=labels[i], progress=start+step*i, current=step)
             yield item
         self.display(progress=end, current=0)
         
-    def imap(self, f, s, labels=None, **kw):
+    def imap(self, f, s, pure=True, **kw):
         """Like itertools.imap() but with a progress bar"""
-        with parallel.mpi_split(len(s)) as comm:
-            (size, rank) = (comm.Get_size(), comm.Get_rank())
-            ordinals = range(0, len(s), size)
-            labels = labels and labels[0::size]
-            for start in self.series(ordinals, labels=labels, **kw):
-                chunk = s[start:start+size]
-                if rank < len(chunk):
-                    local_result = f(chunk[rank])
-                else:
-                    local_result = None
-                for result in comm.allgather(local_result)[:len(chunk)]:
-                    yield result
+        results = (parallel if pure else itertools).imap(f, s)
+        for result in self.series(results, count=len(s), **kw):
+            yield result
     
     def eager_map(self, f, s, **kw):
         """Like regular Python2 map() but with a progress bar"""

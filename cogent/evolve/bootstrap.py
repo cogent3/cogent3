@@ -76,8 +76,10 @@ class ParametricBootstrapCore(object):
             def one_model(pc):
                 pc.setAlignment(alignment)
                 return pc.optimise(return_calculator=True, **opt_args)
+            # This is not done in parallel because we depend on the side-
+            # effect of changing the parameter_controller current values 
             memos = ui.eager_map(one_model, self.parameter_controllers, 
-                    labels=model_label)
+                    labels=model_label, pure=False)
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
         
@@ -94,6 +96,8 @@ class ParametricBootstrapCore(object):
         
         def one_replicate(i):
             for (pc, start_point) in zip(self.parameter_controllers, starting_points):
+                # may have fewer CPUs per replicate than for original
+                pc.setupParallelContext()
                 # using a calculator as a memo object to reset the params
                 pc.updateFromCalculator(start_point)
             aln_rnd = random.Random(0)

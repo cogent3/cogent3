@@ -312,6 +312,12 @@ class BoobyTrappedStream(object):
     def write(self, text):
         self.output.write(text)
         raise RuntimeError, "Output not allowed in tests"
+        
+    def flush(self):
+        pass
+        
+    def isatty(self):
+        return False
 
 if __name__ == '__main__':
     if '--debug' in sys.argv:
