@@ -195,11 +195,7 @@ def suite():
     except:
         print >> sys.stderr, "No matplotlib so not running test_draw.py"
     else:
-        print >> sys.stderr, \
-          "NOTE: test_draw.py must be run separately"
-        # matplotlib.use('Agg') # non interactive
-        # test_draw not yet structured as unit tests
-        #modules_to_test.append('test_draw')
+        modules_to_test.append('test_draw')
 
     #Try importing modules for app controllers
     apps = [('blastall', 'test_blast'),
