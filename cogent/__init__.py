@@ -127,7 +127,7 @@ def LoadStructure(filename, format=None, parser_kw={}):
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
             row_order=None, digits=4, space=4, title='', missing_data='',
             max_width = 1e100, row_ids=False, legend='', column_templates=None,
-            dtype=None, static_column_types=False, **kwargs):
+            dtype=None, static_column_types=False, limit=None, **kwargs):
     """
     Arguments:
     - filename: path to file containing a pickled table
@@ -154,6 +154,8 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     - column_templates: dict of column headings: string format templates
       or a function that will handle the formatting.
     - dtype: optional numpy array typecode.
+    - limit: exits after this many lines. Only applied for non pickled data
+      file types.
     """
     # 
     if filename is not None and not (reader or static_column_types):
@@ -165,12 +167,12 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
 
         sep = sep or kwargs.pop('delimiter', None)
         header, rows, loaded_title, legend = load_delimited(filename,
-                                        delimiter = sep, **kwargs)
+                                    delimiter = sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
         f = file(filename, "r")
         if not reader:
-            reader = autogen_reader(f, sep,
+            reader = autogen_reader(f, sep, limit=limit,
                         with_title=kwargs.get('with_title', False))
         
         rows = [row for row in reader(f)]

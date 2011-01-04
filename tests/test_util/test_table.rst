@@ -626,7 +626,12 @@ A few things to note about the delimited file saving: formatting arguments are l
     >>> pickled['rows'][0]
     ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
 
-We can read in a delimited format using a custom reader, which we'll now import. We convert columns 2-5 to floats by specifying a field convertor. We then create a reader, specifying the data (below a list but can be a file) properties. Note that if no convertor is provided all data are returned as strings. We can also provide this reader to the ``Table`` constructor for a more direct way of opening such files. In this case, ``Table`` assumes there is a header row and nothing else.
+We can read in a delimited format using a custom reader. There are two approaches. The first one allows specifying different type conversions for different columns. The second allows specifying a whole line-based parser.
+
+Defining a custom reader with type conversion for each column
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We convert columns 2-5 to floats by specifying a field convertor. We then create a reader, specifying the data (below a list but can be a file) properties. Note that if no convertor is provided all data are returned as strings. We can also provide this reader to the ``Table`` constructor for a more direct way of opening such files. In this case, ``Table`` assumes there is a header row and nothing else.
 
 .. doctest::
     
@@ -683,6 +688,30 @@ We can use the ``SeparatorFormatParser`` to ignore reading certain lines by usin
      DogFaced         root     4.0  1.0  3.0  6.0
     ---------------------------------------------
 
+We can also limit the amount of data to be read in, very handy for checking large files.
+
+.. doctest::
+    
+    >>> t3a = LoadTable("t3.tab", sep='\t', limit=3)
+    >>> print t3a
+    ================================================================
+    edge.name    edge.parent    length         x         y         z
+    ----------------------------------------------------------------
+        Human         edge.0    4.0000    1.0000    3.0000    6.0000
+    HowlerMon         edge.0    4.0000    1.0000    3.0000    6.0000
+        Mouse         edge.1    4.0000    1.0000    3.0000    6.0000
+    ----------------------------------------------------------------
+
+Limiting should also work when ``static_column_types`` is invoked
+
+.. doctest::
+    
+    >>> t3a = LoadTable("t3.tab", sep='\t', limit=3, static_column_types=True)
+    >>> t3a.Shape[0] == 3
+    True
+
+or when
+
 In the above example, the data type in a column is static, e.g. all values in ``x`` are floats. Rather than providing a custom reader, you can get the ``Table`` to construct such a reader based on the first data row using the ``static_column_types`` argument.
 
 .. doctest::
@@ -727,6 +756,47 @@ We also test the reader function for a tab delimited format with missing data at
     >>> tab_reader = SeparatorFormatParser(sep='\t')
     >>> for line in tab_reader(data):
     ...     assert len(line) == 3, line
+
+Defining a custom reader that operates on entire lines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It can also be the case that data types differ between lines. The basic mechanism is the same as above, except in defining the converter you must set the argument ``by_column=True``.
+
+We illustrate this capability by writing a short function that tries to cast entire lines to ``int``, ``float`` or leaves as a string.
+
+.. doctest::
+    
+    >>> def CastLine():
+    ...     floats = lambda x: map(float, x)
+    ...     ints = lambda x: map(int, x)
+    ...     def call(line):
+    ...         try:
+    ...             line = ints(line)
+    ...         except ValueError:
+    ...             try:
+    ...                 line = floats(line)
+    ...             except ValueError:
+    ...                 pass
+    ...         return line
+    ...     return call
+
+We then define a couple of lines, create an instance of ``ConvertFields`` and call it for each type.
+
+.. doctest::
+    
+    >>> line_str_ints = '\t'.join(map(str, range(5)))
+    >>> line_str_floats = '\t'.join(map(str, map(float, range(5))))
+    >>> data = [line_str_ints, line_str_floats]
+    >>> cv = ConvertFields(CastLine(), by_column=False)
+    >>> tab_reader = SeparatorFormatParser(with_header=False, converter=cv,
+    ...                                    sep='\t')
+    >>> for line in tab_reader(data):
+    ...     print line
+    [0, 1, 2, 3, 4]
+    [0.0, 1.0, 2.0, 3.0, 4.0]
+
+Defining a custom writer
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 We can likewise specify a writer, using a custom field formatter and provide this to the ``Table`` directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.
 
