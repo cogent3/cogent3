@@ -12,22 +12,45 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def ConvertFields(conversions):
-    """Factory function for converting indexed fields. Useful for the
-    SeparatorFormatParser.
+class ConvertFields(object):
+    """converter for input data to Table"""
     
-    Arguments:
-        - conversions: a series consisting of index,converter callable pairs,
-          eg [(0, int), (4, float)]"""
-    def callable(line):
-        for index, cast in conversions:
+    def __init__(self, conversion, by_column=True):
+        """handles conversions of columns or lines
+        
+        Arguments:
+            - by_column: conversion will by done for each column, otherwise
+              done by entire line
+            - """
+        super(ConvertFields, self).__init__()
+        self.conversion = conversion
+        self.by_column = by_column
+        
+        self._func = self.convertByColumns
+        
+        if not self.by_column:
+            assert callable(conversion), \
+                "conversion must be callable to convert by line"
+            self._func = self.convertByLine
+    
+    def convertByColumns(self, line):
+        """converts each column in a line"""
+        for index, cast in self.conversion:
             line[index] = cast(line[index])
         return line
     
-    return callable
+    def convertByLine(self, line):
+        """converts each column in a line"""
+        return self.conversion(line)
+    
+    def _call(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+    
+    __call__ = _call
+    
 
 def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
-                sep=",", strip_wspace=True, **kw):
+                sep=",", strip_wspace=True, limit=None, **kw):
     """Returns a parser for a delimited tabular file.
     
     Arguments:
@@ -37,19 +60,23 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
         - ignore: lines for which ignore returns True are ignored. White-space
           lines are always skipped.
         - sep: the delimiter deparating fields.
-        - strip_wspace: removes redundant white-space from strings."""
+        - strip_wspace: removes redundant white-space from strings.
+        - limit: exits after this many lines"""
     sep = kw.get("delim", sep)
     if ignore is None: # keep all lines
         ignore = lambda x: False
     
+    by_column = getattr(converter, 'by_column', True)
+    
     def callable(lines):
+        num_lines = 0
         header = None
         for line in lines:
             if is_empty(line):
                 continue
             
             line = line.strip('\n').split(sep)
-            if strip_wspace:
+            if strip_wspace and by_column:
                 line = [field.strip() for field in line]
             
             if with_header and not header:
@@ -64,10 +91,15 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
                 continue
             
             yield line
+            
+            num_lines += 1
+            if limit is not None and num_lines >= limit:
+                break
+            
     
     return callable
 
-def autogen_reader(infile, sep, with_title):
+def autogen_reader(infile, sep, with_title, limit=None):
     """returns a SeparatorFormatParser with field convertor for numeric column
     types."""
     seen_title_line = False
@@ -80,7 +112,6 @@ def autogen_reader(infile, sep, with_title):
     infile.seek(0) # reset to start of file
     
     numeric_fields = []
-    cast = None
     for index, value in enumerate(first_data_row.strip().split(sep)):
         try:
             v = float(value)
@@ -93,13 +124,22 @@ def autogen_reader(infile, sep, with_title):
         numeric_fields += [(index, eval(value).__class__)]
     
     return SeparatorFormatParser(converter=ConvertFields(numeric_fields),
-                                 sep=sep)
+                                 sep=sep, limit=limit)
 
 def load_delimited(filename, header = True, delimiter = ',',
-        with_title = False, with_legend = False):
+        with_title = False, with_legend = False, limit=None):
+    if limit is not None:
+        limit += 1 # don't count header line
+    
     f = file(filename, "U")
     reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
-    rows = [row for row in reader]
+    rows = []
+    num_lines = 0
+    for row in reader:
+        rows.append(row)
+        num_lines += 1
+        if limit is not None and num_lines >= limit:
+            break
     f.close()
     if with_title:
         title = ''.join(rows.pop(0))

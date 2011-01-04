@@ -13,6 +13,8 @@ New Features
 * Alignment.addSeqs has more flexibility with the specific order of sequences
   now controllable by the user. Thanks to Jan Kosinski for these two very
   useful patches!
+* Increased options for reading Table data from files: limit keyword; and,
+  line based (as distinct from column-based) type-casting of delimited files.
 
 Changes
 -------
