@@ -39,10 +39,18 @@ except terminal.TerminalUnavailableError:
     curses_terminal = None
 else:
     CODES = curses_terminal.getCodes()
-    bar_template = CODES['GREEN'] + '%s' + CODES['NORMAL'] + '%s'
-    BOL = CODES['BOL']
-    CLEAR = CODES['UP'] + BOL + CODES['CLEAR_EOL']
-    
+    if not (CODES['BOL'] and CODES['UP'] and CODES['CLEAR_EOL']):
+        curses_terminal = None  # Terminal too primitive
+    else:
+        BOL = CODES['BOL']
+        CLEAR = CODES['UP'] + BOL + CODES['CLEAR_EOL']
+        if CODES['GREEN']:
+            bar_template = CODES['GREEN'] + '%s' + CODES['NORMAL'] + '%s'
+            def terminal_progress_bar(dots, width):
+                return bar_template % ('█' * dots, '█' * (width-dots))
+        else:
+            def terminal_progress_bar(dots, width):
+                return '.' * dots
 
 class TextBuffer(object):
     """A file-like object which accumulates written text.  Specialised for 
@@ -264,9 +272,8 @@ class CursesTerminalProgressBar(object):
         width = cols - 1
         if progress is not None:
             assert 0.0 <= progress <= 1.0, progress
-            BLOCK = '█'
             dots = int(progress * width)
-            bar = bar_template % (BLOCK * dots, BLOCK * (width-dots))
+            bar = terminal_progress_bar(dots, width)
 
         if self.line_count:
             self.stderr.write(CLEAR * (self.line_count))
