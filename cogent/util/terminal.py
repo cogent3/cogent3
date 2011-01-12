@@ -34,8 +34,10 @@ class TerminalUnavailableError(RuntimeError):
     
 class CursesOutput(object):
     def __init__(self):
-        if curses is None or not hasattr(sys.stdout, 'fileno'):
+        if curses is None:
             raise TerminalUnavailableError("No curses modules")
+        elif not hasattr(sys.stdout, 'fileno'):
+            raise TerminalUnavailableError("stdout not a real file")
         try:
             curses.setupterm()
         except curses.error, detail:
@@ -53,14 +55,18 @@ class CursesOutput(object):
         bgColorSeq = curses.tigetstr('setab') or curses.tigetstr('setb') or ''
         fgColorSeq = curses.tigetstr('setaf') or curses.tigetstr('setf') or ''
         codes = {}
-
+        
         for color in COLORS:
             # Get the color index from curses
             colorIndex = getattr(curses, 'COLOR_%s' % color)
             # Set the color escape sequence after filling the template with index
-            codes[color] = curses.tparm(fgColorSeq, colorIndex)
-            # Set background escape sequence
-            codes['BG_%s' % color] = curses.tparm(bgColorSeq, colorIndex)
+            for (prefix, termseq) in [('', fgColorSeq), ('BG_', bgColorSeq)]:
+                key = prefix + color
+                try:
+                    codes[key] = curses.tparm(termseq, colorIndex)
+                except curses.error:
+                    codes[key] = ''
+        
         for control in _CONTROLS:
             # Set the control escape sequence
             codes[control] = curses.tigetstr(_CONTROLS[control]) or ''
