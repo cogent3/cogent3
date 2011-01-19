@@ -51,7 +51,7 @@ line.
 
 """
 from __future__ import division
-from optparse import OptionParser
+from optparse import make_option
 from cPickle import Pickler, Unpickler
 from os.path import splitext, basename, exists
 from sys import exit
@@ -59,6 +59,7 @@ from numpy import zeros, ones, float, put, transpose, array, float64, nonzero,\
     abs, sqrt, exp, ravel, take, reshape, mean, tril, nan, isnan, log, e,\
     greater_equal, less_equal
 from random import shuffle
+from cogent.util.misc import parse_command_line_parameters
 from cogent.maths.stats.util import Freqs
 from cogent.util.array import norm
 from cogent.core.sequence import Sequence
@@ -2130,101 +2131,6 @@ def ltm_to_symmetric(m):
 
 
 ## Script functionality
-def parse_command_line_parameters():
-    """ Parses command line arguments """
-    usage = 'usage: %prog [options] alignment_filepath [tree_filepath]\n'+\
-     'Alphabets (pass one with -a):\n\t' + ' '.join(alphabets.keys()) + \
-     '\nMethods (pass one with -m):\n\t' + \
-     ' '.join(method_abbrevs_to_names.keys())
-    version = 'Version: %prog 0.1'
-    parser = OptionParser(usage=usage, version=version)
-
-    # A binary 'verbose' flag
-    parser.add_option('-v','--verbose',action='store_true',\
-        dest='verbose',help='Print information during execution -- '+\
-        'useful for debugging [default: %default]')
-    parser.add_option('-f','--force',action='store_true',\
-        dest='force',help='Force overwrite of any existing files '+\
-        '[default: %default]')
-    parser.add_option('-i','--ignore_excludes',action='store_true',\
-        dest='ignore_excludes',help='exclude_handler=ignore_excludes '+\
-        '[default: %default]')
-    parser.add_option('-d','--delimited_output',action='store_true',\
-        dest='delimited_output',help='store result matrix as csv file '+\
-        'instead of pkl file [default: %default]')
-
-    parser.add_option('-m','--method_id',action='store',\
-           type='string',dest='method_id',help='coevolve method to apply '+\
-           '[default: %default]')
-    parser.add_option('-c','--sca_cutoff',action='store',\
-           type='float',dest='sca_cutoff',help='cutoff to apply when method'+\
-           ' is SCA (-m sca) [default: %default]')
-    parser.add_option('-e','--epsilon',action='store',\
-           type='float',dest='epsilon',help='epsilon, only used when method'+\
-           ' is Haussler/Yeang (-m gctmpca) [default: %default]')
-    parser.add_option('-o','--output_dir',action='store',\
-           type='string',dest='output_dir',help='directory to store pickled '+\
-           'result matrix (when -p is specified) [default: %default]')
-    parser.add_option('-a','--alphabet_id',action='store',\
-            dest='alphabet_id',type='string',\
-            help='name of alphabet to reduce to [default: %default]')
-
-
-    # Set default values here if they should be other than None
-    # method: default is nmi becauses it's fast and good
-    # sca_cutoff: 0.80 appears (empirically) to be a good general value for the
-    #   cutoff, but should be explored. Don't simply trust the values you get
-    #   if you don't rationally set this cut-off based on empirical or other 
-    #   tests.
-    # epsilon: 0.7 is the value suggested by Yeang et al. 2007 as optimal 
-    #   again based on empirical tests. Beware of simply using defaults!
-    parser.set_defaults(verbose=False,force=False,alphabet_id='orig',\
-        method_id='nmi',sca_cutoff=0.80,output_dir='./',epsilon=0.7,\
-        ignore_excludes=False,delimited_output=False)
-
-    opts,args = parser.parse_args()
-    
-    if not opts.method_id in coevolve_alignment_functions:
-        parser.error('Unknown method %s.' % opts.method_id)
-        
-    if not opts.alphabet_id in alphabets:
-        parser.error('Unknown alphabet %s.' % opts.alphabet_id)
-
-    # error checking related to the alignment
-    try:
-        aln_filepath = args[0]
-        aln = LoadSeqs(aln_filepath,MolType=PROTEIN,alignment=DenseAlignment)
-    except IndexError:
-        parser.error('Must provide an alignment filepath.')
-    except (RecordError,FileFormatError):
-        parser.error(
-         "Error parsing alignment: %s" % aln_filepath)
-    except IOError: 
-        parser.error(\
-         "Can't access alignment file: %s" % aln_filepath)
-          
-    # error checking related to the newick tree
-    try:
-        tree_filepath = args[1]
-        tree = LoadTree(tree_filepath)
-    except TreeParseError:
-        parser.error(\
-         "Error parsing tree: %s" % tree_filepath)
-    except IndexError:
-        if opts.method_id == 'gctmpca' or opts.method_id == 'an': 
-            parser.error(\
-            'Tree-based method, but no tree. Provide a newick formatted tree.')
-    except IOError: 
-        parser.error(\
-         "Can't access tree file: %s" % tree_filepath)
-         
-    # Error checking related to exclude handling
-    if opts.ignore_excludes and opts.method_id not in ('mi','nmi'):
-        parser.error(\
-         'Ignoring exclude (i.e., gap) characters currently only supported for MI and NMI.')
-         
-    return opts,args
-
 def build_coevolution_matrix_filepath(input_filepath,\
     output_dir='./',method=None,alphabet=None,parameter=None):
     """ Build filepath from input filename, output dir, and list of suffixes
@@ -2320,13 +2226,58 @@ def parse_coevolution_matrix_filepath(filepath):
          'output filepath not in parsable format: %s. See doc string for format definition.' % filepath
     
     return (alignment_id,alphabet_id,method_id)
-    
 
-if __name__ == "__main__":
-    # Script functionality: perform a coevolutionary analysis one or more 
-    # alignments, and pickle the resulting matrix. 
-    
-    opts,args = parse_command_line_parameters()
+
+script_info = {}
+script_info['brief_description'] = ""
+script_info['script_description'] = ""
+script_info['script_usage'] = [("","","")]
+script_info['output_description']= ""
+script_info['required_options'] = [\
+ # Example required option
+ make_option('-i','--alignment_fp',help='the input alignment'),
+]
+script_info['optional_options'] = [\
+ make_option('-t','--tree_fp',
+             help='the input tree [default: %default]',
+             default=None),
+ make_option('-f','--force',action='store_true',\
+     dest='force',help='Force overwrite of any existing files '+\
+     '[default: %default]',
+     default=False),
+ make_option('--ignore_excludes',action='store_true',
+     dest='ignore_excludes',help='exclude_handler=ignore_excludes '+\
+     '[default: %default]',default=False),
+ make_option('-d','--delimited_output',action='store_true',
+     dest='delimited_output',help='store result matrix as csv file '+\
+     'instead of pkl file [default: %default]',default=False),
+ make_option('-m','--method_id',action='store',
+        type='choice',dest='method_id',help='coevolve method to apply '+\
+        '[default: %default]',default='nmi',
+        choices=coevolve_alignment_functions.keys()),
+ make_option('-c','--sca_cutoff',action='store',
+        type='float',dest='sca_cutoff',help='cutoff to apply when method'+\
+        ' is SCA (-m sca) [default: %default]',default=0.8),
+ make_option('-e','--epsilon',action='store',
+        type='float',dest='epsilon',help='epsilon, only used when method'+\
+        ' is Haussler/Yeang (-m gctmpca) [default: %default]',default=0.7),
+ make_option('-o','--output_dir',action='store',
+        type='string',dest='output_dir',help='directory to store pickled '+\
+        'result matrix (when -p is specified) [default: %default]',
+        default='./'),
+ make_option('-a','--alphabet_id',action='store',
+         dest='alphabet_id',type='choice',
+         help='name of alphabet to reduce to [default: %default (i.e., full)]',
+         default='orig',choices=alphabets.keys())
+]
+script_info['version'] = __version__
+
+
+
+def main():
+    option_parser, opts, args =\
+       parse_command_line_parameters(**script_info)
+
     verbose = opts.verbose
     force = opts.force
     method_id = opts.method_id
@@ -2335,6 +2286,40 @@ if __name__ == "__main__":
     epsilon = opts.epsilon
     alphabet_id = opts.alphabet_id
     delimited_output = opts.delimited_output
+    alignment_filepath = opts.alignment_fp
+    tree_filepath = opts.tree_fp
+
+    # error checking related to the alignment
+    try:
+       aln = LoadSeqs(alignment_filepath,MolType=PROTEIN,alignment=DenseAlignment)
+    except IndexError:
+       option_parser.error('Must provide an alignment filepath.')
+    except (RecordError,FileFormatError):
+       option_parser.error(
+        "Error parsing alignment: %s" % alignment_filepath)
+    except IOError: 
+       option_parser.error(\
+        "Can't access alignment file: %s" % alignment_filepath)
+
+    # error checking related to the newick tree
+    if tree_filepath == None:
+        if (opts.method_id == 'gctmpca' or opts.method_id == 'an'):
+          option_parser.error(\
+          'Tree-based method, but no tree. Provide a newick formatted tree.')
+    else:
+        try:
+           tree = LoadTree(tree_filepath)
+        except TreeParseError:
+           option_parser.error(\
+            "Error parsing tree: %s" % tree_filepath)
+        except IOError: 
+           option_parser.error(\
+            "Can't access tree file: %s" % tree_filepath)
+
+    # Error checking related to exclude handling
+    if opts.ignore_excludes and opts.method_id not in ('mi','nmi'):
+       option_parser.error(\
+        'Ignoring exclude (i.e., gap) characters currently only supported for MI and NMI.')
 
     if delimited_output: 
         output_file_extension = 'csv'
@@ -2344,13 +2329,11 @@ if __name__ == "__main__":
     # Load the data and parameters specified by the user.
     coevolve_alignment_function = coevolve_alignment_functions[method_id]
     alphabet_def = alphabets[alphabet_id]
-    alignment_filepath = args[0]
     aln = LoadSeqs(alignment_filepath,moltype=PROTEIN,aligned=DenseAlignment)
-    try:
-        tree_filepath = args[1]
+    
+    if tree_filepath != None:
         tree = LoadTree(tree_filepath)
-    except IndexError:
-        tree = None
+        
     if opts.ignore_excludes:
         exclude_handler = ignore_excludes
     else:
@@ -2403,9 +2386,9 @@ if __name__ == "__main__":
     # If the user specified -v, print some information to stdout. Otherwise
     # only error messages are displayed (via stderr).
     if verbose:
-        print 'Input alignment: %s' % args[0]
+        print 'Input alignment: %s' % alignment_filepath
         try:
-            print 'Input tree: %s' % args[1]
+            print 'Input tree: %s' % tree_filepath
         except IndexError:
             pass
         print 'Output matrix filepath: %s' % output_filepath
@@ -2448,4 +2431,7 @@ if __name__ == "__main__":
         coevolution_matrix_to_csv(matrix,output_filepath)
     else:
         pickle_coevolution_result(matrix,output_filepath)
+
+if __name__ == "__main__":
+    main()
 
