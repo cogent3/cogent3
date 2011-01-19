@@ -66,7 +66,8 @@ from numpy.linalg import norm
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
-                    "Zongzhi Liu", "Catherine Lozupone", "Antonio Gonzalez Pena"]
+                    "Zongzhi Liu", "Catherine Lozupone", 
+                    "Antonio Gonzalez Pena", "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Justin Kuczynski"
@@ -973,6 +974,23 @@ def dist_specprof(datamtx, strict=True):
             dists[i,j] = dists[j,i] = dist
 
     return dists
+
+def binary_dist_otu_gain(otumtx):
+    """ Calculates number of new OTUs observed in sample A wrt sample B
+    
+        This is an non-phylogenetic distance matrix analagous to unifrac_g. 
+        The number of OTUs gained in each sample is computed with respect to
+        each other sample.
+    
+    """
+    result = []
+    for i in range(len(otumtx)):
+        row = []
+        for j in range(len(otumtx)):
+            new = otumtx[i] - otumtx[j]
+            row.append(sum(new > 0))
+        result.append(row)
+    return array(result)
 
 def binary_dist_chisq(datamtx, strict=True):
     """Calculates binary chi-square dist between rows, returns dist matrix.
