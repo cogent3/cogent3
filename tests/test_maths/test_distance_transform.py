@@ -10,7 +10,8 @@ from numpy import array, sqrt, shape, ones, diag
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Justin Kuczynski",
-                    "Zongzhi Liu"]
+                    "Zongzhi Liu",
+                    "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Justin Kuczynski"
@@ -41,6 +42,11 @@ class functionTests(TestCase):
                         [ 0.0,  0.0 ,  0.4],
                         [ 1.0,  0.0,  0.0 ],
                         [ 0.0,  0.0,  0.0 ]],'d')
+        self.input_binary_dist_otu_gain1 = array([[1,1,0,0],
+          [1,0,0,1],
+          [0,0,3,0],
+          [0,0,0,1]])
+                        
     
     def get_sym_mtx_from_uptri(self, mtx):
         """helper fn, only for square matrices"""
@@ -231,12 +237,17 @@ class functionTests(TestCase):
         ex1expected = array([[0, ex1res],
                             [ex1res, 0]],'d')
         self.assertFloatEqual(dist_spearman_approx(ex1), ex1expected)
-        
-
-    
     
     # now binary fns
-                   
+    def test_binary_dist_otu_gain(self):
+        """ binary OTU gain functions as expected """
+        actual = binary_dist_otu_gain(self.input_binary_dist_otu_gain1)
+        expected = array([[0, 1, 2, 2],
+                          [1, 0, 2, 1],
+                          [1, 1, 0, 1],
+                          [1, 0, 1, 0]])
+        self.assertEqual(actual,expected)
+
     def test_binary_dist_chisq(self):
         """tests binary_dist_chisq
         
@@ -530,6 +541,13 @@ class functionTests(TestCase):
                     #pass # should not be equal, so catch error and proceed
                 #else:
                     #print "duplicates found: ", distfns[i], distfns[j]
+
+input_binary_dist_otu_gain1 = """#Full OTU Counts
+#OTU ID\tABC\tDEF\tGHI\tXYZ\tConsensus Lineage
+0\t1\t1\t0\t0\tBacteria;Firmicutes
+1\t1\t0\t0\t0\tNone
+x\t0\t0\t3\t0\tBacteria;Bacteroidetes
+z\t0\t1\t0\t1\tNone"""
 
 if __name__ == '__main__':
     main()
