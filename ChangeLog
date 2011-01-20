@@ -15,6 +15,7 @@ New Features
   useful patches!
 * Increased options for reading Table data from files: limit keyword; and,
   line based (as distinct from column-based) type-casting of delimited files.
+* Flexible parser for raw Greengenes 16S records
 
 Changes
 -------
