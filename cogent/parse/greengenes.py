@@ -57,14 +57,31 @@ def MinimalGreengenesParser(lines,LineDelim="=",RecStart="BEGIN",RecEnd="END"):
     for record in parser(lines):
         yield GenericRecord(record)
 
-def SpecificGreengenesParser(lines, fields, **kwargs):
+all_ids = lambda x,y: True
+specific_ids = lambda x,y: x in y
+def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
     """Yield specific fields from successive Greengenes records
+    
+    If ids are specified, only the records for the set of ids passed in will
+    be returned. Parser will silently ignore ids that are not present in the
+    set of ids as well as silently ignore ids in the set that are not present
+    in the records file.
+
+    ids : must either test True or be an iterable with prokMSA_ids
 
     Returns tuples in 'fields' order
     """
     parser = MinimalGreengenesParser(lines, **kwargs)
+
+    if ids:
+        ids = set(ids)
+        id_lookup = specific_ids
+    else:
+        id_lookup = all_ids
+
     for record in parser:
-        yield tuple([record[field] for field in fields])
+        if id_lookup(record['prokMSA_id'], ids):
+            yield tuple([record[field] for field in fields])
 
 def main():
     from optparse import make_option
@@ -86,6 +103,8 @@ def main():
                   help='Greengenes fields to keep'),
                make_option('--delim','-d',dest='delim',help='Output delimiter',\
                        default="\t"),
+               make_option('--list-of-ids','-l',dest='ids',default=None,\
+                   help='File with a single column list of ids to retrieve'),
                make_option('--print-fields','-p',dest='print_fields',\
                   help='Prints available fields from first Greengenes Record',\
                   action='store_true',default=False)]
@@ -112,7 +131,10 @@ def main():
     fields = opts.fields.split(',')
     output.write("#%s\n" % opts.delim.join(fields))
 
-    gg_parser = SpecificGreengenesParser(open(opts.input), fields)
+    if opts.ids:
+        ids = set([l.strip() for l in open(opts.ids)])
+
+    gg_parser = SpecificGreengenesParser(open(opts.input), fields, ids)
 
     for record in gg_parser:
         output.write(opts.delim.join(record))

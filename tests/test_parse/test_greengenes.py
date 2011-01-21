@@ -51,6 +51,13 @@ class ParseGreengenesRecordsTests(TestCase):
         exp = [('604868',''),('604867','ISME J (2010) In press')]
         self.assertEqual(records, exp)
 
+        ids = ['604867','12312312323']
+        res = SpecificGreengenesParser(real_data.splitlines(), fields, ids)
+        records = list(res)
+        exp = [('604867','ISME J (2010) In press')]
+        self.assertEqual(records, exp)
+
+
     def test_make_ignore_f(self):
         """Properly ignore empty records and the start line"""
         f = make_ignore_f('testing')
