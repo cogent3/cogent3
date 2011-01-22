@@ -1566,7 +1566,7 @@ def parse_command_line_parameters(**kwargs):
     
     # If no arguments were provided, print the help string (unless the
     # caller specified not to)
-    if help_on_no_arguments and len(sys.argv) == 1:
+    if help_on_no_arguments and (not command_line_args) and len(sys.argv) == 1:
         parser.print_usage()
         parser.exit()
     
