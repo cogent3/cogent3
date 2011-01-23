@@ -140,7 +140,8 @@ class Genome(object):
             if like:
                 descr = gene_table.c.description.like('%'+Description+'%')
             else:
-                descr = gene_table.c.description==Description
+                descr = gene_table.c.description.op('regexp')(
+                                    '[[:<:]]%s[[:>:]]' % Description)
         
         if btype is not None and descr is not None:
             condition = sql.and_(btype, descr)
