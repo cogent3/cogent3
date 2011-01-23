@@ -113,6 +113,16 @@ We look for breast cancer related genes that are estrogen induced.
     ...     print gene
     Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='KNOWN'; Symbol='AC105219.1')
 
+We can also require that an exact (case insensitive) match to the word(s) occurs within the description by setting ``like=False``.
+
+.. doctest::
+    
+    >>> genes = human.getGenesMatching(Description='breast cancer estrogen',
+    ...                                  like=False)
+    >>> for gene in genes:
+    ...     print gene
+    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='KNOWN'; Symbol='AC105219.1')
+
 Get canonical transcript for a gene
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -328,7 +338,7 @@ What gene relationships are available
     >>> compara = Compara(['human', 'chimp', 'macaque'], Release=58,
     ...                  account=account)
     >>> print compara.getDistinct('relationship')
-    ['ortholog_one2one', 'within_species_paralog', 'ortholog_one2many', ...
+    [u'ortholog_one2one', u'within_species_paralog', u'ortholog_one2many', ...
 
 Get one-to-one orthologs
 ^^^^^^^^^^^^^^^^^^^^^^^^

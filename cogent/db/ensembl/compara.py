@@ -197,7 +197,7 @@ class Compara(object):
         homology_ids = sql.select([homology_member_table.c.homology_id,
                           homology_member_table.c.member_id],
                           homology_member_table.c.member_id.in_(member_ids))
-        homology_ids =  [r['homology_id'] for r in homology_ids.execute()]
+        homology_ids = [r['homology_id'] for r in homology_ids.execute()]
         if not homology_ids:
             return None
         
@@ -217,6 +217,8 @@ class Compara(object):
         homology_ids = dict(homology_ids)
         
         if DEBUG: print "2 - homology_ids", homology_ids
+        if not homology_ids:
+            return None
         
         ortholog_ids = sql.select([homology_member_table.c.member_id,
                                 homology_member_table.c.homology_id],
@@ -225,13 +227,15 @@ class Compara(object):
         ortholog_ids = dict([(r['member_id'], r['homology_id']) \
                                       for r in ortholog_ids.execute()])
         
+        if DEBUG: print "ortholog_ids", ortholog_ids
+        if not ortholog_ids:
+            return None
+        
         # could we have more than one here?
         relationships = set()
         for memid, homid in ortholog_ids.items():
             relationships.update([homology_ids[homid][0]])
         relationships = tuple(relationships)
-        
-        if DEBUG: print "ortholog_ids", ortholog_ids
         
         gene_set = sql.select([member_table],
                 sql.and_(member_table.c.member_id.in_(ortholog_ids.keys()),

@@ -1104,7 +1104,7 @@ class CpGisland(GenericRegion):
         my_type = self.__class__.__name__
         
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
-            " Strand='%s', Score=%s)" % (my_type,
+            " Strand='%s', Score=%.1f)" % (my_type,
             self.Location.CoordName,
             self.Location.Start,
             self.Location.End,
@@ -1129,7 +1129,7 @@ class Repeat(GenericRegion):
         my_type = self.__class__.__name__
         
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
-        " Strand='%s', Score=%s)" %  (my_type,
+        " Strand='%s', Score=%.1f)" %  (my_type,
             self.Location.CoordName,
             self.Location.Start, self.Location.End, len(self),
             '-+'[self.Location.Strand>0], self.Score)

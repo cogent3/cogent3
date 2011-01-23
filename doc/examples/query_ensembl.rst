@@ -26,7 +26,7 @@ So the first step is to specify what host and account are to be used. On my lab'
     >>> from cogent.db.ensembl import HostAccount
     >>> if 'ENSEMBL_ACCOUNT' in os.environ:
     ...     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    ...     account = HostAccount('127.0.0.1', username, password)
+    ...     account = HostAccount('cg.anu.edu.au', username, password)
     ... else:
     ...     account = None
 
@@ -91,6 +91,8 @@ The genome can be queried for gene's in a number of ways. You can search for gen
     breast cancer 1, early onset...
 
 Alternatively, you can query using the ``Genome.getGenesMatching`` method. This method allows querying for gene(s) by the following identifiers: HGNC symbol; Ensembl ``stable_id``; description; or coding type.
+
+.. note:: When querying by description, you can specify that the exact words in the query must be present in the description by setting the argument ``like=True``. The default is ``like=False``.
 
 In general for such queries, case shouldn't matter. For instance, find the *BRCA2* gene by it's HGNC symbol.
 
