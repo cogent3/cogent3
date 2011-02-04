@@ -27,6 +27,9 @@ Bug Fixes
 
 * fixed bug that crept into doing consensus trees from tree collections.
   Thanks to Klara Verbyla for catching this one!
+* fixed a bug (#3170464) affecting obtaining sequences from non-chromosome
+  level coordinate systems. Thanks to brandoninvergo for reporting and Hua
+  Ying for the patch!
 
 Cogent 1.4.1 - 1.5
 ==================
