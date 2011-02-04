@@ -30,6 +30,7 @@ class GenomeTestBase(TestCase):
     mouse = Genome(Species="mouse", Release=Release, account=account)
     rat = Genome(Species="rat", Release=Release, account=account)
     macaq = Genome(Species="macaque", Release=Release, account=account)
+    gorilla = Genome(Species="gorilla", Release=Release, account=account)
     brca2 = human.getGeneByStableId(StableId="ENSG00000139618")
 
 class TestGenome(GenomeTestBase):
@@ -103,9 +104,19 @@ class TestGenome(GenomeTestBase):
     
     def test_gorilla(self):
         """should correctly return a gorilla gene"""
-        gorilla = Genome(Species="gorilla", Release=Release, account=account)
-        gene = gorilla.getGeneByStableId('ENSGGOG00000005730')
+        self.gorilla = Genome(Species="gorilla", Release=Release, account=account)
+        gene = self.gorilla.getGeneByStableId('ENSGGOG00000005730')
         self.assertEquals(str(gene.Seq[:10]), 'TGGGAGTCCA')
+    
+    def test_diff_strand_contig_chrom(self):
+        """get correct sequence when contig and chromosome strands differ"""
+        gene = self.gorilla.getGeneByStableId('ENSGGOG00000001953')
+        cds = gene.CanonicalTranscript.Cds
+        print '## yay'
+        self.assertEquals(str(cds), 'ATGGCCCAGGATCTCAGCGAGAAGGACCTGTTGAAGATG'
+        'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
+        'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
+        'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
     
 
 class TestGene(GenomeTestBase):
