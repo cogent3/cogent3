@@ -116,8 +116,11 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
         print '\nMedium_level_assemblies = ', assemblies
     
     seqs, positions = [], []
-    for q_loc, t_loc in assemblies: 
+    for q_loc, t_loc in assemblies:
+        t_strand = t_loc.Strand
         temp_seq = _get_sequence_from_direct_assembly(t_loc, DEBUG)
+        if t_strand == -1:
+            temp_seq = temp_seq.rc()
         
         if DEBUG:
             print q_loc
