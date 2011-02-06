@@ -42,7 +42,7 @@ from cogent.evolve.substitution_calculation import (
     RateDefn, LengthDefn, ProductDefn, CallDefn, CalcDefn,
     PartitionDefn, NonParamDefn, AlignmentAdaptDefn, ExpDefn, 
     ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension, 
-    WeightedPartitionDefn, chooseFastExponentiators)
+    WeightedPartitionDefn)
 from cogent.evolve.discrete_markov import PsubMatrixDefn
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent.maths.optimisers import ParameterOutOfBoundsError
@@ -501,7 +501,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """Diagonalized Q, ie: rate matrix prepared for exponentiation"""
         Q = CalcDefn(self.calcQ, name='Q')(word_probs, mprobs_matrix, *rate_params)
         expm = NonParamDefn('expm')
-        exp = ExpDefn(expm, model=self)
+        exp = ExpDefn(expm)
         Qd = CallDefn(exp, Q, name='Qd')
         return Qd
     
@@ -561,22 +561,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         P = CallDefn(Qd, distance, name='psubs')
         return P
     
-    def suitableEigenExponentiators(self):
-        # Uses a fake Q to compare the eigenvalue implementations
-        # with.  This assumes that one Q will be much like another.
-        if self._exponentiator is None:
-            import random
-            params = [random.uniform(0.8, 1.2) for p in self.parameter_order]
-            if self.motif_probs:
-                motif_probs = self.motif_probs
-            else:
-                motif_probs = self.mprob_model.makeSampleMotifProbs()
-            monomer_probs = self.adaptMotifProbs(motif_probs, auto=True)
-            word_probs = self.calcWordProbs(monomer_probs)
-            mprobs_matrix = self.calcWordWeightMatrix(monomer_probs)
-            sampleQ = self.calcQ(word_probs, mprobs_matrix, *params)
-            self._exponentiator = chooseFastExponentiators(sampleQ)
-        return self._exponentiator
 
 class General(_ContinuousSubstitutionModel):
     """A continuous substitution model with one free parameter for each and 
