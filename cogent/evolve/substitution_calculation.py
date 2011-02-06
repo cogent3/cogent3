@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 import numpy
-
-Float = numpy.core.numerictypes.sctype2char(float)
-
 import warnings
 
 from cogent.recalculation.definition import PositiveParamDefn, RatioParamDefn, \
@@ -10,7 +7,7 @@ from cogent.recalculation.definition import PositiveParamDefn, RatioParamDefn, \
         NonParamDefn, CallDefn, SelectForDimension, \
         GammaDefn, WeightedPartitionDefn, CalcDefn
 from cogent.maths.matrix_exponentiation import PadeExponentiator, \
-        chooseFastExponentiators, FastExponentiator, LinAlgError
+        FastExponentiator, CheckedExponentiator, LinAlgError
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -48,9 +45,6 @@ class SubstitutionParameterDefn(RatioParamDefn):
 class ExpDefn(CalculationDefn):
     name = 'exp'
     
-    def setup(self, model):
-        self.model = model
-        
     def calc(self, expm):
         (allow_eigen, check_eigen, allow_pade) = {
             'eigen': (True, False, False),
@@ -62,7 +56,7 @@ class ExpDefn(CalculationDefn):
         if not allow_eigen:
             return PadeExponentiator
         
-        eigen = self.model.suitableEigenExponentiators()[check_eigen]
+        eigen = CheckedExponentiator if check_eigen else FastExponentiator
         
         if not allow_pade:
             return eigen

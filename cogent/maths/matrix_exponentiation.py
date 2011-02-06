@@ -13,9 +13,7 @@
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 import warnings
 import numpy
-Float = numpy.core.numerictypes.sctype2char(float)
-from numpy.linalg import inv as _inv, eig as _eig,\
-                        solve as solve_linear_equations, LinAlgError
+from numpy.linalg import inv, eig, solve, LinAlgError
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -25,34 +23,6 @@ __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-def eig(*a, **kw):
-    """make eig to return the same eigvectors as numpy ones"""
-    vals, vecs = _eig(*a, **kw)
-    return vals, vecs.T
-    
-def inv(a):
-    """make inv return the same contiguous matrix as numpy one"""
-    return numpy.ascontiguousarray(_inv(a))
-
-def inv(a):
-    """make inv return the same contiguous matrix as numpy one"""
-    return numpy.ascontiguousarray(_inv(a))
-
-try:
-    pyrex = importVersionedModule('_matrix_exponentiation', globals(),
-            (1, 2), "pure Python/NumPy exponentiation")
-except ExpectedImportError:
-    pyrex = None
-else:
-    pyrex.setNumPy(numpy)
-    if pyrex.version_info == (1, 2):
-        def _pyrex_eigenvectors(q, orig=pyrex.eigenvectors):
-            try:
-                return orig(q)
-            except RuntimeError, detail:
-                raise ArithmeticError, detail
-        pyrex.eigenvectors = _pyrex_eigenvectors
 
 class _Exponentiator(object):
     def __init__(self, Q):
@@ -67,12 +37,10 @@ class EigenExponentiator(_Exponentiator):
     
     __slots__ = ['Q', 'ev', 'roots', 'evI', 'evT']
     
-    def __init__(self, Q, roots, ev, evI=None):
+    def __init__(self, Q, roots, ev, evT, evI):
         self.Q = Q
-        if evI is None:
-            evI = inv(ev)
         self.evI = evI
-        self.evT = numpy.transpose(ev)
+        self.evT = evT
         self.ev = ev
         self.roots = roots
     
@@ -85,7 +53,7 @@ class EigenExponentiator(_Exponentiator):
         return result
     
 
-def SemiSymmetricExponentiator(motif_probs, Q, ex):
+def SemiSymmetricExponentiator(motif_probs, Q):
     """Like EigenExponentiator, but more numerically stable and
     30% faster when the rate matrix (Q/motif_probs) is symmetrical.
     Only usable when all motif probs > 0.  Unlike the others
@@ -95,11 +63,11 @@ def SemiSymmetricExponentiator(motif_probs, Q, ex):
     H2 = numpy.divide.outer(H, H)
     #A = Q * H2
     #assert numpy.allclose(A, numpy.transpose(A)), A
-    (roots, R) = ex.eigenvectors(Q*H2)
-    ev = R / H2
-    evI = numpy.transpose(R*H2)
+    (roots, R) = eig(Q*H2)
+    ev = R.T / H2
+    evI = (R*H2).T
     #self.evT = numpy.transpose(self.ev)
-    return ex.exponentiator(Q, roots, ev, evI)
+    return EigenExponentiator(Q, roots, ev, ev.T, evI)
 
 
 # These next two are slow exponentiators, they don't get any speed up
@@ -115,7 +83,7 @@ class TaylorExponentiator(_Exponentiator):
         """Compute the matrix exponential using a Taylor series of order q."""
         A = self.Q * t
         M = A.shape[0]
-        eA = numpy.identity(M, Float)
+        eA = numpy.identity(M, float)
         trm = eA
         for k in range(1, self.q):
             trm = numpy.dot(trm, A/float(k))
@@ -168,95 +136,28 @@ class PadeExponentiator(_Exponentiator):
                 D = D + cX;
             else:
                 D = D - cX;
-        F = solve_linear_equations(D,N)
+        F = solve(D,N)
         for k in range(1,j+1):
             F = numpy.dot(F,F)
         return F
-    
-
-import time
-def _fastest(fs, *args):
-    if len(fs) == 1:
-        i = 0
-    else:
-        es = [[] for f in fs]
-        samples = 0
-        while samples < 10:
-            for (f, e) in zip(fs, es):
-                t0 = time.time()
-                f(*args)
-                t1 = time.time()
-                e.append(t1-t0)
-            samples += 1
-        
-        m = []
-        for e in es:
-            e.sort()
-            m.append(e[samples/2])
-        i = numpy.argmin(m, -1)
-    return (fs[i], fs[i](*args))
-
-def _chooseFastExponentiators(Q):
-    if pyrex is not None:
-        eigen_candidates = [eig, pyrex.eigenvectors]
-        (eigenvectors, (roots,ev)) = _fastest(eigen_candidates, Q)
-        inverse_candidates = [inv, pyrex.inverse]
-        (inverse, evI) = _fastest(inverse_candidates, ev)
-        exponentiator_candidates = [EigenExponentiator(Q, roots, ev, evI)]
-        if roots.dtype.kind == 'f':
-            assert ev.dtype.kind == 'f'
-            pyx = pyrex.EigenExponentiator(Q, roots, ev, evI)
-            exponentiator_candidates.append(pyx)
-        (exponentiator, P) = _fastest(exponentiator_candidates, 1.1)
-        FastestExponentiator = type(exponentiator)
-    else:
-        eigenvectors = eig
-        inverse = inv
-        FastestExponentiator = EigenExponentiator
-    
-    # FastestExponentiator may be the pyrex Exponentiator which
-    # doesn't cope with complex inputs
-    e_class = {'c': EigenExponentiator, 'f':FastestExponentiator}
-    
-    def Exp(Q, e_class=e_class):
-        (roots, ev) = eigenvectors(Q)
-        return e_class[roots.dtype.kind](Q, roots, ev, inverse(ev))
-    
-    def Exp2(Q, e_class=e_class):
-        (roots, ev) = eigenvectors(Q)
-        evI = inverse(ev)
-        reQ = numpy.inner(ev.T * roots, evI).real
-        if not numpy.allclose(Q, reQ):
-            raise ArithmeticError, "eigen failed precision test"
-        return e_class[roots.dtype.kind](Q, roots, ev, evI)
-    
-    # These function attributes are just for log / debug etc.
-    Exp.eigenvectors = eigenvectors
-    Exp.inverse = inverse
-    Exp.exponentiator = FastestExponentiator
-    
-    return (Exp, Exp2)
 
 def chooseFastExponentiators(Q):
-    ex = _chooseFastExponentiators(Q)
-    if False:
-        used_pyrex = [['numpy','pyrex'][u] for u in [
-            (ex[0].eigenvectors is not eig),
-            (ex[0].inverse is not inv),
-            (ex[0].exponentiator is not EigenExponentiator)]]
-        print ('Strategy for Q Size %2s: ' % Q.shape[0] + 
-                'Eig:%s Inv:%s Exp:%s' % tuple(used_pyrex))
-    return ex
+    return (FastExponentiator, CheckedExponentiator)
 
 def FastExponentiator(Q):
-    size = Q.shape[0]
-    if pyrex is not None and size < 32:
-        (roots, ev) = pyrex.eigenvectors(Q)
-    else:
-        (roots, ev) = eig(Q)
-    ex = EigenExponentiator(Q, roots, ev)
-    return ex
-
+    (roots, evT) = eig(Q)
+    ev = evT.T
+    return EigenExponentiator(Q, roots, ev, evT, inv(ev))
+    
+def CheckedExponentiator(Q):
+    (roots, evT) = eig(Q)
+    ev = evT.T
+    evI = inv(ev)
+    reQ = numpy.inner(ev.T * roots, evI).real
+    if not numpy.allclose(Q, reQ):
+        raise ArithmeticError, "eigen failed precision test"
+    return EigenExponentiator(Q, roots, ev, evT, evI)
+    
 def RobustExponentiator(Q):
     return PadeExponentiator(Q)
 

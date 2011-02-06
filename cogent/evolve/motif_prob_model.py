@@ -202,9 +202,6 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def calcWordProbs(self, monomer_probs):
         positions = range(self.word_length)
-        #if len(monomer_probs) == 1:
-        #    # not position specific from suitableEigenExponentiators
-        #    monomer_probs = [monomer_probs[0] for i in positions]
         assert len(monomer_probs) == self.m2w.shape[1], (
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
         result = numpy.product(
@@ -215,9 +212,6 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
     
     def calcWordWeightMatrix(self, monomer_probs):  
         positions = range(self.word_length)
-        #if len(monomer_probs) == 1:
-        #    # not position specific from suitableEigenExponentiators
-        #    monomer_probs = [monomer_probs[0] for i in positions]
         monomer_probs = numpy.array(monomer_probs) # so [posn, motif]
         size = monomer_probs.shape[-1]
         # should be constant
