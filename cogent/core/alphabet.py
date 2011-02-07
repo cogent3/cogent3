@@ -211,7 +211,7 @@ class Enumeration(tuple):
         are in the Enumeration. Returns a list containing the index of each
         element in the input, in order.
         
-        e.g. for the DNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
         would produce the result [1,1,2,0], returning the index of each
         element in the input.
         """
