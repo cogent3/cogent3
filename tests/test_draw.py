@@ -22,6 +22,9 @@ When run as a script, one of the actions must be specified:
       figures too.
     
 """
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib',
+                        lineno=881)
 
 import matplotlib
 matplotlib.use('Agg')
