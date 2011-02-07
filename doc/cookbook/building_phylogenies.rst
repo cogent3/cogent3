@@ -12,8 +12,60 @@ By distance method
 
 Given an alignment, a phylogenetic tree can be generated based on the pair-wise distance matrix computed from the alignment.
 
-Estimating Pairwise Distances
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fast pairwise distance estimation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For a limited number of evolutionary models a fast implementation is available. Here we use the Tamura and Nei 1993 model.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent.evolve.pairwise_distance import TN93Pair
+    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> dist_calc = TN93Pair(DNA, alignment=aln)
+    >>> dist_calc.run()
+
+We can obtain the distances as a ``dict`` for direct usage in phylogenetic reconstruction
+
+.. doctest::
+    
+    >>> dists = dist_calc.getPairwiseDistances()
+
+or as a table for display / saving
+
+.. doctest::
+    
+    >>> print dist_calc.Dists[:4,:4] # truncated to fit screens
+    Pairwise Distances
+    ============================================
+    Seq1 \ Seq2    Galago    HowlerMon    Rhesus
+    --------------------------------------------
+         Galago         *       0.2157    0.1962
+      HowlerMon    0.2157            *    0.0736
+         Rhesus    0.1962       0.0736         *
+      Orangutan    0.1944       0.0719    0.0411
+    --------------------------------------------
+
+Other statistics are also available, such the as the standard errors of the estimates.
+
+.. doctest::
+    
+    >>> print dist_calc.StdErr[:4,:4] # truncated to fit screens
+    Standard Error of Pairwise Distances
+    ============================================
+    Seq1 \ Seq2    Galago    HowlerMon    Rhesus
+    --------------------------------------------
+         Galago         *       0.0103    0.0096
+      HowlerMon    0.0103            *    0.0054
+         Rhesus    0.0096       0.0054         *
+      Orangutan    0.0095       0.0053    0.0039
+    --------------------------------------------
+
+
+More general estimation of pairwise distances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The standard cogent likelihood function can also be used to estimate distances. Because these require numerical optimisation they can be significantly slower than the fast estimation approach above.
 
 .. doctest::
     

@@ -168,6 +168,7 @@ setup(
         CogentExtension("cogent.align._pairwise_seqs"),
         CogentExtension("cogent.align._pairwise_pogs"),
         CogentExtension("cogent.evolve._likelihood_tree"),
+        CogentExtension("cogent.evolve._pairwise_distance"),
         CogentExtension("cogent.struct._asa"),
         CogentExtension("cogent.struct._contact"),
         CogentExtension("cogent.maths._period"),
