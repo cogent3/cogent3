@@ -49,10 +49,13 @@ class LikelihoodFunction(ParameterController):
         Note: expm(Q) will give the same result as getPsubForEdge(name)"""
         try:
             array = self.getParamValue('Q', edge=name)
-            result = DictArrayTemplate(self._motifs, self._motifs).wrap(array)
-        except KeyError:
-            result = None
-        return result
+        except KeyError as err:
+            if err[0] == 'Q' and name != 'Q':
+                raise RuntimeError('rate matrix not known by this model')
+            else:
+                raise
+        return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
+
     
     def getFullLengthLikelihoods(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:

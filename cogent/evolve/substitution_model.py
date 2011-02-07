@@ -676,7 +676,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        predicate_masks = self._adaptPredicates(predicates or [])
+        (predicate_masks, predicate_order) = self._adaptPredicates(predicates or [])
 
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
@@ -706,7 +706,8 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         self.parameter_order = []
         self.predicate_indices = []
         self.symmetric = _isSymmetrical(self._instantaneous_mask)
-        for (pred, mask) in predicate_masks.items():
+        for pred in predicate_order:
+            mask = predicate_masks[pred]
             if not _isSymmetrical(mask):
                 self.symmetric = False
             indices = numpy.nonzero(mask)
@@ -715,7 +716,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             self.predicate_indices.append(indices)
         if not self.symmetric:
             warnings.warn('Model not reversible')
-        self.scale_masks = self._adaptPredicates(scales or [])
+        (self.scale_masks, scale_order) = self._adaptPredicates(scales or [])
         self.checkParamsExist()
             
     def calcExchangeabilityMatrix(self, mprobs, *params):
@@ -807,7 +808,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         return self._isInstantaneous(x, y)
     
     def getSubstitutionRateValueFromQ(self, Q, motif_probs, pred):
-        pred_mask = self._adaptPredicates([pred]).values()[0]
+        pred_mask = self._adaptPredicates([pred])[0].values()[0]
         pred_row_totals = numpy.sum(pred_mask * Q, axis=1)
         inst_row_totals = numpy.sum(self._instantaneous_mask * Q, axis=1)
         r = sum(pred_row_totals * motif_probs)
@@ -852,12 +853,14 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         else:
             rules = [(None, rule) for rule in rules]
         predicate_masks = {}
+        order = []
         for (key, pred) in rules:
             (label, mask) = self.adaptPredicate(pred, key)
             if label in predicate_masks:
                 raise KeyError('Duplicate predicate name "%s"' % label)
             predicate_masks[label] = mask
-        return predicate_masks
+            order.append(label)
+        return predicate_masks, order
     
     def adaptPredicate(self, pred, label=None):
         if isinstance(pred, str):
