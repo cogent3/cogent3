@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """A collection of pre-defined models.  These are provided for convenience so that
-users do not need to keep reconstructing the standard models.  We encorage users
+users do not need to keep reconstructing the standard models.  We encourage users
 to think about the assumptions in these models and consider if their problem could
 benefit from a user defined model.
 Note that models that do not traditionally deal with gaps are implemented with
@@ -10,7 +10,9 @@ gap recoding that will convert gaps to Ns, and model gaps set to False."""
 #wishing to construct their own models
 
 import numpy
-from cogent.evolve import substitution_model, predicate
+from cogent.evolve import substitution_model
+from cogent.evolve.predicate import MotifChange, replacement
+from cogent.evolve.solved_models import F81, HKY85, TN93
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -21,60 +23,30 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
-nucleotide_models = ['JC69','F81','HKY85', 'GTR']
+nucleotide_models = ['JC69','K80', 'F81','HKY85', 'TN93', 'GTR']
 
 codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
 
 protein_models = [ 'DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
-# Nucleotide Models
-def JC69(**kw):
-    """Jukes and Cantor's 1969 model"""
-    return substitution_model.Nucleotide(
-            equal_motif_probs = True,
-            do_scaling = True,
-            model_gaps = False,
-            recode_gaps = True,
-            name = 'JC69',
-            **kw)
-    
-
-def F81(**kw):
-    """Felsenstein's 1981 model"""
-    return substitution_model.Nucleotide(
-            motif_probs = None,
-            do_scaling = True,
-            model_gaps = False,
-            recode_gaps = True,
-            name = 'F81',
-            **kw)
     
 # Substitution model rate matrix predicates
-MotifChange = predicate.MotifChange
 _gtr_preds = [MotifChange(x,y) for x,y in ['AC', 'AG', 'AT', 'CG', 'CT']]
 _kappa = (~MotifChange('R','Y')).aliased('kappa')
-_omega = predicate.replacement.aliased('omega')
-_cg = predicate.MotifChange('CG').aliased('G')
+_omega = replacement.aliased('omega')
+_cg = MotifChange('CG').aliased('G')
 _cg_k = (_cg & _kappa).aliased('G.K')
 
-def HKY85(**kw):
-    """Hasegawa, Kishino and Yanamo 1985 model"""
-    return substitution_model.Nucleotide(
-            motif_probs = None,
-            do_scaling = True,
-            model_gaps = False,
-            recode_gaps = True,
-            name = 'HKY85',
-            predicates = {
-                'kappa' : 'transition',
-                },
-            **kw)
-    
+def K80(**kw):
+    """Kimura 1980"""
+    return HKY85(equal_motif_probs=True, optimise_motif_probs=False, **kw)
+
+def JC69(**kw):
+    """Jukes and Cantor's 1969 model"""
+    return F81(equal_motif_probs=True, optimise_motif_probs=False, **kw)
 
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
-    MotifChange = predicate.MotifChange
-    preds = [MotifChange(x,y) for x,y in ['AC', 'AG', 'AT', 'CG', 'CT']]
     return substitution_model.Nucleotide(
             motif_probs = None,
             do_scaling = True,

@@ -1,5 +1,5 @@
 from cogent.util.unit_test import TestCase, main
-from cogent.evolve.models import JC69, F81, HKY85, GTR, \
+from cogent.evolve.models import JC69, F81, HKY85, TN93, GTR, \
     MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK, \
     DSO78, AH96, AH96_mtmammals, JTT92, WG01, CNFGTR, CNFHKY, \
     WG01_matrix, WG01_freqs
@@ -33,18 +33,23 @@ class CannedModelsTest(TestCase):
         """excercising aa model construction"""
         self._instantiate_models([DSO78, AH96, AH96_mtmammals, JTT92, WG01])
     
-    def test_bin_options(*self):
+    def test_bin_options(self):
         kwargs = dict(with_rate=True, distribution='gamma')
         model = WG01(**kwargs)
         model = GTR(**kwargs)
     
-    def test_empirical_values_roundtrip(*self):
+    def test_empirical_values_roundtrip(self):
         model = WG01()
         assert model.getMotifProbs() == WG01_freqs
         assert (model.calcExchangeabilityMatrix('dummy_mprobs') == 
                 WG01_matrix).all()
+
+    def test_solved_models(self):
+        for klass in [TN93, HKY85, F81]:
+            for scaled in [True, False]:
+                model = klass(rate_matrix_required=False, do_scaling=scaled)
+                model.checkPsubCalculationsMatch()
         
-    
 
 if __name__ == '__main__':
     main()
