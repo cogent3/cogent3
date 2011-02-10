@@ -27,12 +27,12 @@ from cogent.util import parallel
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
     pyrex_align_module = importVersionedModule('_pairwise_pogs', globals(),
-            (3, 0), "slow Python alignment implementation")
+            (3, 1), "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_align_module = None
 try:
     pyrex_seq_align_module = importVersionedModule('_pairwise_seqs', globals(),
-            (3, 0), "slow Python alignment implementation")
+            (3, 1), "slow Python alignment implementation")
 except ExpectedImportError:
     pyrex_seq_align_module = None
 

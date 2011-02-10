@@ -90,6 +90,17 @@ class AlignmentTestCase(unittest.TestCase):
         self.assertEqual(matchedColumns(a), 6)
         self.assertEqual(len(a), 9)
     
+    def test_local_tiebreak(self):
+        """Should pick the first best-equal hit rather than the last one"""
+        # so that the Pyrex and Python versions give the same result.
+        score_matrix = make_dna_scoring_dict(match=1, transition=-1, 
+                transversion=-1)
+        pattern = DNA.makeSequence('cwc', Name='pattern')
+        two_hit = DNA.makeSequence( 'cactc', Name= 'target')
+        aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
+        hit = aln.NamedSeqs['target']
+        self.assertEqual(str(hit).lower(), 'cac')
+
 
 class UnalignedPairTestCase(unittest.TestCase):
     def test_forward(self):
