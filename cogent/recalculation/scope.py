@@ -466,8 +466,9 @@ class _LeafDefn(_Defn):
     name = None
     name_required = True
     
-    # This can be overriden in a subclass or the constuctor.
+    # These can be overriden in a subclass or the constuctor.
     valid_dimensions = ()
+    numeric = False
     
     array_template = None
     internal_dimensions = ()
@@ -498,9 +499,49 @@ class _LeafDefn(_Defn):
         gdv = lambda x:x.getDefaultValue()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
     
-    def assign(self, settings):
-        for (scope, setting) in settings:
+    def assignAll(self, scope_spec=None, value=None,
+            lower=None, upper=None, const=None, independent=None):
+        settings = []
+        if const is None:
+            const = self.const_by_default
+        
+        for scope in self.interpretScopes(
+                independent=independent, **(scope_spec or {})):
+            if value is None:
+                s_value = self.getMeanCurrentValue(scope)
+            else:       
+                s_value = self.unwrapValue(value)
+            
+            if const:
+                setting = ConstVal(s_value)
+            elif not self.numeric:
+                if lower is not None or upper is not None:
+                    raise ValueError(
+                            "Non-scalar input '%s' doesn't support bounds"
+                            % self.name)
+                setting = Var((None, s_value, None))
+            else:
+                (s_lower, s_upper) = self.getCurrentBounds(scope)
+                if lower is not None:
+                    s_lower = lower
+                if upper is not None:
+                    s_upper = upper
+                    
+                if s_lower > s_upper:
+                    raise ValueError("Bounds: upper < lower")
+                elif (s_lower is not None) and s_value < s_lower:
+                    s_value = s_lower
+                    warnings.warn("Value of %s increased to keep within bounds" 
+                                % self.name, stacklevel=3)
+                elif (s_upper is not None) and s_value > s_upper:
+                    s_value = s_upper
+                    warnings.warn("Value of %s decreased to keep within bounds" 
+                                % self.name, stacklevel=3)
+                setting = Var((s_lower, s_value, s_upper))
             self.checkSettingIsValid(setting)
+            settings.append((scope, setting))
+            
+        for (scope, setting) in settings:
             for scope_t in scope:
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
@@ -701,47 +742,14 @@ class ParameterController(object):
                     self._changed.add(id(c))
         self._changed.clear()
     
-    def assignAll(self, par_name, scope_spec=None, value=None,
-            lower=None, upper=None, const=None, independent=None):
-        settings = []
+    def assignAll(self, par_name, *args, **kw):
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
             args = ' and '.join(['"%s"' % a.name for a in defn.args])
             msg = '"%s" is not settable as it is derived from %s.' % (
                     par_name, args)
             raise ValueError(msg)
-        
-        if const is None:
-            const = defn.const_by_default
-        
-        for scope in defn.interpretScopes(
-                independent=independent, **(scope_spec or {})):
-            if value is None:
-                s_value = defn.getMeanCurrentValue(scope)
-            else:       
-                s_value = defn.unwrapValue(value)
-            if const:
-                setting = ConstVal(s_value)
-            else:
-                (s_lower, s_upper) = defn.getCurrentBounds(scope)
-                if lower is not None:
-                    s_lower = lower
-                if upper is not None:
-                    s_upper = upper
-                    
-                if s_lower > s_upper:
-                    raise ValueError("Bounds: upper < lower")
-                elif (s_lower is not None) and s_value < s_lower:
-                    s_value = s_lower
-                    warnings.warn("Value of %s increased to keep within bounds" 
-                                % par_name, stacklevel=3)
-                elif (s_upper is not None) and s_value > s_upper:
-                    s_value = s_upper
-                    warnings.warn("Value of %s decreased to keep within bounds" 
-                                % par_name, stacklevel=3)
-                setting = Var((s_lower, s_value, s_upper))
-            settings.append((scope, setting))
-        defn.assign(settings)
+        defn.assignAll(*args, **kw)
         self.updateIntermediateValues([defn])
         
     def measureEvalsPerSecond(self, *args, **kw):
