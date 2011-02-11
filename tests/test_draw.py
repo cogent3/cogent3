@@ -23,8 +23,7 @@ When run as a script, one of the actions must be specified:
     
 """
 import warnings
-warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib',
-                        lineno=881)
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
 
 import matplotlib
 matplotlib.use('Agg')
