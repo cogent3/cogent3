@@ -19,11 +19,24 @@ New Features
 * Add fast pairwise distance estimation for DNA/RNA sequences. Currently only
   Jukes-Cantor 1969 and Tamura-Nei 1993 distances are provided. A cookbook
   entry was added to building_phylogenies.
+* Added a PredefinedNucleotide substitution model class. This class uses
+  Cython implementations for nucleotide models where analytical solutions
+  are available. Substantial speedups are achieved. These implementations
+  do not support obtaining the rate matrix. Use the older style implementation
+  if you require that (toggled by the rate_matrix_required argument).
 
 Changes
 -------
 
 * python 2.6 is now the minimum required version
+* We have removed code authored by Ziheng Yang as it is not available under
+  an open source license. We note a modest performance hit for nucleotide and
+  dinucleotide models. Codon models are not affected. The PredefinedNucleotide
+  models recently added are faster than the older approach that used Yang's
+  code.
+* The PredefinedNucleotide models are now available via cogent.evolve.models.
+  The old-style (slower) nucleotide models can be obtained by setting
+  rate_matrix_required=True.
 
 Bug Fixes
 ---------
