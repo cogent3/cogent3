@@ -1563,12 +1563,14 @@ def parse_command_line_parameters(**kwargs):
     
     # Instantiate the command line parser object
     parser = OptionParser(usage=usage, version=version)
+    exit_func = set_parameter('exit_func',kwargs,parser.exit)
     
     # If no arguments were provided, print the help string (unless the
     # caller specified not to)
     if help_on_no_arguments and (not command_line_args) and len(sys.argv) == 1:
         parser.print_usage()
-        parser.exit()
+        if exit_func is not None:
+            exit_func()
     
     # Process the required options
     if required_options:
