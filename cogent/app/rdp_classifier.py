@@ -12,6 +12,7 @@ __email__ = "kylebittinger@gmail.com"
 __status__ = "Prototype"
 
 
+import re
 from os import remove, environ, getenv, path
 from os.path import exists
 from optparse import OptionParser
@@ -113,10 +114,11 @@ class RdpClassifier(CommandLineApplication):
         input_handler = self.InputHandler
         suppress_stdout = self.SuppressStdout
         suppress_stderr = self.SuppressStderr
+        assignment_fp = FilePath(self.getTmpFilename(self.TmpDir))
         if suppress_stdout:
             outfile = FilePath('/dev/null')
         else:
-            outfile = self.getTmpFilename(self.TmpDir)
+            outfile = FilePath(self.getTmpFilename(self.TmpDir))
         if suppress_stderr:
             errfile = FilePath('/dev/null')
         else:
@@ -131,8 +133,8 @@ class RdpClassifier(CommandLineApplication):
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
         command = self._commandline_join(
-            [self.BaseCommand, input_arg, outfile, training_data, 
-             '2>', errfile,]
+            [self.BaseCommand, input_arg, assignment_fp, training_data, 
+             '>', outfile, '2>', errfile,]
             )
 
         if self.HaltExec: 
@@ -157,9 +159,11 @@ class RdpClassifier(CommandLineApplication):
         err = None        
         if not suppress_stderr:
             err = open(errfile,"r")
-       
+
+        result_paths = self._get_result_paths(data)
+        result_paths['Assignments'] = ResultPath(assignment_fp)
         result = CommandLineAppResult(
-            out, err, exit_status, result_paths=self._get_result_paths(data))
+            out, err, exit_status, result_paths=result_paths)
 
         # Clean up the input file if one was created
         if remove_tmp:
@@ -535,11 +539,22 @@ def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=
 
     # apply the rdp app controller
     rdp_result = app('\n'.join(data))
-    # grab standard out
-    result_lines = rdp_result['StdOut']
+    # grab assignment output
+    result_lines = rdp_result['Assignments']
     
     # start a list to store the assignments
     results = {}
+
+    # ShortSequenceException messages are written to stdout
+    # Tag these ID's as unassignable
+    stdout_lines = rdp_result['StdOut']
+    for line in stdout_lines:
+        if line.startswith('ShortSequenceException'):
+            matchobj = re.search('recordID=(\S+)', line)
+            if matchobj:
+                rdp_id = matchobj.group(1)
+                orig_id = identifier_lookup[rdp_id]
+                results[orig_id] = ('Unassignable', 1.0)
     
     # iterate over the identifier, assignment strings (this is a bit
     # of an abuse of the MinimalFastaParser, as these are not truely
