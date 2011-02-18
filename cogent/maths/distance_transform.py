@@ -246,7 +246,7 @@ def dist_canberra(datamtx, strict=True):
         except ValueError:
             return zeros((0,0),'d')
 
-    oldstate = seterr(divide='ignore')
+    oldstate = seterr(invalid='ignore',divide='ignore')
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
