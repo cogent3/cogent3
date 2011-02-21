@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
+from cogent import RNA
 from cogent.core.genetic_code import GeneticCode, GeneticCodeInitError,\
         InvalidCodonError, GeneticCodes
 from cogent.util.unit_test import TestCase, main
@@ -291,6 +292,12 @@ class GeneticCodeTests(TestCase):
         sgc = GeneticCode(self.SGC)
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
+        
+        # should also actually work with an RNA or DNA sequence!!!
+        test_rna = RNA.makeSequence('AUGCUAACAUAAA')
+        self.assertEqual(sgc.sixframes(test_rna), [
+            'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
+        
 
     def test_Synonyms(self):
         """GeneticCode Synonyms should return aa -> codon set mapping."""

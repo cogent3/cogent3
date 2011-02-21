@@ -194,6 +194,7 @@ class GeneticCode(object):
         
         Returns [] for empty list of codons, 'X' for unknown amino acid.
         """
+        item = str(item)
         if len(item) == 1:  #amino acid
             return self.Synonyms.get(item, [])
         elif len(item) == 3:    #codon
