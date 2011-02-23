@@ -132,7 +132,7 @@ def main():
     output.write("#%s\n" % opts.delim.join(fields))
 
     if opts.ids:
-        ids = set([l.strip() for l in open(opts.ids)])
+        ids = set([l.strip() for l in open(opts.ids, 'U')])
 
     gg_parser = SpecificGreengenesParser(open(opts.input), fields, ids)
 
