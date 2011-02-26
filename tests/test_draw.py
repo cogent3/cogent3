@@ -31,12 +31,11 @@ matplotlib.use('Agg')
 import unittest
 import sys, os, cStringIO
 
-from cogent import DNA
+from cogent import DNA, LoadTree, LoadSeqs
 from cogent.core import alignment, alphabet, annotation
 from cogent.draw.linear import *
-
-from cogent import LoadTree
 from cogent.draw.dendrogram import *
+from cogent.draw.compatibility import partimatrix
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -57,9 +56,9 @@ def file_for_test(msg, baseline=False, prefixed=True):
     fname = msg.replace(' ', '_') + '.' + file_ext
     return os.path.join(dirname, fname)
 
-def display2png(display, kw):
+def fig2png(fig):
     f = cStringIO.StringIO()
-    display.makeFigure(**kw).savefig(f, format='png')
+    fig.savefig(f, format='png')
     return f.getvalue()
 
 def writefile(fname, content):
@@ -70,11 +69,11 @@ def writefile(fname, content):
     f.write(content)
     f.close()
 
-def exercise(msg, display, **kw):
-    display.makeFigure(**kw)
+def exercise(msg, fig):
+    pass
     
-def record(msg, display, **kw):
-    png = display2png(display, kw)
+def record(msg, fig):
+    png = fig2png(fig)
     fname = file_for_test(msg, True)
     writefile(fname, png)
 
@@ -88,9 +87,9 @@ class CheckOutput(object):
         self.showAll = showAll
         self.anyFailures = False
     
-    def __call__(self, msg, display, **kw):
+    def __call__(self, msg, fig):
         fname = file_for_test(msg, True)
-        observed = display2png(display, kw)
+        observed = fig2png(fig)
         if os.path.exists(fname):
             expected = open(fname, 'rb').read()
             different = observed != expected
@@ -140,6 +139,10 @@ class CheckOutput(object):
             else:
                 print "See draw_results/comparison.html"
 
+def do(msg, display, **kw):
+    fig = display.makeFigure(**kw)
+    test_figure(msg, fig)
+    
 
 def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
@@ -185,40 +188,41 @@ def green_cg(seq):
     result.append('k' * (len(seq)-last))
     return list(''.join(result))
 
+
 class DrawingTests(unittest.TestCase):
 
     def test_seqs(self):
         seqd = Display(seq)
-        fig('sequence wrapped at 50', 
+        do('sequence wrapped at 50', 
             seqd, rowlen=50)
         small = FontProperties(size=7, stretch='extra-condensed')
-        fig('squashed sequence', 
+        do('squashed sequence', 
             seqd.copy(seq_font=small, colour_sequences=True))
-        fig('seq display slice from 5 to 45 starts %s' % seq[5:8], 
+        do('seq display slice from 5 to 45 starts %s' % seq[5:8], 
             seqd[5:45])
 
     def test_alns(self):
         alignd = Display(align, colour_sequences=True, min_feature_height=10)
-        fig('coloured text alignment', 
+        do('coloured text alignment', 
             alignd)
-        fig('coloured alignment no text', 
+        do('coloured alignment no text', 
             alignd.copy(show_text=False))
-        fig('no text and no colour', 
+        do('no text and no colour', 
             alignd.copy(show_text=False, colour_sequences=False))
-        fig('no shapes', 
+        do('no shapes', 
             alignd.copy(show_text=False, draw_bases=False))
-        fig('no text or colour or shapes', 
+        do('no text or colour or shapes', 
             alignd.copy(show_text=False, colour_sequences=False, draw_bases=False))
-        fig('green seqs', 
+        do('green seqs', 
             alignd.copy(seq_color_callback=green_cg))
 
     def test_legend(self):
         from cogent.draw.legend import Legend
-        fig('Feature Legend', Legend())
+        do('Feature Legend', Legend())
 
     def test_dotplot(self):
         from cogent.draw.dotplot import Display2D
-        fig('2d', Display2D(seq, seq[:40], show_text=False, draw_bases=False))
+        do('2d', Display2D(seq, seq[:40], show_text=False, draw_bases=False))
 
     def test_trees(self):
         treestring = "((A:.1,B:.22)ab:.3,((C:.4,D:.5)cd:.55,E:.6)cde:.7,F:.2)"
@@ -236,17 +240,26 @@ class DrawingTests(unittest.TestCase):
             dendro = klass(t)
             dendro.getConnectingNode('Ccccccccccc', 'Eeeeeeeeeee').setCollapsed(
                 color="green", label="C, D and E")
-            fig(klass.__name__, dendro, shade_param="length", 
+            do(klass.__name__, dendro, shade_param="length", 
                 show_params=["length"])
  
         def callback(edge):
             return ["blue", "red"][edge.Name.startswith("A")]
-        fig("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
+        do("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
 
-
+    def test_partimatrix(self):
+        aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA)
+        species5 = ['Human','HowlerMon','Mouse','NineBande','DogFaced']
+        aln = aln.takeSeqs(species5)
+        aln = aln[:500]
+        fig = partimatrix(aln, samples=0, display=True, print_stats=False,
+                s_limit=10, title="brca1")
+        test_figure('compatibility', fig)
+        
+        
                 
 if __name__ != "__main__":
-    fig = exercise
+    test_figure = exercise
 else:
     myargs = []
     for arg in ['exercise', 'record', 'check', 'compare', 'view']:
@@ -259,22 +272,22 @@ else:
         sys.exit(1)
     action = myargs[0]
     if action == 'record':
-        fig = record
+        test_figure = record
     elif action == 'check':
-        fig = CheckOutput(True)
+        test_figure = CheckOutput(True)
     elif action == 'compare':
-        fig = CheckOutput(False)
+        test_figure = CheckOutput(False)
     elif action == 'view':
-        fig = CheckOutput(False, True)
+        test_figure = CheckOutput(False, True)
     elif action == 'exercise':
-        fig = exercise        
+        test_figure = exercise
     else:
         raise RuntimeError('Unknown action %s' % action)
-        
+    
     try:
         unittest.main()
     finally:
-        if hasattr(fig, 'report'):
-            fig.report()
+        if hasattr(test_figure, 'report'):
+            test_figure.report()
        
     
