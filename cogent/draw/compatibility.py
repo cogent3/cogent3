@@ -6,9 +6,16 @@ Jakobsen, Wilson & Easteal, Mol. Biol. Evol. 14(5), 1997
 """
 
 from __future__ import division
+import sys
+import math
 import numpy
 import numpy.random
 import operator
+import matplotlib.pyplot as plt
+import matplotlib.ticker
+import matplotlib.colors
+
+from cogent.draw.linear import Display
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -208,13 +215,15 @@ def boolean_similarity(matrix):
     both_false = numpy.inner(false, false)
     return both_true + both_false
     
-def main(alignment, display=False, samples=0, s_limit=0, title="",
-        include_incomplete=False):
-    print "%s sequences in %s bp alignment" % (
-            alignment.getNumSeqs(), len(alignment))
+def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
+        include_incomplete=False, print_stats=True, max_site_labels=50):
+    if print_stats:
+        print "%s sequences in %s bp alignment" % (
+                alignment.getNumSeqs(), len(alignment))
     (sites, columns, partitions) = binary_partitions(alignment)
-    print "%s unique binary partitions from %s informative sites" % (
-            len(partitions), len(sites))
+    if print_stats:
+        print "%s unique binary partitions from %s informative sites" % (
+                len(partitions), len(sites))
     partpart = min_edges(partitions)      # [partition,partition]
     partimatrix = partpart[columns,:]     # [site, partition]
     sitematrix = partimatrix[:,columns]   # [site, site]
@@ -222,13 +231,14 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
     # RETICULATE, JE 1996
     
     compatiblity = sitematrix <= 2
-    print "Overall compatibility %.6f" % intra_region_average(compatiblity)
-    if samples == 0:
-        print "Neighbour similarity score = %.6f" % \
-                neighbour_similarity_score(compatiblity)
-    else:
-        print "Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
-                nss_significance(compatiblity, samples=samples)
+    if print_stats:
+        print "Overall compatibility %.6f" % intra_region_average(compatiblity)
+        if samples == 0:
+            print "Neighbour similarity score = %.6f" % \
+                    neighbour_similarity_score(compatiblity)
+        else:
+            print "Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
+                    nss_significance(compatiblity, samples=samples)
         
     # PARTIMATRIX, JWE 1997
     
@@ -275,10 +285,6 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
     partitions = [partitions[i] for i in order]
     
     if display:
-        import cogent.draw
-        import matplotlib.pyplot as plt
-        import matplotlib.ticker
-        import matplotlib.colors
         figwidth = 8.0
 
         (c_size, p_size) = partimatrix.shape
@@ -296,7 +302,8 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
             extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
-        genemap = cogent.draw.Display(alignment, recursive=s_size>0)
+        genemap = Display(alignment, recursive=s_size>0, 
+                colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
         bar_height = 0.5
         link_width = 0.3
@@ -320,16 +327,16 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         (p_width, s_height) = (p_size*x_scale, s_size*y_scale)
         vert = (x_margin + xpad + c_width)
         top = (y_margin + c_height + ypad)
-        fig = plt.figure(1, figsize=(figwidth,figheight))
+        fig = plt.figure(figsize=(figwidth,figheight))
         kw = dict(axisbg=fig.get_facecolor())
-        axC = plt.axes([x_margin, y_margin, c_width, c_height], **kw)
-        axP = plt.axes([vert, y_margin, p_width, c_height], 
+        axC = fig.add_axes([x_margin, y_margin, c_width, c_height], **kw)
+        axP = fig.add_axes([vert, y_margin, p_width, c_height], 
                 sharey=axC, **kw)
-        axS = plt.axes([vert, top, p_width, s_height or .001], 
+        axS = fig.add_axes([vert, top, p_width, s_height or .001], 
                 sharex=axP, **kw)
-        axB = plt.axes([vert, top+ypad+s_height, p_width, bar_height], 
+        axB = fig.add_axes([vert, top+ypad+s_height, p_width, bar_height], 
                 sharex=axP, **kw)
-        axZ = plt.axes([vert+p_width, y_margin, link_width, c_height], 
+        axZ = fig.add_axes([vert+p_width, y_margin, link_width, c_height], 
             frameon=False)
             
         axA = genemap.asAxes(
@@ -362,12 +369,16 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
             axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         
         # Site dimension
-        isl = integer_tick_label(sites)
-        for axis in [axC.yaxis, axC.xaxis]:
-            axis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
-            axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-            axis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
-            axis.set_major_formatter(matplotlib.ticker.FuncFormatter(isl))
+        if c_size > max_site_labels:
+            for axis in [axC.yaxis, axC.xaxis]:
+                axis.set_visible(False)
+        else:
+            isl = integer_tick_label(sites)
+            for axis in [axC.yaxis, axC.xaxis]:            
+                axis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
+                axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+                axis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
+                axis.set_major_formatter(matplotlib.ticker.FuncFormatter(isl))
         
         # Species dimension
         if s_size:
@@ -459,28 +470,36 @@ def main(alignment, display=False, samples=0, s_limit=0, title="",
         for ax in [axC, axP, axS, axB, axZ, axA]:
             ax.set_navigate(False)
 
-        plt.show()
+        return fig
+
     
 if __name__ == '__main__':
     from cogent import LoadSeqs, DNA
     import sys, optparse, os.path
-    parser = optparse.OptionParser("usage: %prog [-ds] alignment")
+    parser = optparse.OptionParser("usage: %prog [options] alignment")
+    parser.add_option("-p", "--print", action="store_true", 
+            default=True, dest="print_stats", 
+            help="print neighbour similarity score etc.")
     parser.add_option("-d", "--display", action="store_true", 
             default=False, dest="display", 
             help="show matrices via matplotlib")
     parser.add_option("-i", "--incomplete", action="store_true", 
             default=False, dest="include_incomplete", 
-            help="include partitions containing ambiguities") 
+            help="include partitions containing ambiguities")
     parser.add_option("-t", "--taxalimit", 
                 dest="s_limit", default=20, type="int", 
-                help="maximum number of species that can be displayed") 
+                help="maximum number of species that can be displayed")
     parser.add_option("-s", "--samples",
                 dest="samples", default=10000, type="int",
                 help="samples for significance test")
     (options, args) = parser.parse_args()
-    if len(args) == 1:
-        alignment = LoadSeqs(args[0], moltype=DNA)
-        kw = vars(options)
-        kw['title'] = os.path.splitext(os.path.basename(args[0]))[0]
-        main(alignment, **kw)
-    
+    if len(args) != 1:
+        parser.print_help()
+        sys.exit(1)        
+    alignment = LoadSeqs(args[0], moltype=DNA)
+    kw = vars(options)
+    kw['title'] = os.path.splitext(os.path.basename(args[0]))[0]
+    fig = partimatrix(alignment, **kw)
+    if fig:
+        plt.show()
+
