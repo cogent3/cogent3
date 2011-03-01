@@ -14,11 +14,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 58
+Release = 61
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount('127.0.0.1', username, password)
+    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
+    account = HostAccount(host, username, password)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -54,7 +54,7 @@ class TestCompara(ComparaTestBase):
                                         StableId='ENSMUSG00000030157')
         orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
                         Relationship='ortholog_one2many')
-        self.assertEquals(len(orthologs.Members),2)
+        self.assertTrue(len(orthologs.Members) < 4)
     
     def test_get_collection(self):
         brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
@@ -165,9 +165,10 @@ class TestSyntenicRegions(TestCase):
                  'Pan troglodytes:chromosome:16:48943-49032:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACACTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGAATTTGGACC-----------CAGTCTCAGGCCAAGTA'}]
             ]
+        
         for coord, expect in coords_expected[1:]:
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=467, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=494, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
