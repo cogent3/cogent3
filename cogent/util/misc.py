@@ -1516,7 +1516,7 @@ def parse_command_line_parameters(**kwargs):
          default is provided, the option is required.
         
         script_description
-        script_usage
+        script_usage = [("","","")]
         version
         required_options=None
         optional_options=None
@@ -1540,8 +1540,8 @@ def parse_command_line_parameters(**kwargs):
     """
     # Get the options, or defaults if none were provided.
     script_description = set_required_parameter('script_description',kwargs)
-    script_usage = set_required_parameter('script_usage',kwargs)
     version = set_required_parameter('version',kwargs)
+    script_usage = set_parameter('script_usage',kwargs,[("","","")])
     required_options = set_parameter('required_options',kwargs,[])
     optional_options = set_parameter('optional_options',kwargs,[])
     suppress_verbose = set_parameter('suppress_verbose',kwargs,False)
