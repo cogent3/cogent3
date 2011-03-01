@@ -7,7 +7,7 @@ from numpy import array
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Gavin Huttley", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Rob Knight"
@@ -15,9 +15,21 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 three_to_one = {'ALA':'A','CYS':'C','ASP':'D','GLU':'E', 'PHE':'F', 'GLY':'G',
-    'HIS':'H','ILE':'I','LYS':'K','LEU':'L','MET':'M','ASN':'N','PRO':'P',
+    'HIS':'H','ILE':'I','LYS':'K','LEU':'L','FME':'M','MET':'M','MSE':'M',
+    'ASN':'N','PRO':'P',
     'GLN':'Q','ARG':'R','SER':'S','THR':'T','SEC':'U','VAL':'V','TRP':'W',
     'TYR':'Y'}
+nucleotides = {'A':'A','C':'C','G':'G','U':'U','T':'T','I':'I',\
+    '1MA':'A','2MA':'A','SRA':'A','MIA':'A','MAD':'A','A2M':'A','AVC':'A',
+    'PPU':'A','AET':'A','A23':'A','5AA':'A','T6A':'A','MTU':'A','LCA':'A',
+    '5MC':'C','CCC':'C','OMC':'C','CH':'C','10C':'C',
+    '1MG':'G','QUO':'G','G7M':'G','GDP':'G','YG':'G','7MG':'G','OMG':'G',
+    'M2G':'G','2MG':'G','GTP':'G','YYG':'G',
+    'PSU':'U','H2U':'U','5MU':'U','4SU':'U','ONE':'U','+U':'U','DHU':'U',
+    'IU':'U','SSU':'U','OMU':'U','UR3':'U','MNU':'U','5BU':'U','S4U':'U',
+    'UMS':'U'
+    }
+
 
 def get_aligned_muscle(seq1,seq2):
     """Returns aligned sequences and frac_same using MUSCLE.
@@ -37,7 +49,7 @@ def get_aligned_muscle(seq1,seq2):
     return seq1_aligned,seq2_aligned,frac_same
 
 def get_chains(lines):
-    """From list of lines in pdb records, returns dict of {chain:(pos:residue)}.
+    """From list of lines in pdb records, returns dict {chain:[(pos,residue)]}.
 
     Keeps original 1-based numbering. All residues will be returned.
     """
@@ -47,7 +59,7 @@ def get_chains(lines):
     prev_chains=[]
     for line in lines:
         #skip if not an atom line
-        if not line.startswith('ATOM'):
+        if not (line.startswith('ATOM') or line.startswith('HETATM')):
             #If chain terminated, record chain.
             if line.startswith('TER'):
                 ter=True
@@ -57,7 +69,11 @@ def get_chains(lines):
         else:
             residue = line[17:20].strip()
             chain = line[21].strip()
-            resnum = int(line[22:26])
+            try:
+                resnum = int(line[22:27].strip())
+            #Some resnum columns have non-integer values
+            except ValueError:
+                resnum = line[22:27].strip()
             #Continue until next chain is found.
             if ter:
                 if chain in prev_chains:
@@ -92,20 +108,22 @@ def chains_to_seqs(chains):
     result = {}
     chain_to_seq_type = {}
     for chain_id, residues in chains.items():
-
-        curr_seq = []
-
-        for res_id, seq in residues:
-            seq = seq.strip()
-            if len(seq) == 1:
-                curr_seq.append(seq)
-            else:
-                curr_seq.append(three_to_one.get(seq, '?'))
         seq_type = None
-        if seq in three_to_one:
+        curr_seq = []
+        
+        first_res = residues[0][1].strip()
+        if first_res in three_to_one:
             seq_type = 'Protein'
         else:
             seq_type = 'Nucleotide'
+            
+        for res_id, seq in residues:
+            seq = seq.strip()
+            if seq_type == 'Nucleotide':
+                curr_seq.append(nucleotides.get(seq, 'N'))
+            else:
+                curr_seq.append(three_to_one.get(seq, '?'))
+
         result[chain_id] = ''.join(curr_seq)
         chain_to_seq_type[chain_id]=seq_type
     return result, chain_to_seq_type
