@@ -13,11 +13,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 58
+Release = 61
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount('127.0.0.1', username, password)
+    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
+    account = HostAccount(host, username, password)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -55,15 +55,16 @@ class TestDatabase(TestCase):
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_58_37c.analysis': 61L,
-                  'homo_sapiens_core_58_37c.seq_region': 55616L,
-                  'homo_sapiens_core_58_37c.assembly': 102090L,
-                  'homo_sapiens_core_58_37c.qtl': 0L}
+        expect = {'homo_sapiens_core_61_37f.analysis': 61L,
+                  'homo_sapiens_core_61_37f.seq_region': 55616L,
+                  'homo_sapiens_core_61_37f.assembly': 102090L,
+                  'homo_sapiens_core_61_37f.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
         got = dict(human.getTablesRowCount(table_names).getRawData())
-        self.assertEquals(got, expect)
+        for dbname in expect:
+            self.assertTrue(got[dbname] >= expect[dbname])
     
 
 if __name__ == "__main__":

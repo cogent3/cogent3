@@ -16,11 +16,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 58
+Release = 61
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount('127.0.0.1', username, password)
+    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
+    account = HostAccount(host, username, password)
 else:
     account = get_ensembl_account(release=Release)
 

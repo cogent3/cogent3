@@ -992,7 +992,8 @@ class Variation(_Region):
             return
         
         self._table_rows['allele_table'] = records
-        data = [(rec['allele'], rec['frequency'], rec['sample_id']) for rec in records]
+        data = [(rec['allele'], rec['frequency'], rec['sample_id']) 
+                for rec in records if rec['sample_id']]
         table = Table(header='allele freq sample_id'.split(), rows=data)
         self._cached[('AlleleFreqs')] = table.sorted(['sample_id', 'allele'])
     

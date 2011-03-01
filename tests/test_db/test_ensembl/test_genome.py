@@ -17,11 +17,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 58
+Release = 61
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount('127.0.0.1', username, password)
+    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
+    account = HostAccount(host, username, password)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -36,13 +36,13 @@ class GenomeTestBase(TestCase):
 class TestGenome(GenomeTestBase):
     
     def test_other_features(self):
-        """should correctly return record for ENSESTG00007281025"""
-        est = self.human.getEstMatching(StableId='ENSESTG00007281025')
-        direct = list(est)[0]
-        ests = self.human.getFeatures(feature_types='est', CoordName=8,
-                                                Start=145164000, End=145166000)
-        stable_ids = [est.StableId for est in ests]
-        self.assertContains(stable_ids, direct.StableId)
+       """should correctly return record for ENSESTG00000035043"""
+       est = self.human.getEstMatching(StableId='ENSESTG00000035043')
+       direct = list(est)[0]
+       ests = self.human.getFeatures(feature_types='est', CoordName=8,
+                                               Start=121470000, End=121600000)
+       stable_ids = [est.StableId for est in ests]
+       self.assertContains(stable_ids, direct.StableId)
     
     def test_genome_comparison(self):
         """different genome instances with same CoreDb connection are equal"""
@@ -112,7 +112,6 @@ class TestGenome(GenomeTestBase):
         """get correct sequence when contig and chromosome strands differ"""
         gene = self.gorilla.getGeneByStableId('ENSGGOG00000001953')
         cds = gene.CanonicalTranscript.Cds
-        print '## yay'
         self.assertEquals(str(cds), 'ATGGCCCAGGATCTCAGCGAGAAGGACCTGTTGAAGATG'
         'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
         'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
@@ -336,7 +335,7 @@ class TestVariation(GenomeTestBase):
     snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'C/A', 'CAGCTCCAGCTC/-']
     snp_aa_alleles = ['G/R', 'P/L', 'Y/C', "V/F", "GAGAV/V"]
-    snp_effects = ['INTRONIC']*3+[['REGULATORY_REGION', 'NON_SYNONYMOUS_CODING']]+['NON_SYNONYMOUS_CODING']
+    snp_effects = ['NON_SYNONYMOUS_CODING']*3+[['REGULATORY_REGION', 'NON_SYNONYMOUS_CODING']]+['NON_SYNONYMOUS_CODING']
     snp_nt_len = [1, 1, 1, 1, 12]
     map_weights = [1,1,1,1,1]
     snp_flanks = [
@@ -382,9 +381,14 @@ class TestVariation(GenomeTestBase):
     
     def test_validation_status(self):
         """should return correct validation status"""
-        data = (('rs34213141', set(['freq']), lambda x: set([x])),
-                ('rs12791610', set(['hapmap']), lambda x: set([x])),
-                ('rs10792769', set(['cluster', 'freq', 'doublehit']), set))
+        def func(x):
+            if type(x) == str or x is None:
+                x = [x]
+            return set(x)
+        
+        data = (('rs34213141', set(['freq']), func),
+                ('rs12791610', set(['cluster', 'freq']), func),
+                ('rs10792769', set([None]), func))
         for name, status, conv in data:
             snp = list(self.human.getVariation(Symbol=name))[0]
             self.assertTrue(status <= conv(snp.Validation))
@@ -411,7 +415,8 @@ class TestVariation(GenomeTestBase):
         """exercising getting AlleleFreq data"""
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
         expect = dict(A=0.030303, G=0.969697)
-        allele_freqs = snp.AlleleFreqs.getRawData(['allele', 'freq'])
+        allele_freqs = snp.AlleleFreqs
+        allele_freqs = allele_freqs.getRawData(['allele', 'freq'])
         for allele, freq in allele_freqs:
             self.assertFloatEqual(freq, expect[allele], eps=1e-3)
         
