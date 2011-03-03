@@ -4,22 +4,22 @@ from cogent.db.util import UrlGetter
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Rob Knight"]
+__credits__ = ["Rob Knight","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-rfam_base='http://www.sanger.ac.uk/cgi-bin/Rfam/getalignment.pl?'
-
-rfam_formats = dict.fromkeys('link mul stock fal msf download belvu jalview'.split())
+rfam_base='http://rfam.sanger.ac.uk/family/alignment/download/format?'
+rfam_formats = dict.fromkeys('stockholm pfam fasta fastau')
 rfam_types = dict.fromkeys(['seed','full'])
 
 class Rfam(UrlGetter):
     """Returns a pdb file."""
-    Defaults={'type':'seed','format':'stock', 'acc':None}
-    PrintedFields=dict.fromkeys('acc type format'.split())
+    Defaults={'alnType':'seed','format':'stockholm','acc':None,'nseLabels':'1',
+        'download':'0'}
+    PrintedFields=dict.fromkeys('acc alnType nseLabels format download'.split())
     BaseUrl = rfam_base
 
     def __getitem__(self, item):
