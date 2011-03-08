@@ -18,8 +18,15 @@ __status__ = "Development"
 # integer values and can thus be converted.
 row_converter = ConvertFields([(3, int), (6, int)])
 
-def BowtieOutputParser(data):
-    """yields a header and row of data from the default bowtie output"""
+def BowtieOutputParser(data, row_converter=row_converter):
+    """yields a header and row of data from the default bowtie output
+    
+    Arguments:
+        - row_converter: if not provided, uses a default converter which casts
+          the Offset and Other Matches fields to ints. If set to None, all
+          returned data will be strings (this is faster).
+    """
+    
     header = ['Query Name', 'Strand Direction','Reference Name', 'Offset',
               'Query Seq', 'Quality', 'Other Matches', 'Mismatches']
     yield header
@@ -29,7 +36,9 @@ def BowtieOutputParser(data):
         data = open(data)
     
     for record in data:
-        row = row_converter(record.rstrip('\n').split('\t'))
+        row = record.rstrip('\n').split('\t')
+        if row_converter:
+            row = row_converter(row)
         
         # convert the last element to a list of strings
         if row[-1] is '':
@@ -40,9 +49,15 @@ def BowtieOutputParser(data):
         yield row
     
 
-def BowtieToTable(data):
-    """Converts bowtie output to a table"""
-    parser = BowtieOutputParser(data)
+def BowtieToTable(data, row_converter=row_converter):
+    """Converts bowtie output to a table
+    
+    Arguments:
+        - row_converter: if not provided, uses a default converter which casts
+          the Offset and Other Matches fields to ints. If set to None, all
+          returned data will be strings (this is faster).
+    """
+    parser = BowtieOutputParser(data, row_converter=row_converter)
     header = parser.next()
     rows = [row for row in parser]
     table = LoadTable(header=header, rows=rows)
