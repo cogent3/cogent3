@@ -832,7 +832,31 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 2)
         self.assertEqual(parent.removeNode(children[0]), True)
         self.assertEqual(len(parent), 1)
-    
+   
+    def test_lowestCommonAncestor(self):
+        """TreeNode lowestCommonAncestor should return LCA for set of tips"""
+        t1 = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
+        t2 = t1.copy()
+        t3 = t1.copy()
+        t4 = t1.copy()
+        input1 = ['a'] # return self
+        input2 = ['a','b'] # return e
+        input3 = ['b','c'] # return d
+        input4 = ['a','h','g'] # return j
+        exp1 = t1.getNodeMatchingName('a')
+        exp2 = t2.getNodeMatchingName('e')
+        exp3 = t3.getNodeMatchingName('d')
+        exp4 = t4
+        obs1 = t1.lowestCommonAncestor(input1)
+        obs2 = t2.lowestCommonAncestor(input2)
+        obs3 = t3.lowestCommonAncestor(input3)
+        obs4 = t4.lowestCommonAncestor(input4)
+        self.assertEqual(obs1, exp1)
+        self.assertEqual(obs2, exp2)
+        self.assertEqual(obs3, exp3)
+        self.assertEqual(obs4, exp4)
+
+
     def test_lastCommonAncestor(self):
         """TreeNode LastCommonAncestor should provide last common ancestor"""
         nodes, tree = self.TreeNode, self.TreeRoot

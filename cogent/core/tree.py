@@ -576,7 +576,41 @@ class TreeNode(object):
                 return curr
             curr = curr._parent
         return None
-    
+   
+    def lowestCommonAncestor(self, tipnames):
+        """Lowest common ancestor for a list of tipnames
+
+        This should be around O(H sqrt(n)), where H is height and n is the
+        number of tips passed in.
+        """
+        if len(tipnames) == 1:
+            return self.getNodeMatchingName(tipnames[0])
+
+        tipnames = set(tipnames)
+        tips = [tip for tip in self.tips() if tip.Name in tipnames]
+
+        if len(tips) == 0:
+            return None
+
+        for t in tips:
+            prev = t
+            curr = t.Parent
+
+            while curr and not hasattr(curr,'black'):
+                setattr(curr,'black',[prev])
+                prev = curr
+                curr = curr.Parent
+
+            # increase black count, multiple children lead to here
+            if curr:
+                curr.black.append(prev)
+
+        curr = self
+        while len(curr.black) == 1:
+            curr = curr.black[0]
+
+        return curr
+
     lca = lastCommonAncestor #for convenience
     
     #support for more advanced tree operations
@@ -1256,7 +1290,7 @@ class TreeNode(object):
             raise TreeError("No node named '%s' in %s" %
                     (name, self.getTipNames()))
         return node
-    
+   
     def getConnectingNode(self, name1, name2):
         """Finds the last common ancestor of the two named edges."""
         edge1 = self.getNodeMatchingName(name1)
