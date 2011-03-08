@@ -51,7 +51,25 @@ class BowtieOutputTest(TestCase):
             self.assertEqual(query_offset, expected[index][3])
             index += 1
         
-    
+    def test_no_row_converter(self):
+        """setting row_converter=None returns strings"""
+        # straight parser
+        parser = BowtieOutputParser(fname, row_converter=None)
+        header = parser.next()
+        for index, row in enumerate(parser):
+            query_offset = row[3]
+            other_matches = row[6]
+            self.assertEqual(query_offset, str(expected[index][3]))
+            self.assertEqual(other_matches, str(expected[index][6]))
+        
+        # table
+        table = BowtieToTable(fname, row_converter=None)
+        for index, row in enumerate(table):
+            query_offset = row['Offset']
+            other_matches = row['Other Matches']
+            self.assertEqual(query_offset, str(expected[index][3]))
+            self.assertEqual(other_matches, str(expected[index][6]))
+        
 
 if __name__ == "__main__":
     main()
