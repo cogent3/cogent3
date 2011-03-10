@@ -24,7 +24,8 @@ New Features
   are available. Substantial speedups are achieved. These implementations
   do not support obtaining the rate matrix. Use the older style implementation
   if you require that (toggled by the rate_matrix_required argument).
-* Added parsers for bowtie and for BLAT's PSL format
+* Added fit_function function. This allows to fit any model to a x and y 
+  dataset using simplex to reduce the error between the model and the data.
 
 Changes
 -------

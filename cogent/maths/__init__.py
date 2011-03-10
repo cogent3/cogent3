@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-__all__ = ['function_optimisation',
+__all__ = ['fit_function'
+           'function_optimisation',
            'geometry',
            'markov',
            'matrix_exponentiation',
@@ -18,7 +19,7 @@ __all__ = ['function_optimisation',
 __author__ = ""
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
-                    "Rob Knight", "Edward Lang", "Sandra Smit"]
+                    "Rob Knight", "Edward Lang", "Sandra Smit", "Antonio Gonzalez Pena"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
