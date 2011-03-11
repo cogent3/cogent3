@@ -62,12 +62,12 @@ _gf_field_names = {'AC':'AccessionNumber',\
                 'SQ':'Sequences',\
                 'DC':'DatabaseComment',\
                 'DR':'DatabaseReference',\
-                'RC':'ReferenceComment',\
+                'RC':None,\
                 'RN':'ReferenceNumber',\
                 'RM':'MedlineRef',\
-                'RT':'ReferenceTitle',\
-                'RA':'ReferenceAuthor',\
-                'RL':'ReferenceLocation',\
+                'RT':None,\
+                'RA':None,\
+                'RL':None,\
                 'PI':'PreviousIdentifications',\
                 'KW':'Keywords',\
                 'CC':'Comment',\
@@ -127,7 +127,7 @@ def GfToInfo(gf_lines,strict=True):
         if not line:
             continue
         try:
-            init,feature,content = line.split(' ',2)
+            init,feature,content = line.split(None,2)
             if not init == '#=GF' or len(feature) != 2:
                 raise RecordError
         except:
@@ -170,7 +170,7 @@ def GcToInfo(gc_lines,strict=True):
         if not line:
             continue
         try:
-            init,feature,content = line.split(' ',2)
+            init,feature,content = line.split(None,2)
             if not init == '#=GC':
                 raise RecordError
         except:
@@ -206,7 +206,7 @@ def GsToInfo(gs_lines,strict=True):
         if not line:
             continue
         try:
-            init,seqname,feature,content = line.split(' ',3)
+            init,seqname,feature,content = line.split(None,3)
             if not init == '#=GS' or len(feature) != 2:
                 raise RecordError
         except:
@@ -220,8 +220,10 @@ def GsToInfo(gs_lines,strict=True):
                 initial_info[feature][seqname].append(content.strip())
             else:
                 initial_info[feature]= {seqname:[content.strip()]}
-        else:
+        elif feature not in initial_info:
             initial_info[feature]= {seqname:content.strip()}
+        else:
+            initial_info[feature][seqname]=content.strip()
             
     # transform initial dict into final one
     # throw away useless information; group information
@@ -248,7 +250,7 @@ def GrToInfo(gr_lines,strict=True):
         if not line:
             continue
         try:
-            init,seqname,feature,content = line.split(' ',3)
+            init,seqname,feature,content = line.split(None,3)
             if not init == '#=GR' or len(feature) != 2:
                 raise RecordError
         except:
