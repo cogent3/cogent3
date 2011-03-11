@@ -181,7 +181,6 @@ class StockholmParserTests(TestCase):
         info = GfToInfo(self._fake_headers)
         self.assertEqual(info['AccessionNumber'], 'RF00001')
         self.assertEqual(info['Identification'], '5S_rRNA')
-        self.assertEqual(info['ReferenceTitle'], '5S Ribosomal RNA Database.')
         self.assertEqual(info['Comment'], 'This is a short comment')
         self.assertEqual(info['Author'], 'Griffiths-Jones SR')
         self.assertEqual(info['Sequences'], '606')
