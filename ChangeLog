@@ -26,6 +26,8 @@ New Features
   if you require that (toggled by the rate_matrix_required argument).
 * Added fit_function function. This allows to fit any model to a x and y 
   dataset using simplex to reduce the error between the model and the data.
+* Added parsers for bowtie and for BLAT's PSL format
+* Table can now read/write gzipped files.
 
 Changes
 -------

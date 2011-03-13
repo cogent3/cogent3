@@ -628,6 +628,22 @@ A few things to note about the delimited file saving: formatting arguments are l
 
 We can read in a delimited format using a custom reader. There are two approaches. The first one allows specifying different type conversions for different columns. The second allows specifying a whole line-based parser.
 
+You can also read and write tables in gzip compressed format. This can be done simply by ending a filename with '.gz' or specifying ``compress=True``. We write a compressed file the two different ways and read it back in.
+
+.. doctest::
+    
+    >>> t2.writeToFile('t2.csv.gz', sep=',')
+    >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
+    ...                 with_legend = True)
+    >>> t2_gz.Shape == t2.Shape
+    True
+    >>> t2.writeToFile('t2.csv', sep=',', compress=True)
+    >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True, 
+    ...                 with_legend = True)
+    >>> t2_gz.Shape == t2.Shape
+    True
+
+
 Defining a custom reader with type conversion for each column
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1851,7 +1867,8 @@ We directly test the latex formatting.
     :hide:
     
     >>> import os
-    >>> to_delete = ['t3.pickle', 't2.csv', 't3.tab', 'test3b.txt']
+    >>> to_delete = ['t3.pickle', 't2.csv', 't2.csv.gz', 't3.tab',
+    ...              'test3b.txt']
     >>> for f in to_delete:
     ...     try:
     ...         os.remove(f)
