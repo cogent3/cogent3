@@ -2,6 +2,7 @@
 
 import cPickle, csv
 from record_finder import is_empty
+from gzip import GzipFile
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -131,7 +132,11 @@ def load_delimited(filename, header = True, delimiter = ',',
     if limit is not None:
         limit += 1 # don't count header line
     
-    f = file(filename, "U")
+    if filename.endswith('gz'):
+        f = GzipFile(filename, 'rb')
+    else:
+        f = file(filename, "U")
+    
     reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
     rows = []
     num_lines = 0

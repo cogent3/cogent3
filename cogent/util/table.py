@@ -9,6 +9,8 @@ Table can read pickled and delimited formats.
 """
 from __future__ import division
 import cPickle, csv
+from gzip import GzipFile
+
 import numpy
 from cogent.format import table as table_format
 
@@ -307,7 +309,7 @@ class Table(DictArray):
                                       compact=compact)
     
     def writeToFile(self, filename, mode = 'w', writer = None, format = None,
-                 sep = None, **kwargs):
+                 sep = None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
         is provided, unformatted values are written to file in order to preserve
@@ -319,14 +321,28 @@ class Table(DictArray):
               pickle.
             - writer: a function for formatting the data for output.
             - sep: a character delimiter for fields.
+            - compress: if True, gzips the file and appends .gz to the
+              filename (if not already added).
         """
+        compress = compress or filename.endswith('.gz')
         
-        outfile = file(filename, mode)
+        if compress:
+            if not filename.endswith('.gz'):
+                filename = '%s.gz' % filename
+            mode = ['wb', mode][mode == 'w']
+            outfile = GzipFile(filename, mode)
+        else:
+            outfile = file(filename, mode)
+        
         if format is None:
             # try guessing from filename suffix
+            if compress:
+                index = -2
+            else:
+                index = -1
             suffix = filename.split('.')
             if len(suffix) > 1:
-                format = suffix[-1]
+                format = suffix[index]
         
         if writer:
             rows = self.getRawData()
