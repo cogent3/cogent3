@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""Unit tests for matrix logarithm."""
+"""Unit tests for fit function.
+"""
 from numpy import array, arange, exp
 from numpy.random import rand
 from cogent.util.unit_test import TestCase, main
