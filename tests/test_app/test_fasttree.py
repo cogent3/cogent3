@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Tests for FastTree v1.1 application controller.  
-Also functions on v2.0.1 and v2.1.0"""
+Also functions on v2.0.1, v2.1.0 and v2.1.3"""
 
 from shutil import rmtree
 from os import getcwd

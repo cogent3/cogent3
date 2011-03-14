@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Application controller for FastTree
 
-designed for FastTree v1.1.0 .  Also functions with v2.0.1, and v2.1.0,
+designed for FastTree v1.1.0 .  Also functions with v2.0.1, v2.1.0, and v2.1.3
 though only with basic functionality"""
 
 from cogent.app.parameters import ValuedParameter, FlagParameter, \
