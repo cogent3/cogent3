@@ -128,7 +128,7 @@ def GfToInfo(gf_lines,strict=True):
             continue
         try:
             init,feature,content = line.split(None,2)
-            if not init == '#=GF' or len(feature) != 2:
+            if not init == '#=GF':
                 raise RecordError
         except:
             if strict:
@@ -207,7 +207,7 @@ def GsToInfo(gs_lines,strict=True):
             continue
         try:
             init,seqname,feature,content = line.split(None,3)
-            if not init == '#=GS' or len(feature) != 2:
+            if not init == '#=GS':
                 raise RecordError
         except:
             if strict:
@@ -251,7 +251,7 @@ def GrToInfo(gr_lines,strict=True):
             continue
         try:
             init,seqname,feature,content = line.split(None,3)
-            if not init == '#=GR' or len(feature) != 2:
+            if not init == '#=GR':
                 raise RecordError
         except:
             if strict:
@@ -302,7 +302,7 @@ def is_seq_line(line):
 
 def is_structure_line(line):
     """Returns True if line is a structure line"""
-    return line.startswith('#=GC SS_cons')
+    return line.startswith('#=GC SS_cons ')
 
 def MinimalStockholmParser(infile,strict=True,seq_constructor=Rna):
     """Yield successive records as (gf, gc, gs, gr, sequences, structure).

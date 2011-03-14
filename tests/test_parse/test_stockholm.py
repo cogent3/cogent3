@@ -165,7 +165,8 @@ class StockholmParserTests(TestCase):
         s = '#=GC SS_cons\
             <<<<<<<<<........<<.<<<<.<...<.<...<<<<.<.<.......'
         self.assertEqual(is_structure_line(s), True)
-        self.assertEqual(is_structure_line('#=GC SS_cons'), True)
+        self.assertEqual(is_structure_line('#=GC SS_cons'), False)
+        self.assertEqual(is_structure_line('#=GC SS_cons2'), False)
         self.assertEqual(is_structure_line('#=GC SS_cons '), True)
 
         self.assertEqual(is_structure_line(''), False)
@@ -218,7 +219,7 @@ class StockholmParserTests(TestCase):
 
     def test_GsToInfo_invalid_data(self):
         """GsToInfo: correctly raises error when necessary """
-        invalid_headers = [['#=GS BPS 0 10 cwW CC'],['#=GSACRF00001']]
+        invalid_headers = [['#=GSBPS 0 10 cwW CC'],['#=GSACRF00001']]
         for h in invalid_headers:
             self.assertRaises(RecordError, GsToInfo, h)
 
@@ -272,12 +273,12 @@ class StockholmParserTests(TestCase):
         self.assertEqual(len(list(MinimalStockholmParser(\
             self._fake_record_bad_sequence_1,strict=False))[0][1].NamedSeqs), 3)            
 
-    def test_MinimalStockholmParser_strict_invalid_structure(self):
-        """MinimalStockholmParser: toggle strict functions w/ invalid structure
+    def test_StockholmParser_strict_invalid_structure(self):
+        """StockholmParser: toggle strict functions w/ invalid structure
         """
         #strict = True
         self.assertRaises(RecordError,list,\
-            MinimalStockholmParser(self._fake_record_bad_structure_1))
+            StockholmParser(self._fake_record_bad_structure_1))
 
         # strict = False
         self.assertEqual(list(MinimalStockholmParser(\
@@ -505,7 +506,7 @@ AF090431.1/222-139             AGCAAGUUUGAUCCCGACCCGU..AGGGCCGGGAUUU
 fake_record_bad_header_1 ="""# STOCKHOLM 1.0
 
 #=GF AC   RF00014
-#=GF AUMifsud W
+#=GF AUMifsudW
 
 U17136.1/898-984               AACACAUCAGAUUUCCUGGUGUAACGAAUUUUUUAAGUGCUUCUUGCUUA
 M15749.1/155-239               AACGCAUCGGAUUUCCCGGUGUAACGAA.UUUUCAAGUGCUUCUUGCAUU
