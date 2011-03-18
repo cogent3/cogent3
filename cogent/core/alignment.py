@@ -1402,6 +1402,8 @@ class Aligned(object):
             self.Info = data.Info
         if hasattr(data, 'Name'):
             self.Name = data.Name
+        if hasattr(data, 'MolType'):
+            self.MolType = data.MolType
 
     def copy(self, memo=None, _nil=[], constructor='ignored'):
         """Returns a shallow copy of self
