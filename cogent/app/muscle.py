@@ -209,7 +209,7 @@ class Muscle(CommandLineApplication):
         # Diagonal optimization
         '-diags':FlagParameter(Prefix='-',Name='diags'),
         '-diags1':FlagParameter(Prefix='-',Name='diags1'),
-        '-diags2':FlagParameter(Prefix='-',Name='diags1'),
+        '-diags2':FlagParameter(Prefix='-',Name='diags2'),
 
         
         # Terminal gaps penalized with full penalty.
