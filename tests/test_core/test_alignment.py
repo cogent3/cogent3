@@ -405,7 +405,13 @@ class SequenceCollectionBaseTests(object):
         #should be able to negate
         a = self.ragged_padded.takeSeqs('bc', negate=True)
         self.assertEqual(a, {'a':'AAAAAA'})
-
+    
+    def test_takeSeqs_moltype(self):
+        """takeSeqs should preserve the MolType"""
+        orig = self.Class(data={'a':'CCCCCC','b':'AAA---', 'c':'AAAA--'}, MolType=DNA)
+        subset = orig.takeSeqs('ab')
+        self.assertEqual(set(subset.MolType), set(orig.MolType))
+    
     def test_getSeqIndices(self):
         """SequenceCollection getSeqIndices should return names of seqs where f(row) is True"""
         srp = self.ragged_padded
