@@ -576,6 +576,9 @@ class SequenceCollection(object):
         """
         get = self.NamedSeqs.__getitem__
         result = {}
+        if 'MolType' not in kwargs:
+            kwargs['MolType'] = self.MolType
+        
         if negate:
             #copy everything except the specified seqs
             negated_names = []
@@ -1402,8 +1405,8 @@ class Aligned(object):
             self.Info = data.Info
         if hasattr(data, 'Name'):
             self.Name = data.Name
-        if hasattr(data, 'MolType'):
-            self.MolType = data.MolType
+        # if hasattr(data, 'MolType'):
+        #     self.MolType = data.MolType
 
     def copy(self, memo=None, _nil=[], constructor='ignored'):
         """Returns a shallow copy of self
