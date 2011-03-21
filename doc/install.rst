@@ -3,6 +3,11 @@
 Quick installation
 ==================
 
+PyCogent.app for OSX 10.6
+-------------------------
+
+`Download PyCogent.app <http://sourceforge.net/projects/pycogent/files/PyCogent.app/>`_. This native OSX app comes bundled with all required dependencies and is a download, decompress and go experience! It also implements the novel script form system that controls command line scripts via a form based input mechanism.
+
 By virtual machine
 ------------------
 
