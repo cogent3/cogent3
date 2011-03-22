@@ -38,6 +38,34 @@ Translate DNA sequences
 
 Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
 
+Translate all six frames
+------------------------
+
+.. doctest::
+    
+    >>> from cogent import DNA
+    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> seq = DNA.makeSequence('ATGCTAACATAAA')
+    >>> translations = standard_code.sixframes(seq)
+    >>> print translations
+    ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
+
+Find out how many stops in a frame
+----------------------------------
+
+.. doctest::
+    
+    >>> from cogent import DNA
+    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> seq = DNA.makeSequence('ATGCTAACATAAA')
+    >>> stops_frame1 = standard_code.getStopIndices(seq, start=0)
+    >>> stops_frame1
+    [9]
+    >>> stop_index = stops_frame1[0]
+    >>> seq[stop_index:stop_index+3]
+    DnaSequence(TAA)
+
+
 Translate a codon
 -----------------
 
