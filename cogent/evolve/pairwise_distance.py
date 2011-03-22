@@ -1,11 +1,13 @@
 from __future__ import division
-from numpy import log, zeros, float64, int32, array, sqrt
+from numpy import log, zeros, float64, int32, array, sqrt, dot, diag, where
+from numpy.linalg import det, norm, inv
+
 from cogent import DNA, RNA, LoadTable
 from cogent.util.progress_display import display_wrap
 
-__author__ = "Gavin Huttley"
+__author__ = "Gavin Huttley and Yicheng Zhu"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Yicheng Zhu"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -144,6 +146,68 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     var /= total
     
     return total, p, dist, var
+
+
+def _logdet(matrix, use_tk_adjustment=True):
+    """returns the LogDet from a diversity matrix
+    Arguments:
+        - use_tk_adjustment: when True, unequal state frequencies are allowed
+    """
+    
+    invalid = None, None, None, None
+    total = matrix.sum()
+    diffs = total - sum(matrix[i,i] for i in range(matrix.shape[0]))
+    if total == 0:
+        return invalid
+    
+    p = diffs / total
+    
+    if diffs == 0: # seqs identical
+        return total, p, 0.0, None
+    
+    # we replace missing diagonal states with a frequency of 0.5,
+    # then normalise
+    frequency = matrix.copy()
+    unobserved = where(frequency.diagonal() == 0)[0]
+    for index in unobserved:
+        frequency[index, index] = 0.5
+    
+    frequency /= frequency.sum()
+    # the inverse matrix of frequency, every element is squared
+    M_matrix = inv(frequency)**2
+    freqs_1 = frequency.sum(axis = 0)
+    freqs_2 = frequency.sum(axis = 1)
+    
+    if use_tk_adjustment:
+        mean_state_freqs = (freqs_1 + freqs_2) / 2
+        coeff = (norm(mean_state_freqs)**2 - 1) / (matrix.shape[0] - 1)
+    else:
+        coeff = -1 / matrix.shape[0]
+        
+    
+    FM_1 = diag(freqs_1)
+    FM_2 = diag(freqs_2)
+    
+    try:
+        d_xy = coeff * log(det(frequency) / sqrt(det(FM_1 * FM_2)))
+    except FloatingPointError:
+        return invalid
+    
+    if det(frequency) <= 0: #if the result is nan
+        return invalid
+    
+    var_term = dot(M_matrix, frequency).transpose()[0].sum()
+    var_denom = 16 * total
+    if use_tk_adjustment:
+        var = (var_term - (1 / sqrt(freqs_1 * freqs_2)).sum()) / var_denom
+    else:
+        # variance formula for TK adjustment is false
+        var = (var_term - 1) / var_denom
+    
+    var = d_xy - 2 * var
+    
+    return total, p, d_xy, var
+
 
 try:
     from _pairwise_distance import \
@@ -335,3 +399,20 @@ class TN93Pair(_NucleicSeqPair):
             self.pyr_indices, self.pur_coords,
             self.pyr_coords, self.tv_coords]
         
+    
+
+class LogDetPair(_PairwiseDistance):
+    """computes logdet distance between sequence pairs"""
+    def __init__(self, use_tk_adjustment=True, *args, **kwargs):
+        """Arguments:
+            - use_tk_adjustment: use the correction of Tamura and Kumar 2002
+        """
+        super(LogDetPair, self).__init__(*args, **kwargs)
+        self.func = _logdet
+        self._func_args = [use_tk_adjustment]
+    
+    def run(self, use_tk_adjustment=None, *args, **kwargs):
+        if use_tk_adjustment is not None:
+            self._func_args = [use_tk_adjustment]
+        
+        super(LogDetPair, self).run(*args, **kwargs)

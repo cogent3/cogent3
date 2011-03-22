@@ -30,6 +30,8 @@ New Features
 * Table can now read/write gzipped files.
 * GeneticCode class has a getStopIndices method. Returns the index positions
   of stop codons in a sequence for a user specified translation frame.
+* Added LogDet metric to cogent.evolve.pairwise_distance. With able assistance
+  from Yicheng Zhu. Thanks Yicheng!
 
 Changes
 -------
