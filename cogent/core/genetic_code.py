@@ -6,6 +6,7 @@ NOTE: Although the genetic code objects convert DNA to RNA and vice
 versa, lists of codons that they produce will be provided in DNA format.
 """
 from string import maketrans
+import re
 
 __author__ = "Greg Caporaso and Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -136,7 +137,7 @@ class GeneticCode(object):
             else:
                 blocks.extend([[codons[2]],[codons[3]]])
             return blocks
-        
+    
     def _get_blocks(self):
         """Returns list of lists of codon blocks in the genetic code.
         
@@ -220,7 +221,17 @@ class GeneticCode(object):
         if start + 1 > len(dna):
             raise ValueError, "Translation starts after end of RNA"
         return ''.join([self[dna[i:i+3]] for i in range(start, len(dna)-2, 3)])
-
+    
+    def getStopIndices(self, dna, start=0):
+        """returns indexes for stop codons in the specified frame"""
+        stops = self['*']
+        stop_pattern = '(%s)' % '|'.join(stops)
+        stop_pattern = re.compile(stop_pattern)
+        seq = str(dna)
+        found = [hit.start() for hit in stop_pattern.finditer(seq)]
+        found = [index for index in found if index % 3 == start]
+        return found
+    
     def sixframes(self, dna):
         """Returns six-frame translation as dict containing {frame:translation}
         """

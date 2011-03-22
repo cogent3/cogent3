@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
-from cogent import RNA
+from cogent import RNA, DNA
 from cogent.core.genetic_code import GeneticCode, GeneticCodeInitError,\
         InvalidCodonError, GeneticCodes
 from cogent.util.unit_test import TestCase, main
@@ -101,8 +101,7 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(mtgc.changes(
             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'),
             {'AGA':'*R', 'AGG':'*R', 'ATA':'MI', 'TGA':'W*'})
-
-
+    
     def test_str(self):
         """GeneticCode str() should return its code string"""
         code_strings = self.SGC, self.mt, self.AllG
@@ -170,8 +169,7 @@ class GeneticCodeTests(TestCase):
 
         #unknown aa should return []
         self.assertEqual(sgc['U'], [])
-        
-
+    
     def test_getitem_invalid_length(self):
         """GeneticCode getitem should raise InvalidCodonError on wrong length"""
         sgc = GeneticCode(self.SGC)
@@ -298,7 +296,16 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
         
-
+    
+    def test_stop_indexes(self):
+        """should return stop codon indexes for a specified frame"""
+        sgc = GeneticCode(self.SGC)
+        seq = DNA.makeSequence('ATGCTAACATAAA')
+        expected = [[9], [4], []]
+        for frame, expect in enumerate(expected):
+            got = sgc.getStopIndices(seq, start=frame)
+            self.assertEqual(got, expect)
+    
     def test_Synonyms(self):
         """GeneticCode Synonyms should return aa -> codon set mapping."""
         expected_synonyms = {
