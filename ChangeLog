@@ -32,6 +32,9 @@ New Features
   of stop codons in a sequence for a user specified translation frame.
 * Added LogDet metric to cogent.evolve.pairwise_distance. With able assistance
   from Yicheng Zhu. Thanks Yicheng!
+* Added jackknife code to cogent.maths.stats.jackknife. This can be used to
+  measure confidence of an estimate from a single vector or a matrix. Thanks
+  to Anuj Pahwa for help implementing this!
 
 Changes
 -------
