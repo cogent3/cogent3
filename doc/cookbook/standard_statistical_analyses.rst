@@ -2,7 +2,7 @@
 Standard statistical analyses
 *****************************
 
-.. authors Tom Elliott, Gavin Huttley
+.. authors Tom Elliott, Gavin Huttley, Anuj Pahwa
 
 ..
     following is just a list of the filenames that need to be deleted, to be
@@ -11,7 +11,7 @@ Standard statistical analyses
 
 .. doctest::
     :hide:
-    
+
     >>> filenames_to_delete = []
 
 Random Numbers
@@ -37,7 +37,7 @@ Many of the code snippets in this section use random numbers. These can be obtai
 For the last example, note that the range includes 0.
 
 .. doctest::
-    
+
     >>> np.random.normal(loc=50,scale=3,size=2)
     array([ 42.8217253 ,  49.90008293])
     >>> np.random.randn(3)
@@ -65,7 +65,7 @@ PyCogent's functions for statistical analysis operate on ``numpy`` arrays
 but in some cases they will also accept a simple list of values
 
 .. doctest::
-    
+
     >>> stats.mean(range(1,8))
     4.0
     >>> stats.var(range(1,8))
@@ -100,7 +100,7 @@ Population variance and standard deviation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> print stats.var(arr, axis=0)
     [  4.05000000e+01   1.62000000e+02   3.64500000e+02   6.48000000e+02
        1.01250000e+03   1.01250000e+05]
@@ -153,7 +153,7 @@ Chi-square
 A convenience function for computing the probability of a chi-square statistic is provided at the ``stats`` top level.
 
 .. doctest::
-    
+
     >>> from cogent.maths.stats import chisqprob
     >>> chisqprob(3.84, 1)
     0.05...
@@ -161,7 +161,7 @@ A convenience function for computing the probability of a chi-square statistic i
 which is just a reference to the ``chi_high`` function.
 
 .. doctest::
-    
+
     >>> from cogent.maths.stats.distribution import chi_high
     >>> chi_high(3.84, 1)
     0.05...
@@ -172,7 +172,7 @@ Getting the inverse
 Given a probability we can determine the corresponding chi-square value for a given degrees-of-freedom.
 
 .. doctest::
-    
+
     >>> from cogent.maths.stats.distribution import chdtri
     >>> chdtri(1, 0.05)
     3.84...
@@ -189,7 +189,7 @@ The function ``zprob()`` takes a z-score or standard deviation and computes the 
     >>> import cogent.maths.stats.distribution as distr
     >>> for z in range(5):
     ...     print '%s %.4f' % (z, distr.zprob(z))
-    ... 
+    ...
     0 1.0000
     1 0.3173
     2 0.0455
@@ -199,7 +199,7 @@ The function ``zprob()`` takes a z-score or standard deviation and computes the 
 Use the functions ``z_low()`` and ``z_high()`` to compute the normal distribution in a directional fashion.  Here we see that a z-score of 1.65 has a value greater than 95% of the values in the distribution, and similarly a z-score of 1.96 has a value greater than 97.5% of the values in the distribution.
 
 .. doctest::
-    
+
     >>> z = 0
     >>> while distr.z_low(z) < 0.95:
     ...     z += 0.01
@@ -240,6 +240,69 @@ In this example, we grab a sample from a population with ``mean=50`` and ``std=3
 
     TE:  I think the above needs more explanation.  What does this have to do with a Z-score, as in Z = (arr - stats.mean(arr))/stats.std(arr)?
 
+Resampling based statistics
+===========================
+
+The Jackknife
+-------------
+
+This is a data resampling based approach to estimating the confidence in measures of location (like the mean). The method is based on omission of one member of a sample and recomputing the statistic of interest. This measures the influence of individual observations on the sample and also the confidence in the statistic.
+
+The ``Jackknife`` class relies on our ability to handle a set of indexes for sub-setting our data and re-computing our statistic. The client code must be able to take a indices and generate a new statistic.
+
+We demo using the jackknife the estimate of mean GC% for an alignment. We first write a factory function to compute the confidence in the mean GC% for an alignment by sampling specific columns.
+
+.. doctest::
+    
+    >>> def CalcGc(aln):
+    ...     def calc_gc(indices):
+    ...         new = aln.takePositions(indices)
+    ...         probs = new.getMotifProbs()
+    ...         gc = sum(probs[b] for b in 'CG')
+    ...         total = sum(probs[b] for b in 'ACGT')
+    ...         return gc / total
+    ...     return calc_gc
+
+We then create an instance of this factory function with a specific alignment.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
+    >>> calc_gc = CalcGc(aln)
+
+We now create a ``Jackknife`` instance, passing it the ``calc_gc`` instance we have just made and obtain the sampling statistics. We specify how many elements we're interested in (in this case, the positions in the alignment).
+
+.. doctest::
+    
+    >>> from cogent.maths.stats.jackknife import JackknifeStats
+    >>> jk = JackknifeStats(len(aln), calc_gc)
+    >>> print jk.SampleStat
+    0.4766...
+    >>> print jk.SummaryStats
+    Summary Statistics
+    ===============================================
+    Sample Stat    Jackknife Stat    Standard Error
+    -----------------------------------------------
+         0.4767            0.4767            0.0584
+    -----------------------------------------------
+
+We also display the sub-sample statistics.
+
+.. doctest::
+    
+    >>> print jk.SubSampleStats
+    Subsample Stats
+    ============
+     i    Stat-i
+    ------------
+     0    0.4678
+     1    0.4678
+     2    0.4847
+     3    0.4814...
+
+.. note:: You can provide a custom index generation function that omits groups of observations, for instance. This can be assigned to the ``gen_index`` argument of the ``Jackknife`` constructor.
+
 Permutations
 ============
 
@@ -249,14 +312,14 @@ Random
 ^^^^^^
 
 .. doctest::
-    
+
     >>> from numpy.random import permutation as perm
     >>> import numpy as np
     >>> np.random.seed(153)
     >>> arr = np.array(range(5))
     >>> for i in range(3):
     ...     print perm(arr)
-    ... 
+    ...
     [2 1 3 0 4]
     [0 3 2 4 1]
     [4 0 1 2 3]
@@ -283,13 +346,13 @@ Although we don't know the population values for the mean and standard deviation
 If we have a second sample, whose parent population mean and standard deviation are also unknown:
 
 .. doctest::
-    
+
     >>> nums2 = np.random.normal(loc=50,scale=10,size=50)
 
 Suppose we believe (before we see any data) that the mean of the first population is different than the second but we don't know in which direction the change lies, we estimate the standard deviation.  We use the standard error of the mean as an estimate for how close the mean of sample 2 is to the mean of its parent population (and vice-versa).
 
 .. doctest::
-    
+
     >>> mean_nums2 = stats.mean(nums2)
     >>> sd_nums2 = stats.std(nums2)
     >>> se_nums2 = sd_nums2 / np.sqrt(len(nums2))
@@ -309,7 +372,7 @@ t-Tests
 Small sample sizes can be handled by the use of t-tests.  The function ``t_two_sample()`` is used for two independent samples.
 
 .. doctest::
-    
+
     >>> subsample1 = nums1[:5]
     >>> [str(round(n,2)) for n in subsample1]
     ['49.25', '38.87', '47.06', '44.49', '43.73']
@@ -359,7 +422,7 @@ Sign test
 This is essentially just a test using the binomial distribution where the probability of success = 0.5.
 
 .. doctest::
-    
+
     >>> from cogent.maths.stats.test import sign_test
     >>> sign_test(40, 100)
     0.056...
@@ -388,7 +451,7 @@ We create some data for testing for association.
 We then compute Kendall's tau and associated probability, which tests the null hypothesis that x and y are not associated.
 
 .. doctest::
-    
+
     >>> from cogent.maths.stats.test import kendall_correlation
     >>> tau, prob = kendall_correlation(x_array, y_array)
     >>> print tau
@@ -416,7 +479,7 @@ For this example, we generate y-values as one-half the x-value plus a bit of ran
 The function ``correlation()`` returns the Pearson correlation between x and y, as well as its significance
 
 .. doctest::
-    
+
     >>> import cogent.maths.stats.test as stats
     >>> r, prob = stats.correlation(x_array, y_array)
     >>> r
@@ -427,7 +490,7 @@ The function ``correlation()`` returns the Pearson correlation between x and y, 
 The function ``regress()`` returns the coefficients to the regression line "y=ax+b"
 
 .. doctest::
-    
+
     >>> slope, y_intercept = stats.regress(x_array, y_array)
     >>> slope
     0.5514...
@@ -437,7 +500,7 @@ The function ``regress()`` returns the coefficients to the regression line "y=ax
 Calculate the R^2 value for the regression of x and y
 
 .. doctest::
-    
+
     >>> R_squared = stats.regress_R2(x_array, y_array)
     >>> R_squared
     0.7934...
@@ -445,7 +508,7 @@ Calculate the R^2 value for the regression of x and y
 And finally, the residual error for each point from the linear regression
 
 .. doctest::
-    
+
     >>> error = stats.regress_residuals(x_array, y_array)
     >>> error = [str(round(e,2)) for e in error]
     >>> error
@@ -489,7 +552,7 @@ Nearly 25% of the time we would expect a Chi-squared statistic as extreme as thi
 Goodness-of-fit calculation with the same data
 
 .. doctest::
-    
+
     >>> g_val, prob = stats.G_fit_from_Dict2D(OE_data)
     >>> g_val
     4.1337592429166437
@@ -523,7 +586,7 @@ In this example, we generate the error as above, but separately from the x-value
 We can use a transformation matrix to rotate the points
 
 .. doctest::
-    
+
     >>> from math import sqrt
     >>> z = 1.0/sqrt(2)
     >>> t = np.array([[z,-z],[z,z]])
@@ -532,7 +595,7 @@ We can use a transformation matrix to rotate the points
 The plotting code uses matplotlib_.
 
 .. doctest::
-    
+
     >>> import matplotlib.pyplot as plt
     >>> fig = plt.figure()
     >>> ax = fig.add_subplot(111)
@@ -546,7 +609,7 @@ The plotting code uses matplotlib_.
 Plot the least squares regression lines too
 
 .. doctest::
-    
+
     >>> slope, y_intercept = stats.regress(rotated_x, rotated_y)
     >>> slope
     0.9547989732316251
@@ -570,7 +633,7 @@ Plot the least squares regression lines too
 
 .. doctest::
     :hide:
-    
+
     >>> filenames_to_delete.append('scatter_example.pdf')
 
 Histograms
@@ -578,7 +641,7 @@ Histograms
 
 .. doctest::
     :hide:
-    
+
     >>> plt.clf() # because the plot gets screwed up by operations above
 
 .. doctest::
@@ -593,7 +656,7 @@ Histograms
 add a "best fit" line
 
 .. doctest::
-    
+
     >>> import matplotlib.mlab as mlab
     >>> y = mlab.normpdf( bins, mu, sigma)
     >>> l = plt.plot(bins, y, 'r--', linewidth=3)
@@ -611,7 +674,7 @@ Heat Maps
 Representing numbers as colors is a powerful data visualization technique.  This example does not actually use any functionality from PyCogent, it simply highlights a convenient matplotlib_ method for constructing a heat map.
 
 .. doctest::
-    
+
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>> data = [i * 0.01 for i in range(100)]
@@ -621,7 +684,7 @@ Representing numbers as colors is a powerful data visualization technique.  This
 The plot code
 
 .. doctest::
-    
+
     >>> fig = plt.figure()
     >>> plt.hot()
     >>> plt.pcolormesh(data)
@@ -632,7 +695,7 @@ The plot code
 
 .. doctest::
     :hide:
-    
+
     >>> filenames_to_delete.append('heatmap_example.png')
     >>> from cogent.util.misc import remove_files
     >>> remove_files(filenames_to_delete, error_on_missing=False)
