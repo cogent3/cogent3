@@ -1064,11 +1064,6 @@ class TreeNode(object):
         names = [None,None]
         best_node = None
         for n in self.nontips(include_self=True):
-            #if len(n.MaxDistTips) == 1:
-            #    tip_a = n.MaxDistTips[0]
-            #    tip_b = n.MaxDistTips[0] # set tip_b so the name can be returned
-            #    dist = tip_a[0]
-            #else:
             tip_a, tip_b = n.MaxDistTips
             dist = (tip_a[0] + tip_b[0])
 
