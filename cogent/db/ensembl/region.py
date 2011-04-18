@@ -405,16 +405,23 @@ class Gene(_StableRegion):
         return features
     
     def getCdsLengths(self):
-        """returns the length of the transcript Cds'. If this property is not
-        available, returns None."""
+        """returns the Cds lengths from transcripts with the same biotype.
+        returns None if no transcripts."""
         if self.Transcripts is self.NULL_VALUE:
             return None
-        return [ts.getCdsLength() for ts in self.Transcripts]
+        l = [ts.getCdsLength() for ts in self.Transcripts
+                                            if ts.BioType == self.BioType]
+        return l
     
     def getLongestCdsTranscript(self):
-        """returns the Transcript with the longest Cds"""
-        result=sorted([(ts.getCdsLength(),ts) for ts in self.Transcripts])
-        return result[-1][1]
+        """returns the Transcript with the longest Cds and the same biotype"""
+        result = sorted([(ts.getCdsLength(), ts) for ts in self.Transcripts
+                                            if ts.BioType == self.BioType])
+        
+        if result: # last result is longest
+            result = result[-1][1]
+        
+        return result
     
 
 class Transcript(_StableRegion):

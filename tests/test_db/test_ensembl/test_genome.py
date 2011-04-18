@@ -188,7 +188,17 @@ class TestGene(GenomeTestBase):
             self.assertTrue(transcript.getCdsLength()>0)
             self.assertEquals(transcript.Location.CoordName,'17')
     
-    def test_get_longest_cds_transcript(self):
+    def test_get_longest_cds_transcript2(self):
+        """should correctly return transcript with longest cds"""
+        # ENSG00000123552 is protein coding, ENSG00000206629 is ncRNA
+        for stable_id, max_cds_length in [('ENSG00000123552', 2445),
+                                          ('ENSG00000206629', 164)]:
+            gene = self.human.getGeneByStableId(StableId=stable_id)
+            ts = gene.getLongestCdsTranscript()
+            self.assertEquals(len(ts.Cds), max_cds_length)
+            self.assertEquals(ts.getCdsLength(), max(gene.getCdsLengths()))
+    
+    def test_get_longest_cds_transcript1(self):
         """should correctly return transcript with longest cds"""
         stable_id = 'ENSG00000178591'
         gene = self.human.getGeneByStableId(StableId=stable_id)
