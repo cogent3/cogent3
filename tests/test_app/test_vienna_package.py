@@ -4,11 +4,12 @@ from os import getcwd, remove, rmdir
 import tempfile, shutil
 from cogent.util.unit_test import TestCase, main
 from cogent.app.vienna_package import RNAfold, RNAsubopt, RNAplot,\
-    plot_from_seq_and_struct, DataError, get_constrained_fold
+    plot_from_seq_and_struct, DataError, get_constrained_fold, \
+    get_secondary_structure
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Sandra Smit"
@@ -204,6 +205,19 @@ class RNAfoldTests(TestCase):
         #Test get back correct seq and struct
         self.assertEqual(obs_seq, test_seq)
         self.assertEqual(obs_struct, expected_struct)
+    
+    def test_get_secondary_structure(self):
+        """get_secondary_structure should give correct result."""
+        test_seq =   'AAACCCGGGUUU'
+        expected_struct = '((((....))))'
+        expected_energy = -0.80
+        
+        obs_seq, obs_struct, obs_energy = \
+            get_secondary_structure(test_seq)
+        #Test get back correct seq and struct
+        self.assertEqual(obs_seq, test_seq)
+        self.assertEqual(obs_struct, expected_struct)
+        self.assertEqual(obs_energy, expected_energy)
         
     def test_zzz_general_cleanup(self):
         """Executed last, clean up temp_dir"""

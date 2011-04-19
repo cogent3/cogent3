@@ -128,7 +128,29 @@ def get_constrained_fold(sequence, constraint_string, params=None):
     res.cleanUp()
     
     return seq, struct, energy
+
+def get_secondary_structure(sequence, params=None):
+    """Returns secondary structure from RNAfold.
     
+        - sequence: RNA sequence object or string.
+        - params: dict of additional RNAfold parameters.
+    """
+    #Check that sequence and constraint string exist.
+    if not sequence:
+        raise ValueError, 'No sequence found!'
+    
+    sequence = str(sequence) 
+
+    app = RNAfold(params=params)
+    
+    res = app([sequence])
+    
+    #Parse out seq, struct string and energy.
+    seq, struct, energy = MinimalRnaalifoldParser(res['StdOut'].readlines())[0]
+    #Clean up after application.
+    res.cleanUp()
+    
+    return seq, struct, energy
 
 class RNAsubopt(CommandLineApplication):
     """Application controller for RNAsubopt (in the Vienna RNA package)
