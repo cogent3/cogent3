@@ -1191,7 +1191,12 @@ def reverse_complement(seq, use_DNA=True):
     
     Returns a reverse complemented string.
     """
-
+    bad_chars = set(seq) - set("ACGTUacgtu")
+    if len(bad_chars) > 0:
+        raise ValueError,\
+         ("Only ACGTU characters may be passed to reverse_complement. Other "
+          "characters were identified: %s. Use cogent.DNA.rc if you need to "
+          "reverse complement ambiguous bases." % ''.join(bad_chars))
     #decide which translation to use for complementation
     if use_DNA:
         trans_table = maketrans("ACGTacgt", "TGCAtgca")

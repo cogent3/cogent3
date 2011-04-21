@@ -1428,9 +1428,7 @@ class reverse_complementTests(TestCase):
         """reverse_complement should just reverse any chars but ACGT/U"""
         
         user_input = "BDeF"
-        correct_output = "FeDB"
-        real_output = reverse_complement(user_input)
-        self.assertEquals(real_output, correct_output)   
+        self.assertRaises(ValueError,reverse_complement,user_input)
     #end test_reverse_complement_nonNucleicSeq
     
     def test_reverse_complement_emptySeq(self):
