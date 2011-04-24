@@ -47,7 +47,7 @@ Summary statistics
 ==================
 
 Population mean and median
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 PyCogent's functions for statistical analysis operate on ``numpy`` arrays
 
@@ -97,7 +97,7 @@ The keyword argument ``axis`` controls whether a function operates by rows (``ax
     15.0
 
 Population variance and standard deviation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 .. doctest::
 
@@ -133,7 +133,7 @@ Distributions
 =============
 
 Binomial
-^^^^^^^^
+--------
 
 The binomial distribution can be used for calculating the probability of specific frequencies of states occurring in discrete data. The two alternate states are typically referred to as a success or failure. This distribution is used for sign tests.
 
@@ -148,7 +148,7 @@ The binomial distribution can be used for calculating the probability of specifi
     0.246...
 
 Chi-square
-^^^^^^^^^^
+----------
 
 A convenience function for computing the probability of a chi-square statistic is provided at the ``stats`` top level.
 
@@ -167,7 +167,7 @@ which is just a reference to the ``chi_high`` function.
     0.05...
 
 Getting the inverse
-"""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^
 
 Given a probability we can determine the corresponding chi-square value for a given degrees-of-freedom.
 
@@ -180,7 +180,7 @@ Given a probability we can determine the corresponding chi-square value for a gi
     5.99...
 
 Normal
-^^^^^^
+------
 
 The function ``zprob()`` takes a z-score or standard deviation and computes the fraction of the normal distribution (mean=0, std=1) which lies farther away from the mean than that value.  For example, only about 4.5% of the values are more than 2 standard deviations away from the mean, so that more than 95% of the values are at least that close to the mean.
 
@@ -309,7 +309,7 @@ Permutations
 .. this is really a numpy features
 
 Random
-^^^^^^
+------
 
 .. doctest::
 
@@ -325,7 +325,7 @@ Random
     [4 0 1 2 3]
 
 Ordered
-^^^^^^^
+-------
 
 *To be written.*
 
