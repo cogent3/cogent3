@@ -49,7 +49,7 @@ def get_lower_coord_conversion(coord, species, core_db):
                              seq_level=True)
     query_rank = coord_system[coord.CoordType].rank
     seq_level_rank = coord_system[seq_level_coord_type].rank
-    
+    assemblies = None
     for rank in range(query_rank+1, seq_level_rank):
         coord_type = None
         for key in coord_system.keys():

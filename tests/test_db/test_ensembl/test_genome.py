@@ -73,7 +73,17 @@ class TestGenome(GenomeTestBase):
         ##old:chrY:57767412-57767433; New: chrY:59358024-59358045
         region = self.human.getRegion(CoordName = "Y", Start = 59358024, 
                             End = 59358045, Strand = 1, ensembl_coord = True)
+        
         self.assertEquals(str(region.Seq), 'CGAGGACGACTGGGAATCCTAG')
+    
+    def test_no_assembly(self):
+        """return N's for coordinates with no assembly"""
+        krat = Genome('Kangaroo rat', Release=58)
+        Start=24385
+        End=Start+100
+        region = krat.getRegion(CoordName='scaffold_13754', Start=Start,
+            End=End)
+        self.assertEquals(str(region.Seq), 'N' * (End-Start))
     
     def test_getting_annotated_seq(self):
         """a region should return a sequence with the correct annotation"""
