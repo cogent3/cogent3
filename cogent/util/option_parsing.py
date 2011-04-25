@@ -7,7 +7,7 @@ import sys
 from optparse import (OptionParser, OptionGroup, Option, 
                       OptionValueError)
 from os import popen, remove, makedirs, getenv
-from os.path import join, abspath, exists, isdir
+from os.path import join, abspath, exists, isdir, isfile
 
 
 __author__ = "Greg Caporaso"
