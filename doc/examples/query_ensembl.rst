@@ -22,11 +22,11 @@ So the first step is to specify what host and account are to be used. On my lab'
 .. doctest::
     
     >>> import os
-    >>> Release = 58
+    >>> Release = 61
     >>> from cogent.db.ensembl import HostAccount
     >>> if 'ENSEMBL_ACCOUNT' in os.environ:
-    ...     username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    ...     account = HostAccount('cg.anu.edu.au', username, password)
+    ...     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
+    ...     account = HostAccount(host, username, password)
     ... else:
     ...     account = None
 
@@ -57,6 +57,20 @@ In Australia, the common name for *Gallus gallus* is chook, so I'll modify that.
     >>> assert Species.getCommonName('Gallus gallus') == 'chook'
 
 You can also add new species for when they become available using ``Species.amendSpecies``.
+
+Species common names are used to construct attributes on PyCogent ``Compara`` instances). You can get the name that will be using the ``getComparaName`` method. For species with a real common name
+
+.. doctest::
+    
+    >>> Species.getComparaName('Procavia capensis')
+    'RockHyrax'
+
+or with a shortened species name
+
+.. doctest::
+    
+    >>> Species.getComparaName('Caenorhabditis remanei')
+    'Cremanei'
 
 The ``Species`` class is basically used to translate between latin names and ensembl's database naming scheme. It also serves to allow the user to simply enter the common name for a species in order to reference it's genome databases. The queries are case-insensitive.
 
@@ -354,7 +368,7 @@ The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compa
     >>> print compara
     Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=58...
 
-The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes. The genome instances are named according to their common name in CamelCase. For instance, if we had created a ``Compara`` instance with the American pika species included, then that genome would be accessed as ``compara.AmericanPika``. We access the human genome in this ``Compara`` instance and conduct a gene search.
+The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes (use ``Species.getComparaName`` to find out what the attribute will be). The genome instances are named according to their common name in CamelCase, or Scase. For instance, if we had created a ``Compara`` instance with the American pika species included, then that genome would be accessed as ``compara.AmericanPika``. Common names containing a '.' are treated differently. For instance, the common name for *Caenorhabditis remanei* is ``C.remanei`` which becomes ``compara.Cremanei``. We access the human genome in this ``Compara`` instance and conduct a gene search.
 
 .. doctest::
 

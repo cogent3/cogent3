@@ -27,8 +27,8 @@ To specify a specific port to connect to MySQL on:
     :hide:
 
     >>> import os
-    >>> uname, passwd = os.environ['ENSEMBL_ACCOUNT'].split()
-    >>> account = HostAccount('cg.anu.edu.au', uname, passwd)
+    >>> hotsname, uname, passwd = os.environ['ENSEMBL_ACCOUNT'].split()
+    >>> account = HostAccount(hotsname, uname, passwd)
 
 Species to be queried
 ---------------------
@@ -64,6 +64,20 @@ and the Ensembl database name prefix which will be used for all databases for th
 
     >>> Species.getEnsemblDbPrefix('Procavia capensis')
     'procavia_capensis'
+
+Species common names are used to construct attributes on PyCogent ``Compara`` instances). You can get the name that will be using the ``getComparaName`` method. For species with a real common name
+
+.. doctest::
+    
+    >>> Species.getComparaName('Procavia capensis')
+    'RockHyrax'
+
+or with a shortened species name
+
+.. doctest::
+    
+    >>> Species.getComparaName('Caenorhabditis remanei')
+    'Cremanei'
 
 Get genomic features
 --------------------
