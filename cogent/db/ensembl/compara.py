@@ -12,7 +12,7 @@ from cogent.db.ensembl.related_region import RelatedGenes, SyntenicRegions
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Hua Ying"]
+__credits__ = ["Gavin Huttley", "Hua Ying", "Jason Merkin"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -21,7 +21,8 @@ __status__ = "alpha"
 
 class Compara(object):
     """comaparison among genomes"""
-    def __init__(self, species, Release, account=None, pool_recycle=None):
+    def __init__(self, species, Release, account=None, pool_recycle=None,
+            division=None):
         assert Release, 'invalid release specified'
         self.Release = str(Release)
         if account is None:
@@ -38,6 +39,7 @@ class Compara(object):
         self._species_db_map = None
         self._species_set = None
         self._method_species_link = None
+        self.division = division
     
     def _attach_genomes(self):
         for species in self.Species:
@@ -58,7 +60,8 @@ class Compara(object):
         connection = dict(account=self._account, release=self.Release,
                         pool_recycle=self._pool_recycle)
         if self._compara_db is None:
-            self._compara_db = Database(db_type='compara', **connection)
+            self._compara_db = Database(db_type='compara',
+                                        division=self.division, **connection)
     
     def _get_compara_db(self):
         self._connect_db()

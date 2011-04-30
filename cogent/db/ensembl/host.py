@@ -9,7 +9,7 @@ from cogent.db.ensembl.util import asserted_one
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Jason Merkin"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -81,7 +81,7 @@ def make_db_name_pattern(species=None, db_type=None, release=None):
     return "'%s%s'" % (pattern, sep)
 
 def get_db_name(account=None, species=None, db_type=None, release=None,
-                DEBUG=False):
+                division=None, DEBUG=False):
     """returns the listing of valid data-base names as EnsemblDbName objects"""
     if account is None:
         account = get_ensembl_account(release=release)
@@ -103,6 +103,8 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
     dbs = []
     for row in rows:
         try:
+            if division is not None and division not in row[0]:
+                continue
             name = EnsemblDbName(row[0])
             if (release is None or name.Release == str(release)) and\
                                 (db_type is None or name.Type == db_type):

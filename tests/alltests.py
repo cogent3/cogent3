@@ -279,8 +279,9 @@ def suite():
                      'test_db.test_ensembl.test_compara',
                      'test_db.test_ensembl.test_genome',
                      'test_db.test_ensembl.test_host',
+                     'test_db.test_ensembl.test_metazoa',
                      'test_db.test_ensembl.test_species',
-                      'test_db.test_ensembl.test_feature_level']
+                     'test_db.test_ensembl.test_feature_level']
         else:
             print >> sys.stderr, "Environment variable ENSEMBL_ACCOUNT not "\
             "set: skipping db.ensembl tests"
