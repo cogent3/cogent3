@@ -5,7 +5,7 @@ from cogent.db.ensembl.host import DbConnection, get_db_name
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Jason Merkin"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -15,12 +15,13 @@ __status__ = "alpha"
 class Database(object):
     """holds the data-base connection and table attributes"""
     def __init__(self, account, species=None, db_type=None, release=None,
-            pool_recycle=None):
+            pool_recycle=None, division=None):
         self._tables = {}
         self.db_name = get_db_name(account=account, species=species,
-                            release=release, db_type=db_type)
+                          release=release, db_type=db_type, division=division)
         if not self.db_name:
-            raise RuntimeError, "%s db doesn't exist for '%s' on '%s'" % (db_type, species, account.host)
+            raise RuntimeError, "%s db doesn't exist for '%s' on '%s'" % \
+                                        (db_type, species, account.host)
         else:
             self.db_name = self.db_name[0]
         self._db = DbConnection(account=account, db_name=self.db_name,
