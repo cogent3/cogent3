@@ -146,6 +146,18 @@ class SpeciesNameMap(dict):
         
         return str(species_name.lower().replace(" ","_"))
     
+    def getComparaName(self, name):
+        """returns string matching a compara instance attribute name for a
+        species"""
+        name = self.getCommonName(name)
+        if '.' in name:
+            name = name.replace('.', '')
+        else:
+            name = name.title()
+        
+        name = name.split()
+        return ''.join(name)
+    
     def _purge_species(self, species_name):
         """removes a species record"""
         species_name = CaseInsensitiveString(species_name)

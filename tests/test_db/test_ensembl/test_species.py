@@ -54,8 +54,18 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getSpeciesName(ensembl_pref), species_name)
         self.assertEqual(Species.getCommonName(species_name), common_name2)
         self.assertEqual(Species.getCommonName(ensembl_pref), common_name2)
-        self.assertEqual(Species.getEnsemblDbPrefix(species_name),ensembl_pref)
-        self.assertEqual(Species.getEnsemblDbPrefix(common_name2),ensembl_pref)
+        self.assertEqual(Species.getEnsemblDbPrefix(species_name),
+            ensembl_pref)
+        self.assertEqual(Species.getEnsemblDbPrefix(common_name2),
+            ensembl_pref)
+    
+    def test_get_compara_name(self):
+        """should correctly form valid names for assignment onto objects"""
+        self.assertEqual(Species.getComparaName('pika'), 'Pika')
+        self.assertEqual(Species.getComparaName('C.elegans'), 'Celegans')
+        self.assertEqual(Species.getComparaName('Caenorhabditis elegans'),
+                'Celegans')
+    
 
 if __name__ == "__main__":
     main()

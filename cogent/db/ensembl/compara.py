@@ -41,12 +41,11 @@ class Compara(object):
     
     def _attach_genomes(self):
         for species in self.Species:
-            common = _Species.getCommonName(species)
-            common = common.title().replace(' ', '')
+            attr_name = _Species.getComparaName(species)
             genome = Genome(Species=species, Release=self.Release,
                             account=self._account)
             self._genomes[species] = genome
-            setattr(self, common, genome)
+            setattr(self, attr_name, genome)
     
     def __str__(self):
         my_type = self.__class__.__name__
