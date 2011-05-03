@@ -77,6 +77,12 @@ class NMDS(object):
         self.min_rel_improvement = min_rel_improvement
         self.min_abs_stress = min_abs_stress
 
+        if dimension >= len(dissimilarity_mtx) - 1:
+            raise RuntimeError("NMDS requires N-1 dimensions or fewer, "+\
+             "where N is the number of samples, or rows in the dissim matrix"+\
+             " got %s rows for a %s dimension NMDS" % \
+             (len(dissimilarity_mtx), dimension))
+
         if rand_seed != None:
             seed(rand_seed)
         
@@ -98,10 +104,9 @@ class NMDS(object):
                 dissimilarity_mtx)
             order = argsort(pcoa_eigs)[::-1] # pos to small/neg
             pcoa_pts = pcoa_pts[order].T
-            self.points = pcoa_pts[:,:2]
+            self.points = pcoa_pts[:,:dimension]
         else:
             self.points = initial_pts
-        
         self.points = self._center(self.points)
         
         self._rescale()
@@ -121,27 +126,29 @@ class NMDS(object):
         
         if setup_only:
             return
-            
+
         for i in range(max_iterations):
+            if self.verbosity >= 1:
+                print("nonmetric broad iteration, stress: ", i,
+                self.stresses[-1])
+
+            if (self.stresses[-1] < self.min_abs_stress):
+                if self.verbosity >= 1:
+                    print "stress below cutoff, done" 
+                break
             self._move_points()
             self._calc_distances()
             self._update_dhats()
             self._calc_stress()
             self.stresses.append(self.stress)
-            if self.verbosity >= 1:
-                print("nonmetric broad iteration, stress: ", i,
-                self.stresses[-1])
-            
+
             if (self.stresses[-2]-self.stresses[-1]) / self.stresses[-2] <\
                 self.min_rel_improvement:
                 if self.verbosity >= 1:
                     print "iteration improvement minimal. converged."
                 break
-            if (self.stresses[-1] < self.min_abs_stress):
-                if self.verbosity >= 1:
-                    print "stress below cutoff, done" 
-                break
-        
+
+
         # center and rotate the points, since pos, rotation is arbitrary
         # rotation is to align to principal axes of self.points
         self.points = self._center(self.points)
@@ -319,7 +326,6 @@ class NMDS(object):
         
         optimization algorithm 0 is justin's hack (steepest descent method)
         """
-
         if self.optimization_method == 0:
             self._steep_descent_move()
         
@@ -327,12 +333,12 @@ class NMDS(object):
             numrows, numcols = shape(self.points)
             pts = self.points.ravel().copy()
             optpts = optimize.fmin_bfgs(self._recalc_stress_from_pts, pts,
-                fprime=self._calc_stress_gradients, 
+                fprime=self._calc_stress_gradients,
                 disp=self.verbosity, maxiter=100, gtol=1e-3)
             self.points = optpts.reshape((numrows, numcols))
         else:
             raise ValueError
-            
+
 
     def _steep_descent_move(self,
         rel_step_size=1./100, precision=.00001, max_iters=100):
