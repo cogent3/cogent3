@@ -148,7 +148,6 @@ class NMDS(object):
                     print "iteration improvement minimal. converged."
                 break
 
-
         # center and rotate the points, since pos, rotation is arbitrary
         # rotation is to align to principal axes of self.points
         self.points = self._center(self.points)
@@ -332,9 +331,22 @@ class NMDS(object):
         elif self.optimization_method == 1:
             numrows, numcols = shape(self.points)
             pts = self.points.ravel().copy()
-            optpts = optimize.fmin_bfgs(self._recalc_stress_from_pts, pts,
-                fprime=self._calc_stress_gradients,
-                disp=self.verbosity, maxiter=100, gtol=1e-3)
+
+            # odd behavior of scipy_optimize, possibly a bug there
+            maxiter = 100
+            while True:
+                if maxiter <= 1:
+                    raise RuntimeError("could not run scipy optimizer")
+                try:
+                    optpts = optimize.fmin_bfgs(
+                     self._recalc_stress_from_pts, pts,
+                     fprime=self._calc_stress_gradients,
+                     disp=self.verbosity, maxiter=maxiter, gtol=1e-3)
+                    break
+                except FloatingPointError:
+                    # floor
+                    maxiter = int(maxiter/2)
+
             self.points = optpts.reshape((numrows, numcols))
         else:
             raise ValueError
