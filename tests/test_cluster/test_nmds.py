@@ -68,6 +68,33 @@ class NMDSTests(TestCase):
         distmtx = dist_euclidean(ptmtx)
         nm = NMDS(distmtx, verbosity=0)
         self.assertLessThan(nm.getStress(), .13)
+    
+    def test_3(self):
+        """l19 data should give stress below .13 in multi-D"""
+        ptmtx = array(
+            [[7,1,0,0,0,0,0,0,0],
+            [4,2,0,0,0,1,0,0,0],
+            [2,4,0,0,0,1,0,0,0],
+            [1,7,0,0,0,0,0,0,0],
+            [0,8,0,0,0,0,0,0,0],
+            [0,7,1,0,0,0,0,0,0],#idx 5
+            [0,4,2,0,0,0,2,0,0],
+            [0,2,4,0,0,0,1,0,0],
+            [0,1,7,0,0,0,0,0,0],
+            [0,0,8,0,0,0,0,0,0],
+            [0,0,7,1,0,0,0,0,0],#idx 10
+            [0,0,4,2,0,0,0,3,0],
+            [0,0,2,4,0,0,0,1,0],
+            [0,0,1,7,0,0,0,0,0],
+            [0,0,0,8,0,0,0,0,0],
+            [0,0,0,7,1,0,0,0,0],#idx 15
+            [0,0,0,4,2,0,0,0,4],
+            [0,0,0,2,4,0,0,0,1],
+            [0,0,0,1,7,0,0,0,0]], 'float')
+        distmtx = dist_euclidean(ptmtx)
+        for dim in range(3,18):
+            nm = NMDS(distmtx, verbosity=0, dimension=dim)
+            self.assertLessThan(nm.getStress(), .13)
 
     def test_metaNMDS(self):
         """l19 data should give stress below .13"""
