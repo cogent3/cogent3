@@ -10,6 +10,8 @@ from cogent.db.ensembl.assembly import CoordSystem, Coordinate, \
 from cogent.db.ensembl.region import Gene, Variation, GenericRegion, \
                                     CpGisland, Repeat, Est
 from cogent.db.ensembl.feature_level import FeatureCoordLevels
+from cogent.util.misc import flatten
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -161,8 +163,27 @@ class Genome(object):
         query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
         return query
     
+    def _get_symbol_from_synonym(self, db, synonym):
+        """returns the gene symbol for a synonym"""
+        synonym_table = db.getTable('external_synonym')
+        xref_table = db.getTable('xref')
+        joinclause = xref_table.join(synonym_table,
+                        xref_table.c.xref_id==synonym_table.c.xref_id)
+        whereclause = synonym_table.c.synonym==synonym
+        query = sql.select([xref_table.c.display_label], from_obj=[joinclause],
+            whereclause=whereclause).distinct()
+        result = query.execute().fetchall()
+        if result:
+            try:
+                symbol = flatten(result)[0]
+            except IndexError:
+                symbol = None
+        else:
+            symbol = None
+        return symbol
+    
     def _get_gene_query(self, db, Symbol=None, Description=None, StableId=None,
-                         BioType=None, like=True):
+                         BioType=None, synonym=None, like=True):
         xref_table = [None, db.getTable('xref')][db.Type == 'core']
         gene_table = db.getTable('gene')
         gene_id_table = db.getTable('gene_stable_id')
@@ -214,12 +235,21 @@ class Genome(object):
         # for description, these need to be matched against the description 
         # field of the xref table
         
-        # TODO catch codnitions where user passes in both a symbol and a
+        # TODO catch conditions where user passes in both a symbol and a
         # biotype
         args = dict(Symbol=Symbol, Description=Description, 
                      StableId=StableId, BioType=BioType, like=like)
         query = self._get_gene_query(self.CoreDb, **args)
         records = query.execute()
+        if records.rowcount == 0 and Symbol is not None:
+            # see if the symbol has a synonym
+            Symbol = self._get_symbol_from_synonym(self.CoreDb, Symbol)
+            if Symbol is not None:
+                args['Symbol'] = Symbol
+                records = self._get_gene_query(self.CoreDb, **args).execute()
+            else:
+                records = []
+        
         for record in records:
             gene = Gene(self, self.CoreDb, data=record)
             yield gene
