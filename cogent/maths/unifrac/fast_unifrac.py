@@ -171,18 +171,30 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
 def _fast_unifrac_setup(t, envs, make_subtree=True):
     """Setup shared by fast_unifrac and by significance tests."""
     if make_subtree:
-        try:
-            wanted = set(envs.keys()).intersection(
-                set([i.Name for i in t.tips()]))
-            #t2 = t.getSubTree(wanted, ignore_missing=True)
-            #t = t2
-
-            for tip in list(t.tips()):
-                if tip not in wanted:
-                    tip.Parent.removeNode(id(tip))
-            t.prune()
-        except TreeError:
-            pass
+        t2 = t.copy()
+        wanted = set(envs.keys())
+        all_tips = list(t2.tips())
+        # can't delete nodes while itering, thus list()
+        for tip in all_tips: 
+            if tip.Name not in wanted:
+                curr_node = tip.Parent
+                did_remove = curr_node.removeNode(tip)
+                if not did_remove:
+                    raise RuntimeError('failed to remove tip in tree')
+                # and travel up tree 
+                while curr_node.istip():
+                    new_node = curr_node.Parent
+                    # better to ask forgiveness that permission
+                    try:
+                        new_node.removeNode(curr_node)
+                    except AttributeError:
+                        if curr_node.isroot():
+                            break
+                        else:
+                            raise
+                    curr_node = new_node
+        t2.prune()
+        t = t2
     #index tree
     node_index, nodes = index_tree(t)
     #get good nodes, defined as those that are in the env file.
@@ -420,7 +432,7 @@ def shared_branch_length_to_root(t, envs):
     return result
 
 def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True, 
-    modes=UNIFRAC_DEFAULT_MODES, weighted_unifrac_f=_weighted_unifrac):
+    modes=UNIFRAC_DEFAULT_MODES, weighted_unifrac_f=_weighted_unifrac,make_subtree=True):
     """ Run fast unifrac.
     
     t: phylogenetic tree relating the sequences.  pycogent phylonode object
@@ -465,7 +477,7 @@ def fast_unifrac(t, envs, weighted=False, metric=unifrac, is_symmetric=True,
     if not modes or modes - UNIFRAC_VALID_MODES:
         raise ValueError, "Invalid run modes: %s, valid: %s" % (str(modes),str(UNIFRAC_VALID_MODES))
 
-    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs)
+    envs, count_array, unique_envs, env_to_index, node_to_index, env_names, branch_lengths, nodes, t = _fast_unifrac_setup(t, envs, make_subtree)
     bound_indices = bind_to_array(nodes, count_array)
     #initialize result
     result = {}
