@@ -223,6 +223,13 @@ f B 1
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17),(d:1,e:1):2):3)', \
             UniFracTreeNode) # note c,j is len 0 node
+        #           /-------- /-a
+        # ---------|          \-b
+        #          |          /-------- /-c
+        #           \--------|          \-j
+        #                     \-------- /-d
+        #                               \-e
+
         env_str = """
         a   A   1
         a   C   2
@@ -238,7 +245,8 @@ f B 1
             [[0,10/16, 8/13],
             [10/16,0,8/17],
             [8/13,8/17,0]]),['A','B','C']))
-        # changing tree topology relative to c,j tips shouldn't change anything
+        # changing tree topology relative to c,j tips shouldn't change 
+        # anything
         t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)', \
             UniFracTreeNode)
         self.assertFloatEqual(fast_unifrac(t2,env_counts)['distance_matrix'], \
@@ -246,6 +254,76 @@ f B 1
             [[0,10/16, 8/13],
             [10/16,0,8/17],
             [8/13,8/17,0]]),['A','B','C']))
+
+    def test_unifrac_make_subtree(self):
+        """unifrac result should not depend on make_subtree
+        
+        environment M contains only tips not in tree, tip j, k is in no envs
+        one clade is missing entirely
+        values were calculated by hand
+        we also test that we still have a valid tree at the end
+        """
+        t1 = DndParser('((a:1,b:2):4,((c:3, (j:1,k:2)mt:17),(d:1,e:1):2):3)',\
+            UniFracTreeNode) # note c,j is len 0 node
+        #           /-------- /-a
+        # ---------|          \-b
+        #          |          /-------- /-c
+        #           \--------|          \mt------ /-j
+        #                    |                    \-k
+        #                     \-------- /-d
+        #                               \-e
+        # 
+
+        env_str = """
+        a   A   1
+        a   C   2
+        b   A   1
+        b   B   1
+        c   B   1
+        d   B   3
+        e   C   1
+        m   M   88"""
+        env_counts = count_envs(env_str.splitlines())
+        self.assertFloatEqual(fast_unifrac(t1,env_counts,make_subtree=False)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+        self.assertFloatEqual(fast_unifrac(t1,env_counts,make_subtree=True)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+        # changing tree topology relative to c,j tips shouldn't change anything
+        t2 = DndParser('((a:1,b:2):4,((c:2, (j:1,k:2)mt:17):1,(d:1,e:1):2):3)', \
+            UniFracTreeNode)
+        self.assertFloatEqual(fast_unifrac(t2,env_counts,make_subtree=False)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+        self.assertFloatEqual(fast_unifrac(t2,env_counts,make_subtree=True)['distance_matrix'], \
+            (array(
+            [[0,10/16, 8/13],
+            [10/16,0,8/17],
+            [8/13,8/17,0]]),['A','B','C']))
+
+        # ensure we haven't meaningfully changed the tree 
+        # by passing it to unifrac
+        t3 = DndParser('((a:1,b:2):4,((c:3, (j:1,k:2)mt:17),(d:1,e:1):2):3)',\
+            UniFracTreeNode) # note c,j is len 0 node
+        t1_tips = [tip.Name for tip in t1.tips()]
+        t1_tips.sort()
+        t3_tips = [tip.Name for tip in t3.tips()]
+        t3_tips.sort()
+        
+        self.assertEqual(t1_tips, t3_tips)
+        tipj3 = t3.getNodeMatchingName('j')
+        tipb3 = t3.getNodeMatchingName('b')
+        tipj1 = t1.getNodeMatchingName('j')
+        tipb1 = t1.getNodeMatchingName('b')
+        self.assertFloatEqual(tipj1.distance(tipb1), tipj3.distance(tipb3))
+
 
     def test_PD_whole_tree(self):
         """PD_whole_tree should correctly compute PD for test tree.
