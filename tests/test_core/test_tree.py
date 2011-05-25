@@ -1836,6 +1836,9 @@ class TestTree(TestCase):
         sub_sameroot = t1.getSubTree(set(['d','e','c']), keep_root=True)
         sub_sameroot_dists = sub_sameroot.getDistances()
 
+        sub_sameroot2 = t1.getSubTree(set(['j','c']), keep_root=True)
+        sub_sameroot_dists2 = sub_sameroot2.getDistances()
+
         # tip to tip dists should be the same
         for tip_pair in sub_dists.keys():
             self.assertEqual(sub_dists[tip_pair],true_dists[tip_pair])
@@ -1843,6 +1846,9 @@ class TestTree(TestCase):
             self.assertEqual(t1_dists[tip_pair],true_dists[tip_pair])
         for tip_pair in sub_sameroot_dists.keys():
             self.assertEqual(sub_sameroot_dists[tip_pair],
+                true_dists[tip_pair])
+        for tip_pair in sub_sameroot_dists2.keys():
+            self.assertEqual(sub_sameroot_dists2[tip_pair],
                 true_dists[tip_pair])
 
         # sameroot should have longer root to tip dists
@@ -1854,6 +1860,9 @@ class TestTree(TestCase):
                 true_sub_root_dists[tip.Name])
         for tip in sub_sameroot.tips():
             self.assertFloatEqual(sub_sameroot.distance(tip),
+                true_root_dists[tip.Name])
+        for tip in sub_sameroot2.tips():
+            self.assertFloatEqual(sub_sameroot2.distance(tip),
                 true_root_dists[tip.Name])
 
     def test_ascii(self):
