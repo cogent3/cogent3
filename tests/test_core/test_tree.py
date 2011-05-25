@@ -1748,7 +1748,8 @@ class TestTree(TestCase):
         self.assertEqual(str(subtree), str(new_tree))
     
     def test_getsubtree_2(self):
-        """tree.getSubTree() has same pairwise tip dists as tree (len0 node)"""
+        """tree.getSubTree() has same pairwise tip dists as tree (len0 node)
+        """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)', \
             PhyloNode) # note c,j is len 0 node
         orig_dists = t1.getDistances()
@@ -1758,7 +1759,9 @@ class TestTree(TestCase):
             self.assertEqual((pair,dist), (pair,orig_dists[pair]))
 
     def test_getsubtree_3(self):
-        """tree.getSubTree() has same pairwise tip dists as tree (nonzero nodes)
+        """tree.getSubTree() has same pairwise tip dists as tree 
+
+        (nonzero nodes)
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)', \
             PhyloNode) # note c,j is len 0 node
@@ -1779,8 +1782,80 @@ class TestTree(TestCase):
         sub2_dists = sub2.getDistances()
         for pair, dist in sub2_dists.items():
             self.assertEqual((pair,dist), (pair,orig_dists[pair]))        
-        
-    
+
+    def test_getsubtree_4(self):
+        """tree.getSubTree() handles keep_root correctly
+        """
+        t1 = DndParser('((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)')
+        #           /----4--- /--1-a
+        # ---------|          \--2-b
+        #          |          /----0--- /-1---cparent---2---c
+        #           \---3----|          \--17-j
+        #                     \----2--- /--1--d
+        #                               \--4--e
+        # note c,j is len 0 node
+
+        true_dists = {('a', 'b'): 3.0,
+         ('a', 'c'): 11.0,
+         ('a', 'd'): 11.0,
+         ('a', 'e'): 14.0,
+         ('a', 'j'): 25.0,
+         ('b', 'a'): 3.0,
+         ('b', 'c'): 12.0,
+         ('b', 'd'): 12.0,
+         ('b', 'e'): 15.0,
+         ('b', 'j'): 26.0,
+         ('c', 'a'): 11.0,
+         ('c', 'b'): 12.0,
+         ('c', 'd'): 6.0,
+         ('c', 'e'): 9.0,
+         ('c', 'j'): 20.0,
+         ('d', 'a'): 11.0,
+         ('d', 'b'): 12.0,
+         ('d', 'c'): 6.0,
+         ('d', 'e'): 5.0,
+         ('d', 'j'): 20.0,
+         ('e', 'a'): 14.0,
+         ('e', 'b'): 15.0,
+         ('e', 'c'): 9.0,
+         ('e', 'd'): 5.0,
+         ('e', 'j'): 23.0,
+         ('j', 'a'): 25.0,
+         ('j', 'b'): 26.0,
+         ('j', 'c'): 20.0,
+         ('j', 'd'): 20.0,
+         ('j', 'e'): 23.0}
+
+        true_root_dists = {'a':5,'b':6,'c':6,'j':20,'d':6,'e':9}
+
+        t1_dists = t1.getDistances() # 
+        subtree = t1.getSubTree(set(['d','e','c']))
+        sub_dists = subtree.getDistances()
+        true_sub_root_dists = {'c':3,'d':3,'e':6}
+
+        sub_sameroot = t1.getSubTree(set(['d','e','c']), keep_root=True)
+        sub_sameroot_dists = sub_sameroot.getDistances()
+
+        # tip to tip dists should be the same
+        for tip_pair in sub_dists.keys():
+            self.assertEqual(sub_dists[tip_pair],true_dists[tip_pair])
+        for tip_pair in t1_dists.keys():
+            self.assertEqual(t1_dists[tip_pair],true_dists[tip_pair])
+        for tip_pair in sub_sameroot_dists.keys():
+            self.assertEqual(sub_sameroot_dists[tip_pair],
+                true_dists[tip_pair])
+
+        # sameroot should have longer root to tip dists
+        for tip in t1.tips():
+            self.assertFloatEqual(t1.distance(tip),
+                true_root_dists[tip.Name])
+        for tip in subtree.tips():
+            self.assertFloatEqual(subtree.distance(tip),
+                true_sub_root_dists[tip.Name])
+        for tip in sub_sameroot.tips():
+            self.assertFloatEqual(sub_sameroot.distance(tip),
+                true_root_dists[tip.Name])
+
     def test_ascii(self):
         self.tree.asciiArt()
         # unlabeled internal node
