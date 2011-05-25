@@ -38,7 +38,8 @@ __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
-                    "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald"]
+                    "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald",
+                    "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.6.0.dev"
 __maintainer__ = "Gavin Huttley"
@@ -1082,7 +1083,7 @@ class TreeNode(object):
         max_pair = (tip_order[idx_max[0]].Name, tip_order[idx_max[1]].Name)
         return distmtx[idx_max], max_pair
  
-    def _getSubTree(self, included_names, constructor=None):
+    def _getSubTree(self, included_names, constructor=None, keep_root=False):
         """An equivalent node with possibly fewer children, or None"""
         
         # Renumber autonamed edges
@@ -1092,12 +1093,14 @@ class TreeNode(object):
         if self.Name in included_names:
             return self.deepcopy(constructor=constructor)
         else:
+            # don't need to pass keep_root to children, though
+            # internal nodes will be elminated this way
             children = [child._getSubTree(included_names, constructor)
                     for child in self.Children]
             children = [child for child in children if child is not None]
             if len(children) == 0:
                 result = None
-            elif len(children) == 1:
+            elif len(children) == 1 and not keep_root:
                 # Merge parameter dictionaries by adding lengths and making
                 # weighted averages of other parameters.  This should probably
                 # be moved out of here into a ParameterSet class (Model?) or
@@ -1122,9 +1125,18 @@ class TreeNode(object):
                 result = constructor(self, tuple(children))
         return result
     
-    def getSubTree(self, name_list, ignore_missing=False):
+    def getSubTree(self, name_list, ignore_missing=False, keep_root=False):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
+
+        ignore_missing: if False, getSubTree will raise a ValueError if 
+        name_list contains names that aren't nodes in the tree
+
+        keep_root: if False, the root of the subtree will be the last common
+        ancestor of all nodes kept in the subtree. Root to tip distance is
+        then (possibly) different from the original tree
+        If True, the root to tip distance remains constant, but root may only
+        have one child node.
         """
         edge_names = set(self.getNodeNames(includeself=1, tipsonly=False))
         if not ignore_missing:
@@ -1133,7 +1145,7 @@ class TreeNode(object):
                 if name not in edge_names:
                     raise ValueError("edge %s not found in tree" % name)
         
-        new_tree = self._getSubTree(name_list)
+        new_tree = self._getSubTree(name_list, keep_root=keep_root)
         if new_tree is None:
             raise TreeError, "no tree created in make sub tree"
         elif new_tree.istip():
