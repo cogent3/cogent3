@@ -173,28 +173,14 @@ def _fast_unifrac_setup(t, envs, make_subtree=True):
     if make_subtree:
         t2 = t.copy()
         wanted = set(envs.keys())
-        all_tips = list(t2.tips())
-        # can't delete nodes while itering, thus list()
-        for tip in all_tips: 
-            if tip.Name not in wanted:
-                curr_node = tip.Parent
-                did_remove = curr_node.removeNode(tip)
-                if not did_remove:
-                    raise RuntimeError('failed to remove tip in tree')
-                # and travel up tree 
-                while curr_node.istip():
-                    new_node = curr_node.Parent
-                    # better to ask forgiveness that permission
-                    try:
-                        new_node.removeNode(curr_node)
-                    except AttributeError:
-                        if curr_node.isroot():
-                            break
-                        else:
-                            raise
-                    curr_node = new_node
+        def delete_test(node):
+            if node.istip() and node.Name not in wanted:
+                return True
+            return False
+        t2.removeDeleted(delete_test)
         t2.prune()
         t = t2
+
     #index tree
     node_index, nodes = index_tree(t)
     #get good nodes, defined as those that are in the env file.
