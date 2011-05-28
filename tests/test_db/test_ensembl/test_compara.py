@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 61
+Release = 62
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -165,10 +165,10 @@ class TestSyntenicRegions(TestCase):
                  'Pan troglodytes:chromosome:16:48943-49032:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACACTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGAATTTGGACC-----------CAGTCTCAGGCCAAGTA'}]
             ]
-        
+        # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=494, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=511, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])

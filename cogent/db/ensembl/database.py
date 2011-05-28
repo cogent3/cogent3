@@ -2,6 +2,7 @@ import sqlalchemy as sql
 
 from cogent.util import table as cogent_table
 from cogent.db.ensembl.host import DbConnection, get_db_name
+from cogent.util.misc import flatten
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -61,17 +62,27 @@ class Database(object):
             - column: valid values are biotype, status"""
         table = self.getTable(table_name)
         query = sql.select([table.c[column]], distinct=True)
+        records = set()
+        string_types = str, unicode
         for record in query.execute():
-            if type(record) != str:
-                new = ()
-                for value in record:
-                    if type(value) == set:
-                        value = tuple(value)
-                    new += (value,)
-                record = new
-                while len(record) == 1 and type(record) in (tuple, list):
-                    record = record[0]
-            yield record
+            if type(record) not in string_types and \
+                type(record[0]) not in string_types:
+                # multi-dimensioned list/tuple
+                record = flatten(record)
+            elif type(record) not in string_types:
+                # list/tuple of strings
+                record = tuple(record)
+            else:
+                # a string
+                record = [record]
+            
+            records.update(record)
+        return records
+    
+    def tableHasColumn(self, table_name, column):
+        """returns True if table has column"""
+        table = self.getTable(table_name)
+        return hasattr(table.c, column)
     
     def getTablesRowCount(self, table_name=None):
         """returns a cogent Table object with the row count for each table

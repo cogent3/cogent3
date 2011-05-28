@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 61
+Release = 62
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -33,10 +33,10 @@ class TestDatabase(TestCase):
         db = Database(account=account, release=Release,
                     species='human', db_type='variation')
         tn, tc = 'variation_feature', 'consequence_type'
-        expected = set((('3PRIME_UTR', 'ESSENTIAL_SPLICE_SITE'),
-                    ('3PRIME_UTR', 'SPLICE_SITE'),
-                    ('5PRIME_UTR', 'ESSENTIAL_SPLICE_SITE')))
-        self.assertNotEquals(set(db.getDistinct(tn, tc)) & expected, set())
+        expected = set(('3_prime_UTR_variant', 'splice_acceptor_variant',
+                        '5_prime_UTR_variant'))
+        got = db.getDistinct(tn, tc)
+        self.assertNotEquals(set(got) & expected, set())
         
         db = Database(account=account, release=Release,
                     species='human', db_type='core')
@@ -45,7 +45,7 @@ class TestDatabase(TestCase):
           'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene',
           'IG_C_gene', 'IG_D_gene', 'miRNA', 'misc_RNA', 'snoRNA', 'snRNA', 'rRNA'])
         got = set(db.getDistinct(tn, tc))
-        self.assertEquals(len(got&expected), len(expected))
+        self.assertNotEquals(set(got) & expected, set())
         
         db = Database(account=account, release=Release, db_type='compara')
         got = set(db.getDistinct('homology', 'description'))
@@ -55,10 +55,10 @@ class TestDatabase(TestCase):
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_61_37f.analysis': 61L,
-                  'homo_sapiens_core_61_37f.seq_region': 55616L,
-                  'homo_sapiens_core_61_37f.assembly': 102090L,
-                  'homo_sapiens_core_61_37f.qtl': 0L}
+        expect = {'homo_sapiens_core_62_37g.analysis': 61L,
+                  'homo_sapiens_core_62_37g.seq_region': 55616L,
+                  'homo_sapiens_core_62_37g.assembly': 102090L,
+                  'homo_sapiens_core_62_37g.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
@@ -66,6 +66,24 @@ class TestDatabase(TestCase):
         for dbname in expect:
             self.assertTrue(got[dbname] >= expect[dbname])
     
+    def test_table_has_column(self):
+        """return correct values for whether a Table has a column"""
+        account = get_ensembl_account(release=Release)
+        var61 = Database(account=account, release=61, species='human',
+            db_type='variation')
+        
+        var62 = Database(account=account, release=62, species='human',
+            db_type='variation')
+        
+        self.assertTrue(var61.tableHasColumn('transcript_variation',
+            'peptide_allele_string'))
+        self.assertFalse(var61.tableHasColumn('transcript_variation',
+            'pep_allele_string'))
+        
+        self.assertTrue(var62.tableHasColumn('transcript_variation',
+            'pep_allele_string'))
+        self.assertFalse(var62.tableHasColumn('transcript_variation',
+            'peptide_allele_string'))
 
 if __name__ == "__main__":
     main()

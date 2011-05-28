@@ -17,7 +17,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 61
+Release = 62
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -291,8 +291,8 @@ class TestGene(GenomeTestBase):
     def test_intron_number(self):
         """number of introns should be correct"""
         for gene_id, transcript_id, exp_number in [
-                            ('ENSG00000234914', 'ENST00000434799', 0),
-                            ('ENSG00000132199', 'ENST00000319815', 14),
+                            ('ENSG00000227268', 'ENST00000445946', 0),
+                            ('ENSG00000132199', 'ENST00000319815', 8),
                             ('ENSG00000132199', 'ENST00000383578', 15)]:
             gene = asserted_one(self.human.getGenesMatching(StableId=gene_id))
             transcript = asserted_one(
@@ -361,7 +361,7 @@ class TestVariation(GenomeTestBase):
     snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'C/A', 'CAGCTCCAGCTC/-']
     snp_aa_alleles = ['G/R', 'P/L', 'Y/C', "V/F", "GAGAV/V"]
-    snp_effects = ['NON_SYNONYMOUS_CODING']*3+[['REGULATORY_REGION', 'NON_SYNONYMOUS_CODING']]+['NON_SYNONYMOUS_CODING']
+    snp_effects = ['non_synonymous_codon']*3+[['2KB_upstream_variant', '5KB_upstream_variant', 'non_synonymous_codon']]+['non_synonymous_codon']
     snp_nt_len = [1, 1, 1, 1, 12]
     map_weights = [1,1,1,1,1]
     snp_flanks = [
@@ -391,7 +391,7 @@ class TestVariation(GenomeTestBase):
             self.assertEquals(len(snp), self.snp_nt_len[i])
 
     def test_get_peptide_alleles(self):
-        """should correctly infer the peptide alles"""
+        """should correctly infer the peptide alleles"""
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
             if snp.Effect == 'INTRONIC':
@@ -414,7 +414,8 @@ class TestVariation(GenomeTestBase):
 
         data = (('rs34213141', set(['freq']), func),
                 ('rs12791610', set(['cluster', 'freq']), func),
-                ('rs10792769', set([None]), func))
+                ('rs10792769', set(['cluster', 'freq', '1000Genome',
+                                    'hapmap', 'doublehit']), func))
         for name, status, conv in data:
             snp = list(self.human.getVariation(Symbol=name))[0]
             self.assertTrue(status <= conv(snp.Validation))
@@ -440,12 +441,11 @@ class TestVariation(GenomeTestBase):
     def test_allele_freqs(self):
         """exercising getting AlleleFreq data"""
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
-        expect = dict(A=0.030303, G=0.969697)
+        expect = set([('A', '0.0303'), ('G', '0.9697')])
         allele_freqs = snp.AlleleFreqs
-        allele_freqs = allele_freqs.getRawData(['allele', 'freq'])
-        for allele, freq in allele_freqs:
-            self.assertFloatEqual(freq, expect[allele], eps=1e-3)
-
+        allele_freqs = set((a, '%.4f' % f )
+                    for a, f in allele_freqs.getRawData(['allele', 'freq']))
+        self.assertTrue(expect.issubset(allele_freqs))
 
 class TestFeatures(GenomeTestBase):
     def setUp(self):
@@ -574,7 +574,7 @@ class TestFeatures(GenomeTestBase):
         """should correctly return the encompassing gene from 1nt"""
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
         gene=list(self.human.getFeatures(feature_types='gene',region=snp))[0]
-        self.assertEquals(gene.StableId, 'ENSG00000204572')
+        self.assertEquals(gene.StableId, 'ENSG00000254997')
 
 
 class TestAssembly(TestCase):
