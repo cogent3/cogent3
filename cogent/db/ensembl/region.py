@@ -1032,15 +1032,36 @@ class Variation(_Region):
         if not 'variation_feature' in self._table_rows:
             raise NotImplementedError
         
-        if 'NON_SYNONYMOUS_CODING' not in self.Effect:
+        try:
+            effects = [self.Effect.lower()]
+        except AttributeError:
+            effects = [v.lower() for v in self.Effect]
+        
+        effects = set(effects)
+        nsyn = set(('non_synonymous_coding', 'non_synonymous_codon'))
+        if not effects & nsyn:
             self._cached['PeptideAlleles'] = self.NULL_VALUE
             self._cached['TranslationLocation'] = self.NULL_VALUE
             return
         
         table_name = self._attr_ensembl_table_map['PeptideAlleles']
         loc = lambda x: int(x)-1
+        
+        # column name changed between releases, so we check to see which
+        # one is being used for this instance and set the column strings
+        
+        # TODO can we modify the table on loading? This would give better
+        # performance.
+        
+        if self.genome.VarDb.tableHasColumn(table_name, 'pep_allele_string'):
+            pep_allele_string = 'pep_allele_string'
+            consequence_type = 'consequence_types'
+        else:
+            pep_allele_string = 'peptide_allele_string'
+            consequence_type = 'consequence_type'
+        
         attr_column_map = [
-                ('PeptideAlleles','peptide_allele_string', _quoted),
+                ('PeptideAlleles', pep_allele_string, _quoted),
                 ('TranslationLocation', 'translation_start', loc)]
         
         if table_name in self._table_rows:
@@ -1052,18 +1073,18 @@ class Variation(_Region):
         table = self.genome.VarDb.getTable(table_name)
         self_effect = set([self.Effect,[self.Effect]][type(self.Effect)==str])
         query = sql.select([table.c.variation_feature_id,
-                           table.c.peptide_allele_string,
+                           table.columns[pep_allele_string],
                            table.c.translation_start,
-                           table.c.consequence_type],
+                           table.columns[consequence_type]],
                     sql.and_(table.c.variation_feature_id == var_feature_id,
-                            table.c.peptide_allele_string != None))
+                            table.columns[pep_allele_string] != None))
         records = query.execute().fetchall()
         pep_alleles = []
         translation_location = []
         for record in records:
-            if not record['consequence_type'] & self_effect:
+            if not record[consequence_type] & self_effect:
                 continue
-            pep_alleles += [record['peptide_allele_string']]
+            pep_alleles += [record[pep_allele_string]]
             translation_location += [record['translation_start']]
         
         if not pep_alleles:
@@ -1075,7 +1096,7 @@ class Variation(_Region):
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
         translation_location = allele_location[pep_alleles]
-        self._table_rows[table_name] = dict(peptide_allele_string=pep_alleles,
+        self._table_rows[table_name] = dict(pep_allele_string=pep_alleles,
                                             translation_start=translation_location)
         self._populate_cache_from_record(attr_column_map, table_name)
     
