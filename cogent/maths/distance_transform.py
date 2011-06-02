@@ -984,11 +984,14 @@ def binary_dist_otu_gain(otumtx):
     
     """
     result = []
-    for i in range(len(otumtx)):
+    for i in otumtx:
         row = []
-        for j in range(len(otumtx)):
-            new = otumtx[i] - otumtx[j]
-            row.append(sum(new > 0))
+        for j in otumtx:
+            gain = 0
+            for i_val, j_val in zip(i, j):
+                if i_val > 0 and j_val == 0:
+                    gain += 1
+            row.append(gain)
         result.append(row)
     return array(result)
 
