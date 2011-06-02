@@ -240,15 +240,19 @@ def suite():
             ('uclust','test_uclust')
             ]
     for app, test_name in apps:
+        should_run_test = False
         if app_path(app):
-            modules_to_test.append('test_app.' + test_name)
-        elif app == 'rdp_classifier-2.0.jar' and os.environ.get('RDP_JAR_PATH'):
+            should_run_test = True
+        elif app.startswith('rdp_classifier') and os.environ.get('RDP_JAR_PATH'):
             # This is ugly, but because this is a jar file, it won't be in 
             # $PATH -- we require users to set an environment variable to 
             # point to the location of this jar file, so we test for that. 
             # My new version of app_path can be applied to do smarter checks,
             # but will involve some re-write of how we check whether tests can
             # be run. -Greg
+            if app == os.path.basename('RDP_JAR_PATH'):
+                should_run_test = True
+        if should_run_test:
             modules_to_test.append('test_app.' + test_name)
         else:
             print >> sys.stderr, "Can't find %s executable: skipping test" % app
