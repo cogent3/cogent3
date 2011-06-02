@@ -42,7 +42,7 @@ class functionTests(TestCase):
                         [ 0.0,  0.0 ,  0.4],
                         [ 1.0,  0.0,  0.0 ],
                         [ 0.0,  0.0,  0.0 ]],'d')
-        self.input_binary_dist_otu_gain1 = array([[1,1,0,0],
+        self.input_binary_dist_otu_gain1 = array([[2,1,0,0],
           [1,0,0,1],
           [0,0,3,0],
           [0,0,0,1]])
@@ -541,13 +541,6 @@ class functionTests(TestCase):
                     #pass # should not be equal, so catch error and proceed
                 #else:
                     #print "duplicates found: ", distfns[i], distfns[j]
-
-input_binary_dist_otu_gain1 = """#Full OTU Counts
-#OTU ID\tABC\tDEF\tGHI\tXYZ\tConsensus Lineage
-0\t1\t1\t0\t0\tBacteria;Firmicutes
-1\t1\t0\t0\t0\tNone
-x\t0\t0\t3\t0\tBacteria;Bacteroidetes
-z\t0\t1\t0\t1\tNone"""
 
 if __name__ == '__main__':
     main()
