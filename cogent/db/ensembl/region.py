@@ -999,8 +999,12 @@ class Variation(_Region):
             return
         
         self._table_rows['allele_table'] = records
-        data = [(rec['allele'], rec['frequency'], rec['sample_id']) 
-                for rec in records if rec['sample_id']]
+        data = [(rec['allele'], rec['frequency'], rec['sample_id'])
+                                    for rec in records if rec['sample_id']]
+        if not data:
+            self._cached[('AlleleFreqs')] = self.NULL_VALUE
+            return
+        
         table = Table(header='allele freq sample_id'.split(), rows=data)
         self._cached[('AlleleFreqs')] = table.sorted(['sample_id', 'allele'])
     
@@ -1095,7 +1099,12 @@ class Variation(_Region):
         allele_location = dict(zip(pep_alleles, translation_location))
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
-        translation_location = allele_location[pep_alleles]
+        if type(pep_alleles) != str:
+            for pep_allele in pep_alleles:
+                translation_location = allele_location[pep_allele]
+        else:
+            translation_location = allele_location[pep_alleles]
+        
         self._table_rows[table_name] = dict(pep_allele_string=pep_alleles,
                                             translation_start=translation_location)
         self._populate_cache_from_record(attr_column_map, table_name)

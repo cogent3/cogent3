@@ -43,7 +43,7 @@ To see what existing species are available
            Common Name                   Species Name              Ensembl Db Prefix
     --------------------------------------------------------------------------------
              A.aegypti                  Aedes aegypti                  aedes_aegypti
-                Alpaca                  Vicugna pacos                  vicugna_pacos...
+            A.clavatus           Aspergillus clavatus           aspergillus_clavatus...
 
 If Ensembl has added a new species which is not yet included in ``Species``, you can add it yourself.
 
@@ -90,9 +90,9 @@ We query for the *BRCA2* gene for humans.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> print human
-    Genome(Species='Homo sapiens'; Release='58')
+    Genome(Species='Homo sapiens'; Release='62')
     >>> genes = human.getGenesMatching(Symbol='BRCA2')
     >>> for gene in genes:
     ...     if gene.Symbol == 'BRCA2':
@@ -108,7 +108,7 @@ We use the stable ID for *BRCA2*.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> gene = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> print gene
     Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast cancer 2,...'; StableId='ENSG00000139618'; Status='KNOWN'; Symbol='BRCA2')
@@ -121,11 +121,11 @@ We look for breast cancer related genes that are estrogen induced.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> genes = human.getGenesMatching(Description='breast cancer estrogen')
     >>> for gene in genes:
     ...     print gene
-    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='KNOWN'; Symbol='AC105219.1')
+    Gene(Species='Homo sapiens'; BioType='processed_transcript'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='NOVEL'; Symbol='RP11-429J17.2')
 
 We can also require that an exact (case insensitive) match to the word(s) occurs within the description by setting ``like=False``.
 
@@ -135,7 +135,7 @@ We can also require that an exact (case insensitive) match to the word(s) occurs
     ...                                  like=False)
     >>> for gene in genes:
     ...     print gene
-    Gene(Species='Homo sapiens'; BioType='protein_coding'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='KNOWN'; Symbol='AC105219.1')
+    Gene(Species='Homo sapiens'; BioType='processed_transcript'; Description='breast cancer estrogen-induced...'; StableId='ENSG00000181097'; Status='NOVEL'; Symbol='RP11-429J17.2')
 
 Get canonical transcript for a gene
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +145,7 @@ We get the canonical transcripts for *BRCA2*.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> transcript = brca2.CanonicalTranscript
     >>> print transcript
@@ -157,7 +157,7 @@ Get the CDS for a transcript
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> transcript = brca2.CanonicalTranscript
     >>> cds = transcript.Cds
@@ -172,12 +172,12 @@ Look at all transcripts for a gene
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> for transcript in brca2.Transcripts:
     ...     print transcript
     Transcript(Species='Homo sapiens'; CoordName='13'; Start=32889610; End=32973347; length=83737; Strand='+')
-    Transcript(Species='Homo sapiens'; CoordName='13'; Start=32953976; End=32972409; length=18433; Strand='+')
+    Transcript(Species='Homo sapiens'; CoordName='13'; Start=32889641; End=32907428; length=17787; Strand='+')...
 
 Get the first exon for a transcript
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -187,7 +187,7 @@ We show just for the canonical transcript.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> print brca2.CanonicalTranscript.Exons[0]
     Exon(StableId=ENSE00001184784, Rank=1)
@@ -200,7 +200,7 @@ We show just for the canonical transcript.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> for intron in brca2.CanonicalTranscript.Introns:
     ...     print intron
@@ -215,7 +215,7 @@ Inspect the genomic coordinate for a feature
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> print brca2.Location.CoordName
     13
@@ -232,7 +232,7 @@ We query the genome for repeats within a specific coordinate range on chromosome
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> repeats = human.getFeatures(CoordName='13', Start=32879610, End=32889610, feature_types='repeat')
     >>> for repeat in repeats:
     ...     print repeat.RepeatClass
@@ -249,7 +249,7 @@ We query the genome for CpG islands within a specific coordinate range on chromo
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> islands = human.getFeatures(CoordName='11', Start=2150341, End=2170833, feature_types='cpg')
     >>> for island in islands:
     ...     print island
@@ -269,7 +269,7 @@ We find the genetic variants for the canonical transcript of *BRCA2*.
 .. doctest::
 
     >>> from cogent.db.ensembl import Genome
-    >>> human = Genome('human', Release=58, account=account)
+    >>> human = Genome('human', Release=62, account=account)
     >>> brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
     >>> transcript = brca2.CanonicalTranscript
     >>> print transcript.Variants
@@ -277,7 +277,7 @@ We find the genetic variants for the canonical transcript of *BRCA2*.
     >>> for variant in transcript.Variants:
     ...     print variant
     ...     break
-    Variation(Symbol='rs55880202'; Effect='5PRIME_UTR'; Alleles='C/T')...
+    Variation(Symbol='rs55880202'; Effect=['2KB_upstream_variant', '5_prime_UTR_variant', '5KB_upstream_variant']; Alleles='C/T')...
 
 Get a single SNP
 ^^^^^^^^^^^^^^^^
@@ -291,8 +291,10 @@ We get a single SNP and print it's allele frequencies.
     =============================
     allele      freq    sample_id
     -----------------------------
-         A    0.0303          913
-         G    0.9697          913
+         A    0.0303         1162
+         G    0.9697         1162
+         G    1.0000        11437
+         G    1.0000        11748
     -----------------------------
 
 What alignment types available
@@ -303,15 +305,15 @@ We create a ``Compara`` instance for human, chimpanzee and macaque.
 .. doctest::
 
     >>> from cogent.db.ensembl import Compara
-    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=58,
+    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=62,
     ...                  account=account)
     >>> print compara.method_species_links
     Align Methods/Clades
     ===================================================================================================================
     method_link_species_set_id  method_link_id  species_set_id      align_method                            align_clade
     -------------------------------------------------------------------------------------------------------------------
-                           469              10           33006             PECAN           16 amniota vertebrates Pecan
-                           467              13           32905               EPO               12 eutherian mammals EPO...
+                           508              10           33558             PECAN           19 amniota vertebrates Pecan
+                           510              13           33559               EPO               12 eutherian mammals EPO...
 
 Get genomic alignment for a gene region
 ---------------------------------------
@@ -321,16 +323,16 @@ We first get the syntenic region corresponding to human gene *BRCA2*.
 .. doctest::
 
     >>> from cogent.db.ensembl import Compara
-    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=58,
+    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=62,
     ...                  account=account)
     >>> human_brca2 = compara.Human.getGeneByStableId(StableId='ENSG00000139618')
     >>> regions = compara.getSyntenicRegions(region=human_brca2, align_method='EPO', align_clade='primates')
     >>> for region in regions:
     ...     print region
     SyntenicRegions:
-      Coordinate(Human,chro...,13,32889610-32962969,1)
-      Coordinate(Chimp,chro...,13,32082473-32155304,1)
-      Coordinate(Macaque,chro...,17,11686607-11760932,1)...
+      Coordinate(Human,chro...,13,32889610-32973805,1)
+      Coordinate(Chimp,chro...,13,32082473-32166143,1)
+      Coordinate(Macaque,chro...,17,11686607-11778803,1)...
 
 We then get a cogent ``Alignment`` object, requesting that sequences be annotated for gene spans.
 
@@ -338,7 +340,7 @@ We then get a cogent ``Alignment`` object, requesting that sequences be annotate
 
     >>> aln = region.getAlignment(feature_types='gene')
     >>> print repr(aln)
-    3 x 11471 dna alignment: Homo sapiens:chromosome:13:3296...
+    3 x 99014 dna alignment: Homo sapiens:chromosome:13:3288...
 
 Getting related genes
 ---------------------
@@ -349,10 +351,10 @@ What gene relationships are available
 .. doctest::
 
     >>> from cogent.db.ensembl import Compara
-    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=58,
+    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=62,
     ...                  account=account)
     >>> print compara.getDistinct('relationship')
-    [u'ortholog_one2one', u'within_species_paralog', u'ortholog_one2many', ...
+    [u'ortholog_one2many', u'contiguous_gene_split', u'ortholog_one2one',...
 
 Get one-to-one orthologs
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -362,7 +364,7 @@ We get the one-to-one orthologs for *BRCA2*.
 .. doctest::
 
     >>> from cogent.db.ensembl import Compara
-    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=58,
+    >>> compara = Compara(['human', 'chimp', 'macaque'], Release=62,
     ...                  account=account)
     >>> orthologs = compara.getRelatedGenes(StableId='ENSG00000139618',
     ...                  Relationship='ortholog_one2one')
@@ -403,7 +405,7 @@ We sample all one-to-one orthologs for a group of species, generating a FASTA fo
     >>> common_names = ["mouse", "rat", "human", "opossum"]
     >>> latin_names = set([Species.getSpeciesName(n) for n in common_names])
     >>> latin_to_common = dict(zip(latin_names, common_names))
-    >>> compara = Compara(common_names, Release=58, account=account)
+    >>> compara = Compara(common_names, Release=62, account=account)
     >>> for gene in compara.Human.getGenesMatching(BioType='protein_coding'):
     ...     orthologs = compara.getRelatedGenes(gene,
     ...                                  Relationship='ortholog_one2one')
