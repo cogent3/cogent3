@@ -43,19 +43,24 @@ Fitting a function to a giving set of x and y values
 Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_params`` using simplex iterations to minimize the error between the model ``func`` to fit and the given values. Here we fitting an exponential function.
 
 .. doctest::
+    :hide:
+    
+    >>> from numpy.random import seed
+    >>> seed(42) # so the results are not volatile
+
+
+.. doctest::
 
     >>> from numpy import array, arange, exp
-    >>> from numpy.random import rand
+    >>> from numpy.random import rand, seed
     >>> from cogent.maths.fit_function import fit_function
-    >>> #from whatever import fit_function
-    >>>
     >>> # creating x values
     >>> x = arange(-1,1,.01)
     >>>
     >>> # defining our fitting function
     >>> def f(x,a):
-    >>>     return exp(a[0]+x*a[1])
-    >>>
+    ...     return exp(a[0]+x*a[1])
+    ...
     >>> # getting our real y
     >>> y = f(x,a=[2,5])
     >>>
@@ -65,13 +70,12 @@ Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_
     >>> # fitting our noisy data to the function using 1 iteration
     >>> params = fit_function(x, y_noise, f, 2, 1)
     >>> params
-    array([ 2.04676934,  4.95324591])
+    array([ 2.0399908 ,  4.96109191])
     >>>
     >>> # fitting our noisy data to the function using 1 iteration
     >>> params = fit_function(x, y_noise, f, 2, 5)
     >>> params
-    array([ 2.04676659,  4.95324502])
-
+    array([ 2.0399641 ,  4.96112469])
 
 Cartesian products
 ==================
