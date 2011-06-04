@@ -14,6 +14,7 @@ In order to run BLAST locally (from a program running on your computer) you will
 - Download the BLAST "executables" from NCBI
 - Make sure these programs are available on your ``PATH``
 - Construct and format a database to search against
+- Tested on version 2.2.13
 
 NCBI has recently changed the BLAST programs, and as yet PyCogent does not support the new versions. The "legacy" versions are available from `here <http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download>`_ (login as guest).
 
