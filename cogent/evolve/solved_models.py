@@ -64,14 +64,14 @@ kappa = (kappa_y | kappa_r).aliased('kappa')
 
 def TN93(**kw):
     """Tamura and Nei 1993 model"""
-    return _solvedNucleotide('TN93', [kappa_y, kappa_r], **kw)
+    return _solvedNucleotide('TN93', [kappa_y, kappa_r], recode_gaps=True, **kw)
 
 def HKY85(**kw):
     """Hasegawa, Kishino and Yanamo 1985 model"""
-    return _solvedNucleotide('HKY85', [kappa], **kw)
+    return _solvedNucleotide('HKY85', [kappa], recode_gaps=True, **kw)
 
 def F81(**kw):
     """Felsenstein's 1981 model"""
-    return _solvedNucleotide('F81', [], **kw)
+    return _solvedNucleotide('F81', [], recode_gaps=True, **kw)
 
 
