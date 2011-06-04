@@ -16,7 +16,7 @@ The available nucleotide, codon and protein models are
     
     >>> from cogent.evolve import models
     >>> print models.nucleotide_models
-    ['JC69', 'F81', 'HKY85', 'GTR']
+    ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR']
     >>> print models.codon_models
     ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
     >>> print models.protein_models
@@ -211,22 +211,6 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
     >>> lf.setParamRule('omega', init=0.1, lower=1e-9, upper=20.0)
 
-If you set bounds it's a very good idea to set the starting value too. That way you can be sure the starting value lies within the bounds you set. The default parameter value for substitution parameter exchangeability terms is 1.0, so if you set an upper bound of 0.5, you'll get an error (shown below) when you try to optimise the likelihood.
-
-.. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import CNFGTR
-    >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', upper=0.5, init=1.0)
-    >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> lf.setAlignment(aln)
-    >>> lf.optimise()
-    Traceback (most recent call last):
-    ValueError: Initial parameter values must be valid ...
-
 Specifying rate heterogeneity functions
 ---------------------------------------
 
@@ -305,7 +289,7 @@ How to check your optimisation was successful.
 
 There is no guarantee that an optimised function has achieved a global maximum. We can, however, be sure that a maximum was achieved by validating that the optimiser stopped because the specified tolerance condition was met, rather than exceeding the maximum number of evaluations. The latter number is set to ensure optimisation doesn't proceed endlessly. If the optimiser exited because this limit was exceeded you can be sure that the function **has not** been successfully optimised.
 
-To take this approach we first need to specify a maximum and second we need to get back the actual calculator object as this records how many evaluations it has done. I set a very small maximum so the optimiser exits too early.
+We can monitor this situation using the ``limit_action`` argument to ``optimise``. Providing the value ``raise`` causes an exception to be raised if this condition occurs, as shown below. Providing ``warn`` (default) instead will cause a warning message to be printed to screen but execution will continue. The value ``ignore`` hides any such message.
 
 .. doctest::
     
@@ -317,17 +301,13 @@ To take this approach we first need to specify a maximum and second we need to g
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
     >>> lf.setAlignment(aln)
     >>> max_evals = 10
-    >>> calculator = lf.optimise(show_progress=False,
+    >>> lf.optimise(show_progress=False, limit_action='raise',
     ...              max_evaluations=max_evals, return_calculator=True)
-    ...                         
-    FORCED EXIT from SimulatedAnnealing:
-    Too many function evaluations, results are likely to be poor.
-    You can increase max_evaluations or decrease tolerance...
-    >>> if calculator.evaluations > max_evals:
-    ...     print 'Failed to optimise'
-    Failed to optimise
+    ... 
+    Traceback (most recent call last):
+    ArithmeticError: FORCED EXIT from optimiser after 10 evaluations
 
-
+.. note:: We recommend using ``limit_action='raise'`` and catching the ``ArithmeticError`` error explicitly. You really shouldn't be using results from such an optimisation run.
 
 Getting statistics out of likelihood functions
 ==============================================
@@ -367,7 +347,7 @@ Information theoretic measures
 Aikake Information Criterion
 """"""""""""""""""""""""""""
 
-..note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
+.. note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
 
 .. doctest::
     
@@ -393,7 +373,7 @@ We can also get the second-order AIC.
 Bayesian Information Criterion
 """"""""""""""""""""""""""""""
 
-..note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
+.. note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
 
 .. doctest::
     
@@ -454,10 +434,10 @@ If written to file in xml format, then model parameters will be saved. This can 
     <clade>
       <clade>
          <name>Galago</name>
-         <param><name>A/G</name><value>5.25337479406</value></param>
-         <param><name>A/C</name><value>1.23158577782</value></param>
-         <param><name>C/T</name><value>5.96998512452</value></param>
-         <param><name>length</name><value>0.173113656134</value></param>...
+         <param><name>A/G</name><value>5.25342689214</value></param>
+         <param><name>A/C</name><value>1.23159157151</value></param>
+         <param><name>C/T</name><value>5.97001104267</value></param>
+         <param><name>length</name><value>0.173114172705</value></param>...
 
 .. warning:: This method fails for some rate-heterogeneity models.
 
@@ -474,7 +454,7 @@ As tables
     ==============================================
        A/C       A/G       A/T       C/G       C/T
     ----------------------------------------------
-    1.2316    5.2534    0.9585    2.3158    5.9700
+    1.2316    5.2534    0.9585    2.3159    5.9700
     ----------------------------------------------
 
 Testing hypotheses
@@ -614,7 +594,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2, space=2)
-    >>> lf.setParamRule('omega', is_independent=True, upper = 10.0)
+    >>> lf.setParamRule('omega', is_independent=True, upper=10.0)
     >>> lf.setAlignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
     >>> print lf
@@ -634,7 +614,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
        Gorilla  edge.1    0.01   0.43
          Human  edge.0    0.02   2.44
     Chimpanzee  edge.0    0.01   2.28
-        edge.0  edge.1    0.00   1.04
+        edge.0  edge.1    0.00   0.00
         edge.1  edge.2    0.01   0.55
         edge.2  edge.3    0.04   0.33
         edge.3    root    0.02   1.10...
