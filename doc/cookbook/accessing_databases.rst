@@ -42,7 +42,7 @@ Similarly, if you want something more machine-readable (but quite a lot less hum
     ...     print line
     ... 
     <?xml version="1.0"?>
-    <!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2010//EN" "http://www.ncbi.nlm.nih.gov/corehtml/query/DTD/pubmed_100301.dtd">
+    <!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2011//EN" "http://www.ncbi.nlm.nih.gov/entrez/query/DTD/pubmed_110101.dtd">
     <PubmedArticleSet>
     <PubmedArticle>
         <MedlineCitation Owner="NLM" Status="MEDLINE">
