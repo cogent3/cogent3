@@ -44,8 +44,8 @@ Now use this matrix to perform principal coordinates analysis.
     Eigenvectors          HowlerMon      -0.07       0.01       0.01      -0.02       0.00
     Eigenvectors              Mouse       0.20       0.01      -0.01      -0.00       0.00
     Eigenvectors              Human      -0.07       0.04      -0.03       0.01       0.00
-     Eigenvalues        eigenvalues       0.05       0.01       0.00       0.00      -0.00
-     Eigenvalues  var explained (%)      85.71       9.60       3.73       0.95      -0.00
+     Eigenvalues        eigenvalues       0.05       0.01       0.00       0.00       0.00
+     Eigenvalues  var explained (%)      85.71       9.60       3.73       0.95       0.00
     --------------------------------------------------------------------------------------
 
 We can save these results to a file in a delimited format (we'll use tab here) that can be opened up in any data analysis program, like R or Excel. Here the principal coordinates can be plotted against each other for visualization.
