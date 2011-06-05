@@ -29,13 +29,14 @@ clustalw and muscle
     ---------|--NineBande
              |
              |          /-DogFaced
-              \0.678---|
+              \0.508---|
                        |          /-HowlerMon
-                        \0.720---|
+                        \0.752---|
                                   \-Human
 
 And if you have matplotlib installed you can draw the tree (see :ref:`draw-trees`).
 
+.. note:: Tree output based on v2.0.1
 .. TODO add in cross-ref to drawing usage example
 
 BLAST
