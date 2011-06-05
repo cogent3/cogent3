@@ -13,7 +13,7 @@ Checking your version
 
 At a minimum, you need to be using Python 2.5.x. If you have Python installed, open a terminal window and type ``python``. The first few lines of text should tell you what version you're running. For example: 
 
-::
+.. note::
     
     $ python
     Python 2.6.4 (r264:75706, Mar 11 2010, 12:48:01)
@@ -30,8 +30,8 @@ Getting help
 Python comes with a built-in help utility. To access it, open a terminal window and type ``python`` to enter Python's interactive mode:
 
 ::
-
-    >>> help()
+    
+    help()
 
     Welcome to Python 2.6!  This is the online help utility.
 
@@ -51,7 +51,7 @@ Python comes with a built-in help utility. To access it, open a terminal window 
 
 Note that you are now in the interactive help mode as noted by the prompt ``help>``. In this mode you can type in the names of various objects and get additional information on them. For example, if I want to know something about the ``map`` function:
 
-::
+.. doctest::
     
     help> map
     
@@ -70,7 +70,7 @@ Note that you are now in the interactive help mode as noted by the prompt ``help
 
 To exit the interactive help mode, simply enter a blank line at the ``help>`` prompt:
 
-::
+..
 
     help>
 
@@ -81,9 +81,9 @@ To exit the interactive help mode, simply enter a blank line at the ``help>`` pr
 
 As the parting message suggests, you can also invoke help on a specific object directly:
 
-::
+..
 
-    >>> help(abs)
+    help(abs)
 
     Help on built-in function abs in module __builtin__:
 
@@ -100,49 +100,49 @@ Using the dir() function
 
 Another useful built-in function is ``dir()``. As the name implies, it's use is to list defined names in the current scope. To list the currently defined names:
 
-::
+..
 
-    >>> dir()
+    dir()
     ['__builtins__', '__doc__', '__name__', '__package__']
 
 The list shows which names are currently defined. This list includes all imported modules and variable names. For example, if I define a new variable, it will also show up in this list:
 
-::
+..
 
-    >>> my_variable = 'Just testing'
-    >>> dir()
+    my_variable = 'Just testing'
+    dir()
     ['__builtins__', '__doc__', '__name__', '__package__', 'my_variable']
 
 Imported modules will also be reflected in this list:
 
 ::
 
-    >>> import os
-    >>> import sys
-    >>> dir()
+    import os
+    import sys
+    dir()
     ['__builtins__', '__doc__', '__name__', '__package__', 'my_variable', 'os', 'sys']
 
 ``dir()`` can also be used to list the names defined within a module:
 
 ::
 
-    >>> import sys
-    >>> dir(sys)
+    import sys
+    dir(sys)
     ['__displayhook__', '__doc__', '__excepthook__', '__name__', '__package__', '__stderr__', '__stdin__', '__stdout__',...
 
 It also works on variable types. For example, let's see what attributes the string class has as defined:
 
 ::
 
-    >>> dir(str)
+    dir(str)
     ['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__', '__format__', '__ge__',...
 
 You can also use ``dir()`` on a defined variable. It will inspect the variable's type and report the attributes for that type. In this case, we defined a variable ``my_variable`` of type ``str``. Calling ``dir(my_variable)`` will product the same result as calling ``dir(str)``:
 
 ::
 
-    >>> my_variable = 'Just testing'
-    >>> dir(my_variable)
+    my_variable = 'Just testing'
+    dir(my_variable)
     ['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__', '__format__', '__ge__',...
 
 Hello PyCogent!
