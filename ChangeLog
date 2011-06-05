@@ -35,6 +35,7 @@ New Features
 * Added jackknife code to cogent.maths.stats.jackknife. This can be used to
   measure confidence of an estimate from a single vector or a matrix. Thanks
   to Anuj Pahwa for help implementing this!
+* Added abundance-based Jaccard beta diversity index (Chao et. al., 2005)
 
 Changes
 -------
@@ -48,6 +49,7 @@ Changes
 * The PredefinedNucleotide models are now available via cogent.evolve.models.
   The old-style (slower) nucleotide models can be obtained by setting
   rate_matrix_required=True.
+* RichGenbankParser can now return WGS blocks
 
 Bug Fixes
 ---------
@@ -57,6 +59,9 @@ Bug Fixes
 * fixed a bug (#3170464) affecting obtaining sequences from non-chromosome
   level coordinate systems. Thanks to brandoninvergo for reporting and Hua
   Ying for the patch!
+* fixed a bug (#2987278) associated with missing unit tests for gbseq.py
+* fixed a bug (#2987264) associated with missing unit tests for paml_matrix.py
+* fixed a bug (#2987238) associated with missing unit tests for tinyseq.py
 
 Cogent 1.4.1 - 1.5
 ==================
