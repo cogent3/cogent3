@@ -34,7 +34,7 @@ __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Amanda Birmingham", "Sandra Smit",
                     "Zongzhi Liu", "Peter Maxwell", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.6.0.dev"
+__version__ = "1.5.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

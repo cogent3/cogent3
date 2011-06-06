@@ -100,7 +100,7 @@ __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Fabian Sievers <fabian.sievers@ucd.ie>",
                "Daniel McDonald <wasade@gmail.com>", "Antonio Gonzalez Pena"]
 __license__ = "GPL"
-__version__ = "1.6.0.dev"
+__version__ = "1.5.1"
 __maintainer__ = "Andreas Wilm"
 __email__ = "andreas.wilm@ucd.ie"
 __status__ = "Development"

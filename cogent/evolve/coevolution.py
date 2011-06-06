@@ -86,7 +86,7 @@ __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Gavin Huttley", "Brett Easton",\
   "Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.6.0.dev"
+__version__ = "1.5.1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"    
