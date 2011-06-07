@@ -5,7 +5,7 @@ from numpy cimport npy_intp
 from cogent.maths.spatial.ckd3 cimport kdpoint, points, kdnode, build_tree, rn
 from stdlib cimport malloc, free
 
-__version__ = "('1', '5', '1')"
+__version__ = "('1', '6', '0dev')"
 
 cdef extern from "numpy/arrayobject.h":
 #    cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
