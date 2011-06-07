@@ -26,7 +26,7 @@ __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
                     "Sandra Smit", "Micah Hamady", "Daniel McDonald",
                     "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.1"
+__version__ = "1.6.0dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
