@@ -128,7 +128,7 @@ class UtilsTests(TestCase):
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
-        exp = '8351caf492a97864cf8af555438ab851'
+        exp = 'a3026c31a225dee3f29f88c4e0566a04'
         obs = safe_md5(open('test_util/__init__.py'))
         self.assertEqual(obs.hexdigest(),exp)
 
