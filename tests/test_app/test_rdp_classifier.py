@@ -118,8 +118,8 @@ class RdpTrainerTests(TestCase):
 
     def test_call(self):
         app = RdpTrainer()
-        app.Parameters['taxonomy_file'] = self.taxonomy_file.name
-        app.Parameters['model_output_dir'] = self.training_dir
+        app.Parameters['taxonomy_file'].on(self.taxonomy_file.name)
+        app.Parameters['model_output_dir'].on(self.training_dir)
         results = app(self.reference_file)
 
         exp_file_list = [
@@ -192,10 +192,8 @@ class RdpWrapperTests(TestCase):
     def test_assign_taxonomy(self):
         """assign_taxonomy wrapper functions as expected 
         
-            This test may fail periodicially, but failure should be rare.
-        
+        This test may fail periodicially, but failure should be rare.
         """
-        
         unverified_seq_ids = set(self.expected_assignments1.keys())
         for i in range(self.num_trials):
             obs_assignments = assign_taxonomy(self.test_input1)
