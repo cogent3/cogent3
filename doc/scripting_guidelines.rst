@@ -55,7 +55,7 @@ These options are known to be used by tools outside of the primary PyCogent code
 | option_label                  | a dictionary matching option names to "human readable" names, used in some graphical interfaces    |   Q          |
 +-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
 
-* "Used by" key : Q: QIIME (`web <http://www.qiime.org>`_); P: PyCogent GUI (`web )
+* "Used by" key : Q: `QIIME <http://www.qiime.org>`_; P: PyCogent GUI.
 
 
 
