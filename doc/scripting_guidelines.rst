@@ -57,7 +57,23 @@ These options are known to be used by tools outside of the primary PyCogent code
 
 * "Used by" key : Q: `QIIME <http://www.qiime.org>`_; P: PyCogent GUI.
 
+Custom option types
+-------------------
+Several custom option types are defined in PyCogent. These are:
 
+* ``existing_path`` : Specify a path to a directory or file. Path must exist or an error is raised.
+
+* ``new_path`` : Specify a path to a directory or file. Path must not exist or an error is raised.
+
+* ``existing_filepath`` : Specify a path to a file.  Path must exist or an error is raised.
+
+* ``existing_filepaths`` : Specify a comma-separated list of file paths. All paths must exist or an error is raised. These are returned as a list split on commas.
+
+* ``new_filepath`` :  Specify a path to a file.  Path must not exist or an error is raised.
+
+* ``existing_dirpath`` :  Specify a path to a directory.  Path must exist or an error is raised.
+
+* ``new_dirpath`` :  Specify a path to a directory.  Path must not exist or an error is raised.
 
 
 Example of a simple cogent script
