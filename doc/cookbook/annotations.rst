@@ -41,7 +41,7 @@ We mask the CDS regions.
 
 The above sequence could then have positions filtered so no position with the ambiguous character '?' was present.
 
-.. note:: the same method exists on ``Alignment`` objects.
+.. note:: ``Alignment`` objects also have these methods.
 
 What features of a certain type are available?
 """"""""""""""""""""""""""""""""""""""""""""""
