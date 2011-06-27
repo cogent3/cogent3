@@ -18,8 +18,8 @@ To specify a specific port to connect to MySQL on:
 .. doctest::
 
     >>> from cogent.db.ensembl import HostAccount
-    >>> account = HostAccount('fastcomputer.topuni.edu', 'dude',
-    ...                       'ucanthackthis', port=3306)
+    >>> account = HostAccount('anensembl.server.edu', 'someuser',
+    ...                       'somepass', port=3306)
 
 .. we create valid account now to work on my local machines here at ANU
 
