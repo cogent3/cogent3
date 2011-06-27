@@ -11,7 +11,7 @@ For more extensive documentation about annotations see :ref:`seq-annotations`.
 Automated introduction from reading genbank files
 """""""""""""""""""""""""""""""""""""""""""""""""
 
-We load a sample genbank file with plenty of features and grab those corresponding to CDS.
+We load a sample genbank file with plenty of features and grab the CDS features.
 
 .. doctest::
 
