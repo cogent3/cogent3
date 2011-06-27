@@ -14,6 +14,8 @@ Changes
 Bug Fixes
 ---------
 
+* actually included the test_ensembl/test_metazoa.py file that was
+  accidentally overlooked.
 
 Cogent 1.5 - 1.5.1
 ==================
