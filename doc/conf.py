@@ -32,6 +32,9 @@ templates_path = ['templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
+# ignore the cookbook/ensembl.rst file as it's specifically imported
+exclude_patterns = ['cookbook/ensembl.rst']
+
 # The encoding of source files.
 #source_encoding = 'utf-8'
 
