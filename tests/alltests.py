@@ -222,7 +222,8 @@ def suite():
             ('mfold', 'test_mfold'),
             ('muscle', 'test_muscle'),
             ('msms', 'test_msms'),
-            ('rdp_classifier-2.0.jar', 'test_rdp_classifier'),
+            ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
+            ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),
             ('Fold.out', 'test_nupack'),
             ('findphyl', 'test_pfold'),
             ('pknotsRG-1.2-i386-linux-static', 'test_pknotsrg'),
@@ -250,7 +251,7 @@ def suite():
             # My new version of app_path can be applied to do smarter checks,
             # but will involve some re-write of how we check whether tests can
             # be run. -Greg
-            if app == os.path.basename('RDP_JAR_PATH'):
+            if app == os.path.basename(os.environ.get('RDP_JAR_PATH')):
                 should_run_test = True
         if should_run_test:
             modules_to_test.append('test_app.' + test_name)
