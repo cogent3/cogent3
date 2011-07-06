@@ -11,11 +11,14 @@ New Features
 Changes
 -------
 
+* Minimum Vienna package version now set to 1.8.5
+
 Bug Fixes
 ---------
 
 * actually included the test_ensembl/test_metazoa.py file that was
   accidentally overlooked.
+* fixed small diff in postcript output from RNAfold
 
 Cogent 1.5 - 1.5.1
 ==================
