@@ -529,9 +529,9 @@ RNAplot begin
   currentdict /cutpoint known        % check if cutpoint is defined
   {coor 0 cutpoint getinterval
    {aload pop lineto} forall         % draw outline of 1st sequence
-   coor cutpoint get aload pop
+   coor cutpoint 1 add get aload pop
    2 copy moveto 0.8 0 360 arc       % draw 5' circle of 2nd sequence
-   coor cutpoint coor length cutpoint sub getinterval
+   coor cutpoint 1 add coor length cutpoint 1 add sub getinterval
    {aload pop lineto} forall}        % draw outline of 2nd sequence
   {coor {aload pop lineto} forall}   % draw outline as a whole
   ifelse
