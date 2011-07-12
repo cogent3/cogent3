@@ -515,7 +515,8 @@ def parse_command_line_parameters():
 
     return opts,args
     
-def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=None):
+def assign_taxonomy(data, min_confidence=0.80, output_fp=None,
+    training_data_fp=None, max_memory=None):
     """ Assign taxonomy to each sequence in data with the RDP classifier 
     
         data: open fasta file object or list of fasta lines
@@ -534,7 +535,8 @@ def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=
     
     # build the classifier object
     app = RdpClassifier20()
-    
+    if max_memory is not None:
+        app.Parameters['-Xmx'].on(max_memory)
     if training_data_fp is not None:
         app.Parameters['-training-data'].on(training_data_fp)
 
@@ -611,7 +613,8 @@ def assign_taxonomy(data, min_confidence=0.80, output_fp=None, training_data_fp=
         return results
 
 
-def train_rdp_classifier(training_seqs_file, taxonomy_file, model_output_dir):
+def train_rdp_classifier(training_seqs_file, taxonomy_file, model_output_dir,
+    max_memory=None):
     """ Train RDP Classifier, saving to model_output_dir
 
         training_seqs_file, taxonomy_file: file-like objects used to
@@ -625,12 +628,14 @@ def train_rdp_classifier(training_seqs_file, taxonomy_file, model_output_dir):
     Once the model data has been generated, the RDP Classifier may 
     """
     app = RdpTrainer20()
+    if max_memory is not None:
+        app.Parameters['-Xmx'].on(max_memory)
     return app(training_seqs_file, taxonomy_file, model_output_dir)
 
 
 def train_rdp_classifier_and_assign_taxonomy(
     training_seqs_file, taxonomy_file, seqs_to_classify, min_confidence=0.80, 
-    model_output_dir=None, classification_output_fp=None):
+    model_output_dir=None, classification_output_fp=None, max_memory=None):
     """ Train RDP Classifier and assign taxonomy in one fell swoop
 
     The file objects training_seqs_file and taxonomy_file are used to
@@ -653,13 +658,16 @@ def train_rdp_classifier_and_assign_taxonomy(
         training_dir = model_output_dir
 
     trainer = RdpTrainer20()
+    if max_memory is not None:
+        app.Parameters['-Xmx'].on(max_memory)
     training_results = trainer(
         training_seqs_file, taxonomy_file, training_dir)
 
     training_data_fp = training_results['properties'].name
     assignment_results = assign_taxonomy(
         seqs_to_classify, min_confidence=min_confidence, 
-        output_fp=classification_output_fp, training_data_fp=training_data_fp)
+        output_fp=classification_output_fp, training_data_fp=training_data_fp,
+        max_memory=max_memory)
 
     if model_output_dir is None:
         rmtree(training_dir)
