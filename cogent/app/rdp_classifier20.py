@@ -659,7 +659,7 @@ def train_rdp_classifier_and_assign_taxonomy(
 
     trainer = RdpTrainer20()
     if max_memory is not None:
-        app.Parameters['-Xmx'].on(max_memory)
+        trainer.Parameters['-Xmx'].on(max_memory)
     training_results = trainer(
         training_seqs_file, taxonomy_file, training_dir)
 
