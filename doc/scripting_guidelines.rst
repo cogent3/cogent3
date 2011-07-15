@@ -1,8 +1,8 @@
 Scripting guidelines
 ====================
-Developing command line interfaces for your scripts is a convenient way to create easily reproducible analyses with PyCogent. This document covers the support for developing standardized interfaces in PyCogent. In addition to making your code easier to distribute (or to return to months after it was originally written), several GUI generators make use of the PyCogent ``option_parsing`` module (such as the PyCogent GUI) -- this means that defining your interfaces with PyCogent's ``option_parsing`` module will allow your code to be easily wrapped in graphical interfaces.
+Developing command line interfaces for your scripts is a convenient way to create easily reproducible analyses with PyCogent. This document covers the support for developing standardized interfaces in PyCogent. In addition to making your code easier to distribute (or to return to months after it was originally written), several GUI generators that are currently in development make use of the PyCogent ``option_parsing`` module -- this means that defining your interfaces with PyCogent's ``option_parsing`` module will allow your code to be easily wrapped in graphical interfaces.
 
-PyCogent command line interfaces are based on the ``optparse`` module in the Python Standard Library, using ``cogent.util.option_parsing.parse_command_line_parameters`` as a convenience wrapper for defining interfaces based on certain information provided by the script developer. A fully function `example script <./scripting_guidelines.html#countseqs>`_ and a `script template <./scripting_guidelines.html#scripttemplate>`_ are provided below.
+PyCogent command line interfaces are based on the ``optparse`` module in the Python Standard Library, using ``cogent.util.option_parsing.parse_command_line_parameters`` as a convenience wrapper for defining interfaces based on certain information provided by the script developer. A fully functional `example script <./scripting_guidelines.html#countseqs>`_ and a `script template <./scripting_guidelines.html#scripttemplate>`_ are provided below.
 
 This page will help you develop your command line interfaces after you've familiarized yourself with ``optparse``, but will not be a replacement to a general understanding of how to interact with ``optparse``. You should therefore refer both to the `optparse documentation <http://docs.python.org/library/optparse.html>`_ as well as the `PyCogent Scripting Guidelines <./scripting_guidelines.html>`_. As support for optparse will not continue into Python 3.0, we will be switching to ``argparse`` when we transition PyCogent to Python 3. We'll do our best to minimize the work in transitioning from ``optparse`` to ``argparse`` for PyCogent scripts by changing the interface to ``cogent.util.option_parsing.parse_command_line_parameters`` as little as possible.
 
@@ -10,7 +10,7 @@ This document starts with a basic example of creating a script. It then covers g
 
 You should also review the PyCogent `coding guidelines <./coding_guidelines.html>`_. The scripting guidelines presented here are an extension of those.
 
-Quickstart : how to define your first PyCogent script in 5 minutes
+Quickstart : how to create your first PyCogent script in 5 minutes
 ------------------------------------------------------------------
 
 These steps show you how to quickly create a working PyCogent script from the PyCogent script template. Some very basic familiarity with python will help here (e.g., identifying the ``main()`` function and adding to it with the correct indentation).
@@ -70,8 +70,8 @@ Use ``type=choice`` when an option is passed as a string and can be one of sever
 	alignment_method_choices = ['pynast','raxml','muscle']
 	o = make_option('-m','--alignment_method',type='choice',
 	                help='Method for aligning sequences. Valid choices are: '+\
-                    ', '.join(alignment_method_choices) + ' [default: %default]',
-                    choices=alignment_method_choices, default='pynast')
+	                ', '.join(alignment_method_choices) + ' [default: %default]',
+	                choices=alignment_method_choices, default='pynast')
 
 Note that the help text here includes the list of acceptable options. This is generally a good idea as it's convenient for the user. It's not a good idea however if this is a big list (say, more than 5 or so options). If the user passes something invalid (such as ``mafft`` in this example) the list of acceptable options will be included in the error text.
 
@@ -82,6 +82,8 @@ If a single file is created, allow the user to define that file name. If multipl
 
 Defining options
 ----------------
+
+Use ``make_option`` (`described here <http://docs.python.org/library/optparse.html#populating-the-parser>`_) to create options. As in that example, you'll define these in lists that get set as ``script_info['required_options']`` and ``script_info['optional_options']``.
 
 Use the PyCogent custom option types when specifying input file or directory paths. These standardize error handling in the case of input files which don't exist or aren't readable and output files which already exist.
 
