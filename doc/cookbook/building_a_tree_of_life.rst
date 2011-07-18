@@ -28,6 +28,7 @@ Step 1: Download sequences from NCBI
 Here we'll work with archaeal, bacteria, and eukaryotic sequences obtained from NCBI using the PyCogent EUtils wrappers. Run the following commands to obtain these sequences::
 
 	from cogent.db.ncbi import EUtils
+	from cogent.parse.fasta import MinimalFastaParser
 	e = EUtils()
 	arc16s = list(MinimalFastaParser(e['"small subunit rRNA"[ti] AND archaea[orgn]']))
 	bac16s = list(MinimalFastaParser(e['"small subunit rRNA"[ti] AND bacteria[orgn]']))
@@ -144,6 +145,14 @@ Step 8: Save the tree as a PDF
 Finally, you can save this tree as a PDF for sharing or later viewing::
 
 	dendrogram.drawToPDF('./tol.pdf')
+
+You can also write the alignment and tree to fasta and newick files, respectively. You can then load these in tools such as `BoulderALE <http://www.microbio.me/boulderale/>`_ (for alignment editing) or `TopiaryExplorer <http://topiaryexplorer.sourceforge.net/>`_ or `FigTree <http://tree.bio.ed.ac.uk/software/figtree/>`_ (for tree viewing, coloring, and layout manipulation).
+
+::
+
+	open('./tol.fasta','w').write(aln.toFasta())
+	open('./tol.tre','w').write(tree.getNewick(with_distances=True))
+
 
 
 Extra credit: Alignment filtering
