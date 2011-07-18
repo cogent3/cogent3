@@ -188,7 +188,7 @@ These values are known to be used by tools outside of the PyCogent code base in 
 +-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
 |        key                    |  Description                                                                                       |    Used by   |
 +===============================+====================================================================================================+==============+
-|  brief_description            | a one-sentence description of the script, used by some document generators                         |    Q         |
+|  brief_description            | a one-sentence description of the script, used by some document generators                         |    Q,T       |
 +-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
 | script_type                   | a definition of the type of script, used by some graphical interfaces                              |      Q,PG    |
 +-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
@@ -199,7 +199,7 @@ These values are known to be used by tools outside of the PyCogent code base in 
 | option_label                  | a dictionary matching option names to "human readable" names, used in some graphical interfaces    |   Q          |
 +-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
 
-* "Used by" key : Q: `QIIME <http://www.qiime.org>`_; PG: PyCogent beta GUI.
+* "Used by" key : Q: `QIIME <http://www.qiime.org>`_; PG: PyCogent beta GUI; T: tax2tree.
 
 Setting values in script_info
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
