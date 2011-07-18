@@ -16,6 +16,7 @@ Contents:
     controlling_third_party_applications
     blast
     building_alignments
+    building_a_tree_of_life
     building_phylogenies
     using_likelihood_to_perform_evolutionary_analyses
     sequence_simulation
