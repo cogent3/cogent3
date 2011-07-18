@@ -105,7 +105,7 @@ Always define ``help=``, and provide useful information in this string. Include 
 
 ``action=store`` and ``type=string`` are defaults, and therefore do not need to be included. Leave these values out to keep your code cleaner.
 
-If you need to pass multiple paths or stings to a single option, do this by passing a comma-separated string. The ``existing_filepaths`` option type expects strings in this format and takes care of splitting them on commas and returning a list, so if you're passing multiple input filepaths set ``type='existing_filepaths'``.
+If you need to pass multiple paths or strings to a single option, do this by passing a comma-separated string. The ``existing_filepaths`` option type expects strings in this format and takes care of splitting them on commas and returning a list, so if you're passing multiple input filepaths set ``type='existing_filepaths'``.
 
 Naming options
 --------------
@@ -133,7 +133,7 @@ Some standard names for common options are listed below. You should use these wh
 +-------------------------------+----------------------------------------------------------------------------------------------------+
 |  path to an input directory   | ``-i``, ``--input_dir``                                                                            |
 +-------------------------------+----------------------------------------------------------------------------------------------------+
-|  path to an output file       | ``-o``, ``--input_dir``                                                                            |
+|  path to an output dir        | ``-o``, ``--output_dir``                                                                           |
 +-------------------------------+----------------------------------------------------------------------------------------------------+
 |  path to a log file           | ``-l``, ``--log_fp``                                                                               |
 +-------------------------------+----------------------------------------------------------------------------------------------------+
