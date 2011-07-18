@@ -75,13 +75,13 @@ Choice options
 ^^^^^^^^^^^^^^
 Use ``type=choice`` when an option is passed as a string and can be one of several acceptable values. This saves you from having to check that the user passed an acceptable value. This is done by ``optparse``, so saves you lines of code that you'd need to test, and standardizes how errors are handled. The acceptable choices are defined with ``choices=``. An example choice option definition is::
 
-	alignment_method_choices = ['pynast','raxml','muscle']
+	alignment_method_choices = ['pynast','mafft','muscle']
 	o = make_option('-m','--alignment_method',type='choice',
 	                help='Method for aligning sequences. Valid choices are: '+\
 	                ', '.join(alignment_method_choices) + ' [default: %default]',
 	                choices=alignment_method_choices, default='pynast')
 
-Note that the help text here includes the list of acceptable options. This is generally a good idea as it's convenient for the user. It's not a good idea however if this is a big list (say, more than 5 or so options). If the user passes something invalid (such as ``mafft`` in this example) the list of acceptable options will be included in the error text.
+Note that the help text here includes the list of acceptable options. This is generally a good idea as it's convenient for the user. It's not a good idea however if this is a big list (say, more than 5 or so options). If the user passes something invalid (such as ``raxml`` in this example) the list of acceptable options will be included in the error text.
 
 Defining where output will be stored
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
