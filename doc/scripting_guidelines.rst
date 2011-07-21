@@ -15,12 +15,12 @@ Quickstart : how to create your first PyCogent script in 5 minutes
 
 These steps show you how to quickly create a working PyCogent script from the PyCogent script template. Some very basic familiarity with python will help here (e.g., identifying the ``main()`` function and adding to it with the correct indentation).
 
-1. Copy and paste the `script template <./scripting_guidelines.html#scripttemplate>`_ to a new file on your system. The next steps will assume that you're saving that file as ``/home/pycogent_user/my_cogent_script.py``.
+1. Copy and paste the `script template <./scripting_guidelines.html#scripttemplate>`_ to a new file on your system. The next steps will assume that you're saving that file as ``/path/to/home/pycogent_user/pycogent_script_template.py``.
 2. Open a command terminal and enter the following command::
 
-	chmod 755 /home/pycogent_user/my_cogent_script.py
+	chmod 755 /path/to/home/pycogent_user/pycogent_script_template.py
 
-3. Open ``my_cogent_script.py`` with a text editor (such as emacs, pico, or TextWrangler) and add the following to the bottom of the main() function (be sure you have proper indentation)::
+3. Open ``pycogent_script_template.py`` with a text editor (such as emacs, pico, or TextWrangler) and add the following to the bottom of the main() function (be sure you have proper indentation)::
 
 	print "Hello World!"
 
@@ -34,28 +34,28 @@ add the following line::
 
 4. Run and print help text::
 
-	python /home/pycogent_user/my_cogent_script.py -h
+	python /home/pycogent_user/pycogent_script_template.py -h
 
 5. Run script -- ``Hello World!`` will be printed to the terminal::
 
-	python /home/pycogent_user/my_cogent_script.py
+	python /home/pycogent_user/pycogent_script_template.py
 
 You've now got a working PyCogent script. You can continue working with this script to add the functionality you're interested in. See the `optparse documentation <http://docs.python.org/library/optparse.html>`_ documentation for discussion of how to create options, as well as the `example script <./scripting_guidelines.html#countseqs>`_ provided below. 
 
 General notes on designing command line interfaces
 --------------------------------------------------
 
-Design convenient command line interfaces. The goal of your interface is to make things easy for the user (who is often you). This section covers some guidelines for how to do that.
+**Design convenient command line interfaces.** The goal of your interface is to make things easy for the user (who is often you). This section covers some guidelines for how to do that.
 
-If your script is difficult to work with, or has requirements that are not intuitive for users who frequently work with command line applications, people won't use your code. Have people who are better programmers than you interact with your command line interface and give you feedback on it. 
+**Have people who are better programmers than you interact with your command line interface and give you feedback on it.** If your script is difficult to work with, or has requirements that are not intuitive for users who frequently work with command line applications, people won't use your code. 
 
-If there are tasks that are automatable, automate them. For example, if you can make a good guess at what an output file should be named from an input file and a parameter choice, do that and use it as the default output path (but allow the user to overwrite it with a command line option).
+**If there are tasks that are automatable, automate them.** For example, if you can make a good guess at what an output file should be named from an input file and a parameter choice, do that and use it as the default output path (but allow the user to overwrite it with a command line option).
 
-Define sensible default values for your command line options. If most of the time that a script is used it will require a parameter to be set to a certain value, make that value the default to simplify the interface.
+**Define sensible default values for your command line options.** If most of the time that a script is used it will require a parameter to be set to a certain value, make that value the default to simplify the interface.
 
-Have the user specify named options rather than positional arguments. The latter are more difficult to work with as users need to remember the order that they need to be passed. PyCogent scripts do not allow positional arguments by default, but if you must use them you can override this behavior by setting ``script_info['disallow_positional_arguments'] = False``. Note that this contradicts what the ``optparse`` docs say - we disagree with their comment that all required options should be passed as positional arguments. 
+**Have the user specify named options rather than positional arguments.** The latter are more difficult to work with as users need to remember the order that they need to be passed. PyCogent scripts do not allow positional arguments by default, but if you must use them you can override this behavior by setting ``script_info['disallow_positional_arguments'] = False``. Note that this contradicts what the ``optparse`` docs say - we disagree with their comment that all required options should be passed as positional arguments. 
 
-Avoid making assumptions about how a script will be run. Perhaps most importantly, don't assume that the script will be run from the same directory that the script lives in. Users often want to copy executables into a centralized directory on their system (e.g., ``/usr/local/bin``). Facilitate that by not requiring that the script is run from a specific location. If you rely on data files, you have other options such as having users set an environment variable that defines where data files live on the system. Test your script from multiple locations on the file system!
+**Avoid making assumptions about how a script will be run.** Perhaps most importantly, don't assume that the script will be run from the same directory that the script lives in. Users often want to copy executables into a centralized directory on their system (e.g., ``/usr/local/bin``). Facilitate that by not requiring that the script is run from a specific location. If you rely on data files, you have other options such as having users set an environment variable that defines where data files live on the system. Test your script from multiple locations on the file system!
 
 Designing PyCogent command line interfaces
 ------------------------------------------
@@ -185,19 +185,23 @@ Values known to be used by the tools outside of the PyCogent codebase
 
 These values are known to be used by tools outside of the PyCogent code base in ``script_info`` objects. It's best to not name new values with these names to avoid conflicts. 
 
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
-|        key                    |  Description                                                                                       |    Used by   |
-+===============================+====================================================================================================+==============+
-|  brief_description            | a one-sentence description of the script, used by some document generators                         |    Q,T       |
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
-| script_type                   | a definition of the type of script, used by some graphical interfaces                              |      Q,PG    |
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
-| script_name                   | a brief "human readable" name for the script, used in some graphical interfaces                    |       Q,PG   |
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
-| output_type                   | a list of tuples noting the type (in a controlled vocabulary) of each possible output              |       Q      |
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
-| option_label                  | a dictionary matching option names to "human readable" names, used in some graphical interfaces    |   Q          |
-+-------------------------------+----------------------------------------------------------------------------------------------------+--------------+
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+|        key                    |  Description                                                                                          |    Used by   |
++===============================+=======================================================================================================+==============+
+|  brief_description            | a one-sentence description of the script, used by some document generators                            |    Q,T       |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| script_type                   | a definition of the type of script, used by some graphical interfaces                                 |      Q,PG    |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| optional_options_groups       | a list grouping related options under a heading [['section heading string', section_option_list], ...]|      PG      |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| authors                       | string of author names                                                                                |      PG      |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| script_name                   | a brief "human readable" name for the script, used in some graphical interfaces                       |       Q,PG   |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| output_type                   | a list of tuples noting the type (in a controlled vocabulary) of each possible output                 |       Q      |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| option_label                  | a dictionary matching option names to "human readable" names, used in some graphical interfaces       |   Q          |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
 
 * "Used by" key : Q: `QIIME <http://www.qiime.org>`_; PG: PyCogent beta GUI; T: tax2tree.
 
@@ -234,11 +238,13 @@ Several custom option types are defined in PyCogent. These are:
 
 Template for a new PyCogent script
 ----------------------------------
-The following is a template for a PyCogent script. You can cut/paste this into a new file to form the basis of your new script. This template forms a fully functional PyCogent script, so on copying this you should be able to run the script to confirm that it is working. If you name your script ``my_cogent_script.py``, you should be able to execute this as follows::
+The following is a template for a PyCogent script. You can download this from :download:`here <data/pycogent_script_template.py>` to form the basis of your new script. This script is also embedded here for documentation purposes. This template forms a fully functional PyCogent script, so on copying this you should be able to run the script to confirm that it is working::
 
-	python my_cogent_script.py
+	python pycogent_script_template.py
 
 This will print help text and exit.
+
+You can rename this script and use it define your new PyCogent script.
 
 PyCogent script template::
 	
@@ -286,8 +292,10 @@ PyCogent script template::
 
 .. _countseqs:
 
-Example of a simple cogent script
----------------------------------
+Example of a simple PyCogent script
+-----------------------------------
+
+You can download an example PyCogent script for counting the number of sequences in one or more fasta files :download:`here <data/count_seqs.py>`. This script is also embedded here for documentation purposes.
 
 ::
 	
