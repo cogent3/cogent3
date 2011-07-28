@@ -1342,8 +1342,6 @@ class SequenceCollection(object):
         new = {}
         aligned = isinstance(self, Alignment)
         for name, seq in self.NamedSeqs.items():
-            if aligned:
-                seq = seq.getGappedSeq()
             new[name] = seq.rc()
         rc = self.__class__(data=new, Name = self.Name, Info = self.Info)
         if isinstance(self, _Annotatable):
@@ -1460,6 +1458,9 @@ class Aligned(object):
     def __getitem__(self, slice):
         return Aligned(self.map[slice], self.data)
     
+    def rc(self):
+        return Aligned(self.map.reversed(), self.data)
+        
     def getTracks(self, policy):
         policy = policy.at(self.map.inverse())
         return self.data.getTracks(policy)

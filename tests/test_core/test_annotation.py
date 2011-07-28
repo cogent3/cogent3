@@ -15,13 +15,12 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def makeSampleSequence(mid_gaps=False):
+def makeSampleSequence(with_gaps=False):
     raw_seq = 'AACCCAAAATTTTTTGGGGGGGGGGCCCC'
     cds = (15, 25)
     utr = (12, 15)
-    if mid_gaps:
-        rev_seq = raw_seq[:5] + '-----' +raw_seq[10:]
-        raw_seq = rev_seq
+    if with_gaps:
+        raw_seq = raw_seq[:5] + '-----' +raw_seq[10:-2] + '--'
         # annotations only make sense when they're on the raw sequence
         cds = (10, 20)
         utr = (5, 8)
@@ -32,7 +31,7 @@ def makeSampleSequence(mid_gaps=False):
 
 def makeSampleAlignment():
     seq1 = makeSampleSequence()
-    seq2 = makeSampleSequence(mid_gaps=True)
+    seq2 = makeSampleSequence(with_gaps=True)
     seqs = {'FAKE01': seq1, 'FAKE02': seq2}
     aln = LoadSeqs(data = seqs)
     aln.addAnnotation(Feature, 'misc_feature', 'misc', [(12,25)])

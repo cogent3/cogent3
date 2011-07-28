@@ -592,13 +592,13 @@ class Map(object):
         return Map(result, parent_length=self.parent_length)
     
     def reversed(self):
+        """Reversed location on same parent"""
         spans = [s.reversed() for s in self.spans]
         spans.reverse()
         return Map(spans=spans, parent_length=self.parent_length)
     
     def nucleicReversed(self):
-        """reverses spans according to concept of nucleic acid sequence
-        reverse complement"""
+        """Same location on reversed parent"""
         spans = [s.reversedRelativeTo(self.parent_length) for s in self.spans]
         return Map(spans=spans, parent_length=self.parent_length)
     
