@@ -549,6 +549,11 @@ class Map(object):
             new_parts.append(span / scale)
         return Map(spans=new_parts, parent_length=self.parent_length // scale)
     
+    def __add__(self, other):
+        if other.parent_length != self.parent_length:
+            raise ValueError("Those maps belong to different sequences")
+        return Map(spans=self.spans + other.spans, parent_length=self.parent_length)
+        
     def withTerminiUnknown(self):
         return Map(self, spans=self.spans[:],
                 parent_length=self.parent_length,
