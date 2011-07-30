@@ -737,7 +737,9 @@ class Sequence(_Annotatable, SequenceI):
         seq = self.__class__(
             ''.join(gapless),
             Name = self.getName(), Info=self.Info)
-        return map, seq
+        if self.annotations:
+            seq.annotations = [a.remappedTo(seq, map) for a in self.annotations]
+        return (map, seq)
     
 
 class ProteinSequence(Sequence):

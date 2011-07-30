@@ -21,9 +21,6 @@ def makeSampleSequence(with_gaps=False):
     utr = (12, 15)
     if with_gaps:
         raw_seq = raw_seq[:5] + '-----' +raw_seq[10:-2] + '--'
-        # annotations only make sense when they're on the raw sequence
-        cds = (10, 20)
-        utr = (5, 8)
     seq = DNA.makeSequence(raw_seq)
     seq.addAnnotation(Feature, 'CDS', 'CDS', [cds])
     seq.addAnnotation(Feature, "5'UTR", "5' UTR", [utr])
