@@ -1315,32 +1315,25 @@ class SequenceCollection(object):
     
     def toDna(self):
         """Returns the alignment as DNA."""
-        new = {}
-        aligned = isinstance(self, Alignment)
-        for name, seq in self.NamedSeqs.items():
-            if aligned:
-                seq = seq.getGappedSeq()
-            new[name] = seq.toDna()
-        return self.__class__(data=new, Name = self.Name, Info = self.Info)
+        seqs = [self.NamedSeqs[name].toDna() for name in self.Names]
+        aln = self.__class__(data=seqs, Names=self.Names[:], Name=self.Name, Info=self.Info)
+        if isinstance(self, _Annotatable) and self.annotations:
+            aln.annotations = self.annotations[:]
+        return aln
     
     def toRna(self):
         """Returns the alignment as RNA"""
-        new = {}
-        aligned = isinstance(self, Alignment)
-        for name, seq in self.NamedSeqs.items():
-            if aligned:
-                seq = seq.getGappedSeq()
-            new[name] = seq.toRna()
-        return self.__class__(data=new, Name = self.Name, Info = self.Info)
+        seqs = [self.NamedSeqs[name].toRna() for name in self.Names]
+        aln = self.__class__(data=seqs, Names=self.Names[:], Name=self.Name, Info=self.Info)
+        if isinstance(self, _Annotatable) and self.annotations:
+            aln.annotations = self.annotations[:]
+        return aln
     
     def rc(self):
         """Returns the reverse complement alignment"""
-        new = {}
-        aligned = isinstance(self, Alignment)
-        for name, seq in self.NamedSeqs.items():
-            new[name] = seq.rc()
-        rc = self.__class__(data=new, Name = self.Name, Info = self.Info)
-        if isinstance(self, _Annotatable):
+        seqs = [self.NamedSeqs[name].rc() for name in self.Names]
+        rc = self.__class__(data=seqs, Names=self.Names[:], Name=self.Name, Info=self.Info)
+        if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
     
@@ -1466,6 +1459,12 @@ class Aligned(object):
     
     def rc(self):
         return Aligned(self.map.reversed(), self.data)
+        
+    def toRna(self):
+        return Aligned(self.map, self.data.toRna())
+        
+    def toDna(self):
+        return Aligned(self.map, self.data.toDna())
         
     def getTracks(self, policy):
         policy = policy.at(self.map.inverse())
