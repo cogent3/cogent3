@@ -196,10 +196,6 @@ class UtilTests(TestCase):
         Names=['seq1','seq2','seq3'])
         w = {'seq1':0.5,'seq2':.25,'seq3':.25}
         
-        #Error will be raised when no Alphabet is given, since the seqs
-        #in the alignment are just strings
-        self.assertRaises(AttributeError,AlnToProfile,a)
-        
         #Basic situation in which all letters in the sequences occur in the
         #CharOrder, None have to be ignored. In that case it doesn't matter
         #whether we set split_degenerates to True or False, because if it's 
