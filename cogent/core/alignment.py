@@ -894,11 +894,7 @@ class SequenceCollection(object):
         for name in self.Names:
             if name not in other.Names:
                 raise ValueError("Right alignment doesn't have a '%s'" % name)
-            if aligned:
-                new_seq = self.NamedSeqs[name].getGappedSeq() + \
-                          other.getGappedSeq(name)
-            else:
-                new_seq = self.NamedSeqs[name] + other.getGappedSeq(name)
+            new_seq = self.NamedSeqs[name] + other.NamedSeqs[name]
             concatenated.append(new_seq)
         
         new = self.__class__(MolType=self.MolType,
@@ -1403,9 +1399,11 @@ class Aligned(object):
             self.Info = data.Info
         if hasattr(data, 'Name'):
             self.Name = data.Name
-        # if hasattr(data, 'MolType'):
-        #     self.MolType = data.MolType
 
+    def _get_moltype(self):
+        return self.data.MolType
+    MolType = property(_get_moltype)
+    
     def copy(self, memo=None, _nil=[], constructor='ignored'):
         """Returns a shallow copy of self
 
@@ -1455,6 +1453,14 @@ class Aligned(object):
         # but then you have to be careful with __getitem__, __init__ and inverse.
         return len(self.map)
     
+    def __add__(self, other):
+        if self.data is other.data:
+            (map, seq) = (self.map + other.map, self.data)
+        else:
+            seq = self.getGappedSeq() + other.getGappedSeq()
+            (map, seq) = seq.parseOutGaps()
+        return Aligned(map, seq)
+            
     def __getitem__(self, slice):
         return Aligned(self.map[slice], self.data)
     
