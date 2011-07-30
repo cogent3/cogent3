@@ -2338,11 +2338,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
-        new_seq = self.MolType.Sequence(seq, key)
-        aligned = Aligned(*new_seq.parseOutGaps())
-        if hasattr(seq, "annotations"):
-            aligned.data.copyAnnotations(seq)
-        return aligned
+        (map, seq) = self.MolType.Sequence(seq, key).parseOutGaps()
+        return Aligned(map, seq)
     
     def getTracks(self, policy):
         # drawing code related
