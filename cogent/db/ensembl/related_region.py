@@ -331,7 +331,7 @@ class SyntenicRegions(_RelatedRegions):
                 name = str(loc)
             
             annotations[name] = seq.data.annotations
-            seq.Name = name
+            seq.Name = seq.data.Name = name
             seqs += [(name, seq)]
         
         if seqs is None:
@@ -345,11 +345,6 @@ class SyntenicRegions(_RelatedRegions):
         if omit_redundant:
             aln = aln.filtered(lambda x: set(x) != set('-'))
         
-        # the following is necessary because of a bug in the filtered code,
-        # which doesn't handle annotations correctly
-        if feature_types:
-            for name in annotations.keys():
-                aln.getSeq(name).annotations = annotations[name]
         return aln
     
 
