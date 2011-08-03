@@ -1318,7 +1318,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(seqs[0], seqs[1])
         # ensure each char occurs twice as sampling dinucs without replacement
         for char in seqs[0]:
-            self.assertEqual(seqs[0].count(char), 2) 
+            self.assertEqual(seqs[0].count(char), 2)
+    
+    def test_copy(self):
+        """correctly copy an alignment"""
+        aln = self.Class(data=[('a', 'AC-GT'), ('b', 'ACCGT')])
+        copied = aln.copy()
+        self.assertTrue(type(aln), type(copied))
+        self.assertEqual(aln.todict(), copied.todict())
+        self.assertEqual(id(aln.MolType), id(copied.MolType))
+        aln = self.Class(data=[('a', 'AC-GT'), ('b', 'ACCGT')],
+            Info={'check': True})
+        copied = aln.copy()
+        self.assertEqual(aln.Info, copied.Info)
 
 
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
