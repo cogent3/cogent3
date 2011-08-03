@@ -347,7 +347,8 @@ class SequenceCollection(object):
     
     def copy(self):
         """Returns deep copy of self."""
-        result = self.__class__(self, MolType=self.MolType)
+        result = self.__class__(self, MolType=self.MolType, Info=self.Info)
+        return result
     
     def _get_alphabet_and_moltype(self, Alphabet, MolType, data):
         """Returns Alphabet and MolType, giving MolType precedence."""
