@@ -38,7 +38,7 @@ class KDTreeTest(TestCase):
         self.assertEquals(kdt.dims, 3)
         def assig():
             kdt.dims = 4
-        self.assertRaises(TypeError, assig)
+        self.assertRaises(AttributeError, assig)
         self.assertEquals(kdt.dims, 3)
         self.assertEquals(kdt.pnts, 1000)
 
