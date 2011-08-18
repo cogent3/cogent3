@@ -138,7 +138,7 @@ class _LikelihoodParameterController(_LF):
         counts += pseudocount
         mprobs = counts/(1.0*sum(counts))
         self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant, 
-                is_independent=is_independent, auto=auto)
+                is_independent=is_independent, auto=auto, **kwargs)
     
     def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None, 
                 is_independent=None, auto=False, **kwargs):
@@ -151,7 +151,7 @@ class _LikelihoodParameterController(_LF):
             is_constant = not self.optimise_motif_probs
         self.model.setParamControllerMotifProbs(self, motif_probs, 
             is_constant=is_constant, bin=bin, locus=locus, 
-            is_independent=is_independent)
+            is_independent=is_independent, **kwargs)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
     
