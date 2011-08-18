@@ -33,6 +33,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+    
 class DictArrayTemplate(object):
     def __init__(self, *dimensions):
         self.names = []
@@ -50,18 +51,25 @@ class DictArrayTemplate(object):
         return self is other or (
             isinstance(other, DictArrayTemplate) and self.names == other.names)
     
+    def _dict2list(self, value, depth=0):
+        # Unpack (possibly nested) dictionary into correct order of elements
+        if depth < len(self._shape):
+            return [self._dict2list(value[key], depth+1) for key in self.names[depth]]
+        else:
+            return value
+
     def unwrap(self, value):
         """Convert to a simple numpy array"""
         if isinstance(value, DictArray):
             if value.template == self:
-                return value.array
+                value = value.array
+            else:
+                raise ValueError  # used to return None, which can't be right
         elif isinstance(value, dict):
-            # should handle dicts as well.
-            raise NotImplementedError
-        else:
-            value = numpy.asarray(value)
-            assert value.shape == self._shape, (value.shape, self._shape)
-            return value
+            value = self._dict2list(value)
+        value = numpy.asarray(value)
+        assert value.shape == self._shape, (value.shape, self._shape)
+        return value
         
     def wrap(self, array, dtype = None):
         # dtype is numpy
