@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# make sure we remove .pyc files in case someone has renamed a module ..
+find . -name '*.pyc' -delete
+
 # for automated testing - check if using alternate python install 
 PYTHON_EXE=python
 if [ $PYTHON_TEST_EXE ]; then
