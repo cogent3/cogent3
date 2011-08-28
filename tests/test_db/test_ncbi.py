@@ -35,6 +35,16 @@ class EUtilsTests(TestCase):
         loci = filter(is_locus, lines)
         self.assertEqual(len(loci), 3)
 
+        #EUtils access of a slice should work, while limiting 
+        #the esearch term length
+        g = EUtils(db='protein',rettype='gp', retmax=1, url_limit=2)
+        result = g['NP_003320':'NP_003322'].read()
+        lines = result.splitlines()
+        is_locus = lambda x: x.startswith('LOCUS')
+        loci = filter(is_locus, lines)
+        self.assertEqual(len(loci), 3)
+
+
     def test_get_list(self):
         """EUtils access of a list should work"""
         g = EUtils(db='protein',rettype='gp')
@@ -43,6 +53,16 @@ class EUtilsTests(TestCase):
         is_locus = lambda x: x.startswith('LOCUS')
         loci = filter(is_locus, lines)
         self.assertEqual(len(loci), 3)
+
+        #EUtils access of a slice should work, while limiting
+        #the esearch term length
+        g = EUtils(db='protein',rettype='gp',url_limit=2)
+        result = g['NP_003320','NP_003321','NP_003322'].read()
+        lines = result.splitlines()
+        is_locus = lambda x: x.startswith('LOCUS')
+        loci = filter(is_locus, lines)
+        self.assertEqual(len(loci), 3)
+
 
     def test_get_from_taxonomy_db(self):
         """EUtils access from taxonomy database should work"""
