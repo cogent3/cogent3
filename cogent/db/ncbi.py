@@ -7,7 +7,8 @@
 """
 from urllib import urlopen, urlretrieve
 from xml.dom.minidom import parseString
-from cogent.db.util import UrlGetter, expand_slice
+from cogent.db.util import UrlGetter, expand_slice,\
+    make_lists_of_expanded_slices_of_set_size,make_lists_of_accessions_of_set_size
 from time import sleep
 from StringIO import StringIO
 from cogent.parse.record_finder import DelimitedRecordFinder, never_ignore
@@ -214,13 +215,14 @@ def ELinkResultParser(text):
 
 class EUtils(object):
     """Retrieves records from NCBI using EUtils."""
-    def __init__(self, filename=None, wait=0.5, retmax=100, DEBUG=False, max_recs=None, **kwargs):
+    def __init__(self, filename=None, wait=0.5, retmax=100, url_limit=400, DEBUG=False, max_recs=None, **kwargs):
         self.__dict__.update(kwargs)
         self.filename = filename
         self.wait = wait
         self.retstart = 0  # was originally set to 1
         self.DEBUG = DEBUG
         self.retmax = retmax
+        self.url_limit = url_limit # limits url esearch term size
         self.max_recs = max_recs
         #adjust retmax if max_recs is set: no point getting more records
         if max_recs is not None and max_recs < retmax:
@@ -234,70 +236,102 @@ class EUtils(object):
         """
         #check if it's a slice
         if isinstance(query, slice):
-            query = expand_slice(query)
+            #query = expand_slice(query)
+            queries = make_lists_of_expanded_slices_of_set_size(query)
+            return self.grab_data(queries)
+        
         #check if it's a list -- if so, delimit with ' '
         if isinstance(query, list) or isinstance(query,tuple):
-            query = ' '.join(map(str, query))
-        self.term = query
-        #wrap search in loop in case more records than retmax
-        search_query = ESearch(**self.__dict__)
-        search_query.retmax = 0 #don't want the ids, just want to post search
-        if self.DEBUG:
-            print 'SEARCH QUERY:'
-            print str(search_query)
-        cookie = search_query.read()
-        if self.DEBUG:
-            print 'COOKIE:'
-            print `cookie`
-        search_result = ESearchResultParser(cookie)
-        if self.DEBUG:
-            print 'SEARCH RESULT:'
-            print search_result
-        try:
-            self.query_key = search_result.QueryKey
-            self.WebEnv = search_result.WebEnv
-        except AttributeError:
-            #The query_key and/or WebEnv not Found!
-            raise QueryNotFoundError,\
-            "WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
-                (repr(query),str(search_query))
+            #query = ' '.join(map(str, query))
+            queries = make_lists_of_accessions_of_set_size(query)
+            return self.grab_data(queries)
+        
+        # most likey a general set of search terms 
+        #e.g. '9606[taxid] OR 28901[taxid]' . So just return.
+        return self.grab_data([query])
 
-        count = search_result.Count
+    def grab_data(self,queries):
+        """Iterates through list of search terms and combines results.
+            -queries : list of lists of accession lists / query items
 
-        #wrap the fetch in a loop so we get all the results
-        fetch_query = EFetch(**self.__dict__)
-        curr_rec = 0
-        #check if we need to get additional ids
+        This will mostly only apply whe the user wants to download 1000s of 
+        sequences via accessions. This will superced the GenBank url
+        length limit. So, we break up the accession list into sets of 400 
+        terms per list.
 
-        if self.max_recs:    #cut off at max_recs if set
-            count = min(count, self.max_recs)
-            retmax = min(self.retmax, self.max_recs)
-        else:
-            retmax = self.retmax
-
+        WARNING: if you _really_ have more than 300-400 terms similar to: 
+            'angiotensin[ti] AND rodents[orgn]'
+            The results will not be what you want anyway due do the 
+            limitations of the esearch url length at GenBank. You'll just end up
+            returning sets of results from the broken up word based search 
+            terms.
+        """
         #figure out where to put the data
         if self.filename:
             result = open(self.filename, 'w')
         else:
             result = StringIO()
-        
-        while curr_rec < count:
-            #do the fetch
-            if count - curr_rec < self.retmax:
-                fetch_query.retmax = count - curr_rec
-            fetch_query.retstart = curr_rec
+   
+        for query in queries:
+            self.term=query
+            search_query = ESearch(**self.__dict__)
+            search_query.retmax = 0 #don't want the ids, just want to post search
             if self.DEBUG:
-                print 'FETCH QUERY'
-                print 'CURR REC:', curr_rec, 'COUNT:', count
-                print str(fetch_query)
-            #return the result of the fetch
-            curr = fetch_query.read()
-            result.write(curr)
-            if not curr.endswith('\n'):
-                result.write('\n')
-            curr_rec += retmax
-            sleep(self.wait)
-        #clean up after retrieval
+                print 'SEARCH QUERY:'
+                print str(search_query)
+            cookie = search_query.read()
+            if self.DEBUG:
+                print 'COOKIE:'
+                print `cookie`
+            search_result = ESearchResultParser(cookie)
+            if self.DEBUG:
+                print 'SEARCH RESULT:'
+                print search_result
+            try:
+                self.query_key = search_result.QueryKey
+                self.WebEnv = search_result.WebEnv
+            except AttributeError:
+                #The query_key and/or WebEnv not Found!
+                #GenBank occiasionally does not return these when user attempts
+                # to only fetch data by Accession or UID. So we just
+                #move on to extract UID list directly from the search result
+                try:
+                    self.id = ','.join(search_result.IdList)
+                except AttributeError:
+                    raise QueryNotFoundError,\
+                        "WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
+                    (repr(query),str(search_query))
+
+            count = search_result.Count
+
+            #wrap the fetch in a loop so we get all the results
+            fetch_query = EFetch(**self.__dict__)
+            curr_rec = 0
+            #check if we need to get additional ids
+
+            if self.max_recs:    #cut off at max_recs if set
+                count = min(count, self.max_recs)
+                retmax = min(self.retmax, self.max_recs)
+            else:
+                retmax = self.retmax
+
+            while curr_rec < count:
+                #do the fetch
+                if count - curr_rec < self.retmax:
+                    fetch_query.retmax = count - curr_rec
+                fetch_query.retstart = curr_rec
+                if self.DEBUG:
+                    print 'FETCH QUERY'
+                    print 'CURR REC:', curr_rec, 'COUNT:', count
+                    print str(fetch_query)
+                #return the result of the fetch
+                curr = fetch_query.read()
+                result.write(curr)
+                if not curr.endswith('\n'):
+                    result.write('\n')
+                curr_rec += retmax
+                sleep(self.wait)
+            #clean up after retrieval
         if self.filename:
             result.close()
             return open(self.filename, 'r')
