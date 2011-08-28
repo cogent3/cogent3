@@ -77,7 +77,43 @@ def expand_slice(s):
     format_string = '%'+field_width+'.'+field_width+'d'
     return [prefix + format_string % i \
         for i in range(range_start, range_end+1, step)]
-    
+
+def make_lists_of_expanded_slices_of_set_size(s,size_limit=200):
+    """Returns a list of Accessions terms from 'expand_slice'.
+    GenBank URLs are limited in size. This helps break up larger lists
+    of Accessions (e.g. thousands) into GenBank friendly sizes for down
+    stream fetching.
+       -s : slice of accessions
+       -size_limit : max items each list should contain
+    """
+    full_list = expand_slice(s)
+    ls = len(full_list)
+    l = []
+    for i in range(ls/size_limit+1):
+        start = i * size_limit
+        end = (i+1) * size_limit
+        subset = full_list[start:end]
+        l.append(' '.join(subset))
+    return l
+
+def make_lists_of_accessions_of_set_size(s,size_limit=200):
+    """Returns list of search terms  that contain accessions up to the size
+    'size_limit'
+    This is to help make friendly GenBank urls for fetching large lists 
+    of accessions (1000s).
+        -s : list of accessions
+        -size_limit : max items each list should contain
+    """
+    ls = len(s)
+    l = []
+    for i in range(ls/size_limit+1):
+        start = i * size_limit
+        end = (i+1) * size_limit
+        subset = s[start:end]
+        l.append(' '.join(subset))
+    return l
+
+
 def last_nondigit_index(s):
     """Returns the index of s such that s[i:] is numeric, or None."""
     for i in range(len(s)):
