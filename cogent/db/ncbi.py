@@ -257,15 +257,10 @@ class EUtils(object):
             self.query_key = search_result.QueryKey
             self.WebEnv = search_result.WebEnv
         except AttributeError:
-            #The query_key and/or WebEnv not Found!
-            #move on to extract UID list directly from the search result
-            try:
-                self.id = ','.join(search_result.IdList) 
-            except AttributeError:
-                raise QueryNotFoundError, \
+            raise QueryNotFoundError, \
                 "Query %s returned no results.\nURL was:\n%s" % \
                 (repr(query),str(search_query))
-
+ 
         count = search_result.Count
 
         #wrap the fetch in a loop so we get all the results
