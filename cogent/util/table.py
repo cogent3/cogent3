@@ -142,6 +142,34 @@ class Table(DictArray):
         # on args
         self._column_templates = column_templates or {}
     
+    def __repr__(self):
+        row = []
+        for val in self.array[0][:3]:
+            if isinstance(val, float):
+                row.append('%.4f' % val)
+            elif isinstance(val, int):
+                row.append('%d' % val)
+            else:
+                row.append('%r' % val)
+        
+        row_trunc = ', '.join(row)
+        header_trunc = ', '.join(map(repr, self.Header[:3]))
+        if self.Shape[1] > 3:
+            header_trunc = '[%s,..]' % header_trunc
+            row_trunc = '[%s,..]' % row_trunc
+        else:
+            header_trunc = '[%s]' % header_trunc
+            row_trunc = '[%s]' % row_trunc
+        
+        if self.Shape[0] > 1:
+            row_trunc = '[%s,..]' % row_trunc
+        else:
+            row_trunc = '[[%s]]' % row_trunc
+        
+        result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
+            (self.Shape[0], self.Shape[1], header_trunc, row_trunc)
+        return result
+    
     def __str__(self):
         return self.tostring()
     
