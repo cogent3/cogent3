@@ -103,6 +103,13 @@ We have several things we might want to specify when creating a table: the preci
     ---------------------------------
     From ISI
 
+.. note:: You can also a representation on a table for a quick summary.
+
+.. doctest::
+    
+    >>> t
+    Table(numrows=10, numcols=2, header=['Journal', 'Impact'], rows=[['INT J PARASITOL', 2.9000],..])
+
 The Table class cannot handle arbitrary python objects, unless they are passed in as strings. Note in this case we now directly pass in the column headings list and the handling of missing data can be explicitly specified..
 
 .. doctest::
@@ -365,6 +372,25 @@ We apply this to a table with mixed string, integer and floating point data.
        0.30
          cc
     -------
+
+Representation of tables
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The representation formatting provides a quick overview of a table's dimensions and it's contents. We show this for a table with 3 columns and multiple rows
+
+.. doctest::
+    
+    >>> t46
+    Table(numrows=5, numcols=3, header=['Gene', 'Type', 'LR'], rows=[['NP_003077_hs_mm_rn_dna', 'Con', 2.5386],..])
+
+and larger
+
+.. doctest::
+    
+    >>> t3
+    Table(numrows=7, numcols=6, header=['edge.name', 'edge.parent', 'length',..], rows=[['Human', 'edge.0', 4.0000,..],..])
+
+.. note:: within a script use ``print repr(t3)`` to get the same representation.
 
 Table output
 ------------
