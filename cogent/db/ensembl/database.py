@@ -47,9 +47,14 @@ class Database(object):
                 Type = r["Type"]
                 if "tinyint" in Type:
                     custom_columns.append(sql.Column(Field, sql.Integer))
+            try:
+                table = sql.Table(name, self._meta, autoload=True,
+                                    useexisting=True, *custom_columns)
+            except TypeError:
+                # new arg name not supported, try old
+                table = sql.Table(name, self._meta, autoload=True,
+                                    extend_existing=True, *custom_columns)
             
-            table = sql.Table(name,self._meta,autoload=True,useexisting=True,
-                                *custom_columns)
             self._tables[name] = table
         return table
     
