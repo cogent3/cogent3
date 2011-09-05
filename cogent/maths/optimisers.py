@@ -23,7 +23,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
-    template = 'f = % #10.6g  ±  % 9.3e   evals = %6i '
+    template = u'f = % #10.6g  ±  % 9.3e   evals = %6i '
     label = label.rjust(5)
     goal = [1.0e-20]
     def _display_progress(remaining, *args):
