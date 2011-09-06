@@ -5,6 +5,7 @@ import unittest, os, tempfile
 
 from cogent import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
                 LoadSeqs
+from cogent.parse.record import FileFormatError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -32,7 +33,17 @@ class ReadingWritingFileFormats(unittest.TestCase):
             fn = tempfile.mktemp(suffix='.'+suffix)
             aln.writeToFile(filename=fn)
             os.remove(fn)
-        
+    
+    def test_write_unknown_raises(self):
+        """writing unknown format raises FileFormatError"""
+        filename = os.path.join(data_path, "primates_brca1.fasta")
+        aln = LoadSeqs(filename)
+        self.assertRaises(FileFormatError, aln.writeToFile, filename='blah')
+        self.assertRaises(FileFormatError, aln.writeToFile,
+                filename='blah.txt')
+        self.assertRaises(FileFormatError, aln.writeToFile,
+                filename='blah.fasta', format='noway')
+    
     def test_fasta(self):
         self._loadfromfile("formattest.fasta")
         

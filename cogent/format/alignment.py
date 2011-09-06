@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from cogent.parse.record import FileFormatError
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -16,6 +17,9 @@ def save_to_filename(alignment, filename, format, **kw):
             - filename: name of the sequence alignment file
             - format: the multiple sequence file format
     """
+    if format is None:
+        raise FileFormatError("format not known")
+    
     f = open(filename, 'w')
     try:
         write_alignment_to_file(f, alignment, format, **kw)
