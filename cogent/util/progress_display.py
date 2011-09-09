@@ -285,7 +285,7 @@ class CursesTerminalProgressBar(object):
         if progress is not None:
             self.stderr.writelines([bar, '\n'])
         if message is not None:
-            self.stderr.writelines([message[:width], '\n'])
+            self.stderr.writelines([str(message[:width].encode('utf8')), u'\n'])
         self.line_count = (progress is not None) + (message is not None)
 
 
