@@ -240,7 +240,8 @@ class LogFileOutput(object):
             delta = '+%s' % int(time.time() - self.t0)
             progress = int(100*progress+0.5)
             print >>self.output, "%s %5s %3i%% %s" % (
-                    self.lpad, delta, progress, message)
+                    self.lpad, delta, progress,
+                    str(message.encode('utf8')))
             
 
 class CursesTerminalProgressBar(object):
@@ -284,6 +285,7 @@ class CursesTerminalProgressBar(object):
         
         if progress is not None:
             self.stderr.writelines([bar, '\n'])
+        
         if message is not None:
             self.stderr.writelines([str(message[:width].encode('utf8')), u'\n'])
         self.line_count = (progress is not None) + (message is not None)
