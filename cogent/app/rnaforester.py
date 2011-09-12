@@ -3,8 +3,8 @@
 from os import mkdir,getcwd,system,remove,close
 from random import choice
 from cogent.util.misc import app_path
-from cogent.app.util import CommandLineApplication,\
-    CommandLineAppResult, ResultPath, ApplicationNotFoundError
+from cogent.app.util import CommandLineApplication, CommandLineAppResult,\
+    ResultPath, ApplicationNotFoundError, ApplicationError
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from cogent.app.util import CommandLineApplication,\
-    CommandLineAppResult, ResultPath
+    CommandLineAppResult, ResultPath, ApplicationError
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters
 import commands

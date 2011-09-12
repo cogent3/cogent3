@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from cogent.app.parameters import FlagParameter, ValuedParameter
-from cogent.app.util import CommandLineApplication, ResultPath, FilePath
+from cogent.app.util import CommandLineApplication, ResultPath, FilePath,\
+        ApplicationError
 
 
 """Application controller for sffinfo"""

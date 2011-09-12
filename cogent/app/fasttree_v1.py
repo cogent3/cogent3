@@ -3,7 +3,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, FilePath, system, \
-       CommandLineAppResult, ResultPath, remove
+       CommandLineAppResult, ResultPath, remove, ApplicationError
 from cogent.core.tree import PhyloNode
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA, RNA, PROTEIN
