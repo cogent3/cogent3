@@ -7,7 +7,7 @@
 import shutil
 from os import remove, system, environ
 from cogent.app.util import CommandLineApplication,\
-    CommandLineAppResult, ResultPath, FilePath
+    CommandLineAppResult, ResultPath, FilePath, ApplicationError
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None
 
