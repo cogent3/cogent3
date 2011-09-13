@@ -7,6 +7,7 @@ from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
+from cogent.recalculation.scope import InvalidScopeError
 
 from cogent.util.warning import discontinued, deprecated
 
@@ -38,24 +39,29 @@ class LikelihoodFunction(ParameterController):
     def getLogLikelihood(self):
         return self.getFinalResult()
     
-    def getPsubForEdge(self, name):
+    def getPsubForEdge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
-        array = self.getParamValue('psubs', edge=name)
+        try:
+            array = self.getParamValue('psubs', edge=name, **kw)
+        except InvalidScopeError, detail:
+            # For PartialyDiscretePsubsDefn 
+            array = self.getParamValue('dpsubs', edge=name, **kw)
+        except InvalidScopeError:
+            raise detail
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
     
-    def getRateMatrixForEdge(self, name):
+    def getRateMatrixForEdge(self, name, **kw):
         """returns the rate matrix (Q) for the named edge
         
         Note: expm(Q) will give the same result as getPsubForEdge(name)"""
         try:
-            array = self.getParamValue('Q', edge=name)
+            array = self.getParamValue('Q', edge=name, **kw)
         except KeyError as err:
             if err[0] == 'Q' and name != 'Q':
                 raise RuntimeError('rate matrix not known by this model')
             else:
                 raise
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
-
     
     def getFullLengthLikelihoods(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:
@@ -349,7 +355,7 @@ class LikelihoodFunction(ParameterController):
     def _nodeMotifProbs(self, tree, mprobs, kw):
         result = [(tree.Name, mprobs)]
         for child in tree.Children:
-            psub = self.getParamValue('psubs', edge=child.Name, **kw)
+            psub = self.getPsubForEdge(child.Name, **kw)
             child_mprobs = numpy.dot(mprobs, psub)
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
         return result
@@ -388,8 +394,7 @@ class LikelihoodFunction(ParameterController):
             parallel.sync_random(random_series)
         
         def psub_for(edge, bin):
-            return self.getParamValue('psubs',
-                    edge=edge, bin=bin, locus=locus)
+            return self.getPsubForEdge(edge, bin=bin, locus=locus)
         
         if len(self.bin_names) > 1:
             hmm = self.getParamValue('bdist', locus=locus)
