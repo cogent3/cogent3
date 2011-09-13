@@ -7,7 +7,6 @@ from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
-from cogent.recalculation.scope import InvalidScopeError
 
 from cogent.util.warning import discontinued, deprecated
 
@@ -42,12 +41,10 @@ class LikelihoodFunction(ParameterController):
     def getPsubForEdge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
         try:
-            array = self.getParamValue('psubs', edge=name, **kw)
-        except InvalidScopeError, detail:
-            # For PartialyDiscretePsubsDefn 
+            # For PartialyDiscretePsubsDefn
             array = self.getParamValue('dpsubs', edge=name, **kw)
-        except InvalidScopeError:
-            raise detail
+        except KeyError:
+            array = self.getParamValue('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
     
     def getRateMatrixForEdge(self, name, **kw):
