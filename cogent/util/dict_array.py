@@ -142,8 +142,11 @@ class DictArray(object):
     def asarray(self):
         return self.array
     
-    def __array__(self):
-        return self.array
+    def __array__(self, dtype=None):
+        array = self.array
+        if dtype is not None:
+            array = array.astype(dtype)
+        return array
     
     def asdict(self):
         return dict(self.items())

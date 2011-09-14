@@ -1,4 +1,5 @@
 >>> import numpy
+>>> from cogent import DNA
 >>> from cogent.util.dict_array import DictArrayTemplate
 >>> a = numpy.identity(3, int)
 >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
@@ -38,3 +39,14 @@ A    B    C
 >>> b['A'].keys()
 [0, 1, 2]
 
+``DictArray`` should work properly in ``numpy`` operations.
+
+>>> darr = DictArrayTemplate(list(DNA), list(DNA)).wrap([[.7,.1,.1,.1],
+...                                                      [.1,.7,.1,.1],
+...                                                      [.1,.1,.7,.1],
+...                                                      [.1,.1,.1,.7]])
+>>> mprobs = numpy.array([0.25, 0.25, 0.25, 0.25])
+>>> print mprobs.dot(darr)
+[ 0.25  0.25  0.25  0.25]
+>>> print numpy.dot(mprobs, darr)
+[ 0.25  0.25  0.25  0.25]
