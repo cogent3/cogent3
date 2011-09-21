@@ -338,10 +338,10 @@ def AlnToProfile(aln, alphabet=None, char_order=None, split_degenerates=False,\
     result = Profile(s,alphabet, char_order)
     try:
         result.normalizePositions()
-    except:
-        raise ValueError,\
-        "Probably one of the rows in your profile adds up to zero,\n "+\
-        "because you are ignoring all of the characters in the "+\
-        "corresponding\n column in the alignment"
+    except Exception, e:
+        raise ValueError,e
+        #"Probably one of the rows in your profile adds up to zero,\n "+\
+        #"because you are ignoring all of the characters in the "+\
+        #"corresponding\n column in the alignment"
     return result
 
