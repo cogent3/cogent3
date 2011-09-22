@@ -2,6 +2,7 @@
 """Leaf and Edge classes that can calculate their likelihoods.
 Each leaf holds a sequence.  Used by a likelihood function."""
 
+from __future__ import division
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 from cogent.util.parallel import MPI
 
@@ -77,6 +78,10 @@ class _LikelihoodTreeEdge(object):
         # For product of child likelihoods
         self._indexed_children = zip(self.indexes, children)
         self.shape = [len(self.uniq), M]
+
+        # Derive per-column degree of ambiguity from children's
+        ambigs = [child.ambig[index] for (index, child) in self._indexed_children]
+        self.ambig = numpy.product(ambigs, axis=0)
     
     def restrictMotif(self, input_likelihoods, fixed_motif):
         # for reconstructAncestralSeqs
@@ -128,6 +133,20 @@ class _LikelihoodTreeEdge(object):
     def getFullLengthLikelihoods(self, input_likelihoods):
         lh = self.parallelReconstructColumns(input_likelihoods)
         return numpy.take(lh, self.index, 0)
+    
+    def calcGStatistic(self, input_likelihoods):
+        # A Goodness-of-fit statistic
+        unambig = self.ambig == 1.0
+        N = unambig.sum()
+        if self.comm is not None:
+            N = self.comm.allreduce(N)
+        observed = self.counts[unambig]
+        expected = input_likelihoods[unambig] * N
+        #chisq = ((observed-expected)**2 / expected).sum()
+        result = 2 * observed.dot(numpy.log(observed/expected))
+        if self.comm is not None:
+            result = self.comm.allreduce(result)
+        return result
     
     def getEdge(self, name):
         if self.edge_name == name:

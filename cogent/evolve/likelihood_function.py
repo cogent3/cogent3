@@ -60,16 +60,27 @@ class LikelihoodFunction(ParameterController):
                 raise
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
     
-    def getFullLengthLikelihoods(self, locus=None):
+    def _getLikelihoodValuesSummedAcrossAnyBins(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:
-            root_lh = self.getParamValue('bindex', locus=locus)
             root_lhs = [self.getParamValue('lh', locus=locus, bin=bin) for
                 bin in self.bin_names]
-            return root_lh.getFullLengthLikelihoods(*root_lhs)
+            bprobs = self.getParamValue('bprobs')
+            root_lh = bprobs.dot(root_lhs)
         else:
-            root_lht = self.getParamValue('root', locus=locus)
             root_lh = self.getParamValue('lh', locus=locus)
-            return root_lht.getFullLengthLikelihoods(root_lh)
+        return root_lh
+        
+    def getFullLengthLikelihoods(self, locus=None):
+        """Array of [site, motif] likelihoods from the root of the tree"""
+        root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
+        root_lht = self.getParamValue('root', locus=locus)
+        return root_lht.getFullLengthLikelihoods(root_lh)
+    
+    def getGStatistic(self, locus=None):
+        """Goodness-of-fit statistic derived from the unambiguous columns"""
+        root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
+        root_lht = self.getParamValue('root', locus=locus)
+        return root_lht.calcGStatistic(root_lh)
     
     def reconstructAncestralSeqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
