@@ -69,7 +69,7 @@ class LhtEdgeLookupDefn(CalculationDefn):
     
     def setup(self, edge_name):
         self.edge_name = edge_name
-        # so that it can be found by reconstructAncestralSeqs:
+        # so that it can be found by reconstructAncestralSeqs etc:
         if edge_name == 'root':
             self.name = 'root'
     
@@ -246,25 +246,17 @@ class BinnedLikelihood(object):
     def __call__(self, *lhs):
         result = self.distrib.getWeightedSumLh(lhs)
         return self.root.getLogSumAcrossSites(result)
-    
-    def _getPosteriorLikelihoods(self, *lhs):
-        # A bins x site array of likelihoods
+
+    def getPosteriorProbs(self, *lhs):
+        # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
             [b*self.root.getFullLengthLikelihoods(p)
             for (b,p) in zip(self.distrib.bprobs, lhs)])
+        result /= result.sum(axis=0)
         return result
     
-    def getPosteriorProbs(self, *lhs):
-        # posterior bin probs, not motif probs
-        lhs = self._getPosteriorLikelihoods(*lhs)
-        return lhs / numpy.sum(lhs, axis=0)
     
-    def getFullLengthLikelihoods(self, *lhs):
-        lhs = self._getPosteriorLikelihoods(*lhs)
-        return numpy.sum(lhs, axis=0)  # Sum over bins
-    
-
 class SiteHmm(object):
     def __init__(self, distrib, root):
         self.root = root
