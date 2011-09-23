@@ -5,6 +5,7 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 from __future__ import division
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 from cogent.util.parallel import MPI
+from cogent import LoadTable
 
 import numpy
 
@@ -137,10 +138,10 @@ class _LikelihoodTreeEdge(object):
     def calcGStatistic(self, input_likelihoods):
         # A Goodness-of-fit statistic
         unambig = self.ambig == 1.0
-        N = unambig.sum()
+        observed = self.counts[unambig]
+        N = observed.sum()
         if self.comm is not None:
             N = self.comm.allreduce(N)
-        observed = self.counts[unambig]
         expected = input_likelihoods[unambig] * N
         #chisq = ((observed-expected)**2 / expected).sum()
         result = 2 * observed.dot(numpy.log(observed/expected))
