@@ -24,7 +24,7 @@ __status__ = "Production"
 
 try:
     pyrex = importVersionedModule('_likelihood_tree', globals(), 
-            (2, 1), "pure Python/NumPy likelihood tree")
+            (2, 1), "pure Python/NumPy likelihoodihood tree")
 except ExpectedImportError:
     pyrex = None
         
@@ -83,6 +83,13 @@ class _LikelihoodTreeEdge(object):
         # Derive per-column degree of ambiguity from children's
         ambigs = [child.ambig[index] for (index, child) in self._indexed_children]
         self.ambig = numpy.product(ambigs, axis=0)
+                
+    def getSitePatterns(self, cols):
+        # Recursive lookup of Site Patterns aka Alignment Columns
+        child_motifs = [child.getSitePatterns(index[cols])
+                for (index, child) in self._indexed_children]
+        return [''.join(child[u] for child in child_motifs)
+                for u in range(len(cols))]
     
     def restrictMotif(self, input_likelihoods, fixed_motif):
         # for reconstructAncestralSeqs
@@ -107,11 +114,11 @@ class _LikelihoodTreeEdge(object):
                 if lo <= u < hi]
         local = self.selectColumns(local_cols)
         
-        # Attributes for reconstructing the global array.
-        # should probably make a wrapping class instead.
+        # Attributes for reconstructing/refinding the global arrays.
+        # should maybe make a wrapping class instead.
         local.share_sizes = share_sizes
-        local.index = self.index   # yuk
         local.comm = comm
+        local.full_length_version = self
         return local
     
     def selectColumns(self, cols):
@@ -121,33 +128,40 @@ class _LikelihoodTreeEdge(object):
             children.append(child)
         return self.__class__(children, self.edge_name)
     
-    def parallelReconstructColumns(self, llh):
+    def parallelReconstructColumns(self, likelihoods):
         """Recombine full uniq array (eg: likelihoods) from MPI CPUs"""
         if self.comm is None:
-            return llh
-        result = numpy.empty([sum(self.share_sizes)], llh.dtype)
-        send = (llh[:-1], MPI.DOUBLE) # drop gap column
-        recv = (result, self.share_sizes, None, MPI.DOUBLE)
+            return (self, likelihoods)
+        result = numpy.empty([sum(self.share_sizes)+1], likelihoods.dtype)
+        mpi_type = None  # infer it from the likelihoods/result array dtype
+        send = (likelihoods[:-1], mpi_type)  # drop gap column
+        recv = (result, self.share_sizes, None, mpi_type)
         self.comm.Allgatherv(send, recv)
-        return result
+        result[-1] = likelihoods[-1]  # restore gap column
+        return (self.full_length_version, result)
     
-    def getFullLengthLikelihoods(self, input_likelihoods):
-        lh = self.parallelReconstructColumns(input_likelihoods)
-        return numpy.take(lh, self.index, 0)
+    def getFullLengthLikelihoods(self, likelihoods):
+        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
+        return likelihoods[self.index]
     
-    def calcGStatistic(self, input_likelihoods):
+    def calcGStatistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
-        unambig = self.ambig == 1.0
-        observed = self.counts[unambig]
-        N = observed.sum()
-        if self.comm is not None:
-            N = self.comm.allreduce(N)
-        expected = input_likelihoods[unambig] * N
+        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
+        
+        unambig = (self.ambig == 1.0).nonzero()[0]
+        observed = self.counts[unambig].astype(int)
+        expected = likelihoods[unambig] * observed.sum()
         #chisq = ((observed-expected)**2 / expected).sum()
-        result = 2 * observed.dot(numpy.log(observed/expected))
-        if self.comm is not None:
-            result = self.comm.allreduce(result)
-        return result
+        G = 2 * observed.dot(numpy.log(observed/expected))
+        
+        if return_table:
+            motifs = self.getSitePatterns(unambig)
+            rows = zip(motifs, observed, expected)
+            rows.sort(key=lambda row:(-row[1], row[0]))
+            table = LoadTable(header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
+            return (G, table)
+        else:
+            return G
     
     def getEdge(self, name):
         if self.edge_name == name:
@@ -168,6 +182,7 @@ class _LikelihoodTreeEdge(object):
         return result
 
     def asLeaf(self, likelihoods):
+        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
         assert len(likelihoods) == len(self.counts)
         return LikelihoodTreeLeaf(likelihoods, likelihoods, 
                 self.counts, self.index, self.edge_name, self.alphabet, None)
@@ -187,9 +202,11 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
         for (i, index) in enumerate(self.indexes):
             result *= numpy.take(likelihoods[i], index, 0)
         return result
-
+    
+    # For root
+    
     def logDotReduce(self, patch_probs, switch_probs, plhs):
-        plhs = self.parallelReconstructColumns(plhs)
+        (self, plhs) = self.parallelReconstructColumns(plhs)
         exponent = 0
         state_probs = patch_probs.copy()
         for site in self.index:
@@ -204,7 +221,6 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return self.getLogSumAcrossSites(lhs)
 
     def getLogSumAcrossSites(self, lhs):
-        #print 'lhs, log(lhs)', lhs, numpy.log(lhs)
         return numpy.inner(numpy.log(lhs), self.counts)
 
 class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
@@ -218,7 +234,7 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # For root
     
     def logDotReduce(self, patch_probs, switch_probs, plhs):
-        plhs = self.parallelReconstructColumns(plhs)
+        (self, plhs) = self.parallelReconstructColumns(plhs)
         return pyrex.logDotReduce(self.index, patch_probs, switch_probs, plhs)
         
     def getTotalLogLikelihood(self, input_likelihoods, mprobs):
@@ -294,16 +310,12 @@ class LikelihoodTreeLeaf(object):
         self.alphabet = alphabet
         self.name = self.edge_name = edge_name
         self.uniq = uniq
+        self.motifs = numpy.asarray(uniq)
         self.input_likelihoods = likelihoods
         self.counts = counts
         self.index = index
         self.shape = likelihoods.shape
         self.ambig = numpy.sum(self.input_likelihoods, axis=-1)
-        # uniq (list of motifs) is redundant in that it could be derived 
-        # from input_likelihoods (array of profiles) but it's easier just
-        # keep it rather than regenerate it.  Also it's only used for 
-        # self.getAmbiguousPositions(), so it might be nice to get rid of 
-        # it eventually.
     
     def backward(self):
         index = numpy.array(self.index[::-1,...])
@@ -340,7 +352,7 @@ class LikelihoodTreeLeaf(object):
         counts.append(0)
         counts = numpy.array(counts, FLOAT_TYPE)
         uniq = [self.uniq[u] for u in keep]
-        likelihoods = numpy.take(self.input_likelihoods, keep, 0)
+        likelihoods = self.input_likelihoods[keep]
         return self.__class__(
                 uniq, likelihoods, counts, index, self.edge_name, 
                 self.alphabet, None)
@@ -351,3 +363,6 @@ class LikelihoodTreeLeaf(object):
         else:
             return None
             
+    def getSitePatterns(self, cols):
+        return numpy.asarray(self.uniq)[cols]
+        
