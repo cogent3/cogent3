@@ -1,5 +1,5 @@
-Easy distribution of tasks across multiple CPUs
-===============================================
+Distribution of tasks across multiple CPUs using ``mpi``
+========================================================
 
 .. warning:: This example requires execution on 2 CPUs. It can be run using: ``$ mpirun -n 2 python path/to/parallel_tasks.rst``
 
