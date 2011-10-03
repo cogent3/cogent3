@@ -144,13 +144,17 @@ class Table(DictArray):
     
     def __repr__(self):
         row = []
-        for val in self.array[0][:3]:
-            if isinstance(val, float):
-                row.append('%.4f' % val)
-            elif isinstance(val, int):
-                row.append('%d' % val)
-            else:
-                row.append('%r' % val)
+        try:
+            for val in self.array[0][:3]:
+                if isinstance(val, float):
+                    row.append('%.4f' % val)
+                elif isinstance(val, int):
+                    row.append('%d' % val)
+                else:
+                    row.append('%r' % val)
+        except IndexError:
+            # an empty table
+            pass
         
         row_trunc = ', '.join(row)
         header_trunc = ', '.join(map(repr, self.Header[:3]))
@@ -165,6 +169,9 @@ class Table(DictArray):
             row_trunc = '[%s,..]' % row_trunc
         else:
             row_trunc = '[[%s]]' % row_trunc
+        
+        if self.Shape[0] == 0:
+            row_trunc = str([])
         
         result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
             (self.Shape[0], self.Shape[1], header_trunc, row_trunc)

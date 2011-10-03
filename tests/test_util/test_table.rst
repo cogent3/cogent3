@@ -1752,6 +1752,18 @@ We then establish that a join with no values does not cause a failure, just retu
     >>> t4 = LoadTable(header = t4_header, rows = t4_rows)
     >>> t4.Title = 't4'
     >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
+    >>> print t5
+    ==============
+    a    b    t4_c
+    --------------
+    --------------
+
+Whose representation looks like
+
+.. doctest::
+    
+    >>> t5
+    Table(numrows=0, numcols=3, header=['a', 'b', 't4_c'], rows=[])
 
 Transposing a table
 -------------------
