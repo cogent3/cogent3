@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 62
+Release = 64
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -141,8 +141,6 @@ class TestSyntenicRegions(TestCase):
             [{'CoordName': 18, 'End': 203270, 'Species': 'human', 'Start': 203170, 'Strand':-1},
                 {'Homo sapiens:chromosome:18:203170-203270:-1':
                  'GGAATAATGAAAGCAATTGTGAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA',
-                 'Macaca mulatta:chromosome:18:13869026-13869126:1':
-                 'GGAATAATGAAAGCAATTGTAAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA',
                  'Pan troglodytes:chromosome:18:16611584-16611684:1':
                  'GGAATAATGAAAGCAATTGTAAGTTAGCAATTACCTTCAAAGAATTACATTTCTTATACAAAGTAAAGTTCATTACTAACCTTAAGAACTTTGGCATTCA'}],
             [{'CoordName': 2, 'End': 46445, 'Species': 'human', 'Start': 46345, 'Strand':-1},
@@ -168,7 +166,7 @@ class TestSyntenicRegions(TestCase):
         # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=511, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=538, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
