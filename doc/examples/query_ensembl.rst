@@ -22,7 +22,7 @@ So the first step is to specify what host and account are to be used. On my lab'
 .. doctest::
     
     >>> import os
-    >>> Release = 62
+    >>> Release = 64
     >>> from cogent.db.ensembl import HostAccount
     >>> if 'ENSEMBL_ACCOUNT' in os.environ:
     ...     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -80,7 +80,7 @@ As implied above, Ensembl databases are versioned, hence you must explicitly sta
     >>> from cogent.db.ensembl import HostAccount, Genome
     >>> human = Genome(Species='human', Release=Release, account=account)
     >>> print human
-    Genome(Species='Homo sapiens'; Release='62')
+    Genome(Species='Homo sapiens'; Release='64')
 
 Notice I used the common name rather than full name. The ``Genome`` provides an interface to obtaining different attributes. It's primary role is to allow selection of genomic regions according to some search criteria. The type of region is presently limited to ``Gene``, ``Est``, ``CpGisland``, ``Repeat`` and ``Variation``. There's also a ``GenericRegion``. The specific types are also capable of identifying information related to themselves, as we will demonstrate below.
 
@@ -207,7 +207,7 @@ There are obviously different types of genes, and the ``Genome`` object provides
 .. doctest::
 
     >>> print human.getDistinct('BioType')
-    ['rRNA', 'lincRNA', 'IG_C_pseudogene', 'protein_coding',...
+    ['rRNA', 'lincRNA', 'IG_C_pseudogene', ...
 
 The genome can be queried for any of these types, for instance we'll query for ``rRNA``. We'll get the first few records and then exit.
 
@@ -378,7 +378,7 @@ The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compa
     >>> compara = Compara(['human', 'mouse', 'rat'], account=account,
     ...                  Release=Release)
     >>> print compara
-    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=62...
+    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=64...
 
 The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes (use ``Species.getComparaName`` to find out what the attribute will be). The genome instances are named according to their common name in CamelCase, or Scase. For instance, if we had created a ``Compara`` instance with the American pika species included, then that genome would be accessed as ``compara.AmericanPika``. Common names containing a '.' are treated differently. For instance, the common name for *Caenorhabditis remanei* is ``C.remanei`` which becomes ``compara.Cremanei``. We access the human genome in this ``Compara`` instance and conduct a gene search.
 
@@ -425,14 +425,14 @@ The ``RelatedGenes`` object has a number of properties allowing you to get acces
     >>> print orthologs.Members
     (Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
     >>> print orthologs.getSeqLengths()
-    [40742, 47117, 84195]
+    [40742, 84195, 47117]
 
 In addition there's a ``getMaxCdsLengths`` method for returning the lengths of the longest ``Cds`` from each member.
 
 .. doctest::
 
     >>> print orthologs.getMaxCdsLengths()
-    [10032, 9990, 10257]
+    [10032, 10257, 9990]
 
 You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unaligned), with the ability to have those sequences annotated as described above. The sequences are named in accordance with their genomic coordinates.
 
@@ -460,13 +460,13 @@ Ensembl stores multiple sequence alignments for selected species. For a given gr
 
     >>> print compara.method_species_links
     Align Methods/Clades
-    =============================================================================...
-    method_link_species_set_id  method_link_id  species_set_id      align_method ...
-    -----------------------------------------------------------------------------...
-                           508              10           33558             PECAN ...
-                           510              13           33559               EPO ...
-                           518              14           33720  EPO_LOW_COVERAGE ...
-    -----------------------------------------------------------------------------...
+    ============================================================================...
+    method_link_species_set_id  method_link_id  species_set_id      align_method...
+    ----------------------------------------------------------------------------...
+                           540              10           33898             PECAN...
+                           537              13           33895               EPO...
+                           542              14           33899  EPO_LOW_COVERAGE...
+    ----------------------------------------------------------------------------...
 
 The ``align_method`` and ``align_clade`` columns can be used as arguments to ``getSyntenicRegions``. This method is responsible for returning ``SyntenicRegions`` instances for a given coordinate from a species. As it's possible that multiple records may be found from the multiple alignment for a given set of coordinates, the result of calling this method is a python generator. The returned regions have a length, defined by the full set of aligned sequences. If the ``omit_redundant`` argument is used, then positions with gaps in all sampled species will be removed in the alignment to be returned. The length of the syntenic region, however, is the length of the unfiltered alignment.
 
@@ -482,10 +482,10 @@ The ``align_method`` and ``align_clade`` columns can be used as arguments to ``g
     ...     print repr(syntenic_region.getAlignment(omit_redundant=False))
     SyntenicRegions:
       Coordinate(Human,chro...,13,32889610-32907347,1)
-      Coordinate(Rat,chro...,12,4313281-4324025,1)
       Coordinate(Mouse,chro...,5,151325195-151339535,-1)
+      Coordinate(Rat,chro...,12,4313281-4324025,1)
     58205
-    3 x 58205 dna alignment: Rattus norvegicus:chromosome:12:4313281-4324025...
+    3 x 58205 dna alignment: Homo sapiens:chromosome:13:32889610-32907347...
 
 We consider a species for which pairwise alignments are available -- the bush baby.
 
@@ -494,7 +494,7 @@ We consider a species for which pairwise alignments are available -- the bush ba
     >>> compara_pair = Compara(['Human', 'Bushbaby'], Release=Release,
     ...                        account=account)
     >>> print compara_pair
-    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=62; connected=True)
+    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=64; connected=True)
 
 
 Printing the ``method_species_links`` table provides all the necessary information for specifying selection conditions.
@@ -505,7 +505,7 @@ Printing the ``method_species_links`` table provides all the necessary informati
     method_link_species_set_id  method_link_id  species_set_id      align_method...
     ----------------------------------------------------------------------------...
                            399               1           32285        BLASTZ_NET...
-                           518              14           33720  EPO_LOW_COVERAGE...
+                           542              14           33899  EPO_LOW_COVERAGE...
     ----------------------------------------------------------------------------...
 
 .. doctest::
