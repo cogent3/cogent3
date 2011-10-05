@@ -538,3 +538,49 @@ It is also possible to specify column alignment, table caption and other argumen
     >>> import os
     >>> os.remove('stats.txt')
     >>> os.remove('stats_tab.txt')
+
+Writing bedGraph format
+"""""""""""""""""""""""
+
+This format allows display of annotation tracks on genome browsers.
+
+.. doctest::
+    :options: +NORMALIZE_WHITESPACE
+    
+    >>> rows = [['1', 100, 101, 1.123], ['1', 101, 102, 1.123],
+    ...         ['1', 102, 103, 1.123], ['1', 103, 104, 1.123],
+    ...         ['1', 104, 105, 1.123], ['1', 105, 106, 1.123],
+    ...         ['1', 106, 107, 1.123], ['1', 107, 108, 1.123],
+    ...         ['1', 108, 109, 1], ['1', 109, 110, 1],
+    ...         ['1', 110, 111, 1], ['1', 111, 112, 1],
+    ...         ['1', 112, 113, 1], ['1', 113, 114, 1],
+    ...         ['1', 114, 115, 1], ['1', 115, 116, 1],
+    ...         ['1', 116, 117, 1], ['1', 117, 118, 1],
+    ...         ['1', 118, 119, 2], ['1', 119, 120, 2],
+    ...         ['1', 120, 121, 2], ['1', 150, 151, 2],
+    ...         ['1', 151, 152, 2], ['1', 152, 153, 2],
+    ...         ['1', 153, 154, 2], ['1', 154, 155, 2],
+    ...         ['1', 155, 156, 2], ['1', 156, 157, 2],
+    ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
+    ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
+    ... 
+    >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
+    ...                   rows=rows)
+    ...                     
+    >>> print bgraph.tostring(format='bedgraph', name='test track',
+    ...     description='test of bedgraph', color=(255,0,0)) # doctest: +NORMALIZE_WHITESPACE
+    track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
+    1	100	108	1.12
+    1	108	118	1.0
+    1	118	161	2.0
+
+    The bedgraph formatter defaults to rounding values to 2 decimal places. You can adjust that precision using the ``digits`` argument.
+
+.. doctest::
+    :options: +NORMALIZE_WHITESPACE
+    
+    >>> print bgraph.tostring(format='bedgraph', name='test track',  
+    ...   description='test of bedgraph', color=(255,0,0), digits=0) # doctest: +NORMALIZE_WHITESPACE
+    track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
+    1	100	118	1.0
+    1	118	161	2.0

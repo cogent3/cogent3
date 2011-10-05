@@ -12,7 +12,7 @@ import cPickle, csv
 from gzip import GzipFile
 
 import numpy
-from cogent.format import table as table_format
+from cogent.format import table as table_format, bedgraph
 
 from cogent.util.dict_array import DictArray
 
@@ -271,14 +271,17 @@ class Table(DictArray):
         
         self._column_templates[column_head] = format_template
     
-    def tostring(self, borders = True, sep = None, format = '', **kwargs):
+    def tostring(self, borders=True, sep=None, format='', **kwargs):
         """Return the table as a formatted string.
         
         Arguments:
-            - format: possible formats are 'rest', 'latex', 'html', 'phylip', or
-              simple text (default)
+            - format: possible formats are 'rest', 'latex', 'html', 'phylip',
+              'bedgraph', or simple text (default).
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
               Overrides format.
+        
+        NOTE: If format is bedgraph, assumes that column headers are chrom,
+        start, end, value. In that order!
         """
         if format.lower() == 'phylip':
             missing_data = "%.4f" % 0.0
@@ -287,13 +290,14 @@ class Table(DictArray):
         
         # convert self to a 2D list
         formatted_table = self.array.tolist()
-        header, formatted_table = table_format.formattedCells(formatted_table,
+        if format != 'bedgraph':
+            header, formatted_table = table_format.formattedCells(formatted_table,
                                     self.Header,
                                     digits = self._digits,
                                     column_templates = self._column_templates,
                                     missing_data = missing_data)
-        args = (header, formatted_table, self.Title, self.Legend)
-        if sep:
+            args = (header, formatted_table, self.Title, self.Legend)
+        if sep and format != 'bedgraph':
             return table_format.separatorFormat(*args + (sep,))
         elif format == 'rest':
             return table_format.gridTableFormat(*args)
@@ -311,6 +315,12 @@ class Table(DictArray):
             formatted_table = [row[self._row_ids:] for row in formatted_table]
             header = header[self._row_ids:]
             return table_format.phylipMatrix(formatted_table, header)
+        elif format == 'bedgraph':
+            assert self.Shape[1] == 4, 'bedgraph format is for 4 column tables'
+            # assuming that header order is chrom, start, end, val
+            formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(),
+                **kwargs)
+            return formatted_table
         else:
             return table_format.simpleFormat(*args + (self._max_width,
                                 self._row_ids, borders, self.Space))
@@ -387,7 +397,7 @@ class Table(DictArray):
         elif format == 'pickle':
             data = self.__getstate__()
             cPickle.dump(data, outfile)
-        elif sep is not None:
+        elif sep is not None and format != 'bedgraph':
             writer = csv.writer(outfile, delimiter = sep)
             if self.Title:
                 writer.writerow([self.Title])
@@ -399,6 +409,10 @@ class Table(DictArray):
             table = self.tostring(format = format, **kwargs)
             outfile.writelines(table + '\n')
         outfile.close()
+    
+    def toBedgraph(self, chrom_col, start_col, end_col):
+        """docstring for toBedgraph"""
+        pass
     
     def appended(self, new_column, *tables, **kwargs):
         """Append an arbitrary number of tables to the end of this one.
