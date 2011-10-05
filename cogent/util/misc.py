@@ -7,7 +7,7 @@ import sys
 from time import clock
 from datetime import datetime
 from string import maketrans, strip
-from random import randrange, choice
+from random import randrange, choice, randint
 from sys import maxint
 from os import popen, remove, makedirs, getenv
 from os.path import join, abspath, exists, isdir
@@ -1463,3 +1463,63 @@ def get_random_directory_name(suppress_mkdir=False,\
     if return_absolute_path:
         return abs_dirpath
     return dirpath
+
+def get_independent_spans(spans, random_tie_breaker=False):
+    """returns non-overlapping spans. spans must have structure
+        [(start, end, ..), (..)]. spans can be decorated with arbitrary data
+        after the end entry.
+    
+    Arguments:
+        - random_tie_breaker: break overlaps by randomly choosing the first
+          or second span. Defaults to the first span.
+    """
+    
+    if len(spans) <= 1:
+        return spans
+    
+    last = spans[0]
+    result = [last]
+    for i in range(1, len(spans)):
+        curr = spans[i]
+        if curr[0] < last[1]:
+            if random_tie_breaker:
+                result[-1] = [last, curr][randint(0,1)]
+            else:
+                result[-1] = last
+            continue
+        
+        result.append(curr)
+        last = curr
+    
+    return result
+
+def get_merged_by_value_spans(spans_value, digits=None):
+    """returns adjacent spans merged if they have the same value. Assumes
+    [(start, end, val), ..] structure and that spans_value is sorted in
+    ascending order.
+    
+    Arguments:
+        - digits: if None, any data can be handled and exact values are
+          compared. Otherwise values are rounded to that many digits.
+    """
+    assert len(spans_value[0]) == 3, 'spans_value must have 3 records per row'
+    
+    if digits is not None:
+        round_func = lambda x: round(x, digits)
+    else:
+        round_func = lambda x: x
+    
+    data = []
+    start, end, last_val = spans_value[0]
+    last_val = round_func(last_val)
+    data.append([start, end, last_val])
+    for i in xrange(1, len(spans_value)):
+        start, end, val = spans_value[i]
+        val = round_func(val)
+        if val == last_val:
+            data[-1][1] = end
+        else:
+            data.append([start, end, val])
+            last_val = val
+    
+    return data
