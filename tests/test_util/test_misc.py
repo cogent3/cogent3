@@ -25,7 +25,8 @@ from cogent.util.misc import (iterable, max_index, min_index,
     revComp, parse_command_line_parameters, safe_md5, 
     create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
     combinate,gzip_dump,gzip_load,recursive_flatten_old,getNewId,toString,
-    timeLimitReached, get_independent_spans, get_merged_by_value_spans)
+    timeLimitReached, get_independent_coords, get_merged_by_value_coords,
+    get_merged_overlapping_coords)
 from numpy import array
 from time import clock, sleep
 
@@ -639,80 +640,92 @@ class UtilsTests(TestCase):
         rmdir(actual)
     
     def test_independent_spans(self):
-        """get_independent_spans returns truly non-overlapping (decorated) spans"""
+        """get_independent_coords returns truly non-overlapping (decorated) spans"""
         # single span is returned
         data = [(0, 20, 'a')]
-        got = get_independent_spans(data)
+        got = get_independent_coords(data)
         self.assertEqual(got, data)
         
         # multiple non-overlapping
         data = [(20, 30, 'a'), (35, 40, 'b'), (65, 75, 'c')]
-        got = get_independent_spans(data)
+        got = get_independent_coords(data)
         self.assertEqual(got, data)
         
         # over-lapping first/second returns first occurrence by default
         data = [(20, 30, 'a'), (25, 40, 'b'), (65, 75, 'c')]
-        got = get_independent_spans(data)
+        got = get_independent_coords(data)
         self.assertEqual(got, [(20, 30, 'a'), (65, 75, 'c')])
         # but randomly the first or second if random_tie_breaker is chosen
-        got = get_independent_spans(data, random_tie_breaker=True)
+        got = get_independent_coords(data, random_tie_breaker=True)
         self.assertTrue(got in ([(20, 30, 'a'), (65, 75, 'c')],
                         [(25, 40, 'b'), (65, 75, 'c')]))
-    
+        
         # over-lapping second/last returns first occurrence by default
         data = [(20, 30, 'a'), (30, 60, 'b'), (50, 75, 'c')]
-        got = get_independent_spans(data)
+        got = get_independent_coords(data)
         self.assertEqual(got, [(20, 30, 'a'), (30, 60, 'b')])
         # but randomly the first or second if random_tie_breaker is chosen
-        got = get_independent_spans(data, random_tie_breaker=True)
+        got = get_independent_coords(data, random_tie_breaker=True)
         self.assertTrue(got in ([(20, 30, 'a'), (50, 75, 'c')],
                                 [(20, 30, 'a'), (30, 60, 'b')]))
         
         # over-lapping middle returns first occurrence by default
         data = [(20, 24, 'a'), (25, 40, 'b'), (30, 35, 'c'), (65, 75, 'd')]
-        got = get_independent_spans(data)
+        got = get_independent_coords(data)
         self.assertEqual(got, [(20, 24, 'a'), (25, 40, 'b'), (65, 75, 'd')])
         
         # but randomly the first or second if random_tie_breaker is chosen
-        got = get_independent_spans(data, random_tie_breaker=True)
+        got = get_independent_coords(data, random_tie_breaker=True)
         self.assertTrue(got in ([(20, 24, 'a'), (25, 40, 'b'), (65, 75, 'd')],
                                 [(20, 24, 'a'), (30, 35, 'c'), (65, 75, 'd')]))
+    
+    # 
+    def test_get_merged_spans(self):
+        """tests merger of overlapping spans"""
+        sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
+        result = get_merged_overlapping_coords(sample)
+        expect = [[0, 10], [12, 16], [18, 25]]
+        self.assertEqual(result, expect)
+        sample = [[0, 10], [5, 9], [12, 16], [18, 20], [19, 25]]
+        result = get_merged_overlapping_coords(sample)
+        expect = [[0, 10], [12, 16], [18, 25]]
+        self.assertEqual(result, expect)
     
     def test_merged_by_value_spans(self):
         """correctly merge adjacent spans with the same value"""
         # initial values same
         data = [[20, 21, 0], [21, 22, 0], [22, 23, 1], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 22, 0], [22, 23, 1], [23, 24, 0]])
         
         # middle values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 1], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 21, 0], [21, 23, 1], [23, 24, 0]])
         
         # last values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 0], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 21, 0], [21, 22, 1], [22, 24, 0]])
         
         # all unique values
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 2], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 21, 0], [21, 22, 1], [22, 23, 2], [23, 24, 0]])
         
         # all values same
         data = [[20, 21, 0], [21, 22, 0], [22, 23, 0], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 24, 0]])
         
         # all unique values to 2nd decimal
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
-        self.assertEqual(get_merged_by_value_spans(data),
+        self.assertEqual(get_merged_by_value_coords(data),
                 [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]])
         
         # all values same at 1st decimal
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
-        self.assertEqual(get_merged_by_value_spans(data, digits=1),
+        self.assertEqual(get_merged_by_value_coords(data, digits=1),
                 [[20, 24, 0.1]])
         
 

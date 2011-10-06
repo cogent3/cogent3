@@ -1,4 +1,4 @@
-from cogent.util.misc import get_merged_by_value_spans
+from cogent.util.misc import get_merged_by_value_coords
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -104,7 +104,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
             curr_chrom = chrom
         
         if curr_chrom != chrom:
-            data = get_merged_by_value_spans(data, digits=digits)
+            data = get_merged_by_value_coords(data, digits=digits)
             bedgraph_data += [make_data_row([curr_chrom, s, e, v])
                                 for s, e, v in data]
             data = []
@@ -113,7 +113,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
             data.append([start, end, val])
     
     if data != []:
-        data = get_merged_by_value_spans(data, digits=digits)
+        data = get_merged_by_value_coords(data, digits=digits)
         bedgraph_data += [make_data_row([curr_chrom, s, e, v])
                             for s, e, v in data]
     

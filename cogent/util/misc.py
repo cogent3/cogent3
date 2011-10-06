@@ -1464,7 +1464,7 @@ def get_random_directory_name(suppress_mkdir=False,\
         return abs_dirpath
     return dirpath
 
-def get_independent_spans(spans, random_tie_breaker=False):
+def get_independent_coords(spans, random_tie_breaker=False):
     """returns non-overlapping spans. spans must have structure
         [(start, end, ..), (..)]. spans can be decorated with arbitrary data
         after the end entry.
@@ -1493,7 +1493,25 @@ def get_independent_spans(spans, random_tie_breaker=False):
     
     return result
 
-def get_merged_by_value_spans(spans_value, digits=None):
+def get_merged_overlapping_coords(start_end):
+    """merges overlapping spans, assumes sorted by start"""
+    result = [start_end[0]]
+    prev_end = result[0][-1]
+    for i in range(1, len(start_end)):
+        curr_start, curr_end = start_end[i]
+        # if we're beyond previous, add and continue
+        if curr_start > prev_end:
+            prev_end = curr_end
+            result.append([curr_start, curr_end])
+        elif curr_end > prev_end:
+            prev_end = curr_end
+            result[-1][-1] = prev_end
+        else:
+            pass # we lie completely within previous span
+    
+    return result
+
+def get_merged_by_value_coords(spans_value, digits=None):
     """returns adjacent spans merged if they have the same value. Assumes
     [(start, end, val), ..] structure and that spans_value is sorted in
     ascending order.
