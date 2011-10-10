@@ -9,6 +9,8 @@ from cogent.parse.phylip import get_align_for_phylip
 from cogent.core.tree import PhyloNode
 from cogent.core.moltype import RNA
 from StringIO import StringIO
+from cogent.util.misc import app_path
+from subprocess import Popen, PIPE, STDOUT
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -19,9 +21,32 @@ __maintainer__ = "Micah Hamady"
 __email__ = "Micah Hamady"
 __status__ = "Development"
 
+
 class GenericRaxml(TestCase):
 
     def setUp(self):
+        
+        """Check if Raxml version is supported for this test"""
+        acceptable_version = (7,0,3)
+        self.assertTrue(app_path('raxmlHPC'),
+         "raxmlHPC not found. This may or may not be a problem depending on "+\
+         "which components of QIIME you plan to use.")
+        command = "raxmlHPC -v | grep version"
+        proc = Popen(command,shell=True,universal_newlines=True,\
+                         stdout=PIPE,stderr=STDOUT)
+        stdout = proc.stdout.read()
+        version_string = stdout.strip().split(' ')[4].strip()
+        try:
+            version = tuple(map(int,version_string.split('.')))
+            pass_test = version == acceptable_version
+        except ValueError:
+            pass_test = False
+            version_string = stdout
+        self.assertTrue(pass_test,\
+         "Unsupported raxmlHPC version. %s is required, but running %s." \
+         % ('.'.join(map(str,acceptable_version)), version_string))
+        
+        
         """Setup data for raxml tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
