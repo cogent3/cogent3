@@ -26,6 +26,7 @@ class Genericguppy(TestCase):
         
         # create a list of files to cleanup
         self._paths_to_clean_up = []
+        self._dirs_to_clean_up = []
         
         # get a tmp filename to use
         basename=splitext(get_tmp_filename())[0]
@@ -41,6 +42,7 @@ class Genericguppy(TestCase):
         """cleans up all files initially created"""
         # remove the tempdir and contents
         map(remove,self._paths_to_clean_up)
+        map(rmdir,self._dirs_to_clean_up)
 
 class guppyTests(Genericguppy):
     """Tests for the guppy application controller"""
@@ -60,7 +62,10 @@ class guppyTests(Genericguppy):
     def test_change_working_dir(self):
         """Change working dir"""
         # define working directory for output
-        app = Guppy(WorkingDir='/tmp/Guppy')
+        working_dir='/tmp/Guppy'
+        self._dirs_to_clean_up.append(working_dir)
+        
+        app = Guppy(WorkingDir=working_dir)
         
         self.assertEqual(app.BaseCommand, \
                        ''.join(['cd "','/tmp/Guppy','/"; ','guppy']))
@@ -83,7 +88,6 @@ class guppyTests(Genericguppy):
         
         self.assertEqual(tree.getNewick(),
                     DndParser(TREE_RESULT, constructor=PhyloNode).getNewick())
-        
         
 JSON_RESULT="""\
 {"tree":

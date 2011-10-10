@@ -5,7 +5,8 @@ from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, FilePath, system, \
        CommandLineAppResult, ResultPath, remove, ApplicationError
 from cogent.core.alignment import Alignment
-from os.path import splitext
+from os.path import splitext,split,join
+from os import listdir
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
        
@@ -151,15 +152,6 @@ class Guppy(CommandLineApplication):
         else:
             self._input_filename = fname
         
-        if self.Parameters['tog'].isOn():
-            self._out_fname=splitext(self._input_filename)[0]+'.tog.tre'
-        elif self.Parameters['fat'].isOn():
-            self._out_fname=splitext(self._input_filename)[0]+'.xml'
-        elif self.Parameters['sing'].isOn():
-            self._out_fname=splitext(self._input_filename)[0]+'.sing.tre'
-        else:
-            self._out_fname=None
-        
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
         command = self._command_delimiter.join(filter(None,\
@@ -176,7 +168,6 @@ class Guppy(CommandLineApplication):
 
         # Determine if error should be raised due to exit status of 
         # appliciation
-
         if not self._accept_exit_status(exit_status):
             raise ApplicationError, \
              'Unacceptable application exit status: %s, command: %s'\
@@ -193,8 +184,13 @@ class Guppy(CommandLineApplication):
         return result
 
     def _get_result_paths(self):
+        basepath,basename=split(splitext(self._input_filename)[0])
+        outfile_list=listdir(split(self._input_filename)[0])
         result = {}
-        result['result'] = ResultPath(Path=self._out_fname)
+        for i in outfile_list:
+            if i.startswith(basename) and not i.endswith('.json'):
+                result['result'] = ResultPath(Path=join(basepath,i))
+                
         return result
     
 def build_tree_from_json_using_params(fname,output_dir='/tmp/',params={}):

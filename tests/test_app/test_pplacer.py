@@ -29,6 +29,7 @@ class Genericpplacer(TestCase):
         
         # create a list of files to cleanup
         self._paths_to_clean_up = []
+        self._dirs_to_clean_up = []
         
         # get a tmp filename to use
         basename=splitext(get_tmp_filename())[0]
@@ -72,6 +73,7 @@ class Genericpplacer(TestCase):
         """cleans up all files initially created"""
         # remove the tempdir and contents
         map(remove,self._paths_to_clean_up)
+        map(rmdir,self._dirs_to_clean_up)
 
 class pplacerTests(Genericpplacer):
     """Tests for the pplacer application controller"""
@@ -90,8 +92,12 @@ class pplacerTests(Genericpplacer):
     
     def test_change_working_dir(self):
         """Change working dir"""
+        
+        working_dir='/tmp/Pplacer'
+        self._dirs_to_clean_up.append(working_dir)
+        
         # define working directory for output
-        app = Pplacer(WorkingDir='/tmp/Pplacer')
+        app = Pplacer(WorkingDir=working_dir)
         
         self.assertEqual(app.BaseCommand, \
                        ''.join(['cd "','/tmp/Pplacer','/"; ','pplacer']))
