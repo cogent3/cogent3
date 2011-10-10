@@ -22,7 +22,7 @@ if sys.version_info < (2, 6):
 try:
     import numpy
 except ImportError:
-    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
+    raise RuntimeError("Numpy required but not found.")
 
 numpy_version = re.split("[^\d]", numpy.__version__)
 numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
