@@ -188,7 +188,8 @@ class Guppy(CommandLineApplication):
         outfile_list=listdir(split(self._input_filename)[0])
         result = {}
         for i in outfile_list:
-            if i.startswith(basename) and not i.endswith('.json'):
+            if i.startswith(basename) and not i.endswith('.json') and \
+                                                    not i.endswith('.txt'):
                 result['result'] = ResultPath(Path=join(basepath,i))
                 
         return result
