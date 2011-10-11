@@ -11,7 +11,7 @@ from cogent.parse.fasta import MinimalFastaParser
 from cogent.core.tree import PhyloNode
 from cogent.core.moltype import RNA,DNA
 from StringIO import StringIO
-
+from cogent.core.alignment import Alignment
 
 __author__ = "Jesse Stombaugh"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -114,11 +114,16 @@ class pplacerTests(Genericpplacer):
         params["--out-dir"] = "/tmp"
         
         aln_ref_query=MinimalFastaParser(StringIO(QUERY_SEQS))
-        
-        tree = build_tree_from_alignment_using_params(aln_ref_query, DNA,
+        aln = Alignment(aln_ref_query)
+        seqs, align_map = aln.toPhylip()
+        tree = build_tree_from_alignment_using_params(seqs, DNA,
                                                       params=params)
+                                                      
+        for node in tree.tips():
+            if node.Name in align_map:
+                node.Name = align_map[node.Name]
         
-        self.assertEqual(tree.getNewick(), RESULT_TREE)
+        self.assertEqual(tree.getNewick(with_distances=True), RESULT_TREE)
 
         
         
@@ -175,7 +180,7 @@ NNNNNNNNNNTATATCTTATGTGAAACTTCGAATGCCTCATTAAATCAGT
 REF_TREE="""((seq0000014:0.08408,seq0000015:0.13713)0.609:0.00215,seq0000013:0.02032,(seq0000011:0.00014,seq0000012:0.00014)0.766:0.00015);
 """
 
-RESULT_TREE="""((((seq0000014,7),6),seq0000015)0.609,seq0000013,(seq0000011,seq0000012)0.766);"""
+RESULT_TREE="""((((seq0000014:0.035395,7:6e-06):0.029109,6:6e-06):0.019576,seq0000015:0.13713)0.609:0.00215,seq0000013:0.02032,(seq0000011:0.00014,seq0000012:0.00014)0.766:0.00015):0.0;"""
 
 RAXML_STATS="""
 

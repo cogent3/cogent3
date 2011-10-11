@@ -6,7 +6,7 @@ from cogent.app.util import CommandLineApplication, FilePath, system, \
        CommandLineAppResult, ResultPath, remove, ApplicationError
 from cogent.core.alignment import Alignment
 from cogent.app.guppy import build_tree_from_json_using_params
-from os.path import splitext,abspath
+from os.path import splitext,abspath,join,split
 from StringIO import StringIO
 from cogent.parse.phylip import get_align_for_phylip
 from cogent.parse.tree import DndParser
@@ -156,15 +156,19 @@ class Pplacer(CommandLineApplication):
             input_data = open(self._input_filename,'w')
             input_data.write(data)
             input_data.close()
-        
-        self._json_fname=splitext(self._input_filename)[0]+'.json'
+        if self.Parameters.get('--out-dir').Value:
+            self._json_fname=join(self.Parameters.get('--out-dir').Value,\
+                            split(splitext(self._input_filename)[0])[-1]) \
+                            +'.json'
+        else:
+            self._json_fname=splitext(self._input_filename)[0] +'.json'
         
         # Build up the command, consisting of a BaseCommand followed by
         # input and output (file) specifications
         command = self._command_delimiter.join(filter(None,\
             [self.BaseCommand,str(self._input_filename),'>',str(outfile),'2>',\
                 str(errfile)]))
-
+        
         if self.HaltExec:
             raise AssertionError, "Halted exec with command:\n" + command
         # The return value of system is a 16-bit number containing the signal 
@@ -218,11 +222,8 @@ def build_tree_from_alignment_using_params(aln, moltype, params={}):
     """
 
     # convert aln to phy since seq_names need fixed to run through pplacer
-    if not hasattr(aln, 'toPhylip'):
-        aln = Alignment(aln)
-    seqs_phy, align_map = aln.toPhylip()
     
-    new_aln=get_align_for_phylip(StringIO(seqs_phy))
+    new_aln=get_align_for_phylip(StringIO(aln))
 
     # convert aln to fasta in case it is not already a fasta file
     aln2 = Alignment(new_aln)
@@ -240,16 +241,13 @@ def build_tree_from_alignment_using_params(aln, moltype, params={}):
 
     # use guppy to convert json file into a placement tree
     guppy_params={'tog':None}
-    new_tree=build_tree_from_json_using_params(pplacer_result['json'].name,
+    
+    new_tree=build_tree_from_json_using_params(pplacer_result['json'].name, \
+                                               output_dir=params['--out-dir'], \
                                                params=guppy_params)
 
-    # convert phylip names back to original names for query seqs
-    for node in new_tree.tips():
-        if node.Name in align_map:
-            node.Name = align_map[node.Name]
-
     pplacer_result.cleanUp()
-
+    
     return new_tree
 
 

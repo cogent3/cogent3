@@ -598,7 +598,7 @@ class Raxml(CommandLineApplication):
             result['besttree'] = ResultPath(
                             Path=self._best_tree_out_filename(),
                             IsWritten=True)
-
+        
         for checkpoint_file in self._checkpoint_out_filenames():
             checkpoint_num = checkpoint_file.split(".")[-1]
             try:
@@ -724,7 +724,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     return tree
     
     
-def build_tree_from_alignment_using_params(aln, moltype, params={}):
+def build_tree_from_alignment_using_params(seqs, moltype, params={}):
     """Returns a tree from Alignment object aln.
     
     aln: an xxx.Alignment object, or data that can be used to build one.
@@ -736,13 +736,6 @@ def build_tree_from_alignment_using_params(aln, moltype, params={}):
     The result will be a tree.
     """
     
-    # convert aln to phylip format
-    if not hasattr(aln, 'toPhylip'):
-        aln = Alignment(aln)
-
-    # map seq_labels
-    seqs, align_map = aln.toPhylip()
-    
     ih = '_input_as_multiline_string'    
 
     raxml_app = Raxml(params=params,
@@ -752,17 +745,12 @@ def build_tree_from_alignment_using_params(aln, moltype, params={}):
                       SuppressStdout=True)
     
     raxml_result = raxml_app(seqs)
-    
+
     # get tree from 'Result Names'
     new_tree=raxml_result['Result'].readlines()
     filtered_tree=re.sub('\[I\d+\]','',str(new_tree))
     tree = DndParser(filtered_tree, constructor=PhyloNode)
 
-    for node in tree.tips():
-        removed_query_str=re.sub('QUERY___','',str(node.Name))
-        new_node_name=re.sub('___\d+','',str(removed_query_str))
-        node.Name = align_map[new_node_name]
-    
     raxml_result.cleanUp()
 
     return tree

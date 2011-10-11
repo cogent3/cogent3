@@ -14,6 +14,8 @@ from cogent.core.moltype import RNA,DNA
 from StringIO import StringIO
 from cogent.util.misc import app_path
 from subprocess import Popen, PIPE, STDOUT
+from cogent.core.alignment import Alignment
+import re
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -184,11 +186,21 @@ class RaxmlTests(GenericRaxml):
         params["-m"] = 'GTRGAMMA'
         
         aln_ref_query=get_align_for_phylip(StringIO(PHYLIP_FILE_DNA_REF_QUERY))
+        aln = Alignment(aln_ref_query)
+        seqs, align_map = aln.toPhylip()
         
-        tree = build_tree_from_alignment_using_params(aln_ref_query, DNA,
+        tree = build_tree_from_alignment_using_params(seqs, DNA,
                                                       params=params)
         
+        
+        for node in tree.tips():
+            removed_query_str=re.sub('QUERY___','',str(node.Name))
+            new_node_name=re.sub('___\d+','',str(removed_query_str))
+            if new_node_name in align_map:
+                node.Name = align_map[new_node_name]
+
         self.assertTrue(isinstance(tree, PhyloNode))
+        self.assertEqual(RESULT_TREE,tree.getNewick(with_distances=True))
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
                          self.align1, RNA, True)
@@ -218,6 +230,8 @@ Species007   TGCATGTCAG TATAACTTTG GTGAAACTGC GAATGGCTCA TTAAATCAGT
 
 REF_TREE="""((seq0000004:0.08408,seq0000005:0.13713)0.609:0.00215,seq0000003:0.02032,(seq0000001:0.00014,seq0000002:0.00014)0.766:0.00015);
 """
+
+RESULT_TREE="""(Species003:1.0,(Species001:1.0,Species002:1.0):1.0,((Species006,Species007,Species004:1.0):1.0,Species005:1.0):1.0);"""
 
 if __name__ == '__main__':
     main()
