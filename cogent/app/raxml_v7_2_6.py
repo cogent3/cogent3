@@ -123,6 +123,8 @@ class Raxml(CommandLineApplication):
         #   j generate a bunch of bootstrapped alignment files from an original 
         #       alignemnt file. You need to specify a seed with "-b" and the 
         #       number of replicates with "-#" 
+        # following "J" is for version 7.2.8
+        #   J Compute SH-like support values on a given tree passed via "-t".
         #   m compare bipartitions between two bunches of trees passed via "-t" 
         #       and "-z" respectively. This will return the Pearson correlation 
         #       between all bipartitions found in the two tree files. A file 
@@ -139,7 +141,14 @@ class Raxml(CommandLineApplication):
         #       labales represented as integer support values the program will 
         #       also compute two flavors of the weighted Robinson-Foulds (WRF)
         #       distance
+        # following "R" is for version 7.2.8
+        #   R compute rogue taxa using new statistical method based on the
+        #       evolutionary placement algorithm
+        #       WARNING: this is experimental code
         #   s (split) splits into individual genes, provided with model file
+        # following "S" is for version 7.2.8
+        #   S compute site-specific placement bias using a leave one out test
+        #       inspired by the evolutionary placement algorithm
         #   t do randomized tree searches on one fixed starting tree
         #   u execute morphological weight calibration using maximum likelihood, 
         #       this will return a weight vector. you need to provide a 
@@ -353,6 +362,7 @@ class Raxml(CommandLineApplication):
         #     or can specify codon ranges as e.g. 1-100/3, 2-100/3, 3-100/3))
         '-q':ValuedParameter('-', Name='q', Delimiter=' '),
 
+        # THE FOLLOWING "Q" is DEPRECATED IN 7.2.8
         # Turn on computation of SH-like support values on tree.
         # DEFAULT: OFF
         '-Q':FlagParameter('-', Name='Q'),
@@ -360,6 +370,12 @@ class Raxml(CommandLineApplication):
         # Constraint file name: allows a bifurcating Newick tree to be passed
         # in as a constraint file, other taxa will be added by parsimony.
         '-r':ValuedParameter('-',Name='r',Delimiter=' '),
+        
+        # THE FOLLOWING "R" is IN 7.2.8 
+        # Specify the file name of a binary model parameter file that has
+        # previously been generated with RAxML using the -f e tree evaluation
+        # option. The file name should be:  RAxML_binaryModelParameters.runID
+        #'-R':ValuedParameter('-',Name='R',Delimiter=' '),
         
         # specify the name of the alignment data file, in relaxed PHYLIP
         # format.
@@ -378,6 +394,13 @@ class Raxml(CommandLineApplication):
         # machine, otherwise, there will be a huge performance decrease! 
         '-T':ValuedParameter('-',Name='T',Delimiter=' '),
         
+        # THE FOLLOWING "U" is IN 7.2.8 
+        # Try to save memory by using SEV-based implementation for gap columns
+        # on large gappy alignments
+        # WARNING: this will only work for DNA under GTRGAMMA and is still in an
+        # experimental state.
+        #'-U':ValuedParameter('-',Name='U',Delimiter=' '),
+        
         # Print the version
         '-v':FlagParameter('-',Name='v'),
 
@@ -385,6 +408,12 @@ class Raxml(CommandLineApplication):
         # files.
         '-w':ValuedParameter('-',Name='w',Delimiter=' '),
 
+        # THE FOLLOWING "W" is IN 7.2.8
+        # Sliding window size for leave-one-out site-specific placement bias
+        # algorithm only effective when used in combination with "-f S" 
+        #   DEFAULT: 100 sites
+        #'-W':ValuedParameter('-',Name='W',Delimiter=' '),
+        
         # Specify an integer number (random seed) and turn on rapid 
         # bootstrapping. CAUTION: unlike in version 7.0.4 RAxML will conduct 
         # rapid BS replicates under the model of rate heterogeneity you 
