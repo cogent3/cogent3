@@ -175,8 +175,6 @@ class RaxmlTests(GenericRaxml):
         outtree.write(REF_TREE)
         outtree.close()
         
-        
-        
         # set params for tree-insertion
         params={}
         params["-w"]="/tmp/"
@@ -190,7 +188,8 @@ class RaxmlTests(GenericRaxml):
         seqs, align_map = aln.toPhylip()
         
         tree = build_tree_from_alignment_using_params(seqs, DNA,
-                                                      params=params)
+                                                      params=params,
+                                                      write_log=False)
         
         
         for node in tree.tips():

@@ -5,13 +5,14 @@ WARNING: Because of the use of the -x option, this version is no longer
 compatible with RAxML version VI.
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
-from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
+from cogent.app.util import CommandLineApplication, ResultPath, \
+                            get_tmp_filename,ApplicationError
 from cogent.core.tree import PhyloNode
 from cogent.core.alignment import Alignment
 from cogent.core.moltype import DNA, RNA, PROTEIN
 from random import choice, randint
 from os import walk
-from os.path import isabs,join
+from os.path import isabs,join,split
 from cogent.parse.tree import DndParser
 import re
 __author__ = "Micah Hamady"
@@ -601,7 +602,7 @@ class Raxml(CommandLineApplication):
             result['Bootstrap'] = ResultPath(
                             Path=self._result_bootstrap_out_filename(),
                             IsWritten=True)
-        elif self.Parameters["-m"].Value == 'GTRGAMMA':
+        elif self.Parameters["-f"].Value == 'v':
             #these were added to handle the results from tree-insertion
             result['Classification'] = ResultPath(
                 Path=self._classification_out_filename(),
@@ -742,7 +743,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
                       SuppressStdout=True)
                       
     raxml_result = raxml_app(seqs)
-     
+    
     tree = DndParser(raxml_result['Bootstrap'], constructor=PhyloNode)
     
     for node in tree.tips():
@@ -753,7 +754,8 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     return tree
     
     
-def build_tree_from_alignment_using_params(seqs, moltype, params={}):
+def build_tree_from_alignment_using_params(seqs, moltype, params={},
+                                           write_log=True):
     """Returns a tree from Alignment object aln.
     
     aln: an xxx.Alignment object, or data that can be used to build one.
@@ -770,11 +772,24 @@ def build_tree_from_alignment_using_params(seqs, moltype, params={}):
     raxml_app = Raxml(params=params,
                       InputHandler=ih,
                       WorkingDir=None,
-                      SuppressStderr=True,
-                      SuppressStdout=True)
+                      SuppressStderr=False,
+                      SuppressStdout=False,
+                      HALT_EXEC=False)
     
-    raxml_result = raxml_app(seqs)
-
+    # make sure Raxml worked properly, if not through an Application warning
+    try:
+        raxml_result = raxml_app(seqs)
+    except ApplicationError:
+        raise ApplicationError, 'RAxML failed, so please make sure your input files are correct. Also, you can check out the log file: %s' % \
+                    raxml_app._format_output(str(params['-n']), "info")
+    
+    # write a log file
+    if write_log:
+        log_fp = join(params["-w"],'log_raxml_'+split(get_tmp_filename())[-1])
+        log_file=open(log_fp,'w')
+        log_file.write(raxml_result['StdOut'].read())
+        log_file.close()
+    
     # get tree from 'Result Names'
     new_tree=raxml_result['Result'].readlines()
     filtered_tree=re.sub('\[I\d+\]','',str(new_tree))

@@ -3,7 +3,8 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, FilePath, system, \
-       CommandLineAppResult, ResultPath, remove, ApplicationError
+       CommandLineAppResult, ResultPath, remove, ApplicationError, \
+       get_tmp_filename
 from cogent.core.alignment import Alignment
 from cogent.app.guppy import build_tree_from_json_using_params
 from os.path import splitext,abspath,join,split
@@ -179,7 +180,6 @@ class Pplacer(CommandLineApplication):
 
         # Determine if error should be raised due to exit status of 
         # appliciation
-
         if not self._accept_exit_status(exit_status):
             raise ApplicationError, \
              'Unacceptable application exit status: %s, command: %s'\
@@ -190,9 +190,13 @@ class Pplacer(CommandLineApplication):
         if not suppress_stderr:
             err = open(errfile,"r")
 
-        result =  CommandLineAppResult(out,err,exit_status,\
-            result_paths=self._get_result_paths())
-
+        # catch any application errors and write stderr to the cmd-line
+        try:
+            result =  CommandLineAppResult(out,err,exit_status,\
+                result_paths=self._get_result_paths())
+        except ApplicationError:
+            raise ApplicationError, 'Pplacer failed to produce an output file due to the following error: \n\n%s ' % open(errfile).read()
+            
         # Clean up the input file if one was created
         if remove_tmp:
             if self._input_filename:
@@ -209,7 +213,8 @@ class Pplacer(CommandLineApplication):
     
 
 
-def build_tree_from_alignment_using_params(aln, moltype, params={}):
+def build_tree_from_alignment_using_params(aln, moltype, params={},
+                                           write_log=True):
     """Returns a tree from Alignment object aln.
 
     aln: an xxx.Alignment object, or data that can be used to build one.
@@ -234,11 +239,19 @@ def build_tree_from_alignment_using_params(aln, moltype, params={}):
     pplacer_app = Pplacer(params=params,
                       InputHandler=ih,
                       WorkingDir=None,
-                      SuppressStderr=True,
-                      SuppressStdout=True)
+                      SuppressStderr=False,
+                      SuppressStdout=False)
                       
     pplacer_result = pplacer_app(seqs)
 
+    # write a log file
+    if write_log:
+        log_fp = join(params["--out-dir"],'log_pplacer_' + \
+                      split(get_tmp_filename())[-1])
+        log_file=open(log_fp,'w')
+        log_file.write(pplacer_result['StdOut'].read())
+        log_file.close()
+        
     # use guppy to convert json file into a placement tree
     guppy_params={'tog':None}
     
