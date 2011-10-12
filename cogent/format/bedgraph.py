@@ -53,20 +53,8 @@ def booleans(key, val):
         val = 'off'
     return val
 
-def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
-    color=None, **kwargs):
-    """returns a bed formatted string. Input data must be provided as
-    [(chrom, start, end, val), ...]. These will be merged such that adjacent
-    records with the same value will be combined.
-    
-    Arguments:
-        - name: track name
-        - description: track description
-        - color: (R,G,B) tuple of ints where max val of int is 255, e.g.
-          red is (255, 0, 0)
-        - **kwargs: keyword=val, .. valid bedgraph format modifiers
-        see https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
-    """
+def get_header(name=None, description=None, color=None, **kwargs):
+    """returns header line for bedgraph"""
     min_header = 'track type=bedGraph name="%(name)s" '\
         + 'description="%(description)s" color=%(color)s'
     
@@ -74,7 +62,6 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     header = [min_header % {'name': name, 'description': description,
                            'color': ','.join(map(str,color))}]
     
-    make_data_row = lambda x: '\t'.join(map(str, x))
     if kwargs:
         if not set(kwargs) <= set(bedgraph_fields):
             not_allowed = set(kwargs) - set(bedgraph_fields)
@@ -95,6 +82,27 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
         
         header += header_suffix
     
+    return ' '.join(header)
+
+def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
+    color=None, **kwargs):
+    """returns a bed formatted string. Input data must be provided as
+    [(chrom, start, end, val), ...]. These will be merged such that adjacent
+    records with the same value will be combined.
+    
+    Arguments:
+        - name: track name
+        - description: track description
+        - color: (R,G,B) tuple of ints where max val of int is 255, e.g.
+          red is (255, 0, 0)
+        - **kwargs: keyword=val, .. valid bedgraph format modifiers
+        see https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
+    """
+    
+    header = get_header(name=name, description=description,
+                color=color, **kwargs)
+    
+    make_data_row = lambda x: '\t'.join(map(str, x))
     # get independent spans for each chromosome
     bedgraph_data = []
     data = []
@@ -117,5 +125,5 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
         bedgraph_data += [make_data_row([curr_chrom, s, e, v])
                             for s, e, v in data]
     
-    bedgraph_data = [' '.join(header)] + bedgraph_data
+    bedgraph_data = [header] + bedgraph_data
     return '\n'.join(bedgraph_data)
