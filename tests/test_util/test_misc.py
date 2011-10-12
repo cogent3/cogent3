@@ -26,7 +26,7 @@ from cogent.util.misc import (iterable, max_index, min_index,
     create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
     combinate,gzip_dump,gzip_load,recursive_flatten_old,getNewId,toString,
     timeLimitReached, get_independent_coords, get_merged_by_value_coords,
-    get_merged_overlapping_coords)
+    get_merged_overlapping_coords, get_run_start_indices)
 from numpy import array
 from time import clock, sleep
 
@@ -679,7 +679,6 @@ class UtilsTests(TestCase):
         self.assertTrue(got in ([(20, 24, 'a'), (25, 40, 'b'), (65, 75, 'd')],
                                 [(20, 24, 'a'), (30, 35, 'c'), (65, 75, 'd')]))
     
-    # 
     def test_get_merged_spans(self):
         """tests merger of overlapping spans"""
         sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
@@ -690,6 +689,25 @@ class UtilsTests(TestCase):
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
         self.assertEqual(result, expect)
+    
+    def test_get_run_start_indices(self):
+        """return indices corresponding to start of a run of identical values"""
+        #       0  1  2  3  4  5  6  7
+        data = [1, 2, 3, 3, 3, 4, 4, 5]
+        expect = [[0, 1], [1, 2], [2, 3], [5, 4], [7, 5]]
+        got = get_run_start_indices(data)
+        self.assertEqual(list(got), expect)
+        
+        # raise an exception if try and provide a converter and num digits
+        def wrap_gen(): # need to wrap generator so we can actually test this
+            gen = get_run_start_indices(data, digits=1,
+                converter_func=lambda x: x)
+            def call():
+                for v in gen:
+                    pass
+            return call
+        
+        self.assertRaises(AssertionError, wrap_gen())
     
     def test_merged_by_value_spans(self):
         """correctly merge adjacent spans with the same value"""

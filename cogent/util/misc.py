@@ -1511,6 +1511,26 @@ def get_merged_overlapping_coords(start_end):
     
     return result
 
+def get_run_start_indices(values, digits=None, converter_func=None):
+    """returns starting index, value for all distinct values"""
+    assert not (digits and converter_func), \
+        'Cannot set both digits and converter_func'
+    
+    if digits is not None:
+        converter_func = lambda x: round(x, digits)
+    elif converter_func is None:
+        converter_func = lambda x: x
+    
+    last_val = None
+    for index, val in enumerate(values):
+        val = converter_func(val)
+        if val != last_val:
+            yield [index, val]
+        
+        last_val = val
+    
+    return
+
 def get_merged_by_value_coords(spans_value, digits=None):
     """returns adjacent spans merged if they have the same value. Assumes
     [(start, end, val), ..] structure and that spans_value is sorted in
@@ -1522,22 +1542,22 @@ def get_merged_by_value_coords(spans_value, digits=None):
     """
     assert len(spans_value[0]) == 3, 'spans_value must have 3 records per row'
     
-    if digits is not None:
-        round_func = lambda x: round(x, digits)
-    else:
-        round_func = lambda x: x
-    
+    starts, ends, vals = zip(*spans_value)
+    indices_distinct_vals = get_run_start_indices(vals, digits=digits)
     data = []
-    start, end, last_val = spans_value[0]
-    last_val = round_func(last_val)
-    data.append([start, end, last_val])
-    for i in xrange(1, len(spans_value)):
-        start, end, val = spans_value[i]
-        val = round_func(val)
-        if val == last_val:
-            data[-1][1] = end
-        else:
-            data.append([start, end, val])
-            last_val = val
+    i = 0
+    for index, val in indices_distinct_vals:
+        start = starts[index]
+        end = ends[index]
+        prev_index = max(index-1, 0)
+        try:
+            data[-1][1] = ends[prev_index]
+        except IndexError:
+            pass
+        
+        data.append([start, end, val])
+    
+    if index < len(ends):
+        data[-1][1] = ends[-1]
     
     return data

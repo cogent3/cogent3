@@ -4,6 +4,7 @@
 from __future__ import division
 from cogent.util.unit_test import TestCase, main
 from cogent.util.table import Table
+from cogent.format.bedgraph import get_header
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -117,6 +118,7 @@ class FormatBedgraph(TestCase):
             format='bedgraph', name='test track',
             description='test of bedgraph', color=(255,0,0),
             windowingFunction='sqrt')
+    
 
 if __name__ == '__main__':
     main()
