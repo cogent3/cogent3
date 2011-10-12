@@ -117,7 +117,8 @@ class pplacerTests(Genericpplacer):
         aln = Alignment(aln_ref_query)
         seqs, align_map = aln.toPhylip()
         tree = build_tree_from_alignment_using_params(seqs, DNA,
-                                                      params=params)
+                                                      params=params,
+                                                      write_log=False)
                                                       
         for node in tree.tips():
             if node.Name in align_map:
