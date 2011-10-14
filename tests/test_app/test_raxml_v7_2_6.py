@@ -16,6 +16,7 @@ from cogent.util.misc import app_path
 from subprocess import Popen, PIPE, STDOUT
 from cogent.core.alignment import Alignment
 import re
+from random import choice, randint
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -30,7 +31,7 @@ class GenericRaxml(TestCase):
 
     def setUp(self):
         """Check if Raxml version is supported for this test"""
-        acceptable_version = (7,2,6)
+        acceptable_version = (7,3,0)
         self.assertTrue(app_path('raxmlHPC'),
          "raxmlHPC not found. This may or may not be a problem depending on "+\
          "which components of QIIME you plan to use.")
@@ -78,11 +79,11 @@ class RaxmlTests(GenericRaxml):
         """raxml BaseCommand should return the correct BaseCommand"""
         r = Raxml()
         self.assertEqual(r.BaseCommand, \
-            ''.join(['cd \"',getcwd(),'/\"; ','raxmlHPC -A S16 -B 0.03 -O 3600.0 -K GTR -e 0.1 -f d -c 50 -# 1']))
+            ''.join(['cd \"',getcwd(),'/\"; ','raxmlHPC -f d -# 1']))
         r.Parameters['-s'].on('seq.nexus')
         self.assertEqual(r.BaseCommand,\
             ''.join(['cd \"',getcwd(),'/\"; ',\
-            'raxmlHPC -A S16 -B 0.03 -O 3600.0 -K GTR -e 0.1 -f d -c 50 -s seq.nexus -# 1']))
+            'raxmlHPC -f d -s seq.nexus -# 1']))
 
 
     def test_raxml_params(self):
@@ -97,6 +98,7 @@ class RaxmlTests(GenericRaxml):
 
         # specify output name 
         r.Parameters['-n'].on("test_name")
+        r.Parameters["-p"].on(randint(1,100000))
         self.assertRaises(ApplicationError, r)
 
         # specify model 
@@ -122,6 +124,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on(self.test_fn1)
         r.Parameters['-m'].on("GTRCAT")
         r.Parameters['-n'].on("test_me")
+        r.Parameters["-p"].on(randint(1,100000))
        
         # test with abs filename
         cur_out = self.test_fn1
@@ -134,6 +137,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on(self.test_fn2)
         r.Parameters['-n'].on("test_me2")
         r.Parameters['-w'].on("/tmp/")
+        r.Parameters["-p"].on(randint(1,100000))
         self.writeTmp(self.test_fn1)
         out = r()
         out.cleanUp()
@@ -142,6 +146,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on("\"%s\"" % self.test_fn1_space)
         r.Parameters['-n'].on("test_me3")
         r.Parameters['-w'].on("/tmp/")
+        r.Parameters["-p"].on(randint(1,100000))
         #print r.BaseCommand
         self.writeTmp(self.test_fn1_space)
         out = r()
@@ -163,6 +168,7 @@ class RaxmlTests(GenericRaxml):
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
                           self.align1, RNA, True)
 
+    
     def test_build_tree_from_alignment_using_params(self):
         """Builds a tree from an alignment using params - test handles tree-insertion"""
         
@@ -199,13 +205,13 @@ class RaxmlTests(GenericRaxml):
                 node.Name = align_map[new_node_name]
 
         self.assertTrue(isinstance(tree, PhyloNode))
-        self.assertEqual(RESULT_TREE,tree.getNewick(with_distances=True))
+        self.assertEqual(tree.getNewick(with_distances=True),RESULT_TREE)
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
                          self.align1, RNA, True)
                          
         remove(outtreefname)
-    
+
 PHYLIP_FILE= """ 7 50
 Species001   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
 Species002   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUNN UUAAAUCAGU
@@ -230,7 +236,7 @@ Species007   TGCATGTCAG TATAACTTTG GTGAAACTGC GAATGGCTCA TTAAATCAGT
 REF_TREE="""((seq0000004:0.08408,seq0000005:0.13713)0.609:0.00215,seq0000003:0.02032,(seq0000001:0.00014,seq0000002:0.00014)0.766:0.00015);
 """
 
-RESULT_TREE="""(Species003:1.0,(Species001:1.0,Species002:1.0):1.0,((Species006,Species007,Species004:1.0):1.0,Species005:1.0):1.0);"""
+RESULT_TREE="""(Species003:0.0194919169324,(Species001:4.34281710439e-07,Species002:4.34281710439e-07):4.34281710439e-07,(((Species006:0.0,Species007:0.0):0.0,Species004:0.0438017433031):0.0438017433031,Species005:0.171345128781):0.00331197405878);"""
 
 if __name__ == '__main__':
     main()
