@@ -5,7 +5,7 @@ from os.path import splitext
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from random import randint
-from cogent.app.raxml_v7_2_6 import (Raxml,raxml_alignment, build_tree_from_alignment,\
+from cogent.app.raxml_v730 import (Raxml,raxml_alignment, build_tree_from_alignment,\
                               build_tree_from_alignment_using_params)
 from cogent.app.util import ApplicationError,get_tmp_filename
 from cogent.parse.phylip import get_align_for_phylip
