@@ -11,7 +11,7 @@ from cogent.core.tree import PhyloNode
 from cogent.core.alignment import Alignment
 from cogent.core.moltype import DNA, RNA, PROTEIN
 from random import choice, randint
-from os import walk
+from os import walk,listdir
 from os.path import isabs,join,split
 from cogent.parse.tree import DndParser
 import re
@@ -41,7 +41,7 @@ class Raxml(CommandLineApplication):
         # available models:  S6A, S6B, S6C, S6D, S6E, S7A, S7B, S7C, S7D, S7E, 
         # S7F, S16, S16A, S16B
         # DEFAULT: 16-state GTR model (S16)
-        '-A':ValuedParameter('-',Name='A',Delimiter=' ',Value='S16'),
+        '-A':ValuedParameter('-',Name='A',Delimiter=' '),
         
         #  Specify an integer number (random seed) for bootstrapping
         '-b':ValuedParameter('-',Name='b',Delimiter=' '),
@@ -49,13 +49,13 @@ class Raxml(CommandLineApplication):
         # specify a floating point number between 0.0 and 1.0 that will be used 
         # as cutoff threshold for the MR-based bootstopping criteria. The 
         # recommended setting is 0.03.
-        '-B':ValuedParameter('-',Name='B',Delimiter=' ',Value=0.03),
+        '-B':ValuedParameter('-',Name='B',Delimiter=' '),
         
         # Specify number of distinct rate catgories for raxml when 
         # ModelOfEvolution is set to GTRCAT or HKY85CAT.
         # Individual per-site rates are categorized into numberOfCategories 
         # rate categories to accelerate computations. (Default = 50)
-        '-c':ValuedParameter('-',Name='c',Delimiter=' ', Value=50),
+        '-c':ValuedParameter('-',Name='c',Delimiter=' '),
 
         # Conduct model parameter optimization on gappy, partitioned multi-gene 
         # alignments with per-partition branch length estimates (-M enabled) 
@@ -87,7 +87,7 @@ class Raxml(CommandLineApplication):
         # This allows you to specify up to which likelihood difference.
         # Default is 0.1 log likelihood units, author recommends 1 or 2 to
         # rapidly evaluate different trees.
-        '-e':ValuedParameter('-',Name='e',Delimiter=' ', Value=0.1),
+        '-e':ValuedParameter('-',Name='e',Delimiter=' '),
         
         # specify an exclude file name, that contains a specification of 
         # alignment positions you wish to exclude. Format is similar to Nexus, 
@@ -99,6 +99,8 @@ class Raxml(CommandLineApplication):
         # select search algorithm: 
         #   a rapid Bootstrap analysis and search for best-scoring ML tree in 
         #       one program run
+        #   A compute marginal ancestral states on a ROOTED reference tree
+        #       provided with "t" - ONLY IN 7.3.0
         #   b draw bipartition information on a tree provided with "-t" based on 
         #       multiple trees (e.g., from a bootstrap) in a file specifed by 
         #       "-z"
@@ -145,7 +147,7 @@ class Raxml(CommandLineApplication):
         # following "R" is for version 7.2.8
         #   R compute rogue taxa using new statistical method based on the
         #       evolutionary placement algorithm
-        #       WARNING: this is experimental code
+        #       WARNING: this is experimental code - DEPRECATED IN 7.3.0
         #   s (split) splits into individual genes, provided with model file
         # following "S" is for version 7.2.8
         #   S compute site-specific placement bias using a leave one out test
@@ -156,7 +158,7 @@ class Raxml(CommandLineApplication):
         #       morphological alignment and a reference tree via "-t" 
         #   U execute morphological wieght calibration using parsimony, this 
         #       will return a weight vector. you need to provide a morphological 
-        #       alignment and a reference tree via "-t" 
+        #       alignment and a reference tree via "-t" - DEPRECATED IN 7.3.0
         #   v classify a bunch of environmental sequences into a reference tree 
         #       using the slow heuristics without dynamic alignment you will 
         #       need to start RAxML with a non-comprehensive reference tree and 
@@ -194,8 +196,8 @@ class Raxml(CommandLineApplication):
 
         # enable the MP-based evolutionary placement algorithm heuristics
         # by specifiyng a threshold value (fraction of insertion branches to be 
-        # evaluated using slow insertions under ML)
-        '-H':ValuedParameter('-', Name='H',Delimiter=' '),
+        # evaluated using slow insertions under ML) - DEPRECATED IN 7.3.0
+        #'-H':ValuedParameter('-', Name='H',Delimiter=' '),
         
         # allows initial rearrangement to be constrained, e.g. 10 means
         # insertion will not be more than 10 nodes away from original.
@@ -228,7 +230,7 @@ class Raxml(CommandLineApplication):
 
         # Specify one of the multi-state substitution models (max 32 states) 
         # implemented in RAxML. Available models are: ORDERED, MK, GTR
-        '-K':ValuedParameter('-', Name='K', Delimiter=' ',Value='GTR'),
+        '-K':ValuedParameter('-', Name='K', Delimiter=' '),
         
         # Model of Binary (Morphological), Nucleotide, Multi-State, or Amino 
         #   Acid Substitution::
@@ -258,7 +260,7 @@ class Raxml(CommandLineApplication):
         #       almost 50% of memory. If you have problems with phylogenomic 
         #       datasets and large memory requirements you may give it a shot. 
         #       Keep in mind that numerical stability seems to be okay but needs 
-        #       further testing.
+        #       further testing. - DEPRECATED IN 7.3.0
         #   -m GTRCATI : GTR + Optimization of substitution rates + Optimization 
         #       of site-specific evolutionary rates which are categorized into 
         #       numberOfCategories distinct rate categories for greater 
@@ -267,7 +269,7 @@ class Raxml(CommandLineApplication):
         #   -m GTRGAMMA: GTR + Optimization of substitution rates + Gamma
         #   -m GTRGAMMA_FLOAT : Same as GTRGAMMA, but also with 
         #       single-precision arithmetics, same cautionary notes as for  
-        #       GTRCAT_FLOAT apply.
+        #       GTRCAT_FLOAT apply. - DEPRECATED IN 7.3.0
         #   -m GTRGAMMAI : Same as GTRGAMMA, but with estimate of proportion of 
         #       invariable sites 
         # MULTI-STATE:
@@ -300,6 +302,7 @@ class Raxml(CommandLineApplication):
         #       PROTGAMMAmatrixName[f], depending on the tree search option
         #   -m PROTCATmatrixName[F]_FLOAT : PROTCAT with single precision 
         #       arithmetics, same cautionary notes as for GTRCAT_FLOAT apply
+        #       - DEPRECATED IN 7.3.0
         #   -m PROTCATImatrixName[F] : specified AA matrix + Optimization of 
         #       substitution rates + Optimization of site-specific
         #       evolutionary rates which are categorized into numberOfCategories 
@@ -311,6 +314,7 @@ class Raxml(CommandLineApplication):
         #       parameter will be estimated)
         #   -m PROTGAMMAmatrixName[F]_FLOAT : PROTGAMMA with single precision 
         #       arithmetics, same cautionary notes as for GTRCAT_FLOAT apply
+        #       - DEPRECATED IN 7.3.0
         #   -m PROTGAMMAImatrixName[F] : Same as PROTGAMMAmatrixName[F], but 
         #       with estimate of proportion of invariable sites 
         # Available AA substitution models: DAYHOFF, DCMUT, JTT, MTREV, WAG, 
@@ -343,8 +347,8 @@ class Raxml(CommandLineApplication):
         # by preceded by the command "dmtcp_checkpoint" and if you compile a 
         # dedicated binary using the appropriate Makefile. With "-O" you can 
         # specify the interval between checkpoints in seconds.
-        # DEFAULT: 3600.0 seconds
-        '-O':ValuedParameter('-',Name='O',Delimiter=' ',Value=3600.0),
+        # DEFAULT: 3600.0 seconds - DEPRECATED IN 7.3.0
+        #'-O':ValuedParameter('-',Name='O',Delimiter=' ',Value=3600.0),
 
         # Specify a random number seed for the parsimony inferences. This allows 
         # you to reproduce your results and will help me debug the program.
@@ -376,7 +380,7 @@ class Raxml(CommandLineApplication):
         # Specify the file name of a binary model parameter file that has
         # previously been generated with RAxML using the -f e tree evaluation
         # option. The file name should be:  RAxML_binaryModelParameters.runID
-        #'-R':ValuedParameter('-',Name='R',Delimiter=' '),
+        '-R':ValuedParameter('-',Name='R',Delimiter=' '),
         
         # specify the name of the alignment data file, in relaxed PHYLIP
         # format.
@@ -400,7 +404,7 @@ class Raxml(CommandLineApplication):
         # on large gappy alignments
         # WARNING: this will only work for DNA under GTRGAMMA and is still in an
         # experimental state.
-        #'-U':ValuedParameter('-',Name='U',Delimiter=' '),
+        '-U':ValuedParameter('-',Name='U',Delimiter=' '),
         
         # Print the version
         '-v':FlagParameter('-',Name='v'),
@@ -413,7 +417,7 @@ class Raxml(CommandLineApplication):
         # Sliding window size for leave-one-out site-specific placement bias
         # algorithm only effective when used in combination with "-f S" 
         #   DEFAULT: 100 sites
-        #'-W':ValuedParameter('-',Name='W',Delimiter=' '),
+        '-W':ValuedParameter('-',Name='W',Delimiter=' '),
         
         # Specify an integer number (random seed) and turn on rapid 
         # bootstrapping. CAUTION: unlike in version 7.0.4 RAxML will conduct 
@@ -421,6 +425,15 @@ class Raxml(CommandLineApplication):
         # specified via "-m" and not by default under CAT
         '-x':ValuedParameter('-',Name='x',Delimiter=' '),
         
+        # EXPERIMENTAL OPTION: This option will do a per-site estimate of
+        # protein substitution models by looping over all given, fixed models
+        # LG, WAG, JTT, etc and using their respective base frequencies to
+        # independently assign a prot subst. model to each site via ML
+        # optimization. At present this option only works with the GTR+GAMMA
+        # model, unpartitioned datasets, and in the sequential version only.
+        #   DEFAULT: OFF
+        '-X':FlagParameter('-', Name='X'),
+
         # Compute only randomized starting parsimony tree with RAxML, do not
         # optimize an ML analysis of the tree
         '-y':FlagParameter('-', Name='y'),
@@ -429,8 +442,8 @@ class Raxml(CommandLineApplication):
         # exit. Specify the number of ratchet searches via "-#" or "-N". This 
         # has just been implemented for completeness, if you want a fast MP 
         # implementation use TNT
-        # DEFAULT: OFF
-        '-Y':FlagParameter('-', Name='Y'),
+        # DEFAULT: OFF - DEPRECATED IN 7.3.0
+        #'-Y':FlagParameter('-', Name='Y'),
 
         # Multiple tree file, for use with -f b (to draw bipartitions onto the
         # common tree specified with -t)
@@ -556,6 +569,22 @@ class Raxml(CommandLineApplication):
         else:
             raise ValueError, "No output file specified."
 
+    # added for tree-insertion
+    def _entropy_out_filename(self):
+        if self.Parameters['-n'].isOn():
+            return self._format_output(str(self.Parameters['-n'].Value), \
+                                            "entropy")
+        else:
+            raise ValueError, "No output file specified."
+
+    # added for tree-insertion
+    def _json_out_filename(self):
+        if self.Parameters['-n'].isOn():
+            return self._format_output(str(self.Parameters['-n'].Value), \
+                                            "portableTree")
+        else:
+            raise ValueError, "No output file specified."
+            
     def _result_tree_out_filename(self):
         if self.Parameters['-n'].isOn():
             return self._format_output(str(self.Parameters['-n'].Value), \
@@ -594,7 +623,7 @@ class Raxml(CommandLineApplication):
         return out_filenames
 
     def _get_result_paths(self,data):
-        
+
         result = {}
         result['Info'] = ResultPath(Path=self._info_out_filename(),
                                             IsWritten=True)
@@ -615,6 +644,10 @@ class Raxml(CommandLineApplication):
                 IsWritten=True)
             result['Result'] = ResultPath(
                 Path=self._labelled_tree_out_filename(),IsWritten=True)
+            result['entropy'] = ResultPath(
+                Path=self._entropy_out_filename(),IsWritten=True)
+            result['json'] = ResultPath(
+                Path=self._json_out_filename()+'.jplace',IsWritten=True)
         else:
             result['Log'] = ResultPath(Path=self._log_out_filename(),
                                             IsWritten=True)
@@ -663,6 +696,7 @@ def raxml_alignment(align_obj,
     params["-w"] = "/tmp/"
     params["-n"] = get_tmp_filename().split("/")[-1]
     params["-m"] = raxml_model
+    params["-p"] = randint(1,100000)
     ih = '_input_as_multiline_string'
     seqs, align_map = align_obj.toPhylip()
     
@@ -732,6 +766,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     params["-w"] = "/tmp/"    
     params["-n"] = get_tmp_filename().split("/")[-1]
     params["-k"] = True
+    params["-p"] = randint(1,100000)
     params["-x"] = randint(1,100000)
     
     ih = '_input_as_multiline_string'    
@@ -777,6 +812,7 @@ def build_tree_from_alignment_using_params(seqs, moltype, params={},
                       HALT_EXEC=False)
     
     # make sure Raxml worked properly, if not through an Application warning
+    raxml_result = raxml_app(seqs)
     try:
         raxml_result = raxml_app(seqs)
     except ApplicationError:
