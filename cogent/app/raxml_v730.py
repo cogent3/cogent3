@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Application controller for RAxML (v7.2.6).
+"""Application controller for RAxML (v7.3.0).
 
 WARNING: Because of the use of the -x option, this version is no longer
 compatible with RAxML version VI.
