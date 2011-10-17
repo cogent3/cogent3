@@ -133,6 +133,8 @@ def main():
 
     if opts.ids:
         ids = set([l.strip() for l in open(opts.ids, 'U')])
+    else:
+        ids = None
 
     gg_parser = SpecificGreengenesParser(open(opts.input), fields, ids)
 
