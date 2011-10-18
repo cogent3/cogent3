@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import commands
 from sys import platform
 from os import remove,system,mkdir,getcwd,close,sep
 from random import choice
@@ -363,7 +362,6 @@ class CommandLineApplication(Application):
             raise ApplicationError, '_command has not been set.'
         command = self._command
         parameters = self.Parameters
-        synonyms = self._synonyms
         
         command_parts.append(cd_command)
         command_parts.append(command)

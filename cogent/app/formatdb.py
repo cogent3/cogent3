@@ -62,7 +62,6 @@ class FormatDb(CommandLineApplication):
         # access data through self.Parameters so we know it's been cast
         # to a FilePath
         wd = self.WorkingDir
-        input_filepath = self.Parameters['-i'].Value
         db_name = self.Parameters['-n'].Value
         log_name = self.Parameters['-l'].Value
         result = {}
@@ -148,7 +147,7 @@ def build_blast_db_from_fasta_file(fasta_file,is_protein=False,\
     fasta_f.close()
     
     blast_db, db_filepaths = build_blast_db_from_fasta_path(\
-     fasta_path,is_protein=False,output_dir=None,HALT_EXEC=False)
+     fasta_path, is_protein=False, output_dir=None, HALT_EXEC=HALT_EXEC)
      
     db_filepaths.append(fasta_path)
     

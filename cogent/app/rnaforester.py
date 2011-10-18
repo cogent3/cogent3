@@ -145,7 +145,6 @@ class RNAforester(CommandLineApplication):
             raise ApplicationError, '_command has not been set.'
 
         parameters = self.Parameters
-        synonyms = self._synonyms
         command1 = self._command1
         command2 = self._command2
 

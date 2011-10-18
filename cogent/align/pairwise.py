@@ -199,7 +199,7 @@ class Pair(object):
         self.alphabet = alignable1.alphabet
         
         for alignable in alignables:
-            assert isinstance(alignable, _Alignable), type(seq)
+            assert isinstance(alignable, _Alignable), type(alignable)
             if not isinstance(alignable, AlignableSeq):
                 some_pogs = True
                 break

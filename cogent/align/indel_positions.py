@@ -11,7 +11,6 @@ __status__ = "Production"
 
 def pog_traceback(pogs, aligned_positions):
     upto = [0, 0]
-    full_aligned_positions = []
     align_builder = POGBuilder(pogs)
     for posn in aligned_positions:
         assert len(posn) == 2
@@ -95,7 +94,6 @@ class POGBuilder(object):
         child_jumps = []
         for (dim,pog) in enumerate(self.children):
             r = self.remap[dim]
-            l = len(pog)
             for (i, j) in pog.jumps:
                 (i, j) = (r[i], r[j])
                 if i in gapmap and j in gapmap and gapmap[i] == gapmap[j]:
@@ -227,7 +225,7 @@ class LeafPOG(POG):
         self.jumps = []
     
     def asListOfPredLists(self):
-        pog = [ [[i]] for i in range(length)]
+        pog = [ [[i]] for i in range(self.length)]
         return [[]] + pog + [[len(pog)]]
     
     def __len__(self):

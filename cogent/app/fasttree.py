@@ -69,7 +69,6 @@ class FastTree(CommandLineApplication):
             NOTE: Override of the base class to handle redirected output
         """
         input_handler = self.InputHandler
-        suppress_stdout = self.SuppressStdout
         suppress_stderr = self.SuppressStderr
 
         outfile = self.getTmpFilename(self.TmpDir)

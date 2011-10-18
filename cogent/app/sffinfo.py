@@ -34,7 +34,7 @@ class ManyValuedParameter(ValuedParameter):
         self.ValueDelimiter = ValueDelimiter
         super(ManyValuedParameter, self).__init__(
             Prefix, Name, Value=Values, Delimiter=Delimiter, Quote=Quote,
-            IsPath=False)
+            IsPath=IsPath)
 
     def on(self, val):
         """Alias for append().
@@ -117,8 +117,7 @@ class Sffinfo(CommandLineApplication):
         parameters = dict([
             (name, param) for (name, param) in self.Parameters.items()
             if name not in self._trailing_parameters])
-        synonyms = self._synonyms
-
+        
         command_parts.append(cd_command)
         command_parts.append(command)
         command_parts.append(self._command_delimiter.join(filter(\

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import warnings
 from cogent.parse.record import FileFormatError
 
 __author__ = "Peter Maxwell and Gavin Huttley"

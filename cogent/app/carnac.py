@@ -55,7 +55,6 @@ class Carnac(CommandLineApplication):
         """
         result={}
         name_counter = 0
-        seq_counter = 0
         ones='00'
         tens='0'
         count=''
