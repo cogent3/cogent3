@@ -5,7 +5,6 @@ Float = numpy.core.numerictypes.sctype2char(float)
 
 from cogent.align import pairwise, indel_model, pycompare
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
-import sys
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"

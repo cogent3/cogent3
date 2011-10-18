@@ -4,7 +4,7 @@ from cogent.app.util import CommandLineApplication,\
     CommandLineAppResult, ResultPath, ApplicationError
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters
-import commands
+
 from sys import platform
 from os  import remove,system,mkdir,getcwd,close
 
@@ -207,8 +207,6 @@ class Dynalign(CommandLineApplication):
         if self._command is None:
             raise ApplicationError, '_command has not been set.'
         command = self._command
-        parameters = self.Parameters
-        synonyms = self._synonyms
         
         command_part1.append(cd_command)
         command_part1.append(command)
