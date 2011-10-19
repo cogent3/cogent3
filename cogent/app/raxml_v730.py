@@ -812,7 +812,6 @@ def build_tree_from_alignment_using_params(seqs, moltype, params={},
                       HALT_EXEC=False)
     
     # make sure Raxml worked properly, if not through an Application warning
-    raxml_result = raxml_app(seqs)
     try:
         raxml_result = raxml_app(seqs)
     except ApplicationError:
