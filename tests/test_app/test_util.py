@@ -428,6 +428,15 @@ class CommandLineApplicationTests(TestCase):
         """CLAppTester: getHelp() functions as expected """
         app = CLAppTester()
         self.assertEqual(app.getHelp(),'Duh')
+    
+    def test_handle_app_result_build_failure(self):
+        """_handle_app_result_build_failure called when CommandLineAppResult() fails
+        """
+        app = CLAppTester_bad_fixed_file()
+        self.assertRaises(ApplicationError,app)
+        
+        app = CLAppTester_bad_fixed_file_w_handler()
+        self.assertEqual(app(),"Called self._handle_app_result_build_failure")
         
     def test_error_on_missing_executable(self):
         """CLAppTester: Useful error message on executable not found
@@ -1162,6 +1171,28 @@ class CLAppTester(CommandLineApplication):
 class CLAppTester_no_working_dir(CLAppTester):
     _working_dir = None
 
+class CLAppTester_bad_fixed_file(CLAppTester):
+    
+    def _get_result_paths(self,data):
+        
+        if self.Parameters['-F'].isOn():
+            param_path = ''.join([self.WorkingDir,self.Parameters['-F'].Value])
+        else:
+            param_path = None
+        
+        result = {}
+        result['fixed_file'] = ResultPath(Path='/tmp/fixed.txt')
+        result['fixed_file_bad'] = ResultPath(Path='/tmp/i_dont_exist.txt')
+        result['parameterized_file'] = ResultPath(Path=param_path,\
+            IsWritten=self.Parameters['-F'].isOn())
+        result['base_dep_1'] = ResultPath(Path=self._build_name(suffix='.1')) 
+        result['base_dep_2'] = ResultPath(Path=self._build_name(suffix='.2'))
+        return result
+        
+class CLAppTester_bad_fixed_file_w_handler(CLAppTester_bad_fixed_file):
+    def _handle_app_result_build_failure(self,out,err,exit_status,result_paths):
+        return "Called self._handle_app_result_build_failure"
+        
 class CLAppTester_space_in_command(CLAppTester):
     _command = '"/tmp/CLApp Tester.py"'
 

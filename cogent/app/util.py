@@ -263,9 +263,13 @@ class CommandLineApplication(Application):
         err = None        
         if not suppress_stderr:
             err = open(errfile,"r")
-       
-        result =  CommandLineAppResult(out,err,exit_status,\
-            result_paths=self._get_result_paths(data)) 
+            
+        try:
+            result = CommandLineAppResult(\
+             out,err,exit_status,result_paths=self._get_result_paths(data))
+        except ApplicationError:
+            result = self._handle_app_result_build_failure(\
+             out,err,exit_status,self._get_result_paths(data))
 
         # Clean up the input file if one was created
         if remove_tmp:
@@ -274,6 +278,16 @@ class CommandLineApplication(Application):
                 self._input_filename = None
 
         return result
+   
+    def _handle_app_result_build_failure(self,out,err,exit_status,result_paths):
+        """ Called when an ApplicationError is raised on building the CommandLineAppResult 
+        
+            This is useful for checking log files or other special handling in cases
+             when expected files aren't present.
+        
+        """
+        raise ApplicationError, "Error constructing CommandLineAppResult."
+   
    
     def _input_as_string(self,data):
         """ Return data as a string """
