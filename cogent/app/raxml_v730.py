@@ -622,6 +622,17 @@ class Raxml(CommandLineApplication):
             raise ValueError, "No output file specified." 
         return out_filenames
 
+    def _handle_app_result_build_failure(self,out,err,exit_status,result_paths):
+        """ Catch the error when files are not produced """
+
+        try:
+            raise ApplicationError, \
+             'RAxML failed to produce an output file due to the following error: \n\n%s ' \
+             % err.read()
+        except:
+            raise ApplicationError,\
+                'RAxML failed to run properly.'
+
     def _get_result_paths(self,data):
 
         result = {}
@@ -789,9 +800,9 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={}):
     return tree
     
     
-def build_tree_from_alignment_using_params(seqs, moltype, params={},
+def insert_sequences_into_tree(seqs, moltype, params={},
                                            write_log=True):
-    """Returns a tree from Alignment object aln.
+    """Insert sequences into Tree.
     
     aln: an xxx.Alignment object, or data that can be used to build one.
     
@@ -811,12 +822,7 @@ def build_tree_from_alignment_using_params(seqs, moltype, params={},
                       SuppressStdout=False,
                       HALT_EXEC=False)
     
-    # make sure Raxml worked properly, if not through an Application warning
-    try:
-        raxml_result = raxml_app(seqs)
-    except ApplicationError:
-        raise ApplicationError, 'RAxML failed, so please make sure your input files are correct. Also, you can check out the log file: %s' % \
-                    raxml_app._format_output(str(params['-n']), "info")
+    raxml_result = raxml_app(seqs)
     
     # write a log file
     if write_log:
