@@ -1,18 +1,5 @@
 #!/bin/env python
 
-from os import getcwd, remove, rmdir, mkdir
-from os.path import splitext
-from cogent.util.unit_test import TestCase, main
-from cogent.util.misc import flatten
-from random import randint
-from cogent.app.pplacer import Pplacer, build_tree_from_alignment_using_params
-from cogent.app.util import ApplicationError,get_tmp_filename
-from cogent.parse.fasta import MinimalFastaParser
-from cogent.core.tree import PhyloNode
-from cogent.core.moltype import RNA,DNA
-from StringIO import StringIO
-from cogent.core.alignment import Alignment
-
 __author__ = "Jesse Stombaugh"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jesse Stombaugh"]
@@ -21,6 +8,19 @@ __version__ = "1.6.0dev"
 __maintainer__ = "Jesse Stombaugh"
 __email__ = "jesse.stombaugh@colorado.edu"
 __status__ = "Development"
+
+from os import getcwd, remove, rmdir, mkdir
+from os.path import splitext
+from cogent.util.unit_test import TestCase, main
+from cogent.util.misc import flatten
+from random import randint
+from cogent.app.pplacer import Pplacer, insert_sequences_into_tree
+from cogent.app.util import ApplicationError,get_tmp_filename
+from cogent.parse.fasta import MinimalFastaParser
+from cogent.core.tree import PhyloNode
+from cogent.core.moltype import RNA,DNA
+from StringIO import StringIO
+from cogent.core.alignment import Alignment
 
 class Genericpplacer(TestCase):
 
@@ -103,8 +103,8 @@ class pplacerTests(Genericpplacer):
                        ''.join(['cd "','/tmp/Pplacer','/"; ','pplacer']))
 
 
-    def test_build_tree_from_alignment_using_params(self):
-        """Builds a tree from an alignment"""
+    def test_insert_sequences_into_tree(self):
+        """Inserts sequences into Tree"""
         
         params={}
         # generate temp filename for output
@@ -116,9 +116,8 @@ class pplacerTests(Genericpplacer):
         aln_ref_query=MinimalFastaParser(StringIO(QUERY_SEQS))
         aln = Alignment(aln_ref_query)
         seqs, align_map = aln.toPhylip()
-        tree = build_tree_from_alignment_using_params(seqs, DNA,
-                                                      params=params,
-                                                      write_log=False)
+        tree = insert_sequences_into_tree(seqs, DNA, params=params,
+                                          write_log=False)
         
         # rename tips back to query names
         for node in tree.tips():
@@ -126,7 +125,6 @@ class pplacerTests(Genericpplacer):
                 node.Name = align_map[node.Name]
         
         self.assertEqual(tree.getNewick(with_distances=True), RESULT_TREE)
-
         
         
 JSON_RESULT="""\

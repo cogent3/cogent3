@@ -5,8 +5,9 @@ from os.path import splitext
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from random import randint
-from cogent.app.raxml_v730 import (Raxml,raxml_alignment, build_tree_from_alignment,\
-                              build_tree_from_alignment_using_params)
+from cogent.app.raxml_v730 import (Raxml,raxml_alignment,\
+                                   build_tree_from_alignment,\
+                                   insert_sequences_into_tree)
 from cogent.app.util import ApplicationError,get_tmp_filename
 from cogent.parse.phylip import get_align_for_phylip
 from cogent.core.tree import PhyloNode
@@ -167,10 +168,9 @@ class RaxmlTests(GenericRaxml):
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
                           self.align1, RNA, True)
-
     
-    def test_build_tree_from_alignment_using_params(self):
-        """Builds a tree from an alignment using params - test handles tree-insertion"""
+    def test_insert_sequences_into_tree(self):
+        """Inserts sequences into Tree using params - test handles tree-insertion"""
         
         # generate temp filename for output
         outfname=splitext(get_tmp_filename('/tmp/'))[0]
@@ -193,10 +193,8 @@ class RaxmlTests(GenericRaxml):
         aln = Alignment(aln_ref_query)
         seqs, align_map = aln.toPhylip()
         
-        tree = build_tree_from_alignment_using_params(seqs, DNA,
-                                                      params=params,
-                                                      write_log=False)
-        
+        tree = insert_sequences_into_tree(seqs, DNA, params=params,
+                                          write_log=False)
         
         for node in tree.tips():
             removed_query_str=re.sub('QUERY___','',str(node.Name))

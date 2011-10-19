@@ -1,14 +1,5 @@
 #!/usr/bin/env python
-"""Tests for ParsInsert v1.01 application controller."""
-
-from shutil import rmtree
-from os import getcwd
-from cogent.util.unit_test import TestCase, main
-from cogent.app.parsinsert import ParsInsert, build_tree_from_alignment_using_params
-from cogent.core.alignment import Alignment
-from cogent.parse.fasta import MinimalFastaParser
-from cogent.parse.tree import DndParser
-from cogent.core.moltype import DNA
+"""Tests for ParsInsert v1.03 application controller."""
 
 __author__ = "Jesse Stombaugh"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -19,6 +10,13 @@ __maintainer__ = "Jesse Stombaugh"
 __email__ = "jesse.stombaugh@colorado.edu"
 __status__ = "Development"
 
+from shutil import rmtree
+from cogent.util.unit_test import TestCase, main
+from cogent.app.parsinsert import ParsInsert, insert_sequences_into_tree
+from cogent.core.alignment import Alignment
+from cogent.parse.fasta import MinimalFastaParser
+from cogent.parse.tree import DndParser
+from cogent.core.moltype import DNA
 from cogent.app.util import get_tmp_filename
 from os.path import splitext
 from os import getcwd, remove, rmdir, mkdir
@@ -74,8 +72,8 @@ class ParsInsertTests(TestCase):
                                 
         rmtree('/tmp/ParsInsertTest')
 
-    def test_build_tree_from_alignment(self):
-        """Builds a tree from an alignment"""
+    def test_insert_sequences_into_tree(self):
+        """Inserts sequences into Tree"""
         
         # define log fp
         log_fp='/tmp/parsinsert.log'
@@ -96,8 +94,7 @@ class ParsInsertTests(TestCase):
         seqs, align_map = self.seqs.toPhylip()
         
         # insert sequences into tree
-        tree = build_tree_from_alignment_using_params(seqs, DNA,
-                                                           params=param)
+        tree = insert_sequences_into_tree(seqs, DNA, params=param)
 
         # rename tips back to query names
         for node in tree.tips():
