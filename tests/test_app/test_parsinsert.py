@@ -4,7 +4,7 @@
 from shutil import rmtree
 from os import getcwd
 from cogent.util.unit_test import TestCase, main
-from cogent.app.parsinsert import ParsInsert, test_build_tree_from_alignment_using_params
+from cogent.app.parsinsert import ParsInsert, build_tree_from_alignment_using_params
 from cogent.core.alignment import Alignment
 from cogent.parse.fasta import MinimalFastaParser
 from cogent.parse.tree import DndParser
@@ -31,7 +31,7 @@ class ParsInsertTests(TestCase):
         self._dirs_to_clean_up = []
         
         # load query seqs
-        self.seqs = Alignment(dict(MinimalFastaParser(QUERY_SEQS.split())))
+        self.seqs = Alignment(MinimalFastaParser(QUERY_SEQS.split()))
         
         # generate temp filename
         tmp_dir='/tmp'
@@ -77,16 +77,33 @@ class ParsInsertTests(TestCase):
     def test_build_tree_from_alignment(self):
         """Builds a tree from an alignment"""
         
+        # define log fp
+        log_fp='/tmp/parsinsert.log'
+        self._paths_to_clean_up.append(log_fp)
+        
+        # define tax assignment values fp
+        tax_assign_fp='/tmp/tax_assignments.log'
+        self._paths_to_clean_up.append(tax_assign_fp)
+        
         # set the reference alignment and starting tree
         param={
                 '-t':self.outtree,
                 '-s':self.outfasta,
+                '-l':log_fp,
+                '-o':tax_assign_fp
               }
-              
+        
+        seqs, align_map = self.seqs.toPhylip()
+        
         # insert sequences into tree
-        tree = test_build_tree_from_alignment_using_params(self.seqs, DNA,
+        tree = build_tree_from_alignment_using_params(seqs, DNA,
                                                            params=param)
 
+        # rename tips back to query names
+        for node in tree.tips():
+            if node.Name in align_map:
+                node.Name = align_map[node.Name]
+                
         self.assertEqual(tree.getNewick(with_distances=True),exp_tree)
 
 

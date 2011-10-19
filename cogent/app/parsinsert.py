@@ -10,8 +10,12 @@ from cogent.app.util import CommandLineApplication, FilePath, system, \
 from cogent.core.tree import PhyloNode
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA, RNA, PROTEIN
-from cogent.core.alignment import SequenceCollection
+from cogent.core.alignment import SequenceCollection,Alignment
 from os.path import splitext, join
+from cogent.parse.phylip import get_align_for_phylip
+from StringIO import StringIO
+
+
 __author__ = "Jesse Stombaugh"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Jesse Stombaugh"]
@@ -132,23 +136,18 @@ class ParsInsert(CommandLineApplication):
         result['Tree'] = ResultPath(Path=splitext(self._tree_fname)[0]+'.tree')
         return result
 
-def test_build_tree_from_alignment_using_params(aln, moltype, params={}):
+def build_tree_from_alignment_using_params(aln, moltype, params={}):
     """Returns a tree from placement of sequences
     """
+    # convert aln to phy since seq_names need fixed to run through parsinsert
+    new_aln=get_align_for_phylip(StringIO(aln))
 
-    # verify seqs are DNA
-    if moltype != DNA:
-        raise ValueError, \
-                "ParsInsert does not support moltype: %s" % moltype.label
+    # convert aln to fasta in case it is not already a fasta file
+    aln2 = Alignment(new_aln)
+    seqs = aln2.toFasta()
 
-    #Create mapping between abbreviated IDs and full IDs
-    int_map, int_keys = aln.getIntMap()
-    
-    #Create SequenceCollection from int_map.
-    int_map = SequenceCollection(int_map,MolType=moltype)
-
-    app = ParsInsert(params=params)
-    result = app(aln.toFasta())
+    parsinsert_app = ParsInsert(params=params)
+    result = parsinsert_app(seqs)
     
     # parse tree
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
