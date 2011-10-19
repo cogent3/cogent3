@@ -119,7 +119,8 @@ class pplacerTests(Genericpplacer):
         tree = build_tree_from_alignment_using_params(seqs, DNA,
                                                       params=params,
                                                       write_log=False)
-                                                      
+        
+        # rename tips back to query names
         for node in tree.tips():
             if node.Name in align_map:
                 node.Name = align_map[node.Name]
