@@ -67,9 +67,12 @@ def _prepare_entities(entities):
     lattice_residues.maskChildren('H_HOH', 'eq', 'name')
     lattice_chains = einput(entities, 'C')
     lattice_chains.maskChildren([], 'eq', 'values', method=True)
-    # if not residues or chains are left - not atoms to work with, 
+    # if no residues or chains are left - no atoms to work with, 
     # abort with warning.
     if not lattice_chains.values():
+        # the following makes sure that masking changes by the above
+        # tests are reverted.
+        lattice_structures = einput(entities, 'S')
         lattice_structures.setUnmasked(force=True)
         raise ValueError('No unmasked atoms to build lattice.')
     # these are all atoms we can work with

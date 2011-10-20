@@ -3,17 +3,11 @@
 import os
 import numpy as np
 from numpy import sum
-try:
-    from cogent.util.unit_test import TestCase, main
-    from cogent.app.util import ApplicationNotFoundError
-    from cogent.parse.pdb import PDBParser
-    from cogent.struct.selection import einput
-    from cogent.maths.stats.test import correlation
-except ImportError:
-    from zenpdb.cogent.util.unit_test import TestCase, main
-    from zenpdb.cogent.parse.pdb import PDBParser
-    from zenpdb.cogent.struct.selection import einput
-    from zenpdb.maths.stats.test import correlation
+from cogent.util.unit_test import TestCase, main
+from cogent.app.util import ApplicationNotFoundError
+from cogent.parse.pdb import PDBParser
+from cogent.struct.selection import einput
+from cogent.maths.stats.test import correlation
 
 
 __author__ = "Marcin Cieslik"
@@ -24,6 +18,32 @@ __version__ = "1.6.0dev"
 __maintainer__ = "Marcin Cieslik"
 __email__ = "mpc4p@virginia.edu"
 __status__ = "Development"
+
+
+class DummyFile(object):
+    def __init__(self, some_string):
+        self.some_string = some_string
+        slist = self.some_string.split('\n')
+        self.some_string_list = [i + '\n' for i in slist]
+    def readlines(self):
+        return self.some_string_list
+    def close(self):
+        pass
+
+
+test_file_water = """
+HETATM 1185  O   HOH   268     141.577  14.676  13.168  1.00 54.76           O
+HETATM 1186  O   HOH   269     137.019  17.606  19.854  1.00 33.36           O
+HETATM 1187  O   HOH   270     149.639  55.203   4.611  1.00 49.01           O
+HETATM 1188  O   HOH   271     156.238  32.191  -4.204  1.00 64.53           O
+CONECT  453  685
+CONECT  685  453
+MASTER      357    0    0    1   10    0    0    6 1187    1    2   12
+END
+"""
+
+dummy_water = DummyFile(test_file_water)
+
 
 class asaTest(TestCase):
     """Tests for surface calculations."""
@@ -156,7 +176,11 @@ class asaTest(TestCase):
         self.assertFloatEqual(r2.xtra.values(), \
                                 [28.873559956056916, 0.0])
 
-    def test_bio(self):
+    def test__prepare_entities(self):
+        self.input_structure = PDBParser(dummy_water)
+        self.assertRaises(ValueError, asa._prepare_entities, self.input_structure)
+
+    def _test_bio(self):
         """compares asa within a bio unit."""
         self.input_file = os.path.join('data', '1A1X.pdb')
         self.input_structure = PDBParser(open(self.input_file))
