@@ -186,6 +186,7 @@ class RaxmlTests(GenericRaxml):
         params["-w"]="/tmp/"
         params["-n"] = get_tmp_filename().split("/")[-1]
         params["-f"] = 'v'
+        #params["-G"] = '0.25'
         params["-t"] = outtreefname
         params["-m"] = 'GTRGAMMA'
         
