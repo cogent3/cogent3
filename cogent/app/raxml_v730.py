@@ -15,6 +15,8 @@ from os import walk,listdir
 from os.path import isabs,join,split
 from cogent.parse.tree import DndParser
 import re
+from cogent.app.guppy import build_tree_from_json_using_params
+
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
@@ -584,6 +586,14 @@ class Raxml(CommandLineApplication):
                                             "portableTree")
         else:
             raise ValueError, "No output file specified."
+    
+    # added for tree-insertion
+    def _parsimony_out_filename(self):
+        if self.Parameters['-n'].isOn():
+            return self._format_output(str(self.Parameters['-n'].Value), \
+                                            "equallyParsimoniousPlacements")
+        else:
+            raise ValueError, "No output file specified."
             
     def _result_tree_out_filename(self):
         if self.Parameters['-n'].isOn():
@@ -657,6 +667,17 @@ class Raxml(CommandLineApplication):
                 Path=self._labelled_tree_out_filename(),IsWritten=True)
             result['entropy'] = ResultPath(
                 Path=self._entropy_out_filename(),IsWritten=True)
+            result['json'] = ResultPath(
+                Path=self._json_out_filename()+'.jplace',IsWritten=True)
+        elif self.Parameters["-f"].Value == 'y':
+            #these were added to handle the results from tree-insertion
+            
+            result['Parsimony'] = ResultPath(  
+                Path=self._parsimony_out_filename(),
+                IsWritten=True)
+            result['OriginalLabelledTree'] = ResultPath(  
+                Path=self._originallabelled_tree_out_filename(),
+                IsWritten=True)
             result['json'] = ResultPath(
                 Path=self._json_out_filename()+'.jplace',IsWritten=True)
         else:
@@ -830,6 +851,18 @@ def insert_sequences_into_tree(seqs, moltype, params={},
         log_file=open(log_fp,'w')
         log_file.write(raxml_result['StdOut'].read())
         log_file.close()
+    
+    ''' 
+    # getting setup since parsimony doesn't output tree..only jplace, however
+    # it is currently corrupt
+        
+    # use guppy to convert json file into a placement tree
+    guppy_params={'tog':None}
+
+    new_tree=build_tree_from_json_using_params(raxml_result['json'].name, \
+                                               output_dir=params["-w"], \
+                                               params=guppy_params)
+    '''
     
     # get tree from 'Result Names'
     new_tree=raxml_result['Result'].readlines()
