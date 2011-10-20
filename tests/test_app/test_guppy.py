@@ -1,5 +1,14 @@
 #!/bin/env python
 
+__author__ = "Jesse Stombaugh"
+__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__credits__ = ["Jesse Stombaugh"]
+__license__ = "GPL"
+__version__ = "1.6.0dev"
+__maintainer__ = "Jesse Stombaugh"
+__email__ = "jesse.stombaugh@colorado.edu"
+__status__ = "Development"
+
 from os import getcwd, remove, rmdir, mkdir
 from os.path import splitext
 from cogent.util.unit_test import TestCase, main
@@ -9,15 +18,6 @@ from cogent.app.guppy import Guppy, build_tree_from_json_using_params
 from cogent.app.util import ApplicationError,get_tmp_filename
 from cogent.core.tree import PhyloNode
 from cogent.parse.tree import DndParser
-
-__author__ = "Jesse Stombaugh"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
-__credits__ = ["Jesse Stombaugh"]
-__license__ = "GPL"
-__version__ = "1.6.0dev"
-__maintainer__ = "Jesse Stombaugh"
-__email__ = "jesse.stombaugh@colorado.edu"
-__status__ = "Development"
 
 class Genericguppy(TestCase):
 
@@ -61,6 +61,7 @@ class guppyTests(Genericguppy):
     
     def test_change_working_dir(self):
         """Change working dir"""
+        
         # define working directory for output
         working_dir='/tmp/Guppy'
         self._dirs_to_clean_up.append(working_dir)
