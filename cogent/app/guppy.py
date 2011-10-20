@@ -121,11 +121,11 @@ class Guppy(CommandLineApplication):
         '-help': FlagParameter('-', Name='help'),
     }
  
-    def getTmpFilename(self, tmp_dir="/tmp",prefix='tmp',suffix='.json',\
+    def getTmpFilename(self, tmp_dir='/tmp/',prefix='tmp',suffix='.json',\
            include_class_id=False,result_constructor=FilePath):
         """ Define Tmp filename to contain .json suffix, since guppy requires
             the suffix to be .json """
-            
+        
         return super(Guppy,self).getTmpFilename(tmp_dir=tmp_dir,
                                     prefix=prefix,
                                     suffix=suffix,
@@ -141,6 +141,7 @@ class Guppy(CommandLineApplication):
     def _get_result_paths(self,data):
         basepath,basename=split(splitext(self._input_filename)[0])
         outfile_list=listdir(split(self._input_filename)[0])
+
         result = {}
         for i in outfile_list:
             if i.startswith(basename) and not i.endswith('.json') and \
@@ -168,6 +169,7 @@ def build_tree_from_json_using_params(fname,output_dir='/tmp/',params={}):
     guppy_app = Guppy(params=params,
                       InputHandler=ih,
                       WorkingDir=output_dir,
+                      TmpDir=output_dir,
                       SuppressStderr=True,
                       SuppressStdout=True,
                       HALT_EXEC=False)
@@ -182,6 +184,7 @@ def build_tree_from_json_using_params(fname,output_dir='/tmp/',params={}):
         guppy_cmd=Guppy(params=params,
                       InputHandler=ih,
                       WorkingDir=output_dir,
+                      TmpDir=output_dir,
                       SuppressStderr=True,
                       SuppressStdout=True,
                       HALT_EXEC=True)
