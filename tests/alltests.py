@@ -202,6 +202,7 @@ def suite():
         print >> sys.stderr, "No matplotlib so not running test_draw.py"
     else:
         modules_to_test.append('test_draw')
+        modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
     apps = [('blastall', 'test_blast'),
