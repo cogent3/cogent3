@@ -218,7 +218,8 @@ In this case, only those residues included within the feature are covered - note
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
+    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']],
+    ...                      moltype=DNA)
     >>> print aln
     >x
     C-CCCAAAAA
@@ -246,6 +247,25 @@ In this case, only those residues included within the feature are covered - note
 .. doctest::
     
     >>> print aln_exons[0].asOneSpan().getSlice()
+    >x
+    C-CCC
+    >y
+    -T---
+    <BLANKLINE>
+
+These properties also are consistently replicated with reverse complemented sequences.
+
+.. doctest::
+    
+    >>> aln_rc = aln.rc()
+    >>> rc_exons = list(aln_rc.getAnnotationsFromAnySequence('exon'))
+    >>> print aln_rc[rc_exons] # not using asOneSpan, so gap removed from x
+    >x
+    CCCC
+    >y
+    ----
+    <BLANKLINE>
+    >>> print aln_rc[rc_exons[0].asOneSpan()]
     >x
     C-CCC
     >y

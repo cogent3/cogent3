@@ -560,7 +560,7 @@ class Map(object):
                 termini_unknown = True)
     
     def getCoveringSpan(self):
-        if self.Reverse == -1:
+        if self.Reverse:
             span = (self.End, self.Start)
         else:
             span = (self.Start, self.End)
