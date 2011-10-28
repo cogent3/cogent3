@@ -117,7 +117,7 @@ Features are generally attached to the thing they annotate, but in those cases w
     >>> len(s.annotations)
     2
 
-When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence``) features are also reversed. Feature types like CDS, however, have strand specific meaning and thus they're preserved in that orientation. We create a sequence with a CDS that spans multiple exons, and show that after getting the reverse complement we have exactly the same result from getting the CDS annotation.
+When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence``) features are **not** reversed. Features are considered to have strand specific meaning (.e.g CDS, exons) and so stay on their original strands. We create a sequence with a CDS that spans multiple exons, and show that after getting the reverse complement we have exactly the same result from getting the CDS annotation.
 
 .. doctest::
     
