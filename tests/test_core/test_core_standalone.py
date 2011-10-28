@@ -271,6 +271,12 @@ class AlignmentTestMethods(unittest.TestCase):
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.todict(), dna_rc)
     
+    def test_reversecomplement_with_ambig(self):
+        """correctly reverse complement with ambiguous bases"""
+        n = LoadSeqs(data=[['x', '?-???AA'], ['y', '-T----T']], moltype=DNA)
+        rc = n.rc()
+        self.assertEqual(rc.todict(), {'x': 'TT???-?', 'y': 'A----A-'})
+    
     def test_getasdict(self):
         """getting the alignment as a dictionary"""
         seqs={'seq1': 'ACGT--GT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
