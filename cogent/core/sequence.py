@@ -607,9 +607,8 @@ class Sequence(_Annotatable, SequenceI):
             else:
                 seg = self._seq[span.Start:span.End]
                 if span.Reverse:
-                    basepairs = self.MolType.Complements
-                    assert basepairs, 'unreversable'
-                    seg = [basepairs[base] for base in seg[::-1]]
+                    complement = self.MolType.complement
+                    seg = [complement(base) for base in seg[::-1]]
                     seg = ''.join(seg)
             yield seg
     
