@@ -31,6 +31,16 @@ Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the se
     >>> print exons
     [exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]
 
+If the sequence does not have a matching feature you get back an empty list, and slicing the sequence with that returns a sequence of length 0.
+
+.. doctest::
+    
+    >>> dont_exist = s.getAnnotationsMatching('dont_exist')
+    >>> dont_exist
+    []
+    >>> s[dont_exist]
+    DnaSequence()
+
 To construct a pseudo-feature covering (or excluding) multiple features, use ``getRegionCoveringAll``:
 
 .. doctest::
