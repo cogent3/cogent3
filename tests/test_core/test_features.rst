@@ -187,17 +187,70 @@ Similarly alignment features can be projected onto the aligned sequences, where 
     >>> print aln.getSeq('y')[exons[0].map.withoutGaps()]
     TTT
 
-We copy the annotations from another sequence.
+We copy the annotations from another sequence,
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']])
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
     >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.getSeq('x').copyAnnotations(s)
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print aln_exons
     [exon "fred" at [4:9]/10]
+
+even if the name is different.
+
+.. doctest::
+    
+    >>> exon = aln.getSeq('y').copyAnnotations(s)
+    >>> aln_exons = list(aln.getAnnotationsFromSequence('y', 'exon'))
+    >>> print aln_exons
+    [exon "fred" at [3:4, 6:10]/10]
+    >>> print aln[aln_exons]
+    >x
+    AAAAA
+    >y
+    TCCCC
+    <BLANKLINE>
+
+If the feature lies outside the sequence being copied to, you get a lost span
+
+.. code:: python
+
+    >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
+    >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> aln.getSeq('x').copyAnnotations(seq)
+    >>> copied = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> copied
+    [exon "A" at [5:5, -4-]/5]
+    >>> copied[0].getSlice()
+    2 x 4 text alignment: x[----], y[----]
+
+You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
+
+.. code:: python
+
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
+    >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> aln.getSeq('y').copyAnnotations(seq)
+    >>> copied = list(aln.getAnnotationsFromSequence('y', 'exon'))
+    >>> copied
+    [exon "A" at [7:10]/10]
+
+If the sequence is shorter, again you get a lost span.
+
+.. code:: python
+
+    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
+    >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
+    >>> aln.getSeq('y').copyAnnotations(diff_len_seq)
+    >>> copied = list(aln.getAnnotationsFromSequence('y', 'repeat'))
+    >>> copied
+    [repeat "A" at [10:10, -6-]/10]
 
 We consider cases where there are terminal gaps.
 
