@@ -216,7 +216,7 @@ even if the name is different.
 
 If the feature lies outside the sequence being copied to, you get a lost span
 
-.. code:: python
+.. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
@@ -230,7 +230,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
 
 You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
 
-.. code:: python
+.. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
@@ -242,7 +242,7 @@ You can copy to a sequence with a different name, in a different alignment if th
 
 If the sequence is shorter, again you get a lost span.
 
-.. code:: python
+.. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
