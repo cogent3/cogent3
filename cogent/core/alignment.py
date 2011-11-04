@@ -2394,10 +2394,13 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append((seq_name, seq))
         return self.__class__(MolType=self.MolType, data=seqs, **kwargs)
     
+    def projectAnnotation(self, seq_name, annot):
+        target_aligned = self.NamedSeqs[seq_name]
+        return annot.remappedTo(target_aligned.data, target_aligned.map)
+        
     def getProjectedAnnotations(self, seq_name, *args):
-        aligned = self.NamedSeqs[seq_name]
-        seq_annots = self.getAnnotationsMatching(*args)
-        return [a.remappedTo(aligned.data, aligned.map) for a in seq_annots]
+        aln_annots = self.getAnnotationsMatching(*args)
+        return [self.projectAnnotation(seq_name, a) for a in aln_annots]
     
     def getAnnotationsFromSequence(self, seq_name, *args):
         aligned = self.NamedSeqs[seq_name]
