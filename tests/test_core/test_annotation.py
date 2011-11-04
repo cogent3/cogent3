@@ -100,7 +100,21 @@ class TestAnnotations(unittest.TestCase):
                 new = str(list(newaln.getAnnotationsFromSequence(name,
                                                     annot_type))[0].getSlice())
                 assert orig == new, (name, annot_type, orig, new)
-    
+
+    def test_feature_projection(self):
+        expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
+        aln_ltr = self.aln.getAnnotationsMatching('LTR')[0]
+        for seq_name in ['FAKE01', 'FAKE02']:
+            expected = expecteds[seq_name]
+            seq_ltr = self.aln.projectAnnotation(seq_name, aln_ltr)
+            if '-' in expected:
+                self.assertRaises(ValueError, seq_ltr.getSlice)
+                seq = seq_ltr.getSlice(complete=False)
+                expected = expected.replace('-', '')
+            else:
+                seq = seq_ltr.getSlice()    
+            self.assertEqual(seq, expected)
+        
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',

@@ -194,11 +194,14 @@ class _Feature(_Annotatable):
         Name = "%s of %s" % (repr(slicemap), self.Name)
         return _Feature(self, slicemap, type="slice", Name=Name)
     
-    def getSlice(self):
-        seq = self.base[self.base_map]
-        #source_map = Map(spans=[Span(0, len(seq))], parent_length=len(seq))
-        #seq.addAnnotation(Source, source_map, self.Name, self.base_map)
-        return seq
+    def getSlice(self, complete=True):
+        """The corresponding sequence fragment.  If 'complete' is true
+        and the full length of this feature is not present in the sequence
+        then this method will fail."""
+        map = self.base_map
+        if not (complete or map.complete):
+            map = map.withoutGaps()
+        return self.base[map]
     
     def asOneSpan(self):
         new_map = self.map.getCoveringSpan()
