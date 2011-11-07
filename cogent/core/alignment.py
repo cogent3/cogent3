@@ -2396,6 +2396,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     
     def projectAnnotation(self, seq_name, annot):
         target_aligned = self.NamedSeqs[seq_name]
+        if annot.parent is not self:
+            raise ValueError('Annotation does not belong to this alignment')
         return annot.remappedTo(target_aligned.data, target_aligned.map)
         
     def getProjectedAnnotations(self, seq_name, *args):
