@@ -498,7 +498,11 @@ class Genome(object):
         Arguments:
             - property_type: valid values are biotype, status, effect"""
         property_type = property_type.lower()
-        db = [self.CoreDb, self.VarDb][property_type == 'effect']
+        if property_type == 'effect':
+            db = self.VarDb
+        else:
+            db = self.CoreDb
+        
         property_map = {'effect': ('variation_feature', 'consequence_type'),
                         'biotype': ('gene', 'biotype'),
                         'status': ('gene', 'status')}
