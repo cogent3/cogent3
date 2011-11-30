@@ -126,6 +126,12 @@ class TestGenome(GenomeTestBase):
         'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
         'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
         'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
+    
+    def test_get_distinct_biotype(self):
+        """Genome instance getDistinct should work on all genomes"""
+        for genome in self.gorilla, self.human, self.mouse, self.rat, self.macaq:
+            biotypes = genome.getDistinct('biotype')
+        
 
 
 class TestGene(GenomeTestBase):
