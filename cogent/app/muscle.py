@@ -78,6 +78,9 @@ class Muscle(CommandLineApplication):
         
         # Maximum number of iterations.
         '-maxiters':ValuedParameter('-',Name='maxiters',Delimiter=' '),
+
+        # Maximum memory in Mb
+        '-maxmb': ValuedParameter('-', Name='maxmb', Delimiter=' '),
         
         # Maximum number of new trees to build in iteration 2.
         '-maxtrees':ValuedParameter('-',Name='maxtrees',Delimiter=' '),
@@ -234,7 +237,6 @@ class Muscle(CommandLineApplication):
     
     _parameters = {}
     _parameters.update(_options)
-#    _command = "/Applications/muscle/muscle3.52_osx"
     _command = "muscle"
     
     def _input_as_seqs(self,data):
