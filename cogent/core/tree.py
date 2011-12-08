@@ -593,6 +593,12 @@ class TreeNode(object):
         if len(tips) == 0:
             return None
 
+        # scrub tree
+        if hasattr(self, 'black'):
+            for n in self.traverse(include_self=True):
+                if hasattr(n, 'black'):
+                    delattr(n, 'black')
+
         for t in tips:
             prev = t
             curr = t.Parent
