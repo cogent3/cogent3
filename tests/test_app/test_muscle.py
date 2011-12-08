@@ -72,6 +72,27 @@ class MuscleTests(GeneralSetUp):
             ''.join(['cd "',getcwd(),'/"; ','muscle -cluster2 neighborjoining' +
             ' -in "seq.txt"']))
 
+    def test_maxmb(self):
+        """maxmb option should not break Muscle"""
+        app = Muscle()
+        app.Parameters['-maxmb'].on('250')
+        outfile = tempfile.NamedTemporaryFile()
+        app.Parameters['-out'].on(outfile.name)
+        
+        infile = tempfile.NamedTemporaryFile()
+        infile.write(
+            ">Seq1\nAAAGGGTTTCCCCT\n"
+            ">Seq2\nAAAGGGGGTTTCCACT\n")
+        infile.flush()
+        result = app(infile.name)
+
+        observed = result['MuscleOut'].read()
+        expected = (
+            ">Seq1\nAAA--GGGTTTCCCCT\n"
+            ">Seq2\nAAAGGGGGTTTCCACT\n"
+            )
+        self.assertEqual(observed, expected)
+
     def test_changing_working_dir(self):
         """Muscle BaseCommand should change according to WorkingDir"""
         c = Muscle(WorkingDir='/tmp/muscle_test')
