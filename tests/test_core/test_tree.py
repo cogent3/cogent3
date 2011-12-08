@@ -856,6 +856,14 @@ class TreeNodeTests(TestCase):
         self.assertEqual(obs3, exp3)
         self.assertEqual(obs4, exp4)
 
+        # verify multiple calls work
+        t_mul = t1.copy()
+        exp_1 = t_mul.getNodeMatchingName('d')
+        exp_2 = t_mul.getNodeMatchingName('i')
+        obs_1 = t_mul.lowestCommonAncestor(['b','c'])
+        obs_2 = t_mul.lowestCommonAncestor(['g','h'])
+        self.assertEqual(obs_1, exp_1)
+        self.assertEqual(obs_2, exp_2)
 
     def test_lastCommonAncestor(self):
         """TreeNode LastCommonAncestor should provide last common ancestor"""
