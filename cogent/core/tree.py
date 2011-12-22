@@ -1133,11 +1133,7 @@ class TreeNode(object):
     
     def getSubTree(self, name_list, ignore_missing=False, keep_root=False):
         """A new instance of a sub tree that contains all the otus that are
-        listed in name_list, as well as other otus.
-
-        Beware, this returns a subtree of the original, it does not remove
-        tips which are absent from name_list unless they are outgroups
-        to the subtree. len(subtree.tips()) != len(name_list) in general.
+        listed in name_list.
 
         ignore_missing: if False, getSubTree will raise a ValueError if 
         name_list contains names that aren't nodes in the tree
