@@ -20,8 +20,12 @@ __status__ = "alpha"
 Release = 64
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount(host, username, password)
+    args = os.environ['ENSEMBL_ACCOUNT'].split()
+    host, username, password = args[0:3]
+    kwargs = {}
+    if len(args) > 3:
+        kwargs['port'] = int(args[3])
+    account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -442,7 +446,7 @@ class TestVariation(GenomeTestBase):
         snp_status = [('rs94', False), ('rs90', True)]
         for symbol, status in snp_status:
             snp = list(self.human.getVariation(Symbol=symbol, validated=True))
-            self.assertEquals(snp!=[], status)
+            self.assertEquals(snp != [], status)
 
     def test_allele_freqs(self):
         """exercising getting AlleleFreq data"""
@@ -490,7 +494,7 @@ class TestFeatures(GenomeTestBase):
         self.assertContains(symbols, self.igf2.Symbol.lower())
 
     def test_other_genes(self):
-        """docstring for test_other_genes"""
+        """docstring for est_other_genes"""
         mouse = self.mouse.getRegion(CoordName='5', Start=150791005,
                                         End=150838512, Strand='-')
         rat = self.rat.getRegion(CoordName='12', Start=4282534, End=4324019,

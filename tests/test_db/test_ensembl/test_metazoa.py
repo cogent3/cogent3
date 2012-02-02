@@ -11,7 +11,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release=8
+Release = 12
 account = HostAccount('mysql.ebi.ac.uk','anonymous', '', port=4157)
 
 class MZ_ComparaTestBase(TestCase):
@@ -26,7 +26,7 @@ class MZ_TestCompara(MZ_ComparaTestBase):
     
     def test_get_related_genes(self):
         """should correctly return the related gene regions from each genome"""
-        #using sc35, a splicing factor
+        # using sc35, a splicing factor
         sc35 = self.comp.Dmelanogaster.getGeneByStableId("FBgn0040286")
         Orthologs = self.comp.getRelatedGenes(gene_region=sc35,
                 Relationship="ortholog_one2one")
@@ -34,7 +34,7 @@ class MZ_TestCompara(MZ_ComparaTestBase):
     
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
-        #here, it is brca2
+        # here, it is brca2
         brca2 = self.comp.Dmelanogaster.getGeneByStableId(
                                         StableId='FBgn0050169')
         orthologs = self.comp.getRelatedGenes(gene_region=brca2,

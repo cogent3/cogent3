@@ -16,8 +16,12 @@ __status__ = "alpha"
 Release = 64
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount(host, username, password)
+    args = os.environ['ENSEMBL_ACCOUNT'].split()
+    host, username, password = args[0:3]
+    kwargs = {}
+    if len(args) > 3:
+        kwargs['port'] = int(args[3])
+    account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -55,10 +59,10 @@ class TestDatabase(TestCase):
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_64_37.analysis': 61L,
-                  'homo_sapiens_core_64_37.seq_region': 55616L,
-                  'homo_sapiens_core_64_37.assembly': 102090L,
-                  'homo_sapiens_core_64_37.qtl': 0L}
+        expect = {'homo_sapiens_core_65_37.analysis': 61L,
+                  'homo_sapiens_core_65_37.seq_region': 55616L,
+                  'homo_sapiens_core_65_37.assembly': 102090L,
+                  'homo_sapiens_core_65_37.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]
