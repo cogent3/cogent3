@@ -155,8 +155,13 @@ class Genome(object):
         return condition
     
     def _build_gene_query(self, db, condition, gene_table, gene_id_table, xref_table=None):
-        join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id==gene_table.c.gene_id)
-        select_obj = [gene_id_table.c.stable_id, gene_table]
+        if gene_id_table is None: # Ensembl releases later than >= 65
+            join_obj = gene_table
+            select_obj = [gene_table]
+        else:
+            join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id==gene_table.c.gene_id)
+            select_obj = [gene_id_table.c.stable_id, gene_table]
+        
         if db.Type == 'core':
             join_obj = join_obj.outerjoin(xref_table, gene_table.c.display_xref_id==xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
@@ -186,11 +191,20 @@ class Genome(object):
                          BioType=None, synonym=None, like=True):
         xref_table = [None, db.getTable('xref')][db.Type == 'core']
         gene_table = db.getTable('gene')
-        gene_id_table = db.getTable('gene_stable_id')
+        
+        # after release 65, the gene_id_table is removed. The following is to maintain
+        # support for earlier releases
+        release_ge_65 = False
+        if hasattr(gene_table.c, "stable_id"):
+            release_ge_65 = True
+        
+        gene_id_table = [db.getTable('gene_stable_id'), None][release_ge_65]
         
         assert Symbol or Description or StableId or BioType, "no valid argument provided"
         if Symbol:
             condition = xref_table.c.display_label==Symbol
+        elif StableId and release_ge_65:
+            condition = gene_table.c.stable_id==StableId
         elif StableId:
             condition = gene_id_table.c.stable_id==StableId
         else:
@@ -332,13 +346,21 @@ class Genome(object):
         """returns all genes"""
         xref_table = [None, db.getTable('xref')][db.Type == 'core']
         gene_table = db.getTable('gene')
-        gene_id_table = db.getTable('gene_stable_id')
+        
+        # after release 65, the gene_id_table is removed. The following is to maintain
+        # support for earlier releases.
+        release_ge_65 = False
+        if hasattr(gene_table.c, "stable_id"):
+            release_ge_65 = True
+        
+        gene_id_table = [db.getTable('gene_stable_id'), None][release_ge_65]
         
         # note gene records are at chromosome, not contig, level
         condition = gene_table.c.seq_region_id == query_coord.seq_region_id
         query = self._build_gene_query(db, condition, gene_table, gene_id_table, xref_table)
         query = location_query(gene_table, query_coord.EnsemblStart,
                     query_coord.EnsemblEnd, query=query, where=where_feature)
+        
         for record in query.execute():
             new = Coordinate(self, CoordName=query_coord.CoordName,
                             Start=record['seq_region_start'],
@@ -461,7 +483,13 @@ class Genome(object):
             query = var_feature_table.c.variation_name == Symbol
         
         if validated:
-            query = sql.and_(query,var_feature_table.c.validation_status!=None)
+            # in Release 65, the default validated status is now ''
+            # why?? thanks Ensembl!
+            null = None
+            if int(self.Release) >= 65:
+                null = ''
+                
+            query = sql.and_(query,var_feature_table.c.validation_status!=null)
         
         query = sql.select([var_feature_table],
                     query).order_by(var_feature_table.c.seq_region_start)

@@ -897,6 +897,10 @@ class Variation(_Region):
         self.transcript_variation_table = get_table('transcript_variation')
         self.flanking_sequence_table = get_table('flanking_sequence')
         self.allele_table = get_table('allele')
+        try:
+            self.allele_code_table = get_table('allele_code')
+        except sql.exceptions.ProgrammingError:
+            self.allele_code_table = None
         
         super(Variation, self).__init__()
         
@@ -998,9 +1002,25 @@ class Variation(_Region):
             self._cached[('AlleleFreqs')] = self.NULL_VALUE
             return
         
+        # property change from >= 65, allele ids need to be looked up in
+        # the allele_code table
+        allele_code = self.allele_code_table
+        
         self._table_rows['allele_table'] = records
-        data = [(rec['allele'], rec['frequency'], rec['sample_id'])
-                                    for rec in records if rec['sample_id']]
+        data = []
+        for rec in records:
+            if not rec['sample_id']:
+                continue
+            
+            if allele_code is None:
+                allele = rec['allele']
+            else:
+                allele_query = sql.select([allele_code.c.allele],
+                                allele_code.c.allele_code_id == rec['allele_code_id'])
+                allele = list(allele_query.execute())[0][0]
+            
+            data.append((allele, rec['frequency'], rec['sample_id']))
+        
         if not data:
             self._cached[('AlleleFreqs')] = self.NULL_VALUE
             return

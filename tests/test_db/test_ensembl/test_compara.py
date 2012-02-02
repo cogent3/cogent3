@@ -17,8 +17,12 @@ __status__ = "alpha"
 Release = 64
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
-    host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
-    account = HostAccount(host, username, password)
+    args = os.environ['ENSEMBL_ACCOUNT'].split()
+    host, username, password = args[0:3]
+    kwargs = {}
+    if len(args) > 3:
+        kwargs['port'] = int(args[3])
+    account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
 
@@ -166,7 +170,7 @@ class TestSyntenicRegions(TestCase):
         # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=538, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=548, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
@@ -174,11 +178,11 @@ class TestSyntenicRegions(TestCase):
             for species in exp_names:
                 exp_chrom = exp_names[species][2]
                 got_chrom = got_names[species][2]
-                self.assertEquals(exp_chrom, got_chrom)
+                self.assertEquals(exp_chrom.lower(), got_chrom.lower())
                 exp_start, exp_end = map(int, exp_names[species][3].split('-'))
                 got_start, got_end = map(int, got_names[species][3].split('-'))
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
-                self.assertFloatEqual(abs(slope), 1.0)
+                self.assertFloatEqual(abs(slope), 1.0, eps=1e-3)
         
     
     def test_failing_region(self):
