@@ -178,26 +178,52 @@ class TestGene(GenomeTestBase):
 
     def test_failed_ensembl_annotation(self):
         """we demonstrate a failed annotation by ensembl"""
-        # I'm including this to demonstrate that Ensembl coords aren't
-        # always right. This case has a macaque gene which we correctly
+        # I'm including this to demonstrate that Ensembl coords are
+        # complex. This case has a macaque gene which we correctly
         # infer the CDS boundaries for according to Ensembl, but the CDS
-        # length is not divisible by 3, hence our code fails.
+        # length is not divisible by 3.
         gene = self.macaq.getGeneByStableId(StableId='ENSMMUG00000001551')
         transcript = gene.getMember('ENSMMUT00000002194')
-        try:
-            # this fails because of the above length issue
-            prot_seq = transcript.ProteinSeq
-        except AssertionError:
-            pass
-        # now if you slice the CDS to be divisible by 3, you can get the same
-        # protein sequence as that at Ensembl
-        l = 3 * (transcript.getCdsLength() / 3)
-        trunc_cds = transcript.Cds[:l]
+        # the following works because we enforce the length being divisble by 3
+        # in producing ProteinSeq
+        prot_seq = transcript.ProteinSeq
+        # BUT if you work off the Cds you will need to slice the CDS to be
+        # divisible by 3 to get the same protein sequence
+        l = transcript.getCdsLength()
+        trunc_cds = transcript.Cds[: l - (l % 3)]
         prot_seq = trunc_cds.getTranslation()
         self.assertEquals(str(prot_seq),
             'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
                'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
+    
+    def test_exon_phases(self):
+        """correctly identify phase for an exon"""
+        stable_id = 'ENSG00000171408'
+        gene = self.human.getGeneByStableId(StableId=stable_id)
+        exon1 = gene.Transcripts[1].Exons[0]
+        # first two bases of codon missing
+        self.assertEquals(exon1.PhaseStart, 2)
+        # last two bases of codon missing
+        self.assertEquals(exon1.PhaseEnd, 1)
+        # can translate the sequence if we take those into account
+        seq = exon1.Seq[1:-1].getTranslation()
+        self.assertEquals(str(seq), 'HMLSKVGMWDFDIFLFDRLTN')
+    
+    def test_cds_from_outofphase(self):
+        """return a translatable Cds sequence from out-of-phase start"""
+        # canonical transcript phase end_phase
+        # ENSG00000111729 ENST00000229332 -1 -1
+        # ENSG00000177151 ENST00000317450 0 -1
+        # ENSG00000249624 ENST00000433395 1 -1
+        # ENSG00000237276 ENST00000442385 2 -1
+        # ENSG00000167744 ENST00000301411 -1 0
 
+        canon_ids = 'ENSG00000111729 ENSG00000177151 ENSG00000237276 ENSG00000167744 ENSG00000251184'.split()
+        for index, stable_id in enumerate(canon_ids):
+            gene = self.human.getGeneByStableId(StableId=stable_id)
+            transcript = gene.CanonicalTranscript
+            prot_seq = transcript.ProteinSeq
+    
     def test_gene_transcripts(self):
         """should return multiple transcripts"""
         stable_id = 'ENSG00000012048'

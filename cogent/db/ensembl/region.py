@@ -531,6 +531,7 @@ class Transcript(_StableRegion):
         except NoItemError:
             self._set_null_values(['TranslatedExons'], 'translation')
             return
+        
         self._table_rows['translation'] = record
     
     def _get_transcript(self):
@@ -674,6 +675,16 @@ class Transcript(_StableRegion):
                 full_seq = exon.Seq
                 continue
             full_seq += exon.Seq
+        
+        # check first exon PhaseStart is 0 and last exon PhaseEnd
+        if exons[0].PhaseStart > 0:
+            fill = DNA.makeSequence('N' * exons[0].PhaseStart, Name=full_seq.Name)
+            full_seq = fill + full_seq
+        
+        if exons[-1].PhaseEnd > 0:
+            fill = DNA.makeSequence('N' * exons[-1].PhaseEnd, Name=full_seq.Name)
+            full_seq += fill
+        
         self._cached['Cds'] = full_seq
     
     def _get_cds(self):
@@ -695,8 +706,12 @@ class Transcript(_StableRegion):
             return
         
         DEBUG = False
+        # enforce multiple of 3
+        cds = self.Cds
+        length = len(cds)
+        cds = cds[: length - (length % 3)]
         try:
-            cds = self.Cds.withoutTerminalStopCodon()
+            cds = cds.withoutTerminalStopCodon()
         except AssertionError:
             if not DEBUG:
                 raise
@@ -836,6 +851,26 @@ class Exon(_StableRegion):
         return self._get_cached_value('Symbol', self._make_symbol)
     
     Symbol = property(_get_symbol)
+    
+    def _make_phase(self):
+        """creates the exon phase attributes"""
+        if 'exon' not in self._table_rows:
+            self._get_exon_record()
+        
+        exon = self._table_rows['exon']
+        self._cached['PhaseStart'] = exon['phase']
+        self._cached['PhaseEnd'] = exon['end_phase']
+    
+    @property
+    def PhaseStart(self):
+        """reading frame start for this exon"""
+        return self._get_cached_value('PhaseStart', self._make_phase)
+    
+    @property
+    def PhaseEnd(self):
+        """reading frame end for this exon"""
+        return self._get_cached_value('PhaseEnd', self._make_phase)
+    
     
 
 

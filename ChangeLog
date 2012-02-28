@@ -16,6 +16,7 @@ Changes
 Bug Fixes
 ---------
 
+* improve handling of reading frames from Ensembl
 * actually included the test_ensembl/test_metazoa.py file that was
   accidentally overlooked.
 * fixed small diff in postcript output from RNAfold
