@@ -202,6 +202,8 @@ These values are known to be used by tools outside of the PyCogent code base in 
 +-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
 | option_label                  | a dictionary matching option names to "human readable" names, used in some graphical interfaces       |   Q          |
 +-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
+| script_usage_output_to_remove | a list of output dirs/files that must be cleaned up if running script_usage examples multiple times   |   Q          |
++-------------------------------+-------------------------------------------------------------------------------------------------------+--------------+
 
 * "Used by" key : Q: `QIIME <http://www.qiime.org>`_; PG: PyCogent beta GUI; T: tax2tree.
 
