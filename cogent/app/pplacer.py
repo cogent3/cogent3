@@ -146,7 +146,7 @@ class Pplacer(CommandLineApplication):
         result = {}
         result['json'] = ResultPath(Path=join(output_dir,
                                 splitext(split(self._input_filename)[-1])[0] + \
-                                '.json'))
+                                '.jplace'))
         return result
 
 def insert_sequences_into_tree(aln, moltype, params={},
