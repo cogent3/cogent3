@@ -11,9 +11,10 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     f_value, f_two_sample, calc_contingency_expected, G_fit_from_Dict2D, \
     chi_square_from_Dict2D, MonteCarloP, \
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
-    regress_R2, permute_2d, mantel, kendall_correlation, std, median,\
-    get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test,\
-    ANOVA_one_way, mw_test, mw_boot
+    regress_R2, permute_2d, mantel, mantel_test, _flatten_lower_triangle, \
+    pearson, kendall_correlation, std, median, get_values_from_matrix, \
+    get_ltm_cells, distance_matrix_permutation_test, ANOVA_one_way, mw_test, \
+    mw_boot
 
 from numpy import array, reshape, arange, ones, testing, cov, sqrt
 from cogent.util.dict2d import Dict2D
@@ -23,7 +24,7 @@ from cogent.maths.stats.util import Numbers
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
-                    "Sandra Smit", "Daniel McDonald"]
+               "Sandra Smit", "Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "Rob Knight"
@@ -730,15 +731,102 @@ class Ftest(TestCase):
         """mantel should be significant for same matrix, not for random"""
         a = reshape(arange(25), (5,5))
         b = a.copy()
-        b[-1,-1] = 26    #slight change
         m = mantel(a, b, 1000)
         #closely related -- should be significant
-        assert m < 0.05
+        self.assertTrue(m < 0.05)
         c = reshape(ones(25), (5,5))
-        c[-1,-1] = 3
+        c[1, 0] = 3.0
         #not related -- should not be significant
         m = mantel(a,c,1000)
-        assert m > 0.3, m
+        self.assertTrue(m > 0.1)
+
+    def test_mantel_test_one_sided_greater(self):
+        """Test one-sided mantel test (greater)."""
+        # This test output was verified by R (their mantel function does a
+        # one-sided greater test).
+        m1 = array([[0, 1, 2], [1, 0, 3], [2, 3, 0]])
+        m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
+        p, stat, perms = mantel_test(m1, m1, 999, alt='greater')
+        self.assertTrue(p > 0.09 and p < 0.25)
+        self.assertFloatEqual(stat, 1.0)
+        self.assertEqual(len(perms), 999)
+
+        p, stat, perms = mantel_test(m1, m2, 999, alt='greater')
+        self.assertTrue(p > 0.2 and p < 0.5)
+        self.assertFloatEqual(stat, 0.755928946018)
+        self.assertEqual(len(perms), 999)
+
+    def test_mantel_test_one_sided_less(self):
+        """Test one-sided mantel test (less)."""
+        # This test output was verified by R (their mantel function does a
+        # one-sided greater test, but I modified their output to do a one-sided
+        # less test).
+        m1 = array([[0, 1, 2], [1, 0, 3], [2, 3, 0]])
+        m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
+        m3 = array([[0, 0.5, 0.25], [0.5, 0, 0.1], [0.25, 0.1, 0]])
+        p, stat, perms = mantel_test(m1, m1, 999, alt='less')
+        self.assertFloatEqual(p, 1.0)
+        self.assertFloatEqual(stat, 1.0)
+        self.assertEqual(len(perms), 999)
+
+        p, stat, perms = mantel_test(m1, m2, 999, alt='less')
+        self.assertTrue(p > 0.6 and p < 1.0)
+        self.assertFloatEqual(stat, 0.755928946018)
+        self.assertEqual(len(perms), 999)
+
+        p, stat, perms = mantel_test(m1, m3, 999, alt='less')
+        self.assertTrue(p > 0.1 and p < 2.5)
+        self.assertFloatEqual(stat, -0.989743318611)
+        self.assertEqual(len(perms), 999)
+
+    def test_mantel_test_two_sided(self):
+        """Test two-sided mantel test."""
+        # This test output was verified by R (their mantel function does a
+        # one-sided greater test, but I modified their output to do a two-sided
+        # test).
+        m1 = array([[0, 1, 2], [1, 0, 3], [2, 3, 0]])
+        m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
+        m3 = array([[0, 0.5, 0.25], [0.5, 0, 0.1], [0.25, 0.1, 0]])
+        p, stat, perms = mantel_test(m1, m1, 999, alt='two sided')
+        self.assertTrue(p > 0.20 and p < 0.45)
+        self.assertFloatEqual(stat, 1.0)
+        self.assertEqual(len(perms), 999)
+
+        p, stat, perms = mantel_test(m1, m2, 999, alt='two sided')
+        self.assertTrue(p > 0.6 and p < 0.75)
+        self.assertFloatEqual(stat, 0.755928946018)
+        self.assertEqual(len(perms), 999)
+
+        p, stat, perms = mantel_test(m1, m3, 999, alt='two sided')
+        self.assertTrue(p > 0.2 and p < 0.45)
+        self.assertFloatEqual(stat, -0.989743318611)
+        self.assertEqual(len(perms), 999)
+
+    def test_mantel_test_invalid_input(self):
+        """Test mantel test with invalid input."""
+        self.assertRaises(ValueError, mantel_test, array([[1]]), array([[1]]),
+                          999, alt='foo')
+        self.assertRaises(ValueError, mantel_test, array([[1]]),
+            array([[1, 2], [3, 4]]), 999)
+        self.assertRaises(ValueError, mantel_test, array([[1]]),
+            array([[1]]), 0)
+        self.assertRaises(ValueError, mantel_test, array([[1]]),
+            array([[1]]), -1)
+
+    def test_flatten_lower_triangle(self):
+        """Test flattening various dms' lower triangulars."""
+        self.assertEqual(_flatten_lower_triangle(array([[8]])), [])
+        self.assertEqual(_flatten_lower_triangle(array([[1, 2], [3, 4]])), [3])
+        self.assertEqual(_flatten_lower_triangle(array([[1, 2, 3], [4, 5, 6],
+            [7, 8, 9]])), [4, 7, 8])
+
+    def test_pearson(self):
+        """Test pearson correlation method on valid data."""
+        # This test output was verified by R.
+        self.assertFloatEqual(pearson([1, 2], [1, 2]), 1.0)
+        self.assertFloatEqual(pearson([1, 2, 3], [1, 2, 3]), 1.0)
+        self.assertFloatEqual(pearson([1, 2, 3], [1, 2, 4]), 0.9819805)
+
 
 class MannWhitneyTests(TestCase):
     """check accuracy of Mann-Whitney implementation"""
