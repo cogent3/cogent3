@@ -23,8 +23,8 @@ from random import choice
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
-                    "Sandra Smit", "Micah Hamady", "Daniel McDonald",
-                    "Greg Caporaso"]
+               "Sandra Smit", "Micah Hamady", "Daniel McDonald",
+               "Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "Rob Knight"
@@ -1104,19 +1104,83 @@ def permute_2d(m, p):
     return take(transpose(r_t), p, axis=0)
 
 def mantel(m1, m2, n):
-    """Compares two distance matrices. Reports P-value for correlation."""
+    """Compares two distance matrices. Reports P-value for correlation.
+    
+    The p-value is based on a two-sided test.
+
+    This function is retained for backwards-compatibility. Please use
+    mantel_test() for more control over how the test is performed.
+    """
+    return mantel_test(m1, m2, n)[0]
+
+def mantel_test(m1, m2, n, alt="two sided"):
+    """Runs a Mantel test on two distance matrices.
+
+    Returns the p-value, Mantel correlation statistic, and a list of Mantel
+    correlation statistics for each permutation test.
+
+    Arguments:
+        m1  - the first distance matrix to use in the test (should be a numpy
+            array or convertible to a numpy array)
+        m2  - the second distance matrix to use in the test (should be a numpy
+            array or convertible to a numpy array)
+        n   - the number of permutations to test when calculating the p-value
+        alt - the type of alternative hypothesis to test (can be either
+            'two-sided' for a two-sided test, 'greater' or 'less' for one-sided
+            tests)
+    """
+    # Perform some sanity checks on our input.
+    if alt not in ("two sided", "greater", "less"):
+        raise ValueError("Unrecognized alternative hypothesis. Must be either "
+                         "'two sided', 'greater', or 'less'.")
     m1, m2 = asarray(m1), asarray(m2)
-    m1_flat = ravel(m1)
+    if m1.shape != m2.shape:
+        raise ValueError("Both matrices must be the same size.")
+    if n < 1:
+        raise ValueError("The number of permutations must be greater than or "
+                         "equal to one.")
+
+    # Get a flattened list of lower-triangular matrix elements (excluding the
+    # diagonal) in column-major order. Use these values to calculate the
+    # correlation statistic.
+    m1_flat, m2_flat = _flatten_lower_triangle(m1), _flatten_lower_triangle(m2)
+    orig_stat = pearson(m1_flat, m2_flat)
+
+    # Run our permutation tests so we can calculate a p-value for the test.
     size = len(m1)
-    orig_stat = abs(pearson(m1_flat, ravel(m2)))
     better = 0
+    perm_stats = []
     for i in range(n):
-        #p2 = m2[permutation(size)][:, permutation(size)]
-        p2 = permute_2d(m2, permutation(size))
-        r = abs(pearson(m1_flat, ravel(p2)))
-        if r >= orig_stat:
-            better += 1
-    return better/n
+        perm = permute_2d(m1, permutation(size))
+        perm_flat = _flatten_lower_triangle(perm)
+        r = pearson(perm_flat, m2_flat)
+
+        if alt == 'two sided':
+            if abs(r) >= abs(orig_stat):
+                better += 1
+        else:
+            if ((alt == 'greater' and r >= orig_stat) or
+                (alt == 'less' and r <= orig_stat)):
+                better += 1
+        perm_stats.append(r)
+    return (better + 1) / (n + 1), orig_stat, perm_stats
+
+def _flatten_lower_triangle(matrix):
+    """Returns a list containing the flattened lower triangle of the matrix.
+
+    The returned list will contain the elements in column-major order. The
+    diagonal will be excluded.
+
+    Arguments:
+        matrix - numpy array containing the matrix data
+    """
+    matrix = asarray(matrix)
+    flattened = []
+    for col_num in range(matrix.shape[1]):
+        for row_num in range(matrix.shape[0]):
+            if col_num < row_num:
+                    flattened.append(matrix[row_num][col_num])
+    return flattened
 
 def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     """returns the statistic (tau) and probability from Kendall's non-parametric
