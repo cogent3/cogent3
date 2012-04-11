@@ -7,6 +7,7 @@
 """
 from urllib import urlopen, urlretrieve
 from xml.dom.minidom import parseString
+from xml.etree.ElementTree import parse
 from cogent.db.util import UrlGetter, expand_slice,\
     make_lists_of_expanded_slices_of_set_size,make_lists_of_accessions_of_set_size
 from time import sleep
@@ -416,14 +417,63 @@ def get_taxa_names_lineages(lines):
             yield curr
 
 
+#def taxon_ids_to_names_and_lineages(ids, retmax=1000):
+#    """Yields taxon id, name and lineage for a set of taxon ids."""
+#    e = EUtils(db='taxonomy', rettype='TxInfo', retmode='xml', retmax=retmax,
+#        DEBUG=False)
+#    ids = fix_taxon_ids(ids)
+#    result = e[ids].read().splitlines()
+#    #print result
+#    return get_taxa_names_lineages(result)
+
+def parse_taxonomy_using_elementtree_xml_parse(search_result):
+    """Returns upper level XML taxonomy information from GenBank.
+        search_result: StringIO object
+    
+    Returns list of all results in the form of:
+        [{result_01},{result_02},{result_03}]
+    For each dict the key and values would be:
+        key,value = xml label, e.g. [{'Lineage':'Bacteria; Proteobacteria...',
+                    'TaxId':'28901', 'ScientificName':'Salmonella enterica'},
+                    {...}...]
+    """
+    xml_data = parse(search_result)
+    xml_data_root = xml_data.getroot()
+    
+    tax_info_list = ['']
+    
+    l = []
+    for individual_result in xml_data_root:
+        children = list(individual_result)
+        d = {}
+        for child in children:
+            key = child.tag
+            value = child.text.strip()
+            # We only want to retain the upper-level taxonomy information
+            # from the xml parser and ignore all the rest of the information.
+            # May revisit this in the future so that we can extract
+            # 'GeneticCode', 'GCId', 'GCName', etc... <-- These values at this 
+            # level have whitespace, so we just ignore. Must traverse deeper to
+            # obtain this information. Again, may implement in the future if 
+            #needed
+            if value == '':
+                continue
+            else:
+                d[key] = value
+        l.append(d)
+    return l
+
 def taxon_ids_to_names_and_lineages(ids, retmax=1000):
     """Yields taxon id, name and lineage for a set of taxon ids."""
-    e = EUtils(db='taxonomy', rettype='TxInfo', retmode='xml', retmax=retmax,
+    e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
         DEBUG=False)
-    ids = fix_taxon_ids(ids)
-    result = e[ids].read().splitlines()
-    #print result
-    return get_taxa_names_lineages(result)
+    fids = fix_taxon_ids(ids)
+    #print '\nids: ',fids
+    result = StringIO()
+    result.write(e[fids].read())
+    result.seek(0)
+    data = parse_taxonomy_using_elementtree_xml_parse(result)
+    return [(i['TaxId'],i['ScientificName'],i['Lineage'])for i in data]
 
 def taxon_ids_to_lineages(ids, retmax=1000):
     """Returns full taxonomy (excluding species) from set of taxon ids.
@@ -433,11 +483,23 @@ def taxon_ids_to_lineages(ids, retmax=1000):
     associated with the specific ids.
     """
     ids = fix_taxon_ids(ids)
-    e = EUtils(db='taxonomy', rettype='TxInfo', retmode='xml', retmax=retmax,
+    e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
         DEBUG=False)
     result = e[ids].read().splitlines()
     #print result
     return taxon_lineage_extractor(result)
+
+#def taxon_ids_to_names(ids, retmax=1000):
+#    """Returns names (e.g. species) from set of taxon ids.
+#
+#    WARNING: Resulting lineages aren't in the same order as input. Use
+#    taxon_ids_to_name_and_lineage if you need the names and/or lineages 
+#    associated with the specific ids.
+#    """
+#    e = EUtils(db='taxonomy', rettype='brief', retmode='text', retmax=retmax,
+#        DEBUG=False)
+#    transformed_ids = fix_taxon_ids(ids)
+#    return e[transformed_ids].read().splitlines()
 
 def taxon_ids_to_names(ids, retmax=1000):
     """Returns names (e.g. species) from set of taxon ids.
@@ -446,10 +508,14 @@ def taxon_ids_to_names(ids, retmax=1000):
     taxon_ids_to_name_and_lineage if you need the names and/or lineages 
     associated with the specific ids.
     """
-    e = EUtils(db='taxonomy', rettype='brief', retmode='text', retmax=retmax,
+    e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
         DEBUG=False)
     transformed_ids = fix_taxon_ids(ids)
-    return e[transformed_ids].read().splitlines()
+    h = StringIO()
+    h.write(e[transformed_ids].read())
+    h.seek(0)
+    result = parse_taxonomy_using_elementtree_xml_parse(h)
+    return [i['ScientificName'] for i in result]
 
 def fix_taxon_ids(ids):
     """Fixes list of taxonomy ids by adding [taxid] to each.
