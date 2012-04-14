@@ -5,6 +5,19 @@ Calculations performed as described in:
 
 Principles of Multivariate analysis: A User's Perspective. W.J. Krzanowski 
 Oxford University Press, 2000. p106.
+
+Note: There are differences in the signs of some of the eigenvectors between
+R's PCoA function (cmdscale) and the implementation provided here. This is due
+to numpy's eigh() function. The eigenvalues returned by eigh() match those
+returned by R's eigen() function, but some of the eigenvectors have swapped
+signs. Numpy's eigh() function uses a different set of Fortran routines (part
+of LAPACK) to calculate the eigenvectors than R does. Numpy uses DSYEVD and
+ZHEEVD, while R uses DSYEVR and ZHEEV. As far as the Fortran documentation
+goes, those routines should produce the same results, they just use different
+algorithms to obtain them. The differences in sign do not affect the overall
+results as they are just a different reflection. R's cmdscale documentation
+also confirms the possibility of obtaining different signs between different R
+platforms. Please feel free to send questions to jai.rideout@gmail.com.
 """
 from numpy import shape, add, sum, sqrt, argsort, transpose, newaxis
 from numpy.linalg import eigh
@@ -15,7 +28,8 @@ from cogent.cluster.UPGMA import inputs_from_dict2D
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
-               "Gavin Huttley", "Justin Kuczynski", "Daniel McDonald"]
+               "Gavin Huttley", "Justin Kuczynski", "Daniel McDonald",
+               "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "Catherine Lozupone"
