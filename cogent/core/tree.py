@@ -1407,6 +1407,45 @@ class TreeNode(object):
             if n.Name in mapping:
                 n.Name = mapping[n.Name]
 
+    def multifurcating(self, num, eps=None, constructor=None):
+        """Return a new tree with every node having num or few children
+
+        num : the number of children a node can have max
+        eps : default branch length to set if self or constructor is of
+            PhyloNode type
+        constructor : a TreeNode or subclass constructor. If None, uses self
+        """
+        if num < 2:
+            raise TreeError, "Minimum number of children must be >= 2"
+
+        if eps is None:
+            eps = 0.0
+
+        if constructor is None:
+            constructor = self.__class__
+
+        if hasattr(constructor, 'Length'):
+            set_branchlength = True
+        else:
+            set_branchlength = False
+
+        new_tree = self.copy()
+
+        for n in new_tree.preorder(include_self=True):
+            while len(n.Children) > num:
+                new_node = constructor(Children=n.Children[-num:])
+
+                if set_branchlength:
+                    new_node.Length = eps
+
+                n.append(new_node)
+
+        return new_tree
+
+    def bifurcating(self, eps=None, constructor=None):
+        """Wrap multifurcating with a num of 2"""
+        return self.multifurcating(2, eps, constructor)
+
     def getNodesDict(self):
         """Returns a dict keyed by node name, value is node
 
@@ -1693,17 +1732,6 @@ class PhyloNode(TreeNode):
         result = constructor(edge, tuple(children))
         if parent is None:
             result.Name = "root"
-        return result
-    
-    def bifurcating(self, constructor=None):
-        # With every node having 2 or fewer children.
-        if constructor is None:
-            constructor = self._default_tree_constructor()
-        children = [child.bifurcating(constructor) for child in self.Children]
-        while len(children) > 2:
-            extra = constructor(None, tuple(children[-2:]))
-            children[-2:] = [extra]
-        result = constructor(self, tuple(children))
         return result
     
     def balanced(self):
