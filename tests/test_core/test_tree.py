@@ -154,6 +154,41 @@ class TreeNodeTests(TestCase):
         self.assertEqual(self.BigParent.getNewick(), \
                 '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
+    def test_multifurcating(self):
+        """Coerces nodes to have <= n children"""
+        t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
+        t = DndParser(t_str)
+        
+        # can't break up easily... sorry 80char
+        exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
+        obs = t.multifurcating(2)
+        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+        self.assertNotEqual(t.getNewick(with_distances=True),
+                            obs.getNewick(with_distances=True))
+
+        obs = t.multifurcating(2, 0.5)
+        exp_str = "((a:1.0,(b:2.0,c:3.0):0.5)d:4.0,((e:5.0,(f:6.0,g:7.0):0.5)h:8.0,(i:9.0,(j:10.0,k:11.0):0.5)l:12.0):0.5)m:14.0;"
+        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+
+        t_str = "((a,b,c)d,(e,f,g)h,(i,j,k)l)m;"
+        exp_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
+        t = DndParser(t_str, constructor=TreeNode)
+        obs = t.multifurcating(2)
+        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+        obs = t.multifurcating(2, eps=10) # no effect on TreeNode type
+        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+
+        self.assertRaises(TreeError, t.multifurcating, 1)
+
+    def test_bifurcating(self):
+        """Coerces nodes to have <= 2 children"""
+        t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
+        t = DndParser(t_str)
+        
+        # can't break up easily... sorry 80char
+        exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
+        obs = t.bifurcating()
+
     def test_cmp(self):
         """TreeNode cmp should compare using id"""
         nodes = self.TreeNode
