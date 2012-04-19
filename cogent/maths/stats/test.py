@@ -1126,7 +1126,7 @@ def mantel_test(m1, m2, n, alt="two sided"):
             array or convertible to a numpy array)
         n   - the number of permutations to test when calculating the p-value
         alt - the type of alternative hypothesis to test (can be either
-            'two-sided' for a two-sided test, 'greater' or 'less' for one-sided
+            'two sided' for a two-sided test, 'greater' or 'less' for one-sided
             tests)
     """
     # Perform some sanity checks on our input.
