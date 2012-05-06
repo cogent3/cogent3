@@ -165,7 +165,20 @@ class functionTests(TestCase):
         mtx1expected = array([[0, 21.1/27.1],
                                 [21.1/27.1, 0]],'d')
         self.assertFloatEqual(dist_bray_curtis(self.mtx1), mtx1expected)
-    
+
+    def test_dist_bray_curtis_faith(self):
+        """tests dist_bray_curtis_faith
+        
+        tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
+        by hand"""
+
+        
+        self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4,4)*1,'d'))
+        
+        mtx1expected = array([[0, 21.1/27.1],
+                                [21.1/27.1, 0]],'d')
+        self.assertFloatEqual(dist_bray_curtis_faith(self.mtx1), mtx1expected)
+
     def test_dist_soergel(self):
         """tests dist_soergel
         
@@ -490,6 +503,33 @@ class functionTests(TestCase):
                [ 0.46368092,  0.39795395,  0.        ]]
         dist = dist_specprof(self.mat_test)
         self.assertFloatEqual(dist, exp)
+
+    def test_dist_bray_curtis_magurran1(self):
+        """ zero values should return zero dist, or 1 with nonzero samples"""
+        res = dist_bray_curtis_magurran(
+            numpy.array([[0,0,0],
+                        [0,0,0],
+                        [1,1,1],
+                        ]))
+        self.assertFloatEqual(res,numpy.array([
+                        [0,0,1],
+                        [0,0,1],
+                        [1,1,0],
+                        ]))
+        
+
+    def test_dist_bray_curtis_magurran2(self):
+        """ should match hand-calculated values"""
+        res = dist_bray_curtis_magurran(
+            numpy.array([[1,4,3],
+                        [1,3,5],
+                        [0,2,0],
+                        ]))
+        self.assertFloatEqual(res,numpy.array([
+                        [0,1-14/17,1-(.4)],
+                        [1-14/17,0,1-4/11],
+                        [1-.4,1-4/11,0],
+                        ]))
     
     #def test_no_dupes(self):
         #""" here we check all distance functions in distance_transform for 
