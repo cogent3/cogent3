@@ -53,6 +53,7 @@ EXAMPLE USAGE:
     
 """
 from __future__ import division
+import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
     mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
     sum, square, asmatrix, asarray, multiply, min, rank, any, all, isfinite,
@@ -208,6 +209,62 @@ def dist_bray_curtis(datamtx, strict=True):
                 cur_d = abs_v/v
 
             dists[i][j] = dists[j][i] = cur_d
+    return dists
+
+dist_bray_curtis_faith = dist_bray_curtis
+
+def dist_bray_curtis_magurran(datamtx, strict=True):
+    """ returns bray curtis distance (quantitative sorensen) btw rows
+    
+    dist(a,b) = 2*sum on i( min( a_i, b_i)) / sum on i( (a_i + b_i) )
+    
+    see for example:
+    Magurran 2004
+    Bray 1957
+
+    * comparisons are between rows (samples)
+    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    strict==False
+    * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
+    for sane input data
+    * two rows of all zeros returns 0 distance between them
+    * if strict==True, raises ValueError if any of the input data is negative,
+    not finite, or if the input data is not a rank 2 array (a matrix).
+    * if strict==False, assumes input data is a matrix with nonnegative 
+    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
+    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
+    """
+    if strict:
+        if not numpy.all(numpy.isfinite(datamtx)):
+            raise ValueError("non finite number in input matrix")
+        if numpy.any(datamtx<0.0):
+            raise ValueError("negative value in input matrix")
+        if numpy.rank(datamtx) != 2:
+            raise ValueError("input matrix not 2D")
+        numrows, numcols = numpy.shape(datamtx)
+    else:
+        try:
+            numrows, numcols = numpy.shape(datamtx)
+        except ValueError:
+            return numpy.zeros((0,0),'d')
+
+    if numrows == 0 or numcols == 0:
+        return numpy.zeros((0,0),'d')
+
+    dists = numpy.zeros((numrows,numrows),'d')
+    for i in range(numrows):
+        r1 = datamtx[i,:]
+        r1sum = r1.sum()
+        for j in range(i):
+            r2 = datamtx[j,:]
+            r2sum = r2.sum()
+            minvals = numpy.min([r1,r2],axis=0)
+
+            if (r1sum + r2sum) == 0:
+                dists[i][j] = dists[j][i] = 0.0
+            else:
+                dissim = 1 - ( (2*minvals.sum()) / (r1sum + r2sum) )
+                dists[i][j] = dists[j][i] = dissim
     return dists
 
 def dist_canberra(datamtx, strict=True):
