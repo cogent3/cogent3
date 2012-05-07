@@ -342,6 +342,43 @@ We then get a cogent ``Alignment`` object, requesting that sequences be annotate
     >>> print repr(aln)
     3 x 99006 dna alignment: Homo sapiens:chromosome:13:3288...
 
+Parsing syntenic regions
+------------------------
+
+Not all regions in a given genome have a syntenic alignment, and some have more than one alignment.
+To illustrate these cases, we can consider an alignment between mouse and human, using the ``PECAN`` 
+alignment method in the vertebrates clade:
+
+.. doctest::
+
+    >>> species = ["mouse", "human"]
+    >>> compara = Compara(species, Release=64, account=account)
+    >>> clade = "vertebrates"
+    >>> chrom, start, end, strand = "X", 165754928, 165755079, "-"
+    >>> regions = compara.getSyntenicRegions(Species="mouse", CoordName=chrom, 
+    ...                                      Start=start, End=end, align_method="PECAN", 
+    ...                                      align_clade=clade, Strand=strand)     
+    >>> aligned_pairs = [r for r in regions]
+    >>> alignment = aligned_pairs[0]                                                            
+    >>> aligned_regions = [m for m in alignment.Members
+    ...                    if m.Region is not None]
+    >>> source_region, target_region = aligned_regions
+    >>> print source_region.Location.CoordName, source_region.Location.Start, source_region.Location.End
+    X 165754928 165755079
+    >>> print target_region.Location.CoordName, target_region.Location.Start, target_region.Location.End
+    X 11132954 11133105
+
+.. note:: We took the aligned regions from the ``regions`` generator and put them in a list for convenience.
+
+If there are no regions returned (i.e. ``num_pairs`` is zero), then no alignment could be found. In the case of 
+the above region, an exon in the *Hccs* gene, there is only one alignment. We then accessed the coordinates of the 
+alignment using the ``Members`` attribute of the region. Each element of ``aligned_regions`` is a ``SyntenicRegion``
+instance, whose coordinates can be pulled from the ``Location`` attribute.
+
+This example shows that mouse region ``X:165754928-165755079`` aligns only to human region ``X:11132954-11133105``.
+
+.. note:: Sometimes, the genomic coordinates given to ``getSyntenicRegions`` will contain multiple alignments between the pair of genomes, in which case two or more regions will be returned in ``aligned_pairs``.
+
 Getting related genes
 ---------------------
 

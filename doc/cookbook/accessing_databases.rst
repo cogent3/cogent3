@@ -2,7 +2,7 @@
 Accessing databases
 *******************
 
-.. Gavin Huttley, Kristian Rother, Patrick Yannul, Rob Knight
+.. Gavin Huttley, Kristian Rother, Patrick Yannul, Rob Knight, Yarden Katz
 
 NCBI
 ====
