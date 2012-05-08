@@ -28,14 +28,14 @@ class MothurTests(TestCase):
             '>bbbbbb\n----TATCGCTTCGACGATTCTCTGATAGAGA\n'
             )
         self.small_otus = (
-            'unique\t3\tcccccc\tbbbbbb\taaaaaa\t\n'
-            '0.62\t2\tbbbbbb,cccccc\taaaaaa\t\n'
-            '0.67\t1\taaaaaa,bbbbbb,cccccc\t\n'
+            'unique\t3\taaaaaa\tcccccc\tbbbbbb\t\n'
+            '0.62\t2\taaaaaa\tbbbbbb,cccccc\t\n'
+            '0.67\t1\tbbbbbb,cccccc,aaaaaa\t\n'
             )
         self.small_otus_parsed = [
-            (float('0'), [['cccccc'], ['bbbbbb'], ['aaaaaa']]),
-            (float('0.62'), [['bbbbbb', 'cccccc'], ['aaaaaa']]),
-            (float('0.67'), [['aaaaaa', 'bbbbbb', 'cccccc']]),
+            (float('0'), [['aaaaaa'], ['cccccc'], ['bbbbbb']]),
+            (float('0.62'), [['aaaaaa'], ['bbbbbb', 'cccccc']]),
+            (float('0.67'), [['bbbbbb', 'cccccc', 'aaaaaa']]),
             ]
         self.complement_fasta = (
             '>a\n--AGGGGTAATAA--\n'
@@ -43,9 +43,9 @@ class MothurTests(TestCase):
             '>c\n-------AAAAAA--\n'
             )
         self.complement_otus = (
-            'unique\t3\tc\ta\tb\t\n'
-            '0.50\t2\ta,c\tb\t\n'
-            '1.00\t1\tb,a,c\t\n'
+            'unique\t3\ta\tb\tc\t\n'
+            '0.43\t2\tc,a\tb\t\n'
+            '1.00\t1\tb,c,a\t\n'
             )
 
     def test_get_help(self):
