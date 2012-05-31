@@ -2,7 +2,7 @@
 
 """Parses MEME output file and creates Module objects.
 
-    Supports MEME version 3.0 - 4.0
+    Supports MEME version 3.0 - 4.8.1
 """
 from cogent.parse.record_finder import LabeledRecordFinder
 from cogent.parse.record import DelimitedSplitter
@@ -67,7 +67,8 @@ def getCommandModuleBlocks(main_block):
 def getSummaryBlock(module_blocks):
     """Returns summary of motifs block.
     """
-    meme_summary = LabeledRecordFinder(lambda x: x.startswith('SUMMARY'))
+    meme_summary = LabeledRecordFinder(lambda x: x.startswith('SUMMARY'),\
+        constructor=None,ignore=lambda x: x.startswith(' '))
     summary_block = list(meme_summary(module_blocks))
     return summary_block[1]
 
@@ -206,6 +207,7 @@ def extractSummaryData(summary_block):
     """
     #Get slice of necessary data from summary_block
     summary = summary_block[7:]
+    #print summary
     summary_dict = {}
     #Split on whitespace
     for i in xrange(len(summary)):
@@ -215,6 +217,8 @@ def extractSummaryData(summary_block):
         #Stop when '--------------------' is found: end of data
         if seq[0].startswith('--------------------'):
             break
+        if len(seq) < 3:
+            continue
         summary_dict[seq[0]] = float(seq[1])
     return {'CombinedP':summary_dict}
 
