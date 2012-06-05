@@ -5,7 +5,8 @@ from numpy import array, log, sqrt, exp
 from math import e
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_species, singles, \
-    doubles, osd, margalef, menhinick, dominance, simpson, reciprocal_simpson,\
+    doubles, osd, margalef, menhinick, dominance, simpson, \
+    simpson_reciprocal, reciprocal_simpson,\
     shannon, equitability, berger_parker_d, mcintosh_d, brillouin_d, \
     strong, kempton_taylor_q, fisher_alpha, \
     mcintosh_e, heip_e, simpson_e, robbins, robbins_confidence, \
@@ -88,6 +89,11 @@ class diversity_tests(TestCase):
         """reciprocal_simpson should match hand-calculated results"""
         c = array([1,0,2,5,2])
         self.assertFloatEqual(reciprocal_simpson(c), 1/.66)
+
+    def test_simpson_reciprocal(self):
+        """simpson_reciprocal should match 1/D  results"""
+        c = array([1,0,2,5,2])
+        self.assertFloatEqual(simpson_reciprocal(c), 1./dominance(c))
 
     def test_shannon(self):
         """shannon should match hand-calculated values"""
