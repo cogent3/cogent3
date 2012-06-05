@@ -78,6 +78,10 @@ def reciprocal_simpson(counts):
     """1/Simpson's index"""
     return 1.0/simpson(counts)
 
+def simpson_reciprocal(counts):
+    """1/D (1/dominance)"""
+    return 1.0/dominance(counts)
+
 def shannon(counts, base=2):
     """Returns Shannon entropy of counts, default in bits."""
     freqs = counts/float(counts.sum())
