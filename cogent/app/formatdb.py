@@ -93,7 +93,6 @@ def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\
         HALT_EXEC: halt just before running the formatdb command and
          print the command -- useful for debugging
     """
-    
     fasta_dir, fasta_filename = split(fasta_path)
     if not output_dir:
         output_dir = fasta_dir or '.'
@@ -147,7 +146,7 @@ def build_blast_db_from_fasta_file(fasta_file,is_protein=False,\
     fasta_f.close()
     
     blast_db, db_filepaths = build_blast_db_from_fasta_path(\
-     fasta_path, is_protein=False, output_dir=None, HALT_EXEC=HALT_EXEC)
+     fasta_path, is_protein=is_protein, output_dir=None, HALT_EXEC=HALT_EXEC)
      
     db_filepaths.append(fasta_path)
     
