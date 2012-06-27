@@ -934,6 +934,11 @@ class CommandLineApplicationTests(TestCase):
         app = CLAppTester()
         app._command = None
         self.assertRaises(ApplicationError, app._get_base_command)
+    
+    def test_rejected_exit_status(self):
+        """CLAppTester_reject_exit_status results in useful error """
+        app = CLAppTester_reject_exit_status()
+        self.assertRaises(ApplicationError,app)
 
     def test_getTmpFilename(self):
         """TmpFilename should return filename of correct length"""
@@ -1171,6 +1176,10 @@ class CLAppTester(CommandLineApplication):
 class CLAppTester_no_working_dir(CLAppTester):
     _working_dir = None
 
+class CLAppTester_reject_exit_status(CLAppTester):
+    def _accept_exit_status(self,exit_status):
+        return False
+
 class CLAppTester_bad_fixed_file(CLAppTester):
     
     def _get_result_paths(self,data):
@@ -1192,6 +1201,7 @@ class CLAppTester_bad_fixed_file(CLAppTester):
 class CLAppTester_bad_fixed_file_w_handler(CLAppTester_bad_fixed_file):
     def _handle_app_result_build_failure(self,out,err,exit_status,result_paths):
         return "Called self._handle_app_result_build_failure"
+
         
 class CLAppTester_space_in_command(CLAppTester):
     _command = '"/tmp/CLApp Tester.py"'
