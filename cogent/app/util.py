@@ -245,8 +245,10 @@ class CommandLineApplication(Application):
         # appliciation
         if not self._accept_exit_status(exit_status):
             raise ApplicationError, \
-             'Unacceptable application exit status: %s, command: %s'\
-                % (str(exit_status),command)
+             'Unacceptable application exit status: %s\n' % str(exit_status) +\
+             'Command:\n%s\nStdOut:\n%s\nStdErr:\n%s\n' % (command, 
+                                                           open(outfile).read(), 
+                                                           open(errfile).read())
         # bash returns 127 as the exit status if the command could not
         # be found -- raise an ApplicationError on status == 127.
         # elif exit_status == 127:
