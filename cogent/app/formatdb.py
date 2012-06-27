@@ -77,6 +77,11 @@ class FormatDb(CommandLineApplication):
                 result_path = ResultPath(Path=file_path, IsWritten=True)
                 result[key] = result_path
         return result
+
+    def _accept_exit_status(self,exit_status):
+        """ Return True when the exit status was 0
+        """
+        return exit_status == 0
         
 def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\
     output_dir=None,HALT_EXEC=False):
