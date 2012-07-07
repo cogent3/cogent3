@@ -32,6 +32,9 @@ _locus_parser = FieldWrapper(locus_fields)
 #need to turn off line stripping, because whitespace is significant
 GbFinder = DelimitedRecordFinder('//', constructor=rstrip)
 
+class PartialRecordError(Exception):
+    pass
+
 def parse_locus(line):
     """Parses a locus line, including conversion of Length to an int.
     
@@ -40,7 +43,11 @@ def parse_locus(line):
     even when prior versions omitted it.
     """
     result = _locus_parser(line)
-    result['length'] = int(result['length'])
+    try:
+        result['length'] = int(result['length'])
+    except KeyError, e:
+        raise PartialRecordError, e
+
     if None in result:
         del result[None]
     return result
@@ -182,8 +189,12 @@ def parse_feature(lines):
             curr_data = remainder
         else:
             curr_data = ' '.join(map(strip, remainder))
+        if label.lower() == 'type':
+            # some source features have /type=...
+            label = 'type_field'
         if label not in result:
             result[label.lower()] = []
+
         result[label.lower()].append(curr_data)
     return result
 
