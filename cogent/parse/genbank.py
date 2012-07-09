@@ -96,6 +96,7 @@ def block_consolidator(lines):
     """
     data = []
     first = True
+    label = None
     for line in lines:
         if first:   #find label
             line = line.split(None, 1)
@@ -496,11 +497,19 @@ def MinimalGenbankParser(lines, handlers=handlers,\
     default_handler=generic_adaptor):
     for rec in GbFinder(lines):
         curr = {}
+        bad_record = False
         for field in indent_splitter(rec):
             first_word = field[0].split(None, 1)[0]
             handler = handlers.get(first_word, default_handler)
-            handler(field, curr)
-        yield curr
+
+            try:
+                handler(field, curr)
+            except:
+                bad_record = True
+                break
+
+        if not bad_record:
+            yield curr
 
 def parse_location_segment(location_segment):
     """Parses a location segment into its component pieces.
