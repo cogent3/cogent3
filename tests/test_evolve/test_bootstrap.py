@@ -11,7 +11,7 @@ from cogent import LoadSeqs, LoadTree
 import os
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
                     "Helen Lindsay", "Andrew Butterfield"]
 __license__ = "GPL"

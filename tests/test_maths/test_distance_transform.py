@@ -8,7 +8,7 @@ from numpy import array, sqrt, shape, ones, diag
             
             
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Justin Kuczynski",
                     "Zongzhi Liu",
                     "Greg Caporaso"]

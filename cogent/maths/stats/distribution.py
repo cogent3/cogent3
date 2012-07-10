@@ -11,7 +11,7 @@ from cogent.maths.stats.special import erf, erfc, igamc, igam, betai, log1p, \
 from numpy import sqrt, exp, arctan as atan
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

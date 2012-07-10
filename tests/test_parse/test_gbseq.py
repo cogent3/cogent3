@@ -5,7 +5,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.parse.gbseq import GbSeqXmlParser
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

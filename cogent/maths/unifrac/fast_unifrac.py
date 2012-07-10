@@ -15,7 +15,7 @@ from cogent.phylo.nj import nj
 from StringIO import StringIO
 
 __author__ = "Rob Knight and Micah Hamady"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
     "Justin Kuczynski"]
 __license__ = "GPL"

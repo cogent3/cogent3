@@ -6,7 +6,7 @@ from cogent.app.rnaalifold import RNAalifold, rnaalifold_from_alignment
 from cogent.core.alignment import DataError
 
 __author__ = "Shandy Wikman"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Shandy Wikman","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

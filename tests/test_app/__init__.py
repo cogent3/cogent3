@@ -13,7 +13,7 @@ test_dialign        test_pknotsrg       test_fasttree
 test_msms""".split()
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight", "Catherine Lozupone",
                     "Sandra Smit", "Gavin Huttley", "Greg Caporaso",
                     "Marcin Cieslik"]

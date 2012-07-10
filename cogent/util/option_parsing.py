@@ -11,7 +11,7 @@ from os.path import join, abspath, exists, isdir, isfile
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Greg Caporaso","Daniel McDonald",
                "Gavin Huttley","Rob Knight"]
 __license__ = "GPL"

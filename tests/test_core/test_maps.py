@@ -6,7 +6,7 @@ from cogent.core.annotation import _Annotatable, Feature, _Feature
 from cogent import LoadSeqs, DNA
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield"]
 __license__ = "GPL"

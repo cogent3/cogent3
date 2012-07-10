@@ -2,7 +2,7 @@
 __all__ = ['test_distribution_plots']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Sandra Smit", "Gavin Huttley",
                     "Rob Knight", "Zongzhi Liu", "Amanda Birmingham",
                     "Greg Caporaso", "Jai Rideout"]

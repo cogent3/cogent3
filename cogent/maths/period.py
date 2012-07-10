@@ -2,7 +2,7 @@ from numpy import zeros, array, exp, pi, cos, fft, arange, power, sqrt, sum,\
                     multiply, float64, polyval
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

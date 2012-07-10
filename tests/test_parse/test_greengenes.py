@@ -5,7 +5,7 @@ from cogent.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
         DefaultDelimitedSplitter, SpecificGreengenesParser
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2011, The Cogent Project" #consider project name
+__copyright__ = "Copyright 2007-2012, The Cogent Project" #consider project name
 __credits__ = ["Daniel McDonald"] #remember to add yourself if you make changes
 __license__ = "GPL"
 __version__ = "1.6.0dev"

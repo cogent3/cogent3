@@ -9,7 +9,7 @@ from cogent.parse.ncbi_taxonomy import MissingParentError, NcbiTaxon, \
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

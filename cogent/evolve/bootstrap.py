@@ -28,7 +28,7 @@ from cogent.util import progress_display as UI
 import random
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley","Andrew Butterfield", "Matthew Wakefield",
                     "Edward Lang", "Peter Maxwell"]
 __license__ = "GPL"

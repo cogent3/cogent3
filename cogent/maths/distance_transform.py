@@ -65,7 +65,7 @@ from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
 from numpy.linalg import norm
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
                     "Zongzhi Liu", "Catherine Lozupone", 
                     "Antonio Gonzalez Pena", "Greg Caporaso"]

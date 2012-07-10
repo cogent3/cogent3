@@ -31,7 +31,7 @@ from matplotlib.text import Text
 import numpy
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Zongzhi Liu", "Daniel McDonald"]
 __license__ = "GPL"

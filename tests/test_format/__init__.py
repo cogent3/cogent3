@@ -2,7 +2,7 @@
 __all__ = ['test_mage', 'test_fasta', 'test_pdb_color', 'test_xyzrn']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Sandra Smit",
                "Marcin Cieslik", "Jeremy Widmann"]
 __license__ = "GPL"

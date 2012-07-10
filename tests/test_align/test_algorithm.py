@@ -8,7 +8,7 @@ from cogent.align.algorithm import ScoreCell, MatchScorer, equality_scorer,\
 from copy import copy, deepcopy
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

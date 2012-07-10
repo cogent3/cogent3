@@ -18,7 +18,7 @@ __all__ = ['test_alignment',
            'test_usage']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
                     "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso",
                     "Sandra Smit", "Justin Kuczynski", "Marcin Cieslik"]

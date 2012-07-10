@@ -10,7 +10,7 @@ import textwrap
 from cogent.util.warning import discontinued
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
                     "Jeremy Widmann"]
 __license__ = "GPL"

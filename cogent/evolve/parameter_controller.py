@@ -21,7 +21,7 @@ from cogent.align.pairwise import AlignableSeq
 from cogent.util.warning import discontinued, deprecated
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                     "Helen Lindsay"]
 __license__ = "GPL"

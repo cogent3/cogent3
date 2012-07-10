@@ -35,7 +35,7 @@ from cogent.util.misc import InverseDict
 from random import shuffle
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
                     "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald",

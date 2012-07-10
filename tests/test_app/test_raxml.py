@@ -13,7 +13,7 @@ from cogent.util.misc import app_path
 from subprocess import Popen, PIPE, STDOUT
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

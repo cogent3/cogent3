@@ -5,7 +5,7 @@ from cogent.evolve.predicate import MotifChange
 from cogent.core.moltype import CodonAlphabet
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Matthew Wakefield", "Brett Easton"]
 __license__ = "GPL"

@@ -7,7 +7,7 @@ import doctest, cogent.util.unit_test as unittest, sys, os
 from cogent.util.misc import app_path
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Hau Ying", "Helen Lindsay", "Jeremy Widmann",
                     "Sandra Smit", "Greg Caporaso", "Matthew Wakefield"]

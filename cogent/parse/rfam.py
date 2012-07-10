@@ -15,7 +15,7 @@ from cogent.util.transform import trans_all,keep_chars
 from cogent.core.alignment import Alignment, DataError, SequenceCollection
 
 __author__ = "Sandra Smit and Greg Caporaso"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Gavin Huttley",
                     "Rob Knight", "Jeremy Widmann"]
 __license__ = "GPL"

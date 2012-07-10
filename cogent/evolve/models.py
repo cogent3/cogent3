@@ -15,7 +15,7 @@ from cogent.evolve.predicate import MotifChange, replacement
 from cogent.evolve.solved_models import F81, HKY85, TN93
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

@@ -7,7 +7,7 @@ from cogent.format.pdb_color import get_aligned_muscle, make_color_list, \
     get_best_muscle_hits, chains_to_seqs, align_subject_to_pdb
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

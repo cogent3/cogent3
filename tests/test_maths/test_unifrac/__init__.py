@@ -4,7 +4,7 @@ __all__ = ['test_fast_tree',
            'test_fast_unifrac'
            ] 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady"]
 __license__ = "All rights reserveed"
 __version__ = "1.6.0dev"

@@ -13,7 +13,7 @@ from cogent.core.moltype import RNA, DNA, PROTEIN
 from numpy.random import randint
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Sandra Smit", "Micah Hamady", "Rob Knight", "Jeremy Widmann",
                 "Daniel McDonald"]
 __license__ = "GPL"

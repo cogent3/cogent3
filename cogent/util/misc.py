@@ -19,7 +19,7 @@ import hashlib
 from cogent.util.option_parsing import parse_command_line_parameters
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Amanda Birmingham",
                     "Sandra Smit", "Zongzhi Liu", "Daniel McDonald",
                     "Kyle Bittinger", "Marcin Cieslik"]
