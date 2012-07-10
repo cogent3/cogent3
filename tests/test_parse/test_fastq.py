@@ -4,7 +4,7 @@ from cogent.util.unit_test import TestCase, main
 from cogent.parse.fastq import MinimalFastqParser
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

@@ -14,7 +14,7 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.core.alignment import SequenceCollection
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Daniel McDonald", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

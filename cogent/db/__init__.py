@@ -5,7 +5,7 @@
 __all__ = ['ncbi', 'util', 'rfam', 'pdb', 'ensembl']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Mike Robeson", "Zongzhi Liu", "Gavin Huttley",
                "Hua Ying"]
 __license__ = "GPL"

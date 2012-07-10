@@ -8,7 +8,7 @@ import multiprocessing
 import multiprocessing.pool
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                 "Matthew Wakefield", "Edward Lang"]
 __license__ = "GPL"

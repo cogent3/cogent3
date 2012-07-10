@@ -21,7 +21,7 @@ from operator import add
 from random import choice
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
                "Sandra Smit", "Micah Hamady", "Daniel McDonald",
                "Greg Caporaso", "Jai Ram Rideout"]

@@ -6,7 +6,7 @@ from cogent import DNA, RNA, LoadTable
 from cogent.util.progress_display import display_wrap
 
 __author__ = "Gavin Huttley and Yicheng Zhu"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

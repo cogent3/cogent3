@@ -4,7 +4,7 @@ __all__ = ['array', 'checkpointing', 'datatypes', 'dict2d', 'misc', 'modules',
            'warning','recode_alignment']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
                     "Peter Maxwell", "Amanda Birmingham", "Zongzhi Liu",
                     "Andrew Butterfield", "Daniel McDonald",

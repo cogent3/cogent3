@@ -3,7 +3,7 @@
 from cogent.core import annotation, moltype
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Raymond Sammut", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"

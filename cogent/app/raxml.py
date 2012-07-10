@@ -15,7 +15,7 @@ from os.path import isabs
 from cogent.parse.tree import DndParser
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
                "Daniel McDonald"]
 __license__ = "GPL"

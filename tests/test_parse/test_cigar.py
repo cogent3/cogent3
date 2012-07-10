@@ -5,7 +5,7 @@ from cogent.parse.cigar import map_to_cigar, cigar_to_map, aligned_from_cigar, \
                                 slice_cigar, CigarParser
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Hua Ying", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

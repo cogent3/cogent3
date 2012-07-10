@@ -96,7 +96,7 @@ import time
 
 
 __author__ = "Adreas Wilm"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Fabian Sievers <fabian.sievers@ucd.ie>",
                "Daniel McDonald <wasade@gmail.com>", "Antonio Gonzalez Pena"]
 __license__ = "GPL"

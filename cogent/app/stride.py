@@ -15,7 +15,7 @@ from cogent.format.pdb import PDBWriter
 
 
 __author__ = "Marcin Cieslik"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

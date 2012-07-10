@@ -20,7 +20,7 @@ from cogent.core.location import Map, Span, _norm_slice
 from cogent.core.moltype import DNA
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

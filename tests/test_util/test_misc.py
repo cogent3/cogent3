@@ -31,7 +31,7 @@ from numpy import array
 from time import clock, sleep
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Amanda Birmingham", "Sandra Smit",
                     "Zongzhi Liu", "Peter Maxwell", "Daniel McDonald"]
 __license__ = "GPL"
@@ -129,7 +129,7 @@ class UtilsTests(TestCase):
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
-        exp = 'a3026c31a225dee3f29f88c4e0566a04'
+        exp = '4b2de2d85e4469ade3726073023116ec'
         obs = safe_md5(open('test_util/__init__.py'))
         self.assertEqual(obs.hexdigest(),exp)
 

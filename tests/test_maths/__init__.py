@@ -9,7 +9,7 @@ __all__ = ['test_fit_function',
            'test_spatial']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Catherine Lozupone",
                "Gavin Huttley", "Sandra Smit", "Marcin Cieslik", "Antonio Gonzalez Pena"]
 __license__ = "GPL"

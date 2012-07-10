@@ -7,7 +7,7 @@ from cogent import LoadTable
 from cogent.parse.table import ConvertFields
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight","Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

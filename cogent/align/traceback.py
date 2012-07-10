@@ -6,7 +6,7 @@ from cogent.core.alignment import Alignment, Aligned
 from cogent.core.annotation import Map
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

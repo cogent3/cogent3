@@ -13,7 +13,7 @@ __all__ = ['alpha_diversity', 'distribution', 'histogram',
 from distribution import chi_high as chisqprob
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
                     "Catherine Lozupone", "Micah Hamady"]
 __license__ = "GPL"

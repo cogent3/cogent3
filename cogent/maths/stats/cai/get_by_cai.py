@@ -8,7 +8,7 @@ from cogent.maths.stats.cai.util import cais
 from cogent.maths.stats.cai.adaptor import consolidate, read_nt
 
 __author__ = "Stephanie Wilson"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Stephanie Wilson"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

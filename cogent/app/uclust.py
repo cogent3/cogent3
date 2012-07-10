@@ -11,7 +11,7 @@ Modified from cogent.app.cd_hit.py on 1-21-10, written by Daniel McDonald.
 """
 
 __author__ = "William Walters"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["William Walters","Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

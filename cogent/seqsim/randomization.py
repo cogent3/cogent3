@@ -5,7 +5,7 @@ from random import shuffle
 from cogent.util.misc import find_many
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

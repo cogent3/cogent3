@@ -14,7 +14,7 @@ from cogent.maths.stats.alpha_diversity import expand_counts, counts, observed_s
     chao1_confidence, ACE, michaelis_menten_fit
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight","Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

@@ -8,7 +8,7 @@ from cogent import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
 from cogent.parse.record import FileFormatError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

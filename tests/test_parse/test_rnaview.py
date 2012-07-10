@@ -14,7 +14,7 @@ from cogent.parse.rnaview import is_roman_numeral, is_edge, is_orientation,\
     is_tertiary, is_not_stacked_or_tertiary, is_tertiary_base_base
 
 __author__ = "Greg Caporaso and Sandra Smit"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

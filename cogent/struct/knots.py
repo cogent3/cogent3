@@ -81,7 +81,7 @@ from cogent.struct.rna2d import Pairs
 from cogent.util.dict2d import Dict2D
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Sandra Smit, Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

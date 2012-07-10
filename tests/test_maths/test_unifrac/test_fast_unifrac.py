@@ -19,7 +19,7 @@ from cogent.maths.unifrac.fast_unifrac import (reshape_by_name,
 from numpy.random import permutation 
 
 __author__ = "Rob Knight and Micah Hamady"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
 "Justin Kuczynski"]
 __license__ = "GPL"

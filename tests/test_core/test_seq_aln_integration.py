@@ -8,7 +8,7 @@ from cogent.core.sequence import RnaSequence, Sequence, ModelSequence
 from cogent.core.alignment import Alignment, DenseAlignment
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

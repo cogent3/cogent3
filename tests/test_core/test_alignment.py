@@ -22,7 +22,7 @@ from os import remove
 import re
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                "Rob Knight", "Daniel McDonald", "Jan Kosinski"]
 __license__ = "GPL"

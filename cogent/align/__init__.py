@@ -8,7 +8,7 @@ __all__ = ['algorithm', 'align', 'dp_calculation', 'indel_model',
            'pycompare', 'traceback']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Jeremy Widmann", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"

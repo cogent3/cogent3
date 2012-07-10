@@ -8,7 +8,7 @@ from cogent.util.misc import MappedDict, FunctionWrapper
 from copy import deepcopy
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Sandra Smit", "Greg Caporaso", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

@@ -3,7 +3,7 @@
 """
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"

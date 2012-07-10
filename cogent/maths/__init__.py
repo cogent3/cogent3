@@ -17,7 +17,7 @@ __all__ = ['fit_function'
 
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2011, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
                     "Rob Knight", "Edward Lang", "Sandra Smit", "Antonio Gonzalez Pena"]
 __license__ = "GPL"
