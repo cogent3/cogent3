@@ -6,6 +6,7 @@ mothur Version 1.6.0
 
 from __future__ import with_statement
 from os import path, getcwd, mkdir, remove, listdir
+import re
 from shutil import copyfile
 from subprocess import Popen
 from cogent.app.parameters import ValuedParameter
@@ -354,3 +355,67 @@ def mothur_from_file(file):
     result.cleanUp()
     return otus
 
+
+class MothurClassifySeqs(Mothur):
+    _options = {
+        'reference': ValuedParameter(
+            Name='reference', Value=None, Delimiter='=', Prefix=''),
+        'taxonomy': ValuedParameter(
+            Name='taxonomy', Value=None, Delimiter='=', Prefix=''),
+        'cutoff': ValuedParameter(
+            Name='cutoff', Value=None, Delimiter='=', Prefix=''),
+        'iters': ValuedParameter(
+            Name='iters', Value=None, Delimiter='=', Prefix=''),
+        'ksize': ValuedParameter(
+            Name='ksize', Value=None, Delimiter='=', Prefix=''),
+        }
+    _parameters = {}
+    _parameters.update(_options)
+
+    def _format_function_arguments(self, opts):
+        """Format a series of function arguments in a Mothur script."""
+        params = [self.Parameters[x] for x in opts]
+        return ', '.join(filter(None, map(str, params)))
+
+    def _compile_mothur_script(self):
+        """Returns a Mothur batch script as a string"""
+        fasta = self._input_filename
+
+        required_params = ["reference", "taxonomy"]
+        for p in required_params:
+            if self.Parameters[p].Value is None:
+                raise ValueError("Must provide value for parameter %s" % p)
+        optional_params = ["ksize", "cutoff", "iters"]
+
+        args = self._format_function_arguments(
+            required_params + optional_params)
+        script = '#classify.seqs(fasta=%s, %s)' % (fasta, args)
+        return script
+
+    def _get_result_paths(self):
+        base, ext = path.splitext(self._input_filename)
+        paths = {
+            "assignments": base + "..taxonomy",
+            "summary": base + "..tax.summary",
+            "accnos": base + "..flip.accnos",
+            'log': self._derive_log_path(),
+            }
+        return dict([(k, ResultPath(v)) for (k,v) in paths.items()])
+
+
+def parse_mothur_assignments(lines):
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        seq_id, _, assignment = line.partition("\t")
+        toks = assignment.rstrip(";").split(";")
+        lineage = []
+        conf = None
+        for tok in toks:
+            matchobj = re.match("(.+)\((\d+)\)$", tok)
+            if matchobj:
+                lineage.append(matchobj.group(1))
+                conf = int(matchobj.group(2))
+        yield lineage, conf
+    
