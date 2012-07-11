@@ -9,7 +9,7 @@ from tempfile import mkdtemp, mkstemp, NamedTemporaryFile
 from cogent.util.unit_test import TestCase, main
 from cogent.app.mothur import (
     Mothur, mothur_from_file,
-    MothurClassifySeqs, parse_mothur_assignments, 
+    MothurClassifySeqs, parse_mothur_assignments, mothur_classify_file, 
     )
 
 
@@ -230,16 +230,22 @@ class MothurClassifySeqsTests(TestCase):
             "Methanobacteriales(66);Methanobrevibacter(66);unclassified;\n\n"
             )
         expected = [
-            (["Bacteria", "Firmicutes", "Clostridia",
+            ("SeqA", ["Bacteria", "Firmicutes", "Clostridia",
               "Clostridiales", "Ruminococcaceae"], 100),
-            (["Bacteria", "Firmicutes", "Bacilli",
+            ("SeqB", ["Bacteria", "Firmicutes", "Bacilli",
               "Lactobacillales", "Streptococcaceae", "Streptococcus"], 58),
-            (["Archaea", "Euryarchaeota", "Methanobacteria",
+            ("SeqC", ["Archaea", "Euryarchaeota", "Methanobacteria",
               "Methanobacteriales", "Methanobrevibacter"], 66),
             ]
         observed = list(parse_mothur_assignments(assignments))
         self.assertEqual(observed, expected)
 
+    def test_mothur_classify_file(self):
+        assignments = mothur_classify_file(
+            StringIO(query_seqs),
+            self.ref_seqs_file.name,
+            self.taxonomy_file.name)
+        self.assertEqual(list(sorted(assignments)), ["SeqA", "SeqB", "SeqC"])
 
 ref_seqs = """\
 >100
