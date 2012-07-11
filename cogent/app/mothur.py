@@ -5,10 +5,11 @@ mothur Version 1.6.0
 
 
 from __future__ import with_statement
-from os import path, getcwd, mkdir, remove, listdir
+from os import path, getcwd, mkdir, remove, listdir, rmdir
 import re
 from shutil import copyfile
 from subprocess import Popen
+from tempfile import mkdtemp, NamedTemporaryFile
 from cogent.app.parameters import ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     CommandLineAppResult, ApplicationError
@@ -393,13 +394,21 @@ class MothurClassifySeqs(Mothur):
         return script
 
     def _get_result_paths(self):
-        base, ext = path.splitext(self._input_filename)
-        paths = {
-            "assignments": base + "..taxonomy",
-            "summary": base + "..tax.summary",
-            "accnos": base + "..flip.accnos",
-            'log': self._derive_log_path(),
+        input_base, ext = path.splitext(path.basename(self._input_filename))
+        result_by_suffix = {
+            ".summary": "summary",
+            ".taxonomy": "assignments",
+            ".accnos": "accnos",
             }
+        
+        paths = {'log': self._derive_log_path()}
+        for fn in listdir(self.WorkingDir):
+            if fn.startswith(input_base):
+                _, suffix = path.splitext(fn)
+                result_key = result_by_suffix.get(suffix)
+                if result_key is not None:
+                    paths[result_key] = path.join(self.WorkingDir, fn)
+
         return dict([(k, ResultPath(v)) for (k,v) in paths.items()])
 
 
@@ -417,5 +426,43 @@ def parse_mothur_assignments(lines):
             if matchobj:
                 lineage.append(matchobj.group(1))
                 conf = int(matchobj.group(2))
-        yield lineage, conf
-    
+        yield seq_id, lineage, conf
+
+
+def mothur_classify_file(
+    query_file, ref_fp, tax_fp, cutoff=None, iters=None, ksize=None,
+    output_fp=None):
+
+    # Copy the taxonomy file to ensure a semicolon at the end of each line
+    tmp_tax_file = NamedTemporaryFile(suffix=".tax.txt")
+    for line in open(tax_fp):
+        line = line.rstrip()
+        if not line.endswith(";"):
+            line = line + ";"
+        tmp_tax_file.write(line)
+        tmp_tax_file.write("\n")
+    tmp_tax_file.seek(0)
+
+    params = {"reference": ref_fp, "taxonomy": tmp_tax_file.name}
+    if cutoff is not None:
+        params["cutoff"] = cutoff
+    if cutoff is not None:
+        params["ksize"] = ksize
+    if cutoff is not None:
+        params["iters"] = iters
+
+    app = MothurClassifySeqs(params, InputHandler='_input_as_lines')
+    result = app(query_file)
+
+    # Force evaluation, so we can safely clean up files
+    assignments = list(parse_mothur_assignments(result['assignments']))
+    result.cleanUp()
+
+    if output_fp is not None:
+        f = open(output_fp)
+        for query_id, taxa, conf in assignments:
+            taxa_str = ";".join(taxa)
+            f.write("%s\t%s\t%s\n" % (query_id, taxa_str, conf))
+        f.close()
+        return None
+    return dict((a, (b, c)) for a, b, c in assignments)
