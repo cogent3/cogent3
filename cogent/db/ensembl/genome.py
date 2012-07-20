@@ -1,3 +1,4 @@
+import re
 import sqlalchemy as sql
 
 from cogent.db.ensembl.species import Species as _Species
@@ -79,6 +80,8 @@ class Genome(object):
         if Release is None:
             Release = get_latest_release(account=account)
         
+        self._release_ge65 = None
+        
         # TODO make name and release immutable properties
         self.Species = _Species.getSpeciesName(Species)
         self.Release = str(Release)
@@ -106,6 +109,9 @@ class Genome(object):
                         species=self.Species, pool_recycle=self._pool_recycle)
         if self._core_db is None and db_type == 'core':
             self._core_db = Database(db_type='core', **connection)
+            gen_rel = self.CoreDb.db_name.GeneralRelease
+            gen_rel = int(re.findall(r'^\d+', str(gen_rel))[0])
+            self._release_ge65 = gen_rel >= 65
         elif self._var_db is None and db_type == 'variation':
             self._var_db = Database(db_type='variation', **connection)
         elif self._other_db is None and db_type == 'otherfeatures':
@@ -128,6 +134,14 @@ class Genome(object):
         return self._other_db
     
     OtherFeaturesDb = property(_get_other_db)
+    
+    def _general_release_ge65(self):
+        """returns True if the general Ensembl release is >= 65"""
+        # General release is used here as to support Ensembl genomes
+        if self._release_ge65 is None:
+            self.CoreDb
+        
+        return self._release_ge65
     
     def _get_biotype_description_condition(self, gene_table, Description=None, BioType=None, like=True):
         assert Description or BioType, "no valid argument provided"
@@ -194,11 +208,11 @@ class Genome(object):
         
         # after release 65, the gene_id_table is removed. The following is to maintain
         # support for earlier releases
-        release_ge_65 = False
-        if hasattr(gene_table.c, "stable_id"):
-            release_ge_65 = True
-        
-        gene_id_table = [db.getTable('gene_stable_id'), None][release_ge_65]
+        release_ge_65 = self._general_release_ge65()
+        if release_ge_65:
+            gene_id_table = None
+        else:
+            gene_id_table = db.getTable('gene_stable_id')
         
         assert Symbol or Description or StableId or BioType, "no valid argument provided"
         if Symbol:
@@ -349,11 +363,10 @@ class Genome(object):
         
         # after release 65, the gene_id_table is removed. The following is to maintain
         # support for earlier releases.
-        release_ge_65 = False
-        if hasattr(gene_table.c, "stable_id"):
-            release_ge_65 = True
-        
-        gene_id_table = [db.getTable('gene_stable_id'), None][release_ge_65]
+        if self._general_release_ge65():
+            gene_id_table = None
+        else:
+            gene_id_table = db.getTable('gene_stable_id')
         
         # note gene records are at chromosome, not contig, level
         condition = gene_table.c.seq_region_id == query_coord.seq_region_id
