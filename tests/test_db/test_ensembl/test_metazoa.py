@@ -1,5 +1,5 @@
 from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.compara import Compara
+from cogent.db.ensembl.compara import Compara, Genome
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Jason Merkin"
@@ -47,6 +47,19 @@ class MZ_TestCompara(MZ_ComparaTestBase):
                         Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
         self.assertTrue(len(collection.Seqs[0])> 1000)
+    
+class MZ_Genome(TestCase):
+    def test_general_release_ge65(self):
+        """should correctly infer whether the general release is >= 65 or not"""
+        rel_lt_65 = Genome('D.melanogaster', Release=11, account=account)
+        self.assertFalse(rel_lt_65._general_release_ge65())
+        self.assertEqual(rel_lt_65.CoreDb.db_name, 'drosophila_melanogaster_core_11_64_539')
+        
+        rel_gt_65 = Genome('D.melanogaster', Release=13, account=account)
+        self.assertTrue(rel_gt_65._general_release_ge65())
+        self.assertEqual(rel_gt_65.CoreDb.db_name, 'drosophila_melanogaster_core_13_66_539')
+
+
 
 if __name__ == "__main__":
     main()

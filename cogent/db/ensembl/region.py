@@ -29,8 +29,11 @@ _limit_words = lambda x : DisplayString(x, with_quotes=True, num_words=3)
 class _Region(LazyRecord):
     """a simple genomic region object"""
     Type = None
-    _attr_ensembl_table_map = None
-    _location_column_prefix = 'seq_region_'
+    
+    def __init__(self):
+        super(_Region, self).__init__()
+        self._attr_ensembl_table_map = None
+        self._location_column_prefix = 'seq_region_'
     
     def __len__(self):
         return len(self.Location)
@@ -263,19 +266,23 @@ class Gene(_StableRegion):
     """a gene region"""
     Type = 'gene'
     _member_types = ['Transcripts']
-    _attr_ensembl_table_map = dict(StableId='gene_stable_id', Symbol='xref',
-        Description='gene', BioType='gene', Location='gene',
-        CanonicalTranscript='gene',
-        Transcripts='transcript',
-        Exons='transcript')
     
     def __init__(self, genome, db, StableId=None, Symbol=None, Location=None, data=None):
         """constructed by a genome instance"""
         super(Gene, self).__init__(genome, db, Location=Location)
+        
+        self._attr_ensembl_table_map = dict(StableId=['gene_stable_id', 'gene'][genome._general_release_ge65()],
+                                            Symbol='xref',
+                                            Description='gene', BioType='gene', Location='gene',
+                                            CanonicalTranscript='gene',
+                                            Transcripts='transcript',
+                                            Exons='transcript')
+        
         if data is None:
             args = [dict(StableId=StableId), dict(Symbol=Symbol)][StableId is None]
             assert args
             data = asserted_one(list(self.genome._get_gene_query(db, **args).execute()))
+        
         for name, func in \
                     [('StableId',self._get_gene_stable_id_record),
                      ('BioType', self._get_gene_record),
@@ -315,7 +322,8 @@ class Gene(_StableRegion):
     def _get_gene_stable_id_record(self):
         """adds the gene_stable_id data to self._table_rows"""
         attr_column_map = [('StableId', 'stable_id', _quoted)]
-        self._populate_cache_from_record(attr_column_map,'gene_stable_id')
+        self._populate_cache_from_record(attr_column_map,
+                                        self._attr_ensembl_table_map['StableId'])
         return
     
     def _get_xref_record(self):
@@ -427,14 +435,16 @@ class Gene(_StableRegion):
 class Transcript(_StableRegion):
     Type = 'transcript'
     _member_types = ['Exons', 'TranslatedExons']
-    _attr_ensembl_table_map = dict(StableId='transcript_stable_id',
-                                   Location='transcript',
-                                   Status = 'transcript',
-                                   TranslatedExons='translation')
     
     def __init__(self, genome, db, transcript_id, data, Location=None):
         """created by Gene"""
         super(Transcript, self).__init__(genome, db, Location=Location)
+
+        self._attr_ensembl_table_map = dict(StableId='transcript_stable_id',
+                                           Location='transcript',
+                                           Status = 'transcript',
+                                           TranslatedExons='translation')
+
         self._am_prot_coding = None
         self.transcript_id = transcript_id
         self._table_rows['transcript'] = data
@@ -810,11 +820,14 @@ class Transcript(_StableRegion):
 
 class Exon(_StableRegion):
     Type = 'exon'
-    _attr_ensembl_table_map = dict(StableId='exon_stable_id',
-                                    Location='exon')
+    
     def __init__(self, genome, db, exon_id, Rank, Location=None):
         """created by a Gene"""
         _StableRegion.__init__(self, genome, db, Location=Location)
+
+        self._attr_ensembl_table_map = dict(StableId='exon_stable_id',
+                                            Location='exon')
+
         self.exon_id = exon_id
         self.Rank = Rank
     
@@ -914,15 +927,6 @@ def _set_to_string(val):
 class Variation(_Region):
     """genomic variation"""
     Type = 'variation'
-    _attr_ensembl_table_map = dict(Effect='variation_feature',
-                                Symbol='variation_feature',
-                                Validation='variation_feature',
-                                MapWeight='variation_feature',
-                                FlankingSeq='flanking_sequence',
-                                PeptideAlleles='transcript_variation',
-                                TranslationLocation='transcript_variation',
-                                Location='variation_feature',
-                                AlleleFreqs='allele')
     
     def __init__(self, genome, db=None, Effect=None, Symbol=None, data=None):
         self.genome = genome
@@ -938,6 +942,16 @@ class Variation(_Region):
             self.allele_code_table = None
         
         super(Variation, self).__init__()
+        
+        self._attr_ensembl_table_map = dict(Effect='variation_feature',
+                                            Symbol='variation_feature',
+                                            Validation='variation_feature',
+                                            MapWeight='variation_feature',
+                                            FlankingSeq='flanking_sequence',
+                                            PeptideAlleles='transcript_variation',
+                                            TranslationLocation='transcript_variation',
+                                            Location='variation_feature',
+                                            AlleleFreqs='allele')
         
         assert data is not None, 'Variation record created in an unusual way'
         for name, value, func in \
@@ -1207,13 +1221,14 @@ class CpGisland(GenericRegion):
 
 class Repeat(GenericRegion):
     Type = 'repeat'
-    _attr_ensembl_table_map = dict(Symbol='repeat_consensus',
-                                    RepeatType='repeat_consensus',
-                                    RepeatClass='repeat_consensus',
-                                    Consensus='repeat_consensus')
     
     def __init__(self, genome, db, Location, Score, data):
         super(Repeat, self).__init__(genome=genome, db=db, Location=Location)
+        self._attr_ensembl_table_map = dict(Symbol='repeat_consensus',
+                                            RepeatType='repeat_consensus',
+                                            RepeatClass='repeat_consensus',
+                                            Consensus='repeat_consensus')
+
         self.Score = Score
         # assume always created from repeat_feature table
         self._table_rows['repeat_feature']= data
