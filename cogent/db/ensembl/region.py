@@ -227,7 +227,12 @@ class _StableRegion(GenericRegion):
         # subclasses need to provide a function for loading the correct
         # record for obtaining a stable_id
         table_name = self._attr_ensembl_table_map['StableId']
-        func_name = '_get_%s_record' % table_name
+        
+        if self.genome._general_release_ge65():
+            func_name = '_get_%s_record' % (table_name + '_stable_id')
+        else:
+            func_name = '_get_%s_record' % table_name
+        
         func = getattr(self, func_name)
         func()
         attr_column_map = [('StableId', 'stable_id', _quoted)]
@@ -271,7 +276,8 @@ class Gene(_StableRegion):
         """constructed by a genome instance"""
         super(Gene, self).__init__(genome, db, Location=Location)
         
-        self._attr_ensembl_table_map = dict(StableId=['gene_stable_id', 'gene'][genome._general_release_ge65()],
+        self._attr_ensembl_table_map = dict(StableId=['gene_stable_id',
+                                                      'gene'][genome._general_release_ge65()],
                                             Symbol='xref',
                                             Description='gene', BioType='gene', Location='gene',
                                             CanonicalTranscript='gene',
@@ -440,7 +446,8 @@ class Transcript(_StableRegion):
         """created by Gene"""
         super(Transcript, self).__init__(genome, db, Location=Location)
 
-        self._attr_ensembl_table_map = dict(StableId='transcript_stable_id',
+        self._attr_ensembl_table_map = dict(StableId=['transcript_stable_id',
+                                                'transcript'][genome._general_release_ge65()],
                                            Location='transcript',
                                            Status = 'transcript',
                                            TranslatedExons='translation')
@@ -825,7 +832,8 @@ class Exon(_StableRegion):
         """created by a Gene"""
         _StableRegion.__init__(self, genome, db, Location=Location)
 
-        self._attr_ensembl_table_map = dict(StableId='exon_stable_id',
+        self._attr_ensembl_table_map = dict(StableId=['exon_stable_id',
+                                                      'exon'][genome._general_release_ge65()],
                                             Location='exon')
 
         self.exon_id = exon_id
@@ -842,12 +850,18 @@ class Exon(_StableRegion):
         return cmp(self.Rank, other.Rank)
     
     def _get_exon_stable_id_record(self):
-        exon_stable_id_table = self.db.getTable('exon_stable_id')
+        if self.genome._general_release_ge65():
+            # release >= 65, data is just in the exon table
+            self._get_exon_record()
+            return
+        
+        table_name = self._attr_ensembl_table_map['StableId']
+        exon_stable_id_table = self.db.getTable(table_name)
         query = sql.select([exon_stable_id_table.c.stable_id],
                            exon_stable_id_table.c.exon_id == self.exon_id)
         records = query.execute()
         record = asserted_one(records.fetchall())
-        self._table_rows['exon_stable_id'] = record
+        self._table_rows[table_name] = record
     
     def _get_exon_record(self):
         # this will be called by _Region parent class to make the location
