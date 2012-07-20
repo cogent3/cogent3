@@ -17,7 +17,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 65
+Release = 67
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -301,7 +301,7 @@ class TestGene(GenomeTestBase):
         results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=False))
         self.assertEquals(len(results), 22)
         results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=True))
-        self.assertEquals(len(results), 602)
+        self.assertEquals(len(results), 607)
 
     def test_get_by_decsr_biotype(self):
         """combining the description and biotype should return a result"""
