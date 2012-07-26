@@ -392,10 +392,6 @@ class LikelihoodFunction(ParameterController):
         else:
             orig_ambig = {}
         
-        mprobs = self.getParamValue('mprobs',locus=locus)
-        mprobs = self._model.calcWordProbs(mprobs)
-        mprobs = dict((m, p) for (m,p) in zip(self._motifs, mprobs))
-        
         if random_series is None:
             random_series = random.Random()
             random_series.seed(seed)
@@ -419,6 +415,9 @@ class LikelihoodFunction(ParameterController):
             motif_len = self._model.getAlphabet().getMotifLen()
             root_sequence = root_sequence.getInMotifSize(motif_len)
         else:
+            mprobs = self.getParamValue('mprobs', locus=locus, edge='root')
+            mprobs = self._model.calcWordProbs(mprobs)
+            mprobs = dict((m, p) for (m,p) in zip(self._motifs, mprobs))
             root_sequence = randomSequence(
                 random_series, mprobs, sequence_length)
         
