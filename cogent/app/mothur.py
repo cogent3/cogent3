@@ -387,7 +387,6 @@ class MothurClassifySeqs(Mothur):
             if self.Parameters[p].Value is None:
                 raise ValueError("Must provide value for parameter %s" % p)
         optional_params = ["ksize", "cutoff", "iters"]
-
         args = self._format_function_arguments(
             required_params + optional_params)
         script = '#classify.seqs(fasta=%s, %s)' % (fasta, args)
@@ -425,7 +424,8 @@ def parse_mothur_assignments(lines):
             matchobj = re.match("(.+)\((\d+)\)$", tok)
             if matchobj:
                 lineage.append(matchobj.group(1))
-                conf = int(matchobj.group(2))
+                pct_conf = int(matchobj.group(2))
+                conf = pct_conf / 100.0
         yield seq_id, lineage, conf
 
 
@@ -446,9 +446,9 @@ def mothur_classify_file(
     params = {"reference": ref_fp, "taxonomy": tmp_tax_file.name}
     if cutoff is not None:
         params["cutoff"] = cutoff
-    if cutoff is not None:
+    if ksize is not None:
         params["ksize"] = ksize
-    if cutoff is not None:
+    if iters is not None:
         params["iters"] = iters
 
     app = MothurClassifySeqs(params, InputHandler='_input_as_lines')
@@ -459,10 +459,10 @@ def mothur_classify_file(
     result.cleanUp()
 
     if output_fp is not None:
-        f = open(output_fp)
+        f = open(output_fp, "w")
         for query_id, taxa, conf in assignments:
             taxa_str = ";".join(taxa)
-            f.write("%s\t%s\t%s\n" % (query_id, taxa_str, conf))
+            f.write("%s\t%s\t%.2f\n" % (query_id, taxa_str, conf))
         f.close()
         return None
     return dict((a, (b, c)) for a, b, c in assignments)
