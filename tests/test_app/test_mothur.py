@@ -231,11 +231,11 @@ class MothurClassifySeqsTests(TestCase):
             )
         expected = [
             ("SeqA", ["Bacteria", "Firmicutes", "Clostridia",
-              "Clostridiales", "Ruminococcaceae"], 100),
+              "Clostridiales", "Ruminococcaceae"], 1.0),
             ("SeqB", ["Bacteria", "Firmicutes", "Bacilli",
-              "Lactobacillales", "Streptococcaceae", "Streptococcus"], 58),
+              "Lactobacillales", "Streptococcaceae", "Streptococcus"], 0.58),
             ("SeqC", ["Archaea", "Euryarchaeota", "Methanobacteria",
-              "Methanobacteriales", "Methanobrevibacter"], 66),
+              "Methanobacteriales", "Methanobrevibacter"], 0.66),
             ]
         observed = list(parse_mothur_assignments(assignments))
         self.assertEqual(observed, expected)
