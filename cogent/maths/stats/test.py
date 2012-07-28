@@ -4,16 +4,17 @@
 from __future__ import division
 import warnings
 from cogent.maths.stats.distribution import chi_high, z_low, z_high, zprob, \
-    t_high, t_low, tprob, f_high, f_low, fprob, binomial_high, binomial_low
+    t_high, t_low, tprob, f_high, f_low, fprob, binomial_high, binomial_low, \
+    ndtri
 from cogent.maths.stats.special import lgam, log_one_minus, one_minus_exp,\
     MACHEP
 from cogent.maths.stats.ks import psmirnov2x, pkstwo
 from cogent.maths.stats.kendall import pkendall, kendalls_tau
 from cogent.maths.stats.special import Gamma
 
-from numpy import array, asarray, transpose, ravel, take, nonzero, log, sum,\
-        mean, cov, corrcoef, fabs, any, reshape, clip, nan, isnan, isinf, \
-        sqrt, exp, median as _median, zeros, ones
+from numpy import arctanh, array, asarray, transpose, ravel, take, nonzero, \
+        log, sum, mean, cov, corrcoef, fabs, any, reshape, tanh, clip, nan, \
+        isnan, isinf, sqrt, exp, median as _median, zeros, ones
         #, std - currently incorrect
 from numpy.random import permutation, randint
 from cogent.maths.stats.util import Numbers
@@ -24,7 +25,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
                "Sandra Smit", "Micah Hamady", "Daniel McDonald",
-               "Greg Caporaso", "Jai Ram Rideout"]
+               "Greg Caporaso", "Jai Ram Rideout", "Michael Dwan"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "Rob Knight"
@@ -524,14 +525,34 @@ def t_one_observation(x, sample, tails=None, exp_diff=0):
     return t, prob
 
 def pearson(x_items, y_items):
-    """Returns Pearson correlation coefficient between x and y."""
+    """Returns Pearson's product moment correlation coefficient.
+    
+    This will always be a value between -1.0 and +1.0. x_items and y_items must
+    be the same length, and cannot have fewer than 2 elements each. If one or
+    both of the input vectors do not have any variation, the return value will
+    be 0.0.
+
+    Arguments:
+        x_items - the first list of observations
+        y_items - the second list of observations
+    """
     x_items, y_items = array(x_items), array(y_items)
+
+    if len(x_items) != len(y_items):
+        raise ValueError("The length of the two vectors must be the same in "
+                         "order to calculate the Pearson correlation "
+                         "coefficient.")
+    if len(x_items) < 2:
+        raise ValueError("The two vectors must both contain at least 2 "
+                "elements. The vectors are of length %d." % len(x_items))
+
     sum_x = sum(x_items)
     sum_y = sum(y_items)
     sum_x_sq = sum(x_items*x_items)
     sum_y_sq = sum(y_items*y_items)
     sum_xy = sum(x_items*y_items)
     n = len(x_items)
+
     try:
         r = 1.0 * ((n * sum_xy) - (sum_x * sum_y)) / \
            (sqrt((n * sum_x_sq)-(sum_x*sum_x))*sqrt((n*sum_y_sq)-(sum_y*sum_y)))
@@ -544,22 +565,214 @@ def pearson(x_items, y_items):
         r = -1.0
     return r
 
+def spearman(x_items, y_items):
+    """Returns Spearman's rho.
+
+    This will always be a value between -1.0 and +1.0. x_items and y_items must
+    be the same length, and cannot have fewer than 2 elements each. If one or
+    both of the input vectors do not have any variation, the return value will
+    be 0.0.
+
+    Arguments:
+        x_items - the first list of observations
+        y_items - the second list of observations
+    """
+    x_items, y_items = array(x_items), array(y_items)
+
+    if len(x_items) != len(y_items):
+        raise ValueError("The length of the two vectors must be the same in "
+                         "order to calculate Spearman's rho.")
+    if len(x_items) < 2:
+        raise ValueError("The two vectors must both contain at least 2 "
+                "elements. The vectors are of length %d." % len(x_items))
+
+    # Rank the two input vectors.
+    rank1, ties1 = _get_rank(x_items)
+    rank2, ties2 = _get_rank(y_items)
+
+    if ties1 == 0 and ties2 == 0:
+        n = len(rank1)
+        sum_sqr = sum([(x-y)**2 for x,y in zip(rank1,rank2)])
+        rho = 1 - (6*sum_sqr/(n*(n**2 - 1)))
+    else:
+        avg = lambda x: sum(x)/len(x)
+
+        x_bar = avg(rank1)
+        y_bar = avg(rank2)
+
+        numerator = sum([(x-x_bar)*(y-y_bar) for x,y in zip(rank1, rank2)])
+        denominator = sqrt(sum([(x-x_bar)**2 for x in rank1])*
+                           sum([(y-y_bar)**2 for y in rank2]))
+
+        # Calculate rho. Handle the case when there is no variation in one or
+        # both of the input vectors.
+        if denominator == 0.0:
+            rho = 0.0
+        else:
+            rho = numerator/denominator
+    return rho
+
+def _get_rank(data):
+    """Ranks the elements of a list. Used in Spearman correlation."""
+    indices = range(len(data))
+    ranks = range(1,len(data)+1)
+    indices.sort(key=lambda index:data[index])
+    ranks.sort(key=lambda index:indices[index-1])
+    data_len = len(data)
+    i = 0
+    ties = 0
+    while i < data_len:
+        j = i + 1
+        val = data[indices[i]]
+        try:
+            val += 0
+        except TypeError:
+            raise(TypeError)
+
+        while j < data_len and data[indices[j]] == val:
+            j += 1
+        dup_ranks = j - i
+        val = float(ranks[indices[i]]) + (dup_ranks-1)/2.0
+        for k in range(i, i+dup_ranks):
+            ranks[indices[k]] = val
+        i += dup_ranks
+        ties += dup_ranks-1
+    return ranks, ties
+
 def correlation(x_items, y_items):
     """Returns Pearson correlation between x and y, and its significance.
-    
+
     WARNING: x_items and y_items must be same length!
+
+    This function is retained for backwards-compatibility. Please use
+    correlation_test() for more control over how the test is performed.
     """
-    r = pearson(x_items, y_items)
+    return correlation_test(x_items, y_items, method='pearson', tails=None,
+                            permutations=0)[:2]
+
+def correlation_test(x_items, y_items, method='pearson', tails=None,
+                     permutations=999, confidence_level=0.95):
+    """Computes the correlation between two vectors and its significance.
+
+    Computes a parametric p-value by using Student's t-distribution with df=n-2
+    to perform the test of significance, as well as a nonparametric p-value
+    obtained by permuting one of the input vectors the specified number of
+    times given by the permutations parameter. A confidence interval is also
+    computed using Fisher's Z transform if the number of observations is
+    greater than 3. Please see Sokal and Rohlf pp. 575-580 and pg. 598-601 for
+    more details regarding these techniques.
+
+    Warning: the parametric p-value is unreliable when the method is spearman
+    and there are less than 11 observations in each vector.
+
+    Returns the correlation coefficient (r or rho), the parametric p-value, a
+    list of the r or rho values obtained from permuting the input, the
+    nonparametric p-value, and a tuple for the confidence interval, with the
+    first element being the lower bound of the confidence interval and the
+    second element being the upper bound for the confidence interval. The
+    confidence interval will be (None, None) if the number of observations is
+    not greater than 3.
+
+    x_items and y_items must be the same length, and cannot have fewer than 2
+    elements each. If one or both of the input vectors do not have any
+    variation, r or rho will be 0.0.
+
+    Note: the parametric portion of this function is based on the correlation
+    function in this module.
+
+    Arguments:
+        x_items - the first list of observations
+        y_items - the second list of observations
+        method - 'pearson' or 'spearman'
+        tails - if None (the default), a two-sided test is performed. 'high'
+            for a one-tailed test for positive association, or 'low' for a
+            one-tailed test for negative association. This parameter affects
+            both the parametric and nonparametric tests, but the confidence
+            interval will always be two-sided
+        permutations - the number of permutations to use in the nonparametric
+            test. Must be a number greater than or equal to 0. If 0, the
+            nonparametric test will not be performed. In this case, the list of
+            correlation coefficients obtained from permutations will be empty,
+            and the nonparametric p-value will be None
+    """
+    # Perform some initial error checking.
+    if method == 'pearson':
+        corr_fn = pearson
+    elif method == 'spearman':
+        corr_fn = spearman
+    else:
+        raise ValueError("Invalid method '%s'. Must be either 'pearson' or "
+                         "'spearman'." % method)
+    if tails is not None and tails != 'high' and tails != 'low':
+        raise ValueError("Invalid tail type '%s'. Must be either None, "
+                         "'high', or 'low'." % tails)
+    if permutations < 0:
+        raise ValueError("Invalid number of permutations: %d. Must be greater "
+                         "than or equal to zero." % permutations)
+    if confidence_level <= 0 or confidence_level >= 1:
+        raise ValueError("Invalid confidence level: %.4f. Must be between "
+                         "zero and one." % confidence_level)
+
+    # Calculate the correlation coefficient.
+    corr_coeff = corr_fn(x_items, y_items)
+
+    # Perform the parametric test first.
+    x_items, y_items = array(x_items), array(y_items)
     n = len(x_items)
+    df = n - 2
     if n < 3:
-        prob = 1
+        parametric_p_val = 1
     else:
         try:
-            t = r/sqrt((1 - (r*r))/(n-2))
-            prob = tprob(t, n-2)
-        except (ZeroDivisionError, FloatingPointError): #r was presumably 1
-            prob = 0
-    return (r, prob)
+            t = corr_coeff / sqrt((1 - (corr_coeff * corr_coeff)) / df)
+            parametric_p_val = t_tailed_prob(t, df, tails)
+        except (ZeroDivisionError, FloatingPointError):
+            # r/rho was presumably 1.
+            parametric_p_val = 0
+
+    # Perform the nonparametric test.
+    permuted_corr_coeffs = []
+    nonparametric_p_val = None
+    better = 0
+    for i in range(permutations):
+        permuted_y_items = y_items[permutation(n)]
+        permuted_corr_coeff = corr_fn(x_items, permuted_y_items)
+        permuted_corr_coeffs.append(permuted_corr_coeff)
+
+        if tails is None:
+            if abs(permuted_corr_coeff) >= abs(corr_coeff):
+                better += 1
+        elif tails == 'high':
+            if permuted_corr_coeff >= corr_coeff:
+                better += 1
+        elif tails == 'low':
+            if permuted_corr_coeff <= corr_coeff:
+                better += 1
+        else:
+            # Not strictly necessary since this was checked above, but included
+            # for safety in case the above check gets removed or messed up. We
+            # don't want to return a p-value of 0 if someone passes in a bogus
+            # tail type somehow.
+            raise ValueError("Invalid tail type '%s'. Must be either None, "
+                             "'high', or 'low'." % tails)
+    if permutations > 0:
+        nonparametric_p_val = (better + 1) / (permutations + 1)
+
+    # Compute the confidence interval for corr_coeff using Fisher's Z
+    # transform.
+    z_crit = abs(ndtri((1 - confidence_level) / 2))
+    ci_low, ci_high = None, None
+
+    if n > 3:
+        try:
+            ci_low = tanh(arctanh(corr_coeff) - (z_crit / sqrt(n - 3)))
+            ci_high = tanh(arctanh(corr_coeff) + (z_crit / sqrt(n - 3)))
+        except (ZeroDivisionError, FloatingPointError):
+            # r/rho was presumably 1 or -1. Match what R does in this case.
+            ci_low, ci_high = corr_coeff, corr_coeff
+
+    return (corr_coeff, parametric_p_val, permuted_corr_coeffs,
+            nonparametric_p_val, (ci_low, ci_high))
 
 def correlation_matrix(series, as_rows=True):
     """Returns pairwise correlations between each pair of series.
@@ -1108,6 +1321,10 @@ def mantel(m1, m2, n):
     
     The p-value is based on a two-sided test.
 
+    WARNING: The two distance matrices must be symmetric distance matrices, as
+    only the lower triangle will be used in the calculations (matching R's
+    vegan::mantel function).
+
     This function is retained for backwards-compatibility. Please use
     mantel_test() for more control over how the test is performed.
     """
@@ -1118,6 +1335,10 @@ def mantel_test(m1, m2, n, alt="two sided"):
 
     Returns the p-value, Mantel correlation statistic, and a list of Mantel
     correlation statistics for each permutation test.
+
+    WARNING: The two distance matrices must be symmetric distance matrices, as
+    only the lower triangle will be used in the calculations (matching R's
+    vegan::mantel function).
 
     Arguments:
         m1  - the first distance matrix to use in the test (should be a numpy
