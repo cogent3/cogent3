@@ -694,6 +694,8 @@ def correlation_test(x_items, y_items, method='pearson', tails=None,
             nonparametric test will not be performed. In this case, the list of
             correlation coefficients obtained from permutations will be empty,
             and the nonparametric p-value will be None
+        confidence_level - the confidence level to use when constructing the
+            confidence interval. Must be between 0 and 1 (exclusive)
     """
     # Perform some initial error checking.
     if method == 'pearson':
