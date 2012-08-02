@@ -247,6 +247,25 @@ class MothurClassifySeqsTests(TestCase):
             self.taxonomy_file.name)
         self.assertEqual(list(sorted(assignments)), ["SeqA", "SeqB", "SeqC"])
 
+    def test_mothur_classify_filepath_with_dash(self):
+        temp_dir = tempfile.mkdtemp()
+
+        ref_fp = os.path.join(temp_dir, "my-refs.fasta")
+        ref_file = open(ref_fp, "w")
+        ref_file.write(ref_seqs)
+        ref_file.close()
+
+        try:
+            assignments = mothur_classify_file(
+                StringIO(query_seqs),
+                ref_fp,
+                self.taxonomy_file.name)
+            seq_ids = assignments.keys()
+            seq_ids.sort()
+            self.assertEqual(seq_ids, ["SeqA", "SeqB", "SeqC"])
+        finally:
+            shutil.rmtree(temp_dir)
+
 ref_seqs = """\
 >100
 GGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAA
