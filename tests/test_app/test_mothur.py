@@ -5,7 +5,9 @@
 from __future__ import with_statement
 from cStringIO import StringIO
 from os import remove, rmdir, listdir, path
+import shutil
 from tempfile import mkdtemp, mkstemp, NamedTemporaryFile
+
 from cogent.util.unit_test import TestCase, main
 from cogent.app.mothur import (
     Mothur, mothur_from_file,
@@ -248,9 +250,9 @@ class MothurClassifySeqsTests(TestCase):
         self.assertEqual(list(sorted(assignments)), ["SeqA", "SeqB", "SeqC"])
 
     def test_mothur_classify_filepath_with_dash(self):
-        temp_dir = tempfile.mkdtemp()
+        temp_dir = mkdtemp()
 
-        ref_fp = os.path.join(temp_dir, "my-refs.fasta")
+        ref_fp = path.join(temp_dir, "my-refs.fasta")
         ref_file = open(ref_fp, "w")
         ref_file.write(ref_seqs)
         ref_file.close()
