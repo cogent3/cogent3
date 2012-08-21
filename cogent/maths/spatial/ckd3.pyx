@@ -18,7 +18,7 @@ __version__ = "('1', '6', '0dev')"
 cdef extern from "numpy/arrayobject.h":
     cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\
                                             int typenum, void *data)
-    cdef void import_array()
+    cdef int import_array1(int ret)
 
 cdef kdpoint *points(DTYPE_t *c_array, UTYPE_t points, UTYPE_t dims):
     """creates an array of kdpoints from c-array of numpy doubles."""
@@ -249,7 +249,7 @@ cdef class KDTree:
                              self.pnts, self.dims)
         self.tree = build_tree(self.kdpnts, 0, self.pnts-1, \
                                self.dims,self.bucket_size,0)
-        import_array()
+        import_array1(0)
 
     def knn(self, np.ndarray[DTYPE_t, ndim =1] point, npy_intp k):
         """Finds the K-Nearest Neighbors of given point.
