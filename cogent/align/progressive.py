@@ -66,13 +66,14 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
                                     if param not in _exclude_params]
         else:
             est_params = None
+        
         dcalc = EstimateDistances(seqs, model, do_pair_align=True,
                                     est_params=est_params)
         dcalc.run()
         dists = dcalc.getPairwiseDistances()
         tree = NJ.nj(dists)
     
-    LF = model.makeLikelihoodFunction(tree.bifurcating(), aligned=False)
+    LF = model.makeLikelihoodFunction(tree.bifurcating(name_unnamed=True), aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the Median to avoid the influence of outlier pairs
         param_vals = {}
