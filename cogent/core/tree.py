@@ -1455,9 +1455,9 @@ class TreeNode(object):
 
         return new_tree
 
-    def bifurcating(self, eps=None, constructor=None):
+    def bifurcating(self, eps=None, constructor=None, name_unnamed=False):
         """Wrap multifurcating with a num of 2"""
-        return self.multifurcating(2, eps, constructor)
+        return self.multifurcating(2, eps, constructor, name_unnamed)
 
     def getNodesDict(self):
         """Returns a dict keyed by node name, value is node

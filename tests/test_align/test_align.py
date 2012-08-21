@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from cogent import DNA
+from cogent import DNA, LoadSeqs
 from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict,\
         local_pairwise, global_pairwise
 from cogent.evolve.models import HKY85
@@ -124,7 +124,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         else:
             tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent.align.progressive.TreeAlign(model, seqs,
-                tree=tree, param_vals=param_vals, **kw)
+                tree=tree, param_vals=param_vals, show_progress=False, **kw)
         return aln
     
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
@@ -148,14 +148,17 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'D': 'tac-gtc',
                 })
          
-    def test_progressive2(self):
-        """test progressive alignment, gaps in middle"""
-        self._test_aln({
-                'A': 'ac-ttgt', 
-                'B': 'ac---gt',
-                'C': 'aca--gt', 
-                'D': 'ac---gt',
-                })
+    def test_progressive_est_tree(self):
+        """excercise progressive alignment without a guide tree"""
+        seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACAGTTT",
+                            'B': "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
+                            'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
+        aln, tree = cogent.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False, param_vals={'kappa': 4.0})
+        
+        expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAAC---AGTTT',
+                  'C': 'TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT',
+                  'B': 'TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT'}
+        self.assertEqual(aln.todict(), expect)
     
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
