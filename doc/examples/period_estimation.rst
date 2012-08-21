@@ -115,7 +115,7 @@ We then estimate the integer discrete Fourier transform for the full data. To do
     
     >>> from cogent.maths.period import ipdft
     >>> powers, periods = ipdft(symbols)
-    >>> powers
+    >>> powers #doctest: +SKIP
     array([  3.22082108e-14,   4.00000000e+00,   9.48683298e+00,
              6.74585634e+00,   3.46410162e+00,   3.20674669e+00,...
     >>> periods
@@ -132,7 +132,7 @@ We can also compute the auto-correlation statistic, and the hybrid (which combin
     >>> periods
     array([  2,   3,   4...
     >>> powers, periods = hybrid(symbols)
-    >>> powers
+    >>> powers #doctest: +SKIP
     array([  3.54290319e-13,   3.60000000e+01,   1.04355163e+02,
              6.07127071e+01,   2.07846097e+01,   2.88607202e+01,...
     >>> periods
