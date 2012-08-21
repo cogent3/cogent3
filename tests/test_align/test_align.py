@@ -150,12 +150,13 @@ class MultipleAlignmentTestCase(unittest.TestCase):
          
     def test_progressive_est_tree(self):
         """excercise progressive alignment without a guide tree"""
-        seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACAGTTT",
+        seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
                             'B': "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
                             'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
-        aln, tree = cogent.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False, param_vals={'kappa': 4.0})
+        aln, tree = cogent.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False,
+                        param_vals={'kappa': 4.0})
         
-        expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAAC---AGTTT',
+        expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------',
                   'C': 'TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT',
                   'B': 'TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT'}
         self.assertEqual(aln.todict(), expect)
