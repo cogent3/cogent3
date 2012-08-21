@@ -108,7 +108,7 @@ Basic ``identity`` function to avoid having to test explicitly for None
 One-line if/else statement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Convenience function for performing one-line if/else statements. This is similar to the C-style tertiary operator:
+Convenience function for performing one-line if/else statements. This is similar to the C-style ternary operator:
 
 .. doctest::
 
