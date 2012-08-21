@@ -383,7 +383,7 @@ but a ``SequenceCollection`` cannot be sliced
     >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
     >>> print seqs[:24]
     Traceback (most recent call last):
-    TypeError: 'SequenceCollection' object is unsubscriptable
+    TypeError: 'SequenceCollection' object is not subscriptable
 
 Getting a single column from an alignment
 """""""""""""""""""""""""""""""""""""""""
