@@ -117,7 +117,7 @@ We can then do the same for our biological sequence.
     >>> y_pseudo_cu.normalize()
     >>> y_pseudo_GC = y_pseudo_cu.positionalGC()
     >>> print y_pseudo_GC
-    [0.51874999999999993, 0.58437499999999987, 0.47500000000000009, 0.49687499999999996]
+    [0.51874999999999993, 0.5843749999999999, 0.4750000000000001, 0.49687499999999996]
 
 These results could then be fed into downstream analyses.
 
