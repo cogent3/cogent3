@@ -181,6 +181,26 @@ class TreeNodeTests(TestCase):
 
         self.assertRaises(TreeError, t.multifurcating, 1)
 
+    def test_multifurcating_nameunnamed(self):
+        """Coerces nodes to have <= n children"""
+        t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
+        t = DndParser(t_str)
+        
+        exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
+        obs = t.multifurcating(2, name_unnamed=True)
+
+        c0,c1 = obs.Children
+        self.assertTrue(c0.Children[1].Name.startswith('AUTO'))
+        self.assertTrue(c1.Name.startswith('AUTO'))
+        self.assertTrue(c1.Children[0].Children[1].Name.startswith('AUTO'))
+        self.assertTrue(c1.Children[1].Children[1].Name.startswith('AUTO'))
+        self.assertEqual(len(c0.Children[1].Name), 22)
+        self.assertEqual(len(c1.Name), 22)
+        self.assertEqual(len(c1.Children[0].Children[1].Name), 22)
+        self.assertEqual(len(c1.Children[1].Children[1].Name), 22)
+        names = [n.Name for n in t.nontips()]
+        self.assertEqual(len(names), len(set(names)))
+
     def test_bifurcating(self):
         """Coerces nodes to have <= 2 children"""
         t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
