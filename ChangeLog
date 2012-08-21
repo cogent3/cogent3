@@ -8,10 +8,27 @@ Cogent 1.5.1 - 1.6
 New Features
 ------------
 
+* Added new mantel_test function to cogent.maths.stats.test that allows the type
+  of significance test to be specified. This function is meant to replace the
+  pre-existing mantel function.
+
+* Added new correlation_test function to cogent.maths.stats.test that computes
+  the correlation (pearson or spearman) between two vectors, in addition to
+  parametric and nonparametric tests of significance and confidence intervals.
+  This function gives more control and information than the pre-existing
+  correlation function. The spearman function is also a new addition.
+
+* Added new mc_t_two_sample function to cogent.maths.stats.test that performs a
+  two-sample t-test and uses Monte Carlo permutations to determine nonparametric
+  significance (similar to R's Deducer::perm.t.test).
+
 Changes
 -------
 
 * Minimum Vienna package version now set to 1.8.5
+
+* The pearson function in cogent.maths.stats.test has more robust
+  error-checking.
 
 Bug Fixes
 ---------
