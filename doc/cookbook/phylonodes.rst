@@ -151,7 +151,7 @@ Getting the distance between two nodes
     >>> hu = nodes['Human']
     >>> mu = nodes['Mouse']
     >>> hu.distance(mu)
-    0.34675536109369998
+    0.3467553...
     >>> hu.isTip()
     True
 
