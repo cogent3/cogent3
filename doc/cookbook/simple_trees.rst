@@ -151,7 +151,7 @@ Getting the distance between two nodes
     >>> hu = nodes['Human']
     >>> mu = nodes['Mouse']
     >>> hu.distance(mu)
-    0.34675536109369998
+    0.3467553...
     >>> hu.isTip()
     True
 
@@ -550,11 +550,11 @@ Add internal nodes so that every node has 2 or fewer children.
               /-B
     -G-------|
              |          /-H
-              \root.2--|
+              \--------|
                        |          /-C
                         \F-------|
                                  |          /-D
-                                  \root----|
+                                  \--------|
                                             \-E
 
 Transform tree into a balanced tree
