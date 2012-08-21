@@ -45,7 +45,7 @@ Perform a coevolutionary analysis on one position and all other positions in the
     
     >>> from cogent.evolve.coevolution import coevolve_position_functions, coevolve_position
     >>> coevolve_position(coevolve_position_functions['mi'],aln,position=1)
-    array([        NaN,  0.81127812,  0.31127812])
+    array([        nan,  0.81127812,  0.31127812])
 
 Perform a coevolutionary analysis on all pairs of positions in the alignment using mutual information (``mi``):
 
@@ -54,9 +54,9 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
     
     >>> from cogent.evolve.coevolution import coevolve_alignment_functions, coevolve_alignment
     >>> coevolve_alignment(coevolve_alignment_functions['mi'],aln)
-    array([[        NaN,         NaN,         NaN],
-           [        NaN,  0.81127812,  0.31127812],
-           [        NaN,  0.31127812,  1.        ]])
+    array([[        nan,         nan,         nan],
+           [        nan,  0.81127812,  0.31127812],
+           [        nan,  0.31127812,  1.        ]])
 
 View the available algorithms for computing coevolution values:
 
@@ -78,7 +78,7 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
     ...  'echidna+protein2':'CTCF','human+protein2':'-TCF'},
     ...   moltype=PROTEIN,aligned=DenseAlignment)
     >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)
-    array([[        NaN,         NaN,         NaN],
-           [        NaN,  0.12255625,  0.31127812],
-           [        NaN,  0.31127812,  0.        ],
-           [        NaN,  0.31127812,  0.        ]])
+    array([[        nan,         nan,         nan],
+           [        nan,  0.12255625,  0.31127812],
+           [        nan,  0.31127812,  0.        ],
+           [        nan,  0.31127812,  0.        ]])
