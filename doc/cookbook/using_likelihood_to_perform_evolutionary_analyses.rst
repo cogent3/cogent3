@@ -429,7 +429,7 @@ If written to file in xml format, then model parameters will be saved. This can 
 .. doctest::
     
     >>> annot_tree = lf.getAnnotatedTree()
-    >>> print annot_tree.getXML()
+    >>> print annot_tree.getXML() #doctest: +SKIP
     <?xml version="1.0"?>
     <clade>
       <clade>
@@ -614,7 +614,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
        Gorilla  edge.1    0.01   0.43
          Human  edge.0    0.02   2.44
     Chimpanzee  edge.0    0.01   2.28
-        edge.0  edge.1    0.00   0.00
+        edge.0  edge.1    0.00   0.01
         edge.1  edge.2    0.01   0.55
         edge.2  edge.3    0.04   0.33
         edge.3    root    0.02   1.10...
