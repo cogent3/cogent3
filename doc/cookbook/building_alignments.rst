@@ -55,7 +55,7 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
              Variance        1e+11
     ------------------------------
     >>> aln
-    5 x 60 text alignment: Human[GCAAGGAGCCA...], HowlerMon[GCAAGGAGCCA...], NineBande[-C-----GCCA...], ...
+    5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 We then align using a guide tree (pre-estimated) and specifying the ratio of transitions to transversions (kappa).
 
