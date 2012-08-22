@@ -8,9 +8,9 @@ Cogent 1.5.1 - 1.6
 New Features
 ------------
 
-* Added new mantel_test function to cogent.maths.stats.test that allows the type
-  of significance test to be specified. This function is meant to replace the
-  pre-existing mantel function.
+* Added new mantel_test function to cogent.maths.stats.test that allows the
+  type of significance test to be specified. This function is meant to replace
+  the pre-existing mantel function.
 
 * Added new correlation_test function to cogent.maths.stats.test that computes
   the correlation (pearson or spearman) between two vectors, in addition to
@@ -19,8 +19,8 @@ New Features
   correlation function. The spearman function is also a new addition.
 
 * Added new mc_t_two_sample function to cogent.maths.stats.test that performs a
-  two-sample t-test and uses Monte Carlo permutations to determine nonparametric
-  significance (similar to R's Deducer::perm.t.test).
+  two-sample t-test and uses Monte Carlo permutations to determine
+  nonparametric significance (similar to R's Deducer::perm.t.test).
 
 Changes
 -------
@@ -29,6 +29,13 @@ Changes
 
 * The pearson function in cogent.maths.stats.test has more robust
   error-checking.
+
+* cogent.draw.distribution_plots now uses matplotlib proxy Artists for legend
+  creation (this simplifies the code a bit). Added ability to set the size of
+  plot figures through two new optional parameters to generate_box_plots and
+  generate_comparative_plots. matplotlib's new tight_layout() functionality is
+  now used instead of our homegrown version of tight_layout(), and more robust
+  checks have been put in place in case it fails (which does happen sometimes).
 
 Bug Fixes
 ---------
