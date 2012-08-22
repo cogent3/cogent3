@@ -384,30 +384,6 @@ def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
     
     return callable
 
-def asReportlabTable(header, formatted_table, total_width=476, table_style = None):
-    """Returns a reportlab table instance.
-    
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - total_width: table width
-        - table_style: reportlab compliant table style settings.
-    """
-    discontinued('function', 'asReportlabTable', 1.5)
-    from reportlab.platypus import Table as reportlabTable
-    from reportlab.lib import colors
-    if not table_style:
-        table_style = [('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-                       ('BOX', (0,0), (-1,-1), 0.5, colors.black),
-                       ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-                       ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),]
-    formatted_table = formatted_table[:]
-    header = header[:]
-    formatted_table.insert(0, header)
-    return reportlabTable(formatted_table, total_width/len(formatted_table[0]),
-                            style = table_style)
-
 def drawToPDF(header, formatted_table, filename, pagesize=(595,792), *args, **kw):
     """Writes the table to a pdf file
     Arguments:
