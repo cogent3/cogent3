@@ -33,9 +33,8 @@ Changes
 * cogent.draw.distribution_plots now uses matplotlib proxy Artists for legend
   creation (this simplifies the code a bit). Added ability to set the size of
   plot figures through two new optional parameters to generate_box_plots and
-  generate_comparative_plots. matplotlib's new tight_layout() functionality is
-  now used instead of our homegrown version of tight_layout(), and more robust
-  checks have been put in place in case it fails (which does happen sometimes).
+  generate_comparative_plots. More robust checks have been put in place in
+  case making room for labels fails.
 
 Bug Fixes
 ---------
