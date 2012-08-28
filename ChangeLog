@@ -30,6 +30,10 @@ Changes
 * The pearson function in cogent.maths.stats.test has more robust
   error-checking.
 
+* The mantel and mantel_test functions in cogent.maths.stats.test now check for
+  symmetric, hollow distance matrices as input by default, with an option to
+  disable these checks.
+
 * cogent.draw.distribution_plots now uses matplotlib proxy Artists for legend
   creation (this simplifies the code a bit). Added ability to set the size of
   plot figures through two new optional parameters to generate_box_plots and
