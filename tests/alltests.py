@@ -243,7 +243,8 @@ def suite():
             ('calculate_likelihood', 'test_gctmpca'),
             ('sfffile', 'test_sfffile'),
             ('sffinfo', 'test_sffinfo'),
-            ('uclust','test_uclust')
+            ('uclust','test_uclust'),
+            ('usearch','test_usearch')
             ]
     for app, test_name in apps:
         should_run_test = False
