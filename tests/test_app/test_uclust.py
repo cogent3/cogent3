@@ -11,7 +11,8 @@ from os.path import isfile
 from cogent.util.misc import remove_files
 from cogent.core.moltype import DNA
 from cogent.util.unit_test import TestCase, main
-from cogent.app.util import get_tmp_filename, ApplicationError
+from cogent.app.util import ApplicationError, get_tmp_filename
+
 from cogent.app.uclust import (Uclust, 
  uclust_fasta_sort_from_filepath,
  uclust_cluster_from_sorted_fasta_filepath,
@@ -27,7 +28,7 @@ __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "William Walters"
 __email__ = "William.A.Walters@colorado.edu"
-__status__ = "Development"
+__status__ = "Production"
 
 class UclustTests(TestCase):
 
@@ -453,12 +454,12 @@ class UclustConvenienceWrappers(TestCase):
         version_string = stdout.strip().split('v')[-1].strip('q')
         try:
             version = tuple(map(int,version_string.split('.')))
-            acceptable_version = version >= (1,2,21)
+            acceptable_version = version >= (1,2,22)
         except ValueError:
             acceptable_version = False
         
         self.assertTrue(acceptable_version,\
-         "Unsupported uclust version. 1.2.21 or later "+\
+         "Unsupported uclust version. 1.2.22 or later "+\
          "is required, but running %s." % version_string)
 
 raw_dna_seqs = """>uclust_test_seqs_0
