@@ -49,14 +49,14 @@ class MZ_TestCompara(MZ_ComparaTestBase):
         self.assertTrue(len(collection.Seqs[0])> 1000)
     
 class MZ_Genome(TestCase):
-    def test_general_release_ge65(self):
-        """should correctly infer whether the general release is >= 65 or not"""
+    def test_get_general_release(self):
+        """should correctly infer the general release"""
         rel_lt_65 = Genome('D.melanogaster', Release=11, account=account)
-        self.assertFalse(rel_lt_65._general_release_ge65())
+        self.assertEqual(rel_lt_65.GeneralRelease, 64)
         self.assertEqual(rel_lt_65.CoreDb.db_name, 'drosophila_melanogaster_core_11_64_539')
         
         rel_gt_65 = Genome('D.melanogaster', Release=13, account=account)
-        self.assertTrue(rel_gt_65._general_release_ge65())
+        self.assertEqual(rel_gt_65.GeneralRelease, 66)
         self.assertEqual(rel_gt_65.CoreDb.db_name, 'drosophila_melanogaster_core_13_66_539')
 
 

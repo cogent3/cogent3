@@ -80,7 +80,7 @@ class Genome(object):
         if Release is None:
             Release = get_latest_release(account=account)
         
-        self._release_ge65 = None
+        self._gen_release = None
         
         # TODO make name and release immutable properties
         self.Species = _Species.getSpeciesName(Species)
@@ -111,7 +111,7 @@ class Genome(object):
             self._core_db = Database(db_type='core', **connection)
             gen_rel = self.CoreDb.db_name.GeneralRelease
             gen_rel = int(re.findall(r'^\d+', str(gen_rel))[0])
-            self._release_ge65 = gen_rel >= 65
+            self._gen_release = gen_rel
         elif self._var_db is None and db_type == 'variation':
             self._var_db = Database(db_type='variation', **connection)
         elif self._other_db is None and db_type == 'otherfeatures':
@@ -135,13 +135,14 @@ class Genome(object):
     
     OtherFeaturesDb = property(_get_other_db)
     
-    def _general_release_ge65(self):
+    @property
+    def GeneralRelease(self):
         """returns True if the general Ensembl release is >= 65"""
         # General release is used here as to support Ensembl genomes
-        if self._release_ge65 is None:
+        if self._gen_release is None:
             self.CoreDb
         
-        return self._release_ge65
+        return self._gen_release
     
     def _get_biotype_description_condition(self, gene_table, Description=None, BioType=None, like=True):
         assert Description or BioType, "no valid argument provided"
@@ -208,7 +209,7 @@ class Genome(object):
         
         # after release 65, the gene_id_table is removed. The following is to maintain
         # support for earlier releases
-        release_ge_65 = self._general_release_ge65()
+        release_ge_65 = self.GeneralRelease >= 65
         if release_ge_65:
             gene_id_table = None
         else:
@@ -363,7 +364,7 @@ class Genome(object):
         
         # after release 65, the gene_id_table is removed. The following is to maintain
         # support for earlier releases.
-        if self._general_release_ge65():
+        if self.GeneralRelease >= 65:
             gene_id_table = None
         else:
             gene_id_table = db.getTable('gene_stable_id')
