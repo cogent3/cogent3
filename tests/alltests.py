@@ -235,7 +235,7 @@ def suite():
             ('RNAalifold', 'test_rnaalifold'),
             ('rnaview', 'test_rnaview'),
             ('RNAfold', 'test_vienna_package'),
-            ('raxmlHPC', 'test_raxml'),
+            ('raxmlHPC', 'test_raxml_v730'),
             ('rtax', 'test_rtax'),
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('stride', 'test_stride'),
