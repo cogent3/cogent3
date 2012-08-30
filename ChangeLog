@@ -50,8 +50,8 @@ Changes
 * cogent.app.raxml (version 7.0.3) is now deprecated and will be removed in
   1.6.0. Please use cogent.app.raxml_v730 instead (version 7.3.0).
 
-* Updated cogent.app.muscle to handle a change in the muscle command line
-  options in 3.8. This only affects tree-building. Added max memory option.
+* cogent.app.muscle (version 3.6) is now deprecated and will be removed in
+  1.6.0. Please use cogent.app.muscle_v38 instead (version 3.8).
 
 * Updated cogent.app.uclust to handle --stepwords and --w.
 
