@@ -22,8 +22,8 @@ New Features
   two-sample t-test and uses Monte Carlo permutations to determine
   nonparametric significance (similar to R's Deducer::perm.t.test).
 
-* Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, usearch 5.2.32, and rtax 0.981
-  application controllers.
+* Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, usearch 5.2.32, rtax 0.981,
+  and raxml 7.3.0 application controllers.
 
 Changes
 -------
@@ -44,6 +44,9 @@ Changes
   case making room for labels fails (this now uses matplotlib 1.1.0's new
   tight_layout() functionality, but this can still fail in some cases).
 
+* cogent.app.raxml (version 7.0.3) is now deprecated and will be removed in
+  1.6.0. Please use cogent.app.raxml_v730 instead (version 7.3.0).
+
 Bug Fixes
 ---------
 
@@ -51,6 +54,9 @@ Bug Fixes
 * actually included the test_ensembl/test_metazoa.py file that was
   accidentally overlooked.
 * fixed small diff in postcript output from RNAfold
+* Deprecation and discontinued warnings are now not ignored by default.
+  cogent.util.warning was ignored in Python 2.7 because it uses
+  DeprecationWarnings. These warnings are temporarily forced to not be ignored.
 
 Cogent 1.5 - 1.5.1
 ==================

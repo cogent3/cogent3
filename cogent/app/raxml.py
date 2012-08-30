@@ -9,6 +9,7 @@ from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
 from cogent.core.tree import PhyloNode
 from cogent.core.alignment import Alignment
 from cogent.core.moltype import DNA, RNA, PROTEIN
+from cogent.util.warning import deprecated
 from random import choice, randint
 from os import walk
 from os.path import isabs
@@ -17,7 +18,7 @@ from cogent.parse.tree import DndParser
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
-               "Daniel McDonald"]
+               "Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "Micah Hamady"
@@ -26,6 +27,11 @@ __status__ = "Prototype"
 
 class Raxml(CommandLineApplication):
     """RAxML application controller"""
+
+    deprecated('class',
+               'cogent.app.raxml.Raxml',
+               'cogent.app.raxml_v730.Raxml',
+               '1.6')
 
     _options ={
 
