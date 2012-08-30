@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 65
+Release = 68
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -36,7 +36,7 @@ class TestDatabase(TestCase):
         """should return list of strings"""
         db = Database(account=account, release=Release,
                     species='human', db_type='variation')
-        tn, tc = 'variation_feature', 'consequence_type'
+        tn, tc = 'variation_feature', 'consequence_types'
         expected = set(('3_prime_UTR_variant', 'splice_acceptor_variant',
                         '5_prime_UTR_variant'))
         got = db.getDistinct(tn, tc)
@@ -59,10 +59,10 @@ class TestDatabase(TestCase):
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_65_37.analysis': 61L,
-                  'homo_sapiens_core_65_37.seq_region': 55616L,
-                  'homo_sapiens_core_65_37.assembly': 102090L,
-                  'homo_sapiens_core_65_37.qtl': 0L}
+        expect = {'homo_sapiens_core_68_37.analysis': 61L,
+                  'homo_sapiens_core_68_37.seq_region': 55616L,
+                  'homo_sapiens_core_68_37.assembly': 102090L,
+                  'homo_sapiens_core_68_37.qtl': 0L}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]

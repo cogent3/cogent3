@@ -989,7 +989,11 @@ class Variation(_Region):
             (my_type, self.Symbol, self.Effect, self.Alleles)
     
     def _get_variation_table_record(self):
-        attr_name_map = [('Effect', 'consequence_type', _set_to_string),
+        consequence_type = 'consequence_type'
+        if self.genome.GeneralRelease > 67:
+            consequence_type += 's' # change to plural column name
+        
+        attr_name_map = [('Effect', consequence_type, _set_to_string),
                          ('Alleles', 'allele_string', _quoted),
                          ('Symbol', 'variation_name', _quoted),
                          ('Validation', 'validation_status', _set_to_string),
