@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
-from cogent.app.muscle import muscle_seqs
+from cogent.app.muscle_v38 import muscle_seqs
 from cogent.app.util import get_tmp_filename
 from cogent.parse.fasta import MinimalFastaParser
 from numpy import array

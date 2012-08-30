@@ -223,7 +223,7 @@ def suite():
             ('knetfold.pl', 'test_knetfold'),
             ('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
-            ('muscle', 'test_muscle'),
+            ('muscle', 'test_muscle_v38'),
             ('msms', 'test_msms'),
             ('ParsInsert', 'test_parsinsert'),
             ('pplacer', 'test_pplacer'),

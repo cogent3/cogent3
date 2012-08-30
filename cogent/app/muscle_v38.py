@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Application controller for muscle 3.6
+"""Application controller for muscle 3.8
 """
 from os import remove
 from cogent.app.parameters import FlagParameter, ValuedParameter
@@ -10,7 +10,6 @@ from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
 from cogent.parse.fasta import MinimalFastaParser
-from cogent.util.warning import deprecated
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -25,11 +24,6 @@ __status__ = "Prototype"
 
 class Muscle(CommandLineApplication):
     """Muscle application controller"""
-
-    deprecated('class',
-               'cogent.app.muscle.Muscle',
-               'cogent.app.muscle_v38.Muscle',
-               '1.6')
     
     _options ={
         # Minimum spacing between anchor columns. [Integer]
@@ -158,7 +152,7 @@ class Muscle(CommandLineApplication):
         '-clw':FlagParameter(Prefix='-',Name='clw'),
         
         # Cluster sequences
-        '-cluster':FlagParameter(Prefix='-',Name='cluster'),
+        '-clusteronly':FlagParameter(Prefix='-',Name='clusteronly'),
         # neighborjoining is "unrecognized"
         #'-neighborjoining':FlagParameter(Prefix='-',Name='neighborjoining'),
 
@@ -442,7 +436,7 @@ def cluster_seqs(seqs,
     #if neighbor_join:
     #    cluster_type = "neighborjoining"
     
-    params["-cluster"] = True
+    params["-clusteronly"] = True
     params["-tree1"] = get_tmp_filename(WorkingDir)
     
     muscle_res = muscle_seqs(seqs,
@@ -613,7 +607,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     app = Muscle(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir='/tmp')
 
-    app.Parameters['-cluster'].on()
+    app.Parameters['-clusteronly'].on()
     app.Parameters['-tree1'].on(get_tmp_filename(app.WorkingDir))
     app.Parameters['-seqtype'].on(moltype.label)
 
