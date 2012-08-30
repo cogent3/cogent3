@@ -22,8 +22,8 @@ New Features
   two-sample t-test and uses Monte Carlo permutations to determine
   nonparametric significance (similar to R's Deducer::perm.t.test).
 
-* Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, and usearch 5.2.32 application
-  controllers.
+* Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, usearch 5.2.32, and rtax 0.981
+  application controllers.
 
 Changes
 -------
