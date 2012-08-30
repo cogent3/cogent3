@@ -17,7 +17,7 @@ __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "William Walters"
 __email__ = "william.a.walters@colorado.edu"
-__status__ = "Development"
+__status__ = "Production"
 
 from os import remove, makedirs
 from os.path import split, splitext, basename, isdir, abspath, isfile
@@ -76,11 +76,17 @@ class Uclust(CommandLineApplication):
         # for sequences which don't hit the library
         '--libonly':FlagParameter('--',Name='libonly'),
         
-        # the max number of matches to review when looking for the best match
+        # Maximum hits before quitting search (default 1, 0=infinity).
         '--maxaccepts':ValuedParameter('--',Name='maxaccepts',Delimiter=' '),
         
-        # 
+        # Maximum rejects before quitting search (default 8, 0=infinity). 
         '--maxrejects':ValuedParameter('--',Name='maxrejects',Delimiter=' '),
+        
+        # Target nr. of common words (default 8, 0=don't step)
+        '--stepwords':ValuedParameter('--',Name='stepwords',Delimiter=' '),
+        
+        # Word length for windex (default 5 aa.s, 8 nuc.s).
+        '--w':ValuedParameter('--',Name='w',Delimiter=' '),
         
         # output fp for pairwise aligned sequences
         '--fastapairs':ValuedParameter('--',Name='fastapairs',Delimiter=' ',
@@ -355,9 +361,9 @@ def uclust_search_and_align_from_fasta_filepath(
     #                   match something there already. this effectively makes
     #                   uclust a search tool rather than a clustering tool
     
-    params = {'--id':percent_ID,\
-              '--maxaccepts':max_accepts,\
-              '--maxrejects':max_rejects,\
+    params = {'--id':percent_ID,
+              '--maxaccepts':max_accepts,
+              '--maxrejects':max_rejects,
               '--libonly':True,
               '--lib':subject_fasta_filepath}
               
@@ -396,6 +402,8 @@ def uclust_cluster_from_sorted_fasta_filepath(
     percent_ID=0.97, 
     max_accepts=1,
     max_rejects=8, 
+    stepwords=8,
+    word_length=8,
     optimal = False,
     exact = False,
     suppress_sort = False,
@@ -411,7 +419,9 @@ def uclust_cluster_from_sorted_fasta_filepath(
     
     params = {'--id':percent_ID,
               '--maxaccepts':max_accepts,
-              '--maxrejects':max_rejects}
+              '--maxrejects':max_rejects,
+              '--stepwords':stepwords,
+              '--w':word_length}
     app = Uclust(params,HALT_EXEC=HALT_EXEC)
     
     # Set any additional parameters specified by the user
@@ -448,6 +458,8 @@ def get_clusters_from_fasta_filepath(
     percent_ID=0.97,
     max_accepts=1,
     max_rejects=8, 
+    stepwords=8,
+    word_length=8,
     optimal=False,
     exact=False,
     suppress_sort=False,
@@ -509,6 +521,7 @@ def get_clusters_from_fasta_filepath(
             # Get sorted fasta name from application wrapper
             sorted_fasta_filepath = sort_fasta['Output'].name
             files_to_remove.append(sorted_fasta_filepath)
+            
         else:
             sort_fasta = None
             sorted_fasta_filepath = fasta_filepath
@@ -520,6 +533,8 @@ def get_clusters_from_fasta_filepath(
          percent_ID=percent_ID,
          max_accepts=max_accepts,
          max_rejects=max_rejects, 
+         stepwords=stepwords,
+         word_length=word_length,
          optimal=optimal, 
          exact=exact, 
          suppress_sort=suppress_sort,
@@ -529,6 +544,7 @@ def get_clusters_from_fasta_filepath(
          stable_sort=stable_sort,
          HALT_EXEC=HALT_EXEC)
         # Get cluster file name from application wrapper
+        remove_files(files_to_remove)
     except ApplicationError:
         remove_files(files_to_remove)
         raise ApplicationError, ('Error running uclust. Possible causes are '
@@ -545,10 +561,6 @@ def get_clusters_from_fasta_filepath(
     
     # Remove temp files unless user specifies output filepath
     if not save_uc_files:
-        try:
-            sort_fasta.cleanUp()
-        except AttributeError:
-            pass
         uclust_cluster.cleanUp()
     
     if return_cluster_maps:
