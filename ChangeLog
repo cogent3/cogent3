@@ -41,7 +41,8 @@ Changes
   creation (this simplifies the code a bit). Added ability to set the size of
   plot figures through two new optional parameters to generate_box_plots and
   generate_comparative_plots. More robust checks have been put in place in
-  case making room for labels fails.
+  case making room for labels fails (this now uses matplotlib 1.1.0's new
+  tight_layout() functionality, but this can still fail in some cases).
 
 Bug Fixes
 ---------
