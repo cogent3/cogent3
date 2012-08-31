@@ -65,6 +65,8 @@ Bug Fixes
 * Deprecation and discontinued warnings are now not ignored by default.
   cogent.util.warning was ignored in Python 2.7 because it uses
   DeprecationWarnings. These warnings are temporarily forced to not be ignored.
+* Included test_app/test_formatdb.py and test_app/test_mothur.py files in
+  alltests.py.
 
 Cogent 1.5 - 1.5.1
 ==================
