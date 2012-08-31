@@ -205,7 +205,8 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('blastall', 'test_blast'),
+    apps = [('formatdb', 'test_formatdb'),
+            ('blastall', 'test_blast'),
             ('carnac', 'test_carnac'),
             ('clearcut', 'test_clearcut'),
             ('clustalw', 'test_clustalw'),
@@ -218,7 +219,6 @@ def suite():
             ('dynalign', 'test_dynalign'),
             ('FastTree', 'test_fasttree'),
             ('foldalign', 'test_foldalign'),
-            ('formatdb', 'test_formatdb'),
             ('guppy', 'test_guppy'),
             ('ilm', 'test_ilm'),
             ('knetfold.pl', 'test_knetfold'),
