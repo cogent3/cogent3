@@ -341,7 +341,7 @@ class Mothur(CommandLineApplication):
 
 
 def mothur_from_file(file):
-    app = Mothur(InputHandler='_input_as_lines')
+    app = Mothur(InputHandler='_input_as_lines',HALT_EXEC=True)
     result = app(file)
     # Force evaluation, so we can safely clean up files
     otus = list(parse_otu_list(result['otu list']))
