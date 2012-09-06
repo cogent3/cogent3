@@ -207,6 +207,8 @@ def suite():
     #Try importing modules for app controllers
     apps = [('formatdb', 'test_formatdb'),
             ('blastall', 'test_blast'),
+            ('blat', 'test_blat'),
+            ('bwa', 'test_bwa'),
             ('carnac', 'test_carnac'),
             ('clearcut', 'test_clearcut'),
             ('clustalw', 'test_clustalw'),
