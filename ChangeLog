@@ -23,7 +23,7 @@ New Features
   nonparametric significance (similar to R's Deducer::perm.t.test).
 
 * Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, usearch 5.2.32, rtax 0.981,
-  and raxml 7.3.0 application controllers.
+  raxml 7.3.0, BLAT 34, and BWA 0.6.2 application controllers.
 
 * Added new functions to cogent.maths.stats.rarefaction that provide
   alternative ways to perform rarefaction subsampling.
