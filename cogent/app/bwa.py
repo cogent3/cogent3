@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Application controller for BWA"""
+"""Application controller for BWA 0.6.2 (release 19 June 2012)"""
 
 from cogent.app.parameters import FlagParameter, ValuedParameter, \
                                   MixedParameter, FilePath
@@ -9,13 +9,13 @@ from cogent.app.util import CommandLineApplication, ResultPath, \
 from os.path import isabs
 
 __author__ = "Adam Robbins-Pianka"
-__copyright__ = "Copyright 2007-2012, The QIIME Project"
-__credits__ = ["Adam Robbins-Pianka", "Jai Rideout"]
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__credits__ = ["Adam Robbins-Pianka", "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.0-dev"
+__version__ = "1.6.0dev"
 __maintainer__ = "Adam Robbins-Pianka"
 __email__ = "adam.robbinspianka@colorado.edu"
-__status__ = "Prototype"
+__status__ = "Production"
 
 # helper functions for argument checking
 def is_int(x):
@@ -123,6 +123,9 @@ class BWA(CommandLineApplication):
 
     def _input_as_dict(self, data):
         """Takes dictionary that sets input and output files.
+
+        Valid keys for the dictionary are specified in the subclasses. File
+        paths must be absolute.
         """
         # clear self._input; ready to receive new input and output files
         self._input = {}
@@ -209,18 +212,18 @@ class BWA_index(BWA):
     def _get_result_paths(self, data):
         """Gets the results for a run of bwa index.
 
-        bwa index outputs 5 files when the index is created. The filename will
-        be the same as the input fasta, unless overridden with the -p option.
+        bwa index outputs 5 files when the index is created. The filename
+        prefix will be the same as the input fasta, unless overridden with
+        the -p option, and the 5 extensions are listed below:
 
-        The 5 file extensions are:
         .amb
         .ann
         .bwt
         .pac
         .sa
 
-        and these extentions are the keys to the dictionary that is returned.
-        The values in the dictionary are cogent.app.util.ResultPath objects.
+        and these extentions (including the period) are the keys to the
+        dictionary that is returned.
         """
 
         # determine the names of the files. The name will be the same as the
@@ -567,7 +570,7 @@ class BWA_bwasw(BWA):
         return {'output': ResultPath(self.Parameters['-f'].Value, 
                                     IsWritten=True)}
 
-def create_bwa_index_from_fasta_file(fasta_in, params):
+def create_bwa_index_from_fasta_file(fasta_in, params=None):
     """Create a BWA index from an input fasta file.
 
     fasta_in: the input fasta file from which to create the index
@@ -575,8 +578,14 @@ def create_bwa_index_from_fasta_file(fasta_in, params):
 
     This method returns a dictionary where the keys are the various
     output suffixes (.amb, .ann, .bwt, .pac, .sa) and the values
-    are the files.
+    are open file objects.
+
+    The index prefix will be the same as fasta_in, unless the -p parameter
+    is passed in params.
     """
+    if params is None:
+        params = {}
+
     # Instantiate the app controller
     index = BWA_index(params)
 
@@ -593,13 +602,19 @@ def assign_reads_to_database(query, database_fasta, out_path, params=None):
     params: dict of BWA specific parameters.
             * Specify which algorithm to use (bwa-short or bwasw) using the
             dict key "algorithm"
-            * if algorithm is bwasw, specify params for bwa bwasw
-            * if algorithm is bwa-short, specify params for bwa samse
+            * if algorithm is bwasw, specify params for the bwa bwasw
+            subcommand
+            * if algorithm is bwa-short, specify params for the bwa samse
+            subcommand
             * if algorithm is bwa-short, must also specify params to use with
-            bwa aln, which is used to get the sai file necessary to run samse
-            * if temp_dir is not in params, it will be assumed to be /tmp
+            bwa aln, which is used to get the sai file necessary to run samse.
+            bwa aln params should be passed in using dict key "aln_params" and
+            the associated value should be a dict of params for the bwa aln
+            subcommand
+            * if a temporary directory is not specified in params using dict
+            key "temp_dir", it will be assumed to be /tmp
     
-    This method returns an open file object.
+    This method returns an open file object (SAM format).
     """
     if params is None:
         params = {}
@@ -676,27 +691,27 @@ def assign_reads_to_database(query, database_fasta, out_path, params=None):
     return result['output']
 
 def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp, out_fp,
-                                    alter_params = {}):
+                                    params = {}):
     """Wraps assign_reads_to_database, setting various parameters.
 
     The default settings are below, but may be overwritten and/or added to
-    using the alter_params dict.
+    using the params dict:
 
     algorithm:      bwasw
     """
-    params = {'algorithm': 'bwasw'}
-    params.update(alter_params)
+    my_params = {'algorithm': 'bwasw'}
+    my_params.update(params)
 
     result = assign_reads_to_database(query_fasta_fp, database_fasta_fp,
-                                        out_fp, params)
+                                        out_fp, my_params)
     
     return result
 
 def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp, 
                                         out_fp, temp_dir='/tmp', 
-                                        alter_params = {}):
+                                        params = {}):
     """Wraps assign_reads_to_database, setting various parameters.
 
     Not yet implemented, as BWA can only align DNA reads to DNA databases.
     """
-    raise NotImplementedError, "BWA does not support alignment of DNA to protein"
+    raise NotImplementedError, "BWA cannot at this point align DNA to protein"

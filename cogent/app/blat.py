@@ -13,13 +13,13 @@ from os import remove
 from os.path import isabs
 
 __author__ = "Adam Robbins-Pianka"
-__copyright__ = "Copyright 2007-2012, The QIIME Project"
-__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald", "Jai Rideout"]
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.0-dev"
+__version__ = "1.6.0dev"
 __maintainer__ = "Adam Robbins-Pianka"
 __email__ = "adam.robbinspianka@colorado.edu"
-__status__ = "Prototype"
+__status__ = "Production"
 
 class Blat(CommandLineApplication):
     """BLAT generic application controller"""
@@ -144,7 +144,7 @@ class Blat(CommandLineApplication):
         }
     
     def _get_result_paths(self, data):
-        """Pull the file location for result output
+        """Returns the file location for result output
         """
 
         return {'output':ResultPath(data[2], IsWritten=True)}
@@ -282,7 +282,7 @@ def assign_reads_to_database(query_fasta_fp, database_fasta_fp, output_fp,
     output_fp : absolute file path of the output file to write
     params : dict of BLAT specific parameters.
     
-    This method returns an absolute file path to the result. The output format
+    This method returns an open file object. The output format
     defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
     if params is None:
@@ -295,63 +295,69 @@ def assign_reads_to_database(query_fasta_fp, database_fasta_fp, output_fp,
     return result['output']
 
 def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp, 
-                        output_fp, alter_params = {}):
+                        output_fp, params = {}):
     """Assign DNA reads to a database fasta of DNA sequences.
 
     Wraps assign_reads_to_database, setting database and query types. All
-    parameters are set to default unless alter_params is passed.
+    parameters are set to default unless params is passed.
 
-    database_fasta_fp: absolute path to the database fasta file containing
-                      DNA sequences.
     query_fasta_fp: absolute path to the query fasta file containing DNA
                    sequences.
+    database_fasta_fp: absolute path to the database fasta file containing
+                      DNA sequences.
     output_fp: absolute path where the output file will be generated.
-    alter_params: optional. dict containing parameter settings to be used
+    params: optional. dict containing parameter settings to be used
                   instead of default values. Cannot change database or query
                   file types from dna and dna, respectively.
+
+    This method returns an open file object. The output format
+    defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
-    params = {'-t': 'dna',
+    my_params = {'-t': 'dna',
               '-q': 'dna'
              }
 
     # if the user specified parameters other than default, then use them.
     # However, if they try to change the database or query types, raise an
     # applciation error.
-    if '-t' in alter_params or '-q' in alter_params:
+    if '-t' in params or '-q' in params:
         raise ApplicationError("Cannot change database or query types when " +\
                                "using assign_dna_reads_to_dna_database. " +\
                                "Use assign_reads_to_database instead.\n")
     
-    params.update(alter_params)
+    my_params.update(params)
 
-    b = Blat(params = params)
+    b = Blat(params = my_params)
     result = assign_reads_to_database(query_fasta_fp, database_fasta_fp, 
-                                      output_fp, params)
+                                      output_fp, my_params)
 
     return result
 
 def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp, 
-                        output_fp, temp_dir = "/tmp", alter_params = {}):
+                        output_fp, temp_dir = "/tmp", params = {}):
     """Assign DNA reads to a database fasta of protein sequences.
 
     Wraps assign_reads_to_database, setting database and query types. All
-    parameters are set to default unless alter_params is passed. A temporary
+    parameters are set to default unless params is passed. A temporary
     file must be written containing the translated sequences from the input
     query fasta file because BLAT cannot do this automatically.
 
-    database_fasta_fp: absolute path to the database fasta file containing
-                      protein sequences.
     query_fasta_fp: absolute path to the query fasta file containing DNA
                    sequences.
+    database_fasta_fp: absolute path to the database fasta file containing
+                      protein sequences.
     output_fp: absolute path where the output file will be generated.
     temp_dir: optional. Change the location where the translated sequences
               will be written before being used as the query. Defaults to 
               /tmp.
-    alter_params: optional. dict containing parameter settings to be used
+    params: optional. dict containing parameter settings to be used
                   instead of default values. Cannot change database or query
                   file types from protein and dna, respectively.
+
+    This method returns an open file object. The output format
+    defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
-    params = {'-t': 'prot',
+    my_params = {'-t': 'prot',
               '-q': 'prot'
              }
 
@@ -362,13 +368,13 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     # if the user specified parameters other than default, then use them.
     # However, if they try to change the database or query types, raise an
     # applciation error.
-    if '-t' in alter_params or '-q' in alter_params:
+    if '-t' in params or '-q' in params:
         raise ApplicationError, "Cannot change database or query types " + \
                                 "when using " + \
                                 "assign_dna_reads_to_dna_database. " + \
                                 "Use assign_reads_to_database instead."
     
-    params.update(alter_params)
+    my_params.update(params)
 
     # get six-frame translation of the input DNA sequences and write them to
     # temporary file.
@@ -387,7 +393,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
             tmp_out.write(entry)
 
     result = assign_reads_to_database(tmp, database_fasta_fp, output_fp, \
-                                      params = params)
+                                      params = my_params)
 
     remove(tmp)
 

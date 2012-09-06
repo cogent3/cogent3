@@ -10,13 +10,13 @@ from os import remove
 from re import search
 
 __author__ = "Adam Robbins-Pianka"
-__copyright__ = "Copyright 2007-2012, The QIIME Project"
-__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald"]
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.0-dev"
+__version__ = "1.6.0dev"
 __maintainer__ = "Adam Robbins-Pianka"
 __email__ = "adam.robbinspianka@colorado.edu"
-__status__ = "Prototype"
+__status__ = "Production"
 
 class BlatTests(TestCase):
     files_to_remove = []
