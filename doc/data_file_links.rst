@@ -31,10 +31,10 @@ All data files referred to in the documentation can be download by clicking on t
 
 :download:`trna_profile.fasta <data/trna_profile.fasta>`
 
-:download: `refseqs.fasta <data/refseqs.fasta>`
+:download:`refseqs.fasta <data/refseqs.fasta>`
 
-:download: `refseqs_protein.fasta <data/refseqs_protein.fasta>`
+:download:`refseqs_protein.fasta <data/refseqs_protein.fasta>`
 
-:download: `inseqs.fasta <data/inseqs.fasta>`
+:download:`inseqs.fasta <data/inseqs.fasta>`
 
-:download: `inseqs_protein.fasta <data/inseqs_protein.fasta>`
+:download:`inseqs_protein.fasta <data/inseqs_protein.fasta>`
