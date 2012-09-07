@@ -1456,7 +1456,7 @@ def assign_dna_reads_to_database(query_fasta_fp,
                                  params = {},
                                  blast6_fp = None,
                                  HALT_EXEC=False):
-    _params = {'--evalue':1e-10,'--id':0.97}
+    _params = {'--id':0.97}
     _params.update(params)
     
     if blast6_fp == None:

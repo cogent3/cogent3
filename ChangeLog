@@ -28,6 +28,10 @@ New Features
 * Added new functions to cogent.maths.stats.rarefaction that provide
   alternative ways to perform rarefaction subsampling.
 
+* Added convenience wrappers assign_dna_reads_to_database, 
+  assign_dna_reads_to_protein_database, and assign_dna_reads_to_dna_database 
+  for BLAT, BWA, and usearch with consistent interface across all three.
+
 Changes
 -------
 
