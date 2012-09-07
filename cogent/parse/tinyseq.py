@@ -10,7 +10,7 @@ __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley",
                     "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.5.2"
+__version__ = "1.5.2-dev"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"

@@ -18,7 +18,7 @@ __credits__ = ["Micah Hamady", "Zongzhi Liu", "Mike Robeson",
                "Catherine Lozupone", "Rob Knight", "Daniel McDonald",
                "Jeremy Widmann", "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.2"
+__version__ = "1.5.2-dev"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"

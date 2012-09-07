@@ -70,7 +70,7 @@ __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
                     "Zongzhi Liu", "Catherine Lozupone", 
                     "Antonio Gonzalez Pena", "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.2"
+__version__ = "1.5.2-dev"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
