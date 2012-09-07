@@ -31,7 +31,9 @@ New Features
 Changes
 -------
 
-* Minimum Vienna package version now set to 1.8.5
+* Minimum matplotlib version now set to 1.1.0.
+
+* Minimum Vienna package version now set to 1.8.5.
 
 * The pearson function in cogent.maths.stats.test has more robust
   error-checking.
