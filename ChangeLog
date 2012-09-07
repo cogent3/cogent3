@@ -11,23 +11,18 @@ New Features
 * Added new mantel_test function to cogent.maths.stats.test that allows the
   type of significance test to be specified. This function is meant to replace
   the pre-existing mantel function.
-
 * Added new correlation_test function to cogent.maths.stats.test that computes
   the correlation (pearson or spearman) between two vectors, in addition to
   parametric and nonparametric tests of significance and confidence intervals.
   This function gives more control and information than the pre-existing
   correlation function. The spearman function is also a new addition.
-
 * Added new mc_t_two_sample function to cogent.maths.stats.test that performs a
   two-sample t-test and uses Monte Carlo permutations to determine
   nonparametric significance (similar to R's Deducer::perm.t.test).
-
 * Added guppy 1.1, pplacer 1.1, ParsInsert 1.04, usearch 5.2.32, rtax 0.981,
   raxml 7.3.0, BLAT 34, and BWA 0.6.2 application controllers.
-
 * Added new functions to cogent.maths.stats.rarefaction that provide
   alternative ways to perform rarefaction subsampling.
-
 * Added convenience wrappers assign_dna_reads_to_database, 
   assign_dna_reads_to_protein_database, and assign_dna_reads_to_dna_database 
   for BLAT, BWA, and usearch with consistent interface across all three.
@@ -36,29 +31,22 @@ Changes
 -------
 
 * Minimum matplotlib version now set to 1.1.0.
-
 * Minimum Vienna package version now set to 1.8.5.
-
 * The pearson function in cogent.maths.stats.test has more robust
   error-checking.
-
 * The mantel and mantel_test functions in cogent.maths.stats.test now check for
   symmetric, hollow distance matrices as input by default, with an option to
   disable these checks.
-
 * cogent.draw.distribution_plots now uses matplotlib proxy Artists for legend
   creation (this simplifies the code a bit). Added ability to set the size of
   plot figures through two new optional parameters to generate_box_plots and
   generate_comparative_plots. More robust checks have been put in place in
   case making room for labels fails (this now uses matplotlib 1.1.0's new
   tight_layout() functionality, but this can still fail in some cases).
-
 * cogent.app.raxml (version 7.0.3) is now deprecated and will be removed in
   1.6.0. Please use cogent.app.raxml_v730 instead (version 7.3.0).
-
 * cogent.app.muscle (version 3.6) is now deprecated and will be removed in
   1.6.0. Please use cogent.app.muscle_v38 instead (version 3.8).
-
 * Updated cogent.app.uclust to handle --stepwords and --w.
 
 Bug Fixes
@@ -77,6 +65,8 @@ Bug Fixes
   a file in PyCogent (this caused the test to break when a new release went out
   because the MD5 changes due to the new version string). The test now writes a
   temporary file populated with fixed data and computes the MD5 from that.
+* Fixed data_file_links.html in the PyCogent documentation to correctly point
+  to several data files that were previously unreachable.
 
 Cogent 1.5 - 1.5.1
 ==================
