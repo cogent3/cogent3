@@ -99,4 +99,4 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _`MySQL-python`: http://sourceforge.net/projects/mysql-python
 .. _zlib: http://www.zlib.net/
-.. _`compiling matplotlib`: http://bioinformatics.anu.edu.au/groups/huttleylab/wiki/da9fe/Building_matplotlib_for_Snow_Leopard.html
+.. _`compiling matplotlib`: http://sourceforge.net/projects/pycogent/forums/forum/651121/topic/5635916

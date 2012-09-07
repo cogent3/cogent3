@@ -73,11 +73,11 @@ Just replace the first line of the requirements file with ``https://pycogent.svn
 To use the graphics capabilities
 """"""""""""""""""""""""""""""""
 
-You need to install matplotlib_ (version 1.1.0+) to use the drawing code. However, compiling matplotlib can be a challenge. We therefore suggest you obtain a prebuilt binary for your platform from the matplotlib_ project page rather than modify the requirements file. For OSX, we suggest reading the following instructions on how to `compiling matplotlib`_.
+You need to install matplotlib_ (version 1.1.0+) to use the drawing code. However, compiling matplotlib can be a challenge. We therefore suggest you obtain a prebuilt binary for your platform from the matplotlib_ project page rather than modify the requirements file. For OSX, we suggest reading the following instructions on `compiling matplotlib`_.
 
 .. _pip: http://pypi.python.org/pypi/pip
 .. _matplotlib: http://matplotlib.sourceforge.net/
-.. _`compiling matplotlib`: http://bioinformatics.anu.edu.au/groups/huttleylab/wiki/da9fe/Building_matplotlib_for_Snow_Leopard.html
+.. _`compiling matplotlib`: http://sourceforge.net/projects/pycogent/forums/forum/651121/topic/5635916
 
 .. todo::
 
