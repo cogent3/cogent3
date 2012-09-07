@@ -6,14 +6,16 @@ provides unit tests for the usearch.py module
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["William Walters", "Jose Carlos Clemente Litran"]
+__credits__ = ["William Walters", 
+               "Jose Carlos Clemente Litran",
+               "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.6.0dev"
 __maintainer__ = "William Walters"
 __email__ = "william.a.walters@colorado.edu"
 __status__ = "Production"
 
-from os.path import isfile, basename
+from os.path import isfile, basename, join, exists
 from shutil import rmtree
 from glob import glob
 
@@ -21,7 +23,7 @@ from cogent.util.misc import remove_files
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import ApplicationError, get_tmp_filename
 
-from cogent.util.misc import create_dir
+from cogent.util.misc import create_dir, get_random_directory_name
 
 from cogent.app.usearch import (Usearch,
  clusters_from_blast_uc_file, usearch_fasta_sort_from_filepath,
@@ -30,7 +32,8 @@ from cogent.app.usearch import (Usearch,
  usearch_cluster_error_correction, usearch_chimera_filter_de_novo,
  usearch_chimera_filter_ref_based, usearch_cluster_seqs,
  enumerate_otus, assign_reads_to_otus, usearch_qf, concatenate_fastas,
- get_retained_chimeras)
+ get_retained_chimeras, assign_dna_reads_to_protein_database,
+ assign_dna_reads_to_dna_database,)
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2007-2009, The Cogent Project"
@@ -47,6 +50,9 @@ class UsearchTests(TestCase):
         # create the temporary input files
         self.dna_seqs_1 = dna_seqs_1
         self.dna_seqs_2 = dna_seqs_usearch
+        self.dna_seqs_3 = dna_seqs_3
+        self.dna_seqs_4 = dna_seqs_4
+        self.protein_ref_seqs1 = protein_ref_seqs1
         self.ref_database = usearch_ref_seqs1
         self.dna_seqs_with_abundance = dna_seqs_with_abundance
         self.de_novo_chimera_seqs = de_novo_chimera_seqs
@@ -105,6 +111,27 @@ class UsearchTests(TestCase):
         seq_file = open(self.tmp_seq_filepath2,'w')
         seq_file.write(self.dna_seqs_2)
         seq_file.close()
+
+        self.dna_seqs3_filepath = get_tmp_filename(\
+         prefix='UsearchOtuPickerTest_',\
+         suffix='.fasta')
+        seq_file = open(self.dna_seqs3_filepath,'w')
+        seq_file.write(self.dna_seqs_3)
+        seq_file.close()
+
+        self.dna_seqs4_filepath = get_tmp_filename(\
+         prefix='UsearchOtuPickerTest_',\
+         suffix='.fasta')
+        seq_file = open(self.dna_seqs4_filepath,'w')
+        seq_file.write(self.dna_seqs_4)
+        seq_file.close()
+
+        self.protein_ref_seqs1_filepath = get_tmp_filename(\
+         prefix='UsearchOtuPickerTest_',\
+         suffix='.fasta')
+        seq_file = open(self.protein_ref_seqs1_filepath,'w')
+        seq_file.write(self.protein_ref_seqs1)
+        seq_file.close()
         
         self.tmp_ref_database = get_tmp_filename(\
          prefix='UsearchRefDatabase_',\
@@ -161,7 +188,8 @@ class UsearchTests(TestCase):
           self.tmp_ref_database, self.tmp_seqs_w_abundance,
           self.tmp_de_novo_chimera_seqs, self.tmp_dna_seqs_with_dups,
           self.tmp_retained_chimeras_seqs1, self.tmp_retained_chimeras_seqs2,
-          self.tmp_dna_seqs_ref_otu_picking]
+          self.tmp_dna_seqs_ref_otu_picking, self.dna_seqs3_filepath,
+          self.protein_ref_seqs1_filepath, self.dna_seqs4_filepath]
           
         self._dirs_to_remove = []
         
@@ -644,6 +672,48 @@ class UsearchTests(TestCase):
         self.assertEqual(actual_out_f,
          self.expected_retained_chimeras_intersection)
 
+    def test_assign_dna_reads_to_protein_database(self):
+        """assign_dna_reads_to_protein_database wrapper functions as expected 
+        """
+        output_dir = get_random_directory_name(output_dir=self.tmp_dir)
+        self._dirs_to_remove.append(output_dir)
+        output_fp = join(output_dir,'out.uc')
+        assign_dna_reads_to_protein_database(self.dna_seqs3_filepath, 
+                                         self.protein_ref_seqs1_filepath, 
+                                         output_fp, 
+                                         temp_dir = self.tmp_dir)
+        
+        self.assertTrue(exists(output_fp))
+        self.assertTrue(exists(output_fp.replace('.uc','.bl6')))
+        
+        # confirm that the clusters look like what we expect
+        expected_clusters = [['eco:b0015'],['eco:b0122','eco:b0122-like']]
+        expected_clusters.sort()
+        actual_clusters = clusters_from_blast_uc_file(open(output_fp))[0].values()
+        actual_clusters.sort()
+        self.assertEqual(actual_clusters,expected_clusters)
+
+    def test_assign_dna_reads_to_dna_database(self):
+        """assign_dna_reads_to_protein_database wrapper functions as expected 
+        """
+        output_dir = get_random_directory_name(output_dir=self.tmp_dir)
+        self._dirs_to_remove.append(output_dir)
+        output_fp = join(output_dir,'out.uc')
+        assign_dna_reads_to_protein_database(self.dna_seqs3_filepath, 
+                                         self.dna_seqs4_filepath, 
+                                         output_fp, 
+                                         temp_dir = self.tmp_dir)
+        
+        self.assertTrue(exists(output_fp))
+        self.assertTrue(exists(output_fp.replace('.uc','.bl6')))
+        
+        # confirm that the clusters look like what we expect
+        expected_clusters = [['eco:b0015'],['eco:b0122','eco:b0122-like']]
+        expected_clusters.sort()
+        actual_clusters = clusters_from_blast_uc_file(open(output_fp))[0].values()
+        actual_clusters.sort()
+        self.assertEqual(actual_clusters,expected_clusters)
+
 # Long strings for test files, output, etc.
 # *************************************************
 
@@ -681,6 +751,101 @@ ACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
 CGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
 >uclust_test_seqs_9 some comment9
 GGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA"""
+
+dna_seqs_3 = """>eco:b0001 thrL; thr operon leader peptide; K08278 thr operon leader peptide (N)
+atgaaacgcattagcaccaccattaccaccaccatcaccattaccacaggtaacggtgcg
+ggctga
+>eco:b0015 dnaJ; chaperone Hsp40, co-chaperone with DnaK; K03686 molecular chaperone DnaJ (N)
+atggctaagcaagattattacgagattttaggcgtttccaaaacagcggaagagcgtgaa
+atcagaaaggcctacaaacgcctggccatgaaataccacccggaccgtaaccagggtgac
+aaagaggccgaggcgaaatttaaagagatcaaggaagcttatgaagttctgaccgactcg
+caaaaacgtgcggcatacgatcagtatggtcatgctgcgtttgagcaaggtggcatgggc
+ggcggcggttttggcggcggcgcagacttcagcgatatttttggtgacgttttcggcgat
+atttttggcggcggacgtggtcgtcaacgtgcggcgcgcggtgctgatttacgctataac
+atggagctcaccctcgaagaagctgtacgtggcgtgaccaaagagatccgcattccgact
+ctggaagagtgtgacgtttgccacggtagcggtgcaaaaccaggtacacagccgcagact
+tgtccgacctgtcatggttctggtcaggtgcagatgcgccagggattcttcgctgtacag
+cagacctgtccacactgtcagggccgcggtacgctgatcaaagatccgtgcaacaaatgt
+catggtcatggtcgtgttgagcgcagcaaaacgctgtccgttaaaatcccggcaggggtg
+gacactggagaccgcatccgtcttgcgggcgaaggtgaagcgggcgagcatggcgcaccg
+gcaggcgatctgtacgttcaggttcaggttaaacagcacccgattttcgagcgtgaaggc
+aacaacctgtattgcgaagtcccgatcaacttcgctatggcggcgctgggtggcgaaatc
+gaagtaccgacccttgatggtcgcgtcaaactgaaagtgcctggcgaaacccagaccggt
+aagctattccgtatgcgcggtaaaggcgtcaagtctgtccgcggtggcgcacagggtgat
+ttgctgtgccgcgttgtcgtcgaaacaccggtaggcctgaacgaaaggcagaaacagctg
+ctgcaagagctgcaagaaagcttcggtggcccaaccggcgagcacaacagcccgcgctca
+aagagcttctttgatggtgtgaagaagttttttgacgacctgacccgctaa
+>eco:b0122 yacC; conserved protein, PulS_OutS family (N)
+atgaagacgtttttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
+tacgcgctcagcgagtctgaagccgaagatatggccgatttaacggcagtttttgtcttt
+ctgaagaacgattgtggttaccagaacttacctaacgggcaaattcgtcgcgcactggtc
+tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
+ctcggtgaagacagctaccgcgatctcagcggcattggcattcccgtcgctaaaaaatgc
+aaagccctggcccgcgattccttaagcctgcttgcctacgtcaaataa
+>eco:b0122-like
+atgaagacgtttttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
+tacgcgctcagcgagtctgaagccgaagatatggccgatttaacggcagtttttgtcttt
+ctgaagaacgattgtggttaccagaacttacctaacgggcaaattcgtcgcgcactggtc
+tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
+ctcggtgaagacagctaccgcgatctcagcggcattggcattcccgtcgctaaaaaatgc
+aaagccctggcccgcgattccttaagcctgcttgcctacgtcaaatcc"""
+
+dna_seqs_4 = """>eco:b0015 dnaJ; chaperone Hsp40, co-chaperone with DnaK; K03686 molecular chaperone DnaJ (N)
+atggctaagcaagattattacgagattttaggcgtttccaaaacagcggaagagcgtgaa
+atcagaaaggcctacaaacgcctggccatgaaataccacccggaccgtaaccagggtgac
+aaagaggccgaggcgaaatttaaagagatcaaggaagcttatgaagttctgaccgactcg
+caaaaacgtgcggcatacgatcagtatggtcatgctgcgtttgagcaaggtggcatgggc
+ggcggcggttttggcggcggcgcagacttcagcgatatttttggtgacgttttcggcgat
+atttttggcggcggacgtggtcgtcaacgtgcggcgcgcggtgctgatttacgctataac
+atggagctcaccctcgaagaagctgtacgtggcgtgaccaaagagatccgcattccgact
+ctggaagagtgtgacgtttgccacggtagcggtgcaaaaccaggtacacagccgcagact
+tgtccgacctgtcatggttctggtcaggtgcagatgcgccagggattcttcgctgtacag
+cagacctgtccacactgtcagggccgcggtacgctgatcaaagatccgtgcaacaaatgt
+catggtcatggtcgtgttgagcgcagcaaaacgctgtccgttaaaatcccggcaggggtg
+gacactggagaccgcatccgtcttgcgggcgaaggtgaagcgggcgagcatggcgcaccg
+gcaggcgatctgtacgttcaggttcaggttaaacagcacccgattttcgagcgtgaaggc
+aacaacctgtattgcgaagtcccgatcaacttcgctatggcggcgctgggtggcgaaatc
+gaagtaccgacccttgatggtcgcgtcaaactgaaagtgcctggcgaaacccagaccggt
+aagctattccgtatgcgcggtaaaggcgtcaagtctgtccgcggtggcgcacagggtgat
+ttgctgtgccgcgttgtcgtcgaaacaccggtaggcctgaacgaaaggcagaaacagctg
+ctgcaagagctgcaagaaagcttcggtggcccaaccggcgagcacaacagcccgcgctca
+aagagcttctttgatggtgtgaagaagttttttgacgacctgacccgctaa
+>eco:b0122 yacC; conserved protein, PulS_OutS family (N)
+atgaagacgtttttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
+tacgcgctcagcgagtctgaagccgaagatatggccgatttaacggcagtttttgtcttt
+ctgaagaacgattgtggttaccagaacttacctaacgggcaaattcgtcgcgcactggtc
+tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
+ctcggtgaagacagctaccgcgatctcagcggcattggcattcccgtcgctaaaaaatgc
+aaagccctggcccgcgattccttaagcctgcttgcctacgtcaaataa
+>eco:b0122-like
+atgaagacgtttttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
+tacgcgctcagcgagtctgaagccgaagatatggccgatttaacggcagtttttgtcttt
+ctgaagaacgattgtggttaccagaacttacctaacgggcaaattcgtcgcgcactggtc
+tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
+ctcggtgaagacagctaccgcgatctcagcggcattggcattcccgtcgctaaaaaatgc
+aaagccctggcccgcgattccttaagcctgcttgcctacgtcaaatcc"""
+
+protein_ref_seqs1 = """>eco:b0001 thrL; thr operon leader peptide; K08278 thr operon leader peptide (A)
+MKRISTTITTTITITTGNGAG
+>eco:b0015 dnaJ; chaperone Hsp40, co-chaperone with DnaK; K03686 molecular chaperone DnaJ (A)
+MAKQDYYEILGVSKTAEEREIRKAYKRLAMKYHPDRNQGDKEAEAKFKEIKEAYEVLTDS
+QKRAAYDQYGHAAFEQGGMGGGGFGGGADFSDIFGDVFGDIFGGGRGRQRAARGADLRYN
+MELTLEEAVRGVTKEIRIPTLEECDVCHGSGAKPGTQPQTCPTCHGSGQVQMRQGFFAVQ
+QTCPHCQGRGTLIKDPCNKCHGHGRVERSKTLSVKIPAGVDTGDRIRLAGEGEAGEHGAP
+AGDLYVQVQVKQHPIFEREGNNLYCEVPINFAMAALGGEIEVPTLDGRVKLKVPGETQTG
+KLFRMRGKGVKSVRGGAQGDLLCRVVVETPVGLNERQKQLLQELQESFGGPTGEHNSPRS
+KSFFDGVKKFFDDLTR
+>eco:b0015:rep
+MAKQDYYEILGVSKTAEEREIRKAYKRLAMKYHPDRNQGDKEAEAKFKEIKEAYEVLTDS
+QKRAAYDQYGHAAFEQGGMGGGGFGGGADFSDIFGDVFGDIFGGGRGRQRAARGADLRYN
+MELTLEEAVRGVTKEIRIPTLEECDVCHGSGAKPGTQPQTCPTCHGSGQVQMRQGFFAVQ
+QTCPHCQGRGTLIKDPCNKCHGHGRVERSKTLSVKIPAGVDTGDRIRLAGEGEAGEHGAP
+AGDLYVQVQVKQHPIFEREGNNLYCEVPINFAMAALGGEIEVPTLDGRVKLKVPGETQTG
+KLFRMRGKGVKSVRGGAQGDLLCRVVVETPVGLNERQKQLLQELQESFGGPTGEHNSPRS
+KSFFDGVKKFFDDLTR
+>eco:b0122 yacC; conserved protein, PulS_OutS family (A)
+MKTFFRTVLFGSLMAVCANSYALSESEAEDMADLTAVFVFLKNDCGYQNLPNGQIRRALV
+FFAQQNQWDLSNYDTFDMKALGEDSYRDLSGIGIPVAKKCKALARDSLSLLAYVK"""
 
 usearch_ref_seqs1 = """>ref1 ecoli sequence
 CGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAGGGAGTAAAGTTAATACCTTTGCTCATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCA
