@@ -73,6 +73,10 @@ Bug Fixes
   DeprecationWarnings. These warnings are temporarily forced to not be ignored.
 * Included test_app/test_formatdb.py and test_app/test_mothur.py files in
   alltests.py.
+* Fixed test_safe_md5 in tests.test_util.test_misc to no longer run an MD5 over
+  a file in PyCogent (this caused the test to break when a new release went out
+  because the MD5 changes due to the new version string). The test now writes a
+  temporary file populated with fixed data and computes the MD5 from that.
 
 Cogent 1.5 - 1.5.1
 ==================

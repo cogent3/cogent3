@@ -46,10 +46,12 @@ class UtilsTests(TestCase):
     def setUp(self):
         """ """
         self.files_to_remove = []
+        self.dirs_to_remove = []
         
     def tearDown(self):
         """ """
-        map(rmdir,self.files_to_remove)
+        map(remove,self.files_to_remove)
+        map(rmdir,self.dirs_to_remove)
 
     def test_identity(self):
         """should return same object"""
@@ -129,8 +131,15 @@ class UtilsTests(TestCase):
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
-        exp = '4b2de2d85e4469ade3726073023116ec'
-        obs = safe_md5(open('test_util/__init__.py'))
+        exp = 'd3b07384d113edec49eaa6238ad5ff00'
+
+        tmp_fp = get_tmp_filename(prefix='test_safe_md5', suffix='txt')
+        self.files_to_remove.append(tmp_fp)
+        tmp_f = open(tmp_fp, 'w')
+        tmp_f.write('foo\n')
+        tmp_f.close()
+
+        obs = safe_md5(open(tmp_fp, 'U'))
         self.assertEqual(obs.hexdigest(),exp)
 
     def test_iterable(self):
@@ -222,9 +231,9 @@ class UtilsTests(TestCase):
         tmp_dir_path2 = get_random_directory_name(suppress_mkdir=True)
         tmp_dir_path3 = get_random_directory_name(suppress_mkdir=True)
 
-        self.files_to_remove.append(tmp_dir_path)
-        self.files_to_remove.append(tmp_dir_path2)
-        self.files_to_remove.append(tmp_dir_path3)
+        self.dirs_to_remove.append(tmp_dir_path)
+        self.dirs_to_remove.append(tmp_dir_path2)
+        self.dirs_to_remove.append(tmp_dir_path3)
 
         # create on existing dir raises OSError if fail_on_exist=True
         self.assertRaises(OSError, create_dir, tmp_dir_path,
