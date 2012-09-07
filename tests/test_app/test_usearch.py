@@ -693,6 +693,29 @@ class UsearchTests(TestCase):
         actual_clusters.sort()
         self.assertEqual(actual_clusters,expected_clusters)
 
+
+    def test_assign_dna_reads_to_protein_database_alt_params(self):
+        """assign_dna_reads_to_protein_database wrapper functions with alt params 
+        """
+        output_dir = get_random_directory_name(output_dir=self.tmp_dir)
+        self._dirs_to_remove.append(output_dir)
+        output_fp = join(output_dir,'out.uc')
+        assign_dna_reads_to_protein_database(self.dna_seqs3_filepath, 
+                                         self.protein_ref_seqs1_filepath, 
+                                         output_fp, 
+                                         temp_dir = self.tmp_dir,
+                                         params={'--id':1.0})
+        
+        self.assertTrue(exists(output_fp))
+        self.assertTrue(exists(output_fp.replace('.uc','.bl6')))
+        
+        # confirm that the clusters look like what we expect
+        expected_clusters = [['eco:b0015'],['eco:b0122']]
+        expected_clusters.sort()
+        actual_clusters = clusters_from_blast_uc_file(open(output_fp))[0].values()
+        actual_clusters.sort()
+        self.assertEqual(actual_clusters,expected_clusters)
+
     def test_assign_dna_reads_to_dna_database(self):
         """assign_dna_reads_to_protein_database wrapper functions as expected 
         """
@@ -783,7 +806,7 @@ tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
 ctcggtgaagacagctaccgcgatctcagcggcattggcattcccgtcgctaaaaaatgc
 aaagccctggcccgcgattccttaagcctgcttgcctacgtcaaataa
 >eco:b0122-like
-atgaagacgtttttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
+atgaagaaaattttcagaacagtgttattcggcagcctgatggccgtctgcgcaaacagt
 tacgcgctcagcgagtctgaagccgaagatatggccgatttaacggcagtttttgtcttt
 ctgaagaacgattgtggttaccagaacttacctaacgggcaaattcgtcgcgcactggtc
 tttttcgctcagcaaaaccagtgggacctcagtaattacgacaccttcgacatgaaagcc
