@@ -14,11 +14,11 @@ Welcome to PyCogent's documentation!
     coding_guidelines
     data_file_links
     examples/index
+    cookbook/index
     developer_notes
     scripting_guidelines
     licenses
     ChangeLog
-..    cookbook/index
 
 
 .. todolist::

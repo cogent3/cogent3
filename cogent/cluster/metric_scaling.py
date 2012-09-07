@@ -31,7 +31,7 @@ __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell",
                "Gavin Huttley", "Justin Kuczynski", "Daniel McDonald",
                "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.2"
+__version__ = "1.5.2-dev"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
