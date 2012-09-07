@@ -382,13 +382,16 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     tmp_out = open(tmp, 'w')
 
     for label, sequence in MinimalFastaParser(open(query_fasta_fp)):
+        # modify label to contain only the non-comment portion of the label 
+        # (ie., up to the first space)
+        label = label.split()[0]
         s = DNA.makeSequence(sequence)
         translations = standard_code.sixframes(s)
         frames = [1,2,3,-1,-2,-3]
         translations = dict(zip(frames, translations))
 
         for frame, translation in sorted(translations.iteritems()):
-            entry = '>{label}_frame_{frame}\n{trans}\n'
+            entry = '>{label}.frame.{frame}\n{trans}\n'
             entry = entry.format(label=label, frame=frame, trans=translation)
             tmp_out.write(entry)
 
