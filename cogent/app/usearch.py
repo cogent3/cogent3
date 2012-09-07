@@ -1448,6 +1448,30 @@ def usearch_qf(
         remove_files(intermediate_files)
         
     return clusters, failures
-    
 
+def assign_dna_reads_to_database(query_fasta_fp, 
+                                 database_fasta_fp, 
+                                 output_fp, 
+                                 temp_dir = "/tmp", 
+                                 params = {},
+                                 blast6_fp = None,
+                                 HALT_EXEC=False):
+    _params = {'--evalue':1e-10,'--id':0.97}
+    _params.update(params)
+    
+    if blast6_fp == None:
+        blast6_fp = splitext(output_fp)[0] + '.bl6'
+    data = {'--query':query_fasta_fp,
+            '--uc':output_fp,
+            '--db':database_fasta_fp,
+            '--blast6out':blast6_fp,
+            }
+    app = Usearch(_params,
+                  WorkingDir=temp_dir,
+                  HALT_EXEC=False)
+    app_result = app(data)
+
+assign_dna_reads_to_protein_database =\
+  assign_dna_reads_to_dna_database =\
+  assign_dna_reads_to_database
 ## End uclust convenience functions
