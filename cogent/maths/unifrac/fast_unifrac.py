@@ -19,7 +19,7 @@ __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Daniel McDonald", 
     "Justin Kuczynski"]
 __license__ = "GPL"
-__version__ = "1.6.0dev"
+__version__ = "1.5.2"
 __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
 __status__ = "Prototype"

@@ -13,7 +13,7 @@ cimport numpy as np
 from numpy cimport NPY_DOUBLE, NPY_ULONGLONG, npy_intp
 from stdlib cimport malloc, realloc, free
 
-__version__ = "('1', '6', '0dev')"
+__version__ = "('1', '5', '2')"
 
 cdef extern from "numpy/arrayobject.h":
     cdef object PyArray_SimpleNewFromData(int nd, npy_intp *dims,\

@@ -17,7 +17,7 @@ __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Micah Hamady", "Jeremy Widmann",
                     "Catherine Lozupone", "Rob Knight","Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.6.0dev"
+__version__ = "1.5.2"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"

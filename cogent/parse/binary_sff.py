@@ -4,7 +4,7 @@
 __author__ = 'Kyle Bittinger'
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __license__ = 'GPL'
-__version__ = "1.6.0dev"
+__version__ = "1.5.2"
 __credits__ = ['Kyle Bittinger']
 __maintainer__ = 'Kyle Bittinger'
 __email__ = 'kylebittinger@gmail.com'
