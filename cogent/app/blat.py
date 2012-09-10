@@ -13,13 +13,13 @@ from os import remove
 from os.path import isabs
 
 __author__ = "Adam Robbins-Pianka"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald", "Jai Ram Rideout"]
+__copyright__ = "Copyright 2007-2012, The QIIME Project"
+__credits__ = ["Adam Robbins-Pianka", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.2-dev"
+__version__ = "1.5.0-dev"
 __maintainer__ = "Adam Robbins-Pianka"
 __email__ = "adam.robbinspianka@colorado.edu"
-__status__ = "Production"
+__status__ = "Prototype"
 
 class Blat(CommandLineApplication):
     """BLAT generic application controller"""
@@ -180,9 +180,9 @@ class Blat(CommandLineApplication):
         The list input here should be [query_file_path, database_file_path, 
         output_file_path]'''
         query, database, output = data
-        if (not isabs(database[0])) \
-          or (not isabs(query[0])) \
-          or (not isabs(output[0])):
+        if (not isabs(database)) \
+          or (not isabs(query)) \
+          or (not isabs(output)):
             raise ApplicationError, "Only absolute paths allowed.\n%s" %\
                                     ', '.join(data)
 
@@ -327,7 +327,6 @@ def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp,
     
     my_params.update(params)
 
-    b = Blat(params = my_params)
     result = assign_reads_to_database(query_fasta_fp, database_fasta_fp, 
                                       output_fp, my_params)
 
@@ -362,7 +361,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
              }
 
     # make sure temp_dir specifies an absolute path
-    if not isabs(temp_dir[0]):
+    if not isabs(temp_dir):
         raise ApplicationError, "temp_dir must be an absolute path."
 
     # if the user specified parameters other than default, then use them.
@@ -382,19 +381,19 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     tmp_out = open(tmp, 'w')
 
     for label, sequence in MinimalFastaParser(open(query_fasta_fp)):
-        # modify label to contain only the non-comment portion of the label 
-        # (ie., up to the first space)
-        label = label.split()[0]
+        seq_id = label.split()[0]
+
         s = DNA.makeSequence(sequence)
         translations = standard_code.sixframes(s)
         frames = [1,2,3,-1,-2,-3]
         translations = dict(zip(frames, translations))
 
         for frame, translation in sorted(translations.iteritems()):
-            entry = '>{label}.frame.{frame}\n{trans}\n'
-            entry = entry.format(label=label, frame=frame, trans=translation)
+            entry = '>{seq_id}_frame_{frame}\n{trans}\n'
+            entry = entry.format(seq_id=seq_id, frame=frame, trans=translation)
             tmp_out.write(entry)
 
+    tmp_out.close()
     result = assign_reads_to_database(tmp, database_fasta_fp, output_fp, \
                                       params = my_params)
 
