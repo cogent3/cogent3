@@ -1,4 +1,5 @@
 from location import as_map, Map
+import numpy
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -203,6 +204,17 @@ class _Feature(_Annotatable):
             map = map.withoutGaps()
         return self.base[map]
     
+    def withoutLostSpans(self):
+        """Keeps only the parts which are actually present in the underlying sequence"""
+        if self.map.complete:
+            return self
+        keep = self.map.nongap()
+        new = type(self)(self.parent, self.map[keep], original=self)
+        if self.annotations:
+            sliced_annots = self._slicedAnnotations(new, keep)
+            new.attachAnnotations(sliced_annots)
+        return new
+    
     def asOneSpan(self):
         new_map = self.map.getCoveringSpan()
         return _Feature(self.parent, new_map, type="span", Name=self.Name)
@@ -267,6 +279,8 @@ class Source(_Feature):
         basemap = self.basemap[ng]
         return self.__class__(grandparent, new_map, self.accession, basemap)
     
+    def withoutLostSpans(self):
+        return self
 
 def Feature(parent, type, Name, spans, value=None):
     if isinstance(spans, Map):
@@ -282,6 +296,11 @@ class _Variable(_Feature):
     def getTracks(self, policy):
         return policy.tracksForVariable(self)
     
+    def withoutLostSpans(self):
+        if self.map.complete:
+            return self
+        raise NotImplementedError
+        
 
 def Variable(parent, type, Name, xxy_list):
     """A variable that has 2 x-components (start, end) and a single y component.
@@ -300,8 +319,16 @@ class _SimpleVariable(_Feature):
     
     def getTracks(self, policy):
         return policy.tracks_for_value(self)
-    
 
+    def withoutLostSpans(self):
+        if self.map.complete:
+            return self
+        keep = self.map.nongap()
+        indicies = numpy.concatenate([list(span) for span in keep.Spans])
+        data = numpy.asarray(data)[indicies]
+        new = type(self)(self.parent, self.map[keep], data=data, original=self)
+        return new
+        
 def SimpleVariable(parent, type, Name, data):
     """A simple variable type of annotation, such as a computed property of
     a sequence that varies spatially."""

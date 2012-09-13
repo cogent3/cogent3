@@ -109,11 +109,9 @@ class TestAnnotations(unittest.TestCase):
             seq_ltr = self.aln.projectAnnotation(seq_name, aln_ltr)
             if '-' in expected:
                 self.assertRaises(ValueError, seq_ltr.getSlice)
-                seq = seq_ltr.getSlice(complete=False)
+                seq_ltr = seq_ltr.withoutLostSpans()
                 expected = expected.replace('-', '')
-            else:
-                seq = seq_ltr.getSlice()    
-            self.assertEqual(seq, expected)
+            self.assertEqual(seq_ltr.getSlice(), expected)
         
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""
