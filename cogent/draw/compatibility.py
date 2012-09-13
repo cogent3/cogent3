@@ -302,9 +302,12 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
+        
         genemap = Display(alignment, recursive=s_size>0, 
                 colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
+        figwidth = max(figwidth, figwidth/2 + annot_width)
+        
         bar_height = 0.5
         link_width = 0.3
         x_margin = 0.60
@@ -384,14 +387,11 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         if s_size:
             seq_names = [name.split('  ')[0] 
                     for name in alignment.getSeqNames()]
-            axS.yaxis.set_minor_locator(
-                        matplotlib.ticker.IndexLocator(1,0.5))
-            axS.yaxis.set_minor_formatter(matplotlib.ticker.FixedFormatter(
-                        seq_names))
-            axS.yaxis.set_major_locator(
-                        matplotlib.ticker.IndexLocator(1,0.5))
-            axS.yaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
-            axS.yaxis.grid(False) #, 'minor')
+            axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
+            axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+            axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
+            axS.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(seq_names))
+            #axS.yaxis.grid(False) #, 'minor')
     
         # Display the main matrices: compatibility and partimatrix
         axC.pcolorfast(compatiblity, cmap=plt.cm.gray)
