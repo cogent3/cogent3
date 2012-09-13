@@ -291,16 +291,17 @@ class Span(SpanI):
         # Find the right span(s) of the map
         first = bisect_right(offsets, zlo) - 1
         last = bisect_left(offsets, zhi, first) -1
-        result= spans[first:last+1]
+        result = spans[first:last+1]
         
         # Cut off something at either end to get
         # the same position and length as 'self'
         if result:
-            end_of_last = offsets[last]+spans[last].length
-            if end_of_last > zhi:
-                result[-1] = result[-1][:result[-1].length-(end_of_last-zhi)]
-            if zlo > offsets[first]:
-                result[0] = result[0][zlo-offsets[first]:]
+            end_trim = offsets[last] + spans[last].length - zhi
+            start_trim = zlo - offsets[first]
+            if end_trim > 0:
+                result[-1] = result[-1][:result[-1].length-end_trim]
+            if start_trim > 0:
+                result[0] = result[0][start_trim:]
         
         # May need to add a bit at either end if the span didn't lie entirely
         # within its parent map (eg: Display slice, inverse of feature map).
