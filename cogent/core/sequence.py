@@ -629,8 +629,6 @@ class Sequence(_Annotatable, SequenceI):
         # Called by generic __getitem__
         segments = self.gappedByMapSegmentIter(map, allow_gaps=False)
         new = self.__class__(''.join(segments), self.Name, Info=self.Info)
-        annots = self._slicedAnnotations(new, map)
-        new.annotations = annots
         return new
     
     def __add__(self, other):

@@ -33,7 +33,8 @@ class _Annotatable(object):
                     if annot.map.Start < slicemap.End and \
                             annot.map.End > slicemap.Start:
                         annot = annot.remappedTo(new, newmap)
-                        result.append(annot)
+                        if annot.map.useful:
+                            result.append(annot)
         return result
     
     def _shiftedAnnotations(self, new, shift):
@@ -73,7 +74,7 @@ class _Annotatable(object):
         map = self._as_map(index)
         new = self._mapped(map)
         sliced_annots = self._slicedAnnotations(new, map)
-        new.annotations = [annot for annot in sliced_annots if annot.map.useful]
+        new.attachAnnotations(sliced_annots)
         return new
     
     def _mapped(self, map):
@@ -156,12 +157,11 @@ class _Annotatable(object):
         reverse complement."""
         assert len(new) == len(self)
         annotations = []
-        for i, annot in enumerate(self.annotations):
+        for annot in self.annotations:
             new_map = annot.map.nucleicReversed()
-            annotations += [annot.__class__(new, new_map, annot)]
-        
-        new.annotations = annotations
-    
+            annotations.append(annot.__class__(new, new_map, annot))
+        new.attachAnnotations(annotations)
+
 
 class _Feature(_Annotatable):
     qualifier_names = ['type', 'Name']
@@ -250,7 +250,7 @@ class AnnotatableFeature(_Feature):
     
     def remappedTo(self, grandparent, gmap):
         new = _Feature.remappedTo(self, grandparent, gmap)
-        new.annotations = [annot for annot in self.annotations if annot.map.useful] #_shiftedAnnotations(new, 0)
+        new.annotations = [annot for annot in self.annotations if annot.map.useful]
         return new
     
     def getTracks(self, policy):
