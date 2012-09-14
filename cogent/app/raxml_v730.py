@@ -22,7 +22,7 @@ __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
                "Daniel McDonald","Jesse Stombaugh"]
 __license__ = "GPL"
-__version__ = "1.5.3"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Jesse Stombaugh"
 __email__ = "jesse.stombaugh@colorado.edu"
 __status__ = "Production"

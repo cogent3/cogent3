@@ -23,7 +23,7 @@ __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
                     "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso",
                     "Sandra Smit", "Justin Kuczynski", "Marcin Cieslik"]
 __license__ = "GPL"
-__version__ = "1.5.3"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
