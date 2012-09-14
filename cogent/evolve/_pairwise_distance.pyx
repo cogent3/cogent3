@@ -1,6 +1,6 @@
 cimport numpy as np
 
-__version__ = "('1', '5', '2-dev')"
+__version__ = "('1', '5', '3')"
 
 # fills in a diversity matrix from sequences of integers
 def _fill_diversity_matrix(np.ndarray[np.float64_t, ndim=2] matrix, np.ndarray[np.int32_t, ndim=1] seq1, np.ndarray[np.int32_t, ndim=1] seq2):

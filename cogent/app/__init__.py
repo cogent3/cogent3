@@ -44,7 +44,7 @@ __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
                "Greg Caporaso", "Mike Robeson", "Daniel McDonald", 
                "Marcin Cieslik"]
 __license__ = "GPL"
-__version__ = "1.5.2-dev"
+__version__ = "1.5.3"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

@@ -13,7 +13,7 @@ __contributors__ = ["Justin Kuczynski",
                     "Zongzhi Liu",
                     "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.2-dev"
+__version__ = "1.5.3"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
