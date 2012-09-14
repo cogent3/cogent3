@@ -10,7 +10,7 @@ __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight",
                     "Sandra Smit", "Peter Maxwell", "Matthew Wakefield",
                     "Greg Caporaso", "Marcin Cieslik" ]
 __license__ = "GPL"
-__version__ = "1.5.2-dev"
+__version__ = "1.5.3"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

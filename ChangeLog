@@ -2,8 +2,8 @@
 Changelog
 *********
 
-Cogent 1.5.2-dev (changes since 1.5.2 go here)
-==============================================
+Cogent 1.5.2 - 1.5.3
+====================
 
 New Features
 ------------
@@ -17,7 +17,6 @@ Changes
 -------
 
 * Make Span.remapWith() a little clearer in cogent.core.location.
-
 * Tidy annotation remapping code in cogent.core.annotation and
   cogent.core.sequence so that new positions are only calculated once when
   slicing, projecting, or otherwise remapping parts of sequences. The old code
@@ -28,7 +27,6 @@ Bug Fixes
 
 * Fixed bug in BLAT application controller (cogent.app.blat) which would drop
   some input sequences when running assign_dna_reads_to_protein_database.
-
 * Prevent negative widths from arising in cogent.draw.compatibility when
   alignment is too wide.
 
