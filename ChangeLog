@@ -8,11 +8,29 @@ Cogent 1.5.2-dev (changes since 1.5.2 go here)
 New Features
 ------------
 
+* Added a withoutLostSpans() method to Feature objects in
+  cogent.core.annotation. Useful after projecting features from one aligned
+  sequence across to another. Implemented for ordinary Features and
+  SimpleVariables but not xxy_list Variables.
+
 Changes
 -------
 
+* Make Span.remapWith() a little clearer in cogent.core.location.
+
+* Tidy annotation remapping code in cogent.core.annotation and
+  cogent.core.sequence so that new positions are only calculated once when
+  slicing, projecting, or otherwise remapping parts of sequences. The old code
+  was needlessly doing it twice.
+
 Bug Fixes
 ---------
+
+* Fixed bug in BLAT application controller (cogent.app.blat) which would drop
+  some input sequences when running assign_dna_reads_to_protein_database.
+
+* Prevent negative widths from arising in cogent.draw.compatibility when
+  alignment is too wide.
 
 Cogent 1.5.1 - 1.5.2
 ====================
