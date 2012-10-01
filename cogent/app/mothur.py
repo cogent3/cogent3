@@ -14,6 +14,8 @@ from tempfile import mkdtemp, NamedTemporaryFile
 from cogent.app.parameters import ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     CommandLineAppResult, ApplicationError
+
+from cogent.parse.fasta import MinimalFastaParser
 from cogent.parse.mothur import parse_otu_list
 
 
@@ -349,11 +351,24 @@ def mothur_from_file(file):
     return otus
 
 
+class _MothurFilepathParameter(ValuedParameter):
+    def _get_value(self):
+        return self._Value
+
+    def _set_value(self, val):
+        if val:
+            self._Value = str(val).replace("-", "\\-")
+        else:
+            self._Value = val
+
+    Value = property(_get_value, _set_value)
+
+
 class MothurClassifySeqs(Mothur):
     _options = {
-        'reference': ValuedParameter(
+        'reference': _MothurFilepathParameter(
             Name='reference', Value=None, Delimiter='=', Prefix=''),
-        'taxonomy': ValuedParameter(
+        'taxonomy': _MothurFilepathParameter(
             Name='taxonomy', Value=None, Delimiter='=', Prefix=''),
         'cutoff': ValuedParameter(
             Name='cutoff', Value=None, Delimiter='=', Prefix=''),
@@ -364,6 +379,7 @@ class MothurClassifySeqs(Mothur):
         }
     _parameters = {}
     _parameters.update(_options)
+    _filepath_parameters = set(['reference', 'taxonomy'])
 
     def _format_function_arguments(self, opts):
         """Format a series of function arguments in a Mothur script."""
@@ -433,18 +449,31 @@ def mothur_classify_file(
     For convenience, we also ensure that each taxon list in the
     id-to-taxonomy file ends with a semicolon.
     """
+    ref_seq_ids = set()
+    
+    user_ref_file = open(ref_fp)
     tmp_ref_file = NamedTemporaryFile(suffix=".ref.fa")
-    for line in open(ref_fp):
-        tmp_ref_file.write(line)
+    for seq_id, seq in MinimalFastaParser(user_ref_file):
+        id_token = seq_id.split()[0]
+        ref_seq_ids.add(id_token)
+        tmp_ref_file.write(">%s\n%s\n" % (seq_id, seq))
     tmp_ref_file.seek(0)
 
+    user_tax_file = open(tax_fp)
     tmp_tax_file = NamedTemporaryFile(suffix=".tax.txt")
-    for line in open(tax_fp):
+    for line in user_tax_file:
         line = line.rstrip()
+        if not line:
+            continue
+
+        # MOTHUR is particular that each assignment end with a semicolon.
         if not line.endswith(";"):
             line = line + ";"
-        tmp_tax_file.write(line)
-        tmp_tax_file.write("\n")
+
+        id_token, _, _ = line.partition("\t")
+        if id_token in ref_seq_ids:
+            tmp_tax_file.write(line)
+            tmp_tax_file.write("\n")
     tmp_tax_file.seek(0)
 
     params = {"reference": tmp_ref_file.name, "taxonomy": tmp_tax_file.name}
