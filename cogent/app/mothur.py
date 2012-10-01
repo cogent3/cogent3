@@ -351,7 +351,14 @@ def mothur_from_file(file):
     return otus
 
 
+# Files with dashes currently break MOTHUR -- in the upcoming version
+# of the software, they may be escaped with a backslash.  We implement
+# and test for this now, since it's broken anyway!
+
+
 class _MothurFilepathParameter(ValuedParameter):
+    """Inserts escape characters in filepath parameters for Mothur."""
+
     def _get_value(self):
         return self._Value
 
