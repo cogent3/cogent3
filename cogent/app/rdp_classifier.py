@@ -358,7 +358,7 @@ def parse_command_line_parameters(argv=None):
           type='float',dest='min_confidence',help='minimum confidence '+\
           'level to return a classification [default: %default]')
 
-    parser.set_defaults(verbose=False,min_confidence=0.80)
+    parser.set_defaults(verbose=False, min_confidence=0.80)
 
     opts, args = parser.parse_args(argv)
     if len(args) != 1:
@@ -369,7 +369,7 @@ def parse_command_line_parameters(argv=None):
 
 def assign_taxonomy(
     data, min_confidence=0.80, output_fp=None, training_data_fp=None,
-    fixrank=True, max_memory=None):
+    fixrank=True, max_memory=None, tmp_dir=None):
     """Assign taxonomy to each sequence in data with the RDP classifier
     
         data: open fasta file object or list of fasta lines
@@ -386,13 +386,17 @@ def assign_taxonomy(
     seq_id_lookup = {}
     for seq_id, seq in MinimalFastaParser(data):
         seq_id_lookup[seq_id.split()[0]] = seq_id
-    
-    app = RdpClassifier()
+
+    app_kwargs = {}
+    if tmp_dir is not None:
+        app_kwargs['TmpDir'] = tmp_dir
+    app = RdpClassifier(**app_kwargs)
+
     if max_memory is not None:
         app.Parameters['-Xmx'].on(max_memory)
     
     temp_output_file = tempfile.NamedTemporaryFile(
-        prefix='RdpAssignments_', suffix='.txt')
+        prefix='RdpAssignments_', suffix='.txt', dir=tmp_dir)
     app.Parameters['-o'].on(temp_output_file.name)
     if training_data_fp is not None:
         app.Parameters['-t'].on(training_data_fp)
@@ -442,7 +446,8 @@ def assign_taxonomy(
 
 
 def train_rdp_classifier(
-    training_seqs_file, taxonomy_file, model_output_dir, max_memory=None):
+    training_seqs_file, taxonomy_file, model_output_dir, max_memory=None,
+    tmp_dir=None):
     """ Train RDP Classifier, saving to model_output_dir
 
         training_seqs_file, taxonomy_file: file-like objects used to
@@ -455,12 +460,16 @@ def train_rdp_classifier(
 
     Once the model data has been generated, the RDP Classifier may 
     """
-    app = RdpTrainer()
+    app_kwargs = {}
+    if tmp_dir is not None:
+        app_kwargs['TmpDir'] = tmp_dir
+    app = RdpTrainer(**app_kwargs)
+
     if max_memory is not None:
         app.Parameters['-Xmx'].on(max_memory)
     
     temp_taxonomy_file = tempfile.NamedTemporaryFile(
-        prefix='RdpTaxonomy_', suffix='.txt')
+        prefix='RdpTaxonomy_', suffix='.txt', dir=tmp_dir)
     temp_taxonomy_file.write(taxonomy_file.read())
     temp_taxonomy_file.seek(0)
 
@@ -471,7 +480,8 @@ def train_rdp_classifier(
 
 def train_rdp_classifier_and_assign_taxonomy(
     training_seqs_file, taxonomy_file, seqs_to_classify, min_confidence=0.80, 
-    model_output_dir=None, classification_output_fp=None, max_memory=None):
+    model_output_dir=None, classification_output_fp=None, max_memory=None,
+    tmp_dir=None):
     """ Train RDP Classifier and assign taxonomy in one fell swoop
 
     The file objects training_seqs_file and taxonomy_file are used to
@@ -489,18 +499,19 @@ def train_rdp_classifier_and_assign_taxonomy(
     returned.
     """
     if model_output_dir is None:
-        training_dir = tempfile.mkdtemp(prefix='RdpTrainer_')
+        training_dir = tempfile.mkdtemp(prefix='RdpTrainer_', dir=tmp_dir)
     else:
         training_dir = model_output_dir
 
     training_results = train_rdp_classifier(
-        training_seqs_file, taxonomy_file, training_dir, max_memory=max_memory)
+        training_seqs_file, taxonomy_file, training_dir, max_memory=max_memory,
+        tmp_dir=tmp_dir)
     training_data_fp = training_results['properties'].name
 
     assignment_results = assign_taxonomy(
         seqs_to_classify, min_confidence=min_confidence, 
         output_fp=classification_output_fp, training_data_fp=training_data_fp,
-        max_memory=max_memory, fixrank=False)
+        max_memory=max_memory, fixrank=False, tmp_dir=tmp_dir)
 
     if model_output_dir is None:
         rmtree(training_dir)
