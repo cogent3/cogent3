@@ -216,8 +216,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                 try:
                     info[name] = converter(label[index])
                 except IndexError:
-                    print label, index, name
-                    raise
+                    raise IndexError('parsing label %s failed for property %s at index %s' % (label, name, index))
             else:
                 info[name] = label[index]
         return RichLabel(info, display_template)
