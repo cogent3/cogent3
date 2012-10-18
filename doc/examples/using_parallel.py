@@ -5,7 +5,7 @@
 
 from cogent.util import parallel
 
-__author__ = "Gavin Huttleu"
+__author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
