@@ -487,12 +487,18 @@ class Genome(object):
         
         assert Effect or Symbol, "No arguments provided"
         #  if we don't have Symbol, then we deal with Effect
+        
+        consequence_type = 'consequence_type'
+        if self.GeneralRelease > 67:
+            consequence_type += 's' # change to plural column name
+        
+        
         if Effect is not None:
             if like:
                 query = \
-                    var_feature_table.c.consequence_type.like('%'+Effect+'%')
+                    var_feature_table.columns[consequence_type].like('%'+Effect+'%')
             else:
-                query = var_feature_table.c.consequence_type == Effect
+                query = var_feature_table.columns[consequence_type] == Effect
         else:
             query = var_feature_table.c.variation_name == Symbol
         
@@ -545,7 +551,12 @@ class Genome(object):
         else:
             db = self.CoreDb
         
-        property_map = {'effect': ('variation_feature', 'consequence_type'),
+        consequence_type = 'consequence_type'
+        if self.GeneralRelease > 67:
+            consequence_type += 's' # change to plural column name
+        
+        
+        property_map = {'effect': ('variation_feature', consequence_type),
                         'biotype': ('gene', 'biotype'),
                         'status': ('gene', 'status')}
         

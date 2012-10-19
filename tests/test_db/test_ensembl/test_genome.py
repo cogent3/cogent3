@@ -132,9 +132,14 @@ class TestGenome(GenomeTestBase):
         'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
     
     def test_get_distinct_biotype(self):
-        """Genome instance getDistinct should work on all genomes"""
+        """Genome instance getDistinct for biotype should work on all genomes"""
         for genome in self.gorilla, self.human, self.mouse, self.rat, self.macaq:
             biotypes = genome.getDistinct('biotype')
+        
+    def test_get_distinct_effect(self):
+        """Genome instance getDistinct for SNP effect should work on all genomes"""
+        for genome in self.human, self.mouse, self.rat, self.macaq:
+            biotypes = genome.getDistinct('effect')
         
 
 
@@ -482,6 +487,12 @@ class TestVariation(GenomeTestBase):
         allele_freqs = set((a, '%.4f' % f )
                     for a, f in allele_freqs.getRawData(['allele', 'freq']))
         self.assertTrue(expect.issubset(allele_freqs))
+    
+    def test_by_effect(self):
+        """excercising select SNPs by effect"""
+        for snp in self.human.getVariation(Effect='non_synonymous_codon'):
+            break
+        
 
 class TestFeatures(GenomeTestBase):
     def setUp(self):
