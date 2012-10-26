@@ -210,6 +210,7 @@ def suite():
             ('blat', 'test_blat'),
             ('bwa', 'test_bwa'),
             ('carnac', 'test_carnac'),
+            ('cdbfasta', 'test_cdbfasta'),
             ('clearcut', 'test_clearcut'),
             ('clustalw', 'test_clustalw'),
             ('cmalign', 'test_infernal'),
