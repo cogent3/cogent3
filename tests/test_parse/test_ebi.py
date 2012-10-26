@@ -14,7 +14,7 @@ from cogent.parse.ebi import cc_alternative_products_parser, \
     gn_parser, single_ref_parser, ac_parser, de_itemparser, dr_parser, \
     dt_parser, id_parser, oc_parser, og_parser, os_parser, ox_parser, \
     sq_parser, de_parser, RecordError, FieldError, curry, required_labels, \
-    EbiParser
+    EbiParser, pr_parser
 from cogent.util.unit_test import TestCase, main
 from cogent.core.sequence import Sequence
 from cogent.core.info import Info
@@ -371,6 +371,12 @@ class RootParsersKnownValues(TestCase):
         #pprint(map(de_itemparser, inputs))
         self.assertEqual(map(de_itemparser, inputs), expects)
 
+    def test_pr_parser(self):
+        """pr_parser should return expected list"""
+        inpr = "PR   Project:PRJNA38045; Project:PRJNA41539;"
+        exp = ['PRJNA38045','PRJNA41539']
+        obs = pr_parser(inpr)
+        self.assertEqual(obs,exp)
         
     def test_de_parser(self):
         """de_parser should return expected list"""
