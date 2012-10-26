@@ -14,7 +14,8 @@ from cogent.core.sequence import Sequence
 
 __author__ = "Zongzhi Liu and Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Zongzhi Liu", "Sandra Smit", "Rob Knight", "Gavin Huttley"]
+__credits__ = ["Zongzhi Liu", "Sandra Smit", "Rob Knight", "Gavin Huttley",
+               "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Zongzhi Liu"
@@ -566,6 +567,10 @@ def de_itemparser(line):
     #if no '(', fields[1:] will be []
     return dict(zip(fieldnames, [fields[0], fields[1:]]))
     
+def pr_parser(line):
+    """Returns a list of [project id, project id, ...]"""
+    labeloff(line)
+    return [r.strip().split(':')[-1] for r in line.split(';') if r]
 
 #################################
 # ft_parser
@@ -1260,13 +1265,13 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     Line code   Content     Occurrence in an entry
     ID  Identification  Once; starts the entry
     AC  Accession number(s) Once or more
+    PR  Project number(s) Once or more
     DT  Date    Three times
     DE  Description Once or more
     GN  Gene name(s)    Optional
     OS  Organism species    Once
     OG  Organelle   Optional
     OC  Organism classification Once or more
-    OX  Taxonomy cross-reference    Once
     RN  Reference number    Once or more
     RP  Reference position  Once or more
     RC  Reference comment(s)    Optional
@@ -1280,6 +1285,11 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     KW  Keywords    Optional
     FT  Feature table data  Optional
     SQ  Sequence header Once
+    CO  Contig entries, currently skipped
+    FH  Emtpy line or uninformative (for human readability)
+    XX  Empty line
+    AH  TPA and TSA records only, currently skipped
+    AS  TPA and TSA records only, currently skipped
     (blanks)    Sequence data   Once or more
     //  Termination line    Once; ends the entry
 
@@ -1301,6 +1311,10 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
                 if rlabel not in raw_dict:
                     raise RecordError('The record lacks required label: '\
                         '%s' % rlabel)
+        
+        # no sequence found
+        if '' not in raw_dict:
+            continue
 
         sequence = raw_dict.pop('')  #which is the linecode for sequence
         sequence = ''.join(sequence).translate(all_chars,'\t\n ')
@@ -1347,6 +1361,12 @@ _parsers = {
     'KW': kw_parser,
     'FT': ft_parser,
     'SQ': sq_parser,
+    'PR': pr_parser,
+    'XX': None,
+    'FH': None,
+    'CO': None,
+    'AH': None,
+    'AS': None,
     '': None,
     '//': None,
 }
