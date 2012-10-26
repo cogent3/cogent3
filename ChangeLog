@@ -8,6 +8,8 @@ Cogent 1.5.3-dev (changes since 1.5.3 go here)
 New Features
 ------------
 
+* Added app controller for cdbfasta/cdbyank
+
 Changes
 -------
 
