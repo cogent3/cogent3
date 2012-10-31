@@ -218,6 +218,18 @@ class TestMothurClassifySeqs(TestCase):
             }
         self.assertEqual(res, exp_res)
 
+    def test_unclassifiable_sequence(self):
+        query_file = StringIO(
+            ">MostlyTs\nTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+            "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTATTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+            "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n")
+        res = mothur_classify_file(
+            query_file,  self.ref_file.name, self.tax_file.name)
+        exp_res = {
+            'MostlyTs': (['Unknown'], 0.0),
+            }
+        self.assertEqual(res, exp_res)
+
 
 mothur_assignments = """\
 01	k__Bacteria(100);p__Firmicutes(100);unclassified;unclassified;unclassified;unclassified;unclassified;
