@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from distutils.core import setup, Command
+from distutils.extension import Extension
 import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
@@ -29,102 +30,79 @@ numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
 if numpy_version_info < (1, 3):
     raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
 
+# Find arrayobject.h on any system
+numpy_include_dir = numpy.get_include()
 
-doc_imports_failed = False
-try:
-    import sphinx
-except ImportError:
-    doc_imports_failed = True
-
-# A new command for predist, ie: pyrexc but no compile.
-import distutils.ccompiler
-class NullCompiler(distutils.ccompiler.CCompiler):
-    # this basically to stop pyrexc building binaries, just the .c files
-    executables = ()
-    def __init__(self, *args, **kw):
-        pass
-    def compile(self, *args, **kw):
-        return []
-    def link(self, *args, **kw):
-        pass
-
-# Pyrex makes some messy C code so limit some warnings when we know how.
-import distutils.sysconfig
-if (distutils.sysconfig.get_config_var('CC') or '').startswith("gcc"):
-    pyrex_compile_options = ['-w']
-else:
-    pyrex_compile_options = []
 
 # On windows with no commandline probably means we want to build an installer.
 if sys.platform == "win32" and len(sys.argv) < 2:
     sys.argv[1:] = ["bdist_wininst"]
 
-# Restructured Text -> HTML
-def build_html():
-    if doc_imports_failed:
-        print "Failed to build html due to ImportErrors for sphinx"
-        return
-    cwd = os.getcwd()
-    os.chdir('doc')
-    subprocess.call(["make", "html"])
-    os.chdir(cwd)
-    print "Built index.html"
 
-# Compiling Pyrex modules to .c and .so
-include_path = os.path.join(os.getcwd(), 'include')
-# find arrayobject.h on every system an alternative would be to put
-# arrayobject.h into pycogent/include, but why .. 
-numpy_include_path = numpy.get_include()
-distutils_extras = {"include_dirs": [include_path, numpy_include_path]}
+# A new command for predist, ie: pyrexc but no compile.
+class NullCommand(Command):
+    description = "Generate .c files from .pyx files"
+    # List of option tuples: long name, short name (or None), and help string.
+    user_options = [] #[('', '', ""),]
+    def initialize_options (self):
+        pass
+    def finalize_options (self):
+        pass
+    def run (self):
+        pass
+        
+class BuildDocumentation(NullCommand):
+    description = "Generate HTML documentation and .c files"
+    def run (self):
+        # Restructured Text -> HTML
+        try:
+            import sphinx
+        except ImportError:
+            print "Failed to build html due to ImportErrors for sphinx"
+            return
+        cwd = os.getcwd()
+        os.chdir('doc')
+        subprocess.call(["make", "html"])
+        os.chdir(cwd)
+        print "Built index.html"
+
+# Cython is now run via the Cythonize function rather than monkeypatched into 
+# distutils, so these legacy commands don't need to do anything extra.
+extra_commands = {
+    'pyrexc': NullCommand,
+    'cython': NullCommand,
+    'predist': BuildDocumentation}
+
+
+# Compiling Pyrex modules to .c and .so, if possible and necessary
 try:
     if 'DONT_USE_PYREX' in os.environ:
         raise ImportError
     from Cython.Compiler.Version import version
     version = tuple([int(v) \
         for v in re.split("[^\d]", version) if v.isdigit()])
-    if version < (0, 11, 2):
+    if version < (0, 17, 1):
         print "Your Cython version is too old"
         raise ImportError
 except ImportError:
+    source_suffix = '.c'
+    cythonize = lambda x:x
     print "No Cython, will compile from .c files"
-    for cmd in ['cython', 'pyrexc', 'predist']:
+    for cmd in extra_commands:
         if cmd in sys.argv:
-            print "'%s' not available without Cython" % cmd
+            print "'%s' command not available without Cython" % cmd
             sys.exit(1)
-    from distutils.extension import Extension
-    pyrex_suffix = ".c"
 else:
-    from Cython.Distutils import build_ext
-    from Cython.Distutils.extension import Extension
-    pyrex_suffix = ".pyx"
-    class build_wrappers(build_ext):
-        # for predist, make .c files
-        def run(self):
-            self.compiler = NullCompiler()
-            # skip build_ext.run() and thus ccompiler setup
-            build_ext.build_extensions(self)
+    from Cython.Build import cythonize
+    source_suffix = '.pyx'
 
-    class build_wrappers_and_html(build_wrappers):
-        def run(self):
-            build_wrappers.run(self)
-            build_html()
 
-    distutils_extras["cmdclass"] = {
-        'build_ext': build_ext,
-        'pyrexc': build_wrappers,
-        'cython': build_wrappers,
-        'predist': build_wrappers_and_html}
-
-# predist python setup.py predist --inplace --force, this is in _darcs/prefs/prefs for instructing darcs predist to execute the subsequent, predist is a darcs word
-
-# Save some repetitive typing.  We have all compiled
-# modules in place with their python siblings.
-def CogentExtension(module_name, extra_compile_args=[], **kw):
+# Save some repetitive typing.  We have all compiled modules in place
+# with their python siblings, so their paths and names are the same.
+def CythonExtension(module_name, **kw):
     path = module_name.replace('.', '/')
-    kw['extra_compile_args'] = pyrex_compile_options + extra_compile_args
-    if pyrex_suffix == '.pyx':
-        kw['pyrex_include_dirs'] = [include_path]
-    return Extension(module_name, [path + pyrex_suffix], **kw)
+    return Extension(module_name, [path + source_suffix], **kw)
+
 
 short_description = "COmparative GENomics Toolkit"
 
@@ -163,18 +141,18 @@ setup(
                 'cogent.maths.spatial', 'cogent.motif', 'cogent.parse',
                 'cogent.phylo', 'cogent.recalculation', 'cogent.seqsim',
                 'cogent.struct', 'cogent.util'],
-    ext_modules=[
-        CogentExtension("cogent.align._compare"),
-        CogentExtension("cogent.align._pairwise_seqs"),
-        CogentExtension("cogent.align._pairwise_pogs"),
-        CogentExtension("cogent.evolve._solved_models"),
-        CogentExtension("cogent.evolve._likelihood_tree"),
-        CogentExtension("cogent.evolve._pairwise_distance"),
-        CogentExtension("cogent.struct._asa"),
-        CogentExtension("cogent.struct._contact"),
-        CogentExtension("cogent.maths._period"),
-        CogentExtension("cogent.maths.spatial.ckd3"),
-
-    ],
-    **distutils_extras
+    ext_modules=cythonize([
+        CythonExtension("cogent.align._compare"),
+        CythonExtension("cogent.align._pairwise_seqs"),
+        CythonExtension("cogent.align._pairwise_pogs"),
+        CythonExtension("cogent.evolve._solved_models"),
+        CythonExtension("cogent.evolve._likelihood_tree"),
+        CythonExtension("cogent.evolve._pairwise_distance"),
+        CythonExtension("cogent.struct._asa"),
+        CythonExtension("cogent.struct._contact"),
+        CythonExtension("cogent.maths._period"),
+        CythonExtension("cogent.maths.spatial.ckd3"),
+    ]),
+    include_dirs = [numpy_include_dir],
+    cmdclass = extra_commands,
 )

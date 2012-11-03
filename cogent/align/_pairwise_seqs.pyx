@@ -1,4 +1,7 @@
-include "numerical_pyrex.pyx"
+#cython: boundscheck=False
+#cython: wraparound=False
+
+include "../../include/numerical_pyrex.pyx"
 
 # The weird indentation in this file is to match the POG version.
 
@@ -10,7 +13,7 @@ cdef extern from "Python.h":
 cdef extern from "math.h":
     double log (double x)
 
-version_info = (3, 1)
+version_info = (3, 2)
 __version__ = "('1', '5', '3-dev')"
 
 cdef double SCALE_STEP, MIN_FLOAT_VALUE
@@ -24,23 +27,16 @@ cdef long MIN_SCALE, MAX_SCALE
 MIN_SCALE = -10000
 MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
 
-#cdef unsigned long * checkArrayULong3D(ArrayType a, int *x, int *y, int *z) except NULL:
-#    return <unsigned long *> checkArray3D(a, c'i', sizeof(long), x, y, z)
-
-#cdef unsigned int * checkArrayUInt3D(ArrayType a, int *x, int *y, int *z) except NULL:
-#    return <unsigned int *> checkArray3D(a, c'i', sizeof(int), x, y, z)
-
-cdef unsigned char * checkArrayUChar3D(ArrayType a, int *x, int *y, int *z) except NULL:
-    return <unsigned char *> checkArray3D(a, c'i', sizeof(char), x, y, z)
-
 def fmpt(mantissa, exponent, msg=''):
     return "%s * SCALE_STEP ** %s %s" % (mantissa, exponent, msg)
 
-def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index, 
+ctypedef unsigned char [:,:,::1] UChar3D
+
+def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index, 
         int i_low, int i_high, int j_low, int j_high, preds, 
-        ArrayType state_directions, ArrayType T, 
-        ArrayType xgap_scores, ArrayType ygap_scores, ArrayType match_scores, 
-        rows, track, track_enc, int viterbi, int use_logs=0, int local=False, 
+        Long2D state_directions, Double2D T, 
+        Double2D xgap_scores, Double2D ygap_scores, Double3D match_scores, 
+        rows, UChar3D track, track_enc, int viterbi, int use_logs=0, int local=False, 
         int use_scaling=True):
     
     """The faster, sequence only (no POG) version.  Forward or Viterbi 
@@ -52,63 +48,60 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     Limitations
        - HMM states must be in a sensible order: M and X, then Y, then END.
     """
-        
-    cdef int dx, dy, prev_i, prev_j, state, prev_state, N, row_length
+    
+    # These are array lengths/indicies and so could be Py_ssize_t
+    cdef int prev_i, prev_j, state, prev_state, min_prev_state, N
+    cdef int row_length, row_length1, row_count, row_count1, tmp_rows
     cdef int a_count, b_count, a, b, a_low, a_high, b_low, b_high
-    cdef int dest_states, dest_state, d4, j, i, source_i
-    cdef int last_i, last_j, last_state, overall_max_exponent
-    cdef int tcode_x, tcode_y, tcode_s
-    cdef unsigned char *track_data
-    cdef double overall_max_mantissa
-    cdef double d_score, mantissa, partial_sum, sub_partial_sum, max_mantissa
-    cdef long exponent, index, max_exponent, *source_row_ex_data
-    cdef double *T_data, *source_row_data
-    cdef double *match_score_data
-    cdef long *dest_states_data, *plan_data
-    cdef ArrayType i_sources, j_sources
-    cdef double *current_row_data, *prev_row_data
-    cdef long *current_row_ex_data, *prev_row_ex_data
-    cdef long pointer_a, pointer_b, pointer_state
-    cdef long *x_index, *y_index
-    cdef int x, y, max_x, max_y
-    
-    cdef int row_count, row_length1, plan_index, plan_index2
-    
-    (mantissas, exponents) = rows
+    cdef int dest_states, dest_state, d4, j, i
+    cdef int last_i, last_j, last_state
+    cdef int bin, x, y, bin_count, max_x, max_y
+    cdef int current_row_index, source_row_index
+    cdef int source_i
 
+    cdef int dx, dy
+    cdef int tcode_x, tcode_y, tcode_s
+    cdef double d_score, mantissa, partial_sum, sub_partial_sum, max_mantissa, overall_max_mantissa
+    cdef long exponent, max_exponent, overall_max_exponent
+    cdef Double3D mantissas
+    cdef Long3D exponents
+    cdef long pointer_a, pointer_b, pointer_state
+    
     assert not (use_logs and not viterbi)
     assert not (use_logs and use_scaling)
     assert not (local and not viterbi)
     
     N = 0
-    T_data = checkArrayDouble2D(T, &N, &N)
+    checkArray2D(T, &N, &N)
     row_length = 0
     row_count = 0
-    plan_data = checkArrayLong1D(plan, &row_count)
+    checkArray1D(plan, &row_count)
     
     dest_states = 0
     d4 = 4
     # Array of (state, bin, dx, dy) tuples describing the HMM states.
-    dest_states_data = checkArrayLong2D(state_directions, &dest_states, &d4)
-    
-    cdef int bin_count, bin
-    cdef double *xgap_score_data, *ygap_score_data
-    
-    x_index = checkArrayLong1D(seq1_index, &row_count)
-    y_index = checkArrayLong1D(seq2_index, &row_length)
+    checkArray2D(state_directions, &dest_states, &d4)
+        
+    checkArray1D(seq1_index, &row_count)
+    checkArray1D(seq2_index, &row_length)
     
     max_x = max_y = bin_count = 0
-    match_score_data = checkArrayDouble3D(
-            match_scores, &bin_count, &max_x, &max_y)
-    xgap_score_data = checkArrayDouble2D(xgap_scores, &bin_count, &max_x)
-    ygap_score_data = checkArrayDouble2D(ygap_scores, &bin_count, &max_y)
+    checkArray3D(match_scores, &bin_count, &max_x, &max_y)
+    checkArray2D(xgap_scores, &bin_count, &max_x)
+    checkArray2D(ygap_scores, &bin_count, &max_y)
     
     for i from 0 <= i < row_count:
-        assert 0 <= x_index[i] < max_x
+        assert 0 <= seq1_index[i] < max_x
     for j from 0 <= j < row_length:
-        assert 0 <= y_index[j] < max_y
+        assert 0 <= seq2_index[j] < max_y
     
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
+    
+    (mantissas, exponents) = rows
+    tmp_rows = 0
+    checkArray3D(mantissas, &tmp_rows, &row_length, &N)
+    if use_scaling:
+        checkArray3D(exponents, &tmp_rows, &row_length, &N)
     
     cdef double impossible                
     if use_logs:
@@ -117,10 +110,10 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
         impossible = 0.0
 
     if viterbi and track is not None and track_enc is not None:
-        track_data = checkArrayUChar3D(track, &row_count, &row_length, &N)
+        checkArray3D(track, &row_count, &row_length, &N)
         (tcode_x, tcode_y, tcode_s) = track_enc
     else:
-        track_data = NULL
+        track = None
         tcode_x = tcode_y = tcode_s = 0
     
     # For local
@@ -129,61 +122,44 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
     last_i = last_j = last_state = -1
     
     for i from i_low <= i < i_high:
-        x = x_index[i]
+        x = seq1_index[i]
         
         if PyErr_CheckSignals():
             raise PyErr_Occurred()
-
-        plan_index1 = plan_data[i]
-        if i > 0:
-            plan_index2 = plan_data[i-1]
-        else:
-            prev_row_data = NULL
-        current_row_data = checkArrayDouble2D(mantissas[plan_index1], &row_length, &N)
-        if use_scaling:
-            current_row_ex_data = checkArrayLong2D(exponents[plan_index1], &row_length, &N)
-        if i > 0:
-            prev_row_data = checkArrayDouble2D(mantissas[plan_index2], &row_length, &N)
-            if use_scaling:
-                prev_row_ex_data = checkArrayLong2D(exponents[plan_index2], &row_length, &N)
-                
+        
+        current_row_index = plan[i]
+        
         #for prev_state from 1 <= prev_state < N:
-        #    current_row_data[0*N+prev_state] = impossible
-           
-        for j from j_low <= j < j_high:              
+        #    current_row_data[0, prev_state] = impossible
+        
+        for j from j_low <= j < j_high:
             
             for dest_state from 0 <= dest_state < dest_states:
-                state = dest_states_data[dest_state*4+0]
-                bin = dest_states_data[dest_state*4+1]
-                dx = dest_states_data[dest_state*4+2]
-                dy = dest_states_data[dest_state*4+3]
+                state = state_directions[dest_state, 0]
+                bin = state_directions[dest_state, 1]
+                dx = state_directions[dest_state, 2]
+                dy = state_directions[dest_state, 3]
                 
                 max_mantissa = impossible
                 max_exponent = MIN_SCALE
                 partial_sum = 0.0
                 pointer_state = N  # ie ERROR
                 
-                a = dx
-                b = dy
-                
-                if dx:
-                    source_i = i - 1
-                    source_row_data = prev_row_data
-                    source_row_ex_data = prev_row_ex_data
-                else:
-                    source_i = i
-                    source_row_data = current_row_data
-                    source_row_ex_data = current_row_ex_data
+                source_i = i - dx
+                if source_i < 0:
+                    continue
+                source_row_index = plan[source_i]
                 
                 prev_j = j - dy
                 if prev_j < 0:
                     continue
-                    
-                if source_i < 0:
-                    continue
-
+                
+                min_prev_state = 1
+                a = dx
+                b = dy
+                
                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):
-                    partial_sum = max_mantissa = T_data[0*N+state]
+                    partial_sum = max_mantissa = T[0, state]
                     max_exponent = 0
                     pointer_state = 0
                     pointer_a = a
@@ -191,21 +167,19 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                     
                 if use_scaling:
                             sub_partial_sum = 0.0
-                            for prev_state from 1 <= prev_state < N:
-                                index = prev_j*N + prev_state
-                                
-                                exponent = source_row_ex_data[index]
+                            for prev_state from min_prev_state <= prev_state < N:
+                                exponent = exponents[source_row_index, prev_j, prev_state]
                                 if exponent == MIN_SCALE:
                                     continue
                                 
-                                mantissa = (source_row_data[index] 
-                                     * T_data[prev_state*N+state])
+                                mantissa = mantissas[source_row_index, prev_j, prev_state] 
+                                mantissa = mantissa * T[prev_state, state]
                                 
                                 if mantissa < MIN_FLOAT_VALUE:
                                     if mantissa == 0.0:
                                         continue
                                     if mantissa < 0.0:
-                                        if T_data[prev_state*N+state] < 0.0:
+                                        if T[prev_state, state] < 0.0:
                                             raise ArithmeticError(fmpt(mantissa, exponent, 
                                                     "transition is a negative probability"))
                                         raise ArithmeticError(fmpt(mantissa, exponent, 
@@ -246,14 +220,12 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                                     
                             partial_sum += sub_partial_sum * MIN_FLOAT_VALUE
                 else:
-                            for prev_state from 1 <= prev_state < N:
-                                index = prev_j*N + prev_state
+                            for prev_state from min_prev_state <= prev_state < N:
+                                mantissa = mantissas[source_row_index, prev_j, prev_state] 
                                 if use_logs:
-                                    mantissa = (source_row_data[index] 
-                                         + T_data[prev_state*N+state])
+                                    mantissa = mantissa + T[prev_state, state]
                                 else:
-                                    mantissa = (source_row_data[index] 
-                                         * T_data[prev_state*N+state])
+                                    mantissa = mantissa * T[prev_state, state]
                                     partial_sum += mantissa
                                 if viterbi and mantissa > max_mantissa:
                                     max_mantissa = mantissa
@@ -263,8 +235,8 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                         
                 if viterbi:
                     mantissa = max_mantissa
-                    if track_data:
-                        track_data[(i*row_length+j)*N+state] = (        
+                    if track is not None:
+                        track[i, j, state] = (        
                             (pointer_a << tcode_x) |  
                             (pointer_b << tcode_y) |
                             (pointer_state << tcode_s))
@@ -272,13 +244,13 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                     mantissa = partial_sum
     
                 if dy:
-                    y = y_index[j]
+                    y = seq2_index[j]
                     if dx:
-                        d_score = match_score_data[((bin*max_x+x)*max_y)+y]
+                        d_score = match_scores[bin, x, y]
                     else:
-                        d_score = ygap_score_data[bin*max_y+y]
+                        d_score = ygap_scores[bin, y]
                 elif dx:
-                    d_score = xgap_score_data[bin*max_x+x]
+                    d_score = xgap_scores[bin, x]
                 elif use_logs:
                     d_score = 0.0
                 else:
@@ -289,9 +261,9 @@ def calc_rows(ArrayType plan, ArrayType seq1_index, ArrayType seq2_index,
                 else:
                     mantissa *= d_score
                 
-                current_row_data[j*N+state] = mantissa
+                mantissas[current_row_index, j, state] = mantissa
                 if use_scaling:
-                    current_row_ex_data[j*N+state] = max_exponent
+                    exponents[current_row_index, j, state] = max_exponent
                     
                 if local and dx and dy:
                     if (use_scaling and max_exponent > overall_max_exponent) or (
