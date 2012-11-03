@@ -23,6 +23,8 @@ from cogent import LoadSeqs
 from cogent.core.alignment import Aligned
 from cogent.align.traceback import map_traceback
 from cogent.util import parallel
+from cogent.util.warning import discontinued, deprecated
+
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
 try:
@@ -174,9 +176,6 @@ class TrackBack(object):
                 
     def __add__(self, other):
         return TrackBack(self.tlist + other.tlist)
-        
-    #def asStatePosnTransTuples(self):
-    #    return iter(self.tlist)
         
     def asStatePosnTuples(self):
         return [(s,p) for (s,p,d) in self.tlist]
@@ -777,7 +776,7 @@ class PairEmissionProbs(object):
                     skip_last = not dp_options.local)
                 result = (score, tb)
         return result
-        
+    
     def getAlignable(self, aligned_positions, ratio=None):
         assert ratio is None, "already 2-branched"
         children = self.pair.children # alignables
@@ -855,15 +854,20 @@ class DPFlags(object):
         if use_scaling is None:
             use_scaling = not use_logs
         if use_logs:
-            assert viterbi and not use_scaling
-        self.use_cost_function = use_cost_function
-        self.local = local
-        self.use_logs = use_logs
-        self.use_scaling = use_scaling
-        self.viterbi = viterbi
-        self.backward = backward
-        self.as_tuple = (local, use_logs, use_cost_function, use_scaling,
-                viterbi, backward)
+            assert viterbi, "logs only usable for viterbi" 
+            assert not use_scaling, "use logs or scaling but not both"
+        self.use_cost_function = bool(use_cost_function)
+        self.local = bool(local)
+        self.use_logs = bool(use_logs)
+        self.use_scaling = bool(use_scaling)
+        self.viterbi = bool(viterbi)
+        self.backward = bool(backward)
+        self.as_tuple = tuple(n for n in 
+                ['viterbi', 'local', 'use_logs', 'use_cost_function', 'use_scaling', 'backward']
+                if getattr(self, n))
+                
+    def __repr__(self):
+        return '%s(%s)' % (type(self).__name__, ', '.join(self.as_tuple))
     
     def __hash__(self):
         return hash(self.as_tuple)
@@ -902,44 +906,45 @@ class PairHMM(object):
                 backward=True)[::-1]
         return fwd + bck - score
     
-    def getViterbiPath(self, **kw):
-        result = self._getDPResult(viterbi=True,**kw)
-        return ViterbiPath(self, result, **kw)
+    def getViterbiPath(self, local=False, **kw):
+        result = self._getDPResult(viterbi=True, local=local, **kw)
+        VP = LocalViterbiPath if local else GlobalViterbiPath
+        return VP(self, result)
     
-    def getViterbiScoreAndAlignment(self, ratio=None, **kw):
-        # deprecate
+    def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
+        #deprecated('method', 'getViterbiScoreAndAlignment', 
+        #        'getViterbiPath().getAlignment()', '1.8', stack_level=3)
+        assert ratio in [None, 0.5], ratio
         vpath = self.getViterbiPath(**kw)
-        return (vpath.getScore(), vpath.getAlignment(ratio=ratio))
+        result_tuple = (vpath.getScore(), vpath.getAlignment())
+        if posterior_probs:
+            result_tuple = result_tuple + (vpath.getPosteriorProbs(),)
+        return result_tuple
     
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
-        # Only for pairwise.  Merge with getViterbiScoreAndAlignable above.
-        # Local and POGs doesn't mix well.
-        (vscore, tb) = self._getDPResult(viterbi=True, local=True, **kw)
-        (state_directions, T) = self._transition_matrix
-        aligned_positions = tb.asBinPosTuples(state_directions)
-        seqs = self.emission_probs.pair.getSeqNamePairs()
-        aligned_positions = [posn for (bin, posn) in aligned_positions]
-        word_length = self.emission_probs.pair.alphabet.getMotifLen()
-        align = alignment_traceback(seqs, aligned_positions, word_length)
-        if posterior_probs:
-            pp = self._getPosteriorProbs(tb, use_cost_function=False)
-            return (vscore, align, numpy.exp(pp))
-        else:
-            return (vscore, align)
-    
+        deprecated('method', 'getLocalViterbiScoreAndAlignment', 
+                'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
+        kw['posterior_probs'] = posterior_probs
+        return self.getViterbiScoreAndAlignment(local=True, **kw)
 
-class ViterbiPath(object):
-    def __init__(self, pair_hmm, result, **kw):
+
+class _ViterbiPath(object):
+    """Heavyweight object representing the Viterbi path (ie: best alignment) 
+    and all of the inputs used to generate it."""
+    def __init__(self, pair_hmm, result):
         (self.vscore, self.tb) = result
         (state_directions, T) = pair_hmm._transition_matrix
         self.aligned_positions = self.tb.asBinPosTuples(state_directions)
         self.pair_hmm = pair_hmm
-        self.kw = kw
     
     def getScore(self):
+        """The Viterbi score"""
         return self.vscore
-    
+
+
+class GlobalViterbiPath(_ViterbiPath):
     def getAlignable(self, ratio=None):
+        # Used during progressive sequence alignment.
         # Because the alignment depends on the total length (so long as the
         # model is reversable!) the same cached viterbi result can be re-used
         # to calculate the partial likelihoods even if the root of the 2-seq
@@ -948,11 +953,26 @@ class ViterbiPath(object):
                 self.aligned_positions, ratio=ratio)
         return alignable
     
-    def getAlignment(self, **kw):
-        alignable = self.getAlignable(**kw)
-        return alignable.getAlignment()
+    def getAlignment(self):
+        """The alignment as a standard PyCogent Alignment object"""
+        return self.getAlignable().getAlignment()
     
     def getPosteriorProbs(self):
         pp = self.pair_hmm._getPosteriorProbs(self.tb, use_cost_function=True)
         return numpy.exp(pp)
+
+
+class LocalViterbiPath(_ViterbiPath):
+    # Only for pairwise alignments.  Local and POGs don't mix well.
+    def getAlignment(self):
+        """The alignment as a standard PyCogent Alignment object"""
+        seqs = self.pair_hmm.emission_probs.pair.getSeqNamePairs()
+        word_length = self.pair_hmm.emission_probs.pair.alphabet.getMotifLen()
+        aligned_positions = [posn for (bin, posn) in self.aligned_positions]
+        return alignment_traceback(seqs, aligned_positions, word_length)
+    
+    def getPosteriorProbs(self):
+        pp = self.pair_hmm._getPosteriorProbs(self.tb, use_cost_function=False)
+        return numpy.exp(pp)
+    
     
