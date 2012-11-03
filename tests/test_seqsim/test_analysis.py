@@ -22,6 +22,19 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+def occasionally_fails(test_method):
+    # For tests that randomly fail occasionally, repeating them up to 5 times
+    # and checking that one passes is fairly safe
+    def wrapped(*args):
+        for i in range(4):
+            try:
+                return test_method(*args)
+            except AssertionError:
+                pass
+        return test_method(*args)
+    wrapped.__doc__ = test_method.__doc__
+    return wrapped
+
 class analysisTests(TestCase):
     """Tests of top-level functions."""
     def setUp(self):
@@ -165,52 +178,47 @@ class analysisTests(TestCase):
             if x not in nonzero:
                 self.assertEqual(to_fill[x], zeros(12))
     
+    @occasionally_fails
     def test_tree_threeway_rates(self):
         """tree_threeway_rates should give plausible results on rand trees"""
-        #note: the following fails occasionally, but repeating it 5 times
-        #and checking that one passes is fairly safe
-        for i in range(5):
-            try:
-                t = self.t1
-                t.assignLength(0.05)
-                t.Q = Rates.random(DnaPairs).normalize()
-                t.assignQ()
-                t.assignP()
-                t.evolve(randint(0,4,100))
-                t.makeIdIndex()
-                depths = t.leafLcaDepths()
-                result = tree_threeway_rates(t, depths)
-                self.assertEqual(result.shape, (5,5,5,16))
-                #check that row sums are 0
-                for x in [(i,j,k) for i in range(5) for j in range(5) \
-                    for k in range(5)]:
-                    self.assertFloatEqual(sum(result[x]), 0)
-                assert any(result)
-                #check that it works without_diag
-                result = tree_threeway_rates(t, depths, without_diag=True)
-                self.assertEqual(result.shape, (5,5,5,12))
-                #check that it works with/without normalize
-                #default: no normalization, so row sums shouldn't be 1 after 
-                #omitting diagonal
-                result = tree_threeway_rates(t, depths, without_diag=True)
-                self.assertEqual(result.shape, (5,5,5,12))
-                for x in [(i,j,k) for i in range(5) for j in range(5) \
-                    for k in range(5)]:
-                    assert sum(result[x]) == 0 or abs(sum(result[x]) - 1) > 0.01
-                #...but if we tell it to normalize, row sums should be nearly 1
-                #after omitting diagonal
-                result = tree_threeway_rates(t, depths, without_diag=True, \
-                    normalize=True)
-                self.assertEqual(result.shape, (5,5,5,12))
-                for x in [(i,j,k) for i in range(5) for j in range(5) \
-                    for k in range(5)]:
-                        s = sum(result[x])
-                        if s != 0:
-                            self.assertFloatEqual(s, 1)
-                break
-            except AssertionError:
-                pass
+        t = self.t1
+        t.assignLength(0.05)
+        t.Q = Rates.random(DnaPairs).normalize()
+        t.assignQ()
+        t.assignP()
+        t.evolve(randint(0,4,100))
+        t.makeIdIndex()
+        depths = t.leafLcaDepths()
+        result = tree_threeway_rates(t, depths)
+        self.assertEqual(result.shape, (5,5,5,16))
+        #check that row sums are 0
+        for x in [(i,j,k) for i in range(5) for j in range(5) \
+            for k in range(5)]:
+            self.assertFloatEqual(sum(result[x]), 0)
+        assert any(result)
+        #check that it works without_diag
+        result = tree_threeway_rates(t, depths, without_diag=True)
+        self.assertEqual(result.shape, (5,5,5,12))
+        #check that it works with/without normalize
+        #default: no normalization, so row sums shouldn't be 1 after 
+        #omitting diagonal
+        result = tree_threeway_rates(t, depths, without_diag=True)
+        self.assertEqual(result.shape, (5,5,5,12))
+        for x in [(i,j,k) for i in range(5) for j in range(5) \
+            for k in range(5)]:
+            assert sum(result[x]) == 0 or abs(sum(result[x]) - 1) > 0.01
+        #...but if we tell it to normalize, row sums should be nearly 1
+        #after omitting diagonal
+        result = tree_threeway_rates(t, depths, without_diag=True, \
+            normalize=True)
+        self.assertEqual(result.shape, (5,5,5,12))
+        for x in [(i,j,k) for i in range(5) for j in range(5) \
+            for k in range(5)]:
+                s = sum(result[x])
+                if s != 0:
+                    self.assertFloatEqual(s, 1)
     
+    @occasionally_fails
     def test_tree_twoway_rates(self):
         """tree_twoway_rates should give plausible results on rand trees"""
         t = self.t1
