@@ -36,22 +36,23 @@ def make_dna_scoring_dict(match, transition, transversion):
             DNA[a,b] = score
     return DNA
 
-def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_score=False, **kw):
+def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw):
     """Generic alignment with any substitution model and indel model"""
     [p1, p2] = [makeLikelihoodTreeLeaf(seq) for seq in [s1, s2]]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
     pair = pairwise.Pair(p1, p2)
     EP = pair.makeSimpleEmissionProbs(mprobs, [psub])
     hmm = EP.makePairHMM(TM)
-    if local:
-        (score, alignment) = hmm.getLocalViterbiScoreAndAlignment(**kw)
+    vpath = hmm.getViterbiPath(local=local, **kw)
+    score = vpath.getScore()
+    if return_alignment:
+        alignment = vpath.getAlignment()
+        if return_score:
+            return (alignment, score)
+        else:
+            return alignment
     else:
-        (score, alignment) = hmm.getViterbiScoreAndAlignment(**kw)
-    
-    if return_score:
-        return alignment, score
-    else:
-        return alignment
+        return score
 
 def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     """Alignment specified by gap costs and a score matrix"""
@@ -68,7 +69,7 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM
-# may not give same answer's as algorithm
+# may not give same answers as algorithm
 def local_pairwise(s1, s2, S, d, e, return_score=False):
     return classic_align_pairwise(s1, s2, S, d, e, True, return_score=return_score)
 

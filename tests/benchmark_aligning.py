@@ -23,20 +23,23 @@ def test(r=1, **kw):
     seq2 = DNA.makeSequence('AAAATGCTTA' * r)
     seq1 = DNA.makeSequence('AATTTTGCTG' * r)
     
-    t0 = time.time()
-    aln = classic_align_pairwise(seq1, seq2, S, 10, 2, local=False, **kw)
-    t = time.time() - t0
-    return (len(seq1)*len(seq2))/t
-    
-    print t 
+    t0 = time.clock()
+    try:
+        # return_alignment is False in order to emphasise the quadratic part of the work.
+        aln = classic_align_pairwise(seq1, seq2, S, 10, 2, local=False, return_alignment=False, **kw)
+    except ArithmeticError:
+        return '*'
+    else:
+        t = time.clock() - t0
+        return int ( (len(seq1)*len(seq2))/t/1000 )
         
 if __name__ == '__main__':
     d = 2
     e = 1
     options = [(False, False), (True, False), (False, True)]
     template = "%10s " * 4
-    print "                1000s positions per second"
-    print template % ("size", "simple", "logs", "scaled")
-    for r in [50, 100, 200, 500]:
+    print "               1000s positions^2 per second"
+    print template % ("length", "simple", "logs", "scaled")
+    for r in [100, 200, 300, 400, 500]:
         times = [test(r, use_logs=l, use_scaling=s) for (l,s) in options]
-        print template % tuple([r*10] + [int(t/1000) for t in times])
+        print template % tuple([r*10] + times)

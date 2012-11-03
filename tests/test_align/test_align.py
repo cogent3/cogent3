@@ -86,7 +86,7 @@ class AlignmentTestCase(unittest.TestCase):
         tree = cogent.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.makeLikelihoodFunction(tree, aligned=False)
         lf.setSequences(dict(A=s1, B=s2))
-        (score, a) = lf.getLogLikelihood().edge.getViterbiScoreAndAlignment()
+        a = lf.getLogLikelihood().edge.getViterbiPath().getAlignment()
         self.assertEqual(matchedColumns(a), 6)
         self.assertEqual(len(a), 9)
     
