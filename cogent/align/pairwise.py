@@ -27,16 +27,27 @@ from cogent.util.warning import discontinued, deprecated
 
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
-try:
-    pyrex_align_module = importVersionedModule('_pairwise_pogs', globals(),
-            (3, 1), "slow Python alignment implementation")
-except ExpectedImportError:
-    pyrex_align_module = None
-try:
-    pyrex_seq_align_module = importVersionedModule('_pairwise_seqs', globals(),
-            (3, 1), "slow Python alignment implementation")
-except ExpectedImportError:
-    pyrex_seq_align_module = None
+def _importedPyrexAligningModule(name):  
+    try:
+        return importVersionedModule(name, globals(), (3, 1),
+                "slow Python alignment implementation")
+    except ExpectedImportError:
+        return None
+
+pyrex_align_module = _importedPyrexAligningModule('_pairwise_pogs')
+pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
+
+# Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
+# rather than forcing everyone to recompile immediately.
+# After 1.6 release this can be replaced by (3, 2) requirement above.
+versions = [m.version_info for m in [pyrex_seq_align_module, pyrex_align_module]]
+if min(versions) >= (3, 2):
+    TRACK_INT_TYPE = numpy.uint8
+elif max(versions) < (3, 2):
+    TRACK_INT_TYPE = numpy.int8
+else:
+    raise ImportError('Incompatible _pairwise_*.pyx module versions. Recompile them')
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -52,7 +63,7 @@ class PointerEncoding(object):
     whatever bits are left over after the x and y pointers have claimed what 
     they need, which is expected to be only 2 bits each at most"""
     
-    dtype = numpy.int8
+    dtype = TRACK_INT_TYPE
     bytes = 1
 
     def __init__(self, x, y):

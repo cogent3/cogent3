@@ -1,109 +1,117 @@
+#cython: boundscheck=False
+#cython: wraparound=False
+
 include "../../include/numerical_pyrex.pyx"
-version_info = (2, 1)
+version_info = (2, 2)
 __version__ = "('1', '5', '3-dev')"
 
 cdef extern from "math.h":
     double log (double x)
 
-def sumInputLikelihoods(child_indexes, result, likelihoods):
-    # M is dim of alphabet, S is non-redundandt parent seq length, 
-    # U is length
-    cdef int M, S, U, m, i, u
-    cdef int c
-    
-    cdef double *values_data
-    cdef long *index_data
-    cdef double *target_data
-    
+
+def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):
+    cdef int M, S, U, C, motif, parent_col, child_col, child
+    cdef Double2D plhs
+    cdef Long1D index
+
+    # S is parent seq length, U is unique columns in child seq
+    # M is size of alphabet, C is number of children.
+    C = len(child_indexes)
     M = S = 0
-    target_data = checkArrayDouble2D(result, &S, &M)
-    first = 1
-    c = 0
-    for index in child_indexes:
+    checkArray2D(result, &S, &M)
+    
+    for child in range(C):
+        index = child_indexes[child]
+        plhs = likelihoods[child]
         U = 0
-        index_data = checkArrayLong1D(index, &S)
-        values_data = checkArrayDouble2D(likelihoods[c], &U, &M)
-        #if index_data[S-1] >= U:
-        #    raise RangeError
-        if c == 0:
-            for i from 0 <= i < S:
-                u = index_data[i]
-                for m from 0 <= m < M:
-                    target_data[M*i+m] = values_data[M*u+m]
+        checkArray1D(index, &S)
+        checkArray2D(plhs, &U, &M)
+        if child == 0:
+            for parent_col in range(S):
+                child_col = index[parent_col]
+                for motif in range(M):
+                    result[parent_col, motif] = plhs[child_col, motif]
         else:
-            for i from 0 <= i < S: # col of parent data
-                u = index_data[i] # col of childs data
-                for m from 0 <= m < M:
-                    target_data[M*i+m] *= values_data[M*u+m]
-        c += 1
+            for parent_col in range(S):
+                child_col = index[parent_col]
+                for motif in range(M):
+                    result[parent_col, motif] *= plhs[child_col, motif]
     return result
     
-def getTotalLogLikelihood(counts, input_likelihoods, mprobs):
-    cdef int S, M, i, m
+def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):
+    cdef int S, M, col, motif
     cdef double posn, total
-    cdef double *likelihoods_data, *mprobs_data, *weights_data
     
+    # M is size of alphabet, S is seq length
     S = M = 0
-    mprobs_data = checkArrayDouble1D(mprobs, &M)
-    weights_data = checkArrayDouble1D(counts, &S)
-    likelihoods_data = checkArrayDouble2D(input_likelihoods, &S, &M)
+    checkArray1D(mprobs, &M)
+    checkArray1D(counts, &S)
+    checkArray2D(input_likelihoods, &S, &M)
+    
     total = 0.0
-    for i from 0 <= i < S:
+    for col in range(S):
         posn = 0.0
-        for m from 0 <= m < M:
-            posn += likelihoods_data[i*M+m] * mprobs_data[m]
-        total += log(posn)*weights_data[i]
+        for motif in range(M):
+            posn += input_likelihoods[col, motif] * mprobs[motif]
+        total += log(posn)*counts[col]
     return total
 
-def getLogSumAcrossSites(counts, input_likelihoods):
-    cdef int S, i
+def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):
+    cdef int S, col
     cdef double total
-    cdef double *likelihoods_data,  *weights_data
+    
     S = 0
-    weights_data = checkArrayDouble1D(counts, &S)
-    likelihoods_data = checkArrayDouble1D(input_likelihoods, &S)
+    checkArray1D(counts, &S)
+    checkArray1D(input_likelihoods, &S)
+    
     total = 0.0
-    for i from 0 <= i < S:
-        total += log(likelihoods_data[i])*weights_data[i]
+    for col in range(S):
+        total += log(input_likelihoods[col])*counts[col]
     return total
 
-def logDotReduce(index, patch_probs, switch_probs, plhs):
-    cdef int site, i, j, k, n, uniq, exponent, length, most_probable_state
+def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):
+    cdef int i, j, col, site, N, U, S, most_probable_state
+    cdef int exponent
     cdef double result, BASE
-    cdef double *sp, *pl, *state, *prev, *tmp
-    cdef long *index_data
+    cdef Double1D state, prev, tmp
     cdef object patch_probs1, patch_probs2
     BASE = 2.0 ** 1000
     patch_probs1 = patch_probs.copy()
     patch_probs2 = patch_probs.copy()
-    n = uniq = length = 0
-    state = checkArrayDouble1D(patch_probs1, &n)
-    prev = checkArrayDouble1D(patch_probs2, &n)
-    sp = checkArrayDouble2D(switch_probs, &n, &n)
-    pl = checkArrayDouble2D(plhs, &uniq, &n)
-    index_data = checkArrayLong1D(index, &length)
+    state = patch_probs1
+    prev = patch_probs2
+    
+    # S is seq length, U is unique columns in child seq
+    # N is number of patch types
+    N = U = S = 0
+    checkArray1D(state, &N)
+    checkArray1D(prev, &N)
+    checkArray2D(switch_probs, &N, &N)
+    checkArray2D(plhs, &U, &N)
+    checkArray1D(index, &S)
+    
     exponent = 0
-    for site from 0 <= site < length:
-        k = index_data[site]
-        if k >= uniq:
-            raise ValueError((k, uniq))
+    for site in range(S):
+        col = index[site]
+        if col >= U:
+            raise ValueError((col, U))
         tmp = prev
         prev = state
         state = tmp
         most_probable_state = 0
-        for i from 0 <= i < n:
+        for i in range(N):
             state[i] = 0
-            for j from 0 <= j < n:
-                state[i] += prev[j] * sp[j*n+i]
-            state[i] *= pl[k*n+i]
+            for j in range(N):
+                state[i] += prev[j] * switch_probs[j, i]
+            state[i] *= plhs[col, i]
             if state[i] > state[most_probable_state]:
                 most_probable_state = i
         while state[most_probable_state] < 1.0:
-            for i from 0 <= i < n:
+            for i from 0 <= i < N:
                 state[i] *= BASE
             exponent += -1
     result = 0.0
-    for i from 0 <= i < n:
+    for i in range(N):
         result += state[i]
 
     return log(result) + exponent * log(BASE)

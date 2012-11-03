@@ -1,25 +1,28 @@
+#cython: boundscheck=False
+#cython: wraparound=False
+
 include "../../include/numerical_pyrex.pyx"
 
 cdef extern from "math.h":
     double exp(double)
 
-version_info = (1, 0)
+version_info = (1, 1)
 
-def calc_TN93_P(int do_scaling, mprobs, double time, alpha_1, alpha_2, result):
-    cdef int S, motif, i, other, row, column, b_row, b_column
-    cdef double *pi, *P, scale_factor
+def calc_TN93_P(int do_scaling, double[::1] mprobs not None, double time, 
+        alpha_1, alpha_2, double[:, ::1] result not None):
+    cdef int motif, i, other, row, column, b_row, b_column
+    cdef double scale_factor
     cdef double pi_star[2], alpha[2], mu[2], e_mu_t[2], e_beta_t
     cdef double transition[2], transversion, p
     
     alpha[0] = alpha_1
     alpha[1] = alpha_2
     
-    S = 4
-    pi = checkArrayDouble1D(mprobs, &S)
-    P = checkArrayDouble2D(result, &S, &S)
+    if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
+        raise ValueError("all array dimensions must equal 4")
     
-    pi_star[0] = pi[0] + pi[1]
-    pi_star[1] = pi[2] + pi[3]
+    pi_star[0] = mprobs[0] + mprobs[1]
+    pi_star[1] = mprobs[2] + mprobs[3]
     
     mu[0] = alpha[0] * pi_star[0] + 1.0 * pi_star[1]
     mu[1] = 1.0 * pi_star[0] + alpha[1] * pi_star[1]
@@ -29,7 +32,7 @@ def calc_TN93_P(int do_scaling, mprobs, double time, alpha_1, alpha_2, result):
         for motif in range(4):
             i = motif // 2
             other = 1 - i
-            scale_factor += (alpha[i] * pi[2*i+1-motif%2] + pi_star[other]) * pi[motif]
+            scale_factor += (alpha[i] * mprobs[2*i+1-motif%2] + pi_star[other]) * mprobs[motif]
         time /= scale_factor
     
     e_beta_t = exp(-time)
@@ -47,8 +50,8 @@ def calc_TN93_P(int do_scaling, mprobs, double time, alpha_1, alpha_2, result):
                 p = transition[i]
             else:
                 p = transversion
-            p *= pi[column]
+            p *= mprobs[column]
             if row == column:
                 p += e_mu_t[i]
-            P[column+4*row] = p
+            result[row, column] = p
                 
