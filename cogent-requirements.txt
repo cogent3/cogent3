@@ -1,0 +1,2 @@
+cogent
+numpy>=1.3.0
