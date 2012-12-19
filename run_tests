@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# make sure we remove .pyc files in case someone has renamed a module ..
+find . -name '*.pyc' -delete
+
+# for automated testing - check if using alternate python install 
+PYTHON_EXE=python
+if [ $PYTHON_TEST_EXE ]; then
+    PYTHON_EXE=$PYTHON_TEST_EXE; 
+fi
+
+set -e
+$PYTHON_EXE setup.py build_ext --inplace
+export PYTHONPATH=`pwd`:$PYTHONPATH
+cd tests
+nice $PYTHON_EXE alltests.py "$@"

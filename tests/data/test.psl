@@ -1,0 +1,11 @@
+psLayout version 3
+
+match	mis- 	rep. 	N's	Q gap	Q gap	T gap	T gap	strand	Q        	Q   	Q    	Q  	T        	T   	T    	T  	block	blockSizes 	qStarts	 tStarts
+     	match	match	   	count	bases	count	bases	      	name     	size	start	end	name     	size	start	end	count
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+33	0	0	0	0	0	0	0	+	q1	33	0	33	83	35	0	33	1	33,	0,	0,
+32	0	0	0	0	0	0	0	+	q1	33	0	32	314	35	0	32	1	32,	0,	0,
+33	0	0	0	0	0	0	0	+	q1	33	0	33	279	35	0	33	1	33,	0,	0,
+33	0	0	0	0	0	0	0	+	q1	33	0	33	260	35	0	33	1	33,	0,	0,
+33	0	0	0	0	0	0	0	+	q1	33	0	33	257	35	0	33	1	33,	0,	0,
+33	0	0	0	0	0	0	0	-	q2	33	0	33	501-Rev-Primer-Match	33	0	33	1	33,	0,	0,
