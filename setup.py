@@ -115,7 +115,7 @@ Version %s.
 setup(
     name="cogent",
     version=__version__,
-    url="http://sourceforge.net/projects/pycogent",
+    url="http://github.com/pycogent/pycogent",
     author="Gavin Huttley, Rob Knight",
     author_email="gavin.huttley@anu.edu.au, rob@spot.colorado.edu",
     description=short_description,

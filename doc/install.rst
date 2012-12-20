@@ -11,7 +11,7 @@ PyCogent.app for OSX 10.6
 By virtual machine
 ------------------
 
-One way to install PyCogent is to install the QIIME virtual machine using VirtualBox. The installation instructions can be found `here <http://qiime.sourceforge.net/install/virtual_box.html>`_.
+One way to install PyCogent is to install the QIIME virtual machine using VirtualBox. The installation instructions can be found `here <http://qiime.org/install/virtual_box.html>`_.
 
 Please, note that this is the only installation method supported for Windows and that natively Windows does not support gz files properly so to uncompress a gz file in Windows use `7-zip <http://www.7-zip.org/>`_.
 
@@ -68,7 +68,7 @@ Add the following to the requirements file ::
 To use the development version of PyCogent
 """"""""""""""""""""""""""""""""""""""""""
 
-Just replace the first line of the requirements file with ``https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk``.
+Just replace the first line of the requirements file with ``git+https://github.com/pycogent/pycogent.git``.
 
 To use the graphics capabilities
 """"""""""""""""""""""""""""""""

@@ -61,7 +61,7 @@ beta diversity
 Unifrac
 -------
 
-The Fast UniFrac implementation in PyCogent is the source code for the `Fast UniFrac web tool <http://bmf2.colorado.edu/fastunifrac>`_ and the `QIIME pipeline <http://qiime.sourceforge.net>`_ for Microbial community analysis.
+The Fast UniFrac implementation in PyCogent is the source code for the `Fast UniFrac web tool <http://bmf2.colorado.edu/fastunifrac>`_ and the `QIIME pipeline <http://qiime.org>`_ for Microbial community analysis.
 
 Calculate a UniFrac Distance Matrix and apply PCoA and UPGMA
 ------------------------------------------------------------
