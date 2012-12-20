@@ -6,12 +6,12 @@ Anyone can contribute to the development of PyCogent, not just registered develo
 .. _forums: http://sourceforge.net/forum/?group_id=186234
 .. _tracker: http://sourceforge.net/tracker2/?group_id=186234
 
-Grabbing from the subversion repository
----------------------------------------
+Grabbing from GitHub
+--------------------
 
-To grab PyCogent from the sourceforge subversion repository, do the following::
+To grab PyCogent from GitHub, do the following::
 
-    $ svn co https://pycogent.svn.sourceforge.net/svnroot/pycogent/trunk PyCogent
+    $ git clone git://github.com/pycogent/pycogent.git PyCogent
 
 Building/testing the documentation
 ----------------------------------
