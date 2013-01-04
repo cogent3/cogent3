@@ -304,6 +304,15 @@ class RdpWrapperTests(TestCase):
             )}
         self.assertEqual(obs, exp)
 
+    def test_train_rdp_classifier_and_assign_taxonomy_no_model_output(self):
+        obs = train_rdp_classifier_and_assign_taxonomy(
+            self.reference_file, self.taxonomy_file, self.test_trained_input)
+        exp = {'X67228': (
+            'Bacteria;Proteobacteria;Alphaproteobacteria;Rhizobiales;'
+            'Rhizobiaceae;Rhizobium', 1.0
+            )}
+        self.assertEqual(obs, exp)
+
 # Sample data copied from rdp_classifier-2.0, which is licensed under
 # the GPL 2.0 and Copyright 2008 Michigan State University Board of
 # Trustees
