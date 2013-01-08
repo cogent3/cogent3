@@ -66,6 +66,15 @@ class MinimalFastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('xyz', 'UUUUCCAAAAAG'))
+    
+    def test_gt_bracket_in_seq(self):
+        """MinimalFastaParser handles > in sequence as can happen in qual fasta
+        """
+        oneseq_w_gt = '>abc\n>CAG\n'.split('\n')        
+        f = list(MinimalFastaParser(oneseq_w_gt))
+        self.assertEqual(len(f), 1)
+        a = f[0]
+        self.assertEqual(a, ('abc', '>CAG'))
 
     def test_multiple(self):
         """MinimalFastaParser should read multiline records correctly"""
