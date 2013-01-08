@@ -68,10 +68,23 @@ class MinimalFastaParserTests(GenericFastaTest):
         self.assertEqual(a, ('xyz', 'UUUUCCAAAAAG'))
     
     def test_gt_bracket_in_seq(self):
-        """MinimalFastaParser handles > in sequence as can happen in qual fasta
+        """MinimalFastaParser handles alternate finder function
+            
+            this test also illustrates how to use the MinimalFastaParser
+            to handle "sequences" that start with a > symbol, which can
+            happen when we abuse the MinimalFastaParser to parse
+            fasta-like sequence quality files.
         """
-        oneseq_w_gt = '>abc\n>CAG\n'.split('\n')        
-        f = list(MinimalFastaParser(oneseq_w_gt))
+        oneseq_w_gt = '>abc\n>CAG\n'.split('\n')
+        def get_two_line_records(infile):
+            line1 = None
+            for line in infile:
+                if line1 == None:
+                    line1 = line
+                else:
+                    yield (line1, line)
+                    line1 = None
+        f = list(MinimalFastaParser(oneseq_w_gt,finder=get_two_line_records))
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('abc', '>CAG'))
