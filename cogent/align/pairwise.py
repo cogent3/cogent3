@@ -40,8 +40,8 @@ pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
 # Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
 # rather than forcing everyone to recompile immediately.
 # After 1.6 release this can be replaced by (3, 2) requirement above.
-versions = [m.version_info for m in [pyrex_seq_align_module, pyrex_align_module]]
-if min(versions) >= (3, 2):
+versions = [m.version_info for m in [pyrex_seq_align_module, pyrex_align_module] if m is not None]
+if len(versions) == 0 or min(versions) >= (3, 2):
     TRACK_INT_TYPE = numpy.uint8
 elif max(versions) < (3, 2):
     TRACK_INT_TYPE = numpy.int8
