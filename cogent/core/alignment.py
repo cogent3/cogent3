@@ -852,28 +852,43 @@ class SequenceCollection(object):
                                 parse_attributes(attributes),
                                 [(start, end)])
    ''' 
-    def replaceSeqs(self, seqs):
+    def replaceSeqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
-
-        Primary use is for aligning codons from protein alignment, or, more
-        generally, substituting in codons from a set of protein sequences (not
-        necessarily aligned). For this reason, it takes characters from seqs
-        three at a time rather than one at a time (i.e. 3 characters in seqs
-        are put in place of 1 character in self).
+        
+        Arguments:
+            - aa_to_codon: If True (default) aligns codons from protein 
+              alignment, or, more generally, substituting in codons from a set
+              of protein sequences (not necessarily aligned). For this reason,
+              it takes characters from seqs three at a time rather than one at
+              a time (i.e. 3 characters in seqs are put in place of 1 character
+              in self). If False, seqs must be the same lengths.
 
         If seqs is an alignment, any gaps in it will be ignored.
         """
+        
+        if aa_to_codon:
+            scale = 3
+        else:
+            scale = 1
+        
         if hasattr(seqs, 'NamedSeqs'):
             seqs = seqs.NamedSeqs
         else:
             seqs = SequenceCollection(seqs).NamedSeqs
+        
         new_seqs = []
         for label in self.Names:
             aligned = self.NamedSeqs[label]
             seq = seqs[label]
+            
             if isinstance(seq, Aligned):
                 seq = seq.data
-            new_seqs.append((label, Aligned(aligned.map * 3, seq)))
+            
+            if not aa_to_codon and len(seq) != len(aligned.data):
+                raise ValueError("seqs have different lengths")
+            
+            new_seqs.append((label, Aligned(aligned.map * scale, seq)))
+        
         return self.__class__(new_seqs)
     
     def getGappedSeq(self, seq_name, recode_gaps=False):
