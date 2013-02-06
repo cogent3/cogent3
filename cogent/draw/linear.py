@@ -1066,22 +1066,22 @@ class Display(rlg2mpl.Drawable):
         seq_lim = (smap.Start, smap.End)
         if vertical:
             ax.set_ylim(*seq_lim)
-            ax.set_xlim(0, self.height)
+            ax.set_xlim(0, self.height or 0.1)
         else:
             ax.set_xlim(*seq_lim)
-            ax.set_ylim(0, self.height)
+            ax.set_ylim(0, self.height or 0.1)
     
     def figureLayout(self, labeled=True, vertical=False, width=None, 
             height=None, left=None, **kw):
 
         if left is None:
-            if labeled:
+            if labeled and self._tracks:
                 left = max(len(p.label) for (y, ym, p) in self._tracks)
                 left *= 12/72 * .5 # guess mixed chars, 12pt, inaccurate!
             else:
                 left = 0
-            
-        height = height or self.height/72
+        
+        height = height or (self.height or 0.1) / 72
         
         useful_width = len(self)*16/72 # ie bigish font, wide chars
         
