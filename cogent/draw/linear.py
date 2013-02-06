@@ -853,15 +853,10 @@ class DisplayPolicy(object):
         annot_tracks = self.mergeTracks(annot_tracks)
         return seq_tracks + annot_tracks
     
-    def tracksForSequence(self, sequence=None):
-        result = []
-        length = None
-        if length is None and sequence is not None:
-            length = len(sequence)
+    def tracksForSequence(self, sequence):
+        seq_tracks = []
         
-        label = getattr(self, 'seqname', '')
-        
-        if self.show_code and sequence is not None:
+        if self.show_code:
             # this should be based on resolution, not rowlen, but that's all
             # we have at this point
             if self.seq_color_callback is not None:
@@ -872,7 +867,6 @@ class DisplayPolicy(object):
             draw_bases = self.draw_bases
             if draw_bases is None:
                 draw_bases = self.rowlen <= 500 and sequence.MolType is DNA
-            self.rowlen <= 500 and sequence.MolType is DNA and self.draw_bases
             if show_text is None:
                 show_text = self.rowlen <= 100
             if show_text and self.rowlen <= 200:
@@ -894,13 +888,11 @@ class DisplayPolicy(object):
                         colour_sequences = colour_sequences,
                         font_properties = self.seq_font,
                         cvalues = cvalues)
-                result.append(Track('seq', [feature], level=2, label=label))
-        else:
-            pass
-            # show label somewhere
+                label = getattr(self, 'seqname', '')
+                seq_tracks = [Track('seq', [feature], level=2, label=label)]
         
         annot_tracks = sequence.getAnnotationTracks(self)
-        return self.mergeTracks(annot_tracks + result)
+        return self.mergeTracks(annot_tracks + seq_tracks)
     
     def getStyleDefnForFeature(self, feature):
         if feature.type in self._track_map:
@@ -1074,22 +1066,22 @@ class Display(rlg2mpl.Drawable):
         seq_lim = (smap.Start, smap.End)
         if vertical:
             ax.set_ylim(*seq_lim)
-            ax.set_xlim(0, self.height)
+            ax.set_xlim(0, self.height or 0.1)
         else:
             ax.set_xlim(*seq_lim)
-            ax.set_ylim(0, self.height)
+            ax.set_ylim(0, self.height or 0.1)
     
     def figureLayout(self, labeled=True, vertical=False, width=None, 
             height=None, left=None, **kw):
 
         if left is None:
-            if labeled:
+            if labeled and self._tracks:
                 left = max(len(p.label) for (y, ym, p) in self._tracks)
                 left *= 12/72 * .5 # guess mixed chars, 12pt, inaccurate!
             else:
                 left = 0
-            
-        height = height or self.height/72
+        
+        height = height or (self.height or 0.1) / 72
         
         useful_width = len(self)*16/72 # ie bigish font, wide chars
         
