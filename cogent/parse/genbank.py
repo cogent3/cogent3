@@ -567,14 +567,17 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print 's :', seq
 
 def RichGenbankParser(handle, info_excludes=None, moltype=None,
-    skip_contigs=False):
+    skip_contigs=False, add_annotation=None):
     """Returns annotated sequences from GenBank formatted file.
     
     Arguments:
         - info_excludes: a series of fields to be excluded from the Info object
         - moltype: a MolType instance, such as PROTEIN, DNA. Default is ASCII.
         - skip_contigs: ignores records with no actual sequence data, typically
-          a genomic contig."""
+          a genomic contig.
+        - add_annotation: a callback function to create an new annotation from a
+          GenBank feature. Function is called with the sequence, a feature dict
+          and the feature spans."""
     info_excludes = info_excludes or []
     moltype = moltype or ASCII
     for rec in MinimalGenbankParser(handle):
@@ -627,15 +630,19 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
             if reversed:
                 spans.reverse()
             
-            for id_field in ['gene', 'note', 'product', 'clone']:
-                if id_field in feature:
-                    name = feature[id_field]
-                    if not isinstance(name, basestring):
-                        name = ' '.join(name)
-                    break
+            if add_annotation:
+                add_annotation(seq, feature, spans)
             else:
-                name = None
-            seq.addAnnotation(Feature, feature['type'], name, spans)
+                for id_field in ['gene', 'note', 'product', 'clone']:
+                    if id_field in feature:
+                        name = feature[id_field]
+                        if not isinstance(name, basestring):
+                            name = ' '.join(name)
+                        break
+                else:
+                    name = None
+                seq.addAnnotation(Feature, feature['type'], name, spans)
+        
         yield (rec['locus'], seq)
         
 def parse(*args):
