@@ -25,6 +25,32 @@ We load a sample genbank file with plenty of features and grab the CDS features.
     >>> print cds
     [CDS "thrL" at [189:255]/10020, CDS "thrA" at ...
 
+Customising annotation construction from reading a genbank file
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You can write your own code to construct annotation objects. One reason you might do this is some genbank files do not have a ``/gene`` tag on gene related features, instead only possessing a ``/locus_tag``. For illustrating the approach we only create annotations for ``CDS`` features. We write a custom callback function that uses the ``locus_tag`` as the ``Feature`` name.
+
+.. doctest::
+    
+    >>> from cogent.core.annotation import Feature
+    >>> def add_annotation(seq, feature, spans):
+    ...     type_ = feature['type']
+    ...     if type_ != 'CDS':
+    ...         return
+    ...     name = feature.get('locus_tag', None)
+    ...     if name and not isinstance(name, basestring):
+    ...         name = ' '.join(name)
+    ...     seq.addAnnotation(Feature, type_, name, spans)
+    ... 
+    >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'),
+    ...          add_annotation=add_annotation)
+    >>> for accession, seq in parser: # just reading one accession,sequence
+    ...     break
+    ...  
+    >>> genes = seq.getAnnotationsMatching('CDS')
+    >>> print genes
+    [CDS "STM0001" at [189:255]/10020, CDS "STM0002" at [336:2799]/10020...
+
 Creating directly on a sequence
 """""""""""""""""""""""""""""""
 
