@@ -627,8 +627,6 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                 # or that's longer than the sequence
                 hi = [hi, len(seq)][hi > len(seq)]
                 spans.append((lo, hi))
-            if reversed:
-                spans.reverse()
             
             if add_annotation:
                 add_annotation(seq, feature, spans)
