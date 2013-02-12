@@ -5,7 +5,7 @@ from cogent.parse.genbank import parse_locus, parse_single_line, \
     indent_splitter, parse_sequence, block_consolidator, parse_organism, \
     parse_feature, location_line_tokenizer, parse_simple_location_segment, \
     parse_location_line, parse_reference, parse_source, \
-    Location, LocationList
+    Location, LocationList, RichGenbankParser
 from cogent.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
@@ -331,7 +331,45 @@ ORIGIN
         self.assertEqual(r['taxonomy'], ['Eukaryota','Metazoa', 'Chordata',\
             'Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',\
             'Eutheria', 'Proboscidea', 'Elephantidae', 'Loxodonta'])
+    
+    def test_rich_parser(self):
+        """correctly constructs +/- strand features"""
+        # a custom annotation function
+        from cogent.core.annotation import Feature
+        def add_annotation(seq, feature, spans):
+            if feature['type'] != "CDS": return
+            name = feature['locus_tag'][0]
+            seq.addAnnotation(Feature, "CDS", name, spans)
         
+        parser = RichGenbankParser(open('data/annotated_seq.gb'),
+            add_annotation=add_annotation)
+        
+        seq = [s for l, s in parser][0]
+        cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
+        expects = {
+            'CNA00110': 'MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD'\
+            'SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL'\
+            'SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL'\
+            'PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP'\
+            'SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA'\
+            'DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD'\
+            'LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT'\
+            'IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG'\
+            'LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ'\
+            'ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE'\
+            'GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL'\
+            'VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG'\
+            'ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV',
+            'CNA00120': 'MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD'\
+            'FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP'\
+            'DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF'}
+        
+        for locus in cds:
+            got = cds[locus].getSlice().\
+                    withoutTerminalStopCodon().getTranslation()
+            self.assertEqual(str(got), expects[locus])
+    
+
 class LocationTests(TestCase):
     """Tests of the Location class."""
     def test_init(self):
