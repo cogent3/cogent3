@@ -3,8 +3,8 @@
 import unittest
 
 from cogent import DNA, LoadSeqs
-from cogent.core.annotation import Feature, Variable
-from cogent.core.location import Map, Span
+from cogent.core.annotation import Feature, Variable, _Feature
+from cogent.core.location import Map, Span, as_map
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -41,6 +41,30 @@ class TestAnnotations(unittest.TestCase):
     def setUp(self):
         self.seq = makeSampleSequence()
         self.aln = makeSampleAlignment()
+    
+    def test_inherit_feature(self):
+        """should be able to subclass and extend _Feature"""
+        class NewFeat(_Feature):
+            def __init__(self, *args, **kwargs):
+                super(NewFeat, self).__init__(*args, **kwargs)
+            
+            def newMethod(self):
+                if len(self.map) >= 1: # could be mRNA, etc..
+                    as_one = self.asOneSpan()
+                return as_one.newMethod()
+        
+        seq = DNA.makeSequence('ACGTACGTACGT')
+        f = seq.addAnnotation(NewFeat, as_map([(1,3), (5,7)], len(seq)),
+                                type='gene', Name='abcd')
+        self.assertEqual(type(f.asOneSpan()), NewFeat)
+        self.assertEqual(type(f.getShadow()), NewFeat)
+        f2 = seq.addAnnotation(NewFeat, as_map([(3,5)], len(seq)),
+                                type='gene', Name='def')
+        
+        self.assertEqual(type(f.getRegionCoveringAll([f, f2])), NewFeat)
+        # now use the new method
+        f.newMethod()
+        
     
     def test_slice_seq_with_annotations(self):
         newseq = self.seq[:5] + self.seq[10:]
