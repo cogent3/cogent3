@@ -49,9 +49,11 @@ class TestAnnotations(unittest.TestCase):
                 super(NewFeat, self).__init__(*args, **kwargs)
             
             def newMethod(self):
-                if len(self.map) >= 1: # could be mRNA, etc..
-                    as_one = self.asOneSpan()
-                return as_one.newMethod()
+                if len(self.map.spans) > 1:
+                    as_one = self.asOneSpan() # should create new instance of NewFeat
+                    return as_one.newMethod()
+                return True
+            
         
         seq = DNA.makeSequence('ACGTACGTACGT')
         f = seq.addAnnotation(NewFeat, as_map([(1,3), (5,7)], len(seq)),
@@ -61,7 +63,9 @@ class TestAnnotations(unittest.TestCase):
         f2 = seq.addAnnotation(NewFeat, as_map([(3,5)], len(seq)),
                                 type='gene', Name='def')
         
-        self.assertEqual(type(f.getRegionCoveringAll([f, f2])), NewFeat)
+        self.assertEqual(type(seq.getRegionCoveringAll([f, f2],
+                                                feature_class=NewFeat)),
+                        NewFeat)
         # now use the new method
         f.newMethod()
         

@@ -123,7 +123,7 @@ class _Annotatable(object):
                 result.append(annotation)
         return result
     
-    def getRegionCoveringAll(self, annotations):
+    def getRegionCoveringAll(self, annotations, feature_class=None):
         spans = []
         annotation_types = []
         for annot in annotations:
@@ -133,7 +133,11 @@ class _Annotatable(object):
         map = Map(spans=spans, parent_length=len(self))
         map = map.covered() # No overlaps
         Name = ','.join(annotation_types)
-        return _Feature(self, map, type='region', Name=Name)
+        
+        if feature_class is None:
+            feature_class = _Feature
+        
+        return feature_class(self, map, type='region', Name=Name)
     
     def getByAnnotation(self, annotation_type, Name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
@@ -193,7 +197,7 @@ class _Feature(_Annotatable):
     
     def _mapped(self, slicemap):
         Name = "%s of %s" % (repr(slicemap), self.Name)
-        return _Feature(self, slicemap, type="slice", Name=Name)
+        return self.__class__(self, slicemap, type="slice", Name=Name)
     
     def getSlice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
@@ -209,7 +213,7 @@ class _Feature(_Annotatable):
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        new = type(self)(self.parent, self.map[keep], original=self)
+        new = self.__class__(self.parent, self.map[keep], original=self)
         if self.annotations:
             sliced_annots = self._slicedAnnotations(new, keep)
             new.attachAnnotations(sliced_annots)
@@ -217,10 +221,10 @@ class _Feature(_Annotatable):
     
     def asOneSpan(self):
         new_map = self.map.getCoveringSpan()
-        return _Feature(self.parent, new_map, type="span", Name=self.Name)
+        return self.__class__(self.parent, new_map, type="span", Name=self.Name)
     
     def getShadow(self):
-        return _Feature(self.parent, self.map.shadow(), type='region',
+        return self.__class__(self.parent, self.map.shadow(), type='region',
                 Name='not '+ self.Name)
     
     def __len__(self):
@@ -246,7 +250,7 @@ class AnnotatableFeature(_Feature):
     """These features can themselves be annotated."""
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
-        return _Feature(self.parent, new_map, type='slice', Name='')
+        return self.__class__(self.parent, new_map, type='slice', Name='')
     
     def remappedTo(self, grandparent, gmap):
         new = _Feature.remappedTo(self, grandparent, gmap)
@@ -326,7 +330,7 @@ class _SimpleVariable(_Feature):
         keep = self.map.nongap()
         indicies = numpy.concatenate([list(span) for span in keep.Spans])
         data = numpy.asarray(data)[indicies]
-        new = type(self)(self.parent, self.map[keep], data=data, original=self)
+        new = self.__class__(self.parent, self.map[keep], data=data, original=self)
         return new
         
 def SimpleVariable(parent, type, Name, data):
