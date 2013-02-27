@@ -470,7 +470,7 @@ def t_one_sample(a,popmean=0, tails=None):
     return t, prob
 
 
-def t_two_sample (a, b, tails=None, exp_diff=0):
+def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
     """Returns t, prob for two INDEPENDENT samples of scores a, and b.  
     
     From Sokal and Rohlf, p 223.  
@@ -479,35 +479,103 @@ def t_two_sample (a, b, tails=None, exp_diff=0):
 
     t is a float; prob is a probability.
     a and b should be sequences of observations (numbers). Need not be equal
-    lengths.
+        lengths.
     tails should be None (default), 'high', or 'low'.
     exp_diff should be the expected difference in means (a-b); 0 by default.
- """
+    none_on_zero_variance: if True, will return (None,None) if both a and b
+        have zero variance (e.g. a=[1,1,1] and b=[2,2,2]). If False, the
+        following values will be returned:
+
+            Two-tailed test (tails=None):
+                a < b: (-inf,0.0)
+                a > b: (+inf,0.0)
+
+            One-tailed 'high':
+                a < b: (-inf,1.0)
+                a > b: (+inf,0.0)
+
+            One-tailed 'low':
+                a < b: (-inf,0.0)
+                a > b: (+inf,1.0)
+
+        If a and b both have no variance and have the same single value (e.g.
+        a=[1,1,1] and b=[1,1,1]), (None,None) will always be returned.
+    """
+    if tails is not None and tails != 'high' and tails != 'low':
+        raise ValueError("Invalid tail type '%s'. Must be either None, "
+                         "'high', or 'low'." % tails)
+
     try:
         #see if we need to back off to the single-observation for single-item
         #groups
         n1 = len(a)
         if n1 < 2:
-            return t_one_observation(sum(a), b, tails, exp_diff)
+            return t_one_observation(sum(a), b, tails, exp_diff,
+                    none_on_zero_variance=none_on_zero_variance)
+
         n2 = len(b)
         if n2 < 2:
-            return t_one_observation(sum(b), a, reverse_tails(tails), exp_diff)
+            t, prob = t_one_observation(sum(b), a, reverse_tails(tails),
+                    exp_diff, none_on_zero_variance=none_on_zero_variance)
+
+            # Negate the t-statistic because we swapped the order of the inputs
+            # in the t_one_observation call, as well as tails.
+            return (-t, prob)
+
         #otherwise, calculate things properly
         x1 = mean(a)
         x2 = mean(b)
-        df = n1+n2-2
-        svar = ((n1-1)*var(a) + (n2-1)*var(b))/df
-        t = (x1-x2-exp_diff)/sqrt(svar*(1/n1 + 1/n2))
-    except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
-        FloatingPointError), e:
-        #bail out if the sample sizes are wrong, the values aren't numeric or
-        #aren't present, etc.
-        return (None, None)
-    if isnan(t) or isinf(t):
-        return (None, None)
+        var1 = var(a)
+        var2 = var(b)
 
-    prob = t_tailed_prob(t, df, tails)
-    return t, prob
+        if var1 == 0 and var2 == 0:
+            # Both lists do not vary.
+            if x1 == x2 or none_on_zero_variance:
+                result = (None, None)
+            else:
+                result = _t_test_no_variance(x1, x2, tails)
+        else:
+            # At least one list varies.
+            df = n1+n2-2
+            svar = ((n1-1)*var1 + (n2-1)*var2)/df
+            t = (x1-x2-exp_diff)/sqrt(svar*(1/n1 + 1/n2))
+
+            if isnan(t) or isinf(t):
+                result = (None, None)
+            else:
+                prob = t_tailed_prob(t, df, tails)
+                result = (t, prob)
+    except (ZeroDivisionError, ValueError, AttributeError, TypeError,
+            FloatingPointError), e:
+        #invalidate if the sample sizes are wrong, the values aren't numeric or
+        #aren't present, etc.
+        result = (None, None)
+
+    return result
+
+def _t_test_no_variance(mean1, mean2, tails):
+    """Handles case where two distributions have no variance."""
+    if tails is not None and tails != 'high' and tails != 'low':
+        raise ValueError("Invalid tail type '%s'. Must be either None, "
+                         "'high', or 'low'." % tails)
+
+    if tails is None:
+        if mean1 < mean2:
+            result = (float('-inf'), 0.0)
+        else:
+            result = (float('inf'), 0.0)
+    elif tails == 'high':
+        if mean1 < mean2:
+            result = (float('-inf'), 1.0)
+        else:
+            result = (float('inf'), 0.0)
+    else:
+        if mean1 < mean2:
+            result = (float('-inf'), 0.0)
+        else:
+            result = (float('inf'), 1.0)
+
+    return result
 
 def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
                     exp_diff=0):
@@ -550,7 +618,8 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
 
     # Perform t-test using original observations.
     obs_t, param_p_val = t_two_sample(x_items, y_items, tails=tails,
-                                      exp_diff=exp_diff)
+                                      exp_diff=exp_diff,
+                                      none_on_zero_variance=False)
 
     # Only perform the Monte Carlo test if we got a sane answer back from the
     # initial t-test and we have been specified permutations.
@@ -562,7 +631,8 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
         perm_x_items, perm_y_items = _permute_observations(x_items, y_items,
                                                            permutations)
         perm_t_stats = [t_two_sample(perm_x_items[n], perm_y_items[n],
-                                     tails=tails, exp_diff=exp_diff)[0]
+                                     tails=tails, exp_diff=exp_diff,
+                                     none_on_zero_variance=False)[0]
                         for n in range(permutations)]
 
         # Compute nonparametric p-value based on the permuted t-test results.
@@ -573,6 +643,7 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
         elif tails == 'high':
             better = (array(perm_t_stats) >= obs_t).sum()
         nonparam_p_val = (better + 1) / (permutations + 1)
+
     return obs_t, param_p_val, perm_t_stats, nonparam_p_val
 
 def _permute_observations(x_items, y_items, permutations,
@@ -598,21 +669,39 @@ def _permute_observations(x_items, y_items, permutations,
     rand_ys = [combined_obs[perm[num_x:num_total_obs]] for perm in perms]
     return rand_xs, rand_ys
 
-def t_one_observation(x, sample, tails=None, exp_diff=0):
+def t_one_observation(x, sample, tails=None, exp_diff=0,
+                      none_on_zero_variance=True):
     """Returns t-test for significance of single observation versus a sample.
     
     Equation for 1-observation t (Sokal and Rohlf 1995 p 228):
     t = obs - mean - exp_diff / (var * sqrt((n+1)/n)) 
     df = n - 1
+
+    none_on_zero_variance: see t_two_sample for details. If sample has no
+        variance and its single value is the same as x (e.g. x=1 and
+        sample=[1,1,1]), (None,None) will always be returned
     """
     try:
-        n = len(sample)
-        t = (x - mean(sample) - exp_diff)/std(sample)/sqrt((n+1)/n)
-    except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
-        FloatingPointError):
-        return (None, None)
-    prob = t_tailed_prob(t, n-1, tails)
-    return t, prob
+        sample_mean = mean(sample)
+        sample_std = std(sample)
+
+        if sample_std == 0:
+            # The list does not vary.
+            if sample_mean == x or none_on_zero_variance:
+                result = (None, None)
+            else:
+                result = _t_test_no_variance(x, sample_mean, tails)
+        else:
+            # The list varies.
+            n = len(sample)
+            t = (x - sample_mean - exp_diff)/sample_std/sqrt((n+1)/n)
+            prob = t_tailed_prob(t, n-1, tails)
+            result = (t, prob)
+    except (ZeroDivisionError, ValueError, AttributeError, TypeError,
+            FloatingPointError):
+        result = (None, None)
+
+    return result
 
 def pearson(x_items, y_items):
     """Returns Pearson's product moment correlation coefficient.

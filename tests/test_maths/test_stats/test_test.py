@@ -592,11 +592,56 @@ class StatTests(TestsHelper):
             0.001)
 
     def test_t_two_sample_no_variance(self):
-        """t_two_sample should return None if lists are invariant"""
-        x = array([1, 1, 1])
-        y = array([0, 0, 0])
+        """t_two_sample should properly handle lists that are invariant"""
+        # By default should return (None, None) to mimic R's t.test.
+        x = array([1, 1., 1])
+        y = array([0, 0, 0.0])
         self.assertEqual(t_two_sample(x,x), (None, None))
         self.assertEqual(t_two_sample(x,y), (None, None))
+
+        # Test none_on_zero_variance=False on various tail types. We use
+        # self.assertEqual instead of self.assertFloatEqual because the latter
+        # sees inf and -inf as being equal.
+
+        # Two tailed: a < b
+        self.assertEqual(t_two_sample(y, x, none_on_zero_variance=False),
+                              (float('-inf'), 0.0))
+
+        # Two tailed: a > b
+        self.assertEqual(t_two_sample(x, y, none_on_zero_variance=False),
+                              (float('inf'), 0.0))
+
+        # One-tailed 'high': a < b
+        self.assertEqual(t_two_sample(y, x, tails='high',
+                              none_on_zero_variance=False),
+                              (float('-inf'), 1.0))
+
+        # One-tailed 'high': a > b
+        self.assertEqual(t_two_sample(x, y, tails='high',
+                              none_on_zero_variance=False),
+                              (float('inf'), 0.0))
+
+        # One-tailed 'low': a < b
+        self.assertEqual(t_two_sample(y, x, tails='low',
+                              none_on_zero_variance=False),
+                              (float('-inf'), 0.0))
+
+        # One-tailed 'low': a > b
+        self.assertEqual(t_two_sample(x, y, tails='low',
+                              none_on_zero_variance=False),
+                              (float('inf'), 1.0))
+
+        # Should still receive (None, None) if the lists have no variance and
+        # have the same single value.
+        self.assertEqual(t_two_sample(x, x, none_on_zero_variance=False),
+                         (None, None))
+        self.assertEqual(t_two_sample(x, [1, 1], none_on_zero_variance=False),
+                         (None, None))
+
+    def test_t_two_sample_invalid_input(self):
+        """t_two_sample should raise an error on invalid input."""
+        self.assertRaises(ValueError, t_two_sample, [1,2,3], [4,5,6],
+                          tails='foo')
 
     def test_t_one_sample(self):
         """t_one_sample results should match those from R"""
@@ -613,7 +658,7 @@ class StatTests(TestsHelper):
         sample = array([4.02, 3.88, 3.34, 3.87, 3.18])
         x = array([3.02])
         self.assertFloatEqual(t_two_sample(x,sample),(-1.5637254,0.1929248))
-        self.assertFloatEqual(t_two_sample(sample, x),(-1.5637254,0.1929248))
+        self.assertFloatEqual(t_two_sample(sample, x),(1.5637254,0.1929248))
         #can't do the test if both samples have single item
         self.assertEqual(t_two_sample(x,x), (None, None))
    
@@ -626,9 +671,26 @@ class StatTests(TestsHelper):
         self.assertFloatEqual(t_one_observation(x,sample),\
             (-1.5637254,0.1929248))
 
+    def test_t_one_observation_no_variance(self):
+        """t_one_observation should correctly handle an invariant list."""
+        sample = array([1.0, 1.0, 1.0])
+
+        # Can't perform test if invariant list's single value matches x,
+        # regardless of none_on_zero_variance.
+        self.assertEqual(t_one_observation(1, sample), (None, None))
+        self.assertEqual(t_one_observation(1, sample,
+                none_on_zero_variance=False), (None, None))
+
+        # Test correct handling of none_on_zero_variance.
+        self.assertEqual(t_one_observation(2, sample), (None, None))
+        self.assertEqual(t_one_observation(2, sample,
+                none_on_zero_variance=False), (float('inf'), 0.0))
+        self.assertEqual(t_one_observation(2, sample,
+                none_on_zero_variance=False, tails='low'), (float('inf'), 1.0))
+
     def test_mc_t_two_sample(self):
         """Test gives correct results with valid input data."""
-        # Verified against R's t.test() and perm.t.test().
+        # Verified against R's t.test() and Deducer::perm.t.test().
 
         # With numpy array as input.
         exp = (-0.11858541225631833, 0.90756579317867436)
@@ -673,7 +735,7 @@ class StatTests(TestsHelper):
 
     def test_mc_t_two_sample_unbalanced_obs(self):
         """Test gives correct results with unequal number of obs per sample."""
-        # Verified against R's t.test() and perm.t.test().
+        # Verified against R's t.test() and Deducer::perm.t.test().
         exp = (-0.10302479888889175, 0.91979753020527177)
         I =  array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
@@ -693,7 +755,17 @@ class StatTests(TestsHelper):
         self.assertFloatEqual(len(obs[2]), 999)
         self.assertIsProb(obs[3])
 
+        exp = (1.5637254,0.1929248)
         obs = mc_t_two_sample(sample, x)
+        self.assertFloatEqual(obs[:2], exp)
+        self.assertFloatEqual(len(obs[2]), 999)
+        self.assertIsProb(obs[3])
+
+        # Test the case where we can have no variance in the permuted lists.
+        x = array([1, 1, 2])
+        y = array([1])
+        exp = (0.5,0.666666666667)
+        obs = mc_t_two_sample(x, y)
         self.assertFloatEqual(obs[:2], exp)
         self.assertFloatEqual(len(obs[2]), 999)
         self.assertIsProb(obs[3])
@@ -711,7 +783,59 @@ class StatTests(TestsHelper):
         x = array([1, 1, 1])
         y = array([0, 0, 0])
         self.assertEqual(mc_t_two_sample(x,x), (None, None, [], None))
-        self.assertEqual(mc_t_two_sample(x,y), (None, None, [], None))
+
+    def test_mc_t_two_sample_no_variance(self):
+        """Test input with no variance. Should match Deducer::perm.t.test."""
+        x = array([1, 1, 1])
+        y = array([2, 2, 2])
+
+        exp = (float('-inf'), 0.0)
+        obs = mc_t_two_sample(x, y, permutations=10000)
+
+        self.assertEqual(obs[:2], exp)
+        self.assertEqual(len(obs[2]), 10000)
+        self.assertCorrectPValue(0.09, 0.11, mc_t_two_sample, [x, y],
+                                 {'permutations':10000}, p_val_idx=3)
+
+        exp = (float('inf'), 0.0)
+        obs = mc_t_two_sample(y, x, permutations=10000)
+
+        self.assertEqual(obs[:2], exp)
+        self.assertEqual(len(obs[2]), 10000)
+        self.assertCorrectPValue(0.09, 0.11, mc_t_two_sample, [y, x],
+                                 {'permutations':10000}, p_val_idx=3)
+
+        exp = (float('-inf'), 1.0)
+        obs = mc_t_two_sample(x, y, permutations=10000, tails='high')
+
+        self.assertEqual(obs[:2], exp)
+        self.assertEqual(len(obs[2]), 10000)
+        self.assertCorrectPValue(0.9999, 1.0, mc_t_two_sample, [x, y],
+                                 {'permutations':10000, 'tails':'high'},
+                                 p_val_idx=3)
+
+        exp = (float('-inf'), 0.0)
+        obs = mc_t_two_sample(x, y, permutations=10000, tails='low')
+
+        self.assertEqual(obs[:2], exp)
+        self.assertEqual(len(obs[2]), 10000)
+        self.assertCorrectPValue(0.04, 0.051, mc_t_two_sample, [x, y],
+                                 {'permutations':10000, 'tails':'low'},
+                                 p_val_idx=3)
+
+    def test_mc_t_two_sample_no_permuted_variance(self):
+        """Test with chance of getting no variance with some perms."""
+        # Verified against R's t.test() and Deducer::perm.t.test().
+        x = array([1, 1, 2])
+        y = array([2, 2, 1])
+
+        exp = (-0.70710678118654791, 0.51851851851851838)
+        obs = mc_t_two_sample(x, y, permutations=10000)
+
+        self.assertFloatEqual(obs[:2], exp)
+        self.assertEqual(len(obs[2]), 10000)
+        self.assertCorrectPValue(0.97, 1.0, mc_t_two_sample, [x, y],
+                                 {'permutations':10000}, p_val_idx=3)
 
     def test_mc_t_two_sample_invalid_input(self):
         """Test fails on various invalid input."""
