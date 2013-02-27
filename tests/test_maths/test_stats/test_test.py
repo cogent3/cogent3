@@ -659,9 +659,14 @@ class StatTests(TestsHelper):
         x = array([3.02])
         self.assertFloatEqual(t_two_sample(x,sample),(-1.5637254,0.1929248))
         self.assertFloatEqual(t_two_sample(sample, x),(1.5637254,0.1929248))
+
         #can't do the test if both samples have single item
         self.assertEqual(t_two_sample(x,x), (None, None))
-   
+
+        # Test special case if t=0.
+        self.assertFloatEqual(t_two_sample([2], [1, 2, 3]), (0.0, 1.0))
+        self.assertFloatEqual(t_two_sample([1, 2, 3], [2]), (0.0, 1.0))
+
     def test_t_one_observation(self):
         """t_one_observation should match p. 228 of Sokal and Rohlf"""
         sample = array([4.02, 3.88, 3.34, 3.87, 3.18])
