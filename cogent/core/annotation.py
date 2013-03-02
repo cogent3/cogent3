@@ -242,8 +242,7 @@ class _Feature(_Annotatable):
     def getCoordinates(self):
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
-        coordinates = [(span.Start, span.End) for span in self.map.spans]
-        return coordinates
+        return self.map.getCoordinates()
     
 
 class AnnotatableFeature(_Feature):
