@@ -1,10 +1,7 @@
 For Developers
 ==============
 
-Anyone can contribute to the development of PyCogent, not just registered developers. If you figure out a solution to something using PyCogent that you'd like to share please post comments on the forums_ page at sourceforge and we'll look at including your tips! If you have ideas for improving the current documentation, then we want to hear from you so please post on the tracker_ page!
-
-.. _forums: http://sourceforge.net/forum/?group_id=186234
-.. _tracker: http://sourceforge.net/tracker2/?group_id=186234
+Anyone can contribute to the development of PyCogent, not just registered developers. If you figure out a solution to something using PyCogent that you'd like to share, or if you have ideas for improving the current documentation, please consider submitting a `pull request <https://help.github.com/articles/using-pull-requests>`_ to the `PyCogent git repository on GitHub <https://github.com/pycogent/pycogent>`_ and we'll look into including it in PyCogent!
 
 Grabbing from GitHub
 --------------------
