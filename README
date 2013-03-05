@@ -2,7 +2,7 @@ The Readme
 ==========
 
 :Download: `From sourceforge <http://sourceforge.net/projects/pycogent>`_ or follow the :ref:`quick-install` instructions.
-:Registration: To be informed of bugs, new releases please subscribe to the `mailing lists at sourceforge <http://sourceforge.net/projects/pycogent>`_.
+:Registration: To be informed of bugs and new releases, please subscribe to the `News and Announcements Blog <http://pycogent.wordpress.com>`_.
 
 Dependencies
 ------------
