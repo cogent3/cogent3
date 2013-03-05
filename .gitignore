@@ -34,3 +34,6 @@ tests/draw_results
 .mr.developer.cfg
 .project
 .pydevproject
+
+# vi
+.*.swp
