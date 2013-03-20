@@ -479,8 +479,8 @@ class Transcript(_StableRegion):
  		gene_table = self.db.getTable('gene')
  		query = sql.select([gene_table], gene_table.c.gene_id == gene_id)
  		record = asserted_one(query.execute())
-		gene = Gene(self, self.CoreDb, data=record)
-    	return gene
+		gene = Gene(self.genome, self.db, data=record)
+		return gene
     
     Gene = property(_get_gene)
     
