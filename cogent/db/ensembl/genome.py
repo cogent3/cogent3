@@ -288,7 +288,8 @@ class Genome(object):
         query = self._get_transcript_query(self.CoreDb, StableId=StableId)
         try:
             record = list(query.execute())[0]
-            transcript = Transcript(self, self.CoreDb, StableId, data=record)
+            transcript_id = record[0]
+            transcript = Transcript(self, self.CoreDb, transcript_id, data=record)
         except IndexError:
             transcript = None
         return transcript
