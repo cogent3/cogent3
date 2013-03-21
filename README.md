@@ -1,6 +1,8 @@
 PyCogent: A toolkit for making sense from sequence
 ==================================================
 
+[![Build Status](http://ci.qiime.org/job/PyCogent/badge/icon)](http://ci.qiime.org/job/PyCogent/)
+
 The official PyCogent source code repository. For details on PyCogent, see http://www.pycogent.org/.
 
 PyCogent includes connectors to remote databases, built-in generalized probabilistic techniques for working with biological sequences, and controllers for 3rd party applications.
