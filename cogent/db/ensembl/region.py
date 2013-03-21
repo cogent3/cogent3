@@ -455,6 +455,7 @@ class Transcript(_StableRegion):
         self._am_prot_coding = None
         self.transcript_id = transcript_id
         self._table_rows['transcript'] = data
+        self.gene_id = self._table_rows['transcript'][1]
         self._set_transcript_record()
     
     def _set_transcript_record(self):
@@ -472,6 +473,16 @@ class Transcript(_StableRegion):
         return self._cached['BioType']
     
     BioType = property(_get_biotype)
+    
+    def _get_gene(self):
+ 		gene_id = self.gene_id
+ 		gene_table = self.db.getTable('gene')
+ 		query = sql.select([gene_table], gene_table.c.gene_id == gene_id)
+ 		record = asserted_one(query.execute())
+		gene = Gene(self.genome, self.db, data=record)
+		return gene
+    
+    Gene = property(_get_gene)
     
     def _get_transcript_stable_id_record(self):
         table_name = self._attr_ensembl_table_map['StableId']

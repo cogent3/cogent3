@@ -329,6 +329,30 @@ class TestGene(GenomeTestBase):
         gene = self.human.getGeneByStableId(StableId=stable_id)
         self.assertEquals(gene, None)
 
+    def test_get_transcript_by_stable_id(self):
+        """should correctly handle getting transcript by stable_id"""
+        stable_id = 'ENST00000380152'
+        transcript = human.getTranscriptByStableId(StableId=stable_id)
+        self.assertEquals(transcript.StableId, stable_id)
+
+        # if invalid stable_id, should just return None
+        stable_id = 'ENST00000XXXXX'
+        transcript = human.getTranscriptByStableId(StableId=stable_id)
+        self.assertEquals(transcript, None)
+
+        # get transcript via gene and check values match
+        stable_id = 'ENST00000380152'
+        transcript = human.getTranscriptByStableId(StableId=stable_id)
+        gene = transcript.Gene
+        brca2 = human.getGeneByStableId(StableId='ENSG00000139618')
+        self.assertEquals(brca2.CanonicalTranscript.StableId, transcript.StableId)
+        self.assertEquals(brca2.CanonicalTranscript.getCdsLength(), len(transcript.Cds))
+        self.assertEquals(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
+        self.assertEquals(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
+        self.assertEquals(str(brca2.CanonicalTranscript.Seq), str(transcript.Seq))
+        self.assertEquals(brca2.StableId, gene.StableId)
+        self.assertEquals(brca2.Seq, gene.Seq)
+		        
     def test_intron_number(self):
         """number of introns should be correct"""
         for gene_id, transcript_id, exp_number in [
