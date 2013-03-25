@@ -455,7 +455,7 @@ class Transcript(_StableRegion):
         self._am_prot_coding = None
         self.transcript_id = transcript_id
         self._table_rows['transcript'] = data
-        self.gene_id = self._table_rows['transcript'][1]
+        self.gene_id = self._table_rows['transcript']['gene_id']
         self._set_transcript_record()
 
     def _set_transcript_record(self):
@@ -477,9 +477,10 @@ class Transcript(_StableRegion):
     def _get_gene(self):
         gene_id = self.gene_id
         gene_table = self.db.getTable('gene')
-        query = sql.select([gene_table], gene_table.c.gene_id == gene_id)
+        query = sql.select([gene_table.c.stable_id],
+                            gene_table.c.gene_id == gene_id)
         record = asserted_one(query.execute())
-        gene = Gene(self.genome, self.db, data=record)
+        gene = self.genome.getGeneByStableId(record[0])
         return gene
 
     Gene = property(_get_gene)
