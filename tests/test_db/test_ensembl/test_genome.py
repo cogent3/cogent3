@@ -352,7 +352,13 @@ class TestGene(GenomeTestBase):
         self.assertEquals(str(brca2.CanonicalTranscript.Seq), str(transcript.Seq))
         self.assertEquals(brca2.StableId, gene.StableId)
         self.assertEquals(brca2.Seq, gene.Seq)
-		        
+
+    def test_gene_on_transcript(self):
+        """Transcript instances Gene attribute should be complete"""
+        brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
+        transcript = self.human.getTranscriptByStableId(StableId='ENST00000380152')
+        self.assertEquals(transcript.Gene.Symbol, brca2.Symbol)
+
     def test_intron_number(self):
         """number of introns should be correct"""
         for gene_id, transcript_id, exp_number in [
