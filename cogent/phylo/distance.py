@@ -17,6 +17,38 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+def get_name_combinations(names, group_size):
+    """returns combinations of names"""
+    return list(combinations(names, group_size))
+
+def get_pairwise_distance_from_triad(data, summary_function="mean"):
+    """returns pairwise distances from lengths estimated from triads
+    
+    Arguments:
+        - data: a dict keyed as {(a,b,c): {'length': 'a': val1, 'b', ...}}
+        - summary_function: a string naming the function used for
+          estimating param from threeway distances. Valid values are 'mean'
+          (default) and 'median'.
+    """
+    summary_func = summary_function.capitalize()
+    pairwise_stats = {}
+    lengths = {}
+    for key in data:
+        a, b, c = key
+        for x, y in [(a,b), (a,c), (b,c)]:
+            length = data[key]['length'][x] + data[key]['length'][y]
+            try:
+                lengths[(x,y)].append(length)
+            except KeyError:
+                lengths[(x,y)] = [length]
+    
+    # get all the distances involving this pair
+    for pair in lengths:
+        values = Numbers(lengths[pair])
+        pairwise_stats[pair] = getattr(values, summary_func)
+    
+    return pairwise_stats
+
 class EstimateDistances(object):
     """Base class used for estimating pairwise distances between sequences.
     Can also estimate other parameters from pairs."""
@@ -80,14 +112,6 @@ class EstimateDistances(object):
     
     def __str__(self):
         return str(self.getTable())
-    
-    def _make_pairwise_comparison_sets(self):
-        comps = list(combinations(self._seq_collection.getSeqNames(), 2))
-        return comps
-    
-    def _make_threeway_comparison_sets(self):
-        comps = list(combinations(self._seq_collection.getSeqNames(), 3))
-        return comps
     
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.makeLikelihoodFunction(\
@@ -179,10 +203,10 @@ class EstimateDistances(object):
         # generate the list of unique sequence sets (pairs or triples) to be
         # analysed
         if self._threeway:
-            combination_aligns = self._make_threeway_comparison_sets()
+            combination_aligns = get_name_combinations(self._seq_collection.Names, 3)
             desc = "triplet "
         else:
-            combination_aligns = self._make_pairwise_comparison_sets()
+            combination_aligns = get_name_combinations(self._seq_collection.Names, 2)
             desc = "pair "
         labels = [desc + ','.join(names) for names in combination_aligns]
                             
@@ -203,24 +227,14 @@ class EstimateDistances(object):
             - summary_function: a string naming the function used for
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
-        summary_func = summary_function.capitalize()
         pairwise_stats = {}
         assert param in self._est_params + ['length'], \
                 "unrecognised param %s" % param
         if self._threeway and param == 'length':
-            pairwise = self._make_pairwise_comparison_sets()
-            # get all the distances involving this pair
-            for a, b in pairwise:
-                values = Numbers()
-                for comp_names, param_vals in self._param_ests.items():
-                    if a in comp_names and b in comp_names:
-                        values.append(param_vals[param][a] + \
-                                    param_vals[param][b])
-                
-                pairwise_stats[(a,b)] = getattr(values, summary_func)
+            pairwise_stats = get_pairwise_distance_from_triad(self._param_ests,
+                                summary_function=summary_function)
         else:
             # no additional processing of the distances is required
-            
             for comp_names, param_vals in self._param_ests.items():
                 pairwise_stats[comp_names] = param_vals[param]
             
@@ -246,6 +260,10 @@ class EstimateDistances(object):
             - **kwargs: arguments passed to getPairwiseParam"""
         ests = self.getPairwiseParam(param, **kwargs)
         return Numbers(ests.values())
+    
+    def getAllParamValues(self):
+        """returns raw estimated parameter dictionary"""
+        return self._param_ests.copy()
     
     def getTable(self,summary_function="mean", **kwargs):
         """returns a Table instance of the distance matrix.
