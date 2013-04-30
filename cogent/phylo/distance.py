@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """Estimating pairwise distances between sequences.
 """
+from warnings import warn
+from itertools import combinations
+
 from cogent.util import parallel, table, warning, progress_display as UI
 from cogent.maths.stats.util import Numbers
 from cogent import LoadSeqs, LoadTree
-
-from warnings import warn
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -79,22 +80,11 @@ class EstimateDistances(object):
         return str(self.getTable())
     
     def __make_pairwise_comparison_sets(self):
-        comps = []
-        names = self.__seq_collection.getSeqNames()
-        n = len(names)
-        for i in range(0, n - 1):
-            for j in range(i + 1, n):
-                comps.append((names[i], names[j]))
+        comps = list(combinations(self.__seq_collection.getSeqNames(), 2))
         return comps
     
     def __make_threeway_comparison_sets(self):
-        comps = []
-        names = self.__seq_collection.getSeqNames()
-        n = len(names)
-        for i in range(0, n - 2):
-            for j in range(i + 1, n - 1):
-                for k in range(j + 1, n):
-                    comps.append((names[i], names[j], names[k]))
+        comps = list(combinations(self.__seq_collection.getSeqNames(), 3))
         return comps
     
     def __make_pair_alignment(self, seqs, opt_kwargs):
