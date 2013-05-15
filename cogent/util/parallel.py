@@ -47,7 +47,7 @@ class _FakeMPI(object):
     COMM_WORLD = FAKE_MPI_COMM
 
 if os.environ.get('DONT_USE_MPI', 0):
-    print >>sys.stderr, 'Not using MPI'
+    warnings.warn('Not using MPI', stacklevel=2)
     MPI = None
 else:
     try:
