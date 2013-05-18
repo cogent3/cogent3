@@ -434,10 +434,7 @@ class Genome(object):
                             Strand = record['seq_region_strand'], 
                             seq_region_id=record['seq_region_id'],
                             ensembl_coord=True)
-            if query_coord.CoordName != target_coord.CoordName:
-                coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
             
-            # TODO: check coord, used 'new' here. where is coord (above line) used? 
             gene = klass(self, db, Location=new, data=record)
             yield gene
         
@@ -525,7 +522,8 @@ class Genome(object):
                         yield region
     
     def getVariation(self, Effect=None, Symbol=None, like=True,
-                     validated=False):
+                     validated=False, somatic=False, flanks_match_ref=False,
+                     limit=None):
         """returns a generator of Variation instances
         
         Arguments:
@@ -534,7 +532,10 @@ class Genome(object):
               provided
             - Symbol: the external or ensembl identifier - returns the exact
               match
-            - validated: variant has validation_status != None"""
+            - validated: variant has validation_status != None
+            - somatic: exclude somatic mutations
+            - flanks_match_ref: flanking sequence matches the reference
+            - limit: only return this number of hits"""
         var_feature_table = self.VarDb.getTable('variation_feature')
         
         assert Effect or Symbol, "No arguments provided"
@@ -563,8 +564,18 @@ class Genome(object):
                 
             query = sql.and_(query,var_feature_table.c.validation_status!=null)
         
+        if not somatic:
+            query = sql.and_(query,var_feature_table.c.somatic!=1)
+        
+        if flanks_match_ref:
+            query = sql.and_(query,var_feature_table.c.alignment_quality==1)
+        
         query = sql.select([var_feature_table],
                     query).order_by(var_feature_table.c.seq_region_start)
+        
+        if limit:
+            query = query.limit(limit)
+        
         for record in query.execute():
             yield Variation(self, self.CoreDb, Effect = Effect, Symbol=Symbol,
                             data=record)
