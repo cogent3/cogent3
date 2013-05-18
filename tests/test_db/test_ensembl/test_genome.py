@@ -17,7 +17,12 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 67
+Release = 71
+
+NULL_VALUE = None
+
+# TODO fix flanking sequence issue, a flag somewhere indicating flank is same as reference
+# TODO grab the ancestral allele (from variation.ancestral_allele)
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -152,7 +157,7 @@ class TestGene(GenomeTestBase):
         self.assertContains(brca2.Description.lower(), 'breast cancer')
         self.assertEquals(brca2.Status, 'KNOWN')
         self.assertEquals(brca2.CanonicalTranscript.StableId,
-                        'ENST00000380152')
+                        'ENST00000544455')
         # note length can change between genome builds
         self.assertGreaterThan(len(brca2), 83700)
         transcript = brca2.getMember('ENST00000380152')
@@ -221,9 +226,8 @@ class TestGene(GenomeTestBase):
         # ENSG00000177151 ENST00000317450 0 -1
         # ENSG00000249624 ENST00000433395 1 -1
         # ENSG00000237276 ENST00000442385 2 -1
-        # ENSG00000167744 ENST00000301411 -1 0
 
-        canon_ids = 'ENSG00000111729 ENSG00000177151 ENSG00000237276 ENSG00000167744 ENSG00000251184'.split()
+        canon_ids = 'ENSG00000111729 ENSG00000177151 ENSG00000237276 ENSG00000251184'.split()
         for index, stable_id in enumerate(canon_ids):
             gene = self.human.getGeneByStableId(StableId=stable_id)
             transcript = gene.CanonicalTranscript
@@ -271,8 +275,12 @@ class TestGene(GenomeTestBase):
         """selecting a gene by it's HGNC symbol should correctly populate all
         specified attributes"""
         results = self.human.getGenesMatching(Symbol="BRCA2")
-        for snp in results:
-            self._eval_brca2(snp)
+        found = False
+        for gene in results:
+            if gene.StableId == 'ENSG00000139618':
+                self._eval_brca2(gene)
+                found = True
+        self.assertTrue(found)
 
     def test_get_by_symbol_synonym(self):
         """return correct gene if provide a synonymn, rather than symbol"""
@@ -285,7 +293,6 @@ class TestGene(GenomeTestBase):
         constructed"""
         description='breast cancer 2'
         results = list(self.human.getGenesMatching(Description=description))
-        self.assertEquals(len(results), 1)
         self._eval_brca2(results[0])
 
     def test_get_member(self):
@@ -305,8 +312,6 @@ class TestGene(GenomeTestBase):
     def test_get_by_biotype(self):
         results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=False))
         self.assertEquals(len(results), 22)
-        results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=True))
-        self.assertEquals(len(results), 607)
 
     def test_get_by_decsr_biotype(self):
         """combining the description and biotype should return a result"""
@@ -341,7 +346,7 @@ class TestGene(GenomeTestBase):
         self.assertEquals(transcript, None)
 
         # get transcript via gene and check values match
-        stable_id = 'ENST00000380152'
+        stable_id = 'ENST00000544455'
         transcript = self.human.getTranscriptByStableId(StableId=stable_id)
         gene = transcript.Gene
         brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
@@ -431,8 +436,8 @@ class TestGene(GenomeTestBase):
 class TestVariation(GenomeTestBase):
     snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'C/A', 'CAGCTCCAGCTC/-']
-    snp_aa_alleles = ['G/R', 'P/L', 'Y/C', "V/F", "GAGAV/V"]
-    snp_effects = ['non_synonymous_codon']*3+[['2KB_upstream_variant', '5KB_upstream_variant', 'non_synonymous_codon']]+['non_synonymous_codon']
+    snp_aa_alleles = ['G/R', 'P/L', 'Y/C', 'V/F', 'GAGAV/V']
+    snp_effects = ['missense_variant']*3+[['upstream_gene_variant', 'missense_variant', 'regulatory_region_variant']]+['non_synonymous_codon']
     snp_nt_len = [1, 1, 1, 1, 12]
     map_weights = [1,1,1,1,1]
     snp_flanks = [
@@ -444,17 +449,28 @@ class TestVariation(GenomeTestBase):
       'CTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCCAGTGCAGCTGCTGTAAGCCCTGTTGCTCCTCCTCGGGTCGTGGGTCATCCTGCTGCCAATCCAGCTGCTGCAAGCCCTGCTGCTCATCCTCAGGCTG'),
       ('GCTGAAGAAACCATTTCAAACAGGATTGGAATAGGGAAACCCGGCACTCAGCTCGGCGCAAGCCGGCGGTGCCTTCAGACTAGAGAGCCTCTCCTCCGGTGCGCTGCAAGTAGGGCCTCGGCTCGAGGTCAACATTCTAGTTGTCCAGCGCTCCCTCTCCGGCACCTCGGTGAGGCTAGTTGACCCGACAGGCGCGGATCATGAGCAGCTGCAGGAGAATGAAGAGCGGGGACGTAATGAGGCCGAACCAGAGCTCCCGAGTCTGCTCCGCCAGCTTCTGGCACAACAGCATCTCGAAGA',
 'GAACTTGAGACTCAGGACCGTAAGTACCCAGAAAAGGCGGAGCACCGCCAGCCGCTTCTCTCCATCCTGGAAGAGGCGCACGGACACGATGGTGGTGAAGTAGGTGCTGAGCCCGTCAGCGGCGAAGAAAGGCACGAACACGTTCCACCAGGAGAGGCCCGGGACCAGGCCATCCACACGCAGTGCCAGCAGCACAGAGAACACCAACAGGGCCAGCAGGTGCACGAAGATCTCGAAGGTGGCGAAGCCTAGCCACTGCACCAGCTCCCGGAGCGAGAAGAGCATCGCGCCCGTTGAGCG')]
+    ancestral = [None, None, None, 'C', None]
+    
     def test_get_variation_by_symbol(self):
         """should return correct snp when query genome by symbol"""
         # supplement this test with some synonymous snp's, where they have no
         # peptide alleles
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
+            self.assertEquals(snp.Ancestral, self.ancestral[i])
             self.assertEquals(snp.Symbol, self.snp_names[i])
             self.assertEquals(snp.Effect, self.snp_effects[i])
             self.assertEquals(snp.Alleles, self.snp_nt_alleles[i])
             self.assertEquals(snp.MapWeight, self.map_weights[i])
-
+    
+    def test_somatic_attribute_correct(self):
+        """Somatic attribute of variants should be correct"""
+        symbols_somatic = [('COSM256414', True), ('rs56651348', False)]
+        for symbol, expect in symbols_somatic:
+            snp = list(self.human.getVariation(Symbol=symbol, somatic=True,
+                        flanks_match_ref=False))[0]
+            self.assertEquals(snp.Somatic, expect)
+    
     def test_num_alleles(self):
         """should correctly infer the number of alleles"""
         for i in range(4):
@@ -465,9 +481,9 @@ class TestVariation(GenomeTestBase):
         """should correctly infer the peptide alleles"""
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
-            if snp.Effect == 'INTRONIC':
+            if 'missense_variant' not in snp.Effect:
                 continue
-
+            
             self.assertEquals(snp.PeptideAlleles, self.snp_aa_alleles[i])
 
     def test_get_peptide_location(self):
@@ -489,14 +505,17 @@ class TestVariation(GenomeTestBase):
                                     'hapmap', 'doublehit']), func))
         for name, status, conv in data:
             snp = list(self.human.getVariation(Symbol=name))[0]
-            self.assertTrue(status <= conv(snp.Validation))
+            got = conv(snp.Validation)
+            self.assertTrue(status & got)
 
     def test_get_flanking_seq(self):
-        """should correctly get the flanking sequence"""
+        """should correctly get the flanking sequence if matches reference genome"""
+        
         for i in range(4): # only have flanking sequence for 3
-            snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
+            snp = list(self.human.getVariation(Symbol=self.snp_names[i],
+                            flanks_match_ref=False))[0]
             self.assertEquals(snp.FlankingSeq, self.snp_flanks[i])
-
+    
     def test_variation_seq(self):
         """should return the sequence for a Variation snp if asked"""
         snp = list(self.human.getVariation(Symbol=self.snp_names[0]))[0]
@@ -515,13 +534,28 @@ class TestVariation(GenomeTestBase):
         expect = set([('A', '0.0303'), ('G', '0.9697')])
         allele_freqs = snp.AlleleFreqs
         allele_freqs = set((a, '%.4f' % f )
-                    for a, f in allele_freqs.getRawData(['allele', 'freq']))
+                    for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
         self.assertTrue(expect.issubset(allele_freqs))
     
     def test_by_effect(self):
         """excercising select SNPs by effect"""
-        for snp in self.human.getVariation(Effect='non_synonymous_codon'):
+        for snp in self.human.getVariation(Effect='missense_variant', limit=1):
             break
+    
+    def test_complex_query(self):
+        """only return non-somatic SNPs that are validated and match reference"""
+        i = 0
+        limit = 10
+        for snp in self.human.getVariation(Effect='missense_variant', like=False,
+                            validated=True, somatic=False,
+                            flanks_match_ref=True, limit=limit):
+            self.assertEquals(snp.Somatic, False)
+            self.assertEquals('missense_variant', snp.Effect)
+            self.assertNotEquals(snp.FlankingSeq, NULL_VALUE)
+            self.assertNotEquals(snp.Validation, NULL_VALUE)
+            i += 1
+        
+        self.assertEquals(i, limit)
         
 
 class TestFeatures(GenomeTestBase):
