@@ -174,9 +174,25 @@ class Flash(CommandLineApplication):
   
     # -v, --version
     # Display version.
-    '-v':ValuedParameter(Prefix='-', Name='v')
- 
- }
+    '-v':ValuedParameter(Prefix='-', Name='v')}
+
+    def _get_result_paths(self, data):
+        """Captures FLASh output paths
+        FLASh typically output 3 files:
+            - the assembled reads
+            - forward reads that failed to assemble
+            - reverse reads that failed to assemble
+        """
+        result = {}
+
+
+class FlashNonInterleavedInput(Flash):
+    """Expects separate forward.fastq and reverse.fastq files."""
+    _input_handler = '_input_as_paths'
+
+class FlashInterleavedInput(Flash):
+    """Expects sinlge fastq file containing interleaved fwd and rev reads."""
+    _input_handler = '_input_as_path'
 
 
 
@@ -184,22 +200,58 @@ class Flash(CommandLineApplication):
 # SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
 ###################################################
 
-def assemble_hiseq(
-    forward_reads_path,
-    reverse_reads_path,
+def default_assemble_hiseq(
+    infile_paths,
+    outfile_dir,
+    output_prefix,
+    read_length='100',
+    frag_length='180',
+    frag_std_dev='18',
+    mis_match_density='0.25',
+    min_overlap='10',
+    max_overlap=None
+    params={},
     WorkingDir=None,
     SuppressStderr=None,
     SuppressStdout=None):
-    """Uses default flash parameters to assemble paired-end reads"""
-    if not exists(forward_reads_path):
-        raise IOError, 'Can not access forward_reads_path: %s'/
-            %forwards_reads_path
-    if not exists(reverse_reads_path):
-        raise IOError, 'Can not access reverse_reads_path: %s'/
-            %reverse_reads_path
-   
-    _command = 'flash %s %s' % (forward_reads_path, reverse_reads_path) 
-    flash_app = Flash(HALT_EXEC=True,
+    """Uses default FLASh parameters to assemble paired-end reads from
+        HISEQ data. 
+        -infile_paths : list / tuple containing the forward.fastq and 
+            reverse.fastq file paths.
+        -outfile_dir : directory to write output
+        -output_prefix : prefix to append to output files
+        -read_length : average length of individual reads
+        -frag_length : average length of assembled reads
+        -frag_std_dev : fragment length standard deviation, ~ 10% of frag_length
+        -mis_match_identity : max allowable ratio of mismatched bases and 
+            overlap length. Reads above this value will not be assembled.
+        -min_overlap : minimum allowable overlab to assemble reads
+        -max_overlap : if set this will override the settings specified by 
+            '-r','-s', and '-f'. These three parameters are used to dynamically
+            calculate max_overlap when max_overlap is not provided.
+
+    """
+    
+    for path_string in infile_paths:
+        if not exists(path_string):
+            raise IOError, 'File not found at: %s' % path_string
+
+    # required params
+    params['-d'] = outfile_dir
+    params['-o'] = output_prefix
+    params['-x'] = mis_match_density
+    params['-m'] = min_overlap
+
+    # optional params
+    if max_overlap is 'None':
+        params['-r'] = read_length
+        params['-f'] = frag_length
+        params['-s'] = frag_std_dev
+    else:
+        params['-M'] = max_overlap
+
+    # run assembler
+    flash_app = FlashNonInterleavedInput(infile_paths, HALT_EXEC=True,
         params=params,
         WorkingDir=WorkingDir,
         SuppressStderr=SuppressStderr,
