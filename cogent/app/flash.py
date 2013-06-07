@@ -24,7 +24,8 @@ class Flash(CommandLineApplication):
     _command = 'flash'
     _parameters = {
     # Descriptions of parameters copied directly from 'flash -h'
-    # and pasted below.
+    # and pasted below. NOTE: FLASh does not have flags for infiles.
+    # These will be handled in separate convenience functions below.
 
     # -m, --min-overlap
     # The minimum required overlap length between two
@@ -98,7 +99,7 @@ class Flash(CommandLineApplication):
     # MATES_2.FASTQ, allow a single file MATES.FASTQ that
     # has the paired-end reads interleaved.  Specify "-"
     # to read from standard input.
-        '--interleaved-input':FlagParameter(Prefix='--', Name='interleaved-input'),    
+    '--interleaved-input':FlagParameter(Prefix='--', Name='interleaved-input'),    
 
     # --interleaved-output
     # Write the uncombined pairs in interleaved format.
@@ -151,7 +152,7 @@ class Flash(CommandLineApplication):
     # unless an empty suffix is provided.  Default:
     # nothing; or 'gz' if -z is specified; or PROG if
     # --compress-prog is specified.
-    '--suffix':ValueParameter(Prefix='--', Delimiter=' ', Name='suffix'),    
+    '--suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='suffix'),    
     
     # -t, --threads=NTHREADS  
     # Set the number of worker threads.  This is in
@@ -160,7 +161,7 @@ class Flash(CommandLineApplication):
     # appear deterministically or in the same order as
     # the original reads, you must specify -t 1
     # (--threads=1).
-    '-t':ValueParameter(Prefix='-', Delimiter=' ', Name='t', Value='1'),
+    '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t', Value='1'),
         
     # -q, --quiet
     # Do not print informational messages.  (Implied with
@@ -173,15 +174,49 @@ class Flash(CommandLineApplication):
   
     # -v, --version
     # Display version.
-    '-v':ValueParameter(Prefix='-', Name='v')
+    '-v':ValuedParameter(Prefix='-', Name='v')
  
  }
 
-		
-    #TODO
-    # make convenience functions with parameters for typical HISEQ vs MISEQ
-    # that is default FLASh == HISEQ. For MISEQ use something similar to:
-    # -r 250 -f 340 -s 34 -M 500
+
+
+###################################################
+# SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
+###################################################
+
+def assemble_hiseq(
+    forward_reads_path,
+    reverse_reads_path,
+    WorkingDir=None,
+    SuppressStderr=None,
+    SuppressStdout=None):
+    """Uses default flash parameters to assemble paired-end reads"""
+    if not exists(forward_reads_path):
+        raise IOError, 'Can not access forward_reads_path: %s'/
+            %forwards_reads_path
+    if not exists(reverse_reads_path):
+        raise IOError, 'Can not access reverse_reads_path: %s'/
+            %reverse_reads_path
+   
+    _command = 'flash %s %s' % (forward_reads_path, reverse_reads_path) 
+    flash_app = Flash(HALT_EXEC=True,
+        params=params,
+        WorkingDir=WorkingDir,
+        SuppressStderr=SuppressStderr,
+        SuppressStdout=SuppressStdout)
+
+    app_result = flash_app()
+    #result = app_result
+    #app_result.cleanUp()
+    #return result
+
+
+
+#####################
+# TODO
+# make convenience functions with parameters for typical HISEQ vs MISEQ
+# that is default FLASh == HISEQ. For MISEQ use something similar to:
+# -r 250 -f 340 -s 34 -M 500
 
 #if __name__ == "__main__":
  
