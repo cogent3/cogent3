@@ -5,8 +5,7 @@
 # Fast Length Adjustment of Short reads:
 # http://ccb.jhu.edu/software/FLASH/
 
-from cogent.app.parameters import ValuedParameter, FlagParameter, \
-    MixedParameter
+from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
 
