@@ -28,13 +28,13 @@ class Flash(CommandLineApplication):
         # Descriptions of parameters copied directly from 'flash -h'
         # and pasted below.
 
-        # --min-overlap
+        # -m, --min-overlap
         # The minimum required overlap length between two
         # reads to provide a confident overlap.  Default:
         # 10bp. 
         '-m':ValuedParameter('-', Delimiter=' ', Name='m', Value='10'),
         
-        # --max-overlap
+        # -M, --max-overlap
         # Maximum overlap length expected in approximately
         # 90% of read pairs.  It is by default set to 70bp,
         # which works well for 100bp reads generated from a
@@ -50,7 +50,7 @@ class Flash(CommandLineApplication):
         '-M':ValuedParameter('-', Delimiter=' ', Name='M', Value='70'),
                  }
 
-        # --max-mismatch-density
+        # -x, --max-mismatch-density
         # Maximum allowed ratio between the number of
         # mismatched base pairs and the overlap length.
         # Two reads will not be combined with a given overlap
@@ -65,16 +65,36 @@ class Flash(CommandLineApplication):
         # merged read pairs.  Default: 0.25.
         '-x':ValuedParameter('-', Delimiter=' ', Name='x', Value='0.25'),
 
-        # --phred-offset=OFFSET
+        # -p, --phred-offset=OFFSET
         # The smallest ASCII value of the characters used to
         # represent quality values of bases in FASTQ files.
         # It should be set to either 33, which corresponds
         # to the later Illumina platforms and Sanger
         # platforms, or 64, which corresponds to the
         # earlier Illumina platforms.  Default: 33.
-        '-p':ValuedParameter('-',Delimiter=' ', Delimiter, Name='p', Value='33')
+        '-p':ValuedParameter('-',Delimiter=' ', Delimiter, Name='p', Value='33'),
 
- 
+        # -r, --read-len=LEN
+        # -f, --fragment-len=LEN
+        # -s, --fragment-len-stddev=LEN
+        # Average read length, fragment length, and fragment
+        # standard deviation.  These are convenience parameters
+        # only, as they are only used for calculating the
+        # maximum overlap (--max-overlap) parameter.
+        # The maximum overlap is calculated as the overlap of
+        # average-length reads from an average-size fragment
+        # plus 2.5 times the fragment length standard
+        # deviation.  The default values are -r 100, -f 180,
+        # and -s 18, so this works out to a maximum overlap of
+        # 70 bp.  If --max-overlap is specified, then the
+        # specified value overrides the calculated value.
+        #  If you do not know the standard deviation of the
+        #  fragment library, you can probably assume that the
+        #  standard deviation is 10% of the average fragment
+        #  length.
+        '-r':ValuedParameter('-',Delimiter=' ', Delimiter, Name='r', Value='100'), 
+        '-f':ValuedParameter('-',Delimiter=' ', Delimiter, Name='f', Value='180'),
+        '-s':ValuedParameter('-',Delimiter=' ', Delimiter, Name='s', Value='18'),
 
 
     #TODO
