@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-
+from os import mkdir
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -196,89 +196,61 @@ class Flash(CommandLineApplication):
     '--version':'-v'}
 
 
-    #_input_handler =
+    _input_handler = '_input_as_paths'
 
-    #_working_dir =
+    def _get_WorkingDir(self):
+        """Gets the working directory"""
+        return self._curr_working_dir
+
+    def _set_WorkingDir(self, data):
+       """Sets the working diretory"""
+        self._curr_working_dir = self.Parameters['-d'] + '/'
+        try: 
+            mkdir(self.WorkingDir)
+        except OSError: # Directory already exists
+            pass
+    
+    WorkingDir = property(_get_WorkingDir,_set_WorkingDir)
 
     _suppress_stdout = True
 
-    _suppress_stderr = False
+    _suppress_stderr = True
 
     def _get_result_paths(self, data):
-        """Captures FLASh output paths
-        FLASh typically output 3 files:
-            - the assembled reads
-            - forward reads that failed to assemble
-            - reverse reads that failed to assemble
+        """Captures FLASh output paths.
+            FLASh defaults writing output to 3 files:
+            - the assembled reads stored as *.extendedFrags.fastq
+            - reads1 that failed to assemble as *.notCombined_1.fastq'
+            - reads2 that failed to assemble as *.notCombined_2.fastq'
         """
-        # NOTE: Neet to add infile names to ReultPath
+        # NOTE: Need to add infile names to ResultPath.
+        # However, there are no infile parameters. They need to be read in as
+        # _input_as_paths within the convenience function below. I'm not 
+        # sure how to capture outfile paths here as they are based on the
+        # infile names.
+        # I'll change these to be similar in syntax to 'muscle.py'
         result = {}
         result['assebled_reads'] = ResultPath(Path=self.WorkingDir+'.extendedFrags.fastq',\
             IsWritten=True)
-        result['uncombined_reads1'] = ResultPath(Path=self.WorkingDir+'.notCombined_1.fastq',\
+        result['unassembled_reads1'] = ResultPath(Path=self.WorkingDir+'.notCombined_1.fastq',\
             IsWritten=True)
-        result['uncombined_reads2'] = ResultPath(Path=self.WorkingDir+'.notCombined_2.fastq',\
+        result['unassembled_reads2'] = ResultPath(Path=self.WorkingDir+'.notCombined_2.fastq',\
             IsWritten=True)
 
     def getHelp(self):
-        """FLASh description and help.
-            Copied from 'flash -h' (v1.2.6)
-            Web site information appended too.
-        """
+        """FLASh (v1.2.6) description and help."""
         help_str =\
         """
-        Usage: flash [OPTIONS] MATES_1.FASTQ MATES_2.FASTQ
-
-        DESCRIPTION:
-
-        FLASH (Fast Length Adjustment of SHort reads) is an accurate and fast tool
-        to merge paired-end reads that were generated from DNA fragments whose
-        lengths are shorter than twice the length of reads.  Merged read pairs result
-        in unpaired longer reads.  Longer reads are generally more desired in genome
-        assembly and genome analysis processes.
-
-        FLASH cannot merge paired-end reads that do not overlap.  It also cannot merge
-        jumping read pairs that have an outward orientation (but these reads tend not
-        to overlap anyway).  FLASH also is not designed for data that has a
-        significant portion of indel errors (such as Sanger sequencing data).
-
-        MANDATORY INPUT:
-
-        To run FLASH, you may provide two FASTQ files of paired-end reads
-        where corresponding paired reads are in the same order in both files.
-        Alternatively, you may provide one FASTQ file, which may be standard input,
-        containing interleaved paired-end reads (see the --interleaved option).
-        The input FASTQ files may be either plain-text or compressed with gzip.
-        Other compression formats for the input files are not yet supported.
-
-        OUTPUT:
-
-        The default output of FLASH is a FASTQ file containing the extended fragments
-        produced by combining read pairs, two FASTQ files containing read pairs
-        that were not combined, and histogram files that show the distribution of
-        lengths of the extended fragments.  Writing the uncombined read pairs to an
-        interleaved FASTQ file is also supported.  Also, writing the extended
-        fragments directly to standard output is supported.  Plain-text and gzip
-        output formats are natively supported; other output formats are supported
-        indirectly via the --compress-prog option.  (Note that this is all FASTQ.)
+        For basic help, type the following at the command line:
+        'flash -h'
         
-        See '_parameters' and for application controller options, or type 'flash -h' 
-            at the command prompt.
-
         Website:
             http://ccb.jhu.edu/software/FLASH/
-
-
+        
+        For questions / comments send e-mail to:
+             flash.comment@gmail.com
         """
         return help_str
-
-class FlashNonInterleavedInput(Flash):
-    """Expects separate forward.fastq and reverse.fastq files."""
-    _input_handler = '_input_as_paths'
-
-class FlashInterleavedInput(Flash):
-    """Expects sinlge fastq file containing interleaved fwd and rev reads."""
-    _input_handler = '_input_as_path'
 
 
 
@@ -286,7 +258,7 @@ class FlashInterleavedInput(Flash):
 # SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
 ###################################################
 
-def default_assemble_hiseq(
+def default_assemble(\  
     reads1_infile_path,
     reads2_infile_path,
     outfile_dir,
@@ -298,11 +270,11 @@ def default_assemble_hiseq(
     min_overlap='10',
     max_overlap=None
     params={},
-    WorkingDir=None,
-    SuppressStderr=None,
-    SuppressStdout=None):
-    """Uses default FLASh parameters to assemble paired-end reads from
-        HISEQ data. 
+    WorkingDir=None,      # Do I need to set this given 'outfile_dir' above?
+    SuppressStderr=None,  #   ''
+    SuppressStdout=None): #   ''
+    """Runs FLASh, with HISEQ default parameters to assemble paired-end reads.
+
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
         -outfile_dir : directory to write output
@@ -316,23 +288,31 @@ def default_assemble_hiseq(
         -max_overlap : if set this will override the settings specified by 
             '-r','-s', and '-f'. These three parameters are used to dynamically
             calculate max_overlap when max_overlap is not provided.
-
+        
+        For HISEQ a good default 'max_overlap' would be '200'.
+        For MISEQ use these parameters:
+            read_length='250' frag_length='340' frag_std_dev='34'
+            or: max_overlap='500'
     """
     
+    # There are no input options for fastq infiles. So, we check if they exist
+    # and store them as a list for later input via '_input_as_paths'
+    # for the default '_input_handler'.
     if not exists(reads1_infile_path):
         raise IOError, 'File not found at: %s' % reads1_infile_path
     if not exists(reads2_infile_path):
         raise IOError, 'File not found at: %s' % reads2_infile_path
 
+    infile_paths = [reads1_infile_path, reads2_infile_path]
 
     # required params
-    params['-d'] = outfile_dir
-    params['-o'] = output_prefix
+    params['-d'] = outfile_dir # set to absolut path!
+    params['-o'] = output_prefix # string to append to all outfiles
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
 
     # optional params
-    if max_overlap is 'None':
+    if max_overlap == None:
         params['-r'] = read_length
         params['-f'] = frag_length
         params['-s'] = frag_std_dev
@@ -340,24 +320,19 @@ def default_assemble_hiseq(
         params['-M'] = max_overlap
 
     # run assembler
-    flash_app = FlashNonInterleavedInput(infile_paths, HALT_EXEC=True,
+    flash_app = Flash(\
         params=params,
         WorkingDir=WorkingDir,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout)
 
-    app_result = flash_app()
+    app_result = flash_app(infile_paths) # use default '_input_as_paths'
     #result = app_result
     #app_result.cleanUp()
     #return result
 
 
 
-#####################
-# TODO
-# make convenience functions with parameters for typical HISEQ vs MISEQ
-# that is default FLASh == HISEQ. For MISEQ use something similar to:
-# -r 250 -f 340 -s 34 -M 500
 
 #if __name__ == "__main__":
  
