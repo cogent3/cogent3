@@ -5,11 +5,10 @@
 # Fast Length Adjustment of Short reads:
 # http://ccb.jhu.edu/software/FLASH/
 
-from cogent.app.parameters import ValuedParameter, FlagParameter, FilePath
+from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os import mkdir
-from os.path import isabs
+#from os import mkdir
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
