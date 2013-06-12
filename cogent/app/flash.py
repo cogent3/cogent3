@@ -152,7 +152,8 @@ class Flash(CommandLineApplication):
     # unless an empty suffix is provided.  Default:
     # nothing; or 'gz' if -z is specified; or PROG if
     # --compress-prog is specified.
-    '--suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='suffix'),    
+    '--suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='suffix'),
+    '--output-suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='output-suffix'),
     
     # -t, --threads=NTHREADS  
     # Set the number of worker threads.  This is in
@@ -176,6 +177,34 @@ class Flash(CommandLineApplication):
     # Display version.
     '-v':ValuedParameter(Prefix='-', Name='v')}
 
+    _synonyms = {
+    '--min-overlap':'-m',
+    '--max-overlap':'-M',
+    '--max-mismatch-density':'-x',
+    '--phred-offset':'-p',
+    '--read-len':'-r',
+    '--fragment-len':'-f',
+    '--fragment-len-stddev':'-s',
+    '--interleaved':'-I',
+    '--output-prefix':'-o',
+    '--output-directory':'-d',
+    '--to-stdout':'-c',
+    '--compress':'-z',
+    '--threads':'-t',
+    '--quiet':'q',
+    '--help':'-h',
+    '--version':'-v'}
+
+    }
+
+    #_input_handler =
+
+    #_working_dir =
+
+    _suppress_stdout = True
+
+    _suppress_stderr = False
+
     def _get_result_paths(self, data):
         """Captures FLASh output paths
         FLASh typically output 3 files:
@@ -183,8 +212,66 @@ class Flash(CommandLineApplication):
             - forward reads that failed to assemble
             - reverse reads that failed to assemble
         """
+        # NOTE: Neet to add infile names to ReultPath
         result = {}
+        result['assebled_reads'] = ResultPath(Path=self.WorkingDir+'.extendedFrags.fastq',\
+            IsWritten=True)
+        result['uncombined_reads1'] = ResultPath(Path=self.WorkingDir+'.notCombined_1.fastq',\
+            IsWritten=True)
+        result['uncombined_reads2'] = ResultPath(Path=self.WorkingDir+'.notCombined_2.fastq',\
+            IsWritten=True)
 
+    def getHelp(self):
+        """FLASh description and help.
+            Copied from 'flash -h' (v1.2.6)
+            Web site information appended too.
+        """
+        help_str =\
+        """
+        Usage: flash [OPTIONS] MATES_1.FASTQ MATES_2.FASTQ
+
+        DESCRIPTION:
+
+        FLASH (Fast Length Adjustment of SHort reads) is an accurate and fast tool
+        to merge paired-end reads that were generated from DNA fragments whose
+        lengths are shorter than twice the length of reads.  Merged read pairs result
+        in unpaired longer reads.  Longer reads are generally more desired in genome
+        assembly and genome analysis processes.
+
+        FLASH cannot merge paired-end reads that do not overlap.  It also cannot merge
+        jumping read pairs that have an outward orientation (but these reads tend not
+        to overlap anyway).  FLASH also is not designed for data that has a
+        significant portion of indel errors (such as Sanger sequencing data).
+
+        MANDATORY INPUT:
+
+        To run FLASH, you may provide two FASTQ files of paired-end reads
+        where corresponding paired reads are in the same order in both files.
+        Alternatively, you may provide one FASTQ file, which may be standard input,
+        containing interleaved paired-end reads (see the --interleaved option).
+        The input FASTQ files may be either plain-text or compressed with gzip.
+        Other compression formats for the input files are not yet supported.
+
+        OUTPUT:
+
+        The default output of FLASH is a FASTQ file containing the extended fragments
+        produced by combining read pairs, two FASTQ files containing read pairs
+        that were not combined, and histogram files that show the distribution of
+        lengths of the extended fragments.  Writing the uncombined read pairs to an
+        interleaved FASTQ file is also supported.  Also, writing the extended
+        fragments directly to standard output is supported.  Plain-text and gzip
+        output formats are natively supported; other output formats are supported
+        indirectly via the --compress-prog option.  (Note that this is all FASTQ.)
+        
+        See '_parameters' and for application controller options, or type 'flash -h' 
+            at the command prompt.
+
+        Website:
+            http://ccb.jhu.edu/software/FLASH/
+
+
+        """
+        return help_str
 
 class FlashNonInterleavedInput(Flash):
     """Expects separate forward.fastq and reverse.fastq files."""
@@ -201,7 +288,8 @@ class FlashInterleavedInput(Flash):
 ###################################################
 
 def default_assemble_hiseq(
-    infile_paths,
+    reads1_infile_path,
+    reads2_infile_path,
     outfile_dir,
     output_prefix,
     read_length='100',
@@ -216,8 +304,8 @@ def default_assemble_hiseq(
     SuppressStdout=None):
     """Uses default FLASh parameters to assemble paired-end reads from
         HISEQ data. 
-        -infile_paths : list / tuple containing the forward.fastq and 
-            reverse.fastq file paths.
+        -reads1_infile_path : reads1.fastq infile path
+        -reads2_infile_path : reads2.fastq infile path
         -outfile_dir : directory to write output
         -output_prefix : prefix to append to output files
         -read_length : average length of individual reads
@@ -232,9 +320,11 @@ def default_assemble_hiseq(
 
     """
     
-    for path_string in infile_paths:
-        if not exists(path_string):
-            raise IOError, 'File not found at: %s' % path_string
+    if not exists(reads1_infile_path):
+        raise IOError, 'File not found at: %s' % reads1_infile_path
+    if not exists(reads2_infile_path):
+        raise IOError, 'File not found at: %s' % reads2_infile_path
+
 
     # required params
     params['-d'] = outfile_dir
