@@ -5,10 +5,11 @@
 # Fast Length Adjustment of Short reads:
 # http://ccb.jhu.edu/software/FLASH/
 
-from cogent.app.parameters import ValuedParameter, FlagParameter
+from cogent.app.parameters import ValuedParameter, FlagParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
 from os import mkdir
+from os.path import isabs
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -24,8 +25,10 @@ class Flash(CommandLineApplication):
     _command = 'flash'
     _parameters = {
     # Descriptions of parameters copied directly from 'flash -h'
-    # and pasted below. NOTE: FLASh does not have flags for infiles.
-    # These will be handled in separate convenience functions below.
+    # and pasted below. 
+    # NOTE: FLASh does not have flags for infiles.
+    # These will be handled in separate convenience functions below
+    # via the input handlers '_input_as_path' and _input_as_paths.
 
     # -m, --min-overlap
     # The minimum required overlap length between two
@@ -117,7 +120,7 @@ class Flash(CommandLineApplication):
     # -d, --output-directory=DIR
     #  Path to directory for output files.  Default:
     #  current working directory.
-    '-d':ValuedParameter(Prefix='-', Delimmiter=' ', Name='d'), #Value='./'),
+    '-d':ValuedParameter(Prefix='-', Delimmiter=' ', Name='d'), Value='./'),
         
     # -c, --to-stdout
     # Write the combined reads to standard output; do not
@@ -198,44 +201,62 @@ class Flash(CommandLineApplication):
 
     _input_handler = '_input_as_paths'
 
-    def _get_WorkingDir(self):
-        """Gets the working directory"""
-        return self._curr_working_dir
 
-    def _set_WorkingDir(self, data):
-       """Sets the working diretory"""
-        self._curr_working_dir = self.Parameters['-d'] + '/'
-        try: 
-            mkdir(self.WorkingDir)
-        except OSError: # Directory already exists
-            pass
+    #def _get_WorkingDir(self):
+    #     """Gets the working directory"""
+    #     return self._curr_working_dir
+    #
+    #def _set_WorkingDir(self, data):
+    #    """Sets the working diretory"""
+    #     self._curr_working_dir = self.Parameters['-d'] + '/'
+    #     try: 
+    #         mkdir(self.WorkingDir)
+    #     except OSError: # Directory already exists
+    #         pass
+    # 
+    #WorkingDir = property(_get_WorkingDir,_set_WorkingDir)
+    # 
+    #Not sure what to set these as yet:
+    #_suppress_stdout = True
+    #_suppress_stderr = True
+
+    def _output_dir_path(self):
+        if self.Parameters['-d'].isOn():
+            output_dir_path = self._absolute(str(self.Parameters['-d'].Value()))
+        else:
+            raise ValueError, "No output diretory specified."
+        return output_dir_path
     
-    WorkingDir = property(_get_WorkingDir,_set_WorkingDir)
-
-    _suppress_stdout = True
-
-    _suppress_stderr = True
+    def _output_label(self):
+        if self.Parameters['-o'].isOn():
+            base_outfile_name = str(self.Parameters['-o'].Value())
+        else:
+            raise ValueError, "No base outfile label specified."
+        return base_outfile_name
 
     def _get_result_paths(self, data):
         """Captures FLASh output paths.
+            
             FLASh defaults writing output to 3 files:
             - the assembled reads stored as *.extendedFrags.fastq
             - reads1 that failed to assemble as *.notCombined_1.fastq'
             - reads2 that failed to assemble as *.notCombined_2.fastq'
+
+              Where '*' is set by the '-d' (directory output path) and
+              '-o' (output file label) flags. 
         """
-        # NOTE: Need to add infile names to ResultPath.
-        # However, there are no infile parameters. They need to be read in as
-        # _input_as_paths within the convenience function below. I'm not 
-        # sure how to capture outfile paths here as they are based on the
-        # infile names.
-        # I'll change these to be similar in syntax to 'muscle.py'
+        
+        output_dir_path = _output_dir_path()
+        base_outfile_name = _output_label()
+        
         result = {}
-        result['assebled_reads'] = ResultPath(Path=self.WorkingDir+'.extendedFrags.fastq',\
-            IsWritten=True)
-        result['unassembled_reads1'] = ResultPath(Path=self.WorkingDir+'.notCombined_1.fastq',\
-            IsWritten=True)
-        result['unassembled_reads2'] = ResultPath(Path=self.WorkingDir+'.notCombined_2.fastq',\
-            IsWritten=True)
+        result['Assembled'] = ResultPath(Path = output_dir_path + \
+                base_outfile_name + '.extendedFrags.fastq', IsWritten=True)
+        result['UnassembledReads1'] = ResultPath(Path = output_dir_path + \
+                base_outfile_name+'.notCombined_1.fastq', IsWritten=True)
+        result['UnassembledReads2'] = ResultPath(Path = output_dir_path + \
+                base_outfile_name+'.notCombined_2.fastq', IsWritten=True)
+        return result
 
     def getHelp(self):
         """FLASh (v1.2.6) description and help."""
@@ -261,8 +282,8 @@ class Flash(CommandLineApplication):
 def default_assemble(\  
     reads1_infile_path,
     reads2_infile_path,
-    outfile_dir,
-    output_prefix,
+    output_dir,
+    output_label,
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -270,15 +291,14 @@ def default_assemble(\
     min_overlap='10',
     max_overlap=None
     params={},
-    WorkingDir=None,      # Do I need to set this given 'outfile_dir' above?
-    SuppressStderr=None,  #   ''
-    SuppressStdout=None): #   ''
+    SuppressStderr=True,  #   Not sure what to set this to.
+    SuppressStdout=True): #   ''
     """Runs FLASh, with HISEQ default parameters to assemble paired-end reads.
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -outfile_dir : directory to write output
-        -output_prefix : prefix to append to output files
+        -output_dir : directory path to write output
+        -output_label : base outfile name / label
         -read_length : average length of individual reads
         -frag_length : average length of assembled reads
         -frag_std_dev : fragment length standard deviation, ~ 10% of frag_length
@@ -289,7 +309,7 @@ def default_assemble(\
             '-r','-s', and '-f'. These three parameters are used to dynamically
             calculate max_overlap when max_overlap is not provided.
         
-        For HISEQ a good default 'max_overlap' would be '200'.
+        For HISEQ a good default 'max_overlap' would be ~ '200'.
         For MISEQ use these parameters:
             read_length='250' frag_length='340' frag_std_dev='34'
             or: max_overlap='500'
@@ -306,8 +326,8 @@ def default_assemble(\
     infile_paths = [reads1_infile_path, reads2_infile_path]
 
     # required params
-    params['-d'] = outfile_dir # set to absolut path!
-    params['-o'] = output_prefix # string to append to all outfiles
+    params['-d'] = output_dir # set to absolut path!
+    params['-o'] = output_label # base output name for all outfiles
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
 
@@ -322,7 +342,7 @@ def default_assemble(\
     # run assembler
     flash_app = Flash(\
         params=params,
-        WorkingDir=WorkingDir,
+        WorkingDir=None,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout)
 
