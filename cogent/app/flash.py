@@ -119,7 +119,7 @@ class Flash(CommandLineApplication):
     # -d, --output-directory=DIR
     #  Path to directory for output files.  Default:
     #  current working directory.
-    '-d':ValuedParameter(Prefix='-', Delimmiter=' ', Name='d'), Value='./'),
+    '-d':ValuedParameter(Prefix='-', Delimmiter=' ', Name='d'), #, Value='./'),
         
     # -c, --to-stdout
     # Write the combined reads to standard output; do not
