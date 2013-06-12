@@ -195,7 +195,6 @@ class Flash(CommandLineApplication):
     '--help':'-h',
     '--version':'-v'}
 
-    }
 
     #_input_handler =
 
