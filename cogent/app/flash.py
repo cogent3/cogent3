@@ -311,7 +311,7 @@ def default_assemble(\
         For HISEQ a good default 'max_overlap' would be ~ '200'.
         For MISEQ use these parameters:
             read_length='250' frag_length='340' frag_std_dev='34'
-            or: max_overlap='500'
+            or: max_overlap='250'
     """
     
     # There are no input options for fastq infiles. So, we check if they exist
