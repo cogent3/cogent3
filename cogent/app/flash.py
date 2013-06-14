@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-#from os import mkdir
+from os.path import exists 
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -114,12 +114,12 @@ class Flash(CommandLineApplication):
         
     # -o, --output-prefix=PREFIX
     #  Prefix of output files.  Default: "out".
-    '-o':ValuedParamter(Prefix='-', Delimiter=' ', Name='o', Value='out'),
+    '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o', Value='out'),
         
     # -d, --output-directory=DIR
     #  Path to directory for output files.  Default:
     #  current working directory.
-    '-d':ValuedParameter(Prefix='-', Delimmiter=' ', Name='d'), #, Value='./'),
+    '-d':ValuedParameter(Prefix='-', Delimiter=' ', Name='d'), #, Value='./'),
         
     # -c, --to-stdout
     # Write the combined reads to standard output; do not
@@ -139,14 +139,14 @@ class Flash(CommandLineApplication):
     # PROG must read uncompressed data from standard input
     # and write compressed data to standard output.
     # Examples: gzip, bzip2, xz, pigz.
-    '--compress-prog':FlagProgram(Prefix='--', Name='compress-prog'),
+    '--compress-prog':FlagParameter(Prefix='--', Name='compress-prog'),
         
     # --compress-prog-args=ARGS
     # A string of arguments that will be passed to the
     # compression program if one is specified with
     # --compress-prog.  Note: the argument -c is already
     # assumed.
-    '--compress-prog-args':ValueParameter(Prefix='--', Delimiter=' ', Name='compress-prog-args'),
+    '--compress-prog-args':ValuedParameter(Prefix='--', Delimiter=' ', Name='compress-prog-args'),
         
     # --suffix=SUFFIX, --output-suffix=SUFFIX
     # Use SUFFIX as the suffix of the output files
@@ -221,14 +221,16 @@ class Flash(CommandLineApplication):
 
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
-            output_dir_path = self._absolute(str(self.Parameters['-d'].Value()))
+            output_dir_path = self._absolute(str(self.Parameters['-d'].Value))
+            #print output_dir_path
         else:
             raise ValueError, "No output diretory specified."
         return output_dir_path
     
     def _output_label(self):
         if self.Parameters['-o'].isOn():
-            base_outfile_name = str(self.Parameters['-o'].Value())
+            base_outfile_name = str(self.Parameters['-o'].Value)
+            #print base_outfile_name
         else:
             raise ValueError, "No base outfile label specified."
         return base_outfile_name
@@ -236,25 +238,40 @@ class Flash(CommandLineApplication):
     def _get_result_paths(self, data):
         """Captures FLASh output paths.
             
-            FLASh defaults writing output to 3 files:
+            FLASh defaults writing output to 5 files:
             - the assembled reads stored as *.extendedFrags.fastq
             - reads1 that failed to assemble as *.notCombined_1.fastq'
             - reads2 that failed to assemble as *.notCombined_2.fastq'
+            - hist frag size x sequence count *.hist
+            - histogram frag size distribution *.histogram
 
               Where '*' is set by the '-d' (directory output path) and
-              '-o' (output file label) flags. 
+              '-o' (output file label) flags.
+
+              e.g. -d = '/home/usr/data_out/' and 
+                   -o = 'my_assembly' are converted to these paths:
+                   /home/usr/data_out/myassembly.extendedFrags.fastq'
+                   /home/usr/data_out/myassembly.notCombined_1.fastq'
+                   /home/usr/data_out/myassembly.notCombined_2.fastq'
+                   /home/usr/data_out/myassembly.hist'
+                   /home/usr/data_out/myassembly.histogram'
+
         """
         
-        output_dir_path = _output_dir_path()
-        base_outfile_name = _output_label()
+        output_dir_path = self._output_dir_path()
+        base_outfile_name = self._output_label()
         
         result = {}
         result['Assembled'] = ResultPath(Path = output_dir_path + \
                 base_outfile_name + '.extendedFrags.fastq', IsWritten=True)
         result['UnassembledReads1'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name+'.notCombined_1.fastq', IsWritten=True)
+                base_outfile_name +'.notCombined_1.fastq', IsWritten=True)
         result['UnassembledReads2'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name+'.notCombined_2.fastq', IsWritten=True)
+                base_outfile_name +'.notCombined_2.fastq', IsWritten=True)
+        result['NumHist'] = ResultPath(Path = output_dir_path + \
+                base_outfile_name +'.hist', IsWritten=True)
+        result['Histogram'] = ResultPath(Path = output_dir_path + \
+                base_outfile_name +'.histogram', IsWritten=True)
         return result
 
     def getHelp(self):
@@ -278,20 +295,23 @@ class Flash(CommandLineApplication):
 # SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
 ###################################################
 
-def default_assemble(\  
+def default_assemble(\
     reads1_infile_path,
     reads2_infile_path,
     output_dir,
     output_label,
+    working_dir='/tmp',
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
     mis_match_density='0.25',
     min_overlap='10',
-    max_overlap=None
+    num_threads='1',
+    max_overlap=None,
     params={},
     SuppressStderr=True,  #   Not sure what to set this to.
-    SuppressStdout=True): #   ''
+    SuppressStdout=True,
+    HALT_EXEC=False): #   ''
     """Runs FLASh, with HISEQ default parameters to assemble paired-end reads.
 
         -reads1_infile_path : reads1.fastq infile path
@@ -307,11 +327,13 @@ def default_assemble(\
         -max_overlap : if set this will override the settings specified by 
             '-r','-s', and '-f'. These three parameters are used to dynamically
             calculate max_overlap when max_overlap is not provided.
-        
-        For HISEQ a good default 'max_overlap' would be ~ '200'.
-        For MISEQ use these parameters:
-            read_length='250' frag_length='340' frag_std_dev='34'
-            or: max_overlap='250'
+        -num_threads : number of CPUs [default 1]
+
+        For HISEQ a good default 'max_overlap' would be between '70' to '100'.
+        For MISEQ try these parameters if you assume ~380 bp assembled frags
+            with highly overlaping reads (reads get the full 250 bp):
+            read_length='250' frag_length='380' frag_std_dev='38'
+            or: max_overlap = '250'
     """
     
     # There are no input options for fastq infiles. So, we check if they exist
@@ -329,6 +351,7 @@ def default_assemble(\
     params['-o'] = output_label # base output name for all outfiles
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
+    params['-t'] = num_threads
 
     # optional params
     if max_overlap == None:
@@ -341,14 +364,13 @@ def default_assemble(\
     # run assembler
     flash_app = Flash(\
         params=params,
-        WorkingDir=None,
+        WorkingDir=working_dir,
         SuppressStderr=SuppressStderr,
-        SuppressStdout=SuppressStdout)
+        SuppressStdout=SuppressStdout,
+        HALT_EXEC=HALT_EXEC)
 
-    app_result = flash_app(infile_paths) # use default '_input_as_paths'
-    #result = app_result
-    #app_result.cleanUp()
-    #return result
+    result = flash_app(infile_paths) # use default '_input_as_paths'
+    return result
 
 
 
