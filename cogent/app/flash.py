@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os.path import exists 
+from os.path import isabs,exists 
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -339,12 +339,19 @@ def default_assemble(\
     # There are no input options for fastq infiles. So, we check if they exist
     # and store them as a list for later input via '_input_as_paths'
     # for the default '_input_handler'.
-    if not exists(reads1_infile_path):
-        raise IOError, 'File not found at: %s' % reads1_infile_path
-    if not exists(reads2_infile_path):
-        raise IOError, 'File not found at: %s' % reads2_infile_path
-
+    
     infile_paths = [reads1_infile_path, reads2_infile_path]
+    
+    # check for absolute infile paths
+    for p in infile_paths:
+        if not exists(p):
+            raise IOError, 'File not found at: %s' % p
+        else:
+            try:
+                isabs(p)
+            except:
+                raise IOError, '\'%s\' is not an absolute path' % p
+
 
     # required params
     params['-d'] = output_dir # set to absolut path!
