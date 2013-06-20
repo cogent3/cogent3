@@ -300,7 +300,6 @@ def default_assemble(\
     reads2_infile_path,
     output_dir,
     output_label,
-    working_dir='/tmp',
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -309,6 +308,7 @@ def default_assemble(\
     num_threads='1',
     max_overlap=None,
     params={},
+    WorkingDir='/tmp',
     SuppressStderr=True,  #   Not sure what to set this to.
     SuppressStdout=True,
     HALT_EXEC=False): #   ''
@@ -371,7 +371,7 @@ def default_assemble(\
     # run assembler
     flash_app = Flash(\
         params=params,
-        WorkingDir=working_dir,
+        WorkingDir=WorkingDir,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout,
         HALT_EXEC=HALT_EXEC)
