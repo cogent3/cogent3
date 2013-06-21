@@ -33,7 +33,7 @@ class Flash(CommandLineApplication):
     # The minimum required overlap length between two
     # reads to provide a confident overlap.  Default:
     # 10bp. 
-    '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m', Value='10'),
+    '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'), #, Value='10'),
         
     # -M, --max-overlap
     # Maximum overlap length expected in approximately
@@ -48,7 +48,7 @@ class Flash(CommandLineApplication):
     # overlap.  Default: 70bp, or calculated from the
     # specified read length, fragment length, and fragment
     # length standard deviation.
-    '-M':ValuedParameter(Prefix='-', Delimiter=' ', Name='M', Value='70'),
+    '-M':ValuedParameter(Prefix='-', Delimiter=' ', Name='M'), # Value='70'),
 
     # -x, --max-mismatch-density
     # Maximum allowed ratio between the number of
@@ -63,7 +63,7 @@ class Flash(CommandLineApplication):
     # numbers of correctly merged read pairs but at
     # the expense of higher numbers of incorrectly
     # merged read pairs.  Default: 0.25.
-    '-x':ValuedParameter(Prefix='-', Delimiter=' ', Name='x', Value='0.25'),
+    '-x':ValuedParameter(Prefix='-', Delimiter=' ', Name='x'), # Value='0.25'),
 
     # -p, --phred-offset=OFFSET
     # The smallest ASCII value of the characters used to
@@ -72,7 +72,7 @@ class Flash(CommandLineApplication):
     # to the later Illumina platforms and Sanger
     # platforms, or 64, which corresponds to the
     # earlier Illumina platforms.  Default: 33.
-    '-p':ValuedParameter(Prefix='-', Delimiter=' ', Name='p', Value='33'),
+    '-p':ValuedParameter(Prefix='-', Delimiter=' ', Name='p'), # Value='33'),
 
     # -r, --read-len=LEN
     # -f, --fragment-len=LEN
@@ -92,9 +92,9 @@ class Flash(CommandLineApplication):
     #  fragment library, you can probably assume that the
     #  standard deviation is 10% of the average fragment
     #  length.
-    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='r', Value='100'), 
-    '-f':ValuedParameter(Prefix='-', Delimiter=' ', Name='f', Value='180'),
-    '-s':ValuedParameter(Prefix='-', Delimiter=' ', Name='s', Value='18'),
+    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='r'), #Value='100'), 
+    '-f':ValuedParameter(Prefix='-', Delimiter=' ', Name='f'), #Value='180'),
+    '-s':ValuedParameter(Prefix='-', Delimiter=' ', Name='s'), #Value='18'),
 
     # --interleaved-input     
     # Instead of requiring files MATES_1.FASTQ and
@@ -114,7 +114,7 @@ class Flash(CommandLineApplication):
         
     # -o, --output-prefix=PREFIX
     #  Prefix of output files.  Default: "out".
-    '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o', Value='out'),
+    '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o'), #Value='out'),
         
     # -d, --output-directory=DIR
     #  Path to directory for output files.  Default:
@@ -164,7 +164,7 @@ class Flash(CommandLineApplication):
     # appear deterministically or in the same order as
     # the original reads, you must specify -t 1
     # (--threads=1).
-    '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t', Value='1'),
+    '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t'), #Value='1'),
         
     # -q, --quiet
     # Do not print informational messages.  (Implied with
@@ -177,7 +177,7 @@ class Flash(CommandLineApplication):
   
     # -v, --version
     # Display version.
-    '-v':ValuedParameter(Prefix='-', Name='v')}
+    '-v':FlagParameter(Prefix='-', Name='v')}
 
     _synonyms = {
     '--min-overlap':'-m',
