@@ -221,7 +221,7 @@ class Flash(CommandLineApplication):
 
     # may remove the bottom two methods and just use WorkingDir
     # as flash will default to current directory when -d is not
-    # supplied
+    # supplied, and if '-o' is not supplied default is 'out'
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
             output_dir_path = self._absolute(str(self.Parameters['-d'].Value) \
