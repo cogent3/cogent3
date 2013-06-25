@@ -219,10 +219,14 @@ class Flash(CommandLineApplication):
     #_suppress_stdout = True
     #_suppress_stderr = True
 
+    # may remove the bottom two methods and just use WorkingDir
+    # as flash will default wot current directory when -d is not
+    # supplied
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
-            output_dir_path = self._absolute(str(self.Parameters['-d'].Value))
-            #print output_dir_path
+            output_dir_path = self._absolute(str(self.Parameters['-d'].Value) \
+                +'/') #
+            #print 'output dir path: ', output_dir_path
         else:
             raise ValueError, "No output diretory specified."
         return output_dir_path
@@ -257,7 +261,9 @@ class Flash(CommandLineApplication):
                    /home/usr/data_out/myassembly.histogram'
 
         """
-        
+        # may remove use of these twos lines in favor of WorkingDir
+        # flash will default to current directory and set '-o' to 'out'
+        # when those are not suppplied
         output_dir_path = self._output_dir_path()
         base_outfile_name = self._output_label()
         
@@ -308,7 +314,7 @@ def default_assemble(\
     num_threads='1',
     max_overlap=None,
     params={},
-    WorkingDir='/tmp',
+    working_dir='/tmp/',
     SuppressStderr=True,  #   Not sure what to set this to.
     SuppressStdout=True,
     HALT_EXEC=False): #   ''
@@ -371,7 +377,7 @@ def default_assemble(\
     # run assembler
     flash_app = Flash(\
         params=params,
-        WorkingDir=WorkingDir,
+        WorkingDir=working_dir,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout,
         HALT_EXEC=HALT_EXEC)
