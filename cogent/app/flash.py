@@ -200,7 +200,6 @@ class Flash(CommandLineApplication):
 
     _input_handler = '_input_as_paths'
 
-
     #def _get_WorkingDir(self):
     #     """Gets the working directory"""
     #     return self._curr_working_dir
@@ -222,6 +221,7 @@ class Flash(CommandLineApplication):
     # may remove the bottom two methods and just use WorkingDir
     # as flash will default to current directory when -d is not
     # supplied, and if '-o' is not supplied default is 'out'
+    
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
             output_dir_path = self._absolute(str(self.Parameters['-d'].Value) \
@@ -313,8 +313,8 @@ def default_assemble(\
     min_overlap='10',
     num_threads='1',
     max_overlap=None,
-    params={},
     working_dir='/tmp/',
+    params={},
     SuppressStderr=True,  #   Not sure what to set this to.
     SuppressStdout=True,
     HALT_EXEC=False): #   ''
@@ -373,6 +373,9 @@ def default_assemble(\
         params['-s'] = frag_std_dev
     else:
         params['-M'] = max_overlap
+        del params['-r'] # Remove these parameters. Makes it clear to the user   
+        del params['-f'] # that these parameters are not being used by flash,
+        del params['-s'] # even if set. -M overides them anyway.
 
     # run assembler
     flash_app = Flash(\
