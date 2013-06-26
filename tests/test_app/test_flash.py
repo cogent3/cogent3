@@ -145,7 +145,7 @@ class FlashTests(GenericFlash):
               '/tmp/test_for_flash','out250', max_overlap=250) #, HALT_EXEC=True)
         
         # Test file contents are valid:
-        # Test strings are at bottom. UnassembledReads should have sequences.
+        # Test strings are at bottom. UnassembledReads should NOT have sequences.
         self.assertEqual(res2['Assembled'].read(), expected_miseq_assembled)
         self.assertEqual(res2['UnassembledReads1'].read(), expected_miseq_nc1)
         self.assertEqual(res2['UnassembledReads2'].read(), expected_miseq_nc2)
