@@ -71,11 +71,11 @@ class GenericFlash(TestCase):
 class FlashTests(GenericFlash):
     """Tests for FLASh application controller."""
 
-    def check_version(self):
+    def test_check_version(self):
         """ Set up some objects / data for use by tests"""
 
         # Check if flash version is supported for this test
-        accepted_version = (1,2,5)
+        accepted_version = (1,2,6)
         command = "flash --version"
         version_cmd = Popen(command, shell=True, universal_newlines=True,\
                stdout=PIPE,stderr=STDOUT)
@@ -113,6 +113,18 @@ class FlashTests(GenericFlash):
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "', getcwd(), '/"; ', 'flash -M 250 -p 33']))
 
+        # test remove unused params
+        c2 = Flash()
+        c2.Parameters['-r'].on('100')
+        c2.Parameters['-s'].on('18')
+        c2.Parameters['-f'].on('180')
+        c2.Parameters['-M'].on('230')
+        c2.Parameters['-o'].on('out230')
+        c2.remove_unused_params()
+        self.assertEqual(c2.BaseCommand,\
+            ''.join(['cd "', getcwd(), '/"; ', 'flash -M 230 -o out230']))
+
+
     def test_changing_working_dir(self):
         c = Flash(WorkingDir='/temp/flash_test')
         self.assertEqual(c.BaseCommand,\
@@ -129,7 +141,7 @@ class FlashTests(GenericFlash):
         # Run with default HISEQ parameters on MISEQ data.
         # Not everything will assemble
         res = default_assemble(self.test_fn1, self.test_fn2,\
-              '/tmp/test_for_flash','out') #, HALT_EXEC=True)
+              '/tmp/test_for_flash', 'out') #, HALT_EXEC=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
@@ -142,7 +154,7 @@ class FlashTests(GenericFlash):
         # Run with more appropriate MISEQ settings:
         # UnassembledReads files should be empty.
         res2 = default_assemble(self.test_fn1, self.test_fn2, \
-              '/tmp/test_for_flash','out250', max_overlap=250) #, HALT_EXEC=True)
+              '/tmp/test_for_flash','out250', max_overlap=250, verbose=True) #, HALT_EXEC=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.
