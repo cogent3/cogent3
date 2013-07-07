@@ -280,6 +280,24 @@ class Flash(CommandLineApplication):
                 base_outfile_name +'.histogram', IsWritten=True)
         return result
 
+    def remove_unused_params(self):
+        """Remove -r, -f, -s params when -M is set.
+           
+           This just makes it clear to the user that -M will override
+           the -r -f -s params even if set. So, we just remove these
+           flags so that they do not appear when BaseCommand is called.
+           This is mainly for use in convenience functions.
+
+           If these flags are present in the base command, FLASh will ignore 
+           them if it sees '-M' anyway. This is mainly for use in convenience 
+           functions to keep things clear.
+        """
+        if self.Parameters['-M'].isOn():
+            self.Parameters['-r'].off()
+            self.Parameters['-f'].off()
+            self.Parameters['-s'].off()
+
+
     def getHelp(self):
         """FLASh (v1.2.6) description and help."""
         help_str =\
@@ -314,6 +332,7 @@ def default_assemble(\
     num_threads='1',
     max_overlap=None,
     working_dir='/tmp/',
+    verbose=False,
     params={},
     SuppressStderr=True,  #   Not sure what to set this to.
     SuppressStdout=True,
@@ -366,25 +385,26 @@ def default_assemble(\
     params['-m'] = min_overlap
     params['-t'] = num_threads
 
-    # optional params
-    if max_overlap == None:
-        params['-r'] = read_length
-        params['-f'] = frag_length
-        params['-s'] = frag_std_dev
-    else:
-        params['-M'] = max_overlap
-        del params['-r'] # Remove these parameters. Makes it clear to the user   
-        del params['-f'] # that these parameters are not being used by flash,
-        del params['-s'] # even if set. -M overides them anyway.
-
-    # run assembler
+    # set up assembler
     flash_app = Flash(\
         params=params,
         WorkingDir=working_dir,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout,
         HALT_EXEC=HALT_EXEC)
+    
+    # remove params that will be ignored by FLASh anyway,
+    # this just makes it clear to the user what options are actually being used 
+    # when printing the BaseCommand via verbose. That is -M will 
+    # override -r,-f,-s flags even if they are set.
+    if max_overlap:
+        flash_app.Parameters['-M'].on(max_overlap)
+        flash_app.remove_unused_params()
 
+    if verbose:
+        print flash_app.BaseCommand
+   
+    # run assembler
     result = flash_app(infile_paths) # use default '_input_as_paths'
     return result
 
