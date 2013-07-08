@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# file: ea_utils.py
+# file: fastq_join.py
 
 # Application controller for ea-utils v1.1.2-537 
 # fastq processing utilities
@@ -36,6 +36,7 @@ class FastqJoin(CommandLineApplication):
     # If a 'mate' input file is present (barcode read), then the files
     # 'un3' and 'join2' are also created.
     
+    # we'll only handle one output base path / file name
     # -o FIL:  See 'Output' above
     '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o'),
 
@@ -54,6 +55,70 @@ class FastqJoin(CommandLineApplication):
 
     _input_handler = '_input_as_paths'
 
+    def _output_path(self):
+        """Checks if a base filename / path is set. returns absolute path."""
+        if self.Parameters['-o'].isOn():
+            output_path = self._absolute(str(self.Parameters['-o'].Value))
+        else:
+            raise ValueError, "No output path specified."
+        return output_path
+
+    def _stitch_report_path(self):
+        """Checks if a stitch report path is set. Returns absolute path."""
+        if self.Parameters['-r'].isOn():
+            stitch_path = self._absolute(str(self.Parameters['-r'].Value))
+        else:
+            raise ValueError, "No stitch log path specified."
+        return stitch_path
+
+
+    def _get_result_paths(self, data):
+        """Capture fastq-join output.
+        
+        Three output files are produced, in the form of
+            output.fastqjoin : assembled paired reads
+            output.un1 : unassembled reads_1
+            output.un2 : unassembled reads_2
+
+        If a barcode / mate-pairs file is also provided then the following 
+        additional files are output:
+            output.join2
+            output.un3
+
+        If a verbose stitch length report is chosen to be written by the user
+        """
+        output_path = self._output_path()
+        
+        result = {}
+
+        # always output:
+        result['Assembled'] = ResultPath(Path = output_path + '.fastqjoin',\
+                              IsWritten=True)
+        result['UnassembledReads1']  = ResultPath(Path = output_path + '.un1',\
+                              IsWritten=True)
+        result['UnassembledReads2']  = ResultPath(Path = output_path + '.un2',\
+                              IsWritten=True)
+        
+        # check if mate file / barcode file is present. 
+        try:
+            result['Mate'] = ResultPath(Path = output_path + '.join2',\
+                             IsWritten=True)
+            result['MateUnassembled'] = ResultPath(Path = output_path + '.un3',\
+                             IsWritten=True)
+        except:
+            pass
+
+        # check for stitch length report file
+        try:
+            stitch_report_path = self._stitch_report_path()
+            result['Mate'] = ResultPath(Path = output_path + '.join2',\
+                             IsWritten=True)
+        except:
+            pass
+
+        return result
+
+
     def getHelp(self):
     """fastq-join (v1.1.2) help"""
     help_str =\
@@ -71,22 +136,25 @@ class FastqJoin(CommandLineApplication):
     """
     return help_str
 
-class FastqClipper(CommandLineApplication):
-    """fastq-clipper (v1.1.2) application controller for joining paired-end reads."""
-    # usage: fastq-clipper [options] <fastq-file> <adapters>
 
-    # Removes one or more adapter sequences from the fastq file.
-    # Adapter sequences are colon-delimited.
-    # Stats go to stderr, unless -o is specified.
+def run_default_fastqjoin(\
+    reads1_infile_path,
+    reads2_infile_path,
+    outfile_base_name_path,
+    perc_max_diff=8,
+    min_overlap=6,
+    report=False,
+    params={},    
+    working_dir='/tmp/',
+    SuppressStderr=True,
+    SuppressStdout=True,
+    HALT_EXEC=False): 
+    """ Runs fastq-join, with default parameters to assemble paired-end reads.
+   
 
-    #Options:
-    # -h  This help
-    # -o FIL  Output file (stats to stdout)
-    # -p N    Maximum difference percentage (10)
-    # -m N    Minimum clip length (1)
-    # -l N    Minimum remaining sequence length (15)
-    # -x [N]  Extra match length past adapter length, 
-    #     N =-1 : search all
-    #     N = 0 : search only up to adapter length
-    # -e  End-of-line (default)
-    # -b  Beginning-of-line (not supported yet)
+    """    
+
+
+
+
+
