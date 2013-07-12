@@ -111,7 +111,7 @@ class FastqJoin(CommandLineApplication):
         # check for stitch length report file
         try:
             stitch_report_path = self._stitch_report_path()
-            result['Mate'] = ResultPath(Path = output_path + '.join2',\
+            result['Report'] = ResultPath(Path = stitch_report_path,\
                              IsWritten=True)
         except:
             pass
@@ -150,11 +150,44 @@ def run_default_fastqjoin(\
     SuppressStdout=True,
     HALT_EXEC=False): 
     """ Runs fastq-join, with default parameters to assemble paired-end reads.
-   
+        -reads1_infile_path : reads1.fastq infile path
+        -reads2_infile_path : reads2.fastq infile path
+        -outfile_base_name_path : base outfile name / label. w/o extension
+                                  e.g.: 'Bact_Assembly'
+        -perc_max_diff : maximum % diff of overlap differences allowed 
+        -min_overlap : minimum allowed overlap required to assemble reads
+        -report : T/F to print label for assembly report. weill be based on 
+                  'outfile_base_name_path'
+        -params : dictionary of application controller parameters
 
     """    
+    infile_paths = [reads1_infile_path, reads2_infile_path]
+    # check for absolute file paths
+    for p in infile_paths:
+        if not exists(p):
+            raise IOError, 'File not found at: %s' % p
+        else:
+            try:
+                isabs(p)
+            except:
+                raise IOError, '\'%s\' is not an absolute path' % p
 
+    params['-p'] = perc_max_diff
+    params['-m'] = min_overlap
+    params['-o'] = outfile_base_name_path
+    if report: # base the assembly report on the outfile_base_name_path
+        params['-f'] = outfile_base_name_path + '.report'
 
+    fastq_join_app = FastqJoin(\
+        params=params,
+        WorkingDir=working_dir,
+        SuppressStderr=SuppressStderr,
+        SuppressStdout=SuppressStdout,
+        HALT_EXEC=HALT_EXEC)
+    
+    # run assembler
+    result = fastq_join_app(infile_paths)
+    return result
 
 
 
