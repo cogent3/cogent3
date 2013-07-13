@@ -57,32 +57,32 @@ class SeqPrep(CommandLineApplication):
     '-L':ValuedParameter(Prefix='-', Delimiter=' ', Name='L'),
   
     # Arguments for Adapter/Primer Trimming (Optional):
-	# -A <forward read primer/adapter sequence to trim as it would appear at the 
+    # -A <forward read primer/adapter sequence to trim as it would appear at the 
     #   end of a read (recommend about 20bp of this)
-	#	(should validate by grepping a file); 
+    #	(should validate by grepping a file); 
     #   default (genomic non-multiplexed adapter1) = AGATCGGAAGAGCGGTTCAG>
-	# -B <reverse read primer/adapter sequence to trim as it would appear at the 
+    # -B <reverse read primer/adapter sequence to trim as it would appear at the 
     #   end of a read (recommend about 20bp of this)
-	#	(should validate by grepping a file); 
+    #	(should validate by grepping a file); 
     #   default (genomic non-multiplexed adapter2) = AGATCGGAAGAGCGTCGTGT>
-	# -O <minimum overall base pair overlap with adapter sequence to trim; 
+    # -O <minimum overall base pair overlap with adapter sequence to trim; 
     #   default = 10>
-	# -M <maximum fraction of good quality mismatching bases for primer/adapter
+    # -M <maximum fraction of good quality mismatching bases for primer/adapter
     #    overlap; default = 0.020000>
-	# -N <minimum fraction of matching bases for primer/adapter overlap; 
+    # -N <minimum fraction of matching bases for primer/adapter overlap; 
     #   default = 0.870000>
-	# -b <adapter alignment band-width; default = 50>
-	# -Q <adapter alignment gap-open; default = 8>
-	# -t <adapter alignment gap-extension; default = 2>
-	# -e <adapter alignment gap-end; default = 2>
-	# -Z <adapter alignment minimum local alignment score cutoff 
+    # -b <adapter alignment band-width; default = 50>
+    # -Q <adapter alignment gap-open; default = 8>
+    # -t <adapter alignment gap-extension; default = 2>
+    # -e <adapter alignment gap-end; default = 2>
+    # -Z <adapter alignment minimum local alignment score cutoff 
     #   [roughly (2*num_hits) - (num_gaps*gap_open) - (num_gaps*gap_close) - 
     #   (gap_len*gap_extend) - (2*num_mismatches)]; default = 26>
-	# -w <read alignment band-width; default = 50>
-	# -W <read alignment gap-open; default = 26>
-	# -p <read alignment gap-extension; default = 9>
-	# -P <read alignment gap-end; default = 5>
-	# -X <read alignment maximum fraction gap cutoff; default = 0.125000>
+    # -w <read alignment band-width; default = 50>
+    # -W <read alignment gap-open; default = 26>
+    # -p <read alignment gap-extension; default = 9>
+    # -P <read alignment gap-end; default = 5>
+    # -X <read alignment maximum fraction gap cutoff; default = 0.125000>
     '-A':ValuedParameter(Prefix='-', Delimiter=' ', Name='A'),
     '-B':ValuedParameter(Prefix='-', Delimiter=' ', Name='B'),
     '-O':ValuedParameter(Prefix='-', Delimiter=' ', Name='O'),
@@ -100,17 +100,17 @@ class SeqPrep(CommandLineApplication):
     '-X':ValuedParameter(Prefix='-', Delimiter=' ', Name='X'),
 
     # Optional Arguments for Merging:
-	# -y <maximum quality score in output ((phred 33) default = ']' )>
-	# -g <print overhang when adapters are present and stripped (use this if 
+    # -y <maximum quality score in output ((phred 33) default = ']' )>
+    # -g <print overhang when adapters are present and stripped (use this if 
     #   reads are different length)>
-	# -s <perform merging and output the merged reads to this file>
-	# -E <write pretty alignments to this file for visual Examination>
-	# -x <max number of pretty alignments to write (if -E provided);
+    # -s <perform merging and output the merged reads to this file>
+    # -E <write pretty alignments to this file for visual Examination>
+    # -x <max number of pretty alignments to write (if -E provided);
     #   default = 10000>
-	# -o <minimum overall base pair overlap to merge two reads; default = 15>
-	# -m <maximum fraction of good quality mismatching bases to overlap reads;
+    # -o <minimum overall base pair overlap to merge two reads; default = 15>
+    # -m <maximum fraction of good quality mismatching bases to overlap reads;
     #   default = 0.020000>
-	# -n <minimum fraction of matching bases to overlap reads;
+    # -n <minimum fraction of matching bases to overlap reads;
     #   default = 0.900000>
     '-y':ValuedParameter(Prefix='-', Delimiter=' ', Name='y'),
     '-g':FlagParameter(Prefix='-', Name='y'),
