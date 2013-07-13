@@ -86,6 +86,7 @@ class FastqJoin(CommandLineApplication):
             outputun3
 
         If a verbose stitch length report is chosen to be written by the user
+		    user.specified.filename
         """
         output_path = self._output_path()
         
@@ -98,9 +99,18 @@ class FastqJoin(CommandLineApplication):
                               IsWritten=True)
         result['UnassembledReads2']  = ResultPath(Path = output_path + 'un2',\
                               IsWritten=True)
-        
+       
+
+        # check if stitch report is requested:
+        if self.Parameters['-r'].isOff():
+		    pass
+        else:
+            stitch_path = _stitch_report_path()
+            result['Report'] = stitch_path
+
         # Check if mate file / barcode file is present.
 		# If not, return result
+		# We need to check this way becuase there are no infile parameters.
         mate_path_string = output_path + 'join2'
         mate_unassembled_path_string = output_path + 'un3'
         if exists(mate_path_string) and exists(mate_unassembled_path_string):
