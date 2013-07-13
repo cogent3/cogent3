@@ -91,16 +91,17 @@ class FastqJoinTests(GenericFastqJoin):
         """run_default_fastqjoin: should work as expected """
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
-        # run with default function params
+        # run with default function params and request stitch report
         res = run_default_fastqjoin(self.test_fn1, self.test_fn2,\
-                  'test_fastq', working_dir='/tmp/test_for_fastq_join')
+                  'test_fastq', report=True, working_dir='/tmp/test_for_fastq_join')
 
         # test if file strings are valid:
         self.assertEqual(res['Assembled'].read(), expected_assembly)
         self.assertEqual(res['UnassembledReads1'].read(), expected_default_un1)
         self.assertEqual(res['UnassembledReads2'].read(), expected_default_un2)
-        #self.assertEqual(res['Report'].read(), expected_report)
- 
+        self.assertEqual(res['Report'].read(), expected_report)
+        
+        res.cleanUp()
 
 
 
