@@ -110,8 +110,8 @@ class FastqJoin(CommandLineApplication):
 			    IsWritten=True)
 
         # Check if mate file / barcode file is present.
-		# If not, return result
-		# We need to check this way becuase there are no infile parameters.
+        # If not, return result
+        # We need to check this way becuase there are no infile parameters.
         mate_path_string = output_path + 'join2'
         mate_unassembled_path_string = output_path + 'un3'
         if exists(mate_path_string) and exists(mate_unassembled_path_string):
@@ -124,7 +124,7 @@ class FastqJoin(CommandLineApplication):
             except:
                 pass
         else:
-		    return result
+            return result
 
         return result
 
