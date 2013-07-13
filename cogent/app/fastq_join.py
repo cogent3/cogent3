@@ -105,8 +105,9 @@ class FastqJoin(CommandLineApplication):
         if self.Parameters['-r'].isOff():
 		    pass
         else:
-            stitch_path = _stitch_report_path()
-            result['Report'] = stitch_path
+            stitch_path = self._stitch_report_path()
+            result['Report'] = ResultPath(Path = stitch_path,\
+			    IsWritten=True)
 
         # Check if mate file / barcode file is present.
 		# If not, return result
