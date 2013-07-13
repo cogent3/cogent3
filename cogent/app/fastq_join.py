@@ -51,12 +51,12 @@ class FastqJoin(CommandLineApplication):
     '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'),
    
     # -r FIL:  Verbose stitch length report
-    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='m')}
+    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='r')}
 
     _input_handler = '_input_as_paths'
 
     def _output_path(self):
-        """Checks if a base filename / path is set. returns absolute path."""
+        """Checks if a base file label / path is set. Returns absolute path."""
         if self.Parameters['-o'].isOn():
             output_path = self._absolute(str(self.Parameters['-o'].Value))
         else:
@@ -64,7 +64,7 @@ class FastqJoin(CommandLineApplication):
         return output_path
 
     def _stitch_report_path(self):
-        """Checks if a stitch report path is set. Returns absolute path."""
+        """Checks if stitch report label / path is set. Returns absolute path."""
         if self.Parameters['-r'].isOn():
             stitch_path = self._absolute(str(self.Parameters['-r'].Value))
         else:
@@ -76,14 +76,14 @@ class FastqJoin(CommandLineApplication):
         """Capture fastq-join output.
         
         Three output files are produced, in the form of
-            output.fastqjoin : assembled paired reads
-            output.un1 : unassembled reads_1
-            output.un2 : unassembled reads_2
+            outputjoin : assembled paired reads
+            outputun1 : unassembled reads_1
+            outputun2 : unassembled reads_2
 
         If a barcode / mate-pairs file is also provided then the following 
         additional files are output:
-            output.join2
-            output.un3
+            outputjoin2
+            outputun3
 
         If a verbose stitch length report is chosen to be written by the user
         """
@@ -92,49 +92,48 @@ class FastqJoin(CommandLineApplication):
         result = {}
 
         # always output:
-        result['Assembled'] = ResultPath(Path = output_path + '.fastqjoin',\
+        result['Assembled'] = ResultPath(Path = output_path + 'join',\
                               IsWritten=True)
-        result['UnassembledReads1']  = ResultPath(Path = output_path + '.un1',\
+        result['UnassembledReads1']  = ResultPath(Path = output_path + 'un1',\
                               IsWritten=True)
-        result['UnassembledReads2']  = ResultPath(Path = output_path + '.un2',\
+        result['UnassembledReads2']  = ResultPath(Path = output_path + 'un2',\
                               IsWritten=True)
         
-        # check if mate file / barcode file is present. 
-        try:
-            result['Mate'] = ResultPath(Path = output_path + '.join2',\
-                             IsWritten=True)
-            result['MateUnassembled'] = ResultPath(Path = output_path + '.un3',\
-                             IsWritten=True)
-        except:
-            pass
-
-        # check for stitch length report file
-        try:
-            stitch_report_path = self._stitch_report_path()
-            result['Report'] = ResultPath(Path = stitch_report_path,\
-                             IsWritten=True)
-        except:
-            pass
+        # Check if mate file / barcode file is present.
+		# If not, return result
+        mate_path_string = output_path + 'join2'
+        mate_unassembled_path_string = output_path + 'un3'
+        if exists(mate_path_string) and exists(mate_unassembled_path_string):
+            try:
+                result['Mate'] = ResultPath(Path = mate_path_string, \
+                    IsWritten=True)
+                result['MateUnassembled'] = ResultPath(Path = \
+                    mate_unassembled_path_string,\
+                    IsWritten=True)
+            except:
+                pass
+        else:
+		    return result
 
         return result
 
 
     def getHelp(self):
-    """fastq-join (v1.1.2) help"""
-    help_str =\
-    """
-    For issues with the actual program 'fastq-join', see the following:
+        """fastq-join (v1.1.2) help"""
+        help_str =\
+        """
+        For issues with the actual program 'fastq-join', see the following:
     
-    For basic help, type the following at the command line:
-        'fastq-join'
+        For basic help, type the following at the command line:
+            'fastq-join'
 
-    Website:
-        http://code.google.com/p/ea-utils/
+        Website:
+           http://code.google.com/p/ea-utils/
 
-    For questions / comments subit an issue to:
-    http://code.google.com/p/ea-utils/issues/list
+        For questions / comments subit an issue to:
+        http://code.google.com/p/ea-utils/issues/list
     """
-    return help_str
+        return help_str
 
 
 def run_default_fastqjoin(\
@@ -156,7 +155,7 @@ def run_default_fastqjoin(\
                                   e.g.: 'Bact_Assembly'
         -perc_max_diff : maximum % diff of overlap differences allowed 
         -min_overlap : minimum allowed overlap required to assemble reads
-        -report : T/F to print label for assembly report. weill be based on 
+        -report : T/F to print label for assembly report. Will be based on 
                   'outfile_base_name_path'
         -params : dictionary of application controller parameters
 
@@ -176,7 +175,7 @@ def run_default_fastqjoin(\
     params['-m'] = min_overlap
     params['-o'] = outfile_base_name_path
     if report: # base the assembly report on the outfile_base_name_path
-        params['-f'] = outfile_base_name_path + '.report'
+        params['-r'] = outfile_base_name_path + 'report'
 
     fastq_join_app = FastqJoin(\
         params=params,
