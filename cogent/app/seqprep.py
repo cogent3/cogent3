@@ -128,14 +128,14 @@ class SeqPrep(CommandLineApplication):
         """
         result = {}
         
-		# required for assembly
-		result['Reads1Out'] = ResultPath(Path = , IsWritten=True)
-		result['Reads2Out'] = ResultPath(Path = , IsWritten=True)
-		result['Assembled'] = ResultPath(Path = , IsWritten=True)
+        # required for assembly
+        result['Reads1Out'] = ResultPath(Path = , IsWritten=True)
+        result['Reads2Out'] = ResultPath(Path = , IsWritten=True)
+        result['Assembled'] = ResultPath(Path = , IsWritten=True)
 
-       # optional
-		result['Reads1Discarded'] = ResultPath(Path = , IsWritten=True)
-		result['Reads2Discarded'] = ResultPath(Path = , IsWritten=True)
+        # optional
+        result['Reads1Discarded'] = ResultPath(Path = , IsWritten=True)
+        result['Reads2Discarded'] = ResultPath(Path = , IsWritten=True)
         result['PrettyAlignments'] ResultPath(Path = , IsWritten=True)
         
         return result
