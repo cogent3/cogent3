@@ -120,4 +120,45 @@ class SeqPrep(CommandLineApplication):
     '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o'),
     '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'),
     '-n':ValuedParameter(Prefix='-', Delimiter=' ', Name='n')}
+
+
+    def _get_result_paths(self, data):
+        """Captures SeqPrep output.
+        
+        """
+        result = {}
+        
+		# required for assembly
+		result['Reads1Out'] = ResultPath(Path = , IsWritten=True)
+		result['Reads2Out'] = ResultPath(Path = , IsWritten=True)
+		result['Assembled'] = ResultPath(Path = , IsWritten=True)
+
+       # optional
+		result['Reads1Discarded'] = ResultPath(Path = , IsWritten=True)
+		result['Reads2Discarded'] = ResultPath(Path = , IsWritten=True)
+        result['PrettyAlignments'] ResultPath(Path = , IsWritten=True)
+        
+        return result
+
+
+    def getHelp(self):
+        """seqprep help"""
+        help_str =\
+        """
+        For basic help, type the following at the command line:
+            'SeqPrep -h'
+
+        Website:
+            https://github.com/jstjohn/SeqPrep
+        """
+        return help_str
+
+
+
+
+
+
+
+
+
     
