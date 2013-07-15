@@ -24,7 +24,7 @@ __status__ = "Development"
 class GenericFastqJoin(TestCase):
     def setUp(self):
         """General setup for fastq-join tests"""
-        self.temp_dir = '/tmp/test_for_fastq_join/'
+        self.temp_dir = '/tmp/test_for_fastq_join'
         try:
             mkdir(self.temp_dir)
         except OSError:
@@ -79,13 +79,13 @@ class FastqJoinTests(GenericFastqJoin):
 
     def test_changing_working_dir(self):
         """WorkingDir should change properly"""
-        c = FastqJoin(WorkingDir='/tmp/test_for_fastq_join')
+        c = FastqJoin(WorkingDir=self.temp_dir)
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', '/tmp/test_for_fastq_join', '/"; ', 'fastq-join']))
+            ''.join(['cd "', self.temp_dir, '/"; ', 'fastq-join']))
         c = FastqJoin()
-        c.WorkingDir = '/tmp/test_for_fastq_join2'
+        c.WorkingDir = self.temp_dir + '2'
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', '/tmp/test_for_fastq_join2', '/"; ', 'fastq-join']))
+            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'fastq-join']))
 
     def test_run_default_fastqjoin(self):
         """run_default_fastqjoin: should work as expected """
@@ -93,7 +93,7 @@ class FastqJoinTests(GenericFastqJoin):
 
         # run with default function params and request stitch report
         res = run_default_fastqjoin(self.test_fn1, self.test_fn2,\
-                  'test_fastq', report=True, working_dir='/tmp/test_for_fastq_join')
+                  'test_fastq', report=True, working_dir=self.temp_dir)
 
         # test if file strings are valid:
         self.assertEqual(res['Assembled'].read(), expected_assembly)
