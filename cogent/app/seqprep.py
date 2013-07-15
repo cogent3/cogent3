@@ -121,6 +121,54 @@ class SeqPrep(CommandLineApplication):
     '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'),
     '-n':ValuedParameter(Prefix='-', Delimiter=' ', Name='n')}
 
+    def _unassembled_reads1_out_file_name(self):
+        """Checks file name is set for reads1 output. 
+           Returns absolute path."""
+        if self.Parameters['-1'].isOn():
+            self._absolute(str(self.Parameters['-1'].Value)
+        else:
+            raise ValueError, "No reads1 (flag: -1) output path specified"
+ 
+     def _unassembled_reads2_out_file_name(self):
+        """Checks if file name is set for reads2 output. 
+           Returns absolute path."""
+        if self.Parameters['-2'].isOn():
+            self._absolute(str(self.Parameters['-2'].Value)
+        else:
+            raise ValueError, "No reads2 (flag -2) output path specified"
+        
+    def _discarded_reads1_out_file_name(self):
+        """Checks if file name is set for discarded reads1 output. 
+           Returns absolute path."""
+        if self.Parameters['-3'].isOn():
+            self._absolute(str(self.Parameters['-3'].Value)
+        else:
+            raise ValueError, "No discarded-reads1 (flag -3) output path specified"
+ 
+    def _discarded_reads2_out_file_name(self):
+        """Checks if file name is set for discarded reads2 output. 
+           Returns absolute path."""
+        if self.Parameters['-4'].isOn():
+            self._absolute(str(self.Parameters['-4'].Value)
+        else:
+            raise ValueError, "No discarded-reads2 (flag -4) output path specified"
+
+    def _assembled_out_file_name(self):
+        """Checks file name is set for assembled output. 
+           Returns absolute path."""
+        if self.Parameters['-s'].isOn():
+            self._absolute(str(self.Parameters['-s'].Value)
+        else:
+            raise ValueError, "No assembled-reads (flag -s) output path specified"
+
+    def _pretty_alignment_out_file_name(self):
+         """Checks file name is set for pretty alignment output. 
+           Returns absolute path."""
+        if self.Parameters['-E'].isOn():
+            self._absolute(str(self.Parameters['-E'].Value)
+        else:
+            raise ValueError, "No pretty-=alignment (flag -E) output path specified"
+
 
     def _get_result_paths(self, data):
         """Captures SeqPrep output.
@@ -128,15 +176,32 @@ class SeqPrep(CommandLineApplication):
         """
         result = {}
         
-        # required for assembly
-        result['Reads1Out'] = ResultPath(Path = , IsWritten=True)
-        result['Reads2Out'] = ResultPath(Path = , IsWritten=True)
-        result['Assembled'] = ResultPath(Path = , IsWritten=True)
+        # Always output:
+        result['UnassembledReads1Out'] = ResultPath(Path = \
+            _unassembled_reads1_out_file_name, IsWritten=True)
+        result['UnassembledReads2Out'] = ResultPath(Path = \
+            _unassembled_reads2_out_file_name, IsWritten=True)
+        
+        # optional output, so we check for each
+        # check for assembled reads file
+        if self.Parameters['-s'].isOn():
+            result['Assembled'] = ResultPath(Path = _assembled_out_file_name,\
+                IsWritten=True)
+        
+        # check for discarded (unassembled) reads1 file
+        if self.Parameters['-3'].isOn():
+            result['Reads1Discarded'] = ResultPath(Path = \
+                _discarded_reads1_out_file_name, IsWritten=True)
 
-        # optional
-        result['Reads1Discarded'] = ResultPath(Path = , IsWritten=True)
-        result['Reads2Discarded'] = ResultPath(Path = , IsWritten=True)
-        result['PrettyAlignments'] ResultPath(Path = , IsWritten=True)
+        # check for discarded (unassembled) reads2 file
+        if self.Parameters['-4'].isOn():
+            result['Reads2Discarded'] = ResultPath(Path = \
+                _discarded_reads2_out_file_name, IsWritten=True)
+        
+        # check for pretty-alignment file
+        if self.Parameters['-E'].isOn():
+            result['PrettyAlignments'] ResultPath(Path = \
+                _pretty_alignment_out_file_name, IsWritten=True)
         
         return result
 
@@ -154,10 +219,55 @@ class SeqPrep(CommandLineApplication):
         return help_str
 
 
+def run_default_seqprep(\
+    reads1_infile_name,
+	reads2_infile_name,
+	outfile_dir,
+	params={},
+    working_dir='/tmp/'
+    SuppressStderr=True,
+    SuppressStdout=True,
+    HALT_EXEC=False):
+    """ Runs SeqPrep with default parameters to assemble paired-end reads.
+        -reads1_infile_path : reads1.fastq infile path
+        -reads2_infile_path : reads2.fastq infile path
+        -outfile_base_path : base name for all output files
+        -params : other optional SeqPrep parameters
+ 
+         NOTE: SeqPrep always outputs gzipped files
+    """
 
+    file_paths = [reads1_infile_name, reads2_infile_name]
 
+    for p in file_paths:
+        if not exists(p):
+            raise IOError, 'File not found at: %s' % p
+        else:
+            try:
+                isabs(p)
+            except:
+                raise IOError, '\'%s\' not found and is not an absolute path' % p
 
+    outfile_dir_path = output_dir + '/'  # just to make sure string ends in '/'
+    
+    # required by SeqPrep to assemble:
+    params['-f'] = reads1_infile_name
+    params['-r'] = reads2_infile_name
+    params['-s'] = outfile_dir_path + 'assembled.gz'
+    params['-1'] = outfile_dir_path + 'unassembled.reads1out.gz'
+    params['-2'] = outfile_dir_path + 'unassembled.reads2out.gz'
+    
+    # set up controller
+    seqprep_app=SeqPrep(\
+        params = params,
+        WorkingDir=working_dir,
+        SuppressStderr=SuppressStderr,
+        SuppressStdout=SuppressStdout,
+        HALT_EXEC=HALT_EXEC)
 
+    # run assembler
+    result = seqprep_app()
+    return result
 
 
 
