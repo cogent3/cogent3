@@ -6,7 +6,8 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.app.fastq_join import FastqJoin, run_default_fastqjoin
-from os import getcwd, remove, rmdir, mkdir, path
+from os import getcwd, remove, rmdir, mkdir, path, system
+import gzip
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -97,8 +98,25 @@ class SeqPrepTests(GenericSeqPrep):
         res = run_default_seqprep(self.test_fn1, self.test_fn2,\
             self.temp_dir)
 
+        # since output is gzipped by default we need to convert to
+        # raw text before testing our results. 
+        assembly_result = gzip.GzipFile(fileobj=res['Assembled']).read()
+        self.assertEqual(assembly_result, expected_assembly) 
+  
+        unassembled_reads1_result = gzip.GzipFile(fileobj=res['UnassembledReads1']).read()
+        self.assertEqual(unassembled_reads1_result, expected_default_unassembled_reads1) 
 
+        unassembled_reads2_result = gzip.GzipFile(fileobj=res['UnassembledReads2']).read()
+        self.assertEqual(unassembled_reads2_result, expected_default_unassembled_reads2) 
 
+        res.cleanUp() 
+        
 
+expected_assembly = """
+"""
 
+expected_default_unassembled_reads1 = """
+"""
 
+expected_default_unassembled_reads2 = """
+"""
