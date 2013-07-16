@@ -126,13 +126,13 @@ class FlashTests(GenericFlash):
 
 
     def test_changing_working_dir(self):
-        c = Flash(WorkingDir='/temp/flash_test')
+        c = Flash(WorkingDir=self.temp_dir)
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', '/temp/flash_test', '/"; ', 'flash'])) 
+            ''.join(['cd "', self.temp_dir, '/"; ', 'flash'])) 
         c = Flash()
-        c.WorkingDir = '/temp/flash_test2'
+        c.WorkingDir = self.temp_dir + '2'
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', '/temp/flash_test2', '/"; ', 'flash'])) 
+            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'flash'])) 
 
     def test_default_assemble(self):
         """default_assemble: should work as expected"""
@@ -141,7 +141,7 @@ class FlashTests(GenericFlash):
         # Run with default HISEQ parameters on MISEQ data.
         # Not everything will assemble
         res = default_assemble(self.test_fn1, self.test_fn2,\
-              '/tmp/test_for_flash', 'out') #, HALT_EXEC=True)
+              self.temp_dir, 'out') #, HALT_EXEC=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
@@ -154,7 +154,7 @@ class FlashTests(GenericFlash):
         # Run with more appropriate MISEQ settings:
         # UnassembledReads files should be empty.
         res2 = default_assemble(self.test_fn1, self.test_fn2, \
-              '/tmp/test_for_flash','out250', max_overlap=250, verbose=True) #, HALT_EXEC=True)
+              self.temp_dir,'out250', max_overlap=250, verbose=True) #, HALT_EXEC=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.
