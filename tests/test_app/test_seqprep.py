@@ -35,32 +35,24 @@ class GenericSeqPrep(TestCase):
             mkdir(self.temp_dir_spaces)
         except OSError:
             pass
+    
+        # create temp file path strings
+        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
 
-        # create fastq files
-        try:
-            self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
-            self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
-            reads1 = open(self.test_fn1,'w')
-            reads1.write(reads1_string) # bottom of file
-            reads1.close()
-
-            self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
-            self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
-            reads2 = open(self.test_fn2,'w')
-            reads2.write(reads2_string) # bottom of file
-            reads2.close()
-        except OSError:
-            pass 
-         
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
-        fq1 = open(fw_reads_path, "w+")
-        fq1.write(reads1_string)
-        fq1.close()
-        fq2 = open(rev_reads_path, "w+")
-        fq2.write(reads2_string)
-        fq2.close()
-
+        try:
+            fq1 = open(fw_reads_path, "w+")
+            fq1.write(reads1_string)
+            fq1.close()
+            fq2 = open(rev_reads_path, "w+")
+            fq2.write(reads2_string)
+            fq2.close()
+        except OSError:
+            pass
 
 class SeqPrepTests(GenericSeqPrep):
     """Tests for SeqPrep application controller """
