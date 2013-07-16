@@ -37,36 +37,24 @@ class GenericFlash(TestCase):
             mkdir(self.temp_dir_spaces)
         except OSError:
             pass
-        
-        try:
-            # create fastq files'
-            p1 = path.join(self.temp_dir,'reads1.fastq')
-            #print 'p1', p1
-            reads1 = open(p1,'w')
-            reads1.write(reads1_string) # bottom of file
-            reads1.close()
-            self.test_fn1 = self.temp_dir + 'reads1.fastq'
-            self.test_fn1_space = self.temp_dir_spaces + 'reads1.fastq'
 
-            p2 = path.join(self.temp_dir,'reads2.fastq')
-            #print 'p2', p2
-            reads2 = open(p2,'w')
-            reads2.write(reads2_string) # bottom of file
-            reads2.close()
-            self.test_fn2 = self.temp_dir + 'reads2.fastq'
-            self.test_fn2_space = self.temp_dir_spaces + 'reads2.fastq'
-
-        except OSError:
-            pass
+        # temp file paths
+        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
-        fq1 = open(fw_reads_path, "w+")
-        fq1.write(reads1_string)
-        fq1.close()
-        fq2 = open(rev_reads_path, "w+")
-        fq2.write(reads2_string)
-        fq2.close()
+        try:
+            fq1 = open(fw_reads_path, "w+")
+            fq1.write(reads1_string)
+            fq1.close()
+            fq2 = open(rev_reads_path, "w+")
+            fq2.write(reads2_string)
+            fq2.close()
+        except OSError:
+            pass
 
 class FlashTests(GenericFlash):
     """Tests for FLASh application controller."""
