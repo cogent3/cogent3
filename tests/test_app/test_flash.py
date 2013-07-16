@@ -139,6 +139,8 @@ class FlashTests(GenericFlash):
         self.assertEqual(res['NumHist'].read(), expected_default_nhist)
         self.assertEqual(res['Histogram'].read(), expected_default_hist)
         
+        res.cleanUp()
+
         # Run with more appropriate MISEQ settings:
         # UnassembledReads files should be empty.
         res2 = default_assemble(self.test_fn1, self.test_fn2, \
@@ -151,6 +153,10 @@ class FlashTests(GenericFlash):
         self.assertEqual(res2['UnassembledReads2'].read(), expected_miseq_nc2)
         self.assertEqual(res2['NumHist'].read(), expected_miseq_nhist)
         self.assertEqual(res2['Histogram'].read(), expected_miseq_hist)
+
+        res2.cleanUp()
+
+
 
 
 reads1_string ="""@MISEQ03:64:000000000-A2H3D:1:1101:14358:1530 1:N:0:TCCACAGGAGT
