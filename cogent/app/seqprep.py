@@ -234,7 +234,10 @@ def run_default_seqprep(\
     reads1_infile_name,
 	reads2_infile_name,
 	output_dir,
-	params={},
+	min_overlap=15,
+    max_mismatch_good_frac=0.02,
+    min_frac_matching=0.9,
+    params={},
     working_dir='/tmp/',
     SuppressStderr=True,
     SuppressStdout=True,
@@ -243,6 +246,11 @@ def run_default_seqprep(\
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
         -output_dir : base directory name for all output files
+        -min_overlap : minimum overall base pair overlap to merge two reads
+        -max_mismatch_good_frac : maximum fraction of good quality mismatching
+                                  bases to overlap reads
+        -min_frac_matching : minimum fraction of matching bases to overlap 
+                             reads
         -params : other optional SeqPrep parameters
  
          NOTE: SeqPrep always outputs gzipped files
@@ -267,7 +275,11 @@ def run_default_seqprep(\
     params['-s'] = outfile_dir_path + 'assembled.gz'
     params['-1'] = outfile_dir_path + 'unassembled.reads1out.gz'
     params['-2'] = outfile_dir_path + 'unassembled.reads2out.gz'
-    
+    params['-o'] = min_overlap
+    params['-m'] = max_mismatch_good_frac
+    params['-n'] = min_frac_matching
+
+
     # set up controller
     seqprep_app=SeqPrep(\
         params = params,
