@@ -92,14 +92,6 @@ class PandaSeq(CommandLineApplication):
     }
 
 
-    #def _get_result_paths(self, data):
-    #    """Captures pandaseq output. """
-    #    result = {}
-        
-        # always output:
-    #    result[''] = 
-
-
     def getHelp(self):
         """pandaseq help"""
         help_Str = \
@@ -115,6 +107,8 @@ class PandaSeq(CommandLineApplication):
 def run_default_pandaseq(\
     reads1_infile_name,
     reads2_infile_name,
+    assembled_outfile_name,
+    phred_64=False,
     fastq=True,
     params={},
     working_dir='/tmp',
@@ -125,9 +119,12 @@ def run_default_pandaseq(\
     """ Runs pandaseq with default parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -params : other optional pandaseq parameters
+        -assembled_outfile_name : where to store your assembled reads
         -fastq : output assembly as fastq (True)
                  or Fasta (False)
+        -phred_64 : if you are using phred 64 scores instead of
+                    phred 33
+        -params : other optional pandaseq parameters
     """
 
     file_paths = [reads1_infile_name, reads2_infile_name]
@@ -144,7 +141,7 @@ def run_default_pandaseq(\
     # required by pandaseq to assemble
     params['-f'] = reads1_infile_name
     params['-r'] = reads2_infile_name
-   
+  
     # set up controller
     pandaseq_app = PandaSeq(\
         params=params,
@@ -157,11 +154,31 @@ def run_default_pandaseq(\
     # Fastq?
     if fastq:
         pandaseq_app.Parameters['-F'].on()
-    else:
-        pandaseq_app.Parameters['-F'].off()
+
+    # if using phred 64:
+    if phred_64:
+        pandaseq_app.Parameters['-6'].on()
+
 
     # run assembler
     result = pandaseq_app()
+    
+    # write STDOUT (assembly) to file and add to result dict.
+    # NOTE: res['StdOut'] will be empty after this.
+    # The file will be accessible via result['Assembly']
+    # We do this so that the actual output remains saved to
+    # disk and can be accessed outside python.
+    # Any suggestions as to prevent the temp StdOut file
+    # from being deleted by default? Since this IS the 
+    # data we'd want to save from this program.
+    of = open(assembled_outfile_name, 'w')
+    for line in result['StdOut']:
+        of.write(line)
+    of.close()
+   
+    # add file handle object back to result
+    result['Assembly'] = open(assembled_outfile_name)
+
     return result
 
 
