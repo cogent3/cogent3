@@ -349,9 +349,9 @@ class SequenceTests(TestCase):
         """Sequence MW should return correct molecular weight"""
         self.assertEqual(self.PROT('').MW(), 0)
         self.assertEqual(self.RNA('').MW(), 0)
-        self.assertFloatEqual(self.PROT('A').MW(), 107.09)
+        self.assertFloatEqual(self.PROT('A').MW(), 89.09)
         self.assertFloatEqual(self.RNA('A').MW(), 375.17)
-        self.assertFloatEqual(self.PROT('AAA').MW(), 285.27)
+        self.assertFloatEqual(self.PROT('AAA').MW(), 231.27)
         self.assertFloatEqual(self.RNA('AAA').MW(), 1001.59)
         self.assertFloatEqual(self.RNA('AAACCCA').MW(), 2182.37)
 
