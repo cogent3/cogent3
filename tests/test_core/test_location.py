@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 """Unit tests for Range, Span and Point classes.
-
-NOTE: Map not currently tested.
 """
 from cogent.util.unit_test import TestCase, main
-from cogent.core.location import Span, Range, Point, RangeFromString
+from cogent.core.location import Span, Range, Point, RangeFromString, Map
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -466,6 +464,22 @@ class RangeFromStringTests(TestCase):
             Range([3,4,10]))
         self.assertEqual(RangeFromString('3,4-10,1-5'),
             Range([Span(3), Span(4,10), Span(1,5)]))
+
+class MapTests(TestCase):
+    """tests of the Map class"""
+    def test_get_coords(self):
+        """getCoordinates should return raw coordinates matching input"""
+        spans = [(0,9), (20, 32)]
+        map = Map(spans, parent_length=100)
+        coords = map.getCoordinates()
+        self.assertEqual(coords, spans)
+        
+        # should work for reversed Maps too
+        spans = [(32, 20), (9, 0)]
+        map = Map(spans, parent_length=100)
+        coords = map.getCoordinates()
+        self.assertEqual(coords, spans)
+    
 
 #run the following if invoked from command-line
 if __name__ == "__main__":

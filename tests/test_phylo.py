@@ -274,7 +274,20 @@ class DistancesTests(unittest.TestCase):
         expect = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(expect, result)
         
-    
+    def test_get_raw_estimates(self):
+        """correctly return raw result object"""
+        d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
+        d.run()
+        expect = {('a', 'b'): {'kappa': 1.0000226766004808e-06, 'length': 0.18232155856115662},
+                 ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                 ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
+                 ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
+                 ('c', 'b'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                 ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
+        got = d.getAllParamValues()
+        for pair in expect:
+            for param in expect[pair]:
+                self.assertAlmostEqual(got[pair][param], expect[pair][param])
 
 if __name__ == '__main__':
     unittest.main()

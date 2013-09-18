@@ -756,7 +756,7 @@ def Gamma(x):
         z /= x
         x += 1
     if x == 2:
-        return z
+        return float(z)
     x -= 2
     p = polevl(x, GP)
     q = polevl(x, GQ)

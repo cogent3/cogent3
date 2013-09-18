@@ -42,19 +42,34 @@ Setting up a ``MolType`` object with a DNA sequence
     >>> from cogent.core.moltype import MolType, IUPAC_DNA_chars,\
     ...   IUPAC_DNA_ambiguities, DnaMW, IUPAC_DNA_ambiguities_complements,\
     ...   DnaStandardPairs
-   >>> testdnaseq = 'ACGTACGTACGUACGT'
-   >>> DnaMolType = MolType(
-   ...     Sequence = NucleicAcidSequence(testdnaseq),
-   ...     motifset = IUPAC_DNA_chars,
-   ...     Ambiguities = IUPAC_DNA_ambiguities,
-   ...     label = "dna_with_lowercase",
-   ...     MWCalculator = DnaMW,
-   ...     Complements = IUPAC_DNA_ambiguities_complements,
-   ...     Pairs = DnaStandardPairs,
-   ...     add_lower=True,
-   ...     preserve_existing_moltypes=True,
-   ...     make_alphabet_group=True,
-   ...     )
+    >>> testdnaseq = 'ACGTACGTACGUACGT'
+    >>> DnaMolType = MolType(
+    ...     Sequence = NucleicAcidSequence(testdnaseq),
+    ...     motifset = IUPAC_DNA_chars,
+    ...     Ambiguities = IUPAC_DNA_ambiguities,
+    ...     label = "dna_with_lowercase",
+    ...     MWCalculator = DnaMW,
+    ...     Complements = IUPAC_DNA_ambiguities_complements,
+    ...     Pairs = DnaStandardPairs,
+    ...     add_lower=True,
+    ...     preserve_existing_moltypes=True,
+    ...     make_alphabet_group=True,
+    ...     )
+
+
+Setting up a DNA ``MolType`` object allowing ``.`` as gaps
+----------------------------------------------------------
+
+.. doctest::
+
+   >>> from cogent.core import moltype as mt
+   >>> DNAgapped = mt.MolType(Sequence=mt.DnaSequence,
+   ...                        motifset=mt.IUPAC_DNA_chars,
+   ...                        Ambiguities=mt.IUPAC_DNA_ambiguities,
+   ...                        Complements=mt.IUPAC_DNA_ambiguities_complements,
+   ...                        Pairs = mt.DnaStandardPairs,
+   ...                        Gaps='.')
+   >>> seq = DNAgapped.makeSequence('ACG.')
 
 
 Setting up a ``MolType`` object with a protein sequence
@@ -64,17 +79,17 @@ Setting up a ``MolType`` object with a protein sequence
 
     >>> from cogent.core.moltype import MolType, IUPAC_PROTEIN_chars,\
     ...   IUPAC_PROTEIN_ambiguities, ProteinMW
-   >>> from cogent.core.sequence import ProteinSequence, ModelProteinSequence
-   >>> protstr = 'TEST'
-   >>> ProteinMolType = MolType(
-   ...     Sequence = ProteinSequence(protstr),
-   ...     motifset = IUPAC_PROTEIN_chars,
-   ...     Ambiguities = IUPAC_PROTEIN_ambiguities,
-   ...     MWCalculator = ProteinMW,
-   ...     make_alphabet_group=True,
-   ...     ModelSeq = ModelProteinSequence,
-   ...     label = "protein")
-   >>> protseq = ProteinMolType.Sequence
+    >>> from cogent.core.sequence import ProteinSequence, ModelProteinSequence
+    >>> protstr = 'TEST'
+    >>> ProteinMolType = MolType(
+    ...     Sequence = ProteinSequence(protstr),
+    ...     motifset = IUPAC_PROTEIN_chars,
+    ...     Ambiguities = IUPAC_PROTEIN_ambiguities,
+    ...     MWCalculator = ProteinMW,
+    ...     make_alphabet_group=True,
+    ...     ModelSeq = ModelProteinSequence,
+    ...     label = "protein")
+    >>> protseq = ProteinMolType.Sequence
 
 Verify sequences
 ----------------

@@ -35,10 +35,7 @@ Our primary goal is to provide a collection of rigourously validated tools for t
 Contacts and contributing
 *************************
 
-If you find a bug, have feature or documentation requests then please post comments on the corresponding tracker_ page at sourceforge. If you have any questions please post on the appropriate projects forums_ page at sourceforge. We appreciate your input!
-
-.. _tracker: http://sourceforge.net/tracker2/?group_id=186234
-.. _forums: http://sourceforge.net/projects/pycogent/forums
+If you find a bug or have feature/documentation requests, please create a new issue on our GitHub `issue tracker <https://github.com/pycogent/pycogent/issues>`_. If you have any questions, please create a new issue on the `issue tracker <https://github.com/pycogent/pycogent/issues>`_ and tag it with the *question* tag. We appreciate your input!
 
 ********
 Citation
@@ -62,6 +59,6 @@ Search
 News and Announcements
 **********************
 
-PyCogent News and Annoucements are available via the News and Announcements Blog at http://pycogent.wordpress.com.
+PyCogent News and Announcements are available via the News and Announcements Blog at http://pycogent.wordpress.com.
 
 `Subscribe to the News and Annoucements RSS Feed <http://pycogent.wordpress.com/feed>`_

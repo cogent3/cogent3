@@ -8,7 +8,7 @@ from cogent.db.ensembl.host import get_ensembl_account, get_latest_release
 from cogent.db.ensembl.database import Database
 from cogent.db.ensembl.assembly import CoordSystem, Coordinate, \
                                         get_coord_conversion, location_query
-from cogent.db.ensembl.region import Gene, Variation, GenericRegion, \
+from cogent.db.ensembl.region import Gene, Transcript, Variation, GenericRegion, \
                                     CpGisland, Repeat, Est
 from cogent.db.ensembl.feature_level import FeatureCoordLevels
 from cogent.util.misc import flatten
@@ -283,6 +283,58 @@ class Genome(object):
             gene = Gene(self, self.CoreDb, data=record)
             yield gene
     
+    def getTranscriptByStableId(self, StableId):
+        """returns the transcript matching StableId, or None if no record found"""
+        query = self._get_transcript_query(self.CoreDb, StableId=StableId)
+        try:
+            record = list(query.execute())[0]
+            transcript_id = record[0]
+            transcript = Transcript(self, self.CoreDb, transcript_id, data=record)
+        except IndexError:
+            transcript = None
+        return transcript
+
+    def _get_transcript_query(self, db, Symbol=None, Description=None, StableId=None,
+                                         BioType=None, synonym=None, like=True):
+        xref_table = [None, db.getTable('xref')][db.Type == 'core']
+        transcript_table = db.getTable('transcript')
+
+        # after release 65, the transcript_id_table is removed. The following is to maintain
+        # support for earlier releases
+        release_ge_65 = self.GeneralRelease >= 65
+        if release_ge_65:
+            transcript_id_table = None
+        else:
+            transcript_id_table = db.getTable('transcript_stable_id')
+
+        assert Symbol or Description or StableId or BioType, "no valid argument provided"
+        if Symbol:
+            condition = xref_table.c.display_label==Symbol
+        elif StableId and release_ge_65:
+            condition = transcript_table.c.stable_id==StableId
+        elif StableId:
+            condition = transcript_id_table.c.stable_id==StableId
+        else:
+            condition = self._get_biotype_description_condition(transcript_table, Description, BioType, like)
+
+        query = self._build_transcript_query(db, condition, transcript_table, transcript_id_table, xref_table)
+
+        return query
+
+    def _build_transcript_query(self, db, condition, transcript_table, transcript_id_table, xref_table=None):
+        if transcript_id_table is None: # Ensembl releases later than >= 65
+            join_obj = transcript_table
+            select_obj = [transcript_table]
+        else:
+            join_obj = transcript_id_table.join(transcript_table, transcript_id_table.c.gene_id==transcript_table.c.transcript_id)
+            select_obj = [transcript_id_table.c.stable_id, transcript_table]
+
+        if db.Type == 'core':
+            join_obj = join_obj.outerjoin(xref_table, transcript_table.c.display_xref_id==xref_table.c.xref_id)
+            select_obj.append(xref_table.c.display_label)
+        query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
+        return query
+
     def getEstMatching(self, StableId):
         """returns an Est object from the otherfeatures db with the StableId"""
         query = self._get_gene_query(self.OtherFeaturesDb, StableId=StableId)
@@ -382,10 +434,7 @@ class Genome(object):
                             Strand = record['seq_region_strand'], 
                             seq_region_id=record['seq_region_id'],
                             ensembl_coord=True)
-            if query_coord.CoordName != target_coord.CoordName:
-                coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
             
-            # TODO: check coord, used 'new' here. where is coord (above line) used? 
             gene = klass(self, db, Location=new, data=record)
             yield gene
         
@@ -473,7 +522,8 @@ class Genome(object):
                         yield region
     
     def getVariation(self, Effect=None, Symbol=None, like=True,
-                     validated=False):
+                     validated=False, somatic=False, flanks_match_ref=False,
+                     limit=None):
         """returns a generator of Variation instances
         
         Arguments:
@@ -482,7 +532,10 @@ class Genome(object):
               provided
             - Symbol: the external or ensembl identifier - returns the exact
               match
-            - validated: variant has validation_status != None"""
+            - validated: variant has validation_status != None
+            - somatic: exclude somatic mutations
+            - flanks_match_ref: flanking sequence matches the reference
+            - limit: only return this number of hits"""
         var_feature_table = self.VarDb.getTable('variation_feature')
         
         assert Effect or Symbol, "No arguments provided"
@@ -511,8 +564,18 @@ class Genome(object):
                 
             query = sql.and_(query,var_feature_table.c.validation_status!=null)
         
+        if not somatic:
+            query = sql.and_(query,var_feature_table.c.somatic!=1)
+        
+        if flanks_match_ref:
+            query = sql.and_(query,var_feature_table.c.alignment_quality==1)
+        
         query = sql.select([var_feature_table],
                     query).order_by(var_feature_table.c.seq_region_start)
+        
+        if limit:
+            query = query.limit(limit)
+        
         for record in query.execute():
             yield Variation(self, self.CoreDb, Effect = Effect, Symbol=Symbol,
                             data=record)
