@@ -40,16 +40,17 @@ def get_dbtype_from_name(name):
     if name[0] == "ensembl":
         dbtype = name[1]
     else:
-        dbtype = "_".join(name[2:])
+        dbtype = name[-1]
     return dbtype
 
 def get_db_prefix(name):
     """returns the db prefix, typically an organism or `ensembl'"""
-    name = _name_delim.split(name)
+    name = _release.split(name)
+    name = [s for s in _name_delim.split(name[0]) if s]
     if name[0] == "ensembl":
         prefix = "ensembl"
-    elif len(name) > 4:
-        prefix = "_".join(name[:2])
+    elif len(name) > 2:
+        prefix = "_".join(name[:-1])
     else:
         raise RuntimeError("Unknown name structure: %s" % "_".join(name))
     return prefix

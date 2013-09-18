@@ -40,6 +40,13 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.Prefix, "pongo_pygmaeus")
         self.assertEqual(n.Type, "core")
         self.assertEqual(n.Build, '1')
+
+    def test_species_with_three_words_name(self):
+        """should correctly parse a db name that contains a three words species name"""
+        n = EnsemblDbName("mustela_putorius_furo_core_70_1")
+        self.assertEqual(n.Prefix, "mustela_putorius_furo")
+        self.assertEqual(n.Type, "core")
+        self.assertEqual(n.Build, '1')
     
     def test_ensemblgenomes_names(self):
         """correctly handle the ensemblgenomes naming system"""

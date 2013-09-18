@@ -127,7 +127,7 @@ We then obtain an alignment of the DNA sequences from the alignment of their tra
 
 .. doctest::
     
-    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA)
+    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA, aa_to_codons=True)
     >>> print aligned_DNA
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
@@ -136,3 +136,5 @@ We then obtain an alignment of the DNA sequences from the alignment of their tra
     >rat
     CTGAACAAGCAG------------------CCACTTTCA---------------------------AACAAGAAA
     <BLANKLINE>
+
+Setting the argument ``aa_to_codons=False`` is only useful when the sequences have exactly the length. One use case is to allow introducing the gaps onto another copy of the alignment where there are annotations.

@@ -670,6 +670,22 @@ class Map(object):
             new_spans.append(LostSpan(self.parent_length-last_hi))
         return Map(spans=new_spans, parent_length=len(self))
     
+    def getCoordinates(self):
+        """returns span coordinates as [(v1, v2), ...]
+        
+        v1/v2 are (start, end) unless the map is reversed, in which case it will
+        be (end, start)"""
+        
+        if self.Reverse:
+            order_func = lambda x: (max(x), min(x))
+        else:
+            order_func = lambda x: x
+        
+        coords = map(order_func,
+                    [(s.Start, s.End) for s in self.spans if not s.lost])
+        
+        return coords
+    
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""
