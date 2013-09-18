@@ -8,7 +8,7 @@ Building and using a new application controller
 
 Overview
 ========
-This document provides an example for defining and using a new application controller [#attribution]_. We'll look at wrapping the ``formatdb`` application from the BLAST 2.2.20 package `available from NCBI <http://www.ncbi.nlm.nih.gov/BLAST/download.shtml>`_. (Note this is what NCBI now refers to as *legacy BLAST*, not BLAST+.) 
+This document provides an example for defining and using a new application controller. We'll look at wrapping the ``formatdb`` application from the BLAST 2.2.20 package `available from NCBI <http://www.ncbi.nlm.nih.gov/BLAST/download.shtml>`_. (Note this is what NCBI now refers to as *legacy BLAST*, not BLAST+.) 
 
 This document was developed in the process of writing the full ``formatdb`` application controller in PyCogent. You can find that file in your PyCogent directory at: ``cogent/app/formatdb.py``. After you work through this example, you should refer to that file to see what the full application controller and convenience wrappers look like.
 
@@ -156,6 +156,3 @@ You can then leave the interpreter and paste this command onto the command line,
 
 	cd "/home/pycogent_user/"; formatdb -o T -i "/home/pycogent_user/PyCogent/doc/data/refseqs.fasta"
 
-.. rubric:: Footnotes
-
-.. [#attribution] This document was modified from Greg Caporaso's PyCogent lecture. You can also grab the `full lecture materials <http://www.caporaso.us/presentations/caporaso_pycogent_lecture.zip>`_.
