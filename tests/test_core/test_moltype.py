@@ -533,9 +533,9 @@ class MolTypeTests(TestCase):
         p = ProteinMolType.MW
         self.assertEqual(p(''), 0)
         self.assertEqual(r(''), 0)
-        self.assertFloatEqual(p('A'), 107.09)
+        self.assertFloatEqual(p('A'), 89.09)
         self.assertFloatEqual(r('A'), 375.17)
-        self.assertFloatEqual(p('AAA'), 285.27)
+        self.assertFloatEqual(p('AAA'), 231.27)
         self.assertFloatEqual(r('AAA'), 1001.59)
         self.assertFloatEqual(r('AAACCCA'), 2182.37)
 
