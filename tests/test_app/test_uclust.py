@@ -90,6 +90,21 @@ class UclustTests(TestCase):
         self.assertEqual(sorted_fasta_actual,sorted_fasta_expected)
         
         test_app_res.cleanUp()
+    
+    def test_parameter_availability(self):
+        """ Often used parameters are accessible 
+        
+            This is just some basic sanity checking.
+        
+        """
+        a = Uclust()
+        # if a parameter is not accessible, trying to turn it on will 
+        # raise a KeyError
+        a.Parameters['--allhits'].on()
+        a.Parameters['--libonly'].on()
+        a.Parameters['--maxaccepts'].on(42)
+        a.Parameters['--maxrejects'].on(42)
+        a.Parameters['--rev'].on()
 
     def test_clustering_fasta_filepath(self):
         """ Should create clusters in uclust format from sorted fasta file 

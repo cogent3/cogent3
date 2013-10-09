@@ -108,6 +108,10 @@ class Uclust(CommandLineApplication):
         '--optimal':FlagParameter('--',Name='optimal'),
 
         '--stable_sort':FlagParameter('--',Name='stable_sort'),
+
+        # From uclust help:
+        # Write all accepts to .uc file (default top hit/no match only).
+        '--allhits':FlagParameter('--',Name='allhits'),
     }
      
     _suppress_stdout = False
