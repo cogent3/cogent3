@@ -152,21 +152,20 @@ def run_fastqjoin(
     outfile_base_name_path,
     perc_max_diff=8,
     min_overlap=6,
-    report=False,
     params={},    
     working_dir='/tmp/',
     SuppressStderr=True,
     SuppressStdout=True,
     HALT_EXEC=False): 
     """ Runs fastq-join, with default parameters to assemble paired-end reads.
+        Returns file path string.
+
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
         -outfile_base_name_path : base outfile name / label. w/o extension
                                   e.g.: 'Bact_Assembly'
         -perc_max_diff : maximum % diff of overlap differences allowed 
         -min_overlap : minimum allowed overlap required to assemble reads
-        -report : T/F to print label for assembly report. Will be based on 
-                  'outfile_base_name_path'
         -params : dictionary of application controller parameters
 
     """    
@@ -184,8 +183,6 @@ def run_fastqjoin(
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
     params['-o'] = outfile_base_name_path
-    if report: # base the assembly report on the outfile_base_name_path
-        params['-r'] = outfile_base_name_path + 'report'
 
     fastq_join_app = FastqJoin(
         params=params,
@@ -196,7 +193,8 @@ def run_fastqjoin(
     
     # run assembler
     result = fastq_join_app(infile_paths)
-    return result
+    joined_paired_ends_file_path = result['Assembled'].name
+    return joined_paired_ends_file_path
 
 
 
