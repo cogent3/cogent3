@@ -9,7 +9,8 @@ from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
 from cogent.app.fastq_join import FastqJoin, run_fastqjoin
 from cogent.app.util import get_tmp_filename
-from os import getcwd, path
+from os import getcwd, path, remove
+from shutil import rmtree
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -76,16 +77,29 @@ class FastqJoinTests(GenericFastqJoin):
                          ''.join(['cd "', self.temp_dir_string + '2', 
                                   '/"; ', 'fastq-join']))
 
-    def test_run_fastqjoin(self):
-        """run_default_fastqjoin: should work as expected """
+    def test_fastqjoin_assembly(self):
+        """Runs FastqJoin with default and laternate settings.
+
+        Checks ouput of assembled paired-ends, unassebled files, 
+        and reports file.  
+        """
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
+        
+        ### Default settings
+        params={}
+        params['-p'] = 8
+        params['-m'] = 6
+        params['-o'] = 'test_fastq'
+        params['-r'] = 'test_fastq_report'
+        working_dir=self.temp_dir_string
+ 
+        fastqjoin_app = FastqJoin(
+                        params=params,
+                        WorkingDir=working_dir
+                        )
 
-        ## 1: run with default function params and request stitch report
-        res = run_fastqjoin(self.test_fn1, self.test_fn2,
-                            'test_fastq', report=True, 
-                             working_dir=self.temp_dir_string)
-
-        print res['Assembled'].name
+        res = fastqjoin_app([self.test_fn1, self.test_fn2])
+        
         # test if file strings are valid:
         self.assertEqual(res['Assembled'].read(), expected_assembly)
         self.assertEqual(res['UnassembledReads1'].read(), expected_default_un1)
@@ -94,20 +108,55 @@ class FastqJoinTests(GenericFastqJoin):
         
         res.cleanUp()
 
-        ## 2: test with different parameters:
-        res2 = run_fastqjoin(self.test_fn1, self.test_fn2,
-                             'test_fastq', perc_max_diff=5, min_overlap=10, 
-                             working_dir=self.temp_dir_string)
+        ### Alternate settings
+        params={}
+        params['-p'] = 5
+        params['-m'] = 10
+        params['-o'] = 'test_fastq'
+        working_dir=self.temp_dir_string
+ 
+        fastqjoin_app_alt = FastqJoin(params=params, WorkingDir=working_dir)
 
+        res_alt = fastqjoin_app_alt([self.test_fn1, self.test_fn2])
+        
         # test if file strings are valid:
-        self.assertEqual(res2['Assembled'].read(), expected_assembly_alt_param)
-        self.assertEqual(res2['UnassembledReads1'].read(), 
+        self.assertEqual(res_alt['Assembled'].read(), 
+                         expected_assembly_alt_param)
+        self.assertEqual(res_alt['UnassembledReads1'].read(), 
                          expected_default_un1_alt_param)
-        self.assertEqual(res2['UnassembledReads2'].read(), 
+        self.assertEqual(res_alt['UnassembledReads2'].read(), 
                          expected_default_un2_alt_param)
         
-        res2.cleanUp()
+        res_alt.cleanUp()
 
+
+    def test_run_fastqjoin(self):
+        """run_fastqjoin: should work as expected """
+        self.writeTmpFastq(self.test_fn1, self.test_fn2)
+
+        ### 1: run with default function params ###
+        jp_file_path = run_fastqjoin(self.test_fn1, self.test_fn2,
+                                     'test_fastq', 
+                                     working_dir=self.temp_dir_string)
+        
+        # test if joined paired end file output is correct:
+        jp_ends = open(jp_file_path,'U')
+        self.assertEqual(jp_ends.read(), expected_assembly)
+       
+        ### 2: test with different parameters ###
+        jp_file_path_alt = run_fastqjoin(self.test_fn1, self.test_fn2,
+                                         'test_fastq', perc_max_diff=5, 
+                                         min_overlap=10, 
+                                         working_dir=self.temp_dir_string)
+
+        # test if joined paired end alt file output is correct:
+        jp_ends_alt = open(jp_file_path_alt,'U')
+        self.assertEqual(jp_ends_alt.read(), expected_assembly_alt_param)
+       
+        
+        remove(self.test_fn1) 
+        remove(self.test_fn2)
+        rmtree(self.temp_dir_string) 
 
 
 
