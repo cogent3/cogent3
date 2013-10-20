@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: flash.py
 
 # Application controller for FLASh v1.2.6 
@@ -33,7 +33,7 @@ class Flash(CommandLineApplication):
     # The minimum required overlap length between two
     # reads to provide a confident overlap.  Default:
     # 10bp. 
-    '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'), #, Value='10'),
+    '-m':ValuedParameter(Prefix='-', Delimiter=' ', Name='m'),
         
     # -M, --max-overlap
     # Maximum overlap length expected in approximately
@@ -48,7 +48,7 @@ class Flash(CommandLineApplication):
     # overlap.  Default: 70bp, or calculated from the
     # specified read length, fragment length, and fragment
     # length standard deviation.
-    '-M':ValuedParameter(Prefix='-', Delimiter=' ', Name='M'), # Value='70'),
+    '-M':ValuedParameter(Prefix='-', Delimiter=' ', Name='M'),
 
     # -x, --max-mismatch-density
     # Maximum allowed ratio between the number of
@@ -63,7 +63,7 @@ class Flash(CommandLineApplication):
     # numbers of correctly merged read pairs but at
     # the expense of higher numbers of incorrectly
     # merged read pairs.  Default: 0.25.
-    '-x':ValuedParameter(Prefix='-', Delimiter=' ', Name='x'), # Value='0.25'),
+    '-x':ValuedParameter(Prefix='-', Delimiter=' ', Name='x'),
 
     # -p, --phred-offset=OFFSET
     # The smallest ASCII value of the characters used to
@@ -72,7 +72,7 @@ class Flash(CommandLineApplication):
     # to the later Illumina platforms and Sanger
     # platforms, or 64, which corresponds to the
     # earlier Illumina platforms.  Default: 33.
-    '-p':ValuedParameter(Prefix='-', Delimiter=' ', Name='p'), # Value='33'),
+    '-p':ValuedParameter(Prefix='-', Delimiter=' ', Name='p'),
 
     # -r, --read-len=LEN
     # -f, --fragment-len=LEN
@@ -92,9 +92,9 @@ class Flash(CommandLineApplication):
     #  fragment library, you can probably assume that the
     #  standard deviation is 10% of the average fragment
     #  length.
-    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='r'), #Value='100'), 
-    '-f':ValuedParameter(Prefix='-', Delimiter=' ', Name='f'), #Value='180'),
-    '-s':ValuedParameter(Prefix='-', Delimiter=' ', Name='s'), #Value='18'),
+    '-r':ValuedParameter(Prefix='-', Delimiter=' ', Name='r'), 
+    '-f':ValuedParameter(Prefix='-', Delimiter=' ', Name='f'),
+    '-s':ValuedParameter(Prefix='-', Delimiter=' ', Name='s'),
 
     # --interleaved-input     
     # Instead of requiring files MATES_1.FASTQ and
@@ -114,12 +114,12 @@ class Flash(CommandLineApplication):
         
     # -o, --output-prefix=PREFIX
     #  Prefix of output files.  Default: "out".
-    '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o'), #Value='out'),
+    '-o':ValuedParameter(Prefix='-', Delimiter=' ', Name='o'), 
         
     # -d, --output-directory=DIR
     #  Path to directory for output files.  Default:
     #  current working directory.
-    '-d':ValuedParameter(Prefix='-', Delimiter=' ', Name='d'), #, Value='./'),
+    '-d':ValuedParameter(Prefix='-', Delimiter=' ', Name='d'), 
         
     # -c, --to-stdout
     # Write the combined reads to standard output; do not
@@ -164,7 +164,7 @@ class Flash(CommandLineApplication):
     # appear deterministically or in the same order as
     # the original reads, you must specify -t 1
     # (--threads=1).
-    '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t'), #Value='1'),
+    '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t'), 
         
     # -q, --quiet
     # Do not print informational messages.  (Implied with
@@ -200,33 +200,10 @@ class Flash(CommandLineApplication):
 
     _input_handler = '_input_as_paths'
 
-    #def _get_WorkingDir(self):
-    #     """Gets the working directory"""
-    #     return self._curr_working_dir
-    #
-    #def _set_WorkingDir(self, data):
-    #    """Sets the working diretory"""
-    #     self._curr_working_dir = self.Parameters['-d'] + '/'
-    #     try: 
-    #         mkdir(self.WorkingDir)
-    #     except OSError: # Directory already exists
-    #         pass
-    # 
-    #WorkingDir = property(_get_WorkingDir,_set_WorkingDir)
-    # 
-    #Not sure what to set these as yet:
-    #_suppress_stdout = True
-    #_suppress_stderr = True
-
-    # may remove the bottom two methods and just use WorkingDir
-    # as flash will default to current directory when -d is not
-    # supplied, and if '-o' is not supplied default is 'out'
-    
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
             output_dir_path = self._absolute(str(self.Parameters['-d'].Value) \
-                +'/') #
-            #print 'output dir path: ', output_dir_path
+                +'/') 
         else:
             raise ValueError, "No output diretory specified."
         return output_dir_path
@@ -234,7 +211,6 @@ class Flash(CommandLineApplication):
     def _output_label(self):
         if self.Parameters['-o'].isOn():
             base_outfile_name = str(self.Parameters['-o'].Value)
-            #print base_outfile_name
         else:
             raise ValueError, "No base outfile label specified."
         return base_outfile_name
@@ -261,9 +237,7 @@ class Flash(CommandLineApplication):
                    /home/usr/data_out/myassembly.histogram'
 
         """
-        # may remove use of these twos lines in favor of WorkingDir
-        # flash will default to current directory and set '-o' to 'out'
-        # when those are not suppplied
+        
         output_dir_path = self._output_dir_path()
         base_outfile_name = self._output_label()
         
@@ -279,23 +253,6 @@ class Flash(CommandLineApplication):
         result['Histogram'] = ResultPath(Path = output_dir_path + \
                 base_outfile_name +'.histogram', IsWritten=True)
         return result
-
-    def remove_unused_params(self):
-        """Remove -r, -f, -s params when -M is set.
-           
-           This just makes it clear to the user that -M will override
-           the -r -f -s params even if set. So, we just remove these
-           flags so that they do not appear when BaseCommand is called.
-           This is mainly for use in convenience functions.
-
-           If these flags are present in the base command, FLASh will ignore 
-           them if it sees '-M' anyway. This is mainly for use in convenience 
-           functions to keep things clear.
-        """
-        if self.Parameters['-M'].isOn():
-            self.Parameters['-r'].off()
-            self.Parameters['-f'].off()
-            self.Parameters['-s'].off()
 
 
     def getHelp(self):
@@ -319,7 +276,7 @@ class Flash(CommandLineApplication):
 # SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
 ###################################################
 
-def default_assemble(\
+def run_flash(
     reads1_infile_path,
     reads2_infile_path,
     output_dir,
@@ -334,9 +291,9 @@ def default_assemble(\
     working_dir='/tmp/',
     verbose=False,
     params={},
-    SuppressStderr=True,  #   Not sure what to set this to.
+    SuppressStderr=True,  
     SuppressStdout=True,
-    HALT_EXEC=False): #   ''
+    HALT_EXEC=False): 
     """Runs FLASh, with HISEQ default parameters to assemble paired-end reads.
 
         -reads1_infile_path : reads1.fastq infile path
@@ -385,6 +342,9 @@ def default_assemble(\
     params['-m'] = min_overlap
     params['-t'] = num_threads
 
+    if max_overlap:
+        params['-M'] = max_overlap
+    
     # set up assembler
     flash_app = Flash(\
         params=params,
@@ -393,22 +353,12 @@ def default_assemble(\
         SuppressStdout=SuppressStdout,
         HALT_EXEC=HALT_EXEC)
     
-    # remove params that will be ignored by FLASh anyway,
-    # this just makes it clear to the user what options are actually being used 
-    # when printing the BaseCommand via verbose. That is -M will 
-    # override -r,-f,-s flags even if they are set.
-    if max_overlap:
-        flash_app.Parameters['-M'].on(max_overlap)
-        flash_app.remove_unused_params()
-
     if verbose:
         print flash_app.BaseCommand
    
     # run assembler
     result = flash_app(infile_paths) # use default '_input_as_paths'
     return result
-
-
 
 
 #if __name__ == "__main__":
