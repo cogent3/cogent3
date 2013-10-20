@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: fastq_join.py
 
 # Application controller for ea-utils v1.1.2-537 
@@ -93,21 +93,21 @@ class FastqJoin(CommandLineApplication):
         result = {}
 
         # always output:
-        result['Assembled'] = ResultPath(Path = output_path + 'join',\
-                              IsWritten=True)
-        result['UnassembledReads1']  = ResultPath(Path = output_path + 'un1',\
-                              IsWritten=True)
-        result['UnassembledReads2']  = ResultPath(Path = output_path + 'un2',\
-                              IsWritten=True)
+        result['Assembled'] = ResultPath(Path = output_path + 'join',
+                                         IsWritten=True)
+        result['UnassembledReads1']  = ResultPath(Path = output_path + 'un1',
+                                                  IsWritten=True)
+        result['UnassembledReads2']  = ResultPath(Path = output_path + 'un2',
+                                                  IsWritten=True)
        
 
         # check if stitch report is requested:
         if self.Parameters['-r'].isOff():
-		    pass
+            pass
         else:
             stitch_path = self._stitch_report_path()
             result['Report'] = ResultPath(Path = stitch_path,\
-			    IsWritten=True)
+			                  IsWritten=True)
 
         # Check if mate file / barcode file is present.
         # If not, return result
@@ -116,11 +116,11 @@ class FastqJoin(CommandLineApplication):
         mate_unassembled_path_string = output_path + 'un3'
         if exists(mate_path_string) and exists(mate_unassembled_path_string):
             try:
-                result['Mate'] = ResultPath(Path = mate_path_string, \
-                    IsWritten=True)
-                result['MateUnassembled'] = ResultPath(Path = \
-                    mate_unassembled_path_string,\
-                    IsWritten=True)
+                result['Mate'] = ResultPath(Path = mate_path_string, 
+                                            IsWritten=True)
+                result['MateUnassembled'] = ResultPath(Path = 
+                                                       mate_unassembled_path_string,
+                                                       IsWritten=True)
             except:
                 pass
         else:
@@ -131,8 +131,7 @@ class FastqJoin(CommandLineApplication):
 
     def getHelp(self):
         """fastq-join (v1.1.2) help"""
-        help_str =\
-        """
+        help_str = """
         For issues with the actual program 'fastq-join', see the following:
     
         For basic help, type the following at the command line:
@@ -143,11 +142,11 @@ class FastqJoin(CommandLineApplication):
 
         For questions / comments subit an issue to:
         http://code.google.com/p/ea-utils/issues/list
-    """
+        """
         return help_str
 
 
-def run_default_fastqjoin(\
+def run_fastqjoin(
     reads1_infile_path,
     reads2_infile_path,
     outfile_base_name_path,
@@ -188,7 +187,7 @@ def run_default_fastqjoin(\
     if report: # base the assembly report on the outfile_base_name_path
         params['-r'] = outfile_base_name_path + 'report'
 
-    fastq_join_app = FastqJoin(\
+    fastq_join_app = FastqJoin(
         params=params,
         WorkingDir=working_dir,
         SuppressStderr=SuppressStderr,
