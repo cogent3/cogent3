@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: test_flash.py
 
 # Tests for the flash.py application controller.
@@ -7,10 +7,10 @@
 # using test_mafft.py as a guide
 
 from cogent.util.unit_test import TestCase, main
-from cogent.app.flash import Flash, default_assemble
+from cogent.util.misc import create_dir
+from cogent.app.flash import Flash, run_flash
 from subprocess import Popen, PIPE, STDOUT
-from os import getcwd, remove, rmdir, mkdir, path
-#from tempfile import mkdtemp#, tempdir
+from os import getcwd, path
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -25,33 +25,28 @@ class GenericFlash(TestCase):
     
     def setUp(self):
         """Flash general setup fo all tests"""
+        self.temp_dir_string = '/tmp/test_for_flash'
+        create_dir(self.temp_dir_string)
 
-        self.temp_dir = '/tmp/test_for_flash/'
-        try:
-            mkdir(self.temp_dir)
-        except OSError:
-            pass        
-
-        self.temp_dir_spaces = '/tmp/test for flash/'
-        try:
-            mkdir(self.temp_dir_spaces)
-        except OSError:
-            pass
-
+        self.temp_dir_string_spaces = '/tmp/test for flash'
+        create_dir(self.temp_dir_string_spaces)
+        
         # temp file paths
-        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
+        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir_string_spaces, 
+                                        'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_string_spaces, 
+                                        'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
         try:
             fq1 = open(fw_reads_path, "w+")
-            fq1.write(reads1_string)
+            fq1.write(reads1_string) # bottom of file
             fq1.close()
             fq2 = open(rev_reads_path, "w+")
-            fq2.write(reads2_string)
+            fq2.write(reads2_string) # bottom of file
             fq2.close()
         except OSError:
             pass
@@ -65,8 +60,8 @@ class FlashTests(GenericFlash):
         # Check if flash version is supported for this test
         accepted_version = (1,2,6)
         command = "flash --version"
-        version_cmd = Popen(command, shell=True, universal_newlines=True,\
-               stdout=PIPE,stderr=STDOUT)
+        version_cmd = Popen(command, shell=True, universal_newlines=True,
+                            stdout=PIPE,stderr=STDOUT)
         stdout = version_cmd.stdout.read()
         #print stdout
         version_string = stdout.strip().split('\n')[0].split('v')[1]
@@ -79,7 +74,7 @@ class FlashTests(GenericFlash):
             pass_test = False
             version_string = stdout
         self.assertTrue(pass_test,\
-            "Unsupported flash version. %s is required, but running %s." \
+            "Unsupported flash version. %s is required, but running %s." 
             %('.'.join(map(str, accepted_version)), version_string))
 
 
@@ -88,48 +83,39 @@ class FlashTests(GenericFlash):
 
         c = Flash()
         # test base command
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'flash']))
+        self.assertEqual(c.BaseCommand, 
+                         ''.join(['cd "', getcwd(), '/"; ', 'flash']))
         # test turning on a parameter
         c.Parameters['-M'].on('250')
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'flash -M 250']))
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', getcwd(), '/"; ', 'flash -M 250']))
 
         # test turning on another parameter via synonym
         # '--phred-offset' should use '-p'
         c.Parameters['--phred-offset'].on('33')
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'flash -M 250 -p 33']))
-
-        # test remove unused params
-        c2 = Flash()
-        c2.Parameters['-r'].on('100')
-        c2.Parameters['-s'].on('18')
-        c2.Parameters['-f'].on('180')
-        c2.Parameters['-M'].on('230')
-        c2.Parameters['-o'].on('out230')
-        c2.remove_unused_params()
-        self.assertEqual(c2.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'flash -M 230 -o out230']))
-
-
+        self.assertEqual(c.BaseCommand, 
+                         ''.join(['cd "', getcwd(), '/"; ', 
+                                  'flash -M 250 -p 33']))
+       
     def test_changing_working_dir(self):
-        c = Flash(WorkingDir=self.temp_dir)
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir, '/"; ', 'flash'])) 
+        c = Flash(WorkingDir=self.temp_dir_string)
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', self.temp_dir_string, '/"; ',
+                                  'flash'])) 
         c = Flash()
-        c.WorkingDir = self.temp_dir + '2'
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'flash'])) 
+        c.WorkingDir = self.temp_dir_string + '2'
+        self.assertEqual(c.BaseCommand, 
+                         ''.join(['cd "', self.temp_dir_string + '2',
+                                  '/"; ', 'flash'])) 
 
-    def test_default_assemble(self):
-        """default_assemble: should work as expected"""
+    def test_run_flash(self):
+        """run_flash: should work as expected"""
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         # Run with default HISEQ parameters on MISEQ data.
         # Not everything will assemble
-        res = default_assemble(self.test_fn1, self.test_fn2,\
-              self.temp_dir, 'out') #, HALT_EXEC=True)
+        res = run_flash(self.test_fn1, self.test_fn2,
+                        self.temp_dir_string, 'out')#, HALT_EXEC=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
@@ -143,8 +129,8 @@ class FlashTests(GenericFlash):
 
         # Run with more appropriate MISEQ settings:
         # UnassembledReads files should be empty.
-        res2 = default_assemble(self.test_fn1, self.test_fn2, \
-              self.temp_dir,'out250', max_overlap=250, verbose=True) #, HALT_EXEC=True)
+        res2 = run_flash(self.test_fn1, self.test_fn2, self.temp_dir_string,
+                         'out250', max_overlap=250, verbose=True)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.
