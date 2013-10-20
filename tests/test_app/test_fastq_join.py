@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: test_fastq_join.py
 
 # Tests for the fastq_join.py application controller.
@@ -6,10 +6,10 @@
 # http://code.google.com/p/ea-utils/
 
 from cogent.util.unit_test import TestCase, main
-from cogent.app.fastq_join import FastqJoin, run_default_fastqjoin
-#from subprocess import Popen, PIPE, STDOUT
-from os import getcwd, remove, rmdir, mkdir, path
-#from tempfile import mkdtemp#, tempdir
+from cogent.util.misc import create_dir
+from cogent.app.fastq_join import FastqJoin, run_fastqjoin
+from cogent.app.util import get_tmp_filename
+from os import getcwd, path
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -24,23 +24,19 @@ __status__ = "Development"
 class GenericFastqJoin(TestCase):
     def setUp(self):
         """General setup for fastq-join tests"""
-        self.temp_dir = '/tmp/test_for_fastq_join'
-        try:
-            mkdir(self.temp_dir)
-        except OSError:
-            pass
+        self.temp_dir_string = '/tmp/test_fastq_join'
+        create_dir(self.temp_dir_string)
 
-        self.temp_dir_spaces = '/tmp/test for fastq join/'
-        try:
-            mkdir(self.temp_dir_spaces)
-        except OSError:
-            pass
+        self.temp_dir_string_spaces = '/tmp/test fastq join'
+        create_dir(self.temp_dir_string_spaces)
 
         # create temp file path strings
-        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
+        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir_string_spaces, 
+                                        'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_string_spaces,
+                                        'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
@@ -61,31 +57,35 @@ class FastqJoinTests(GenericFastqJoin):
         """fastq-join command should return correct BaseCommand"""
         c = FastqJoin()
         # test base command 
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'fastq-join']))
+        self.assertEqual(c.BaseCommand, ''.join(['cd "', getcwd(), '/"; ',
+                                                  'fastq-join']))
         # test turning on a parameter
         c.Parameters['-p'].on('15')
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'fastq-join -p 15'])) 
+        self.assertEqual(c.BaseCommand, ''.join(['cd "', getcwd(), '/"; ',
+                                                 'fastq-join -p 15'])) 
 
     def test_changing_working_dir(self):
         """WorkingDir should change properly"""
-        c = FastqJoin(WorkingDir=self.temp_dir)
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir, '/"; ', 'fastq-join']))
+        c = FastqJoin(WorkingDir=self.temp_dir_string)
+        self.assertEqual(c.BaseCommand, 
+                         ''.join(['cd "', self.temp_dir_string,
+                                  '/"; ', 'fastq-join']))
         c = FastqJoin()
-        c.WorkingDir = self.temp_dir + '2'
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'fastq-join']))
+        c.WorkingDir = self.temp_dir_string + '2'
+        self.assertEqual(c.BaseCommand, 
+                         ''.join(['cd "', self.temp_dir_string + '2', 
+                                  '/"; ', 'fastq-join']))
 
-    def test_run_default_fastqjoin(self):
+    def test_run_fastqjoin(self):
         """run_default_fastqjoin: should work as expected """
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
         ## 1: run with default function params and request stitch report
-        res = run_default_fastqjoin(self.test_fn1, self.test_fn2,\
-                  'test_fastq', report=True, working_dir=self.temp_dir)
+        res = run_fastqjoin(self.test_fn1, self.test_fn2,
+                            'test_fastq', report=True, 
+                             working_dir=self.temp_dir_string)
 
+        print res['Assembled'].name
         # test if file strings are valid:
         self.assertEqual(res['Assembled'].read(), expected_assembly)
         self.assertEqual(res['UnassembledReads1'].read(), expected_default_un1)
@@ -95,14 +95,16 @@ class FastqJoinTests(GenericFastqJoin):
         res.cleanUp()
 
         ## 2: test with different parameters:
-        res2 = run_default_fastqjoin(self.test_fn1, self.test_fn2,\
-               'test_fastq', perc_max_diff=5, min_overlap=10, \
-                working_dir=self.temp_dir) #, HALT_EXEC=True)
+        res2 = run_fastqjoin(self.test_fn1, self.test_fn2,
+                             'test_fastq', perc_max_diff=5, min_overlap=10, 
+                             working_dir=self.temp_dir_string)
 
         # test if file strings are valid:
         self.assertEqual(res2['Assembled'].read(), expected_assembly_alt_param)
-        self.assertEqual(res2['UnassembledReads1'].read(), expected_default_un1_alt_param)
-        self.assertEqual(res2['UnassembledReads2'].read(), expected_default_un2_alt_param)
+        self.assertEqual(res2['UnassembledReads1'].read(), 
+                         expected_default_un1_alt_param)
+        self.assertEqual(res2['UnassembledReads2'].read(), 
+                         expected_default_un2_alt_param)
         
         res2.cleanUp()
 
