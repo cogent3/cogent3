@@ -1,12 +1,13 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: test_pandaseq.py
 
 # Tests for the pandaseq.py application controller.
 # https://github.com/neufeld/pandaseq
 
 from cogent.util.unit_test import TestCase, main
-from cogent.app.pandaseq import PandaSeq, run_default_pandaseq
-from os import getcwd, remove, rmdir, mkdir, path, system
+from cogent.util.misc import create_dir
+from cogent.app.pandaseq import PandaSeq, run_pandaseq
+from os import getcwd, path, system
 from subprocess import Popen, PIPE, STDOUT
 import gzip
 
@@ -23,24 +24,20 @@ class GenericPandaSeq(TestCase):
     def setUp(self):
         """General setup for PandaSeq tests """
         # make directory test
-        self.temp_dir = '/tmp/test_for_pandaseq'
-        try:
-            mkdir(self.temp_dir)
-        except OSError:
-            pass
+        self.temp_dir_string = '/tmp/test_for_pandaseq'
+        create_dir(self.temp_dir_string)
 
         # make directory with spaces test
-        self.temp_dir_spaces = '/tmp/test for pandaseq/'
-        try:
-            mkdir(self.temp_dir_spaces)
-        except OSError:
-            pass
+        self.temp_dir_string_spaces = '/tmp/test for pandaseq'
+        create_dir(self.temp_dir_string_spaces)
 
         # temp file paths
-        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
+        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir_string_spaces, 
+                                        'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_string_spaces,
+                                        'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
@@ -63,8 +60,8 @@ class PandaSeqTests(GenericPandaSeq):
         # Check if pandaseq version is supported for this test
         accepted_version = (2,4)
         command = "pandaseq -v"
-        version_cmd = Popen(command, shell=True, universal_newlines=True,\
-               stdout=PIPE,stderr=STDOUT)
+        version_cmd = Popen(command, shell=True, universal_newlines=True,
+                            stdout=PIPE,stderr=STDOUT)
         stdout = version_cmd.stdout.read()
         #print stdout
         version_string = stdout.strip().split()[1]
@@ -76,31 +73,33 @@ class PandaSeqTests(GenericPandaSeq):
         except ValueError:
             pass_test = False
             version_string = stdout
-        self.assertTrue(pass_test,\
-            "Unsupported pandaseq version. %s is required, but running %s." \
-            %('.'.join(map(str, accepted_version)), version_string))
+        self.assertTrue(pass_test,
+                        "Unsupported pandaseq version. %s is required, but running %s." 
+                        %('.'.join(map(str, accepted_version)), version_string))
 
     def test_changing_working_dir(self):
         """WorkingDir should change properly.""" 
-        c = PandaSeq(WorkingDir=self.temp_dir)
-        self.assertEqual(c.BaseCommand,\
-        ''.join(['cd "', self.temp_dir, '/"; ', 'pandaseq']))
+        c = PandaSeq(WorkingDir=self.temp_dir_string)
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', self.temp_dir_string, '/"; ',
+                          'pandaseq']))
 
         c = PandaSeq()
-        c.WorkingDir = self.temp_dir + '2'
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'pandaseq']))
+        c.WorkingDir = self.temp_dir_string + '2'
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', self.temp_dir_string + '2', '/"; ',
+                         'pandaseq']))
 
     def test_base_command(self):
         """pandaseq command should return correct BaseCommand"""
         c = PandaSeq()
         # test base command
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'pandaseq']))
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', getcwd(), '/"; ', 'pandaseq']))
         # test turning on parameter
         c.Parameters['-o'].on('15')
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'pandaseq -o 15']))
+        self.assertEqual(c.BaseCommand,
+                         ''.join(['cd "', getcwd(), '/"; ', 'pandaseq -o 15']))
 
     def test_run_default_pandaseq(self):
         """run_default_pandaseq: should work as expected"""
@@ -108,11 +107,9 @@ class PandaSeqTests(GenericPandaSeq):
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
         # run with default function params
-        res = run_default_pandaseq(self.test_fn1, self.test_fn2,\
-            'assembly.fastq', working_dir=self.temp_dir, temp_dir=self.temp_dir) #, HALT_EXEC=True)
-        
-        #print res['Assembly'].name
-        #print res['StdOut']
+        res = run_pandaseq(self.test_fn1, self.test_fn2,
+                                   'assembly.fastq', 
+                                   working_dir=self.temp_dir_string)
         
         # test if assembly output string is valid. StdOut should be empty 
         # after copying and writing to a new file that is accesable by
@@ -123,9 +120,9 @@ class PandaSeqTests(GenericPandaSeq):
         res.cleanUp()
 
         # run with fastq (-F option) turned off
-        res2 = run_default_pandaseq(self.test_fn1, self.test_fn2,\
-            'assembly.fastq', fastq=False, working_dir=self.temp_dir, \
-            temp_dir=self.temp_dir) #, HALT_EXEC=True)
+        res2 = run_pandaseq(self.test_fn1, self.test_fn2,
+                                    'assembly.fastq', fastq=False, 
+                                    working_dir=self.temp_dir_string) 
         
         self.assertEqual(res2['StdOut'].read(), '') 
         self.assertEqual(res2['Assembly'].read(), expected_default_assembly_fasta)

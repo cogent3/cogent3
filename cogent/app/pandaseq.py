@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: pandaseq.py
 
 # Application controller for pandaseq (v2.4) 
@@ -87,15 +87,15 @@ class PandaSeq(CommandLineApplication):
     # -T thread   Run with a number of parallel threads.
     '-T':ValuedParameter(Prefix='-', Delimiter=' ', Name='T'),
 
-    # -t  The minimum probability that a sequence must have to match a primer. (default = 6.000000e-01)
+    # -t  The minimum probability that a sequence must have to match a primer.
+    #     (default = 6.000000e-01)
     '-t':ValuedParameter(Prefix='-', Delimiter=' ', Name='t'),
     }
 
 
     def getHelp(self):
         """pandaseq help"""
-        help_Str = \
-        """
+        help_Str = """
         For basic help, type the following at the command line:
             'pandaseq' or 'pandaseq -h'
 
@@ -104,7 +104,7 @@ class PandaSeq(CommandLineApplication):
         """
 
 
-def run_default_pandaseq(\
+def run_pandaseq(
     reads1_infile_name,
     reads2_infile_name,
     assembled_outfile_name,
@@ -112,7 +112,6 @@ def run_default_pandaseq(\
     fastq=True,
     params={},
     working_dir='/tmp',
-    temp_dir='/tmp',
     SuppressStderr=True,
     SuppressStdout=False,
     HALT_EXEC=False):
@@ -146,7 +145,6 @@ def run_default_pandaseq(\
     pandaseq_app = PandaSeq(\
         params=params,
         WorkingDir=working_dir,
-        TmpDir=temp_dir,
         SuppressStderr=SuppressStderr,
         SuppressStdout=SuppressStdout,
         HALT_EXEC=HALT_EXEC)
@@ -168,9 +166,6 @@ def run_default_pandaseq(\
     # The file will be accessible via result['Assembly']
     # We do this so that the actual output remains saved to
     # disk and can be accessed outside python.
-    # Any suggestions as to prevent the temp StdOut file
-    # from being deleted by default? Since this IS the 
-    # data we'd want to save from this program.
     of = open(assembled_outfile_name, 'w')
     for line in result['StdOut']:
         of.write(line)
