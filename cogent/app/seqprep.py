@@ -275,16 +275,16 @@ def run_seqprep(
 
 
     # set up controller
-    seqprep_app=SeqPrep(\
-        params = params,
-        WorkingDir=working_dir,
-        SuppressStderr=SuppressStderr,
-        SuppressStdout=SuppressStdout,
-        HALT_EXEC=HALT_EXEC)
+    seqprep_app=SeqPrep(params = params,
+                        WorkingDir=working_dir,
+                        SuppressStderr=SuppressStderr,
+                        SuppressStdout=SuppressStdout,
+                        HALT_EXEC=HALT_EXEC)
 
-    # run assembler
+    # run assembler and return joined paired ends path
     result = seqprep_app()
-    return result
+    joined_paired_ends = result['Assembled'].name
+    return joined_paired_ends
 
 
 
