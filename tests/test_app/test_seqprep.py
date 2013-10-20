@@ -7,8 +7,9 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
 from cogent.app.seqprep import SeqPrep, run_seqprep
-from os import getcwd, path, system
-import gzip
+from os import getcwd, path, system, remove
+from shutil import rmtree
+from gzip import GzipFile
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -24,11 +25,11 @@ class GenericSeqPrep(TestCase):
     def setUp(self):
         """General setup for SeqPrep tests """
         # make directory test
-        self.temp_dir_string = '/tmp/test_for_seqprep'
+        self.temp_dir_string = '/tmp/test_for_seqprep/'
         create_dir(self.temp_dir_string)
 
         # make directory with spaces test
-        self.temp_dir_string_space = '/tmp/test for seqprep'
+        self.temp_dir_string_space = '/tmp/test for seqprep/'
         create_dir(self.temp_dir_string_space)
         
         # create temp file path strings
@@ -77,54 +78,109 @@ class SeqPrepTests(GenericSeqPrep):
             ''.join(['cd "', getcwd(), '/"; ', 'SeqPrep -O 15']))
 
 
+    def test_seqprep_assembly(self):
+        """Runs SeqPrep with suggested default and alternate settings
+        Checks output of assembled paired-ends, and unassembled files
+         """
+        self.writeTmpFastq(self.test_fn1, self.test_fn2)
+
+        ### Suggested default settings ###
+        params = {}
+        params['-f'] = self.test_fn1
+        params['-r'] = self.test_fn2
+        params['-s'] = self.temp_dir_string + 'assembled.gz'
+        params['-1'] = self.temp_dir_string + 'unassembled.reads1out.gz'
+        params['-2'] = self.temp_dir_string + 'unassembled.reads2out.gz'
+        params['-o'] = 15
+        params['-m'] = 0.02
+        params['-n'] = 0.9
+
+        sp_app = SeqPrep(params = params,
+                     WorkingDir=self.temp_dir_string)
+
+        sp_res = sp_app()
+
+        # since output is gzipped by default we need to convert to
+        # raw text before testing our results. 
+        assembly_result = GzipFile(fileobj=sp_res['Assembled']).read()
+        self.assertEqual(assembly_result, expected_default_assembly_workaround) 
+
+        # See note below on issues with the followng command
+        # self.assertEqual(assembly_result, expected_default_assembly_raw) 
+  
+        unass_reads1_result = GzipFile(fileobj=
+                                       sp_res['UnassembledReads1']).read()
+        self.assertEqual(unass_reads1_result, 
+                         expected_default_unassembled_reads1) 
+
+        unass_reads2_result = GzipFile(fileobj=
+                                       sp_res['UnassembledReads2']).read()
+        self.assertEqual(unass_reads2_result, 
+                         expected_default_unassembled_reads2) 
+
+        sp_res.cleanUp() 
+        
+
+        ### Alt settings ###
+        params_alt = {}
+        params_alt['-f'] = self.test_fn1
+        params_alt['-r'] = self.test_fn2
+        params_alt['-s'] = self.temp_dir_string + 'assembled.gz'
+        params_alt['-1'] = self.temp_dir_string + 'unassembled.reads1out.gz'
+        params_alt['-2'] = self.temp_dir_string + 'unassembled.reads2out.gz'
+        params_alt['-o'] = 30
+        params_alt['-m'] = 0.01
+        params_alt['-n'] = 0.95
+
+        sp_app2 = SeqPrep(params = params_alt,
+                     WorkingDir=self.temp_dir_string)
+        sp_res2 = sp_app2()
+
+        assembly_result = GzipFile(fileobj=sp_res2['Assembled']).read()
+        self.assertEqual(assembly_result, expected_assembly_altered_params) 
+
+        unassembled_reads1_result2 = GzipFile(fileobj=
+                                    sp_res2['UnassembledReads1']).read()
+        self.assertEqual(unassembled_reads1_result2, 
+                         expected_unassembled_reads1_altered_params) 
+
+        unassembled_reads2_result2 = GzipFile(fileobj=
+                                    sp_res2['UnassembledReads2']).read()
+        self.assertEqual(unassembled_reads2_result2, 
+                         expected_unassembled_reads2_altered_params) 
+
+        sp_res2.cleanUp() 
+        
+
+
     def test_run_seqprep(self):
         """run_seqprep: should work as expected."""
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
-        # run with default function params
+        ### run with default function params ###
         res = run_seqprep(self.test_fn1, self.test_fn2, self.temp_dir_string)
-
+        print res
         # since output is gzipped by default we need to convert to
-        # raw text before testing our results. 
-        assembly_result = gzip.GzipFile(fileobj=res['Assembled']).read()
+        # raw text before testing our results.
+        res_fh = open(res) 
+        assembly_result = GzipFile(fileobj=res_fh).read()
         self.assertEqual(assembly_result, expected_default_assembly_workaround) 
         
-        # See note below on issues with the followng command
-        # self.assertEqual(assembly_result, expected_default_assembly_raw) 
-  
-        unassembled_reads1_result = gzip.GzipFile(fileobj=\
-                                    res['UnassembledReads1']).read()
-        self.assertEqual(unassembled_reads1_result, 
-                         expected_default_unassembled_reads1) 
-
-        unassembled_reads2_result = gzip.GzipFile(fileobj=\
-                                    res['UnassembledReads2']).read()
-        self.assertEqual(unassembled_reads2_result, 
-                         expected_default_unassembled_reads2) 
-
-        res.cleanUp() 
-        
-        # change default params
+        ### change default params ###
         res2 = run_seqprep(self.test_fn1, self.test_fn2,
                            self.temp_dir_string, min_overlap=30,
                            max_mismatch_good_frac= 0.01,
                            min_frac_matching=0.95) 
 
-        assembly_result = gzip.GzipFile(fileobj=res2['Assembled']).read()
-        self.assertEqual(assembly_result, expected_assembly_altered_params) 
+        res2_fh = open(res2)
+        assembly_result2 = GzipFile(fileobj=res2_fh).read()
+        self.assertEqual(assembly_result2, expected_assembly_altered_params) 
 
-        unassembled_reads1_result = gzip.GzipFile(fileobj=\
-                                    res2['UnassembledReads1']).read()
-        self.assertEqual(unassembled_reads1_result, 
-                         expected_unassembled_reads1_altered_params) 
+        remove(self.test_fn1)
+        remove(self.test_fn2)        
+        rmtree(self.temp_dir_string)
 
-        unassembled_reads2_result = gzip.GzipFile(fileobj=\
-                                    res2['UnassembledReads2']).read()
-        self.assertEqual(unassembled_reads2_result, 
-                         expected_unassembled_reads2_altered_params) 
 
-        res2.cleanUp() 
-        
 
 
 reads1_string = """@MISEQ03:64:000000000-A2H3D:1:1101:14358:1530 1:N:0:TCCACAGGAGT
