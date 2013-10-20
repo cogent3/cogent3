@@ -1,12 +1,13 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: test_seqprep.py
 
 # Tests for the seqprep.py application controller.
 # https://github.com/jstjohn/SeqPrep
 
 from cogent.util.unit_test import TestCase, main
-from cogent.app.seqprep import SeqPrep, run_default_seqprep
-from os import getcwd, remove, rmdir, mkdir, path, system
+from cogent.util.misc import create_dir
+from cogent.app.seqprep import SeqPrep, run_seqprep
+from os import getcwd, path, system
 import gzip
 
 __author__ = "Michael Robeson"
@@ -23,24 +24,20 @@ class GenericSeqPrep(TestCase):
     def setUp(self):
         """General setup for SeqPrep tests """
         # make directory test
-        self.temp_dir = '/tmp/test_for_seqprep'
-        try:
-            mkdir(self.temp_dir)
-        except OSError:
-            pass
+        self.temp_dir_string = '/tmp/test_for_seqprep'
+        create_dir(self.temp_dir_string)
 
         # make directory with spaces test
-        self.temp_dir_spaces = '/tmp/test for seqprep/'
-        try:
-            mkdir(self.temp_dir_spaces)
-        except OSError:
-            pass
-    
+        self.temp_dir_string_space = '/tmp/test for seqprep'
+        create_dir(self.temp_dir_string_space)
+        
         # create temp file path strings
-        self.test_fn1 = path.join(self.temp_dir,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir, 'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_spaces + 'reads2.fastq')
+        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = path.join(self.temp_dir_string_space, 
+                                        'reads1.fastq')
+        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = path.join(self.temp_dir_string_space,
+                                        'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
         """write forward and reverse reads data to temp fastq files"""
@@ -59,20 +56,20 @@ class SeqPrepTests(GenericSeqPrep):
 
     def test_changing_working_dir(self):
         """WorkingDir should change properly.""" 
-        c = SeqPrep(WorkingDir=self.temp_dir)
-        self.assertEqual(c.BaseCommand,\
-        ''.join(['cd "', self.temp_dir, '/"; ', 'SeqPrep']))
+        c = SeqPrep(WorkingDir=self.temp_dir_string)
+        self.assertEqual(c.BaseCommand,
+        ''.join(['cd "', self.temp_dir_string, '/"; ', 'SeqPrep']))
 
         c = SeqPrep()
-        c.WorkingDir = self.temp_dir + '2'
-        self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', self.temp_dir + '2', '/"; ', 'SeqPrep']))
+        c.WorkingDir = self.temp_dir_string + '2'
+        self.assertEqual(c.BaseCommand,
+            ''.join(['cd "', self.temp_dir_string + '2', '/"; ', 'SeqPrep']))
 
     def test_base_command(self):
         """seqprep command should return correct BaseCommand"""
         c = SeqPrep()
         # test base command
-        self.assertEqual(c.BaseCommand,\
+        self.assertEqual(c.BaseCommand,
             ''.join(['cd "', getcwd(), '/"; ', 'SeqPrep']))
         # test turning on parameter
         c.Parameters['-O'].on('15')
@@ -80,13 +77,12 @@ class SeqPrepTests(GenericSeqPrep):
             ''.join(['cd "', getcwd(), '/"; ', 'SeqPrep -O 15']))
 
 
-    def test_run_default_seqprep(self):
-        """run_default_seqprep: should work as expected."""
+    def test_run_seqprep(self):
+        """run_seqprep: should work as expected."""
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         # run with default function params
-        res = run_default_seqprep(self.test_fn1, self.test_fn2,\
-            self.temp_dir) #, HALT_EXEC=True)
+        res = run_seqprep(self.test_fn1, self.test_fn2, self.temp_dir_string)
 
         # since output is gzipped by default we need to convert to
         # raw text before testing our results. 
@@ -97,34 +93,35 @@ class SeqPrepTests(GenericSeqPrep):
         # self.assertEqual(assembly_result, expected_default_assembly_raw) 
   
         unassembled_reads1_result = gzip.GzipFile(fileobj=\
-            res['UnassembledReads1']).read()
-        self.assertEqual(unassembled_reads1_result, \
-            expected_default_unassembled_reads1) 
+                                    res['UnassembledReads1']).read()
+        self.assertEqual(unassembled_reads1_result, 
+                         expected_default_unassembled_reads1) 
 
         unassembled_reads2_result = gzip.GzipFile(fileobj=\
-            res['UnassembledReads2']).read()
-        self.assertEqual(unassembled_reads2_result, \
-            expected_default_unassembled_reads2) 
+                                    res['UnassembledReads2']).read()
+        self.assertEqual(unassembled_reads2_result, 
+                         expected_default_unassembled_reads2) 
 
         res.cleanUp() 
         
         # change default params
-        res2 = run_default_seqprep(self.test_fn1, self.test_fn2,\
-            self.temp_dir, min_overlap=30, max_mismatch_good_frac= 0.01, \
-            min_frac_matching=0.95) #, HALT_EXEC=True)
+        res2 = run_seqprep(self.test_fn1, self.test_fn2,
+                           self.temp_dir_string, min_overlap=30,
+                           max_mismatch_good_frac= 0.01,
+                           min_frac_matching=0.95) 
 
         assembly_result = gzip.GzipFile(fileobj=res2['Assembled']).read()
         self.assertEqual(assembly_result, expected_assembly_altered_params) 
 
         unassembled_reads1_result = gzip.GzipFile(fileobj=\
-            res2['UnassembledReads1']).read()
-        self.assertEqual(unassembled_reads1_result, \
-            expected_unassembled_reads1_altered_params) 
+                                    res2['UnassembledReads1']).read()
+        self.assertEqual(unassembled_reads1_result, 
+                         expected_unassembled_reads1_altered_params) 
 
         unassembled_reads2_result = gzip.GzipFile(fileobj=\
-            res2['UnassembledReads2']).read()
-        self.assertEqual(unassembled_reads2_result, \
-            expected_unassembled_reads2_altered_params) 
+                                    res2['UnassembledReads2']).read()
+        self.assertEqual(unassembled_reads2_result, 
+                         expected_unassembled_reads2_altered_params) 
 
         res2.cleanUp() 
         

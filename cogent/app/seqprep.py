@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # file: seqprep.py
 
 # Application controller for SeqPrep 
@@ -46,7 +46,8 @@ class SeqPrep(CommandLineApplication):
     # -3 <first read discarded fastq filename>
     # -4 <second read discarded fastq filename>
     # -h Display this help message and exit (also works with no args) 
-    # -6 Input sequence is in phred+64 rather than phred+33 format, the output will still be phred+33 
+    # -6 Input sequence is in phred+64 rather than phred+33 format, the 
+    #    output will still be phred+33 
     # -q <Quality score cutoff for mismatches to be counted in overlap; default = 13>
     # -L <Minimum length of a trimmed or merged read to print it; default = 30>
     '-3':ValuedParameter(Prefix='-', Delimiter=' ', Name='3'),
@@ -125,8 +126,7 @@ class SeqPrep(CommandLineApplication):
         """Checks file name is set for reads1 output. 
            Returns absolute path."""
         if self.Parameters['-1'].isOn():
-            unassembled_reads1 = self._absolute(str(\
-                self.Parameters['-1'].Value))
+            unassembled_reads1 = self._absolute(str(self.Parameters['-1'].Value))
         else:
             raise ValueError, "No reads1 (flag: -1) output path specified"
         return unassembled_reads1
@@ -135,8 +135,7 @@ class SeqPrep(CommandLineApplication):
         """Checks if file name is set for reads2 output. 
            Returns absolute path."""
         if self.Parameters['-2'].isOn():
-            unassembled_reads2 = self._absolute(str(\
-                self.Parameters['-2'].Value))
+            unassembled_reads2 = self._absolute(str(self.Parameters['-2'].Value))
         else:
             raise ValueError, "No reads2 (flag -2) output path specified"
         return unassembled_reads2
@@ -145,8 +144,7 @@ class SeqPrep(CommandLineApplication):
         """Checks if file name is set for discarded reads1 output. 
            Returns absolute path."""
         if self.Parameters['-3'].isOn():
-            discarded_reads1 = self._absolute(str(\
-                self.Parameters['-3'].Value))
+            discarded_reads1 = self._absolute(str(self.Parameters['-3'].Value))
         else:
             raise ValueError, "No discarded-reads1 (flag -3) output path specified"
         return discarded_reads1
@@ -155,8 +153,7 @@ class SeqPrep(CommandLineApplication):
         """Checks if file name is set for discarded reads2 output. 
            Returns absolute path."""
         if self.Parameters['-4'].isOn():
-            discarded_reads2 = self._absolute(str(\
-                self.Parameters['-4'].Value))
+            discarded_reads2 = self._absolute(str(self.Parameters['-4'].Value))
         else:
             raise ValueError, "No discarded-reads2 (flag -4) output path specified"
         return discarded_reads2
@@ -165,8 +162,7 @@ class SeqPrep(CommandLineApplication):
         """Checks file name is set for assembled output. 
            Returns absolute path."""
         if self.Parameters['-s'].isOn():
-            assembled_reads = self._absolute(str(\
-                self.Parameters['-s'].Value))
+            assembled_reads = self._absolute(str(self.Parameters['-s'].Value))
         else:
             raise ValueError, "No assembled-reads (flag -s) output path specified"
         return assembled_reads
@@ -175,8 +171,7 @@ class SeqPrep(CommandLineApplication):
         """Checks file name is set for pretty alignment output. 
            Returns absolute path."""
         if self.Parameters['-E'].isOn():
-            pretty_alignment = self._absolute(str(\
-                self.Parameters['-E'].Value))
+            pretty_alignment = self._absolute(str(self.Parameters['-E'].Value))
         else:
             raise ValueError, "No pretty-=alignment (flag -E) output path specified"
         return pretty_alignment
@@ -219,8 +214,7 @@ class SeqPrep(CommandLineApplication):
 
     def getHelp(self):
         """seqprep help"""
-        help_str =\
-        """
+        help_str = """
         For basic help, type the following at the command line:
             'SeqPrep -h'
 
@@ -230,11 +224,11 @@ class SeqPrep(CommandLineApplication):
         return help_str
 
 
-def run_default_seqprep(\
+def run_seqprep(
     reads1_infile_name,
-	reads2_infile_name,
-	output_dir,
-	min_overlap=15,
+    reads2_infile_name,
+    output_dir,
+    min_overlap=15,
     max_mismatch_good_frac=0.02,
     min_frac_matching=0.9,
     params={},
