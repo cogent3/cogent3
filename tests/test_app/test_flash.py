@@ -10,7 +10,8 @@ from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
 from cogent.app.flash import Flash, run_flash
 from subprocess import Popen, PIPE, STDOUT
-from os import getcwd, path
+from os import getcwd, path, remove
+from shutil import rmtree
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -108,14 +109,27 @@ class FlashTests(GenericFlash):
                          ''.join(['cd "', self.temp_dir_string + '2',
                                   '/"; ', 'flash'])) 
 
-    def test_run_flash(self):
-        """run_flash: should work as expected"""
+    def test_flash_assembly(self):
+        """Runs Flash using default and alternate settings
+
+        Checks output of assembled paired-ends and unassembled files.
+         """
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
-        # Run with default HISEQ parameters on MISEQ data.
+        #### Run with default HISEQ parameters on MISEQ data. ###
         # Not everything will assemble
-        res = run_flash(self.test_fn1, self.test_fn2,
-                        self.temp_dir_string, 'out')#, HALT_EXEC=True)
+	params = {}
+        params['-d'] = self.temp_dir_string 
+        params['-o'] = 'out'
+        params['-x'] = '0.25'
+        params['-m'] = '10'
+        params['-t'] = '1'
+        params['-r'] = '100'
+        params['-f'] = '180'
+        params['-s'] = '18'
+ 
+        flash_app = Flash(params=params)
+        res = flash_app([self.test_fn1, self.test_fn2])
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
@@ -127,10 +141,18 @@ class FlashTests(GenericFlash):
         
         res.cleanUp()
 
-        # Run with more appropriate MISEQ settings:
+        ### Run with more appropriate MISEQ settings. ###
         # UnassembledReads files should be empty.
-        res2 = run_flash(self.test_fn1, self.test_fn2, self.temp_dir_string,
-                         'out250', max_overlap=250, verbose=True)
+        params2 = {}
+        params2['-d'] = self.temp_dir_string 
+        params2['-o'] = 'out'
+        params2['-x'] = '0.25'
+        params2['-m'] = '10'
+        params2['-t'] = '1'
+        params2['-M'] = '250'
+ 
+        flash_app2 = Flash(params=params2)
+        res2 = flash_app2([self.test_fn1, self.test_fn2])
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.
@@ -141,6 +163,39 @@ class FlashTests(GenericFlash):
         self.assertEqual(res2['Histogram'].read(), expected_miseq_hist)
 
         res2.cleanUp()
+
+
+
+    def test_run_flash(self):
+        """run_flash: should work as expected"""
+        self.writeTmpFastq(self.test_fn1, self.test_fn2)
+        
+        ### Run with default HISEQ parameters on MISEQ data. ###
+        # Not everything will assemble
+        res_path = run_flash(self.test_fn1, self.test_fn2,
+                             self.temp_dir_string, 'out')
+        
+        # Test file contents are valid:
+        # Test strings are at bottom. UnassembledReads should have sequences.
+        assembly_result = open(res_path,'U').read()
+        self.assertEqual(assembly_result, expected_default_assembled)
+
+        ### Run with more appropriate MISEQ settings. ###
+        # UnassembledReads files should be empty.
+        res_path2 = run_flash(self.test_fn1, self.test_fn2, 
+                              self.temp_dir_string, 'out250', 
+                              max_overlap=250)
+        
+        # Test file contents are valid:
+        # Test strings are at bottom. UnassembledReads should NOT have sequences.
+        assembly_result2 = open(res_path2,'U').read()
+        self.assertEqual(assembly_result2, expected_miseq_assembled)
+        
+        remove(self.test_fn1)
+        remove(self.test_fn2)
+        rmtree(self.temp_dir_string)
+        
+
 
 
 

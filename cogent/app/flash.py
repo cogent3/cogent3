@@ -146,7 +146,8 @@ class Flash(CommandLineApplication):
     # compression program if one is specified with
     # --compress-prog.  Note: the argument -c is already
     # assumed.
-    '--compress-prog-args':ValuedParameter(Prefix='--', Delimiter=' ', Name='compress-prog-args'),
+    '--compress-prog-args':ValuedParameter(Prefix='--', Delimiter=' ', 
+                                           Name='compress-prog-args'),
         
     # --suffix=SUFFIX, --output-suffix=SUFFIX
     # Use SUFFIX as the suffix of the output files
@@ -155,7 +156,8 @@ class Flash(CommandLineApplication):
     # nothing; or 'gz' if -z is specified; or PROG if
     # --compress-prog is specified.
     '--suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='suffix'),
-    '--output-suffix':ValuedParameter(Prefix='--', Delimiter=' ', Name='output-suffix'),
+    '--output-suffix':ValuedParameter(Prefix='--', Delimiter=' ', 
+                                      Name='output-suffix'),
     
     # -t, --threads=NTHREADS  
     # Set the number of worker threads.  This is in
@@ -202,8 +204,8 @@ class Flash(CommandLineApplication):
 
     def _output_dir_path(self):
         if self.Parameters['-d'].isOn():
-            output_dir_path = self._absolute(str(self.Parameters['-d'].Value) \
-                +'/') 
+            output_dir_path = self._absolute(str(self.Parameters['-d'].Value) 
+                                             +'/') 
         else:
             raise ValueError, "No output diretory specified."
         return output_dir_path
@@ -242,16 +244,30 @@ class Flash(CommandLineApplication):
         base_outfile_name = self._output_label()
         
         result = {}
-        result['Assembled'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name + '.extendedFrags.fastq', IsWritten=True)
-        result['UnassembledReads1'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name +'.notCombined_1.fastq', IsWritten=True)
-        result['UnassembledReads2'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name +'.notCombined_2.fastq', IsWritten=True)
-        result['NumHist'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name +'.hist', IsWritten=True)
-        result['Histogram'] = ResultPath(Path = output_dir_path + \
-                base_outfile_name +'.histogram', IsWritten=True)
+        result['Assembled'] = ResultPath(Path = output_dir_path + 
+                                         base_outfile_name + 
+                                         '.extendedFrags.fastq', 
+                                         IsWritten=True)
+
+        result['UnassembledReads1'] = ResultPath(Path = output_dir_path + 
+                                                 base_outfile_name +
+                                                 '.notCombined_1.fastq',
+                                                 IsWritten=True)
+
+        result['UnassembledReads2'] = ResultPath(Path = output_dir_path + 
+                                                 base_outfile_name +
+                                                 '.notCombined_2.fastq',
+                                                 IsWritten=True)
+
+        result['NumHist'] = ResultPath(Path = output_dir_path + 
+                                       base_outfile_name +
+                                       '.hist', 
+                                       IsWritten=True)
+
+        result['Histogram'] = ResultPath(Path = output_dir_path + 
+                                         base_outfile_name +
+                                         '.histogram', 
+                                         IsWritten=True)
         return result
 
 
@@ -289,7 +305,6 @@ def run_flash(
     num_threads='1',
     max_overlap=None,
     working_dir='/tmp/',
-    verbose=False,
     params={},
     SuppressStderr=True,  
     SuppressStdout=True,
@@ -341,27 +356,25 @@ def run_flash(
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
     params['-t'] = num_threads
+    params['-r'] = read_length
+    params['-f'] = frag_length
+    params['-s'] = frag_std_dev
 
     if max_overlap:
         params['-M'] = max_overlap
     
     # set up assembler
-    flash_app = Flash(\
-        params=params,
-        WorkingDir=working_dir,
-        SuppressStderr=SuppressStderr,
-        SuppressStdout=SuppressStdout,
-        HALT_EXEC=HALT_EXEC)
+    flash_app = Flash(params=params,
+                      WorkingDir=working_dir,
+                      SuppressStderr=SuppressStderr,
+                      SuppressStdout=SuppressStdout,
+                      HALT_EXEC=HALT_EXEC)
     
-    if verbose:
-        print flash_app.BaseCommand
-   
     # run assembler
     result = flash_app(infile_paths) # use default '_input_as_paths'
-    return result
+    joined_paired_ends = result['Assembled'].name
+    return joined_paired_ends
 
 
-#if __name__ == "__main__":
- 
 
   
