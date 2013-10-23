@@ -8,7 +8,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError
+    ApplicationError, get_tmp_filename
 from os.path import isabs,exists 
 
 __author__ = "Michael Robeson"
@@ -180,21 +180,36 @@ def run_fastqjoin(
             except:
                 raise IOError, '\'%s\' is not an absolute path' % p
 
+    # open outfile for writing:
+    new_outfile_path = outfile_base_name_path + '.join'
+    try:
+        user_of = open(new_outfile_path, 'w')
+    except:
+        raise IOError, "Can not open and write to \'%s\'" % outfile_name
+
+    # set params
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
-    params['-o'] = outfile_base_name_path
+    params['-o'] = get_tmp_filename(working_dir)
 
-    fastq_join_app = FastqJoin(
-        params=params,
-        WorkingDir=working_dir,
-        SuppressStderr=SuppressStderr,
-        SuppressStdout=SuppressStdout,
-        HALT_EXEC=HALT_EXEC)
+    fastq_join_app = FastqJoin(params=params,
+                               WorkingDir=working_dir,
+                               SuppressStderr=SuppressStderr,
+                               SuppressStdout=SuppressStdout,
+                               HALT_EXEC=HALT_EXEC)
     
     # run assembler
     result = fastq_join_app(infile_paths)
-    joined_paired_ends_file_path = result['Assembled'].name
-    return joined_paired_ends_file_path
+    
+    # write to user specified output file
+    for line in result['Assembled']:
+        user_of.write(line)
+    user_of.close()
+    
+    # cleanup
+    result.cleanUp()
+    
+    return new_outfile_path
 
 
 
