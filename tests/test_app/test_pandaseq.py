@@ -7,8 +7,9 @@
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
 from cogent.app.pandaseq import PandaSeq, run_pandaseq
-from os import getcwd, path, system
+from os import getcwd, path, system, remove
 from subprocess import Popen, PIPE, STDOUT
+from shutil import rmtree
 import gzip
 
 __author__ = "Michael Robeson"
@@ -101,36 +102,75 @@ class PandaSeqTests(GenericPandaSeq):
         self.assertEqual(c.BaseCommand,
                          ''.join(['cd "', getcwd(), '/"; ', 'pandaseq -o 15']))
 
-    def test_run_default_pandaseq(self):
-        """run_default_pandaseq: should work as expected"""
+    def test_pandaseq_assembly(self):
+        """ Runs PandaSeq with recomended default and alternate settings.
+
+        Checks output of assembled and unassembled paired-ends.
+        """
+
         # write temp files
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
-        # run with default function params
-        res = run_pandaseq(self.test_fn1, self.test_fn2,
-                                   'assembly.fastq', 
-                                   working_dir=self.temp_dir_string)
+        ### Run with recomended default function params ##
+        params = {}
+        params['-f'] = self.test_fn1
+        params['-r'] = self.test_fn2
         
-        # test if assembly output string is valid. StdOut should be empty 
-        # after copying and writing to a new file that is accesable by
-        # res['Assembly'].
-        self.assertEqual(res['StdOut'].read(), '') 
-        self.assertEqual(res['Assembly'].read(), expected_default_assembly)
+        pandaseq_app = PandaSeq(params=params,
+                                WorkingDir=self.temp_dir_string)
+
+        pandaseq_app.Parameters['-F'].on()
+
+        res = pandaseq_app([self.test_fn1, self.test_fn2])
+
+        # assembly is sent to StdOut, check output
+        self.assertEqual(res['StdOut'].read(), expected_default_assembly)
         
         res.cleanUp()
 
-        # run with fastq (-F option) turned off
-        res2 = run_pandaseq(self.test_fn1, self.test_fn2,
-                                    'assembly.fastq', fastq=False, 
-                                    working_dir=self.temp_dir_string) 
+        ### Run with altered params ###
+        # run with out -F option (output is FASTA format)
+        params2 = {}
+        params2['-f'] = self.test_fn1
+        params2['-r'] = self.test_fn2
         
-        self.assertEqual(res2['StdOut'].read(), '') 
-        self.assertEqual(res2['Assembly'].read(), expected_default_assembly_fasta)
+        pandaseq_app2 = PandaSeq(params=params2,
+                                 WorkingDir=self.temp_dir_string)
+        
+        res2 = pandaseq_app2([self.test_fn1, self.test_fn2])
+
+        # assembly is sent to StdOut, check output
+        self.assertEqual(res2['StdOut'].read(), expected_default_assembly_fasta)
         
         res2.cleanUp()
 
 
+    def test_run_pandaseq(self):
+        """run_default_pandaseq: should work as expected"""
+        # write temp files
+        self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
+        ### run with recomended defaults ###
+        jp_file_path = run_pandaseq(self.test_fn1, self.test_fn2,
+                                    'assembly.fastq', 
+                                     working_dir=self.temp_dir_string)
+        
+        jp_ends = open(jp_file_path,'U')
+        self.assertEqual(jp_ends.read(), expected_default_assembly)
+        
+        ### run with fastq (-F option) turned off ##
+        jp_file_path2 = run_pandaseq(self.test_fn1, self.test_fn2,
+                                     'assembly.fastq', fastq=False, 
+                                     working_dir=self.temp_dir_string) 
+        
+        jp_ends2 = open(jp_file_path2,'U')
+        self.assertEqual(jp_ends2.read(), expected_default_assembly_fasta)
+        
+        remove(self.test_fn1)
+        remove(self.test_fn2)
+        rmtree(self.temp_dir_string)
+
+       
 
 
 # Test Strings:

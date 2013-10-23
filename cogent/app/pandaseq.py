@@ -111,7 +111,7 @@ def run_pandaseq(
     phred_64=False,
     fastq=True,
     params={},
-    working_dir='/tmp',
+    working_dir='/tmp/',
     SuppressStderr=True,
     SuppressStdout=False,
     HALT_EXEC=False):
@@ -126,7 +126,7 @@ def run_pandaseq(
         -params : other optional pandaseq parameters
     """
 
-    file_paths = [reads1_infile_name, reads2_infile_name]
+    file_paths = [reads1_infile_name, reads2_infile_name] 
 
     for p in file_paths:
         if not path.exists(p):
@@ -137,12 +137,19 @@ def run_pandaseq(
             except:
                 raise IOError, '\'%s\' not found and is not an absolute path' % p
 
+    # check is we can open outfile:
+    try:
+        of = open(assembled_outfile_name, 'w')
+    except:
+        raise IOError, "Can not open the outfile \'%s\' for writing" \
+                        % assembled_outfile_name
+    
     # required by pandaseq to assemble
     params['-f'] = reads1_infile_name
     params['-r'] = reads2_infile_name
   
     # set up controller
-    pandaseq_app = PandaSeq(\
+    pandaseq_app = PandaSeq(
         params=params,
         WorkingDir=working_dir,
         SuppressStderr=SuppressStderr,
@@ -161,20 +168,16 @@ def run_pandaseq(
     # run assembler
     result = pandaseq_app()
     
-    # write STDOUT (assembly) to file and add to result dict.
+    # write STDOUT (assembly) to file 
     # NOTE: res['StdOut'] will be empty after this.
-    # The file will be accessible via result['Assembly']
     # We do this so that the actual output remains saved to
     # disk and can be accessed outside python.
     of = open(assembled_outfile_name, 'w')
     for line in result['StdOut']:
         of.write(line)
     of.close()
-   
-    # add file handle object back to result
-    result['Assembly'] = open(assembled_outfile_name)
 
-    return result
+    return assembled_outfile_name
 
 
 
