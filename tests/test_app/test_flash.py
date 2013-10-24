@@ -172,7 +172,8 @@ class FlashTests(GenericFlash):
         
         ### Run with default HISEQ parameters on MISEQ data. ###
         # Not everything will assemble
-        res_path = run_flash(self.test_fn1, self.test_fn2, 'out')
+        res_path = run_flash(self.test_fn1, self.test_fn2,
+                             working_dir=self.temp_dir_string)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
@@ -195,8 +196,8 @@ class FlashTests(GenericFlash):
         ### Run with more appropriate MISEQ settings. ###
         # UnassembledReads files should be empty.
         res_path2 = run_flash(self.test_fn1, self.test_fn2, 
-                              'out250', 
-                              max_overlap=250)
+                              max_overlap=250,
+                              working_dir=self.temp_dir_string)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.

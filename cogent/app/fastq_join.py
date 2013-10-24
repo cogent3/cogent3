@@ -8,7 +8,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError
+    ApplicationError, get_tmp_filename
 from os.path import isabs,exists 
 
 __author__ = "Michael Robeson"
@@ -149,7 +149,6 @@ class FastqJoin(CommandLineApplication):
 def run_fastqjoin(
     reads1_infile_path,
     reads2_infile_path,
-    base_outfile_label,
     perc_max_diff=8,
     min_overlap=6,
     params={},    
@@ -162,8 +161,6 @@ def run_fastqjoin(
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -base_outfile_label : base outfile name / label. w/o extension
-                                  e.g.: 'Bact_Assembly'
         -perc_max_diff : maximum % diff of overlap differences allowed 
         -min_overlap : minimum allowed overlap required to assemble reads
         -params : dictionary of application controller parameters
@@ -183,7 +180,8 @@ def run_fastqjoin(
     # set params
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
-    params['-o'] = base_outfile_label
+    params['-o'] = get_tmp_filename(tmp_dir=working_dir,prefix='fastqjoin_',
+                                    suffix='')
 
     fastq_join_app = FastqJoin(params=params,
                                WorkingDir=working_dir,

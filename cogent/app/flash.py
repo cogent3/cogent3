@@ -7,7 +7,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError
+    ApplicationError, get_tmp_filename
 from os.path import isabs,exists 
 
 __author__ = "Michael Robeson"
@@ -295,7 +295,7 @@ class Flash(CommandLineApplication):
 def run_flash(
     reads1_infile_path,
     reads2_infile_path,
-    base_outfile_label,
+    #base_outfile_label,
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -349,16 +349,22 @@ def run_flash(
 
     # required params
     params['-d'] = working_dir #output_dir 
-    params['-o'] = base_outfile_label
+    params['-o'] = get_tmp_filename(tmp_dir='', 
+                                    prefix='flash_', 
+                                    suffix='').strip('"') # need to strip ' " '
+                                    # so that label can be properly appended
+                                    # by flash.
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
     params['-t'] = num_threads
     params['-r'] = read_length
-    params['-f'] = frag_length
-    params['-s'] = frag_std_dev
 
     if max_overlap:
         params['-M'] = max_overlap
+    else:
+        params['-f'] = frag_length
+        params['-s'] = frag_std_dev
+        params['-r'] = read_length
     
     # set up assembler
     flash_app = Flash(params=params,
