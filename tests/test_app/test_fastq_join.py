@@ -25,10 +25,10 @@ __status__ = "Development"
 class GenericFastqJoin(TestCase):
     def setUp(self):
         """General setup for fastq-join tests"""
-        self.temp_dir_string = '/tmp/test_fastq_join'
+        self.temp_dir_string = '/tmp/test_fastq_join/'
         create_dir(self.temp_dir_string)
 
-        self.temp_dir_string_spaces = '/tmp/test fastq join'
+        self.temp_dir_string_spaces = '/tmp/test fastq join/'
         create_dir(self.temp_dir_string_spaces)
 
         # create temp file path strings
@@ -78,7 +78,7 @@ class FastqJoinTests(GenericFastqJoin):
                                   '/"; ', 'fastq-join']))
 
     def test_fastqjoin_assembly(self):
-        """Runs FastqJoin with default and laternate settings.
+        """Runs FastqJoin with default and alternate settings.
 
         Checks ouput of assembled paired-ends, unassebled files, 
         and reports file.  
@@ -91,12 +91,9 @@ class FastqJoinTests(GenericFastqJoin):
         params['-m'] = 6
         params['-o'] = 'test_fastq'
         params['-r'] = 'test_fastq_report'
-        working_dir=self.temp_dir_string
  
-        fastqjoin_app = FastqJoin(
-                        params=params,
-                        WorkingDir=working_dir
-                        )
+        fastqjoin_app = FastqJoin(params=params,
+                                  WorkingDir=self.temp_dir_string)#, HALT_EXEC=True)
 
         res = fastqjoin_app([self.test_fn1, self.test_fn2])
         
@@ -136,7 +133,6 @@ class FastqJoinTests(GenericFastqJoin):
 
         ### 1: run with default function params ###
         jp_file_path = run_fastqjoin(self.test_fn1, self.test_fn2,
-                                     'test_fastq', 
                                      working_dir=self.temp_dir_string)
         
         # test if joined paired end output is correct:
@@ -152,7 +148,7 @@ class FastqJoinTests(GenericFastqJoin):
 
         ### 2: test with different parameters ###
         jp_file_path_alt = run_fastqjoin(self.test_fn1, self.test_fn2,
-                                         'test_fastq', perc_max_diff=5, 
+                                         perc_max_diff=5, 
                                          min_overlap=10, 
                                          working_dir=self.temp_dir_string)
 
