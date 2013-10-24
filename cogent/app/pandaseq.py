@@ -7,7 +7,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError
+    ApplicationError, get_tmp_filename
 from os import path 
 
 __author__ = "Michael Robeson"
@@ -107,7 +107,6 @@ class PandaSeq(CommandLineApplication):
 def run_pandaseq(
     reads1_infile_name,
     reads2_infile_name,
-    assembled_outfile_name,
     phred_64=False,
     fastq=True,
     params={},
@@ -118,7 +117,6 @@ def run_pandaseq(
     """ Runs pandaseq with default parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -assembled_outfile_name : where to store your assembled reads
         -fastq : output assembly as fastq (True)
                  or Fasta (False)
         -phred_64 : if you are using phred 64 scores instead of
@@ -137,12 +135,6 @@ def run_pandaseq(
             except:
                 raise IOError, '\'%s\' not found and is not an absolute path' % p
 
-    # check is we can open outfile:
-    try:
-        of = open(assembled_outfile_name, 'w')
-    except:
-        raise IOError, "Can not open the outfile \'%s\' for writing" \
-                        % assembled_outfile_name
     
     # required by pandaseq to assemble
     params['-f'] = reads1_infile_name
@@ -172,12 +164,22 @@ def run_pandaseq(
     # NOTE: res['StdOut'] will be empty after this.
     # We do this so that the actual output remains saved to
     # disk and can be accessed outside python.
-    of = open(assembled_outfile_name, 'w')
-    for line in result['StdOut']:
-        of.write(line)
-    of.close()
+    assembled_output_file_name = get_tmp_filename(prefix='assembled_pandaseq_')
+    pandaseq_outfile_handle = open(assembled_output_file_name,'w')
 
-    return assembled_outfile_name
+    for line in result['StdOut']:
+        pandaseq_outfile_handle.write(line)
+    pandaseq_outfile_handle.close()
+
+    result.cleanUp()
+
+    # We store ouput file path within a dictionary in order to kepp the 
+    # expected output between various paired-end assembly wrappers
+    # identical.
+    path_dict = {}
+    path_dict['Assembled'] = assembled_output_file_name
+
+    return path_dict
 
 
 

@@ -158,23 +158,42 @@ class SeqPrepTests(GenericSeqPrep):
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         ### run with default function params ###
-        res = run_seqprep(self.test_fn1, self.test_fn2, self.temp_dir_string)
-        print res
+        res = run_seqprep(self.test_fn1, self.test_fn2)
+        
         # since output is gzipped by default we need to convert to
         # raw text before testing our results.
-        res_fh = open(res) 
-        assembly_result = GzipFile(fileobj=res_fh).read()
+        assembled_fh = open(res['Assembled']) 
+        assembly_result = GzipFile(fileobj=assembled_fh).read()
         self.assertEqual(assembly_result, expected_default_assembly_workaround) 
-        
+ 
+        unass_1_fh = open(res['UnassembledReads1']) 
+        unass_result_1 = GzipFile(fileobj=unass_1_fh).read()
+        self.assertEqual(unass_result_1, expected_default_unassembled_reads1) 
+ 
+        unass_2_fh = open(res['UnassembledReads2']) 
+        unass_result_2 = GzipFile(fileobj=unass_2_fh).read()
+        self.assertEqual(unass_result_2, expected_default_unassembled_reads2) 
+ 
+
+       
         ### change default params ###
         res2 = run_seqprep(self.test_fn1, self.test_fn2,
-                           self.temp_dir_string, min_overlap=30,
+                           min_overlap=30,
                            max_mismatch_good_frac= 0.01,
                            min_frac_matching=0.95) 
 
-        res2_fh = open(res2)
-        assembly_result2 = GzipFile(fileobj=res2_fh).read()
+        assembled_fh2 = open(res2['Assembled']) 
+        assembly_result2 = GzipFile(fileobj=assembled_fh2).read()
         self.assertEqual(assembly_result2, expected_assembly_altered_params) 
+ 
+        unass_1_fhb = open(res2['UnassembledReads1']) 
+        unass_result_1b = GzipFile(fileobj=unass_1_fhb).read()
+        self.assertEqual(unass_result_1b, expected_unassembled_reads1_altered_params) 
+ 
+        unass_2_fhb = open(res2['UnassembledReads2']) 
+        unass_result_2b = GzipFile(fileobj=unass_2_fhb).read()
+        self.assertEqual(unass_result_2b, expected_unassembled_reads2_altered_params) 
+ 
 
         remove(self.test_fn1)
         remove(self.test_fn2)        

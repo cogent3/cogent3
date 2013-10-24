@@ -8,7 +8,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError, get_tmp_filename
+    ApplicationError
 from os.path import isabs,exists 
 
 __author__ = "Michael Robeson"
@@ -149,7 +149,7 @@ class FastqJoin(CommandLineApplication):
 def run_fastqjoin(
     reads1_infile_path,
     reads2_infile_path,
-    outfile_base_name_path,
+    base_outfile_label,
     perc_max_diff=8,
     min_overlap=6,
     params={},    
@@ -162,7 +162,7 @@ def run_fastqjoin(
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -outfile_base_name_path : base outfile name / label. w/o extension
+        -base_outfile_label : base outfile name / label. w/o extension
                                   e.g.: 'Bact_Assembly'
         -perc_max_diff : maximum % diff of overlap differences allowed 
         -min_overlap : minimum allowed overlap required to assemble reads
@@ -180,17 +180,10 @@ def run_fastqjoin(
             except:
                 raise IOError, '\'%s\' is not an absolute path' % p
 
-    # open outfile for writing:
-    new_outfile_path = outfile_base_name_path + '.join'
-    try:
-        user_of = open(new_outfile_path, 'w')
-    except:
-        raise IOError, "Can not open and write to \'%s\'" % outfile_name
-
     # set params
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
-    params['-o'] = get_tmp_filename(working_dir)
+    params['-o'] = base_outfile_label
 
     fastq_join_app = FastqJoin(params=params,
                                WorkingDir=working_dir,
@@ -201,15 +194,13 @@ def run_fastqjoin(
     # run assembler
     result = fastq_join_app(infile_paths)
     
-    # write to user specified output file
-    for line in result['Assembled']:
-        user_of.write(line)
-    user_of.close()
+    # Store output file path data to dict    
+    path_dict = {}
+    path_dict['Assembled'] = result['Assembled'].name
+    path_dict['UnassembledReads1'] = result['UnassembledReads1'].name
+    path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
     
-    # cleanup
-    result.cleanUp()
-    
-    return new_outfile_path
+    return path_dict
 
 
 
