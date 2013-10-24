@@ -295,7 +295,6 @@ class Flash(CommandLineApplication):
 def run_flash(
     reads1_infile_path,
     reads2_infile_path,
-    #base_outfile_label,
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -312,7 +311,6 @@ def run_flash(
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -base_outfile_label : base label to add to all output files
         -read_length : average length of individual reads
         -frag_length : average length of assembled reads
         -frag_std_dev : fragment length standard deviation, ~ 10% of frag_length
