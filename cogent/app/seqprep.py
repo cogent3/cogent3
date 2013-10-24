@@ -7,7 +7,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError
+    ApplicationError, get_tmp_filename
 from os import path 
 
 __author__ = "Michael Robeson"
@@ -233,7 +233,6 @@ class SeqPrep(CommandLineApplication):
 def run_seqprep(
     reads1_infile_name,
     reads2_infile_name,
-    output_dir,
     min_overlap=15,
     max_mismatch_good_frac=0.02,
     min_frac_matching=0.9,
@@ -245,7 +244,6 @@ def run_seqprep(
     """ Runs SeqPrep with default parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -output_dir : base directory name for all output files
         -min_overlap : minimum overall base pair overlap to merge two reads
         -max_mismatch_good_frac : maximum fraction of good quality mismatching
                                   bases to overlap reads
@@ -267,14 +265,15 @@ def run_seqprep(
             except:
                 raise IOError, '\'%s\' not found and is not an absolute path' % p
 
-    outfile_dir_path = output_dir + '/'  # just to make sure string ends in '/'
-    
     # required by SeqPrep to assemble:
     params['-f'] = reads1_infile_name
     params['-r'] = reads2_infile_name
-    params['-s'] = outfile_dir_path + 'assembled.gz'
-    params['-1'] = outfile_dir_path + 'unassembled.reads1out.gz'
-    params['-2'] = outfile_dir_path + 'unassembled.reads2out.gz'
+    params['-s'] = get_tmp_filename(tmp_dir=working_dir, 
+                                    suffix='_seqprep_assembled.gz')
+    params['-1'] = get_tmp_filename(tmp_dir=working_dir, 
+                                    suffix='_seqprep_unassembled_R1.gz')
+    params['-2'] = get_tmp_filename(tmp_dir=working_dir, 
+                                    suffix='_seqprep_unassembled_R2.gz')
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching
@@ -287,10 +286,17 @@ def run_seqprep(
                         SuppressStdout=SuppressStdout,
                         HALT_EXEC=HALT_EXEC)
 
-    # run assembler and return joined paired ends path
+    # run assembler 
     result = seqprep_app()
-    joined_paired_ends = result['Assembled'].name
-    return joined_paired_ends
+  
+    # Store output file path data to dict
+
+    path_dict = {}
+    path_dict['Assembled'] = result['Assembled'].name
+    path_dict['UnassembledReads1'] = result['UnassembledReads1'].name
+    path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
+    
+    return path_dict
 
 
 

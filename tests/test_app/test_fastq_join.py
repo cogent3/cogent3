@@ -139,20 +139,33 @@ class FastqJoinTests(GenericFastqJoin):
                                      'test_fastq', 
                                      working_dir=self.temp_dir_string)
         
-        # test if joined paired end file output is correct:
-        jp_ends = open(jp_file_path,'U')
-        self.assertEqual(jp_ends.read(), expected_assembly)
+        # test if joined paired end output is correct:
+        jp_ends = open(jp_file_path['Assembled'],'U').read()
+        self.assertEqual(jp_ends, expected_assembly)
        
+        jp_unass_1 = open(jp_file_path['UnassembledReads1'],'U').read()
+        self.assertEqual(jp_unass_1, expected_default_un1)
+
+        jp_unass_2 = open(jp_file_path['UnassembledReads2'],'U').read()
+        self.assertEqual(jp_unass_2, expected_default_un2)
+
+
         ### 2: test with different parameters ###
         jp_file_path_alt = run_fastqjoin(self.test_fn1, self.test_fn2,
                                          'test_fastq', perc_max_diff=5, 
                                          min_overlap=10, 
                                          working_dir=self.temp_dir_string)
 
-        # test if joined paired end alt file output is correct:
-        jp_ends_alt = open(jp_file_path_alt,'U')
-        self.assertEqual(jp_ends_alt.read(), expected_assembly_alt_param)
+        # test if joined paired end alt output is correct:
+        jp_ends_b = open(jp_file_path_alt['Assembled'],'U').read()
+        self.assertEqual(jp_ends_b, expected_assembly_alt_param)
        
+        jp_unass_1b = open(jp_file_path_alt['UnassembledReads1'],'U').read()
+        self.assertEqual(jp_unass_1b, expected_default_un1_alt_param)
+
+        jp_unass_2b = open(jp_file_path_alt['UnassembledReads2'],'U').read()
+        self.assertEqual(jp_unass_2b, expected_default_un2_alt_param)
+
         
         remove(self.test_fn1) 
         remove(self.test_fn2)

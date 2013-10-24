@@ -151,20 +151,19 @@ class PandaSeqTests(GenericPandaSeq):
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
 
         ### run with recomended defaults ###
-        jp_file_path = run_pandaseq(self.test_fn1, self.test_fn2,
-                                    'assembly.fastq', 
-                                     working_dir=self.temp_dir_string)
+        jp = run_pandaseq(self.test_fn1, self.test_fn2,
+                          working_dir=self.temp_dir_string)
         
-        jp_ends = open(jp_file_path,'U')
-        self.assertEqual(jp_ends.read(), expected_default_assembly)
+        jp_ends = open(jp['Assembled'],'U').read()
+        self.assertEqual(jp_ends, expected_default_assembly)
         
         ### run with fastq (-F option) turned off ##
-        jp_file_path2 = run_pandaseq(self.test_fn1, self.test_fn2,
-                                     'assembly.fastq', fastq=False, 
-                                     working_dir=self.temp_dir_string) 
+        jp2 = run_pandaseq(self.test_fn1, self.test_fn2,
+                           fastq=False, 
+                           working_dir=self.temp_dir_string) 
         
-        jp_ends2 = open(jp_file_path2,'U')
-        self.assertEqual(jp_ends2.read(), expected_default_assembly_fasta)
+        jp_ends2 = open(jp2['Assembled'],'U').read()
+        self.assertEqual(jp_ends2, expected_default_assembly_fasta)
         
         remove(self.test_fn1)
         remove(self.test_fn2)

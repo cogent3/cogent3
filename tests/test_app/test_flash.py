@@ -172,24 +172,49 @@ class FlashTests(GenericFlash):
         
         ### Run with default HISEQ parameters on MISEQ data. ###
         # Not everything will assemble
-        res_path = run_flash(self.test_fn1, self.test_fn2,
-                             self.temp_dir_string, 'out')
+        res_path = run_flash(self.test_fn1, self.test_fn2, 'out')
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should have sequences.
-        assembly_result = open(res_path,'U').read()
-        self.assertEqual(assembly_result, expected_default_assembled)
+        assembly_res = open(res_path['Assembled'],'U').read()
+        self.assertEqual(assembly_res, expected_default_assembled)
+
+        unass_1_res = open(res_path['UnassembledReads1'],'U').read()
+        self.assertEqual(unass_1_res, expected_default_nc1)
+
+        unass_2_res = open(res_path['UnassembledReads2'],'U').read()
+        self.assertEqual(unass_2_res, expected_default_nc2)
+        
+        unass_nh_res = open(res_path['NumHist'],'U').read()
+        self.assertEqual(unass_nh_res, expected_default_nhist)
+        
+        unass_hist_res = open(res_path['Histogram'],'U').read()
+        self.assertEqual(unass_hist_res, expected_default_hist)
+        
 
         ### Run with more appropriate MISEQ settings. ###
         # UnassembledReads files should be empty.
         res_path2 = run_flash(self.test_fn1, self.test_fn2, 
-                              self.temp_dir_string, 'out250', 
+                              'out250', 
                               max_overlap=250)
         
         # Test file contents are valid:
         # Test strings are at bottom. UnassembledReads should NOT have sequences.
-        assembly_result2 = open(res_path2,'U').read()
-        self.assertEqual(assembly_result2, expected_miseq_assembled)
+        assembly_res2 = open(res_path2['Assembled'],'U').read()
+        self.assertEqual(assembly_res2, expected_miseq_assembled)
+
+        unass_1_res2 = open(res_path2['UnassembledReads1'],'U').read()
+        self.assertEqual(unass_1_res2, expected_miseq_nc1)
+
+        unass_2_res2 = open(res_path2['UnassembledReads2'],'U').read()
+        self.assertEqual(unass_2_res2, expected_miseq_nc2)
+        
+        unass_nh_res2 = open(res_path2['NumHist'],'U').read()
+        self.assertEqual(unass_nh_res2, expected_miseq_nhist)
+        
+        unass_hist_res2 = open(res_path2['Histogram'],'U').read()
+        self.assertEqual(unass_hist_res2, expected_miseq_hist)
+        
         
         remove(self.test_fn1)
         remove(self.test_fn2)

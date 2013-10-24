@@ -295,8 +295,7 @@ class Flash(CommandLineApplication):
 def run_flash(
     reads1_infile_path,
     reads2_infile_path,
-    output_dir,
-    output_label,
+    base_outfile_label,
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -313,8 +312,7 @@ def run_flash(
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -output_dir : directory path to write output
-        -output_label : base outfile name / label
+        -base_outfile_label : base label to add to all output files
         -read_length : average length of individual reads
         -frag_length : average length of assembled reads
         -frag_std_dev : fragment length standard deviation, ~ 10% of frag_length
@@ -349,10 +347,9 @@ def run_flash(
             except:
                 raise IOError, '\'%s\' is not an absolute path' % p
 
-
     # required params
-    params['-d'] = output_dir # set to absolut path!
-    params['-o'] = output_label # base output name for all outfiles
+    params['-d'] = working_dir #output_dir 
+    params['-o'] = base_outfile_label
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
     params['-t'] = num_threads
@@ -372,8 +369,16 @@ def run_flash(
     
     # run assembler
     result = flash_app(infile_paths) # use default '_input_as_paths'
-    joined_paired_ends = result['Assembled'].name
-    return joined_paired_ends
+
+    # Store output file path data to dict
+    path_dict = {} 
+    path_dict['Assembled'] = result['Assembled'].name
+    path_dict['UnassembledReads1'] = result['UnassembledReads1'].name
+    path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
+    path_dict['NumHist'] = result['NumHist'].name
+    path_dict['Histogram'] = result['Histogram'].name
+
+    return path_dict
 
 
 
