@@ -22,8 +22,9 @@ __maintainer__ = "Michael Robeson"
 __email__ = "robesonms@ornl.gov"
 __status__ = "Development"
 
-class GenericFlash(TestCase):
-    
+class FlashTests(TestCase):
+    """Tests for FLASh application controller."""
+
     def setUp(self):
         """Flash general setup fo all tests"""
         self.temp_dir_string = '/tmp/test_for_flash'
@@ -52,8 +53,6 @@ class GenericFlash(TestCase):
         except OSError:
             pass
 
-class FlashTests(GenericFlash):
-    """Tests for FLASh application controller."""
 
     def test_check_version(self):
         """ Set up some objects / data for use by tests"""

@@ -22,7 +22,9 @@ __email__ = "robesonms@ornl.gov"
 __status__ = "Development"
 
 
-class GenericFastqJoin(TestCase):
+class FastqJoinTests(TestCase):
+    """Tests for fastq-join application controller."""
+
     def setUp(self):
         """General setup for fastq-join tests"""
         self.temp_dir_string = '/tmp/test_fastq_join/'
@@ -50,9 +52,6 @@ class GenericFastqJoin(TestCase):
             fq2.close()
         except OSError:
             pass
-
-class FastqJoinTests(GenericFastqJoin):
-    """Tests for fastq-join application controller."""
    
     def test_base_command(self):
         """fastq-join command should return correct BaseCommand"""
