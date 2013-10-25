@@ -20,8 +20,9 @@ __maintainer__ = "Michael Robeson"
 __email__ = "robesonms@ornl.gov"
 __status__ = "Development"
 
+class SeqPrepTests(TestCase):
+    """Tests for SeqPrep application controller """
 
-class GenericSeqPrep(TestCase):
     def setUp(self):
         """General setup for SeqPrep tests """
         # make directory test
@@ -51,9 +52,6 @@ class GenericSeqPrep(TestCase):
             fq2.close()
         except OSError:
             pass
-
-class SeqPrepTests(GenericSeqPrep):
-    """Tests for SeqPrep application controller """
 
     def test_changing_working_dir(self):
         """WorkingDir should change properly.""" 

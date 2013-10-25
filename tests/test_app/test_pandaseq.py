@@ -21,7 +21,10 @@ __maintainer__ = "Michael Robeson"
 __email__ = "robesonms@ornl.gov"
 __status__ = "Development"
 
-class GenericPandaSeq(TestCase):
+
+class PandaSeqTests(TestCase):
+    """Tests for PandaSeq application controller"""
+
     def setUp(self):
         """General setup for PandaSeq tests """
         # make directory test
@@ -52,9 +55,6 @@ class GenericPandaSeq(TestCase):
         except OSError:
             pass
 
-
-class PandaSeqTests(GenericPandaSeq):
-    """Tests for PandaSeq application controller"""
     def test_check_version(self):
         """ Set up some objects / data for use by tests"""
 
