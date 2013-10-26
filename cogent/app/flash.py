@@ -355,7 +355,6 @@ def run_flash(
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
     params['-t'] = num_threads
-    params['-r'] = read_length
 
     if max_overlap:
         params['-M'] = max_overlap
