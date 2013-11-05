@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # file: flash.py
 
-# Application controller for FLASh v1.2.6 
+# Application controller for FLASh v1.2.7 
 # Fast Length Adjustment of Short reads:
 # http://ccb.jhu.edu/software/FLASH/
 
@@ -20,7 +20,7 @@ __email__ = "robesonms@ornl.gov"
 __status__ = "Development"
 
 class Flash(CommandLineApplication):
-    """FLASh (v1.2.6) application controller for paired-end illumina data"""
+    """FLASh (v1.2.7) application controller for paired-end illumina data"""
     _command = 'flash'
     _parameters = {
     # Descriptions of parameters copied directly from 'flash -h'
@@ -272,7 +272,7 @@ class Flash(CommandLineApplication):
 
 
     def getHelp(self):
-        """FLASh (v1.2.6) description and help."""
+        """FLASh (v1.2.7) description and help."""
         help_str =\
         """
         For basic help, type the following at the command line:
@@ -307,7 +307,9 @@ def run_flash(
     SuppressStderr=True,  
     SuppressStdout=True,
     HALT_EXEC=False): 
-    """Runs FLASh, with HISEQ default parameters to assemble paired-end reads.
+    """Runs FLASh, to assemble paired-end reads.
+
+        Default settings are for HISEQ.
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path

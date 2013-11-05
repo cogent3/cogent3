@@ -2,7 +2,7 @@
 # file: test_flash.py
 
 # Tests for the flash.py application controller.
-# FLASh v1.2.6
+# FLASh v1.2.7
 # http://ccb.jhu.edu/software/FLASH/
 # using test_mafft.py as a guide
 
@@ -58,7 +58,7 @@ class FlashTests(TestCase):
         """ Set up some objects / data for use by tests"""
 
         # Check if flash version is supported for this test
-        accepted_version = (1,2,6)
+        accepted_version = (1,2,7)
         command = "flash --version"
         version_cmd = Popen(command, shell=True, universal_newlines=True,
                             stdout=PIPE,stderr=STDOUT)
