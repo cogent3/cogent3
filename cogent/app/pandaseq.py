@@ -109,6 +109,7 @@ def run_pandaseq(
     reads2_infile_name,
     phred_64=False,
     fastq=True,
+    threads=1,
     params={},
     working_dir='/tmp/',
     SuppressStderr=True,
@@ -119,6 +120,7 @@ def run_pandaseq(
         -reads2_infile_path : reads2.fastq infile path
         -fastq : output assembly as fastq (True)
                  or Fasta (False)
+        -threads : number of cpus to use. Default 1.
         -phred_64 : if you are using phred 64 scores instead of
                     phred 33
         -params : other optional pandaseq parameters
@@ -139,6 +141,7 @@ def run_pandaseq(
     # required by pandaseq to assemble
     params['-f'] = reads1_infile_name
     params['-r'] = reads2_infile_name
+    params['-T'] = threads
   
     # set up controller
     pandaseq_app = PandaSeq(
