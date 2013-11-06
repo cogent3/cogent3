@@ -233,22 +233,27 @@ class SeqPrep(CommandLineApplication):
 def run_seqprep(
     reads1_infile_name,
     reads2_infile_name,
+    max_overlap_q_score=']',
     min_overlap=15,
     max_mismatch_good_frac=0.02,
     min_frac_matching=0.9,
+    phred_64='False',
     params={},
     working_dir='/tmp/',
     SuppressStderr=True,
     SuppressStdout=True,
     HALT_EXEC=False):
-    """ Runs SeqPrep with default parameters to assemble paired-end reads.
+    """ Runs SeqPrep parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
+        -max_overlap_q_score : ']' for Illumina 1.8+ phred+33, representing a score 
+                              of 41. See http://en.wikipedia.org/wiki/FASTQ_format
         -min_overlap : minimum overall base pair overlap to merge two reads
         -max_mismatch_good_frac : maximum fraction of good quality mismatching
                                   bases to overlap reads
         -min_frac_matching : minimum fraction of matching bases to overlap 
                              reads
+        -phred_64 : if input is in phred+64. Output will always be phred+33.
         -params : other optional SeqPrep parameters
  
          NOTE: SeqPrep always outputs gzipped files
@@ -277,6 +282,7 @@ def run_seqprep(
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching
+    params['-y'] = max_overlap_q_score
 
 
     # set up controller
@@ -285,6 +291,10 @@ def run_seqprep(
                         SuppressStderr=SuppressStderr,
                         SuppressStdout=SuppressStdout,
                         HALT_EXEC=HALT_EXEC)
+    
+    # if input is phred+64
+    if phred_64 == 'True':
+        seqprep_app.Parameters['-6'].on()
 
     # run assembler 
     result = seqprep_app()
