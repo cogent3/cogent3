@@ -8,7 +8,8 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError, get_tmp_filename
-from os import path 
+from os.path import exists, abspath
+import tempfile
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -231,23 +232,24 @@ class SeqPrep(CommandLineApplication):
 
 
 def run_seqprep(
-    reads1_infile_name,
-    reads2_infile_name,
-    max_overlap_q_score=']',
+    reads1_infile_path,
+    reads2_infile_path,
+    max_overlap_ascii_q_score=']',
     min_overlap=15,
     max_mismatch_good_frac=0.02,
     min_frac_matching=0.9,
     phred_64='False',
     params={},
-    working_dir='/tmp/',
+    working_dir=tempfile.gettempdir(),
     SuppressStderr=True,
     SuppressStdout=True,
     HALT_EXEC=False):
     """ Runs SeqPrep parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -max_overlap_q_score : ']' for Illumina 1.8+ phred+33, representing a score 
-                              of 41. See http://en.wikipedia.org/wiki/FASTQ_format
+        -max_overlap_ascii_q_score : ']' for Illumina 1.8+ phred+33, 
+                                    representing a score of 41. See: 
+                                    http://en.wikipedia.org/wiki/FASTQ_format
         -min_overlap : minimum overall base pair overlap to merge two reads
         -max_mismatch_good_frac : maximum fraction of good quality mismatching
                                   bases to overlap reads
@@ -259,20 +261,20 @@ def run_seqprep(
          NOTE: SeqPrep always outputs gzipped files
     """
 
-    file_paths = [reads1_infile_name, reads2_infile_name]
+    abs_r1_path = abspath(reads1_infile_path)
+    abs_r2_path = abspath(reads2_infile_path)
+ 
+    infile_paths = [abs_r1_path, abs_r2_path]
 
-    for p in file_paths:
-        if not path.exists(p):
-            raise IOError, 'File not found at: %s' % p
-        else:
-            try:
-                path.isabs(p)
-            except:
-                raise IOError, '\'%s\' not found and is not an absolute path' % p
+    # check / make absolute infile paths
+    for p in infile_paths:
+        if not exists(p):
+            raise IOError, 'Infile not found at: %s' % p
+
 
     # required by SeqPrep to assemble:
-    params['-f'] = reads1_infile_name
-    params['-r'] = reads2_infile_name
+    params['-f'] = abs_r1_path
+    params['-r'] = abs_r2_path
     params['-s'] = get_tmp_filename(tmp_dir=working_dir, 
                                     suffix='_seqprep_assembled.gz')
     params['-1'] = get_tmp_filename(tmp_dir=working_dir, 
@@ -282,7 +284,7 @@ def run_seqprep(
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching
-    params['-y'] = max_overlap_q_score
+    params['-y'] = max_overlap_ascii_q_score
 
 
     # set up controller
@@ -300,12 +302,16 @@ def run_seqprep(
     result = seqprep_app()
   
     # Store output file path data to dict
-
     path_dict = {}
     path_dict['Assembled'] = result['Assembled'].name
     path_dict['UnassembledReads1'] = result['UnassembledReads1'].name
     path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
-    
+   
+   # sanity check that files actually exist in path lcoations
+    for path in path_dict.values():
+        if not exists(path):
+            raise IOError, 'Output file not found at: %s' % path
+
     return path_dict
 
 

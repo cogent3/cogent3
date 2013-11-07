@@ -103,9 +103,6 @@ class SeqPrepTests(TestCase):
         assembly_result = GzipFile(fileobj=sp_res['Assembled']).read()
         self.assertEqual(assembly_result, default_expected_assembly_workaround) 
 
-        # See note below on issues with the followng command
-        # self.assertEqual(assembly_result, expected_default_assembly_raw) 
-  
         unass_reads1_result = GzipFile(fileobj=
                                        sp_res['UnassembledReads1']).read()
         self.assertEqual(unass_reads1_result, 
@@ -115,7 +112,6 @@ class SeqPrepTests(TestCase):
                                        sp_res['UnassembledReads2']).read()
         self.assertEqual(unass_reads2_result, 
                          expected_default_unassembled_reads2) 
-
         sp_res.cleanUp() 
         
 
@@ -148,7 +144,7 @@ class SeqPrepTests(TestCase):
                          expected_unassembled_reads2_altered_params) 
 
         sp_res2.cleanUp() 
-        
+        rmtree(self.temp_dir_string)
 
 
     def test_run_seqprep(self):
@@ -156,7 +152,8 @@ class SeqPrepTests(TestCase):
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         ### run with default function params ###
-        res = run_seqprep(self.test_fn1, self.test_fn2)
+        res = run_seqprep(self.test_fn1, self.test_fn2, 
+                          working_dir=self.temp_dir_string)
         
         # since output is gzipped by default we need to convert to
         # raw text before testing our results.
@@ -178,7 +175,8 @@ class SeqPrepTests(TestCase):
         res2 = run_seqprep(self.test_fn1, self.test_fn2,
                            min_overlap=30,
                            max_mismatch_good_frac= 0.01,
-                           min_frac_matching=0.95) 
+                           min_frac_matching=0.95,
+                           working_dir=self.temp_dir_string) 
 
         assembled_fh2 = open(res2['Assembled']) 
         assembly_result2 = GzipFile(fileobj=assembled_fh2).read()

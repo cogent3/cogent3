@@ -8,7 +8,8 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError, get_tmp_filename
-from os import path 
+from os.path import exists, abspath 
+import tempfile
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -93,6 +94,9 @@ class PandaSeq(CommandLineApplication):
     }
 
 
+    # No _get_results_path needed as all results (the merged paired-ends)
+    # are sent to STDOUT.
+
     def getHelp(self):
         """pandaseq help"""
         help_Str = """
@@ -105,13 +109,13 @@ class PandaSeq(CommandLineApplication):
 
 
 def run_pandaseq(
-    reads1_infile_name,
-    reads2_infile_name,
+    reads1_infile_path,
+    reads2_infile_path,
     phred_64=False,
     fastq=True,
     threads=1,
     params={},
-    working_dir='/tmp/',
+    working_dir=tempfile.gettempdir(),
     SuppressStderr=True,
     SuppressStdout=False,
     HALT_EXEC=False):
@@ -126,21 +130,18 @@ def run_pandaseq(
         -params : other optional pandaseq parameters
     """
 
-    file_paths = [reads1_infile_name, reads2_infile_name] 
-
-    for p in file_paths:
-        if not path.exists(p):
-            raise IOError, 'File not found at: %s' % p
-        else:
-            try:
-                path.isabs(p)
-            except:
-                raise IOError, '\'%s\' not found and is not an absolute path' % p
-
+    abs_r1_path = abspath(reads1_infile_path)
+    abs_r2_path = abspath(reads2_infile_path)
+    
+    infile_paths = [abs_r1_path, abs_r2_path]
+    # check / make absolute infile paths
+    for p in infile_paths:
+        if not exists(p):
+            raise IOError, 'Infile not found at: %s' % p
     
     # required by pandaseq to assemble
-    params['-f'] = reads1_infile_name
-    params['-r'] = reads2_infile_name
+    params['-f'] = abs_r1_path
+    params['-r'] = abs_r2_path
     params['-T'] = threads
   
     # set up controller
@@ -181,6 +182,11 @@ def run_pandaseq(
     # identical.
     path_dict = {}
     path_dict['Assembled'] = assembled_output_file_name
+
+    # sanity check that files actually exist in path lcoations
+    for path in path_dict.values():
+        if not exists(path):
+            raise IOError, 'Output file not found at: %s' % path
 
     return path_dict
 

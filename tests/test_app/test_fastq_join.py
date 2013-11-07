@@ -92,7 +92,7 @@ class FastqJoinTests(TestCase):
         params['-r'] = 'test_fastq_report'
  
         fastqjoin_app = FastqJoin(params=params,
-                                  WorkingDir=self.temp_dir_string)#, HALT_EXEC=True)
+                                  WorkingDir=self.temp_dir_string)
 
         res = fastqjoin_app([self.test_fn1, self.test_fn2])
         
@@ -124,6 +124,7 @@ class FastqJoinTests(TestCase):
                          expected_default_un2_alt_param)
         
         res_alt.cleanUp()
+        rmtree(self.temp_dir_string)
 
 
     def test_run_fastqjoin(self):
