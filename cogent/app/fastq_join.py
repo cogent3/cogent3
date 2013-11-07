@@ -9,7 +9,8 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError, get_tmp_filename
-from os.path import isabs,exists 
+from os.path import isabs,exists,abspath 
+import tempfile
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -26,7 +27,7 @@ class FastqJoin(CommandLineApplication):
     _command = 'fastq-join'
     
     _parameters = {
-    # Description coopied from 'fastq-join'
+    # Description copied from 'fastq-join'
     # Usage: fastq-join [options] <read1.fq> <read2.fq> [mate.fq] -o <read.%.fq>
     
     # Output: 
@@ -55,7 +56,7 @@ class FastqJoin(CommandLineApplication):
 
     _input_handler = '_input_as_paths'
 
-    def _output_path(self):
+    def _get_output_path(self):
         """Checks if a base file label / path is set. Returns absolute path."""
         if self.Parameters['-o'].isOn():
             output_path = self._absolute(str(self.Parameters['-o'].Value))
@@ -63,14 +64,13 @@ class FastqJoin(CommandLineApplication):
             raise ValueError, "No output path specified."
         return output_path
 
-    def _stitch_report_path(self):
+    def _get_stitch_report_path(self):
         """Checks if stitch report label / path is set. Returns absolute path."""
         if self.Parameters['-r'].isOn():
             stitch_path = self._absolute(str(self.Parameters['-r'].Value))
-        else:
-            raise ValueError, "No stitch log path specified."
-        return stitch_path
-
+            return stitch_path
+        elif self.Parameters['-r'].isOff():
+            return None
 
     def _get_result_paths(self, data):
         """Capture fastq-join output.
@@ -85,10 +85,10 @@ class FastqJoin(CommandLineApplication):
             outputjoin2
             outputun3
 
-        If a verbose stitch length report is chosen to be written by the user
-		    user.specified.filename
+        If a verbose stitch length report (-r) is chosen to be written by the 
+        user then use a user specified filename.
         """
-        output_path = self._output_path()
+        output_path = self._get_output_path()
         
         result = {}
 
@@ -100,14 +100,11 @@ class FastqJoin(CommandLineApplication):
         result['UnassembledReads2']  = ResultPath(Path = output_path + 'un2',
                                                   IsWritten=True)
        
-
         # check if stitch report is requested:
-        if self.Parameters['-r'].isOff():
-            pass
-        else:
-            stitch_path = self._stitch_report_path()
-            result['Report'] = ResultPath(Path = stitch_path,\
-			                  IsWritten=True)
+        stitch_path = self._get_stitch_report_path()
+        if stitch_path:
+            result['Report'] = ResultPath(Path = stitch_path,
+			                              IsWritten=True)
 
         # Check if mate file / barcode file is present.
         # If not, return result
@@ -115,17 +112,13 @@ class FastqJoin(CommandLineApplication):
         mate_path_string = output_path + 'join2'
         mate_unassembled_path_string = output_path + 'un3'
         if exists(mate_path_string) and exists(mate_unassembled_path_string):
-            try:
-                result['Mate'] = ResultPath(Path = mate_path_string, 
-                                            IsWritten=True)
-                result['MateUnassembled'] = ResultPath(Path = 
-                                                       mate_unassembled_path_string,
-                                                       IsWritten=True)
-            except:
-                pass
+            result['Mate'] = ResultPath(Path = mate_path_string, 
+                                        IsWritten=True)
+            result['MateUnassembled'] = ResultPath(Path = 
+                                                   mate_unassembled_path_string,
+                                                   IsWritten=True)
         else:
-            return result
-
+            pass
         return result
 
 
@@ -152,7 +145,7 @@ def run_fastqjoin(
     perc_max_diff=8,
     min_overlap=6,
     params={},    
-    working_dir='/tmp/',
+    working_dir=tempfile.gettempdir(),
     SuppressStderr=True,
     SuppressStdout=True,
     HALT_EXEC=False): 
@@ -166,17 +159,12 @@ def run_fastqjoin(
         -params : dictionary of application controller parameters
 
     """    
-    infile_paths = [reads1_infile_path, reads2_infile_path]
-    # check for absolute file paths
+    infile_paths = [abspath(reads1_infile_path), abspath(reads2_infile_path)]
+    # check / make absolute infile paths
     for p in infile_paths:
         if not exists(p):
             raise IOError, 'File not found at: %s' % p
-        else:
-            try:
-                isabs(p)
-            except:
-                raise IOError, '\'%s\' is not an absolute path' % p
-
+  
     # set params
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
@@ -197,7 +185,12 @@ def run_fastqjoin(
     path_dict['Assembled'] = result['Assembled'].name
     path_dict['UnassembledReads1'] = result['UnassembledReads1'].name
     path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
-    
+   
+    # sanity check that files actually exist in path lcoations
+    for path in path_dict.values():
+        if not exists(path):
+            raise IOError, 'Output file not found at: %s' % path
+
     return path_dict
 
 
