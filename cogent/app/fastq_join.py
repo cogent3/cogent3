@@ -9,7 +9,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError, get_tmp_filename
-from os.path import isabs,exists,abspath 
+from os.path import exists, abspath 
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -159,7 +159,11 @@ def run_fastqjoin(
         -params : dictionary of application controller parameters
 
     """    
-    infile_paths = [abspath(reads1_infile_path), abspath(reads2_infile_path)]
+    abs_r1_path = abspath(reads1_infile_path)
+    abs_r2_path = abspath(reads2_infile_path)
+     
+    infile_paths = [abs_r1_path, abs_r2_path]
+
     # check / make absolute infile paths
     for p in infile_paths:
         if not exists(p):

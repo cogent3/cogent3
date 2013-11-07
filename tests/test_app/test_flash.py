@@ -117,7 +117,7 @@ class FlashTests(TestCase):
         
         #### Run with default HISEQ parameters on MISEQ data. ###
         # Not everything will assemble
-	params = {}
+        params = {}
         params['-d'] = self.temp_dir_string 
         params['-o'] = 'out'
         params['-x'] = '0.25'
@@ -148,7 +148,7 @@ class FlashTests(TestCase):
         params2['-x'] = '0.25'
         params2['-m'] = '10'
         params2['-t'] = '1'
-        params2['-M'] = '250'
+        params2['-M'] = '250' # example reads are almost completely overlapping
  
         flash_app2 = Flash(params=params2)
         res2 = flash_app2([self.test_fn1, self.test_fn2])
@@ -162,7 +162,7 @@ class FlashTests(TestCase):
         self.assertEqual(res2['Histogram'].read(), expected_miseq_hist)
 
         res2.cleanUp()
-
+        rmtree(self.temp_dir_string)
 
 
     def test_run_flash(self):

@@ -143,6 +143,7 @@ class PandaSeqTests(TestCase):
         self.assertEqual(res2['StdOut'].read(), expected_default_assembly_fasta)
         
         res2.cleanUp()
+        rmtree(self.temp_dir_string)
 
 
     def test_run_pandaseq(self):

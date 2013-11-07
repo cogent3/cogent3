@@ -8,7 +8,8 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError, get_tmp_filename
-from os.path import isabs,exists 
+from os.path import isabs, exists, abspath
+import tempfile
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -302,7 +303,7 @@ def run_flash(
     min_overlap='10',
     num_threads='1',
     max_overlap=None,
-    working_dir='/tmp/',
+    working_dir=tempfile.gettempdir(),
     params={},
     SuppressStderr=True,  
     SuppressStdout=True,
@@ -327,26 +328,26 @@ def run_flash(
         For HISEQ a good default 'max_overlap' would be between '70' to '100'.
         For MISEQ try these parameters if you assume ~380 bp assembled frags
             with highly overlaping reads (reads get the full 250 bp):
-            read_length='250' frag_length='380' frag_std_dev='38'
-            or: max_overlap = '250'
+            read_length='250' frag_length='380' frag_std_dev='38', or
+            alternatively: max_overlap = '120'
     """
     
     # There are no input options for fastq infiles. So, we check if they exist
     # and store them as a list for later input via '_input_as_paths'
     # for the default '_input_handler'.
-    
-    infile_paths = [reads1_infile_path, reads2_infile_path]
-    
-    # check for absolute infile paths
+
+
+
+    abs_r1_path = abspath(reads1_infile_path)
+    abs_r2_path = abspath(reads2_infile_path)
+
+    infile_paths = [abs_r1_path, abs_r2_path]
+    # check / make absolute infile paths
     for p in infile_paths:
         if not exists(p):
-            raise IOError, 'File not found at: %s' % p
-        else:
-            try:
-                isabs(p)
-            except:
-                raise IOError, '\'%s\' is not an absolute path' % p
+            raise IOError, 'Infile not found at: %s' % p
 
+    
     # required params
     params['-d'] = working_dir #output_dir 
     params['-o'] = get_tmp_filename(tmp_dir='', 
@@ -382,6 +383,11 @@ def run_flash(
     path_dict['UnassembledReads2'] = result['UnassembledReads2'].name
     path_dict['NumHist'] = result['NumHist'].name
     path_dict['Histogram'] = result['Histogram'].name
+
+    # sanity check that files actually exist in path lcoations
+    for path in path_dict.values():
+        if not exists(path):
+            raise IOError, 'Output file not found at: %s' % path
 
     return path_dict
 
