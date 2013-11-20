@@ -7,8 +7,8 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError, get_tmp_filename
-from os.path import exists, abspath
+    ApplicationError
+from os.path import exists, abspath, join
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -234,6 +234,7 @@ class SeqPrep(CommandLineApplication):
 def run_seqprep(
     reads1_infile_path,
     reads2_infile_path,
+    outfile_label='seqprep',
     max_overlap_ascii_q_score=']',
     min_overlap=15,
     max_mismatch_good_frac=0.02,
@@ -275,12 +276,9 @@ def run_seqprep(
     # required by SeqPrep to assemble:
     params['-f'] = abs_r1_path
     params['-r'] = abs_r2_path
-    params['-s'] = get_tmp_filename(tmp_dir=working_dir, 
-                                    suffix='_seqprep_assembled.gz')
-    params['-1'] = get_tmp_filename(tmp_dir=working_dir, 
-                                    suffix='_seqprep_unassembled_R1.gz')
-    params['-2'] = get_tmp_filename(tmp_dir=working_dir, 
-                                    suffix='_seqprep_unassembled_R2.gz')
+    params['-s'] = join(working_dir, outfile_label) + '_assembled.gz'
+    params['-1'] = join(working_dir, outfile_label) + '_unassembled_R1.gz' 
+    params['-2'] = join(working_dir, outfile_label) + '_unassembled_R2.gz'
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching

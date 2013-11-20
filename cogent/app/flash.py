@@ -7,7 +7,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError, get_tmp_filename
+    ApplicationError
 from os.path import isabs, exists, abspath
 import tempfile
 
@@ -296,6 +296,7 @@ class Flash(CommandLineApplication):
 def run_flash(
     reads1_infile_path,
     reads2_infile_path,
+    outfile_label='FLASH',
     read_length='100',
     frag_length='180',
     frag_std_dev='18',
@@ -314,6 +315,7 @@ def run_flash(
 
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
+        -outfile_label : base name for output files
         -read_length : average length of individual reads
         -frag_length : average length of assembled reads
         -frag_std_dev : fragment length standard deviation, ~ 10% of frag_length
@@ -328,8 +330,8 @@ def run_flash(
         For HISEQ a good default 'max_overlap' would be between '70' to '100'.
         For MISEQ try these parameters if you assume ~380 bp assembled frags
             with highly overlaping reads (reads get the full 250 bp):
-            read_length='250' frag_length='380' frag_std_dev='38', or
-            alternatively: max_overlap = '120'
+            read_length=\'250\' frag_length=\'380\' frag_std_dev=\'38\', or
+            alternatively: max_overlap = \'120\'
     """
     
     # There are no input options for fastq infiles. So, we check if they exist
@@ -350,11 +352,7 @@ def run_flash(
     
     # required params
     params['-d'] = working_dir #output_dir 
-    params['-o'] = get_tmp_filename(tmp_dir='', 
-                                    prefix='flash_', 
-                                    suffix='').strip('"') # need to strip ' " '
-                                    # so that label can be properly appended
-                                    # by flash.
+    params['-o'] = outfile_label 
     params['-x'] = mis_match_density
     params['-m'] = min_overlap
     params['-t'] = num_threads

@@ -8,7 +8,7 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError, get_tmp_filename
+    ApplicationError
 from os.path import exists, abspath 
 import tempfile
 
@@ -144,6 +144,7 @@ def run_fastqjoin(
     reads2_infile_path,
     perc_max_diff=8,
     min_overlap=6,
+    outfile_label = 'fastqjoin',
     params={},    
     working_dir=tempfile.gettempdir(),
     SuppressStderr=True,
@@ -172,8 +173,7 @@ def run_fastqjoin(
     # set params
     params['-p'] = perc_max_diff
     params['-m'] = min_overlap
-    params['-o'] = get_tmp_filename(tmp_dir=working_dir,prefix='fastqjoin_',
-                                    suffix='')
+    params['-o'] = outfile_label + '.'
 
     fastq_join_app = FastqJoin(params=params,
                                WorkingDir=working_dir,

@@ -7,8 +7,8 @@
 
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
-    ApplicationError, get_tmp_filename
-from os.path import exists, abspath 
+    ApplicationError
+from os.path import exists, abspath, join
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -111,6 +111,7 @@ class PandaSeq(CommandLineApplication):
 def run_pandaseq(
     reads1_infile_path,
     reads2_infile_path,
+    outfile_label='pandaseq',
     phred_64=False,
     fastq=True,
     threads=1,
@@ -122,6 +123,7 @@ def run_pandaseq(
     """ Runs pandaseq with default parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
+        -outfile_label : base name for outfile
         -fastq : output assembly as fastq (True)
                  or Fasta (False)
         -threads : number of cpus to use. Default 1.
@@ -168,7 +170,8 @@ def run_pandaseq(
     # NOTE: res['StdOut'] will be empty after this.
     # We do this so that the actual output remains saved to
     # disk and can be accessed outside python.
-    assembled_output_file_name = get_tmp_filename(prefix='assembled_pandaseq_')
+    #assembled_output_file_name = get_tmp_filename(prefix='assembled_pandaseq_')
+    assembled_output_file_name = join(working_dir, outfile_label) + '_joined.fastq'
     pandaseq_outfile_handle = open(assembled_output_file_name,'w')
 
     for line in result['StdOut']:
