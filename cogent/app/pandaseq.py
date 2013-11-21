@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os.path import exists, abspath, join
+import os 
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -108,7 +108,7 @@ class PandaSeq(CommandLineApplication):
         """
 
 
-def run_pandaseq(
+def join_paired_end_reads_pandaseq(
     reads1_infile_path,
     reads2_infile_path,
     outfile_label='pandaseq',
@@ -132,13 +132,13 @@ def run_pandaseq(
         -params : other optional pandaseq parameters
     """
 
-    abs_r1_path = abspath(reads1_infile_path)
-    abs_r2_path = abspath(reads2_infile_path)
+    abs_r1_path = os.path.abspath(reads1_infile_path)
+    abs_r2_path = os.path.abspath(reads2_infile_path)
     
     infile_paths = [abs_r1_path, abs_r2_path]
     # check / make absolute infile paths
     for p in infile_paths:
-        if not exists(p):
+        if not os.path.exists(p):
             raise IOError, 'Infile not found at: %s' % p
     
     # required by pandaseq to assemble
@@ -171,7 +171,7 @@ def run_pandaseq(
     # We do this so that the actual output remains saved to
     # disk and can be accessed outside python.
     #assembled_output_file_name = get_tmp_filename(prefix='assembled_pandaseq_')
-    assembled_output_file_name = join(working_dir, outfile_label) + '_joined.fastq'
+    assembled_output_file_name = os.path.join(working_dir, outfile_label) + '_joined.fastq'
     pandaseq_outfile_handle = open(assembled_output_file_name,'w')
 
     for line in result['StdOut']:
@@ -188,7 +188,7 @@ def run_pandaseq(
 
     # sanity check that files actually exist in path lcoations
     for path in path_dict.values():
-        if not exists(path):
+        if not os.path.exists(path):
             raise IOError, 'Output file not found at: %s' % path
 
     return path_dict
