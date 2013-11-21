@@ -6,9 +6,9 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
-from cogent.app.seqprep import SeqPrep, run_seqprep
-from os import getcwd, path, system, remove
-from shutil import rmtree
+from cogent.app.seqprep import SeqPrep, join_paired_end_reads_seqprep
+import os
+import shutil 
 from gzip import GzipFile
 
 __author__ = "Michael Robeson"
@@ -34,11 +34,11 @@ class SeqPrepTests(TestCase):
         create_dir(self.temp_dir_string_space)
         
         # create temp file path strings
-        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir_string_space, 
+        self.test_fn1 = os.path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = os.path.join(self.temp_dir_string_space, 
                                         'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_string_space,
+        self.test_fn2 = os.path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = os.path.join(self.temp_dir_string_space,
                                         'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
@@ -69,11 +69,11 @@ class SeqPrepTests(TestCase):
         c = SeqPrep()
         # test base command
         self.assertEqual(c.BaseCommand,
-            ''.join(['cd "', getcwd(), '/"; ', 'SeqPrep']))
+            ''.join(['cd "', os.getcwd(), '/"; ', 'SeqPrep']))
         # test turning on parameter
         c.Parameters['-O'].on('15')
         self.assertEqual(c.BaseCommand,\
-            ''.join(['cd "', getcwd(), '/"; ', 'SeqPrep -O 15']))
+            ''.join(['cd "', os.getcwd(), '/"; ', 'SeqPrep -O 15']))
 
 
     def test_seqprep_assembly(self):
@@ -144,15 +144,15 @@ class SeqPrepTests(TestCase):
                          expected_unassembled_reads2_altered_params) 
 
         sp_res2.cleanUp() 
-        rmtree(self.temp_dir_string)
+        shutil.rmtree(self.temp_dir_string)
 
 
-    def test_run_seqprep(self):
-        """run_seqprep: should work as expected."""
+    def test_join_paired_end_reads_seqprep(self):
+        """join_paired_end_reads_seqprep: should work as expected."""
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         ### run with default function params ###
-        res = run_seqprep(self.test_fn1, self.test_fn2, 
+        res = join_paired_end_reads_seqprep(self.test_fn1, self.test_fn2, 
                           working_dir=self.temp_dir_string)
         
         # since output is gzipped by default we need to convert to
@@ -172,7 +172,7 @@ class SeqPrepTests(TestCase):
 
        
         ### change default params ###
-        res2 = run_seqprep(self.test_fn1, self.test_fn2,
+        res2 = join_paired_end_reads_seqprep(self.test_fn1, self.test_fn2,
                            min_overlap=30,
                            max_mismatch_good_frac= 0.01,
                            min_frac_matching=0.95,
@@ -191,9 +191,9 @@ class SeqPrepTests(TestCase):
         self.assertEqual(unass_result_2b, expected_unassembled_reads2_altered_params) 
  
 
-        remove(self.test_fn1)
-        remove(self.test_fn2)        
-        rmtree(self.temp_dir_string)
+        os.remove(self.test_fn1)
+        os.remove(self.test_fn2)        
+        shutil.rmtree(self.temp_dir_string)
 
 
 

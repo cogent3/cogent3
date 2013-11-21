@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os.path import exists, abspath, join
+import os 
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -231,7 +231,7 @@ class SeqPrep(CommandLineApplication):
         return help_str
 
 
-def run_seqprep(
+def join_paired_end_reads_seqprep(
     reads1_infile_path,
     reads2_infile_path,
     outfile_label='seqprep',
@@ -262,23 +262,23 @@ def run_seqprep(
          NOTE: SeqPrep always outputs gzipped files
     """
 
-    abs_r1_path = abspath(reads1_infile_path)
-    abs_r2_path = abspath(reads2_infile_path)
+    abs_r1_path = os.path.abspath(reads1_infile_path)
+    abs_r2_path = os.path.abspath(reads2_infile_path)
  
     infile_paths = [abs_r1_path, abs_r2_path]
 
     # check / make absolute infile paths
     for p in infile_paths:
-        if not exists(p):
+        if not os.path.exists(p):
             raise IOError, 'Infile not found at: %s' % p
 
 
     # required by SeqPrep to assemble:
     params['-f'] = abs_r1_path
     params['-r'] = abs_r2_path
-    params['-s'] = join(working_dir, outfile_label) + '_assembled.gz'
-    params['-1'] = join(working_dir, outfile_label) + '_unassembled_R1.gz' 
-    params['-2'] = join(working_dir, outfile_label) + '_unassembled_R2.gz'
+    params['-s'] = os.path.join(working_dir, outfile_label) + '_assembled.gz'
+    params['-1'] = os.path.join(working_dir, outfile_label) + '_unassembled_R1.gz' 
+    params['-2'] = os.path.join(working_dir, outfile_label) + '_unassembled_R2.gz'
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching
@@ -307,7 +307,7 @@ def run_seqprep(
    
    # sanity check that files actually exist in path lcoations
     for path in path_dict.values():
-        if not exists(path):
+        if not os.path.exists(path):
             raise IOError, 'Output file not found at: %s' % path
 
     return path_dict

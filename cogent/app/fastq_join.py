@@ -9,7 +9,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os.path import exists, abspath 
+import os 
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -111,7 +111,8 @@ class FastqJoin(CommandLineApplication):
         # We need to check this way becuase there are no infile parameters.
         mate_path_string = output_path + 'join2'
         mate_unassembled_path_string = output_path + 'un3'
-        if exists(mate_path_string) and exists(mate_unassembled_path_string):
+        if os.path.exists(mate_path_string) and \
+            os.path.exists(mate_unassembled_path_string):
             result['Mate'] = ResultPath(Path = mate_path_string, 
                                         IsWritten=True)
             result['MateUnassembled'] = ResultPath(Path = 
@@ -139,7 +140,7 @@ class FastqJoin(CommandLineApplication):
         return help_str
 
 
-def run_fastqjoin(
+def join_paired_end_reads_fastqjoin(
     reads1_infile_path,
     reads2_infile_path,
     perc_max_diff=8,
@@ -157,17 +158,18 @@ def run_fastqjoin(
         -reads2_infile_path : reads2.fastq infile path
         -perc_max_diff : maximum % diff of overlap differences allowed 
         -min_overlap : minimum allowed overlap required to assemble reads
+        -outfile_label : base name for output files.
         -params : dictionary of application controller parameters
 
     """    
-    abs_r1_path = abspath(reads1_infile_path)
-    abs_r2_path = abspath(reads2_infile_path)
+    abs_r1_path = os.path.abspath(reads1_infile_path)
+    abs_r2_path = os.path.abspath(reads2_infile_path)
      
     infile_paths = [abs_r1_path, abs_r2_path]
 
     # check / make absolute infile paths
     for p in infile_paths:
-        if not exists(p):
+        if not os.path.exists(p):
             raise IOError, 'File not found at: %s' % p
   
     # set params
@@ -192,7 +194,7 @@ def run_fastqjoin(
    
     # sanity check that files actually exist in path lcoations
     for path in path_dict.values():
-        if not exists(path):
+        if not os.path.exists(path):
             raise IOError, 'Output file not found at: %s' % path
 
     return path_dict

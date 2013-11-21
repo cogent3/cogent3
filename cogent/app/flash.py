@@ -8,7 +8,7 @@
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     ApplicationError
-from os.path import isabs, exists, abspath
+import os
 import tempfile
 
 __author__ = "Michael Robeson"
@@ -293,7 +293,7 @@ class Flash(CommandLineApplication):
 # SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS #
 ###################################################
 
-def run_flash(
+def join_paired_end_reads_flash(
     reads1_infile_path,
     reads2_infile_path,
     outfile_label='FLASH',
@@ -340,13 +340,13 @@ def run_flash(
 
 
 
-    abs_r1_path = abspath(reads1_infile_path)
-    abs_r2_path = abspath(reads2_infile_path)
+    abs_r1_path = os.path.abspath(reads1_infile_path)
+    abs_r2_path = os.path.abspath(reads2_infile_path)
 
     infile_paths = [abs_r1_path, abs_r2_path]
     # check / make absolute infile paths
     for p in infile_paths:
-        if not exists(p):
+        if not os.path.exists(p):
             raise IOError, 'Infile not found at: %s' % p
 
     
@@ -384,7 +384,7 @@ def run_flash(
 
     # sanity check that files actually exist in path lcoations
     for path in path_dict.values():
-        if not exists(path):
+        if not os.path.exists(path):
             raise IOError, 'Output file not found at: %s' % path
 
     return path_dict

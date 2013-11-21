@@ -8,10 +8,10 @@
 
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import create_dir
-from cogent.app.flash import Flash, run_flash
+from cogent.app.flash import Flash, join_paired_end_reads_flash
 from subprocess import Popen, PIPE, STDOUT
-from os import getcwd, path, remove
-from shutil import rmtree
+import os 
+import shutil
 
 __author__ = "Michael Robeson"
 __copyright__ = "Copyright 2007-2013, The Cogent Project"
@@ -34,11 +34,11 @@ class FlashTests(TestCase):
         create_dir(self.temp_dir_string_spaces)
         
         # temp file paths
-        self.test_fn1 = path.join(self.temp_dir_string,'reads1.fastq')
-        self.test_fn1_space = path.join(self.temp_dir_string_spaces, 
+        self.test_fn1 = os.path.join(self.temp_dir_string,'reads1.fastq')
+        self.test_fn1_space = os.path.join(self.temp_dir_string_spaces, 
                                         'reads1.fastq')
-        self.test_fn2 = path.join(self.temp_dir_string,'reads2.fastq')
-        self.test_fn2_space = path.join(self.temp_dir_string_spaces, 
+        self.test_fn2 = os.path.join(self.temp_dir_string,'reads2.fastq')
+        self.test_fn2_space = os.path.join(self.temp_dir_string_spaces, 
                                         'reads2.fastq')
 
     def writeTmpFastq(self, fw_reads_path, rev_reads_path):
@@ -84,17 +84,17 @@ class FlashTests(TestCase):
         c = Flash()
         # test base command
         self.assertEqual(c.BaseCommand, 
-                         ''.join(['cd "', getcwd(), '/"; ', 'flash']))
+                         ''.join(['cd "', os.getcwd(), '/"; ', 'flash']))
         # test turning on a parameter
         c.Parameters['-M'].on('250')
         self.assertEqual(c.BaseCommand,
-                         ''.join(['cd "', getcwd(), '/"; ', 'flash -M 250']))
+                         ''.join(['cd "', os.getcwd(), '/"; ', 'flash -M 250']))
 
         # test turning on another parameter via synonym
         # '--phred-offset' should use '-p'
         c.Parameters['--phred-offset'].on('33')
         self.assertEqual(c.BaseCommand, 
-                         ''.join(['cd "', getcwd(), '/"; ', 
+                         ''.join(['cd "', os.getcwd(), '/"; ', 
                                   'flash -M 250 -p 33']))
        
     def test_changing_working_dir(self):
@@ -162,16 +162,16 @@ class FlashTests(TestCase):
         self.assertEqual(res2['Histogram'].read(), expected_miseq_hist)
 
         res2.cleanUp()
-        rmtree(self.temp_dir_string)
+        shutil.rmtree(self.temp_dir_string)
 
 
-    def test_run_flash(self):
-        """run_flash: should work as expected"""
+    def test_join_paired_end_reads_flash(self):
+        """join_paired_end_reads_flash: should work as expected"""
         self.writeTmpFastq(self.test_fn1, self.test_fn2)
         
         ### Run with default HISEQ parameters on MISEQ data. ###
         # Not everything will assemble
-        res_path = run_flash(self.test_fn1, self.test_fn2,
+        res_path = join_paired_end_reads_flash(self.test_fn1, self.test_fn2,
                              working_dir=self.temp_dir_string)
         
         # Test file contents are valid:
@@ -194,7 +194,7 @@ class FlashTests(TestCase):
 
         ### Run with more appropriate MISEQ settings. ###
         # UnassembledReads files should be empty.
-        res_path2 = run_flash(self.test_fn1, self.test_fn2, 
+        res_path2 = join_paired_end_reads_flash(self.test_fn1, self.test_fn2, 
                               max_overlap=250,
                               working_dir=self.temp_dir_string)
         
@@ -216,9 +216,9 @@ class FlashTests(TestCase):
         self.assertEqual(unass_hist_res2, expected_miseq_hist)
         
         
-        remove(self.test_fn1)
-        remove(self.test_fn2)
-        rmtree(self.temp_dir_string)
+        os.remove(self.test_fn1)
+        os.remove(self.test_fn2)
+        shutil.rmtree(self.temp_dir_string)
         
 
 
