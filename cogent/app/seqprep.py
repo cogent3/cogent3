@@ -235,7 +235,7 @@ def join_paired_end_reads_seqprep(
     reads1_infile_path,
     reads2_infile_path,
     outfile_label='seqprep',
-    max_overlap_ascii_q_score=']',
+    max_overlap_ascii_q_score='J',
     min_overlap=15,
     max_mismatch_good_frac=0.02,
     min_frac_matching=0.9,
@@ -248,7 +248,7 @@ def join_paired_end_reads_seqprep(
     """ Runs SeqPrep parameters to assemble paired-end reads.
         -reads1_infile_path : reads1.fastq infile path
         -reads2_infile_path : reads2.fastq infile path
-        -max_overlap_ascii_q_score : ']' for Illumina 1.8+ phred+33, 
+        -max_overlap_ascii_q_score : 'J' for Illumina 1.8+ phred+33, 
                                     representing a score of 41. See: 
                                     http://en.wikipedia.org/wiki/FASTQ_format
         -min_overlap : minimum overall base pair overlap to merge two reads
