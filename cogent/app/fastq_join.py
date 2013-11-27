@@ -183,23 +183,19 @@ def join_paired_end_reads_fastqjoin(
     # about changes in default behaviour of the wrapped
     # application
     if perc_max_diff is not None:
-        if type(perc_max_diff) is int and 0 <= perc_max_diff <= 100: 
+        if isinstance(perc_max_diff, int) and 0 <= perc_max_diff <= 100: 
             fastq_join_app.Parameters['-p'].on(perc_max_diff)
         else:
             raise ValueError, "perc_max_diff must be int between 0-100!"
-    else:
-        pass
 
     if min_overlap is not None:
-        if type(min_overlap) is int and 0 < perc_max_diff: 
+        if isinstance(min_overlap, int) and 0 < min_overlap: 
             fastq_join_app.Parameters['-m'].on(min_overlap)
         else:
             raise ValueError, "min_overlap must be an int >= 0!"
-    else:
-        pass
 
     if outfile_label is not None:
-        if type(outfile_label) is str: 
+        if isinstance(outfile_label, str): 
             fastq_join_app.Parameters['-o'].on(outfile_label +'.')
         else:
             raise ValueError, "outfile_label must be a string!"

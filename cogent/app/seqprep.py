@@ -293,39 +293,31 @@ def join_paired_end_reads_seqprep(
                           " the -s, -1, & -2 options!"
 
     if min_overlap is not None:
-        if type(min_overlap) is int and 0 < min_overlap:
-            seqprep_app.Parameters['-o'].on(min_overlap)
-        else:
+        if isinstance(min_overlapi, int) and min_overlap > 0:
+                seqprep_app.Parameters['-o'].on(min_overlap)
+        else:        
             raise ValueError, "min_overlap must be an int >= 0!"
-    else:
-        pass
  
     if max_mismatch_good_frac is not None:
-        if type(max_mismatch_good_frac) is float and 0.0 < max_mismatch_good_frac <= 1.0:
+        if isinstance(max_mismatch_good_frac, float) and 0.0 < max_mismatch_good_frac <= 1.0:
             seqprep_app.Parameters['-m'].on(max_mismatch_good_frac)
         else:
             raise ValueError, "max_mismatch_good_frac must be a float between 0.0-1.0!"
-    else:
-        pass
 
     if min_frac_matching is not None:
-        if type(min_frac_matching) is float and 0.0 < min_frac_matching <= 1.0:
+        if isinstance(min_frac_matching, float) and 0.0 < min_frac_matching <= 1.0:
             seqprep_app.Parameters['-n'].on(min_frac_matching)
         else:
             raise ValueError, "min_frac_matching must be a float between 0.0-1.0!"
-    else:
-        pass
 
  
     if max_overlap_ascii_q_score is not None:
-        if type(max_overlap_ascii_q_score) is str \
+        if isinstance(max_overlap_ascii_q_score, str) \
                 and len(max_overlap_ascii_q_score) == 1:
             seqprep_app.Parameters['-y'].on(max_overlap_ascii_q_score)
         else:
             raise ValueError, "max_overlap_ascii_q_score must be single"+\
                               " ASCII string. e.g. \'J\'!"
-    else:
-        pass
  
 
    # if input is phred+64
