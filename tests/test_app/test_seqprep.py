@@ -192,6 +192,29 @@ class SeqPrepTests(TestCase):
         unass_result_2b = GzipFile(fileobj=unass_2_fhb).read()
         self.assertEqual(unass_result_2b, expected_unassembled_reads2_altered_params) 
  
+        ### run with default function params turned OFF ###
+        # should be identical to default to the current version tested
+        res_none = join_paired_end_reads_seqprep(self.test_fn1, self.test_fn2,
+                          min_overlap=None,
+                          max_mismatch_good_frac=None,
+                          min_frac_matching=None,
+                          working_dir=self.temp_dir_string)
+        
+        # since output is gzipped by default we need to convert to
+        # raw text before testing our results.
+        assembled_fh_none = open(res_none['Assembled']) 
+        assembly_result_none = GzipFile(fileobj=assembled_fh_none).read()
+        self.assertEqual(assembly_result_none, default_expected_assembly_workaround) 
+ 
+        unass_1_fh_none = open(res_none['UnassembledReads1']) 
+        unass_result_1_none = GzipFile(fileobj=unass_1_fh_none).read()
+        self.assertEqual(unass_result_1_none, expected_default_unassembled_reads1) 
+ 
+        unass_2_fh_none = open(res['UnassembledReads2']) 
+        unass_result_2_none = GzipFile(fileobj=unass_2_fh_none).read()
+        self.assertEqual(unass_result_2_none, expected_default_unassembled_reads2) 
+ 
+
 
         os.remove(self.test_fn1)
         os.remove(self.test_fn2)        
