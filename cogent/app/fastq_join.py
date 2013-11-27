@@ -143,8 +143,8 @@ class FastqJoin(CommandLineApplication):
 def join_paired_end_reads_fastqjoin(
     reads1_infile_path,
     reads2_infile_path,
-    perc_max_diff=8,
-    min_overlap=6,
+    perc_max_diff=None, # typical default is 8
+    min_overlap=None, # typical default is 6
     outfile_label = 'fastqjoin',
     params={},    
     working_dir=tempfile.gettempdir(),
