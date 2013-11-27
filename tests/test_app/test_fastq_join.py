@@ -163,6 +163,24 @@ class FastqJoinTests(TestCase):
         self.assertEqual(jp_unass_2b, expected_default_un2_alt_param)
 
         
+        ### test for None as input to function:
+        # output should be identical to default (v1.1.2-537)
+        jp_file_path_none = join_paired_end_reads_fastqjoin(self.test_fn1, self.test_fn2,
+                                     perc_max_diff=None,
+                                     min_overlap=None,
+                                     working_dir=self.temp_dir_string)
+        
+        # test if joined paired end output is correct:
+        jp_ends_none = open(jp_file_path_none['Assembled'],'U').read()
+        self.assertEqual(jp_ends, expected_assembly)
+       
+        jp_unass_1_none = open(jp_file_path_none['UnassembledReads1'],'U').read()
+        self.assertEqual(jp_unass_1, expected_default_un1)
+
+        jp_unass_2_none = open(jp_file_path_none['UnassembledReads2'],'U').read()
+        self.assertEqual(jp_unass_2, expected_default_un2)
+
+        # final cleanup
         os.remove(self.test_fn1) 
         os.remove(self.test_fn2)
         shutil.rmtree(self.temp_dir_string) 
