@@ -276,9 +276,9 @@ def join_paired_end_reads_seqprep(
     # required by SeqPrep to assemble:
     params['-f'] = abs_r1_path
     params['-r'] = abs_r2_path
-    params['-s'] = os.path.join(working_dir, outfile_label) + '_assembled.gz'
-    params['-1'] = os.path.join(working_dir, outfile_label) + '_unassembled_R1.gz' 
-    params['-2'] = os.path.join(working_dir, outfile_label) + '_unassembled_R2.gz'
+    params['-s'] = outfile_label + '_assembled.gz'
+    params['-1'] = outfile_label + '_unassembled_R1.gz' 
+    params['-2'] = outfile_label + '_unassembled_R2.gz'
     params['-o'] = min_overlap
     params['-m'] = max_mismatch_good_frac
     params['-n'] = min_frac_matching
