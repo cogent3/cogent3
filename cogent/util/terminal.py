@@ -40,7 +40,7 @@ class CursesOutput(object):
             raise TerminalUnavailableError("stdout not a real file")
         try:
             curses.setupterm()
-        except curses.error, detail:
+        except (curses.error, IOError), detail:
             raise TerminalUnavailableError(detail)
     
     def getColumns(self):
