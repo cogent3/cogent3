@@ -3,6 +3,7 @@ from sys import platform
 from os import remove,system,mkdir,getcwd,close,sep
 from random import choice
 from os.path import isabs, exists
+from tempfile import gettempdir
 from numpy import zeros, array, nonzero, max
 from cogent.app.parameters import Parameter, FlagParameter, ValuedParameter,\
     MixedParameter,Parameters, _find_synonym, is_not_None, FilePath
@@ -696,8 +697,8 @@ def cmdline_generator(param_iter, PathToBin=None, PathToCmd=None, \
         
             yield ' '.join(cmdline)
        
-def get_tmp_filename(tmp_dir="/tmp", prefix="tmp", suffix=".txt",\
-    result_constructor=FilePath):
+def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
+                     result_constructor=FilePath):
     """ Generate a temporary filename and return as a FilePath object
     
         tmp_dir: the directory to house the tmp_filename (default: '/tmp')
