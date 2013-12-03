@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from tempfile import gettempdir
 from cogent.util.unit_test import TestCase, main
 from cogent.app.util import Application, CommandLineApplication, \
     CommandLineAppResult, ResultPath, ApplicationError, ParameterIterBase,\
@@ -991,7 +992,7 @@ class ConvenienceFunctionTests(TestCase):
     def setUp(self):
         """
         """
-        self.tmp_dir = '/tmp'
+        self.tmp_dir = gettempdir()
         self.tmp_name_len = 20
         
     def test_guess_input_handler(self):
@@ -1016,7 +1017,7 @@ class ConvenienceFunctionTests(TestCase):
         # length comes from
         self.assertEqual(len(obs), len(self.tmp_dir) + len('/') + self.tmp_name_len \
             + len('tmp') + len('.txt'))
-        self.assertTrue(obs.startswith('/tmp'))
+        self.assertTrue(obs.startswith(self.tmp_dir))
 
         # different results on different calls
         self.assertNotEqual(get_tmp_filename(),get_tmp_filename())
@@ -1034,7 +1035,7 @@ class ConvenienceFunctionTests(TestCase):
             Adapted from the CommandLineApplication tests of the member function
         """
         obs = get_tmp_filename(prefix='blah')
-        self.assertTrue(obs.startswith('/tmp/blah'))
+        self.assertTrue(obs.startswith('%s/blah' % self.tmp_dir))
         obs = get_tmp_filename(suffix='.blah')
         self.assertTrue(obs.endswith('.blah'))
         
