@@ -12,7 +12,7 @@ Modified from cogent.app.cd_hit.py on 1-21-10, written by Daniel McDonald.
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["William Walters","Greg Caporaso"]
+__credits__ = ["William Walters","Greg Caporaso","Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "William Walters"
@@ -20,8 +20,7 @@ __email__ = "william.a.walters@colorado.edu"
 __status__ = "Production"
 
 from os import remove, makedirs
-from os.path import split, splitext, basename, isdir, abspath, isfile
-from tempfile import gettempdir
+from os.path import split, splitext, basename, isdir, abspath, isfile, join
 from cogent.parse.fasta import MinimalFastaParser
 from cogent.app.parameters import ValuedParameter, FlagParameter
 from cogent.app.util import CommandLineApplication, ResultPath,\
@@ -345,15 +344,13 @@ def clusters_from_uc_file(uc_lines,
 def uclust_fasta_sort_from_filepath(
     fasta_filepath,
     output_filepath=None,
-    tmp_dir=gettempdir(),
     HALT_EXEC=False):
     """Generates sorted fasta file via uclust --mergesort."""
     output_filepath = output_filepath or \
-     get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_fasta_sort', 
-                      suffix='.fasta')
+     get_tmp_filename(prefix='uclust_fasta_sort', suffix='.fasta')
     tmp_working_dir = split(output_filepath)[0]
     
-    app = Uclust(params={'--tmpdir':tmp_dir},HALT_EXEC=HALT_EXEC)
+    app = Uclust(params={'--tmpdir':tmp_working_dir},HALT_EXEC=HALT_EXEC)
     
     app_result = app(data={'--mergesort':fasta_filepath,\
                            '--output':output_filepath})
@@ -367,7 +364,6 @@ def uclust_search_and_align_from_fasta_filepath(
     enable_rev_strand_matching=True,
     max_accepts=8,
     max_rejects=32,
-    tmp_dir=gettempdir(),
     HALT_EXEC=False):
     """ query seqs against subject fasta using uclust, 
     
@@ -388,8 +384,7 @@ def uclust_search_and_align_from_fasta_filepath(
               '--maxaccepts':max_accepts,
               '--maxrejects':max_rejects,
               '--libonly':True,
-              '--lib':subject_fasta_filepath,
-              '--tmpdir':tmp_dir}
+              '--lib':subject_fasta_filepath}
               
     if enable_rev_strand_matching:
         params['--rev'] = True
@@ -399,9 +394,9 @@ def uclust_search_and_align_from_fasta_filepath(
     
     # apply uclust
     alignment_filepath = \
-     get_tmp_filename(tmp_dir=tmp_dir,prefix='uclust_alignments',suffix='.fasta')
+     get_tmp_filename(prefix='uclust_alignments',suffix='.fasta')
     uc_filepath = \
-     get_tmp_filename(tmp_dir=tmp_dir,prefix='uclust_results',suffix='.uc')
+     get_tmp_filename(prefix='uclust_results',suffix='.uc')
     input_data = {'--input':query_fasta_filepath,
                   '--fastapairs':alignment_filepath,
                   '--uc':uc_filepath}
@@ -435,19 +430,17 @@ def uclust_cluster_from_sorted_fasta_filepath(
     subject_fasta_filepath=None,
     suppress_new_clusters=False,
     stable_sort=False,
-    tmp_dir=gettempdir(),
     HALT_EXEC=False):
     """ Returns clustered uclust file from sorted fasta"""
     output_filepath = uc_save_filepath or \
-     get_tmp_filename(tmp_dir=tmp_dir,prefix='uclust_clusters',suffix='.uc')
+     get_tmp_filename(prefix='uclust_clusters',suffix='.uc')
      
     
     params = {'--id':percent_ID,
               '--maxaccepts':max_accepts,
               '--maxrejects':max_rejects,
               '--stepwords':stepwords,
-              '--w':word_length,
-              '--tmpdir':tmp_dir}
+              '--w':word_length}
     app = Uclust(params,HALT_EXEC=HALT_EXEC)
     
     # Set any additional parameters specified by the user
@@ -462,21 +455,10 @@ def uclust_cluster_from_sorted_fasta_filepath(
     app_result = app({'--input':fasta_filepath,'--uc':output_filepath})
     return app_result
 
-
 def get_output_filepaths(output_dir, fasta_filepath):
     """ Returns filepaths for intermediate file to be kept """
-    
-    if not output_dir.endswith('/'):
-        output_dir += '/'
-        
-    output_file_basename = "".join(basename(fasta_filepath).split('.')[0:-1])
-    uc_save_filepath = '%s%s_clusters.uc' % \
-     (output_dir, output_file_basename)
-
-    return uc_save_filepath
-
-
-
+    return join(output_dir,
+                splitext(basename(fasta_filepath))[0] + '_clusters.uc')
 
 def get_clusters_from_fasta_filepath(
     fasta_filepath,
