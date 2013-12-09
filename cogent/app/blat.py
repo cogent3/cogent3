@@ -295,7 +295,7 @@ def assign_reads_to_database(query_fasta_fp, database_fasta_fp, output_fp,
     return result['output']
 
 def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp, 
-                        output_fp, params = {}):
+                        output_fp, params = None):
     """Assign DNA reads to a database fasta of DNA sequences.
 
     Wraps assign_reads_to_database, setting database and query types. All
@@ -313,6 +313,9 @@ def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp,
     This method returns an open file object. The output format
     defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
+    if params is None:
+        params = {}
+
     my_params = {'-t': 'dna',
               '-q': 'dna'
              }
@@ -333,7 +336,7 @@ def assign_dna_reads_to_dna_database(query_fasta_fp, database_fasta_fp,
     return result
 
 def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp, 
-                        output_fp, temp_dir = "/tmp", params = {}):
+                        output_fp, temp_dir = "/tmp", params = None):
     """Assign DNA reads to a database fasta of protein sequences.
 
     Wraps assign_reads_to_database, setting database and query types. All
@@ -356,6 +359,9 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     This method returns an open file object. The output format
     defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
+    if params is None:
+        params = {}
+
     my_params = {'-t': 'prot',
               '-q': 'prot'
              }
