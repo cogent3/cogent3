@@ -4,7 +4,8 @@ following Brett Easton's suggestion, and a taylor series expansion approach.
 
 WARNING: The methods are not robust!
 """
-from numpy import array, dot, eye, zeros, transpose, log, inner as innerproduct
+from numpy import array, dot, eye, zeros, transpose, log, \
+        allclose, inner as innerproduct
 from numpy.linalg import inv as inverse, eig as eigenvectors, norm
 
 __author__ = "Rob Knight"
@@ -25,6 +26,9 @@ def logm(P):
     roots, ev = eigenvectors(P)
     evI = inverse(ev.T)
     evT = ev
+    if not allclose(P, innerproduct(evT * roots, evI)):
+        raise ArithmeticError("eigendecomposition failed")
+    
     log_roots = log(roots)
     return innerproduct(evT * log_roots, evI)
 
