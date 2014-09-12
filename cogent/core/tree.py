@@ -1336,9 +1336,16 @@ class TreeNode(object):
         """
         return self.getNodeNames(includeself, tipsonly=True)
     
-    def getEdgeVector(self):
-        """Collect the list of edges in postfix order"""
-        return [node for node in self.traverse(False, True)]
+    def getEdgeVector(self, include_root=True):
+        """Collect the list of edges in postfix order
+        
+        Arguments:
+            - include_root: specifies whether root edge included"""
+        if include_root:
+            result = [n for n in self.traverse(False, True)]
+        else:
+            result = [n for n in self.traverse(False, True) if not n.isroot()]
+        return result
     
     def _getNodeMatchingName(self, name):
         """
