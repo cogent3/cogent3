@@ -7,13 +7,15 @@ from cogent.util.dict_array import DictArrayTemplate
 from cogent.evolve.simulate import AlignmentEvolver, randomSequence
 from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
+from cogent.maths.matrix_logarithm import is_generator_unique
 
 from cogent.util.warning import discontinued, deprecated
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
-                    "Matthew Wakefield", "Rob Knight", "Brett Easton"]
+                    "Matthew Wakefield", "Rob Knight", "Brett Easton", 
+                    "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -426,5 +428,20 @@ class LikelihoodFunction(ParameterController):
         return Alignment(
                 data = simulated_sequences,
                 MolType = self._model.MolType)
-        
-    
+       
+    def allPsubsDLC(self):
+        """Returns True if every Psub matrix is Diagonal Largest in Column"""
+        for edge in self.tree.getEdgeVector(include_root=False):
+            P = self.getPsubForEdge(edge.Name).asarray()
+            if (P.diagonal() < P).any():
+                return False
+        return True
+
+    def allRateMatricesUnique(self):
+        """Returns True if every rate matrix is unique for its Psub matrix"""
+        for edge in self.tree.getEdgeVector(include_root=False):
+            Q = self.getRateMatrixForEdge(edge.Name).asarray()
+            t = self.getParamValue('length', edge=edge.Name)
+            if not is_generator_unique(Q*t):
+                return False
+        return True

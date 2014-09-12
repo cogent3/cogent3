@@ -1620,10 +1620,16 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
             self.assertEqual(edge.istip(), expect_tip)
     
     def test_getEdgeVector(self):
+        '''correctly return vector of edges from a tree'''
         tree = self.default_tree
         names = [e.Name for e in tree.getEdgeVector()]
         self.assertEqual(names,
             ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde', 'root'])
+        
+        names = [e.Name for e in tree.getEdgeVector(include_root=False)]
+        self.assertEqual(names,
+            ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde'])
+        
     
     def test_getNewickRecursive(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
