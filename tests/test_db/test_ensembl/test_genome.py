@@ -465,7 +465,7 @@ class TestVariation(GenomeTestBase):
     
     def test_somatic_attribute_correct(self):
         """Somatic attribute of variants should be correct"""
-        symbols_somatic = [('COSM256414', True), ('rs56651348', False)]
+        symbols_somatic = [('COSM256414', True), ('rs80359189', False)]
         for symbol, expect in symbols_somatic:
             snp = list(self.human.getVariation(Symbol=symbol, somatic=True,
                         flanks_match_ref=False))[0]
@@ -486,6 +486,11 @@ class TestVariation(GenomeTestBase):
             
             self.assertEquals(snp.PeptideAlleles, self.snp_aa_alleles[i])
 
+    def test_no_pep_alleles(self):
+        """handle case where coding_sequence_variant has no peptide alleles"""
+        snp = list(self.human.getVariation(Symbol='CM033341'))[0]
+        self.assertTrue(snp.PeptideAlleles is None)
+    
     def test_get_peptide_location(self):
         """should return correct location for aa variants"""
         index = self.snp_names.index('rs11545807')
@@ -556,7 +561,7 @@ class TestVariation(GenomeTestBase):
             i += 1
         
         self.assertEquals(i, limit)
-        
+    
 
 class TestFeatures(GenomeTestBase):
     def setUp(self):

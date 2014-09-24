@@ -1250,8 +1250,9 @@ class Variation(_Region):
             translation_location += [record['translation_start']]
 
         if not pep_alleles:
-            print 'Expected at least a single record'
-            raise RuntimeError
+            self._cached['PeptideAlleles'] = self.NULL_VALUE
+            self._cached['TranslationLocation'] = self.NULL_VALUE
+            return
 
         # we only want unique allele strings
         allele_location = dict(zip(pep_alleles, translation_location))
