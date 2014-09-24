@@ -15,7 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 68
+Release = 76
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -26,6 +26,7 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
     account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
+
 
 class TestEnsemblDbName(TestCase):
     def test_cmp_name(self):

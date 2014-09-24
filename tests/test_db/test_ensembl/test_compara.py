@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 68
+Release = 76
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -73,6 +73,15 @@ class TestCompara(ComparaTestBase):
         result = list(self.comp.getSyntenicRegions(region=brca2,
                         align_method='PECAN', align_clade='vertebrates'))[0]
         aln = result.getAlignment(feature_types='gene')
+        # the following expect confirmed using Ensembl's web-site
+        sub_aln = aln[7000: 7020]
+        seqs = sub_aln.todict().values()
+        expect = set(['AGGGCTGACTCTGCCGCTGT', # human
+                      'AAGTCAAACTCTACCACTGG', # mouse
+                      'AAGTCAAACTCTACCACTAG', #rat
+                      'AAATGTGACTCTACCAGCCG' #platypus
+                  ])
+        self.assertEquals(set(seqs), expect)
         self.assertTrue(len(aln) > 1000)
     
     def test_generate_method_clade_data(self):
@@ -101,8 +110,8 @@ class TestCompara(ComparaTestBase):
         """should return the correct set of species"""
         expect = set(['Homo sapiens', 'Ornithorhynchus anatinus',
                       'Mus musculus', 'Rattus norvegicus'])
-        brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
-        Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
+        brca1 = self.comp.Human.getGeneByStableId(StableId="ENSG00000012048")
+        Orthologs = self.comp.getRelatedGenes(gene_region=brca1,
                         Relationship="ortholog_one2one")
         self.assertEquals(Orthologs.getSpeciesSet(), expect)
         
@@ -121,7 +130,7 @@ class TestSyntenicRegions(TestCase):
         """should return the correct alignments"""
         # following cases have a mixture of strand between ref seq and others
         coords_expected = [
-            [{'CoordName': 4, 'End': 78099, 'Species': 'human', 'Start': 77999, 'Strand':-1},
+            [{'CoordName': 4, 'End': 78207, 'Species': 'human', 'Start': 78107, 'Strand':-1},
               {'Homo sapiens:chromosome:4:77999-78099:-1':
                'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTTAAAAGCATTCATGACTTAGAA',
                'Macaca mulatta:chromosome:1:3891064-3891163:1':
@@ -135,7 +144,7 @@ class TestSyntenicRegions(TestCase):
                  '------GTTTCCCTTTAGGGCTCTAAGATGAGGTCATCATTGTTTTTAATCCTGAAGAAGGGCTACTGA----GTGCAGATTATTCTGTAAATGTGCTTACTTG',
                  'Pan troglodytes:chromosome:18:16601082-16601182:1':
                  'ATAAGCATTTCCCTTTAGGGCTCTAAGATGAGGTCATCATCGTTTTTAATCCTGAAGAAGGGCTACTGA----GTGCAGATTATTCTGTAAACACTCACTCTTA'}],
-            [{'CoordName': 5, 'End': 204974, 'Species': 'human', 'Start': 204874, 'Strand':1},
+            [{'CoordName': 5, 'End': 204859, 'Species': 'human', 'Start': 204759, 'Strand':1},
                 {'Homo sapiens:chromosome:5:204874-204974:1':
                  'AACACTTGGTATTT----CCCCTTTATGGAGTGAGAGAGATCTTTAAAATATAAACCCTTGATAATATAATATTACTACTTCCTATTA---CCTGTTATGCAGTTCT',
                  'Macaca mulatta:chromosome:6:1297736-1297840:-1':
@@ -161,7 +170,7 @@ class TestSyntenicRegions(TestCase):
                  'GCGCAG-GGCGGGCACGCGCAGCCGAGAAGATGTCTCCGACGCCGCCGCTCTTCAGTTTGCCCGAAGCGCGGACGCGGTTTACGGTGAGCTGTAGGCGGG',
                  'Pan troglodytes:chromosome:18:16546800-16546900:1':
                  'GCGCAGTGGCGGGCACGCGCAGCCGAGAAGATGTCTCCGACGCCGCCGCTCTTCAGTTTGCCCGAAGCGCGGACGCGGTTTACGGTGAGCTGTAGCGGGG'}],
-            [{'CoordName': 16, 'End': 107443, 'Species': 'human', 'Start': 107343, 'Strand':-1},
+            [{'CoordName': 16, 'End': 57443, 'Species': 'human', 'Start': 57343, 'Strand':-1},
                 {'Homo sapiens:chromosome:16:107343-107443:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACAGTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGCATTTGGACCTAGGGAGAGGTCAGTCTCAGGCCAAGTA',
                  'Pan troglodytes:chromosome:16:48943-49032:-1':
@@ -170,7 +179,7 @@ class TestSyntenicRegions(TestCase):
         # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             syntenic = list(
-                self.comp.getSyntenicRegions(method_clade_id=548, **coord))[0]
+                self.comp.getSyntenicRegions(method_clade_id=742, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
