@@ -189,22 +189,31 @@ class Compara(object):
         
         StableId = StableId or gene_region.StableId
         
-        member_table = self.ComparaDb.getTable('member')
+        if self._genomes.values()[0].GeneralRelease > 75:
+            mem_name = 'gene_member'
+            mem_id = 'gene_member_id'
+            frag_strand = 'dnafrag_strand'
+        else:
+            mem_name = 'member'
+            mem_id = 'member_id'
+            frag_strand = 'chr_strand'
+        
+        member_table = self.ComparaDb.getTable(mem_name)
         homology_member_table = self.ComparaDb.getTable('homology_member')
         homology_table = self.ComparaDb.getTable('homology')
         
-        member_ids = sql.select([member_table.c.member_id],
+        member_ids = sql.select([member_table.c[mem_id]],
             member_table.c.stable_id == str(StableId))
         
-        member_ids = [r['member_id'] for r in member_ids.execute()]
+        member_ids = [r[mem_id] for r in member_ids.execute()]
         if not member_ids:
             return None
         
         if DEBUG: print "member_ids", member_ids
         
         homology_ids = sql.select([homology_member_table.c.homology_id,
-                          homology_member_table.c.member_id],
-                          homology_member_table.c.member_id.in_(member_ids))
+                          homology_member_table.c[mem_id]],
+                          homology_member_table.c[mem_id].in_(member_ids))
         homology_ids = [r['homology_id'] for r in homology_ids.execute()]
         if not homology_ids:
             return None
@@ -228,11 +237,11 @@ class Compara(object):
         if not homology_ids:
             return None
         
-        ortholog_ids = sql.select([homology_member_table.c.member_id,
+        ortholog_ids = sql.select([homology_member_table.c[mem_id],
                                 homology_member_table.c.homology_id],
                 homology_member_table.c.homology_id.in_(homology_ids.keys()))
         
-        ortholog_ids = dict([(r['member_id'], r['homology_id']) \
+        ortholog_ids = dict([(r[mem_id], r['homology_id']) \
                                       for r in ortholog_ids.execute()])
         
         if DEBUG: print "ortholog_ids", ortholog_ids
@@ -246,7 +255,7 @@ class Compara(object):
         relationships = tuple(relationships)
         
         gene_set = sql.select([member_table],
-                sql.and_(member_table.c.member_id.in_(ortholog_ids.keys()),
+                sql.and_(member_table.c[mem_id].in_(ortholog_ids.keys()),
                   member_table.c.taxon_id.in_(self.taxon_id_species.keys())))
         data = []
         for record in gene_set.execute():
@@ -255,7 +264,7 @@ class Compara(object):
             gene = list(genome.getGenesMatching(StableId=StableId))
             assert len(gene) == 1, "Error in selecting genes: %s" % gene
             gene = gene[0]
-            gene.Location.Strand = record['chr_strand']
+            gene.Location.Strand = record[frag_strand]
             data += [gene]
         
         if not data:
