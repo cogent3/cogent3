@@ -286,11 +286,16 @@ def suite():
         if 'ENSEMBL_ACCOUNT' in os.environ:
             # check for cogent.db.ensembl dependencies
             test_ensembl = True
-            for module in ['MySQLdb', 'sqlalchemy']:
-                if not module_present(module):
-                    test_ensembl = False
-                    print >> sys.stderr, \
-                        "Module '%s' not present: skipping test" % module
+            if not (module_present('MySQLdb') or module_present('mysql')):
+                test_ensembl = False
+                print >> sys.stderr, \
+                    "Module 'mysql-connector-python' and 'MySQL-python' not "\
+                        "present: skipping test"
+            
+            if not module_present('sqlalchemy'):
+                test_ensembl = False
+                print >> sys.stderr, \
+                    "Module 'sqlalchemy' not present: skipping test"
 
             if test_ensembl:
                 db_tests += ['test_db.test_ensembl.test_assembly',

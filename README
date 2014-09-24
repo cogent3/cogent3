@@ -27,7 +27,7 @@ Optional
 - Matplotlib_: used to plot several kinds of graphs related to codon usage. For installation, see these instructions for `compiling matplotlib`_.
 - Cython_: This module is only necessary if you are a developer who wants to modify the \*.pyx files.
 - mpi4py_: Message Passing Interface interface, required for parallel computation.
-- SQLAlchemy_ and `MySQL-python`_: These are required for the Ensembl querying code.
+- SQLAlchemy_ and `mysql-connector-python`_: These are required for the Ensembl querying code.
 
 If you use the :ref:`quick-install` approach, these are all specified in the requirements file.
 
@@ -97,6 +97,6 @@ to figure out how to use the ``myalign.writeToFile`` method. Also note that the 
 .. _`restructured text`: http://docutils.sourceforge.net/rst.html
 .. _gcc: http://gcc.gnu.org/
 .. _SQLAlchemy: http://www.sqlalchemy.org
-.. _`MySQL-python`: http://sourceforge.net/projects/mysql-python
+.. _`mysql-connector-python`: https://pypi.python.org/pypi/mysql-connector-python
 .. _zlib: http://www.zlib.net/
 .. _`compiling matplotlib`: http://sourceforge.net/projects/pycogent/forums/forum/651121/topic/5635916
