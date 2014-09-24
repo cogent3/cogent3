@@ -16,7 +16,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 68
+Release = 76
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -27,6 +27,7 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
     account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
+
 
 class TestFeatureCoordLevels(TestCase):
     def setUp(self):
@@ -39,19 +40,20 @@ class TestFeatureCoordLevels(TestCase):
                     feature_types=['gene', 'cpg', 'est'],
                     core_db=self.chicken.CoreDb,
                     otherfeature_db=self.chicken.OtherFeaturesDb)
-        self.assertEquals(chicken_feature_levels['repeat'].levels, ['contig'])
-        self.assertEquals(set(chicken_feature_levels['cpg'].levels),\
-                            set(['contig', 'supercontig', 'chromosome']))
+        self.assertEquals(chicken_feature_levels['repeat'].levels,
+                                ['chromosome', 'scaffold'])
+        self.assertEquals(set(chicken_feature_levels['cpg'].levels),
+                            set(['chromosome', 'scaffold']))
     
     def test_repeat(self):
         # use chicken genome as it need to do conversion
         # chicken coordinate correspondent toRefSeq human IL2A region
-        coord = dict(CoordName=9, Start=23817146, End=23818935)
+        coord = dict(CoordName=9, Start=21727352, End=21729141)
         region = self.chicken.getRegion(**coord)
         # repeat is recorded at contig level, strand is 0
         repeats = region.getFeatures(feature_types = 'repeat')
-        expect = [("9", 23817293, 23817321), ("9", 23817803, 23817812),
-                  ("9", 23817963, 23817972)]
+        expect = [("9", 21727499, 21727527), ("9", 21728009, 21728018),
+                  ("9", 21728169, 21728178)]
         obs = []
         for repeat in repeats:
             loc = repeat.Location
@@ -60,20 +62,20 @@ class TestFeatureCoordLevels(TestCase):
     
     def test_cpg(self):
         # contain 3 CpG island recorded at chromosome level
-        coord1 = dict(CoordName=26, Start=110000, End=190000)
-        cpgs1 = self.chicken.getFeatures(feature_types = 'cpg', **coord1)
-        exp = [("26", 116969, 117955), ("26", 139769, 140694),
-               ("26", 184546, 185881)]
+        coord1 = dict(CoordName=26, Start=105184, End=184346)
+        cpgs1 = self.chicken.getFeatures(feature_types='cpg', **coord1)
+        exp = [("26", 112153, 113139), ("26", 134125, 135050),
+               ("26", 178899, 180227)]
         obs = []
         for cpg in cpgs1:
             loc = cpg.Location
             obs.append((str(loc.CoordName), loc.Start, loc.End))
         self.assertEquals(set(obs), set(exp))
         
-        # test cpg features record at supercontig level:
-        coord2 = dict(CoordName='Un_random', Start=29434117, End=29439117)
+        # test cpg features record at scaffold level:
+        coord2 = dict(CoordName='JH376196.1', Start=1, End=14640)
         cpgs2 = self.chicken.getFeatures(feature_types='cpg', **coord2)
-        self.assertEquals(len(list(cpgs2)), 1)
+        self.assertEquals(len(list(cpgs2)), 3)
     
 
 if __name__ == '__main__':
