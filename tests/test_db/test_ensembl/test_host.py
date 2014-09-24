@@ -61,6 +61,19 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.GeneralRelease, '59')
         self.assertEqual(n.Type, 'compara')
     
+class TestHostAccount(TestCase):
+    def test_host_comparison(self):
+        """instances with same host, account, database, port are equal"""
+        h1 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5306)
+        h2 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5306)
+        self.assertNotEqual(id(h1), id(h2))
+        self.assertEqual(h1, h2)
+        # hashes are also equal
+        self.assertEqual(hash(h1), hash(h2))
+        h3 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5300)
+        self.assertNotEqual(h1, h3)
+        self.assertNotEqual(hash(h1), hash(h3))
+    
 
 class TestDBconnects(TestCase):
     
