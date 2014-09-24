@@ -73,14 +73,20 @@ class Compara(object):
         """caches the taxon id's for the self.Species"""
         if self._species_id_map is not None:
             return self._species_id_map
-        ncbi_table = self.ComparaDb.getTable('ncbi_taxa_name')
-        conditon = sql.select([ncbi_table.c.taxon_id, ncbi_table.c.name],
-                    ncbi_table.c.name.in_([sp for sp in self.Species]))
+        
+        genome_db_table = self.ComparaDb.getTable('genome_db')
+        condition = sql.select(
+            [genome_db_table.c.taxon_id, genome_db_table.c.name],
+             genome_db_table.c.name.in_([sp.replace(' ', '_')
+                                            for sp in self.Species]))
+        
         # TODO this should make the dict values the actual Genome instances
         id_genome = []
-        for r in conditon.execute():
-            id_genome += [(r['taxon_id'], self._genomes[r['name']])]
+        for r in condition.execute():
+            id_genome += [(r['taxon_id'], 
+                        self._genomes[r['name'].replace('_', ' ').capitalize()])]
         self._species_id_map = dict(id_genome)
+        assert len(self._species_id_map) == len(self.Species)
         return self._species_id_map
     
     taxon_id_species = property(_make_species_id_map)
