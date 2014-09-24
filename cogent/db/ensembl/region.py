@@ -1257,7 +1257,7 @@ class Variation(_Region):
         allele_location = dict(zip(pep_alleles, translation_location))
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
-        if type(pep_alleles) != str:
+        if type(pep_alleles) not in (str, unicode):
             for pep_allele in pep_alleles:
                 translation_location = allele_location[pep_allele]
         else:
