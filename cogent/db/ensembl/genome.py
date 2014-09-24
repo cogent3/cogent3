@@ -360,7 +360,7 @@ class Genome(object):
         target_coord. At present, only CpG islands being queried."""
         simple_feature_table = db.getTable('simple_feature')
         feature_types = ['CpGisland']
-        feature_type_ids=[self._feature_type_ids.get(f) for f in feature_types]
+        feature_type_ids=[str(self._feature_type_ids.get(f)) for f in feature_types]
         # fix the following
         query = sql.select([simple_feature_table],
             sql.and_(simple_feature_table.c.analysis_id.in_(feature_type_ids),

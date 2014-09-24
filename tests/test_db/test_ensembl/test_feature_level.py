@@ -55,7 +55,7 @@ class TestFeatureCoordLevels(TestCase):
         obs = []
         for repeat in repeats:
             loc = repeat.Location
-            obs.append((loc.CoordName, loc.Start, loc.End))
+            obs.append((str(loc.CoordName), loc.Start, loc.End))
         self.assertEquals(set(obs), set(expect))
     
     def test_cpg(self):
@@ -67,8 +67,8 @@ class TestFeatureCoordLevels(TestCase):
         obs = []
         for cpg in cpgs1:
             loc = cpg.Location
-            obs.append((loc.CoordName, loc.Start, loc.End))
-        self.assertEquals(set(exp), set(obs))
+            obs.append((str(loc.CoordName), loc.Start, loc.End))
+        self.assertEquals(set(obs), set(exp))
         
         # test cpg features record at supercontig level:
         coord2 = dict(CoordName='Un_random', Start=29434117, End=29439117)

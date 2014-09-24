@@ -194,7 +194,7 @@ class Compara(object):
         homology_table = self.ComparaDb.getTable('homology')
         
         member_ids = sql.select([member_table.c.member_id],
-            member_table.c.stable_id == StableId)
+            member_table.c.stable_id == str(StableId))
         
         member_ids = [r['member_id'] for r in member_ids.execute()]
         if not member_ids:
@@ -277,7 +277,7 @@ class Compara(object):
                   sql.and_(dnafrag_table.c.genome_db_id ==\
                                             genome_db_table.c.genome_db_id,
                                 genome_db_table.c.name == prefix,
-                                dnafrag_table.c.name == coord.CoordName))
+                                dnafrag_table.c.name == str(coord.CoordName)))
         try:
             record = asserted_one(query.execute().fetchall())
             dnafrag_id = record['dnafrag_id']

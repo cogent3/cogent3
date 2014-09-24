@@ -46,7 +46,7 @@ def location_query(table, query_start, query_end,
 def _get_coord_type_and_seq_region_id(coord_name, core_db):
     seq_region_table = core_db.getTable('seq_region')
     rows = sql.select([seq_region_table]).\
-        where(seq_region_table.c.name == coord_name).execute().fetchall()
+        where(seq_region_table.c.name == str(coord_name)).execute().fetchall()
     species_coord_sys = CoordSystem(species=core_db.db_name.Species,
                                     core_db = core_db)
     try:
