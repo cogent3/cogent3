@@ -1145,8 +1145,14 @@ class Variation(_Region):
 
         self._table_rows['allele_table'] = records
         data = []
+        
+        if self.genome.GeneralRelease > 71:
+            sample_id = 'population_id'
+        else:
+            sample_id = 'sample_id'
+        
         for rec in records:
-            if not rec['sample_id']:
+            if not rec[sample_id]:
                 continue
 
             if allele_code is None:
@@ -1156,14 +1162,14 @@ class Variation(_Region):
                                           allele_code.c.allele_code_id == rec['allele_code_id'])
                 allele = list(allele_query.execute())[0][0]
 
-            data.append((allele, rec['frequency'], rec['sample_id']))
+            data.append((allele, rec['frequency'], rec[sample_id]))
 
         if not data:
             self._cached[('AlleleFreqs')] = self.NULL_VALUE
             return
 
-        table = Table(header='allele freq sample_id'.split(), rows=data)
-        self._cached[('AlleleFreqs')] = table.sorted(['sample_id', 'allele'])
+        table = Table(header=['allele', 'freq', sample_id], rows=data)
+        self._cached[('AlleleFreqs')] = table.sorted([sample_id, 'allele'])
 
     def _get_allele_freqs(self):
         return self._get_cached_value('AlleleFreqs',
