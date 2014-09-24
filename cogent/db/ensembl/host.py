@@ -24,13 +24,20 @@ class HostAccount(object):
         self.user = user
         self.passwd = passwd
         self.port = port or 3306
+        self._hash = hash((self.host, self.user, self.port))
     
     def __cmp__(self, other):
-        return cmp((self.host, self.user, self.port),
-                    (other.host, other.user, other.port))
+        return cmp(self._hash, other._hash)
+    
+    def __eq__(self, other):
+        return self._hash == other._hash
+    
+    def __hash__(self):
+        return self._hash
     
     def __str__(self):
         return '%s:%s@%s:%s' % (self.user,self.passwd,self.host,self.port)
+    
 
 def get_ensembl_account(release=None):
     """returns an HostAccount for ensembl.
