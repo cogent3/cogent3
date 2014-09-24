@@ -346,7 +346,7 @@ class Genome(object):
         """returns the seq_region_id for the provided CoordName"""
         seq_region_table = self.CoreDb.getTable('seq_region')
         coord_systems = CoordSystem(core_db=self.CoreDb)
-        coord_system_ids = [k for k in coord_systems if not isinstance(k, str)]
+        coord_system_ids = [k for k in coord_systems if type(k) not in (unicode, str)]
         record = sql.select([seq_region_table.c.seq_region_id],
                     sql.and_(seq_region_table.c.name == CoordName,
                 seq_region_table.c.coord_system_id.in_(coord_system_ids)))
