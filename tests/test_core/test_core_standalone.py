@@ -380,13 +380,48 @@ class AlignmentTestMethods(unittest.TestCase):
         seqs = seq_coll.todict()
         self.assertEqual(seqs['seq1'], 'ACG')   # note: not 'acg---'
         self.assertEqual(seqs['seq2'], 'ACGACG')
+        # aligned
         aln = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGTGA',
                         'seq3': 'ACGTAA'}, moltype = DNA)
         aln = aln.withoutTerminalStopCodons()
-        seqs = aln.todict()
-        self.assertEqual(seqs['seq1'], 'ACG')   # note: not 'acg---'
-        self.assertEqual(seqs['seq2'], 'ACG')
-        self.assertEqual(seqs['seq3'], 'ACG')
+        self.assertEqual(aln.todict(),
+           {'seq1': 'ACG', 'seq2': 'ACG', 'seq3': 'ACG'})   # note: not 'acg---'
+        aln = LoadSeqs(data={'seq1': 'ACGAAA', 'seq2': 'ACGTGA',
+                        'seq3': 'ACGTAA'}, moltype=DNA)
+        aln = aln.withoutTerminalStopCodons()
+        self.assertEqual(aln.todict(),
+                {'seq1': 'ACGAAA', 'seq2': 'ACG---', 'seq3': 'ACG---'})
+        
+        # for case where a sequence length is not divisible by 3
+        seq_coll = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGAC'},
+                            moltype = DNA, aligned=False)
+        # fail
+        self.assertRaises(ValueError, seq_coll.withoutTerminalStopCodons)
+        # unless explicitly over-ridden with allow_partial
+        new_coll = seq_coll.withoutTerminalStopCodons(allow_partial=True)
+        self.assertEqual(new_coll.todict(), dict(seq1='ACG', seq2='ACGAC'))
+        
+        # should work for alignments too
+        aln = LoadSeqs(data={'seq1': 'ACGTAA---', 'seq2': 'ACGAC----',
+                                'seq3': 'ACGCAATTT'}, moltype=DNA)
+        # fail
+        self.assertRaises(ValueError, aln.withoutTerminalStopCodons)
+        # unless explicitly over-ridden with allow_partial
+        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        self.assertEqual(aln.todict(),
+                {'seq1': 'ACG------', 'seq2': 'ACGAC----', 'seq3': 'ACGCAATTT'})
+        # mixed lengths
+        aln = LoadSeqs(data={'seq1': 'ACGTAA---', 'seq2': 'ACGAC----',
+                                'seq3': 'ACGCAATGA'}, moltype=DNA)
+        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        self.assertEqual(aln.todict(),
+                {'seq1': 'ACG---', 'seq2': 'ACGAC-', 'seq3': 'ACGCAA'})
+        # longest seq not divisible by 3
+        aln = LoadSeqs(data={'seq1': 'ACGTAA--', 'seq2': 'ACGAC---',
+                                'seq3': 'ACGC-ATG'}, moltype=DNA)
+        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        self.assertEqual(aln.todict(),
+                {'seq1': 'ACG-----', 'seq2': 'ACGAC---', 'seq3': 'ACGC-ATG'})
     
     def test_hasTerminalStops(self):
         """test truth values for terminal stops"""
@@ -407,6 +442,12 @@ class AlignmentTestMethods(unittest.TestCase):
         aln = LoadSeqs(data = {'seq1': 'ACGCAA', 'seq2': 'ACGCAA',
                             'seq3': 'ACGCGT'}, moltype = DNA)
         assert aln.hasTerminalStops() == False
+        
+        # ValueError if ragged end
+        aln = LoadSeqs(data = {'seq1': 'ACGCAA', 'seq2': 'ACGTAA',
+                            'seq3': 'ACGCG-'}, moltype = DNA)
+        self.assertRaises(ValueError, aln.hasTerminalStops)
+        self.assertTrue(aln.hasTerminalStops(allow_partial=True))
     
     def test_slice(self):
         seqs = {'seq1': 'ACGTANGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
@@ -515,18 +556,27 @@ class SequenceTestMethods(unittest.TestCase):
         seq = Sequence(DNA, seq='ACTTAA')
         seq2 = seq.withoutTerminalStopCodon()
         self.assertEqual(str(seq2), "ACT")
+        
+        # for sequence not divisible by 3
+        seq = Sequence(DNA, seq='ACTTA')
+        # fail
+        self.assertRaises(ValueError, seq.withoutTerminalStopCodon)
+        # unless explicitly over-ride length issue using allow_partial
+        seq2 = seq.withoutTerminalStopCodon(allow_partial=True)
     
     def test_hasTerminalStop(self):
         """test check for terminal stop codons"""
         seq = Sequence(DNA, seq='ACTTAA')
         assert seq.hasTerminalStop() == True
         seq = Sequence(DNA, seq='ACTTAT') == False
-        try:
-            # only sequences with length divisible by 3 should work
-            seq = Sequence(DNA, seq='ACTTA')
-            seq.hasTerminalStop()
-        except AssertionError:
-            pass
+        
+        # for sequence not divisible by 3
+        seq = Sequence(DNA, seq='ACTTA')
+        # fail
+        self.assertRaises(ValueError, seq.hasTerminalStop)
+        # unless explicitly over-ride length issue using allow_partial
+        # in which case, returns False
+        self.assertFalse(seq.hasTerminalStop(allow_partial=True))
 
 if __name__ == '__main__':
     unittest.main()

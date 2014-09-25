@@ -383,7 +383,7 @@ but a ``SequenceCollection`` cannot be sliced
     >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
     >>> print seqs[:24]
     Traceback (most recent call last):
-    TypeError: 'SequenceCollection' object is not subscriptable
+    TypeError: 'SequenceCollection' object...
 
 Getting a single column from an alignment
 """""""""""""""""""""""""""""""""""""""""
@@ -445,6 +445,47 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 
 Filtering positions
 """""""""""""""""""
+
+Trim terminal stop codons
++++++++++++++++++++++++++
+
+For evolutionary analyses that use codon models we need to exclude terminating stop codons. For the case where the sequences are all of length divisible by 3.
+
+.. doctest::
+    
+    >>> from cogent import LoadSeqs, DNA
+    >>> aln = LoadSeqs(data={'seq1': 'ACGTAA---', 
+    ...                      'seq2': 'ACGACA---',
+    ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
+    ...                     
+    >>> new = aln.withoutTerminalStopCodons()
+    >>> print new
+    >seq3
+    ACGCAA
+    >seq2
+    ACGACA
+    >seq1
+    ACG---
+    <BLANKLINE>
+
+If the alignment contains sequences not divisible by 3, use the ``allow_partial`` argument.
+
+.. doctest::
+    
+    >>> aln = LoadSeqs(data={'seq1': 'ACGTAA---', 
+    ...                      'seq2': 'ACGAC----', # terminal codon incomplete
+    ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
+    ...                     
+    >>> new = aln.withoutTerminalStopCodons(allow_partial=True)
+    >>> print new
+    >seq3
+    ACGCAA
+    >seq2
+    ACGAC-
+    >seq1
+    ACG---
+    <BLANKLINE>
+
 
 Eliminating columns with non-nucleotide characters
 ++++++++++++++++++++++++++++++++++++++++++++++++++
