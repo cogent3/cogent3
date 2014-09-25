@@ -131,7 +131,7 @@ Use the method ``getInMotifSize``
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs,DNA
+    >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
     >>> codons = my_seq.getInMotifSize(3)
     >>> print codons
@@ -150,7 +150,7 @@ Remove the stop codon first
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs,DNA
+    >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
     >>> seq = my_seq.withoutTerminalStopCodon()
     >>> pep = seq.getTranslation()
@@ -165,7 +165,7 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs,DNA
+    >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('CAAATGTATTAA','my_gene')
     >>> pep = my_seq[:-3].getTranslation().toFasta()
     >>> print pep

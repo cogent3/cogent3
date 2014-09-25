@@ -774,22 +774,44 @@ class NucleicAcidSequence(Sequence):
             gc = GeneticCodes[gc]
         return gc
     
-    def hasTerminalStop(self, gc=None):
+    def hasTerminalStop(self, gc=None, allow_partial=False):
         """Return True if the sequence has a terminal stop codon.
         
         Arguments:
-            - gc: a genetic code"""
+            - gc: genetic code object
+            - allow_partial: if True and the sequence length is not dividisble
+              by 3, ignores the 3' terminal incomplete codon
+        """
         gc = self._gc_from_arg(gc)
         codons = self._seq
-        assert len(codons) % 3 == 0
+        divisible_by_3 = len(codons) % 3 == 0
+        
+        if not allow_partial and not divisible_by_3:
+            raise ValueError("seq length not divisible by 3")
+        
+        if not divisible_by_3:
+            return False
+        
         return codons and gc.isStop(codons[-3:])
     
-    def withoutTerminalStopCodon(self, gc=None):
+    def withoutTerminalStopCodon(self, gc=None, allow_partial=False):
+        """Removes a terminal stop codon from the sequence
+        
+        Arguments:
+            - gc: genetic code object
+            - allow_partial: if True and the sequence length is not divisible
+              by 3, ignores the 3' terminal incomplete codon
+        """
         gc = self._gc_from_arg(gc)
         codons = self._seq
-        assert len(codons) % 3 == 0, "seq length not divisible by 3"
-        if codons and gc.isStop(codons[-3:]):
+        divisible_by_3 = len(codons) % 3 == 0
+        
+        if not allow_partial and not divisible_by_3:
+            raise ValueError("seq length not divisible by 3")
+        
+        if divisible_by_3 and codons and gc.isStop(codons[-3:]):
             codons = codons[:-3]
+        
         return self.__class__(codons, Name=self.Name, Info=self.Info)
     
     def getTranslation(self, gc=None):
