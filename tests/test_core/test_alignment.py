@@ -1354,6 +1354,30 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             Info={'check': True})
         copied = aln.copy()
         self.assertEqual(aln.Info, copied.Info)
+    
+    def test_toPretty(self):
+        """produce correct pretty print formatted text"""
+        seqs = {'seq1': 'ACGAANGA',
+                'seq2': '-CGAACGA',
+                'seq3': 'ATGAACGA'}
+        expect = ["seq1    ACGAANGA",
+                  "seq2    -....C..",
+                  "seq3    .T...C.."]
+        
+        aln = self.Class(data=seqs, MolType=DNA)
+        got = aln.toPretty(name_order=['seq1', 'seq2', 'seq3'])
+        self.assertEqual(got, '\n'.join(expect))
+        
+        got = aln.toPretty(name_order=['seq1', 'seq2', 'seq3'], interleave_len=4)
+        expect = ["seq1    ACGA",
+                  "seq2    -...",
+                  "seq3    .T..",
+                  "",
+                  "seq1    ANGA",
+                  "seq2    .C..",
+                  "seq3    .C.."]
+        self.assertEqual(got, '\n'.join(expect))
+    
 
 
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
