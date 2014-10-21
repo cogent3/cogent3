@@ -21,6 +21,8 @@
 """
 from __future__ import division
 from types import GeneratorType
+from collections import defaultdict
+
 from cogent.core.annotation import Map, _Annotatable
 import cogent   #will use to get at cogent.parse.fasta.MinimalFastaParser,
                 #which is a circular import otherwise.
@@ -1843,7 +1845,51 @@ class AlignmentI(object):
             for pos in xrange(start, end, step):
                 yield self[pos:pos+window]
         
-    
+    def toPretty(self, name_order=None, interleave_len=None):
+        """returns a string representation of the alignment in pretty print format
+        
+        Arguments:
+            - name_order: order of names for display.
+            - interleave_len: maximum number of printed bases, defaults to alignment length"""
+        output = defaultdict(list)
+        names = name_order or self.Names
+        num_seqs = len(names)
+        
+        seqs = []
+        for name in names:
+            seq = str(self.NamedSeqs[name])
+            seqs.append(seq)
+        
+        positions = zip(*seqs)
+        
+        for position in positions:
+            ref = position[0]
+            output[names[0]].append(ref)
+            for seq_num in range(1, num_seqs):
+                val = '.' if position[seq_num] == ref else position[seq_num]
+                output[names[seq_num]].append(val)
+        
+        label_width = max(map(len, names))
+        name_template = '{:>%d}' % label_width
+        display_names = dict([(n, name_template.format(n)) for n in names])
+        
+        make_line = lambda label, seq: "%s    %s" % (label, seq)
+        if interleave_len is None:
+            result = [make_line(display_names[n], ''.join(output[n])) for n in names]
+            return '\n'.join(result)
+        
+        align_length = len(self)
+        result = []
+        for start in range(0, align_length, interleave_len):
+            for n in names:
+                result.append(make_line(display_names[n], ''.join(output[n][start: start+interleave_len])))
+            
+            result.append('')
+        
+        if not result[-1]:
+            del(result[-1])
+        
+        return '\n'.join(result)
   
 def aln_from_array(a, array_type=None, Alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
