@@ -105,7 +105,7 @@ def nullor(name, f, recycled=False):
         undef = [x for x in args if isinstance(x, Undefined)]
         if undef:
             return undef[0]
-        elif None in args:
+        elif any(arg is None for arg in args):
             return Undefined(name)
         else:
             if recycled:
