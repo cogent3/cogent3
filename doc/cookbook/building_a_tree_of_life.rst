@@ -271,5 +271,5 @@ The following sequences are randomly chosen from the Silva database. You can use
 	
 	seqs = LoadSeqs(data=fasta_str.split('\n'),moltype=DNA,aligned=False,label_to_name=label_to_name)
 
-Now pick up with `Step 5 <./building_a_tree_of_life.html#step5>`_ above.
+Now pick up with :ref:`step5` above.
 

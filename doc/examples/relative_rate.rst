@@ -139,7 +139,7 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
     >>> df = lf.getNumFreeParams() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
-Print this and look up a :math:`$\chi^2$` with number of edges - 1 degrees of freedom.
+Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of freedom.
 
 .. doctest::
 

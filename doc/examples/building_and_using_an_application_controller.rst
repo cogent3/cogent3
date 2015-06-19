@@ -1,3 +1,5 @@
+.. _new-app-controller:
+
 ***********************************************
 Building and using a new application controller
 ***********************************************
@@ -12,7 +14,7 @@ This document provides an example for defining and using a new application contr
 
 This document was developed in the process of writing the full ``formatdb`` application controller in PyCogent. You can find that file in your PyCogent directory at: ``cogent/app/formatdb.py``. After you work through this example, you should refer to that file to see what the full application controller and convenience wrappers look like.
 
-A more complete reference on `PyCogent Application Controllers can be found here <./application_controller_framework.html>`_.
+A more complete reference on `PyCogent Application Controllers can be found in :ref:`app-controllers`.
 
 Building a formatdb application controller
 ==========================================
