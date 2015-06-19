@@ -2,20 +2,20 @@ Scripting guidelines
 ====================
 Developing command line interfaces for your scripts is a convenient way to create easily reproducible analyses with PyCogent. This document covers the support for developing standardized interfaces in PyCogent. In addition to making your code easier to distribute (or to return to months after it was originally written), several GUI generators that are currently in development make use of the PyCogent ``option_parsing`` module -- this means that defining your interfaces with PyCogent's ``option_parsing`` module will allow your code to be easily wrapped in graphical interfaces.
 
-PyCogent command line interfaces are based on the ``optparse`` module in the Python Standard Library, using ``cogent.util.option_parsing.parse_command_line_parameters`` as a convenience wrapper for defining interfaces based on certain information provided by the script developer. A fully functional `example script <./scripting_guidelines.html#countseqs>`_ and a `script template <./scripting_guidelines.html#scripttemplate>`_ are provided below.
+PyCogent command line interfaces are based on the ``optparse`` module in the Python Standard Library, using ``cogent.util.option_parsing.parse_command_line_parameters`` as a convenience wrapper for defining interfaces based on certain information provided by the script developer. A fully functional example script :ref:`countseqs` and a script template :ref:`scripttemplate` are provided below.
 
-This page will help you develop your command line interfaces after you've familiarized yourself with ``optparse``, but will not be a replacement to a general understanding of how to interact with ``optparse``. You should therefore refer both to the `optparse documentation <http://docs.python.org/library/optparse.html>`_ as well as the `PyCogent Scripting Guidelines <./scripting_guidelines.html>`_. As support for optparse will not continue into Python 3.0, we will be switching to ``argparse`` when we transition PyCogent to Python 3. We'll do our best to minimize the work in transitioning from ``optparse`` to ``argparse`` for PyCogent scripts by changing the interface to ``cogent.util.option_parsing.parse_command_line_parameters`` as little as possible.
+This page will help you develop your command line interfaces after you've familiarized yourself with ``optparse``, but will not be a replacement to a general understanding of how to interact with ``optparse``. You should therefore refer both to the `optparse documentation <http://docs.python.org/library/optparse.html>`_ as well as these PyCogent Scripting Guidelines. As support for optparse will not continue into Python 3.0, we will be switching to ``argparse`` when we transition PyCogent to Python 3. We'll do our best to minimize the work in transitioning from ``optparse`` to ``argparse`` for PyCogent scripts by changing the interface to ``cogent.util.option_parsing.parse_command_line_parameters`` as little as possible.
 
 This document starts with a basic example of creating a script. It then covers guidelines for defining scripts which all PyCogent developers must adhere to, and which we suggest all PyCogent script developers adhere to. Finally it covers some details of the ``script_info`` object and custom command line option types defined in PyCogent.
 
-You should also review the PyCogent `coding guidelines <./coding_guidelines.html>`_. The scripting guidelines presented here are an extension of those.
+You should also review the PyCogent :ref:`coding-guidelines`. The scripting guidelines presented here are an extension of those.
 
 Quickstart : how to create your first PyCogent script in 5 minutes
 ------------------------------------------------------------------
 
 These steps show you how to quickly create a working PyCogent script from the PyCogent script template. Some very basic familiarity with python will help here (e.g., identifying the ``main()`` function and adding to it with the correct indentation).
 
-1. Copy and paste the `script template <./scripting_guidelines.html#scripttemplate>`_ to a new file on your system. The next steps will assume that you're saving that file as ``/path/to/home/pycogent_user/pycogent_script_template.py``.
+1. Copy and paste the script template :ref:`scripttemplate` to a new file on your system. The next steps will assume that you're saving that file as ``/path/to/home/pycogent_user/pycogent_script_template.py``.
 2. Open a command terminal and enter the following command::
 
 	chmod 755 /path/to/home/pycogent_user/pycogent_script_template.py
@@ -40,7 +40,7 @@ add the following line::
 
 	python /home/pycogent_user/pycogent_script_template.py
 
-You've now got a working PyCogent script. You can continue working with this script to add the functionality you're interested in. See the `optparse documentation <http://docs.python.org/library/optparse.html>`_ documentation for discussion of how to create options, as well as the `example script <./scripting_guidelines.html#countseqs>`_ provided below. 
+You've now got a working PyCogent script. You can continue working with this script to add the functionality you're interested in. See the `optparse documentation <http://docs.python.org/library/optparse.html>`_ documentation for discussion of how to create options, as well as the example script :ref:`countseqs` provided below. 
 
 General notes on designing command line interfaces
 --------------------------------------------------
@@ -143,7 +143,7 @@ What documentation should be included in my scripts?
 
 The ``script_documentation`` entry in ``script_info`` should describe the basic functionality of your script. This entry is typically one to several sentences. Be sure not to add line breaks yourself - ``optparse`` will take care of this for you, and the formatting will look better than if you try to do it yourself.
 
-The ``usage_examples`` entry in ``script_info`` should list one or more examples of commands that need to be run to execute your script. These should be actual calls to commands. A user should be able to copy this and paste it on the command line and have the script run (provided they put the right input files in place). See the `example script <./scripting_guidelines.html#countseqs>`_ for instances of what good usage examples look like. ``script_info['usage_examples']`` must be a list of tuples with three string entries each where the first entry is a concise title for the example, the second entry is a description of the example and why certain parameter settings are being made, and the third entry should be the exact command that needs to be run. Start these examples with ``%prog`` - this gets replaced with the name of your script and is convenient so you don't have to remember to update the usage examples if the name of your script changes.
+The ``usage_examples`` entry in ``script_info`` should list one or more examples of commands that need to be run to execute your script. These should be actual calls to commands. A user should be able to copy this and paste it on the command line and have the script run (provided they put the right input files in place). See the example script :ref:`countseqs` for instances of what good usage examples look like. ``script_info['usage_examples']`` must be a list of tuples with three string entries each where the first entry is a concise title for the example, the second entry is a description of the example and why certain parameter settings are being made, and the third entry should be the exact command that needs to be run. Start these examples with ``%prog`` - this gets replaced with the name of your script and is convenient so you don't have to remember to update the usage examples if the name of your script changes.
 
 The ``output_description`` entry in ``script_info`` should describe the output generated by the script. This entry is typically one to several sentences. Again, don't add line breaks yourself.
 

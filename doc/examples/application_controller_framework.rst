@@ -1,3 +1,5 @@
+.. _app-controllers:
+
 ********************************************************
   Application Controller Documentation  
 ********************************************************
@@ -15,7 +17,7 @@ levels of detail. We first provide a summary, then documentation for application
 controller users, then documentation for application controller developers, and
 finally a developer's reference detailing the underlying objects.
 
-An addition example of building and applying a new application controller is provided `here <./building_and_using_an_application_controller.html>`_.
+An addition example of building and applying a new application controller is provided new-app-controller :ref:`quick-install`.
 
 Feedback from users of this document will help us to improve it, so please don't
 hesitate to contact us: gregcaporaso@gmail.com or sandra_smit at users.sourceforge.net.
