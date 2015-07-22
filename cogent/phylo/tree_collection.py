@@ -1,9 +1,9 @@
-from numpy import exp
+from numpy import exp, log
 import consensus
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
+__copyright__ = "Copyright 2007-2015, The Cogent Project"
+__credits__ = ["Peter Maxwell", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 
@@ -29,14 +29,14 @@ class ScoredTreeCollection(_UserList):
     def scoredTreeFormat(self, tree, score):
         return [tree, '\t[', score, ']\n']
     
-    def getConsensusTree(self, strict=None):
-        ctrees = self.getConsensusTrees(strict)
+    def getConsensusTree(self, strict=None, method='unrooted'):
+        ctrees = self.getConsensusTrees(strict, method=method)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
     
-    def getConsensusTrees(self, strict=True):
+    def getConsensusTrees(self, strict=True, method='unrooted'):
         if strict is None: strict = True
-        return consensus.weightedMajorityRule(self, strict)
+        return consensus.weightedMajorityRule(self, strict, method=method)
     
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
@@ -46,9 +46,9 @@ class UsefullyScoredTreeCollection(ScoredTreeCollection):
 class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
     
-    def getConsensusTrees(self, strict=False):
+    def getConsensusTrees(self, strict=False, method='unrooted'):
         if strict is None: strict = False
-        return consensus.weightedMajorityRule(self, strict)
+        return consensus.weightedMajorityRule(self, strict, method=method)
 
 class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (log likelihood, tree) tuples"""
@@ -57,16 +57,44 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         list.__init__(self, trees)
         # Quick and very dirty check of order
         assert self[0][0] >= self[-1][0]
+
+    def getConsensusTree(self, cutoff=None, strict=False, alpha=0.05):
+        """See documentation for getConsensusTrees"""
+        return self.getConsensusTrees(cutoff, strict, alpha)[0]
         
-    def getConsensusTrees(self, cutoff=None, strict=False):
-        return self.getWeightedTrees(cutoff).getConsensusTrees(strict)
+    def getConsensusTrees(self, cutoff=None, strict=False, alpha=0.05):
+        """Returns a weighted consensus tree as described in Holland (2006).
+        Weights transformed according to the class IV transformation in Jermiin
+        (1997). 
+
+        Args:
+            cutoff: Discard trees with weights that sum to cutoff.
+            strict: Discard splits with consensus weight <= 0.5.
+            alpha: Significance level, see Jermiiin (1997).
+
+        Returns:
+            Single consensus tree, in a list for backward compatibility.
+
+        Holland, B. R., Jermiin, L. S., Moulton, V., and 
+        Investigators, S. T.-N. Y. (2006). Proceedings of the SMBE 
+        Tri-National Young Investigators' Workshop 2005. Improved consensus 
+        network techniques for genome-scale phylogeny. Mol Biol Evol, 
+        23(5), 848-855. doi:10.1093/molbev/msj061
+
+        Jermiin, L. S., Olsen, G. J., Mengerson, K., and Easteal, S. (1997). 
+        Majority-rule consensus of phylogenetic trees obtained by 
+        maximum-likelihood analysis. Molecular Biology and Evolution, 
+        14(12):1296.
+        """
+        return self.getWeightedTrees(cutoff, alpha).getConsensusTrees(strict)
         
-    def getWeightedTrees(self, cutoff=None):
+    def getWeightedTrees(self, cutoff=None, alpha=0.05):
         if cutoff is None:
             cutoff = 0.99
         assert 0 <= cutoff <= 1.0
         max_lnL = self[0][0]
-        weights = [exp(lnL-max_lnL) for (lnL, t) in self]
+        forgotten = log(alpha)/(self[-1][0] - max_lnL)
+        weights = [exp(forgotten*(lnL-max_lnL)) for (lnL, t) in self]
         # add from smallest end to avoid rounding errors
         weights.reverse()
         tail = (1.0-cutoff) * sum(weights)
