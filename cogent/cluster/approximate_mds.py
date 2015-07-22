@@ -444,7 +444,7 @@ class CombineMds(object):
         """Add a new MDS mapping to existing one
         """
             
-        if self._mds == None:
+        if self._mds is None:
             self._mds = mds_add
             return
         
