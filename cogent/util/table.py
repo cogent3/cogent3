@@ -570,8 +570,10 @@ class Table(DictArray):
                 count += 1
         return count
     
-    def sorted(self, columns = None, reverse = None, **kwargs):
+    def sorted(self, columns=None, reverse=None, **kwargs):
         """Returns a new table sorted according to columns order.
+        
+        If only reverse is provided, that order is used.
         
         Arguments:
             - columns: column headings, their order determines the sort order.
@@ -580,6 +582,9 @@ class Table(DictArray):
             Either can be provided as just a single string, or a series of
             strings.
         """
+        
+        if reverse and columns is None:
+            columns = reverse
         
         if columns is None:
             columns = self.Header
