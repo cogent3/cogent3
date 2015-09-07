@@ -1560,6 +1560,28 @@ Reverse sort a single column
     NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
     ---------------------------------------------------------
 
+Sort by just specifying the ``reverse`` column
+
+.. doctest::
+
+    >>> sorted = t5.sorted(reverse='LR')
+    >>> print sorted
+    =========================================================
+                      Gene    type         LR    df      Prob
+    ---------------------------------------------------------
+    NP_065168_hs_mm_rn_dna     Con    89.9766     1    0.0000
+    NP_057012_hs_mm_rn_dna    Unco    34.3081     1    0.0000
+    NP_065396_hs_mm_rn_dna    Unco    11.8912     1    0.0006
+    NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
+    NP_061130_hs_mm_rn_dna    Unco     3.7986     1    0.0513
+    NP_003077_hs_mm_rn_dna     Con     2.5386     1    0.1111
+    NP_005079_hs_mm_rn_dna     Con     0.9517     1    0.3293
+    NP_005500_hs_mm_rn_dna     Con     0.7383     1    0.3902
+    NP_109590_hs_mm_rn_dna     Con     0.2121     1    0.6451
+    NP_004893_hs_mm_rn_dna     Con     0.1214     1    0.7276
+    NP_055852_hs_mm_rn_dna     Con     0.0000     1    0.9997
+    ---------------------------------------------------------
+
 Reverse sort one column but not another
 
 .. doctest::
