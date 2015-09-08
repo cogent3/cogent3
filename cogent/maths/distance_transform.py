@@ -56,8 +56,14 @@ from __future__ import division
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
     mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
-    sum, square, asmatrix, asarray, multiply, min, rank, any, all, isfinite,
+    sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
     nonzero, nan_to_num, geterr, seterr, isnan)
+
+try:
+    from numpy import ndim as rank
+except ImportError:
+    from numpy import rank
+
 # any, all from numpy override built in any, all, preventing:
 # ValueError: The truth value of an array with more than one element is 
 # ambiguous. Use a.any() or a.all()
@@ -239,7 +245,7 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
             raise ValueError("non finite number in input matrix")
         if numpy.any(datamtx<0.0):
             raise ValueError("negative value in input matrix")
-        if numpy.rank(datamtx) != 2:
+        if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
         numrows, numcols = numpy.shape(datamtx)
     else:
