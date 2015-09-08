@@ -13,7 +13,7 @@ The metrics from Gardner and Giegerich 2004 are provided.
 
 from __future__ import division
 from string import strip
-from numpy import array, sqrt, searchsorted, flatnonzero, take, sum
+from numpy import array, sqrt, searchsorted, flatnonzero, take, sum, equal
 from cogent.struct.rna2d import Pairs
 from cogent.parse.fasta import MinimalFastaParser
 
@@ -132,18 +132,18 @@ def delete_gaps_from_pairs(pairs, gap_list):
     g = array(gap_list)
     result = Pairs()
     for up, down in pairs:
-        if up in g or down in g:
+        if equal(g, up).any() or equal(g, down).any():
             continue
+        
+        if up is not None:
+            new_up = up - g.searchsorted(up)
         else:
-            if up is not None:
-                new_up = up - g.searchsorted(up)
-            else:
-                new_up = up
-            if down is not None:
-                new_down = down - g.searchsorted(down)
-            else:
-                new_down = down
-            result.append((new_up, new_down))
+            new_up = up
+        if down is not None:
+            new_down = down - g.searchsorted(down)
+        else:
+            new_down = down
+        result.append((new_up, new_down))
     return result
 
 def insert_gaps_in_pairs(pairs, gap_list):
