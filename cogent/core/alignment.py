@@ -1203,7 +1203,8 @@ class SequenceCollection(object):
     
     def getMotifProbs(self, alphabet=None, include_ambiguity=False,
             exclude_unobserved=False, allow_gap=False, pseudocount=0):
-        """Return a dictionary of motif probs.
+        """Return a dictionary of motif probs, calculated as the averaged
+        frequency across sequences.
         
         Arguments:
             - include_ambiguity: if True resolved ambiguous codes are
