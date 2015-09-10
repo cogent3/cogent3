@@ -293,7 +293,7 @@ class PairMatrixTests(TestCase):
         #must access as m[a,b] instead.
         try:
             x = n['a']['b']
-        except ValueError:
+        except (ValueError, IndexError):
             pass
 
         #should work even if SubAlphabets not the same
