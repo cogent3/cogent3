@@ -422,7 +422,7 @@ def bayes_updates(ds_given_h, priors = None):
     except (ZeroDivisionError, FloatingPointError):
         return [0] * length
 
-def t_paired (a,b, tails=None, exp_diff=0):
+def t_paired(a,b, tails=None, exp_diff=0):
     """Returns t and prob for TWO RELATED samples of scores a and b.  
     
     From Sokal and Rohlf (1995), p. 354.
@@ -1320,7 +1320,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     num_x = len(x)
     num_y = None
     x = zip(x, zeros(len(x), int))
-    lo = ["less", "lo", "lower", "l", "lt"]
+    lo = ["less", "lo", "low", "lower", "l", "lt"]
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
