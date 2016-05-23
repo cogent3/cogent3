@@ -11,13 +11,14 @@ try:
         warnings.warn('mysql.connector requires sqlalchemy >= 0.9.7\n')
         raise ImportError
 except ImportError:
-    import pymysql as mysql_connect
-    connect_template = 'mysql+pymysql://%(account)s/%(db_name)s'
-    password_arg = 'passwd'
-except ImportError:
-    import MySQLdb as mysql_connect
-    connect_template = 'mysql+mysqldb://%(account)s/%(db_name)s'
-    password_arg = 'passwd'
+    try:
+        import pymysql as mysql_connect
+        connect_template = 'mysql+pymysql://%(account)s/%(db_name)s'
+        password_arg = 'passwd'
+    except ImportError:
+        import MySQLdb as mysql_connect
+        connect_template = 'mysql+mysqldb://%(account)s/%(db_name)s'
+        password_arg = 'passwd'
 
 from cogent.util.table import Table
 from cogent.db.ensembl.species import Species
