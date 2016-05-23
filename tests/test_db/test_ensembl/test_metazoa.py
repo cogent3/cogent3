@@ -12,7 +12,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
 Release = 23
-account = HostAccount('mysql.ebi.ac.uk','anonymous', '', port=4157)
+account = HostAccount('mysql-eg-publicsql.ebi.ac.uk','anonymous', '', port=4157)
 
 class MZ_ComparaTestBase(TestCase):
     comp = Compara(['D.grimshawi', 'D.melanogaster'], Release=Release,
