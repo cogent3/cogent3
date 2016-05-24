@@ -157,7 +157,7 @@ class SpeciesNameMap(dict):
         return 'Available species: %s' % ("'"+\
                 "'; '".join(self._common_species.keys())+"'")
     
-    def getCommonName(self, name, level='ignore'):
+    def getCommonName(self, name, level='raise'):
         """returns the common name for the given name (which can be either a
         species name or the ensembl version)"""
         name = CaseInsensitiveString(name)
