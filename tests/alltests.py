@@ -199,7 +199,6 @@ def suite():
 
     #Try importing modules for app controllers
     apps = [('muscle', 'test_muscle_v38'),
-            ('ParsInsert', 'test_parsinsert'),
             ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
             ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),
             ('Fold.out', 'test_nupack'),
