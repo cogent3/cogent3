@@ -197,32 +197,6 @@ def suite():
         modules_to_test.append('test_draw')
         modules_to_test.append('test_draw.test_distribution_plots')
 
-    #Try importing modules for app controllers
-    apps = [('muscle', 'test_muscle_v38'),
-            ('Fold.out', 'test_nupack'),
-            ('RNAalifold', 'test_rnaalifold'),
-            ('rnaview', 'test_rnaview'),
-            ('RNAfold', 'test_vienna_package'),
-            ('rtax', 'test_rtax'),
-            ('stride', 'test_stride'),
-            ('calculate_likelihood', 'test_gctmpca'),
-            ('sfffile', 'test_sfffile'),
-            ('sffinfo', 'test_sffinfo'),
-            ('uclust','test_uclust'),
-            ('usearch','test_usearch')
-            ]
-    for app, test_name in apps:
-        should_run_test = False
-        if app_path(app):
-            should_run_test = True
-        if should_run_test:
-            modules_to_test.append('test_app.' + test_name)
-        else:
-            print >> sys.stderr, "Can't find %s executable: skipping test" % app
-
-    if app_path('muscle'):
-        modules_to_test.append('test_format.test_pdb_color')
-
     # we now toggle the db tests, based on an environment flag
     if int(os.environ.get('TEST_DB', 0)):
         db_tests = ['test_db.test_ncbi', 'test_db.test_pdb',
