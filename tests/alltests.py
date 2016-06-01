@@ -199,8 +199,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('mothur', 'test_mothur'),
-            ('muscle', 'test_muscle_v38'),
+    apps = [('muscle', 'test_muscle_v38'),
             ('msms', 'test_msms'),
             ('ParsInsert', 'test_parsinsert'),
             ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
