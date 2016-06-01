@@ -204,8 +204,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('contrafold', 'test_contrafold'),
-            ('covea', 'test_cove'),
+    apps = [('covea', 'test_cove'),
             ('dialign2-2', 'test_dialign'),
             ('dynalign', 'test_dynalign'),
             ('FastTree', 'test_fasttree'),
