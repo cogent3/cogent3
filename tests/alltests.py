@@ -206,8 +206,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('cmfinder.pl', 'test_cmfinder'),
-            ('comrna', 'test_comrna'),
+    apps = [('comrna', 'test_comrna'),
             ('contrafold', 'test_contrafold'),
             ('covea', 'test_cove'),
             ('dialign2-2', 'test_dialign'),
