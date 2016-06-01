@@ -199,8 +199,6 @@ def suite():
 
     #Try importing modules for app controllers
     apps = [('muscle', 'test_muscle_v38'),
-            ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
-            ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),
             ('Fold.out', 'test_nupack'),
             ('RNAalifold', 'test_rnaalifold'),
             ('rnaview', 'test_rnaview'),
@@ -219,15 +217,6 @@ def suite():
         should_run_test = False
         if app_path(app):
             should_run_test = True
-        elif app.startswith('rdp_classifier') and os.environ.get('RDP_JAR_PATH'):
-            # This is ugly, but because this is a jar file, it won't be in 
-            # $PATH -- we require users to set an environment variable to 
-            # point to the location of this jar file, so we test for that. 
-            # My new version of app_path can be applied to do smarter checks,
-            # but will involve some re-write of how we check whether tests can
-            # be run. -Greg
-            if app == os.path.basename(os.environ.get('RDP_JAR_PATH')):
-                should_run_test = True
         if should_run_test:
             modules_to_test.append('test_app.' + test_name)
         else:
