@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 __all__ = """
 test_raxml          test_stride  
-test_foldalign      test_rnaalifold
+test_rnaalifold
 test_ilm            test_rnaforester
 test_knetfold       test_rnaview
 test_mfold          test_sfold
 test_muscle         test_unafold
 test_nupack         test_util
 test_parameters     test_vienna_package
-test_pfold          test_gctmpca
-test_pknotsrg       test_fasttree
+test_gctmpca
+test_pknotsrg
 test_msms""".split()
 
 __author__ = ""
