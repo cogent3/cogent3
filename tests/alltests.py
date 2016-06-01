@@ -200,8 +200,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('knetfold.pl', 'test_knetfold'),
-            ('mafft', 'test_mafft'),
+    apps = [('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
             ('mothur', 'test_mothur'),
             ('muscle', 'test_muscle_v38'),
