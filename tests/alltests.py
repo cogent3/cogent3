@@ -127,7 +127,6 @@ def suite():
         'test_parse.test_cigar',
         'test_parse.test_clustal',
         'test_parse.test_column',
-        'test_parse.test_cove',
         'test_parse.test_ct',
         'test_parse.test_cut',
         'test_parse.test_cutg',
@@ -204,8 +203,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('covea', 'test_cove'),
-            ('dialign2-2', 'test_dialign'),
+    apps = [('dialign2-2', 'test_dialign'),
             ('dynalign', 'test_dynalign'),
             ('FastTree', 'test_fasttree'),
             ('foldalign', 'test_foldalign'),
