@@ -2,7 +2,7 @@
 __all__ = """
 test_stride  
 test_rnaalifold
-test_ilm            test_rnaforester
+test_rnaforester
 test_knetfold       test_rnaview
 test_mfold          test_sfold
 test_muscle         test_unafold

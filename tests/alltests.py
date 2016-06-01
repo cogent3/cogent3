@@ -137,7 +137,6 @@ def suite():
         'test_parse.test_genbank',
         'test_parse.test_gff',
         'test_parse.test_greengenes',
-        'test_parse.test_ilm',
         'test_parse.test_illumina_sequence',
         'test_parse.test_locuslink',
         'test_parse.test_mage',
@@ -201,8 +200,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('ilm', 'test_ilm'),
-            ('knetfold.pl', 'test_knetfold'),
+    apps = [('knetfold.pl', 'test_knetfold'),
             ('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
             ('mothur', 'test_mothur'),
