@@ -3,8 +3,6 @@
 """
 
 __all__ = ['gctmpca',
-           'ilm',
-           'knetfold',
            'mfold',
            'muscle',
            'msms',
