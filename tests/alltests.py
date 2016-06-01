@@ -153,7 +153,6 @@ def suite():
         'test_parse.test_rfam',
         'test_parse.test_rnaalifold',
         'test_parse.test_rna_fold',
-        'test_parse.test_rnaview',
         'test_parse.test_sprinzl',
         'test_parse.test_tinyseq',
         'test_parse.test_tree',

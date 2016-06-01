@@ -23,7 +23,6 @@ __all__ = ['test_aaindex',
            'test_record_finder',
            'test_rfam',
            'test_rna_fold',
-           'test_rnaview',
            'test_sprinzl',
            'test_tree',
            'test_unigene'
