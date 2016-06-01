@@ -201,8 +201,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('guppy', 'test_guppy'),
-            ('ilm', 'test_ilm'),
+    apps = [('ilm', 'test_ilm'),
             ('knetfold.pl', 'test_knetfold'),
             ('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
@@ -210,7 +209,6 @@ def suite():
             ('muscle', 'test_muscle_v38'),
             ('msms', 'test_msms'),
             ('ParsInsert', 'test_parsinsert'),
-            ('pplacer', 'test_pplacer'),
             ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
             ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),
             ('Fold.out', 'test_nupack'),
@@ -218,7 +216,6 @@ def suite():
             ('RNAalifold', 'test_rnaalifold'),
             ('rnaview', 'test_rnaview'),
             ('RNAfold', 'test_vienna_package'),
-            ('raxmlHPC', 'test_raxml_v730'),
             ('rtax', 'test_rtax'),
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('stride', 'test_stride'),
