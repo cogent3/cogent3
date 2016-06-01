@@ -204,7 +204,6 @@ def suite():
             ('rnaview', 'test_rnaview'),
             ('RNAfold', 'test_vienna_package'),
             ('rtax', 'test_rtax'),
-            ('sfold.X86_64.LINUX', 'test_sfold'),
             ('stride', 'test_stride'),
             ('hybrid-ss-min', 'test_unafold'),
             ('calculate_likelihood', 'test_gctmpca'),
