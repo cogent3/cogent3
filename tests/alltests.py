@@ -122,7 +122,6 @@ def suite():
         'test_parse.test_aaindex',
         'test_parse.test_agilent_microarray',
         'test_parse.test_binary_sff',
-        'test_parse.test_blast',
         'test_parse.test_bowtie',
         'test_parse.test_bpseq',
         'test_parse.test_cigar',
@@ -207,9 +206,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('formatdb', 'test_formatdb'),
-            ('blastall', 'test_blast'),
-            ('blat', 'test_blat'),
+    apps = [('blat', 'test_blat'),
             ('bwa', 'test_bwa'),
             ('carnac', 'test_carnac'),
             ('cdbfasta', 'test_cdbfasta'),
