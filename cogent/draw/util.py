@@ -524,7 +524,7 @@ def plot_scatter(data, series_names=None, \
         add_regression_equations(equations, axes=axes, prob_axes=prob_axes)
     #clean up axes if necessary
     if show_legend and series_names: #suppress legend if series not named
-        axes.legend(series, series_names, legend_loc)
+        axes.legend(series, series_names, loc=legend_loc)
 
     if prob_axes:
         set_axis_to_probs(axes)
