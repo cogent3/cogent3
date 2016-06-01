@@ -2,8 +2,7 @@
 """apps: provides support libraries for controlling applications (local or web).
 """
 
-__all__ = ['cd_hit',
-           'clustalw',
+__all__ = ['clustalw',
            'cmfinder',
            'comrna',
            'consan',

@@ -241,7 +241,6 @@ def suite():
             ('sfold.X86_64.LINUX', 'test_sfold'),
             ('stride', 'test_stride'),
             ('hybrid-ss-min', 'test_unafold'),
-            ('cd-hit', 'test_cd_hit'),
             ('calculate_likelihood', 'test_gctmpca'),
             ('sfffile', 'test_sfffile'),
             ('sffinfo', 'test_sffinfo'),
