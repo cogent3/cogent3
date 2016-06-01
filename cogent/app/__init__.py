@@ -10,7 +10,6 @@ __all__ = ['gctmpca',
            'rnaforester',
            'rnashapes',
            'rnaview',
-           'unafold',
            'util',
            'vienna_package']
 

@@ -4,7 +4,7 @@ test_stride
 test_rnaalifold
 test_rnaforester
 test_rnaview
-test_muscle         test_unafold
+test_muscle
 test_nupack         test_util
 test_parameters     test_vienna_package
 test_gctmpca""".split()
