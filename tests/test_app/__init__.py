@@ -6,7 +6,7 @@ test_ilm            test_rnaforester
 test_knetfold       test_rnaview
 test_mfold          test_sfold
 test_muscle         test_unafold
-test_consan         test_nupack         test_util
+test_nupack         test_util
 test_contrafold     test_parameters     test_vienna_package
 test_cove           test_pfold          test_gctmpca
 test_dialign        test_pknotsrg       test_fasttree
