@@ -206,8 +206,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('blat', 'test_blat'),
-            ('bwa', 'test_bwa'),
+    apps = [('bwa', 'test_bwa'),
             ('carnac', 'test_carnac'),
             ('cdbfasta', 'test_cdbfasta'),
             ('clearcut', 'test_clearcut'),
