@@ -207,7 +207,6 @@ def suite():
 
     #Try importing modules for app controllers
     apps = [('clearcut', 'test_clearcut'),
-            ('clustalw', 'test_clustalw'),
             ('cmalign', 'test_infernal'),
             ('cmfinder.pl', 'test_cmfinder'),
             ('comrna', 'test_comrna'),
