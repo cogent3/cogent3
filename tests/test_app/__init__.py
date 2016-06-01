@@ -2,7 +2,6 @@
 __all__ = """
 test_stride  
 test_rnaalifold
-test_rnaforester
 test_rnaview
 test_muscle
 test_util
