@@ -127,7 +127,6 @@ def suite():
         'test_parse.test_cigar',
         'test_parse.test_clustal',
         'test_parse.test_column',
-        'test_parse.test_consan',
         'test_parse.test_cove',
         'test_parse.test_ct',
         'test_parse.test_cut',
