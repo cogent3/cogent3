@@ -141,7 +141,6 @@ def suite():
         'test_parse.test_locuslink',
         'test_parse.test_mage',
         'test_parse.test_meme',
-        'test_parse.test_msms',
         'test_parse.test_ncbi_taxonomy',
         'test_parse.test_nexus',
         'test_parse.test_nupack',
@@ -200,7 +199,6 @@ def suite():
 
     #Try importing modules for app controllers
     apps = [('muscle', 'test_muscle_v38'),
-            ('msms', 'test_msms'),
             ('ParsInsert', 'test_parsinsert'),
             ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
             ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),

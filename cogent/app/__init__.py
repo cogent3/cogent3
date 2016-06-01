@@ -4,7 +4,6 @@
 
 __all__ = ['gctmpca',
            'muscle',
-           'msms',
            'nupack',
            'parameters',
            'rdp_classifier',
