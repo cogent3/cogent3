@@ -190,7 +190,6 @@ def suite():
         print >> sys.stderr, "No matplotlib so not running test_draw.py"
     else:
         modules_to_test.append('test_draw')
-        modules_to_test.append('test_draw.test_distribution_plots')
 
     # we now toggle the db tests, based on an environment flag
     if int(os.environ.get('TEST_DB', 0)):
