@@ -7,7 +7,6 @@ __all__ = ['gctmpca',
            'parameters',
            'rnaalifold',
            'rnashapes',
-           'rnaview',
            'util',
            'vienna_package']
 
