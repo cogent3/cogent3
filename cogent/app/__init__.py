@@ -2,8 +2,7 @@
 """apps: provides support libraries for controlling applications (local or web).
 """
 
-__all__ = ['contrafold',
-           'cove',
+__all__ = ['cove',
            'dialign',
            'dynalign',
            'fasttree',
