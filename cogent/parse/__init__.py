@@ -47,7 +47,6 @@ __all__ = ['aaindex',
            'tinyseq',
            'tree',
            'tree_xml',
-           'unafold',
            'unigene']
 
 __author__ = ""

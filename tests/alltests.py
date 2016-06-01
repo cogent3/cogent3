@@ -205,7 +205,6 @@ def suite():
             ('RNAfold', 'test_vienna_package'),
             ('rtax', 'test_rtax'),
             ('stride', 'test_stride'),
-            ('hybrid-ss-min', 'test_unafold'),
             ('calculate_likelihood', 'test_gctmpca'),
             ('sfffile', 'test_sfffile'),
             ('sffinfo', 'test_sffinfo'),
