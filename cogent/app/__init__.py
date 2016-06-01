@@ -6,7 +6,6 @@ __all__ = ['gctmpca',
            'muscle',
            'parameters',
            'rnaalifold',
-           'rnashapes',
            'util',
            'vienna_package']
 
