@@ -126,7 +126,6 @@ def suite():
         'test_parse.test_bpseq',
         'test_parse.test_cigar',
         'test_parse.test_clustal',
-        'test_parse.test_column',
         'test_parse.test_cut',
         'test_parse.test_cutg',
         'test_parse.test_dialign',
@@ -202,9 +201,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('FastTree', 'test_fasttree'),
-            ('foldalign', 'test_foldalign'),
-            ('guppy', 'test_guppy'),
+    apps = [('guppy', 'test_guppy'),
             ('ilm', 'test_ilm'),
             ('knetfold.pl', 'test_knetfold'),
             ('mafft', 'test_mafft'),
@@ -217,7 +214,6 @@ def suite():
             ('rdp_classifier-2.2.jar', 'test_rdp_classifier'),
             ('rdp_classifier-2.0.jar', 'test_rdp_classifier20'),
             ('Fold.out', 'test_nupack'),
-            ('findphyl', 'test_pfold'),
             ('pknotsRG-1.2-i386-linux-static', 'test_pknotsrg'),
             ('RNAalifold', 'test_rnaalifold'),
             ('rnaview', 'test_rnaview'),

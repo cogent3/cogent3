@@ -2,10 +2,7 @@
 """apps: provides support libraries for controlling applications (local or web).
 """
 
-__all__ = ['fasttree',
-           'fasttree_v1'
-           'foldalign',
-           'gctmpca',
+__all__ = ['gctmpca',
            'ilm',
            'knetfold',
            'mfold',
@@ -13,7 +10,6 @@ __all__ = ['fasttree',
            'msms',
            'nupack',
            'parameters',
-           'pfold',
            'pknotsrg',
            'raxml',
            'rdp_classifier',
