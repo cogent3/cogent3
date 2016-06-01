@@ -8,9 +8,7 @@ test_sfold
 test_muscle         test_unafold
 test_nupack         test_util
 test_parameters     test_vienna_package
-test_gctmpca
-test_pknotsrg
-test_msms""".split()
+test_gctmpca""".split()
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
