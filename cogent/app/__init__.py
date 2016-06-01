@@ -4,7 +4,6 @@
 
 __all__ = ['gctmpca',
            'muscle',
-           'nupack',
            'parameters',
            'rnaalifold',
            'rnaforester',
