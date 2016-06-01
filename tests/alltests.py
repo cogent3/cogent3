@@ -121,7 +121,6 @@ def suite():
         'test_motif.test_util',
         'test_parse.test_aaindex',
         'test_parse.test_agilent_microarray',
-        'test_parse.test_binary_sff',
         'test_parse.test_bowtie',
         'test_parse.test_bpseq',
         'test_parse.test_cigar',
