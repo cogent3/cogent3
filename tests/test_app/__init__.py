@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __all__ = """
-test_dynalign       test_raxml          test_stride  
+test_raxml          test_stride  
 test_foldalign      test_rnaalifold
 test_ilm            test_rnaforester
 test_knetfold       test_rnaview
