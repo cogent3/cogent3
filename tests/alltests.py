@@ -203,8 +203,7 @@ def suite():
         modules_to_test.append('test_draw.test_distribution_plots')
 
     #Try importing modules for app controllers
-    apps = [('dialign2-2', 'test_dialign'),
-            ('dynalign', 'test_dynalign'),
+    apps = [('dynalign', 'test_dynalign'),
             ('FastTree', 'test_fasttree'),
             ('foldalign', 'test_foldalign'),
             ('guppy', 'test_guppy'),
