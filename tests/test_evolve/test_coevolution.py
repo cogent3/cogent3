@@ -19,7 +19,6 @@ from cogent.core.profile import Profile
 from cogent.core.alphabet import CharAlphabet, Alphabet
 from cogent.maths.stats.distribution import binomial_exact
 from cogent.core.alignment import DenseAlignment
-from cogent.seqsim.tree import RandomTree
 from cogent.app.util import get_tmp_filename
 from cogent.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent.evolve.substitution_model import SubstitutionModel, Empirical

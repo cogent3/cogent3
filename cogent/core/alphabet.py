@@ -430,8 +430,7 @@ class JointEnumeration(Enumeration):
         must be the same.
         
         - Arrays must already be converted into indices -- for example, you
-        can't pass in raw strings as sequences, but you can pass in the data
-        from cogent.seqsim.Sequence objects.
+        can't pass in raw strings as sequences.
         
         - This method is the inverse of unpackArrays().
         
