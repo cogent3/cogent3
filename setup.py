@@ -132,7 +132,7 @@ setup(
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Operating System :: OS Independent",
             ],
-    packages=['cogent', 'cogent.align', 'cogent.app',
+    packages=['cogent', 'cogent.align',
                 'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
                 'cogent.db.ensembl', 'cogent.draw',
                 'cogent.evolve', 'cogent.format', 'cogent.maths',
