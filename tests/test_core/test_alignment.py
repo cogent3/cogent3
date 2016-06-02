@@ -4,7 +4,6 @@ from cogent.util.unit_test import TestCase, main
 from cogent.core.sequence import RnaSequence, frac_same, ModelSequence, Sequence
 from cogent.maths.stats.util import Freqs, Numbers
 from cogent.core.moltype import RNA, DNA, PROTEIN, BYTES
-from cogent.struct.rna2d import ViennaStructure
 
 from cogent.core.alignment import SequenceCollection, \
     make_gap_filter, coerce_to_string, \
@@ -180,9 +179,6 @@ class SequenceCollectionBaseTests(object):
             })
         #Additional SequenceCollections for tests added 6/4/04 by Jeremy Widmann
         self.sequences = self.Class(map(RnaSequence, ['UCAG', 'UCAG', 'UCAG']))
-        self.structures = self.Class(map(ViennaStructure, 
-                                ['(())..', '......', '(....)']), MolType=BYTES)
-        self.labeled = self.Class(['ABC', 'DEF'], ['1st', '2nd'])
         #Additional SequenceCollection for tests added 1/30/06 by Cathy Lozupone
         self.omitSeqsTemplate_aln = self.Class({
             's1':RnaSequence('UC-----CU---C'),
@@ -1245,7 +1241,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """SequenceCollection.majorityConsensus should return commonest symbol per column"""
         #Check the exact strings expected from string transform
         self.assertEqual(self.sequences.majorityConsensus(str), 'UCAG')
-        self.assertEqual(self.structures.majorityConsensus(str), '(.....')
 
     
     def test_uncertainties(self):
@@ -1268,12 +1263,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         #each case
         firstvalues = [ 
                         [self.sequences, Freqs('UUU')],
-                        [self.structures, Freqs('(.(')],
                     ]
         
         lastvalues = [ 
-                        [self.sequences, Freqs('GGG')],
-                        [self.structures, Freqs('..)')],
+                        [self.sequences, Freqs('GGG')]
                     ]
         #check that the first positions are what we expected
         for obj, result in firstvalues:

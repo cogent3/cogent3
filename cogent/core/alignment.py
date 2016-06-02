@@ -1629,9 +1629,7 @@ class AlignmentI(object):
         Note that self.iterPositions() always returns new objects, by default
         lists of elements. Use map(f, self.iterPositions) to apply the
         constructor or function f to the resulting lists (f must take a single
-        list as a parameter). Note that some sequences (e.g. ViennaStructures)
-        have rules that prevent arbitrary strings of their symbols from being
-        valid objects.
+        list as a parameter).
         
         Will raise IndexError if one of the indices in order exceeds the
         sequence length. This will always happen on ragged alignments:
@@ -2654,9 +2652,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         Note that self.iterPositions() always returns new objects, by default
         lists of elements. Use map(f, self.iterPositions) to apply the
         constructor or function f to the resulting lists (f must take a single
-        list as a parameter). Note that some sequences (e.g. ViennaStructures)
-        have rules that prevent arbitrary strings of their symbols from being
-        valid objects.
+        list as a parameter).
         
         Will raise IndexError if one of the indices in order exceeds the
         sequence length. This will always happen on ragged alignments:
