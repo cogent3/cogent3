@@ -41,7 +41,6 @@ from cogent.parse.newick import parse_string as newick_parse_string
 from cogent.core.alignment import SequenceCollection
 from cogent.core.alignment import Alignment
 from cogent.parse.sequence import FromFilenameParser
-from cogent.parse.structure import FromFilenameStructureParser
 #note that moltype has to be imported last, because it sets the moltype in
 #the objects created by the other modules.
 from cogent.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
@@ -112,17 +111,6 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     else:   #generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name,
             label_to_name=label_to_name, **constructor_kw)
-
-def LoadStructure(filename, format=None, parser_kw={}):
-    """Initialize a Structure from data contained in filename.
-    Arguments:
-        - filename: name of the filename to create structure from.
-        - format: the optional file format extension.
-        - parser_kw: optional keyword arguments for the parser."""
-    # currently there is no support for string-input
-    assert filename is not None, 'No filename given.'
-    return FromFilenameStructureParser(filename, format, **parser_kw)
-
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
             row_order=None, digits=4, space=4, title='', missing_data='',
