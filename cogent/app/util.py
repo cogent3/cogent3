@@ -734,8 +734,6 @@ def guess_input_handler(seqs, add_seq_names=False):
             return '_input_as_multiline_string'
         else:               #assume it was a filename
             return '_input_as_string'
-            #Uncommenting the next line causes errors in muscle tests - Micah?
-            # return '_input_as_path'
     
     if isinstance(seqs,list) and len(seqs) and isinstance(seqs[0],tuple):
         return '_input_as_seq_id_seq_pairs'

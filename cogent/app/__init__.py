@@ -3,11 +3,8 @@
 """
 
 __all__ = ['gctmpca',
-           'muscle',
            'parameters',
-           'rnaalifold',
-           'util',
-           'vienna_package']
+           'util']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
