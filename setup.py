@@ -139,7 +139,7 @@ setup(
                 'cogent.maths.matrix', 'cogent.maths.stats',
                 'cogent.maths.stats.cai',
                 'cogent.maths.spatial', 'cogent.motif', 'cogent.parse',
-                'cogent.phylo', 'cogent.recalculation', 'cogent.seqsim',
+                'cogent.phylo', 'cogent.recalculation',
                 'cogent.struct', 'cogent.util'],
     ext_modules=cythonize([
         CythonExtension("cogent.align._compare"),
