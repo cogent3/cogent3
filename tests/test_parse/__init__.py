@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 __all__ = ['test_aaindex',
-           'test_agilent_microarray',
            'test_blast',
-           'test_bpseq',
            'test_cigar',
            'test_clustal',
            'test_cutg',
@@ -10,23 +8,15 @@ __all__ = ['test_aaindex',
            'test_ebi',
            'test_fasta',
            'test_genbank',
-           'test_illumina_sequence',
            'test_locuslink',
-           'test_mage',
            'test_meme',
            'test_ncbi_taxonomy',
            'test_nexus',
-           'test_pdb',
-           'test_structure',
            'test_phylip',
            'test_record',
            'test_record_finder',
-           'test_rfam',
-           'test_rna_fold',
-           'test_sprinzl',
            'test_tree',
-           'test_unigene'
-           'test_stride']
+           'test_unigene']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
