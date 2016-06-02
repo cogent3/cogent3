@@ -101,7 +101,6 @@ def suite():
         'test_maths.test_distance_transform',
         'test_motif.test_util',
         'test_parse.test_aaindex',
-        'test_parse.test_agilent_microarray',
         'test_parse.test_bowtie',
         'test_parse.test_cigar',
         'test_parse.test_clustal',
