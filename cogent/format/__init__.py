@@ -7,7 +7,7 @@ Currently provides:
     file: general functions to read and write files
 """
 __all__ = ['alignment', 'clustal', 'fasta', 'mage', 'motif', 'nexus', 
-           'pdb_color', 'pdb', 'phylip', 'rna_struct', 'stockholm', 'structure', 
+           'pdb', 'phylip', 'rna_struct', 'stockholm', 'structure', 
            'table', 'text_tree', 'xyzrn']
 
 __author__ = ""
