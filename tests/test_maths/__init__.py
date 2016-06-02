@@ -5,7 +5,6 @@ __all__ = ['test_fit_function',
            'test_matrix_logarithm',
            'test_optimisers',
            'test_stats',
-           'test_unifrac',
            'test_spatial']
 
 __author__ = ""

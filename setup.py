@@ -137,7 +137,7 @@ setup(
                 'cogent.db.ensembl', 'cogent.draw',
                 'cogent.evolve', 'cogent.format', 'cogent.maths',
                 'cogent.maths.matrix', 'cogent.maths.stats',
-                'cogent.maths.stats.cai', 'cogent.maths.unifrac',
+                'cogent.maths.stats.cai',
                 'cogent.maths.spatial', 'cogent.motif', 'cogent.parse',
                 'cogent.phylo', 'cogent.recalculation', 'cogent.seqsim',
                 'cogent.struct', 'cogent.util'],
