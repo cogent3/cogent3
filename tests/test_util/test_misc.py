@@ -21,7 +21,7 @@ from cogent.util.misc import (iterable, max_index, min_index,
     generateCombinations, makeNonnegInt,
     NonnegIntError, reverse_complement, not_none, get_items_except,
     NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
-    revComp, parse_command_line_parameters, safe_md5, 
+    revComp, safe_md5, 
     create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
     combinate,gzip_dump,gzip_load,recursive_flatten_old,getNewId,toString,
     timeLimitReached, get_independent_coords, get_merged_by_value_coords,
@@ -1627,42 +1627,6 @@ class reverse_complementTests(TestCase):
         """app_path should return correct paths"""
         self.assertEqual(app_path('ls'), '/bin/ls')
         self.assertEqual(app_path('lsxxyyx'), False)
-
-class CommandLineParserTests(TestCase):
-    
-    def test_parse_command_line_parameters(self):
-        """parse_command_line_parameters returns without error
-        
-            There is not a lot of detailed testing that can be done here,
-            so the basic functionality is tested.
-        """
-        option_parser, opts, args = parse_command_line_parameters(
-          script_description="My script",
-          script_usage=[('Print help','%prog -h','')],
-          version='1.0',help_on_no_arguments=False,
-          command_line_args=[])
-        self.assertEqual(len(args),0)
-        
-        d = {'script_description':"My script",\
-             'script_usage':[('Print help','%prog -h','')],\
-             'version':'1.0',
-             'help_on_no_arguments':False,
-             'command_line_args':[]}
-        option_parser, opts, args = parse_command_line_parameters(**d)
-        self.assertEqual(len(args),0)
-        
-        # allowing positional arguments functions as expected as does
-        # passing a positional argument
-        d = {'script_description':"My script",\
-             'script_usage':[('Print help','%prog -h','')],\
-             'version':'1.0',
-             'help_on_no_arguments':False,
-             'command_line_args':['hello'],
-             'disallow_positional_arguments':False}
-        option_parser, opts, args = parse_command_line_parameters(**d)
-        self.assertEqual(len(args),1)
-
-#run tests on command-line invocation
 
 if __name__ == '__main__':
     main()

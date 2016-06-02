@@ -16,8 +16,6 @@ from numpy import logical_not, sum
 from cPickle import dumps, loads
 from gzip import GzipFile
 import hashlib
-# import parse_command_line_parameters for backward compatibility
-from cogent.util.option_parsing import parse_command_line_parameters
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
