@@ -131,7 +131,6 @@ def suite():
         'test_util.test_array',
         'test_util.test_dict2d',
         'test_util.test_misc',
-        'test_util.test_organizer',
         'test_util.test_recode_alignment',
         'test_util.test_table.rst',
         'test_util.test_transform',
