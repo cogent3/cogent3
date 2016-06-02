@@ -5,7 +5,6 @@
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
-from cogent.app.util import get_tmp_filename
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import (iterable, max_index, min_index,
     flatten, is_iterable, is_char, is_char_or_noniterable,
@@ -26,7 +25,7 @@ from cogent.util.misc import (iterable, max_index, min_index,
     create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
     combinate,gzip_dump,gzip_load,recursive_flatten_old,getNewId,toString,
     timeLimitReached, get_independent_coords, get_merged_by_value_coords,
-    get_merged_overlapping_coords, get_run_start_indices)
+    get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename)
 from numpy import array
 from time import clock, sleep
 

@@ -52,8 +52,6 @@ def suite():
         'test_align.test_algorithm',
         'test_align.test_weights.test_methods',
         'test_align.test_weights.test_util',
-        'test_app.test_parameters',
-        'test_app.test_util',
         'test_cluster.test_UPGMA',
         'test_core.test_alphabet',
         'test_core.test_alignment',

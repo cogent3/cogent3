@@ -2,9 +2,8 @@
 """Tests of Illumina sequence file parser.
 """
 from cogent.util.unit_test import TestCase, main
-from cogent.util.misc import remove_files
-from cogent.app.util import get_tmp_filename
-from cogent.parse.illumina_sequence import (MinimalIlluminaSequenceParser)
+from cogent.util.misc import remove_files, get_tmp_filename
+from cogent.parse.illumina_sequence import MinimalIlluminaSequenceParser
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
