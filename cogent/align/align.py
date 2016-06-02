@@ -69,7 +69,6 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM
-# may not give same answers as algorithm
 def local_pairwise(s1, s2, S, d, e, return_score=False):
     return classic_align_pairwise(s1, s2, S, d, e, True, return_score=return_score)
 
