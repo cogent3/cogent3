@@ -49,8 +49,6 @@ def suite():
         'test_phylo',
         'test_dictarray.rst',
         'test_align.test_align',
-        'test_align.test_weights.test_methods',
-        'test_align.test_weights.test_util',
         'test_cluster.test_UPGMA',
         'test_core.test_alphabet',
         'test_core.test_alignment',
