@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-"""Unit tests for Mage format writer.
-"""
 from __future__ import division
 from cogent.util.unit_test import TestCase, main
 from cogent.util.table import Table
