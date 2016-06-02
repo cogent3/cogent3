@@ -125,7 +125,6 @@ def suite():
         'test_parse.test_record',
         'test_parse.test_record_finder',
         'test_parse.test_rna_fold',
-        'test_parse.test_sprinzl',
         'test_parse.test_tinyseq',
         'test_parse.test_tree',
         'test_parse.test_unigene',
