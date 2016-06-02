@@ -92,7 +92,6 @@ def suite():
         'test_format.test_bedgraph',
         'test_format.test_fasta',
         'test_format.test_mage',
-        'test_format.test_pdb_color',
         'test_format.test_xyzrn',
         'test_maths.test_fit_function',
         'test_maths.test_geometry',
