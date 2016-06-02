@@ -409,7 +409,7 @@ class DistancesTests(unittest.TestCase):
         got = d.getAllParamValues()
         for pair in expect:
             for param in expect[pair]:
-                self.assertAlmostEqual(got[pair][param], expect[pair][param])
+                self.assertAlmostEqual(got[pair][param], expect[pair][param], places=6)
 
 if __name__ == '__main__':
     unittest.main()
