@@ -14,8 +14,6 @@ from cogent.core.alignment import DenseAlignment
 from cogent.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent.evolve.substitution_model import SubstitutionModel
 from cogent.core.alphabet import Alphabet 
-from cogent.app.gctmpca import gctmpca_aa_order,\
- default_gctmpca_aa_sub_matrix
 from cogent.util.recode_alignment import alphabets, recode_dense_alignment,\
     build_alphabet_map, recode_freq_vector, recode_alignment,\
     recode_counts_and_freqs, recode_count_matrix

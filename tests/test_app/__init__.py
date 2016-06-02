@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 __all__ = """
 test_util
-test_parameters
-test_gctmpca""".split()
+test_parameters""".split()
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

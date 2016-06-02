@@ -38,10 +38,6 @@ Statistical Coupling Analysis (Suel 2003)
 *Ancestral states (Tuffery 2000 -- might not be the best ref,
  a better might be Shindyalov, Kolchannow, and Sander 1994, but so far I 
  haven't been able to get my hands on that one).
-*Gctmpca (Yeang 2007) 
-    (Yeang CH, Haussler D.  Detecting the coevolution in and 
-     among protein domains.  PLoS Computational Biology 2007.)
-
 * These methods require a phylogenetic tree, in addition to an alignment.
  Trees are calculated on-the-fly, by neighbor-joining, if not provided.
 
@@ -75,7 +71,6 @@ from cogent.core.tree import TreeError
 from cogent.core.alignment import seqs_from_fasta, DenseAlignment
 from cogent.parse.newick import TreeParseError
 from cogent.parse.record import RecordError
-from cogent.app.gctmpca import Gctmpca
 from cogent.util.recode_alignment import recode_dense_alignment, \
     alphabets, recode_freq_vector, recode_counts_and_freqs, \
     square_matrix_to_dict
@@ -93,6 +88,15 @@ __status__ = "Beta"
 
 gDefaultExcludes = ''.join([IUPAC_gap,IUPAC_missing])
 gDefaultNullValue = nan
+
+def build_rate_matrix(count_matrix,freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
+
+    epm = EmpiricalProteinMatrix(count_matrix,freqs)
+    word_probs = array([freqs[aa] for aa in aa_order])
+    num = word_probs.shape[0]
+    mprobs_matrix = ones((num,num), float)*word_probs
+    
+    return epm.calcQ(word_probs, mprobs_matrix)
 
 ## Mutual Information Analysis
 # Mutual Information Calculators
@@ -1127,106 +1131,12 @@ def ancestral_state_pair(aln,tree,pos1,pos2,\
     return result      
 ## End ancestral_states analysis        
 
-
-## Begin Gctmpca method (Yeang et al., 2007)
-
-def build_rate_matrix(count_matrix,freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
-
-    epm = EmpiricalProteinMatrix(count_matrix,freqs)
-    word_probs = array([freqs[aa] for aa in aa_order])
-    num = word_probs.shape[0]
-    mprobs_matrix = ones((num,num), float)*word_probs
-    
-    return epm.calcQ(word_probs, mprobs_matrix)
-
-def create_gctmpca_input(aln,tree):
-    """ Generate the four input files as lists of lines. """
-    new_tree = tree.copy()
-    seqs1 = []
-    seq_names = []
-    seq_to_species1 = []
-    seqs1.append(' '.join(map(str,[aln.getNumSeqs(),len(aln)])))
-    constant_name_length = max(map(len,aln.Names))
-    for n in aln.Names:
-        name = ''.join([n] + ['.']*(constant_name_length - len(n)))
-        new_tree.getNodeMatchingName(n).Name = name
-        seqs1.append('  '.join([name,str(aln.getGappedSeq(n))]))
-        seq_names.append(name)
-        seq_to_species1.append('\t'.join([name,name]))
-    seqs1.append('\n')   
-    seq_names.append('\n')   
-    seq_to_species1.append('\n')   
- 
-    return seqs1, [str(new_tree),'\n'], seq_names, seq_to_species1
- 
-def parse_gctmpca_result_line(line):
-    fields = line.strip().split()
-    return int(fields[0]) - 1, int(fields[1]) - 1, float(fields[2])
-
-def parse_gctmpca_result(f,num_positions):
-    m = array([[gDefaultNullValue]*num_positions]*num_positions)
-    for line in list(f)[1:]:
-        pos1, pos2, score = parse_gctmpca_result_line(line)
-        try:
-            m[pos1,pos2] = m[pos2,pos1] = score
-        except IndexError:
-            raise ValueError, \
-             "%d, %d out of range -- invalid num_positions?" % (pos1, pos2)
-    return m
-
-def gctmpca_pair(aln,tree,pos1,pos2,epsilon=None,priors=None,sub_matrix=None,\
-    null_value=gDefaultNullValue,debug=False):
-    seqs1, tree1, seq_names, seq_to_species1 = create_gctmpca_input(aln,tree) 
-
-    if aln.MolType == PROTEIN: mol_type = 'protein'
-    elif aln.MolType == RNA: mol_type = 'rna'
-    else: raise ValueError, 'Unsupported mol type, must be PROTEIN or RNA.'
-
-    gctmpca = Gctmpca(HALT_EXEC=debug)
-    data = {'mol_type':mol_type,'seqs1':seqs1,'tree1':tree1,\
-     'seq_names':seq_names, 'seq_to_species1':seq_to_species1,\
-     'species_tree':tree1, 'char_priors':priors, \
-     'sub_matrix':sub_matrix,'single_pair_only':1,'epsilon':epsilon,\
-     'pos1':str(pos1),'pos2':str(pos2)}
-    r = gctmpca(data)
-    try:
-        # parse the first line and return the score as a float
-        result = float(parse_gctmpca_result_line(list(r['output'])[1])[2])
-    except IndexError:
-        # There is no first line, so insignificant score
-        result = null_value
-
-    # clean up the temp files
-    r.cleanUp()
-    return result
-
-def gctmpca_alignment(aln,tree,epsilon=None,priors=None,\
-    sub_matrix=None,null_value=gDefaultNullValue,debug=False):
-    seqs1, tree1, seq_names, seq_to_species1 = create_gctmpca_input(aln,tree) 
-
-    if aln.MolType == PROTEIN: mol_type = 'protein'
-    elif aln.MolType == RNA: mol_type = 'rna'
-    else: raise ValueError, 'Unsupported mol type, must be PROTEIN or RNA.'
-    
-    gctmpca = Gctmpca(HALT_EXEC=debug)
-    data = {'mol_type':mol_type,'seqs1':seqs1,'tree1':tree1,\
-     'seq_names':seq_names, 'seq_to_species1':seq_to_species1,\
-     'species_tree':tree1, 'char_priors':priors, \
-     'sub_matrix':sub_matrix,'single_pair_only':0,'epsilon':epsilon}
-    r = gctmpca(data)
-    result = parse_gctmpca_result(r['output'],len(aln))
-    r.cleanUp()
-    return result
-
-## End Yeang method
-
 ### Methods for running coevolutionary analyses on sequence data.
 method_abbrevs_to_names = {'mi':'Mutual Information',\
            'nmi':'Normalized Mutual Information',\
            'sca':'Statistical Coupling Analysis',\
            'an':'Ancestral States',\
-           'rmi':'Resampled Mutual Information',
-           'gctmpca':'Haussler/Yeang Method'}
+           'rmi':'Resampled Mutual Information'}
 
 ## Method-specific error checking functions
 # Some of the coevolution algorithms require method-specific input validation, 
@@ -1391,7 +1301,7 @@ def coevolve_alignments_validation(method,alignment1,alignment2,\
 coevolve_alignment_functions = \
    {'mi': mi_alignment,'nmi': normalized_mi_alignment,\
     'rmi': resampled_mi_alignment,'sca': sca_alignment,\
-    'an':ancestral_state_alignment,'gctmpca':gctmpca_alignment}
+    'an':ancestral_state_alignment}
 
 def coevolve_alignment(method,alignment,**kwargs):
     """ Apply coevolution method to alignment (for intramolecular coevolution)
@@ -1659,7 +1569,7 @@ def coevolve_position(method,alignment,position,**kwargs):
 coevolve_pair_functions = \
    {'mi': mi_pair,'nmi': normalized_mi_pair,\
     'rmi': resampled_mi_pair,'sca': sca_pair,\
-    'an':ancestral_state_pair,'gctmpca':gctmpca_pair}
+    'an':ancestral_state_pair}
 
 def coevolve_pair(method,alignment,pos1,pos2,**kwargs):
     """ Apply provided coevolution method to columns pos1 & pos2 of alignment 
@@ -2164,14 +2074,6 @@ def build_coevolution_matrix_filepath(input_filepath,\
             method = '_'.join([method,cutoff_str[point_index+1:point_index+4]])
         except ValueError:
             raise ValueError, 'Cutoff must be provided when method == \'sca\''
-    elif method == 'gctmpca':
-        try:
-            epsilon_str = str(parameter)
-            point_index = epsilon_str.rindex('.')
-            method = '_'.join([method,epsilon_str[point_index+1:point_index+4]])
-        except ValueError:
-            raise ValueError, 'Epsilon must be provided when method == \'gctmpca\''
-            
 
     suffixes = filter(None,[alphabet,method])
     
@@ -2258,9 +2160,6 @@ script_info['optional_options'] = [\
  make_option('-c','--sca_cutoff',action='store',
         type='float',dest='sca_cutoff',help='cutoff to apply when method'+\
         ' is SCA (-m sca) [default: %default]',default=0.8),
- make_option('-e','--epsilon',action='store',
-        type='float',dest='epsilon',help='epsilon, only used when method'+\
-        ' is Haussler/Yeang (-m gctmpca) [default: %default]',default=0.7),
  make_option('-o','--output_dir',action='store',
         type='string',dest='output_dir',help='directory to store pickled '+\
         'result matrix (when -p is specified) [default: %default]',
@@ -2303,7 +2202,7 @@ def main():
 
     # error checking related to the newick tree
     if tree_filepath == None:
-        if (opts.method_id == 'gctmpca' or opts.method_id == 'an'):
+        if opts.method_id == 'an':
           option_parser.error(\
           'Tree-based method, but no tree. Provide a newick formatted tree.')
     else:
@@ -2357,17 +2256,6 @@ def main():
              build_coevolution_matrix_filepath(alignment_filepath,\
              output_dir,method_id,alphabet_id,sca_cutoff),\
              '.',output_file_extension])
-    elif method_id == 'gctmpca':
-        # uses DSO78 data -- recode it to reflect the
-        # reduced-state alphabet
-        recoded_counts, recoded_freqs = \
-            recode_counts_and_freqs(alphabet_def)
-        recoded_q = square_matrix_to_dict(\
-            build_rate_matrix(recoded_counts,recoded_freqs))
-        output_filepath = ''.join([\
-            build_coevolution_matrix_filepath(alignment_filepath,\
-            output_dir,method_id,alphabet_id,epsilon),\
-             '.',output_file_extension])
     else:
         output_filepath = ''.join([\
              build_coevolution_matrix_filepath(alignment_filepath,\
@@ -2398,8 +2286,6 @@ def main():
             print "No alphabet reduction (alphabet_id = 'orig')."
         if method_id == 'sca': 
             print 'Coevolution method: sca, cutoff=%f' % sca_cutoff
-        elif method_id == 'gctmpca': 
-            print 'Coevolution method: gctmpca, epsilon=%f' % epsilon
         else: 
             print 'Coevolution method: %s' % method_id
         if exclude_handler == ignore_excludes:
@@ -2415,10 +2301,6 @@ def main():
         matrix = coevolve_alignment(coevolve_alignment_function,recoded_aln,\
          cutoff=sca_cutoff,background_freqs=background_freqs,\
          alphabet=alphabet)
-    elif coevolve_alignment_function == gctmpca_alignment:
-        matrix = coevolve_alignment(coevolve_alignment_function,\
-         recoded_aln,tree=tree,sub_matrix=recoded_q,priors=recoded_freqs,\
-         epsilon=epsilon)
     elif coevolve_alignment_function == ancestral_state_alignment:
         matrix = coevolve_alignment(\
          coevolve_alignment_function,recoded_aln,tree=tree)
