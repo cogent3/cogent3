@@ -2,8 +2,7 @@
 """apps: provides support libraries for controlling applications (local or web).
 """
 
-__all__ = ['gctmpca',
-           'parameters',
+__all__ = ['parameters',
            'util']
 
 __author__ = ""

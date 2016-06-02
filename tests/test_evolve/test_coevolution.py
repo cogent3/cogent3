@@ -22,15 +22,13 @@ from cogent.core.alignment import DenseAlignment
 from cogent.app.util import get_tmp_filename
 from cogent.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent.evolve.substitution_model import SubstitutionModel, Empirical
-from cogent.app.gctmpca import gctmpca_aa_order,\
- default_gctmpca_aa_sub_matrix
 from cogent.util.misc import app_path
 from cogent.evolve.coevolution import mi_alignment, nmi_alignment,\
     resampled_mi_alignment, sca_alignment, make_weights,\
-    parse_gctmpca_result_line, gDefaultNullValue, create_gctmpca_input,\
+    gDefaultNullValue,\
     build_rate_matrix, coevolve_pair, validate_position, validate_alphabet,\
     validate_alignment, unpickle_coevolution_result, mi,\
-    parse_gctmpca_result, sca_pair, csv_to_coevolution_matrix, sca_position,\
+    sca_pair, csv_to_coevolution_matrix, sca_position,\
     coevolve_position, sca_input_validation, coevolve_alignment, \
     probs_from_dict, pickle_coevolution_result, \
     parse_coevolution_matrix_filepath, normalized_mi, n_random_seqs, \
@@ -48,9 +46,9 @@ from cogent.evolve.coevolution import mi_alignment, nmi_alignment,\
     ancestral_state_alignment, nmi, build_coevolution_matrix_filepath,\
     aln_position_pairs_cmp_threshold, validate_tree, validate_ancestral_seqs,\
     validate_ancestral_seqs, get_ancestral_seqs, \
-    ancestral_states_input_validation, ancestral_state_pair, gctmpca_alignment,\
+    ancestral_states_input_validation, ancestral_state_pair,\
     aln_position_pairs_ge_threshold, aln_position_pairs_ge_threshold,\
-    aln_position_pairs_le_threshold, gctmpca_pair
+    aln_position_pairs_le_threshold
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -67,7 +65,6 @@ class CoevolutionTests(TestCase):
     def setUp(self):
         """Set up variables for us in tests """
         self.run_slow_tests = int(environ.get('TEST_SLOW_APPC',0))
-        self.run_gctmpca_tests = app_path('calculate_likelihood')
         ## Data used in SCA tests
         self.dna_aln = DenseAlignment(data=zip(\
          range(4),['ACGT','AGCT','ACCC','TAGG']),MolType=DNA)
@@ -92,7 +89,6 @@ class CoevolutionTests(TestCase):
         # for SCA calcs on DNA seqs
         self.dna_base_freqs = dict(zip('ACGT',[0.25]*4))
         self.rna_base_freqs = dict(zip('ACGU',[0.25]*4))
-        self.run_slow_gctmpca_tests = False
         self.protein_aln4 = DenseAlignment([('A1','AACF'),('A12','AADF'),\
             ('A123','ADCF'),('A111','AAD-')],\
             MolType=PROTEIN)
@@ -117,10 +113,6 @@ class CoevolutionTests(TestCase):
 
         r = ancestral_state_alignment(self.protein_aln4,self.tree4)
         self.assertEqual(r.shape,(4,4))
-        # check if we're running the GCTMPCA tests and the slow tests
-        if self.run_slow_tests and self.run_gctmpca_tests:      
-            r = gctmpca_alignment(self.protein_aln4,self.tree4,epsilon=0.7)
-            self.assertEqual(r.shape,(4,4))
 
     def test_alignment_analyses_moltype_rna(self):
         """ alignment methods work with moltype = RNA """
@@ -135,10 +127,6 @@ class CoevolutionTests(TestCase):
 
         r = ancestral_state_alignment(self.rna_aln4,self.tree4)
         self.assertEqual(r.shape,(4,4))
-        # check if we're running the GCTMPCA tests and the slow tests
-        if self.run_slow_tests and self.run_gctmpca_tests:  
-            r = gctmpca_alignment(self.rna_aln4,self.tree4,epsilon=0.7)
-            self.assertEqual(r.shape,(4,4))
 
     def test_alignment_analyses_moltype_dna(self):
         """ alignment methods work with moltype = DNA """
@@ -153,11 +141,6 @@ class CoevolutionTests(TestCase):
         
         r = ancestral_state_alignment(self.dna_aln4,self.tree4)
         self.assertEqual(r.shape,(4,4))
-        # check if we're running the GCTMPCA tests and the slow tests
-        if self.run_slow_tests and self.run_gctmpca_tests:  
-            # Gctmpca method doesn't support DNA alignments.
-            self.assertRaises(ValueError,gctmpca_alignment,self.dna_aln4,\
-                self.tree4,epsilon=0.7)
 
     def test_join_positions(self):
         """ join_positions functions as expected """
@@ -347,8 +330,6 @@ class CoevolutionTests(TestCase):
             sca_alignment,aln1,aln2,2,None)
          self.assertRaises(AssertionError,coevolve_alignments_validation,\
             ancestral_state_alignment,aln1,aln2,2,None)
-         self.assertRaises(AssertionError,coevolve_alignments_validation,\
-            gctmpca_alignment,aln1,aln2,2,None)
          
 
     def test_coevolve_alignments(self):
@@ -615,13 +596,6 @@ class CoevolutionTests(TestCase):
             alphabet='xx'),'./duh/blah.xx.sca_25')
         
         
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',\
-            output_dir='./duh/',method='gctmpca',parameter=0.25),\
-            './duh/blah.gctmpca_25')
-        self.assertRaises(ValueError,build_coevolution_matrix_filepath,\
-            './blah.fasta','./duh/','gctmpca')
-        
-
         self.assertRaises(ValueError,build_coevolution_matrix_filepath,\
          './blah.fasta','./duh/','sca')
         self.assertRaises(ValueError,build_coevolution_matrix_filepath,\
@@ -2403,167 +2377,6 @@ class AncestorCoevolve(TestCase):
         # null values into the ancestral states result, but that will change 
         # when I fix the exclude handling
         pass
-
-class GctmpcaTests(TestCase):
-
-    def setUp(self): 
-        self.run_slow_tests = int(environ.get('TEST_SLOW_APPC',0))
-        self.run_gctmpca_tests = app_path('calculate_likelihood')
-        # Data used by Gctmpca tests
-        self.l1 = "1\t2\t42.60\n"
-        self.l2 = "2\t3\t0.60"
-        self.lines = ["Position 1\tPosition 2\tScore\n",self.l1,self.l2]
-        self.aln = DenseAlignment(\
-            [('A1','AACF'),('A12','AADF'),('A123','ADCF')],\
-            MolType=PROTEIN)
-        self.rna_aln = DenseAlignment(\
-            [('A1','AACU'),('A12','AAGG'),('A123','ADCA')],\
-            MolType=RNA)
-        self.dna_aln = DenseAlignment(\
-            [('A1','AACT'),('A12','AAGG'),('A123','ADCA')],\
-            MolType=DNA)
-        self.tree = LoadTree(treestring="(A1:0.5,(A12:0.5,A123:0.5):0.5);")
-        self.aln4 = DenseAlignment([('A','AACF'),('AB','AADF'),\
-            ('ABC','ADCF'),('AAA','AADE')],\
-            MolType=PROTEIN)
-        self.tree4 = LoadTree(treestring=\
-         "((A:0.5,AAA:0.5):0.5,(AB:0.5,ABC:0.5):0.5);")
- 
-    def test_parse_gctmpca_result_line(self):
-        """Gctmpca: result line parsing functions as expected """
-        exp1 = (0,1,42.60)
-        exp2 = (1,2,0.60)
-        self.assertFloatEqual(parse_gctmpca_result_line(self.l1),exp1)
-        self.assertFloatEqual(parse_gctmpca_result_line(self.l2),exp2)
-
-    def test_parse_gctmpca_result(self):
-        """Gctmpca: result (as list) yeilds correctly matrix """
-        exp1 = array([\
-         [gDefaultNullValue,42.60,gDefaultNullValue],\
-         [42.60,gDefaultNullValue,0.60],\
-         [gDefaultNullValue,0.60,gDefaultNullValue]])
-        self.assertFloatEqual(parse_gctmpca_result(self.lines,3),exp1)
-        
-        exp2 = array([\
-         [gDefaultNullValue,42.60,gDefaultNullValue,gDefaultNullValue],\
-         [42.60,gDefaultNullValue,0.60,gDefaultNullValue],\
-         [gDefaultNullValue,0.60,gDefaultNullValue,gDefaultNullValue],\
-         [gDefaultNullValue,gDefaultNullValue,\
-          gDefaultNullValue,gDefaultNullValue]])
-        self.assertFloatEqual(parse_gctmpca_result(self.lines,4),exp2)
-        self.assertRaises(ValueError,parse_gctmpca_result,self.lines,2)
-    
-    def test_create_gctmpca_input(self):
-        """Gctmpca: create_gctmpca_input generates proper data """
-        seqs1, tree1, seq_names, seq_to_species1 = \
-            create_gctmpca_input(self.aln,self.tree)
-
-        exp_seqs1 = ['3 4','A1..  AACF', 'A12.  AADF','A123  ADCF','\n']
-        exp_tree1 = ["(A1..:0.5,(A12.:0.5,A123:0.5):0.5);",'\n']
-        exp_seq_names = ["A1..","A12.","A123",'\n']
-        exp_seq_to_species1 = ["A1..\tA1..","A12.\tA12.","A123\tA123",'\n']
-        
-        self.assertEqual(seqs1,exp_seqs1)
-        self.assertEqual(tree1,exp_tree1)
-        self.assertEqual(seq_names,exp_seq_names)
-        self.assertEqual(seq_to_species1,exp_seq_to_species1)
-
-    def test_gctmpca_pair(self):
-        """Gctmpca: pair method works on trivial data """
-        if not self.run_slow_tests: return 
-        if not self.run_gctmpca_tests: return
-        # Note: the values in here are derived from the results of running 
-        # this on the example data from the command line. 
-        # More extensive tests are performed
-        # in the app controller test -- here I just want to make sure we're 
-        # getting the values out.
-        actual = gctmpca_pair(self.aln,self.tree,2,3)
-        expected = 0.483244
-        self.assertFloatEqual(actual,expected)
-        
-        actual = gctmpca_pair(self.aln4,self.tree4,2,3)
-        expected = 0.164630
-        self.assertFloatEqual(actual,expected)
-        
-        # mol type = RNA
-        actual = gctmpca_pair(self.rna_aln,self.tree,3,4)
-        expected = 0.237138
-        self.assertFloatEqual(actual,expected)
-        
-        # mol type = DNA => error
-        self.assertRaises(ValueError,gctmpca_pair,\
-         self.dna_aln,self.tree,2,3)
-
-    def test_gctmpca_alignment(self):
-        """Gctmpca: alignment method works on trivial data """
-        if not self.run_slow_tests: return 
-        if not self.run_gctmpca_tests: return
-        # Note: the values in here are derived from the results of running 
-        # this on the example data from the command line. 
-        # More extensive tests are performed
-        # in the app controller test -- here I just want to make sure we're 
-        # getting the values out.
-        actual = gctmpca_alignment(self.aln,self.tree)
-        expected = array([\
-         [gDefaultNullValue,gDefaultNullValue,\
-          gDefaultNullValue,gDefaultNullValue],\
-         [gDefaultNullValue,gDefaultNullValue,0.483244,gDefaultNullValue],\
-         [gDefaultNullValue,0.483244,gDefaultNullValue,1.373131],\
-         [gDefaultNullValue,gDefaultNullValue,1.373131,gDefaultNullValue]])
-        self.assertFloatEqual(actual,expected)
-        
-
-    def test_build_q_yields_roughly_gctmpca_default(self):
-        """build_rate_matrix: from DSO78 data yields Yeang's default Q
-        """
-        # Note: This doesn't reproduce the exact values, which I expect is 
-        # due to the two Dayhoff matrices in the PAML data. I think they're
-        # using the second one (which is from Dayhoff et al., 1978) and we're 
-        # using the first one. What is the difference b/w these two?
-        
-        aa_order = 'ACDEFGHIKLMNPQRSTVWY'
-        q = build_rate_matrix(DSO78_matrix,DSO78_freqs,aa_order=aa_order)
-        expected = []
-        for row_aa in aa_order:
-            expected.append([default_gctmpca_aa_sub_matrix[row_aa][col_aa] \
-             for col_aa in aa_order])
-        self.assertFloatEqual(q,expected,3)
-    
-    def test_build_q_ignores_zero_counts(self):
-        """build_rate_matrix: recoded counts (i.e., w/ many 0s) yeilds right Q
-        """
-        # Test that when working with reduced counts, counts and freqs 
-        # that equal 0.0 don't effect the calculation of Q. 
-
-        aa_order_3 = 'ACD'
-        count_matrix_3 = [[0,3,9],[3,0,6],[9,6,0]]
-        aa_freqs_3 = {'A':0.5,'C':0.3,'D':0.2}
-        sm = Empirical(\
-            rate_matrix=array(count_matrix_3),\
-            motif_probs=aa_freqs_3,\
-            alphabet=Alphabet(aa_order_3),recode_gaps=True,do_scaling=True,\
-            name="",optimise_motif_probs=False)
-        wprobs = array([aa_freqs_3[aa] for aa in aa_order_3])
-        mprobs_matrix=ones((wprobs.shape[0],wprobs.shape[0]),float)*wprobs
-        q3 = sm.calcQ(wprobs, mprobs_matrix)
-        aa_freqs_20 = {}.fromkeys('ACDEFGHIKLMNPQRSTVWY',0.0)
-        aa_freqs_20['A'] = 0.5
-        aa_freqs_20['C'] = 0.3
-        aa_freqs_20['D'] = 0.2
-        count_matrix_20 = zeros(400).reshape(20,20)
-        count_matrix_20[0,1] = count_matrix_20[1,0] = 3
-        count_matrix_20[0,2] = count_matrix_20[2,0] = 9
-        count_matrix_20[1,2] = count_matrix_20[2,1] = 6
-        q_20 = build_rate_matrix(array(count_matrix_20),aa_freqs_20)
-        for i in range(20):
-            for j in range(20):
-                try:
-                    # rates in q_3 and q_20 are identical
-                    self.assertEqual(q3[i,j],q_20[i,j])
-                except IndexError:
-                    # and everything not in q_3 is zero
-                    self.assertEqual(q_20[i,j],0.)
-
 
 # following are support funcs for ResampledMiTests
 def make_freqs(c12):
@@ -4780,12 +4593,6 @@ myos_aln = DenseAlignment(data=myos_data.split('\n'),MolType=PROTEIN)
 # a randomly generated tree to use in tests
 tree20_string='(((0:0.5,1:0.5):0.5,(((2:0.5,3:0.5):0.5,(4:0.5,(5:0.5,6:0.5):0.5):0.5):0.5,((7:0.5,8:0.5):0.5,((9:0.5,((10:0.5,11:0.5):0.5,12:0.5):0.5):0.5,13:0.5):0.5):0.5):0.5):0.5,(((14:0.5,(15:0.5,16:0.5):0.5):0.5,17:0.5):0.5,(18:0.5,19:0.5):0.5):0.5);'
 
-default_gctmpca_aa_sub_matrix_lines = default_gctmpca_aa_sub_matrix.split('\n')
-default_gctmpca_aa_sub_matrix = {}
-for aa,line in zip(gctmpca_aa_order,default_gctmpca_aa_sub_matrix_lines):
-    default_gctmpca_aa_sub_matrix[aa] = dict([(col_aa,float(rate)/100.) \
-     for col_aa,rate in zip(gctmpca_aa_order,line.split())])
-     
 if __name__ == "__main__":    
     main()
 
