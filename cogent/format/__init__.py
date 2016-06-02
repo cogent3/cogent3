@@ -2,13 +2,11 @@
 """Package cogent.format: provides modules for writing specific file formats.
 
 Currently provides:
-    mage: writers for the MAGE 3D visualization program
     xml:  xml base class
     file: general functions to read and write files
 """
-__all__ = ['alignment', 'clustal', 'fasta', 'mage', 'motif', 'nexus', 
-           'pdb', 'phylip', 'rna_struct', 'stockholm', 'structure', 
-           'table', 'text_tree', 'xyzrn']
+__all__ = ['alignment', 'clustal', 'fasta', 'motif', 'nexus', 
+           'phylip',  'table']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
