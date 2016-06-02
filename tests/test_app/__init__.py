@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 __all__ = """
-test_stride  
-test_rnaalifold
-test_muscle
 test_util
-test_parameters     test_vienna_package
+test_parameters
 test_gctmpca""".split()
 
 __author__ = ""
