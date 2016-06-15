@@ -105,7 +105,6 @@ def suite():
         'test_parse.test_ebi',
         'test_parse.test_fasta',
         'test_parse.test_gbseq',
-        'test_parse.test_gibbs',
         'test_parse.test_genbank',
         'test_parse.test_gff',
         'test_parse.test_greengenes',
