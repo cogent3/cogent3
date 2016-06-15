@@ -2,10 +2,10 @@
 
 import os
 
-from cogent import LoadSeqs, CodonAlphabet, DNA, LoadTable
-from cogent.core import genetic_code
-from cogent.evolve import substitution_model, substitution_calculation
-from cogent.util.unit_test import TestCase, main
+from cogent3 import LoadSeqs, CodonAlphabet, DNA, LoadTable
+from cogent3.core import genetic_code
+from cogent3.evolve import substitution_model, substitution_calculation
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

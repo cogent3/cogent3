@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Unit tests for the clustal parsers.
 """
-from cogent.parse.clustal import LabelLineParser, is_clustal_seq_line, \
+from cogent3.parse.clustal import LabelLineParser, is_clustal_seq_line, \
     last_space, delete_trailing_number, MinimalClustalParser
-from cogent.parse.record import RecordError
-from cogent.util.unit_test import TestCase, main
-from cogent.core.alignment import Alignment
+from cogent3.parse.record import RecordError
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.alignment import Alignment
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

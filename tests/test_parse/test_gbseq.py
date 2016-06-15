@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import xml.dom.minidom
 
-from cogent.util.unit_test import TestCase, main
-from cogent.parse.gbseq import GbSeqXmlParser
+from cogent3.util.unit_test import TestCase, main
+from cogent3.parse.gbseq import GbSeqXmlParser
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

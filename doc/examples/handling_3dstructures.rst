@@ -56,8 +56,8 @@ The ``cogent.LoadStructure`` method is a convenience method to get a structure o
 
 .. doctest::
 
-    >>> from cogent.parse.pdb import PDBParser
-    >>> from cogent.format.pdb import PDBWriter
+    >>> from cogent3.parse.pdb import PDBParser
+    >>> from cogent3.format.pdb import PDBWriter
     >>> import tempfile, os
     >>> pdb_file = open('data/4TSV.pdb')
     >>> new_structure = PDBParser(pdb_file)
@@ -153,7 +153,7 @@ There is however a catch. Tables are not dynamic, this means that they are not m
 
 .. doctest::
 
-    >>> from cogent.core.entity import Chain # the chain entity
+    >>> from cogent3.core.entity import Chain # the chain entity
     >>> new_chain = Chain('J') # an ampty chain named 'J'
     >>> new_chain.getId()
     ('J',)

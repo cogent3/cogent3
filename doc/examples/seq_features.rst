@@ -25,7 +25,7 @@ We could also have created an annotation using the ``addAnnotation`` method:
 
 .. doctest::
 
-    >>> from cogent.core.annotation import Feature
+    >>> from cogent3.core.annotation import Feature
     >>> s2=DNA.makeSequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
     ... Name="Orig2")
     >>> exon3 = s2.addAnnotation(Feature, 'exon', 'exon1', [(35,40)])

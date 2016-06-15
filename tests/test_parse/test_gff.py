@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
-from cogent.parse.gff import *
-from cogent.util.unit_test import TestCase, main
+from cogent3.parse.gff import *
+from cogent3.util.unit_test import TestCase, main
 from StringIO import StringIO
 
 __author__ = "Matthew Wakefield"

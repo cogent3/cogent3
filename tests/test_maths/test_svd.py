@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for the svd-supporting functionality."""
 
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.svd import ratio_two_best, ratio_best_to_sum, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.svd import ratio_two_best, ratio_best_to_sum, \
      euclidean_distance, euclidean_norm, _dists_from_mean_slow, \
      dists_from_v, weiss, three_item_combos, two_item_combos
 from numpy import array, sqrt

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for statistical tests and utility functions.
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     posteriors, bayes_updates, t_paired, t_one_sample, t_two_sample, \
     mc_t_two_sample, _permute_observations, t_one_observation, correlation, \
     correlation_test, correlation_matrix, z_test, z_tailed_prob, \
@@ -18,9 +18,9 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
 
 from numpy import array, concatenate, fill_diagonal, reshape, arange, matrix, \
         ones, testing, tril, cov, sqrt
-from cogent.util.dict2d import Dict2D
+from cogent3.util.dict2d import Dict2D
 import math
-from cogent.maths.stats.util import Numbers
+from cogent3.maths.stats.util import Numbers
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-from cogent import DNA, LoadSeqs
-from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict,\
+from cogent3 import DNA, LoadSeqs
+from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict,\
         local_pairwise, global_pairwise
-from cogent.evolve.models import HKY85
-import cogent.evolve.substitution_model
-dna_model = cogent.evolve.substitution_model.Nucleotide(
+from cogent3.evolve.models import HKY85
+import cogent3.evolve.substitution_model
+dna_model = cogent3.evolve.substitution_model.Nucleotide(
         model_gaps=False, equal_motif_probs=True)
 
-import cogent.align.progressive
+import cogent3.align.progressive
 
 import unittest
 
@@ -80,10 +80,10 @@ class AlignmentTestCase(unittest.TestCase):
     def test_codon(self):
         s1 = DNA.makeSequence('tacgccgta', Name="A")
         s2 = DNA.makeSequence('tacgta', Name="B")
-        codon_model = cogent.evolve.substitution_model.Codon(
+        codon_model = cogent3.evolve.substitution_model.Codon(
                                  model_gaps=False, equal_motif_probs=True,
                                  mprob_model='conditional')
-        tree = cogent.LoadTree(tip_names=['A', 'B'])
+        tree = cogent3.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.makeLikelihoodFunction(tree, aligned=False)
         lf.setSequences(dict(A=s1, B=s2))
         a = lf.getLogLikelihood().edge.getViterbiPath().getAlignment()
@@ -104,7 +104,7 @@ class AlignmentTestCase(unittest.TestCase):
 
 class UnalignedPairTestCase(unittest.TestCase):
     def test_forward(self):
-        tree = cogent.LoadTree(tip_names='AB')
+        tree = cogent3.LoadTree(tip_names='AB')
         pc = dna_model.makeLikelihoodFunction(tree, aligned=False)  
         pc.setSequences({'A':seq1, 'B':seq2})
         LnL = pc.getLogLikelihood()
@@ -119,11 +119,11 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         seqs = dict((key, DNA.makeSequence(value)) 
                 for (key, value) in orig.items())
         if len(seqs) == 2:
-            tree = cogent.LoadTree(tip_names=seqs.keys())
-            tree = cogent.LoadTree(treestring="(A:.1,B:.1)")
+            tree = cogent3.LoadTree(tip_names=seqs.keys())
+            tree = cogent3.LoadTree(treestring="(A:.1,B:.1)")
         else:
-            tree = cogent.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
-        aln, tree = cogent.align.progressive.TreeAlign(model, seqs,
+            tree = cogent3.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
+        aln, tree = cogent3.align.progressive.TreeAlign(model, seqs,
                 tree=tree, param_vals=param_vals, show_progress=False, **kw)
         return aln
     
@@ -153,7 +153,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
                             'B': "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
                             'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
-        aln, tree = cogent.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False,
+        aln, tree = cogent3.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False,
                         param_vals={'kappa': 4.0})
         
         expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------',
@@ -233,12 +233,12 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
     # Force use of linear space algorithm
     
     def _test_aln(self, seqs, **kw):
-        tmp = cogent.align.pairwise.HIRSCHBERG_LIMIT
+        tmp = cogent3.align.pairwise.HIRSCHBERG_LIMIT
         try:
-            cogent.align.pairwise.HIRSCHBERG_LIMIT = 100
+            cogent3.align.pairwise.HIRSCHBERG_LIMIT = 100
             result = MultipleAlignmentTestCase._test_aln(self, seqs, **kw)
         finally:
-            cogent.align.pairwise.HIRSCHBERG_LIMIT = tmp
+            cogent3.align.pairwise.HIRSCHBERG_LIMIT = tmp
         return result
 
 

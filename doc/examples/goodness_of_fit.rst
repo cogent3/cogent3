@@ -12,7 +12,7 @@ Let's setup some example data:
 .. doctest::
     
     >>> import numpy
-    >>> import cogent.cluster.goodness_of_fit as goodness_of_fit
+    >>> import cogent3.cluster.goodness_of_fit as goodness_of_fit
     >>> distmat = numpy.array([
     ... [ 0.      ,  0.039806,  0.056853,  0.21595 ,  0.056853,  0.0138  ,
     ...   0.203862,  0.219002,  0.056853,  0.064283],

@@ -5,14 +5,14 @@ The standard genetic code.
 
 .. doctest::
     
-    >>> from cogent.core.genetic_code import GeneticCodes
+    >>> from cogent3.core.genetic_code import GeneticCodes
     >>> standard_code = GeneticCodes[1]
 
 The vertebrate mt genetic code.
 
 .. doctest::
     
-    >>> from cogent.core.genetic_code import GeneticCodes
+    >>> from cogent3.core.genetic_code import GeneticCodes
     >>> mt_gc = GeneticCodes[2]
     >>> print mt_gc.Name
     Vertebrate Mitochondrial
@@ -32,7 +32,7 @@ Translate DNA sequences
 
 .. doctest::
 
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> standard_code.translate('TTTGCAAAC')
     'FAN'
 
@@ -44,7 +44,7 @@ Translate all six frames
 .. doctest::
     
     >>> from cogent import DNA
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> seq = DNA.makeSequence('ATGCTAACATAAA')
     >>> translations = standard_code.sixframes(seq)
     >>> print translations
@@ -56,7 +56,7 @@ Find out how many stops in a frame
 .. doctest::
     
     >>> from cogent import DNA
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> seq = DNA.makeSequence('ATGCTAACATAAA')
     >>> stops_frame1 = standard_code.getStopIndices(seq, start=0)
     >>> stops_frame1
@@ -71,7 +71,7 @@ Translate a codon
 
 .. doctest::
 
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> standard_code['TTT']
     'F'
 
@@ -87,7 +87,7 @@ Look up the amino acid corresponding to a single codon
 
 .. doctest::
 
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> standard_code['TTT']
     'F'
 

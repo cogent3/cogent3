@@ -4,8 +4,8 @@
 Currently using tests against calculations in R, spreadsheets being unreliable.
 """
 
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.distribution import z_low, z_high, zprob, chi_low, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.distribution import z_low, z_high, zprob, chi_low, \
     chi_high, t_low, t_high, tprob, poisson_high, poisson_low, poisson_exact, \
     binomial_high, binomial_low, binomial_exact, f_low, f_high, fprob, \
     stdtr, bdtr, bdtrc, pdtr, pdtrc, fdtr, fdtrc, gdtr, gdtrc, chdtri, stdtri,\

@@ -2,7 +2,7 @@
 """Tests for optimisation functions"""
 from function_optimisation import great_deluge, ga_evolve, _simple_breed,\
     _simple_score, _simple_init, _simple_select
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 from numpy import array
 
 __author__ = "Daniel McDonald"

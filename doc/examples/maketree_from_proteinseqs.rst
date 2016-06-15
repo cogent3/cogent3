@@ -13,13 +13,13 @@ We will use an empirical protein substitution matrix.
 
 .. doctest::
 
-    >>> from cogent.evolve.models import JTT92
+    >>> from cogent3.evolve.models import JTT92
 
 The next components we need are for computing the matrix of pairwise sequence distances and then for estimating a neighbour joining tree from those distances.
 
 .. doctest::
 
-    >>> from cogent.phylo import nj, distance
+    >>> from cogent3.phylo import nj, distance
 
 Now load our sequence alignment, explicitly setting the alphabet to be protein.
 

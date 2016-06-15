@@ -3,9 +3,9 @@ from __future__ import division
 
 import unittest, os, tempfile
 
-from cogent import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
+from cogent3 import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
                 LoadSeqs
-from cogent.parse.record import FileFormatError
+from cogent3.parse.record import FileFormatError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

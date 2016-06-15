@@ -7,7 +7,7 @@ All I'm doing here is illustrating the use of ``parallel.map`` with the simplest
 
 .. doctest::
     
-    >>> from cogent.util import parallel
+    >>> from cogent3.util import parallel
     >>> passed_indices = []
     >>> series = range(20)
     >>> result = parallel.map(passed_indices.append, series)

@@ -2,10 +2,10 @@
 
 from __future__ import division
 from numpy import array, transpose, alltrue
-from cogent.util.unit_test import TestCase, main
-from cogent.core.moltype import RNA
-from cogent.core.sequence import RnaSequence, Sequence, ModelSequence
-from cogent.core.alignment import Alignment, DenseAlignment
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.moltype import RNA
+from cogent3.core.sequence import RnaSequence, Sequence, ModelSequence
+from cogent3.core.alignment import Alignment, DenseAlignment
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

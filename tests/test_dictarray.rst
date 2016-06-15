@@ -1,6 +1,6 @@
 >>> import numpy
->>> from cogent import DNA
->>> from cogent.util.dict_array import DictArrayTemplate
+>>> from cogent3 import DNA
+>>> from cogent3.util.dict_array import DictArrayTemplate
 >>> a = numpy.identity(3, int)
 >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
 >>> b[0]

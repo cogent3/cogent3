@@ -6,9 +6,9 @@ import unittest
 import os
 import warnings
 
-from cogent import LoadSeqs, LoadTree
-import cogent.evolve.parameter_controller, cogent.evolve.substitution_model
-from cogent.maths import optimisers
+from cogent3 import LoadSeqs, LoadTree
+import cogent3.evolve.parameter_controller, cogent3.evolve.substitution_model
+from cogent3.maths import optimisers
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -51,11 +51,11 @@ class test_parameter_controller(unittest.TestCase):
         self.al = LoadSeqs(
             data={'a':'tata', 'b':'tgtc', 'c':'gcga', 'd':'gaac', 'e':'gagc',})
         self.tree = LoadTree(treestring='((a,b),(c,d),e);')
-        self.model = cogent.evolve.substitution_model.Nucleotide(
+        self.model = cogent3.evolve.substitution_model.Nucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True)
         
     def test_scoped_local(self):
-        model = cogent.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.Nucleotide(
                 do_scaling=True, equal_motif_probs=True, model_gaps=True,
                 predicates = {'kappa':'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
@@ -69,7 +69,7 @@ class test_parameter_controller(unittest.TestCase):
     
     def test_setMotifProbs(self):
         """Mprobs supplied to the parameter controller"""
-        model = cogent.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
                 motif_probs_from_align=False)
@@ -96,7 +96,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
-        model = cogent.evolve.substitution_model.Nucleotide(motif_probs=None)
+        model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
                 motif_probs_from_align=False, loci=["a", "b"])
                 
@@ -140,7 +140,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_pairwise_clock(self):
         al = LoadSeqs(data={'a':'agct','b':'ggct'})
         tree = LoadTree(treestring='(a,b);')
-        model = cogent.evolve.substitution_model.Dinucleotide(
+        model = cogent3.evolve.substitution_model.Dinucleotide(
                 do_scaling=True, equal_motif_probs=True, model_gaps=True,
                 mprob_model='tuple')
         lf = model.makeLikelihoodFunction(tree)
@@ -165,7 +165,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_complex_parameter_rules(self):
             # This test has many local minima and so does not cope
             # with changes to optimiser details.
-        model = cogent.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.Nucleotide(
                 do_scaling=True, equal_motif_probs=True, model_gaps=True,
                 predicates = {'kappa':'transition'})
         lf = model.makeLikelihoodFunction(self.tree)

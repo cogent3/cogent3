@@ -7,7 +7,7 @@ This is just about the simplest possible Cogent script for evolutionary modellin
 
 .. doctest::
 
-    >>> from cogent.evolve.models import HKY85
+    >>> from cogent3.evolve.models import HKY85
     >>> from cogent import LoadSeqs, LoadTree
     >>> model = HKY85()
     >>> aln = LoadSeqs("data/primate_cdx2_promoter.fasta")

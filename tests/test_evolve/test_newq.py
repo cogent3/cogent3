@@ -7,13 +7,13 @@ warnings.filterwarnings("ignore", "Model not reversible")
 
 from numpy import ones, dot, array
 
-from cogent import LoadSeqs, DNA, LoadTree, LoadTable
-from cogent.evolve.substitution_model import Nucleotide, General, \
+from cogent3 import LoadSeqs, DNA, LoadTree, LoadTable
+from cogent3.evolve.substitution_model import Nucleotide, General, \
                                                 GeneralStationary
-from cogent.evolve.discrete_markov import DiscreteSubstitutionModel
-from cogent.evolve.predicate import MotifChange
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
+from cogent3.evolve.discrete_markov import DiscreteSubstitutionModel
+from cogent3.evolve.predicate import MotifChange
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import division
-from cogent.util.unit_test import TestCase, main
-from cogent.util.table import Table
-from cogent.format.bedgraph import get_header
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.table import Table
+from cogent3.format.bedgraph import get_header
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 class FormatBedgraph(TestCase):
     def test_only_required_columns(self):

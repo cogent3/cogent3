@@ -11,19 +11,19 @@ To start, lets import all of our ``build_tree_from_alignment`` methods and our `
 
 .. doctest::
 
-    >>> from cogent.core.moltype import DNA
-    >>> from cogent.app.clearcut import build_tree_from_alignment as clearcut_build_tree
-    >>> from cogent.app.clustalw import build_tree_from_alignment as clustalw_build_tree
-    >>> from cogent.app.fasttree import build_tree_from_alignment as fasttree_build_tree
-    >>> from cogent.app.muscle import build_tree_from_alignment as muscle_build_tree
-    >>> from cogent.app.raxml import build_tree_from_alignment as raxml_build_tree
+    >>> from cogent3.core.moltype import DNA
+    >>> from cogent3.app.clearcut import build_tree_from_alignment as clearcut_build_tree
+    >>> from cogent3.app.clustalw import build_tree_from_alignment as clustalw_build_tree
+    >>> from cogent3.app.fasttree import build_tree_from_alignment as fasttree_build_tree
+    >>> from cogent3.app.muscle import build_tree_from_alignment as muscle_build_tree
+    >>> from cogent3.app.raxml import build_tree_from_alignment as raxml_build_tree
 
 Next, we'll load up a test set of sequences and construct an ``Alignment``:
 
 .. doctest::
 
     >>> from cogent import LoadSeqs
-    >>> from cogent.app.muscle import align_unaligned_seqs
+    >>> from cogent3.app.muscle import align_unaligned_seqs
     >>> unaligned = LoadSeqs(filename='data/test2.fasta', aligned=False)
     >>> aln = align_unaligned_seqs(unaligned, DNA)
 

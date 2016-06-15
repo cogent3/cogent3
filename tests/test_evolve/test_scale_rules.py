@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import unittest
-from cogent import LoadTree
-from cogent.evolve import substitution_model
+from cogent3 import LoadTree
+from cogent3.evolve import substitution_model
 
 def a_c(x, y):
     return  (x == 'A' and y == 'C') or (x == 'C' and y == 'A')
 
-from cogent.evolve.predicate import MotifChange, replacement
+from cogent3.evolve.predicate import MotifChange, replacement
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

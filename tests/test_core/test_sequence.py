@@ -2,13 +2,13 @@
 """Unit tests for Sequence class and its subclasses.
 """
 
-from cogent.core.sequence import Sequence, RnaSequence, DnaSequence, \
+from cogent3.core.sequence import Sequence, RnaSequence, DnaSequence, \
     ProteinSequence, ModelSequenceBase, \
     ModelSequence, ModelNucleicAcidSequence, ModelRnaSequence, \
     ModelDnaSequence, ModelProteinSequence, ModelCodonSequence, \
     ModelDnaCodonSequence, ModelRnaCodonSequence
-from cogent.core.moltype import RNA, DNA, PROTEIN, ASCII, BYTES, AlphabetError
-from cogent.util.unit_test import TestCase, main
+from cogent3.core.moltype import RNA, DNA, PROTEIN, ASCII, BYTES, AlphabetError
+from cogent3.util.unit_test import TestCase, main
 
 import re
 from pickle import dumps

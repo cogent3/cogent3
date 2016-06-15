@@ -11,7 +11,7 @@ See the other examples for how to define other substitution models.
 
     >>> import sys
     >>> from cogent import LoadTree
-    >>> from cogent.evolve import substitution_model
+    >>> from cogent3.evolve import substitution_model
 
 Specify the 4 taxon tree,
 

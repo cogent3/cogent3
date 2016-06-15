@@ -45,7 +45,7 @@ We now use the discrete Fourier transform to estimate periodicity in this signal
 
 .. doctest::
     
-    >>> from cogent.maths.period import dft
+    >>> from cogent3.maths.period import dft
     >>> pwr, period = dft(sig)
     >>> print period
     [   2.            2.04081633    2.08333333    2.12765957    2.17391304
@@ -71,7 +71,7 @@ We now use auto-correlation.
 
 .. doctest::
     
-    >>> from cogent.maths.period import auto_corr
+    >>> from cogent3.maths.period import auto_corr
     >>> pwr, period = auto_corr(sig)
     >>> print period
     [ 2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24...
@@ -101,7 +101,7 @@ We then specify the motifs whose occurrences will be converted into 1, with all 
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import SeqToSymbols
+    >>> from cogent3.maths.stats.period import SeqToSymbols
     >>> seq_to_symbols = SeqToSymbols(['AA', 'TT', 'AT'])
     >>> symbols = seq_to_symbols(s)
     >>> len(symbols) == len(s)
@@ -113,7 +113,7 @@ We then estimate the integer discrete Fourier transform for the full data. To do
 
 .. doctest::
     
-    >>> from cogent.maths.period import ipdft
+    >>> from cogent3.maths.period import ipdft
     >>> powers, periods = ipdft(symbols)
     >>> powers #doctest: +SKIP
     array([  3.22082108e-14,   4.00000000e+00,   9.48683298e+00,
@@ -125,7 +125,7 @@ We can also compute the auto-correlation statistic, and the hybrid (which combin
 
 .. doctest::
     
-    >>> from cogent.maths.period import auto_corr, hybrid
+    >>> from cogent3.maths.period import auto_corr, hybrid
     >>> powers, periods = auto_corr(symbols)
     >>> powers
     array([ 11.,   9.,  11.,   9.,   6...
@@ -148,7 +148,7 @@ We just use ``sig`` created above. The Goertzel algorithm gives the same result 
 
 .. doctest::
     
-    >>> from cogent.maths.period import goertzel
+    >>> from cogent3.maths.period import goertzel
     >>> pwr = goertzel(sig, 10)
     >>> print pwr
     50.7685934719
@@ -174,7 +174,7 @@ For Fourier techniques, we can compute the power for a specific period more effi
 
 .. doctest::
     
-    >>> from cogent.maths.period import goertzel
+    >>> from cogent3.maths.period import goertzel
     >>> period = 4
     >>> power = goertzel(symbols, period)
     >>> ipdft_powers, periods = ipdft(symbols)
@@ -202,14 +202,14 @@ We use the signal provided above. Because significance testing is being done usi
 
 .. doctest::
     
-    >>> from cogent.maths.period import Goertzel
+    >>> from cogent3.maths.period import Goertzel
     >>> goertzel_calc = Goertzel(len(sig), period=10)
 
 Having defined this, we then just pass this calculator to the ``blockwise_bootstrap`` function. The other critical settings are the ``block_size`` which specifies the size of segments of contiguous sequence positions to use for sampling and ``num_reps`` which is the number of permuted replicate sequences to generate.
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import blockwise_bootstrap
+    >>> from cogent3.maths.stats.period import blockwise_bootstrap
     >>> obs_stat, p = blockwise_bootstrap(sig, calc=goertzel_calc, block_size=10,
     ...                              num_reps=1000)
     >>> print obs_stat
@@ -227,7 +227,7 @@ The very notion of permutation testing for periods, applied to a genome, require
 
 .. doctest::
     
-    >>> from cogent.maths.period import Hybrid
+    >>> from cogent3.maths.period import Hybrid
     >>> len(s)
     150
     >>> hybrid_calculator = Hybrid(len(s), period = 4)
@@ -238,14 +238,14 @@ We then construct a seq-to-symbol convertor.
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import SeqToSymbols
+    >>> from cogent3.maths.stats.period import SeqToSymbols
     >>> seq_to_symbols = SeqToSymbols(['AA', 'TT', 'AT'], length=len(s))
 
 The rest is as per the analysis using ``Goertzel`` above.
 
 .. doctest::
     
-    >>> from cogent.maths.stats.period import blockwise_bootstrap
+    >>> from cogent3.maths.stats.period import blockwise_bootstrap
     >>> stat, p = blockwise_bootstrap(s, calc=hybrid_calculator,
     ...      block_size=10, num_reps=1000, seq_to_symbols=seq_to_symbols)
     ...     

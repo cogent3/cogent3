@@ -2,8 +2,8 @@
 """Unit tests for the Nexus Parser
 """
 
-from cogent.util.unit_test import TestCase, main
-from cogent.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, \
      split_tree_info, parse_trans_table, parse_dnd, get_BL_table, parse_taxa, \
      find_fields
 

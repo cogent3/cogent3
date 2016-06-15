@@ -7,8 +7,8 @@ An example of how to use nmds.
 
 .. doctest::
 
-    >>> from cogent.cluster.nmds import NMDS
-    >>> from cogent.maths.distance_transform import dist_euclidean
+    >>> from cogent3.cluster.nmds import NMDS
+    >>> from cogent3.maths.distance_transform import dist_euclidean
     >>> from numpy import array
 
 We start with an abundance matrix, samples (rows) by sequences/species (cols)

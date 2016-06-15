@@ -321,7 +321,7 @@ Example of a ``unittest`` test module structure
 
     """Tests NumberList and FrequencyDistribution, classes for statistics."""
 
-    from cogent.util.unit_test import TestCase, main # for floating point test use unittestfp
+    from cogent3.util.unit_test import TestCase, main # for floating point test use unittestfp
     from statistics import NumberList, FrequencyDistribution
 
     class NumberListTests(TestCase): # remember to subclass TestCase

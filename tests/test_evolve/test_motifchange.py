@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from cogent.evolve.predicate import MotifChange
-from cogent.core.moltype import CodonAlphabet
+from cogent3.evolve.predicate import MotifChange
+from cogent3.core.moltype import CodonAlphabet
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

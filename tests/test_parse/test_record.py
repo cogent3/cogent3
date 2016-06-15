@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """Unit tests for parser support libraries dealing with records.
 """
-from cogent.parse.record import FieldError, RecordError, Grouper, \
+from cogent3.parse.record import FieldError, RecordError, Grouper, \
     DelimitedSplitter, GenericRecord, MappedRecord, \
     TypeSetter, list_adder, dict_adder, \
     LineOrientedConstructor, int_setter, str_setter, bool_setter, \
     string_and_strip, FieldWrapper, StrictFieldWrapper, raise_unknown_field, \
     FieldMorpher, list_extender
 
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

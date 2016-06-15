@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Unit tests for locuslink-specific classes
 """
-from cogent.parse.locuslink import ll_start,LLFinder,pipes,first_pipe,commas, \
+from cogent3.parse.locuslink import ll_start,LLFinder,pipes,first_pipe,commas, \
     _read_accession, _read_rell, _read_accnum, \
     _read_map, _read_sts, _read_comp, _read_grif, _read_pmid, _read_go, \
     _read_extannot, _read_cdd, _read_contig, LocusLink, LinesToLocusLink
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

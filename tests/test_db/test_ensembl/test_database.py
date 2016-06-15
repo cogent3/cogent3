@@ -1,8 +1,8 @@
 import os
 
-from cogent.util.unit_test import TestCase, main
-from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.database import Database
+from cogent3.util.unit_test import TestCase, main
+from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
+from cogent3.db.ensembl.database import Database
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

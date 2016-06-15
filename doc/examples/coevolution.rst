@@ -10,8 +10,8 @@ Before using an alignment in a coevolutionary analysis, you should be confident 
 .. doctest::
 
    >>> from cogent import LoadSeqs, PROTEIN, DNA, RNA
-   >>> from cogent.core.alignment import DenseAlignment
-   >>> from cogent.evolve.coevolution import validate_alignment
+   >>> from cogent3.core.alignment import DenseAlignment
+   >>> from cogent3.evolve.coevolution import validate_alignment
    >>> aln = LoadSeqs(data={'1':'GAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,aligned=DenseAlignment)
    >>> validate_alignment(aln)
 
@@ -20,14 +20,14 @@ To run a coevolutionary analysis, first create a ``DenseAlignment``:
 .. doctest::
 
    >>> from cogent import LoadSeqs, PROTEIN, DNA, RNA
-   >>> from cogent.core.alignment import DenseAlignment
+   >>> from cogent3.core.alignment import DenseAlignment
    >>> aln = LoadSeqs(data={'1':'AAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,aligned=DenseAlignment)
 
 Perform a coevolutionary analysis on a pair of positions in the alignment using mutual information (``mi``):
 
 .. doctest::
     
-    >>> from cogent.evolve.coevolution import coevolve_pair_functions, coevolve_pair
+    >>> from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
     >>> coevolve_pair(coevolve_pair_functions['mi'],aln,pos1=1,pos2=2)
     0.31127...
 
@@ -35,7 +35,7 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
 
 .. doctest::
     
-    >>> from cogent.evolve.coevolution import coevolve_pair_functions, coevolve_pair
+    >>> from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
     >>> coevolve_pair(coevolve_pair_functions['sca'],aln,pos1=1,pos2=2,cutoff=0.5)
     0.98053...
 
@@ -43,7 +43,7 @@ Perform a coevolutionary analysis on one position and all other positions in the
 
 .. doctest::
     
-    >>> from cogent.evolve.coevolution import coevolve_position_functions, coevolve_position
+    >>> from cogent3.evolve.coevolution import coevolve_position_functions, coevolve_position
     >>> coevolve_position(coevolve_position_functions['mi'],aln,position=1)
     array([        nan,  0.81127812,  0.31127812])
 
@@ -52,7 +52,7 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
     
-    >>> from cogent.evolve.coevolution import coevolve_alignment_functions, coevolve_alignment
+    >>> from cogent3.evolve.coevolution import coevolve_alignment_functions, coevolve_alignment
     >>> coevolve_alignment(coevolve_alignment_functions['mi'],aln)
     array([[        nan,         nan,         nan],
            [        nan,  0.81127812,  0.31127812],
@@ -69,7 +69,7 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
 
 .. doctest::
 
-    >>> from cogent.evolve.coevolution import coevolve_alignment_functions,\
+    >>> from cogent3.evolve.coevolution import coevolve_alignment_functions,\
     ...   coevolve_alignments
     >>> aln1 = LoadSeqs(data={'human+protein1':'AAA','pig+protein1':'CTA',
     ...  'chicken+protein1':'CTC','echidna+weird_db_identifier':'-TC'},

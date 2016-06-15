@@ -349,7 +349,7 @@ Write to PDF
 .. doctest::
 
     >>> from cogent import LoadTree
-    >>> from cogent.draw import dendrogram
+    >>> from cogent3.draw import dendrogram
     >>> tr = LoadTree('data/test.tree')
     >>> h, w = 500, 500
     >>> np = dendrogram.ContemporaneousDendrogram(tr)
@@ -358,7 +358,7 @@ Write to PDF
 .. doctest::
     :hide:
     
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files('temp.pdf', error_on_missing=False)
 
 
@@ -456,6 +456,6 @@ One way to do it
 .. doctest::
     :hide:
 
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(['data/temp.tree', 'data/temp.pdf'],
     ...                 error_on_missing=False)

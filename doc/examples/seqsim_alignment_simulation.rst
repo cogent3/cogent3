@@ -21,12 +21,12 @@ First we will perform the necessary imports:
 
 .. doctest::
 
-    >>> from cogent.seqsim.usage import Rates, DnaUsage
-    >>> from cogent.core.usage import DnaPairs
-    >>> from cogent.core.moltype import DNA
-    >>> from cogent.core.alignment import Alignment
-    >>> from cogent.seqsim.tree import RangeNode
-    >>> from cogent.parse.tree import DndParser
+    >>> from cogent3.seqsim.usage import Rates, DnaUsage
+    >>> from cogent3.core.usage import DnaPairs
+    >>> from cogent3.core.moltype import DNA
+    >>> from cogent3.core.alignment import Alignment
+    >>> from cogent3.seqsim.tree import RangeNode
+    >>> from cogent3.parse.tree import DndParser
     
 Now, lets specify a 4 taxon tree:
 

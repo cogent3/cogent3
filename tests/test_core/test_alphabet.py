@@ -3,12 +3,12 @@
 
 Note: individual Alphabets are typically in MolType and are tested there.
 """
-from cogent.core.alphabet import Enumeration, get_array_type, \
+from cogent3.core.alphabet import Enumeration, get_array_type, \
     uint8, uint16, uint32, array, JointEnumeration, CharAlphabet, \
     _make_translation_tables, _make_complement_array
-from cogent.core.moltype import RNA
+from cogent3.core.moltype import RNA
 
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 DnaBases = CharAlphabet('TCAG')
 RnaBases = CharAlphabet('UCAG')

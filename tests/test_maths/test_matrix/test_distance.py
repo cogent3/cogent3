@@ -2,11 +2,11 @@
 """Unit tests for distance matrices.
 """
 
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.matrix.distance import DistanceMatrix
-from cogent.util.dict2d import largest, Dict2DError, Dict2DSparseError
-from cogent.parse.aaindex import AAIndex1Record
-from cogent.maths.stats.util import Freqs
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.matrix.distance import DistanceMatrix
+from cogent3.util.dict2d import largest, Dict2DError, Dict2DSparseError
+from cogent3.parse.aaindex import AAIndex1Record
+from cogent3.maths.stats.util import Freqs
 from copy import deepcopy
 
 __author__ = "Greg Caporaso"

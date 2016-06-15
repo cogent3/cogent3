@@ -4,16 +4,16 @@ import warnings
 from numpy import log, exp
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
-from cogent.phylo.distance import EstimateDistances
-from cogent.phylo.nj import nj, gnj
-from cogent.phylo.least_squares import wls
-from cogent import LoadSeqs, LoadTree
-from cogent.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
+from cogent3.phylo.distance import EstimateDistances
+from cogent3.phylo.nj import nj, gnj
+from cogent3.phylo.least_squares import wls
+from cogent3 import LoadSeqs, LoadTree
+from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
-from cogent.evolve.models import JC69, HKY85, F81
-from cogent.phylo.consensus import majorityRule, weightedMajorityRule, \
+from cogent3.evolve.models import JC69, HKY85, F81
+from cogent3.phylo.consensus import majorityRule, weightedMajorityRule, \
         getSplits, getTree
-from cogent.util.misc import remove_files
+from cogent3.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"

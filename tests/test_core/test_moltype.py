@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from cogent.core import moltype, sequence
-from cogent.core.moltype import AlphabetError, \
+from cogent3.core import moltype, sequence
+from cogent3.core.moltype import AlphabetError, \
     CoreObjectGroup, AlphabetGroup, make_matches, make_pairs, \
     array, MolType, RNA, DNA, PROTEIN, STANDARD_CODON,\
     IUPAC_RNA_chars, \
@@ -9,8 +9,8 @@ from cogent.core.moltype import AlphabetError, \
     IUPAC_DNA_chars, IUPAC_DNA_ambiguities, IUPAC_DNA_ambiguities_complements, \
     RnaStandardPairs, DnaStandardPairs
 
-from cogent.util.unit_test import TestCase, main
-from cogent.data.molecular_weight import DnaMW, RnaMW, ProteinMW
+from cogent3.util.unit_test import TestCase, main
+from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

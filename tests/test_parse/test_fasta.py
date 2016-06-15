@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Unit tests for FASTA and related parsers.
 """
-from cogent.parse.fasta import FastaParser, MinimalFastaParser, \
+from cogent3.parse.fasta import FastaParser, MinimalFastaParser, \
     NcbiFastaLabelParser, NcbiFastaParser, RichLabel, LabelParser, GroupFastaParser
-from cogent.core.sequence import DnaSequence, Sequence, ProteinSequence as Protein
-from cogent.core.info import Info
-from cogent.parse.record import RecordError
-from cogent.util.unit_test import TestCase, main
+from cogent3.core.sequence import DnaSequence, Sequence, ProteinSequence as Protein
+from cogent3.core.info import Info
+from cogent3.parse.record import RecordError
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -15,7 +15,7 @@ We load a sample genbank file with plenty of features and grab the CDS features.
 
 .. doctest::
 
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> for accession, seq in parser:
     ...     print accession
@@ -32,7 +32,7 @@ You can write your own code to construct annotation objects. One reason you migh
 
 .. doctest::
     
-    >>> from cogent.core.annotation import Feature
+    >>> from cogent3.core.annotation import Feature
     >>> def add_annotation(seq, feature, spans):
     ...     type_ = feature['type']
     ...     if type_ != 'CDS':
@@ -57,7 +57,7 @@ Creating directly on a sequence
 .. doctest::
 
     >>> from cogent import DNA
-    >>> from cogent.core.annotation import Feature
+    >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
@@ -80,7 +80,7 @@ Via
 .. doctest::
 
     >>> from cogent import DNA
-    >>> from cogent.core.annotation import Feature
+    >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
@@ -178,7 +178,7 @@ We add an annotation directly onto an alignment. In this example we add a ``Vari
 
 .. doctest::
 
-    >>> from cogent.core.annotation import Variable
+    >>> from cogent3.core.annotation import Variable
     >>> red_data = aln1.addAnnotation(Variable, 'redline', 'align',
     ...              [((0,15),1),((15,30),2),((30,45),3)])
     ...
@@ -448,7 +448,7 @@ We mask the CDS regions.
 
 .. doctest::
 
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
     >>> no_cds = seq.withMaskedAnnotations('CDS')
@@ -533,7 +533,7 @@ The annotation methods ``getRegionCoveringAll`` and ``getShadow`` can be used to
 
 .. doctest::
 
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
     >>> all_cds = seq.getAnnotationsMatching('CDS')
@@ -590,7 +590,7 @@ We then make a ``Display`` instance and write to file. This will use standard fe
 
 .. doctest::
 
-    >>> from cogent.draw.linear import Display
+    >>> from cogent3.draw.linear import Display
     >>> seq_display = Display(seq, colour_sequences=True)
     >>> fig = seq_display.makeFigure()
     >>> fig.savefig('annotated_1.png')
@@ -601,8 +601,8 @@ Annotation display on alignments
 .. doctest::
 
     >>> from cogent import DNA, LoadSeqs
-    >>> from cogent.core.annotation import Variable
-    >>> from cogent.draw.linear import Display
+    >>> from cogent3.core.annotation import Variable
+    >>> from cogent3.draw.linear import Display
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)[:150]
     >>> annot = aln.addAnnotation(Variable, 'redline', 'align',
     ...                          [((0,15),1),((15,30),2),((30,45),3)])
@@ -620,8 +620,8 @@ We just show a series of spans.
 .. doctest::
 
     >>> from cogent import DNA
-    >>> from cogent.draw.linear import Display
-    >>> from cogent.core.annotation import Variable
+    >>> from cogent3.draw.linear import Display
+    >>> from cogent3.core.annotation import Variable
     >>> seq = DNA.makeSequence('aaaccggttt' * 10)
     >>> annot = seq.addAnnotation(Variable, 'redline', 'align',
     ...     [((0,15),1),((15,30),2),((30,45),3)])
@@ -645,7 +645,7 @@ Info object
 .. doctest::
     :hide:
 
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(['annotated_%d.png' % i for i in range(1,4)],
     ...               error_on_missing=False)
 

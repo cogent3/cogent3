@@ -2,10 +2,10 @@
 """Unit tests for recordfinders: parsers that group the lines for a record.
 """
 
-from cogent.parse.record import RecordError
-from cogent.parse.record_finder import DelimitedRecordFinder, \
+from cogent3.parse.record import RecordError
+from cogent3.parse.record_finder import DelimitedRecordFinder, \
     LabeledRecordFinder, LineGrouper, TailedRecordFinder
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

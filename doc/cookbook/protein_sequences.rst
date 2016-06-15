@@ -20,7 +20,7 @@ Converting a DNA sequence string to protein sequence string
 
 .. doctest::
 
-    >>> from cogent.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> standard_code.translate('TTTGCAAAC')
     'FAN'
 

@@ -2,11 +2,11 @@
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
-from cogent.parse.ncbi_taxonomy import MissingParentError, NcbiTaxon, \
+from cogent3.parse.ncbi_taxonomy import MissingParentError, NcbiTaxon, \
     NcbiTaxonParser, NcbiTaxonLookup, NcbiName, NcbiNameParser, \
     NcbiNameLookup, \
     NcbiTaxonomy, NcbiTaxonNode, NcbiTaxonomyFromFiles
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Jason Carnes"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

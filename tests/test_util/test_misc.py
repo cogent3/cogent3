@@ -5,8 +5,8 @@
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
-from cogent.util.unit_test import TestCase, main
-from cogent.util.misc import (iterable, max_index, min_index,
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.misc import (iterable, max_index, min_index,
     flatten, is_iterable, is_char, is_char_or_noniterable,
     is_str_or_noniterable, not_list_tuple, list_flatten,
     recursive_flatten, unflatten, unzip, select, sort_order, find_all,

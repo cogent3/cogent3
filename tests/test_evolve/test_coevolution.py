@@ -11,19 +11,19 @@ from os import remove, environ
 from os.path import exists
 from numpy import zeros, ones, array, transpose, arange, nan, log, e, sqrt,\
     greater_equal, less_equal
-from cogent.util.unit_test import TestCase, main
-from cogent import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
-from cogent.core.alphabet import CharAlphabet
-from cogent.maths.stats.util import Freqs
-from cogent.core.profile import Profile
-from cogent.core.alphabet import CharAlphabet, Alphabet
-from cogent.maths.stats.distribution import binomial_exact
-from cogent.core.alignment import DenseAlignment
-from cogent.util.misc import get_tmp_filename
-from cogent.evolve.models import DSO78_matrix, DSO78_freqs
-from cogent.evolve.substitution_model import SubstitutionModel, Empirical
-from cogent.util.misc import app_path
-from cogent.evolve.coevolution import mi_alignment, nmi_alignment,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3 import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
+from cogent3.core.alphabet import CharAlphabet
+from cogent3.maths.stats.util import Freqs
+from cogent3.core.profile import Profile
+from cogent3.core.alphabet import CharAlphabet, Alphabet
+from cogent3.maths.stats.distribution import binomial_exact
+from cogent3.core.alignment import DenseAlignment
+from cogent3.util.misc import get_tmp_filename
+from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
+from cogent3.evolve.substitution_model import SubstitutionModel, Empirical
+from cogent3.util.misc import app_path
+from cogent3.evolve.coevolution import mi_alignment, nmi_alignment,\
     resampled_mi_alignment, sca_alignment, make_weights,\
     gDefaultNullValue,\
     build_rate_matrix, coevolve_pair, validate_position, validate_alphabet,\

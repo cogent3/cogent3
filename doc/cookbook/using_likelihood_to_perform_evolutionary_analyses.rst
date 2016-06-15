@@ -14,7 +14,7 @@ The available nucleotide, codon and protein models are
 
 .. doctest::
     
-    >>> from cogent.evolve import models
+    >>> from cogent3.evolve import models
     >>> print models.nucleotide_models
     ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR']
     >>> print models.codon_models
@@ -26,7 +26,7 @@ While those values are strings, a function of the same name exists within the mo
 
 .. doctest::
     
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
 
 We'll be using these for the examples below.
@@ -43,7 +43,7 @@ We specify a general time reversible nucleotide model with gamma distributed rat
 
 .. doctest::
     
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sub_mod = GTR(with_rate=True, distribution='gamma')
     >>> print sub_mod
     <BLANKLINE>
@@ -57,7 +57,7 @@ We specify a conditional nucleotide frequency codon model with nucleotide genera
 
 .. doctest::
     
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> sub_mod = CNFGTR(with_rate=True, distribution='gamma')
     >>> print sub_mod
     <BLANKLINE>
@@ -70,7 +70,7 @@ We specify a Jones, Taylor and Thornton 1992 empirical protein substitution mode
 
 .. doctest::
     
-    >>> from cogent.evolve.models import JTT92
+    >>> from cogent3.evolve.models import JTT92
     >>> sub_mod = JTT92(with_rate=True, distribution='gamma')
     >>> print sub_mod
     <BLANKLINE>
@@ -87,7 +87,7 @@ You start by specifying a substitution model and use that to construct a likelih
 .. doctest::
     
     >>> from cogent import LoadTree
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
     >>> lf = sub_mod.makeLikelihoodFunction(tree)
@@ -100,7 +100,7 @@ You need to load an alignment and then provide it a likelihood function. I const
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
     >>> lf = sub_mod.makeLikelihoodFunction(tree)
@@ -117,7 +117,7 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
 .. doctest::
     
     >>> from cogent import LoadTree
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> print tree.asciiArt()
               /-Galago
@@ -177,7 +177,7 @@ This means the parameter will not be modified during likelihood maximisation. We
 .. doctest::
     
     >>> from cogent import LoadTree
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
@@ -191,7 +191,7 @@ This can be useful to improve performance, the closer you are to the maximum lik
 .. doctest::
     
     >>> from cogent import LoadTree
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
@@ -205,7 +205,7 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
 .. doctest::
     
     >>> from cogent import LoadTree
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
@@ -219,7 +219,7 @@ We extend the simple gamma distributed rate heterogeneity case for nucleotides f
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, digits=2)
@@ -233,7 +233,7 @@ Specifying Phylo-HMMs
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, sites_independent=False,
@@ -253,7 +253,7 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
@@ -294,7 +294,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
@@ -321,7 +321,7 @@ Log likelihood and number of free parameters
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
@@ -352,7 +352,7 @@ Aikake Information Criterion
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
@@ -378,7 +378,7 @@ Bayesian Information Criterion
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import GTR
+    >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
@@ -468,7 +468,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
@@ -522,7 +522,7 @@ We import the function for computing the probability of a chi-square test statis
 
 .. doctest::
     
-    >>> from cogent.maths.stats import chisqprob
+    >>> from cogent3.maths.stats import chisqprob
     >>> LR = 2 * (alt_lnL - null_lnL) # the likelihood ratio statistic
     >>> df = (alt_nfp - null_nfp) # the test degrees of freedom
     >>> p = chisqprob(LR, df)
@@ -539,7 +539,7 @@ In general, however, this capability derives from the ability of any defined ``e
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
@@ -562,7 +562,7 @@ The profile method is used to calculate a confidence interval for a named parame
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import HKY85
+    >>> from cogent3.evolve.models import HKY85
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = HKY85()
@@ -589,7 +589,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = CNFGTR()
@@ -630,7 +630,7 @@ We first import an unrooted dendrogram and then generate a heat mapped image to 
 
 .. doctest::
     
-    >>> from cogent.draw.dendrogram import ContemporaneousDendrogram
+    >>> from cogent3.draw.dendrogram import ContemporaneousDendrogram
     >>> dend = ContemporaneousDendrogram(annot_tree)
     >>> fig = dend.makeFigure(height=6, width=6, shade_param='omega',
     ...                      max_value=1.0, stroke_width=2)
@@ -644,7 +644,7 @@ We first fit a likelihood function.
 .. doctest::
     
     >>> from cogent import LoadTree, LoadSeqs
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
@@ -711,6 +711,6 @@ While this samples 99 nucleotides without replacement.
 .. doctest::
     :hide:
 
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(['result_tree.xml', 'omega_heat_map.png'],
     ...               error_on_missing=False)

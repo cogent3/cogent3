@@ -3,7 +3,7 @@
 """An example of how to distribute jobs across multiple cpu's. Note that this example works even if on a single cpu since the parallel assigns a `fake` communicator in that instance.
 """
 
-from cogent.util import parallel
+from cogent3.util import parallel
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"

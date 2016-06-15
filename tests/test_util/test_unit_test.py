@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""Tests for cogent.util.unit_test, extension of the built-in PyUnit framework.
+"""Tests for cogent3.util.unit_test, extension of the built-in PyUnit framework.
 """
 ##SUPPORT2425
 #from __future__ import with_statement
-from cogent.util.unit_test import TestCase, main, FakeRandom #,numpy_err
+from cogent3.util.unit_test import TestCase, main, FakeRandom #,numpy_err
 import numpy; from numpy import array, zeros, log, inf
 from sys import exc_info
 

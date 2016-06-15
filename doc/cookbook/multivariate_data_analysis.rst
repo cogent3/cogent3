@@ -14,14 +14,14 @@ Principal Coordinates Analysis works on a matrix of pairwise distances. In this 
 .. doctest::
 
     >>> from cogent import LoadSeqs
-    >>> from cogent.phylo import distance
-    >>> from cogent.cluster.metric_scaling import PCoA
+    >>> from cogent3.phylo import distance
+    >>> from cogent3.cluster.metric_scaling import PCoA
 
 Import a substitution model (or create your own).
 
 .. doctest::
 
-    >>> from cogent.evolve.models import HKY85
+    >>> from cogent3.evolve.models import HKY85
 
 Load the alignment.
 
@@ -78,8 +78,8 @@ already a couple of minutes.
 
 .. doctest::
 
-    >>> from cogent.maths.distance_transform import dist_euclidean
-    >>> from cogent.cluster.metric_scaling import principal_coordinates_analysis
+    >>> from cogent3.maths.distance_transform import dist_euclidean
+    >>> from cogent3.cluster.metric_scaling import principal_coordinates_analysis
     >>> from numpy import random
     >>> objs = random.random((1500, 10))
     >>> distmtx = dist_euclidean(objs)
@@ -102,7 +102,7 @@ eigenvectors of length dim will be returned.
 
 .. doctest::
 
-   >>> from cogent.cluster.approximate_mds import nystrom
+   >>> from cogent3.cluster.approximate_mds import nystrom
    >>> from random import sample
    >>> from numpy import array
    >>> n_seeds = 100
@@ -123,7 +123,7 @@ quality of the approximation as well as the run-time.
 
 .. doctest::
 
-   >>> from cogent.cluster.approximate_mds import CombineMds, cmds_tzeng
+   >>> from cogent3.cluster.approximate_mds import CombineMds, cmds_tzeng
    >>> combine_mds = CombineMds()
    >>> tile_overlap = 100
    >>> dims = 3
@@ -150,8 +150,8 @@ NMDS (Non-metric MultiDimensional Scaling) works on a matrix of pairwise distanc
 
 .. doctest::
 
-    >>> from cogent.cluster.nmds import NMDS
-    >>> from cogent.maths.distance_transform import dist_euclidean
+    >>> from cogent3.cluster.nmds import NMDS
+    >>> from cogent3.maths.distance_transform import dist_euclidean
     >>> from numpy import array
 
 We start with an abundance matrix, samples (rows) by sequences/species (cols)
@@ -204,7 +204,7 @@ Hierarchical clustering techniques work on a matrix of pairwise distances. In th
 
 .. doctest::
 
-    >>> from cogent.cluster.UPGMA import upgma
+    >>> from cogent3.cluster.UPGMA import upgma
 
 we start with the distance matrix and list of sample names:
 
@@ -286,7 +286,7 @@ We can use neighbor joining (NJ) instead of UPGMA:
 
 .. doctest::
 
-    >>> from cogent.phylo.nj import nj
+    >>> from cogent3.phylo.nj import nj
     >>> njtree = nj(euc_distdict)
     >>> print njtree.asciiArt()
               /-sample16

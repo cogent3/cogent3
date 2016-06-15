@@ -8,8 +8,8 @@ Do standard ``cogent`` imports.
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree, DNA
-    >>> from cogent.evolve.predicate import MotifChange
-    >>> from cogent.evolve.substitution_model import Nucleotide
+    >>> from cogent3.evolve.predicate import MotifChange
+    >>> from cogent3.evolve.substitution_model import Nucleotide
 
 .. don't pollute screen during execution with uninteresting warning
 

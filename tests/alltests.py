@@ -3,8 +3,8 @@
 # suite of cogent package unit tests.
 # run suite by executing this file
 #
-import doctest, cogent.util.unit_test as unittest, sys, os
-from cogent.util.misc import app_path
+import doctest, cogent3.util.unit_test as unittest, sys, os
+from cogent3.util.misc import app_path
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -141,7 +141,7 @@ def suite():
         # we expect this to have the username and account for a localhost
         # installation of the Ensembl MySQL databases
         if 'ENSEMBL_ACCOUNT' in os.environ:
-            # check for cogent.db.ensembl dependencies
+            # check for cogent3.db.ensembl dependencies
             test_ensembl = True
             if not (module_present('MySQLdb') or module_present('mysql')):
                 test_ensembl = False

@@ -14,7 +14,7 @@ Retrieve a structure from PDB
 
 .. doctest::
 
-    >>> from cogent.db.pdb import Pdb
+    >>> from cogent3.db.pdb import Pdb
     >>> p = Pdb()
     >>> pdb_file = p['4tsv']
     >>> pdb = pdb_file.read()
@@ -28,7 +28,7 @@ Parse a PDB file
 
 .. doctest::
 
-    >>> from cogent.parse.pdb import PDBParser
+    >>> from cogent3.parse.pdb import PDBParser
     >>> struc = PDBParser(open('data/4TSV.pdb'))
     >>> struc
     <Structure id=4TSV>
@@ -38,7 +38,7 @@ Parse a PDB entry directly from the web
 
 .. doctest::
 
-    >>> from cogent.parse.pdb import PDBParser
+    >>> from cogent3.parse.pdb import PDBParser
     >>> struc = PDBParser(p['4tsv'])
 
 Accessing PDB header information
@@ -207,7 +207,7 @@ How to create a new entity?
 
 .. doctest::
 
-    >>> from cogent.core.entity import Structure,Model,Chain,Residue,Atom
+    >>> from cogent3.core.entity import Structure,Model,Chain,Residue,Atom
     >>> from numpy import array
     >>> s = Structure('my_struc')
     >>> m = Model((0),)
@@ -245,7 +245,7 @@ Calculating euclidean distances between atoms
 
 .. doctest::
 
-    >>> from cogent.maths.geometry import distance
+    >>> from cogent3.maths.geometry import distance
     >>> atom1 = resi[('N', ' '),]
     >>> atom2 = resi[('CA', ' '),]
     >>> distance(atom1.coords, atom2.coords)
@@ -257,7 +257,7 @@ Calculating euclidean distances between coordinates
 .. doctest::
 
     >>> from numpy import array
-    >>> from cogent.maths.geometry import distance
+    >>> from cogent3.maths.geometry import distance
     >>> a1 = array([1.0, 2.0, 3.0])
     >>> a2 = array([1.0, 4.0, 9.0])
     >>> distance(a1,a2)
@@ -268,7 +268,7 @@ Calculating flat angles from atoms
 
 .. doctest::
 
-    >>> from cogent.struct.dihedral import angle
+    >>> from cogent3.struct.dihedral import angle
     >>> atom3 = resi[('C', ' '),]
     >>> a12 = atom2.coords-atom1.coords
     >>> a23 = atom2.coords-atom3.coords
@@ -282,7 +282,7 @@ Calculating flat angles from coordinates
 
 .. doctest::
 
-    >>> from cogent.struct.dihedral import angle
+    >>> from cogent3.struct.dihedral import angle
     >>> a1 = array([0.0, 0.0, 1.0])
     >>> a2 = array([0.0, 0.0, 0.0])
     >>> a3 = array([0.0, 1.0, 0.0])
@@ -298,7 +298,7 @@ Calculating dihedral angles from atoms
 
 .. doctest::
 
-    >>> from cogent.struct.dihedral import dihedral
+    >>> from cogent3.struct.dihedral import dihedral
     >>> atom4 = resi[('CG1', ' '),]
     >>> dihedral(atom1.coords,atom2.coords,atom3.coords, atom4.coords)
     259.49277688244217
@@ -310,7 +310,7 @@ Calculating dihedral angles from coordinates
 
 .. doctest::
 
-    >>> from cogent.struct.dihedral import dihedral
+    >>> from cogent3.struct.dihedral import dihedral
     >>> a1 = array([0.0, 0.0, 1.0])
     >>> a2 = array([0.0, 0.0, 0.0])
     >>> a3 = array([0.0, 1.0, 0.0])

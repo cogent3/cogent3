@@ -8,7 +8,7 @@ An example of how to use the maximum-likelihood parameter estimates from one mod
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import MG94HKY
+    >>> from cogent3.evolve.models import MG94HKY
 
 We'll create a simple model, optimise it and save it for later reuse
 

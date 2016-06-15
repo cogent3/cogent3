@@ -104,16 +104,16 @@ def CythonExtension(module_name, **kw):
     return Extension(module_name, [path + source_suffix], **kw)
 
 
-short_description = "COmparative GENomics Toolkit"
+short_description = "COmparative GENomics Toolkit 3"
 
 # This ends up displayed by the installer
-long_description = """Cogent
+long_description = """Cogent3
 A toolkit for statistical analysis of biological sequences.
 Version %s.
 """ % __version__
 
 setup(
-    name="cogent",
+    name="cogent3",
     version=__version__,
     url="http://github.com/pycogent/pycogent",
     author="Gavin Huttley, Rob Knight",
@@ -132,20 +132,20 @@ setup(
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Operating System :: OS Independent",
             ],
-    packages=['cogent', 'cogent.align',
-                'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
-                'cogent.db.ensembl', 'cogent.draw',
-                'cogent.evolve', 'cogent.format', 'cogent.maths',
-                'cogent.maths.matrix', 'cogent.maths.stats', 'cogent.parse',
-                'cogent.phylo', 'cogent.recalculation', 'cogent.util'],
+    packages=['cogent3', 'cogent3.align',
+                'cogent3.cluster', 'cogent3.core', 'cogent3.data', 'cogent3.db',
+                'cogent3.db.ensembl', 'cogent3.draw',
+                'cogent3.evolve', 'cogent3.format', 'cogent3.maths',
+                'cogent3.maths.matrix', 'cogent3.maths.stats', 'cogent3.parse',
+                'cogent3.phylo', 'cogent3.recalculation', 'cogent3.util'],
     ext_modules=cythonize([
-        CythonExtension("cogent.align._compare"),
-        CythonExtension("cogent.align._pairwise_seqs"),
-        CythonExtension("cogent.align._pairwise_pogs"),
-        CythonExtension("cogent.evolve._solved_models"),
-        CythonExtension("cogent.evolve._likelihood_tree"),
-        CythonExtension("cogent.evolve._pairwise_distance"),
-        CythonExtension("cogent.maths._period"),
+        CythonExtension("cogent3.align._compare"),
+        CythonExtension("cogent3.align._pairwise_seqs"),
+        CythonExtension("cogent3.align._pairwise_pogs"),
+        CythonExtension("cogent3.evolve._solved_models"),
+        CythonExtension("cogent3.evolve._likelihood_tree"),
+        CythonExtension("cogent3.evolve._pairwise_distance"),
+        CythonExtension("cogent3.maths._period"),
     ]),
     include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,

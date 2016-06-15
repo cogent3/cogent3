@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Unit tests for unigene-specific classes
 """
-from cogent.parse.unigene import _read_sts, _read_expression, UniGeneSeqRecord,\
+from cogent3.parse.unigene import _read_sts, _read_expression, UniGeneSeqRecord,\
     UniGeneProtSimRecord, _read_seq, LinesToUniGene
-from cogent.parse.record_finder import GbFinder
-from cogent.util.unit_test import TestCase, main
+from cogent3.parse.record_finder import GbFinder
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

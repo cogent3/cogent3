@@ -12,13 +12,13 @@ First we will perform the necessary imports.
 
 .. doctest::
 
-    >>> from cogent.seqsim.usage import Rates
-    >>> from cogent.core.alignment import DenseAlignment
-    >>> from cogent.seqsim.tree import RangeNode
-    >>> from cogent.parse.tree import DndParser
-    >>> from cogent.core.alphabet import CharAlphabet
-    >>> from cogent.seqsim.usage import Usage
-    >>> from cogent.core.sequence import ModelSequence
+    >>> from cogent3.seqsim.usage import Rates
+    >>> from cogent3.core.alignment import DenseAlignment
+    >>> from cogent3.seqsim.tree import RangeNode
+    >>> from cogent3.parse.tree import DndParser
+    >>> from cogent3.core.alphabet import CharAlphabet
+    >>> from cogent3.seqsim.usage import Usage
+    >>> from cogent3.core.sequence import ModelSequence
 
 Now, lets specify a 4 taxon tree:
 

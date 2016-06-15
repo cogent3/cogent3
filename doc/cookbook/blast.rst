@@ -60,7 +60,7 @@ These sequences can be formatted as a database by running the ``formatdb`` progr
 
 .. doctest::
     
-    >>> from cogent.app.formatdb import build_blast_db_from_fasta_path
+    >>> from cogent3.app.formatdb import build_blast_db_from_fasta_path
     >>> result = build_blast_db_from_fasta_path('data/refseqs.fasta')
     >>> result[0]
     'data/refseqs.fasta'...
@@ -79,7 +79,7 @@ Also, the application controller is set up to require a path to the data directo
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.app.blast import blast_seqs, Blastall
+    >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs.fasta', moltype=DNA, aligned=False)
     >>> seq = seqs.getSeq('s2_like_seq')
     >>> seq
@@ -106,7 +106,7 @@ The simplest way to organize the results is to use a parser. The BLAST parsers o
 
 .. doctest::
 
-    >>> from cogent.parse.blast import MinimalBlastParser9
+    >>> from cogent3.parse.blast import MinimalBlastParser9
     >>> blastfile = open('data/blast_test.txt', 'r')
     >>> blast_results = MinimalBlastParser9(blastfile)
     >>> type(blast_results)
@@ -120,7 +120,7 @@ The results include one item for each query sequence. Each result consists of a 
 
 .. doctest::
 
-    >>> from cogent.parse.blast import MinimalBlastParser9
+    >>> from cogent3.parse.blast import MinimalBlastParser9
     >>> blastfile = open('data/blast_test.txt', 'r')
     >>> blast_results = MinimalBlastParser9(blastfile)
     >>> for result in blast_results:
@@ -151,7 +151,7 @@ NCBI recommends that you use XML as the output for BLAST. (They reserve the righ
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.app.blast import blast_seqs, Blastall
+    >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs.fasta', moltype=DNA, aligned=False)
     >>> seq = seqs.getSeq('s2_like_seq')
     >>> params={'-p':'blastn','-m':'7'}
@@ -169,7 +169,7 @@ One nice thing about this format is that it includes the alignment. The organiza
 
 .. doctest::
 
-    >>> from cogent.parse.blast_xml import MinimalBlastParser7
+    >>> from cogent3.parse.blast_xml import MinimalBlastParser7
     >>> blastfile = open('data/blast_test.xml', 'r')
     >>> blast_results = MinimalBlastParser7(blastfile)
     >>> for result in blast_results:
@@ -195,7 +195,7 @@ One nice thing about this format is that it includes the alignment. The organiza
     BIT_SCORE            26.2635
     SCORE                13
     POSITIVE             26
-    >>> from cogent.parse.blast_xml import MinimalBlastParser7
+    >>> from cogent3.parse.blast_xml import MinimalBlastParser7
     >>> blastfile = open('data/blast_test.xml', 'r')
     >>> blast_results = MinimalBlastParser7(blastfile)
     >>> for result in blast_results:
@@ -211,7 +211,7 @@ One nice thing about this format is that it includes the alignment. The organiza
 .. doctest::
     :hide:
     
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(['data/blast_test.txt', 'data/blast_test.xml'],
     ...              error_on_missing=False)
 
@@ -224,7 +224,7 @@ The file ``refseqs_protein.fasta`` contains some short sequences for use in the 
 
 .. doctest::
     
-    >>> from cogent.app.formatdb import build_blast_db_from_fasta_path
+    >>> from cogent3.app.formatdb import build_blast_db_from_fasta_path
     >>> result = build_blast_db_from_fasta_path('data/refseqs_protein.fasta', is_protein=True)
     >>> result[0]
     'data/refseqs_protein.fasta'...
@@ -236,7 +236,7 @@ Now that we have built our protein BLAST database, we can load our sequence and 
 .. doctest::
 
     >>> from cogent import LoadSeqs, PROTEIN
-    >>> from cogent.app.blast import blast_seqs, Blastall
+    >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs_protein.fasta', moltype=PROTEIN, aligned=False)
     >>> seq = seqs.getSeq('1091044_fragment')
 	>>> seq
@@ -267,7 +267,7 @@ Now we will explore some of the convenience methods of the ``BlastResult`` objec
 
 .. doctest::
 
-	>>> from cogent.parse.blast import BlastResult
+	>>> from cogent3.parse.blast import BlastResult
 	>>> blast_results = BlastResult(open('data/blast_protein_test.txt','r'))
 
 Suppose we want to filter our results based on various criteria.  In many cases you may want to only keep the top '3' matches with the longest 'ALIGNMENT LENGTH' for the query sequence to the target.
@@ -402,6 +402,6 @@ You can filter the BLAST results by any of the fields you like.  You can also us
 .. doctest::
 	    :hide:
 
-	    >>> from cogent.util.misc import remove_files
+	    >>> from cogent3.util.misc import remove_files
 	    >>> remove_files(['data/blast_protein_test.txt'],
 	    ...              error_on_missing=False)

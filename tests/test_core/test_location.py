@@ -2,8 +2,8 @@
 
 """Unit tests for Range, Span and Point classes.
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.core.location import Span, Range, Point, RangeFromString, Map
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.location import Span, Range, Point, RangeFromString, Map
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -1,9 +1,9 @@
 from __future__ import division
 
 import os
-from cogent.util.unit_test import TestCase, main
-from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.compara import Compara
+from cogent3.util.unit_test import TestCase, main
+from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
+from cogent3.db.ensembl.compara import Compara
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -88,7 +88,7 @@ class TestCompara(ComparaTestBase):
         """should correctly determine the align_method align_clade options for
         a group of species"""
         # we should correctly infer the method_species_links, which is a
-        # cogent.util.Table instance
+        # cogent3.util.Table instance
         self.assertTrue(self.comp.method_species_links.Shape > (0,0))
     
     def test_no_method_clade_data(self):

@@ -31,11 +31,11 @@ matplotlib.use('Agg')
 import unittest
 import sys, os, cStringIO
 
-from cogent import DNA, LoadTree, LoadSeqs
-from cogent.core import alignment, alphabet, annotation
-from cogent.draw.linear import *
-from cogent.draw.dendrogram import *
-from cogent.draw.compatibility import partimatrix
+from cogent3 import DNA, LoadTree, LoadSeqs
+from cogent3.core import alignment, alphabet, annotation
+from cogent3.draw.linear import *
+from cogent3.draw.dendrogram import *
+from cogent3.draw.compatibility import partimatrix
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -154,7 +154,7 @@ def makeSampleSequence():
 
 def makeSampleAlignment():
     # must be an esier way to make an alignment of annotated sequences!
-    from cogent.align.align import global_pairwise, make_dna_scoring_dict
+    from cogent3.align.align import global_pairwise, make_dna_scoring_dict
     DNA = make_dna_scoring_dict(10, -8, -8)
     seq1 = makeSampleSequence()[:-2]
     seq2 = makeSampleSequence()[2:]
@@ -217,11 +217,11 @@ class DrawingTests(unittest.TestCase):
             alignd.copy(seq_color_callback=green_cg))
 
     def test_legend(self):
-        from cogent.draw.legend import Legend
+        from cogent3.draw.legend import Legend
         do('Feature Legend', Legend())
 
     def test_dotplot(self):
-        from cogent.draw.dotplot import Display2D
+        from cogent3.draw.dotplot import Display2D
         do('2d', Display2D(seq, seq[:40], show_text=False, draw_bases=False))
 
     def test_trees(self):

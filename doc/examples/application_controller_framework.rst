@@ -260,7 +260,7 @@ useful to check whether the command runs on the normal command line.
 ::
 
    Initialization without params, only defaults are on.
-   >>> from cogent.app.vienna_package import RNAfold
+   >>> from cogent3.app.vienna_package import RNAfold
    >>> r = RNAfold()
 
    Initialization with params, set new values for this instance
@@ -350,8 +350,8 @@ cleanUp() and they will be left in place. This is useful for running an
 application for later analysis of results. ::
 
    >>> from cogent import PROTEIN
-   >>> from cogent.app.clustalw import Clustalw
-   >>> from cogent.parse.clustal import ClustalParser
+   >>> from cogent3.app.clustalw import Clustalw
+   >>> from cogent3.parse.clustal import ClustalParser
    >>> s1 = PROTEIN.Sequence('MHSSIVLATVLFVAIASASKTRELCMKSL')
    >>> s2 = PROTEIN.Sequence('MALAEADDGAVVFGEEQEALVLKSWAVMKKDA')
    >>> s3 = PROTEIN.Sequence('MSTVEGREFSEDQEALVVKSWTVMKLNAGELALKF')
@@ -464,7 +464,7 @@ several reasons, such as to make some attribute of the parameter fixed, to write
 a wrapper around or constructor function for a parameter. For example to fixate
 the prefix of the FlagParameter, one might write this::
 
-   >>> from cogent.app.parameters import FlagParameter
+   >>> from cogent3.app.parameters import FlagParameter
    >>> def DashedFlag(name):
    ...   return FlagParameter('-',name)
    ...
@@ -536,7 +536,7 @@ InputHandler initialization variable.
 
 For example, RNAfold takes a list of sequences from stdin. In this case, none of
 the built-in input handlers provides this functionaloty. The following input
-handler (from cogent.app.rnafold.Rnafold) writes the sequences (data) to a
+handler (from cogent3.app.rnafold.Rnafold) writes the sequences (data) to a
 temporary file and redirects them to stdin. ::
 
    def _input_as_lines(self,data):
@@ -544,7 +544,7 @@ temporary file and redirects them to stdin. ::
        return ''.join(['<',super(RNAfold,self)._input_as_lines(data)])
 
 Clustalw requires the input filename be passes via the -infile paramter. This
-custom input handler from cogent.app.clustalw.Clustalw performs that function.
+custom input handler from cogent3.app.clustalw.Clustalw performs that function.
 Note that the empty string is returned, as input handlers are required to return
 a string that should be appended to the command line.  ::
 
@@ -992,7 +992,7 @@ False.
 
 ::
 
-   >>> from cogent.app.parameters import FlagParameter
+   >>> from cogent3.app.parameters import FlagParameter
    >>> tree = FlagParameter(Prefix='-',Name='tree')
    >>> tree.isOn()
    False
@@ -1033,7 +1033,7 @@ to None.
 
 ::
 
-   >>> from cogent.app.parameters import ValuedParameter
+   >>> from cogent3.app.parameters import ValuedParameter
    >>> temp = ValuedParameter(Prefix='-',Name='T',Delimiter="=")
    >>> temp.isOn()
    False
@@ -1082,7 +1082,7 @@ printed.
 
 ::
 
-   >>> from cogent.app.parameters import MixedParameter
+   >>> from cogent3.app.parameters import MixedParameter
    >>> d = MixedParameter(Prefix='-',Name='d',Delimiter='')
    >>> d.isOff()
    True
@@ -1120,7 +1120,7 @@ results in quotes placed in the middle of the string. ::
    >>> p2 = '"my_file.txt"'
    >>> print str(p1 + p2)
    "/path to/""my_file.txt"
-   >>> from cogent.app.parameters import FilePath
+   >>> from cogent3.app.parameters import FilePath
    >>> p3 = FilePath("/path to/")
    >>> p4 = FilePath("my_file.txt")
    >>> print str(p3+p4)
@@ -1172,15 +1172,15 @@ user, appears in the synonyms dictionary the key to use for the parameters
 dictionary is looked up. Otherwise, it is assumed that the user used an existing
 key in the parameters dictionary. ::
 
-   >>> from cogent.app.parameters import FlagParameter
+   >>> from cogent3.app.parameters import FlagParameter
    >>> a = FlagParameter('-','a')
-   >>> from cogent.app.parameters import  ValuedParameter
+   >>> from cogent3.app.parameters import  ValuedParameter
    >>> b = ValuedParameter('-','T',Value=37,Delimiter='=')
-   >>> from cogent.app.parameters import MixedParameter
+   >>> from cogent3.app.parameters import MixedParameter
    >>> c = MixedParameter('-','d',Value=0)
    >>> params = {'-a':a,'-T':b,'-d':c}
    >>> synonyms = {'temp':'-T','distance':'-d'}
-   >>> from cogent.app.parameters import Parameters
+   >>> from cogent3.app.parameters import Parameters
    >>> p = Parameters(params,synonyms)
    >>> p['-a'].isOn()
    False
@@ -1240,7 +1240,7 @@ in many cases. You can also optionally specify a boolean value specifying
 whether the file has been written or not by setting the IsWritten parameter.
 This is True by default. ::
 
-   >>> from cogent.app.util import ResultPath
+   >>> from cogent3.app.util import ResultPath
    >>> rp = ResultPath(Path='/tmp/my_output.txt',IsWritten=True)
    >>> rp.Path
    '/tmp/my_output.txt'

@@ -12,7 +12,7 @@ FASTQ format can be exported by Illumina's pipeline software.
 
 .. doctest::
     
-    >>> from cogent.parse.fastq import MinimalFastqParser
+    >>> from cogent3.parse.fastq import MinimalFastqParser
     >>> for label, seq, qual in MinimalFastqParser('data/fastq.txt'):
     ...     print label
     ...     print seq
@@ -32,7 +32,7 @@ In FASTQ format, ASCII characters are used to represent base-call quality. Unfor
 
 .. doctest::
     
-    >>> from cogent.parse.fastq import MinimalFastqParser
+    >>> from cogent3.parse.fastq import MinimalFastqParser
     >>> for label, seq, qual in MinimalFastqParser('data/fastq.txt'):
     ...     qual = map(lambda x: ord(x)-64, qual)
     ...     print label

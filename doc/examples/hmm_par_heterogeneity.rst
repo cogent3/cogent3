@@ -15,9 +15,9 @@ First import standard components necessary for all of the following calculations
 
 .. doctest::
 
-    >>> from cogent.evolve.substitution_model import Nucleotide, predicate
+    >>> from cogent3.evolve.substitution_model import Nucleotide, predicate
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.maths.stats import chisqprob
+    >>> from cogent3.maths.stats import chisqprob
 
 Load the alignment and tree.
 

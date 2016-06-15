@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tests for molecular weight.
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.data.molecular_weight import WeightCalculator, DnaMW, RnaMW, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.data.molecular_weight import WeightCalculator, DnaMW, RnaMW, \
     ProteinMW
 
 __author__ = "Rob Knight"

@@ -32,7 +32,7 @@ We import these explicitly from the ``cogent.evolve.models`` module.
 
 .. doctest::
 
-    >>> from cogent.evolve.models import CNFGTR, MG94GTR, GY94
+    >>> from cogent3.evolve.models import CNFGTR, MG94GTR, GY94
 
 These are functions and calling them returns the indicated substitution model with default behaviour of recoding gap characters into N's.
 
@@ -132,7 +132,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
 
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the cogent stats module.
 
-    >>> from cogent.maths.stats import chisqprob
+    >>> from cogent3.maths.stats import chisqprob
     >>> LR = 2*(non_neutral_lnL-neutral_lnL)
     >>> df = non_neutral_nfp - neutral_nfp
     >>> print chisqprob(LR, df)

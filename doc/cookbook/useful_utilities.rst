@@ -26,7 +26,7 @@ We then import the minimise function and use it to minimise the function, obtain
 
 .. doctest::
     
-    >>> from cogent.maths.optimisers import minimise, maximise
+    >>> from cogent3.maths.optimisers import minimise, maximise
     >>> S = minimise(f,  # the function
     ...     xinit=1.0, # the initial value
     ...     bounds=(-100, 100), # [lower,upper] bounds for the parameter
@@ -53,7 +53,7 @@ Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_
 
     >>> from numpy import array, arange, exp
     >>> from numpy.random import rand, seed
-    >>> from cogent.maths.fit_function import fit_function
+    >>> from cogent3.maths.fit_function import fit_function
     >>> # creating x values
     >>> x = arange(-1,1,.01)
     >>>
@@ -96,7 +96,7 @@ Basic ``identity`` function to avoid having to test explicitly for None
 
 .. doctest::
 
-    >>> from cogent.util.misc import identity
+    >>> from cogent3.util.misc import identity
     >>> my_var = None
     >>> if identity(my_var):
     ...   print "foo"
@@ -112,7 +112,7 @@ Convenience function for performing one-line if/else statements. This is similar
 
 .. doctest::
 
-    >>> from cogent.util.misc import if_
+    >>> from cogent3.util.misc import if_
     >>> result = if_(4 > 5, "Expression is True", "Expression is False")
     >>> result
     'Expression is False'
@@ -121,7 +121,7 @@ However, the value returned is evaluated, but not called. For instance:
 
 .. doctest::
 
-    >>> from cogent.util.misc import if_
+    >>> from cogent3.util.misc import if_
     >>> def foo():
     ...   print "in foo"
     ... 
@@ -138,7 +138,7 @@ This support method will force a variable to be an iterable, allowing you to gua
 
 .. doctest::
 
-    >>> from cogent.util.misc import iterable
+    >>> from cogent3.util.misc import iterable
     >>> my_var = 10
     >>> for i in my_var:
     ...   print "will not work"
@@ -157,7 +157,7 @@ To determine the index of the largest item in any iterable container, use ``max_
 
 .. doctest::
 
-    >>> from cogent.util.misc import max_index
+    >>> from cogent3.util.misc import max_index
     >>> l = [5,4,2,2,6,8,0,10,0,5]
     >>> max_index(l)
     7
@@ -171,7 +171,7 @@ To determine the index of the smallest item in any iterable container, use ``min
 
 .. doctest::
 
-    >>> from cogent.util.misc import min_index
+    >>> from cogent3.util.misc import min_index
     >>> l = [5,4,2,2,6,8,0,10,0,5]
     >>> min_index(l)
     6
@@ -185,7 +185,7 @@ To flatten a 2-dimensional list, you can use ``flatten``:
 
 .. doctest::
 
-    >>> from cogent.util.misc import flatten
+    >>> from cogent3.util.misc import flatten
     >>> l = ['abcd','efgh','ijkl']
     >>> flatten(l)
     ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
@@ -197,7 +197,7 @@ Conversion of a nested ``tuple`` into a ``list`` can be performed using ``deep_l
 
 .. doctest::
 
-    >>> from cogent.util.misc import deep_list
+    >>> from cogent3.util.misc import deep_list
     >>> t = ((1,2),(3,4),(5,6))
     >>> deep_list(t)
     [[1, 2], [3, 4], [5, 6]]
@@ -216,7 +216,7 @@ Conversion of a nested ``list`` into a ``tuple`` can be performed using ``deep_l
 
 .. doctest::
 
-    >>> from cogent.util.misc import deep_tuple
+    >>> from cogent3.util.misc import deep_tuple
     >>> l = [[1,2],[3,4],[5,6]]
     >>> deep_tuple(l)
     ((1, 2), (3, 4), (5, 6))
@@ -235,7 +235,7 @@ Same as: min <= number <= max, although it is quickly readable within code
 
 .. doctest::
 
-    >>> from cogent.util.misc import between
+    >>> from cogent3.util.misc import between
     >>> between((3,5),4)
     True
     >>> between((3,5),6)
@@ -248,7 +248,7 @@ Return combinations of items
 
 .. doctest::
 
-    >>> from cogent.util.misc import combinate
+    >>> from cogent3.util.misc import combinate
     >>> list(combinate([1,2,3],0))
     [[]]
     >>> list(combinate([1,2,3],1))
@@ -265,7 +265,7 @@ These handy methods will ``cPickle`` an object and automagically gzip the file. 
 
 .. doctest::
 
-    >>> from cogent.util.misc import gzip_dump, gzip_load
+    >>> from cogent3.util.misc import gzip_dump, gzip_load
     >>> class foo(object):
     ...   some_var = 5
     ... 
@@ -284,7 +284,7 @@ curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python 
 
 .. doctest::
 
-    >>> from cogent.util.misc import curry
+    >>> from cogent3.util.misc import curry
     >>> def foo(x,y):
     ...   """Some function"""
     ...   return x + y
@@ -304,7 +304,7 @@ Perform a simple test to see if an object supports iteration
 
 .. doctest::
 
-    >>> from cogent.util.misc import is_iterable
+    >>> from cogent3.util.misc import is_iterable
     >>> can_iter = [1,2,3,4]
     >>> cannot_iter = 1.234
     >>> is_iterable(can_iter)
@@ -319,7 +319,7 @@ Perform a simple test to see if an object is a single character
 
 .. doctest::
 
-    >>> from cogent.util.misc import is_char
+    >>> from cogent3.util.misc import is_char
     >>> class foo: 
     ...   pass
     ... 
@@ -337,7 +337,7 @@ To flatten a deeply nested iterable, use ``recursive_flatten``. This method supp
 
 .. doctest::
 
-    >>> from cogent.util.misc import recursive_flatten
+    >>> from cogent3.util.misc import recursive_flatten
     >>> l = [[[[1,2], 'abcde'], [5,6]], [7,8], [9,10]]
     >>> recursive_flatten(l)
     [1, 2, 'a', 'b', 'c', 'd', 'e', 5, 6, 7, 8, 9, 10]
@@ -349,7 +349,7 @@ Perform a simple check to see if an object is not a list or a tuple
 
 .. doctest::
 
-    >>> from cogent.util.misc import not_list_tuple
+    >>> from cogent3.util.misc import not_list_tuple
     >>> not_list_tuple(1)
     True
     >>> not_list_tuple([1])
@@ -364,7 +364,7 @@ Unflatten an iterable of items to a specified row-width. This does reverse the e
 
 .. doctest::
 
-    >>> from cogent.util.misc import unflatten
+    >>> from cogent3.util.misc import unflatten
     >>> l = [1,2,3,4,5,6,7,8]
     >>> unflatten(l,1)
     [[1], [2], [3], [4], [5], [6], [7], [8]]
@@ -382,7 +382,7 @@ Reverse the effects of a ``zip`` method, i.e. produces separate lists from tuple
 
 .. doctest::
 
-    >>> from cogent.util.misc import unzip
+    >>> from cogent3.util.misc import unzip
     >>> l = ((1,2),(3,4),(5,6))
     >>> unzip(l)
     [[1, 3, 5], [2, 4, 6]]
@@ -394,7 +394,7 @@ Select items in a specified order
 
 .. doctest::
 
-    >>> from cogent.util.misc import select
+    >>> from cogent3.util.misc import select
     >>> select('ea', {'a':1,'b':5,'c':2,'d':4,'e':6})
     [6, 1]
     >>> select([0,4,8], 'abcdefghijklm')
@@ -407,7 +407,7 @@ Obtain the indices for items in sort order. This is similar to numpy.argsort, bu
 
 .. doctest::
 
-    >>> from cogent.util.misc import sort_order
+    >>> from cogent3.util.misc import sort_order
     >>> sort_order([4,2,3,5,7,8])
     [1, 2, 0, 3, 4, 5]
     >>> sort_order('dcba')
@@ -420,7 +420,7 @@ Find all of the overlapping occurrences of a pattern within a text
 
 .. doctest::
 
-    >>> from cogent.util.misc import find_all
+    >>> from cogent3.util.misc import find_all
     >>> text = 'aaaaaaa'
     >>> pattern = 'aa'
     >>> find_all(text, pattern)
@@ -437,7 +437,7 @@ Find all of the overlapping occurrences of multiple patterns within a text. Retu
 
 .. doctest::
 
-    >>> from cogent.util.misc import find_many
+    >>> from cogent3.util.misc import find_many
     >>> text = 'abababcabab'
     >>> patterns = ['ab','abc']
     >>> find_many(text, patterns)
@@ -450,7 +450,7 @@ Safely remove a trailing underscore
 
 .. doctest::
 
-    >>> from cogent.util.misc import unreserve
+    >>> from cogent3.util.misc import unreserve
     >>> unreserve('class_')
     'class'
     >>> unreserve('class')
@@ -463,7 +463,7 @@ Create a case-insensitive object, for instance, if you want the key 'a' and 'A' 
 
 .. doctest::
 
-    >>> from cogent.util.misc import add_lowercase
+    >>> from cogent3.util.misc import add_lowercase
     >>> d = {'A':5,'B':6,'C':7,'foo':8,42:'life'}
     >>> add_lowercase(d)
     {'A': 5, 'a': 5, 'C': 7, 'B': 6, 42: 'life', 'c': 7, 'b': 6, 'foo': 8}
@@ -475,7 +475,7 @@ Extract data from a line that is surrounded by different right/left delimiters
 
 .. doctest::
 
-    >>> from cogent.util.misc import extract_delimited
+    >>> from cogent3.util.misc import extract_delimited
     >>> line = "abc[def]ghi"
     >>> extract_delimited(line,'[',']')
     'def'
@@ -487,7 +487,7 @@ Get a dictionary with the values set as keys and the keys set as values
 
 .. doctest::
 
-    >>> from cogent.util.misc import InverseDict
+    >>> from cogent3.util.misc import InverseDict
     >>> d = {'some_key':1,'some_key_2':2}
     >>> InverseDict(d)
     {1: 'some_key', 2: 'some_key_2'}
@@ -501,7 +501,7 @@ Get a dictionary with the values set as keys and the keys set as values. Can han
 
 .. doctest::
 
-    >>> from cogent.util.misc import InverseDictMulti
+    >>> from cogent3.util.misc import InverseDictMulti
     >>> d = {'some_key':1,'some_key_2':1}
     >>> InverseDictMulti(d)
     {1: ['some_key_2', 'some_key']}
@@ -514,7 +514,7 @@ Get mapping from sequence item to all positions
 
 .. doctest::
 
-    >>> from cogent.util.misc import DictFromPos
+    >>> from cogent3.util.misc import DictFromPos
     >>> seq = 'aattggttggaaggccgccgttagacg'
     >>> DictFromPos(seq)
     {'a': [0, 1, 10, 11, 22, 24], 'c': [14, 15, 17, 18, 25], 't': [2, 3, 6, 7, 20, 21], 'g': [4, 5, 8, 9, 12, 13, 16, 19, 23, 26]}
@@ -526,7 +526,7 @@ Get the first index of occurrence for each item in a sequence
 
 .. doctest::
     
-    >>> from cogent.util.misc import DictFromFirst
+    >>> from cogent3.util.misc import DictFromFirst
     >>> seq = 'aattggttggaaggccgccgttagacg'
     >>> DictFromFirst(seq)
     {'a': 0, 'c': 14, 't': 2, 'g': 4}
@@ -538,7 +538,7 @@ Get the last index of occurrence for each item in a sequence
 
 .. doctest::
 
-    >>> from cogent.util.misc import DictFromLast
+    >>> from cogent3.util.misc import DictFromLast
     >>> seq = 'aattggttggaaggccgccgttagacg'
     >>> DictFromLast(seq)
     {'a': 24, 'c': 25, 't': 21, 'g': 26}
@@ -550,7 +550,7 @@ Automatically construct a distance matrix lookup function. This is useful for ma
 
 .. doctest::
 
-    >>> from cogent.util.misc import DistanceFromMatrix
+    >>> from cogent3.util.misc import DistanceFromMatrix
     >>> from numpy import array
     >>> m = array([[1,2,3],[4,5,6],[7,8,9]])
     >>> f = DistanceFromMatrix(m)
@@ -566,7 +566,7 @@ Get all of the pairs of items present in a list of groups. A key will be created
 
 .. doctest::
 
-    >>> from cogent.util.misc import PairsFromGroups
+    >>> from cogent3.util.misc import PairsFromGroups
     >>> groups = ['ab','xyz']
     >>> PairsFromGroups(groups)
     {('a', 'a'): None, ('b', 'b'): None, ('b', 'a'): None, ('x', 'y'): None, ('z', 'x'): None, ('y', 'y'): None, ('x', 'x'): None, ('y', 'x'): None, ('z', 'y'): None, ('x', 'z'): None, ('a', 'b'): None, ('y', 'z'): None, ('z', 'z'): None}
@@ -578,7 +578,7 @@ Check an object against base classes or derived classes to see if it is acceptab
 
 .. doctest::
 
-    >>> from cogent.util.misc import ClassChecker
+    >>> from cogent3.util.misc import ClassChecker
     >>> class not_okay(object):
     ...   pass
     ... 
@@ -612,7 +612,7 @@ Delegate object method calls, properties and variables to the appropriate object
 
 .. doctest::
 
-    >>> from cogent.util.misc import Delegator
+    >>> from cogent3.util.misc import Delegator
     >>> class ListAndString(list, Delegator):
     ...   def __init__(self, items, string):
     ...     Delegator.__init__(self, string)
@@ -636,7 +636,7 @@ Wrap a function to hide it from a class so that it isn't a method.
 
 .. doctest::
 
-    >>> from cogent.util.misc import FunctionWrapper
+    >>> from cogent3.util.misc import FunctionWrapper
     >>> f = FunctionWrapper(str)
     >>> f
     <cogent.util.misc.FunctionWrapper object at ...
@@ -652,7 +652,7 @@ Here is a light example of the ``ConstrainedDict``
 
 .. doctest::
 
-    >>> from cogent.util.misc import ConstrainedDict
+    >>> from cogent3.util.misc import ConstrainedDict
     >>> d = ConstrainedDict({'a':1,'b':2,'c':3}, Constraint='abc')
     >>> d
     {'a': 1, 'c': 3, 'b': 2}
@@ -667,7 +667,7 @@ PyCogent also provides mapped constrained containers for each of the default typ
     >>> def mask(x):
     ...   return str(int(x) + 3)
     ... 
-    >>> from cogent.util.misc import MappedString
+    >>> from cogent3.util.misc import MappedString
     >>> s = MappedString('12345', Constraint='45678', Mask=mask)
     >>> s
     '45678'
@@ -684,7 +684,7 @@ Determine if an application is available on a system
 
 .. doctest::
 
-    >>> from cogent.util.misc import app_path
+    >>> from cogent3.util.misc import app_path
     >>> app_path('ls')
     '/bin/ls'
     >>> app_path('does_not_exist')

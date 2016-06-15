@@ -13,7 +13,7 @@ We import ``EUtils`` for querying NCBI and search the protein data-base, restric
 
 .. doctest::
     
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.db.ncbi import EUtils
     >>> db = EUtils(db="protein", rettype="gp")
     >>> query = '"VWf"[gene] AND Mammalia[orgn]'
     >>> records = db[query].readlines()
@@ -27,7 +27,7 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
 .. doctest::
     
     >>> import re
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(records)
     >>> seqs = {}
     >>> rows = []

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from cogent.util.unit_test import TestCase, main
-from cogent.core.sequence import RnaSequence, frac_same, ModelSequence, Sequence
-from cogent.maths.stats.util import Freqs, Numbers
-from cogent.core.moltype import RNA, DNA, PROTEIN, BYTES
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.sequence import RnaSequence, frac_same, ModelSequence, Sequence
+from cogent3.maths.stats.util import Freqs, Numbers
+from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES
 
-from cogent.core.alignment import SequenceCollection, \
+from cogent3.core.alignment import SequenceCollection, \
     make_gap_filter, coerce_to_string, \
     seqs_from_array, seqs_from_model_seqs, seqs_from_generic, seqs_from_fasta, \
     seqs_from_dict, seqs_from_aln, seqs_from_kv_pairs, seqs_from_empty, \
@@ -13,8 +13,8 @@ from cogent.core.alignment import SequenceCollection, \
     aln_from_generic, aln_from_fasta, aln_from_dense_aln, aln_from_empty, \
     DenseAlignment, Alignment, DataError
 
-from cogent.core.moltype import AB, DNA
-from cogent.parse.fasta import MinimalFastaParser
+from cogent3.core.moltype import AB, DNA
+from cogent3.parse.fasta import MinimalFastaParser
 from numpy import array, arange, transpose
 from tempfile import mktemp
 from os import remove

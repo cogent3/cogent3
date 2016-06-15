@@ -1,6 +1,6 @@
-from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.compara import Compara, Genome
-from cogent.util.unit_test import TestCase, main
+from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
+from cogent3.db.ensembl.compara import Compara, Genome
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Jason Merkin"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

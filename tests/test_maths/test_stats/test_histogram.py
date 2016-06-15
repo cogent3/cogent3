@@ -2,9 +2,9 @@
 """Provides tests for Histogram.
 """
 
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.histogram import Histogram
-from cogent.core.location import Span
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.histogram import Histogram
+from cogent3.core.location import Span
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

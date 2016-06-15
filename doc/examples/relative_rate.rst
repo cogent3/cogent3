@@ -8,8 +8,8 @@ From cogent import all the components we need
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import HKY85
-    >>> from cogent.maths import stats
+    >>> from cogent3.evolve.models import HKY85
+    >>> from cogent3.maths import stats
 
 Get your alignment and tree.
 

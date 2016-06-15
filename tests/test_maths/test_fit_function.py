@@ -3,8 +3,8 @@
 """
 from numpy import array, arange, exp
 from numpy.random import rand
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.fit_function import fit_function
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.fit_function import fit_function
 
 __author__ = "Antonio Gonzalez Pena"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

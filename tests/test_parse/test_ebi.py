@@ -2,7 +2,7 @@
 """ Provides tests for EbiParser and related classes and functions.
 """
 
-from cogent.parse.ebi import cc_alternative_products_parser, \
+from cogent3.parse.ebi import cc_alternative_products_parser, \
     cc_basic_itemparser, cc_biophysicochemical_properties_parser, \
     cc_interaction_parser, cc_itemfinder, cc_parser, EbiFinder, \
     MinimalEbiParser, hanging_paragraph_finder, join_parser, \
@@ -15,9 +15,9 @@ from cogent.parse.ebi import cc_alternative_products_parser, \
     dt_parser, id_parser, oc_parser, og_parser, os_parser, ox_parser, \
     sq_parser, de_parser, RecordError, FieldError, curry, required_labels, \
     EbiParser, pr_parser
-from cogent.util.unit_test import TestCase, main
-from cogent.core.sequence import Sequence
-from cogent.core.info import Info
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.sequence import Sequence
+from cogent3.core.info import Info
 
 __author__ = "Zongzhi Liu"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

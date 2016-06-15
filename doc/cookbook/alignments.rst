@@ -266,7 +266,7 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml', aligned=False)
     >>> aln = Alignment(seq)
     >>> fasta_1 = seq.toFasta()
@@ -315,7 +315,7 @@ or by the ``format`` argument.
 .. doctest::
     :hide:
     
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(['sample', 'sample.fasta'], error_on_missing=False)
 
 Converting an alignment to FASTA format
@@ -323,7 +323,7 @@ Converting an alignment to FASTA format
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/long_testseqs.fasta')
     >>> aln = Alignment(seq)
     >>> fasta_align = aln.toFasta()
@@ -333,7 +333,7 @@ Converting an alignment into Phylip format
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> phylip_file, name_dictionary = aln.toPhylip()
@@ -343,7 +343,7 @@ Converting an alignment to a list of strings
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> string_list = aln.todict().values()
@@ -390,7 +390,7 @@ Getting a single column from an alignment
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> column_four = aln[3]
@@ -400,7 +400,7 @@ Getting a region of contiguous columns
 
 .. doctest::
 
-    >>> from cogent.core.alignment import Alignment
+    >>> from cogent3.core.alignment import Alignment
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
     >>> region = aln[50:70]
 

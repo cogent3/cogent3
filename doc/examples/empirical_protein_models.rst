@@ -8,8 +8,8 @@ This file contains an example of importing an empirically determined protein sub
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree, PROTEIN
-    >>> from cogent.evolve.substitution_model import EmpiricalProteinMatrix
-    >>> from cogent.parse.paml_matrix import PamlMatrixParser
+    >>> from cogent3.evolve.substitution_model import EmpiricalProteinMatrix
+    >>> from cogent3.parse.paml_matrix import PamlMatrixParser
 
 Make a tree object.  In this case from a string.
 

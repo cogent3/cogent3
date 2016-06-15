@@ -1,16 +1,16 @@
 from numpy import arange, convolve, random, sin, pi, exp, array, zeros, float64
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
-from cogent.maths.period import ipdft, dft, auto_corr, hybrid, goertzel
+from cogent3.maths.period import ipdft, dft, auto_corr, hybrid, goertzel
 
 # because we'll be comparing python and pyrexed implementations of the same
 # algorithms I'm separating out those imports to make it clear
 
-from cogent.maths.period import _ipdft_inner2 as py_ipdft_inner, \
+from cogent3.maths.period import _ipdft_inner2 as py_ipdft_inner, \
   _goertzel_inner as py_goertzel_inner, _autocorr_inner2 as py_autocorr_inner
 
 try:
-    from cogent.maths._period import ipdft_inner as pyx_ipdft_inner, \
+    from cogent3.maths._period import ipdft_inner as pyx_ipdft_inner, \
                         goertzel_inner as pyx_goertzel_inner, \
                         autocorr_inner as pyx_autocorr_inner
     pyrex_available = True
