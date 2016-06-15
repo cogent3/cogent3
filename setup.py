@@ -136,8 +136,7 @@ setup(
                 'cogent.cluster', 'cogent.core', 'cogent.data', 'cogent.db',
                 'cogent.db.ensembl', 'cogent.draw',
                 'cogent.evolve', 'cogent.format', 'cogent.maths',
-                'cogent.maths.matrix', 'cogent.maths.stats',
-                'cogent.maths.stats.cai', 'cogent.motif', 'cogent.parse',
+                'cogent.maths.matrix', 'cogent.maths.stats', 'cogent.parse',
                 'cogent.phylo', 'cogent.recalculation', 'cogent.util'],
     ext_modules=cythonize([
         CythonExtension("cogent.align._compare"),
