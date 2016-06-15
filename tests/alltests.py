@@ -53,7 +53,6 @@ def suite():
         'test_core.test_alphabet',
         'test_core.test_alignment',
         'test_core.test_annotation',
-        'test_core.test_bitvector',
         'test_core.test_core_standalone',
         'test_core.test_features.rst',
         'test_core.test_genetic_code',
