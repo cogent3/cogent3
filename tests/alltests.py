@@ -101,8 +101,6 @@ def suite():
         'test_parse.test_bowtie',
         'test_parse.test_cigar',
         'test_parse.test_clustal',
-        'test_parse.test_cut',
-        'test_parse.test_cutg',
         'test_parse.test_dialign',
         'test_parse.test_ebi',
         'test_parse.test_fasta',
