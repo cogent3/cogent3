@@ -2354,64 +2354,12 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         result = self.__class__(positions.T,force_same_data=True, \
             Info=self.Info, Names=self.Names)
         return result
- 
-def aln_from_fasta_codons(seqs, array_type=None, Alphabet=None):
-    """Codon alignment from FASTA-format string or lines.
-    
-    This is an InputHandler for taking a FASTA-format string of individual
-    bases and converting it into an array by way of a CodonSequence object
-    that groups triples of bases together and converts them into symbols on
-    the codon alphabet (i.e. each group of 3 bases together is coded by a
-    single symbol). This needs to override the normal aln_from_fasta
-    InputHandler, which asssumes that it can convert the string into the
-    array directly without this grouping step.
-    """
-    if isinstance(seqs, str):
-        seqs = seqs.split('\n')
-    return aln_from_model_seqs([CodonSequenceGap(s, Label=l) for l, s \
-        in cogent.parse.fasta.MinimalFastaParser(seqs)])
 
-    def xsample(self, n=None, with_replacement=False, motif_length=1, \
-        random_series=random):
-        """Returns random sample of positions from self, e.g. to bootstrap.
-
-        Arguments:
-            - n: the number of positions to sample from the alignment.
-              Default is alignment length
-            - with_replacement: boolean flag for determining if sampled
-              positions
-            - random_series: a random number generator with
-              .randint(min,max) .random() methods
-              
-            
-        Notes: 
-            By default (resampling all positions without replacement), generates
-            a permutation of the positions of the alignment.
-
-            Setting with_replacement to True and otherwise leaving parameters
-            as defaults generates a standard bootstrap resampling of the 
-            alignment.
-            """
-        population_size = len(self) // motif_length
-        if not n:
-            n = population_size
-        if with_replacement:
-            locations = [random_series.randint(0, population_size)
-                    for samp in xrange(n)]
-        else:
-            assert n <= population_size, (n, population_size, motif_length)
-            locations = random_series.sample(xrange(population_size), n)
-        positions = [(loc*motif_length, (loc+1)*motif_length)
-                for loc in locations]
-        sample = Map(positions, parent_length=len(self))
-        return self.gappedByMap(sample, Info=self.Info)
- 
 class CodonDenseAlignment(DenseAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
     InputHandlers = {   'array':aln_from_array,
                         'seqs':aln_from_model_seqs,
                         'generic':aln_from_generic,
-                        'fasta':aln_from_fasta_codons,
                         'dense_aln':aln_from_dense_aln,
                         'aln': aln_from_collection,
                         'collection':aln_from_collection,
