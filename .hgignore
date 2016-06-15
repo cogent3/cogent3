@@ -18,3 +18,5 @@ draw_results
 *.coverage
 *egg-info*
 *.wpu
+.cache*
+*taskpaper
