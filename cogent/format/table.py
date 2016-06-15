@@ -384,23 +384,6 @@ def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
     
     return callable
 
-def drawToPDF(header, formatted_table, filename, pagesize=(595,792), *args, **kw):
-    """Writes the table to a pdf file
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - filename: the name of the file or a file object
-        - pagesize: a tuple of the page dimentions (in points) Default is A4
-        - columns: the number of columns of feature / representation pairs"""
-    
-    from reportlab.platypus import SimpleDocTemplate
-    doc = SimpleDocTemplate(filename, leftMargin=10, rightMargin=10,
-                            pagesize=pagesize)
-    doc.build([asReportlabTable(header, formatted_table, pagesize[0]*0.8, *args,
-                            **kw)])
-
-
 def formattedCells(rows, header = None, digits=4, column_templates = None, missing_data = ''):
     """Return rows with each columns cells formatted as an equal length
     string.
