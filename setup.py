@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from distutils.core import setup, Command
-from distutils.extension import Extension
+from setuptools import setup, Command
+from setuptools.extension import Extension
 import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
@@ -150,4 +150,7 @@ setup(
     ]),
     include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,
+    extras_require={"mysql": ["PyMySQL", "sqlalchemy"],
+                    "mpi": ["mpi4py"],
+                    "all": ["PyMySQL", "sqlalchemy", "matplotlib", "mpi4py"]},
 )
