@@ -28,7 +28,8 @@ Possible improvements:
 - consider high speed parser for standard output
 """
 
-from cogent.parse.blast import BlastResult
+from cogent.parse.blast import BlastResult, MinimalPsiBlastParser9,\
+                     MinimalBlastParser9
 
 # field names used to parse tags and create dict.
 HIT_XML_FIELDNAMES = ['QUERY ID','SUBJECT_ID','HIT_DEF','HIT_ACCESSION',\
