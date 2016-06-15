@@ -97,7 +97,6 @@ def suite():
         'test_maths.test_optimisers',
         'test_maths.test_distance_transform',
         'test_parse.test_aaindex',
-        'test_parse.test_bowtie',
         'test_parse.test_cigar',
         'test_parse.test_clustal',
         'test_parse.test_dialign',
