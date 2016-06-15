@@ -2,7 +2,7 @@
 
 __all__ = ['alignment', 'alphabet', 'annotation', 'bitvector', 'entity',
            'genetic_code', 'info', 'location', 'moltype', 'profile', 'sequence',
-           'tree', 'usage']
+           'tree']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
