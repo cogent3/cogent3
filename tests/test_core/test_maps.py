@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import unittest
-from cogent.core.location import Map, Span
-from cogent.core.annotation import _Annotatable, Feature, _Feature
-from cogent import LoadSeqs, DNA
+from cogent3.core.location import Map, Span
+from cogent3.core.annotation import _Annotatable, Feature, _Feature
+from cogent3 import LoadSeqs, DNA
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

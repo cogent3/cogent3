@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Tests of transformation and composition functions .
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.util.misc import identity
-from cogent.util.transform import apply_each, bools, bool_each, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.misc import identity
+from cogent3.util.transform import apply_each, bools, bool_each, \
     conjoin, all, both,\
     disjoin, any, either, negate, none, neither, compose, compose_many, \
     per_shortest, per_longest, for_seq, \

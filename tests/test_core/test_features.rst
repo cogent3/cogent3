@@ -7,8 +7,8 @@ A Sequence with a couple of exons on it.
 
 .. doctest::
     
-    >>> from cogent import DNA
-    >>> from cogent.core.annotation import Feature
+    >>> from cogent3 import DNA
+    >>> from cogent3.core.annotation import Feature
     >>> s = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
     ... Name="Orig")
     >>> exon1 = s.addAnnotation(Feature, 'exon', 'fred', [(10,15)])
@@ -147,7 +147,7 @@ Sequence features can be accessed via a containing ``Alignment``:
 
 .. doctest::
     
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data=[['x','-AAAAAAAAA'], ['y','TTTT--TTTT']])
     >>> print aln
     >x

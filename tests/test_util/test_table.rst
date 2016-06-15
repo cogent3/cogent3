@@ -21,8 +21,8 @@ Tables can be created directly using the Table object itself, or a convenience f
 
 .. doctest::
 
-    >>> from cogent import LoadTable
-    >>> from cogent.util.table import Table
+    >>> from cogent3 import LoadTable
+    >>> from cogent3.util.table import Table
 
 First, if you try and create a ``Table`` without any data, it raises a ``RuntimeError``.
 
@@ -227,7 +227,7 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
 
 .. doctest::
 
-    >>> from cogent import LoadTable
+    >>> from cogent3 import LoadTable
     >>> h = ['A/C', 'A/G', 'A/T', 'C/A']
     >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
     >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30)
@@ -726,7 +726,7 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
 
 .. doctest::
 
-    >>> from cogent.parse.table import ConvertFields, SeparatorFormatParser
+    >>> from cogent3.parse.table import ConvertFields, SeparatorFormatParser
     >>> t3.Title = t3.Legend = None
     >>> comma_sep = t3.tostring(sep=",").splitlines()
     >>> print comma_sep
@@ -893,7 +893,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
 
 .. doctest::
 
-    >>> from cogent.format.table import FormatFields, SeparatorFormatWriter
+    >>> from cogent3.format.table import FormatFields, SeparatorFormatWriter
     >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
     >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
     >>> for formatted in writer(comma_sep, has_header=True):
@@ -1843,7 +1843,7 @@ Tables can be transposed.
 
 .. doctest::
 
-    >>> from cogent import LoadTable
+    >>> from cogent3 import LoadTable
     >>> title='#Full OTU Counts'
     >>> header = ['#OTU ID', '14SK041', '14SK802']
     >>> rows = [[-2920, '332', 294],
@@ -1937,7 +1937,7 @@ Before using ``Table``, we exercise some formatting code:
 
 .. doctest::
 
-    >>> from cogent.format.table import formattedCells, phylipMatrix, latex
+    >>> from cogent3.format.table import formattedCells, phylipMatrix, latex
 
 We check we can format an arbitrary 2D list, without a header, using the ``formattedCells`` function directly.
 

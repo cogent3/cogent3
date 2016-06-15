@@ -19,7 +19,7 @@ The process for getting PubMed records by PubMed ID (PMID) is very similar to th
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EFetch
+    >>> from cogent3.db.ncbi import EFetch
     >>> ef = EFetch(id='17708774', db='pubmed', rettype='brief')
     >>> ef.read()
     '\n1: Knight R et al. PyCogent: a toolkit for makin...[PMID: 17708774] \n'
@@ -58,7 +58,7 @@ Fortunately, the more general EUtils class allows this kind of complex workflow 
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.db.ncbi import EUtils
     >>> eu = EUtils(db='pubmed', rettype='brief')
     >>> res = eu['PyCogent']
     >>> print res.read()
@@ -106,7 +106,7 @@ Here is an example of getting the nucleotide record that corresponds to one part
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EFetch
+    >>> from cogent3.db.ncbi import EFetch
     >>> ef = EFetch(id='459567', rettype='fasta')
     >>> lines = ef.read().splitlines()
     >>> for line in lines:
@@ -130,7 +130,7 @@ You'll probably notice that the lines look suspiciously like FASTA-format record
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EFetch
+    >>> from cogent3.db.ncbi import EFetch
     >>> ef = EFetch(id='459567', rettype='brief')
     >>> lines = ef.read().splitlines()
     >>> for line in lines:
@@ -147,7 +147,7 @@ For example:
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EFetch
+    >>> from cogent3.db.ncbi import EFetch
     >>> ef = EFetch(id='459567', rettype='fasta', retmode='text')
     >>> lines = ef.read().splitlines()
     >>> for line in lines:
@@ -223,7 +223,7 @@ We query for just one accession to illustrate the process. A more general query 
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.db.ncbi import EUtils
     >>> e = EUtils(numseqs=100, db='protein', rettype='gp')
     >>> result = e['BAB52044']
     >>> print result.read()
@@ -240,8 +240,8 @@ Retrieving and parsing GenBank entries
 
 .. doctest::
 
-    >>> from cogent.parse.genbank import RichGenbankParser
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.parse.genbank import RichGenbankParser
+    >>> from cogent3.db.ncbi import EUtils
     >>> e = EUtils(numseqs=100, db='protein', rettype='gp')
     >>> result = e['"lysyl tRNA-synthetase"[ti] AND bacteria[orgn]']
     >>> parser = RichGenbankParser(result.readlines())
@@ -261,8 +261,8 @@ Parsing in more detail:  a single GenBank entry
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EUtils
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.db.ncbi import EUtils
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> e = EUtils(db="nucleotide", rettype="gb")
     >>> record = e['154102'].readlines()
     >>> parser = RichGenbankParser(record)
@@ -288,7 +288,7 @@ To obtain a full bacterial genome, run the following to get the complete *Salmon
 
 .. code-block:: python
     
-    from cogent.db.ncbi import EUtils
+    from cogent3.db.ncbi import EUtils
     e = EUtils(db="nucleotide", rettype="gb")
     outfile = open('data/ST.genome.gb','w')
     outfile.write(e['AE006468'].read())
@@ -305,7 +305,7 @@ dumps the result into the file directly, and returns you a handle to the open fi
 
 .. doctest::
     
-    >>> from cogent.parse.genbank import RichGenbankParser
+    >>> from cogent3.parse.genbank import RichGenbankParser
     >>> infile = open('data/ST_genome_part.gb', 'r')
     >>> parser = RichGenbankParser(infile)
     >>> accession, seq = [record for record in parser][0]
@@ -334,7 +334,7 @@ Retrieving PubMed abstracts from NCBI via EUtils
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
     
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.db.ncbi import EUtils
     >>> e = EUtils(db='pubmed',rettype='brief')
     >>> result = e['Simon Easteal AND Von Bing Yap'].read()
     >>> print result
@@ -349,7 +349,7 @@ Retrieving PubMed abstracts via PMID
 
 .. doctest::
 
-    >>> from cogent.db.ncbi import EUtils
+    >>> from cogent3.db.ncbi import EUtils
     >>> e = EUtils(db='pubmed',rettype='abstract')
     >>> result = e['14983078'].read()
 
@@ -391,7 +391,7 @@ The PDB module is very simple and basically gets a pdb coordinates file by acces
 
 .. doctest::
 
-    >>> from cogent.db.pdb import Pdb
+    >>> from cogent3.db.pdb import Pdb
     >>> p = Pdb()
     >>> result = p['3L0U']
 
@@ -420,5 +420,5 @@ Whole-genome alignments, orthologs, annotation tracks
 .. doctest::
     :hide:
     
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files('ST.genome.gb', error_on_missing=False)

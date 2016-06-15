@@ -14,14 +14,14 @@ clustalw and muscle
 .. doctest::
     
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.app.clustalw import align_unaligned_seqs as clustal_aln
-    >>> from cogent.app.muscle import align_unaligned_seqs as muscle_aln
+    >>> from cogent3.app.clustalw import align_unaligned_seqs as clustal_aln
+    >>> from cogent3.app.muscle import align_unaligned_seqs as muscle_aln
     >>> seqs = LoadSeqs(filename='data/test2.fasta', aligned=False)
     >>> aln1 = clustal_aln(seqs, DNA)
     >>> aln2 = muscle_aln(seqs, DNA)
     >>> aln1 == aln2
     True
-    >>> from cogent.app.fasttree import build_tree_from_alignment
+    >>> from cogent3.app.fasttree import build_tree_from_alignment
     >>> tr = build_tree_from_alignment(aln1,moltype=DNA)
     >>> print tr.asciiArt()
               /-Mouse

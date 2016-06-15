@@ -1,10 +1,10 @@
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 from numpy import array, dot, diag, exp
 
-import cogent.maths.matrix_exponentiation as cmme
+import cogent3.maths.matrix_exponentiation as cmme
 
-from cogent.maths import matrix_exponential_integration as expm
+from cogent3.maths import matrix_exponential_integration as expm
 
 __author__ = 'Ben Kaehler'
 __copyright__ = "Copyright 2007-2014, The Cogent Project"

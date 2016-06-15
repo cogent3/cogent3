@@ -7,9 +7,9 @@ Examples of how to initialize and manipulate various tree node objects.
 
 .. doctest ::
 
-    >>> from cogent.core.tree import PhyloNode
+    >>> from cogent3.core.tree import PhyloNode
     >>> from cogent import LoadTree
-    >>> from cogent.parse.tree import DndParser
+    >>> from cogent3.parse.tree import DndParser
 
 The general method to initialize a tree is ``LoadTree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``LoadTree`` uses ``PhyloNode`` objects by default.
 

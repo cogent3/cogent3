@@ -8,7 +8,7 @@ a tree.
 
 .. doctest::
 
-    >>> from cogent.seqsim.birth_death import BirthDeathModel, ExtinctionError,\
+    >>> from cogent3.seqsim.birth_death import BirthDeathModel, ExtinctionError,\
     ... TooManyTaxaError
 
 Create a model with specific death probabilities per timestep using 

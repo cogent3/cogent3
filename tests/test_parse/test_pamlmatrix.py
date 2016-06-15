@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from StringIO import StringIO
-from cogent.util.unit_test import TestCase, main
-from cogent.evolve.models import DSO78_matrix, DSO78_freqs
-from cogent.parse.paml_matrix import PamlMatrixParser
+from cogent3.util.unit_test import TestCase, main
+from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
+from cogent3.parse.paml_matrix import PamlMatrixParser
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

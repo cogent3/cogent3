@@ -36,8 +36,8 @@ First, create a new file called ``minimal_formatdb.py``. Open this in a text edi
 
 	#!/usr/bin/python
 	
-	from cogent.app.util import CommandLineApplication, ResultPath
-	from cogent.app.parameters import ValuedParameter
+	from cogent3.app.util import CommandLineApplication, ResultPath
+	from cogent3.app.parameters import ValuedParameter
 
 This imports some classes that we'll be using from PyCogent. For this to function correctly, ``cogent`` must be in your ``$PYTHONPATH``. Next define your class, ``MinimalFormatDb``::
 

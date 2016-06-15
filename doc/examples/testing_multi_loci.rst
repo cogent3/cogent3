@@ -8,9 +8,9 @@ We want to know whether an exchangeability parameter is different between alignm
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree, LoadTable
-    >>> from cogent.evolve.models import HKY85
-    >>> from cogent.recalculation.scope import EACH, ALL
-    >>> from cogent.maths.stats import chisqprob
+    >>> from cogent3.evolve.models import HKY85
+    >>> from cogent3.recalculation.scope import EACH, ALL
+    >>> from cogent3.maths.stats import chisqprob
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> half = len(aln)/2
     >>> aln1 = aln[:half]

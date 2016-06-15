@@ -127,7 +127,7 @@ An example of using an alternative constructor is given below. A constructor is 
 .. doctest::
 
     >>> from cogent import LoadSeqs
-    >>> from cogent.core.alignment import DenseAlignment
+    >>> from cogent3.core.alignment import DenseAlignment
     >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
     >>> seqs_loaded = LoadSeqs(data=seqs,aligned=DenseAlignment)
     >>> print seqs_loaded
@@ -151,7 +151,7 @@ To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser
 
 .. doctest::
 
-    >>> from cogent.parse.fasta import MinimalFastaParser
+    >>> from cogent3.parse.fasta import MinimalFastaParser
     >>> f=open('data/long_testseqs.fasta')
     >>> seqs = [(name, seq) for name, seq in MinimalFastaParser(f)]
     >>> print seqs
@@ -164,7 +164,7 @@ The FASTA label field is frequently overloaded, with different information field
 
 .. doctest::
 
-    >>> from cogent.parse.fasta import LabelParser
+    >>> from cogent3.parse.fasta import LabelParser
     >>> def latin_to_common(latin):
     ...     return {'Homo sapiens': 'human',
     ...             'Pan troglodtyes': 'chimp'}[latin]
@@ -180,7 +180,7 @@ The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing spec
 
 .. doctest::
 
-    >>> from cogent.parse.fasta import MinimalFastaParser, LabelParser
+    >>> from cogent3.parse.fasta import MinimalFastaParser, LabelParser
     >>> fasta_data = ['>gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]',
     ...  'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL',
     ... 'SEIQNIKSELKYVPKAEQ',

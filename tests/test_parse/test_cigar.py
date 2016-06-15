@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import unittest, sys, os
-from cogent import DNA, LoadSeqs
-from cogent.parse.cigar import map_to_cigar, cigar_to_map, aligned_from_cigar, \
+from cogent3 import DNA, LoadSeqs
+from cogent3.parse.cigar import map_to_cigar, cigar_to_map, aligned_from_cigar, \
                                 slice_cigar, CigarParser
 
 __author__ = "Hua Ying"

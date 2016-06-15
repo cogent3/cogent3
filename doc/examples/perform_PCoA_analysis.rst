@@ -8,14 +8,14 @@ An example of how to calculate the pairwise distances for a set of sequences.
 .. doctest::
 
     >>> from cogent import LoadSeqs
-    >>> from cogent.phylo import distance
-    >>> from cogent.cluster.metric_scaling import PCoA
+    >>> from cogent3.phylo import distance
+    >>> from cogent3.cluster.metric_scaling import PCoA
 
 Import a substitution model (or create your own)
 
 .. doctest::
 
-    >>> from cogent.evolve.models import HKY85
+    >>> from cogent3.evolve.models import HKY85
 
 Load the alignment.
 

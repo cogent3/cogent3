@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of data retrieval from NCBI."""
-from cogent.util.unit_test import TestCase, main
-from cogent.db.ncbi import EUtils, ESearch, EFetch, ELink, ESearchResultParser,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.db.ncbi import EUtils, ESearch, EFetch, ELink, ESearchResultParser,\
     ELinkResultParser, get_primary_ids, ids_to_taxon_ids, \
     taxon_lineage_extractor, taxon_ids_to_lineages, taxon_ids_to_names, \
     taxon_ids_to_names_and_lineages, \

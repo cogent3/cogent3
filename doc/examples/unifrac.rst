@@ -9,9 +9,9 @@ first we import some tools
 
 .. doctest::
 
-    >>> from cogent.parse.tree import DndParser
-    >>> from cogent.maths.unifrac.fast_unifrac import fast_unifrac
-    >>> from cogent.maths.unifrac.fast_tree import UniFracTreeNode
+    >>> from cogent3.parse.tree import DndParser
+    >>> from cogent3.maths.unifrac.fast_unifrac import fast_unifrac
+    >>> from cogent3.maths.unifrac.fast_tree import UniFracTreeNode
 
 then we make a small example tree with tips B, C, D representing the relationship
 between species B, C, and D

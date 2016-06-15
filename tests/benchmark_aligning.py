@@ -2,8 +2,8 @@
 
 import numpy
 import time
-from cogent import DNA
-from cogent.align.align import classic_align_pairwise, make_dna_scoring_dict
+from cogent3 import DNA
+from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

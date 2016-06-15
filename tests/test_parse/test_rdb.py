@@ -2,12 +2,12 @@
 #test_rdb.py
 """Unit test for RDB Parser
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.parse.rdb import RdbParser, MinimalRdbParser,is_seq_label,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.parse.rdb import RdbParser, MinimalRdbParser,is_seq_label,\
     InfoMaker, create_acceptable_sequence
-from cogent.core.sequence import Sequence, DnaSequence, RnaSequence
-from cogent.core.info import Info
-from cogent.parse.record import RecordError
+from cogent3.core.sequence import Sequence, DnaSequence, RnaSequence
+from cogent3.core.info import Info
+from cogent3.parse.record import RecordError
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

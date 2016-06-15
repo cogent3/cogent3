@@ -10,7 +10,7 @@ A common problem in HPC systems is to make sure a long running process is capabl
 .. doctest::
     
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sub_model = F81()
@@ -48,7 +48,7 @@ We make the weighted least-squares calculator.
 
 .. doctest::
 
-    >>> from cogent.phylo import distance, least_squares
+    >>> from cogent3.phylo import distance, least_squares
     >>> ls = least_squares.WLS(dists)
 
 We start searching for trees, providing the name of the file to checkpoint to.
@@ -63,5 +63,5 @@ We start searching for trees, providing the name of the file to checkpoint to.
 .. doctest::
     :hide:
     
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files([checkpoint_fn, checkpoint_phylo_fn], error_on_missing=False)

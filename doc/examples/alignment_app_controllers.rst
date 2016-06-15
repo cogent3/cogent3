@@ -11,15 +11,15 @@ First, lets import all of the ``align_unaligned_seqs`` methods:
 
 .. doctest::
     
-    >>> from cogent.app.clustalw import align_unaligned_seqs as clustalw_align_unaligned_seqs
-    >>> from cogent.app.muscle import align_unaligned_seqs as muscle_align_unaligned_seqs
-    >>> from cogent.app.mafft import align_unaligned_seqs as mafft_align_unaligned_seqs
+    >>> from cogent3.app.clustalw import align_unaligned_seqs as clustalw_align_unaligned_seqs
+    >>> from cogent3.app.muscle import align_unaligned_seqs as muscle_align_unaligned_seqs
+    >>> from cogent3.app.mafft import align_unaligned_seqs as mafft_align_unaligned_seqs
 
 Next, we'll load our test data. We will be using DNA sequences for this example:
 
 .. doctest::
 
-    >>> from cogent.core.moltype import DNA
+    >>> from cogent3.core.moltype import DNA
     >>> from cogent import LoadSeqs
     >>> unaligned_seqs = LoadSeqs(filename='data/test2.fasta', aligned=False)
 

@@ -27,8 +27,8 @@ Step 1: Download sequences from NCBI
 
 Here we'll work with archaeal, bacteria, and eukaryotic sequences obtained from NCBI using the PyCogent EUtils wrappers. Run the following commands to obtain these sequences::
 
-	from cogent.db.ncbi import EUtils
-	from cogent.parse.fasta import MinimalFastaParser
+	from cogent3.db.ncbi import EUtils
+	from cogent3.parse.fasta import MinimalFastaParser
 	e = EUtils()
 	arc16s = list(MinimalFastaParser(e['"small subunit rRNA"[ti] AND archaea[orgn]']))
 	bac16s = list(MinimalFastaParser(e['"small subunit rRNA"[ti] AND bacteria[orgn]']))
@@ -51,7 +51,7 @@ We'll begin by loading the sequences that have been downloaded, applying a filte
 
 First, define a function to load and filter the sequences::
 
-	from cogent.parse.fasta import MinimalFastaParser
+	from cogent3.parse.fasta import MinimalFastaParser
 	
 	def load_and_filter_seqs(seqs, domain_label):
 	    result = []
@@ -108,7 +108,7 @@ Step 5: Align the sequences using muscle
 Load an aligner function, and align the sequences. Here we'll align with muscle via the muscle application controller. The sequences will be loaded into an ``Alignment`` object called ``aln``.
 ::
 
-	from cogent.app.muscle import align_unaligned_seqs
+	from cogent3.app.muscle import align_unaligned_seqs
 	aln = align_unaligned_seqs(seqs,DNA)
 
 Step 6: Build a tree from the alignment using FastTree
@@ -117,7 +117,7 @@ Step 6: Build a tree from the alignment using FastTree
 Load a tree-building function, and build a tree from the alignment. Here we'll use FastTree. The tree will be stored in a ``PhyloNode`` object called ``tree``.
 ::
 
-	from cogent.app.fasttree import build_tree_from_alignment
+	from cogent3.app.fasttree import build_tree_from_alignment
 	tree = build_tree_from_alignment(aln,DNA)
 
 Step 7: Visualize the tree
@@ -125,7 +125,7 @@ Step 7: Visualize the tree
 
 Load a drawing function to generate a prettier picture of the tree::
 
-	from cogent.draw.dendrogram import UnrootedDendrogram 
+	from cogent3.draw.dendrogram import UnrootedDendrogram 
 	dendrogram = UnrootedDendrogram(tree)
 
 Have a quick look at the unrooted dendrogram::

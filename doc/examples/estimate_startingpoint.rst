@@ -10,7 +10,7 @@ From cogent import all the components we need.
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve import  substitution_model
+    >>> from cogent3.evolve import  substitution_model
 
 Load your alignment, note that if your file ends with a suffix that is the same as it's format (assuming it's a supported format) then you can just give the filename. Otherwise you can specify the format using the format argument.
 

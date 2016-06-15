@@ -19,12 +19,12 @@ warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 import os
 from numpy import ones, dot
 
-from cogent.evolve import substitution_model, predicate
-from cogent import DNA, LoadSeqs, LoadTree
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.matrix_exponentiation import PadeExponentiator as expm
-from cogent.maths.stats.information_criteria import aic, bic
-from cogent.evolve.models import JTT92
+from cogent3.evolve import substitution_model, predicate
+from cogent3 import DNA, LoadSeqs, LoadTree
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
+from cogent3.maths.stats.information_criteria import aic, bic
+from cogent3.evolve.models import JTT92
 
 Nucleotide = substitution_model.Nucleotide
 MotifChange = predicate.MotifChange

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from cogent.util.unit_test import TestCase, main
-from cogent.util.dict2d import Dict2D, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.dict2d import Dict2D, \
     average, largest, smallest, swap, nonzero, not_0, upper_to_lower, \
     lower_to_upper, Dict2DInitError, Dict2DError, Dict2DSparseError
-from cogent.maths.stats.util import Numbers, Freqs
+from cogent3.maths.stats.util import Numbers, Freqs
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

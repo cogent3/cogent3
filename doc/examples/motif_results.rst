@@ -8,7 +8,7 @@ In this example we will be parsing a motif results file and doing some basic ope
 .. doctest::
 
     >>> from cogent import LoadSeqs
-    >>> from cogent.parse.meme import MemeParser
+    >>> from cogent3.parse.meme import MemeParser
 
 Now we want to parse the MEME (http://meme.sdsc.edu) motif results file and the fasta file that we passed to MEME originally. This will construct a ``MotifResults`` object and a ``SequenceCollection`` object respectively, then add the ``SequenceCollection`` to the ``MotifResults``.
 

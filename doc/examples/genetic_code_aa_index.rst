@@ -9,7 +9,7 @@ First, we load the genetic code objects and look at how they differ from one ano
 
 .. doctest::
 
-    >>> from cogent.core.genetic_code import GeneticCode
+    >>> from cogent3.core.genetic_code import GeneticCode
     >>> code = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
     >>> standard_nuclear_genetic_code = GeneticCode(code)
     >>> code = 'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG'
@@ -33,7 +33,7 @@ Next, let's load the Woese Polar Requirement ``AAIndex`` data, and find the effe
 
 .. doctest::
     
-    >>> from cogent.parse.aaindex import getWoeseDistanceMatrix
+    >>> from cogent3.parse.aaindex import getWoeseDistanceMatrix
     >>> woese_distance_matrix = getWoeseDistanceMatrix()
     >>> woese_distance_matrix[ngc['ATA']][ngc['ATG']]
     0.39999999999999947
@@ -56,7 +56,7 @@ The standard nuclear genetic code can also be loaded as ``DEFAULT``:
 
 .. doctest::
     
-    >>> from cogent.core.genetic_code import DEFAULT
+    >>> from cogent3.core.genetic_code import DEFAULT
     >>> DEFAULT == standard_nuclear_genetic_code
     True
 

@@ -20,7 +20,7 @@ For a limited number of evolutionary models a fast implementation is available. 
 .. doctest::
     
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.evolve.pairwise_distance import TN93Pair
+    >>> from cogent3.evolve.pairwise_distance import TN93Pair
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> dist_calc = TN93Pair(DNA, alignment=aln)
     >>> dist_calc.run()
@@ -70,8 +70,8 @@ The standard cogent likelihood function can also be used to estimate distances. 
 .. doctest::
     
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.phylo import distance
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.phylo import distance
+    >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> d = distance.EstimateDistances(aln, submodel=F81())
     >>> d.run()
@@ -102,7 +102,7 @@ Phylogenetic Trees can be built by using the neighbour joining algorithm by prov
 
 .. doctest::
     
-    >>> from cogent.phylo import nj
+    >>> from cogent3.phylo import nj
     >>> njtree = nj.nj(d.getPairwiseDistances())
     >>> njtree = njtree.balanced()
     >>> print njtree.asciiArt()
@@ -141,7 +141,7 @@ We illustrate the phylogeny reconstruction by least-squares using the F81 substi
 .. doctest::
     
     >>> import cPickle
-    >>> from cogent.phylo.least_squares import WLS
+    >>> from cogent3.phylo.least_squares import WLS
     >>> dists = cPickle.load(open('data/dists_for_phylo.pickle'))
     >>> ls = WLS(dists)
     >>> stat, tree = ls.trex(a = 5, k = 5, show_progress = False)
@@ -156,8 +156,8 @@ We illustrate the phylogeny reconstruction using maximum-likelihood using the F8
 .. doctest::
     
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.phylo.maximum_likelihood import ML
-    >>> from cogent.evolve.models import F81
+    >>> from cogent3.phylo.maximum_likelihood import ML
+    >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> ml = ML(F81(), aln)
 

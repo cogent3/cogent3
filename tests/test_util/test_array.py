@@ -3,8 +3,8 @@
 """
 #SUPPORT2425
 #from __future__ import with_statement
-from cogent.util.unit_test import main, TestCase#, numpy_err
-from cogent.util.array import gapped_to_ungapped, unmasked_to_masked, \
+from cogent3.util.unit_test import main, TestCase#, numpy_err
+from cogent3.util.array import gapped_to_ungapped, unmasked_to_masked, \
     ungapped_to_gapped, masked_to_unmasked, pairs_to_array,\
     ln_2, log2, safe_p_log_p, safe_log, row_uncertainty, column_uncertainty,\
     row_degeneracy, column_degeneracy, hamming_distance, norm,\

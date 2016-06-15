@@ -14,8 +14,8 @@ First we will load in a Newick formatted tree.
 
 .. doctest::
 
-    >>> from cogent.parse.tree import DndParser
-    >>> from cogent.maths.unifrac.fast_tree import UniFracTreeNode
+    >>> from cogent3.parse.tree import DndParser
+    >>> from cogent3.maths.unifrac.fast_tree import UniFracTreeNode
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> tree = DndParser(tree_in, UniFracTreeNode)
 
@@ -23,7 +23,7 @@ Next we will load information on which sequences in the tree come from which env
 
 .. doctest::
 
-    >>> from cogent.maths.unifrac.fast_unifrac import count_envs
+    >>> from cogent3.maths.unifrac.fast_unifrac import count_envs
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> envs = count_envs(envs_in)
 
@@ -31,7 +31,7 @@ Finally, we can calculate the PD values for each environment in the tree
 
 .. doctest:: 
 
-    >>> from cogent.maths.unifrac.fast_unifrac import PD_whole_tree
+    >>> from cogent3.maths.unifrac.fast_unifrac import PD_whole_tree
     >>> envs, PD_values = PD_whole_tree(tree, envs)
     >>> print envs
     ['E_FL', 'E_PA', 'O_FL', 'O_UN', 'R_FL', 'R_PA']
@@ -70,7 +70,7 @@ The UniFrac analysis is run on open tree and environment file objects. The resul
 
 .. doctest::
 
-    >>> from cogent.maths.unifrac.fast_unifrac import fast_unifrac_file
+    >>> from cogent3.maths.unifrac.fast_unifrac import fast_unifrac_file
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> result = fast_unifrac_file(tree_in, envs_in, weighted=False)
@@ -97,7 +97,7 @@ The analysis is run on open tree and environment file objects. In this example, 
 
 .. doctest::
 
-    >>> from cogent.maths.unifrac.fast_unifrac import fast_unifrac_permutations_file
+    >>> from cogent3.maths.unifrac.fast_unifrac import fast_unifrac_permutations_file
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> result = fast_unifrac_permutations_file(tree_in, envs_in, weighted=False, num_iters=50, test_on="Pairwise")
@@ -111,7 +111,7 @@ The analysis is run on open tree and environment file objects. In this example, 
 
 .. doctest::
 
-    >>> from cogent.maths.unifrac.fast_unifrac import fast_unifrac_permutations_file
+    >>> from cogent3.maths.unifrac.fast_unifrac import fast_unifrac_permutations_file
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> result = fast_unifrac_permutations_file(tree_in, envs_in, weighted=True, num_iters=50, test_on="Tree")
@@ -128,7 +128,7 @@ The analysis is run on open tree and environment file objects. In this example, 
 
 .. doctest::
 
-    >>> from cogent.maths.unifrac.fast_unifrac import fast_p_test_file
+    >>> from cogent3.maths.unifrac.fast_unifrac import fast_p_test_file
     >>> tree_in = open("data/Crump_example_tree_newick.txt")
     >>> envs_in = open("data/Crump_et_al_example_env_file.txt")
     >>> result = fast_p_test_file(tree_in, envs_in, num_iters=50, test_on="Pairwise")
@@ -145,7 +145,7 @@ PyCogent provides many different ways to compute pairwise distances between obje
 
 .. doctest::
 
-    >>> from cogent.maths.distance_transform import dist_euclidean
+    >>> from cogent3.maths.distance_transform import dist_euclidean
     >>> from numpy import array
     >>> abundance_data = array([[1, 3],
     ...                        [5, 2],

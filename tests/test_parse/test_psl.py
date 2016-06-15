@@ -3,9 +3,9 @@
    Compatible with blat v.34
 """
 
-from cogent.parse.psl import make_header, MinimalPslParser, PslToTable
-from cogent.util.unit_test import TestCase, main
-from cogent import LoadTable
+from cogent3.parse.psl import make_header, MinimalPslParser, PslToTable
+from cogent3.util.unit_test import TestCase, main
+from cogent3 import LoadTable
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -57,7 +57,7 @@ GC content is one commonly used compositional statistic. To calculate the total 
 
 .. doctest::
     
-    >>> from cogent.core.usage import BaseUsage
+    >>> from cogent3.core.usage import BaseUsage
     >>> example_bu = BaseUsage(example_seq)
     >>> # Print raw counts
     >>> print example_bu.content("GC")
@@ -88,7 +88,7 @@ First, let us calculate the GC content for the codons in the example sequence as
 .. doctest::
 
     >>> # Import CodonUsage object
-    >>> from cogent.core.usage import CodonUsage
+    >>> from cogent3.core.usage import CodonUsage
     >>> # Initiate & normalize CodonUsage object
     >>> example_seq_cu = CodonUsage(example_seq)
     >>> example_seq_cu.normalize() 
@@ -130,7 +130,7 @@ A more detailed view of composition incorporates the relative counts or frequenc
 
 .. doctest::
     
-    >>> from cogent.core.usage import BaseUsage
+    >>> from cogent3.core.usage import BaseUsage
     >>> example_bu = BaseUsage(example_seq)
     >>> # Print raw counts
     >>> for k in example_bu.RequiredKeys:
@@ -165,7 +165,7 @@ To calculate overlapping dinucleotide usage for our *Y. pseudotuberculosis* PB1 
 
 .. doctest::
 
-    >>> from cogent.core.usage import DinucUsage
+    >>> from cogent3.core.usage import DinucUsage
     >>> du  = DinucUsage(y_pseudo_seq, Overlapping=True)
     >>> du.normalize()
 
@@ -203,7 +203,7 @@ To calculate non-overlapping dinucleotide usage we simply change the ``Overlappi
 
 .. doctest::
 
-    >>> from cogent.core.usage import DinucUsage
+    >>> from cogent3.core.usage import DinucUsage
     >>> du_no  = DinucUsage(y_pseudo_seq, Overlapping=False)
     >>> du_no.normalize()
     >>> total = 0
@@ -236,7 +236,7 @@ To calculate dinucleotide usage considering only adjacent first and third codon 
 
 .. doctest::
     
-    >>> from cogent.core.usage import DinucUsage
+    >>> from cogent3.core.usage import DinucUsage
     >>> du_3_1  = DinucUsage(y_pseudo_seq, Overlapping='3-1')
     >>> du_3_1.normalize()
     >>> total = 0
@@ -298,7 +298,7 @@ In addition to allowing a more detailed examination of GC content in coding sequ
 
 .. doctest::
    
-    >>> from cogent.core.usage import CodonUsage
+    >>> from cogent3.core.usage import CodonUsage
     >>> y_pseudo_cu  = CodonUsage(y_pseudo_seq)
     >>> # Print raw counts
     >>> for k in y_pseudo_cu.RequiredKeys:

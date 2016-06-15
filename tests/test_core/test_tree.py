@@ -3,11 +3,11 @@
 """
 
 from copy import copy, deepcopy
-from cogent import LoadTree
-from cogent.core.tree import TreeNode, PhyloNode, TreeError
-from cogent.parse.tree import DndParser
-from cogent.maths.stats.test import correlation
-from cogent.util.unit_test import TestCase, main
+from cogent3 import LoadTree
+from cogent3.core.tree import TreeNode, PhyloNode, TreeError
+from cogent3.parse.tree import DndParser
+from cogent3.maths.stats.test import correlation
+from cogent3.util.unit_test import TestCase, main
 from numpy import array, arange
 
 __author__ = "Rob Knight"
@@ -27,7 +27,7 @@ class TreeTests(TestCase):
 
     def test_LoadTree(self):
         """LoadTree should load a tree from a file or a string"""
-        #NOTE: This method now sits in cogent.__init__
+        #NOTE: This method now sits in cogent3.__init__
 
         t_str = '(a_a:10,(b_b:2,c_c:4):5);'
         #NOTE: Tree quotes these labels because they have underscores in them.

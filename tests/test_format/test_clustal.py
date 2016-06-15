@@ -1,11 +1,11 @@
  #!/usr/bin/env python
 """Tests for Clustal sequence format writer.
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.format.clustal import clustal_from_alignment
-from cogent.core.alignment import Alignment
-from cogent.core.sequence import Sequence
-from cogent.core.info import Info
+from cogent3.util.unit_test import TestCase, main
+from cogent3.format.clustal import clustal_from_alignment
+from cogent3.core.alignment import Alignment
+from cogent3.core.sequence import Sequence
+from cogent3.core.info import Info
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

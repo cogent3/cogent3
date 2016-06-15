@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.ks import pkolmogorov1x, pkolmogorov2x, pkstwo,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.ks import pkolmogorov1x, pkolmogorov2x, pkstwo,\
                                 psmirnov2x
-from cogent.maths.stats.test import ks_test, ks_boot
+from cogent3.maths.stats.test import ks_test, ks_boot
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

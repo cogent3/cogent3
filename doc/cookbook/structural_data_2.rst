@@ -43,7 +43,7 @@ The signature of this method is selectChildren("value", "operator", "requested d
 
 .. doctest::
 
-    >>> from cogent.parse.pdb import PDBParser
+    >>> from cogent3.parse.pdb import PDBParser
     >>> pdb_fh = open('data/1HQF.pdb')
     >>> pdb_structure = PDBParser(pdb_fh)
     >>> model = pdb_structure[(0,)]

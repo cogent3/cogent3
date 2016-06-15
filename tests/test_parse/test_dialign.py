@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from cogent import PROTEIN, LoadSeqs
-from cogent.parse.dialign import align_block_lines, parse_data_line, DialignParser
+from cogent3 import PROTEIN, LoadSeqs
+from cogent3.parse.dialign import align_block_lines, parse_data_line, DialignParser
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

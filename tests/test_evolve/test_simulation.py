@@ -4,8 +4,8 @@
 
 The test is to reestimate the parameter values as accurately as possible."""
 import sys
-from cogent.core import alignment, tree
-from cogent.evolve import substitution_model
+from cogent3.core import alignment, tree
+from cogent3.evolve import substitution_model
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

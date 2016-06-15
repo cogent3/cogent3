@@ -3,11 +3,11 @@
 """
 from math import sqrt
 import numpy
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.util import SummaryStatistics, SummaryStatisticsError,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.util import SummaryStatistics, SummaryStatisticsError,\
         Numbers, UnsafeNumbers, Freqs, UnsafeFreqs, NumberFreqs, \
         UnsafeNumberFreqs
-from cogent.util.misc import ConstraintError
+from cogent3.util.misc import ConstraintError
 from operator import add, sub, mul
 
 __author__ = "Rob Knight"

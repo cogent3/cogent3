@@ -17,8 +17,8 @@ Let's start by accessing a PDB file and creating a structure entity. We establis
 
 .. doctest::
 
-    >>> from cogent.parse.pdb import PDBParser
-    >>> from cogent.db.pdb import Pdb
+    >>> from cogent3.parse.pdb import PDBParser
+    >>> from cogent3.db.pdb import Pdb
     >>> pdb = Pdb()
     >>> socket_handle = pdb['2E1F']
     >>> structure = PDBParser(socket_handle)
@@ -60,7 +60,7 @@ This number is too high because we counted water molecules not only amino acids.
 
 .. doctest::
 
-    >>> from cogent.struct.selection import einput
+    >>> from cogent3.struct.selection import einput
     >>> all_residues = einput(structure, 'R', 'my_residues')
     >>> all_atoms = einput(structure, 'A')
     >>> len(all_residues)
@@ -117,7 +117,7 @@ But having to first group the entities via ``einput`` then select them only to p
 
 .. doctest::
 
-    >>> from cogent.struct.selection import select
+    >>> from cogent3.struct.selection import select
     >>> non_water_holder = select(structure, 'R', 'H_HOH', 'ne', 'name')
     >>> len(non_water_holder)
     95

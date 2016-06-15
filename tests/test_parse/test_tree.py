@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Unit tests for tree parsers.
 """
-from cogent.parse.tree import DndParser, DndTokenizer, RecordError
-from cogent.core.tree import PhyloNode
-from cogent.util.unit_test import TestCase, main
+from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
+from cogent3.core.tree import PhyloNode
+from cogent3.util.unit_test import TestCase, main
 
-#from cogent.parse.newick import parse_string, TreeParseError as RecordError
+#from cogent3.parse.newick import parse_string, TreeParseError as RecordError
 #def DndParser(data, NodeClass=PhyloNode, unescape_name=True):
 #    if not unescape_name:
 #        raise NotImplementedError

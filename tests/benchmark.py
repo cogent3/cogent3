@@ -2,10 +2,10 @@
 
 import sys #,hotshot
 
-from cogent.evolve.substitution_model import Nucleotide, Dinucleotide, Codon
-from cogent import LoadSeqs, LoadTree
-from cogent.maths import optimisers
-from cogent.util import parallel
+from cogent3.evolve.substitution_model import Nucleotide, Dinucleotide, Codon
+from cogent3 import LoadSeqs, LoadTree
+from cogent3.maths import optimisers
+from cogent3.util import parallel
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -135,8 +135,8 @@ def silly_predicate(a,b):
 #mA.setPredicates({'asym': asym_predicate})
 
 def exponentiator_switch(switch):
-    import cogent.evolve.substitution_calculation
-    cogent.evolve.substitution_calculation.use_new = switch
+    import cogent3.evolve.substitution_calculation
+    cogent3.evolve.substitution_calculation.use_new = switch
 
 import sys
 if 'relative' in sys.argv:

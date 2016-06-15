@@ -7,7 +7,7 @@ This is an example of how to create a profile from an alignment and how to do pa
 
 .. doctest::
 
-    >>> from cogent.core.profile import Profile
+    >>> from cogent3.core.profile import Profile
     >>> from cogent import LoadSeqs, RNA
 
 Then load an example alignment of 20 phe-tRNA sequences which we will use to create the profile

@@ -6,13 +6,13 @@ import numpy
 # hides the warning from taking log of -ve determinant
 numpy.seterr(invalid='ignore')
 
-from cogent.util.unit_test import TestCase, main
-from cogent import LoadSeqs, DNA, RNA, PROTEIN
-from cogent.evolve.pairwise_distance import get_moltype_index_array, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3 import LoadSeqs, DNA, RNA, PROTEIN
+from cogent3.evolve.pairwise_distance import get_moltype_index_array, \
     seq_to_indices, _fill_diversity_matrix, \
     _jc69_from_matrix, JC69Pair, _tn93_from_matrix, TN93Pair, LogDetPair, \
     ParalinearPair
-from cogent.evolve._pairwise_distance import \
+from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"

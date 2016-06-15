@@ -12,7 +12,7 @@ We start with the standard imports, plus using a canned codon substitution model
 .. doctest::
     
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import MG94HKY
+    >>> from cogent3.evolve.models import MG94HKY
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> tree = LoadTree("data/test.tree")
 

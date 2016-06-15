@@ -9,7 +9,7 @@ I illustrate the use of ``parallel.map`` here with an example that collects both
 
 .. doctest::
     
-    >>> from cogent.util import parallel
+    >>> from cogent3.util import parallel
     >>> import os, time
     >>> parallel.use_multiprocessing(2)
     >>> def foo(val):

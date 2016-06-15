@@ -1,10 +1,10 @@
 import os
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
-from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.assembly import Coordinate, CoordSystem, \
+from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
+from cogent3.db.ensembl.assembly import Coordinate, CoordSystem, \
                                     get_coord_conversion
-from cogent.db.ensembl.genome import Genome
+from cogent3.db.ensembl.genome import Genome
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

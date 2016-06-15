@@ -1,6 +1,6 @@
 A simple calculator
 
-    >>> from cogent.recalculation.definition import *
+    >>> from cogent3.recalculation.definition import *
     >>> def add(*args):
     ...     return sum(args)
     ...

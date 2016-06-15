@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from cogent.util.unit_test import TestCase, main
-from cogent.core.tree import PhyloNode
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.tree import PhyloNode
 from numpy import array
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-from cogent.cluster.UPGMA import find_smallest_index, condense_matrix, \
+from cogent3.cluster.UPGMA import find_smallest_index, condense_matrix, \
         condense_node_order, UPGMA_cluster, inputs_from_dict2D, upgma
-from cogent.util.dict2d import Dict2D
+from cogent3.util.dict2d import Dict2D
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

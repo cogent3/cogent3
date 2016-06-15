@@ -1,7 +1,7 @@
 import numpy as np
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
-from cogent.maths.stats.jackknife import JackknifeStats
+from cogent3.maths.stats.jackknife import JackknifeStats
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

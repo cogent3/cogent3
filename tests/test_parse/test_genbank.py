@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Unit tests for the GenBank database parsers.
 """
-from cogent.parse.genbank import parse_locus, parse_single_line, \
+from cogent3.parse.genbank import parse_locus, parse_single_line, \
     indent_splitter, parse_sequence, block_consolidator, parse_organism, \
     parse_feature, location_line_tokenizer, parse_simple_location_segment, \
     parse_location_line, parse_reference, parse_source, \
     Location, LocationList, RichGenbankParser
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -335,7 +335,7 @@ ORIGIN
     def test_rich_parser(self):
         """correctly constructs +/- strand features"""
         # a custom annotation function
-        from cogent.core.annotation import Feature
+        from cogent3.core.annotation import Feature
         def add_annotation(seq, feature, spans):
             if feature['type'] != "CDS": return
             name = feature['locus_tag'][0]

@@ -16,10 +16,10 @@ Setting up a ``MolType`` object with an RNA sequence
 
 .. doctest::
 
-   >>> from cogent.core.moltype import MolType, IUPAC_RNA_chars,\
+   >>> from cogent3.core.moltype import MolType, IUPAC_RNA_chars,\
    ...   IUPAC_RNA_ambiguities, RnaStandardPairs, RnaMW,\
    ...   IUPAC_RNA_ambiguities_complements
-   >>> from cogent.core.sequence import NucleicAcidSequence
+   >>> from cogent3.core.sequence import NucleicAcidSequence
    >>> testrnaseq = 'ACGUACGUACGUACGU'
    >>> RnaMolType = MolType(
    ...     Sequence = NucleicAcidSequence(testrnaseq),
@@ -39,7 +39,7 @@ Setting up a ``MolType`` object with a DNA sequence
 
 .. doctest::
 
-    >>> from cogent.core.moltype import MolType, IUPAC_DNA_chars,\
+    >>> from cogent3.core.moltype import MolType, IUPAC_DNA_chars,\
     ...   IUPAC_DNA_ambiguities, DnaMW, IUPAC_DNA_ambiguities_complements,\
     ...   DnaStandardPairs
     >>> testdnaseq = 'ACGTACGTACGUACGT'
@@ -62,7 +62,7 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
 
 .. doctest::
 
-   >>> from cogent.core import moltype as mt
+   >>> from cogent3.core import moltype as mt
    >>> DNAgapped = mt.MolType(Sequence=mt.DnaSequence,
    ...                        motifset=mt.IUPAC_DNA_chars,
    ...                        Ambiguities=mt.IUPAC_DNA_ambiguities,
@@ -77,9 +77,9 @@ Setting up a ``MolType`` object with a protein sequence
 
 .. doctest::
 
-    >>> from cogent.core.moltype import MolType, IUPAC_PROTEIN_chars,\
+    >>> from cogent3.core.moltype import MolType, IUPAC_PROTEIN_chars,\
     ...   IUPAC_PROTEIN_ambiguities, ProteinMW
-    >>> from cogent.core.sequence import ProteinSequence, ModelProteinSequence
+    >>> from cogent3.core.sequence import ProteinSequence, ModelProteinSequence
     >>> protstr = 'TEST'
     >>> ProteinMolType = MolType(
     ...     Sequence = ProteinSequence(protstr),

@@ -2,9 +2,9 @@
 
 import unittest
 
-from cogent import DNA, LoadSeqs
-from cogent.core.annotation import Feature, Variable, _Feature
-from cogent.core.location import Map, Span, as_map
+from cogent3 import DNA, LoadSeqs
+from cogent3.core.annotation import Feature, Variable, _Feature
+from cogent3.core.location import Map, Span, as_map
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -12,8 +12,8 @@ __email__ = "jens.reeder@gmail.com"
 __status__ = "Prototype"
 
 
-from cogent.util.unit_test import TestCase, main
-from cogent.util.trie import Trie, Compressed_Trie, build_prefix_map, build_trie, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.trie import Trie, Compressed_Trie, build_prefix_map, build_trie, \
     _build_prefix_map
 
 class TrieTests(TestCase):

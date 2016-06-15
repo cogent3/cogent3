@@ -265,7 +265,7 @@ PyCogent script template::
  
 
 
-	from cogent.util.option_parsing import parse_command_line_parameters, make_option
+	from cogent3.util.option_parsing import parse_command_line_parameters, make_option
 
 	script_info = {}
 	script_info['brief_description'] = ""
@@ -314,10 +314,10 @@ You can download an example PyCogent script for counting the number of sequences
 	__status__ = "Development"
 	
 	from glob import glob
-	from cogent.util.option_parsing import (
+	from cogent3.util.option_parsing import (
 	 parse_command_line_parameters, 
 	 make_option)
-	from cogent.parse.fasta import MinimalFastaParser
+	from cogent3.parse.fasta import MinimalFastaParser
 	
 	script_info = {}
 	script_info['brief_description'] = "Count sequences in one or more fasta files."

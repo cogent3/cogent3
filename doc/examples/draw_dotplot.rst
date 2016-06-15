@@ -6,8 +6,8 @@ Drawing a dotplot
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> from cogent.core import annotation
-    >>> from cogent.draw import dotplot
+    >>> from cogent3.core import annotation
+    >>> from cogent3.draw import dotplot
 
 Load the alignment for illustrative purposes, I'll make one sequence a different length than the other and introduce a custom sequence annotation for a miscellaneous feature. Normally, those annotations would be on the unaligned sequences.
 

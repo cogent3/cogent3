@@ -3,10 +3,10 @@
 import sys
 import unittest
 
-from cogent.evolve import likelihood_function, \
+from cogent3.evolve import likelihood_function, \
      parameter_controller, substitution_model, bootstrap
 
-from cogent import LoadSeqs, LoadTree
+from cogent3 import LoadSeqs, LoadTree
 
 import os
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for Info class and associated objects (DbRef, DbRefs, etc.).
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.core.info import DbRef, DbRefs, Info, _make_list
+from cogent3.util.unit_test import TestCase, main
+from cogent3.core.info import DbRef, DbRefs, Info, _make_list
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

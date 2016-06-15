@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from cogent.util.unit_test import TestCase, main
-from cogent import LoadSeqs, DNA
-from cogent.evolve.best_likelihood import aligned_columns_to_rows, count_column_freqs, get_ML_probs, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3 import LoadSeqs, DNA
+from cogent3.evolve.best_likelihood import aligned_columns_to_rows, count_column_freqs, get_ML_probs, \
      get_G93_lnL_from_array, BestLogLikelihood, _transpose, _take
 import math
 

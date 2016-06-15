@@ -2,8 +2,8 @@
 """Tests of the AAIndex parser.
 """
 
-from cogent.util.unit_test import TestCase, main
-from cogent.parse.aaindex import AAIndex1Parser, AAIndex2Parser,\
+from cogent3.util.unit_test import TestCase, main
+from cogent3.parse.aaindex import AAIndex1Parser, AAIndex2Parser,\
 AAIndexRecord, AAIndex1Record, AAIndex2Record, AAIndex1FromFiles,\
 AAIndex2FromFiles
 

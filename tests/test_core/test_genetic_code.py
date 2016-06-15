@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
-from cogent import RNA, DNA
-from cogent.core.genetic_code import GeneticCode, GeneticCodeInitError,\
+from cogent3 import RNA, DNA
+from cogent3.core.genetic_code import GeneticCode, GeneticCodeInitError,\
         InvalidCodonError, GeneticCodes
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

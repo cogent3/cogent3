@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for matrix logarithm."""
 from numpy import array
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.matrix_logarithm import logm, logm_taylor, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.matrix_logarithm import logm, logm_taylor, \
         is_generator_unique
 
 __author__ = "Rob Knight"

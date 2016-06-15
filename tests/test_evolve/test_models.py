@@ -1,5 +1,5 @@
-from cogent.util.unit_test import TestCase, main
-from cogent.evolve.models import JC69, F81, HKY85, TN93, GTR, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.evolve.models import JC69, F81, HKY85, TN93, GTR, \
     MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK, \
     DSO78, AH96, AH96_mtmammals, JTT92, WG01, CNFGTR, CNFHKY, \
     WG01_matrix, WG01_freqs

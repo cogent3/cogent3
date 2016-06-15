@@ -55,7 +55,7 @@ PyCogent's functions for statistical analysis operate on ``numpy`` arrays
 
     >>> import random
     >>> import numpy as np
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> random.seed(157)
     >>> nums = [random.gauss(mu=50, sigma=3) for i in range(1000)]
     >>> arr = np.array(nums)
@@ -75,7 +75,7 @@ The keyword argument ``axis`` controls whether a function operates by rows (``ax
 
 .. doctest::
 
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> import numpy as np
     >>> nums = range(1,6) + [50] + range(10,60,10) + [500]
     >>> arr = np.array(nums)
@@ -121,7 +121,7 @@ The variance (and standard deviation) are unbiased
 .. doctest::
 
     >>> import numpy as np
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> arr = np.array([1,2,3,4,5])
     >>> m = np.mean(arr)
     >>> stats.var(arr)
@@ -139,7 +139,7 @@ The binomial distribution can be used for calculating the probability of specifi
 
 .. doctest::
 
-    >>> import cogent.maths.stats.distribution as distr
+    >>> import cogent3.maths.stats.distribution as distr
     >>> distr.binomial_low(successes=5, trials=10, prob=0.5)
     0.623...
     >>> distr.binomial_high(successes=5, trials=10, prob=0.5)
@@ -154,7 +154,7 @@ A convenience function for computing the probability of a chi-square statistic i
 
 .. doctest::
 
-    >>> from cogent.maths.stats import chisqprob
+    >>> from cogent3.maths.stats import chisqprob
     >>> chisqprob(3.84, 1)
     0.05...
 
@@ -162,7 +162,7 @@ which is just a reference to the ``chi_high`` function.
 
 .. doctest::
 
-    >>> from cogent.maths.stats.distribution import chi_high
+    >>> from cogent3.maths.stats.distribution import chi_high
     >>> chi_high(3.84, 1)
     0.05...
 
@@ -173,7 +173,7 @@ Given a probability we can determine the corresponding chi-square value for a gi
 
 .. doctest::
 
-    >>> from cogent.maths.stats.distribution import chdtri
+    >>> from cogent3.maths.stats.distribution import chdtri
     >>> chdtri(1, 0.05)
     3.84...
     >>> chdtri(2, 0.05)
@@ -186,7 +186,7 @@ The function ``zprob()`` takes a z-score or standard deviation and computes the 
 
 .. doctest::
 
-    >>> import cogent.maths.stats.distribution as distr
+    >>> import cogent3.maths.stats.distribution as distr
     >>> for z in range(5):
     ...     print '%s %.4f' % (z, distr.zprob(z))
     ...
@@ -225,7 +225,7 @@ In this example, we grab a sample from a population with ``mean=50`` and ``std=3
 .. doctest::
 
     >>> import numpy as np
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> np.random.seed(157)
     >>> arr = np.random.normal(loc=50,scale=3,size=1000)
     >>> round(stats.mean(arr), 1)
@@ -275,7 +275,7 @@ We now create a ``Jackknife`` instance, passing it the ``calc_gc`` instance we h
 
 .. doctest::
     
-    >>> from cogent.maths.stats.jackknife import JackknifeStats
+    >>> from cogent3.maths.stats.jackknife import JackknifeStats
     >>> jk = JackknifeStats(len(aln), calc_gc)
     >>> print jk.SampleStat
     0.4766...
@@ -337,7 +337,7 @@ Consider a single sample of 50 value:
 .. doctest::
 
     >>> import numpy as np
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> np.random.seed(1357)
     >>> nums1 = np.random.normal(loc=45,scale=10,size=50)
 
@@ -395,7 +395,7 @@ If there is one small sample and we want to ask whether it is unlikely to have c
 
 .. doctest::
 
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> arr = [52.6, 51.3, 49.8]
     >>> t, prob = stats.t_one_sample(arr, popmean=48, tails='high')
     >>> t
@@ -407,7 +407,7 @@ For related samples (pre- and post-treatment), use the function ``t_paired()``
 
 .. doctest::
 
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> pre =  [52.6, 51.3, 49.8]
     >>> post = [62.6, 75.0, 65.2]
     >>> t, prob = stats.t_paired(pre, post, tails='low')
@@ -423,7 +423,7 @@ This is essentially just a test using the binomial distribution where the probab
 
 .. doctest::
 
-    >>> from cogent.maths.stats.test import sign_test
+    >>> from cogent3.maths.stats.test import sign_test
     >>> sign_test(40, 100)
     0.056...
 
@@ -452,7 +452,7 @@ We then compute Kendall's tau and associated probability, which tests the null h
 
 .. doctest::
 
-    >>> from cogent.maths.stats.test import kendall_correlation
+    >>> from cogent3.maths.stats.test import kendall_correlation
     >>> tau, prob = kendall_correlation(x_array, y_array)
     >>> print tau
     0.688...
@@ -480,7 +480,7 @@ The function ``correlation()`` returns the Pearson correlation between x and y, 
 
 .. doctest::
 
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> r, prob = stats.correlation(x_array, y_array)
     >>> r
     0.8907...
@@ -530,8 +530,8 @@ Calculus class data (from Grinstead and Snell, Introduction to Probability).  Th
 
 .. doctest::
 
-    >>> from cogent.util.dict2d import Dict2D
-    >>> import cogent.maths.stats.test as stats
+    >>> from cogent3.util.dict2d import Dict2D
+    >>> import cogent3.maths.stats.test as stats
     >>> F_grades = {'A':37,'B':63,'C':47,'F':5}
     >>> M_grades = {'A':56,'B':60,'C':43,'F':8}
     >>> grades = {'F':F_grades,'M':M_grades}
@@ -568,7 +568,7 @@ In this example, we generate the error as above, but separately from the x-value
 
     >>> import random
     >>> import numpy as np
-    >>> import cogent.maths.stats.test as stats
+    >>> import cogent3.maths.stats.test as stats
     >>> random.seed(13)
     >>> x_nums = range(1,11)
     >>> error = [1.5 * random.random() for i in range(len(x_nums))]
@@ -697,7 +697,7 @@ The plot code
     :hide:
 
     >>> filenames_to_delete.append('heatmap_example.png')
-    >>> from cogent.util.misc import remove_files
+    >>> from cogent3.util.misc import remove_files
     >>> remove_files(filenames_to_delete, error_on_missing=False)
 
 .. _matplotlib: http://matplotlib.sourceforge.net/

@@ -10,8 +10,8 @@ From cogent import all the components we need.
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import MG94HKY
-    >>> from cogent.draw import dendrogram
+    >>> from cogent3.evolve.models import MG94HKY
+    >>> from cogent3.draw import dendrogram
 
 Do a model, see the neutral test example for more details of this
 

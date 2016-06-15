@@ -12,9 +12,9 @@ From cogent import all the components we need.
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve import bootstrap
-    >>> from cogent.evolve.models import HKY85
-    >>> from cogent.maths import stats
+    >>> from cogent3.evolve import bootstrap
+    >>> from cogent3.evolve.models import HKY85
+    >>> from cogent3.maths import stats
 
 Define the null model that takes an alignment object and returns a likelihood function properly assembled for optimising the likelihood under the null hypothesis. The sample distribution is generated using this model.
 

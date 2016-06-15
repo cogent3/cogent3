@@ -1,5 +1,5 @@
-from cogent.util.unit_test import TestCase, main
-from cogent.db.ensembl.species import Species
+from cogent3.util.unit_test import TestCase, main
+from cogent3.db.ensembl.species import Species
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

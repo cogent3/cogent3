@@ -5,9 +5,9 @@ This section of the documentation explains how to use several PyCogent modules t
 
 .. doctest::
 
-    >>> from cogent.struct import contact
-    >>> from cogent.parse.pdb import PDBParser
-    >>> from cogent.struct import selection, manipulation, annotation
+    >>> from cogent3.struct import contact
+    >>> from cogent3.parse.pdb import PDBParser
+    >>> from cogent3.struct import selection, manipulation, annotation
     >>> pdb_fh = open('data/1HQF.pdb')
     >>> pdb_structure = PDBParser(pdb_fh)
     >>> model = pdb_structure[(0,)]

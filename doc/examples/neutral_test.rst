@@ -8,8 +8,8 @@ This file contains an example for performing a likelihood ratio test of neutrali
 .. doctest::
 
     >>> from cogent import LoadSeqs, LoadTree
-    >>> from cogent.evolve.models import MG94GTR
-    >>> from cogent.maths import stats
+    >>> from cogent3.evolve.models import MG94GTR
+    >>> from cogent3.maths import stats
 
 Get your alignment and tree.
 

@@ -2,9 +2,9 @@
 #file cogent/parse/test_phylip.py
 """Unit tests for the phylip parser
 """
-from cogent.parse.phylip import MinimalPhylipParser, get_align_for_phylip
-from cogent.parse.record import RecordError
-from cogent.util.unit_test import TestCase, main
+from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
+from cogent3.parse.record import RecordError
+from cogent3.util.unit_test import TestCase, main
 from StringIO import StringIO
 
 __author__ = "Micah Hamady"

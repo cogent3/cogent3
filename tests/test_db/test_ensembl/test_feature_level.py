@@ -1,11 +1,11 @@
 import os
 
-from cogent import DNA
-from cogent.util.unit_test import TestCase, main
-from cogent.db.ensembl.host import HostAccount, get_ensembl_account
-from cogent.db.ensembl.genome import Genome
-from cogent.db.ensembl.assembly import CoordSystem, Coordinate, get_coord_conversion
-from cogent.db.ensembl.feature_level import FeatureCoordLevels
+from cogent3 import DNA
+from cogent3.util.unit_test import TestCase, main
+from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
+from cogent3.db.ensembl.genome import Genome
+from cogent3.db.ensembl.assembly import CoordSystem, Coordinate, get_coord_conversion
+from cogent3.db.ensembl.feature_level import FeatureCoordLevels
 
 __author__ = "Gavin Huttley, Hua Ying"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

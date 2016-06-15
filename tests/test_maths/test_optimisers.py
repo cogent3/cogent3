@@ -2,8 +2,8 @@
 
 from __future__ import division
 import time, sys, os, numpy
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.optimisers import maximise, MaximumEvaluationsReached
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.optimisers import maximise, MaximumEvaluationsReached
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.information_criteria import aic, bic
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.information_criteria import aic, bic
 
 
 __author__ = "Gavin Huttley"

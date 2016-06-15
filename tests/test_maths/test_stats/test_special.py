@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for special functions used in statistics.
 """
-from cogent.util.unit_test import TestCase, main
-from cogent.maths.stats.special import permutations, permutations_exact, \
+from cogent3.util.unit_test import TestCase, main
+from cogent3.maths.stats.special import permutations, permutations_exact, \
     ln_permutations, combinations, combinations_exact, \
     ln_combinations, ln_binomial, log_one_minus, one_minus_exp, igami,\
     ndtri, incbi, log1p

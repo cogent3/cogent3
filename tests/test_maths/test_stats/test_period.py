@@ -1,10 +1,10 @@
 import numpy
-from cogent.util.unit_test import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
-from cogent.maths.stats.period import chi_square, factorial, g_statistic, \
+from cogent3.maths.stats.period import chi_square, factorial, g_statistic, \
         circular_indices, _seq_to_symbols, seq_to_symbols, blockwise_bootstrap, \
         SeqToSymbols
-from cogent.maths.period import ipdft, hybrid, auto_corr, Hybrid, Ipdft, \
+from cogent3.maths.period import ipdft, hybrid, auto_corr, Hybrid, Ipdft, \
         AutoCorrelation
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
