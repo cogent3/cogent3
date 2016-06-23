@@ -38,8 +38,14 @@ class _Region(LazyRecord):
     def __len__(self):
         return len(self.Location)
 
-    def __cmp__(self, other):
-        return cmp(self.Location, other.Location)
+    def __lt__(self, other):
+        return self.Location < other.Location
+
+    def __eq__(self, other):
+        return self.Location == other.Location
+
+    def __ne__(self, other):
+        return self.Location != other.Location
 
     def _make_location(self):
         row = self._table_rows[self._attr_ensembl_table_map['Location']]
@@ -858,8 +864,14 @@ class Exon(_StableRegion):
         my_type = self.__class__.__name__
         return '%s(StableId=%s, Rank=%s)' % (my_type, self.StableId, self.Rank)
 
-    def __cmp__(self, other):
-        return cmp(self.Rank, other.Rank)
+    def __lt__(self, other):
+        return self.Rank < other.Rank
+
+    def __eq__(self, other):
+        return self.Rank == other.Rank
+
+    def __ne__(self, other):
+        return self.Rank != other.Rank
 
     def _get_exon_stable_id_record(self):
         if self.genome.GeneralRelease >= 65:

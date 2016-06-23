@@ -19,8 +19,8 @@ class _fake_seq(str):
         new.Label = Label
         return new
     
-    def __getslice__(self, *args, **kwargs):
-        new_seq = str.__getslice__(self, *args, **kwargs)
+    def __getitem__(self, *args, **kwargs):
+        new_seq = str.__getitem__(self, *args, **kwargs)
         return self.__new__(self.__class__,self.Label, new_seq)
     
 

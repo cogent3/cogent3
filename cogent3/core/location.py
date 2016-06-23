@@ -40,6 +40,7 @@ range from 2:4 contains 2, 3 and 4, _not_ just 2 and 3.
 from cogent3.util.misc import FunctionWrapper, ClassChecker, ConstrainedList, \
     iterable
 from itertools import chain
+from functools import total_ordering
 from string import strip
 
 from bisect import bisect_right, bisect_left
@@ -126,7 +127,7 @@ class SpanI(object):
         """Returns length of self."""
         raise NotImplementedError
     
-    def __cmp__(self):
+    def __lt__(self):
         """Compares indices of self with indices of other."""
         raise NotImplementedError
     
@@ -186,7 +187,7 @@ class SpanI(object):
         except (AttributeError, TypeError):  #count other as empty span
             return False
     
-
+@total_ordering
 class Span(SpanI):
     """A contiguous location, not much more than (start, end)
     
@@ -386,13 +387,22 @@ class Span(SpanI):
         """Returns length of self."""
         return self.End - self.Start
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """Compares indices of self with indices of other."""
         if hasattr(other, 'Start') and hasattr(other, 'End'):
-            return cmp(self.Start, other.Start) or cmp(self.End, other.End) \
-                or cmp(self.Reverse, other.Reverse)
+            s = (self.Start, self.End, self.Reverse)
+            o = (other.Start, other.End, other.Reverse)
+            return s < o
         else:
-            return cmp(type(self), type(other))
+            return type(self) < type(other)
+    
+    def __eq__(self, other):
+        """Compares indices of self with indices of other."""
+        if hasattr(other, 'Start') and hasattr(other, 'End'):
+            return self.Start == other.Start and self.End == other.End \
+                and self.Reverse == other.Reverse
+        else:
+            return type(self) == type(other)
     
 
 class _LostSpan(object):
@@ -692,6 +702,7 @@ class SpansOnly(ConstrainedList):
     Mask = FunctionWrapper(Span)
     _constraint = ClassChecker(Span)
 
+@total_ordering
 class Range(SpanI):
     """Complex object consisting of many spans."""
     
@@ -724,16 +735,27 @@ class Range(SpanI):
         """
         return sum(map(len, self.Spans))
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """Compares spans of self with indices of other."""
         if hasattr(other, 'Spans'):
-            return cmp(self.Spans, other.Spans)
+            return self.Spans < other.Spans
         elif len(self.Spans) == 1 and hasattr(other, 'Start') and \
             hasattr(other, 'End'):
-            return cmp(self.Spans[0].Start, other.Start) or \
-                cmp(self.Spans[0].End, other.End)
+            return self.Spans[0].Start < other.Start or \
+                self.Spans[0].End < other.End
         else:
-            return object.__cmp__(self, other)
+            return object < other
+    
+    def __eq__(self, other):
+        """Compares spans of self with indices of other."""
+        if hasattr(other, 'Spans'):
+            return self.Spans == other.Spans
+        elif len(self.Spans) == 1 and hasattr(other, 'Start') and \
+            hasattr(other, 'End'):
+            return self.Spans[0].Start == other.Start and \
+                self.Spans[0].End == other.End
+        else:
+            return object == other
     
     def _get_start(self):
         """Finds earliest start of items in self.Spans."""

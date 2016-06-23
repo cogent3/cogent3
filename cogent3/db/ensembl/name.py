@@ -94,10 +94,20 @@ class EnsemblDbName(object):
     def __str__(self):
         return self.Name
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, type(self)):
             other = other.Name
-        return cmp(self.Name, other)
+        return self.Name < other
+    
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            other = other.Name
+        return self.Name == other
+    
+    def __ne__(self, other):
+        if isinstance(other, type(self)):
+            other = other.Name
+        return self.Name != other
     
     def __hash__(self):
         return hash(self.Name)

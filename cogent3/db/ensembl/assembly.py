@@ -100,8 +100,11 @@ class Coordinate(object):
     def __len__(self):
         return self.End - self.Start
     
-    def __cmp__(self, other):
-        return cmp((self.CoordName,self.Start), (other.CoordName,other.Start))
+    def __lt__(self, other):
+        return (self.CoordName,self.Start) < (other.CoordName,other.Start)
+    
+    def __eq__(self, other):
+        return (self.CoordName,self.Start) == (other.CoordName,other.Start)
     
     def _get_ensembl_start(self):
         # ensembl counting starts from 1

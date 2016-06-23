@@ -121,6 +121,21 @@ class SpanTests(TestCase):
 
         for i, j in zip(first, expected_order):
             self.assertSameObj(i, j)
+    
+    def test_sort(self):
+        """Span should support sort by 1st/2nd index and direction"""
+        s, e, f, r, i, o = self.spans_zero, self.empty, self.full, \
+            self.reverse, self.inside, self.overlapping
+
+        n = Span(30, 36)
+
+        expected_order = [s, e]
+        first = expected_order[:]
+        first.sort()
+
+        for i, j in zip(first, expected_order):
+            self.assertSameObj(i, j)
+
 
     def test_startsBefore(self):
         """Span startsBefore should match hand-calculated results"""
