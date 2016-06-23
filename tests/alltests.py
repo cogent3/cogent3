@@ -134,8 +134,7 @@ def suite():
 
     # we now toggle the db tests, based on an environment flag
     if int(os.environ.get('TEST_DB', 0)):
-        db_tests = ['test_db.test_ncbi', 'test_db.test_pdb',
-                        'test_db.test_rfam', 'test_db.test_util']
+        db_tests = ['test_db.test_ncbi', 'test_db.test_util']
 
         # we check for an environment flag for ENSEMBL
         # we expect this to have the username and account for a localhost
@@ -143,11 +142,11 @@ def suite():
         if 'ENSEMBL_ACCOUNT' in os.environ:
             # check for cogent3.db.ensembl dependencies
             test_ensembl = True
-            if not (module_present('MySQLdb') or module_present('mysql')):
+            mysqls = ['MySQLdb', 'mysql', 'pymysql']
+            if not any(map(module_present, mysqls)):
                 test_ensembl = False
                 print >> sys.stderr, \
-                    "Module 'mysql-connector-python' and 'MySQL-python' not "\
-                        "present: skipping test"
+                "None of %s modules present: skipping test" % ", ".join(mysqls)
             
             if not module_present('sqlalchemy'):
                 test_ensembl = False
