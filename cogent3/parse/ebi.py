@@ -1422,7 +1422,7 @@ Examples:
         if opt in ("-h", "--help"):
             print usage; sys.exit()
     if args:
-        lines = file(args[0])
+        lines = open(args[0])
         print 'Parsing the file'
         for i, rec in enumerate(EbiParser(lines, strict=True)):
             print '\r %s: %s' % (i,rec[1]['ID']['EntryName']) ,
@@ -1526,9 +1526,9 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
     #from time import time
     ##sys.exit()
     #if len(sys.argv) > 1:
-    #    #f = file('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_human.dat')
-    #    f = file('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_fungi.dat')
-    #    #f = file('/home/zongzhi/Projects/SNP/snp_tests/ebi_test.txt')
+    #    #f = open('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_human.dat')
+    #    f = open('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_fungi.dat')
+    #    #f = open('/home/zongzhi/Projects/SNP/snp_tests/ebi_test.txt')
 
     #    i = 0
     #    for sequence, head in MinimalEbiParser(f):
