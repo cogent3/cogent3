@@ -12,6 +12,7 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 from __future__ import division
+from functools import total_ordering
 from annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import keep_chars, for_seq, per_shortest, \
     per_longest
@@ -45,6 +46,7 @@ ARRAY_TYPE = type(array(1))
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
+@total_ordering
 class SequenceI(object):
     """Abstract class containing Sequence interface.
     
@@ -77,9 +79,17 @@ class SequenceI(object):
         """count() delegates to self._seq."""
         return self._seq.count(item)
     
-    def __cmp__(self, other):
-        """__cmp__ compares based on the sequence string."""
-        return cmp(self._seq, other)
+    def __lt__(self, other):
+        """compares based on the sequence string."""
+        return self._seq < str(other)
+    
+    def __eq__(self, other):
+        """compares based on the sequence string."""
+        return self._seq == str(other)
+    
+    def __ne__(self, other):
+        """compares based on the sequence string."""
+        return self._seq != str(other)
     
     def __hash__(self):
         """__hash__ behaves like the sequence string for dict lookup."""
@@ -481,6 +491,7 @@ class SequenceI(object):
             result = self.__class__(prefix + mid + suffix, Info=self.Info)
         return result
 
+@total_ordering
 class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
     MolType = None      #connected to ACSII when moltype is imported
@@ -911,7 +922,7 @@ class ByteSequence(Sequence):
         return super(ByteSequence, self).__init__(Seq, Name=Name, Info=Info, \
                 check=check, preserve_case=preserve_case)
     
-
+@total_ordering
 class ModelSequenceBase(object):
     """Holds the information for a non-degenerate sequence. Mutable.
     
@@ -983,9 +994,13 @@ class ModelSequenceBase(object):
             result = self._data.__getitem__(*args)
         return self.__class__(result)
     
-    def __cmp__(self, other):
-        """__cmp__ compares based on string"""
-        return cmp(str(self), other)
+    def __lt__(self, other):
+        """compares based on string"""
+        return str(self) < other
+    
+    def __eq__(self, other):
+        """compares based on string"""
+        return str(self) == other
     
     def _from_sequence(self, data):
         """Fills self using the values in data, via the Alphabet."""

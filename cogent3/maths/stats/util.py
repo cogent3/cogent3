@@ -105,6 +105,8 @@ UnsafeNumberFreqs behaves like NumberFreqs except that it doesn't validate on
 input or mutation of the dict. It's much faster, though.
 """
 from __future__ import division
+from functools import total_ordering
+
 from cogent3.util.misc import FunctionWrapper, MappedList, MappedDict, \
     ConstraintError
 from cogent3.util.table import Table
@@ -125,6 +127,7 @@ class SummaryStatisticsError(ValueError):
     """Raised when not possible to calculate a requested summary statistic."""
     pass
 
+@total_ordering
 class SummaryStatistics(object):
     """Minimal statistics interface. Object is read-only once created."""
     def __init__(self, Count=None, Sum=None, Mean=None, StandardDeviation=None,
@@ -224,12 +227,12 @@ class SummaryStatistics(object):
         return self._sum_squares
     SumSquares = property(_get_sum_squares)
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """SummaryStatistics compares by count, then sum, then variance.
         
         Absent values compare as 0.
         """
-        result = 0
+        result = False
         for attr in ['Count', 'Sum', 'Variance', 'SumSquares']:
             try:
                 my_attr = getattr(self, attr)
@@ -239,8 +242,64 @@ class SummaryStatistics(object):
                 other_attr = getattr(other, attr)
             except SummaryStatisticsError:
                 other_attr = 0
-            result = result or cmp(my_attr, other_attr)
+            result = result or my_attr < other_attr
         return result
+    
+    def __gt__(self, other):
+        """SummaryStatistics compares by count, then sum, then variance.
+        
+        Absent values compare as 0.
+        """
+        result = False
+        for attr in ['Count', 'Sum', 'Variance', 'SumSquares']:
+            try:
+                my_attr = getattr(self, attr)
+            except SummaryStatisticsError:
+                my_attr = 0
+            try:
+                other_attr = getattr(other, attr)
+            except SummaryStatisticsError:
+                other_attr = 0
+            result = result or my_attr > other_attr
+        return result
+    
+    def __eq__(self, other):
+        """SummaryStatistics compares by count, then sum, then variance.
+        
+        Absent values compare as 0.
+        """
+        result = False
+        for attr in ['Count', 'Sum', 'Variance', 'SumSquares']:
+            try:
+                my_attr = getattr(self, attr)
+            except SummaryStatisticsError:
+                my_attr = 0
+            try:
+                other_attr = getattr(other, attr)
+            except SummaryStatisticsError:
+                other_attr = 0
+            result = result or my_attr == other_attr
+        return result
+    
+    def __ne__(self, other):
+        """SummaryStatistics compares by count, then sum, then variance.
+        
+        Absent values compare as 0.
+        """
+        result = False
+        for attr in ['Count', 'Sum', 'Variance', 'SumSquares']:
+            try:
+                my_attr = getattr(self, attr)
+            except SummaryStatisticsError:
+                my_attr = 0
+            try:
+                other_attr = getattr(other, attr)
+            except SummaryStatisticsError:
+                other_attr = 0
+            result = result or my_attr != other_attr
+        return result
+
+
 
 class NumbersI(object):
     """Interface for Numbers, a list that performs numeric operations."""

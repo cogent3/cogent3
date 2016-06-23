@@ -1000,6 +1000,15 @@ class ConstrainedList(ConstrainedContainer, list):
             item = self.Mask(item)
         list.__setitem__(self, index, item)
 
+    def __setslice__(self, start, end, sequence):
+        """Make sure invalid data can't get into slice."""
+        if self.otherIsValid(sequence):
+            list.__setslice__(self, start, end, map(self.Mask, sequence))
+        else:
+            raise ConstraintError, \
+                "Sequence '%s' has items not in constraint '%s'"\
+                % (sequence, self.Constraint)
+    
     def append(self, item):
         """Appends item to self."""
         if not self.itemIsValid(item):
@@ -1024,21 +1033,27 @@ class ConstrainedList(ConstrainedContainer, list):
 
     def __getslice__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
-        result = self.__class__(list.__getslice__(self, *args, **kwargs), \
-            Constraint=self.Constraint)
+        # to be deleted in py3
+        val = list.__getslice__(self, *args, **kwargs)
+        result = self.__class__(val, Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
         return result
-
-    def __setslice__(self, start, end, sequence):
-        """Make sure invalid data can't get into slice."""
-        if self.otherIsValid(sequence):
-            list.__setslice__(self, start, end, map(self.Mask, sequence))
-        else:
-            raise ConstraintError, \
-                "Sequence '%s' has items not in constraint '%s'"\
-                % (sequence, self.Constraint)
+    
+    def __getitem__(self, *args, **kwargs):
+        """Make sure slice remembers the constraint."""
+        if len(args) == 1 and type(args[0]) == int and not kwargs:
+            val = list.__getitem__(self, args[0])
+            return val
+        
+        val = list.__getitem__(self, *args, **kwargs)
+        result = self.__class__(val, Constraint=self.Constraint)
+        mask = self._mask_for_new()
+        if mask:
+            result.Mask = mask
+        return result
+    
 
 class MappedList(ConstrainedList):
     """As for ConstrainedList, but maps items on contains and getitem."""

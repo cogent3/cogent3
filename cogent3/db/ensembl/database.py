@@ -33,8 +33,11 @@ class Database(object):
     def __str__(self):
         return str(self.db_name)
     
-    def __cmp__(self, other):
-        return cmp(self._db, other._db)
+    def __eq__(self, other):
+        return self._db == other._db
+    
+    def __ne__(self, other):
+        return self._db != other._db
     
     def getTable(self, name):
         """returns the SQLalchemy table instance"""

@@ -55,9 +55,17 @@ class OptPar(object):
     def addClient(self, client):
         self.clients.append(client)
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         # optimisation is more efficient if params for one edge are neighbours
-        return cmp(self.order, other.order)
+        return self.order < other.order
+    
+    def __eq__(self, other):
+        # optimisation is more efficient if params for one edge are neighbours
+        return self.order == other.order
+    
+    def __ne__(self, other):
+        # optimisation is more efficient if params for one edge are neighbours
+        return self.order != other.order
     
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, self.label)

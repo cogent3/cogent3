@@ -101,8 +101,14 @@ class Genome(object):
     def __repr__(self):
         return self.__str__()
     
-    def __cmp__(self, other):
-        return cmp(self.CoreDb, other.CoreDb)
+    def __lt__(self, other):
+        return self.CoreDb < other.CoreDb
+    
+    def __eq__(self, other):
+        return self.CoreDb == other.CoreDb
+    
+    def __ne__(self, other):
+        return self.CoreDb != other.CoreDb
     
     def _connect_db(self, db_type):
         connection = dict(account=self._account, release=self.Release,

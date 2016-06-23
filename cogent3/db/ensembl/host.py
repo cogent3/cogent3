@@ -44,11 +44,14 @@ class HostAccount(object):
         self.port = port or 3306
         self._hash = hash((self.host, self.user, self.port))
     
-    def __cmp__(self, other):
-        return cmp(self._hash, other._hash)
+    def __lt__(self, other):
+        return self._hash < other._hash
     
     def __eq__(self, other):
         return self._hash == other._hash
+    
+    def __ne__(self, other):
+        return self._hash != other._hash
     
     def __hash__(self):
         return self._hash

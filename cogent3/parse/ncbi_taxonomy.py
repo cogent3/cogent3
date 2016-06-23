@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Extracts data from NCBI nodes.dmp and names.dmp files.
 """
+from functools import total_ordering
 from cogent3.core.tree import TreeNode
 from string import strip
 
@@ -48,6 +49,7 @@ RanksToNumbers = {
     'no rank':28,
 }
 
+@total_ordering
 class NcbiTaxon(object):
     """Extracts taxon information: init from one line of NCBI's nodes.dmp.
 
@@ -97,12 +99,26 @@ class NcbiTaxon(object):
             pieces[1] = pieces[0]
         return '\t|\t'.join(pieces) + '\t|\n'
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """Compare by taxon rank."""
         try:
-            return cmp(self.RankId, other.RankId)
+            return self.RankId < other.RankId
         except AttributeError:
-            return 1    #always sort ranked nodes above unranked
+            return True    #always sort ranked nodes above unranked
+    
+    def __eq__(self, other):
+        """Compare by taxon rank."""
+        try:
+            return self.RankId == other.RankId
+        except AttributeError:
+            return True
+    
+    def __ne__(self, other):
+        """Compare by taxon rank."""
+        try:
+            return self.RankId != other.RankId
+        except AttributeError:
+            return True
     
 
 def NcbiTaxonParser(infile):

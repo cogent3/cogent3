@@ -184,11 +184,11 @@ class GeneticCode(object):
         """Returns reconstructable representation of the GeneticCode."""
         return 'GeneticCode(%s)' % str(self)
     
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """ Allows two GeneticCode objects to be compared to each other.
         Two GeneticCode objects are equal if they have equal CodeSequences.
         """
-        return cmp(str(self), str(other))
+        return str(self) == str(other)
 
     def __getitem__(self, item):
         """Returns amino acid corresponding to codon, or codons for an aa.

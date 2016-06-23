@@ -46,12 +46,35 @@ class DbRef(object):
         """Tries to coerce accession to int."""
         return int(self.Accession)
 
-    def __cmp__(self, other):
+    def __gt__(self, other):
         """Compares by accession: tries numeric first, then alphabetic"""
         try:
-            return cmp(int(self), int(other))
+            return int(self) > int(other)
         except:
-            return cmp(str(self), str(other))
+            return str(self) > str(other)
+        
+    def __lt__(self, other):
+        """Compares by accession: tries numeric first, then alphabetic"""
+        try:
+            return int(self) < int(other)
+        except:
+            return str(self) < str(other)
+
+
+    def __eq__(self, other):
+        """Compares by accession: tries numeric first, then alphabetic"""
+        try:
+            return int(self) == int(other)
+        except:
+            return str(self) == str(other)
+    
+    def __ne__(self, other):
+        """Compares by accession: tries numeric first, then alphabetic"""
+        try:
+            return int(self) != int(other)
+        except:
+            return str(self) != str(other)
+
 
 def _make_list(obj):
     """Returns list corresponding to or containing obj, depending on type."""

@@ -22,6 +22,7 @@
 from __future__ import division
 from types import GeneratorType
 from collections import defaultdict
+from functools import total_ordering
 
 from cogent3.core.annotation import Map, _Annotatable
 import cogent3   #will use to get at cogent3.parse.fasta.MinimalFastaParser,
@@ -175,6 +176,7 @@ def seqs_from_empty(obj, *args, **kwargs):
     """SequenceCollection from empty data: raise exception."""
     raise ValueError, "Cannot create empty SequenceCollection."
 
+@total_ordering
 class SequenceCollection(object):
     """Base class for Alignment, but also just stores unaligned seqs.
     
@@ -524,13 +526,29 @@ class SequenceCollection(object):
         except (IndexError, TypeError), e:
             return 'empty'
     
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """first tests as dict, then as str"""
+        c = self.NamedSeqs == other
+        if not c:
+            c = str(self) == str(other)
+        
+        return c
+    
+    def __ne__(self, other):
+            """first tests as dict, then as str"""
+            c = self.NamedSeqs != other
+            if not c:
+                c = str(self) != str(other)
+            
+            return c
+        
+    def __lt__(self, other):
         """cmp first tests as dict, then as str."""
-        c = cmp(self.NamedSeqs, other)
+        c = self.NamedSeqs < other
         if not c:
             return 0
         else:
-            return cmp(str(self), str(other))
+            return str(self) < str(other)
     
     def keys(self):
         """keys uses self.Names, which defaults to known keys if None.
@@ -1472,7 +1490,7 @@ class SequenceCollection(object):
         #return new SequenceCollection object
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
         
-        
+@total_ordering
 class Aligned(object):
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
@@ -1525,9 +1543,17 @@ class Aligned(object):
         """Returns string representation of aligned sequence, incl. gaps."""
         return str(self.getGappedSeq())
     
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """Compares based on string representations."""
-        return cmp(str(self), str(other))
+        return str(self) < str(other)
+    
+    def __eq__(self, other):
+        """Compares based on string representations."""
+        return str(self) == str(other)
+    
+    def __ne__(self, other):
+        """Compares based on string representations."""
+        return str(self) != str(other)
     
     def __iter__(self):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
