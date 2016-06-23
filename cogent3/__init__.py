@@ -148,7 +148,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     # 
     if filename is not None and not (reader or static_column_types):
         if filename[filename.rfind(".")+1:] == 'pickle':
-            f = file(filename, 'U')
+            f = open(filename, 'U')
             loaded_table = cPickle.load(f)
             f.close()
             return _Table(**loaded_table)
@@ -158,7 +158,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
                                     delimiter = sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
-        f = file(filename, "r")
+        f = open(filename, "r")
         if not reader:
             reader = autogen_reader(f, sep, limit=limit,
                         with_title=kwargs.get('with_title', False))

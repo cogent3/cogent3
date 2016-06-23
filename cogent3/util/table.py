@@ -377,7 +377,7 @@ class Table(DictArray):
             mode = ['wb', mode][mode == 'w']
             outfile = GzipFile(filename, mode)
         else:
-            outfile = file(filename, mode)
+            outfile = open(filename, mode)
         
         if format is None:
             # try guessing from filename suffix

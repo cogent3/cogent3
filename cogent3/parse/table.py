@@ -135,7 +135,7 @@ def load_delimited(filename, header = True, delimiter = ',',
     if filename.endswith('gz'):
         f = GzipFile(filename, 'rb')
     else:
-        f = file(filename, "U")
+        f = open(filename, "U")
     
     reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
     rows = []
