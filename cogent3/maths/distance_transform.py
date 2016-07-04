@@ -52,7 +52,7 @@ EXAMPLE USAGE:
 
     
 """
-from __future__ import division
+
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
     mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
@@ -97,7 +97,7 @@ def _rankdata(a):
     for i in range(n):
         sumranks = sumranks + i
         dupcount = dupcount + 1
-        if i==n-1 or svec[i] <> svec[i+1]:
+        if i==n-1 or svec[i] != svec[i+1]:
             averank = sumranks / float(dupcount) + 1
             for j in range(i-dupcount+1,i+1):
                 newarray[ivec[j]] = averank
@@ -1414,6 +1414,6 @@ if __name__ == "__main__":
                                     ])
     
     res = dist_euclidean(matrix1)
-    print "euclidean distance result: \n"
-    print res
+    print("euclidean distance result: \n")
+    print(res)
 

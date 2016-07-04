@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import cPickle, csv
-from record_finder import is_empty
+import pickle, csv
+from .record_finder import is_empty
 from gzip import GzipFile
+import collections
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -30,7 +31,7 @@ class ConvertFields(object):
         self._func = self.convertByColumns
         
         if not self.by_column:
-            assert callable(conversion), \
+            assert isinstance(conversion, collections.Callable), \
                 "conversion must be callable to convert by line"
             self._func = self.convertByLine
     
@@ -118,7 +119,7 @@ def autogen_reader(infile, sep, with_title, limit=None):
             v = float(value)
         except ValueError:
             try:
-                v = long(value)
+                v = int(value)
             except ValueError:
                 continue
         
@@ -135,7 +136,7 @@ def load_delimited(filename, header = True, delimiter = ',',
     if filename.endswith('gz'):
         f = GzipFile(filename, 'rb')
     else:
-        f = open(filename, "U")
+        f = open(filename, newline=None)
     
     reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
     rows = []

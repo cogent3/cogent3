@@ -41,7 +41,7 @@ class FloatWithAttrs(float):
         return float.__new__(cls, value)
     def __init__(self, value, **kw):
         float.__init__(self)
-        for (n,v) in kw.items():
+        for (n,v) in list(kw.items()):
             setattr(self, n, v)
 
 def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):

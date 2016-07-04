@@ -23,7 +23,7 @@ import re
 import string
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
     ravel, asarray, fromstring, take, uint8, uint16, uint32, take
-from string import maketrans, translate
+
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
@@ -91,14 +91,14 @@ def _make_translation_tables(a):
     some mapping. Using translate() can be thousands of times faster, so it's
     almost always worth it if you have a choice.
     """
-    indices = ''.join(map(chr, range(len(a))))
+    indices = ''.join(map(chr, list(range(len(a)))))
     chars = ''.join(a)
-    return maketrans(indices, chars), maketrans(chars, indices)
+    return str.maketrans(indices, chars), str.maketrans(chars, indices)
 
 def _make_complement_array(a, complements):
     """Makes translation array between item indices and their complements."""
     comps = [complements.get(i, i) for i in a]
-    return array(map(a.index, comps))
+    return array(list(map(a.index, comps)))
 
 class Enumeration(tuple):
     """An ordered set of objects, e.g. a list of taxon labels or sequence ids.
@@ -162,7 +162,7 @@ class Enumeration(tuple):
         
         #check if motif lengths are homogeneous -- if so, set length
         try:
-            motif_lengths = frozenset(map(len, self))
+            motif_lengths = frozenset(list(map(len, self)))
             if len(motif_lengths) > 1:
                 self._motiflen = None
             else:
@@ -174,9 +174,9 @@ class Enumeration(tuple):
         self._quick_motifset = frozenset(self)
         if len(self._quick_motifset) != len(self):
             #got duplicates: show user what they sent in
-            raise TypeError, 'Alphabet initialized with duplicate values:\n' +\
-                str(self)
-        self._obj_to_index = dict(zip(self, range(len(self))))
+            raise TypeError('Alphabet initialized with duplicate values:\n' +\
+                str(self))
+        self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
         #handle gaps
         self.Gap = Gap
         if Gap and (Gap in self):
@@ -215,7 +215,7 @@ class Enumeration(tuple):
         would produce the result [1,1,2,0], returning the index of each
         element in the input.
         """
-        return map(self._obj_to_index.__getitem__, data)
+        return list(map(self._obj_to_index.__getitem__, data))
     
     def isValid(self, seq):
         """Returns True if seq contains only items in self."""
@@ -240,17 +240,17 @@ class Enumeration(tuple):
         """
         #if it's a normal Python type, map will work
         try:
-            return map(self.__getitem__, data)
+            return list(map(self.__getitem__, data))
         #otherwise, it's probably an array object.
         except TypeError:
             try:
-                data = map(int, data)
+                data = list(map(int, data))
             except (TypeError, ValueError): #might be char array?
-                print "DATA", data
-                print "FIRST MAP:", map(str, data)
-                print "SECOND MAP:", map(ord, map(str, data))
-                data = map(ord, map(str, data))
-            return(map(self.__getitem__, data))
+                print("DATA", data)
+                print("FIRST MAP:", list(map(str, data)))
+                print("SECOND MAP:", list(map(ord, list(map(str, data)))))
+                data = list(map(ord, list(map(str, data))))
+            return(list(map(self.__getitem__, data)))
     
     def __pow__(self, num):
         """Returns JointEnumeration with num copies of self.
@@ -312,7 +312,7 @@ class Enumeration(tuple):
             try:
                 data = ravel(array(a))
             except ValueError: #try mapping to string
-                data = ravel(array(map(str, a)))
+                data = ravel(array(list(map(str, a))))
         return sum(asarray(self._allowed_range == data, Int), axis=-1)
     
     def _get_pairs(self):
@@ -358,7 +358,7 @@ class JointEnumeration(Enumeration):
         constituent subenumerations.
         """
         self.SubEnumerations = self._coerce_enumerations(data)
-        sub_enum_lengths = map(len, self.SubEnumerations)
+        sub_enum_lengths = list(map(len, self.SubEnumerations))
         #build factors for combining symbols.
         curr_factor = 1
         sub_enum_factors = [curr_factor]
@@ -533,7 +533,7 @@ class Alphabet(Enumeration):
         than an arbitrary string, tuple, etc.
         """
         sequence = sequence.getInMotifSize(self._motiflen)
-        return array(map(self.index, sequence))
+        return array(list(map(self.index, sequence)))
     
     def fromOrdinalsToSequence(self, data):
         """Returns a Sequence object corresponding to indices in data.
@@ -656,7 +656,7 @@ class Alphabet(Enumeration):
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
         if hasattr(motif_probs, 'keys'):
-            sample = motif_probs.keys()[0]
+            sample = list(motif_probs.keys())[0]
             if sample not in self:
                 raise ValueError("Can't find motif %s in alphabet" %
                                 sample)
@@ -693,8 +693,12 @@ class CharAlphabet(Alphabet):
         super(CharAlphabet, self).__init__(data, Gap, MolType=MolType)
         self._indices_to_chars, self._chars_to_indices = \
             _make_translation_tables(data)
-        self._char_nums_to_indices = array(self._chars_to_indices,'c').view('B')
-        self._indices_nums_to_chars = array(self._indices_to_chars, 'c')
+        self._char_nums_to_indices = array(range(256))
+        chars = bytearray(range(256))
+        for i, c in self._indices_to_chars.items():
+            chars[i] = c
+        
+        self._indices_nums_to_chars = array(list(chars), 'B').view('c')
     
     def fromString(self, data):
         """Returns array of indices from string containing elements.
@@ -707,7 +711,7 @@ class CharAlphabet(Alphabet):
         This is on the Alphabet, not the Sequence, because lots of objects
         (e.g. Profile, Alignment) also need to use it.
         """
-        return fromstring(translate(data, self._chars_to_indices), uint8)
+        return fromstring(str.translate(data, self._chars_to_indices), uint8)
     
     def isValid(self, seq):
         """Returns True if seq contains only items in self."""
@@ -726,7 +730,7 @@ class CharAlphabet(Alphabet):
         characters that's been converted into a numpy array. See
         fromString docstring for general behavior.
         """
-        return take(self._char_nums_to_indices, data.view('B'))
+        return take(self._char_nums_to_indices, data)
     
     def toChars(self, data):
         """Converts array of indices into array of elements.
@@ -734,7 +738,7 @@ class CharAlphabet(Alphabet):
         For example, on the 'UCAG' RNA alphabet, an array with the data
         [0,1,1] would return the characters [U,C,C] in a byte array.
         """
-        return take(self._indices_nums_to_chars, data.astype('B'))
+        return take(self._indices_nums_to_chars, data)
     
     def toString(self, data, delimiter='\n'):
         """Converts array of data into string.
@@ -748,7 +752,9 @@ class CharAlphabet(Alphabet):
         if not s:
             return ''
         elif len(s) == 1:
-            return self.toChars(data).tostring()
+            val = self.toChars(data)
+            val = val.tostring().decode('utf-8')
+            return val
         else:
-            return delimiter.join([i.tostring() for i in self.toChars(data)])
+            return delimiter.join([i.tostring().decode('utf-8') for i in self.toChars(data)])
     

@@ -18,7 +18,7 @@ class DbRefTests(TestCase):
     def setUp(self):
         """Define a standard DbRef object"""
         self.data = dict(Accession='xyz',Db='abc',Name='qwe',Description='blah',
-            Data = range(20))
+            Data = list(range(20)))
         self.db = DbRef(**self.data)
     
     def test_init_minimal(self):
@@ -34,7 +34,7 @@ class DbRefTests(TestCase):
 
     def test_init(self):
         """DbRef init should insert correct data"""
-        for attr, val in self.data.items():
+        for attr, val in list(self.data.items()):
             self.assertEqual(getattr(self.db, attr), val)
 
     def test_str(self):
@@ -105,7 +105,7 @@ class InfoTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise Exception, "Failed to prevent deletion of required key Refs"""
+            raise Exception("Failed to prevent deletion of required key Refs""")
         d.GenBank = ('qaz', 'wsx')
         self.assertEqual(d.GenBank, ['qaz', 'wsx'])
         self.assertContains(d.Refs, 'GenBank')

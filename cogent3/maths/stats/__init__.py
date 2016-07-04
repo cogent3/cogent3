@@ -10,7 +10,7 @@ __all__ = ['distribution', 'histogram',
 
 # GAH: this is a temporary introduction, so users get notice of structure change and
 # renaming of this function
-from distribution import chi_high as chisqprob
+from .distribution import chi_high as chisqprob
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

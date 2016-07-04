@@ -4,7 +4,7 @@
 
 Translated from R 2.4 by Gavin Huttley
 """
-from __future__ import division
+
 from numpy import sqrt, log, pi, exp, fabs, floor, zeros, asarray,\
             dot as matrixmultiply, ones, array, reshape, ravel, sum, arange
 from cogent3.maths.stats.special import combinations

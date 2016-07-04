@@ -22,10 +22,10 @@ def argpicks(freqs, random_series):
         yield i
 
 def argpick(freqs, random_series):
-    return argpicks(freqs, random_series).next()
+    return next(argpicks(freqs, random_series))
 
 def _randomMotifGenerator(random_series, motif_probs):
-    motifs = motif_probs.keys()
+    motifs = list(motif_probs.keys())
     freqs = [motif_probs[m] for m in motifs]
     for i in argpicks(freqs, random_series):
         yield motifs[i]
@@ -50,12 +50,12 @@ def evolveSequence(random_series, motifs, parent_seq, site_cats,
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = \
                         _randomMotifGenerator(random_series, mprobs)
-            edge_motif = randomMotifSources[site_cat, parent_motif].next()
+            edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
     return seq
 
 def randomSequence(random_series, motif_probs, sequence_length):
-    getRootRandomMotif = _randomMotifGenerator(random_series, motif_probs).next
+    getRootRandomMotif = _randomMotifGenerator(random_series, motif_probs).__next__
     return [getRootRandomMotif() for i in range(sequence_length)]
 
 class AlignmentEvolver(object):

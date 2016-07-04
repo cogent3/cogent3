@@ -246,11 +246,11 @@ class CoordSystemCache(object):
     def _get_seq_level_system(self, species):
         """returns the sequence level system for species"""
         sp_sys = self._species_coord_systems[species]
-        for key, val in sp_sys.items():
+        for key, val in list(sp_sys.items()):
             if 'sequence_level' in val.attr:
                 return val.name
         
-        raise RuntimeError, 'no coord system for %s' % species
+        raise RuntimeError('no coord system for %s' % species)
     
     def __call__(self, coord_type = None, core_db = None, species = None,
                  seq_level=False):

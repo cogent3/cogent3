@@ -28,8 +28,8 @@ class Test(TestCase):
             'T end', 'block count', 'blockSizes', 'qStarts', 'tStarts']
         
         parser = MinimalPslParser(fname)
-        version = parser.next()
-        header = parser.next()
+        version = next(parser)
+        header = next(parser)
         self.assertEqual(header, expect)
     
     def test_psl_to_table(self):

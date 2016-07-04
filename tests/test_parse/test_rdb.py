@@ -232,7 +232,7 @@ class RdbParserTests(GenericRdbTest):
             try:
                 return DnaSequence(x,  **kwargs)
             except Exception:
-                raise RecordError, "Could not convert sequence"
+                raise RecordError("Could not convert sequence")
        
         self.assertRaises(RecordError, list, RdbParser(self.oneX,dnastrict))
         f = list(RdbParser(self.oneX, dnastrict, strict=False))

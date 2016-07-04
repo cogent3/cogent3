@@ -48,7 +48,7 @@ def is_generator_unique(Q):
     # Find the Perron-Frobenius eigenvalue
     PF_EV = argmin([norm(ones(n)/n-v/v.sum()) for v in V.T])
     # Don't mess with the P-F eigenvalue - it has a special job to do
-    ix = range(0,PF_EV) + range(PF_EV+1,n)
+    ix = list(range(0,PF_EV)) + list(range(PF_EV+1,n))
 
     real_close = []
     expe = exp(e)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 import time, sys, os, numpy
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.optimisers import maximise, MaximumEvaluationsReached

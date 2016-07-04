@@ -31,7 +31,7 @@ class _RelatedRegions(LazyRecord):
         # TODO StableID, Species and Description
         my_type = self.__class__.__name__
         
-        data = map(repr, self.Members)
+        data = list(map(repr, self.Members))
         data.insert(0, '%s(' % my_type)
         data.append(')')
         return "\n\t".join(data)
@@ -106,7 +106,7 @@ class SyntenicRegion(LazyRecord):
                 region = genome.getRegion(region=Location)
             self._cached['Region'] = region
         
-        for identifier, value in dict(identifiers_values).items():
+        for identifier, value in list(dict(identifiers_values).items()):
             self._cached[identifier] = value
         
     

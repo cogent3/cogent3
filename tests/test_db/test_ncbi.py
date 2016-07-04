@@ -6,8 +6,7 @@ from cogent3.db.ncbi import EUtils, ESearch, EFetch, ELink, ESearchResultParser,
     taxon_lineage_extractor, taxon_ids_to_lineages, taxon_ids_to_names, \
     taxon_ids_to_names_and_lineages, \
     get_unique_lineages, get_unique_taxa, parse_taxonomy_using_elementtree_xml_parse
-from string import strip
-from StringIO import StringIO
+from io import StringIO
 
 __author__ = "Mike Robeson"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -17,6 +16,9 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"
+
+strip = str.strip
+
 
 class EUtilsTests(TestCase):
     """Tests of the EUtils class."""
@@ -33,7 +35,7 @@ class EUtilsTests(TestCase):
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
-        loci = filter(is_locus, lines)
+        loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
         #EUtils access of a slice should work, while limiting 
@@ -42,7 +44,7 @@ class EUtilsTests(TestCase):
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
-        loci = filter(is_locus, lines)
+        loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
 
@@ -52,7 +54,7 @@ class EUtilsTests(TestCase):
         result = g['NP_003320','NP_003321','NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
-        loci = filter(is_locus, lines)
+        loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
         #EUtils access of a slice should work, while limiting
@@ -61,7 +63,7 @@ class EUtilsTests(TestCase):
         result = g['NP_003320','NP_003321','NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
-        loci = filter(is_locus, lines)
+        loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
 
@@ -158,8 +160,8 @@ class NcbiTests(TestCase):
     """Tests of top-level convenience wrappers."""
     def setUp(self):
         """Define some lengthy data."""
-        self.mouse_taxonomy = map(strip, 'cellular organisms; Eukaryota; Opisthokonta; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus; Mus'.split(';'))
-        self.human_taxonomy = map(strip, 'cellular organisms; Eukaryota; Opisthokonta; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Primates; Haplorrhini; Simiiformes; Catarrhini; Hominoidea; Hominidae; Homininae; Homo'.split(';'))
+        self.mouse_taxonomy = list(map(strip, 'cellular organisms; Eukaryota; Opisthokonta; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus; Mus'.split(';')))
+        self.human_taxonomy = list(map(strip, 'cellular organisms; Eukaryota; Opisthokonta; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Primates; Haplorrhini; Simiiformes; Catarrhini; Hominoidea; Hominidae; Homininae; Homo'.split(';')))
 
     def test_get_primary_ids(self):
         """get_primary_ids should get primary ids from query"""

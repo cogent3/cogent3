@@ -332,7 +332,7 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         keys = 'ARNDCQEGHILKMFPSTWYV'
         for i in range(20):
             values += [float(i) + 0.15]
-        self.data = dict(zip(keys,values))
+        self.data = dict(list(zip(keys,values)))
 
         self.aar = AAIndex1Record(self.id, self.description,\
                 self.LITDB_entry_num, self.authors, self.title,\
@@ -442,7 +442,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
         AAIndexRecordTests.setUp(self)
 
         # Build LTM data
-        values = range(210)
+        values = list(range(210))
         keys = 'ARNDCQEGHILKMFPSTWYV'
 
         self.LTMdata = dict.fromkeys(keys)
@@ -463,7 +463,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
                 self.citation, self.comments, self.LTMdata)
 
         # Build Square matrix data
-        values = range(400)
+        values = list(range(400))
 
         self.SQUdata = dict.fromkeys(keys)
 

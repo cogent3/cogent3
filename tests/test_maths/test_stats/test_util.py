@@ -197,8 +197,8 @@ class NumbersTestsI(object):
 
     def test_items(self):
         """Numbers should support items() method"""
-        self.assertFloatEqual(self.floats.items()[0], (1.5, 1))
-        self.assertFloatEqual(self.floats.items()[1], (2.7, 1))
+        self.assertFloatEqual(list(self.floats.items())[0], (1.5, 1))
+        self.assertFloatEqual(list(self.floats.items())[1], (2.7, 1))
 
     def test_isValid(self):
         """Numbers isValid should return True if all items numbers"""
@@ -398,7 +398,7 @@ class NumbersTestsI(object):
     
     def test_NumberQuantiles(self):
         """quantiles should be correct"""
-        num = self.ClassToTest(range(1,11))
+        num = self.ClassToTest(list(range(1,11)))
         self.assertFloatEqual(num.quantile(.1), 1.9)
         self.assertFloatEqual(num.quantile(.2), 2.8)
         self.assertFloatEqual(num.quantile(.25), 3.25)
@@ -543,7 +543,7 @@ class UnsafeNumbersTests(TestCase, NumbersTestsI):
     def test_append_bad(self):
         """UnsafeNumbers should allow append of a non-number"""
         self.empty.append('abc')
-        self.assertEquals(self.empty, ['abc'])
+        self.assertEqual(self.empty, ['abc'])
 
     def test_isValid_bad(self):
         """UnsafeNumbers should return False if invalid"""
@@ -852,14 +852,14 @@ class StaticFreqsTestsI(object):
         a = self.Alphabetic.copy()
         a.normalize()
         expected = {'a':0.375, 'b':0.25, 'c':0.125, 'd':0.125, 'e':0.125}
-        for key, val in expected.items():
+        for key, val in list(expected.items()):
             self.assertFloatEqual(a[key], val)
 
     def test_choice(self):
         """Freqs choice should work as expected"""
         self.Alphabetic.normalize()
-        keys = self.Alphabetic.keys()
-        vals = Numbers(self.Alphabetic.values())
+        keys = list(self.Alphabetic.keys())
+        vals = Numbers(list(self.Alphabetic.values()))
         vals.accumulate()
         #test first item
         self.assertEqual(self.Alphabetic.choice(-1), keys[0])
@@ -879,8 +879,8 @@ class StaticFreqsTestsI(object):
         """Freqs randomSequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
-        keys = self.Alphabetic.keys()
-        probs = [float(i)/total for i in self.Alphabetic.values()]
+        keys = list(self.Alphabetic.keys())
+        probs = [float(i)/total for i in list(self.Alphabetic.values())]
         
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
@@ -1331,16 +1331,16 @@ class FreqsTestsI(object):
         a = self.Alphabetic.copy()
         a.normalize()
         expected = {'a':0.375, 'b':0.25, 'c':0.125, 'd':0.125, 'e':0.125}
-        for key, val in expected.items():
+        for key, val in list(expected.items()):
             self.assertFloatEqual(a[key], val)
         self.PosNeg.normalize()
         expected = {-2:0.25, -1:0.25, 1:0.25, 2:0.25}
-        for key, val in expected.items():
+        for key, val in list(expected.items()):
             self.assertFloatEqual(self.PosNeg[key], val)
         #check that it works when we specify a total
         self.PosNeg.normalize(total=0.2)
         expected = {-2:1.25, -1:1.25, 1:1.25, 2:1.25}
-        for key, val in expected.items():
+        for key, val in list(expected.items()):
             self.assertFloatEqual(self.PosNeg[key], val)
         #check that purging works
         a = self.Alphabetic.copy()
@@ -1360,8 +1360,8 @@ class FreqsTestsI(object):
     def test_choice(self):
         """Freqs choice should work as expected"""
         self.Alphabetic.normalize()
-        keys = self.Alphabetic.keys()
-        vals = Numbers(self.Alphabetic.values())
+        keys = list(self.Alphabetic.keys())
+        vals = Numbers(list(self.Alphabetic.values()))
         vals.accumulate()
         #test first item
         self.assertEqual(self.Alphabetic.choice(-1), keys[0])
@@ -1381,8 +1381,8 @@ class FreqsTestsI(object):
         """Freqs randomSequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
-        keys = self.Alphabetic.keys()
-        probs = [float(i)/total for i in self.Alphabetic.values()]
+        keys = list(self.Alphabetic.keys())
+        probs = [float(i)/total for i in list(self.Alphabetic.values())]
         
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
@@ -1813,11 +1813,11 @@ class NumberFreqsTestsI(object):
     
     def test_NumberFreqsQuantiles(self):
         """quantiles should match Numbers, including Median"""
-        data={32: 60L, 33: 211L, 34: 141L, 35: 70L,
-             36: 26L, 10: 30L, 11: 5L, 18: 43L, 19: 10L,
-             21: 1L, 22: 1L, 23: 58L, 24: 12L, 25: 3L,
-             26: 74L, 27: 10L, 28: 77L, 29: 20L, 30: 102L,
-             31: 47L}
+        data={32: 60, 33: 211, 34: 141, 35: 70,
+             36: 26, 10: 30, 11: 5, 18: 43, 19: 10,
+             21: 1, 22: 1, 23: 58, 24: 12, 25: 3,
+             26: 74, 27: 10, 28: 77, 29: 20, 30: 102,
+             31: 47}
         
         nums = Numbers(NumberFreqs(data=data).expand())
         number_freqs = self.ClassToTest()
@@ -1840,7 +1840,7 @@ class NumberFreqsTestsI(object):
         # will normalize OK if total passed in
         self.PosNeg.normalize(4) #self.PosNeg.Count)
         expected = {-2:0.25, -1:0.25, 1:0.25, 2:0.25}
-        for key, val in expected.items():
+        for key, val in list(expected.items()):
             self.assertFloatEqual(self.PosNeg[key], val)
         
     def test_Uncertainty(self):

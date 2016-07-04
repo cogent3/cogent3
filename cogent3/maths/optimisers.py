@@ -5,8 +5,8 @@
 """
 
 from cogent3.util import progress_display as UI
-from simannealingoptimiser import SimulatedAnnealing
-from scipy_optimisers import DownhillSimplex, Powell
+from .simannealingoptimiser import SimulatedAnnealing
+from .scipy_optimisers import DownhillSimplex, Powell
 import warnings
 import numpy
 
@@ -23,7 +23,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
-    template = u'f = % #10.6g  ±  % 9.3e   evals = %6i '
+    template = 'f = % #10.6g  ±  % 9.3e   evals = %6i '
     label = label.rjust(5)
     goal = [1.0e-20]
     def _display_progress(remaining, *args):
@@ -92,7 +92,7 @@ def bounds_exception_catching_function(f):
                 if not acceptable_inf(result):
                     warnings.warn('Non-finite f %s from %s' % (result, x))
                     raise ParameterOutOfBoundsError
-        except (ArithmeticError, ParameterOutOfBoundsError), detail:
+        except (ArithmeticError, ParameterOutOfBoundsError) as detail:
             result = out_of_bounds_value
         return result
     
@@ -135,7 +135,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
             f = bounded_function(f, upper, lower)
     try:
         fval = f(x)
-    except (ArithmeticError, ParameterOutOfBoundsError), detail:
+    except (ArithmeticError, ParameterOutOfBoundsError) as detail:
         raise ValueError("Initial parameter values must be valid %s" % repr(detail.args))
     if not numpy.isfinite(fval):
         raise ValueError("Initial parameter values must evaluate to a finite value, not %s. %s" % (fval, x))

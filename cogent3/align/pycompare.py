@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Very slow.  See compare.pyx
 
-from __future__ import division
+
 import cogent3.util.progress_display as UI
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 
@@ -43,10 +43,12 @@ def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
     return d_segments
 
 try:
-    _compare = importVersionedModule('_compare', globals(),
-            (1, 3), "slow Python dotplot")
+    import _compare
+    #_compare = importVersionedModule('_compare', globals(),
+            #(1, 3), "slow Python dotplot")
     segments_from_diagonal = _compare.segments_from_diagonal
-except ExpectedImportError:
+except ImportError:
+    _compare = None
     segments_from_diagonal = py_segments_from_diagonal
 
 @UI.display_wrap
@@ -63,7 +65,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     
     if band is None:
         band = max(len(seq1), len(seq2))
-    diagonals = range(-min(len(seq1), band), min(len(seq2), band)+1)
+    diagonals = list(range(-min(len(seq1), band), min(len(seq2), band)+1))
     result = []
     for diag_segments in ui.imap(one_diagonal, diagonals, noun='offset'):
         result.extend(diag_segments)

@@ -5,7 +5,7 @@ function is provided in cogent3.maths.stats.kendall_correlation
 Translated from R 2.5 by Gavin Huttley
 """
 
-from __future__ import division
+
 from numpy import floor, sqrt, array
 from cogent3.maths.stats.util import Freqs
 from cogent3.maths.stats.distribution import zprob
@@ -22,13 +22,13 @@ __status__ = "Production"
 def as_paired_ranks(x, y):
     """return as matrix of paired ranks"""
     n = len(x)
-    paired = zip(x,y)
+    paired = list(zip(x,y))
     x = list(x)
     y = list(y)
     x.sort()
     y.sort()
-    rank_val_map_x = dict(zip(x, range(n)))
-    rank_val_map_y = dict(zip(y, range(n)))
+    rank_val_map_x = dict(list(zip(x, list(range(n)))))
+    rank_val_map_y = dict(list(zip(y, list(range(n)))))
     ranked = []
     for i in range(n):
         ranked += [[rank_val_map_x[paired[i][0]], rank_val_map_y[paired[i][1]]]]
@@ -104,8 +104,8 @@ def kendalls_tau(x, y, return_p=True):
     stat = tau
     
     if x_tied or y_tied:
-        x_tied = array([v for v in Freqs(x).itervalues() if v > 1])
-        y_tied = array([v for v in Freqs(y).itervalues() if v > 1])
+        x_tied = array([v for v in Freqs(x).values() if v > 1])
+        y_tied = array([v for v in Freqs(y).values() if v > 1])
         t0 = n*(n-1)/2
         t1 = sum(x_tied * (x_tied-1)) / 2
         t2 = sum(y_tied * (y_tied-1)) / 2

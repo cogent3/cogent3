@@ -56,12 +56,12 @@ class TestGenome(GenomeTestBase):
     def test_genome_comparison(self):
         """different genome instances with same CoreDb connection are equal"""
         h2 = Genome(Species='human', Release=Release, account=account)
-        self.assertEquals(self.human, h2)
+        self.assertEqual(self.human, h2)
 
     def test_make_location(self):
         """should correctly make a location for an entire chromosome"""
         loc = self.human.makeLocation(CoordName=1)
-        self.assertEquals(len(loc), 248956422)
+        self.assertEqual(len(loc), 248956422)
 
     def test_get_region(self):
         """should return a generic region that extracts correct sequence"""
@@ -70,11 +70,11 @@ class TestGenome(GenomeTestBase):
         End = Start+20
         region = self.human.getRegion(CoordName=chrom, Start=Start, End=End,
                         ensembl_coord=True)
-        self.assertEquals(region.Location.Start, Start-1)
-        self.assertEquals(region.Location.End, End)
-        self.assertEquals(region.Location.CoordName, str(chrom))
-        self.assertEquals(region.Location.CoordType, 'chromosome')
-        self.assertEquals(region.Seq, 'ACCTCAGTAATCCGAAAAGCC')
+        self.assertEqual(region.Location.Start, Start-1)
+        self.assertEqual(region.Location.End, End)
+        self.assertEqual(region.Location.CoordName, str(chrom))
+        self.assertEqual(region.Location.CoordType, 'chromosome')
+        self.assertEqual(region.Seq, 'ACCTCAGTAATCCGAAAAGCC')
 
     def test_get_assembly_exception_region(self):
         """should return correct sequence for region with an assembly
@@ -82,7 +82,7 @@ class TestGenome(GenomeTestBase):
         region = self.human.getRegion(CoordName="Y", Start=57211873,
                             End=57211894, Strand=1, ensembl_coord=True)
 
-        self.assertEquals(str(region.Seq), 'CGAGGACGACTGGGAATCCTAG')
+        self.assertEqual(str(region.Seq), 'CGAGGACGACTGGGAATCCTAG')
 
     def test_no_assembly(self):
         """return N's for coordinates with no assembly"""
@@ -91,7 +91,7 @@ class TestGenome(GenomeTestBase):
         End=Start+100
         region = krat.getRegion(CoordName='scaffold_13754', Start=Start,
             End=End)
-        self.assertEquals(str(region.Seq), 'N' * (End-Start))
+        self.assertEqual(str(region.Seq), 'N' * (End-Start))
 
     def test_getting_annotated_seq(self):
         """a region should return a sequence with the correct annotation"""
@@ -99,21 +99,21 @@ class TestGenome(GenomeTestBase):
         region = self.human.getRegion(region=new_loc)
         annot_seq = region.getAnnotatedSeq(feature_types='gene')
         gene_annots = annot_seq.getAnnotationsMatching('gene')
-        self.assertEquals(gene_annots[0].Name, self.brca2.Symbol)
+        self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
 
     def test_correct_feature_type_id_cache(self):
         """should obtain the feature type identifiers without failure"""
-        self.assertNotEquals(self.human._feature_type_ids.CpGisland, None)
+        self.assertNotEqual(self.human._feature_type_ids.CpGisland, None)
 
     def test_strand_conversion(self):
         """should consistently convert strand info"""
-        self.assertEquals(convert_strand(None), 1)
-        self.assertEquals(convert_strand(-1), -1)
-        self.assertEquals(convert_strand(1), 1)
-        self.assertEquals(convert_strand('-'), -1)
-        self.assertEquals(convert_strand('+'), 1)
-        self.assertEquals(convert_strand(-1.0), -1)
-        self.assertEquals(convert_strand(1.0), 1)
+        self.assertEqual(convert_strand(None), 1)
+        self.assertEqual(convert_strand(-1), -1)
+        self.assertEqual(convert_strand(1), 1)
+        self.assertEqual(convert_strand('-'), -1)
+        self.assertEqual(convert_strand('+'), 1)
+        self.assertEqual(convert_strand(-1.0), -1)
+        self.assertEqual(convert_strand(1.0), 1)
 
     def test_pool_connection(self):
         """excercising ability to specify pool connection"""
@@ -124,13 +124,13 @@ class TestGenome(GenomeTestBase):
         """should correctly return a gorilla gene"""
         self.gorilla = Genome(Species="gorilla", Release=Release, account=account)
         gene = self.gorilla.getGeneByStableId('ENSGGOG00000005730')
-        self.assertEquals(str(gene.Seq[:10]), 'TGGGAGTCCA')
+        self.assertEqual(str(gene.Seq[:10]), 'TGGGAGTCCA')
 
     def test_diff_strand_contig_chrom(self):
         """get correct sequence when contig and chromosome strands differ"""
         gene = self.gorilla.getGeneByStableId('ENSGGOG00000001953')
         cds = gene.CanonicalTranscript.Cds
-        self.assertEquals(str(cds), 'ATGGCCCAGGATCTCAGCGAGAAGGACCTGTTGAAGATG'
+        self.assertEqual(str(cds), 'ATGGCCCAGGATCTCAGCGAGAAGGACCTGTTGAAGATG'
         'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
         'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
         'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
@@ -150,17 +150,17 @@ class TestGenome(GenomeTestBase):
 class TestGene(GenomeTestBase):
     def _eval_brca2(self, brca2):
         """tests all attributes correctly created"""
-        self.assertEquals(brca2.Symbol.lower(), 'brca2')
-        self.assertEquals(brca2.StableId, 'ENSG00000139618')
-        self.assertEquals(brca2.BioType.lower(), 'protein_coding')
+        self.assertEqual(brca2.Symbol.lower(), 'brca2')
+        self.assertEqual(brca2.StableId, 'ENSG00000139618')
+        self.assertEqual(brca2.BioType.lower(), 'protein_coding')
         self.assertContains(brca2.Description.lower(), 'breast cancer')
-        self.assertEquals(brca2.Status, 'KNOWN')
-        self.assertEquals(brca2.CanonicalTranscript.StableId,
+        self.assertEqual(brca2.Status, 'KNOWN')
+        self.assertEqual(brca2.CanonicalTranscript.StableId,
                         'ENST00000380152')
         # note length can change between genome builds
         self.assertGreaterThan(len(brca2), 83700)
         transcript = brca2.getMember('ENST00000544455')
-        self.assertEquals(transcript.getCdsLength(),len(transcript.Cds))
+        self.assertEqual(transcript.getCdsLength(),len(transcript.Cds))
 
     def test_get_genes_by_stable_id(self):
         """if get gene by stable_id, attributes should be correctly
@@ -170,9 +170,9 @@ class TestGene(GenomeTestBase):
     def test_get_exons(self):
         """transcript should return correct exons for brca2"""
         transcript = self.brca2.getMember('ENST00000380152')
-        self.assertEquals(len(transcript.TranslatedExons), 26)
-        self.assertEquals(len(transcript.Cds), 3419*3)
-        self.assertEquals(len(transcript.ProteinSeq), 3418)
+        self.assertEqual(len(transcript.TranslatedExons), 26)
+        self.assertEqual(len(transcript.Cds), 3419*3)
+        self.assertEqual(len(transcript.ProteinSeq), 3418)
 
     def test_translated_exons(self):
         """should correctly translate a gene with 2 exons but 1st exon
@@ -201,7 +201,7 @@ class TestGene(GenomeTestBase):
         l = transcript.getCdsLength()
         trunc_cds = transcript.Cds[: l - (l % 3)]
         prot_seq = trunc_cds.getTranslation()
-        self.assertEquals(str(prot_seq),
+        self.assertEqual(str(prot_seq),
             'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
                'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
     
@@ -211,12 +211,12 @@ class TestGene(GenomeTestBase):
         gene = self.human.getGeneByStableId(StableId=stable_id)
         exon1 = gene.Transcripts[1].Exons[0]
         # first two bases of codon missing
-        self.assertEquals(exon1.PhaseStart, 2)
+        self.assertEqual(exon1.PhaseStart, 2)
         # last two bases of codon missing
-        self.assertEquals(exon1.PhaseEnd, 1)
+        self.assertEqual(exon1.PhaseEnd, 1)
         # can translate the sequence if we take those into account
         seq = exon1.Seq[1:-1].getTranslation()
-        self.assertEquals(str(seq), 'HMLSKVGMWDFDIFLFDRLTN')
+        self.assertEqual(str(seq), 'HMLSKVGMWDFDIFLFDRLTN')
     
     def test_cds_from_outofphase(self):
         """return a translatable Cds sequence from out-of-phase start"""
@@ -240,7 +240,7 @@ class TestGene(GenomeTestBase):
         # .. and correctly construct the Cds and location
         for transcript in gene.Transcripts:
             self.assertTrue(transcript.getCdsLength()>0)
-            self.assertEquals(transcript.Location.CoordName,'17')
+            self.assertEqual(transcript.Location.CoordName,'17')
 
     def test_get_longest_cds_transcript2(self):
         """should correctly return transcript with longest cds"""
@@ -249,15 +249,15 @@ class TestGene(GenomeTestBase):
                                           ('ENSG00000206629', 164)]:
             gene = self.human.getGeneByStableId(StableId=stable_id)
             ts = gene.getLongestCdsTranscript()
-            self.assertEquals(len(ts.Cds), max_cds_length)
-            self.assertEquals(ts.getCdsLength(), max(gene.getCdsLengths()))
+            self.assertEqual(len(ts.Cds), max_cds_length)
+            self.assertEqual(ts.getCdsLength(), max(gene.getCdsLengths()))
 
     def test_get_longest_cds_transcript1(self):
         """should correctly return transcript with longest cds"""
         stable_id = 'ENSG00000178591'
         gene = self.human.getGeneByStableId(StableId=stable_id)
         ts = gene.getLongestCdsTranscript()
-        self.assertEquals(ts.getCdsLength(), max(gene.getCdsLengths()))
+        self.assertEqual(ts.getCdsLength(), max(gene.getCdsLengths()))
 
     def test_rna_transcript_cds(self):
         """should return a Cds for an RNA gene too"""
@@ -268,7 +268,7 @@ class TestGene(GenomeTestBase):
         """should correctly annotated a sequence"""
         annot_seq = self.brca2.getAnnotatedSeq(feature_types='gene')
         gene_annots = annot_seq.getAnnotationsMatching('gene')
-        self.assertEquals(gene_annots[0].Name, self.brca2.Symbol)
+        self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
 
     def test_get_by_symbol(self):
         """selecting a gene by it's HGNC symbol should correctly populate all
@@ -285,7 +285,7 @@ class TestGene(GenomeTestBase):
         """return correct gene if provide a synonymn, rather than symbol"""
         synonym = 'FOXO1A'
         gene = list(self.human.getGenesMatching(Symbol=synonym))[0]
-        self.assertEquals(gene.Symbol, 'FOXO1')
+        self.assertEqual(gene.Symbol, 'FOXO1')
 
     def test_get_by_description(self):
         """if get by description, all attributes should be correctly
@@ -301,8 +301,8 @@ class TestGene(GenomeTestBase):
         exon_id = 'ENSE00001484009'
         exon = transcript.getMember(exon_id)
         trans_exon = transcript.getMember(exon_id,'TranslatedExons')
-        self.assertEquals(exon.StableId, exon_id)
-        self.assertEquals(trans_exon.StableId, exon_id)
+        self.assertEqual(exon.StableId, exon_id)
+        self.assertEqual(trans_exon.StableId, exon_id)
         # we check we got Exon in the first call and TranslatedExon in the
         # second using the fact that the Exons entry is longer than the
         # TranslatedExons one
@@ -310,7 +310,7 @@ class TestGene(GenomeTestBase):
 
     def test_get_by_biotype(self):
         results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=False))
-        self.assertEquals(len(results), 22)
+        self.assertEqual(len(results), 22)
 
     def test_get_by_decsr_biotype(self):
         """combining the description and biotype should return a result"""
@@ -326,39 +326,39 @@ class TestGene(GenomeTestBase):
         """should correctly handle getting gene by stable_id"""
         stable_id = 'ENSG00000012048'
         gene = self.human.getGeneByStableId(StableId=stable_id)
-        self.assertEquals(gene.StableId, stable_id)
+        self.assertEqual(gene.StableId, stable_id)
 
         # if invalid stable_id, should just return None
         stable_id = 'ENSG00000XXXXX'
         gene = self.human.getGeneByStableId(StableId=stable_id)
-        self.assertEquals(gene, None)
+        self.assertEqual(gene, None)
 
     def test_get_transcript_by_stable_id(self):
         """should correctly handle getting transcript by stable_id"""
         # if invalid stable_id, should just return None
         stable_id = 'ENST00000XXXXX'
         transcript = self.human.getTranscriptByStableId(StableId=stable_id)
-        self.assertEquals(transcript, None)
+        self.assertEqual(transcript, None)
 
         # get transcript via gene and check values match
         stable_id = 'ENST00000380152'
         transcript = self.human.getTranscriptByStableId(StableId=stable_id)
-        self.assertEquals(transcript.StableId, stable_id)
+        self.assertEqual(transcript.StableId, stable_id)
         gene = transcript.Gene
         brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
-        self.assertEquals(brca2.CanonicalTranscript.StableId, transcript.StableId)
-        self.assertEquals(brca2.CanonicalTranscript.getCdsLength(), len(transcript.Cds))
-        self.assertEquals(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
-        self.assertEquals(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
-        self.assertEquals(str(brca2.CanonicalTranscript.Seq), str(transcript.Seq))
-        self.assertEquals(brca2.StableId, gene.StableId)
-        self.assertEquals(brca2.Seq, gene.Seq)
+        self.assertEqual(brca2.CanonicalTranscript.StableId, transcript.StableId)
+        self.assertEqual(brca2.CanonicalTranscript.getCdsLength(), len(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Seq), str(transcript.Seq))
+        self.assertEqual(brca2.StableId, gene.StableId)
+        self.assertEqual(brca2.Seq, gene.Seq)
 
     def test_gene_on_transcript(self):
         """Transcript instances Gene attribute should be complete"""
         brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
         transcript = self.human.getTranscriptByStableId(StableId='ENST00000380152')
-        self.assertEquals(transcript.Gene.Symbol, brca2.Symbol)
+        self.assertEqual(transcript.Gene.Symbol, brca2.Symbol)
 
     def test_intron_number(self):
         """number of introns should be correct"""
@@ -458,11 +458,11 @@ class TestVariation(GenomeTestBase):
         # peptide alleles
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
-            self.assertEquals(snp.Ancestral, self.ancestral[i])
-            self.assertEquals(snp.Symbol, self.snp_names[i])
-            self.assertEquals(snp.Effect, self.snp_effects[i])
-            self.assertEquals(snp.Alleles, self.snp_nt_alleles[i])
-            self.assertEquals(snp.MapWeight, self.map_weights[i])
+            self.assertEqual(snp.Ancestral, self.ancestral[i])
+            self.assertEqual(snp.Symbol, self.snp_names[i])
+            self.assertEqual(snp.Effect, self.snp_effects[i])
+            self.assertEqual(snp.Alleles, self.snp_nt_alleles[i])
+            self.assertEqual(snp.MapWeight, self.map_weights[i])
     
     def test_somatic_attribute_correct(self):
         """Somatic attribute of variants should be correct"""
@@ -470,13 +470,13 @@ class TestVariation(GenomeTestBase):
         for symbol, expect in symbols_somatic:
             snp = list(self.human.getVariation(Symbol=symbol, somatic=True,
                         flanks_match_ref=False))[0]
-            self.assertEquals(snp.Somatic, expect)
+            self.assertEqual(snp.Somatic, expect)
     
     def test_num_alleles(self):
         """should correctly infer the number of alleles"""
         for i in range(4):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
-            self.assertEquals(len(snp), self.snp_nt_len[i])
+            self.assertEqual(len(snp), self.snp_nt_len[i])
 
     def test_get_peptide_alleles(self):
         """should correctly infer the peptide alleles"""
@@ -485,7 +485,7 @@ class TestVariation(GenomeTestBase):
             if 'missense_variant' not in snp.Effect:
                 continue
             
-            self.assertEquals(snp.PeptideAlleles, self.snp_aa_alleles[i])
+            self.assertEqual(snp.PeptideAlleles, self.snp_aa_alleles[i])
 
     def test_no_pep_alleles(self):
         """handle case where coding_sequence_variant has no peptide alleles"""
@@ -496,7 +496,7 @@ class TestVariation(GenomeTestBase):
         """should return correct location for aa variants"""
         index = self.snp_names.index('rs11545807')
         snp = list(self.human.getVariation(Symbol=self.snp_names[index]))[0]
-        self.assertEquals(snp.TranslationLocation, 95)
+        self.assertEqual(snp.TranslationLocation, 95)
 
     def test_validation_status(self):
         """should return correct validation status"""
@@ -520,7 +520,7 @@ class TestVariation(GenomeTestBase):
         for i in range(4): # only have flanking sequence for 3
             snp = list(self.human.getVariation(Symbol=self.snp_names[i],
                             flanks_match_ref=False))[0]
-            self.assertEquals(snp.FlankingSeq, self.snp_flanks[i])
+            self.assertEqual(snp.FlankingSeq, self.snp_flanks[i])
     
     def test_variation_seq(self):
         """should return the sequence for a Variation snp if asked"""
@@ -532,7 +532,7 @@ class TestVariation(GenomeTestBase):
         snp_status = [('rs94', False), ('rs90', True)]
         for symbol, status in snp_status:
             snp = list(self.human.getVariation(Symbol=symbol, validated=True))
-            self.assertEquals(snp != [], status)
+            self.assertEqual(snp != [], status)
 
     def test_allele_freqs(self):
         """exercising getting AlleleFreq data"""
@@ -555,13 +555,13 @@ class TestVariation(GenomeTestBase):
         for snp in self.human.getVariation(Effect='missense_variant', like=False,
                             validated=True, somatic=False,
                             flanks_match_ref=True, limit=limit):
-            self.assertEquals(snp.Somatic, False)
-            self.assertEquals('missense_variant', snp.Effect)
-            self.assertNotEquals(snp.FlankingSeq, NULL_VALUE)
-            self.assertNotEquals(snp.Validation, NULL_VALUE)
+            self.assertEqual(snp.Somatic, False)
+            self.assertEqual('missense_variant', snp.Effect)
+            self.assertNotEqual(snp.FlankingSeq, NULL_VALUE)
+            self.assertNotEqual(snp.Validation, NULL_VALUE)
             i += 1
         
-        self.assertEquals(i, limit)
+        self.assertEqual(i, limit)
     
 
 class TestFeatures(GenomeTestBase):
@@ -620,7 +620,7 @@ class TestFeatures(GenomeTestBase):
         c = 0
         loc = self.brca2.Location
         for snp in snps:
-            self.assertEquals(snp.Location.CoordName, loc.CoordName)
+            self.assertEqual(snp.Location.CoordName, loc.CoordName)
             self.assertTrue(loc.Start < snp.Location.Start < loc.End)
             c += 1
             if c == 2:
@@ -641,11 +641,11 @@ class TestFeatures(GenomeTestBase):
         plus_seq = plus.getAnnotatedSeq(feature_types='gene')
         minus_seq = minus.getAnnotatedSeq(feature_types='gene')
         # the seqs should be the rc of each other
-        self.assertEquals(str(plus_seq), str(minus_seq.rc()))
+        self.assertEqual(str(plus_seq), str(minus_seq.rc()))
         # the Cds, however, from the annotated sequences should be identical
         plus_cds = plus_seq.getAnnotationsMatching('CDS')[0]
         minus_cds = minus_seq.getAnnotationsMatching('CDS')[0]
-        self.assertEquals(str(plus_cds.getSlice()),str(minus_cds.getSlice()))
+        self.assertEqual(str(plus_cds.getSlice()),str(minus_cds.getSlice()))
 
     def test_other_feature_data_correct(self):
         """should apply CpG feature data in a manner consistent with strand"""
@@ -661,13 +661,13 @@ class TestFeatures(GenomeTestBase):
         ps_seq = ps_feat.getAnnotatedSeq(feature_types='CpG')
         ps_cgi = ps_seq.getAnnotationsMatching('CpGisland')[0]
 
-        self.assertEquals(ps_feat.Seq, ms_feat.Seq.rc())
+        self.assertEqual(ps_feat.Seq, ms_feat.Seq.rc())
 
-        self.assertEquals(ps_cgi.getSlice().rc(), exp)
+        self.assertEqual(ps_cgi.getSlice().rc(), exp)
         ms_seq = ms_feat.getAnnotatedSeq(feature_types='CpG')
         ms_cgi = ms_seq.getAnnotationsMatching('CpGisland')[0]
 
-        self.assertEquals(ms_cgi.getSlice(), ps_cgi.getSlice())
+        self.assertEqual(ms_cgi.getSlice(), ps_cgi.getSlice())
 
     def test_other_repeat(self):
         """should apply repeat feature data in a manner consistent with strand"""
@@ -680,14 +680,14 @@ class TestFeatures(GenomeTestBase):
                 'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'\
                 'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
         
-        self.assertEquals(ms_repeat.Seq, ps_repeat.Seq.rc())
+        self.assertEqual(ms_repeat.Seq, ps_repeat.Seq.rc())
 
         ps_annot_seq = ps_repeat.getAnnotatedSeq(feature_types='repeat')
         ms_annot_seq = ms_repeat.getAnnotatedSeq(feature_types='repeat')
         ps_seq = ps_annot_seq.getAnnotationsMatching('repeat')[0]
         ms_seq = ms_annot_seq.getAnnotationsMatching('repeat')[0]
-        self.assertEquals(ms_seq.getSlice(), ps_seq.getSlice())
-        self.assertEquals(ps_seq.getSlice(), exp)
+        self.assertEqual(ms_seq.getSlice(), ps_seq.getSlice())
+        self.assertEqual(ps_seq.getSlice(), exp)
 
     def test_get_features_from_nt(self):
         """should correctly return the encompassing gene from 1nt"""

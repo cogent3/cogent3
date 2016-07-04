@@ -24,16 +24,16 @@ class _Compressed_Node:
         self.key = key
         self.children = {}
   
-    def __nonzero__(self):
+    def __bool__(self):
         """Checks if Node contains any data."""
         return (self.key!="" or len(self.labels)>0
-                or len(self.children.keys())>0)
+                or len(list(self.children.keys()))>0)
 
     def __len__(self):
         """Counts the number of sequences in the Trie"""
 
         l = 0 
-        for n in self.children.values():
+        for n in list(self.children.values()):
             l += len(n)
         l += len(self.labels)
         return l
@@ -50,7 +50,7 @@ class _Compressed_Node:
             s.append("%s" % str(self.labels))
         s.append("\n")
  
-        for n in self.children.values():
+        for n in list(self.children.values()):
             s.append(depth*'\t' +"{%s" %(n._to_string(depth+1)))
             s.append(depth*'\t'+"}\n")
         return "".join(s)
@@ -58,7 +58,7 @@ class _Compressed_Node:
     def size(self):
         """Returns number of nodes."""
         s = 1 
-        for n in self.children.values():
+        for n in list(self.children.values()):
             s += n.size()
         return s
 
@@ -153,12 +153,12 @@ class _Compressed_Node:
             mapping =  {self.labels[0]: self.labels[1:]}
         # we are at an internal node
         else: 
-            for child in self.children.values():
+            for child in list(self.children.values()):
                 mapping.update(child.prefixMap())
             # get largest group
             n = -1
             key_largest = None
-            for (key, value) in mapping.iteritems():
+            for (key, value) in mapping.items():
                 if (len(value) > n):
                     n = len(value)
                     key_largest = key
@@ -187,7 +187,7 @@ class Compressed_Trie:
         """Ugly Trie string representation for debugging."""
         return self.root._to_string()
  
-    def __nonzero__(self):
+    def __bool__(self):
         """Checks wheter the trie is empty or not."""
         return (self.root.__nonzero__())
     
@@ -256,7 +256,7 @@ class _Node:
             # we are at an internal node or a labeled leaf
             # descend to the "leftmost" leaf 
             while (curr_node.children != {}):
-                curr_node = curr_node.children.values()[0]
+                curr_node = list(curr_node.children.values())[0]
             return (curr_node.labels[0], [])
 
     def find(self, key):
@@ -334,7 +334,7 @@ def build_trie(seqs, classname=Compressed_Trie):
                Compressed_Trie (default) or Trie
      `"""
     if (not(classname==Trie or classname==Compressed_Trie)):
-        raise ValueError, "Wrong classname for build_trie."
+        raise ValueError("Wrong classname for build_trie.")
     t = classname()
     for (label, seq) in seqs:
             t.insert(seq, label)
@@ -353,7 +353,7 @@ def build_prefix_map(seqs, classname=Compressed_Trie):
     Due to the nature of tries a list of n seqs of length l can be filtered in O(nl) time.
     """
     if (not(classname==Trie or classname==Compressed_Trie)):
-        raise ValueError, "Wrong classname for build_trie."
+        raise ValueError("Wrong classname for build_trie.")
     if (classname == Compressed_Trie):
         t = build_trie(seqs)
         return t.prefixMap()

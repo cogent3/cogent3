@@ -6,7 +6,7 @@ Goldman (1993).  This model is not informative for inferring the evolutionary
 process, but its likelihood indicates the maximum possible likelihood value 
 for a site-independent evolutionary process.
 """
-from __future__ import division
+
 from numpy import log
 
 from cogent3 import LoadSeqs
@@ -82,7 +82,7 @@ def get_ML_probs(columns_list, with_patterns=False):
     n = len(columns_list)
     col_freq_dict = count_column_freqs(columns_list)
     col_lnL_freqs = []
-    for column_pattern, freq in col_freq_dict.items():
+    for column_pattern, freq in list(col_freq_dict.items()):
         # note, the behaviour of / is changed due to the __future__ import
         if with_patterns:
             row = [column_pattern, freq/n, freq]

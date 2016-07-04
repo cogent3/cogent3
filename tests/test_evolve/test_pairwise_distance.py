@@ -42,10 +42,10 @@ class TestPair(TestCase):
         seq = 'TCAGRNY?-'
         expected = [0, 1, 2, 3, -9, -9, -9, -9, -9]
         indices = seq_to_indices(seq, self.dna_char_indices)
-        self.assertEquals(indices, expected)
+        self.assertEqual(indices, expected)
         seq = 'UCAGRNY?-'
         indices = seq_to_indices(seq, self.rna_char_indices)
-        self.assertEquals(indices, expected)
+        self.assertEqual(indices, expected)
     
     def test_fill_diversity_matrix_all(self):
         """make correct diversity matrix when all chars valid"""
@@ -54,8 +54,8 @@ class TestPair(TestCase):
         matrix = numpy.zeros((4,4), float)
         # self-self should just be an identity matrix
         _fill_diversity_matrix(matrix, s1, s1)
-        self.assertEquals(matrix.sum(), len(s1))
-        self.assertEquals(matrix,
+        self.assertEqual(matrix.sum(), len(s1))
+        self.assertEqual(matrix,
             numpy.array([[2,0,0,0],
                          [0,3,0,0],
                          [0,0,3,0],
@@ -64,7 +64,7 @@ class TestPair(TestCase):
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
-        self.assertEquals(matrix,
+        self.assertEqual(matrix,
             numpy.array([[2,0,0,0],
                          [1,2,0,0],
                          [0,0,2,1],
@@ -78,7 +78,7 @@ class TestPair(TestCase):
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
-        self.assertEquals(matrix,
+        self.assertEqual(matrix,
             numpy.array([[2,0,0,0],
                          [1,2,0,0],
                          [0,0,2,1],
@@ -101,15 +101,15 @@ class TestPair(TestCase):
         matrix = numpy.zeros((4,4), float)
         _fill_diversity_matrix(matrix, s1, s2)
         total, p, dist, var = _jc69_from_matrix(matrix)
-        self.assertEquals(total, 10.0)
-        self.assertEquals(p, 0.2)
+        self.assertEqual(total, 10.0)
+        self.assertEqual(p, 0.2)
     
     def test_jc69_from_alignment(self):
         """compute JC69 dists from an alignment"""
         calc = JC69Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
-        self.assertEquals(calc.Lengths['s1', 's2'], 10)
-        self.assertEquals(calc.Proportions['s1', 's2'], 0.2)
+        self.assertEqual(calc.Lengths['s1', 's2'], 10)
+        self.assertEqual(calc.Proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2326161962)
         # value**2 from OSX MEGA 5
@@ -130,8 +130,8 @@ class TestPair(TestCase):
         """compute TN93 distances"""
         calc = TN93Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
-        self.assertEquals(calc.Lengths['s1', 's2'], 10)
-        self.assertEquals(calc.Proportions['s1', 's2'], 0.2)
+        self.assertEqual(calc.Lengths['s1', 's2'], 10)
+        self.assertEqual(calc.Proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2554128119)
         # value**2 from OSX MEGA 5
@@ -154,8 +154,8 @@ class TestPair(TestCase):
         dists = calc.getPairwiseDistances()
         dist = 0.2554128119
         expect = {('s1', 's2'): dist, ('s2', 's1'): dist}
-        self.assertEquals(dists.keys(), expect.keys())
-        self.assertFloatEqual(dists.values(), expect.values())
+        self.assertEqual(list(dists.keys()), list(expect.keys()))
+        self.assertFloatEqual(list(dists.values()), list(expect.values()))
     
     def test_logdet_pair_dna(self):
         """logdet should produce distances that match MEGA"""
@@ -216,11 +216,11 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         
         dists = logdet_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is not None)
+        self.assertTrue(list(dists.values())[0] is not None)
         
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is not None)
+        self.assertTrue(list(dists.values())[0] is not None)
     
     def test_logdet_variance(self):
         """calculate logdet variance consistent with hand calculation"""
@@ -231,7 +231,7 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         self.assertEqual(logdet_calc.Variances[1,1], None)
        
-        index = dict(zip('ACGT', range(4)))
+        index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
             J[index[p[0]], index[p[1]]] += 1
@@ -259,10 +259,10 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is None)
+        self.assertTrue(list(dists.values())[0] is None)
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is None)
+        self.assertTrue(list(dists.values())[0] is None)
     
     def test_paralinear_pair_aa(self):
         """paralinear shouldn't fail to produce distances for aa seqs"""
@@ -280,7 +280,7 @@ class TestPair(TestCase):
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
        
-        index = dict(zip('ACGT', range(4)))
+        index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
             J[index[p[0]], index[p[1]]] += 1
@@ -303,7 +303,7 @@ class TestPair(TestCase):
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
        
-        index = dict(zip('ACGT', range(4)))
+        index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
             J[index[p[0]], index[p[1]]] += 1
@@ -331,10 +331,10 @@ class TestPair(TestCase):
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is None)
+        self.assertTrue(list(dists.values())[0] is None)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.getPairwiseDistances()
-        self.assertTrue(dists.values()[0] is None)
+        self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_dna(self):
         """calculate paralinear distance consistent with logdet distance"""

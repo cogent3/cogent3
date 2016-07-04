@@ -181,7 +181,7 @@ PMID: 14499652"""
 
         records = list(LLFinder(fake_file.split('\n')))
         self.assertEqual(len(records), 2)
-        first, second = map(LinesToLocusLink, records)
+        first, second = list(map(LinesToLocusLink, records))
 
         #test the second one first, since it's shorter
         self.assertEqual(second.LOCUSID, 386590)

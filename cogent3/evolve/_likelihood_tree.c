@@ -266,8 +266,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__cogent__evolve___likelihood_tree
-#define __PYX_HAVE_API__cogent__evolve___likelihood_tree
+#define __PYX_HAVE__cogent3__evolve___likelihood_tree
+#define __PYX_HAVE_API__cogent3__evolve___likelihood_tree
 #include "limits.h"
 #include "math.h"
 #include "pythread.h"
@@ -491,7 +491,7 @@ static const char *__pyx_filename;
 
 static const char *__pyx_f[] = {
   "include/numerical_pyrex.pyx",
-  "cogent/evolve/_likelihood_tree.pyx",
+  "cogent3/evolve/_likelihood_tree.pyx",
   "stringsource",
 };
 /* MemviewSliceStruct.proto */
@@ -603,7 +603,7 @@ struct __pyx_memoryviewslice_obj;
  * ctypedef double[:, ::1] Double2D
  * ctypedef double[:, :, ::1] Double3D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D;
 
 /* "include/numerical_pyrex.pyx":32
  * 
@@ -612,7 +612,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D;
  * ctypedef double[:, :, ::1] Double3D
  * ctypedef long[::1] Long1D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D;
 
 /* "include/numerical_pyrex.pyx":33
  * ctypedef double[::1] Double1D
@@ -621,7 +621,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D;
  * ctypedef long[::1] Long1D
  * ctypedef long[:, ::1] Long2D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double3D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double3D;
 
 /* "include/numerical_pyrex.pyx":34
  * ctypedef double[:, ::1] Double2D
@@ -630,7 +630,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Double3D;
  * ctypedef long[:, ::1] Long2D
  * ctypedef long[:, :, ::1] Long3D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D;
 
 /* "include/numerical_pyrex.pyx":35
  * ctypedef double[:, :, ::1] Double3D
@@ -639,7 +639,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D;
  * ctypedef long[:, :, ::1] Long3D
  * 
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Long2D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long2D;
 
 /* "include/numerical_pyrex.pyx":36
  * ctypedef long[::1] Long1D
@@ -648,7 +648,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Long2D;
  * 
  * 
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_6evolve_16_likelihood_tree_Long3D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long3D;
 
 /* "View.MemoryView":103
  * 
@@ -1263,7 +1263,7 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
-/* Module declarations from 'cogent.evolve._likelihood_tree' */
+/* Module declarations from 'cogent3.evolve._likelihood_tree' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1275,12 +1275,12 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static int __pyx_fuse_0__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, Py_ssize_t *); /*proto*/
-static int __pyx_fuse_1__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, long *); /*proto*/
-static int __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, int *); /*proto*/
-static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
-static int __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
-static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
+static int __pyx_fuse_0__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, Py_ssize_t *); /*proto*/
+static int __pyx_fuse_1__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, long *); /*proto*/
+static int __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *, Py_ssize_t, int *); /*proto*/
+static int __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
+static int __pyx_fuse_1_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
+static int __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1315,10 +1315,10 @@ static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_long = { "long", NULL, sizeof(long), { 0 }, 0, IS_UNSIGNED(long) ? 'U' : 'I', IS_UNSIGNED(long), 0 };
-#define __Pyx_MODULE_NAME "cogent.evolve._likelihood_tree"
-int __pyx_module_is_main_cogent__evolve___likelihood_tree = 0;
+#define __Pyx_MODULE_NAME "cogent3.evolve._likelihood_tree"
+int __pyx_module_is_main_cogent3__evolve___likelihood_tree = 0;
 
-/* Implementation of 'cogent.evolve._likelihood_tree' */
+/* Implementation of 'cogent3.evolve._likelihood_tree' */
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_MemoryError;
@@ -1423,9 +1423,9 @@ static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_s_dimension_is_s_expected_s[] = "%s dimension is %s, expected %s";
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
-static const char __pyx_k_Users_gavin_DevRepos_PyCogent3[] = "/Users/gavin/DevRepos/PyCogent3/cogent/evolve/_likelihood_tree.pyx";
-static const char __pyx_k_cogent_evolve__likelihood_tree[] = "cogent.evolve._likelihood_tree";
+static const char __pyx_k_Users_gavin_DevRepos_PyCogent3[] = "/Users/gavin/DevRepos/PyCogent3/cogent3/evolve/_likelihood_tree.pyx";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
+static const char __pyx_k_cogent3_evolve__likelihood_tree[] = "cogent3.evolve._likelihood_tree";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
@@ -1472,7 +1472,7 @@ static PyObject *__pyx_n_s_child;
 static PyObject *__pyx_n_s_child_col;
 static PyObject *__pyx_n_s_child_indexes;
 static PyObject *__pyx_n_s_class;
-static PyObject *__pyx_n_s_cogent_evolve__likelihood_tree;
+static PyObject *__pyx_n_s_cogent3_evolve__likelihood_tree;
 static PyObject *__pyx_n_s_col;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
@@ -1545,10 +1545,10 @@ static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_version;
 static PyObject *__pyx_n_s_version_info;
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_6logDotReduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1628,7 +1628,7 @@ static PyObject *__pyx_codeobj__25;
  *         # Length unspecified, take it from the provided array
  */
 
-static int __pyx_fuse_0__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, Py_ssize_t *__pyx_v_var) {
+static int __pyx_fuse_0__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, Py_ssize_t *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -1756,14 +1756,14 @@ static int __pyx_fuse_0__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObj
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_1__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, long *__pyx_v_var) {
+static int __pyx_fuse_1__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, long *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -1942,14 +1942,14 @@ static int __pyx_fuse_1__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObj
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, int *__pyx_v_var) {
+static int __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, int *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2128,7 +2128,7 @@ static int __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObj
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2143,7 +2143,7 @@ static int __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(PyObj
  *         raise ValueError('Array required, got None')
  */
 
-static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
+static int __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2190,7 +2190,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D
  * 
  * cdef int checkArray2D(num[:, ::1] a, dim *x, dim *y) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":62
  * 
@@ -2205,14 +2205,14 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
+static int __pyx_fuse_1_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2259,7 +2259,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D
  * 
  * cdef int checkArray2D(num[:, ::1] a, dim *x, dim *y) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":62
  * 
@@ -2274,7 +2274,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2289,7 +2289,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D
  *         raise ValueError('Array required, got None')
  */
 
-static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
+static int __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2336,7 +2336,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D
  *     checkDim('2nd', a.shape[1], y)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":71
  *         raise ValueError('Array required, got None')
@@ -2345,7 +2345,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D
  * 
  * cdef int checkArray3D(num[:, :, ::1] a, dim *x, dim *y, dim *z) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":67
  *     checkDim('1st', a.shape[0], x)
@@ -2360,14 +2360,14 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "cogent/evolve/_likelihood_tree.pyx":12
+/* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
  * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
@@ -2376,11 +2376,11 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihoods = {"sumInputLikelihoods", (PyCFunction)__pyx_pw_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihoods, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods = {"sumInputLikelihoods", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_child_indexes = 0;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_result = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_likelihoods = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -2432,18 +2432,18 @@ static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihood
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("sumInputLikelihoods", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 12, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods(__pyx_self, __pyx_v_child_indexes, __pyx_v_result, __pyx_v_likelihoods);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(__pyx_self, __pyx_v_child_indexes, __pyx_v_result, __pyx_v_likelihoods);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods) {
   int __pyx_v_M;
   int __pyx_v_S;
   int __pyx_v_U;
@@ -2452,16 +2452,16 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   int __pyx_v_parent_col;
   int __pyx_v_child_col;
   int __pyx_v_child;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D __pyx_v_index = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   Py_ssize_t __pyx_t_1;
   int __pyx_t_2;
   int __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_7;
   int __pyx_t_8;
   int __pyx_t_9;
@@ -2479,7 +2479,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   Py_ssize_t __pyx_t_21;
   __Pyx_RefNannySetupContext("sumInputLikelihoods", 0);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":19
+  /* "cogent3/evolve/_likelihood_tree.pyx":19
  *     # S is parent seq length, U is unique columns in child seq
  *     # M is size of alphabet, C is number of children.
  *     C = len(child_indexes)             # <<<<<<<<<<<<<<
@@ -2489,7 +2489,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   __pyx_t_1 = PyObject_Length(__pyx_v_child_indexes); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(1, 19, __pyx_L1_error)
   __pyx_v_C = __pyx_t_1;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":20
+  /* "cogent3/evolve/_likelihood_tree.pyx":20
  *     # M is size of alphabet, C is number of children.
  *     C = len(child_indexes)
  *     M = S = 0             # <<<<<<<<<<<<<<
@@ -2499,16 +2499,16 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   __pyx_v_M = 0;
   __pyx_v_S = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":21
+  /* "cogent3/evolve/_likelihood_tree.pyx":21
  *     C = len(child_indexes)
  *     M = S = 0
  *     checkArray2D(result, &S, &M)             # <<<<<<<<<<<<<<
  * 
  *     for child in range(C):
  */
-  __pyx_t_2 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_result, (&__pyx_v_S), (&__pyx_v_M)); if (unlikely(__pyx_t_2 == 1)) __PYX_ERR(1, 21, __pyx_L1_error)
+  __pyx_t_2 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_result, (&__pyx_v_S), (&__pyx_v_M)); if (unlikely(__pyx_t_2 == 1)) __PYX_ERR(1, 21, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":23
+  /* "cogent3/evolve/_likelihood_tree.pyx":23
  *     checkArray2D(result, &S, &M)
  * 
  *     for child in range(C):             # <<<<<<<<<<<<<<
@@ -2519,7 +2519,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_child = __pyx_t_3;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":24
+    /* "cogent3/evolve/_likelihood_tree.pyx":24
  * 
  *     for child in range(C):
  *         index = child_indexes[child]             # <<<<<<<<<<<<<<
@@ -2536,7 +2536,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":25
+    /* "cogent3/evolve/_likelihood_tree.pyx":25
  *     for child in range(C):
  *         index = child_indexes[child]
  *         plhs = likelihoods[child]             # <<<<<<<<<<<<<<
@@ -2553,7 +2553,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":26
+    /* "cogent3/evolve/_likelihood_tree.pyx":26
  *         index = child_indexes[child]
  *         plhs = likelihoods[child]
  *         U = 0             # <<<<<<<<<<<<<<
@@ -2562,25 +2562,25 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
  */
     __pyx_v_U = 0;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":27
+    /* "cogent3/evolve/_likelihood_tree.pyx":27
  *         plhs = likelihoods[child]
  *         U = 0
  *         checkArray1D(index, &S)             # <<<<<<<<<<<<<<
  *         checkArray2D(plhs, &U, &M)
  *         if child == 0:
  */
-    __pyx_t_7 = __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_index, (&__pyx_v_S)); if (unlikely(__pyx_t_7 == 1)) __PYX_ERR(1, 27, __pyx_L1_error)
+    __pyx_t_7 = __pyx_fuse_1_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_index, (&__pyx_v_S)); if (unlikely(__pyx_t_7 == 1)) __PYX_ERR(1, 27, __pyx_L1_error)
 
-    /* "cogent/evolve/_likelihood_tree.pyx":28
+    /* "cogent3/evolve/_likelihood_tree.pyx":28
  *         U = 0
  *         checkArray1D(index, &S)
  *         checkArray2D(plhs, &U, &M)             # <<<<<<<<<<<<<<
  *         if child == 0:
  *             for parent_col in range(S):
  */
-    __pyx_t_7 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_plhs, (&__pyx_v_U), (&__pyx_v_M)); if (unlikely(__pyx_t_7 == 1)) __PYX_ERR(1, 28, __pyx_L1_error)
+    __pyx_t_7 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_plhs, (&__pyx_v_U), (&__pyx_v_M)); if (unlikely(__pyx_t_7 == 1)) __PYX_ERR(1, 28, __pyx_L1_error)
 
-    /* "cogent/evolve/_likelihood_tree.pyx":29
+    /* "cogent3/evolve/_likelihood_tree.pyx":29
  *         checkArray1D(index, &S)
  *         checkArray2D(plhs, &U, &M)
  *         if child == 0:             # <<<<<<<<<<<<<<
@@ -2590,7 +2590,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
     __pyx_t_8 = ((__pyx_v_child == 0) != 0);
     if (__pyx_t_8) {
 
-      /* "cogent/evolve/_likelihood_tree.pyx":30
+      /* "cogent3/evolve/_likelihood_tree.pyx":30
  *         checkArray2D(plhs, &U, &M)
  *         if child == 0:
  *             for parent_col in range(S):             # <<<<<<<<<<<<<<
@@ -2601,7 +2601,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
       for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_7; __pyx_t_9+=1) {
         __pyx_v_parent_col = __pyx_t_9;
 
-        /* "cogent/evolve/_likelihood_tree.pyx":31
+        /* "cogent3/evolve/_likelihood_tree.pyx":31
  *         if child == 0:
  *             for parent_col in range(S):
  *                 child_col = index[parent_col]             # <<<<<<<<<<<<<<
@@ -2611,7 +2611,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
         __pyx_t_10 = __pyx_v_parent_col;
         __pyx_v_child_col = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_index.data) + __pyx_t_10)) )));
 
-        /* "cogent/evolve/_likelihood_tree.pyx":32
+        /* "cogent3/evolve/_likelihood_tree.pyx":32
  *             for parent_col in range(S):
  *                 child_col = index[parent_col]
  *                 for motif in range(M):             # <<<<<<<<<<<<<<
@@ -2622,7 +2622,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
         for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
           __pyx_v_motif = __pyx_t_12;
 
-          /* "cogent/evolve/_likelihood_tree.pyx":33
+          /* "cogent3/evolve/_likelihood_tree.pyx":33
  *                 child_col = index[parent_col]
  *                 for motif in range(M):
  *                     result[parent_col, motif] = plhs[child_col, motif]             # <<<<<<<<<<<<<<
@@ -2637,7 +2637,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
         }
       }
 
-      /* "cogent/evolve/_likelihood_tree.pyx":29
+      /* "cogent3/evolve/_likelihood_tree.pyx":29
  *         checkArray1D(index, &S)
  *         checkArray2D(plhs, &U, &M)
  *         if child == 0:             # <<<<<<<<<<<<<<
@@ -2647,7 +2647,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
       goto __pyx_L5;
     }
 
-    /* "cogent/evolve/_likelihood_tree.pyx":35
+    /* "cogent3/evolve/_likelihood_tree.pyx":35
  *                     result[parent_col, motif] = plhs[child_col, motif]
  *         else:
  *             for parent_col in range(S):             # <<<<<<<<<<<<<<
@@ -2659,7 +2659,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
       for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_7; __pyx_t_9+=1) {
         __pyx_v_parent_col = __pyx_t_9;
 
-        /* "cogent/evolve/_likelihood_tree.pyx":36
+        /* "cogent3/evolve/_likelihood_tree.pyx":36
  *         else:
  *             for parent_col in range(S):
  *                 child_col = index[parent_col]             # <<<<<<<<<<<<<<
@@ -2669,7 +2669,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
         __pyx_t_17 = __pyx_v_parent_col;
         __pyx_v_child_col = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_index.data) + __pyx_t_17)) )));
 
-        /* "cogent/evolve/_likelihood_tree.pyx":37
+        /* "cogent3/evolve/_likelihood_tree.pyx":37
  *             for parent_col in range(S):
  *                 child_col = index[parent_col]
  *                 for motif in range(M):             # <<<<<<<<<<<<<<
@@ -2680,7 +2680,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
         for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
           __pyx_v_motif = __pyx_t_12;
 
-          /* "cogent/evolve/_likelihood_tree.pyx":38
+          /* "cogent3/evolve/_likelihood_tree.pyx":38
  *                 child_col = index[parent_col]
  *                 for motif in range(M):
  *                     result[parent_col, motif] *= plhs[child_col, motif]             # <<<<<<<<<<<<<<
@@ -2698,7 +2698,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
     __pyx_L5:;
   }
 
-  /* "cogent/evolve/_likelihood_tree.pyx":39
+  /* "cogent3/evolve/_likelihood_tree.pyx":39
  *                 for motif in range(M):
  *                     result[parent_col, motif] *= plhs[child_col, motif]
  *     return result             # <<<<<<<<<<<<<<
@@ -2712,7 +2712,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":12
+  /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
  * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
@@ -2725,7 +2725,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   __Pyx_XDECREF(__pyx_t_4);
   __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_plhs, 1);
@@ -2736,7 +2736,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
   return __pyx_r;
 }
 
-/* "cogent/evolve/_likelihood_tree.pyx":41
+/* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
  * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
@@ -2745,12 +2745,12 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_sumInputLikelihoods
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelihood = {"getTotalLogLikelihood", (PyCFunction)__pyx_pw_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelihood, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood = {"getTotalLogLikelihood", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getTotalLogLikelihood (wrapper)", 0);
@@ -2801,18 +2801,18 @@ static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelih
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("getTotalLogLikelihood", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 41, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelihood(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods, __pyx_v_mprobs);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods, __pyx_v_mprobs);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs) {
   int __pyx_v_S;
   int __pyx_v_M;
   int __pyx_v_col;
@@ -2832,7 +2832,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   PyObject *__pyx_t_9 = NULL;
   __Pyx_RefNannySetupContext("getTotalLogLikelihood", 0);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":46
+  /* "cogent3/evolve/_likelihood_tree.pyx":46
  * 
  *     # M is size of alphabet, S is seq length
  *     S = M = 0             # <<<<<<<<<<<<<<
@@ -2842,34 +2842,34 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   __pyx_v_S = 0;
   __pyx_v_M = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":47
+  /* "cogent3/evolve/_likelihood_tree.pyx":47
  *     # M is size of alphabet, S is seq length
  *     S = M = 0
  *     checkArray1D(mprobs, &M)             # <<<<<<<<<<<<<<
  *     checkArray1D(counts, &S)
  *     checkArray2D(input_likelihoods, &S, &M)
  */
-  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_mprobs, (&__pyx_v_M)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 47, __pyx_L1_error)
+  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_mprobs, (&__pyx_v_M)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 47, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":48
+  /* "cogent3/evolve/_likelihood_tree.pyx":48
  *     S = M = 0
  *     checkArray1D(mprobs, &M)
  *     checkArray1D(counts, &S)             # <<<<<<<<<<<<<<
  *     checkArray2D(input_likelihoods, &S, &M)
  * 
  */
-  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_counts, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 48, __pyx_L1_error)
+  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_counts, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 48, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":49
+  /* "cogent3/evolve/_likelihood_tree.pyx":49
  *     checkArray1D(mprobs, &M)
  *     checkArray1D(counts, &S)
  *     checkArray2D(input_likelihoods, &S, &M)             # <<<<<<<<<<<<<<
  * 
  *     total = 0.0
  */
-  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_input_likelihoods, (&__pyx_v_S), (&__pyx_v_M)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 49, __pyx_L1_error)
+  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_input_likelihoods, (&__pyx_v_S), (&__pyx_v_M)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 49, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":51
+  /* "cogent3/evolve/_likelihood_tree.pyx":51
  *     checkArray2D(input_likelihoods, &S, &M)
  * 
  *     total = 0.0             # <<<<<<<<<<<<<<
@@ -2878,7 +2878,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
  */
   __pyx_v_total = 0.0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":52
+  /* "cogent3/evolve/_likelihood_tree.pyx":52
  * 
  *     total = 0.0
  *     for col in range(S):             # <<<<<<<<<<<<<<
@@ -2889,7 +2889,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_col = __pyx_t_2;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":53
+    /* "cogent3/evolve/_likelihood_tree.pyx":53
  *     total = 0.0
  *     for col in range(S):
  *         posn = 0.0             # <<<<<<<<<<<<<<
@@ -2898,7 +2898,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
  */
     __pyx_v_posn = 0.0;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":54
+    /* "cogent3/evolve/_likelihood_tree.pyx":54
  *     for col in range(S):
  *         posn = 0.0
  *         for motif in range(M):             # <<<<<<<<<<<<<<
@@ -2909,7 +2909,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_motif = __pyx_t_4;
 
-      /* "cogent/evolve/_likelihood_tree.pyx":55
+      /* "cogent3/evolve/_likelihood_tree.pyx":55
  *         posn = 0.0
  *         for motif in range(M):
  *             posn += input_likelihoods[col, motif] * mprobs[motif]             # <<<<<<<<<<<<<<
@@ -2922,7 +2922,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
       __pyx_v_posn = (__pyx_v_posn + ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_input_likelihoods.data + __pyx_t_5 * __pyx_v_input_likelihoods.strides[0]) )) + __pyx_t_6)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_7)) )))));
     }
 
-    /* "cogent/evolve/_likelihood_tree.pyx":56
+    /* "cogent3/evolve/_likelihood_tree.pyx":56
  *         for motif in range(M):
  *             posn += input_likelihoods[col, motif] * mprobs[motif]
  *         total += log(posn)*counts[col]             # <<<<<<<<<<<<<<
@@ -2933,7 +2933,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
     __pyx_v_total = (__pyx_v_total + (log(__pyx_v_posn) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_counts.data) + __pyx_t_8)) )))));
   }
 
-  /* "cogent/evolve/_likelihood_tree.pyx":57
+  /* "cogent3/evolve/_likelihood_tree.pyx":57
  *             posn += input_likelihoods[col, motif] * mprobs[motif]
  *         total += log(posn)*counts[col]
  *     return total             # <<<<<<<<<<<<<<
@@ -2947,7 +2947,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":41
+  /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
  * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
@@ -2958,7 +2958,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_counts, 1);
@@ -2969,7 +2969,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
   return __pyx_r;
 }
 
-/* "cogent/evolve/_likelihood_tree.pyx":59
+/* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
  * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
@@ -2978,11 +2978,11 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_2getTotalLogLikelih
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSites = {"getLogSumAcrossSites", (PyCFunction)__pyx_pw_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSites, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites = {"getLogSumAcrossSites", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getLogSumAcrossSites (wrapper)", 0);
@@ -3025,18 +3025,18 @@ static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSit
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("getLogSumAcrossSites", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 59, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSites(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods) {
   int __pyx_v_S;
   int __pyx_v_col;
   double __pyx_v_total;
@@ -3049,7 +3049,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("getLogSumAcrossSites", 0);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":63
+  /* "cogent3/evolve/_likelihood_tree.pyx":63
  *     cdef double total
  * 
  *     S = 0             # <<<<<<<<<<<<<<
@@ -3058,25 +3058,25 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
  */
   __pyx_v_S = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":64
+  /* "cogent3/evolve/_likelihood_tree.pyx":64
  * 
  *     S = 0
  *     checkArray1D(counts, &S)             # <<<<<<<<<<<<<<
  *     checkArray1D(input_likelihoods, &S)
  * 
  */
-  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_counts, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 64, __pyx_L1_error)
+  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_counts, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 64, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":65
+  /* "cogent3/evolve/_likelihood_tree.pyx":65
  *     S = 0
  *     checkArray1D(counts, &S)
  *     checkArray1D(input_likelihoods, &S)             # <<<<<<<<<<<<<<
  * 
  *     total = 0.0
  */
-  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_input_likelihoods, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 65, __pyx_L1_error)
+  __pyx_t_1 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_input_likelihoods, (&__pyx_v_S)); if (unlikely(__pyx_t_1 == 1)) __PYX_ERR(1, 65, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":67
+  /* "cogent3/evolve/_likelihood_tree.pyx":67
  *     checkArray1D(input_likelihoods, &S)
  * 
  *     total = 0.0             # <<<<<<<<<<<<<<
@@ -3085,7 +3085,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
  */
   __pyx_v_total = 0.0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":68
+  /* "cogent3/evolve/_likelihood_tree.pyx":68
  * 
  *     total = 0.0
  *     for col in range(S):             # <<<<<<<<<<<<<<
@@ -3096,7 +3096,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_col = __pyx_t_2;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":69
+    /* "cogent3/evolve/_likelihood_tree.pyx":69
  *     total = 0.0
  *     for col in range(S):
  *         total += log(input_likelihoods[col])*counts[col]             # <<<<<<<<<<<<<<
@@ -3108,7 +3108,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
     __pyx_v_total = (__pyx_v_total + (log((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_input_likelihoods.data) + __pyx_t_3)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_counts.data) + __pyx_t_4)) )))));
   }
 
-  /* "cogent/evolve/_likelihood_tree.pyx":70
+  /* "cogent3/evolve/_likelihood_tree.pyx":70
  *     for col in range(S):
  *         total += log(input_likelihoods[col])*counts[col]
  *     return total             # <<<<<<<<<<<<<<
@@ -3122,7 +3122,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":59
+  /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
  * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
@@ -3133,7 +3133,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_counts, 1);
@@ -3143,7 +3143,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
   return __pyx_r;
 }
 
-/* "cogent/evolve/_likelihood_tree.pyx":72
+/* "cogent3/evolve/_likelihood_tree.pyx":72
  *     return total
  * 
  * def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):             # <<<<<<<<<<<<<<
@@ -3152,13 +3152,13 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_4getLogSumAcrossSit
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_7logDotReduce(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cogent_6evolve_16_likelihood_tree_7logDotReduce = {"logDotReduce", (PyCFunction)__pyx_pw_6cogent_6evolve_16_likelihood_tree_7logDotReduce, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_7logDotReduce(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D __pyx_v_index = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_7logDotReduce(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_7logDotReduce = {"logDotReduce", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_7logDotReduce, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_7logDotReduce(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_patch_probs = 0;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("logDotReduce (wrapper)", 0);
@@ -3217,18 +3217,18 @@ static PyObject *__pyx_pw_6cogent_6evolve_16_likelihood_tree_7logDotReduce(PyObj
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("logDotReduce", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 72, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.logDotReduce", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.logDotReduce", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(__pyx_self, __pyx_v_index, __pyx_v_patch_probs, __pyx_v_switch_probs, __pyx_v_plhs);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_6logDotReduce(__pyx_self, __pyx_v_index, __pyx_v_patch_probs, __pyx_v_switch_probs, __pyx_v_plhs);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_6cogent_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_6logDotReduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs) {
   int __pyx_v_i;
   int __pyx_v_j;
   int __pyx_v_col;
@@ -3240,9 +3240,9 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   int __pyx_v_exponent;
   double __pyx_v_result;
   double __pyx_v_BASE;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_state = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_prev = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_v_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_state = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_prev = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_patch_probs1 = 0;
   PyObject *__pyx_v_patch_probs2 = 0;
   PyObject *__pyx_r = NULL;
@@ -3250,7 +3250,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  __pyx_t_6cogent_6evolve_16_likelihood_tree_Double1D __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_5;
   int __pyx_t_6;
   Py_ssize_t __pyx_t_7;
@@ -3274,7 +3274,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   Py_ssize_t __pyx_t_25;
   __Pyx_RefNannySetupContext("logDotReduce", 0);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":78
+  /* "cogent3/evolve/_likelihood_tree.pyx":78
  *     cdef Double1D state, prev, tmp
  *     cdef object patch_probs1, patch_probs2
  *     BASE = 2.0 ** 1000             # <<<<<<<<<<<<<<
@@ -3283,7 +3283,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
   __pyx_v_BASE = pow(2.0, 1000.0);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":79
+  /* "cogent3/evolve/_likelihood_tree.pyx":79
  *     cdef object patch_probs1, patch_probs2
  *     BASE = 2.0 ** 1000
  *     patch_probs1 = patch_probs.copy()             # <<<<<<<<<<<<<<
@@ -3313,7 +3313,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_v_patch_probs1 = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":80
+  /* "cogent3/evolve/_likelihood_tree.pyx":80
  *     BASE = 2.0 ** 1000
  *     patch_probs1 = patch_probs.copy()
  *     patch_probs2 = patch_probs.copy()             # <<<<<<<<<<<<<<
@@ -3343,7 +3343,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_v_patch_probs2 = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":81
+  /* "cogent3/evolve/_likelihood_tree.pyx":81
  *     patch_probs1 = patch_probs.copy()
  *     patch_probs2 = patch_probs.copy()
  *     state = patch_probs1             # <<<<<<<<<<<<<<
@@ -3356,7 +3356,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":82
+  /* "cogent3/evolve/_likelihood_tree.pyx":82
  *     patch_probs2 = patch_probs.copy()
  *     state = patch_probs1
  *     prev = patch_probs2             # <<<<<<<<<<<<<<
@@ -3369,7 +3369,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":86
+  /* "cogent3/evolve/_likelihood_tree.pyx":86
  *     # S is seq length, U is unique columns in child seq
  *     # N is number of patch types
  *     N = U = S = 0             # <<<<<<<<<<<<<<
@@ -3380,52 +3380,52 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_v_U = 0;
   __pyx_v_S = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":87
+  /* "cogent3/evolve/_likelihood_tree.pyx":87
  *     # N is number of patch types
  *     N = U = S = 0
  *     checkArray1D(state, &N)             # <<<<<<<<<<<<<<
  *     checkArray1D(prev, &N)
  *     checkArray2D(switch_probs, &N, &N)
  */
-  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_state, (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 87, __pyx_L1_error)
+  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_state, (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 87, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":88
+  /* "cogent3/evolve/_likelihood_tree.pyx":88
  *     N = U = S = 0
  *     checkArray1D(state, &N)
  *     checkArray1D(prev, &N)             # <<<<<<<<<<<<<<
  *     checkArray2D(switch_probs, &N, &N)
  *     checkArray2D(plhs, &U, &N)
  */
-  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_prev, (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 88, __pyx_L1_error)
+  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_prev, (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 88, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":89
+  /* "cogent3/evolve/_likelihood_tree.pyx":89
  *     checkArray1D(state, &N)
  *     checkArray1D(prev, &N)
  *     checkArray2D(switch_probs, &N, &N)             # <<<<<<<<<<<<<<
  *     checkArray2D(plhs, &U, &N)
  *     checkArray1D(index, &S)
  */
-  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_switch_probs, (&__pyx_v_N), (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 89, __pyx_L1_error)
+  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_switch_probs, (&__pyx_v_N), (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 89, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":90
+  /* "cogent3/evolve/_likelihood_tree.pyx":90
  *     checkArray1D(prev, &N)
  *     checkArray2D(switch_probs, &N, &N)
  *     checkArray2D(plhs, &U, &N)             # <<<<<<<<<<<<<<
  *     checkArray1D(index, &S)
  * 
  */
-  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_plhs, (&__pyx_v_U), (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 90, __pyx_L1_error)
+  __pyx_t_5 = __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2D(__pyx_v_plhs, (&__pyx_v_U), (&__pyx_v_N)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 90, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":91
+  /* "cogent3/evolve/_likelihood_tree.pyx":91
  *     checkArray2D(switch_probs, &N, &N)
  *     checkArray2D(plhs, &U, &N)
  *     checkArray1D(index, &S)             # <<<<<<<<<<<<<<
  * 
  *     exponent = 0
  */
-  __pyx_t_5 = __pyx_fuse_1_2__pyx_f_6cogent_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_index, (&__pyx_v_S)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 91, __pyx_L1_error)
+  __pyx_t_5 = __pyx_fuse_1_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray1D(__pyx_v_index, (&__pyx_v_S)); if (unlikely(__pyx_t_5 == 1)) __PYX_ERR(1, 91, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":93
+  /* "cogent3/evolve/_likelihood_tree.pyx":93
  *     checkArray1D(index, &S)
  * 
  *     exponent = 0             # <<<<<<<<<<<<<<
@@ -3434,7 +3434,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
   __pyx_v_exponent = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":94
+  /* "cogent3/evolve/_likelihood_tree.pyx":94
  * 
  *     exponent = 0
  *     for site in range(S):             # <<<<<<<<<<<<<<
@@ -3445,7 +3445,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_site = __pyx_t_6;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":95
+    /* "cogent3/evolve/_likelihood_tree.pyx":95
  *     exponent = 0
  *     for site in range(S):
  *         col = index[site]             # <<<<<<<<<<<<<<
@@ -3455,7 +3455,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __pyx_t_7 = __pyx_v_site;
     __pyx_v_col = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_index.data) + __pyx_t_7)) )));
 
-    /* "cogent/evolve/_likelihood_tree.pyx":96
+    /* "cogent3/evolve/_likelihood_tree.pyx":96
  *     for site in range(S):
  *         col = index[site]
  *         if col >= U:             # <<<<<<<<<<<<<<
@@ -3465,7 +3465,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __pyx_t_8 = ((__pyx_v_col >= __pyx_v_U) != 0);
     if (__pyx_t_8) {
 
-      /* "cogent/evolve/_likelihood_tree.pyx":97
+      /* "cogent3/evolve/_likelihood_tree.pyx":97
  *         col = index[site]
  *         if col >= U:
  *             raise ValueError((col, U))             # <<<<<<<<<<<<<<
@@ -3496,7 +3496,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __PYX_ERR(1, 97, __pyx_L1_error)
 
-      /* "cogent/evolve/_likelihood_tree.pyx":96
+      /* "cogent3/evolve/_likelihood_tree.pyx":96
  *     for site in range(S):
  *         col = index[site]
  *         if col >= U:             # <<<<<<<<<<<<<<
@@ -3505,7 +3505,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
     }
 
-    /* "cogent/evolve/_likelihood_tree.pyx":98
+    /* "cogent3/evolve/_likelihood_tree.pyx":98
  *         if col >= U:
  *             raise ValueError((col, U))
  *         tmp = prev             # <<<<<<<<<<<<<<
@@ -3516,7 +3516,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __PYX_INC_MEMVIEW(&__pyx_v_prev, 0);
     __pyx_v_tmp = __pyx_v_prev;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":99
+    /* "cogent3/evolve/_likelihood_tree.pyx":99
  *             raise ValueError((col, U))
  *         tmp = prev
  *         prev = state             # <<<<<<<<<<<<<<
@@ -3527,7 +3527,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __PYX_INC_MEMVIEW(&__pyx_v_state, 0);
     __pyx_v_prev = __pyx_v_state;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":100
+    /* "cogent3/evolve/_likelihood_tree.pyx":100
  *         tmp = prev
  *         prev = state
  *         state = tmp             # <<<<<<<<<<<<<<
@@ -3538,7 +3538,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __PYX_INC_MEMVIEW(&__pyx_v_tmp, 0);
     __pyx_v_state = __pyx_v_tmp;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":101
+    /* "cogent3/evolve/_likelihood_tree.pyx":101
  *         prev = state
  *         state = tmp
  *         most_probable_state = 0             # <<<<<<<<<<<<<<
@@ -3547,7 +3547,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
     __pyx_v_most_probable_state = 0;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":102
+    /* "cogent3/evolve/_likelihood_tree.pyx":102
  *         state = tmp
  *         most_probable_state = 0
  *         for i in range(N):             # <<<<<<<<<<<<<<
@@ -3558,7 +3558,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
       __pyx_v_i = __pyx_t_10;
 
-      /* "cogent/evolve/_likelihood_tree.pyx":103
+      /* "cogent3/evolve/_likelihood_tree.pyx":103
  *         most_probable_state = 0
  *         for i in range(N):
  *             state[i] = 0             # <<<<<<<<<<<<<<
@@ -3568,7 +3568,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __pyx_t_11 = __pyx_v_i;
       *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_11)) )) = 0.0;
 
-      /* "cogent/evolve/_likelihood_tree.pyx":104
+      /* "cogent3/evolve/_likelihood_tree.pyx":104
  *         for i in range(N):
  *             state[i] = 0
  *             for j in range(N):             # <<<<<<<<<<<<<<
@@ -3579,7 +3579,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
         __pyx_v_j = __pyx_t_13;
 
-        /* "cogent/evolve/_likelihood_tree.pyx":105
+        /* "cogent3/evolve/_likelihood_tree.pyx":105
  *             state[i] = 0
  *             for j in range(N):
  *                 state[i] += prev[j] * switch_probs[j, i]             # <<<<<<<<<<<<<<
@@ -3593,7 +3593,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
         *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_17)) )) += ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_prev.data) + __pyx_t_14)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_switch_probs.data + __pyx_t_15 * __pyx_v_switch_probs.strides[0]) )) + __pyx_t_16)) ))));
       }
 
-      /* "cogent/evolve/_likelihood_tree.pyx":106
+      /* "cogent3/evolve/_likelihood_tree.pyx":106
  *             for j in range(N):
  *                 state[i] += prev[j] * switch_probs[j, i]
  *             state[i] *= plhs[col, i]             # <<<<<<<<<<<<<<
@@ -3605,7 +3605,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __pyx_t_20 = __pyx_v_i;
       *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_20)) )) *= (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_plhs.data + __pyx_t_18 * __pyx_v_plhs.strides[0]) )) + __pyx_t_19)) )));
 
-      /* "cogent/evolve/_likelihood_tree.pyx":107
+      /* "cogent3/evolve/_likelihood_tree.pyx":107
  *                 state[i] += prev[j] * switch_probs[j, i]
  *             state[i] *= plhs[col, i]
  *             if state[i] > state[most_probable_state]:             # <<<<<<<<<<<<<<
@@ -3617,7 +3617,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __pyx_t_8 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_21)) ))) > (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_22)) )))) != 0);
       if (__pyx_t_8) {
 
-        /* "cogent/evolve/_likelihood_tree.pyx":108
+        /* "cogent3/evolve/_likelihood_tree.pyx":108
  *             state[i] *= plhs[col, i]
  *             if state[i] > state[most_probable_state]:
  *                 most_probable_state = i             # <<<<<<<<<<<<<<
@@ -3626,7 +3626,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
         __pyx_v_most_probable_state = __pyx_v_i;
 
-        /* "cogent/evolve/_likelihood_tree.pyx":107
+        /* "cogent3/evolve/_likelihood_tree.pyx":107
  *                 state[i] += prev[j] * switch_probs[j, i]
  *             state[i] *= plhs[col, i]
  *             if state[i] > state[most_probable_state]:             # <<<<<<<<<<<<<<
@@ -3636,7 +3636,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       }
     }
 
-    /* "cogent/evolve/_likelihood_tree.pyx":109
+    /* "cogent3/evolve/_likelihood_tree.pyx":109
  *             if state[i] > state[most_probable_state]:
  *                 most_probable_state = i
  *         while state[most_probable_state] < 1.0:             # <<<<<<<<<<<<<<
@@ -3648,7 +3648,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __pyx_t_8 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_23)) ))) < 1.0) != 0);
       if (!__pyx_t_8) break;
 
-      /* "cogent/evolve/_likelihood_tree.pyx":110
+      /* "cogent3/evolve/_likelihood_tree.pyx":110
  *                 most_probable_state = i
  *         while state[most_probable_state] < 1.0:
  *             for i from 0 <= i < N:             # <<<<<<<<<<<<<<
@@ -3658,7 +3658,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
       __pyx_t_9 = __pyx_v_N;
       for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_9; __pyx_v_i++) {
 
-        /* "cogent/evolve/_likelihood_tree.pyx":111
+        /* "cogent3/evolve/_likelihood_tree.pyx":111
  *         while state[most_probable_state] < 1.0:
  *             for i from 0 <= i < N:
  *                 state[i] *= BASE             # <<<<<<<<<<<<<<
@@ -3669,7 +3669,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
         *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_24)) )) *= __pyx_v_BASE;
       }
 
-      /* "cogent/evolve/_likelihood_tree.pyx":112
+      /* "cogent3/evolve/_likelihood_tree.pyx":112
  *             for i from 0 <= i < N:
  *                 state[i] *= BASE
  *             exponent += -1             # <<<<<<<<<<<<<<
@@ -3680,7 +3680,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     }
   }
 
-  /* "cogent/evolve/_likelihood_tree.pyx":113
+  /* "cogent3/evolve/_likelihood_tree.pyx":113
  *                 state[i] *= BASE
  *             exponent += -1
  *     result = 0.0             # <<<<<<<<<<<<<<
@@ -3689,7 +3689,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
  */
   __pyx_v_result = 0.0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":114
+  /* "cogent3/evolve/_likelihood_tree.pyx":114
  *             exponent += -1
  *     result = 0.0
  *     for i in range(N):             # <<<<<<<<<<<<<<
@@ -3700,7 +3700,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "cogent/evolve/_likelihood_tree.pyx":115
+    /* "cogent3/evolve/_likelihood_tree.pyx":115
  *     result = 0.0
  *     for i in range(N):
  *         result += state[i]             # <<<<<<<<<<<<<<
@@ -3711,7 +3711,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
     __pyx_v_result = (__pyx_v_result + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_state.data) + __pyx_t_25)) ))));
   }
 
-  /* "cogent/evolve/_likelihood_tree.pyx":117
+  /* "cogent3/evolve/_likelihood_tree.pyx":117
  *         result += state[i]
  * 
  *     return log(result) + exponent * log(BASE)             # <<<<<<<<<<<<<<
@@ -3724,7 +3724,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":72
+  /* "cogent3/evolve/_likelihood_tree.pyx":72
  *     return total
  * 
  * def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):             # <<<<<<<<<<<<<<
@@ -3738,7 +3738,7 @@ static PyObject *__pyx_pf_6cogent_6evolve_16_likelihood_tree_6logDotReduce(CYTHO
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
-  __Pyx_AddTraceback("cogent.evolve._likelihood_tree.logDotReduce", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.logDotReduce", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_state, 1);
@@ -15449,7 +15449,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.evolve._likelihood_tree.array", /*tp_name*/
+  "cogent3.evolve._likelihood_tree.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -15555,7 +15555,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.evolve._likelihood_tree.Enum", /*tp_name*/
+  "cogent3.evolve._likelihood_tree.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -15802,7 +15802,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.evolve._likelihood_tree.memoryview", /*tp_name*/
+  "cogent3.evolve._likelihood_tree.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -15927,7 +15927,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.evolve._likelihood_tree._memoryviewslice", /*tp_name*/
+  "cogent3.evolve._likelihood_tree._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -16051,7 +16051,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_child_col, __pyx_k_child_col, sizeof(__pyx_k_child_col), 0, 0, 1, 1},
   {&__pyx_n_s_child_indexes, __pyx_k_child_indexes, sizeof(__pyx_k_child_indexes), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
-  {&__pyx_n_s_cogent_evolve__likelihood_tree, __pyx_k_cogent_evolve__likelihood_tree, sizeof(__pyx_k_cogent_evolve__likelihood_tree), 0, 0, 1, 1},
+  {&__pyx_n_s_cogent3_evolve__likelihood_tree, __pyx_k_cogent3_evolve__likelihood_tree, sizeof(__pyx_k_cogent3_evolve__likelihood_tree), 0, 0, 1, 1},
   {&__pyx_n_s_col, __pyx_k_col, sizeof(__pyx_k_col), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
@@ -16315,7 +16315,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":5
+  /* "cogent3/evolve/_likelihood_tree.pyx":5
  * 
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)             # <<<<<<<<<<<<<<
@@ -16326,7 +16326,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "cogent/evolve/_likelihood_tree.pyx":12
+  /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
  * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
@@ -16338,7 +16338,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__18);
   __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_sumInputLikelihoods, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(1, 12, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":41
+  /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
  * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
@@ -16350,7 +16350,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__20);
   __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_getTotalLogLikelihood, 41, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(1, 41, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":59
+  /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
  * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
@@ -16362,7 +16362,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_getLogSumAcrossSites, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 59, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":72
+  /* "cogent3/evolve/_likelihood_tree.pyx":72
  *     return total
  * 
  * def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):             # <<<<<<<<<<<<<<
@@ -16512,14 +16512,14 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_cogent__evolve___likelihood_tree) {
+  if (__pyx_module_is_main_cogent3__evolve___likelihood_tree) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(1, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "cogent.evolve._likelihood_tree")) {
-      if (unlikely(PyDict_SetItemString(modules, "cogent.evolve._likelihood_tree", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "cogent3.evolve._likelihood_tree")) {
+      if (unlikely(PyDict_SetItemString(modules, "cogent3.evolve._likelihood_tree", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -16583,7 +16583,7 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_5_3_dev) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":5
+  /* "cogent3/evolve/_likelihood_tree.pyx":5
  * 
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)             # <<<<<<<<<<<<<<
@@ -16592,7 +16592,7 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__17) < 0) __PYX_ERR(1, 5, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":6
+  /* "cogent3/evolve/_likelihood_tree.pyx":6
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)
  * __version__ = "('1', '5', '3-dev')"             # <<<<<<<<<<<<<<
@@ -16601,55 +16601,55 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_5_3_dev) < 0) __PYX_ERR(1, 6, __pyx_L1_error)
 
-  /* "cogent/evolve/_likelihood_tree.pyx":12
+  /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
  * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int M, S, U, C, motif, parent_col, child_col, child
  *     cdef Double2D plhs
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_6evolve_16_likelihood_tree_1sumInputLikelihoods, NULL, __pyx_n_s_cogent_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sumInputLikelihoods, __pyx_t_1) < 0) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":41
+  /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
  * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
  *     cdef int S, M, col, motif
  *     cdef double posn, total
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_6evolve_16_likelihood_tree_3getTotalLogLikelihood, NULL, __pyx_n_s_cogent_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 41, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTotalLogLikelihood, __pyx_t_1) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":59
+  /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
  * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int S, col
  *     cdef double total
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_6evolve_16_likelihood_tree_5getLogSumAcrossSites, NULL, __pyx_n_s_cogent_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 59, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_getLogSumAcrossSites, __pyx_t_1) < 0) __PYX_ERR(1, 59, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":72
+  /* "cogent3/evolve/_likelihood_tree.pyx":72
  *     return total
  * 
  * def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):             # <<<<<<<<<<<<<<
  *     cdef int i, j, col, site, N, U, S, most_probable_state
  *     cdef int exponent
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_6evolve_16_likelihood_tree_7logDotReduce, NULL, __pyx_n_s_cogent_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 72, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_7logDotReduce, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_logDotReduce, __pyx_t_1) < 0) __PYX_ERR(1, 72, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/evolve/_likelihood_tree.pyx":1
+  /* "cogent3/evolve/_likelihood_tree.pyx":1
  * #cython: boundscheck=False             # <<<<<<<<<<<<<<
  * #cython: wraparound=False
  * 
@@ -16809,11 +16809,11 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init cogent.evolve._likelihood_tree", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init cogent3.evolve._likelihood_tree", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init cogent.evolve._likelihood_tree");
+    PyErr_SetString(PyExc_ImportError, "init cogent3.evolve._likelihood_tree");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

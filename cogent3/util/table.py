@@ -7,14 +7,15 @@ Current output formats include pickle (pythons serialisation format), restructur
 Table can read pickled and delimited formats.
 
 """
-from __future__ import division
-import cPickle, csv
+
+import pickle, csv
 from gzip import GzipFile
 
 import numpy
 from cogent3.format import table as table_format, bedgraph
 
 from cogent3.util.dict_array import DictArray
+import collections
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -42,11 +43,11 @@ def convert2DDict(twoDdict, header = None, row_order = None):
         - row_order: a specified order to generate the rows.
     """
     if not header:
-        header = twoDdict.keys()
+        header = list(twoDdict.keys())
         header.sort()
     
     if not row_order: # we assume rows consistent across dict
-        row_order = twoDdict[header[0]].keys()
+        row_order = list(twoDdict[header[0]].keys())
         row_order.sort()
     
     # make twoD list
@@ -241,7 +242,7 @@ class Table(DictArray):
             new = [new]
         
         assert len(old) == len(new), 'Mismatched number of old/new labels'
-        indices = map(self.Header.index, old)
+        indices = list(map(self.Header.index, old))
         new_header = list(self.Header)
         for i in range(len(old)):
             new_header[indices[i]] = new[i]
@@ -396,7 +397,7 @@ class Table(DictArray):
             outfile.writelines("\n".join(rows))
         elif format == 'pickle':
             data = self.__getstate__()
-            cPickle.dump(data, outfile)
+            pickle.dump(data, outfile)
         elif sep is not None and format != 'bedgraph':
             writer = csv.writer(outfile, delimiter = sep)
             if self.Title:
@@ -466,7 +467,7 @@ class Table(DictArray):
             # assumes all column headings are strings.
             columns = (columns,)
         
-        column_indices = map(self.Header.index, columns)
+        column_indices = list(map(self.Header.index, columns))
         result = self.array.take(column_indices, axis=1)
         
         if len(columns) == 1:
@@ -475,7 +476,7 @@ class Table(DictArray):
         return result.tolist()
     
     def _callback(self, callback, row, columns=None, num_columns=None):
-        if callable(callback):
+        if isinstance(callback, collections.Callable):
             row_segment = row.take(columns)
             if num_columns == 1:
                 row_segment = row_segment[0]
@@ -504,12 +505,12 @@ class Table(DictArray):
             num_columns = None
         
         row_indexes = []
-        if not callable(callback):
+        if not isinstance(callback, collections.Callable):
             data = self
             cols = columns
         else:
             data = self.array
-            cols = map(self.Header.index, columns)
+            cols = list(map(self.Header.index, columns))
         
         for rdex, row in enumerate(data):
             if self._callback(callback, row, cols, num_columns):
@@ -558,12 +559,12 @@ class Table(DictArray):
             num_columns = None
         
         count = 0
-        if not callable(callback):
+        if not isinstance(callback, collections.Callable):
             data = self
             cols = columns
         else:
             data = self.array
-            cols = map(self.Header.index, columns)
+            cols = list(map(self.Header.index, columns))
         
         for row in data:
             if self._callback(callback, row, cols, num_columns):
@@ -656,7 +657,7 @@ class Table(DictArray):
                     indexes.remove(val)
                 except ValueError:
                     pass
-            indexes = range(self._row_ids) + indexes
+            indexes = list(range(self._row_ids)) + indexes
         
         columns = numpy.take(numpy.asarray(self.Header, dtype="O"),
                                indexes)
@@ -702,12 +703,12 @@ class Table(DictArray):
         else:
             num_columns = None
         
-        if not callable(callback):
+        if not isinstance(callback, collections.Callable):
             data = self
             cols = columns
         else:
             data = self.array
-            cols = map(self.Header.index, columns)
+            cols = list(map(self.Header.index, columns))
         
         twoD = [list(row) + [self._callback(callback, row, cols,
                 num_columns)] for row in data]
@@ -754,9 +755,9 @@ class Table(DictArray):
         """
         
         if other_table.Title is None:
-            raise RuntimeError, "Cannot join if a other_table.Title is None"
+            raise RuntimeError("Cannot join if a other_table.Title is None")
         elif self.Title == other_table.Title:
-            raise RuntimeError, "Cannot join if a table.Title's are equal"
+            raise RuntimeError("Cannot join if a table.Title's are equal")
         
         columns_self = [columns_self,[columns_self]][type(columns_self)==str]
         columns_other = [columns_other,
@@ -940,8 +941,8 @@ class Table(DictArray):
         # indices for the header and non header rows
         header_index = self.Header.index(select_as_header)
         
-        data_indices = range(0, header_index)+range(header_index+1,
-                                                    len(transposed))
+        data_indices = list(range(0, header_index))+list(range(header_index+1,
+                                                    len(transposed)))
         
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
         header = [new_column_name]+header[1:] # [1:] slice excludes old name

@@ -98,7 +98,7 @@ class CenterOfMassTests(TestCase):
 
     def test_sphere_points(self):
         """tests sphere points"""
-        self.assertEquals(sphere_points(1), array([[ 1., 0., 0.]]))
+        self.assertEqual(sphere_points(1), array([[ 1., 0., 0.]]))
 
 #    def test_coords_to_symmetry(self):
 #        """tests symmetry expansion (TODO)"""

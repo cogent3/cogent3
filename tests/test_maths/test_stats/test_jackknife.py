@@ -69,8 +69,8 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        self.assertAlmostEquals(test_knife.JackknifedStat, 1.2905845)
-        self.assertAlmostEquals(test_knife.StandardError, 0.2884490)
+        self.assertAlmostEqual(test_knife.JackknifedStat, 1.2905845)
+        self.assertAlmostEqual(test_knife.Exception, 0.2884490)
         self.assertTrue(test_knife._jackknifed_stat is not None)
         
         # Vector
@@ -79,7 +79,7 @@ class JackknifeTests(TestCase):
         expected_jk_stat = data.mean(axis=1)
         got_jk_stat = test_knife.JackknifedStat
         expected_standard_err = [30.69509346, 1.87179671]
-        got_standard_err = test_knife.StandardError
+        got_standard_err = test_knife.Exception
         
         for index in [0,1]:
             self.assertAlmostEqual(got_jk_stat[index], expected_jk_stat[index])

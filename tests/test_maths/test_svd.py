@@ -76,13 +76,13 @@ class functionTests(TestCase):
     def test_three_item_combos(self):
         """three_item_combos should return items in correct order"""
         items = list(three_item_combos('abcde'))
-        self.assertEqual(items, map(tuple, \
-            ['abc','abd','abe','acd','ace','ade','bcd','bce','bde','cde']))
+        self.assertEqual(items, list(map(tuple, \
+            ['abc','abd','abe','acd','ace','ade','bcd','bce','bde','cde'])))
 
     def test_two_item_combos(self):
         """two_item_combos should return items in correct order"""
         items = list(two_item_combos('abcd'))
-        self.assertEqual(items, map(tuple, ['ab','ac','ad','bc','bd','cd']))
+        self.assertEqual(items, list(map(tuple, ['ab','ac','ad','bc','bd','cd'])))
 
     def test_pca_qs(self):
         """pca_qs not tested b/c it just wraps eigenvalues(corrcoef(qs))"""

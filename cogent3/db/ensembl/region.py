@@ -266,8 +266,7 @@ class _StableRegion(GenericRegion):
         for member_type in member_types:
             member = getattr(self, member_type, None)
             if member is None:
-                raise AttributeError,\
-                      "%s doesn't have property %s" % (self.Type, member_type)
+                raise AttributeError("%s doesn't have property %s" % (self.Type, member_type))
             for element in member:
                 if element.StableId == StableId:
                     return element
@@ -301,14 +300,14 @@ class Gene(_StableRegion):
              ('Description', self._get_gene_record),
              ('Symbol', self._get_xref_record),
              ('Location', self._get_gene_record)]:
-            if name == 'Symbol' and 'display_label' not in data.keys(): # For EST
+            if name == 'Symbol' and 'display_label' not in list(data.keys()): # For EST
                 continue
             self._table_rows[self._attr_ensembl_table_map[name]] = data
             func() # this populates the attributes
 
     def __str__(self):
         my_type = self.__class__.__name__
-        vals = ['%s=%r' % (key, val) for key, val in self._cached.items() \
+        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items()) \
                 if val is not None]
         vals.sort()
         vals.insert(0, "Species='%s'" % self.genome.Species)
@@ -316,7 +315,7 @@ class Gene(_StableRegion):
 
     def __repr__(self):
         my_type = self.__class__.__name__
-        vals = ['%s=%r' % (key, val) for key, val in self._cached.items() \
+        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items()) \
                 if val is not None]
         vals.sort()
         vals.insert(0, 'Species=%r' % self.genome.Species)
@@ -1011,7 +1010,7 @@ class Variation(_Region):
 
     def __len__(self):
         """return the length of the longest allelic variant"""
-        return max(map(len, self._split_alleles()))
+        return max(list(map(len, self._split_alleles())))
 
     def __str__(self):
         my_type = self.__class__.__name__
@@ -1069,7 +1068,7 @@ class Variation(_Region):
             return
         
         seqs = dict(up=self.NULL_VALUE, down=self.NULL_VALUE)
-        for name, seq in seqs.items():
+        for name, seq in list(seqs.items()):
             resized = [(-301, -1), (1, 301)][name == 'down']
             if self.Location.Strand == -1:
                 resized = [(1, 301), (-301, -1)][name == 'down']
@@ -1097,7 +1096,7 @@ class Variation(_Region):
         up_seq = [up_seq, None][up_seq == 'NULL']
         down_seq = [down_seq, None][down_seq == 'NULL']
         seqs = dict(up=up_seq, down=down_seq)
-        for name, seq in seqs.items():
+        for name, seq in list(seqs.items()):
             if seq is not None:
                 seq = DNA.makeSequence(seq)
             else:
@@ -1273,10 +1272,10 @@ class Variation(_Region):
             return
 
         # we only want unique allele strings
-        allele_location = dict(zip(pep_alleles, translation_location))
+        allele_location = dict(list(zip(pep_alleles, translation_location)))
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
-        if type(pep_alleles) not in (str, unicode):
+        if type(pep_alleles) not in (str, str):
             for pep_allele in pep_alleles:
                 translation_location = allele_location[pep_allele]
         else:

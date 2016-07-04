@@ -5,7 +5,7 @@
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
 from cogent3.parse.record import RecordError
 from cogent3.util.unit_test import TestCase, main
-from StringIO import StringIO
+from io import StringIO
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

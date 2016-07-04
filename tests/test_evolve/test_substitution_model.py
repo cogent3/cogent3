@@ -84,13 +84,14 @@ class MultiLetterMotifSubstModelTests(TestCase):
         # isIndel can now assume it won't get any non-instantaneous pairs
         # assert self.submodel.isIndel('-a', 'a-') == 0
     
+nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
 
 class TupleModelMotifProbFuncs(TestCase):
     dinucs = ('TT', 'CT', 'AT', 'GT',
               'TC', 'CC', 'AC', 'GC',
               'TA', 'CA', 'AA', 'GA',
               'TG', 'CG', 'AG', 'GG')
-    nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
+    nuc_probs = nuc_probs
     dinuc_probs=[(m2+m1,p1*p2) for m1,p1 in nuc_probs for m2,p2 in nuc_probs]
     mat_indices = dict(
         C=set([(0,1),(0,4),(1,5),(2,1),(2,6),(3,1),(3,7),(4,5),(6,5),

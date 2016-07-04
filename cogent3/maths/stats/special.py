@@ -2,7 +2,7 @@
 """Translations of functions from Release 2.3 of the Cephes Math Library, 
 (c) Stephen L. Moshier 1984, 1995.
 """
-from __future__ import division
+
 from numpy import exp, log, floor, sin, sqrt
 
 __author__ = "Rob Knight"
@@ -73,11 +73,11 @@ def permutations(n, k):
     """
     #Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError, "Can't choose %s items from %s" % (k, n)
+        raise IndexError("Can't choose %s items from %s" % (k, n))
     elif k < 0:
-        raise IndexError, "Can't choose negative number of items"
+        raise IndexError("Can't choose negative number of items")
     elif n < 0:
-        raise IndexError, "Can't choose from negative number of items"
+        raise IndexError("Can't choose from negative number of items")
     if min(n, k) < 20 and isinstance(n,int) and isinstance(k,int):
         return permutations_exact(n, k)
     else:
@@ -91,7 +91,7 @@ def permutations_exact(n, k):
     Note: no error checking (expects to be called through permutations())
     """
     product = 1
-    for i in xrange(n-k+1, n+1):
+    for i in range(n-k+1, n+1):
         product *= i
     return product
 
@@ -112,11 +112,11 @@ def combinations(n, k):
     """
     #Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError, "Can't choose %s items from %s" % (k, n)
+        raise IndexError("Can't choose %s items from %s" % (k, n))
     elif k < 0:
-        raise IndexError, "Can't choose negative number of items"
+        raise IndexError("Can't choose negative number of items")
     elif n < 0:
-        raise IndexError, "Can't choose from negative number of items"
+        raise IndexError("Can't choose from negative number of items")
     #if min(n, k) < 20:
     if min(n, k) < 20 and isinstance(n,int) and isinstance(k,int):
         return combinations_exact(n, k)
@@ -141,11 +141,11 @@ def combinations_exact(n, k):
 
     product = 1
     #compute n!/(n-larger)! by multiplying terms from n to (n-larger+1)
-    for i in xrange(larger+1, n+1):
+    for i in range(larger+1, n+1):
         product *= i
 
     #divide by (smaller)! by multiplying terms from 2 to smaller
-    for i in xrange(2, smaller+1): #no need to divide by 1...
+    for i in range(2, smaller+1): #no need to divide by 1...
         product /= i    #ok to use integer division: should always be factor
 
     return product
@@ -449,7 +449,7 @@ def lgam(x):
         w = lgam(q)
         p = floor(q)
         if p == q:
-            raise OverflowError, "lgam returned infinity."
+            raise OverflowError("lgam returned infinity.")
         i = p
         if i & 1 == 0:
             sgngam = -1
@@ -461,7 +461,7 @@ def lgam(x):
             z = p - q
         z = q * sin(PI * z)
         if z == 0:
-            raise OverflowError, "lgam returned infinity."
+            raise OverflowError("lgam returned infinity.")
         z = LOGPI - log(z) - w
         return z
     if x < 13:
@@ -474,7 +474,7 @@ def lgam(x):
             z *= u
         while u < 2:
             if u == 0:
-                raise OverflowError, "lgam returned infinity."
+                raise OverflowError("lgam returned infinity.")
             z /= u
             p += 1
             u = x + p
@@ -490,7 +490,7 @@ def lgam(x):
         p = x * polevl(x, GB)/polevl(x,GC)
         return log(z) + p
     if x > MAXLGM:
-        raise OverflowError, "Too large a value of x in lgam."
+        raise OverflowError("Too large a value of x in lgam.")
     q = (x - 0.5) * log(x) - x + LS2PI
     if x > 1.0e8:
         return q
@@ -509,13 +509,13 @@ def betai(aa, bb, xx):
     See Cephes docs for details.
     """
     if aa <= 0 or bb <= 0:
-        raise ValueError, "betai: a and b must both be > 0."
+        raise ValueError("betai: a and b must both be > 0.")
     if xx == 0:
         return 0
     if xx == 1:
         return 1
     if xx < 0 or xx > 1:
-        raise ValueError, "betai: x must be between 0 and 1."
+        raise ValueError("betai: x must be between 0 and 1.")
     flag = 0
     if (bb * xx <= 1) and (xx <= 0.95):
         t = pseries(aa, bb, xx)
@@ -727,7 +727,7 @@ def Gamma(x):
         if x < 0:
             p = floor(q)
             if p == q:
-                raise OverflowError, "Bad value of x in Gamma function."
+                raise OverflowError("Bad value of x in Gamma function.")
             i = p
             if (i & 1) == 0:
                 sgngam = -1
@@ -737,7 +737,7 @@ def Gamma(x):
                 z = q - p
             z = q * sin(PI * z)
             if z == 0:
-                raise OverflowError, "Bad value of x in Gamma function."
+                raise OverflowError("Bad value of x in Gamma function.")
             z = abs(z)
             z = PI/(z * stirf(q))
         else:
@@ -764,7 +764,7 @@ def Gamma(x):
 
 def Gamma_small(x, z):
     if x == 0:
-        raise OverflowError, "Bad value of x in Gamma function."
+        raise OverflowError("Bad value of x in Gamma function.")
     else:
         return z / ((1 + 0.5772156649015329 * x) * x)
 
@@ -882,7 +882,7 @@ def igami(a, y0):
 
     #handle easy cases
     if ((y0<0.0) or (y0>1.0) or (a<=0)):
-        raise ZeroDivisionError, "y0 must be between 0 and 1; a >= 0"
+        raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
     elif (y0==0.0):
       return MAXNUM
     elif (y0==1.0):

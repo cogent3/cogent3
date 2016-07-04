@@ -129,7 +129,7 @@ def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, 
     """
     data = {}
     if not sliced:
-        for seqname in seqs.keys():
+        for seqname in list(seqs.keys()):
             aligned_seq = aligned_from_cigar(cigars[seqname], 
                                             seqs[seqname], moltype=moltype)
             data[seqname] = aligned_seq
@@ -138,7 +138,7 @@ def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, 
                                         seqs[ref_seqname], moltype=moltype)
         m, aln_loc = slice_cigar(cigars[ref_seqname], start, end, by_align = False)
         data[ref_seqname] = ref_aln_seq[aln_loc[0]:aln_loc[1]]
-        for seqname in [seqname for seqname in seqs.keys() if seqname != ref_seqname]:
+        for seqname in [seqname for seqname in list(seqs.keys()) if seqname != ref_seqname]:
             m, seq_loc = slice_cigar(cigars[seqname], aln_loc[0], aln_loc[1])
             if seq_loc:
                 seq = seqs[seqname]

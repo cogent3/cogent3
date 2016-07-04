@@ -73,7 +73,7 @@ class HistogramTests(TestCase):
 
     def test_toFreqs(self):
         """Histogram toFreqs() should return a Freqs object"""
-        h = Histogram(range(0,20),bins=[Span(0,3),Span(3,10),
+        h = Histogram(list(range(0,20)),bins=[Span(0,3),Span(3,10),
             Span(10,18),Span(18,20)])
         constructor=str
         f = h.toFreqs()

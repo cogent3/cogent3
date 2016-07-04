@@ -29,7 +29,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import unittest
-import sys, os, cStringIO
+import sys, os, io
 
 from cogent3 import DNA, LoadTree, LoadSeqs
 from cogent3.core import alignment, alphabet, annotation
@@ -57,7 +57,7 @@ def file_for_test(msg, baseline=False, prefixed=True):
     return os.path.join(dirname, fname)
 
 def fig2png(fig):
-    f = cStringIO.StringIO()
+    f = io.StringIO()
     fig.savefig(f, format='png')
     return f.getvalue()
 
@@ -100,7 +100,7 @@ class CheckOutput(object):
                 if self.failOnDifference:
                     raise AssertionError('See draw_results/comparison.html')
                 else:
-                    print 'difference from', fname
+                    print('difference from', fname)
         else:
             raise RuntimeError('No baseline image at %s' % fname)
     
@@ -137,7 +137,7 @@ class CheckOutput(object):
                 import subprocess
                 subprocess.call(['open', 'draw_results/comparison.html'])
             else:
-                print "See draw_results/comparison.html"
+                print("See draw_results/comparison.html")
 
 def do(msg, display, **kw):
     fig = display.makeFigure(**kw)
@@ -267,8 +267,8 @@ else:
             sys.argv.remove(arg)
             myargs.append(arg)
     if len(myargs) != 1:
-        print 'Need one action, got', myargs
-        print __doc__
+        print('Need one action, got', myargs)
+        print(__doc__)
         sys.exit(1)
     action = myargs[0]
     if action == 'record':

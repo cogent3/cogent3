@@ -167,13 +167,13 @@ class EstimateDistances(object):
         
         # if two-way, grab first distance only
         if not self._threeway:
-            result = {'length': stats_dict['length'].values()[0] * 2.0}
+            result = {'length': list(stats_dict['length'].values())[0] * 2.0}
         else:
             result = {'length': stats_dict['length']}
         
         # include any other params requested
         for param in self._est_params:
-            result[param] = stats_dict[param].values()[0]
+            result[param] = list(stats_dict[param].values())[0]
             
         return result
     
@@ -235,7 +235,7 @@ class EstimateDistances(object):
                                 summary_function=summary_function)
         else:
             # no additional processing of the distances is required
-            for comp_names, param_vals in self._param_ests.items():
+            for comp_names, param_vals in list(self._param_ests.items()):
                 pairwise_stats[comp_names] = param_vals[param]
             
         return pairwise_stats
@@ -259,7 +259,7 @@ class EstimateDistances(object):
             - param: name of a parameter in est_params or 'length'
             - **kwargs: arguments passed to getPairwiseParam"""
         ests = self.getPairwiseParam(param, **kwargs)
-        return Numbers(ests.values())
+        return Numbers(list(ests.values()))
     
     def getAllParamValues(self):
         """returns raw estimated parameter dictionary"""
@@ -301,7 +301,7 @@ class EstimateDistances(object):
     def getNewickTrees(self):
         """Returns a list of Newick format trees for supertree methods."""
         trees = []
-        for comp_names, param_vals in self._param_ests.items():
+        for comp_names, param_vals in list(self._param_ests.items()):
             tips = []
             for name in comp_names:
                 tips.append(repr(name)+":%s" % param_vals[name])

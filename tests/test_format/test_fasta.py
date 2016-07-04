@@ -24,8 +24,8 @@ class FastaTests(TestCase):
         self.strings = ['AAAA','CCCC','gggg','uuuu']
         self.labels = ['1st','2nd','3rd','4th']
         self.infos = ["Dog", "Cat", "Mouse", "Rat"]
-        self.sequences_with_labels = map(Sequence, self.strings)
-        self.sequences_with_names = map(Sequence, self.strings)
+        self.sequences_with_labels = list(map(Sequence, self.strings))
+        self.sequences_with_names = list(map(Sequence, self.strings))
         for l,sl,sn in zip(self.labels,self.sequences_with_labels,\
             self.sequences_with_names):
             sl.Label = l

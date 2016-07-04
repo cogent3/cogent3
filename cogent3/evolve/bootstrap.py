@@ -21,7 +21,7 @@ simultaneously. Similar setup, and parallelisation options as provided by
 the EstimateProbability class.
 
 """
-from __future__ import with_statement, division
+
 from cogent3.util import parallel
 from cogent3.util import progress_display as UI
 
@@ -109,7 +109,7 @@ class ParametricBootstrapCore(object):
         
         ui.display('Bootstrap', init_work)
         self.results = ui.eager_map(
-                one_replicate, range(self._numreplicates), noun='replicate',
+                one_replicate, list(range(self._numreplicates)), noun='replicate',
                 start=init_work)
 
 

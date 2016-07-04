@@ -21,8 +21,8 @@ class Database(object):
         self.db_name = get_db_name(account=account, species=species,
                           release=release, db_type=db_type, division=division)
         if not self.db_name:
-            raise RuntimeError, "%s db doesn't exist for '%s' on '%s'" % \
-                                        (db_type, species, account.host)
+            raise RuntimeError("%s db doesn't exist for '%s' on '%s'" % \
+                                        (db_type, species, account.host))
         else:
             self.db_name = self.db_name[0]
         self._db = DbConnection(account=account, db_name=self.db_name,
@@ -71,7 +71,7 @@ class Database(object):
         table = self.getTable(table_name)
         query = sql.select([table.c[column]], distinct=True)
         records = set()
-        string_types = str, unicode
+        string_types = str, str
         for record in query.execute():
             if type(record) not in string_types and \
                 type(record[0]) not in string_types:
@@ -103,7 +103,7 @@ class Database(object):
             table_name = (table_name,)
         elif table_name is None:
             self._meta.reflect()
-            table_name = self._meta.tables.keys()
+            table_name = list(self._meta.tables.keys())
         rows = []
         for name in table_name:
             table = self.getTable(name)

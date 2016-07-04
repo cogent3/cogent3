@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.table import Table
 from cogent3.format.bedgraph import get_header

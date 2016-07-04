@@ -5,7 +5,7 @@ Jakobsen & Easteal, CABIOS 12(4), 1996
 Jakobsen, Wilson & Easteal, Mol. Biol. Evol. 14(5), 1997 
 """
 
-from __future__ import division
+
 import sys
 import math
 import numpy
@@ -16,6 +16,7 @@ import matplotlib.ticker
 import matplotlib.colors
 
 from cogent3.draw.linear import Display
+from functools import reduce
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -75,7 +76,7 @@ def tied_segments(scores):
     """
     pos = numpy.flatnonzero(numpy.diff(scores))
     pos = numpy.concatenate(([0],pos+1,[len(scores)]))
-    return zip(pos[:-1],pos[1:])
+    return list(zip(pos[:-1],pos[1:]))
 
 def order_tied_to_cluster_similar(S, scores):
     """Use similarity measure S to make similar elements
@@ -85,14 +86,14 @@ def order_tied_to_cluster_similar(S, scores):
     new_order = []
     start = None    
     for (a,b) in tied_segments(scores):
-        useful = range(a,b)
+        useful = list(range(a,b))
         if start is not None:
             useful.append(start)
             start = len(useful)-1
         useful = numpy.array(useful)
         S2 = S[useful,:]
         S2 = S2[:,useful]
-        sub_order = order_to_cluster_similar(S2, range(b-a), start)
+        sub_order = order_to_cluster_similar(S2, list(range(b-a)), start)
         new_order.extend([useful[i] for i in sub_order])
         start = new_order[-1]
     assert set(new_order) == set(range(len(scores))) 
@@ -218,12 +219,12 @@ def boolean_similarity(matrix):
 def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         include_incomplete=False, print_stats=True, max_site_labels=50):
     if print_stats:
-        print "%s sequences in %s bp alignment" % (
-                alignment.getNumSeqs(), len(alignment))
+        print("%s sequences in %s bp alignment" % (
+                alignment.getNumSeqs(), len(alignment)))
     (sites, columns, partitions) = binary_partitions(alignment)
     if print_stats:
-        print "%s unique binary partitions from %s informative sites" % (
-                len(partitions), len(sites))
+        print("%s unique binary partitions from %s informative sites" % (
+                len(partitions), len(sites)))
     partpart = min_edges(partitions)      # [partition,partition]
     partimatrix = partpart[columns,:]     # [site, partition]
     sitematrix = partimatrix[:,columns]   # [site, site]
@@ -232,13 +233,13 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     
     compatiblity = sitematrix <= 2
     if print_stats:
-        print "Overall compatibility %.6f" % intra_region_average(compatiblity)
+        print("Overall compatibility %.6f" % intra_region_average(compatiblity))
         if samples == 0:
-            print "Neighbour similarity score = %.6f" % \
-                    neighbour_similarity_score(compatiblity)
+            print("Neighbour similarity score = %.6f" % \
+                    neighbour_similarity_score(compatiblity))
         else:
-            print "Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
-                    nss_significance(compatiblity, samples=samples)
+            print("Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
+                    nss_significance(compatiblity, samples=samples))
         
     # PARTIMATRIX, JWE 1997
     

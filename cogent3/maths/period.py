@@ -38,7 +38,7 @@ def _ipdft_inner2(x, X, W, ulim, N): # fastest python
 def _autocorr_inner2(x, xc, N): # fastest python
     products = multiply.outer(x, x)
     v = [products.trace(offset=m) for m in range(-len(x)+1, len(x))]
-    xc.put(xrange(xc.shape[0]), v)
+    xc.put(range(xc.shape[0]), v)
 
 def _autocorr_inner(x, xc, N): # naive python
     for m in range(-N+1, N):
@@ -48,7 +48,7 @@ def _autocorr_inner(x, xc, N): # naive python
 
 try:
     # try using pyrexed versions
-    from _period import ipdft_inner, autocorr_inner, goertzel_inner
+    from ._period import ipdft_inner, autocorr_inner, goertzel_inner
     # raise ImportError # for profiling
 except ImportError:
     # fastest python versions
@@ -72,7 +72,7 @@ class _PeriodEstimator(object):
         self.ulim = ulim or (length-1)
         
         if self.ulim > length:
-            raise RuntimeError, 'Error: ulim > length'
+            raise RuntimeError('Error: ulim > length')
         
         self.period = period
     
@@ -92,7 +92,7 @@ class AutoCorrelation(_PeriodEstimator):
         N is the length of x"""
         super(AutoCorrelation, self).__init__(length, llim, ulim, period)
         
-        periods = range(-length+1, length)
+        periods = list(range(-length+1, length))
         
         self.min_idx = periods.index(self.llim)
         self.max_idx = periods.index(self.ulim)
@@ -138,7 +138,7 @@ class Ipdft(_PeriodEstimator):
             llim = period
             ulim = period
         super(Ipdft, self).__init__(length, llim, ulim, period)
-        self.periods = array(range(self.llim, self.ulim+1))
+        self.periods = array(list(range(self.llim, self.ulim+1)))
         self.W = exp(-1j * 2 * pi / arange(1, self.ulim+1))
         self.X = array([0+0j] * self.length)
         self.abs_ft_sig = abs_ft_sig
@@ -262,7 +262,7 @@ def dft(x, **kwargs):
 if __name__ == "__main__":
     from numpy import sin
     x = sin(2*pi/5*arange(1,9))
-    print x
-    print goertzel(x, 4)
-    print goertzel(x, 8)
+    print(x)
+    print(goertzel(x, 4))
+    print(goertzel(x, 8))
     

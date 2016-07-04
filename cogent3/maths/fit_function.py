@@ -4,7 +4,7 @@
 module to fit x and y samples to a model
 
 """
-from __future__ import division
+
 from numpy import array
 from cogent3.maths.scipy_optimize import fmin
 
@@ -51,7 +51,7 @@ def fit_function(x_vals, y_vals, func, n_params, iterations=2):
        #sum square deviation
        return ((func(x_vals, a) - y_vals)**2).sum()
 
-   param_guess = array(range(n_params))
+   param_guess = array(list(range(n_params)))
    for i in range(iterations):
        xopt = fmin(f2min, param_guess, disp=0)
        param_guess = xopt

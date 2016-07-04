@@ -38,7 +38,7 @@ class GrouperTests(TestCase):
         """Grouper should return lists containing correct number of groups"""
         empty = []
         s3 = 'abc'
-        s10 = range(10)
+        s10 = list(range(10))
         g1 = Grouper(1)
         g2 = Grouper(2)
         g5 = Grouper(5)
@@ -174,7 +174,7 @@ class MappedRecordTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise AssertionError, "Subclass failed to catch requirement"
+            raise AssertionError("Subclass failed to catch requirement")
 
     def test_getattr(self):
         """MappedRecord getattr should look in dict after real attrs"""
@@ -228,7 +228,7 @@ class MappedRecordTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise AssertionError, "Allowed deletion of required attribute"""
+            raise AssertionError("Allowed deletion of required attribute""")
         s.a = 3
         self.assertEqual(s.a, 3)
         s.Aliases = {'xyz':'a'}
@@ -241,7 +241,7 @@ class MappedRecordTests(TestCase):
         self.assertEqual(s['Required'], None)
         self.assertEqual(s['a'], 3)
         self.assertEqual(s['xyz'], None)
-        self.assertEquals(s[list('abc')], None)
+        self.assertEqual(s[list('abc')], None)
         s.Aliases = {'xyz':'a'}
         self.assertEqual(s['xyz'], 3)
 
@@ -255,7 +255,7 @@ class MappedRecordTests(TestCase):
         s['c'] = 5
         self.assertEqual(s, {'a':3, 'c':5, 'Required':None})
         #still not allowed unhashable objects as keys
-        self.assertRaises(TypeError, s.__setitem__, range(3))
+        self.assertRaises(TypeError, s.__setitem__, list(range(3)))
         s.Aliases = {'C':'c'}
         s['C'] = 3
         self.assertEqual(s, {'a':3, 'c':3, 'Required':None})
@@ -271,7 +271,7 @@ class MappedRecordTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise AssertionError, "Allowed deletion of required item"
+            raise AssertionError("Allowed deletion of required item")
         s.Aliases = {'B':'b'}
         s.b = 5
         self.assertEqual(s.b, 5)

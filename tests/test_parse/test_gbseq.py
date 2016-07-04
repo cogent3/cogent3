@@ -176,7 +176,7 @@ sample_annotations = '[source "[0:99]/99 of AY286018.1" at [0:99]/99, organism "
 
 class ParseGBseq(TestCase):
     def test_parse(self):
-        for name,seq in [GbSeqXmlParser(data).next(),GbSeqXmlParser(xml.dom.minidom.parseString(data)).next()]:
+        for name,seq in [next(GbSeqXmlParser(data)),next(GbSeqXmlParser(xml.dom.minidom.parseString(data)))]:
             self.assertEqual(name, 'AY286018.1')
             self.assertEqual(sample_seq, seq.toFasta())
             self.assertEqual(str(seq.annotations), sample_annotations)

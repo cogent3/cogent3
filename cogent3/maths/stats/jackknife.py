@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import numpy as np
 from cogent3 import LoadTable
@@ -50,7 +50,7 @@ class JackknifeStats(object):
         n_minus_1 = n - 1
         
         # compute the statistic in question on the whole data set
-        self._sample_statistic = self.calc_stat(range(self.n))
+        self._sample_statistic = self.calc_stat(list(range(self.n)))
         n_sample_statistic = n * self._sample_statistic
         # compute the jackknife statistic for the data by removing an element
         # in each iteration and computing the statistic.
@@ -85,7 +85,7 @@ class JackknifeStats(object):
         return self._jackknifed_stat
     
     @property
-    def StandardError(self):
+    def Exception(self):
         if self._standard_error is None:
             self.jackknife()
         return self._standard_error

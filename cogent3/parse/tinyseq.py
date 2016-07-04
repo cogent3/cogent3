@@ -52,7 +52,7 @@ def TinyseqParser(doc):
         name=str(name)
         
         if record.getElementsByTagName(
-                        'TSeq_seqtype')[0].getAttribute('value') == u'protein':
+                        'TSeq_seqtype')[0].getAttribute('value') == 'protein':
             alphabet = moltype.PROTEIN
         else:
             alphabet = moltype.DNA

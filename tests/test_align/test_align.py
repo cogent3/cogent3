@@ -117,9 +117,9 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         kw['indel_rate'] = indel_rate
         kw['indel_length'] = indel_length
         seqs = dict((key, DNA.makeSequence(value)) 
-                for (key, value) in orig.items())
+                for (key, value) in list(orig.items()))
         if len(seqs) == 2:
-            tree = cogent3.LoadTree(tip_names=seqs.keys())
+            tree = cogent3.LoadTree(tip_names=list(seqs.keys()))
             tree = cogent3.LoadTree(treestring="(A:.1,B:.1)")
         else:
             tree = cogent3.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
@@ -128,9 +128,9 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         return aln
     
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
-        orig = dict((n,s.replace('-', '')) for (n,s) in seqs.items())
+        orig = dict((n,s.replace('-', '')) for (n,s) in list(seqs.items()))
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
-        result = dict((n,s.lower()) for (n,s) in aln.todict().items())
+        result = dict((n,s.lower()) for (n,s) in list(aln.todict().items()))
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
         # assert the returned alignment has the correct parameter values in the

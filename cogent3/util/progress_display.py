@@ -20,7 +20,7 @@ def long_running_function(..., ui)
     for item in ui.series(items)
 """
 
-from __future__ import with_statement, division
+
 import sys, time, contextlib, functools, warnings
 import os, atexit
 import threading
@@ -239,9 +239,9 @@ class LogFileOutput(object):
         if message:
             delta = '+%s' % int(time.time() - self.t0)
             progress = int(100*progress+0.5)
-            print >>self.output, "%s %5s %3i%% %s" % (
+            print("%s %5s %3i%% %s" % (
                     self.lpad, delta, progress,
-                    str(message.encode('utf8')))
+                    str(message.encode('utf8'))), file=self.output)
             
 
 class CursesTerminalProgressBar(object):
@@ -287,7 +287,7 @@ class CursesTerminalProgressBar(object):
             self.stderr.writelines([bar, '\n'])
         
         if message is not None:
-            self.stderr.writelines([str(message[:width].encode('utf8')), u'\n'])
+            self.stderr.writelines([str(message[:width].encode('utf8')), '\n'])
         self.line_count = (progress is not None) + (message is not None)
 
 
@@ -356,21 +356,21 @@ def display_wrap(slow_function):
 
 @display_wrap
 def subdemo(ui):
-    for j in ui.series(range(10)):
+    for j in ui.series(list(range(10))):
         time.sleep(0.1)
     return
     
 @display_wrap
 def demo(ui):
-    print "non-linebuffered output, tricky but look:",
-    for i in ui.series(range(10)):
+    print("non-linebuffered output, tricky but look:", end=' ')
+    for i in ui.series(list(range(10))):
         time.sleep(.6)
         if i == 5:
-            print '\nhalfway through, a new line: ',
+            print('\nhalfway through, a new line: ', end=' ')
         if i % 2:
             subdemo()
-        print i, ".", 
-    print "done"
+        print(i, ".", end=' ') 
+    print("done")
 
 if __name__ == '__main__':
     #setupRootUiContext(rate=0.2)

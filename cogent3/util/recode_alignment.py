@@ -37,7 +37,7 @@ Rob Knight. BMC Evolutionary Biology, 2008.
 
 
 """
-from __future__ import division
+
 from optparse import OptionParser
 from numpy import take, array, zeros
 from cogent3.core.alignment import DenseAlignment, Alignment
@@ -150,7 +150,7 @@ alphabets = {\
     # orig does no recoding, but is provided for convenience so if you want to 
     # iterate over all reduced alphabets and the full alphabet, you can do that
     # without having specify the original alphabet differently.
-    'orig':zip('ACDEFGHIKLMNPQRSTVWY','ACDEFGHIKLMNPQRSTVWY')} 
+    'orig':list(zip('ACDEFGHIKLMNPQRSTVWY','ACDEFGHIKLMNPQRSTVWY'))} 
 
 def build_alphabet_map(alphabet_id=None,alphabet_def=None):
     """ return dict mapping old alphabet chars to new alphabet chars
@@ -176,9 +176,8 @@ def build_alphabet_map(alphabet_id=None,alphabet_def=None):
         alphabet_def = alphabet_def or alphabets[alphabet_id]
     except KeyError:
         if not alphabet_id:
-            raise ValueError,\
-                "Must provide an alphabet_id or alphabet definiton."
-        raise ValueError, "Invalid alphabet id."
+            raise ValueError("Must provide an alphabet_id or alphabet definiton.")
+        raise ValueError("Invalid alphabet id.")
         
     result = {}
     for new, old in alphabet_def:
@@ -212,15 +211,15 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
     # Construct a dict mapping from UInt8s in alignment to their 
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
-    byte_map = dict(zip(aln.Alphabet,range(len(aln.Alphabet))))
+    byte_map = dict(list(zip(aln.Alphabet,list(range(len(aln.Alphabet))))))
 
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,\
         alphabet_def=alphabet_def)
    
     # Create the recoded version of seqs.Alphabet 
-    new_indices = range(len(aln.Alphabet))
-    for old, new in alphabet_map.items():
+    new_indices = list(range(len(aln.Alphabet)))
+    for old, new in list(alphabet_map.items()):
         new_indices[byte_map[old]] = byte_map[new]    
 
     # Map the old alphabet onto the new alphabet. Note: characters that
@@ -262,7 +261,7 @@ def recode_freq_vector(alphabet_def,freqs,ignores='BXZ'):
 def square_matrix_to_dict(matrix,key_order='ACDEFGHIKLMNPQRSTVWY'):
     result = {}
     for c,row in zip(key_order,matrix):
-        result[c] = dict(zip(key_order,row))
+        result[c] = dict(list(zip(key_order,row)))
     return result
 
 def recode_count_matrix(alphabet,count_matrix,aa_order):

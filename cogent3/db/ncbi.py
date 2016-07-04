@@ -5,15 +5,15 @@
     (http://www.ncbi..nih.gov/entrez/eutils) 
     search and fetch for sets of sequence information
 """
-from urllib import urlopen, urlretrieve
+from urllib.request import urlopen, urlretrieve
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import parse
 from cogent3.db.util import UrlGetter, expand_slice,\
     make_lists_of_expanded_slices_of_set_size,make_lists_of_accessions_of_set_size
 from time import sleep
-from StringIO import StringIO
+from io import StringIO
 from cogent3.parse.record_finder import DelimitedRecordFinder, never_ignore
-from string import strip
+
 
 __author__ = "Mike Robeson"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -23,6 +23,8 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"
+
+strip = str.strip
 
 class QueryNotFoundError(Exception): pass
 
@@ -114,7 +116,7 @@ rettypes['unists']='DocSum Brief ExternalLink unists_gene unists_nucleotide unis
 
 #convert into dict of known rettypes for efficient lookups -- don't want to
 #scan list every time.
-for key, val in rettypes.items():
+for key, val in list(rettypes.items()):
     rettypes[key] = dict.fromkeys(val.split())
 
 class ESearch(UrlGetter):
@@ -175,7 +177,7 @@ esearch_constructors = {'Count':int_constructor, 'RetMax':int_constructor,\
 def ESearchResultParser(result_as_string):
     """Parses an ESearch result. Returns ESearchResult object."""
     if '414 Request-URI Too Large' in result_as_string:
-        raise ValueError, "Tried to pass too large an URI:\n" + result_as_string
+        raise ValueError("Tried to pass too large an URI:\n" + result_as_string)
     doc = parseString(result_as_string)
     #assume one query result -- may need to fix
     query = doc.childNodes[-1]
@@ -278,16 +280,16 @@ class EUtils(object):
             search_query = ESearch(**self.__dict__)
             search_query.retmax = 0 #don't want the ids, just want to post search
             if self.DEBUG:
-                print 'SEARCH QUERY:'
-                print str(search_query)
+                print('SEARCH QUERY:')
+                print(str(search_query))
             cookie = search_query.read()
             if self.DEBUG:
-                print 'COOKIE:'
-                print `cookie`
+                print('COOKIE:')
+                print(repr(cookie))
             search_result = ESearchResultParser(cookie)
             if self.DEBUG:
-                print 'SEARCH RESULT:'
-                print search_result
+                print('SEARCH RESULT:')
+                print(search_result)
             try:
                 self.query_key = search_result.QueryKey
                 self.WebEnv = search_result.WebEnv
@@ -299,9 +301,8 @@ class EUtils(object):
                 try:
                     self.id = ','.join(search_result.IdList)
                 except AttributeError:
-                    raise QueryNotFoundError,\
-                        "WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
-                    (repr(query),str(search_query))
+                    raise QueryNotFoundError("WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
+                    (repr(query),str(search_query)))
 
             count = search_result.Count
 
@@ -322,9 +323,9 @@ class EUtils(object):
                     fetch_query.retmax = count - curr_rec
                 fetch_query.retstart = curr_rec
                 if self.DEBUG:
-                    print 'FETCH QUERY'
-                    print 'CURR REC:', curr_rec, 'COUNT:', count
-                    print str(fetch_query)
+                    print('FETCH QUERY')
+                    print('CURR REC:', curr_rec, 'COUNT:', count)
+                    print(str(fetch_query))
                 #return the result of the fetch
                 curr = fetch_query.read()
                 result.write(curr)
@@ -388,7 +389,7 @@ def taxon_lineage_extractor(lines):
             #expect line of form <Lineage>xxxx</Lineage> where xxxx semicolon-
             #delimited
             between_tags = line.split('>', 1)[1].rsplit('<', 1)[0]
-            yield map(strip, between_tags.split(';'))
+            yield list(map(strip, between_tags.split(';')))
 
 taxon_record_finder = DelimitedRecordFinder('</Taxon>', constructor=None, 
     strict=False)
@@ -405,7 +406,7 @@ def get_taxid_name_lineage(rec):
         elif line.startswith(name_tag):
             name = get_between_tags(line)
         elif line.startswith(lineage_tag):
-            lineage = map(strip, get_between_tags(line).split(';'))
+            lineage = list(map(strip, get_between_tags(line).split(';')))
     return taxid, name, lineage
 
 def get_taxa_names_lineages(lines):
@@ -549,14 +550,14 @@ if __name__ == '__main__':
     from sys import argv, exit
     
     if len(argv) < 5:
-        print "Syntax: python ncbi.py db rettype retmax query."
+        print("Syntax: python ncbi.py db rettype retmax query.")
         exit()
     db = argv[1]
     rettype = argv[2]
     retmax = int(argv[3])
     query = ' '.join(argv[4:])
-    print 'Query: ', query
+    print('Query: ', query)
     e = EUtils(db=db,rettype=rettype,retmax=retmax, DEBUG=True)
-    print e[query].read()
+    print(e[query].read())
 
 

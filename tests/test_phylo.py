@@ -39,8 +39,8 @@ class ConsensusTests(unittest.TestCase):
                 Tree("((a,c),b,d);"),
                 Tree("((a,b),c,d);")]
         
-        weights = map(log, [0.4,0.4,0.05,0.15]) # emphasizing the a,b clade
-        self.scored_trees = zip(weights, self.trees)
+        weights = list(map(log, [0.4,0.4,0.05,0.15])) # emphasizing the a,b clade
+        self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
 
         self.rooted_trees = [
@@ -125,10 +125,10 @@ class ConsensusTests(unittest.TestCase):
         trees = self.rooted_trees
         outtrees = majorityRule(trees, strict=False)
         self.assertEqual(len(outtrees), 1)
-        self.assert_(outtrees[0].sameTopology(Tree("((c,d),(a,b));")))
+        self.assertTrue(outtrees[0].sameTopology(Tree("((c,d),(a,b));")))
         outtrees = majorityRule(trees, strict=True)
         self.assertEqual(len(outtrees), 1)
-        self.assert_(outtrees[0].sameTopology(Tree("(c,d,(a,b));")))
+        self.assertTrue(outtrees[0].sameTopology(Tree("(c,d,(a,b));")))
 
     def test_get_tree_get_splits(self):
         """getTree should provide a reciprocal map of getSplits"""
@@ -161,11 +161,11 @@ class ConsensusTests(unittest.TestCase):
 
     def test_consensus_from_scored_trees_collection_ii(self):
         """strict consensus should handle conflicting trees"""
-        sct = ScoredTreeCollection(zip([1]*3, self.unrooted_conflicting_trees))
+        sct = ScoredTreeCollection(list(zip([1]*3, self.unrooted_conflicting_trees)))
         ct = sct.getConsensusTrees()[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
 
-        sct = ScoredTreeCollection(zip([1]*3, self.rooted_conflicting_trees))
+        sct = ScoredTreeCollection(list(zip([1]*3, self.rooted_conflicting_trees)))
         #cts = sct.getConsensusTrees(method='rooted')
         ct = sct.getConsensusTrees(method='rooted')[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
@@ -292,8 +292,8 @@ class DistancesTests(unittest.TestCase):
                             'e':'GTACGTACTGGT'}, aligned=False)
     
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
-        observed = dict([(frozenset(k),v) for (k,v) in observed.items()])
-        expected = dict([(frozenset(k),v) for (k,v) in expected.items()])
+        observed = dict([(frozenset(k),v) for (k,v) in list(observed.items())])
+        expected = dict([(frozenset(k),v) for (k,v) in list(expected.items())])
         for key in expected:
             self.assertAlmostEqual(expected[key], observed[key], precision)
             

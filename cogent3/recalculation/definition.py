@@ -63,7 +63,7 @@ Recycling:
   stored for each cell - current, previous and spare.  The spare value is
   the one to be used next for recycling.
 """
-from __future__ import division, with_statement
+
 import warnings
 import numpy
 
@@ -150,7 +150,7 @@ class CalcDefn(object):
         if name is None:
             name = self.calc.__name__
         else:
-            assert isinstance(name, basestring), name
+            assert isinstance(name, str), name
         kw['name'] = name        
         self.kw = kw
     
@@ -489,8 +489,8 @@ class SelectForDimension(_Defn):
     
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(zip(self.valid_dimensions, scope_t))
-            scope2 = dict((n,v) for (n,v) in scope.items() if n!=self.dimension)
+            scope = dict(list(zip(self.valid_dimensions, scope_t)))
+            scope2 = dict((n,v) for (n,v) in list(scope.items()) if n!=self.dimension)
             input_num = self.arg.outputOrdinalFor(scope2)
             pos = self.arg.bin_names.index(scope[self.dimension])
             self.assignments[scope_t] = (input_num, pos)
@@ -561,7 +561,7 @@ class ParallelSumDefn(CalculationDefn):
 
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
         'CallDefn', 'ParallelSumDefn'] + [
-        n for (n,c) in vars().items()
+        n for (n,c) in list(vars().items())
         if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
         or isinstance(c, CalcDefn)]
 

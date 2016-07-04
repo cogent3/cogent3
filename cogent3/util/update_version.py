@@ -55,14 +55,14 @@ class VersionUpdater(object):
         self.IncludesDirectory = path.join(self.PyCogentDirectory, 'include')
         
         if not os.access(path.join(self.CodesDirectory, '__init__.py'),os.R_OK):
-            raise IOError, "Could not locate cogent/__init__.py"
+            raise IOError("Could not locate cogent/__init__.py")
         if not os.access(path.join(self.TestsDirectory, '__init__.py'),os.R_OK):
-            raise IOError, "Could not locate tests/__init__.py"
+            raise IOError("Could not locate tests/__init__.py")
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
-            raise IOError, "Could not locate doc/conf.py"
+            raise IOError("Could not locate doc/conf.py")
         if not os.access(path.join(self.IncludesDirectory, \
                 'array_interface.h'), os.R_OK):
-            raise IOError, "Cound not locate include/array_interface.h"
+            raise IOError("Cound not locate include/array_interface.h")
 
     def _get_base_files(self):
         """Support method, provides relative locations for files in base dir"""
@@ -126,10 +126,10 @@ class VersionUpdater(object):
                 break
         if found_version_line:
             if self.Verbose:
-                print 'Version string found on line %d' % lineno
+                print('Version string found on line %d' % lineno)
             lines[lineno] = '__version__ = "%s"\n' % self.Version
         else:
-            print "No version string found in %s" % filename
+            print("No version string found in %s" % filename)
         return (lines, found_version_line)
 
     def _update_properties_file(self, lines, filename):
@@ -145,11 +145,11 @@ class VersionUpdater(object):
                     break
         if found_version_line:
             if self.Verbose:
-                print 'Version string found on line %d' % lineno
+                print('Version string found on line %d' % lineno)
             http_base = lines[lineno].rsplit('/',1)[0]
             lines[lineno] = '%s/PyCogent-%s.tgz\n' % (http_base, self.Version)
         else:
-            print "No version string found in %s" % filename
+            print("No version string found in %s" % filename)
         return (lines, found_version_line) 
 
     def _update_doc_conf_file(self, lines, filename):
@@ -166,17 +166,17 @@ class VersionUpdater(object):
                 break
 
         if versionline is None:
-            print "No version string found in doc/conf.py"
+            print("No version string found in doc/conf.py")
         else:
             if self.Verbose:
-                print 'Version string found on line %d' % versionline
+                print('Version string found on line %d' % versionline)
             lines[versionline] = 'version = "%s"\n' % self.VersionShort
 
         if releaseline is None:
-            print "No release string found in doc/conf.py"
+            print("No release string found in doc/conf.py")
         else:
             if self.Verbose:
-                print 'Release string found on line %d' % releaseline
+                print('Release string found on line %d' % releaseline)
             lines[releaseline] = 'release = "%s"\n' % self.Version
 
         return (lines, versionline and releaseline)
@@ -190,10 +190,10 @@ class VersionUpdater(object):
                 break
         if found_version_line:
             if self.Verbose:
-                print 'Version string found on line %d' % lineno
+                print('Version string found on line %d' % lineno)
             lines[lineno] = '__version__ = "%s"\n' % str(self.VersionTuple)
         else:
-            print "No version string found in %s" % filename
+            print("No version string found in %s" % filename)
         return (lines, found_version_line)
 
     def _update_header_file(self, lines, filename):
@@ -205,11 +205,11 @@ class VersionUpdater(object):
                 break
         if found_version_line:
             if self.Verbose:
-                print 'Version string found on line %d' % lineno
+                print('Version string found on line %d' % lineno)
             lines[lineno] = '#define PYCOGENT_VERSION "%s"\n' \
                     % self.Version
         else:
-            print "No version string found in %s" % filename
+            print("No version string found in %s" % filename)
         return (lines, found_version_line)
 
     def _update_c_file(self, lines, filename):
@@ -223,7 +223,7 @@ class VersionUpdater(object):
             return
 
         if self.Verbose:
-            print "Writing file %s" % filename
+            print("Writing file %s" % filename)
 
         updated_file = open(filename, 'w')
         updated_file.write(''.join(lines))
@@ -235,14 +235,14 @@ class VersionUpdater(object):
             lines = open(filename).readlines()
 
             if self.Verbose:
-                print 'Reading %s' % filename
+                print('Reading %s' % filename)
 
             if filetype is 'Python':
                 lines, write_out = self._update_python_file(lines, filename) 
             elif filetype is 'Properties':
                 lines, write_out = self._update_properties_file(lines,filename)
             else:
-                raise TypeError, "Unknown base file type %s" % filetype
+                raise TypeError("Unknown base file type %s" % filetype)
 
             if write_out:
                 self._file_writer(lines, filename) 
@@ -256,12 +256,12 @@ class VersionUpdater(object):
             lines = open(filename).readlines()
 
             if self.Verbose:
-                print 'Reading %s' % filename
+                print('Reading %s' % filename)
            
             if filename.endswith('conf.py'):
                 lines, write_out = self._update_doc_conf_file(lines, filename)
             else:
-                raise TypeError, "Unknown doc file type: %s" % filetype
+                raise TypeError("Unknown doc file type: %s" % filetype)
 
             if write_out:
                 self._file_writer(lines, filename) 
@@ -273,14 +273,14 @@ class VersionUpdater(object):
             found_version_line = False
 
             if self.Verbose:
-                print 'Reading %s' % filename
+                print('Reading %s' % filename)
             
             if filetype is 'PyRex':
                 lines, write_out = self._update_pyrex_file(lines, filename)
             elif filetype is 'Header':
                 lines, write_out = self._update_header_file(lines, filename)
             else:
-                raise TypeError, "Unknown include file type %s" % filetype
+                raise TypeError("Unknown include file type %s" % filetype)
 
             if write_out:
                 self._file_writer(lines, filename) 
@@ -292,12 +292,12 @@ class VersionUpdater(object):
             found_version_line = False
 
             if self.Verbose:
-                print 'Reading %s' % filename
+                print('Reading %s' % filename)
 
             if filetype is 'Python':
                 lines, write_out = self._update_python_file(lines, filename)
             else:
-                raise TypeError, "Unknown test file type %s" % filetype
+                raise TypeError("Unknown test file type %s" % filetype)
 
             if write_out:
                 self._file_writer(lines, filename) 
@@ -311,7 +311,7 @@ class VersionUpdater(object):
             found_version_line = False
 
             if self.Verbose:
-                print 'Reading %s' % filename
+                print('Reading %s' % filename)
 
             if filetype is 'Python':
                 lines, write_out = self._update_python_file(lines, filename)
@@ -320,7 +320,7 @@ class VersionUpdater(object):
             elif filetype is 'C':
                 lines, write_out = self._update_c_file(lines, filename)
             else:
-                raise TypeError, "Unknown code file type %s" % filetype
+                raise TypeError("Unknown code file type %s" % filetype)
 
             if write_out:
                 self._file_writer(lines, filename) 

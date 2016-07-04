@@ -3,7 +3,6 @@ from cogent3.parse.record import FieldWrapper
 from cogent3.parse.record_finder import DelimitedRecordFinder, \
     LabeledRecordFinder
 from cogent3.core.genetic_code import GeneticCodes
-from string import maketrans, strip, rstrip
 from cogent3.core.moltype import PROTEIN, DNA, ASCII
 from cogent3.core.annotation import Feature
 from cogent3.core.info import Info
@@ -17,6 +16,10 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+maketrans = str.maketrans
+strip = str.strip
+rstrip = str.rstrip
 
 all_chars = maketrans('','')
 dna_lc =     'utacgrywsmkbdhvn'
@@ -45,8 +48,8 @@ def parse_locus(line):
     result = _locus_parser(line)
     try:
         result['length'] = int(result['length'])
-    except KeyError, e:
-        raise PartialRecordError, e
+    except KeyError as e:
+        raise PartialRecordError(e)
 
     if None in result:
         del result[None]
@@ -124,7 +127,7 @@ def parse_organism(lines):
     #normalize whitespace, including deleting newlines
     taxonomy = ' '.join(taxonomy.split())
     #separate by semicolons
-    taxa = map(strip, taxonomy.split(';'))  #get rid of leading/trailing spaces
+    taxa = list(map(strip, taxonomy.split(';')))  #get rid of leading/trailing spaces
     #delete trailing period if present
     last = taxa[-1]
     if last.endswith('.'):
@@ -229,14 +232,14 @@ def parse_simple_location_segment(segment):
         first, second = segment.split('..')
         if not first[0].isdigit():
             first_ambiguity = first[0]
-            first = long(first[1:])
+            first = int(first[1:])
         else:
-            first = long(first)
+            first = int(first)
         if not second[0].isdigit():
             second_ambiguity = second[0]
-            second = long(second[1:])
+            second = int(second[1:])
         else:
-            second = long(second)
+            second = int(second)
         
         return Location([Location(first, Ambiguity=first_ambiguity), \
             Location(second, Ambiguity=second_ambiguity)])
@@ -244,7 +247,7 @@ def parse_simple_location_segment(segment):
         if not segment[0].isdigit():
             first_ambiguity = segment[0]
             segment = segment[1:]
-        return Location(long(segment), Ambiguity=first_ambiguity)
+        return Location(int(segment), Ambiguity=first_ambiguity)
 
 def parse_location_line(tokens, parser=parse_simple_location_segment):
     """Parses location line tokens into location list."""
@@ -295,7 +298,7 @@ class Location(object):
             Accession=None, Db=None, Strand=1):
         """Returns new LocalLocation object."""
         try:
-            data = long(data)
+            data = int(data)
         except TypeError:
             pass    #assume was two Location objects.
         self._data = data
@@ -321,7 +324,7 @@ class Location(object):
                 curr = '%s^%s' % (first, first+1)
         else:   #not self.IsBetween
             try:
-                data = long(self._data)
+                data = int(self._data)
                 #if the above line succeeds, we've got a single item
                 if self.Ambiguity:
                     curr = self.Ambiguity + str(data)
@@ -359,14 +362,14 @@ class Location(object):
     def first(self):
         """Returns first base self could be."""
         try:
-            return long(self._data)
+            return int(self._data)
         except TypeError:
             return self._data[0].first()
     
     def last(self):
         """Returns last base self could be."""
         try:
-            return long(self._data)
+            return int(self._data)
         except TypeError:
             return self._data[-1].last()
 
@@ -403,7 +406,7 @@ class LocationList(list):
         if len(curr) >= 2:  #found stuff on both strands
             return 0
         else:
-            return curr.keys()[0]
+            return list(curr.keys())[0]
     
     def __str__(self):
         """Returns (normalized) string representation of self."""
@@ -455,7 +458,7 @@ def parse_source(lines):
     """Simple parser for source fields."""
     result = {}
     all_lines = list(lines)
-    source_field = reference_field_finder(all_lines).next()
+    source_field = next(reference_field_finder(all_lines))
     label, data = block_consolidator(source_field)
     result[label.lower()] = ' '.join(map(strip, data))
     source_length = len(source_field)
@@ -545,10 +548,10 @@ def parse_location_atom(location_atom):
     """Parses a location atom, supposed to be a single-base position."""
     a = location_atom
     if a.startswith('<') or a.startswith('>'):   #fuzzy
-        position = long(a[1:])
+        position = int(a[1:])
         return Location(position, Ambiguity = a[0])
     #otherwise, should just be an integer
-    return Location(long(a))
+    return Location(int(a))
 
 wanted_types = dict.fromkeys(['CDS'])
 
@@ -560,11 +563,11 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
             continue
         translation = f['translation'][0]
         raw_seq = f['location'].extract(rec_seq)
-        print raw_seq
-        seq = raw_seq[long(f['codon_start'][0])-1:]
-        print 'dt:', translation
-        print 'ct:', GeneticCodes[f.get('transl_table', '1')[0]].translate(seq)
-        print 's :', seq
+        print(raw_seq)
+        seq = raw_seq[int(f['codon_start'][0])-1:]
+        print('dt:', translation)
+        print('ct:', GeneticCodes[f.get('transl_table', '1')[0]].translate(seq))
+        print('s :', seq)
 
 def RichGenbankParser(handle, info_excludes=None, moltype=None,
     skip_contigs=False, add_annotation=None):
@@ -583,7 +586,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
     for rec in MinimalGenbankParser(handle):
         info = Info()
         # populate the Info object, excluding the sequence
-        for label, value in rec.items():
+        for label, value in list(rec.items()):
             if label in info_excludes:
                 continue
             info[label] = value
@@ -634,7 +637,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                 for id_field in ['gene', 'note', 'product', 'clone']:
                     if id_field in feature:
                         name = feature[id_field]
-                        if not isinstance(name, basestring):
+                        if not isinstance(name, str):
                             name = ' '.join(name)
                         break
                 else:
@@ -646,9 +649,3 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
 def parse(*args):
     return RichGenbankParser(*args).next()[1]
 
-if __name__ == '__main__':  #demo if called from commandline
-    from sys import argv
-    rec = parse(open(argv[1], 'U'))
-    print len(rec), rec.getName()
-    for annot in rec.annotations:
-        print annot

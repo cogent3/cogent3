@@ -266,8 +266,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__cogent__align___pairwise_seqs
-#define __PYX_HAVE_API__cogent__align___pairwise_seqs
+#define __PYX_HAVE__cogent3__align___pairwise_seqs
+#define __PYX_HAVE_API__cogent3__align___pairwise_seqs
 #include "limits.h"
 #include "math.h"
 #include "pythread.h"
@@ -491,7 +491,7 @@ static const char *__pyx_filename;
 
 static const char *__pyx_f[] = {
   "include/numerical_pyrex.pyx",
-  "cogent/align/_pairwise_seqs.pyx",
+  "cogent3/align/_pairwise_seqs.pyx",
   "stringsource",
 };
 /* MemviewSliceStruct.proto */
@@ -603,7 +603,7 @@ struct __pyx_memoryviewslice_obj;
  * ctypedef double[:, ::1] Double2D
  * ctypedef double[:, :, ::1] Double3D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double1D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Double1D;
 
 /* "include/numerical_pyrex.pyx":32
  * 
@@ -612,7 +612,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double1D;
  * ctypedef double[:, :, ::1] Double3D
  * ctypedef long[::1] Long1D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D;
 
 /* "include/numerical_pyrex.pyx":33
  * ctypedef double[::1] Double1D
@@ -621,7 +621,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D;
  * ctypedef long[::1] Long1D
  * ctypedef long[:, ::1] Long2D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D;
 
 /* "include/numerical_pyrex.pyx":34
  * ctypedef double[:, ::1] Double2D
@@ -630,7 +630,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D;
  * ctypedef long[:, ::1] Long2D
  * ctypedef long[:, :, ::1] Long3D
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D;
 
 /* "include/numerical_pyrex.pyx":35
  * ctypedef double[:, :, ::1] Double3D
@@ -639,7 +639,7 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D;
  * ctypedef long[:, :, ::1] Long3D
  * 
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Long2D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Long2D;
 
 /* "include/numerical_pyrex.pyx":36
  * ctypedef long[::1] Long1D
@@ -648,16 +648,16 @@ typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Long2D;
  * 
  * 
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_Long3D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_Long3D;
 
-/* "cogent/align/_pairwise_seqs.pyx":33
+/* "cogent3/align/_pairwise_seqs.pyx":33
  *     return "%s * SCALE_STEP ** %s %s" % (mantissa, exponent, msg)
  * 
  * ctypedef unsigned char [:,:,::1] UChar3D             # <<<<<<<<<<<<<<
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,
  */
-typedef __Pyx_memviewslice __pyx_t_6cogent_5align_14_pairwise_seqs_UChar3D;
+typedef __Pyx_memviewslice __pyx_t_7cogent3_5align_14_pairwise_seqs_UChar3D;
 
 /* "View.MemoryView":103
  * 
@@ -1279,16 +1279,16 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
-/* Module declarations from 'cogent.align._pairwise_seqs' */
+/* Module declarations from 'cogent3.align._pairwise_seqs' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
 static PyTypeObject *__pyx_memoryviewslice_type = 0;
-static double __pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP;
-static double __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE;
-static int __pyx_v_6cogent_5align_14_pairwise_seqs_MAX_XCOUNT;
-static long __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE;
-static long __pyx_v_6cogent_5align_14_pairwise_seqs_MAX_SCALE;
+static double __pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP;
+static double __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE;
+static int __pyx_v_7cogent3_5align_14_pairwise_seqs_MAX_XCOUNT;
+static long __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE;
+static long __pyx_v_7cogent3_5align_14_pairwise_seqs_MAX_SCALE;
 static PyObject *generic = 0;
 static PyObject *strided = 0;
 static PyObject *indirect = 0;
@@ -1296,15 +1296,15 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static int __pyx_fuse_0__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, Py_ssize_t *); /*proto*/
-static int __pyx_fuse_1__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, long *); /*proto*/
-static int __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, int *); /*proto*/
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
-static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
-static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
-static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
+static int __pyx_fuse_0__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, Py_ssize_t *); /*proto*/
+static int __pyx_fuse_1__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, long *); /*proto*/
+static int __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *, Py_ssize_t, int *); /*proto*/
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray1D(__Pyx_memviewslice, int *); /*proto*/
+static int __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice, int *, int *); /*proto*/
+static int __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
+static int __pyx_fuse_2_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice, int *, int *, int *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1340,10 +1340,10 @@ static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize
 static __Pyx_TypeInfo __Pyx_TypeInfo_long = { "long", NULL, sizeof(long), { 0 }, 0, IS_UNSIGNED(long) ? 'U' : 'I', IS_UNSIGNED(long), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_unsigned_char = { "unsigned char", NULL, sizeof(unsigned char), { 0 }, 0, IS_UNSIGNED(unsigned char) ? 'U' : 'I', IS_UNSIGNED(unsigned char), 0 };
-#define __Pyx_MODULE_NAME "cogent.align._pairwise_seqs"
-int __pyx_module_is_main_cogent__align___pairwise_seqs = 0;
+#define __Pyx_MODULE_NAME "cogent3.align._pairwise_seqs"
+int __pyx_module_is_main_cogent3__align___pairwise_seqs = 0;
 
-/* Implementation of 'cogent.align._pairwise_seqs' */
+/* Implementation of 'cogent3.align._pairwise_seqs' */
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_ArithmeticError;
 static PyObject *__pyx_builtin_MemoryError;
@@ -1494,11 +1494,11 @@ static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
 static const char __pyx_k_s_dimension_is_s_too_big[] = "%s dimension is %s, too big";
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
-static const char __pyx_k_cogent_align__pairwise_seqs[] = "cogent.align._pairwise_seqs";
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_s_dimension_is_s_expected_s[] = "%s dimension is %s, expected %s";
+static const char __pyx_k_cogent3_align__pairwise_seqs[] = "cogent3.align._pairwise_seqs";
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
-static const char __pyx_k_Users_gavin_DevRepos_PyCogent3[] = "/Users/gavin/DevRepos/PyCogent3/cogent/align/_pairwise_seqs.pyx";
+static const char __pyx_k_Users_gavin_DevRepos_PyCogent3[] = "/Users/gavin/DevRepos/PyCogent3/cogent3/align/_pairwise_seqs.pyx";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -1555,7 +1555,7 @@ static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_calc_rows;
 static PyObject *__pyx_n_s_class;
-static PyObject *__pyx_n_s_cogent_align__pairwise_seqs;
+static PyObject *__pyx_n_s_cogent3_align__pairwise_seqs;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
 static PyObject *__pyx_n_s_current_row_index;
@@ -1671,8 +1671,8 @@ static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_xgap_scores;
 static PyObject *__pyx_n_s_y;
 static PyObject *__pyx_n_s_ygap_scores;
-static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mantissa, PyObject *__pyx_v_exponent, PyObject *__pyx_v_msg); /* proto */
-static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_plan, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index, int __pyx_v_i_low, int __pyx_v_i_high, int __pyx_v_j_low, int __pyx_v_j_high, CYTHON_UNUSED PyObject *__pyx_v_preds, __pyx_t_6cogent_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_T, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores, __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores, PyObject *__pyx_v_rows, __pyx_t_6cogent_5align_14_pairwise_seqs_UChar3D __pyx_v_track, PyObject *__pyx_v_track_enc, int __pyx_v_viterbi, int __pyx_v_use_logs, int __pyx_v_local, int __pyx_v_use_scaling); /* proto */
+static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mantissa, PyObject *__pyx_v_exponent, PyObject *__pyx_v_msg); /* proto */
+static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_plan, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index, int __pyx_v_i_low, int __pyx_v_i_high, int __pyx_v_j_low, int __pyx_v_j_high, CYTHON_UNUSED PyObject *__pyx_v_preds, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_T, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores, PyObject *__pyx_v_rows, __pyx_t_7cogent3_5align_14_pairwise_seqs_UChar3D __pyx_v_track, PyObject *__pyx_v_track_enc, int __pyx_v_viterbi, int __pyx_v_use_logs, int __pyx_v_local, int __pyx_v_use_scaling); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1752,7 +1752,7 @@ static PyObject *__pyx_codeobj__25;
  *         # Length unspecified, take it from the provided array
  */
 
-static int __pyx_fuse_0__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, Py_ssize_t *__pyx_v_var) {
+static int __pyx_fuse_0__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, Py_ssize_t *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -1880,14 +1880,14 @@ static int __pyx_fuse_0__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_1__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, long *__pyx_v_var) {
+static int __pyx_fuse_1__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, long *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2066,14 +2066,14 @@ static int __pyx_fuse_1__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, int *__pyx_v_var) {
+static int __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(PyObject *__pyx_v_dimension, Py_ssize_t __pyx_v_val, int *__pyx_v_var) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2252,7 +2252,7 @@ static int __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkDim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2267,7 +2267,7 @@ static int __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(PyObject
  *         raise ValueError('Array required, got None')
  */
 
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray1D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2314,7 +2314,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__
  * 
  * cdef int checkArray2D(num[:, ::1] a, dim *x, dim *y) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 65, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":62
  * 
@@ -2329,7 +2329,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray1D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2344,7 +2344,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__
  *         raise ValueError('Array required, got None')
  */
 
-static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
+static int __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2391,7 +2391,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
  *     checkDim('2nd', a.shape[1], y)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":71
  *         raise ValueError('Array required, got None')
@@ -2400,7 +2400,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
  * 
  * cdef int checkArray3D(num[:, :, ::1] a, dim *x, dim *y, dim *z) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":67
  *     checkDim('1st', a.shape[0], x)
@@ -2415,14 +2415,14 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2469,7 +2469,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
  *     checkDim('2nd', a.shape[1], y)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 70, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":71
  *         raise ValueError('Array required, got None')
@@ -2478,7 +2478,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
  * 
  * cdef int checkArray3D(num[:, :, ::1] a, dim *x, dim *y, dim *z) except 1:
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 71, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":67
  *     checkDim('1st', a.shape[0], x)
@@ -2493,7 +2493,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2508,7 +2508,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__
  *         raise ValueError('Array required, got None')
  */
 
-static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
+static int __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2555,7 +2555,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('2nd', a.shape[1], y)
  *     checkDim('3rd', a.shape[2], z)
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":77
  *         raise ValueError('Array required, got None')
@@ -2564,7 +2564,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":78
  *     checkDim('1st', a.shape[0], x)
@@ -2572,7 +2572,7 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)             # <<<<<<<<<<<<<<
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":73
  *     checkDim('2nd', a.shape[1], y)
@@ -2587,14 +2587,14 @@ static int __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
+static int __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2641,7 +2641,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('2nd', a.shape[1], y)
  *     checkDim('3rd', a.shape[2], z)
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":77
  *         raise ValueError('Array required, got None')
@@ -2650,7 +2650,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":78
  *     checkDim('1st', a.shape[0], x)
@@ -2658,7 +2658,7 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)             # <<<<<<<<<<<<<<
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":73
  *     checkDim('2nd', a.shape[1], y)
@@ -2673,14 +2673,14 @@ static int __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
+static int __pyx_fuse_2_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__Pyx_memviewslice __pyx_v_a, int *__pyx_v_x, int *__pyx_v_y, int *__pyx_v_z) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -2727,7 +2727,7 @@ static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('2nd', a.shape[1], y)
  *     checkDim('3rd', a.shape[2], z)
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_1st, (__pyx_v_a.shape[0]), __pyx_v_x); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 76, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":77
  *         raise ValueError('Array required, got None')
@@ -2736,7 +2736,7 @@ static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_2nd, (__pyx_v_a.shape[1]), __pyx_v_y); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 77, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":78
  *     checkDim('1st', a.shape[0], x)
@@ -2744,7 +2744,7 @@ static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  *     checkDim('3rd', a.shape[2], z)             # <<<<<<<<<<<<<<
  * 
  */
-  __pyx_t_3 = __pyx_fuse_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkDim(__pyx_kp_s_3rd, (__pyx_v_a.shape[2]), __pyx_v_z); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(0, 78, __pyx_L1_error)
 
   /* "include/numerical_pyrex.pyx":73
  *     checkDim('2nd', a.shape[1], y)
@@ -2759,14 +2759,14 @@ static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.checkArray3D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "cogent/align/_pairwise_seqs.pyx":30
+/* "cogent3/align/_pairwise_seqs.pyx":30
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
  * 
  * def fmpt(mantissa, exponent, msg=''):             # <<<<<<<<<<<<<<
@@ -2775,9 +2775,9 @@ static int __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_1fmpt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cogent_5align_14_pairwise_seqs_1fmpt = {"fmpt", (PyCFunction)__pyx_pw_6cogent_5align_14_pairwise_seqs_1fmpt, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_1fmpt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7cogent3_5align_14_pairwise_seqs_1fmpt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_5align_14_pairwise_seqs_1fmpt = {"fmpt", (PyCFunction)__pyx_pw_7cogent3_5align_14_pairwise_seqs_1fmpt, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_5align_14_pairwise_seqs_1fmpt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_mantissa = 0;
   PyObject *__pyx_v_exponent = 0;
   PyObject *__pyx_v_msg = 0;
@@ -2834,25 +2834,25 @@ static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_1fmpt(PyObject *__pyx_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("fmpt", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 30, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.fmpt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.fmpt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(__pyx_self, __pyx_v_mantissa, __pyx_v_exponent, __pyx_v_msg);
+  __pyx_r = __pyx_pf_7cogent3_5align_14_pairwise_seqs_fmpt(__pyx_self, __pyx_v_mantissa, __pyx_v_exponent, __pyx_v_msg);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mantissa, PyObject *__pyx_v_exponent, PyObject *__pyx_v_msg) {
+static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_mantissa, PyObject *__pyx_v_exponent, PyObject *__pyx_v_msg) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("fmpt", 0);
 
-  /* "cogent/align/_pairwise_seqs.pyx":31
+  /* "cogent3/align/_pairwise_seqs.pyx":31
  * 
  * def fmpt(mantissa, exponent, msg=''):
  *     return "%s * SCALE_STEP ** %s %s" % (mantissa, exponent, msg)             # <<<<<<<<<<<<<<
@@ -2878,7 +2878,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyO
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":30
+  /* "cogent3/align/_pairwise_seqs.pyx":30
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
  * 
  * def fmpt(mantissa, exponent, msg=''):             # <<<<<<<<<<<<<<
@@ -2890,7 +2890,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyO
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.fmpt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.fmpt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2898,7 +2898,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyO
   return __pyx_r;
 }
 
-/* "cogent/align/_pairwise_seqs.pyx":35
+/* "cogent3/align/_pairwise_seqs.pyx":35
  * ctypedef unsigned char [:,:,::1] UChar3D
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,             # <<<<<<<<<<<<<<
@@ -2907,25 +2907,25 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_fmpt(CYTHON_UNUSED PyO
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6cogent_5align_14_pairwise_seqs_2calc_rows[] = "The faster, sequence only (no POG) version.  Forward or Viterbi \n    algorithm, with doubles or with slower but practically unoverflowable \n    (double, long) GMP-like numbers.  Viterbi is also available in the ever \n    popular addition-of-logs version.  All this with any possible pair HMM \n    transition matrix.\n        \n    Limitations\n       - HMM states must be in a sensible order: M and X, then Y, then END.\n    ";
-static PyMethodDef __pyx_mdef_6cogent_5align_14_pairwise_seqs_3calc_rows = {"calc_rows", (PyCFunction)__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6cogent_5align_14_pairwise_seqs_2calc_rows};
-static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_plan = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pw_7cogent3_5align_14_pairwise_seqs_3calc_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_7cogent3_5align_14_pairwise_seqs_2calc_rows[] = "The faster, sequence only (no POG) version.  Forward or Viterbi \n    algorithm, with doubles or with slower but practically unoverflowable \n    (double, long) GMP-like numbers.  Viterbi is also available in the ever \n    popular addition-of-logs version.  All this with any possible pair HMM \n    transition matrix.\n        \n    Limitations\n       - HMM states must be in a sensible order: M and X, then Y, then END.\n    ";
+static PyMethodDef __pyx_mdef_7cogent3_5align_14_pairwise_seqs_3calc_rows = {"calc_rows", (PyCFunction)__pyx_pw_7cogent3_5align_14_pairwise_seqs_3calc_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_7cogent3_5align_14_pairwise_seqs_2calc_rows};
+static PyObject *__pyx_pw_7cogent3_5align_14_pairwise_seqs_3calc_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_plan = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_low;
   int __pyx_v_i_high;
   int __pyx_v_j_low;
   int __pyx_v_j_high;
   CYTHON_UNUSED PyObject *__pyx_v_preds = 0;
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_T = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_T = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_rows = 0;
-  __pyx_t_6cogent_5align_14_pairwise_seqs_UChar3D __pyx_v_track = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_UChar3D __pyx_v_track = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_track_enc = 0;
   int __pyx_v_viterbi;
   int __pyx_v_use_logs;
@@ -3120,7 +3120,7 @@ static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *_
       __pyx_v_local = __Pyx_PyInt_As_int(values[18]); if (unlikely((__pyx_v_local == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 39, __pyx_L3_error)
     } else {
 
-      /* "cogent/align/_pairwise_seqs.pyx":39
+      /* "cogent3/align/_pairwise_seqs.pyx":39
  *         Long2D state_directions, Double2D T,
  *         Double2D xgap_scores, Double2D ygap_scores, Double3D match_scores,
  *         rows, UChar3D track, track_enc, int viterbi, int use_logs=0, int local=False,             # <<<<<<<<<<<<<<
@@ -3133,7 +3133,7 @@ static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *_
       __pyx_v_use_scaling = __Pyx_PyInt_As_int(values[19]); if (unlikely((__pyx_v_use_scaling == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 40, __pyx_L3_error)
     } else {
 
-      /* "cogent/align/_pairwise_seqs.pyx":40
+      /* "cogent3/align/_pairwise_seqs.pyx":40
  *         Double2D xgap_scores, Double2D ygap_scores, Double3D match_scores,
  *         rows, UChar3D track, track_enc, int viterbi, int use_logs=0, int local=False,
  *         int use_scaling=True):             # <<<<<<<<<<<<<<
@@ -3147,13 +3147,13 @@ static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("calc_rows", 0, 17, 20, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 35, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.calc_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.calc_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(__pyx_self, __pyx_v_plan, __pyx_v_seq1_index, __pyx_v_seq2_index, __pyx_v_i_low, __pyx_v_i_high, __pyx_v_j_low, __pyx_v_j_high, __pyx_v_preds, __pyx_v_state_directions, __pyx_v_T, __pyx_v_xgap_scores, __pyx_v_ygap_scores, __pyx_v_match_scores, __pyx_v_rows, __pyx_v_track, __pyx_v_track_enc, __pyx_v_viterbi, __pyx_v_use_logs, __pyx_v_local, __pyx_v_use_scaling);
+  __pyx_r = __pyx_pf_7cogent3_5align_14_pairwise_seqs_2calc_rows(__pyx_self, __pyx_v_plan, __pyx_v_seq1_index, __pyx_v_seq2_index, __pyx_v_i_low, __pyx_v_i_high, __pyx_v_j_low, __pyx_v_j_high, __pyx_v_preds, __pyx_v_state_directions, __pyx_v_T, __pyx_v_xgap_scores, __pyx_v_ygap_scores, __pyx_v_match_scores, __pyx_v_rows, __pyx_v_track, __pyx_v_track_enc, __pyx_v_viterbi, __pyx_v_use_logs, __pyx_v_local, __pyx_v_use_scaling);
 
-  /* "cogent/align/_pairwise_seqs.pyx":35
+  /* "cogent3/align/_pairwise_seqs.pyx":35
  * ctypedef unsigned char [:,:,::1] UChar3D
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,             # <<<<<<<<<<<<<<
@@ -3166,7 +3166,7 @@ static PyObject *__pyx_pw_6cogent_5align_14_pairwise_seqs_3calc_rows(PyObject *_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_plan, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index, __pyx_t_6cogent_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index, int __pyx_v_i_low, int __pyx_v_i_high, int __pyx_v_j_low, int __pyx_v_j_high, CYTHON_UNUSED PyObject *__pyx_v_preds, __pyx_t_6cogent_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_T, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores, __pyx_t_6cogent_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores, __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores, PyObject *__pyx_v_rows, __pyx_t_6cogent_5align_14_pairwise_seqs_UChar3D __pyx_v_track, PyObject *__pyx_v_track_enc, int __pyx_v_viterbi, int __pyx_v_use_logs, int __pyx_v_local, int __pyx_v_use_scaling) {
+static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_plan, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq1_index, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long1D __pyx_v_seq2_index, int __pyx_v_i_low, int __pyx_v_i_high, int __pyx_v_j_low, int __pyx_v_j_high, CYTHON_UNUSED PyObject *__pyx_v_preds, __pyx_t_7cogent3_5align_14_pairwise_seqs_Long2D __pyx_v_state_directions, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_T, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_xgap_scores, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double2D __pyx_v_ygap_scores, __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D __pyx_v_match_scores, PyObject *__pyx_v_rows, __pyx_t_7cogent3_5align_14_pairwise_seqs_UChar3D __pyx_v_track, PyObject *__pyx_v_track_enc, int __pyx_v_viterbi, int __pyx_v_use_logs, int __pyx_v_local, int __pyx_v_use_scaling) {
   int __pyx_v_prev_j;
   int __pyx_v_state;
   int __pyx_v_prev_state;
@@ -3208,8 +3208,8 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   long __pyx_v_exponent;
   long __pyx_v_max_exponent;
   long __pyx_v_overall_max_exponent;
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D __pyx_v_mantissas = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long3D __pyx_v_exponents = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D __pyx_v_mantissas = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long3D __pyx_v_exponents = { 0, 0, { 0 }, { 0 }, { 0 } };
   long __pyx_v_pointer_a;
   long __pyx_v_pointer_b;
   long __pyx_v_pointer_state;
@@ -3227,13 +3227,13 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
   PyObject *(*__pyx_t_10)(PyObject *);
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Double3D __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_6cogent_5align_14_pairwise_seqs_Long3D __pyx_t_12 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Double3D __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_Long3D __pyx_t_12 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_13;
   PyObject *__pyx_t_14 = NULL;
   int __pyx_t_15;
   int __pyx_t_16;
-  __pyx_t_6cogent_5align_14_pairwise_seqs_UChar3D __pyx_t_17 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_7cogent3_5align_14_pairwise_seqs_UChar3D __pyx_t_17 = { 0, 0, { 0 }, { 0 }, { 0 } };
   Py_ssize_t __pyx_t_18;
   Py_ssize_t __pyx_t_19;
   Py_ssize_t __pyx_t_20;
@@ -3288,7 +3288,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   Py_ssize_t __pyx_t_69;
   __Pyx_RefNannySetupContext("calc_rows", 0);
 
-  /* "cogent/align/_pairwise_seqs.pyx":70
+  /* "cogent3/align/_pairwise_seqs.pyx":70
  *     cdef long pointer_a, pointer_b, pointer_state
  * 
  *     assert not (use_logs and not viterbi)             # <<<<<<<<<<<<<<
@@ -3313,7 +3313,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   #endif
 
-  /* "cogent/align/_pairwise_seqs.pyx":71
+  /* "cogent3/align/_pairwise_seqs.pyx":71
  * 
  *     assert not (use_logs and not viterbi)
  *     assert not (use_logs and use_scaling)             # <<<<<<<<<<<<<<
@@ -3338,7 +3338,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   #endif
 
-  /* "cogent/align/_pairwise_seqs.pyx":72
+  /* "cogent3/align/_pairwise_seqs.pyx":72
  *     assert not (use_logs and not viterbi)
  *     assert not (use_logs and use_scaling)
  *     assert not (local and not viterbi)             # <<<<<<<<<<<<<<
@@ -3363,7 +3363,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   #endif
 
-  /* "cogent/align/_pairwise_seqs.pyx":74
+  /* "cogent3/align/_pairwise_seqs.pyx":74
  *     assert not (local and not viterbi)
  * 
  *     N = 0             # <<<<<<<<<<<<<<
@@ -3372,16 +3372,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_N = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":75
+  /* "cogent3/align/_pairwise_seqs.pyx":75
  * 
  *     N = 0
  *     checkArray2D(T, &N, &N)             # <<<<<<<<<<<<<<
  *     row_length = 0
  *     row_count = 0
  */
-  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__pyx_v_T, (&__pyx_v_N), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 75, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__pyx_v_T, (&__pyx_v_N), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 75, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":76
+  /* "cogent3/align/_pairwise_seqs.pyx":76
  *     N = 0
  *     checkArray2D(T, &N, &N)
  *     row_length = 0             # <<<<<<<<<<<<<<
@@ -3390,7 +3390,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_row_length = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":77
+  /* "cogent3/align/_pairwise_seqs.pyx":77
  *     checkArray2D(T, &N, &N)
  *     row_length = 0
  *     row_count = 0             # <<<<<<<<<<<<<<
@@ -3399,16 +3399,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_row_count = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":78
+  /* "cogent3/align/_pairwise_seqs.pyx":78
  *     row_length = 0
  *     row_count = 0
  *     checkArray1D(plan, &row_count)             # <<<<<<<<<<<<<<
  * 
  *     dest_states = 0
  */
-  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__pyx_v_plan, (&__pyx_v_row_count)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 78, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray1D(__pyx_v_plan, (&__pyx_v_row_count)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 78, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":80
+  /* "cogent3/align/_pairwise_seqs.pyx":80
  *     checkArray1D(plan, &row_count)
  * 
  *     dest_states = 0             # <<<<<<<<<<<<<<
@@ -3417,7 +3417,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_dest_states = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":81
+  /* "cogent3/align/_pairwise_seqs.pyx":81
  * 
  *     dest_states = 0
  *     d4 = 4             # <<<<<<<<<<<<<<
@@ -3426,34 +3426,34 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_d4 = 4;
 
-  /* "cogent/align/_pairwise_seqs.pyx":83
+  /* "cogent3/align/_pairwise_seqs.pyx":83
  *     d4 = 4
  *     # Array of (state, bin, dx, dy) tuples describing the HMM states.
  *     checkArray2D(state_directions, &dest_states, &d4)             # <<<<<<<<<<<<<<
  * 
  *     checkArray1D(seq1_index, &row_count)
  */
-  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__pyx_v_state_directions, (&__pyx_v_dest_states), (&__pyx_v_d4)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 83, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__pyx_v_state_directions, (&__pyx_v_dest_states), (&__pyx_v_d4)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 83, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":85
+  /* "cogent3/align/_pairwise_seqs.pyx":85
  *     checkArray2D(state_directions, &dest_states, &d4)
  * 
  *     checkArray1D(seq1_index, &row_count)             # <<<<<<<<<<<<<<
  *     checkArray1D(seq2_index, &row_length)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__pyx_v_seq1_index, (&__pyx_v_row_count)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 85, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray1D(__pyx_v_seq1_index, (&__pyx_v_row_count)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 85, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":86
+  /* "cogent3/align/_pairwise_seqs.pyx":86
  * 
  *     checkArray1D(seq1_index, &row_count)
  *     checkArray1D(seq2_index, &row_length)             # <<<<<<<<<<<<<<
  * 
  *     max_x = max_y = bin_count = 0
  */
-  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray1D(__pyx_v_seq2_index, (&__pyx_v_row_length)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 86, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray1D(__pyx_v_seq2_index, (&__pyx_v_row_length)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 86, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":88
+  /* "cogent3/align/_pairwise_seqs.pyx":88
  *     checkArray1D(seq2_index, &row_length)
  * 
  *     max_x = max_y = bin_count = 0             # <<<<<<<<<<<<<<
@@ -3464,34 +3464,34 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_v_max_y = 0;
   __pyx_v_bin_count = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":89
+  /* "cogent3/align/_pairwise_seqs.pyx":89
  * 
  *     max_x = max_y = bin_count = 0
  *     checkArray3D(match_scores, &bin_count, &max_x, &max_y)             # <<<<<<<<<<<<<<
  *     checkArray2D(xgap_scores, &bin_count, &max_x)
  *     checkArray2D(ygap_scores, &bin_count, &max_y)
  */
-  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__pyx_v_match_scores, (&__pyx_v_bin_count), (&__pyx_v_max_x), (&__pyx_v_max_y)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 89, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__pyx_v_match_scores, (&__pyx_v_bin_count), (&__pyx_v_max_x), (&__pyx_v_max_y)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 89, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":90
+  /* "cogent3/align/_pairwise_seqs.pyx":90
  *     max_x = max_y = bin_count = 0
  *     checkArray3D(match_scores, &bin_count, &max_x, &max_y)
  *     checkArray2D(xgap_scores, &bin_count, &max_x)             # <<<<<<<<<<<<<<
  *     checkArray2D(ygap_scores, &bin_count, &max_y)
  * 
  */
-  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__pyx_v_xgap_scores, (&__pyx_v_bin_count), (&__pyx_v_max_x)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 90, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__pyx_v_xgap_scores, (&__pyx_v_bin_count), (&__pyx_v_max_x)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 90, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":91
+  /* "cogent3/align/_pairwise_seqs.pyx":91
  *     checkArray3D(match_scores, &bin_count, &max_x, &max_y)
  *     checkArray2D(xgap_scores, &bin_count, &max_x)
  *     checkArray2D(ygap_scores, &bin_count, &max_y)             # <<<<<<<<<<<<<<
  * 
  *     for i from 0 <= i < row_count:
  */
-  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray2D(__pyx_v_ygap_scores, (&__pyx_v_bin_count), (&__pyx_v_max_y)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 91, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray2D(__pyx_v_ygap_scores, (&__pyx_v_bin_count), (&__pyx_v_max_y)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 91, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":93
+  /* "cogent3/align/_pairwise_seqs.pyx":93
  *     checkArray2D(ygap_scores, &bin_count, &max_y)
  * 
  *     for i from 0 <= i < row_count:             # <<<<<<<<<<<<<<
@@ -3501,7 +3501,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_3 = __pyx_v_row_count;
   for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_3; __pyx_v_i++) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":94
+    /* "cogent3/align/_pairwise_seqs.pyx":94
  * 
  *     for i from 0 <= i < row_count:
  *         assert 0 <= seq1_index[i] < max_x             # <<<<<<<<<<<<<<
@@ -3524,7 +3524,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     #endif
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":95
+  /* "cogent3/align/_pairwise_seqs.pyx":95
  *     for i from 0 <= i < row_count:
  *         assert 0 <= seq1_index[i] < max_x
  *     for j from 0 <= j < row_length:             # <<<<<<<<<<<<<<
@@ -3534,7 +3534,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_3 = __pyx_v_row_length;
   for (__pyx_v_j = 0; __pyx_v_j < __pyx_t_3; __pyx_v_j++) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":96
+    /* "cogent3/align/_pairwise_seqs.pyx":96
  *         assert 0 <= seq1_index[i] < max_x
  *     for j from 0 <= j < row_length:
  *         assert 0 <= seq2_index[j] < max_y             # <<<<<<<<<<<<<<
@@ -3557,7 +3557,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     #endif
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":98
+  /* "cogent3/align/_pairwise_seqs.pyx":98
  *         assert 0 <= seq2_index[j] < max_y
  * 
  *     assert j_low >= 0 and j_high > j_low and j_high <= row_length             # <<<<<<<<<<<<<<
@@ -3588,7 +3588,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   #endif
 
-  /* "cogent/align/_pairwise_seqs.pyx":100
+  /* "cogent3/align/_pairwise_seqs.pyx":100
  *     assert j_low >= 0 and j_high > j_low and j_high <= row_length
  * 
  *     (mantissas, exponents) = rows             # <<<<<<<<<<<<<<
@@ -3656,7 +3656,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_12.memview = NULL;
   __pyx_t_12.data = NULL;
 
-  /* "cogent/align/_pairwise_seqs.pyx":101
+  /* "cogent3/align/_pairwise_seqs.pyx":101
  * 
  *     (mantissas, exponents) = rows
  *     tmp_rows = 0             # <<<<<<<<<<<<<<
@@ -3665,16 +3665,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_tmp_rows = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":102
+  /* "cogent3/align/_pairwise_seqs.pyx":102
  *     (mantissas, exponents) = rows
  *     tmp_rows = 0
  *     checkArray3D(mantissas, &tmp_rows, &row_length, &N)             # <<<<<<<<<<<<<<
  *     if use_scaling:
  *         checkArray3D(exponents, &tmp_rows, &row_length, &N)
  */
-  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__pyx_v_mantissas, (&__pyx_v_tmp_rows), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 102, __pyx_L1_error)
+  __pyx_t_3 = __pyx_fuse_0_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__pyx_v_mantissas, (&__pyx_v_tmp_rows), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 102, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":103
+  /* "cogent3/align/_pairwise_seqs.pyx":103
  *     tmp_rows = 0
  *     checkArray3D(mantissas, &tmp_rows, &row_length, &N)
  *     if use_scaling:             # <<<<<<<<<<<<<<
@@ -3684,16 +3684,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_1 = (__pyx_v_use_scaling != 0);
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":104
+    /* "cogent3/align/_pairwise_seqs.pyx":104
  *     checkArray3D(mantissas, &tmp_rows, &row_length, &N)
  *     if use_scaling:
  *         checkArray3D(exponents, &tmp_rows, &row_length, &N)             # <<<<<<<<<<<<<<
  * 
  *     cdef double impossible
  */
-    __pyx_t_3 = __pyx_fuse_1_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__pyx_v_exponents, (&__pyx_v_tmp_rows), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 104, __pyx_L1_error)
+    __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__pyx_v_exponents, (&__pyx_v_tmp_rows), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 104, __pyx_L1_error)
 
-    /* "cogent/align/_pairwise_seqs.pyx":103
+    /* "cogent3/align/_pairwise_seqs.pyx":103
  *     tmp_rows = 0
  *     checkArray3D(mantissas, &tmp_rows, &row_length, &N)
  *     if use_scaling:             # <<<<<<<<<<<<<<
@@ -3702,7 +3702,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":107
+  /* "cogent3/align/_pairwise_seqs.pyx":107
  * 
  *     cdef double impossible
  *     if use_logs:             # <<<<<<<<<<<<<<
@@ -3712,7 +3712,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_1 = (__pyx_v_use_logs != 0);
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":108
+    /* "cogent3/align/_pairwise_seqs.pyx":108
  *     cdef double impossible
  *     if use_logs:
  *         impossible = log(0.0) # -inf             # <<<<<<<<<<<<<<
@@ -3721,7 +3721,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     __pyx_v_impossible = log(0.0);
 
-    /* "cogent/align/_pairwise_seqs.pyx":107
+    /* "cogent3/align/_pairwise_seqs.pyx":107
  * 
  *     cdef double impossible
  *     if use_logs:             # <<<<<<<<<<<<<<
@@ -3731,7 +3731,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     goto __pyx_L19;
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":110
+  /* "cogent3/align/_pairwise_seqs.pyx":110
  *         impossible = log(0.0) # -inf
  *     else:
  *         impossible = 0.0             # <<<<<<<<<<<<<<
@@ -3743,7 +3743,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   __pyx_L19:;
 
-  /* "cogent/align/_pairwise_seqs.pyx":112
+  /* "cogent3/align/_pairwise_seqs.pyx":112
  *         impossible = 0.0
  * 
  *     if viterbi and track is not None and track_enc is not None:             # <<<<<<<<<<<<<<
@@ -3768,16 +3768,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_L21_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":113
+    /* "cogent3/align/_pairwise_seqs.pyx":113
  * 
  *     if viterbi and track is not None and track_enc is not None:
  *         checkArray3D(track, &row_count, &row_length, &N)             # <<<<<<<<<<<<<<
  *         (tcode_x, tcode_y, tcode_s) = track_enc
  *     else:
  */
-    __pyx_t_3 = __pyx_fuse_2_2__pyx_f_6cogent_5align_14_pairwise_seqs_checkArray3D(__pyx_v_track, (&__pyx_v_row_count), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 113, __pyx_L1_error)
+    __pyx_t_3 = __pyx_fuse_2_2__pyx_f_7cogent3_5align_14_pairwise_seqs_checkArray3D(__pyx_v_track, (&__pyx_v_row_count), (&__pyx_v_row_length), (&__pyx_v_N)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 113, __pyx_L1_error)
 
-    /* "cogent/align/_pairwise_seqs.pyx":114
+    /* "cogent3/align/_pairwise_seqs.pyx":114
  *     if viterbi and track is not None and track_enc is not None:
  *         checkArray3D(track, &row_count, &row_length, &N)
  *         (tcode_x, tcode_y, tcode_s) = track_enc             # <<<<<<<<<<<<<<
@@ -3849,7 +3849,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_v_tcode_y = __pyx_t_15;
     __pyx_v_tcode_s = __pyx_t_16;
 
-    /* "cogent/align/_pairwise_seqs.pyx":112
+    /* "cogent3/align/_pairwise_seqs.pyx":112
  *         impossible = 0.0
  * 
  *     if viterbi and track is not None and track_enc is not None:             # <<<<<<<<<<<<<<
@@ -3859,7 +3859,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     goto __pyx_L20;
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":116
+  /* "cogent3/align/_pairwise_seqs.pyx":116
  *         (tcode_x, tcode_y, tcode_s) = track_enc
  *     else:
  *         track = None             # <<<<<<<<<<<<<<
@@ -3874,7 +3874,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_t_17.memview = NULL;
     __pyx_t_17.data = NULL;
 
-    /* "cogent/align/_pairwise_seqs.pyx":117
+    /* "cogent3/align/_pairwise_seqs.pyx":117
  *     else:
  *         track = None
  *         tcode_x = tcode_y = tcode_s = 0             # <<<<<<<<<<<<<<
@@ -3887,16 +3887,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   __pyx_L20:;
 
-  /* "cogent/align/_pairwise_seqs.pyx":120
+  /* "cogent3/align/_pairwise_seqs.pyx":120
  * 
  *     # For local
  *     overall_max_exponent = MIN_SCALE             # <<<<<<<<<<<<<<
  *     overall_max_mantissa = impossible
  *     last_i = last_j = last_state = -1
  */
-  __pyx_v_overall_max_exponent = __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE;
+  __pyx_v_overall_max_exponent = __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE;
 
-  /* "cogent/align/_pairwise_seqs.pyx":121
+  /* "cogent3/align/_pairwise_seqs.pyx":121
  *     # For local
  *     overall_max_exponent = MIN_SCALE
  *     overall_max_mantissa = impossible             # <<<<<<<<<<<<<<
@@ -3905,7 +3905,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
   __pyx_v_overall_max_mantissa = __pyx_v_impossible;
 
-  /* "cogent/align/_pairwise_seqs.pyx":122
+  /* "cogent3/align/_pairwise_seqs.pyx":122
  *     overall_max_exponent = MIN_SCALE
  *     overall_max_mantissa = impossible
  *     last_i = last_j = last_state = -1             # <<<<<<<<<<<<<<
@@ -3916,7 +3916,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_v_last_j = -1;
   __pyx_v_last_state = -1;
 
-  /* "cogent/align/_pairwise_seqs.pyx":124
+  /* "cogent3/align/_pairwise_seqs.pyx":124
  *     last_i = last_j = last_state = -1
  * 
  *     for i from i_low <= i < i_high:             # <<<<<<<<<<<<<<
@@ -3926,7 +3926,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_16 = __pyx_v_i_high;
   for (__pyx_v_i = __pyx_v_i_low; __pyx_v_i < __pyx_t_16; __pyx_v_i++) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":125
+    /* "cogent3/align/_pairwise_seqs.pyx":125
  * 
  *     for i from i_low <= i < i_high:
  *         x = seq1_index[i]             # <<<<<<<<<<<<<<
@@ -3936,7 +3936,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_t_18 = __pyx_v_i;
     __pyx_v_x = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_seq1_index.data) + __pyx_t_18)) )));
 
-    /* "cogent/align/_pairwise_seqs.pyx":127
+    /* "cogent3/align/_pairwise_seqs.pyx":127
  *         x = seq1_index[i]
  * 
  *         if PyErr_CheckSignals():             # <<<<<<<<<<<<<<
@@ -3946,7 +3946,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_t_1 = (PyErr_CheckSignals() != 0);
     if (__pyx_t_1) {
 
-      /* "cogent/align/_pairwise_seqs.pyx":128
+      /* "cogent3/align/_pairwise_seqs.pyx":128
  * 
  *         if PyErr_CheckSignals():
  *             raise PyErr_Occurred()             # <<<<<<<<<<<<<<
@@ -3959,7 +3959,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __PYX_ERR(1, 128, __pyx_L1_error)
 
-      /* "cogent/align/_pairwise_seqs.pyx":127
+      /* "cogent3/align/_pairwise_seqs.pyx":127
  *         x = seq1_index[i]
  * 
  *         if PyErr_CheckSignals():             # <<<<<<<<<<<<<<
@@ -3968,7 +3968,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     }
 
-    /* "cogent/align/_pairwise_seqs.pyx":130
+    /* "cogent3/align/_pairwise_seqs.pyx":130
  *             raise PyErr_Occurred()
  * 
  *         current_row_index = plan[i]             # <<<<<<<<<<<<<<
@@ -3978,7 +3978,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_t_19 = __pyx_v_i;
     __pyx_v_current_row_index = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_plan.data) + __pyx_t_19)) )));
 
-    /* "cogent/align/_pairwise_seqs.pyx":135
+    /* "cogent3/align/_pairwise_seqs.pyx":135
  *         #    current_row_data[0, prev_state] = impossible
  * 
  *         for j from j_low <= j < j_high:             # <<<<<<<<<<<<<<
@@ -3988,7 +3988,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     __pyx_t_15 = __pyx_v_j_high;
     for (__pyx_v_j = __pyx_v_j_low; __pyx_v_j < __pyx_t_15; __pyx_v_j++) {
 
-      /* "cogent/align/_pairwise_seqs.pyx":137
+      /* "cogent3/align/_pairwise_seqs.pyx":137
  *         for j from j_low <= j < j_high:
  * 
  *             for dest_state from 0 <= dest_state < dest_states:             # <<<<<<<<<<<<<<
@@ -3998,7 +3998,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
       __pyx_t_3 = __pyx_v_dest_states;
       for (__pyx_v_dest_state = 0; __pyx_v_dest_state < __pyx_t_3; __pyx_v_dest_state++) {
 
-        /* "cogent/align/_pairwise_seqs.pyx":138
+        /* "cogent3/align/_pairwise_seqs.pyx":138
  * 
  *             for dest_state from 0 <= dest_state < dest_states:
  *                 state = state_directions[dest_state, 0]             # <<<<<<<<<<<<<<
@@ -4009,7 +4009,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_21 = 0;
         __pyx_v_state = (*((long *) ( /* dim=1 */ ((char *) (((long *) ( /* dim=0 */ (__pyx_v_state_directions.data + __pyx_t_20 * __pyx_v_state_directions.strides[0]) )) + __pyx_t_21)) )));
 
-        /* "cogent/align/_pairwise_seqs.pyx":139
+        /* "cogent3/align/_pairwise_seqs.pyx":139
  *             for dest_state from 0 <= dest_state < dest_states:
  *                 state = state_directions[dest_state, 0]
  *                 bin = state_directions[dest_state, 1]             # <<<<<<<<<<<<<<
@@ -4020,7 +4020,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_23 = 1;
         __pyx_v_bin = (*((long *) ( /* dim=1 */ ((char *) (((long *) ( /* dim=0 */ (__pyx_v_state_directions.data + __pyx_t_22 * __pyx_v_state_directions.strides[0]) )) + __pyx_t_23)) )));
 
-        /* "cogent/align/_pairwise_seqs.pyx":140
+        /* "cogent3/align/_pairwise_seqs.pyx":140
  *                 state = state_directions[dest_state, 0]
  *                 bin = state_directions[dest_state, 1]
  *                 dx = state_directions[dest_state, 2]             # <<<<<<<<<<<<<<
@@ -4031,7 +4031,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_25 = 2;
         __pyx_v_dx = (*((long *) ( /* dim=1 */ ((char *) (((long *) ( /* dim=0 */ (__pyx_v_state_directions.data + __pyx_t_24 * __pyx_v_state_directions.strides[0]) )) + __pyx_t_25)) )));
 
-        /* "cogent/align/_pairwise_seqs.pyx":141
+        /* "cogent3/align/_pairwise_seqs.pyx":141
  *                 bin = state_directions[dest_state, 1]
  *                 dx = state_directions[dest_state, 2]
  *                 dy = state_directions[dest_state, 3]             # <<<<<<<<<<<<<<
@@ -4042,7 +4042,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_27 = 3;
         __pyx_v_dy = (*((long *) ( /* dim=1 */ ((char *) (((long *) ( /* dim=0 */ (__pyx_v_state_directions.data + __pyx_t_26 * __pyx_v_state_directions.strides[0]) )) + __pyx_t_27)) )));
 
-        /* "cogent/align/_pairwise_seqs.pyx":143
+        /* "cogent3/align/_pairwise_seqs.pyx":143
  *                 dy = state_directions[dest_state, 3]
  * 
  *                 max_mantissa = impossible             # <<<<<<<<<<<<<<
@@ -4051,16 +4051,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_max_mantissa = __pyx_v_impossible;
 
-        /* "cogent/align/_pairwise_seqs.pyx":144
+        /* "cogent3/align/_pairwise_seqs.pyx":144
  * 
  *                 max_mantissa = impossible
  *                 max_exponent = MIN_SCALE             # <<<<<<<<<<<<<<
  *                 partial_sum = 0.0
  *                 pointer_state = N  # ie ERROR
  */
-        __pyx_v_max_exponent = __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE;
+        __pyx_v_max_exponent = __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE;
 
-        /* "cogent/align/_pairwise_seqs.pyx":145
+        /* "cogent3/align/_pairwise_seqs.pyx":145
  *                 max_mantissa = impossible
  *                 max_exponent = MIN_SCALE
  *                 partial_sum = 0.0             # <<<<<<<<<<<<<<
@@ -4069,7 +4069,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_partial_sum = 0.0;
 
-        /* "cogent/align/_pairwise_seqs.pyx":146
+        /* "cogent3/align/_pairwise_seqs.pyx":146
  *                 max_exponent = MIN_SCALE
  *                 partial_sum = 0.0
  *                 pointer_state = N  # ie ERROR             # <<<<<<<<<<<<<<
@@ -4078,7 +4078,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_pointer_state = __pyx_v_N;
 
-        /* "cogent/align/_pairwise_seqs.pyx":148
+        /* "cogent3/align/_pairwise_seqs.pyx":148
  *                 pointer_state = N  # ie ERROR
  * 
  *                 source_i = i - dx             # <<<<<<<<<<<<<<
@@ -4087,7 +4087,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_source_i = (__pyx_v_i - __pyx_v_dx);
 
-        /* "cogent/align/_pairwise_seqs.pyx":149
+        /* "cogent3/align/_pairwise_seqs.pyx":149
  * 
  *                 source_i = i - dx
  *                 if source_i < 0:             # <<<<<<<<<<<<<<
@@ -4097,7 +4097,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = ((__pyx_v_source_i < 0) != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":150
+          /* "cogent3/align/_pairwise_seqs.pyx":150
  *                 source_i = i - dx
  *                 if source_i < 0:
  *                     continue             # <<<<<<<<<<<<<<
@@ -4106,7 +4106,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           goto __pyx_L31_continue;
 
-          /* "cogent/align/_pairwise_seqs.pyx":149
+          /* "cogent3/align/_pairwise_seqs.pyx":149
  * 
  *                 source_i = i - dx
  *                 if source_i < 0:             # <<<<<<<<<<<<<<
@@ -4115,7 +4115,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":151
+        /* "cogent3/align/_pairwise_seqs.pyx":151
  *                 if source_i < 0:
  *                     continue
  *                 source_row_index = plan[source_i]             # <<<<<<<<<<<<<<
@@ -4125,7 +4125,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_28 = __pyx_v_source_i;
         __pyx_v_source_row_index = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_plan.data) + __pyx_t_28)) )));
 
-        /* "cogent/align/_pairwise_seqs.pyx":153
+        /* "cogent3/align/_pairwise_seqs.pyx":153
  *                 source_row_index = plan[source_i]
  * 
  *                 prev_j = j - dy             # <<<<<<<<<<<<<<
@@ -4134,7 +4134,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_prev_j = (__pyx_v_j - __pyx_v_dy);
 
-        /* "cogent/align/_pairwise_seqs.pyx":154
+        /* "cogent3/align/_pairwise_seqs.pyx":154
  * 
  *                 prev_j = j - dy
  *                 if prev_j < 0:             # <<<<<<<<<<<<<<
@@ -4144,7 +4144,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = ((__pyx_v_prev_j < 0) != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":155
+          /* "cogent3/align/_pairwise_seqs.pyx":155
  *                 prev_j = j - dy
  *                 if prev_j < 0:
  *                     continue             # <<<<<<<<<<<<<<
@@ -4153,7 +4153,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           goto __pyx_L31_continue;
 
-          /* "cogent/align/_pairwise_seqs.pyx":154
+          /* "cogent3/align/_pairwise_seqs.pyx":154
  * 
  *                 prev_j = j - dy
  *                 if prev_j < 0:             # <<<<<<<<<<<<<<
@@ -4162,7 +4162,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":157
+        /* "cogent3/align/_pairwise_seqs.pyx":157
  *                     continue
  * 
  *                 min_prev_state = 1             # <<<<<<<<<<<<<<
@@ -4171,7 +4171,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_min_prev_state = 1;
 
-        /* "cogent/align/_pairwise_seqs.pyx":158
+        /* "cogent3/align/_pairwise_seqs.pyx":158
  * 
  *                 min_prev_state = 1
  *                 a = dx             # <<<<<<<<<<<<<<
@@ -4180,7 +4180,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_a = __pyx_v_dx;
 
-        /* "cogent/align/_pairwise_seqs.pyx":159
+        /* "cogent3/align/_pairwise_seqs.pyx":159
  *                 min_prev_state = 1
  *                 a = dx
  *                 b = dy             # <<<<<<<<<<<<<<
@@ -4189,7 +4189,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         __pyx_v_b = __pyx_v_dy;
 
-        /* "cogent/align/_pairwise_seqs.pyx":161
+        /* "cogent3/align/_pairwise_seqs.pyx":161
  *                 b = dy
  * 
  *                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):             # <<<<<<<<<<<<<<
@@ -4224,7 +4224,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_L36_bool_binop_done:;
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":162
+          /* "cogent3/align/_pairwise_seqs.pyx":162
  * 
  *                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):
  *                     partial_sum = max_mantissa = T[0, state]             # <<<<<<<<<<<<<<
@@ -4237,7 +4237,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_v_partial_sum = __pyx_t_31;
           __pyx_v_max_mantissa = __pyx_t_31;
 
-          /* "cogent/align/_pairwise_seqs.pyx":163
+          /* "cogent3/align/_pairwise_seqs.pyx":163
  *                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):
  *                     partial_sum = max_mantissa = T[0, state]
  *                     max_exponent = 0             # <<<<<<<<<<<<<<
@@ -4246,7 +4246,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_max_exponent = 0;
 
-          /* "cogent/align/_pairwise_seqs.pyx":164
+          /* "cogent3/align/_pairwise_seqs.pyx":164
  *                     partial_sum = max_mantissa = T[0, state]
  *                     max_exponent = 0
  *                     pointer_state = 0             # <<<<<<<<<<<<<<
@@ -4255,7 +4255,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_pointer_state = 0;
 
-          /* "cogent/align/_pairwise_seqs.pyx":165
+          /* "cogent3/align/_pairwise_seqs.pyx":165
  *                     max_exponent = 0
  *                     pointer_state = 0
  *                     pointer_a = a             # <<<<<<<<<<<<<<
@@ -4264,7 +4264,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_pointer_a = __pyx_v_a;
 
-          /* "cogent/align/_pairwise_seqs.pyx":166
+          /* "cogent3/align/_pairwise_seqs.pyx":166
  *                     pointer_state = 0
  *                     pointer_a = a
  *                     pointer_b = b             # <<<<<<<<<<<<<<
@@ -4273,7 +4273,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_pointer_b = __pyx_v_b;
 
-          /* "cogent/align/_pairwise_seqs.pyx":161
+          /* "cogent3/align/_pairwise_seqs.pyx":161
  *                 b = dy
  * 
  *                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):             # <<<<<<<<<<<<<<
@@ -4282,7 +4282,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":168
+        /* "cogent3/align/_pairwise_seqs.pyx":168
  *                     pointer_b = b
  * 
  *                 if use_scaling:             # <<<<<<<<<<<<<<
@@ -4292,7 +4292,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_use_scaling != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":169
+          /* "cogent3/align/_pairwise_seqs.pyx":169
  * 
  *                 if use_scaling:
  *                             sub_partial_sum = 0.0             # <<<<<<<<<<<<<<
@@ -4301,7 +4301,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_sub_partial_sum = 0.0;
 
-          /* "cogent/align/_pairwise_seqs.pyx":170
+          /* "cogent3/align/_pairwise_seqs.pyx":170
  *                 if use_scaling:
  *                             sub_partial_sum = 0.0
  *                             for prev_state from min_prev_state <= prev_state < N:             # <<<<<<<<<<<<<<
@@ -4311,7 +4311,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_32 = __pyx_v_N;
           for (__pyx_v_prev_state = __pyx_v_min_prev_state; __pyx_v_prev_state < __pyx_t_32; __pyx_v_prev_state++) {
 
-            /* "cogent/align/_pairwise_seqs.pyx":171
+            /* "cogent3/align/_pairwise_seqs.pyx":171
  *                             sub_partial_sum = 0.0
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 exponent = exponents[source_row_index, prev_j, prev_state]             # <<<<<<<<<<<<<<
@@ -4323,17 +4323,17 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_35 = __pyx_v_prev_state;
             __pyx_v_exponent = (*((long *) ( /* dim=2 */ ((char *) (((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_exponents.data + __pyx_t_33 * __pyx_v_exponents.strides[0]) ) + __pyx_t_34 * __pyx_v_exponents.strides[1]) )) + __pyx_t_35)) )));
 
-            /* "cogent/align/_pairwise_seqs.pyx":172
+            /* "cogent3/align/_pairwise_seqs.pyx":172
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 exponent = exponents[source_row_index, prev_j, prev_state]
  *                                 if exponent == MIN_SCALE:             # <<<<<<<<<<<<<<
  *                                     continue
  * 
  */
-            __pyx_t_1 = ((__pyx_v_exponent == __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE) != 0);
+            __pyx_t_1 = ((__pyx_v_exponent == __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":173
+              /* "cogent3/align/_pairwise_seqs.pyx":173
  *                                 exponent = exponents[source_row_index, prev_j, prev_state]
  *                                 if exponent == MIN_SCALE:
  *                                     continue             # <<<<<<<<<<<<<<
@@ -4342,7 +4342,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               goto __pyx_L42_continue;
 
-              /* "cogent/align/_pairwise_seqs.pyx":172
+              /* "cogent3/align/_pairwise_seqs.pyx":172
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 exponent = exponents[source_row_index, prev_j, prev_state]
  *                                 if exponent == MIN_SCALE:             # <<<<<<<<<<<<<<
@@ -4351,7 +4351,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             }
 
-            /* "cogent/align/_pairwise_seqs.pyx":175
+            /* "cogent3/align/_pairwise_seqs.pyx":175
  *                                     continue
  * 
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]             # <<<<<<<<<<<<<<
@@ -4363,7 +4363,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_38 = __pyx_v_prev_state;
             __pyx_v_mantissa = (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mantissas.data + __pyx_t_36 * __pyx_v_mantissas.strides[0]) ) + __pyx_t_37 * __pyx_v_mantissas.strides[1]) )) + __pyx_t_38)) )));
 
-            /* "cogent/align/_pairwise_seqs.pyx":176
+            /* "cogent3/align/_pairwise_seqs.pyx":176
  * 
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]
  *                                 mantissa = mantissa * T[prev_state, state]             # <<<<<<<<<<<<<<
@@ -4374,17 +4374,17 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_40 = __pyx_v_state;
             __pyx_v_mantissa = (__pyx_v_mantissa * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_T.data + __pyx_t_39 * __pyx_v_T.strides[0]) )) + __pyx_t_40)) ))));
 
-            /* "cogent/align/_pairwise_seqs.pyx":178
+            /* "cogent3/align/_pairwise_seqs.pyx":178
  *                                 mantissa = mantissa * T[prev_state, state]
  * 
  *                                 if mantissa < MIN_FLOAT_VALUE:             # <<<<<<<<<<<<<<
  *                                     if mantissa == 0.0:
  *                                         continue
  */
-            __pyx_t_1 = ((__pyx_v_mantissa < __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE) != 0);
+            __pyx_t_1 = ((__pyx_v_mantissa < __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":179
+              /* "cogent3/align/_pairwise_seqs.pyx":179
  * 
  *                                 if mantissa < MIN_FLOAT_VALUE:
  *                                     if mantissa == 0.0:             # <<<<<<<<<<<<<<
@@ -4394,7 +4394,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_t_1 = ((__pyx_v_mantissa == 0.0) != 0);
               if (__pyx_t_1) {
 
-                /* "cogent/align/_pairwise_seqs.pyx":180
+                /* "cogent3/align/_pairwise_seqs.pyx":180
  *                                 if mantissa < MIN_FLOAT_VALUE:
  *                                     if mantissa == 0.0:
  *                                         continue             # <<<<<<<<<<<<<<
@@ -4403,7 +4403,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 goto __pyx_L42_continue;
 
-                /* "cogent/align/_pairwise_seqs.pyx":179
+                /* "cogent3/align/_pairwise_seqs.pyx":179
  * 
  *                                 if mantissa < MIN_FLOAT_VALUE:
  *                                     if mantissa == 0.0:             # <<<<<<<<<<<<<<
@@ -4412,7 +4412,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":181
+              /* "cogent3/align/_pairwise_seqs.pyx":181
  *                                     if mantissa == 0.0:
  *                                         continue
  *                                     if mantissa < 0.0:             # <<<<<<<<<<<<<<
@@ -4422,7 +4422,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_t_1 = ((__pyx_v_mantissa < 0.0) != 0);
               if (__pyx_t_1) {
 
-                /* "cogent/align/_pairwise_seqs.pyx":182
+                /* "cogent3/align/_pairwise_seqs.pyx":182
  *                                         continue
  *                                     if mantissa < 0.0:
  *                                         if T[prev_state, state] < 0.0:             # <<<<<<<<<<<<<<
@@ -4434,7 +4434,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                 __pyx_t_1 = (((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_T.data + __pyx_t_41 * __pyx_v_T.strides[0]) )) + __pyx_t_42)) ))) < 0.0) != 0);
                 if (__pyx_t_1) {
 
-                  /* "cogent/align/_pairwise_seqs.pyx":183
+                  /* "cogent3/align/_pairwise_seqs.pyx":183
  *                                     if mantissa < 0.0:
  *                                         if T[prev_state, state] < 0.0:
  *                                             raise ArithmeticError(fmpt(mantissa, exponent,             # <<<<<<<<<<<<<<
@@ -4489,7 +4489,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
                   __PYX_ERR(1, 183, __pyx_L1_error)
 
-                  /* "cogent/align/_pairwise_seqs.pyx":182
+                  /* "cogent3/align/_pairwise_seqs.pyx":182
  *                                         continue
  *                                     if mantissa < 0.0:
  *                                         if T[prev_state, state] < 0.0:             # <<<<<<<<<<<<<<
@@ -4498,7 +4498,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 }
 
-                /* "cogent/align/_pairwise_seqs.pyx":185
+                /* "cogent3/align/_pairwise_seqs.pyx":185
  *                                             raise ArithmeticError(fmpt(mantissa, exponent,
  *                                                     "transition is a negative probability"))
  *                                         raise ArithmeticError(fmpt(mantissa, exponent,             # <<<<<<<<<<<<<<
@@ -4553,7 +4553,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                 __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
                 __PYX_ERR(1, 185, __pyx_L1_error)
 
-                /* "cogent/align/_pairwise_seqs.pyx":181
+                /* "cogent3/align/_pairwise_seqs.pyx":181
  *                                     if mantissa == 0.0:
  *                                         continue
  *                                     if mantissa < 0.0:             # <<<<<<<<<<<<<<
@@ -4562,7 +4562,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":187
+              /* "cogent3/align/_pairwise_seqs.pyx":187
  *                                         raise ArithmeticError(fmpt(mantissa, exponent,
  *                                                 "product is a negative probability"))
  *                                     while mantissa < MIN_FLOAT_VALUE:             # <<<<<<<<<<<<<<
@@ -4570,19 +4570,19 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  *                                         exponent += -1
  */
               while (1) {
-                __pyx_t_1 = ((__pyx_v_mantissa < __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE) != 0);
+                __pyx_t_1 = ((__pyx_v_mantissa < __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE) != 0);
                 if (!__pyx_t_1) break;
 
-                /* "cogent/align/_pairwise_seqs.pyx":188
+                /* "cogent3/align/_pairwise_seqs.pyx":188
  *                                                 "product is a negative probability"))
  *                                     while mantissa < MIN_FLOAT_VALUE:
  *                                         mantissa *= SCALE_STEP             # <<<<<<<<<<<<<<
  *                                         exponent += -1
  *                                         if exponent <= MIN_SCALE:
  */
-                __pyx_v_mantissa = (__pyx_v_mantissa * __pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP);
+                __pyx_v_mantissa = (__pyx_v_mantissa * __pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP);
 
-                /* "cogent/align/_pairwise_seqs.pyx":189
+                /* "cogent3/align/_pairwise_seqs.pyx":189
  *                                     while mantissa < MIN_FLOAT_VALUE:
  *                                         mantissa *= SCALE_STEP
  *                                         exponent += -1             # <<<<<<<<<<<<<<
@@ -4591,17 +4591,17 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_exponent = (__pyx_v_exponent + -1L);
 
-                /* "cogent/align/_pairwise_seqs.pyx":190
+                /* "cogent3/align/_pairwise_seqs.pyx":190
  *                                         mantissa *= SCALE_STEP
  *                                         exponent += -1
  *                                         if exponent <= MIN_SCALE:             # <<<<<<<<<<<<<<
  *                                           raise ArithmeticError(fmpt(mantissa, exponent,
  *                                                 "underflows"))
  */
-                __pyx_t_1 = ((__pyx_v_exponent <= __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE) != 0);
+                __pyx_t_1 = ((__pyx_v_exponent <= __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE) != 0);
                 if (__pyx_t_1) {
 
-                  /* "cogent/align/_pairwise_seqs.pyx":191
+                  /* "cogent3/align/_pairwise_seqs.pyx":191
  *                                         exponent += -1
  *                                         if exponent <= MIN_SCALE:
  *                                           raise ArithmeticError(fmpt(mantissa, exponent,             # <<<<<<<<<<<<<<
@@ -4656,7 +4656,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
                   __PYX_ERR(1, 191, __pyx_L1_error)
 
-                  /* "cogent/align/_pairwise_seqs.pyx":190
+                  /* "cogent3/align/_pairwise_seqs.pyx":190
  *                                         mantissa *= SCALE_STEP
  *                                         exponent += -1
  *                                         if exponent <= MIN_SCALE:             # <<<<<<<<<<<<<<
@@ -4666,7 +4666,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                 }
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":178
+              /* "cogent3/align/_pairwise_seqs.pyx":178
  *                                 mantissa = mantissa * T[prev_state, state]
  * 
  *                                 if mantissa < MIN_FLOAT_VALUE:             # <<<<<<<<<<<<<<
@@ -4676,7 +4676,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               goto __pyx_L45;
             }
 
-            /* "cogent/align/_pairwise_seqs.pyx":194
+            /* "cogent3/align/_pairwise_seqs.pyx":194
  *                                                 "underflows"))
  * 
  *                                 elif mantissa > 1.0:             # <<<<<<<<<<<<<<
@@ -4686,16 +4686,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_1 = ((__pyx_v_mantissa > 1.0) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":195
+              /* "cogent3/align/_pairwise_seqs.pyx":195
  * 
  *                                 elif mantissa > 1.0:
  *                                     mantissa *= MIN_FLOAT_VALUE             # <<<<<<<<<<<<<<
  *                                     exponent += 1
  *                                     if exponent > MAX_SCALE:
  */
-              __pyx_v_mantissa = (__pyx_v_mantissa * __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE);
+              __pyx_v_mantissa = (__pyx_v_mantissa * __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE);
 
-              /* "cogent/align/_pairwise_seqs.pyx":196
+              /* "cogent3/align/_pairwise_seqs.pyx":196
  *                                 elif mantissa > 1.0:
  *                                     mantissa *= MIN_FLOAT_VALUE
  *                                     exponent += 1             # <<<<<<<<<<<<<<
@@ -4704,17 +4704,17 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_exponent = (__pyx_v_exponent + 1);
 
-              /* "cogent/align/_pairwise_seqs.pyx":197
+              /* "cogent3/align/_pairwise_seqs.pyx":197
  *                                     mantissa *= MIN_FLOAT_VALUE
  *                                     exponent += 1
  *                                     if exponent > MAX_SCALE:             # <<<<<<<<<<<<<<
  *                                         raise ArithmeticError(fmpt(mantissa, exponent,
  *                                             "is unexpectedly large"))
  */
-              __pyx_t_1 = ((__pyx_v_exponent > __pyx_v_6cogent_5align_14_pairwise_seqs_MAX_SCALE) != 0);
+              __pyx_t_1 = ((__pyx_v_exponent > __pyx_v_7cogent3_5align_14_pairwise_seqs_MAX_SCALE) != 0);
               if (__pyx_t_1) {
 
-                /* "cogent/align/_pairwise_seqs.pyx":198
+                /* "cogent3/align/_pairwise_seqs.pyx":198
  *                                     exponent += 1
  *                                     if exponent > MAX_SCALE:
  *                                         raise ArithmeticError(fmpt(mantissa, exponent,             # <<<<<<<<<<<<<<
@@ -4769,7 +4769,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                 __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
                 __PYX_ERR(1, 198, __pyx_L1_error)
 
-                /* "cogent/align/_pairwise_seqs.pyx":197
+                /* "cogent3/align/_pairwise_seqs.pyx":197
  *                                     mantissa *= MIN_FLOAT_VALUE
  *                                     exponent += 1
  *                                     if exponent > MAX_SCALE:             # <<<<<<<<<<<<<<
@@ -4778,7 +4778,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":194
+              /* "cogent3/align/_pairwise_seqs.pyx":194
  *                                                 "underflows"))
  * 
  *                                 elif mantissa > 1.0:             # <<<<<<<<<<<<<<
@@ -4788,7 +4788,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             }
             __pyx_L45:;
 
-            /* "cogent/align/_pairwise_seqs.pyx":201
+            /* "cogent3/align/_pairwise_seqs.pyx":201
  *                                             "is unexpectedly large"))
  * 
  *                                 if exponent > max_exponent:             # <<<<<<<<<<<<<<
@@ -4798,7 +4798,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_1 = ((__pyx_v_exponent > __pyx_v_max_exponent) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":202
+              /* "cogent3/align/_pairwise_seqs.pyx":202
  * 
  *                                 if exponent > max_exponent:
  *                                     if exponent == max_exponent + 1:             # <<<<<<<<<<<<<<
@@ -4808,7 +4808,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_t_1 = ((__pyx_v_exponent == (__pyx_v_max_exponent + 1)) != 0);
               if (__pyx_t_1) {
 
-                /* "cogent/align/_pairwise_seqs.pyx":203
+                /* "cogent3/align/_pairwise_seqs.pyx":203
  *                                 if exponent > max_exponent:
  *                                     if exponent == max_exponent + 1:
  *                                         sub_partial_sum = partial_sum             # <<<<<<<<<<<<<<
@@ -4817,7 +4817,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_sub_partial_sum = __pyx_v_partial_sum;
 
-                /* "cogent/align/_pairwise_seqs.pyx":202
+                /* "cogent3/align/_pairwise_seqs.pyx":202
  * 
  *                                 if exponent > max_exponent:
  *                                     if exponent == max_exponent + 1:             # <<<<<<<<<<<<<<
@@ -4827,7 +4827,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
                 goto __pyx_L54;
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":205
+              /* "cogent3/align/_pairwise_seqs.pyx":205
  *                                         sub_partial_sum = partial_sum
  *                                     else:
  *                                         sub_partial_sum = 0.0             # <<<<<<<<<<<<<<
@@ -4839,7 +4839,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               }
               __pyx_L54:;
 
-              /* "cogent/align/_pairwise_seqs.pyx":206
+              /* "cogent3/align/_pairwise_seqs.pyx":206
  *                                     else:
  *                                         sub_partial_sum = 0.0
  *                                     partial_sum = 0.0             # <<<<<<<<<<<<<<
@@ -4848,7 +4848,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_partial_sum = 0.0;
 
-              /* "cogent/align/_pairwise_seqs.pyx":207
+              /* "cogent3/align/_pairwise_seqs.pyx":207
  *                                         sub_partial_sum = 0.0
  *                                     partial_sum = 0.0
  *                                     max_mantissa = 0.0             # <<<<<<<<<<<<<<
@@ -4857,7 +4857,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_max_mantissa = 0.0;
 
-              /* "cogent/align/_pairwise_seqs.pyx":208
+              /* "cogent3/align/_pairwise_seqs.pyx":208
  *                                     partial_sum = 0.0
  *                                     max_mantissa = 0.0
  *                                     max_exponent = exponent             # <<<<<<<<<<<<<<
@@ -4866,7 +4866,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_max_exponent = __pyx_v_exponent;
 
-              /* "cogent/align/_pairwise_seqs.pyx":201
+              /* "cogent3/align/_pairwise_seqs.pyx":201
  *                                             "is unexpectedly large"))
  * 
  *                                 if exponent > max_exponent:             # <<<<<<<<<<<<<<
@@ -4875,7 +4875,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             }
 
-            /* "cogent/align/_pairwise_seqs.pyx":210
+            /* "cogent3/align/_pairwise_seqs.pyx":210
  *                                     max_exponent = exponent
  * 
  *                                 if exponent == max_exponent:             # <<<<<<<<<<<<<<
@@ -4885,7 +4885,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_1 = ((__pyx_v_exponent == __pyx_v_max_exponent) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":211
+              /* "cogent3/align/_pairwise_seqs.pyx":211
  * 
  *                                 if exponent == max_exponent:
  *                                     partial_sum += mantissa             # <<<<<<<<<<<<<<
@@ -4894,7 +4894,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_partial_sum = (__pyx_v_partial_sum + __pyx_v_mantissa);
 
-              /* "cogent/align/_pairwise_seqs.pyx":212
+              /* "cogent3/align/_pairwise_seqs.pyx":212
  *                                 if exponent == max_exponent:
  *                                     partial_sum += mantissa
  *                                     if viterbi and mantissa > max_mantissa:             # <<<<<<<<<<<<<<
@@ -4912,7 +4912,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_L57_bool_binop_done:;
               if (__pyx_t_1) {
 
-                /* "cogent/align/_pairwise_seqs.pyx":213
+                /* "cogent3/align/_pairwise_seqs.pyx":213
  *                                     partial_sum += mantissa
  *                                     if viterbi and mantissa > max_mantissa:
  *                                         max_mantissa = mantissa             # <<<<<<<<<<<<<<
@@ -4921,7 +4921,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_max_mantissa = __pyx_v_mantissa;
 
-                /* "cogent/align/_pairwise_seqs.pyx":214
+                /* "cogent3/align/_pairwise_seqs.pyx":214
  *                                     if viterbi and mantissa > max_mantissa:
  *                                         max_mantissa = mantissa
  *                                         pointer_state = prev_state             # <<<<<<<<<<<<<<
@@ -4930,7 +4930,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_pointer_state = __pyx_v_prev_state;
 
-                /* "cogent/align/_pairwise_seqs.pyx":215
+                /* "cogent3/align/_pairwise_seqs.pyx":215
  *                                         max_mantissa = mantissa
  *                                         pointer_state = prev_state
  *                                         pointer_a = a             # <<<<<<<<<<<<<<
@@ -4939,7 +4939,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_pointer_a = __pyx_v_a;
 
-                /* "cogent/align/_pairwise_seqs.pyx":216
+                /* "cogent3/align/_pairwise_seqs.pyx":216
  *                                         pointer_state = prev_state
  *                                         pointer_a = a
  *                                         pointer_b = b             # <<<<<<<<<<<<<<
@@ -4948,7 +4948,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
                 __pyx_v_pointer_b = __pyx_v_b;
 
-                /* "cogent/align/_pairwise_seqs.pyx":212
+                /* "cogent3/align/_pairwise_seqs.pyx":212
  *                                 if exponent == max_exponent:
  *                                     partial_sum += mantissa
  *                                     if viterbi and mantissa > max_mantissa:             # <<<<<<<<<<<<<<
@@ -4957,7 +4957,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               }
 
-              /* "cogent/align/_pairwise_seqs.pyx":210
+              /* "cogent3/align/_pairwise_seqs.pyx":210
  *                                     max_exponent = exponent
  * 
  *                                 if exponent == max_exponent:             # <<<<<<<<<<<<<<
@@ -4967,7 +4967,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               goto __pyx_L55;
             }
 
-            /* "cogent/align/_pairwise_seqs.pyx":218
+            /* "cogent3/align/_pairwise_seqs.pyx":218
  *                                         pointer_b = b
  * 
  *                                 elif exponent == max_exponent - 1:             # <<<<<<<<<<<<<<
@@ -4977,7 +4977,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_1 = ((__pyx_v_exponent == (__pyx_v_max_exponent - 1)) != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":219
+              /* "cogent3/align/_pairwise_seqs.pyx":219
  * 
  *                                 elif exponent == max_exponent - 1:
  *                                     sub_partial_sum += mantissa             # <<<<<<<<<<<<<<
@@ -4986,7 +4986,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_sub_partial_sum = (__pyx_v_sub_partial_sum + __pyx_v_mantissa);
 
-              /* "cogent/align/_pairwise_seqs.pyx":218
+              /* "cogent3/align/_pairwise_seqs.pyx":218
  *                                         pointer_b = b
  * 
  *                                 elif exponent == max_exponent - 1:             # <<<<<<<<<<<<<<
@@ -4998,16 +4998,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_L42_continue:;
           }
 
-          /* "cogent/align/_pairwise_seqs.pyx":221
+          /* "cogent3/align/_pairwise_seqs.pyx":221
  *                                     sub_partial_sum += mantissa
  * 
  *                             partial_sum += sub_partial_sum * MIN_FLOAT_VALUE             # <<<<<<<<<<<<<<
  *                 else:
  *                             for prev_state from min_prev_state <= prev_state < N:
  */
-          __pyx_v_partial_sum = (__pyx_v_partial_sum + (__pyx_v_sub_partial_sum * __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE));
+          __pyx_v_partial_sum = (__pyx_v_partial_sum + (__pyx_v_sub_partial_sum * __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE));
 
-          /* "cogent/align/_pairwise_seqs.pyx":168
+          /* "cogent3/align/_pairwise_seqs.pyx":168
  *                     pointer_b = b
  * 
  *                 if use_scaling:             # <<<<<<<<<<<<<<
@@ -5017,7 +5017,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L41;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":223
+        /* "cogent3/align/_pairwise_seqs.pyx":223
  *                             partial_sum += sub_partial_sum * MIN_FLOAT_VALUE
  *                 else:
  *                             for prev_state from min_prev_state <= prev_state < N:             # <<<<<<<<<<<<<<
@@ -5028,7 +5028,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_32 = __pyx_v_N;
           for (__pyx_v_prev_state = __pyx_v_min_prev_state; __pyx_v_prev_state < __pyx_t_32; __pyx_v_prev_state++) {
 
-            /* "cogent/align/_pairwise_seqs.pyx":224
+            /* "cogent3/align/_pairwise_seqs.pyx":224
  *                 else:
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]             # <<<<<<<<<<<<<<
@@ -5040,7 +5040,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_48 = __pyx_v_prev_state;
             __pyx_v_mantissa = (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mantissas.data + __pyx_t_46 * __pyx_v_mantissas.strides[0]) ) + __pyx_t_47 * __pyx_v_mantissas.strides[1]) )) + __pyx_t_48)) )));
 
-            /* "cogent/align/_pairwise_seqs.pyx":225
+            /* "cogent3/align/_pairwise_seqs.pyx":225
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]
  *                                 if use_logs:             # <<<<<<<<<<<<<<
@@ -5050,7 +5050,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_1 = (__pyx_v_use_logs != 0);
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":226
+              /* "cogent3/align/_pairwise_seqs.pyx":226
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]
  *                                 if use_logs:
  *                                     mantissa = mantissa + T[prev_state, state]             # <<<<<<<<<<<<<<
@@ -5061,7 +5061,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_t_50 = __pyx_v_state;
               __pyx_v_mantissa = (__pyx_v_mantissa + (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_T.data + __pyx_t_49 * __pyx_v_T.strides[0]) )) + __pyx_t_50)) ))));
 
-              /* "cogent/align/_pairwise_seqs.pyx":225
+              /* "cogent3/align/_pairwise_seqs.pyx":225
  *                             for prev_state from min_prev_state <= prev_state < N:
  *                                 mantissa = mantissas[source_row_index, prev_j, prev_state]
  *                                 if use_logs:             # <<<<<<<<<<<<<<
@@ -5071,7 +5071,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               goto __pyx_L61;
             }
 
-            /* "cogent/align/_pairwise_seqs.pyx":228
+            /* "cogent3/align/_pairwise_seqs.pyx":228
  *                                     mantissa = mantissa + T[prev_state, state]
  *                                 else:
  *                                     mantissa = mantissa * T[prev_state, state]             # <<<<<<<<<<<<<<
@@ -5083,7 +5083,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
               __pyx_t_52 = __pyx_v_state;
               __pyx_v_mantissa = (__pyx_v_mantissa * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_T.data + __pyx_t_51 * __pyx_v_T.strides[0]) )) + __pyx_t_52)) ))));
 
-              /* "cogent/align/_pairwise_seqs.pyx":229
+              /* "cogent3/align/_pairwise_seqs.pyx":229
  *                                 else:
  *                                     mantissa = mantissa * T[prev_state, state]
  *                                     partial_sum += mantissa             # <<<<<<<<<<<<<<
@@ -5094,7 +5094,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             }
             __pyx_L61:;
 
-            /* "cogent/align/_pairwise_seqs.pyx":230
+            /* "cogent3/align/_pairwise_seqs.pyx":230
  *                                     mantissa = mantissa * T[prev_state, state]
  *                                     partial_sum += mantissa
  *                                 if viterbi and mantissa > max_mantissa:             # <<<<<<<<<<<<<<
@@ -5112,7 +5112,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_L63_bool_binop_done:;
             if (__pyx_t_1) {
 
-              /* "cogent/align/_pairwise_seqs.pyx":231
+              /* "cogent3/align/_pairwise_seqs.pyx":231
  *                                     partial_sum += mantissa
  *                                 if viterbi and mantissa > max_mantissa:
  *                                     max_mantissa = mantissa             # <<<<<<<<<<<<<<
@@ -5121,7 +5121,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_max_mantissa = __pyx_v_mantissa;
 
-              /* "cogent/align/_pairwise_seqs.pyx":232
+              /* "cogent3/align/_pairwise_seqs.pyx":232
  *                                 if viterbi and mantissa > max_mantissa:
  *                                     max_mantissa = mantissa
  *                                     pointer_state = prev_state             # <<<<<<<<<<<<<<
@@ -5130,7 +5130,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_pointer_state = __pyx_v_prev_state;
 
-              /* "cogent/align/_pairwise_seqs.pyx":233
+              /* "cogent3/align/_pairwise_seqs.pyx":233
  *                                     max_mantissa = mantissa
  *                                     pointer_state = prev_state
  *                                     pointer_a = a             # <<<<<<<<<<<<<<
@@ -5139,7 +5139,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_pointer_a = __pyx_v_a;
 
-              /* "cogent/align/_pairwise_seqs.pyx":234
+              /* "cogent3/align/_pairwise_seqs.pyx":234
  *                                     pointer_state = prev_state
  *                                     pointer_a = a
  *                                     pointer_b = b             # <<<<<<<<<<<<<<
@@ -5148,7 +5148,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
               __pyx_v_pointer_b = __pyx_v_b;
 
-              /* "cogent/align/_pairwise_seqs.pyx":230
+              /* "cogent3/align/_pairwise_seqs.pyx":230
  *                                     mantissa = mantissa * T[prev_state, state]
  *                                     partial_sum += mantissa
  *                                 if viterbi and mantissa > max_mantissa:             # <<<<<<<<<<<<<<
@@ -5160,7 +5160,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         }
         __pyx_L41:;
 
-        /* "cogent/align/_pairwise_seqs.pyx":236
+        /* "cogent3/align/_pairwise_seqs.pyx":236
  *                                     pointer_b = b
  * 
  *                 if viterbi:             # <<<<<<<<<<<<<<
@@ -5170,7 +5170,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_viterbi != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":237
+          /* "cogent3/align/_pairwise_seqs.pyx":237
  * 
  *                 if viterbi:
  *                     mantissa = max_mantissa             # <<<<<<<<<<<<<<
@@ -5179,7 +5179,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_mantissa = __pyx_v_max_mantissa;
 
-          /* "cogent/align/_pairwise_seqs.pyx":238
+          /* "cogent3/align/_pairwise_seqs.pyx":238
  *                 if viterbi:
  *                     mantissa = max_mantissa
  *                     if track is not None:             # <<<<<<<<<<<<<<
@@ -5189,7 +5189,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_1 = ((((PyObject *) __pyx_v_track.memview) != Py_None) != 0);
           if (__pyx_t_1) {
 
-            /* "cogent/align/_pairwise_seqs.pyx":239
+            /* "cogent3/align/_pairwise_seqs.pyx":239
  *                     mantissa = max_mantissa
  *                     if track is not None:
  *                         track[i, j, state] = (             # <<<<<<<<<<<<<<
@@ -5201,7 +5201,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_55 = __pyx_v_state;
             *((unsigned char *) ( /* dim=2 */ ((char *) (((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_track.data + __pyx_t_53 * __pyx_v_track.strides[0]) ) + __pyx_t_54 * __pyx_v_track.strides[1]) )) + __pyx_t_55)) )) = (((__pyx_v_pointer_a << __pyx_v_tcode_x) | (__pyx_v_pointer_b << __pyx_v_tcode_y)) | (__pyx_v_pointer_state << __pyx_v_tcode_s));
 
-            /* "cogent/align/_pairwise_seqs.pyx":238
+            /* "cogent3/align/_pairwise_seqs.pyx":238
  *                 if viterbi:
  *                     mantissa = max_mantissa
  *                     if track is not None:             # <<<<<<<<<<<<<<
@@ -5210,7 +5210,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           }
 
-          /* "cogent/align/_pairwise_seqs.pyx":236
+          /* "cogent3/align/_pairwise_seqs.pyx":236
  *                                     pointer_b = b
  * 
  *                 if viterbi:             # <<<<<<<<<<<<<<
@@ -5220,7 +5220,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L65;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":244
+        /* "cogent3/align/_pairwise_seqs.pyx":244
  *                             (pointer_state << tcode_s))
  *                 else:
  *                     mantissa = partial_sum             # <<<<<<<<<<<<<<
@@ -5232,7 +5232,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         }
         __pyx_L65:;
 
-        /* "cogent/align/_pairwise_seqs.pyx":246
+        /* "cogent3/align/_pairwise_seqs.pyx":246
  *                     mantissa = partial_sum
  * 
  *                 if dy:             # <<<<<<<<<<<<<<
@@ -5242,7 +5242,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_dy != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":247
+          /* "cogent3/align/_pairwise_seqs.pyx":247
  * 
  *                 if dy:
  *                     y = seq2_index[j]             # <<<<<<<<<<<<<<
@@ -5252,7 +5252,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_56 = __pyx_v_j;
           __pyx_v_y = (*((long *) ( /* dim=0 */ ((char *) (((long *) __pyx_v_seq2_index.data) + __pyx_t_56)) )));
 
-          /* "cogent/align/_pairwise_seqs.pyx":248
+          /* "cogent3/align/_pairwise_seqs.pyx":248
  *                 if dy:
  *                     y = seq2_index[j]
  *                     if dx:             # <<<<<<<<<<<<<<
@@ -5262,7 +5262,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_1 = (__pyx_v_dx != 0);
           if (__pyx_t_1) {
 
-            /* "cogent/align/_pairwise_seqs.pyx":249
+            /* "cogent3/align/_pairwise_seqs.pyx":249
  *                     y = seq2_index[j]
  *                     if dx:
  *                         d_score = match_scores[bin, x, y]             # <<<<<<<<<<<<<<
@@ -5274,7 +5274,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             __pyx_t_59 = __pyx_v_y;
             __pyx_v_d_score = (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_match_scores.data + __pyx_t_57 * __pyx_v_match_scores.strides[0]) ) + __pyx_t_58 * __pyx_v_match_scores.strides[1]) )) + __pyx_t_59)) )));
 
-            /* "cogent/align/_pairwise_seqs.pyx":248
+            /* "cogent3/align/_pairwise_seqs.pyx":248
  *                 if dy:
  *                     y = seq2_index[j]
  *                     if dx:             # <<<<<<<<<<<<<<
@@ -5284,7 +5284,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
             goto __pyx_L68;
           }
 
-          /* "cogent/align/_pairwise_seqs.pyx":251
+          /* "cogent3/align/_pairwise_seqs.pyx":251
  *                         d_score = match_scores[bin, x, y]
  *                     else:
  *                         d_score = ygap_scores[bin, y]             # <<<<<<<<<<<<<<
@@ -5298,7 +5298,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           }
           __pyx_L68:;
 
-          /* "cogent/align/_pairwise_seqs.pyx":246
+          /* "cogent3/align/_pairwise_seqs.pyx":246
  *                     mantissa = partial_sum
  * 
  *                 if dy:             # <<<<<<<<<<<<<<
@@ -5308,7 +5308,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L67;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":252
+        /* "cogent3/align/_pairwise_seqs.pyx":252
  *                     else:
  *                         d_score = ygap_scores[bin, y]
  *                 elif dx:             # <<<<<<<<<<<<<<
@@ -5318,7 +5318,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_dx != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":253
+          /* "cogent3/align/_pairwise_seqs.pyx":253
  *                         d_score = ygap_scores[bin, y]
  *                 elif dx:
  *                     d_score = xgap_scores[bin, x]             # <<<<<<<<<<<<<<
@@ -5329,7 +5329,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_63 = __pyx_v_x;
           __pyx_v_d_score = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_xgap_scores.data + __pyx_t_62 * __pyx_v_xgap_scores.strides[0]) )) + __pyx_t_63)) )));
 
-          /* "cogent/align/_pairwise_seqs.pyx":252
+          /* "cogent3/align/_pairwise_seqs.pyx":252
  *                     else:
  *                         d_score = ygap_scores[bin, y]
  *                 elif dx:             # <<<<<<<<<<<<<<
@@ -5339,7 +5339,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L67;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":254
+        /* "cogent3/align/_pairwise_seqs.pyx":254
  *                 elif dx:
  *                     d_score = xgap_scores[bin, x]
  *                 elif use_logs:             # <<<<<<<<<<<<<<
@@ -5349,7 +5349,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_use_logs != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":255
+          /* "cogent3/align/_pairwise_seqs.pyx":255
  *                     d_score = xgap_scores[bin, x]
  *                 elif use_logs:
  *                     d_score = 0.0             # <<<<<<<<<<<<<<
@@ -5358,7 +5358,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_d_score = 0.0;
 
-          /* "cogent/align/_pairwise_seqs.pyx":254
+          /* "cogent3/align/_pairwise_seqs.pyx":254
  *                 elif dx:
  *                     d_score = xgap_scores[bin, x]
  *                 elif use_logs:             # <<<<<<<<<<<<<<
@@ -5368,7 +5368,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L67;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":257
+        /* "cogent3/align/_pairwise_seqs.pyx":257
  *                     d_score = 0.0
  *                 else:
  *                     d_score = 1.0             # <<<<<<<<<<<<<<
@@ -5380,7 +5380,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         }
         __pyx_L67:;
 
-        /* "cogent/align/_pairwise_seqs.pyx":259
+        /* "cogent3/align/_pairwise_seqs.pyx":259
  *                     d_score = 1.0
  * 
  *                 if use_logs:             # <<<<<<<<<<<<<<
@@ -5390,7 +5390,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_use_logs != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":260
+          /* "cogent3/align/_pairwise_seqs.pyx":260
  * 
  *                 if use_logs:
  *                     mantissa += d_score             # <<<<<<<<<<<<<<
@@ -5399,7 +5399,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           __pyx_v_mantissa = (__pyx_v_mantissa + __pyx_v_d_score);
 
-          /* "cogent/align/_pairwise_seqs.pyx":259
+          /* "cogent3/align/_pairwise_seqs.pyx":259
  *                     d_score = 1.0
  * 
  *                 if use_logs:             # <<<<<<<<<<<<<<
@@ -5409,7 +5409,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           goto __pyx_L69;
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":262
+        /* "cogent3/align/_pairwise_seqs.pyx":262
  *                     mantissa += d_score
  *                 else:
  *                     mantissa *= d_score             # <<<<<<<<<<<<<<
@@ -5421,7 +5421,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         }
         __pyx_L69:;
 
-        /* "cogent/align/_pairwise_seqs.pyx":264
+        /* "cogent3/align/_pairwise_seqs.pyx":264
  *                     mantissa *= d_score
  * 
  *                 mantissas[current_row_index, j, state] = mantissa             # <<<<<<<<<<<<<<
@@ -5433,7 +5433,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_66 = __pyx_v_state;
         *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mantissas.data + __pyx_t_64 * __pyx_v_mantissas.strides[0]) ) + __pyx_t_65 * __pyx_v_mantissas.strides[1]) )) + __pyx_t_66)) )) = __pyx_v_mantissa;
 
-        /* "cogent/align/_pairwise_seqs.pyx":265
+        /* "cogent3/align/_pairwise_seqs.pyx":265
  * 
  *                 mantissas[current_row_index, j, state] = mantissa
  *                 if use_scaling:             # <<<<<<<<<<<<<<
@@ -5443,7 +5443,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_t_1 = (__pyx_v_use_scaling != 0);
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":266
+          /* "cogent3/align/_pairwise_seqs.pyx":266
  *                 mantissas[current_row_index, j, state] = mantissa
  *                 if use_scaling:
  *                     exponents[current_row_index, j, state] = max_exponent             # <<<<<<<<<<<<<<
@@ -5455,7 +5455,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_69 = __pyx_v_state;
           *((long *) ( /* dim=2 */ ((char *) (((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_exponents.data + __pyx_t_67 * __pyx_v_exponents.strides[0]) ) + __pyx_t_68 * __pyx_v_exponents.strides[1]) )) + __pyx_t_69)) )) = __pyx_v_max_exponent;
 
-          /* "cogent/align/_pairwise_seqs.pyx":265
+          /* "cogent3/align/_pairwise_seqs.pyx":265
  * 
  *                 mantissas[current_row_index, j, state] = mantissa
  *                 if use_scaling:             # <<<<<<<<<<<<<<
@@ -5464,7 +5464,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
         }
 
-        /* "cogent/align/_pairwise_seqs.pyx":268
+        /* "cogent3/align/_pairwise_seqs.pyx":268
  *                     exponents[current_row_index, j, state] = max_exponent
  * 
  *                 if local and dx and dy:             # <<<<<<<<<<<<<<
@@ -5488,7 +5488,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
         __pyx_L72_bool_binop_done:;
         if (__pyx_t_1) {
 
-          /* "cogent/align/_pairwise_seqs.pyx":269
+          /* "cogent3/align/_pairwise_seqs.pyx":269
  * 
  *                 if local and dx and dy:
  *                     if (use_scaling and max_exponent > overall_max_exponent) or (             # <<<<<<<<<<<<<<
@@ -5508,7 +5508,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           }
           __pyx_L77_next_or:;
 
-          /* "cogent/align/_pairwise_seqs.pyx":270
+          /* "cogent3/align/_pairwise_seqs.pyx":270
  *                 if local and dx and dy:
  *                     if (use_scaling and max_exponent > overall_max_exponent) or (
  *                             (not use_scaling or max_exponent == overall_max_exponent) and (             # <<<<<<<<<<<<<<
@@ -5528,7 +5528,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           }
           __pyx_L79_next_and:;
 
-          /* "cogent/align/_pairwise_seqs.pyx":271
+          /* "cogent3/align/_pairwise_seqs.pyx":271
  *                     if (use_scaling and max_exponent > overall_max_exponent) or (
  *                             (not use_scaling or max_exponent == overall_max_exponent) and (
  *                             mantissa > overall_max_mantissa)):             # <<<<<<<<<<<<<<
@@ -5539,7 +5539,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
           __pyx_t_1 = __pyx_t_13;
           __pyx_L76_bool_binop_done:;
 
-          /* "cogent/align/_pairwise_seqs.pyx":269
+          /* "cogent3/align/_pairwise_seqs.pyx":269
  * 
  *                 if local and dx and dy:
  *                     if (use_scaling and max_exponent > overall_max_exponent) or (             # <<<<<<<<<<<<<<
@@ -5548,7 +5548,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           if (__pyx_t_1) {
 
-            /* "cogent/align/_pairwise_seqs.pyx":272
+            /* "cogent3/align/_pairwise_seqs.pyx":272
  *                             (not use_scaling or max_exponent == overall_max_exponent) and (
  *                             mantissa > overall_max_mantissa)):
  *                         overall_max_exponent = max_exponent             # <<<<<<<<<<<<<<
@@ -5557,7 +5557,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             __pyx_v_overall_max_exponent = __pyx_v_max_exponent;
 
-            /* "cogent/align/_pairwise_seqs.pyx":273
+            /* "cogent3/align/_pairwise_seqs.pyx":273
  *                             mantissa > overall_max_mantissa)):
  *                         overall_max_exponent = max_exponent
  *                         overall_max_mantissa = mantissa             # <<<<<<<<<<<<<<
@@ -5566,7 +5566,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             __pyx_v_overall_max_mantissa = __pyx_v_mantissa;
 
-            /* "cogent/align/_pairwise_seqs.pyx":274
+            /* "cogent3/align/_pairwise_seqs.pyx":274
  *                         overall_max_exponent = max_exponent
  *                         overall_max_mantissa = mantissa
  *                         last_i = i             # <<<<<<<<<<<<<<
@@ -5575,7 +5575,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             __pyx_v_last_i = __pyx_v_i;
 
-            /* "cogent/align/_pairwise_seqs.pyx":275
+            /* "cogent3/align/_pairwise_seqs.pyx":275
  *                         overall_max_mantissa = mantissa
  *                         last_i = i
  *                         last_j = j             # <<<<<<<<<<<<<<
@@ -5584,7 +5584,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             __pyx_v_last_j = __pyx_v_j;
 
-            /* "cogent/align/_pairwise_seqs.pyx":276
+            /* "cogent3/align/_pairwise_seqs.pyx":276
  *                         last_i = i
  *                         last_j = j
  *                         last_state = state             # <<<<<<<<<<<<<<
@@ -5593,7 +5593,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
             __pyx_v_last_state = __pyx_v_state;
 
-            /* "cogent/align/_pairwise_seqs.pyx":269
+            /* "cogent3/align/_pairwise_seqs.pyx":269
  * 
  *                 if local and dx and dy:
  *                     if (use_scaling and max_exponent > overall_max_exponent) or (             # <<<<<<<<<<<<<<
@@ -5602,7 +5602,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
           }
 
-          /* "cogent/align/_pairwise_seqs.pyx":268
+          /* "cogent3/align/_pairwise_seqs.pyx":268
  *                     exponents[current_row_index, j, state] = max_exponent
  * 
  *                 if local and dx and dy:             # <<<<<<<<<<<<<<
@@ -5615,7 +5615,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     }
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":277
+  /* "cogent3/align/_pairwise_seqs.pyx":277
  *                         last_j = j
  *                         last_state = state
  *     if not local:             # <<<<<<<<<<<<<<
@@ -5625,7 +5625,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_1 = ((!(__pyx_v_local != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":278
+    /* "cogent3/align/_pairwise_seqs.pyx":278
  *                         last_state = state
  *     if not local:
  *         last_i = i_high - 1             # <<<<<<<<<<<<<<
@@ -5634,7 +5634,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     __pyx_v_last_i = (__pyx_v_i_high - 1);
 
-    /* "cogent/align/_pairwise_seqs.pyx":279
+    /* "cogent3/align/_pairwise_seqs.pyx":279
  *     if not local:
  *         last_i = i_high - 1
  *         last_j = j_high - 1             # <<<<<<<<<<<<<<
@@ -5643,7 +5643,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     __pyx_v_last_j = (__pyx_v_j_high - 1);
 
-    /* "cogent/align/_pairwise_seqs.pyx":280
+    /* "cogent3/align/_pairwise_seqs.pyx":280
  *         last_i = i_high - 1
  *         last_j = j_high - 1
  *         last_state = state             # <<<<<<<<<<<<<<
@@ -5652,7 +5652,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     __pyx_v_last_state = __pyx_v_state;
 
-    /* "cogent/align/_pairwise_seqs.pyx":277
+    /* "cogent3/align/_pairwise_seqs.pyx":277
  *                         last_j = j
  *                         last_state = state
  *     if not local:             # <<<<<<<<<<<<<<
@@ -5662,7 +5662,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     goto __pyx_L81;
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":282
+  /* "cogent3/align/_pairwise_seqs.pyx":282
  *         last_state = state
  *     else:
  *         mantissa = overall_max_mantissa             # <<<<<<<<<<<<<<
@@ -5672,7 +5672,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   /*else*/ {
     __pyx_v_mantissa = __pyx_v_overall_max_mantissa;
 
-    /* "cogent/align/_pairwise_seqs.pyx":283
+    /* "cogent3/align/_pairwise_seqs.pyx":283
  *     else:
  *         mantissa = overall_max_mantissa
  *         max_exponent = overall_max_exponent             # <<<<<<<<<<<<<<
@@ -5683,7 +5683,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   __pyx_L81:;
 
-  /* "cogent/align/_pairwise_seqs.pyx":285
+  /* "cogent3/align/_pairwise_seqs.pyx":285
  *         max_exponent = overall_max_exponent
  * 
  *     if use_scaling:             # <<<<<<<<<<<<<<
@@ -5693,16 +5693,16 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_1 = (__pyx_v_use_scaling != 0);
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":286
+    /* "cogent3/align/_pairwise_seqs.pyx":286
  * 
  *     if use_scaling:
  *         score = log(mantissa) + log(SCALE_STEP) * max_exponent             # <<<<<<<<<<<<<<
  *     elif use_logs:
  *         score = mantissa
  */
-    __pyx_v_score = (log(__pyx_v_mantissa) + (log(__pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP) * __pyx_v_max_exponent));
+    __pyx_v_score = (log(__pyx_v_mantissa) + (log(__pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP) * __pyx_v_max_exponent));
 
-    /* "cogent/align/_pairwise_seqs.pyx":285
+    /* "cogent3/align/_pairwise_seqs.pyx":285
  *         max_exponent = overall_max_exponent
  * 
  *     if use_scaling:             # <<<<<<<<<<<<<<
@@ -5712,7 +5712,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     goto __pyx_L82;
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":287
+  /* "cogent3/align/_pairwise_seqs.pyx":287
  *     if use_scaling:
  *         score = log(mantissa) + log(SCALE_STEP) * max_exponent
  *     elif use_logs:             # <<<<<<<<<<<<<<
@@ -5722,7 +5722,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_1 = (__pyx_v_use_logs != 0);
   if (__pyx_t_1) {
 
-    /* "cogent/align/_pairwise_seqs.pyx":288
+    /* "cogent3/align/_pairwise_seqs.pyx":288
  *         score = log(mantissa) + log(SCALE_STEP) * max_exponent
  *     elif use_logs:
  *         score = mantissa             # <<<<<<<<<<<<<<
@@ -5731,7 +5731,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
  */
     __pyx_v_score = __pyx_v_mantissa;
 
-    /* "cogent/align/_pairwise_seqs.pyx":287
+    /* "cogent3/align/_pairwise_seqs.pyx":287
  *     if use_scaling:
  *         score = log(mantissa) + log(SCALE_STEP) * max_exponent
  *     elif use_logs:             # <<<<<<<<<<<<<<
@@ -5741,7 +5741,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
     goto __pyx_L82;
   }
 
-  /* "cogent/align/_pairwise_seqs.pyx":290
+  /* "cogent3/align/_pairwise_seqs.pyx":290
  *         score = mantissa
  *     else:
  *         score = log(mantissa)             # <<<<<<<<<<<<<<
@@ -5752,7 +5752,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   }
   __pyx_L82:;
 
-  /* "cogent/align/_pairwise_seqs.pyx":291
+  /* "cogent3/align/_pairwise_seqs.pyx":291
  *     else:
  *         score = log(mantissa)
  *     return ((last_i, last_j), last_state, score)             # <<<<<<<<<<<<<<
@@ -5789,7 +5789,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __pyx_t_14 = 0;
   goto __pyx_L0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":35
+  /* "cogent3/align/_pairwise_seqs.pyx":35
  * ctypedef unsigned char [:,:,::1] UChar3D
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,             # <<<<<<<<<<<<<<
@@ -5808,7 +5808,7 @@ static PyObject *__pyx_pf_6cogent_5align_14_pairwise_seqs_2calc_rows(CYTHON_UNUS
   __PYX_XDEC_MEMVIEW(&__pyx_t_17, 1);
   __Pyx_XDECREF(__pyx_t_43);
   __Pyx_XDECREF(__pyx_t_45);
-  __Pyx_AddTraceback("cogent.align._pairwise_seqs.calc_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.align._pairwise_seqs.calc_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_mantissas, 1);
@@ -17522,7 +17522,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.align._pairwise_seqs.array", /*tp_name*/
+  "cogent3.align._pairwise_seqs.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -17628,7 +17628,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.align._pairwise_seqs.Enum", /*tp_name*/
+  "cogent3.align._pairwise_seqs.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -17875,7 +17875,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.align._pairwise_seqs.memoryview", /*tp_name*/
+  "cogent3.align._pairwise_seqs.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -18000,7 +18000,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "cogent.align._pairwise_seqs._memoryviewslice", /*tp_name*/
+  "cogent3.align._pairwise_seqs._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -18131,7 +18131,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_calc_rows, __pyx_k_calc_rows, sizeof(__pyx_k_calc_rows), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
-  {&__pyx_n_s_cogent_align__pairwise_seqs, __pyx_k_cogent_align__pairwise_seqs, sizeof(__pyx_k_cogent_align__pairwise_seqs), 0, 0, 1, 1},
+  {&__pyx_n_s_cogent3_align__pairwise_seqs, __pyx_k_cogent3_align__pairwise_seqs, sizeof(__pyx_k_cogent3_align__pairwise_seqs), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
   {&__pyx_n_s_current_row_index, __pyx_k_current_row_index, sizeof(__pyx_k_current_row_index), 0, 0, 1, 1},
@@ -18456,7 +18456,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "cogent/align/_pairwise_seqs.pyx":16
+  /* "cogent3/align/_pairwise_seqs.pyx":16
  *     double log (double x)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
@@ -18467,7 +18467,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "cogent/align/_pairwise_seqs.pyx":30
+  /* "cogent3/align/_pairwise_seqs.pyx":30
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
  * 
  * def fmpt(mantissa, exponent, msg=''):             # <<<<<<<<<<<<<<
@@ -18479,7 +18479,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_fmpt, 30, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 30, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":35
+  /* "cogent3/align/_pairwise_seqs.pyx":35
  * ctypedef unsigned char [:,:,::1] UChar3D
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,             # <<<<<<<<<<<<<<
@@ -18630,14 +18630,14 @@ PyMODINIT_FUNC PyInit__pairwise_seqs(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_cogent__align___pairwise_seqs) {
+  if (__pyx_module_is_main_cogent3__align___pairwise_seqs) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(1, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "cogent.align._pairwise_seqs")) {
-      if (unlikely(PyDict_SetItemString(modules, "cogent.align._pairwise_seqs", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "cogent3.align._pairwise_seqs")) {
+      if (unlikely(PyDict_SetItemString(modules, "cogent3.align._pairwise_seqs", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -18701,7 +18701,7 @@ PyMODINIT_FUNC PyInit__pairwise_seqs(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_5_3_dev) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":16
+  /* "cogent3/align/_pairwise_seqs.pyx":16
  *     double log (double x)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
@@ -18710,7 +18710,7 @@ PyMODINIT_FUNC PyInit__pairwise_seqs(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__21) < 0) __PYX_ERR(1, 16, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":17
+  /* "cogent3/align/_pairwise_seqs.pyx":17
  * 
  * version_info = (3, 2)
  * __version__ = "('1', '5', '3-dev')"             # <<<<<<<<<<<<<<
@@ -18719,80 +18719,80 @@ PyMODINIT_FUNC PyInit__pairwise_seqs(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_5_3_dev) < 0) __PYX_ERR(1, 17, __pyx_L1_error)
 
-  /* "cogent/align/_pairwise_seqs.pyx":20
+  /* "cogent3/align/_pairwise_seqs.pyx":20
  * 
  * cdef double SCALE_STEP, MIN_FLOAT_VALUE
  * SCALE_STEP = 2.0**50             # <<<<<<<<<<<<<<
  * MIN_FLOAT_VALUE = 1.0 / SCALE_STEP
  * 
  */
-  __pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP = pow(2.0, 50.0);
+  __pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP = pow(2.0, 50.0);
 
-  /* "cogent/align/_pairwise_seqs.pyx":21
+  /* "cogent3/align/_pairwise_seqs.pyx":21
  * cdef double SCALE_STEP, MIN_FLOAT_VALUE
  * SCALE_STEP = 2.0**50
  * MIN_FLOAT_VALUE = 1.0 / SCALE_STEP             # <<<<<<<<<<<<<<
  * 
  * cdef int MAX_XCOUNT
  */
-  if (unlikely(__pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP == 0)) {
+  if (unlikely(__pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
     __PYX_ERR(1, 21, __pyx_L1_error)
   }
-  __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_FLOAT_VALUE = (1.0 / __pyx_v_6cogent_5align_14_pairwise_seqs_SCALE_STEP);
+  __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_FLOAT_VALUE = (1.0 / __pyx_v_7cogent3_5align_14_pairwise_seqs_SCALE_STEP);
 
-  /* "cogent/align/_pairwise_seqs.pyx":24
+  /* "cogent3/align/_pairwise_seqs.pyx":24
  * 
  * cdef int MAX_XCOUNT
  * MAX_XCOUNT = 256             # <<<<<<<<<<<<<<
  * 
  * cdef long MIN_SCALE, MAX_SCALE
  */
-  __pyx_v_6cogent_5align_14_pairwise_seqs_MAX_XCOUNT = 0x100;
+  __pyx_v_7cogent3_5align_14_pairwise_seqs_MAX_XCOUNT = 0x100;
 
-  /* "cogent/align/_pairwise_seqs.pyx":27
+  /* "cogent3/align/_pairwise_seqs.pyx":27
  * 
  * cdef long MIN_SCALE, MAX_SCALE
  * MIN_SCALE = -10000             # <<<<<<<<<<<<<<
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
  * 
  */
-  __pyx_v_6cogent_5align_14_pairwise_seqs_MIN_SCALE = -10000L;
+  __pyx_v_7cogent3_5align_14_pairwise_seqs_MIN_SCALE = -10000L;
 
-  /* "cogent/align/_pairwise_seqs.pyx":28
+  /* "cogent3/align/_pairwise_seqs.pyx":28
  * cdef long MIN_SCALE, MAX_SCALE
  * MIN_SCALE = -10000
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities             # <<<<<<<<<<<<<<
  * 
  * def fmpt(mantissa, exponent, msg=''):
  */
-  __pyx_v_6cogent_5align_14_pairwise_seqs_MAX_SCALE = 0x2710;
+  __pyx_v_7cogent3_5align_14_pairwise_seqs_MAX_SCALE = 0x2710;
 
-  /* "cogent/align/_pairwise_seqs.pyx":30
+  /* "cogent3/align/_pairwise_seqs.pyx":30
  * MAX_SCALE = +10000  # or 0 if all numbers should be probabilities
  * 
  * def fmpt(mantissa, exponent, msg=''):             # <<<<<<<<<<<<<<
  *     return "%s * SCALE_STEP ** %s %s" % (mantissa, exponent, msg)
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_5align_14_pairwise_seqs_1fmpt, NULL, __pyx_n_s_cogent_align__pairwise_seqs); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 30, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5align_14_pairwise_seqs_1fmpt, NULL, __pyx_n_s_cogent3_align__pairwise_seqs); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_fmpt, __pyx_t_1) < 0) __PYX_ERR(1, 30, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":35
+  /* "cogent3/align/_pairwise_seqs.pyx":35
  * ctypedef unsigned char [:,:,::1] UChar3D
  * 
  * def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,             # <<<<<<<<<<<<<<
  *         int i_low, int i_high, int j_low, int j_high, preds,
  *         Long2D state_directions, Double2D T,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cogent_5align_14_pairwise_seqs_3calc_rows, NULL, __pyx_n_s_cogent_align__pairwise_seqs); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 35, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5align_14_pairwise_seqs_3calc_rows, NULL, __pyx_n_s_cogent3_align__pairwise_seqs); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc_rows, __pyx_t_1) < 0) __PYX_ERR(1, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cogent/align/_pairwise_seqs.pyx":1
+  /* "cogent3/align/_pairwise_seqs.pyx":1
  * #cython: boundscheck=False             # <<<<<<<<<<<<<<
  * #cython: wraparound=False
  * 
@@ -18952,11 +18952,11 @@ PyMODINIT_FUNC PyInit__pairwise_seqs(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init cogent.align._pairwise_seqs", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init cogent3.align._pairwise_seqs", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init cogent.align._pairwise_seqs");
+    PyErr_SetString(PyExc_ImportError, "init cogent3.align._pairwise_seqs");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

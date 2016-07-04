@@ -97,7 +97,7 @@ class Compara(object):
         genome_db_table = self.ComparaDb.getTable('genome_db')
         query = sql.select([genome_db_table.c.genome_db_id,
                            genome_db_table.c.taxon_id],
-                 genome_db_table.c.taxon_id.in_(self.taxon_id_species.keys()))
+                 genome_db_table.c.taxon_id.in_(list(self.taxon_id_species.keys())))
         records = query.execute()
         self._species_db_map = \
                     dict([(r['genome_db_id'],r['taxon_id']) for r in records])
@@ -111,7 +111,7 @@ class Compara(object):
         # we make sure the species set contains all species
         species_set_table = self.ComparaDb.getTable('species_set')
         query = sql.select([species_set_table],
-               species_set_table.c.genome_db_id.in_(self.genome_taxon.keys()))
+               species_set_table.c.genome_db_id.in_(list(self.genome_taxon.keys())))
         species_sets = {}
         for record in query.execute():
             gen_id = record['genome_db_id']
@@ -123,7 +123,7 @@ class Compara(object):
         
         expected = set(self.genome_taxon.keys())
         species_set_ids = []
-        for sp_set, gen_id in species_sets.items():
+        for sp_set, gen_id in list(species_sets.items()):
             if expected <= gen_id:
                 species_set_ids.append(sp_set)
         self._species_set = species_set_ids
@@ -146,7 +146,7 @@ class Compara(object):
             sql.and_(
             method_link_species_table.c.species_set_id.in_(self.species_set),
             method_link_species_table.c.method_link_id.in_(
-                                                    method_link_ids.keys())))
+                                                    list(method_link_ids.keys()))))
         records = query.execute().fetchall()
         # store method_link_id, type, species_set_id,
         # method_link_species_set.name, class
@@ -185,11 +185,11 @@ class Compara(object):
         
         # TODO understand why this has become necessary to suppress warnings
         # in SQLAlchemy 0.6
-        Relationship = u'%s' % Relationship
+        Relationship = '%s' % Relationship
         
         StableId = StableId or gene_region.StableId
         
-        if self._genomes.values()[0].GeneralRelease > 75:
+        if list(self._genomes.values())[0].GeneralRelease > 75:
             mem_name = 'gene_member'
             mem_id = 'gene_member_id'
             frag_strand = 'dnafrag_strand'
@@ -209,7 +209,7 @@ class Compara(object):
         if not member_ids:
             return None
         
-        if DEBUG: print "member_ids", member_ids
+        if DEBUG: print("member_ids", member_ids)
         
         homology_ids = sql.select([homology_member_table.c.homology_id,
                           homology_member_table.c[mem_id]],
@@ -218,7 +218,7 @@ class Compara(object):
         if not homology_ids:
             return None
         
-        if DEBUG: print "1 - homology_ids", homology_ids
+        if DEBUG: print("1 - homology_ids", homology_ids)
         
         homology_records = \
                 sql.select([homology_table.c.homology_id,
@@ -233,30 +233,30 @@ class Compara(object):
                         (r["description"], r["method_link_species_set_id"])))
         homology_ids = dict(homology_ids)
         
-        if DEBUG: print "2 - homology_ids", homology_ids
+        if DEBUG: print("2 - homology_ids", homology_ids)
         if not homology_ids:
             return None
         
         ortholog_ids = sql.select([homology_member_table.c[mem_id],
                                 homology_member_table.c.homology_id],
-                homology_member_table.c.homology_id.in_(homology_ids.keys()))
+                homology_member_table.c.homology_id.in_(list(homology_ids.keys())))
         
         ortholog_ids = dict([(r[mem_id], r['homology_id']) \
                                       for r in ortholog_ids.execute()])
         
-        if DEBUG: print "ortholog_ids", ortholog_ids
+        if DEBUG: print("ortholog_ids", ortholog_ids)
         if not ortholog_ids:
             return None
         
         # could we have more than one here?
         relationships = set()
-        for memid, homid in ortholog_ids.items():
+        for memid, homid in list(ortholog_ids.items()):
             relationships.update([homology_ids[homid][0]])
         relationships = tuple(relationships)
         
         gene_set = sql.select([member_table],
-                sql.and_(member_table.c[mem_id].in_(ortholog_ids.keys()),
-                  member_table.c.taxon_id.in_(self.taxon_id_species.keys())))
+                sql.and_(member_table.c[mem_id].in_(list(ortholog_ids.keys())),
+                  member_table.c.taxon_id.in_(list(self.taxon_id_species.keys()))))
         data = []
         for record in gene_set.execute():
             genome = self.taxon_id_species[record['taxon_id']]
@@ -291,7 +291,7 @@ class Compara(object):
             record = asserted_one(query.execute().fetchall())
             dnafrag_id = record['dnafrag_id']
         except NoItemError:
-            raise RuntimeError, 'No DNA fragment identified'
+            raise RuntimeError('No DNA fragment identified')
         return dnafrag_id
     
     def _get_genomic_align_blocks_for_dna_frag_id(self, method_clade_id,
@@ -323,7 +323,7 @@ class Compara(object):
             sql.and_(genomic_align_table.c.genomic_align_block_id == \
                                                         genomic_align_block_id,
                 genomic_align_table.c.dnafrag_id == dnafrag_table.c.dnafrag_id,
-                dnafrag_table.c.genome_db_id.in_(self.genome_taxon.keys())))
+                dnafrag_table.c.genome_db_id.in_(list(self.genome_taxon.keys()))))
         return query.execute().fetchall()
     
     def getSyntenicRegions(self, Species=None, CoordName=None, Start=None,
@@ -352,8 +352,8 @@ class Compara(object):
                     method_clade_id = row['method_link_species_set_id']
         
         if method_clade_id is None:
-            raise RuntimeError, "Invalid align_method[%s] or align_clade "\
-                                "specified[%s]" % (align_method, align_clade)
+            raise RuntimeError("Invalid align_method[%s] or align_clade "\
+                                "specified[%s]" % (align_method, align_clade))
         
         if region is None:
             ref_genome = self._genomes[_Species.getSpeciesName(Species)]
@@ -421,7 +421,7 @@ class Compara(object):
         property_map = {'relationship': ('homology', 'description'),
                         'clade': ('method_link_species_set', 'name')}
         if property_type not in property_map:
-            raise RuntimeError, "ERROR: Unknown property type: %s"%property_type
+            raise RuntimeError("ERROR: Unknown property type: %s"%property_type)
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 from cogent3.core import moltype, annotation
 
 from matplotlib.collections import PatchCollection

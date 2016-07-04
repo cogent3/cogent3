@@ -88,7 +88,7 @@ class EnumerationTests(TestCase):
         self.assertEqual(a.Gap, '-')
         self.assertEqual(a.GapIndex, 2)
 
-        a = Enumeration(range(257))    #too big to fit in uint8
+        a = Enumeration(list(range(257)))    #too big to fit in uint8
         self.assertEqual(a.ArrayType, uint16)
 
     def test_index(self):
@@ -198,10 +198,10 @@ class CharAlphabetTests(TestCase):
     def test_init(self):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet('UCAG')
-        i2c, c2i = r._indices_to_chars, r._chars_to_indices
+        i2c, c2i = r._indices_nums_to_chars, r._char_nums_to_indices
         s = array([0,0,1,0,3,2], 'b').tostring()
-        self.assertEqual(s.translate(i2c), 'UUCUGA')
-        self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
+        self.assertEqual(s.translate(i2c), b'UUCUGA')
+        self.assertEqual('UUCUGA'.translate(c2i), b'\000\000\001\000\003\002')
         
     def test_fromString(self):
         """CharAlphabet fromString should return correct array"""

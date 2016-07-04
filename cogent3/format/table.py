@@ -180,7 +180,7 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
                      sum(col_widths[: identifiers])
         
         if min_length > max_width:
-            raise RuntimeError, "Maximum width too small for identifiers"
+            raise RuntimeError("Maximum width too small for identifiers")
         
         begin, width = identifiers, min_length
         
@@ -318,7 +318,7 @@ def separatorFormat(header, formatted_table, title = None, legend = None, sep = 
         - legend: optional table legend
     """
     if sep is None:
-        raise RuntimeError, "no separator provided"
+        raise RuntimeError("no separator provided")
     
     if title:
         title = " ".join(" ".join(title.splitlines()).split())
@@ -471,9 +471,9 @@ def phylipMatrix(rows, names):
                 break
         
         if not newname:
-            raise RuntimeError, "Can't create a unique name for %s" % oldname
+            raise RuntimeError("Can't create a unique name for %s" % oldname)
         else:
-            print 'WARN: Seqname %s changed to %s' % (oldname, newname)
+            print('WARN: Seqname %s changed to %s' % (oldname, newname))
         return newname
     
     def append_species(name, formatted_dists, mat_breaks):

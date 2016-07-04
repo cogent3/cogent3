@@ -24,7 +24,7 @@ def makeSampleAlignment(gaps = False, ambiguities = False):
         seqs_list = ['AARNCCTTTGGC','CCNYCCTTTGSG','CAACCCTGWGGG']
     else:
         seqs_list = ['AAACCCGGGTTTA','CCCGGGTTTAAAC','GGGTTTAAACCCG']
-    seqs = zip('abc', seqs_list)
+    seqs = list(zip('abc', seqs_list))
     return LoadSeqs(data = seqs)
 
 class TestGoldman93(TestCase):

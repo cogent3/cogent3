@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Provides standard statistical tests. Tests produce statistic and P-value.
 """
-from __future__ import division
+
 import warnings
 from cogent3.maths.stats.distribution import chi_high, z_low, z_high, zprob, \
     t_high, t_low, tprob, f_high, f_low, fprob, binomial_high, binomial_low, \
@@ -62,7 +62,7 @@ def std_(x, axis=None):
             result.append(sqrt(sum(d**2)/(len(x)-1)))
         return result
     else:
-        raise ValueError, "axis out of bounds"
+        raise ValueError("axis out of bounds")
     
 # tested only by std
 def var(x, axis=None):
@@ -100,7 +100,7 @@ def std(x, axis=None):
     """
     try:
         sample_variance = var(x, axis=axis)
-    except IndexError, e: #just to avoid breaking the old test code
+    except IndexError as e: #just to avoid breaking the old test code
         raise IndexOrValueError(e)
     return sqrt(sample_variance)
 
@@ -122,7 +122,7 @@ def median(m, axis=None):
         for row in range(rows):
             median_vals.append(_median(m[row,:]))
     else:
-        raise ValueError, "axis(=%s) out of bounds" % axis
+        raise ValueError("axis(=%s) out of bounds" % axis)
 
     return array(median_vals)
 
@@ -170,12 +170,11 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         return (0, 1)
     #raise error if any counts were negative
     if min(cells) < 0:
-        raise ValueError, \
-        "G_2_by_2 got negative cell counts(s): must all be >= 0."
+        raise ValueError("G_2_by_2 got negative cell counts(s): must all be >= 0.")
     
     G = 0
     #Add x ln x for items, adding zero for items whose counts are zero
-    for i in filter(None, cells):
+    for i in [_f for _f in cells if _f]:
         G += i * log(i)
     #Find totals for rows and cols
     ab = a + b
@@ -188,7 +187,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     if min(rows_cols) == 0:
         return (0, 1)
     #Subtract x ln x for rows and cols
-    for i in filter(None, rows_cols):
+    for i in [_f for _f in rows_cols if _f]:
         G -= i * log(i)
     #Add x ln x for table
     G += n * log(n)
@@ -285,17 +284,15 @@ def G_fit(obs, exp, williams=1):
     """
     k = len(obs)
     if k != len(exp):
-        raise ValueError, "G_fit requires two lists of equal length."
+        raise ValueError("G_fit requires two lists of equal length.")
     G = 0
     n = 0
     
     for o, e in zip(obs, exp):
         if o < 0:
-            raise ValueError, \
-            "G_fit requires all observed values to be positive."
+            raise ValueError("G_fit requires all observed values to be positive.")
         if e <= 0:
-            raise ZeroExpectedError, \
-            "G_fit requires all expected values to be positive."
+            raise ZeroExpectedError("G_fit requires all expected values to be positive.")
         if o:   #if o is zero, o * log(o/e) must be zero as well.
             G += o * log(o/e)
             n += o
@@ -345,7 +342,7 @@ def chi_square_from_Dict2D(data):
     elif num_cols == 1:
         df = num_rows - 1
     elif num_rows == 0 or num_cols == 0:
-        raise ValueError, "data matrix must have data"
+        raise ValueError("data matrix must have data")
     else:
         df = (len(data) - 1) * (len([col for col in data.Cols]) - 1)
     
@@ -363,7 +360,7 @@ def likelihoods(d_given_h, priors):
     #check that the lists of Pr(D|H_i) and priors are equal
     length = len(d_given_h)
     if length != len(priors):
-        raise ValueError, "Lists not equal lengths."
+        raise ValueError("Lists not equal lengths.")
     #find weighted sum of Pr(H_i) * Pr(D|H_i)
     wt_sum = 0
     for d, p in zip(d_given_h, priors):
@@ -382,7 +379,7 @@ def posteriors(likelihoods, priors):
     """
     #Check that there is a prior for each likelihood
     if len(likelihoods) != len(priors):
-        raise ValueError, "Lists not equal lengths."
+        raise ValueError("Lists not equal lengths.")
     #Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors)]
 
@@ -412,7 +409,7 @@ def bayes_updates(ds_given_h, priors = None):
                     break
             if not all_the_same:    #probabilities won't change
                 if len(d) != length:
-                    raise ValueError, "bayes_updates requires equal-length lists."
+                    raise ValueError("bayes_updates requires equal-length lists.")
                 liks = likelihoods(d, priors)
                 pr = posteriors(liks, priors)
                 priors = pr
@@ -438,7 +435,7 @@ def t_paired(a,b, tails=None, exp_diff=0):
     """
     n = len(a)
     if n != len(b):
-        raise ValueError, 'Unequal length lists in ttest_paired.'
+        raise ValueError('Unequal length lists in ttest_paired.')
     try:
         diffs = array(a) - array(b)
         return t_one_sample(diffs, popmean=exp_diff, tails=tails)
@@ -549,7 +546,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
                 prob = t_tailed_prob(t, df, tails)
                 result = (t, prob)
     except (ZeroDivisionError, ValueError, AttributeError, TypeError,
-            FloatingPointError), e:
+            FloatingPointError) as e:
         #invalidate if the sample sizes are wrong, the values aren't numeric or
         #aren't present, etc.
         result = (None, None)
@@ -796,8 +793,8 @@ def spearman(x_items, y_items):
 
 def _get_rank(data):
     """Ranks the elements of a list. Used in Spearman correlation."""
-    indices = range(len(data))
-    ranks = range(1,len(data)+1)
+    indices = list(range(len(data)))
+    ranks = list(range(1,len(data)+1))
     indices.sort(key=lambda index:data[index])
     ranks.sort(key=lambda index:indices[index-1])
     data_len = len(data)
@@ -1021,7 +1018,7 @@ def regress_R2(x, y):
     fourth edition. 1999
     """
     slope, intercept = regress(x,y)
-    coords = zip(x, y)
+    coords = list(zip(x, y))
     Sx = Sy = Syy = SXY =  0.0
     n = float(len(y))
     for x, y in coords:
@@ -1037,7 +1034,7 @@ def regress_R2(x, y):
 def regress_residuals(x, y):
     """reports the residual (error) for each point from the linear regression"""
     slope, intercept = regress(x, y)
-    coords = zip(x, y)
+    coords = list(zip(x, y))
     residuals = []
     for x, y in coords:
         e = y - (slope * x) - intercept
@@ -1169,7 +1166,7 @@ def fisher(probs):
     """
     try:
         return chi_high(-2 * sum(map(log, probs)), 2 * len(probs))
-    except OverflowError, e:
+    except OverflowError as e:
         return 0.0 
 
 def f_value(a,b):
@@ -1184,7 +1181,7 @@ def f_value(a,b):
     variances. 
     """
     if not any(a) or not any(b) or len(a) <= 1 or len(b) <= 1:
-        raise ValueError, "Vectors should contain more than 1 element"
+        raise ValueError("Vectors should contain more than 1 element")
     F = var(a)/var(b)
     dfn = len(a)-1
     dfd = len(b)-1
@@ -1319,14 +1316,14 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     # translation from R 2.4
     num_x = len(x)
     num_y = None
-    x = zip(x, zeros(len(x), int))
+    x = list(zip(x, zeros(len(x), int)))
     lo = ["less", "lo", "low", "lower", "l", "lt"]
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
     if y is not None: # in anticipation of actually implementing the 1-sample cases
         num_y = len(y)
-        y = zip(y, ones(len(y), int))
+        y = list(zip(y, ones(len(y), int)))
         n = num_x * num_y / (num_x + num_y)
         combined = x + y
         if len(set(combined)) < num_x + num_y:
@@ -1351,7 +1348,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
         elif alt in hi:
             stat = cumsum.max()
         else:
-            raise RuntimeError, "Unknown alt: %s" % alt
+            raise RuntimeError("Unknown alt: %s" % alt)
         if exact and alt in two and not ties:
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:
@@ -1424,8 +1421,8 @@ def mw_test(x, y):
     num_x = len(x)
     num_y = len(y)
     
-    x = zip(x, zeros(len(x), int), zeros(len(x), int))
-    y = zip(y, ones(len(y), int), zeros(len(y), int))
+    x = list(zip(x, zeros(len(x), int), zeros(len(x), int)))
+    y = list(zip(y, ones(len(y), int), zeros(len(y), int)))
     combined = x+y
     combined = array(combined, dtype=[('stat', float), ('sample', int),
                                       ('rank', float)])
@@ -1693,7 +1690,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
     #calc for randomized matrices
     count_more_extreme = 0
     stats = []
-    indices = range(len(matrix))
+    indices = list(range(len(matrix)))
     for k in range(n):
         # shuffle the order of indices, and use those to permute the matrix
         permuted_matrix = permute_2d(matrix,permutation(indices))

@@ -8,7 +8,7 @@ citation is "Global Optimization of Statistical Functions with Simulated
 Annealing," Goffe, Ferrier and Rogers, Journal of Econometrics, vol. 60, no. 1/2,
 Jan./Feb. 1994, pp. 65-100.
 """
-from __future__ import division
+
 import numpy
 import random
 from collections import deque
@@ -29,7 +29,7 @@ class AnnealingSchedule(object):
     
     def __init__(self, temp_reduction, initial_temp, temp_iterations, step_cycles):
         if initial_temp < 0.0 :
-            raise ValueError, "Initial temperature not +ve"
+            raise ValueError("Initial temperature not +ve")
         self.T = self.initial_temp = initial_temp
         self.temp_reduction = temp_reduction
         self.temp_iterations = temp_iterations

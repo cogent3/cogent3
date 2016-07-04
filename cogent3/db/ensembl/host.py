@@ -116,8 +116,8 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
         account = get_ensembl_account(release=release)
     
     if DEBUG:
-        print "Connection To:", account
-        print "Selecting For:", species, db_type, release
+        print("Connection To:", account)
+        print("Selecting For:", species, db_type, release)
     
     server = DbConnection(account, db_name='PARENT')
     cursor = server.cursor()
@@ -126,7 +126,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
         pattern = make_db_name_pattern(species, db_type, release)
         show = "%s LIKE %s" % (show, pattern)
     if DEBUG:
-        print show
+        print(show)
     cursor.execute(show)
     rows = cursor.fetchall()
     dbs = []
@@ -140,7 +140,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
                 dbs.append(name)
         except (IndexError, RuntimeError):
             if DEBUG:
-                print "FAIL:", row[0]
+                print("FAIL:", row[0])
             continue
     return dbs
 
@@ -154,5 +154,5 @@ def get_latest_release(account = None):
 
 if __name__ == "__main__":
     eaccount = get_ensembl_account(release='48')
-    print get_db_name(account=eaccount, release="48", db_type='compara')
-    print get_latest_release()
+    print(get_db_name(account=eaccount, release="48", db_type='compara'))
+    print(get_latest_release())

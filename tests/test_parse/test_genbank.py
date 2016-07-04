@@ -427,12 +427,12 @@ if __name__ == '__main__':
         filename = argv[2]
         lines = open(filename)
         for i in indent_splitter(lines):
-            print '******'
-            print i[0]
+            print('******')
+            print(i[0])
             for j in indent_splitter(i[1:]):
-                print '?????'
+                print('?????')
                 for line in j:
-                    print line
+                    print(line)
     else:
         main()
     

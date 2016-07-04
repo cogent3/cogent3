@@ -43,7 +43,6 @@ are probably a map and its corresponding link).
 from cogent3.parse.record import MappedRecord, FieldWrapper, DelimitedSplitter,\
     list_adder, list_extender, int_setter, LineOrientedConstructor
 from cogent3.parse.record_finder import LabeledRecordFinder
-from string import maketrans, strip
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -53,6 +52,10 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
+
+maketrans = str.maketrans
+strip = str.strip
+rstrip = str.rstrip
 
 def ll_start(line):
     """Returns True if line looks like the start of a LocusLink record."""
@@ -139,7 +142,7 @@ def _read_contig(line):
     return MappedRecord(contig_wrapper(line))
 
 _ll_multi = dict.fromkeys('RELL NG NR NM NC NP PRODUCT TRANSVAR ASSEMBLY CONTIG XG XR EVID XM XP CDD ACCNUM TYPE PROT PREFERRED_PRODUCT ALIAS_SYMBOL ALIAS_PROT PHENOTYPE PHENOTYPE_ID SUMMARY UNIGENE OMIM CHR MAP MAPLINK STS COMP ECNUM BUTTON LINK DB_DESCR DB_LINK PMID GRIF SUMFUNC GO EXTANNOT'.split())
-for i in _ll_multi.keys():
+for i in list(_ll_multi.keys()):
     _ll_multi[i] = []
 
 class LocusLink(MappedRecord):
@@ -260,4 +263,4 @@ if __name__ == '__main__':
     filename = argv[1]
     count = 0
     for record in LocusLinkParser(open(filename)):
-        print record
+        print(record)

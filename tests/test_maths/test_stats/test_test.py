@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for statistical tests and utility functions.
 """
 from cogent3.util.unit_test import TestCase, main
@@ -28,7 +27,7 @@ __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
                "Sandra Smit", "Daniel McDonald", "Jai Ram Rideout",
                "Michael Dwan"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -213,7 +212,6 @@ class TestsTests(TestCase):
         y = [2.28,2.43]
         exp = (8.761682243E-05, -5.341209112E-01)
         self.assertFloatEqual(regress(x,y),exp,0.001)
- 
 
     def test_regress_origin(self):
         """regression slope constrained through origin should match Excel"""
@@ -226,7 +224,6 @@ class TestsTests(TestCase):
         y = [2.28,2.43]
         exp = (7.1428649481939822e-05, 0)
         self.assertFloatEqual(regress_origin(x,y),exp,0.001)
- 
 
     def test_regress_R2(self):
         """regress_R2 returns the R^2 value of a regression"""
@@ -573,9 +570,9 @@ class StatTests(TestsHelper):
         """t_paired should allow a specific difference to be passed"""
         x, y = self.x, self.y
         #difference is 0.2, so test should be non-significant if 0.2 passed
-        self.failIf(t_paired(y, x, exp_diff=0.2)[0] > 1e-10)
+        self.assertFalse(t_paired(y, x, exp_diff=0.2)[0] > 1e-10)
         #same, except that reversing list order reverses sign of difference
-        self.failIf(t_paired(x, y, exp_diff=-0.2)[0] > 1e-10)
+        self.assertFalse(t_paired(x, y, exp_diff=-0.2)[0] > 1e-10)
         #check that there's no significant difference from the true mean
         self.assertFloatEqual(
             t_paired(y, x,exp_diff=0.2)[1], 1, 1e-4)
@@ -645,8 +642,8 @@ class StatTests(TestsHelper):
 
     def test_t_one_sample(self):
         """t_one_sample results should match those from R"""
-        x = array(range(-5,5))
-        y = array(range(-1,10))
+        x = array(list(range(-5,5)))
+        y = array(list(range(-1,10)))
         self.assertFloatEqualAbs(t_one_sample(x), (-0.5222, 0.6141), 1e-4)
         self.assertFloatEqualAbs(t_one_sample(y), (4, 0.002518), 1e-4)
         #do some one-tailed tests as well
@@ -1360,8 +1357,8 @@ class Ftest(TestCase):
          0.052247357, -0.042954937,  0.031842104,  0.094130522, -0.024828465,
          0.011320453, -0.016195062,  0.015631245, -0.050335598, -0.031658335]
 
-        a,b,c,d = map(array,[a,b,c,d])
-        self.assertEqual(map(len,[a,b,c,d]), [50, 50, 60, 30])
+        a,b,c,d = list(map(array,[a,b,c,d]))
+        self.assertEqual(list(map(len,[a,b,c,d])), [50, 50, 60, 30])
         
         #allowed error. This big, because results from R 
         #are rounded at 4 decimals
@@ -1400,9 +1397,9 @@ class Ftest(TestCase):
 
 class MannWhitneyTests(TestCase):
     """check accuracy of Mann-Whitney implementation"""
-    x = map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
-            " 126 128 128 128".split())
-    y = map(int, "100 105 107 107 108 111 116 120 121 123".split())
+    x = list(map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
+            " 126 128 128 128".split()))
+    y = list(map(int, "100 105 107 107 108 111 116 120 121 123".split()))
     
     def test_mw_test(self):
         """mann-whitney test results should match Sokal & Rohlf"""
@@ -1661,3 +1658,5 @@ class TestDistMatrixPermutationTest(TestCase):
 #execute tests if called from command line
 if __name__ == '__main__':
     main()
+
+

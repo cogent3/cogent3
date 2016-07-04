@@ -35,7 +35,7 @@ _booleans = ('autoScale', 'alwaysZero', 'gridDefault', 'yLineOnOff')
 
 valid_values = dict(autoScale=['on', 'off'], graphType=['bar', 'points'],
                 windowingFunction=['maximum', 'mean', 'minimum'],
-                smoothingWindow=['off']+map(str,range(2,17)))
+                smoothingWindow=['off']+list(map(str,list(range(2,17)))))
 
 def raise_invalid_vals(key, val):
     """raises RuntimeError on invalid values for keys """

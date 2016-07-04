@@ -3,7 +3,7 @@
 
 Data in from the European rRNA database in distribution format.
 """
-from string import strip, maketrans
+
 from cogent3.parse.record_finder import DelimitedRecordFinder
 from cogent3.parse.record import RecordError
 from cogent3.core.sequence import Sequence, RnaSequence
@@ -18,6 +18,10 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
+
+strip = str.strip
+maketrans = str.maketrans
+
 
 RdbFinder = DelimitedRecordFinder('//')
 
@@ -77,8 +81,8 @@ def MinimalRdbParser(infile,strict=True):
         # if there is no line that starts with 'seq:' throw error or skip
         if not index:
             if strict:
-                raise RecordError, "Found Rdb record without seq label "\
-                    + "line: %s"%rec[0]
+                raise RecordError("Found Rdb record without seq label "\
+                    + "line: %s"%rec[0])
             else:
                 continue
             
@@ -90,8 +94,8 @@ def MinimalRdbParser(infile,strict=True):
         #if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError, "Found Rdb record without sequences: %s"\
-                    %rec[0]
+                raise RecordError("Found Rdb record without sequences: %s"\
+                    %rec[0])
             else:
                 continue
 
@@ -150,5 +154,5 @@ if __name__ == '__main__':
     from sys import argv
     filename = argv[1]
     for sequence in RdbParser(open(filename)):
-        print sequence.Info.Species
-        print sequence
+        print(sequence.Info.Species)
+        print(sequence)

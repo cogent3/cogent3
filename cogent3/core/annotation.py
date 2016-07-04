@@ -1,4 +1,4 @@
-from location import as_map, Map
+from .location import as_map, Map
 import numpy
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -149,7 +149,7 @@ class _Annotatable(object):
         for annotation in self.getAnnotationsMatching(annotation_type, Name):
             try:
                 seq = self[annotation.map]
-            except ValueError, msg:
+            except ValueError as msg:
                 if ignore_partial:
                     continue
                 raise msg

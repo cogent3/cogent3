@@ -45,7 +45,7 @@ def _simple_init(parent, num):
 
 def _simple_select(population, scores):
     """Returns a tuple: (best_score, best_child)"""
-    scored = zip(scores, population)
+    scored = list(zip(scores, population))
     scored.sort()
     return scored[0]
 

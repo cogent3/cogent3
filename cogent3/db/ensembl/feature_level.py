@@ -34,10 +34,10 @@ class FeatureCoordLevelsCache(object):
         """print table format"""
         header = ['Type', 'Levels']
         result = []
-        for species in self._species_feature_levels.keys():
+        for species in list(self._species_feature_levels.keys()):
             feature_levels = self._species_feature_levels[species]
             collate = []
-            for feature in feature_levels.keys():
+            for feature in list(feature_levels.keys()):
                 collate.append([feature, feature_levels[feature].levels])
             t = Table(header, collate, title=species)
             result.append(str(t))
@@ -118,7 +118,7 @@ class FeatureCoordLevels(FeatureCoordLevelsCache):
         else:
             collate = []
             feature_levels = self._species_feature_levels[self.Species]
-            for feature in feature_levels.keys():
+            for feature in list(feature_levels.keys()):
                 record = feature_levels[feature]
                 collate.append([feature, ', '.join(record.levels)])
             result = str(Table(header, collate, title=self.Species))

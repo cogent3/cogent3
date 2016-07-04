@@ -70,7 +70,7 @@ def DialignParser(lines, seq_maker=None, get_scores=False):
             seqs[name] = [seq]
     
     # concat sequence blocks
-    for name, seq_segs in seqs.items():
+    for name, seq_segs in list(seqs.items()):
         seq = "".join(seq_segs)
         yield name, seq_maker(seq, Name=name)
     

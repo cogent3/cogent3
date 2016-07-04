@@ -2,7 +2,7 @@
 """Leaf and Edge classes that can calculate their likelihoods.
 Each leaf holds a sequence.  Used by a likelihood function."""
 
-from __future__ import division
+
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 from cogent3.util.parallel import MPI
 from cogent3 import LoadTable
@@ -23,9 +23,10 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 try:
-    pyrex = importVersionedModule('_likelihood_tree', globals(), 
-            (2, 1), "pure Python/NumPy likelihoodihood tree")
-except ExpectedImportError:
+    import _likelihood_tree as pyrex
+    #pyrex = importVersionedModule('_likelihood_tree', globals(), 
+            #(2, 1), "pure Python/NumPy likelihoodihood tree")
+except ImportError:
     pyrex = None
         
 class _LikelihoodTreeEdge(object):
@@ -59,7 +60,7 @@ class _LikelihoodTreeEdge(object):
                                 u, len(c.uniq), c.uniq[-1], align_index)
                     a.append(u)
                 assignments.append(a)
-        (uniq, counts, self.index) = _indexed(zip(*assignments))
+        (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
         
         # extra column for gap
         uniq.append(tuple([len(c.uniq)-1 for c in children]))
@@ -77,7 +78,7 @@ class _LikelihoodTreeEdge(object):
         self.counts = numpy.array(counts, self.float_type)
         
         # For product of child likelihoods
-        self._indexed_children = zip(self.indexes, children)
+        self._indexed_children = list(zip(self.indexes, children))
         self.shape = [len(self.uniq), M]
 
         # Derive per-column degree of ambiguity from children's
@@ -156,7 +157,7 @@ class _LikelihoodTreeEdge(object):
         
         if return_table:
             motifs = self.getSitePatterns(unambig)
-            rows = zip(motifs, observed, expected)
+            rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row:(-row[1], row[0]))
             table = LoadTable(header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
             return (G, table)
@@ -293,11 +294,11 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
     try:
         likelihoods = alphabet.fromAmbigToLikelihoods(
             uniq_motifs, FLOAT_TYPE)
-    except alphabet.AlphabetError, detail:
+    except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
-        raise ValueError, '%s at %s:%s not in alphabet' % (
-                repr(motif), seq_name, posn)
+        raise ValueError('%s at %s:%s not in alphabet' % (
+                repr(motif), seq_name, posn))
     
     return LikelihoodTreeLeaf(uniq_motifs, likelihoods, 
                 counts, index, seq_name, alphabet, sequence)
@@ -327,7 +328,7 @@ class LikelihoodTreeLeaf(object):
         return len(self.index)
         
     def __getitem__(self, index):
-        cols = range(*index.indices(len(self.index)))
+        cols = list(range(*index.indices(len(self.index))))
         return self.selectColumns(cols)
         
     def getMotifCounts(self, include_ambiguity=False):

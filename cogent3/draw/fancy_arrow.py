@@ -71,13 +71,13 @@ class FancyArrow(Polygon):
                 elif shape == 'full':
                     coords=concatenate([left_half_arrow,right_half_arrow[::-1]])
                 else:
-                    raise ValueError, "Got unknown shape: %s" % shape
+                    raise ValueError("Got unknown shape: %s" % shape)
             cx = float(dx)/distance
             sx = float(dy)/distance
             M = array([[cx, sx],[-sx,cx]])
             verts = dot(coords, M) + (x+dx, y+dy)
         
-        Polygon.__init__(self, map(tuple, verts), **kwargs)
+        Polygon.__init__(self, list(map(tuple, verts)), **kwargs)
 
 def arrow(axis, x, y, dx, dy, **kwargs):
     """Draws arrow on specified axis from (x,y) to (x+dx,y+dy)."""

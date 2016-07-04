@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import division
 
-import rlg2mpl
+
+from . import rlg2mpl
 import matplotlib.colors
 import matplotlib.ticker
 import matplotlib.transforms
@@ -158,8 +158,8 @@ class CompositeTrack(Track):
     """Overlayed tracks"""
     def __init__(self, tag, tracks, label=None):
         if label is None:
-            labels = dict([(track.label, True)
-                    for track in tracks]).keys()
+            labels = list(dict([(track.label, True)
+                    for track in tracks]).keys())
             if len(labels) == 1:
                 label = labels[0]
             else:
@@ -271,7 +271,7 @@ class _SeqRepresentation(object):
 
 class _MultiShapeSeqRepresentation(_SeqRepresentation):
     def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
-        motifs = range(len(self.alphabet))
+        motifs = list(range(len(self.alphabet)))
         values = []
         for motif in motifs:
             positions = numpy.flatnonzero(sequence==motif)
@@ -750,7 +750,7 @@ class DisplayPolicy(object):
         
         feature_styles = self._makeFeatureStyles()
         # yuk
-        for style in feature_styles.values():
+        for style in list(feature_styles.values()):
             if style.range_required:
                 style.height = max(style.height, min_graph_height)
             else:
@@ -786,7 +786,7 @@ class DisplayPolicy(object):
         self._setattrs(**kw)
     
     def _setattrs(self, **kw):                 
-        for (n,v) in kw.items():
+        for (n,v) in list(kw.items()):
             if not hasattr(self, n):
                 warnings.warn('surprising kwarg "%s"' % n, stacklevel=3)
             if n.endswith('font'):
@@ -830,7 +830,7 @@ class DisplayPolicy(object):
         sorted_tracks = []
         for track_tag in track_order:
             annots = []
-            levels = tracks[track_tag].keys()
+            levels = list(tracks[track_tag].keys())
             levels.sort()
             for level in levels:
                 annots.extend(tracks[track_tag][level])

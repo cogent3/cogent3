@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Retrieve information from web databases.
 """
-from urllib import urlopen, urlretrieve, quote_plus
+from urllib.request import urlopen, urlretrieve
+from urllib.parse import quote_plus
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -29,7 +30,7 @@ class UrlGetter(object):
         to_get = self.__dict__.copy()
         to_get.update(self._temp_args)
         return self.BaseUrl + self.FieldDelimiter.join(\
-            [quote_plus(k)+self.KeyValDelimiter+quote_plus(str(v)) for k, v in to_get.items()\
+            [quote_plus(k)+self.KeyValDelimiter+quote_plus(str(v)) for k, v in list(to_get.items())\
             if k in self.PrintedFields])
 
     def open(self, **kwargs):
@@ -68,11 +69,11 @@ def expand_slice(s):
     end_index = last_nondigit_index(end)
     prefix = start[:start_index]
     if prefix != end[:end_index]:
-        raise TypeError, "Range start and end don't have same prefix"
+        raise TypeError("Range start and end don't have same prefix")
     if not step:
         step = 1
-    range_start = long(start[start_index:])
-    range_end = long(end[end_index:])
+    range_start = int(start[start_index:])
+    range_end = int(end[end_index:])
     field_width = str(len(start) - start_index)
     format_string = '%'+field_width+'.'+field_width+'d'
     return [prefix + format_string % i \

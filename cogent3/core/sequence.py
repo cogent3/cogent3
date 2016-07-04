@@ -11,9 +11,9 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
-from __future__ import division
+
 from functools import total_ordering
-from annotation import Map, Feature, _Annotatable
+from .annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import keep_chars, for_seq, per_shortest, \
     per_longest
 from cogent3.util.misc import DistanceFromMatrix
@@ -580,7 +580,7 @@ class Sequence(_Annotatable, SequenceI):
             - shadow: whether to mask the annotated regions, or everything but
               the annotated regions"""
         if mask_char is None:
-            ambigs = [(len(v), c) for c,v in self.MolType.Ambiguities.items()]
+            ambigs = [(len(v), c) for c,v in list(self.MolType.Ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
         assert mask_char in self.MolType, 'Invalid mask_char %s' % mask_char
@@ -646,8 +646,8 @@ class Sequence(_Annotatable, SequenceI):
         """Adds two sequences (other can be a string as well)."""
         if hasattr(other, 'MolType'):
             if self.MolType != other.MolType:
-                raise ValueError, "MolTypes don't match: (%s,%s)" % \
-                    (self.MolType, other.MolType)
+                raise ValueError("MolTypes don't match: (%s,%s)" % \
+                    (self.MolType, other.MolType))
             other_seq = other._seq
         else:
             other_seq = other
@@ -713,7 +713,7 @@ class Sequence(_Annotatable, SequenceI):
         end = [end, len(self)-window+1][end is None]
         end = min(len(self)-window+1, end)
         if start < end and len(self)-end >= window-1:
-            for pos in xrange(start, end, step):
+            for pos in range(start, end, step):
                 yield self[pos:pos+window]
     
     def getInMotifSize(self, motif_length=1, log_warnings=True):
@@ -781,7 +781,7 @@ class NucleicAcidSequence(Sequence):
         # codon_alphabet is being deprecated in favor of genetic codes.
         if gc is None:
             gc = DEFAULT_GENETIC_CODE
-        elif isinstance(gc, (int, basestring)):
+        elif isinstance(gc, (int, str)):
             gc = GeneticCodes[gc]
         return gc
     
@@ -1260,7 +1260,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def stripBadAndGaps(self):
         """Returns copy of self with bad chars and gaps excised."""
-        gap_indices = map(self.Alphabet.index, self.MolType.Gaps)
+        gap_indices = list(map(self.Alphabet.index, self.MolType.Gaps))
         valid_indices = self._data < len(self.Alphabet)
         for i in gap_indices:
             valid_indices -= self._data == i
@@ -1283,7 +1283,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def gapVector(self):
         """Returns list of bool containing whether each pos is a gap."""
-        return map(bool, self.gapArray())
+        return list(map(bool, self.gapArray()))
 
     def gapList(self):
         """Returns list of gap indices."""
@@ -1294,7 +1294,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         nongaps = logical_not(self.gapArray())
         indices = arange(len(self)).compress(nongaps)
         new_indices = arange(len(indices))
-        return dict(zip(new_indices, indices)), dict(zip(indices, new_indices))
+        return dict(list(zip(new_indices, indices))), dict(list(zip(indices, new_indices)))
 
     def firstGap(self):
         """Returns position of first gap, or None."""

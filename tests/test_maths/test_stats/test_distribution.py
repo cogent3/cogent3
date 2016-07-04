@@ -237,7 +237,7 @@ class DistributionsTests(TestCase):
             (180, 318):2.436995e-17,
             (180, 1024):8.266457e-233,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_low(*key), value)
             
     def test_poisson_high(self):
@@ -259,7 +259,7 @@ class DistributionsTests(TestCase):
             (180, 318):1,
             (180, 1024):1,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_high(*key), value)
 
     def test_poisson_exact(self):
@@ -279,7 +279,7 @@ class DistributionsTests(TestCase):
             (180, 318):1.067247e-17,
             (180, 1024):6.815085e-233,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_exact(*key), value)
 
     def test_binomial_high(self):
@@ -298,7 +298,7 @@ class DistributionsTests(TestCase):
         (-1, 3, 0.1): 1,            #if successes less than 0, return 1
         (-0.5, 3, 0.1):1,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_high(*key), value, 1e-4)
         #should reject if successes > trials or successes < -1
         self.assertRaises(ValueError, binomial_high, 7, 5, 0.5)
@@ -318,12 +318,12 @@ class DistributionsTests(TestCase):
         (9, 27, 0.0003): 1,
         (1032, 2050, 0.5): 0.6297845,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_low(*key), value, 1e-4)
            
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
-        expected = map(float, "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split())
+        expected = list(map(float, "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split()))
 
         for i in range(len(expected)):
             self.assertFloatEqual(binomial_exact(i, 10, 0.3), expected[i])
@@ -342,7 +342,7 @@ class DistributionsTests(TestCase):
         (9, 27, 0.0003): 9.175389e-26,
         (1032, 2050, 0.5): 0.01679804,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_floats(self):
@@ -358,7 +358,7 @@ class DistributionsTests(TestCase):
         (.5,5,.3):(0.16807,0.36015),
         }
         
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < binomial_exact(*key) < max_val
             #self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
@@ -408,7 +408,7 @@ class DistributionsTests(TestCase):
         (1032, 2050, 0.5): 1,
         (1032, 2050, 0.1): 1,
         }
-        e = expected.items()
+        e = list(expected.items())
         e.sort()
         for (key, value) in e:
             self.assertFloatEqualRel(f_high(*key), value)
@@ -431,7 +431,7 @@ class DistributionsTests(TestCase):
         (1032, 2050, 0.5): 7.032663e-35,
         (1032, 2050, 0.1): 1.70204e-278,
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(f_low(*key), value)
 
     def test_fprob(self):

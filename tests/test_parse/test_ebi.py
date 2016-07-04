@@ -30,7 +30,7 @@ __status__ = "Development"
 
 def item_empty_filter(d):
     """return a dict with only nonempty values"""
-    pairs = [(k,v) for (k,v) in d.iteritems() if v]
+    pairs = [(k,v) for (k,v) in d.items() if v]
     return dict(pairs)
                     
 class EbiTests(TestCase):
@@ -44,7 +44,7 @@ class EbiTests(TestCase):
             {1:0, 2:1, 3:'', 4:[], 5:False, 6:{}}]
         expects = [
             {2:1}]
-        self.assertEqual(map(item_empty_filter, inputs), expects)
+        self.assertEqual(list(map(item_empty_filter, inputs)), expects)
     def test_rstrip_(self):
         """rstrip_ should generate the expected function"""
         test = ' aaa;  '
@@ -135,7 +135,7 @@ class EbiTests(TestCase):
 
         #test sanity
         test_dict = dict(sorted_items)
-        self.assertEqual(pairs_to_dict(test_dict.items()),
+        self.assertEqual(pairs_to_dict(list(test_dict.items())),
                 test_dict)
 
     def test_linecode_maker(self):
@@ -147,8 +147,8 @@ class EbiTests(TestCase):
         expected_linecodes =[
                 'AA', 'BB', 'CC C', 'DD dd.']
         #pprint(map(linecode_maker, tests)) 
-        self.assertEqual(map(linecode_maker, tests), 
-                zip(expected_linecodes, tests))
+        self.assertEqual(list(map(linecode_maker, tests)), 
+                list(zip(expected_linecodes, tests)))
 
     def test_labeloff(self):
         """labeloff: should return expected lines"""
@@ -247,7 +247,7 @@ class EbiTests(TestCase):
         lines =['ID   id.', 'RN   rn.', 'RR   invalid', 'RN  rn.']
         labels = ['ID', 'REF', 'RR', 'RN  rn.']
 
-        self.assertEqual(map(f, lines), zip(labels, lines))
+        self.assertEqual(list(map(f, lines)), list(zip(labels, lines)))
 
     def test_parse_header(lines):
         pass
@@ -369,7 +369,7 @@ class RootParsersKnownValues(TestCase):
             {'OfficalName': 'AAA', 'Synonyms': []},
             {'OfficalName': '', 'Synonyms': []}]
         #pprint(map(de_itemparser, inputs))
-        self.assertEqual(map(de_itemparser, inputs), expects)
+        self.assertEqual(list(map(de_itemparser, inputs)), expects)
 
     def test_pr_parser(self):
         """pr_parser should return expected list"""
@@ -387,7 +387,7 @@ class RootParsersKnownValues(TestCase):
             "DE   A (Fragment).",
             "DE   A (aa)."]
         filtered_dicts = [item_empty_filter(de_parser([e])) for e in inputs]
-        self.assertEqual(map(len, filtered_dicts), [4, 3, 2, 2, 2])
+        self.assertEqual(list(map(len, filtered_dicts)), [4, 3, 2, 2, 2])
         
     def test_os_parser(self):   
         """os_parser should return expected list"""
@@ -463,13 +463,13 @@ class FT_Tests(TestCase):
             ('PROPEP', '?25', 48, '/FTId=PRO_021449'),
             ('VARIANT', 214, 214, 'V -> I. /FTId=VAR_009122')]
         #pprint(map(ft_basic_itemparser, inputs))
-        self.assertEqual(map(ft_basic_itemparser, inputs), expects)
+        self.assertEqual(list(map(ft_basic_itemparser, inputs)), expects)
     
     def test_try_int(self):
         """try_int: known values"""
         inputs = ['9', '0', '-3', '2.3', '<9', '>9', '?', '?35', '']
         expects = [9,   0,   -3,  '2.3', '<9', '>9', '?', '?35', '']
-        self.assertEqual(map(try_int, inputs), expects)
+        self.assertEqual(list(map(try_int, inputs)), expects)
 
     def test_ft_id_parser(self):
         """ft_id_parser: known values"""
@@ -487,7 +487,7 @@ class FT_Tests(TestCase):
             {'Description': 'E -> R (tumor)', 'Id': 'VAR_002343'}]
 
         #pprint(map(ft_id_parser, inputs))
-        self.assertEqual(map(ft_id_parser, inputs), expects)
+        self.assertEqual(list(map(ft_id_parser, inputs)), expects)
 
     def test_ft_mutation_parser(self):
         """ft_mutation_parser: known values"""
@@ -507,7 +507,7 @@ class FT_Tests(TestCase):
             {'MutateFrom': 'missing ', 'Comment': 'tumor', 'MutateTo': ''}]
 
         #pprint(map(ft_mutation_parser, inputs))
-        self.assertEqual(map(ft_mutation_parser, inputs), expects)
+        self.assertEqual(list(map(ft_mutation_parser, inputs)), expects)
     def test_ft_mutation_parser_raise(self):
         """ft_mutation_parser: raise ValueError"""
         pass
@@ -524,7 +524,7 @@ class FT_Tests(TestCase):
              'MutateFrom': 'Missing', 'MutateTo': ''}]
         
         #pprint(map(ft_mutagen_parser, inputs))
-        self.assertEqual(map(ft_mutagen_parser, inputs), expects)
+        self.assertEqual(list(map(ft_mutagen_parser, inputs)), expects)
 
     def test_ft_id_mutation_parser(self):
         """ft_id_mutation_parser: known values"""
@@ -566,7 +566,7 @@ class CC_Tests(TestCase):
             ('topic2', ['first line', 'econd line']),
             ('topic3', ['not treated invalid topic format']),]
 
-        self.assertEqual(map(cc_basic_itemparser, valid_topics),
+        self.assertEqual(list(map(cc_basic_itemparser, valid_topics)),
                 expects)
 
         bad_topic = ['-!- bad_topic without colon', '    FieldError']
@@ -585,7 +585,7 @@ class CC_Tests(TestCase):
                 'IntAct': ['EBI-123485', 'EBI-89895']}),
             ('Q9VYI0:fne', {'NbExp': '1', 
                     'IntAct': ['EBI-123485', 'EBI-126770']})]]
-        self.assertEqual(map(cc_interaction_parser, inputs), expects)
+        self.assertEqual(list(map(cc_interaction_parser, inputs)), expects)
         
     def test_cc_biophysicochemical_properties_parser(self):
         """cc_biophysicochemical_properties_parser: known values"""
@@ -605,7 +605,7 @@ class CC_Tests(TestCase):
                 'Vmax': '1.604 mmol/min/mg enzyme'},
             'pH dependence': 'Optimum pH is 6.0. Active pH 4.5 to 10.5'},
         ]
-        self.assertEqual(map(f, valid_inputs), expects)
+        self.assertEqual(list(map(f, valid_inputs)), expects)
 
     def test_cc_alternative_products_parser(self):
         """cc_alternative_products_parser: know values"""
@@ -636,7 +636,7 @@ class CC_Tests(TestCase):
                           'Synonyms': ['AIRE-3', 'ai-2', 'ai-3']}]}]]
 
         #pprint(map(f,valid_inputs))
-        self.assertEqual(map(f, valid_inputs), expects)
+        self.assertEqual(list(map(f, valid_inputs)), expects)
 
     def test_cc_parser(self):
         """cc_parser: known values and raise when strict"""
@@ -728,7 +728,7 @@ class ReferenceTests(TestCase):
             {'DOI': '10.1597/1545-1569(2003)040<0632:AMMITS>2.0.CO;2',
                 'PubMed': '14577811'}]
 
-        self.assertEqual(map(rx_parser, inputs), expects)
+        self.assertEqual(list(map(rx_parser, inputs)), expects)
 
     def test_rc_parser(self):   
         """rc_parser should return expected dict"""

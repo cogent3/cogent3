@@ -53,7 +53,7 @@ def GbSeqXmlParser(doc):
         name=str(name)
         
         if record.getElementsByTagName(
-                        'GBSeq_moltype')[0].childNodes[0].nodeValue == u'9':
+                        'GBSeq_moltype')[0].childNodes[0].nodeValue == '9':
             alphabet = moltype.PROTEIN
         else:
             alphabet = moltype.DNA
@@ -95,7 +95,7 @@ def GbSeqXmlParser(doc):
             for qualifier in feature.getElementsByTagName("GBQualifier"):
                 qname = qualifier.getElementsByTagName(
                                     "GBQualifier_name")[0].childNodes[0].nodeValue
-                if qname == u'gene':
+                if qname == 'gene':
                     feature_name = qualifier.getElementsByTagName(
                                 "GBQualifier_value")[0].childNodes[0].nodeValue
             seq.addAnnotation(annotation.Feature, key, feature_name, spans)

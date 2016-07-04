@@ -25,7 +25,7 @@ def FromFilenameParser(filename, format=None, **kw):
             - format: the multiple sequence file format
     """
     format = format_from_filename(filename, format)
-    f = open(filename, 'U')
+    f = open(filename, newline=None)
     return FromFileParser(f, format, **kw)
 
 def FromFileParser(f, format, dialign_recode=False, **kw):
@@ -48,12 +48,14 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
         parser = PARSERS[format]
         source = f
     for (name, seq) in parser(source, **kw):
-        if isinstance(seq, basestring):
+        if isinstance(seq, str):
             if dialign_recode:
                 seq = seq.translate(_lc_to_wc)
             if not seq.isupper():
                 seq = seq.upper()
         yield (name, seq)
+    
+    f.close()
 
 def format_from_filename(filename, format=None):
     """Detects format based on filename."""

@@ -22,7 +22,7 @@ def _get_header_info(line):
     Get number of sequences and length of sequence
     """
     header_parts = line.split()
-    num_seqs, length = map(int, header_parts[:2])
+    num_seqs, length = list(map(int, header_parts[:2]))
     is_interleaved = len(header_parts) > 2
     return num_seqs, length, is_interleaved
 
@@ -100,7 +100,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
 
     # return joined sequences if interleaved
     if interleaved:
-        for curr_id_ix, seq_parts in seq_cache.items():
+        for curr_id_ix, seq_parts in list(seq_cache.items()):
             join_seq = ''.join(seq_parts)
 
             if len(join_seq) != seq_len:

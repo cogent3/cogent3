@@ -12,12 +12,13 @@ includes_all.
 Functions for generating combinations, permutations, or cartesian products
 of lists.
 """
-from __future__ import division
+
 from operator import add, and_, or_
 from numpy import logical_and, logical_or, logical_not
-from string import maketrans
+
 from cogent3.maths.stats.util import Freqs
 from cogent3.util.misc import identity, select
+from functools import reduce
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -28,6 +29,8 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
+maketrans = str.maketrans
+
 #standard combinatorial HOF's from Mertz
 def apply_each(functions, *args, **kwargs):
     """Returns list containing result of applying each function to args."""
@@ -35,7 +38,7 @@ def apply_each(functions, *args, **kwargs):
 
 def bools(items):
     """Returns list of booleans: reflects state of each item."""
-    return map(bool, items)
+    return list(map(bool, items))
 
 def bool_each(functions, *args, **kwargs):
     """Returns list of booleans: results of applying each function to args."""
@@ -244,37 +247,17 @@ def test_container(container):
             return False
     return result
 
-allchars = maketrans('','')
+#allchars = maketrans('','')
 
 def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
-    all_list = list(allchars)
-    for i, char in enumerate(all_list):
-        if char not in good_chars:
-            all_list[i] = default
-    return ''.join(all_list)
+    new = [c for c in map(chr, range(256)) if c not in good]
+    return str.maketrans("".join(new), default*len(new))
     
 def trans_all(bad_chars, default):
     """Returns translation table mapping all the 'bad chars' to default."""
-    all_list = list(allchars)
-    for i, char in enumerate(all_list):
-        if char in bad_chars:
-            all_list[i] = default
-    return ''.join(all_list)
+    return str.maketrans(bad_chars, default*len(bad_chars))
 
-def make_trans(frm='', to='', default=None):
-    """Like built-in maketrans, but sets all unspecified chars to default."""
-    if default is None:
-        all_list = list(allchars)
-    else:
-        if len(default) != 1:
-            raise ValueError, 'make_trans default must be single char: got %s' \
-            % default
-        all_list = [default] * 256
-    for orig, new in zip(frm, to):
-        all_list[ord(orig)] = new
-    return ''.join(all_list)
-    
 
 def find_any(words, case_sens = False):
     """Tests if any of the given words occurs in the given string.
@@ -339,7 +322,7 @@ def keep_if_more(items,x,case_sens=False):
     
     x = int(x)
     if x < 0:
-        raise IndexError, "x should be >= 0"
+        raise IndexError("x should be >= 0")
     
     if not case_sens:
         used_items = [str(item).lower() for item in items]
@@ -378,7 +361,7 @@ def keep_if_more_other(items,x,case_sens=False):
     """
     x = int(x)
     if x < 0:
-        raise IndexError, "x should be >= 0"
+        raise IndexError("x should be >= 0")
 
     if not case_sens:
         used_items = [str(item).lower() for item in items]
@@ -409,25 +392,6 @@ def exclude_if_more_other(items,x,case_sens=False):
         return not f(s)
     return apply_to
 
-'''
-def keep_chars(keep, case_sens=True):
-    """Returns a filter function f(s) that returns a filtered string.
-
-    Specifically, strips out everything in s that is not in keep.
-    This filter is case sensitive by default.
-    """
-    allchars = maketrans('', '')
-    if not case_sens:
-        low = keep.lower()
-        up = keep.upper()
-        keep = low + up
-    delchars = ''.join([c for c in allchars if c not in keep])
-    #make the filter function, capturing allchars and delchars in closure
-    def filter_function(s, a=allchars, d=delchars):
-        return s.translate(a, d)
-    #return the filter function
-    return filter_function
-'''
 
 class keep_chars(object):
     """Returns a filter object o(s): call to return a filtered string.
@@ -435,20 +399,22 @@ class keep_chars(object):
     Specifically, strips out everything in s that is not in keep.
     This filter is case sensitive by default.
     """
-    allchars = maketrans('','')
+    allchars = bytes(range(256))
     def __init__(self, keep, case_sens=True):
         """Returns a new keep_chars object, based on string keep"""
         if not case_sens:
             low = keep.lower()
             up = keep.upper()
             keep = low + up
-        self.delchars = ''.join([c for c in self.allchars if c not in keep])
+        
+        keep = keep.encode('utf-8')
+        self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
     
-    def __call__(self, s, a=None, d=None):
+    def __call__(self, s):#, a=None, d=None):
         """f(s) -> s, translates using self.allchars and self.delchars"""
-        if a is None: a = self.allchars
-        if d is None: d = self.delchars
-        return s.translate(a,d)
+        #if a is None: a = self.allchars
+        #if d is None: d = self.delchars
+        return str.translate(s,self._strip_table)
 
 def exclude_chars(exclude,case_sens=True):
     """Returns a filter function f(s) that returns a filtered string.

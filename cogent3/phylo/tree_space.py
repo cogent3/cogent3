@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+
 import numpy
 import itertools
 from cogent3.core.tree import TreeBuilder
@@ -92,7 +92,7 @@ def ancestry2tree(A, lengths, tip_names):
             params = {'length':lengths[i]}
         node = constructor(child_nodes, name, params)
         free[i] = node
-    return constructor(free.values(), 'root', {})
+    return constructor(list(free.values()), 'root', {})
 
 def grown(B, split_edge):
     """Ancestry matrix 'B' with one extra leaf added at 'split_edge'.
@@ -247,6 +247,6 @@ class TreeEvaluator(object):
         if return_all:
             result = self.results2output(results)
         else:
-            result = results.next()
+            result = next(results)
         return result
     

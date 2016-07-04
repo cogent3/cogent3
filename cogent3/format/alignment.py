@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from io import TextIOBase
 import warnings
 from cogent3.parse.record import FileFormatError
 
@@ -30,7 +31,8 @@ def save_to_filename(alignment, filename, format, **kw):
         except Exception:
             pass
         raise
-    f.close()
+    finally:
+        f.close()
 
 def write_alignment_to_file(f, alignment, format, **kw):
     format = format.lower()
@@ -39,7 +41,7 @@ def write_alignment_to_file(f, alignment, format, **kw):
     writer = WRITERS[format](f)
     writer.writealignment(alignment, **kw)
 
-class _AlignmentWriter(file):
+class _AlignmentWriter(TextIOBase):
     """A virtual class for writing sequence files."""
     
     def __init__(self, f):
@@ -64,13 +66,13 @@ class _AlignmentWriter(file):
         
         self.number_sequences = len(alignmentdict)
         # supersede the use of alignment length
-        self.align_length = len(alignmentdict[alignmentdict.keys()[0]])
+        self.align_length = len(alignmentdict[list(alignmentdict.keys())[0]])
         
         if order != [] and len(order) == len(alignmentdict):
             # not testing contents - possibly should.
             self.align_order = order
         else:
-            self.align_order = alignmentdict.keys().sort()
+            self.align_order = list(alignmentdict.keys()).sort()
     
     def slicestringinblocks(self, seqstring, altblocksize=0):
         """Return a list of string slices of specified length. No line returns.
@@ -129,7 +131,7 @@ class PhylipWriter(_AlignmentWriter):
         """
         #setup
         if not order:
-            order = alignmentdict.keys()
+            order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
         
@@ -171,7 +173,7 @@ class PamlWriter(_AlignmentWriter):
         
         #setup
         if not order:
-            order = alignmentdict.keys()
+            order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
         
@@ -198,7 +200,7 @@ class FastaWriter(_AlignmentWriter):
         """
         #setup
         if not order:
-            order = alignmentdict.keys()
+            order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
         
@@ -225,7 +227,7 @@ class GDEWriter(_AlignmentWriter):
         
         #setup
         if not order:
-            order = alignmentdict.keys()
+            order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
         

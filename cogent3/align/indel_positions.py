@@ -126,7 +126,7 @@ class POG(object):
         self.jumps = jumps
         self.child_jumps = child_jumps
         self.all_jumps = self.jumps + self.child_jumps
-        self.all_jumps.sort(key=lambda (i,j):j)
+        self.all_jumps.sort(key=lambda i_j:i_j[1])
         self.length = length
         for (i, j) in self.all_jumps:
             assert i <= j, (length, jumps, child_jumps)
@@ -201,20 +201,20 @@ class POG(object):
     
     def writeToDot(self, dot):
         pred_sets = self.asListOfPredLists()
-        print >>dot, 'digraph POG {'
+        print('digraph POG {', file=dot)
         for (i, preds) in enumerate(pred_sets):
             #print i, preds
             for pred in preds:
-                print >>dot, '  ', ('node%s -> node%s' % (pred, i))
+                print('  ', ('node%s -> node%s' % (pred, i)), file=dot)
             if i == 0:
                 label = 'START'
             elif i == len(pred_sets) - 1:
                 label = 'END'
             else:
                 label = str(i)
-            print >>dot, '  ', ('node%s' % i), '[label="%s"]' % label
-        print >>dot, '}'
-        print >>dot, ''
+            print('  ', ('node%s' % i), '[label="%s"]' % label, file=dot)
+        print('}', file=dot)
+        print('', file=dot)
 
 class LeafPOG(POG):
     """The POG for a known sequence contains no indels."""
