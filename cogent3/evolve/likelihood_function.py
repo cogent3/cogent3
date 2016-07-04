@@ -123,10 +123,10 @@ class LikelihoodFunction(ParameterController):
             - locus: a named locus"""
         prob_array = self.reconstructAncestralSeqs(locus=locus)
         seqs = []
-        for edge, probs in prob_array.items():
+        for edge, probs in list(prob_array.items()):
             seq = []
             for row in probs:
-                by_p = [(p,state) for state, p in row.items()]
+                by_p = [(p,state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.MolType.makeSequence("".join(seq)))]
         return Alignment(data = seqs, MolType = self.model.MolType)
@@ -151,7 +151,7 @@ class LikelihoodFunction(ParameterController):
         elif dim == 'position':
             result = self.posn_names[:]
         else:
-            raise KeyError, dim
+            raise KeyError(dim)
         return result
     
     def _valuesForDimensions(self, dims):
@@ -249,7 +249,7 @@ class LikelihoodFunction(ParameterController):
             if dims not in group:
                 group[dims] = []
             group[dims].append(param)
-        table_order = group.keys()
+        table_order = list(group.keys())
         for table_dims in table_order:
             raw_table = self.getParamValueDict(
                 dimensions=table_dims, params=group[table_dims])
@@ -280,7 +280,7 @@ class LikelihoodFunction(ParameterController):
                         row_used = True
                     row[param] = d
                 if row_used:
-                    row.update(dict(zip(table_dims, scope)))
+                    row.update(dict(list(zip(table_dims, scope))))
                     row = [row[k] for k in heading_names]
                     list_table.append(row)
             if table_dims:
@@ -389,7 +389,7 @@ class LikelihoodFunction(ParameterController):
             sequence_length = len(lht.index)
             leaves = self.getParamValue('leaf_likelihoods', locus=locus)
             orig_ambig = {} #alignment.getPerSequenceAmbiguousPositions()
-            for (seq_name, leaf) in leaves.items():
+            for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.getAmbiguousPositions()
         else:
             orig_ambig = {}

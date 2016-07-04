@@ -155,7 +155,7 @@ def CheckedExponentiator(Q):
     evI = inv(ev)
     reQ = numpy.inner(ev.T * roots, evI).real
     if not numpy.allclose(Q, reQ):
-        raise ArithmeticError, "eigen failed precision test"
+        raise ArithmeticError("eigen failed precision test")
     return EigenExponentiator(Q, roots, ev, evT, evI)
     
 def RobustExponentiator(Q):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import numpy
 from numpy.linalg import solve as solve_linear_equations
-from tree_space import TreeEvaluator, ancestry2tree
-from util import distanceDictAndNamesTo1D, distanceDictTo1D, triangularOrder
+from .tree_space import TreeEvaluator, ancestry2tree
+from .util import distanceDictAndNamesTo1D, distanceDictTo1D, triangularOrder
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

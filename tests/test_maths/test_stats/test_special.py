@@ -172,7 +172,7 @@ class SpecialTests(TestCase):
         (9, 27, 0.0003): math.log(9.175389e-26),
         (1032, 2050, 0.5): math.log(0.01679804),
         }
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(ln_binomial(*key), value, 1e-4) 
 
     def test_ln_binomial_floats(self):
@@ -187,7 +187,7 @@ class SpecialTests(TestCase):
         (10,100.5,.5):(math.log(7.578011e-18),math.log(1.365543e-17)),
         }
         
-        for (key, value) in expected.items():
+        for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
             #self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
@@ -248,7 +248,7 @@ class SpecialTests(TestCase):
     def test_igami(self):
         """igami should give same result as cephes implementation"""
         a_vals = [1e-10, 1e-5, 0.5, 1, 10, 200]
-        y_vals = range(0,10,2)
+        y_vals = list(range(0,10,2))
         obs = [igami(a, y/10.0) for a in a_vals for y in y_vals]
         exp=[1.79769313486e+308,
 0.0,

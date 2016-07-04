@@ -5,7 +5,7 @@
 """ Description
 File created on 22 May 2007.
 """
-from __future__ import division
+
 from tempfile import mktemp
 from os import remove, environ
 from os.path import exists
@@ -66,29 +66,29 @@ class CoevolutionTests(TestCase):
         """Set up variables for us in tests """
         self.run_slow_tests = int(environ.get('TEST_SLOW_APPC',0))
         ## Data used in SCA tests
-        self.dna_aln = DenseAlignment(data=zip(\
-         range(4),['ACGT','AGCT','ACCC','TAGG']),MolType=DNA)
-        self.rna_aln = DenseAlignment(data=zip(\
-         range(4),['ACGU','AGCU','ACCC','UAGG']),MolType=RNA)
-        self.protein_aln = DenseAlignment(data=zip(\
-         range(4),['ACGP','AGCT','ACCC','TAGG']),MolType=PROTEIN)
-        self.dna_aln_gapped = DenseAlignment(data=zip(range(4),\
-            ['A-CGT','AGC-T','-ACCC','TAGG-']),MolType=DNA)
-        self.freq = DenseAlignment(data=zip(range(20),\
+        self.dna_aln = DenseAlignment(data=list(zip(\
+         list(range(4)),['ACGT','AGCT','ACCC','TAGG'])),MolType=DNA)
+        self.rna_aln = DenseAlignment(data=list(zip(\
+         list(range(4)),['ACGU','AGCU','ACCC','UAGG'])),MolType=RNA)
+        self.protein_aln = DenseAlignment(data=list(zip(\
+         list(range(4)),['ACGP','AGCT','ACCC','TAGG'])),MolType=PROTEIN)
+        self.dna_aln_gapped = DenseAlignment(data=list(zip(list(range(4)),\
+            ['A-CGT','AGC-T','-ACCC','TAGG-'])),MolType=DNA)
+        self.freq = DenseAlignment(data=list(zip(list(range(20)),\
          ['TCT', 'CCT', 'CCC', 'CCC',\
          'CCG', 'CC-', 'AC-', 'AC-', 'AA-', 'AA-', 'GA-', 'GA-', 'GA-', 'GA-',\
-         'GA-', 'G--', 'G--', 'G--', 'G--', 'G--',]),MolType=PROTEIN)
-        self.two_pos = DenseAlignment(data=zip(map(str,range(20)),\
+         'GA-', 'G--', 'G--', 'G--', 'G--', 'G--',])),MolType=PROTEIN)
+        self.two_pos = DenseAlignment(data=list(zip(list(map(str,list(range(20)))),\
             ['TC', 'CC', 'CC', 'CC', 'CC', 'CC', 'AC', 'AC', \
              'AA', 'AA', 'GA', 'GA', 'GA', 'GA', 'GA', 'GT', \
-             'GT', 'GT', 'GT', 'GT']),MolType=PROTEIN)
+             'GT', 'GT', 'GT', 'GT'])),MolType=PROTEIN)
         self.tree20 = LoadTree(treestring=tree20_string) 
         self.gpcr_aln = gpcr_aln
         self.myos_aln = myos_aln
         # a made-up dict of base frequencies to use as the natural freqs
         # for SCA calcs on DNA seqs
-        self.dna_base_freqs = dict(zip('ACGT',[0.25]*4))
-        self.rna_base_freqs = dict(zip('ACGU',[0.25]*4))
+        self.dna_base_freqs = dict(list(zip('ACGT',[0.25]*4)))
+        self.rna_base_freqs = dict(list(zip('ACGU',[0.25]*4)))
         self.protein_aln4 = DenseAlignment([('A1','AACF'),('A12','AADF'),\
             ('A123','ADCF'),('A111','AAD-')],\
             MolType=PROTEIN)
@@ -1295,7 +1295,7 @@ class CoevolutionTests(TestCase):
         """freqs_from_aln: freqs of alphabet chars in aln is calc'ed correctly
         """
         # non-default scaled_aln_size
-        aln = DenseAlignment(data=zip(range(4),['ACGT','AGCT','ACCC','TAGG']),\
+        aln = DenseAlignment(data=list(zip(list(range(4)),['ACGT','AGCT','ACCC','TAGG'])),\
             MolType=PROTEIN)
         alphabet = 'ACGT'
         expected = [4,5,4,3]
@@ -1313,7 +1313,7 @@ class CoevolutionTests(TestCase):
         expected = [25.,31.25,25,18.75,0]
         self.assertEqual(freqs_from_aln(aln,alphabet),expected)
         # alignment char which doesn't show up is silently ignored
-        aln = DenseAlignment(data=zip(range(4),['ACGT','AGCT','ACCC','TWGG']),\
+        aln = DenseAlignment(data=list(zip(list(range(4)),['ACGT','AGCT','ACCC','TWGG'])),\
             MolType=PROTEIN)
         alphabet = 'ACGT'
         expected = [18.75,31.25,25,18.75]
@@ -1870,7 +1870,7 @@ class CoevolutionTests(TestCase):
         
     def test_n_random_seqs(self):
         """n_random_seqs: functions as expected"""
-        aln1 = LoadSeqs(data=zip(list('abcd'),['AA','AC','DD','GG']),\
+        aln1 = LoadSeqs(data=list(zip(list('abcd'),['AA','AC','DD','GG'])),\
                  moltype=PROTEIN,aligned=DenseAlignment)
         # Number of returned sequences correct
         self.assertEqual(n_random_seqs(aln1,1).getNumSeqs(),1)
@@ -2420,7 +2420,7 @@ class ResampledMiTests(TestCase):
         weights = []
         for w in w1,w2:
             for k, d in w:
-                weights += d.values()
+                weights += list(d.values())
         self.assertFloatEqual(sum(weights), 0.5)
         self.assertEqual(w2, e)
     

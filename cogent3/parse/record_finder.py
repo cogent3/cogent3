@@ -14,7 +14,6 @@ DelimitedRecordFinder except that it accept a is_tail function instead of a
 str.  Note that its default constuctor is rstrip instead of strip.
 """
 from cogent3.parse.record import RecordError, FieldError
-from string import strip, rstrip
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -24,6 +23,9 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+strip = str.strip
+rstrip = str.rstrip
 
 def is_empty(line):
     """Returns True empty lines and lines consisting only of whitespace."""
@@ -72,8 +74,8 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError, "Found additional data after records: %s"%\
-                        (curr)
+                raise RecordError("Found additional data after records: %s"%\
+                        (curr))
             else:
                 yield curr
     return parser
@@ -188,7 +190,7 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
                 yield curr
                 curr = []
         if curr:
-            raise RecordError, "Non-blank lines not even multiple of %s" % num
+            raise RecordError("Non-blank lines not even multiple of %s" % num)
     return parser
 
 

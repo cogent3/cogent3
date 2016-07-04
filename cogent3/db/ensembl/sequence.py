@@ -52,7 +52,7 @@ def get_lower_coord_conversion(coord, species, core_db):
     assemblies = None
     for rank in range(query_rank+1, seq_level_rank):
         coord_type = None
-        for key in coord_system.keys():
+        for key in list(coord_system.keys()):
             if coord_system[key].rank == rank:
                 coord_type = coord_system[key].name
                 break
@@ -78,13 +78,13 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
                              seq_level=True)
     
     if DEBUG:
-        print 'Created Coordinate:',coord,coord.EnsemblStart,coord.EnsemblEnd
-        print coord.CoordType, coord_type
+        print('Created Coordinate:',coord,coord.EnsemblStart,coord.EnsemblEnd)
+        print(coord.CoordType, coord_type)
     
     assemblies = get_coord_conversion(coord, coord_type, genome.CoreDb)
     
     if not assemblies:
-        raise NoItemError, 'no assembly for %s' % coord
+        raise NoItemError('no assembly for %s' % coord)
     
     dna = genome.CoreDb.getTable('dna')
     seqs, positions = [], []
@@ -110,10 +110,10 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
     assemblies = get_lower_coord_conversion(coord, coord.genome.Species,
                                             coord.genome.CoreDb)
     if not assemblies:
-        raise NoItemError, 'no assembly for %s' % coord
+        raise NoItemError('no assembly for %s' % coord)
     
     if DEBUG:
-        print '\nMedium_level_assemblies = ', assemblies
+        print('\nMedium_level_assemblies = ', assemblies)
     
     seqs, positions = [], []
     for q_loc, t_loc in assemblies:
@@ -123,9 +123,9 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
             temp_seq = temp_seq.rc()
         
         if DEBUG:
-            print q_loc
-            print t_loc
-            print 'temp_seq = ', temp_seq[:10], '\n'
+            print(q_loc)
+            print(t_loc)
+            print('temp_seq = ', temp_seq[:10], '\n')
         
         seqs.append(str(temp_seq))
         positions.append((q_loc.Start, q_loc.End))

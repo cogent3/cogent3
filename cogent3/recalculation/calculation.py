@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division, with_statement
+
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 import time, warnings
@@ -9,7 +9,7 @@ from cogent3.maths.optimisers import maximise, ParameterOutOfBoundsError
 
 
 import os
-TRACE_DEFAULT = os.environ.has_key('COGENT_TRACE')
+TRACE_DEFAULT = 'COGENT_TRACE' in os.environ
 TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"
@@ -143,14 +143,14 @@ class EvaluatedCell(object):
     def reportError(self, detail, data):
         self.failure_count += 1
         if self.failure_count <= 5:
-            print ("%s in calculating %s:",
-                    detail.__class__.__name__, self.name)
+            print(("%s in calculating %s:",
+                    detail.__class__.__name__, self.name))
         if self.failure_count == 5:
-            print "Additional failures of this type will not be reported."
+            print("Additional failures of this type will not be reported.")
         if self.failure_count < 2:
-            print '%s inputs were:', len(self.arg_ranks)
+            print('%s inputs were:', len(self.arg_ranks))
             for (i, arg) in enumerate(self.arg_ranks):
-                print '%s: ' % i + repr(data[arg])
+                print('%s: ' % i + repr(data[arg]))
     
 
 class ConstCell(object):
@@ -214,9 +214,9 @@ class Calculator(object):
                         cell.prime(self.cell_values)
                     except KeyboardInterrupt:
                         raise
-                    except Exception, detail:
-                        print ("Failed initial calculation of %s"
-                                % cell.name)
+                    except Exception as detail:
+                        print(("Failed initial calculation of %s"
+                                % cell.name))
                         raise
             else:
                 raise RuntimeError('Unexpected Cell type %s' % type(cell))
@@ -292,7 +292,7 @@ class Calculator(object):
         import tempfile, os, sys
         
         if sys.platform != 'darwin':
-            raise NotImplementedError, "Graphviz support Mac only at present"
+            raise NotImplementedError("Graphviz support Mac only at present")
         
         GRAPHVIZ = '/Applications/Graphviz.app'
         # test that graphviz is installed
@@ -325,12 +325,12 @@ class Calculator(object):
         
         self.trace = trace
         if trace:
-            print
+            print()
             n_opars = len(self.opt_pars)
             n_cells = len([c for c in self._cells if not c.is_constant])
-            print n_opars, "OptPars and", n_cells - n_opars, "derived values"
-            print 'OptPars: ', ', '.join([par.name for par in self.opt_pars])
-            print "Times in 1/%sths of a second" % TRACE_SCALE
+            print(n_opars, "OptPars and", n_cells - n_opars, "derived values")
+            print('OptPars: ', ', '.join([par.name for par in self.opt_pars]))
+            print("Times in 1/%sths of a second" % TRACE_SCALE)
 
             groups = []
             groupd = {}
@@ -347,13 +347,13 @@ class Calculator(object):
             for (name, cells) in groups:
                 width = 4 + len(cells)
                 widths.append(min(15, width))
-            self._cellsGroupedForDisplay = zip(groups, widths)
+            self._cellsGroupedForDisplay = list(zip(groups, widths))
             for ((name, cells), width) in self._cellsGroupedForDisplay:
-                print name[:width].ljust(width), '|',
-            print
+                print(name[:width].ljust(width), '|', end=' ')
+            print()
             for width in widths:
-                print '-' * width, '|',
-            print
+                print('-' * width, '|', end=' ')
+            print()
     
     def getValueArray(self):
         """This being a caching function, you can ask it for its current
@@ -476,7 +476,7 @@ class Calculator(object):
                 else:
                     self.last_undo = changed_optpars
             
-            except CalculationInterupted, detail:
+            except CalculationInterupted as detail:
                 if self.with_undo:
                     self._switch = not self._switch
                 for (i,v) in changed_optpars:
@@ -492,7 +492,7 @@ class Calculator(object):
     
     def cellsChangedBy(self, changes):
         # What OptPars have been changed determines cells to update
-        change_key = dict(changes).keys()
+        change_key = list(dict(changes).keys())
         change_key.sort()
         change_key = tuple(change_key)
         if change_key in self._programs:
@@ -510,10 +510,10 @@ class Calculator(object):
         try:
             for cell in program:
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
-        except ParameterOutOfBoundsError, detail:
+        except ParameterOutOfBoundsError as detail:
             # Non-fatal error, just cancel this calculation.
             raise CalculationInterupted(cell, detail)
-        except ArithmeticError, detail:
+        except ArithmeticError as detail:
             # Non-fatal but unexpected error. Warn and cancel this calculation.
             cell.reportError(detail, data)
             raise CalculationInterupted(cell, detail)
@@ -530,7 +530,7 @@ class Calculator(object):
                 t0 = time.time()
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
                 t1 = time.time()
-            except (ParameterOutOfBoundsError, ArithmeticError), exception:
+            except (ParameterOutOfBoundsError, ArithmeticError) as exception:
                 error_cell = cell
                 break
             elapsed[cell.rank] = (t1-t0)
@@ -553,13 +553,13 @@ class Calculator(object):
             else:
                 par_descs.append('%s=?' % cell.name)
         par_descs = ', '.join(par_descs)[:22].ljust(22)
-        print ' | '.join(tds+['']),
+        print(' | '.join(tds+['']), end=' ')
         if exception:
-            print '%15s | %s' % ('', par_descs)
+            print('%15s | %s' % ('', par_descs))
             error_cell.reportError(exception, data)
             raise CalculationInterupted(cell, exception)
         else:
-            print '%-15s | %s' % (repr(data[-1])[:15], par_descs)
+            print('%-15s | %s' % (repr(data[-1])[:15], par_descs))
     
     def measureEvalsPerSecond(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second

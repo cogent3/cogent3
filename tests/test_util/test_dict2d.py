@@ -135,7 +135,7 @@ class Dict2DTests(TestCase):
         self.assertEqual(len(d), 2)
         self.assertEqual(len(d['a']), 3)
         self.assertEqual(len(d['d']), 3)
-        self.assertEqual(d['a'].keys(), d['d'].keys())
+        self.assertEqual(set(d['a'].keys()), set(d['d'].keys()))
         self.assertEqual(d['a']['b'], None)
 
         #check that it works with a different default value
@@ -317,7 +317,7 @@ class Dict2DTests(TestCase):
         """Dict2D getRowIndices should return indices of rows where f(x) True"""
         d = Dict2D(self.square)
         lt_15 = lambda x: sum(x) < 15
-        self.assertEqual(d.getRowIndices(lt_15), ['a','b'])
+        self.assertEqual(set(d.getRowIndices(lt_15)), set(['a','b']))
         #should be bound by RowOrder and ColOrder
         d.RowOrder = d.ColOrder = 'ac'
         self.assertEqual(d.getRowIndices(lt_15), ['a','c'])
@@ -364,7 +364,7 @@ class Dict2DTests(TestCase):
         """Dict2D getColIndices should return list of indices of matching cols"""
         d = Dict2D(self.square)
         lt_15 = lambda x: sum(x) < 15
-        self.assertEqual(d.getColIndices(lt_15), ['a','b'])
+        self.assertEqual(set(d.getColIndices(lt_15)), set(['a','b']))
         #check that negate works
         self.assertEqual(d.getColIndices(lt_15, negate=True), ['c'])
 

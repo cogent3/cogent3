@@ -19,4 +19,4 @@ LIGAND_ATOM_PROPERTIES = {
     ('H_HOH', ' O  '): [1.60]
     }
 
-LIGAND_AREAIMOL_VDW_RADII = dict([(k, v[0]) for k, v in LIGAND_ATOM_PROPERTIES.iteritems()])
+LIGAND_AREAIMOL_VDW_RADII = dict([(k, v[0]) for k, v in LIGAND_ATOM_PROPERTIES.items()])

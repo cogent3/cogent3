@@ -36,10 +36,10 @@ class TrieTests(TestCase):
         data = self.data
         
         t = Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t.insert(seq, label)
            
-        for  (label, seq) in data.iteritems():
+        for  (label, seq) in data.items():
             self.assertEqual(label in t.find(seq), True)
         self.assertEqual(t.find("cacgchagc"), [])
         self.assertEqual(t.find("abababa"), ["1","6"])
@@ -50,7 +50,7 @@ class TrieTests(TestCase):
         data = self.data
         
         t = Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t._insert_unique(seq, label)
                        
         self.assertEqual(t.find("ab"), [])
@@ -61,7 +61,7 @@ class TrieTests(TestCase):
     def test_build_prefix_map(self):
         """prefix_map should map prefix strings."""
         
-        self.assertEqual(dict(_build_prefix_map(self.data.iteritems())),
+        self.assertEqual(dict(_build_prefix_map(iter(self.data.items()))),
                          {'1': ['0', '2', '5', '6'],
                           '8': [],
                           '3': ['7'],
@@ -74,7 +74,7 @@ class Compressed_Trie_Tests(TestCase):
                           "3":"baba", "4":"ababaa","5":"a", "6":"abababa",
                           "7":"bab", "8":"babba"})
 
-        self.trie = build_trie(self.data.iteritems())
+        self.trie = build_trie(iter(self.data.items()))
     
     def test_init(self):
         """Trie init should create an empty trie."""
@@ -146,10 +146,10 @@ key
 
         data = self.data
         t = Compressed_Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t.insert(seq, label)
     
-        for  (label, seq) in data.iteritems():
+        for  (label, seq) in data.items():
             self.assertEqual(label in t.find(seq), True)
         self.assertEqual(t.find("abababa"), ["1","6"])
         self.assertEqual(t.find("cacgchagc"), [])
@@ -177,10 +177,10 @@ key
         data = self.data
         
         t = Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t.insert(seq, label)
            
-        for  (label, seq) in data.iteritems():
+        for  (label, seq) in data.items():
             self.assertEqual(label in t.find(seq), True)
         self.assertEqual(t.find("cacgchagc"), [])
         self.assertEqual(t.find("abababa"), ["1","6"])
@@ -191,7 +191,7 @@ key
         data = self.data
         
         t = Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t._insert_unique(seq, label)
                        
         self.assertEqual(t.find("ab"), [])
@@ -202,7 +202,7 @@ key
     def test_build_prefix_map(self):
         """prefix_map should map prefix strings."""
         
-        self.assertEqual(dict(_build_prefix_map(self.data.iteritems())),
+        self.assertEqual(dict(_build_prefix_map(iter(self.data.items()))),
                          {'1': ['0', '2', '5', '6'],
                           '8': [],
                           '3': ['7'],
@@ -211,9 +211,9 @@ key
     def test_build_trie(self):
         """Build_trie should build trie from seqs."""
         
-        t = build_trie(self.data.iteritems(), Trie)
+        t = build_trie(iter(self.data.items()), Trie)
         self.assertTrue(isinstance(t, Trie))
-        for (label, seq) in self.data.iteritems():
+        for (label, seq) in self.data.items():
             self.assertContains(t.find(seq), label)
 
         self.assertEqual(t.find(""), [])
@@ -227,7 +227,7 @@ class Compressed_Trie_Tests(TestCase):
                           "3":"baba", "4":"ababaa","5":"a", "6":"abababa",
                           "7":"bab", "8":"babba"})
 
-        self.trie = build_trie(self.data.iteritems())
+        self.trie = build_trie(iter(self.data.items()))
     
     def test_init(self):
         """Trie init should create an empty trie."""
@@ -293,10 +293,10 @@ key
 
         data = self.data
         t = Compressed_Trie()
-        for (label, seq) in data.iteritems():
+        for (label, seq) in data.items():
             t.insert(seq, label)
     
-        for  (label, seq) in data.iteritems():
+        for  (label, seq) in data.items():
             self.assertEqual(label in t.find(seq), True)
         self.assertEqual(t.find("abababa"), ["1","6"])
         self.assertEqual(t.find("cacgchagc"), [])
@@ -314,11 +314,11 @@ key
     def test_build_trie(self):
         """Build_trie should build trie from seqs."""
         
-        t = build_trie(self.data.iteritems())
+        t = build_trie(iter(self.data.items()))
         
         self.assertTrue(isinstance(t, Compressed_Trie))
         
-        for (label, seq) in self.data.iteritems():
+        for (label, seq) in self.data.items():
             self.assertContains(t.find(seq), label)
 
         self.assertEqual(t.find(""), [])

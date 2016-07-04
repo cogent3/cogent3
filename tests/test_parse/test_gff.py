@@ -3,7 +3,7 @@
 """
 from cogent3.parse.gff import *
 from cogent3.util.unit_test import TestCase, main
-from StringIO import StringIO
+from io import StringIO
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -39,7 +39,7 @@ data_lines = [
 ('dJ102G20\tGD_mRNA\tcoding_exon\t7105\t7201\t.\t-\t2\t\n',
 ('dJ102G20', 'GD_mRNA', 'coding_exon', 7201, 7104, '.', '-', '2', '', None)),
 ('12345\tSource with spaces\tfeature with spaces\t-100\t3600000000\t1e-5\t-\t.\tSequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"\n',
-('12345', 'Source with spaces', 'feature with spaces', 3600000000L, 101, '1e-5', '-', '.', 'Sequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"', None)),
+('12345', 'Source with spaces', 'feature with spaces', 3600000000, 101, '1e-5', '-', '.', 'Sequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"', None)),
 ]
 
 class GffTest(TestCase):
@@ -47,7 +47,7 @@ class GffTest(TestCase):
     def testGffParserData(self):
         """Test GffParser with valid data lines"""
         for (line,canned_result) in data_lines:
-            result = GffParser(StringIO(line)).next()
+            result = next(GffParser(StringIO(line)))
             self.assertEqual(result,canned_result)
             
     def testGffParserHeaders(self):

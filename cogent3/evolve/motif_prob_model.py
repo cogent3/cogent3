@@ -2,7 +2,7 @@
 
 import numpy
 import warnings
-import substitution_calculation
+from . import substitution_calculation
 from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 
 __author__ = "Peter Maxwell"
@@ -201,7 +201,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         return list(monomer_probs)
 
     def calcWordProbs(self, monomer_probs):
-        positions = range(self.word_length)
+        positions = list(range(self.word_length))
         assert len(monomer_probs) == self.m2w.shape[1], (
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
         result = numpy.product(
@@ -211,7 +211,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         return result
     
     def calcWordWeightMatrix(self, monomer_probs):  
-        positions = range(self.word_length)
+        positions = list(range(self.word_length))
         monomer_probs = numpy.array(monomer_probs) # so [posn, motif]
         size = monomer_probs.shape[-1]
         # should be constant

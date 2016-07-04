@@ -115,11 +115,11 @@ if 0:  # old, needs fixes
         ('r ', a.relative_to(a[5:]),            "Map([-5-, 0:5] on Map([5:10] on Map([10:20] on base)))"),
         ('r ', a[2:4].relative_to(a[2:6]),      "Map([0:2] on Map([2:6] on Map([10:20] on base)))"),
         ('r ', a[2:4].relative_to(a[2:6][0:3]), "Map([0:2] on Map([0:3] on Map([2:6] on Map([10:20] on base))))")]:
-        print desc, repr(map),
+        print(desc, repr(map), end=' ')
         if repr(map) == expected:
-            print
+            print()
         else:
-            print ' <--- ', expected
+            print(' <--- ', expected)
             bad = True
 
 if __name__ == '__main__':

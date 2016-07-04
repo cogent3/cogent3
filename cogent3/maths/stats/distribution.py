@@ -2,7 +2,7 @@
 """Translations of functions from Release 2.3 of the Cephes Math Library, 
 which is (c) Stephen L. Moshier 1984, 1995.
 """
-from __future__ import division
+
 from cogent3.maths.stats.special import erf, erfc, igamc, igam, betai, log1p, \
     expm1, SQRTH, MACHEP, MAXNUM, PI, ndtri, incbi, igami, fix_rounding_error,\
     ln_binomial
@@ -72,9 +72,9 @@ def chi_low(x, df):
     """
     x = fix_rounding_error(x)
     if x < 0:
-        raise ValueError, "chi_low: x must be >= 0 (got %s)." % x
+        raise ValueError("chi_low: x must be >= 0 (got %s)." % x)
     if df < 1:
-        raise ValueError, "chi_low: df must be >= 1 (got %s)." % df
+        raise ValueError("chi_low: df must be >= 1 (got %s)." % df)
     return igam(df/2, x/2)
     
 def chi_high(x, df):
@@ -90,9 +90,9 @@ def chi_high(x, df):
     x = fix_rounding_error(x)
     
     if x < 0:
-        raise ValueError, "chi_high: x must be >= 0 (got %s)." % x
+        raise ValueError("chi_high: x must be >= 0 (got %s)." % x)
     if df < 1:
-        raise ValueError, "chi_high: df must be >= 1 (got %s)." % df
+        raise ValueError("chi_high: df must be >= 1 (got %s)." % df)
     return igamc(df/2, x/2)
  
 def t_low(t, df):
@@ -106,7 +106,7 @@ def t_low(t, df):
     See Cephes docs for details.
     """
     if df < 1:
-        raise ValueError, "t_low: df must be >= 1 (got %s)." % df
+        raise ValueError("t_low: df must be >= 1 (got %s)." % df)
     return stdtr(df, t)
 
 def t_high(t, df):
@@ -120,7 +120,7 @@ def t_high(t, df):
     See Cephes docs for details.
     """
     if df < 1:
-        raise ValueError, "t_high: df must be >= 1 (got %s)." % df
+        raise ValueError("t_high: df must be >= 1 (got %s)." % df)
     return stdtr(df, -t) #distribution is symmetric
 
 def tprob(t, df):
@@ -173,9 +173,9 @@ def binomial_exact(successes, trials, prob):
     values you probably won't get a sum of 1.
     """
     if (prob < 0) or (prob > 1):
-        raise ValueError, "Binomial prob must be between 0 and 1."
+        raise ValueError("Binomial prob must be between 0 and 1.")
     if (successes < 0) or (trials < successes):
-        raise ValueError, "Binomial successes must be between 0 and trials."
+        raise ValueError("Binomial successes must be between 0 and trials.")
     return exp(ln_binomial(successes, trials, prob))
 
 def f_low(df1, df2, x):
@@ -210,13 +210,13 @@ def fprob(dfn, dfd, F, side='right'):
         Use in case var(a) < var(b)
     """
     if F < 0:
-        raise ValueError, "fprob: F must be >= 0 (got %s)." % F
+        raise ValueError("fprob: F must be >= 0 (got %s)." % F)
     if side=='right':
         return 2*f_high(dfn, dfd, F)
     elif side=='left':
         return 2*f_low(dfn, dfd, F)
     else:
-        raise ValueError, "Not a valid value for side %s"%(side)
+        raise ValueError("Not a valid value for side %s"%(side))
 
  
 def stdtr(k, t):
@@ -225,7 +225,7 @@ def stdtr(k, t):
     See Cephes docs for details.
     """
     if k <= 0:
-        raise ValueError, 'stdtr: df must be > 0.'
+        raise ValueError('stdtr: df must be > 0.')
     if t == 0:
         return 0.5
     if t < -2:
@@ -280,9 +280,9 @@ def bdtr(k, n, p):
     """
     p = fix_rounding_error(p)
     if (p < 0) or (p > 1):
-        raise ValueError, "Binomial p must be between 0 and 1."
+        raise ValueError("Binomial p must be between 0 and 1.")
     if (k < 0) or (n < k):
-        raise ValueError, "Binomial k must be between 0 and n."
+        raise ValueError("Binomial k must be between 0 and n.")
     if k == n:
         return 1
     dn = n - k
@@ -300,9 +300,9 @@ def bdtrc(k, n, p):
     """
     p = fix_rounding_error(p)
     if (p < 0) or (p > 1):
-        raise ValueError, "Binomial p must be between 0 and 1."
+        raise ValueError("Binomial p must be between 0 and 1.")
     if (k < 0) or (n < k):
-        raise ValueError, "Binomial k must be between 0 and n."
+        raise ValueError("Binomial k must be between 0 and n.")
     if k == n:
         return 0
     dn = n - k
@@ -322,9 +322,9 @@ def pdtr(k, m):
     See Cephes docs for details.
     """
     if k < 0:
-        raise ValueError, "Poisson k must be >= 0."
+        raise ValueError("Poisson k must be >= 0.")
     if m < 0:
-        raise ValueError, "Poisson m must be >= 0."
+        raise ValueError("Poisson m must be >= 0.")
     return igamc(k+1, m)
 
 def pdtrc(k, m):
@@ -333,9 +333,9 @@ def pdtrc(k, m):
     See Cephes docs for details.
     """
     if k < 0:
-        raise ValueError, "Poisson k must be >= 0."
+        raise ValueError("Poisson k must be >= 0.")
     if m < 0:
-        raise ValueError, "Poisson m must be >= 0."
+        raise ValueError("Poisson m must be >= 0.")
     return igam(k+1, m)
 
 def fdtr(a, b, x):
@@ -344,9 +344,9 @@ def fdtr(a, b, x):
     See Cephes docs for details.
     """
     if min(a, b) < 1:
-        raise ValueError, "F a and b (degrees of freedom) must both be >= 1."
+        raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:
-        raise ValueError, "F distribution value of f must be >= 0."
+        raise ValueError("F distribution value of f must be >= 0.")
     w = a * x
     w /= float(b + w)
     return betai(0.5 * a, 0.5 * b, w)
@@ -358,9 +358,9 @@ def fdtrc(a, b, x):
     See Cephes docs for details.
     """
     if min(a, b) < 1:
-        raise ValueError, "F a and b (degrees of freedom) must both be >= 1."
+        raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:
-        raise ValueError, "F distribution value of f must be >= 0."
+        raise ValueError("F distribution value of f must be >= 0.")
     w = float(b) / (b + a * x)
     return betai(0.5 * b, 0.5 * a, w)
 
@@ -368,14 +368,14 @@ def gdtr(a, b, x):
     """Returns integral from 0 to x of Gamma distribution with params a and b.
     """
     if x < 0.0:
-        raise ZeroDivisionError, "x must be at least 0."
+        raise ZeroDivisionError("x must be at least 0.")
     return igam( b, a * x)
 
 def gdtrc(a, b, x):
     """Returns integral from x to inf of Gamma distribution with params a and b.
     """
     if x < 0.0:
-        raise ZeroDivisionError, "x must be at least 0."
+        raise ZeroDivisionError("x must be at least 0.")
     return igamc(b, a * x)
 
 #note: ndtri for the normal distribution is already imported
@@ -384,7 +384,7 @@ def chdtri(df, y):
     """Returns inverse of chi-squared distribution."""
     y = fix_rounding_error(y)
     if(y < 0.0 or y > 1.0 or df < 1.0):
-        raise ZeroDivisionError, "y must be between 0 and 1; df >= 1"
+        raise ZeroDivisionError("y must be between 0 and 1; df >= 1")
     return 2 * igami(0.5*df, y)
 
 def stdtri(k, p):
@@ -392,7 +392,7 @@ def stdtri(k, p):
     p = fix_rounding_error(p)
     # handle easy cases
     if k <= 0 or p < 0.0 or p > 1.0:
-        raise ZeroDivisionError, "k must be >= 1, p between 1 and 0."
+        raise ZeroDivisionError("k must be >= 1, p between 1 and 0.")
     rk = k
     #handle intermediate values
     if p > 0.25 and p < 0.75:
@@ -423,7 +423,7 @@ def pdtri(k, p):
     """
     p = fix_rounding_error(p)
     if k < 0 or p < 0.0 or p >= 1.0:
-        raise ZeroDivisionError, "k must be >=0, p between 1 and 0."
+        raise ZeroDivisionError("k must be >=0, p between 1 and 0.")
     v = k+1;
     return igami(v, p)
 
@@ -434,9 +434,9 @@ def bdtri(k, n, y):
     """
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0:
-        raise ZeroDivisionError, "y must be between 1 and 0."
+        raise ZeroDivisionError("y must be between 1 and 0.")
     if k < 0 or n <= k:
-        raise ZeroDivisionError, "k must be between 0 and n"
+        raise ZeroDivisionError("k must be between 0 and n")
     dn = n - k
     if k == 0:
         if y > 0.8:
@@ -462,14 +462,14 @@ def gdtri(a, b, y):
     """
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
-        raise ZeroDivisionError, "a and b must be non-negative, y from 0 to 1."
+        raise ZeroDivisionError("a and b must be non-negative, y from 0 to 1.")
     return igami(b, 1.0-y) / a
 
 def fdtri(a, b, y):
     """Returns inverse of F distribution."""
     y = fix_rounding_error(y)
     if( a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0):
-        raise ZeroDivisionError, "y must be between 0 and 1; a and b >= 1"
+        raise ZeroDivisionError("y must be between 0 and 1; a and b >= 1")
     y = 1.0-y
     # Compute probability for x = 0.5
     w = incbet(0.5*b, 0.5*a, 0.5)

@@ -58,7 +58,7 @@ def isTransition(motif1, motif2):
     transitions = {('A', 'G') : 1, ('C', 'T'):1}
     pair = (min(a, b), max(a, b))
     
-    return transitions.has_key(pair)
+    return pair in transitions
 
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(motif2),\
@@ -87,7 +87,7 @@ def getposition(motif1, motif2):
 ##############################################################
 # funcs for testing the monomer weighted substitution matrices
 _root_probs = lambda x: dict([(n1+n2, p1*p2) \
-            for n1,p1 in x.items() for n2,p2 in x.items()])
+            for n1,p1 in list(x.items()) for n2,p2 in list(x.items())])
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
@@ -126,7 +126,7 @@ class LikelihoodCalcs(TestCase):
         """root is a reserved name"""
         aln = self.alignment.takeSeqs(self.alignment.Names[:4])
         aln = aln.todict()
-        one = aln.pop(aln.keys()[0])
+        one = aln.pop(list(aln.keys())[0])
         aln["root"] = one
         aln = LoadSeqs(data=aln)
         submod = Nucleotide()
@@ -153,11 +153,11 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
         try:
-            values = lf.getParamValueDict(['bin'])['omega_factor'].values()
+            values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         except KeyError:
             # there shouldn't be an omega factor
             pass
-        values = lf.getParamValueDict(['bin'])['rate'].values()
+        values = list(lf.getParamValueDict(['bin'])['rate'].values())
         obs = round(sum(values) / len(values), 6)
         self.assertEqual(obs, 1.0)
         self.assertEqual(len(values), 3)
@@ -170,7 +170,7 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', partitioned_params='omega', 
             distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod,bins=3) 
-        values = lf.getParamValueDict(['bin'])['omega_factor'].values()
+        values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
         shape = lf.getParamValue('rate_shape')
@@ -181,7 +181,7 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', partitioned_params='omega', 
             distribution='free', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
-        values = lf.getParamValueDict(['bin'])['omega_factor'].values()
+        values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
     
@@ -194,7 +194,7 @@ class LikelihoodCalcs(TestCase):
                     bins=['slow', 'fast'])
         lf.setParamRule('kappa', value=1.0, is_constant=True)
         lf.setParamRule('kappa', edge="Human", init=1.0, is_constant=False)
-        values = lf.getParamValueDict(['bin'])['kappa_factor'].values()
+        values = list(lf.getParamValueDict(['bin'])['kappa_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
     
@@ -373,13 +373,13 @@ motif  mprobs
     def test_calclikelihood(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        self.assertAlmostEquals(-250.686745262,
+        self.assertAlmostEqual(-250.686745262,
             likelihood_function.getLogLikelihood(),places=9)
     
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        self.assertAlmostEquals(230.77670557,
+        self.assertAlmostEqual(230.77670557,
             likelihood_function.getGStatistic(),places=6)
     
     def test_ancestralsequences(self):
@@ -388,7 +388,7 @@ motif  mprobs
         result = likelihood_function.reconstructAncestralSeqs()['edge.0']
         a_column_with_mostly_Ts = -1
         motif_G = 2
-        self.assertAlmostEquals(2.28460181711e-05,
+        self.assertAlmostEqual(2.28460181711e-05,
                 result[a_column_with_mostly_Ts][motif_G], places=8)
         lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'])
         lf.setParamRule('beta', bin='low', value=0.1)
@@ -547,7 +547,7 @@ motif    mprobs
         likelihood_function = self._makeLikelihoodFunction()
         mprobs = likelihood_function.getMotifProbs()
         assert hasattr(mprobs, 'keys'), mprobs
-        keys = mprobs.keys()
+        keys = list(mprobs.keys())
         keys.sort()
         obs = self.submodel.getMotifs()
         obs.sort()

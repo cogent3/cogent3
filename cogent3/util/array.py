@@ -18,7 +18,7 @@ def cartesian_product(lists):
 
     Provided for compatibility.
     """
-    return map(tuple, cross_comb(lists))
+    return list(map(tuple, cross_comb(lists)))
 
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
@@ -191,7 +191,7 @@ def row_uncertainty(a):
     try:
         return sum(safe_p_log_p(a),1)
     except ValueError:
-        raise ValueError, "Array has to be two-dimensional"
+        raise ValueError("Array has to be two-dimensional")
 
 def column_uncertainty(a):
     """Returns uncertainty (Shannon's entropy) for each column in a in BITS
@@ -209,7 +209,7 @@ def column_uncertainty(a):
 
     """
     if len(a.shape) < 2:
-        raise ValueError, "Array has to be two-dimensional"
+        raise ValueError("Array has to be two-dimensional")
     return sum(safe_p_log_p(a), axis=0)
 
 
@@ -241,7 +241,7 @@ def row_degeneracy(a,cutoff=.5):
     try:
         b = cumsum(sort(a)[:,::-1],1)
     except IndexError:
-        raise ValueError, "Array has to be two dimensional"
+        raise ValueError("Array has to be two dimensional")
     degen = [searchsorted(aln_pos,cutoff) for aln_pos in b]
     #degen contains now the indices at which the cutoff was hit
     #to change to the number of characters, add 1
@@ -277,7 +277,7 @@ def column_degeneracy(a,cutoff=.5):
     try:
         degen = [searchsorted(b[:,idx],cutoff) for idx in range(len(b[0]))]
     except TypeError:
-        raise ValueError, "Array has to be two dimensional"
+        raise ValueError("Array has to be two dimensional")
     #degen contains now the indices at which the cutoff was hit
     #to change to the number of characters, add 1
     return clip(array(degen)+1,0,a.shape[0])
@@ -295,7 +295,7 @@ def hamming_distance(x,y):
     ABC, ABB -> 1
     ABCDEFG, ABCEFGH -> 4
     """
-    shortest = min(map(len,[x,y]))
+    shortest = min(list(map(len,[x,y])))
     return sum(x[:shortest] != y[:shortest], axis=0)
 
 def norm(a):
@@ -328,7 +328,7 @@ def count_alphabet(a, alphabet_len):
     """Counts items in a, using =="""
     #ensure behavior is polymorphic with count_simple
     if not alphabet_len:
-        raise IndexError, "alphabet_len must be > 0"
+        raise IndexError("alphabet_len must be > 0")
     result = zeros(alphabet_len, Int)
     a = ravel(a)
     for i in range(alphabet_len):
@@ -606,7 +606,7 @@ def classifiers(*samples):
     Returns [(cut_value, fp, fn, tp, tn) for i in cuts].
     """
     if len(samples) <= 1:
-        raise TypeError, "optimal_classifier needs at least 2 distributions."
+        raise TypeError("optimal_classifier needs at least 2 distributions.")
     vals, labels = sort_merged_samples_by_value(merge_samples(*samples))
     n = len(vals)
     num_positives = len(samples[0])

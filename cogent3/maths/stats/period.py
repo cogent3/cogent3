@@ -1,4 +1,4 @@
-from __future__ import division
+
 from random import shuffle, random, choice
 import numpy
 
@@ -51,7 +51,7 @@ def g_statistic(X, p=None, idx=None):
     
     result = numpy.zeros((int(M+1),), float)
     pmax_fact = factorial(pmax)
-    for index in xrange(1, min(pmax, int(M))+1):
+    for index in range(1, min(pmax, int(M))+1):
         v = (-1)**(index-1)*pmax_fact/factorial(pmax-index)/factorial(index)
         v *= (1-index*g_obs)**(pmax-1)
         result[index] = v
@@ -74,7 +74,7 @@ def _seq_to_symbols(seq, motifs, motif_length, result=None):
     if motif_length is None:
         motif_length = len(motifs[0])
     
-    for i in xrange(len(seq) - motif_length + 1):
+    for i in range(len(seq) - motif_length + 1):
         if seq[i: i + motif_length] in motifs:
             result[i] = 1
     
@@ -137,9 +137,9 @@ def sampled_places(block_size, length):
     # Main condition is to identify when a draw would run off end, we want to
     # draw from beginning
     num_seg, remainder = divmod(length, block_size)
-    vector = range(length)
+    vector = list(range(length))
     result = []
-    for seg_num in xrange(num_seg):
+    for seg_num in range(num_seg):
         i = choice(vector)
         result += circular_indices(vector, i, length, block_size)
     

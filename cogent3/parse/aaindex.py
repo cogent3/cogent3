@@ -9,7 +9,6 @@ amino acid) of amino acid properties, while AAIndex2 contains pairwise measures
 """
 import re
 from cogent3.parse.record_finder import DelimitedRecordFinder
-from string import rstrip
 from cogent3.maths.matrix.distance import DistanceMatrix
 
 __author__ = "Greg Caporaso"
@@ -20,6 +19,8 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
+
+rstrip = str.rstrip
 
 class AAIndexParser(object):
     """ Abstract class for AAIndex file parsers
@@ -150,7 +151,7 @@ class AAIndex1Parser(AAIndexParser):
                 except ValueError:
                     values += [data[i]]
             i += 1
-        result = dict(zip(keys, values))
+        result = dict(list(zip(keys, values)))
         return result
 
     def _parse_data(self, raw):
@@ -172,7 +173,7 @@ class AAIndex1Parser(AAIndexParser):
             except ValueError:
                 values += i
 
-        result = dict(zip(keys, values))
+        result = dict(list(zip(keys, values)))
         # return the dict
         return result
 
@@ -330,7 +331,7 @@ class AAIndex1Record(AAIndexRecord):
         """ AAIndex1 data to square distance matrix
 
         """
-        keys = self.Data.keys()
+        keys = list(self.Data.keys())
         if include_stops : keys += '*'
 
         # build result dict top layer, start empty

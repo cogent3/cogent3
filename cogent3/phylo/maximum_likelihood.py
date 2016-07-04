@@ -1,9 +1,9 @@
 #!/usr/bin/env python'
-from tree_space import TreeEvaluator, ancestry2tree
-from least_squares import WLS
+from .tree_space import TreeEvaluator, ancestry2tree
+from .least_squares import WLS
 from math import exp
-from tree_collection import LogLikelihoodScoredTreeCollection
-from tree_collection import LoadTrees # only for back compat.
+from .tree_collection import LogLikelihoodScoredTreeCollection
+from .tree_collection import LoadTrees # only for back compat.
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

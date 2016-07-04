@@ -105,7 +105,7 @@ class GeneticCodeTests(TestCase):
     def test_str(self):
         """GeneticCode str() should return its code string"""
         code_strings = self.SGC, self.mt, self.AllG
-        codes = map(GeneticCode, code_strings)
+        codes = list(map(GeneticCode, code_strings))
         for code, string in zip(codes, code_strings):
             self.assertEqual(str(code), string)
         #check an example directly in case strings are bad

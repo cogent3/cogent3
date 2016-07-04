@@ -3,10 +3,9 @@
 
 Owner: Sandra Smit (Sandra Smit)
 """
-from __future__ import division
+
 #SUPPORT2425
 #from __future__ import with_statement
-from string import maketrans, translate
 
 from numpy import array, sum, transpose, reshape, ones, zeros,\
     take, float64, ravel, nonzero, log, put, concatenate, argmax, cumsum,\
@@ -19,6 +18,7 @@ from cogent3.util.array import euclidean_distance, row_degeneracy,\
 from cogent3.format.table import formattedCells
 ##SUPPORT2425
 import numpy #from cogent3.util.unit_test import numpy_err
+from functools import reduce
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -29,6 +29,9 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
+
+maketrans = str.maketrans
+translate = str.translate
 
 class ProfileError(Exception):
     """Error raised for exceptions occuring in the Profile object"""
@@ -74,7 +77,7 @@ class Profile(object):
     def _make_translation_table(self):
         """Makes a translation tables between the CharOrder and indices
         """
-        indices = ''.join(map(chr, range(len(self.CharOrder))))
+        indices = ''.join(map(chr, list(range(len(self.CharOrder)))))
         chars = ''.join(map(str,self.CharOrder))
         return maketrans(chars, indices)
 
@@ -158,9 +161,8 @@ class Profile(object):
         row_sums = sum(self.Data,1)
         if (row_sums == 0).any():
             zero_indices = nonzero(row_sums==0)[0].tolist()
-            raise ProfileError,\
-            "Can't normalize profile, rows at indices %s add up to zero"\
-            %(zero_indices)
+            raise ProfileError("Can't normalize profile, rows at indices %s add up to zero"\
+            %(zero_indices))
         else:
             self.Data = self.Data/row_sums[:,newaxis]
 
@@ -183,9 +185,8 @@ class Profile(object):
         col_sums = sum(self.Data, axis=0)
         if (col_sums == 0).any():
             zero_indices = nonzero(col_sums==0)[0].tolist()
-            raise ProfileError,\
-            "Can't normalize profile, columns at indices %s add up to zero"\
-            %(zero_indices)
+            raise ProfileError("Can't normalize profile, columns at indices %s add up to zero"\
+            %(zero_indices))
         else:
             self.Data = self.Data/col_sums
             
@@ -245,9 +246,8 @@ class Profile(object):
 
         """
         if self.Data.shape != other.Data.shape:
-            raise ProfileError,\
-                "Cannot collapse profiles of different size: %s, %s"\
-                %(self.Data.shape,other.Data.shape)
+            raise ProfileError("Cannot collapse profiles of different size: %s, %s"\
+                %(self.Data.shape,other.Data.shape))
         if normalize_input:
             self.normalizePositions()
             other.normalizePositions()
@@ -261,7 +261,7 @@ class Profile(object):
             #with numpy_err(divide='raise'):
                 #new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
-            raise ProfileError, "Can't do operation on input profiles"
+            raise ProfileError("Can't do operation on input profiles")
         result = Profile(new_data, self.Alphabet, self.CharOrder)
         
         if normalize_output:
@@ -327,9 +327,8 @@ class Profile(object):
         try:
             return method(self.Data, other.Data)
         except ValueError: #frames not aligned 
-            raise ProfileError,\
-            "Profiles have different size (and are not aligned): %s %s"\
-            %(self.Data.shape,other.Data.shape)
+            raise ProfileError("Profiles have different size (and are not aligned): %s %s"\
+            %(self.Data.shape,other.Data.shape))
     
     def toOddsMatrix(self, symbol_freqs=None):
         """Returns the OddsMatrix of a profile as a new Profile.
@@ -354,16 +353,14 @@ class Profile(object):
             
         #raise error when symbol_freqs has wrong length
         if len(symbol_freqs) != pl:
-            raise ProfileError,\
-            "Length of symbol freqs should be %s, but is %s"\
-            %(pl,len(symbol_freqs))
+            raise ProfileError("Length of symbol freqs should be %s, but is %s"\
+            %(pl,len(symbol_freqs)))
         
         #raise error when symbol freqs contains zero (to prevent 
         #ZeroDivisionError or 'inf' in the resulting matrix)
         if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
-            raise ProfileError,\
-            "Symbol frequency is not allowed to be zero: %s"\
-            %(symbol_freqs)
+            raise ProfileError("Symbol frequency is not allowed to be zero: %s"\
+            %(symbol_freqs))
 
         #calculate the OddsMatrix
         log_odds = self.Data/symbol_freqs
@@ -396,7 +393,7 @@ class Profile(object):
         pl = len(data) #profile length (number of positions)
         sl = len(seq_indices)
 
-        r = range(pl) #fixed range
+        r = list(range(pl)) #fixed range
         result = []
         for starting_pos in range(offset, len(seq_indices)-pl+1):
             slice = seq_indices[starting_pos:starting_pos+pl]
@@ -476,7 +473,7 @@ class Profile(object):
 
         #raise error if profile is empty
         if not data.any():
-            raise ProfileError,"Can't score an empty profile"
+            raise ProfileError("Can't score an empty profile")
         
         #figure out what the input_data type is
         if isinstance(input_data,Profile):
@@ -484,19 +481,18 @@ class Profile(object):
             to_score_length = len(input_data.Data)
             #raise error if CharOrders don't match
             if self.CharOrder != input_data.CharOrder:
-                raise ProfileError, "Profiles must have same character order"
+                raise ProfileError("Profiles must have same character order")
         else: #assumes it get a sequence
             to_score_length = len(input_data)
        
         #Profile should fit at least once in the sequence/profile_to_score
         if to_score_length < pl:
-            raise ProfileError,\
-            "Sequence or Profile to score should be at least %s "%(pl)+\
-            "characters long, but is %s."%(to_score_length)
+            raise ProfileError("Sequence or Profile to score should be at least %s "%(pl)+\
+            "characters long, but is %s."%(to_score_length))
         #offset should be valid
         if not offset <= (to_score_length - pl):
-            raise ProfileError, "Offset must be <= %s, but is %s"\
-            %((to_score_length-pl), offset)
+            raise ProfileError("Offset must be <= %s, but is %s"\
+            %((to_score_length-pl), offset))
 
         #call the apropriate scoring function
         if is_profile:
@@ -504,16 +500,15 @@ class Profile(object):
         else:
             #translate seq to indices
             if hasattr(self, '_translation_table'):
-                seq_indices = array(map(ord,translate(str(input_data),\
-                    self._translation_table)))
+                seq_indices = array(list(map(ord,translate(str(input_data),\
+                    self._translation_table))))
             else:   #need to figure out where each item is in the charorder
                 idx = self.CharOrder.index
-                seq_indices = array(map(idx, input_data))
+                seq_indices = array(list(map(idx, input_data)))
             #raise error if some sequence characters are not in the CharOrder
             if (seq_indices > len(self.CharOrder)).any():
-                raise ProfileError,\
-                "Sequence contains characters that are not in the "+\
-                "CharOrder"
+                raise ProfileError("Sequence contains characters that are not in the "+\
+                "CharOrder")
             #now the profile is scored against the list of indices   
             return self._score_indices(seq_indices,offset)
      
@@ -527,8 +522,7 @@ class Profile(object):
         try:
             return row_uncertainty(self.Data)
         except ValueError:
-            raise ProfileError,\
-            "Profile has to be two dimensional to calculate rowUncertainty"
+            raise ProfileError("Profile has to be two dimensional to calculate rowUncertainty")
             
     def columnUncertainty(self):
         """Returns uncertainty (Shannon's entropy) for each column in profile
@@ -540,8 +534,7 @@ class Profile(object):
         try:
             return column_uncertainty(self.Data)
         except ValueError:
-            raise ProfileError,\
-            "Profile has to be two dimensional to calculate columnUncertainty"
+            raise ProfileError("Profile has to be two dimensional to calculate columnUncertainty")
 
     def rowDegeneracy(self, cutoff=0.5):
         """Returns how many chars are needed to cover the cutoff value.
@@ -561,8 +554,7 @@ class Profile(object):
         try:
             return row_degeneracy(self.Data,cutoff)
         except ValueError:
-            raise ProfileError,\
-            "Profile has to be two dimensional to calculate rowDegeneracy"
+            raise ProfileError("Profile has to be two dimensional to calculate rowDegeneracy")
 
     def columnDegeneracy(self, cutoff=0.5):
         """Returns how many chars are neede to cover the cutoff value
@@ -572,8 +564,7 @@ class Profile(object):
         try:
             return column_degeneracy(self.Data,cutoff)
         except ValueError:
-            raise ProfileError,\
-            "Profile has to be two dimensional to calculate columnDegeneracy"
+            raise ProfileError("Profile has to be two dimensional to calculate columnDegeneracy")
 
     def rowMax(self):
         """Returns ara containing most frequent element in each row of the profile."""
@@ -624,12 +615,12 @@ class Profile(object):
                         data[row_idx,row[-num_to_keep]])[0] if item in\
                         nonzero(data[row_idx])[0]]
                     result.append(alpha.degenerateFromSequence(\
-                    map(str,take(co, to_take, axis=0))))
+                    list(map(str,take(co, to_take, axis=0)))))
             else:
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen,sorted)):
                     result.append(alpha.degenerateFromSequence(\
-                        map(str,take(co, [item for item in row[-num_to_keep:]\
-                        if item in nonzero(data[row_idx])[0]]))))
+                        list(map(str,take(co, [item for item in row[-num_to_keep:]\
+                        if item in nonzero(data[row_idx])[0]])))))
                                     
         elif not fully_degenerate: 
             result = take(co, argmax(self.Data, axis=-1), axis=0)
@@ -637,7 +628,7 @@ class Profile(object):
             result = []
             for row in self.Data:
                 result.append(alpha.degenerateFromSequence(\
-                map(str,take(co, nonzero(row)[0], axis=0))))
+                list(map(str,take(co, nonzero(row)[0], axis=0)))))
         return ''.join(map(str,result))
 
 
@@ -744,7 +735,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             #alphabet
             curr_degens = degen[degen_char]
             if all(map(char_order.__contains__, curr_degens)):
-                contains = map(curr_degens.__contains__, char_order)
+                contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
                         array(contains, float)/len(curr_degens)
     #for each character in the character order, make an entry of ones and 
@@ -752,8 +743,8 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     for c in char_order:
         c = str(c)
         if c not in alphabet:
-            raise ValueError, "Found character in the character order "+\
-            "that is not in the specified alphabet: %s"%(c) 
+            raise ValueError("Found character in the character order "+\
+            "that is not in the specified alphabet: %s"%(c)) 
         result[ord(c)] = array(c*lc, 'c') == char_order           
     return Profile(Data=result,Alphabet=alphabet,CharOrder=char_order)
 

@@ -3,7 +3,7 @@ from matplotlib import use, rc
 use('Agg')  #suppress graphical rendering
 from pylab import rc, gcf, xlim, ylim, xticks, yticks, sqrt, text, clip, gca, \
     array, dot, ravel, draw, show, savefig
-from fancy_arrow import arrow
+from .fancy_arrow import arrow
 """Draws arrow plots representing rate matrices.
 
 Note: currently requires dict of dinuc freqs, but should modify to work
@@ -24,8 +24,8 @@ __status__ = "Production"
 rc('text', usetex=True)
 rates_to_bases={'r1':'AT', 'r2':'TA', 'r3':'GA','r4':'AG','r5':'CA','r6':'AC', \
             'r7':'GT', 'r8':'TG', 'r9':'CT','r10':'TC','r11':'GC','r12':'CG'}
-numbered_bases_to_rates = dict([(v,k) for k, v in rates_to_bases.items()])
-lettered_bases_to_rates = dict([(v, 'r'+v) for k, v in rates_to_bases.items()])
+numbered_bases_to_rates = dict([(v,k) for k, v in list(rates_to_bases.items())])
+lettered_bases_to_rates = dict([(v, 'r'+v) for k, v in list(rates_to_bases.items())])
 def add_dicts(d1, d2):
     """Adds two dicts and returns the result."""
     result = d1.copy()
@@ -153,11 +153,11 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     if normalize_data:
         #find maximum value for rates, i.e. where keys are 2 chars long
         max_val = 0
-        for k, v in data.items():
+        for k, v in list(data.items()):
             if len(k) == 2:
                 max_val = max(max_val, v)
         #divide rates by max val, multiply by arrow scale factor
-        for k, v in data.items():
+        for k, v in list(data.items()):
             data[k] = v/max_val*sf
 
     def draw_arrow(pair, alpha=alpha, ec=ec, labelcolor=labelcolor):
@@ -211,7 +211,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         elif where == 'center':
             orig_position = array([[length/2.0, alo]])
         else:
-            raise ValueError, "Got unknown position parameter %s" % where
+            raise ValueError("Got unknown position parameter %s" % where)
             
 
         
@@ -224,7 +224,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         text(x, y, label, size=label_text_size, ha='center', va='center', \
             color=labelcolor or fc)
 
-    for p in positions.keys():
+    for p in list(positions.keys()):
         draw_arrow(p)
     
     if graph_name is not None:

@@ -4,7 +4,6 @@
 from cogent3.parse.record_finder import LabeledRecordFinder, \
     DelimitedRecordFinder, never_ignore
 from cogent3.parse.record import RecordError
-from string import strip, upper
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -14,6 +13,9 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"
+
+strip = str.strip
+upper = str.upper
 
 def iter_finder(line):
     """Split record on rows that start with iteration label."""
@@ -54,12 +56,12 @@ def make_label(line):
     WARNING: Only maps the data type if the key is in label_constructors above.
     """
     if not line.startswith("#"):
-        raise ValueError, "Labels must start with a # symbol."
+        raise ValueError("Labels must start with a # symbol.")
 
     if line.find(":") == -1:
-        raise ValueError, "Labels must contain a : symbol."
+        raise ValueError("Labels must contain a : symbol.")
 
-    key, value = map(strip, line[1:].split(":", 1))
+    key, value = list(map(strip, line[1:].split(":", 1)))
     key = key.upper()
     if key in label_constructors:
         value = label_constructors[key](value)
@@ -100,10 +102,10 @@ def GenericBlastParser9(lines, finder, make_col_headers=False):
 
                 # check if need to insert column headers
                 if make_col_headers and label == "FIELDS":
-                    data.insert(0, map(upper, map(strip,value.split(","))))
+                    data.insert(0, list(map(upper, list(map(strip,value.split(","))))))
 
             else:
-                data.append(map(strip, line.split("\t")))
+                data.append(list(map(strip, line.split("\t"))))
         yield props, data
 
 def TableToValues(table, constructors=None, header=None):
@@ -123,7 +125,7 @@ psiblast_constructors={'% identity':float, 'alignment length':int, \
     'mismatches':int, 'gap openings':int, 'q. start':int, 'q. end':int, \
     's. start':int, 's. end':int, 'e-value':float, 'bit score':float}
 #make case-insensitive
-for key, val in psiblast_constructors.items():
+for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
 
 def PsiBlastTableParser(table):
@@ -168,14 +170,14 @@ def PsiBlastParser9(lines):
                 result[properties['QUERY'].split()[0]] = curr_resultset
                 first_query = False
             table, header = PsiBlastTableParser(record)
-            curr_resultset.append([dict(zip(header, row)) for row in table])
+            curr_resultset.append([dict(list(zip(header, row))) for row in table])
     return result
 
 def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     """
     Extract ids from blast output
     """
-    fields = map(strip, props["FIELDS"].upper().split(","))
+    fields = list(map(strip, props["FIELDS"].upper().split(",")))
 
     # get column index of protein ids we want
     p_ix = fields.index("SUBJECT ID")
@@ -393,9 +395,9 @@ class BlastResult(dict):
             # check if found any hits
             if len(rec_data) > 1:
                 for h in rec_data[1:]:
-                    hits.append(dict(zip(rec_data[0], h)))
+                    hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(zip(rec_data[0], ['' for x in rec_data[0]])))
+                hits.append(dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
             
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
@@ -437,8 +439,8 @@ class BlastResult(dict):
 
         # check that given valid comparison field
         if field not in self.FieldComparisonOperators:
-            raise ValueError, "Invalid field: %s. You must specify one of: %s" \
-                              % (field, str(self.FieldComparisonOperators))
+            raise ValueError("Invalid field: %s. You must specify one of: %s" \
+                              % (field, str(self.FieldComparisonOperators)))
         cmp_fun, cast_fun = self.FieldComparisonOperators[field]
 
         # enumerate hits

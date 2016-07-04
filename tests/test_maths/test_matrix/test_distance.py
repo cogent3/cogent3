@@ -44,7 +44,7 @@ class DistanceMatrixTests(TestCase):
 
         self.matrices = [self.m1,self.m2]
 
-        aar_data = dict(zip(self.default_keys, [i*.15 for i in range(20)]))
+        aar_data = dict(list(zip(self.default_keys, [i*.15 for i in range(20)])))
         # Setup a AAIndex1Record for testing purposes
         self.aar = AAIndex1Record("5", "Some Info",\
                 "25", "Greg", "A test",\
@@ -229,7 +229,7 @@ class DistanceMatrixTests(TestCase):
 
     def test_copy(self):
         """ Copy functions as expected"""
-        dm = DistanceMatrix(data=self.m2, RowOrder=self.m2.keys(), info=self.aar)
+        dm = DistanceMatrix(data=self.m2, RowOrder=list(self.m2.keys()), info=self.aar)
         c = dm.copy()
         self.assertEqual(c['A']['A'],dm['A']['A'])
         self.assertEqual(c.RowOrder,dm.RowOrder)
@@ -243,7 +243,7 @@ class DistanceMatrixTests(TestCase):
 
     def test_attribute_forwarder_integrity_after_copy(self):
         """ Integrity of attribute forwarding following a copy()"""
-        dm = DistanceMatrix(data=self.m2, RowOrder=self.m2.keys(), info=self.aar)
+        dm = DistanceMatrix(data=self.m2, RowOrder=list(self.m2.keys()), info=self.aar)
         c = dm.copy()
        
         # dm.ID == '5'
@@ -261,7 +261,7 @@ class DistanceMatrixTests(TestCase):
             # matrix without it being effected by altering the object 
             # based on it
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=m.keys())
+            dm = DistanceMatrix(data=n, RowOrder=list(m.keys()))
             
             # set diag to 42
             dm.setDiag(42)
@@ -280,7 +280,7 @@ class DistanceMatrixTests(TestCase):
             # Test square all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=m.keys(), Pad=False)
+            dm = DistanceMatrix(data=n, RowOrder=list(m.keys()), Pad=False)
             dm.scale(lambda x: x**2)
             self.assertEqual(dm['A']['A'],m['A']['A']**2)
             self.assertEqual(dm['B']['A'],m['B']['A']**2)
@@ -289,7 +289,7 @@ class DistanceMatrixTests(TestCase):
             # Test cube all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=m.keys(), Pad=False)
+            dm = DistanceMatrix(data=n, RowOrder=list(m.keys()), Pad=False)
             dm.scale(lambda x: x**3)
             self.assertEqual(dm['A']['A'],m['A']['A']**3)
             self.assertEqual(dm['B']['A'],m['B']['A']**3)
@@ -298,7 +298,7 @@ class DistanceMatrixTests(TestCase):
             # Test linearize all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=m.keys(), Pad=False)
+            dm = DistanceMatrix(data=n, RowOrder=list(m.keys()), Pad=False)
             dm.scale(lambda x: 10**-(x/10.0))
             self.assertFloatEqual(dm['A']['A'],10**-(m['A']['A']/10.))
             self.assertFloatEqual(dm['B']['A'],10**-(m['B']['A']/10.))
@@ -311,7 +311,7 @@ class DistanceMatrixTests(TestCase):
             # Test square all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             dm.elementPow(2)
             self.assertEqual(dm.Power, 2)
@@ -322,7 +322,7 @@ class DistanceMatrixTests(TestCase):
             # Test cube square root of all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             dm.elementPow(3)
             dm.elementPow(1./2.)
@@ -338,7 +338,7 @@ class DistanceMatrixTests(TestCase):
             # Test square all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             dm['A']['A'] = 'p'
             dm.elementPow(2)
@@ -346,7 +346,7 @@ class DistanceMatrixTests(TestCase):
             self.assertEqual(dm['A']['A'],'p')
 
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             dm['A']['A'] = None
             dm.elementPow(2)
@@ -360,7 +360,7 @@ class DistanceMatrixTests(TestCase):
             # Test square all elements
             # explicit tests
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             dm['A']['A'] = 'p'
             self.assertRaises(TypeError,dm.elementPow,2,ignore_invalid=False)
@@ -373,7 +373,7 @@ class DistanceMatrixTests(TestCase):
         for m in self.matrices:
 
             n = deepcopy(m)
-            dm = DistanceMatrix(data=n, RowOrder=n.keys(),ColOrder=n.keys(),\
+            dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
                     Pad=False)
             self.assertRaises(TypeError,dm.elementPow,None,ignore_invalid=False)
             self.assertRaises(TypeError,dm.elementPow,'a',ignore_invalid=False)

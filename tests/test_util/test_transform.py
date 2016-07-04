@@ -8,7 +8,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     disjoin, any, either, negate, none, neither, compose, compose_many, \
     per_shortest, per_longest, for_seq, \
     has_field, extract_field, test_field, index, test_container, \
-    trans_except, trans_all, make_trans, find_any, find_no, find_all,\
+    trans_except, trans_all, find_any, find_no, find_all,\
     keep_if_more, exclude_if_more, keep_if_more_other, exclude_if_more_other,\
     keep_chars,exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
@@ -47,11 +47,11 @@ class metafunctionsTests(TestCase):
     """Tests of standalone functions."""
     def setUp(self):
         """Define some standard functions and data."""
-        self.Numbers = range(20)
-        self.SmallNumbers = range(3)
-        self.SmallNumbersRepeated = range(5) * 4
+        self.Numbers = list(range(20))
+        self.SmallNumbers = list(range(3))
+        self.SmallNumbersRepeated = list(range(5)) * 4
         self.Letters = 'abcde'
-        self.Mixed = list(self.Letters) + range(5)
+        self.Mixed = list(self.Letters) + list(range(5))
         self.firsts = 'ab2'
         self.seconds = '0bc'
 
@@ -132,10 +132,10 @@ class metafunctionsTests(TestCase):
         """all should return a function returning True if all components True"""
         odd_vowel = all([self.is_odd_letter, self.is_vowel, self.is_char])
         self.assertEqual(odd_vowel('a'), True)
-        self.assertEqual(map(odd_vowel, 'abceu'), 
+        self.assertEqual(list(map(odd_vowel, 'abceu')), 
             [True,False,False,True,False])
         odd_number = all([self.is_odd_number, self.is_number])
-        self.assertEqual(map(odd_number, range(5)), [False,True]*2+[False])
+        self.assertEqual(list(map(odd_number, list(range(5)))), [False,True]*2+[False])
         #should short-circuit, i.e. not evaluate later cases after False
         self.assertEqual(all([self.is_odd_letter, self.fail])('b'), False)
         self.assertRaises(AssertionError, all([self.is_odd_letter,self.fail]),\
@@ -144,7 +144,7 @@ class metafunctionsTests(TestCase):
     def test_both(self):
         """both should return True if both components True"""
         odd_vowel = both(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(map(odd_vowel, 'abcu'), [True,False,False,False])
+        self.assertEqual(list(map(odd_vowel, 'abcu')), [True,False,False,False])
         #should short-circuit
         self.assertEqual(both(self.is_odd_letter, self.fail)('b'), False)
         self.assertRaises(AssertionError, both(self.is_odd_letter, self.fail),\
@@ -166,9 +166,9 @@ class metafunctionsTests(TestCase):
         """any should return a function returning True if any component True"""
         odd_vowel = any([self.is_odd_letter, self.is_vowel])
         self.assertEqual(odd_vowel('a'), True)
-        self.assertEqual(map(odd_vowel, 'abceu'), [True,False,True,True,True])
+        self.assertEqual(list(map(odd_vowel, 'abceu')), [True,False,True,True,True])
         odd = any([self.is_odd_number, self.is_small])
-        self.assertEqual(map(odd, range(5)), [True]*4+[False])
+        self.assertEqual(list(map(odd, list(range(5)))), [True]*4+[False])
         #should short-circuit after first True
         self.assertEqual(any([self.is_odd_letter, self.fail])(x='a'), True)
         self.assertRaises(AssertionError, any([self.is_odd_letter,self.fail]),\
@@ -177,7 +177,7 @@ class metafunctionsTests(TestCase):
     def test_either(self):
         """either should return function returning True if either component True"""
         odd_vowel = either(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(map(odd_vowel, 'abcu'), [True,False,True,True])
+        self.assertEqual(list(map(odd_vowel, 'abcu')), [True,False,True,True])
         #should short-circuit
         self.assertEqual(either(self.is_odd_letter, self.fail)(x='a'), True)
         self.assertRaises(AssertionError, \
@@ -198,9 +198,9 @@ class metafunctionsTests(TestCase):
         """none should return a function returning True if no component True"""
         odd_vowel = none([self.is_odd_letter, self.is_vowel])
         self.assertEqual(odd_vowel('a'), False)
-        self.assertEqual(map(odd_vowel, 'abceu'), [False,True] + [False]*3)
+        self.assertEqual(list(map(odd_vowel, 'abceu')), [False,True] + [False]*3)
         odd = none([self.is_odd_number, self.is_small])
-        self.assertEqual(map(odd, range(5)), [False]*4+[True])
+        self.assertEqual(list(map(odd, list(range(5)))), [False]*4+[True])
         #should short-circuit after first True
         self.assertEqual(none([self.is_odd_letter, self.fail])(x='a'), False)
         self.assertRaises(AssertionError, none([self.is_odd_letter,self.fail]),\
@@ -209,7 +209,7 @@ class metafunctionsTests(TestCase):
     def test_neither(self):
         """neither should return function returning True if each component False"""
         odd_vowel = neither(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(map(odd_vowel, 'abcu'), [False,True,False,False])
+        self.assertEqual(list(map(odd_vowel, 'abcu')), [False,True,False,False])
         #should short-circuit
         self.assertEqual(neither(self.is_odd_letter, self.fail)(x='a'), False)
         self.assertRaises(AssertionError, \
@@ -231,7 +231,7 @@ class metafunctionsTests(TestCase):
         """compose_many should return composition of all args"""
         from numpy import arange
         def to_strings(x):
-            return map(str, x)
+            return list(map(str, x))
         printable_range = compose_many(''.join, to_strings, range)
         printable_arange = compose_many(''.join, to_strings, arange)
         
@@ -482,17 +482,6 @@ class Filter_Criteria_Tests(TestCase):
 
         self.assertEqual('qazwsxedcrfv'.translate(some),'qaVwsVedVrfV') 
 
-    def test_make_trans(self):
-        """make_trans should return trans table mapping chars to default"""
-        a = make_trans()
-        self.assertEqual('abc123'.translate(a), 'abc123')
-        a = make_trans('a', 'x')
-        self.assertEqual('abc123'.translate(a), 'xbc123')
-        a = make_trans('ac', 'xa')
-        self.assertEqual('abc123'.translate(a), 'xba123')
-        a = make_trans('ac', 'xa', '.')
-        self.assertEqual('abc123'.translate(a), 'x.a...')
-        self.assertRaises(ValueError, make_trans, 'ac', 'xa', 'av')
 
     def test_find_any(self):
         """find_any should be True if one of the words is in the string"""
@@ -922,26 +911,26 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_comb(self):
         """comb should return correct combinations"""
-        self.assertEqual(list(comb(range(5), 0)),
+        self.assertEqual(list(comb(list(range(5)), 0)),
                 [])
-        self.assertEqual(list(comb(range(5), 1)),
+        self.assertEqual(list(comb(list(range(5)), 1)),
                 [[0], [1], [2], [3], [4]])
-        self.assertEqual(list(comb(range(5), 2)),
+        self.assertEqual(list(comb(list(range(5)), 2)),
                 [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3],
                 [2, 4], [3, 4]])
-        self.assertEqual(list(comb(range(5), 3)),
+        self.assertEqual(list(comb(list(range(5)), 3)),
                [[0, 1, 2], [0, 1, 3], [0, 1, 4], [0, 2, 3], [0, 2, 4], [0, 3, 4],
                 [1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
-        self.assertEqual(list(comb(range(5), 4)),
+        self.assertEqual(list(comb(list(range(5)), 4)),
                 [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 3, 4], [0, 2, 3, 4], [1, 2, 3, 4]])
-        self.assertEqual(list(comb(range(5), 5)),
+        self.assertEqual(list(comb(list(range(5)), 5)),
                 [[0, 1, 2, 3, 4]])
 
 
     def test_cross_comb(self):
         """cross_comb should produce correct combinations"""
-        v1 = range(2)
-        v2 = range(3)
+        v1 = list(range(2))
+        v2 = list(range(3))
         v3 = list('abc')
         vv1 = ([e] for e in v1)
         v1_x_v2 = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]

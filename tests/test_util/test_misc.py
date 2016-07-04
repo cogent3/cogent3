@@ -49,8 +49,8 @@ class UtilsTests(TestCase):
         
     def tearDown(self):
         """ """
-        map(remove,self.files_to_remove)
-        map(rmdir,self.dirs_to_remove)
+        list(map(remove,self.files_to_remove))
+        list(map(rmdir,self.dirs_to_remove))
 
     def test_identity(self):
         """should return same object"""
@@ -138,7 +138,7 @@ class UtilsTests(TestCase):
         tmp_f.write('foo\n')
         tmp_f.close()
 
-        obs = safe_md5(open(tmp_fp, 'U'))
+        obs = safe_md5(open(tmp_fp, newline=None))
         self.assertEqual(obs.hexdigest(),exp)
 
     def test_iterable(self):
@@ -237,7 +237,7 @@ class UtilsTests(TestCase):
         # create on existing dir raises OSError if fail_on_exist=True
         self.assertRaises(OSError, create_dir, tmp_dir_path,
                           fail_on_exist=True)
-        self.assertEquals(create_dir(tmp_dir_path,
+        self.assertEqual(create_dir(tmp_dir_path,
                                      fail_on_exist=True,
                                      handle_errors_externally=True), 1)
 
@@ -309,7 +309,7 @@ class UtilsTests(TestCase):
         empty = [[]]
 
         lists = [chars, numbers, strings]
-        zipped = [zip(*i) for i in lists]
+        zipped = [list(zip(*i)) for i in lists]
         unzipped = [unzip(i) for i in zipped]
 
         for u, l in zip(unzipped, lists):
@@ -327,7 +327,7 @@ class UtilsTests(TestCase):
                     (-8, 8): ['c', 'i'],
                     ():[],
                 }
-        for test, result in tests.items():
+        for test, result in list(tests.items()):
             self.assertEqual(select(test, chars), result)
             self.assertEqual(select(test, strings), result)
 
@@ -766,8 +766,8 @@ class ClassCheckerTests(TestCase):
     def setUp(self):
         """define a few standard checkers"""
         self.strcheck = ClassChecker(str)
-        self.intcheck = ClassChecker(int, long)
-        self.numcheck = ClassChecker(float, int, long)
+        self.intcheck = ClassChecker(int, int)
+        self.numcheck = ClassChecker(float, int, int)
         self.emptycheck = ClassChecker()
         self.dictcheck = ClassChecker(dict)
         self.mydictcheck = ClassChecker(_my_dict)
@@ -775,7 +775,7 @@ class ClassCheckerTests(TestCase):
     def test_init_good(self):
         """ClassChecker should init OK when initialized with classes"""
         self.assertEqual(self.strcheck.Classes, [str])
-        self.assertEqual(self.numcheck.Classes, [float, int, long])
+        self.assertEqual(self.numcheck.Classes, [float, int, int])
         self.assertEqual(self.emptycheck.Classes, [])
 
     def test_init_bad(self):
@@ -1019,12 +1019,11 @@ class ConstrainedContainerTests(TestCase):
         except ConstraintError:
             pass
         else:
-            raise AssertionError, \
-            "Failed to raise ConstraintError with invalid constraint."
+            raise AssertionError("Failed to raise ConstraintError with invalid constraint.")
         self.alphabet.Constraint = 'abcdefghi'
         self.alphabet.Constraint = ['a','b', 'c', 1, 2, 3]
+        self.numbers.Constraint = list(range(20))
         self.numbers.Constraint = range(20)
-        self.numbers.Constraint = xrange(20)
         self.numbers.Constraint = [5,1,3,7,2]
         self.numbers.Constraint = {1:'a',2:'b',3:'c'}
         self.assertRaises(ConstraintError, setattr, self.numbers, \
@@ -1243,7 +1242,7 @@ class ConstrainedListTests(TestCase):
 
     def test_setitem_masks(self):
         """ConstrainedList setitem with masks should transform input"""
-        a = ConstrainedList('12333', range(5), lambda x: int(x) + 1)
+        a = ConstrainedList('12333', list(range(5)), lambda x: int(x) + 1)
         self.assertEqual(a, [2,3,4,4,4])
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
@@ -1257,7 +1256,7 @@ class MappedListTests(TestCase):
     """MappedList should behave like ConstrainedList, but map items."""
     def test_setitem_masks(self):
         """MappedList setitem with masks should transform input"""
-        a = MappedList('12333', range(5), lambda x: int(x) + 1)
+        a = MappedList('12333', list(range(5)), lambda x: int(x) + 1)
         self.assertEqual(a, [2,3,4,4,4])
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
@@ -1385,8 +1384,8 @@ class MappedDictTests(TestCase):
         assert e.Mask is d.Mask
         assert '1' in d
         assert 1 in d
-        assert 1 not in d.keys()
-        assert 'x' not in d.keys()
+        assert 1 not in list(d.keys())
+        assert 'x' not in list(d.keys())
 
     def test_getitem(self):
         """MappedDict getitem should automatically map key."""
@@ -1413,9 +1412,9 @@ class MappedDictTests(TestCase):
         d = MappedDict({}, '123', key_mask)
         self.assertEqual(d, {})
         d['1'] = 5
-        assert d.has_key('1')
-        assert d.has_key(1)
-        assert not d.has_key('5')
+        assert '1' in d
+        assert 1 in d
+        assert '5' not in d
 
         
 
@@ -1435,38 +1434,38 @@ class generateCombinationsTests(TestCase):
         
         correct_result.sort()
         real_result.sort()
-        self.assertEquals(str(real_result), str(correct_result))
+        self.assertEqual(str(real_result), str(correct_result))
     #end test_generateCombinations
     
     def test_generateCombinations_singleAlphabet(self):
         """function should return correct value when alphabet is one char"""
         
         real_result = generateCombinations("A", 4)
-        self.assertEquals(str(real_result), str(["AAAA"]))
+        self.assertEqual(str(real_result), str(["AAAA"]))
     #end test_generateCombinations_singleAlphabet
     
     def test_generateCombinations_singleLength(self):
         """function should return correct values if length is 1"""
         
         real_result = generateCombinations("ABC", 1)
-        self.assertEquals(str(real_result), str(["A", "B", "C"]))
+        self.assertEqual(str(real_result), str(["A", "B", "C"]))
     #end test_generateCombinations_singleLength
     
     def test_generateCombinations_emptyAlphabet(self):
         """function should return empty list if alphabet arg is [], "" """
         
         real_result = generateCombinations("", 4)
-        self.assertEquals(str(real_result), str([]))
+        self.assertEqual(str(real_result), str([]))
         
         real_result = generateCombinations([], 4)
-        self.assertEquals(str(real_result), str([]))
+        self.assertEqual(str(real_result), str([]))
     #end test_generateCombinations_emptyAlphabet
     
     def test_generateCombinations_zeroLength(self):
         """function should return empty list if length arg is 0 """
         
         real_result = generateCombinations("ABC", 0)
-        self.assertEquals(str(real_result), str([]))
+        self.assertEqual(str(real_result), str([]))
     #end test_generateCombinations_zeroLength
     
     def test_generateCombinations_badArgs(self):
@@ -1483,13 +1482,13 @@ class makeNonnegIntTests(TestCase):
     def test_makeNonnegInt_unchanged(self):
         """Should return an input nonneg int unchanged"""
         
-        self.assertEquals(makeNonnegInt(3), 3)
+        self.assertEqual(makeNonnegInt(3), 3)
     #end test_makeNonnegInt_unchanged
     
     def test_makeNonnegInt_castable(self):
         """Should return nonneg int version of a castable input"""
         
-        self.assertEquals(makeNonnegInt(-4.2), 4)
+        self.assertEqual(makeNonnegInt(-4.2), 4)
     #end test_makeNonnegInt_castable
     
     def test_makeNonnegInt_noncastable(self):
@@ -1511,12 +1510,12 @@ class reverse_complementTests(TestCase):
         user_input = "ATGCAGGGGAAACATGATTCAGGAC"
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
-        self.assertEquals(real_output, correct_output)
+        self.assertEqual(real_output, correct_output)
         
         # revComp is a pointer to reverse_complement (for backward 
         # compatibility)
         real_output = revComp(user_input)
-        self.assertEquals(real_output, correct_output)
+        self.assertEqual(real_output, correct_output)
     #end test_reverse_complement_DNA
     
     def test_reverse_complement_RNA(self):
@@ -1529,7 +1528,7 @@ class reverse_complementTests(TestCase):
         
         #remember to use False toggle to get RNA instead of DNA
         real_output = reverse_complement(user_input, False)
-        self.assertEquals(real_output, correct_output)        
+        self.assertEqual(real_output, correct_output)        
     #end test_reverse_complement_RNA
     
     def test_reverse_complement_caseSensitive(self):
@@ -1538,7 +1537,7 @@ class reverse_complementTests(TestCase):
         user_input = "aCGtAcgT"
         correct_output = "AcgTaCGt"
         real_output = reverse_complement(user_input)
-        self.assertEquals(real_output, correct_output) 
+        self.assertEqual(real_output, correct_output) 
     #end test_reverse_complement_caseSensitive
     
     def test_reverse_complement_nonNucleicSeq(self):
@@ -1553,7 +1552,7 @@ class reverse_complementTests(TestCase):
         
         #shouldn't matter whether in DNA or RNA mode
         real_output = reverse_complement("")
-        self.assertEquals(real_output, "") 
+        self.assertEqual(real_output, "") 
     #end test_reverse_complement_emptySeq
     
     def test_reverse_complement_noSeq(self):
@@ -1567,7 +1566,7 @@ class reverse_complementTests(TestCase):
         """not_none should return True if none of the items is None"""
         assert not_none([1,2,3,4])
         assert not not_none([1,2,3,None])
-        self.assertEqual(filter(not_none,[(1,2),(3,None)]),[(1,2)])
+        self.assertEqual(list(filter(not_none,[(1,2),(3,None)])),[(1,2)])
     #end test_not_none
 
     def test_get_items_except(self):

@@ -49,7 +49,7 @@ class TestPeriodStat(TestCase):
         self.assertFloatEqual(g_obs, 0.0577, eps=1e-3)
     
     def test_circular_indices(self):
-        v = range(10)
+        v = list(range(10))
         self.assertEqual(circular_indices(v, 8, 10, 4), [8,9,0,1])
         self.assertEqual(circular_indices(v, 9, 10, 4), [9,0,1,2])
         self.assertEqual(circular_indices(v, 4, 10, 4), [4,5,6,7])

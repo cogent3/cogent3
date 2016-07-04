@@ -5,7 +5,6 @@ parses Nexus formatted tree files and Branchlength info in log files
 """
 
 import re
-from string import strip
 from cogent3.parse.record import RecordError
 
 __author__ = "Catherine Lozupone"
@@ -16,6 +15,8 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
+
+strip = str.strip
 
 def parse_nexus_tree(tree_f):
     """returns a dict mapping taxa # to name from the translation table,
@@ -53,7 +54,7 @@ def check_tree_info(tree_info):
     if tree_info:
         pass
     else:
-        raise RecordError, "not a valid Nexus Tree File"
+        raise RecordError("not a valid Nexus Tree File")
 
 def split_tree_info(tree_info):
     """Returns header, table, and dnd info from tree section of Nexus file.:
@@ -107,7 +108,7 @@ def parse_dnd(dnd):#get rooted info
     dnd_dict = {}
     for line in dnd:
         line = line.strip()
-        name, dnd_s = map(strip, line.split('=', 1))
+        name, dnd_s = list(map(strip, line.split('=', 1)))
         #get dnd from dnd_s and populate
         dnd_index = dnd_s.find('(')
         data = dnd_s[dnd_index:]

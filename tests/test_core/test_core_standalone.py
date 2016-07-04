@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+
 
 import unittest, os, tempfile
 
@@ -76,12 +76,16 @@ class AlignmentTestMethods(unittest.TestCase):
         # Doesn't test round trip result is correct, which should possibly
         # be done for maps/spans, but seqs/alignments are just simple
         # python classes without __getstate__ etc.
-        import cPickle as pickle
+        import pickle as pickle
         seq1 = DNA.makeSequence("aagaagaagaccccca")
         seq2 = DNA.makeSequence("aagaagaagaccccct")
         seq2.addFeature('exon', 'fred', [(10,15)])
         aln = LoadSeqs(data={'a':seq1, 'b':seq2})
-        aln2 = pickle.loads(pickle.dumps(aln))
+        # TODO the ability to pickle/unpickle depends on the protocol
+        # in Py3 for reasons that are not clear. This needs to be looked
+        # more closely
+        dmp = pickle.dumps(aln, protocol=1)
+        aln2 = pickle.loads(dmp)
 
     def test_empty_seq(self):
         """test creation of an alignment from scratch, with one sequence pure gap"""
@@ -328,7 +332,7 @@ class AlignmentTestMethods(unittest.TestCase):
         sample = alignment.sample(10)
         self.assertEqual(len(sample), 10)
         # test columns alignment preserved
-        seqs = sample.todict().values()
+        seqs = list(sample.todict().values())
         self.assertEqual(seqs[0], seqs[1])
         # ensure each char occurs once as sampling without replacement
         for char in seqs[0]:
@@ -348,7 +352,7 @@ class AlignmentTestMethods(unittest.TestCase):
         sample = alignment.sample(10,motif_length=2)
         self.assertEqual(len(sample), 20)
         # test columns alignment preserved
-        seqs = sample.todict().values()
+        seqs = list(sample.todict().values())
         self.assertEqual(seqs[0], seqs[1])
         # ensure each char occurs twice as sampling dinucs without replacement
         for char in seqs[0]:

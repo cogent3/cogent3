@@ -233,7 +233,7 @@ class PatchSiteDistribution(object):
         source = self.transition_matrix.emit(random_series)
         result = numpy.zeros([length], int)
         for i in range(length):
-            patch = source.next() - 1
+            patch = next(source) - 1
             result[i] = argpick(bprobs[patch], random_series)
         return result
     

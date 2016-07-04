@@ -1,5 +1,5 @@
 from numpy import exp, log
-import consensus
+from . import consensus
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"

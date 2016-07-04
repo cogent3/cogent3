@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from align import make_dna_scoring_dict, _align_pairwise, \
+from .align import make_dna_scoring_dict, _align_pairwise, \
                   classic_align_pairwise, local_pairwise, global_pairwise
 
 __all__ = ['align', 'dp_calculation', 'indel_model',

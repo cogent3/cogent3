@@ -34,16 +34,16 @@ sm = substitution_model.Nucleotide()
 lf = sm.makeLikelihoodFunction(t)
 lf.setConstantLengths()
 lf.setName('True JC model')
-print lf
+print(lf)
 simulated = lf.simulateAlignment(sequence_length=length_of_align)
-print simulated
+print(simulated)
 
 new_lf = sm.makeLikelihoodFunction(t)
 new_lf = new_lf.setAlignment(simulated)
 new_lf.optimise(tolerance=1.0)
 new_lf.optimise(local=True)
 new_lf.setName('True JC model')
-print new_lf
+print(new_lf)
 
 #########################
 #
@@ -62,15 +62,15 @@ lf.setParamRule('kappa',is_constant = True, value = 0.2, edge_name='c')
 lf.setParamRule('kappa',is_constant = True, value = 3.0, edge_name='d')
 lf.setParamRule('kappa',is_constant = True, value = 2.0, edge_name='edge.0')
 lf.setName('True Kappa model')
-print lf
+print(lf)
 simulated = lf.simulateAlignment(sequence_length=length_of_align)
-print simulated
+print(simulated)
 new_lf = sm.makeLikelihoodFunction(t)
 new_lf.setParamRule('kappa',is_independent=True)
 new_lf.setAlignment(simulated)
 new_lf.optimise(tolerance=1.0)
 new_lf.optimise(local=True)
 new_lf.setName('Estimated Kappa model')
-print new_lf
+print(new_lf)
 
 

@@ -60,7 +60,7 @@ class Histogram(object):
         """
         function = self.Mapping
         if function:
-            transformed = map(function, data)
+            transformed = list(map(function, data))
         else:
             transformed = data
             

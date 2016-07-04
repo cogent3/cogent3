@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import os
 from cogent3.util.unit_test import TestCase, main
@@ -43,14 +43,14 @@ class TestCompara(ComparaTestBase):
     def test_query_genome(self):
         """compara should attach valid genome attributes by common name"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
-        self.assertEquals(brca2.Symbol.lower(), 'brca2')
+        self.assertEqual(brca2.Symbol.lower(), 'brca2')
     
     def test_get_related_genes(self):
         """should correctly return the related gene regions from each genome"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                 Relationship="ortholog_one2one")
-        self.assertEquals("ortholog_one2one", Orthologs.Relationships[0])
+        self.assertEqual("ortholog_one2one", Orthologs.Relationships[0])
     
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
@@ -75,13 +75,13 @@ class TestCompara(ComparaTestBase):
         aln = result.getAlignment(feature_types='gene')
         # the following expect confirmed using Ensembl's web-site
         sub_aln = aln[7000: 7020]
-        seqs = sub_aln.todict().values()
+        seqs = list(sub_aln.todict().values())
         expect = set(['AGGGCTGACTCTGCCGCTGT', # human
                       'AAGTCAAACTCTACCACTGG', # mouse
                       'AAGTCAAACTCTACCACTAG', #rat
                       'AAATGTGACTCTACCAGCCG' #platypus
                   ])
-        self.assertEquals(set(seqs), expect)
+        self.assertEqual(set(seqs), expect)
         self.assertTrue(len(aln) > 1000)
     
     def test_generate_method_clade_data(self):
@@ -94,7 +94,7 @@ class TestCompara(ComparaTestBase):
     def test_no_method_clade_data(self):
         """generate a Table with no rows if no alignment data"""
         compara = Compara(['S.cerevisiae'], Release=Release, account=account)
-        self.assertEquals(compara.method_species_links.Shape[0], 0)
+        self.assertEqual(compara.method_species_links.Shape[0], 0)
     
     def test_get_syntenic_returns_nothing(self):
         """should correctly return None for a SyntenicRegion with golden-path
@@ -104,7 +104,7 @@ class TestCompara(ComparaTestBase):
         related = list(self.comp.getSyntenicRegions(Species='mouse',
                         CoordName='1', Start=Start, End=End,
                         align_method='PECAN', align_clade='vertebrates'))
-        self.assertEquals(related, [])
+        self.assertEqual(related, [])
     
     def test_get_species_set(self):
         """should return the correct set of species"""
@@ -113,7 +113,7 @@ class TestCompara(ComparaTestBase):
         brca1 = self.comp.Human.getGeneByStableId(StableId="ENSG00000012048")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca1,
                         Relationship="ortholog_one2one")
-        self.assertEquals(Orthologs.getSpeciesSet(), expect)
+        self.assertEqual(Orthologs.getSpeciesSet(), expect)
         
     def test_pool_connection(self):
         """excercising ability to specify pool connection"""
@@ -183,13 +183,13 @@ class TestSyntenicRegions(TestCase):
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
-            exp_names = dict([(n.split(':')[0], n.split(':')) for n in expect.keys()])
+            exp_names = dict([(n.split(':')[0], n.split(':')) for n in list(expect.keys())])
             for species in exp_names:
                 exp_chrom = exp_names[species][2]
                 got_chrom = got_names[species][2]
-                self.assertEquals(exp_chrom.lower(), got_chrom.lower())
-                exp_start, exp_end = map(int, exp_names[species][3].split('-'))
-                got_start, got_end = map(int, got_names[species][3].split('-'))
+                self.assertEqual(exp_chrom.lower(), got_chrom.lower())
+                exp_start, exp_end = list(map(int, exp_names[species][3].split('-')))
+                got_start, got_end = list(map(int, got_names[species][3].split('-')))
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
                 self.assertFloatEqual(abs(slope), 1.0, eps=1e-3)
         

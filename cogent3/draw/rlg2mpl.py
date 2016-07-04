@@ -3,7 +3,7 @@
 #linear, dotplot and dendrogram were originally written to target ReportLab Graphics rather
 #than Matplotlib.  This module can be slowly boiled away as they become more matplotlib native.
 
-from __future__ import division
+
 from matplotlib.path import Path
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
@@ -49,7 +49,7 @@ def String(x, y, text, textAnchor='start', fontName=None, fontSize=10,
     color = fillColor
     ha = {'start':'left', 'middle':'center', 'end':'right'}[textAnchor]
     va = 'baseline'
-    mpl_kw = dict((n,v) for (n,v) in locals().items() if n.islower())
+    mpl_kw = dict((n,v) for (n,v) in list(locals().items()) if n.islower())
     return Text(**mpl_kw)
 
 class Group(matplotlib.artist.Artist):
@@ -132,7 +132,7 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
     if leftovers:
         return (total_width, total_height), posn, margins
     else:   
-        assert not margins, margins.keys()
+        assert not margins, list(margins.keys())
         return (total_width, total_height), posn
 
 class Drawable(object):
@@ -169,7 +169,7 @@ class Drawable(object):
         they are valid for savefig()"""
         makefig_kw = {}
         savefig_kw = {}
-        for (k,v) in kw.items():
+        for (k,v) in list(kw.items()):
             if k in ['dpi', 'facecolor', 'edgecolor', 'orientation',
                     'papertype', 'format', 'transparent']:
                 savefig_kw[k] = v
@@ -184,7 +184,7 @@ class Drawable(object):
         if total_width is not None:
             kw['width'] = total_width / 72
         kw2 = {}
-        for (k,v) in kw.items():
+        for (k,v) in list(kw.items()):
             if k in ['wraps', 'border', 'withTrackLabelColumn']:
                 discontinued('argument', "%s" % k, '1.6')
             else:
@@ -234,7 +234,7 @@ class _End(object):
         self.x_far = x_far
         self.y_first = y_first
         self.y_second = y_second
-        for (n, v) in kw.items():
+        for (n, v) in list(kw.items()):
             setattr(self, n, v)
     
     def moveToStart(self, path):

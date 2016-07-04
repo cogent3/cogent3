@@ -4,7 +4,7 @@ This file defines a class for controlling the scope and heterogeneity of
 parameters involved in a maximum-likelihood based tree analysis.
 """
 
-from __future__ import with_statement
+
 
 import numpy
 import pickle, warnings
@@ -105,7 +105,7 @@ class _LikelihoodParameterController(_LF):
                 except KeyError:
                     continue  # new parameter
                 for (u, value) in enumerate(uniq):
-                    group = [edge for (edge, i) in index.items() if i==u]
+                    group = [edge for (edge, i) in list(index.items()) if i==u]
                     self.setParamRule(par_name, edges=group, init=value)
             for edge in edges:
                 if edge.Length is not None:
@@ -243,7 +243,7 @@ class _LikelihoodParameterController(_LF):
             if single in scope_info:
                 v = scope_info.pop(single)
                 if v:
-                    assert isinstance(v, basestring), ('%s=, maybe?' % plural)
+                    assert isinstance(v, str), ('%s=, maybe?' % plural)
                     assert plural not in scope_info
                     scopes[single] = [v]
             elif plural in scope_info:
@@ -328,7 +328,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
     def makeLikelihoodDefn(self, sites_independent=True, discrete_edges=None):
         defns = self.model.makeParamControllerDefns(bin_names=self.bin_names)
         if discrete_edges is not None:
-            from discrete_markov import PartialyDiscretePsubsDefn
+            from .discrete_markov import PartialyDiscretePsubsDefn
             defns['psubs'] = PartialyDiscretePsubsDefn(
                     self.motifs, defns['psubs'], discrete_edges)
         return likelihood_calculation.makeTotalLogLikelihoodDefn(
@@ -376,7 +376,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     
     def setSequences(self, seqs, locus=None):
         leaves = {}
-        for (name, seq) in seqs.items():
+        for (name, seq) in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already
             if hasattr(seq, 'uniq'):
                 leaf = seq # XXX more checks - same alphabet as model, name etc ...
@@ -389,11 +389,11 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     
     def setPogs(self, leaves, locus=None):
         with self.updatesPostponed():
-            for (name, pog) in leaves.items():
+            for (name, pog) in list(leaves.items()):
                 self.setParamRule('leaf', edge=name, value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum([pog.leaf.getMotifCounts()
-                    for pog in leaves.values()], 0)
+                    for pog in list(leaves.values())], 0)
                 mprobs = counts/(1.0*sum(counts))
                 self.setMotifProbs(mprobs, locus=locus, is_constant=True, auto=True)
     

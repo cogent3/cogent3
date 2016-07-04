@@ -202,7 +202,7 @@ class TestMapSpans(unittest.TestCase):
         reverse = [Span(70,80, Reverse=True), Span(50,60, Reverse=True)]
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):
-            self.assertEquals(fmap_reversed.spans[i], rmap.spans[i])
+            self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
     
     
 

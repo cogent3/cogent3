@@ -64,7 +64,7 @@ class ExpDefn(CalculationDefn):
             def _both(Q, eigen=eigen):
                 try:
                     return eigen(Q)
-                except (ArithmeticError, LinAlgError), detail:
+                except (ArithmeticError, LinAlgError) as detail:
                     if not _both.given_expm_warning:
                         warnings.warn("using slow exponentiator because '%s'"
                                 % str(detail))

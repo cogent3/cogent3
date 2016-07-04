@@ -56,8 +56,8 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     return (pc, aln)
 
 def quiet(f, *args, **kw):
-        import sys, cStringIO
-        temp = cStringIO.StringIO()
+        import sys, io
+        temp = io.StringIO()
         _stdout = sys.stdout
         try:
                 sys.stdout = temp
@@ -99,31 +99,31 @@ def benchmarks(test):
     
     for (optimise_motifs, parameterisation) in [
             (False, 'global'), (False, 'local'), (True, 'global')]:
-        print parameterisation, ['', 'opt motifs'][optimise_motifs]
-        print ' ' * 14,
+        print(parameterisation, ['', 'opt motifs'][optimise_motifs])
+        print(' ' * 14, end=' ')
         wcol = 5*len(sequence_lengths) + 2
         for alphabet in alphabets:
-            print str(alphabet).ljust(wcol),
-        print
-        print '%-15s' % "",    # "length"
+            print(str(alphabet).ljust(wcol), end=' ')
+        print()
+        print('%-15s' % "", end=' ')    # "length"
         for alphabet in alphabets:
             for sequence_length in sequence_lengths:
-                print "%4s" % sequence_length,
-            print '  ',
-        print
-        print ' '*12 + (' | '.join(['']+['-'*(len(sequence_lengths)*5) for alphabet in alphabets]+['']))
+                print("%4s" % sequence_length, end=' ')
+            print('  ', end=' ')
+        print()
+        print(' '*12 + (' | '.join(['']+['-'*(len(sequence_lengths)*5) for alphabet in alphabets]+[''])))
         for treesize in treesizes:
-            print ("%4s taxa    | " % treesize),
+            print(("%4s taxa    | " % treesize), end=' ')
             (taxa, tree) = subtree(treesize)
             for alphabet in alphabets:
                 for sequence_length in sequence_lengths:
                     speed = test(alphabet, parameterisation=='local',
                             sequence_length, taxa, tree, optimise_motifs)
-                    print "%4s" % speed,
-                print '| ',
-            print
-        print
-    print
+                    print("%4s" % speed, end=' ')
+                print('| ', end=' ')
+            print()
+        print()
+    print()
 
 def silly_predicate(a,b):
     return a.count('A') > a.count('T') or b.count('A') > b.count('T')
@@ -153,5 +153,5 @@ else:
     try:
         benchmarks(test)
     except KeyboardInterrupt:
-        print ' OK'
+        print(' OK')
 

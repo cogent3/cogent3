@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Performs singular-value decomposition on a set of Q-matrices."""
 
-from __future__ import division
+
 from cogent3.maths.stats.test import std # numpy.std is biased
 from cogent3.maths.matrix_exponentiation import FastExponentiator as expm
 from cogent3.maths.matrix_logarithm import logm

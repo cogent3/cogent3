@@ -41,7 +41,7 @@ class TestDatabase(TestCase):
         expected = set(('3_prime_UTR_variant', 'splice_acceptor_variant',
                         '5_prime_UTR_variant'))
         got = db.getDistinct(tn, tc)
-        self.assertNotEquals(set(got) & expected, set())
+        self.assertNotEqual(set(got) & expected, set())
         
         db = Database(account=account, release=Release,
                     species='human', db_type='core')
@@ -50,20 +50,20 @@ class TestDatabase(TestCase):
           'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene',
           'IG_C_gene', 'IG_D_gene', 'miRNA', 'misc_RNA', 'snoRNA', 'snRNA', 'rRNA'])
         got = set(db.getDistinct(tn, tc))
-        self.assertNotEquals(set(got) & expected, set())
+        self.assertNotEqual(set(got) & expected, set())
         
         db = Database(account=account, release=Release, db_type='compara')
         got = set(db.getDistinct('homology', 'description'))
-        expected = set([u'gene_split', u'alt_allele', u'other_paralog',
-            u'ortholog_one2many', u'ortholog_one2one',
-            u'within_species_paralog', u'ortholog_many2many'])
-        self.assertEquals(len(got&expected), len(expected))
+        expected = set(['gene_split', 'alt_allele', 'other_paralog',
+            'ortholog_one2many', 'ortholog_one2one',
+            'within_species_paralog', 'ortholog_many2many'])
+        self.assertEqual(len(got&expected), len(expected))
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_76_38.analysis': 61L,
-                  'homo_sapiens_core_76_38.seq_region': 55616L,
-                  'homo_sapiens_core_76_38.assembly': 102090L}
+        expect = {'homo_sapiens_core_76_38.analysis': 61,
+                  'homo_sapiens_core_76_38.seq_region': 55616,
+                  'homo_sapiens_core_76_38.assembly': 102090}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]

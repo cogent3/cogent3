@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Code for geometric operations, e.g. distances and center of mass."""
-from __future__ import division
+
 from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
                   vstack, dot, ones
 
@@ -38,7 +38,7 @@ def center_of_mass_one_array(data, weight_idx= -1):
         weight of the point
     """
     data = array(data)
-    coord_idx = range(data.shape[1])
+    coord_idx = list(range(data.shape[1]))
     del coord_idx[weight_idx]
     coordinates = take(data, (coord_idx), 1)
     weights = take(data, (weight_idx,), 1)
@@ -77,7 +77,7 @@ def sphere_points(n):
     points = []
     inc = pi * (3 - sqrt(5))
     offset = 2 / float(n)
-    for k in xrange(int(n)):
+    for k in range(int(n)):
         y = k * offset - 1 + (offset / 2)
         r = sqrt(1 - y * y)
         phi = k * inc
@@ -107,7 +107,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
         coords = dot(coords, fmx.transpose())
     # add column of 1.    
     coords4 = c_[coords, array([ones(len(coords))]).transpose()]
-    for i in xrange(1, len(mxs)): # skip identity
+    for i in range(1, len(mxs)): # skip identity
         rot_mx = mxs[i].transpose()
         new_coords = dot(coords4, rot_mx)[:, :3] # rotate and translate, remove
         if mode == 'fractional':                 # ones column
@@ -129,7 +129,7 @@ def coords_to_crystal(coords, fmx, omx, n=1):
         - omx: orthogonalization matrix
         - n: number of layers of unit-cells == (2*n+1)^2 unit-cells
     """
-    rng = range(-n, n + 1) # a range like -2, -1, 0, 1, 2
+    rng = list(range(-n, n + 1)) # a range like -2, -1, 0, 1, 2
     fcoords = dot(coords, fmx.transpose()) # fractionalize 
     vectors = [(x, y, z) for x in rng for y in rng for z in rng]
     # looking for the center Thickened cube numbers: 

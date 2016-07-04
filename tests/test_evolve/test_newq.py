@@ -28,12 +28,12 @@ def _dinuc_root_probs(x,y=None):
     if y is None:
         y = x
     return dict([(n1+n2, p1*p2) 
-            for n1,p1 in x.items() for n2,p2 in y.items()])
+            for n1,p1 in list(x.items()) for n2,p2 in list(y.items())])
 
 def _trinuc_root_probs(x,y,z):
     return dict([(n1+n2+n3, p1*p2*p3) 
-            for n1,p1 in x.items() for n2,p2 in y.items()
-            for n3,p3 in z.items()])
+            for n1,p1 in list(x.items()) for n2,p2 in list(y.items())
+            for n3,p3 in list(z.items())])
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
@@ -62,7 +62,7 @@ class NewQ(TestCase):
     asymm_root_probs = _dinuc_root_probs(asymm_nuc_probs)
     posn_root_probs = _dinuc_root_probs(symm_nuc_probs, asymm_nuc_probs)
     cond_root_probs = dict([(n1+n2, p1*[.1, .7][n1==n2]) 
-            for n1,p1 in asymm_nuc_probs.items() for n2 in 'ATCG'])
+            for n1,p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
     
     # Each of these (data, model) pairs should give a result different 
     # from any of the simpler models applied to the same data.  
@@ -147,7 +147,7 @@ class NewQ(TestCase):
                 lf.setAlignment(self.aln)
                 lh = lf.getLogLikelihood()
                 for other in results[:i]:
-                    self.failIfAlmostEqual(other, lh, places=2)
+                    self.assertNotAlmostEqual(other, lh, places=2)
                 for other in results[i:]:
                     self.assertFloatEqual(other, lh)
                 results.append(lh)
@@ -158,7 +158,7 @@ class NewQ(TestCase):
         aln_len = len(self.aln)
         posn1 = []
         posn2 = []
-        for name, seq in self.aln.todict().items():
+        for name, seq in list(self.aln.todict().items()):
             p1 = [seq[i] for i in range(0,aln_len,2)]
             p2 = [seq[i] for i in range(1,aln_len,2)]
             posn1.append([name, ''.join(p1)])
@@ -183,7 +183,7 @@ class NewQ(TestCase):
         
         # setting the full alignment, which has different motif probs, should
         # produce a different lnL
-        self.failIfAlmostEqual(expect_lnL, aln_lnL)
+        self.assertNotAlmostEqual(expect_lnL, aln_lnL)
         
         # set the arguments for taking position specific mprobs
         sm = Nucleotide(motif_length=2, mprob_model='monomers',

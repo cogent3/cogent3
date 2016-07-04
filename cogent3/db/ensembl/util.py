@@ -105,7 +105,7 @@ def asserted_one(items):
     one = False
     for item in items:
         if one:
-            raise ValueError('More than one: [%s]' % item.items())
+            raise ValueError('More than one: [%s]' % list(item.items()))
         one = True
     if one:
         return item
@@ -114,7 +114,7 @@ def asserted_one(items):
 
 def what_columns(table):
     """shows what columns are in a table"""
-    print [c.name for c in table.c]
+    print([c.name for c in table.c])
 
 def yield_selected(sqlalchemy_select, limit=100):
     """takes a SQLAlchemy select condition, yielding limit per db query

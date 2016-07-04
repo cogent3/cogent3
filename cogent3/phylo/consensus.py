@@ -87,7 +87,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
                 edgelengths[tips] += length
             else:
                 edgelengths[tips] = length
-    cladecounts = [(count, clade) for (clade, count) in cladecounts.items()]
+    cladecounts = [(count, clade) for (clade, count) in list(cladecounts.items())]
     cladecounts.sort()
     cladecounts.reverse()
     
@@ -118,7 +118,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
     tree_build = TreeBuilder().createEdge    
     for clade in accepted_clades:
         if len(clade) == 1:
-            tip_name = iter(clade).next()
+            tip_name = next(iter(clade))
             params = {'length':edgelengths[clade], attr:counts[clade]}
             nodes[tip_name] = tree_build([], tip_name, params)
         else:
@@ -141,10 +141,10 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             {attr:counts[clade], 'length':edgelengths[clade]})
         queue = new_queue
     
-    for root in nodes.values():
+    for root in list(nodes.values()):
         root.Name = 'root' # Yuk
     
-    return [root for root in nodes.values()]
+    return [root for root in list(nodes.values())]
 
 def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
     """See documentation for weightedMajorityRule. All trees must have the same
@@ -154,7 +154,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
     split_lengths = defaultdict(float)
     tips = None
     for (weight, tree) in weighted_trees:
-        for split, params in getSplits(tree).items():
+        for split, params in list(getSplits(tree).items()):
             split_weights[split] += weight
             if params['length'] is None:
                 split_lengths[split] = None
@@ -171,7 +171,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
         if not split_lengths[split] is None:
             split_lengths[split] /= split_weights[split]
     total_weight = sum(w for w, t in weighted_trees[::-1])
-    weighted_splits = [(w / total_weight, s) for s, w in split_weights.items()]
+    weighted_splits = [(w / total_weight, s) for s, w in list(split_weights.items())]
     weighted_splits.sort(reverse=True)
 
     # Remove conflicts and any with support < 50% if strict
@@ -220,7 +220,7 @@ def getSplits(tree):
     
     splits, tips = getTipsAndSplits(tree)
     tips = frozenset(tips)
-    return {frozenset([tips - s, s]) : params for s, params in splits.items()}
+    return {frozenset([tips - s, s]) : params for s, params in list(splits.items())}
 
 def getTree(splits):
     """Convert a dict keyed by splits into the equivalent tree.
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         for tree in open(filename):
             trees.append(LoadTree(treestring=tree))
-    print "Consensus of %s trees from %s" % (len(trees),sys.argv[1:])
+    print("Consensus of %s trees from %s" % (len(trees),sys.argv[1:]))
     outtrees = majorityRule(trees, strict=True)
     for tree in outtrees:
-            print tree.asciiArt(compact=True, show_internal=False)
+            print(tree.asciiArt(compact=True, show_internal=False))

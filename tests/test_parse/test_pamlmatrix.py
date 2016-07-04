@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from StringIO import StringIO
+from io import StringIO
 from cogent3.util.unit_test import TestCase, main
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3.parse.paml_matrix import PamlMatrixParser

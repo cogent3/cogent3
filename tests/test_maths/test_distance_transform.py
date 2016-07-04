@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for distance_transform.py functions.
 """
-from __future__ import division
+
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.distance_transform import *
 from numpy import array, sqrt, shape, ones, diag

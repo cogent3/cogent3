@@ -68,7 +68,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         # Remove following check if performance is a concern
         reQ = inner(self.evT*self.roots, self.evI).real
         if not allclose(Q, reQ): 
-            raise ArithmeticError, "eigendecomposition failed"
+            raise ArithmeticError("eigendecomposition failed")
 
     def __call__(self, t=1.0):
         int_roots = array([t if abs(x.real) < 1e-6 else

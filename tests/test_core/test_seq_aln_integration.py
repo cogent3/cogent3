@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 from numpy import array, transpose, alltrue
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.moltype import RNA
@@ -122,13 +122,13 @@ class AllTests(TestCase):
         
         # When using the getSubAlignment method the data is right 
         self.assertEqual(obs_sub_da_SA, sub_da)
-        self.failIfEqual(obs_sub_da_SA, self.da)
+        self.assertNotEqual(obs_sub_da_SA, self.da)
         self.assertEqual(obs_sub_da_SA.ArraySeqs, sub_data)
         self.assertEqual(obs_sub_da_SA.ArrayPositions, transpose(sub_data))
 
         # For the takePositions method: Why does this work
         self.assertEqual(obs_sub_da_TP, sub_da)
-        self.failIfEqual(obs_sub_da_TP, self.da)
+        self.assertNotEqual(obs_sub_da_TP, self.da)
         # If the data doesn't match?
         self.assertEqual(obs_sub_da_TP.ArraySeqs, sub_data)
         self.assertEqual(obs_sub_da_TP.ArrayPositions, transpose(sub_data))
@@ -143,7 +143,7 @@ class AllTests(TestCase):
 
         obs_sub_aln = self.aln.takePositions([0,1,5])
         self.assertEqual(obs_sub_aln, sub_aln)
-        self.failIfEqual(obs_sub_aln, self.aln)
+        self.assertNotEqual(obs_sub_aln, self.aln)
         # string representations should be the same. This fails right
         # now, because sequence order is not maintained. See separate test.
         self.assertEqual(str(obs_sub_aln), str(sub_aln))
@@ -174,7 +174,7 @@ class AllTests(TestCase):
         # Selected sequences should be in specified order?
         obs_sub_aln_1 = self.aln.takeSeqs(['rna3','rna2'])
         obs_sub_aln_2 = self.aln.takeSeqs(['rna2','rna3'])
-        self.failIfEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
+        self.assertNotEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
     
     def test_subset_seqs_DenseAlignment(self):
         model1 = ModelSequence('UCG', Name='rna1',\
@@ -211,7 +211,7 @@ class AllTests(TestCase):
         # Should this compare False even though the data is exactly the same?
         # The MolType is different...
         self.assertEqual(self.da == other_da3, True) 
-        assert alltrue(map(alltrue,self.da.ArraySeqs == other_da3.ArraySeqs))
+        assert alltrue(list(map(alltrue,self.da.ArraySeqs == other_da3.ArraySeqs)))
 
     def test_seq_equality(self):
         model1 = ModelSequence('UCG', Name='rna1',\

@@ -32,7 +32,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
     for dimension in [0,1]:
         alignments[dimension].reverse()
     
-    if isinstance(s1, basestring):
+    if isinstance(s1, str):
         alignments = [''.join(a) for a in alignments]
     
     return alignments

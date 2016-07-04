@@ -40,7 +40,7 @@ class DictArrayTemplate(object):
         self.ordinals = []
         for names in dimensions:
             if isinstance(names, int):
-                names = range(names)
+                names = list(range(names))
             else:
                 names = list(names)[:]
             self.names.append(names)
@@ -149,7 +149,7 @@ class DictArray(object):
         return array
     
     def asdict(self):
-        return dict(self.items())
+        return dict(list(self.items()))
     
     def __getitem__(self, names):
         (index, remaining) = self.template.interpretIndex(names)
@@ -173,7 +173,7 @@ class DictArray(object):
         return self.template.names[0][:]
     
     def items(self):
-        return [(n,self[n]) for n in self.keys()]
+        return [(n,self[n]) for n in list(self.keys())]
     
     def __repr__(self):
         return self.template.array_repr(self.array)

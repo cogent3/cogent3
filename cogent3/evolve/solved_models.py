@@ -12,9 +12,10 @@ import numpy
 
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 try:
-    _solved_models = importVersionedModule('_solved_models', globals(), 
-            (1, 0), "only matrix exponentiating DNA models")
-except ExpectedImportError:
+    import _solved_models
+    #_solved_models = importVersionedModule('_solved_models', globals(), 
+            #(1, 0), "only matrix exponentiating DNA models")
+except ImportError:
     _solved_models = None
  
 class PredefinedNucleotide(Nucleotide):

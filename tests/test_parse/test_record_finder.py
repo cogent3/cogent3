@@ -126,7 +126,7 @@ class DelimitedRecordFinderTests(TestCase):
         except RecordError:
             pass
         else:
-            raise AssertionError, "Parser failed to raise error on bad data"
+            raise AssertionError("Parser failed to raise error on bad data")
 
         r = DelimitedRecordFinder('//', strict=False)
         self.assertEqual(list(r(good+bad)), result + [['abc']])

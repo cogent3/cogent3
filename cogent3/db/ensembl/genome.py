@@ -60,7 +60,7 @@ class FeatureTypeCache(LazyRecord):
         try:
             func = self._type_func_map[feature_type]
         except KeyError:
-            raise RuntimeError,"Unknown feature type: %s" % feature_type
+            raise RuntimeError("Unknown feature type: %s" % feature_type)
         return self._get_cached_value(feature_type, func)
     
 
@@ -352,7 +352,7 @@ class Genome(object):
         """returns the seq_region_id for the provided CoordName"""
         seq_region_table = self.CoreDb.getTable('seq_region')
         coord_systems = CoordSystem(core_db=self.CoreDb)
-        coord_system_ids = [k for k in coord_systems if type(k) not in (unicode, str)]
+        coord_system_ids = [k for k in coord_systems if type(k) not in (str, str)]
         record = sql.select([seq_region_table.c.seq_region_id],
                     sql.and_(seq_region_table.c.name == CoordName,
                 seq_region_table.c.coord_system_id.in_(coord_system_ids)))
@@ -509,8 +509,8 @@ class Genome(object):
         
         known_types = set(target_coords_funcs.keys())
         if not set(feature_types) <= known_types:
-            raise RuntimeError, 'Unknown feature[%s], valid feature_types \
-                are: %s' % (set(feature_types)^known_types, known_types)
+            raise RuntimeError('Unknown feature[%s], valid feature_types \
+                are: %s' % (set(feature_types)^known_types, known_types))
         
         for feature_type in feature_types:
             target_func, target_class = target_coords_funcs[feature_type]
@@ -630,8 +630,7 @@ class Genome(object):
                         'status': ('gene', 'status')}
         
         if property_type not in property_map:
-            raise RuntimeError,\
-                "ERROR: Unknown property type: %s" % property_type
+            raise RuntimeError("ERROR: Unknown property type: %s" % property_type)
         
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))

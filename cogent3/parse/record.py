@@ -40,8 +40,8 @@ class Grouper(object):
             num = int(self.NumItems)
             assert num >= 1
         except:
-            raise ValueError, "Grouper.NumItems must be positive int, not %s" \
-                % (self.NumItems)
+            raise ValueError("Grouper.NumItems must be positive int, not %s" \
+                % (self.NumItems))
         curr = []
         for i, item in enumerate(seq):
             if (i % num == 0) and curr:
@@ -71,7 +71,7 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
     
     Note: leaves empty fields in place.
     """
-    is_int = isinstance(max_splits, int) or isinstance(max_splits, long)
+    is_int = isinstance(max_splits, int) or isinstance(max_splits, int)
     if is_int and (max_splits > 0):
         def parser(line):
             return [i.strip() for i in line.split(delimiter, max_splits)]
@@ -132,7 +132,7 @@ class GenericRecord(dict):
         temp = {}
         dict.__init__(temp, *args, **kwargs)
         self.update(temp)
-        for name, prototype in self.Required.iteritems():
+        for name, prototype in self.Required.items():
             if not name in self:
                 self[name] = deepcopy(prototype)
 
@@ -142,7 +142,7 @@ class GenericRecord(dict):
         Note: Fails silently if item absent.
         """
         if item in self.Required:
-            raise AttributeError, "%s is a required item" % (item,)
+            raise AttributeError("%s is a required item" % (item,))
         try:
             super(GenericRecord, self).__delitem__(item)
         except KeyError:
@@ -152,7 +152,7 @@ class GenericRecord(dict):
         """Coerces copy to correct type"""
         temp = self.__class__(super(GenericRecord,self).copy())
         #don't forget to copy attributes!
-        for attr, val in self.__dict__.iteritems():
+        for attr, val in self.__dict__.items():
             temp.__dict__[attr] = deepcopy(val)
         return temp
 
@@ -192,7 +192,7 @@ class MappedRecord(GenericRecord):
         elif isinstance(prototype, list):
             return prototype[:]
         elif isinstance(prototype,str) or isinstance(prototype,int) or\
-            isinstance(prototype,long) or isinstance(prototype,tuple)\
+            isinstance(prototype,int) or isinstance(prototype,tuple)\
             or isinstance(prototype,complex) or prototype is None: 
             return prototype     #immutable type: use directly
         else:
@@ -205,9 +205,9 @@ class MappedRecord(GenericRecord):
         temp = {}
         unalias = self.unalias
         dict.__init__(temp, *args, **kwargs)
-        for key, val in temp.iteritems():
+        for key, val in temp.items():
             self[unalias(key)] = val
-        for name, prototype in self.Required.iteritems():
+        for name, prototype in self.Required.items():
             new_name = unalias(name)
             if not new_name in self:
                 self[new_name] = self._copy(prototype)
@@ -248,7 +248,7 @@ class MappedRecord(GenericRecord):
         """Deletes attribute, converting name if necessary. Fails silently."""
         normal_attr = self.unalias(attr)
         if normal_attr in self.Required:
-            raise AttributeError, "%s is a required attribute" % (attr,)
+            raise AttributeError("%s is a required attribute" % (attr,))
         else:
             try:
                 super(MappedRecord, self).__delattr__(normal_attr)
@@ -289,7 +289,7 @@ class MappedRecord(GenericRecord):
         temp = {}
         unalias = self.unalias
         temp.update(*args, **kwargs)
-        for key, val in temp.iteritems():
+        for key, val in temp.items():
             self[unalias(key)] = val
 
 #The following methods are useful for handling particular types of fields in
@@ -406,8 +406,7 @@ class LineOrientedConstructor(object):
                     field, mapper = new_field, fieldmap[new_field]
                 else:
                     if self.Strict:
-                        raise FieldError, \
-                            "Got unrecognized field %s" % (raw_field,)
+                        raise FieldError("Got unrecognized field %s" % (raw_field,))
                     else:
                         identity_setter(result, raw_field, val)
                     continue
@@ -417,7 +416,7 @@ class LineOrientedConstructor(object):
             except:     #Warning: this is a catchall for _any_ exception,
                         #and may mask what's actually going wrong.
                 if self.Strict:
-                    raise FieldError, "Could not handle line %s" % (line,)
+                    raise FieldError("Could not handle line %s" % (line,))
         return result
 
 def FieldWrapper(fields, splitter=None, constructor=None):
@@ -440,10 +439,10 @@ def FieldWrapper(fields, splitter=None, constructor=None):
         splitter = DelimitedSplitter(None, None)
     if constructor:
         def parser(line):
-            return constructor(dict(zip(fields, splitter(line))))
+            return constructor(dict(list(zip(fields, splitter(line)))))
     else:
         def parser(line):
-            return dict(zip(fields, splitter(line)))
+            return dict(list(zip(fields, splitter(line))))
     return parser
 
 def StrictFieldWrapper(fields, splitter=None, constructor=None):
@@ -466,21 +465,21 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError, "Expected %s items but got %s: %s" % \
-                    (len(fields), len(items), items)
-            return constructor(dict(zip(fields, items)))
+                raise FieldError("Expected %s items but got %s: %s" % \
+                    (len(fields), len(items), items))
+            return constructor(dict(list(zip(fields, items))))
     else:
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError, "Expected %s items but got %s: %s" % \
-                    (len(fields), len(items), items)
-            return dict(zip(fields, items))
+                raise FieldError("Expected %s items but got %s: %s" % \
+                    (len(fields), len(items), items))
+            return dict(list(zip(fields, items)))
     return parser
 
 def raise_unknown_field(field, data):
     """Raises a FieldError, displaying the offending field and data."""
-    raise FieldError, "Got unknown field %s with data %s" % (field, data)
+    raise FieldError("Got unknown field %s with data %s" % (field, data))
 
 class FieldMorpher(object):
     """When called, applies appropriate constructors to each value of dict.
@@ -505,7 +504,7 @@ class FieldMorpher(object):
         result = {}
         default = self.Default
         cons = self.Constructors
-        for key, val in data.iteritems():
+        for key, val in data.items():
             if key in cons:
                 result[key] = cons[key](val)
             else:

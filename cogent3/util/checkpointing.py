@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, time, cPickle
+import os, time, pickle
 from cogent3.util import parallel
 
 __author__ = "Peter Maxwell"
@@ -26,9 +26,9 @@ class Checkpointer(object):
     
     def load(self):
         assert self.filename is not None, 'check .available() first'
-        print "RESUMING from file '%s'" % self.filename
+        print("RESUMING from file '%s'" % self.filename)
         f = open(self.filename)
-        obj = cPickle.load(f)
+        obj = pickle.load(f)
         self.last_time = time.time()
         return obj
     
@@ -39,10 +39,10 @@ class Checkpointer(object):
         elapsed = now - self.last_time
         if always or elapsed > self.interval:
             if self.noisy:
-                print "CHECKPOINTING to file '%s'" % self.filename
+                print("CHECKPOINTING to file '%s'" % self.filename)
                 if msg is not None:
-                    print msg
+                    print(msg)
             f = open(self.filename, 'w')
-            cPickle.dump(obj, f)
+            pickle.dump(obj, f)
             self.last_time = now
     

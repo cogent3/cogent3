@@ -67,7 +67,7 @@ class TransitionMatrix(object):
         labels = []
         for (i, label) in enumerate(self.Tags):
             if hasattr(label, '__len__') and not isinstance(
-                    label, basestring):
+                    label, str):
                 label = ','.join(str(z) for z in label)
             # Table needs unique labels
             label = "%s (%s)" % (label, i)

@@ -40,21 +40,21 @@ AA_PROPERTIES = {
 'VAL': (4.2, 0.0, 1.66, -0.43, 142.0, 'A', 'H', 'L', 'L', 'L', 'L', 4, 'V')
 }
 
-AA_NAMES_1 = [value_[-1] for value_ in AA_PROPERTIES.itervalues()]
-AA_NAMES_3 = [key_ for key_ in AA_PROPERTIES.iterkeys()]
-AA_NAMES_3to1 = dict([(key_, value_[-1]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_GRAVY = dict([(key_, value_[0]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_CHARGE = dict([(key_, value_[1]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_SOLVATATION = dict([(key_, value_[2]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_ENTROPY = dict([(key_, value_[3]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_ASA = dict([(key_, value_[4]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_5 = dict([(key_, value_[5]) for (key_, value_) in AA_PROPERTIES.iteritems()]) # (Aliphatic, aRomatic, Charged, Tiny, Diverse)
-AA_2 = dict([(key_, value_[6]) for (key_, value_) in AA_PROPERTIES.iteritems()]) # (Hydrphobic, hydroPhylic) 
-AA_4MURPHY = dict([(key_, value_[7]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_8MURPHY = dict([(key_, value_[8]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_10MURPHY = dict([(key_, value_[9]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_15MURPHY = dict([(key_, value_[10]) for (key_, value_) in AA_PROPERTIES.iteritems()])
-AA_POLARITY = dict([(key_, value_[11]) for (key_, value_) in AA_PROPERTIES.iteritems()])
+AA_NAMES_1 = [value_[-1] for value_ in AA_PROPERTIES.values()]
+AA_NAMES_3 = [key_ for key_ in AA_PROPERTIES.keys()]
+AA_NAMES_3to1 = dict([(key_, value_[-1]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_GRAVY = dict([(key_, value_[0]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_CHARGE = dict([(key_, value_[1]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_SOLVATATION = dict([(key_, value_[2]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_ENTROPY = dict([(key_, value_[3]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_ASA = dict([(key_, value_[4]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_5 = dict([(key_, value_[5]) for (key_, value_) in AA_PROPERTIES.items()]) # (Aliphatic, aRomatic, Charged, Tiny, Diverse)
+AA_2 = dict([(key_, value_[6]) for (key_, value_) in AA_PROPERTIES.items()]) # (Hydrphobic, hydroPhylic) 
+AA_4MURPHY = dict([(key_, value_[7]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_8MURPHY = dict([(key_, value_[8]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_10MURPHY = dict([(key_, value_[9]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_15MURPHY = dict([(key_, value_[10]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_POLARITY = dict([(key_, value_[11]) for (key_, value_) in AA_PROPERTIES.items()])
 
 #short alternative
 AA_NAMES = AA_NAMES_3
@@ -564,6 +564,6 @@ AA_ATOM_PROPERTIES = {
  ('VAL', 'HG23'): [0.0]}
 #AREAIMOL_VDW_RADII
 
-AREAIMOL_VDW_RADII = dict([(k, v[0]) for k, v in AA_ATOM_PROPERTIES.iteritems()])
+AREAIMOL_VDW_RADII = dict([(k, v[0]) for k, v in AA_ATOM_PROPERTIES.items()])
 DEFAULT_AREAIMOL_VDW_RADIUS = 1.7
 

@@ -64,7 +64,7 @@ def main():
     total_time = 0.0
     times = []
 
-    print 'Running "%s" %d times...' % (command, iterations)
+    print('Running "%s" %d times...' % (command, iterations))
     i = 0
     attempt = 0
     while i < iterations:
@@ -75,27 +75,27 @@ def main():
         if end_time > minimum_accepted_time:
             times.append(end_time)
             total_time  = total_time + end_time
-            print "Time for run %d: %.3f seconds" % (i, end_time)
+            print("Time for run %d: %.3f seconds" % (i, end_time))
             i = i + 1
             attempt = 0
         else:
-            print "Discarding probably bogus time: %.3f seconds" % end_time
+            print("Discarding probably bogus time: %.3f seconds" % end_time)
             attempt = attempt + 1
         if attempt == 5:
-            print "Aborting early due to multiple errors"
+            print("Aborting early due to multiple errors")
             sys.exit(3)
             
     times.sort()
     mean = total_time / len(times)
     sd   = standard_dev(times, mean)
-    print ""
-    print "Fastest time   : %.3f" % times[0]
-    print "Slowest time   : %.3f" % times[len(times) - 1]
-    print "Mean           : %.3f" % mean
-    print "Standard dev   : %.3f" % sd
-    print "Total time     : %.3f" % total_time
+    print("")
+    print("Fastest time   : %.3f" % times[0])
+    print("Slowest time   : %.3f" % times[len(times) - 1])
+    print("Mean           : %.3f" % mean)
+    print("Standard dev   : %.3f" % sd)
+    print("Total time     : %.3f" % total_time)
 
-    print ""
+    print("")
 
     corrected_total = 0.0
     corrected_times = []
@@ -105,18 +105,18 @@ def main():
             corrected_times.append(times[i])
             corrected_total = corrected_total + times[i]
         else:
-            print "Discarding value '%.3f'" % times[i]
+            print("Discarding value '%.3f'" % times[i])
 
     if len(times) != len(corrected_times):
         corrected_mean = corrected_total / len(corrected_times)
         corrected_sd   = standard_dev(corrected_times, corrected_mean)
     
-        print ""
-        print "CORRECTED RESULTS"
-        print "Fastest time   : %.3f" % corrected_times[0]
-        print "Slowest time   : %.3f" % corrected_times[len(corrected_times)-1]
-        print "Mean           : %.3f" % corrected_mean
-        print "Standard dev   : %.3f" % corrected_sd
+        print("")
+        print("CORRECTED RESULTS")
+        print("Fastest time   : %.3f" % corrected_times[0])
+        print("Slowest time   : %.3f" % corrected_times[len(corrected_times)-1])
+        print("Mean           : %.3f" % corrected_mean)
+        print("Standard dev   : %.3f" % corrected_sd)
     
 if __name__ == "__main__":
     main()

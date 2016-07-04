@@ -19,7 +19,6 @@ difficulty.
 """
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
-from string import strip, maketrans
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -29,6 +28,9 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
+
+strip = str.strip
+maketrans = str.maketrans
 
 _dnd_token_str = '(:),;'
 _dnd_tokens = dict.fromkeys(_dnd_token_str)
@@ -100,8 +102,8 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     left_count = data.count('(')
     right_count = data.count(')')
     if left_count != right_count:
-        raise RecordError, "Found %s left parens but %s right parens." % \
-            (left_count, right_count)
+        raise RecordError("Found %s left parens but %s right parens." % \
+            (left_count, right_count))
     
     tokens = DndTokenizer(data)
     curr_node = None
@@ -157,13 +159,13 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         elif state == 'PostColon':  #length data for the current node
             curr_node.Length = float(t)
         else:   #can't think of a reason to get here
-            raise RecordError, "Incorrect PhyloNode state? %s" % t
+            raise RecordError("Incorrect PhyloNode state? %s" % t)
         state = 'PreColon'  #get here for any non-colon token
         state1 = 'PreClosed'
         last_token = t
         
     if curr_node is not None and curr_node.Parent is not None:
-        raise RecordError, "Didn't get back to root of tree."
+        raise RecordError("Didn't get back to root of tree.")
     
     if curr_node is None:       #no data -- return empty node
         return constructor()
@@ -174,6 +176,6 @@ def _new_child(old_node, constructor):
     new_node = constructor()
     new_node.Parent = old_node
     if old_node is not None:
-        if id(new_node) not in map(id, old_node.Children):
+        if id(new_node) not in list(map(id, old_node.Children)):
             old_node.Children.append(new_node)
     return new_node

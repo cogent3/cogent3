@@ -106,7 +106,7 @@ class TestCase(orig_TestCase):
         """Gets corresponding values from matching dicts"""
         if set(d1) != set (d2):
             return None
-        return d1.values(), [d2[k] for k in d1] #might not be in same order
+        return list(d1.values()), [d2[k] for k in d1] #might not be in same order
 
 
     def errorCheck(self, call, known_errors):
@@ -164,7 +164,7 @@ class TestCase(orig_TestCase):
                     arr_diff = arr_obs - arr_exp
                     if arr_obs.shape != arr_exp.shape:
                         self.fail("Wrong shape: Got %s, but expected %s" % \
-                            (`obs`, `exp`))
+                            (repr(obs), repr(exp)))
                     obs = arr_obs.ravel()
                     exp = arr_exp.ravel()
                     is_array=True
@@ -186,26 +186,26 @@ class TestCase(orig_TestCase):
                 diff = float(observed - expected)
                 if (sum == 0):
                     if is_array:
-                        self.failIf(abs(diff) > abs(eps), \
+                        self.assertFalse(abs(diff) > abs(eps), \
                             "Got %s, but expected %s (diff was %s)" % \
-                            (`arr_obs`, `arr_exp`, `arr_diff`))
+                            (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
                     else:
-                        self.failIf(abs(diff) > abs(eps), \
+                        self.assertFalse(abs(diff) > abs(eps), \
                             "Got %s, but expected %s (diff was %s)" % \
-                            (`observed`, `expected`, `diff`))
+                            (repr(observed), repr(expected), repr(diff)))
 
                 else:
                     if is_array:
-                        self.failIf(abs(diff/sum) > abs(eps), \
+                        self.assertFalse(abs(diff/sum) > abs(eps), \
                             "Got %s, but expected %s (diff was %s)" % \
-                            (`arr_obs`, `arr_exp`, `arr_diff`))
+                            (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
                     else:
-                        self.failIf(abs(diff/sum) > abs(eps), \
+                        self.assertFalse(abs(diff/sum) > abs(eps), \
                             "Got %s, but expected %s (diff was %s)" % \
-                            (`observed`, `expected`, `diff`))
+                            (repr(observed), repr(expected), repr(diff)))
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
-                    (`observed`, `expected`))
+                    (repr(observed), repr(expected)))
     
     def assertFloatEqualAbs(self, obs, exp, eps=1e-6):
         """
@@ -236,11 +236,11 @@ class TestCase(orig_TestCase):
                     arr_exp = array(exp)
                     if arr_obs.shape != arr_exp.shape:
                         self.fail("Wrong shape: Got %s, but expected %s" % \
-                            (`obs`, `exp`))
+                            (repr(obs), repr(exp)))
                     diff = arr_obs - arr_exp
-                    self.failIf(abs(diff).max() > eps, \
+                    self.assertFalse(abs(diff).max() > eps, \
                         "Got %s, but expected %s (diff was %s)" % \
-                        (`obs`, `exp`, `diff`))
+                        (repr(obs), repr(exp), repr(diff)))
                     return
                 except (TypeError, ValueError):
                     pass
@@ -251,12 +251,12 @@ class TestCase(orig_TestCase):
                 continue
             try:
                 diff = observed - expected
-                self.failIf(abs(diff) > abs(eps),
+                self.assertFalse(abs(diff) > abs(eps),
                         "Got %s, but expected %s (diff was %s)" % \
-                        (`observed`, `expected`, `diff`))
+                        (repr(observed), repr(expected), repr(diff)))
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
-                    (`observed`, `expected`))
+                    (repr(observed), repr(expected)))
     
     def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None, \
                          abs_eps=None):
@@ -287,7 +287,7 @@ class TestCase(orig_TestCase):
                     self.assertFloatEqualRel(observed, expected, rel_eps)
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
-                        (`observed`, `expected`))
+                        (repr(observed), repr(expected)))
                                     
     def _is_equal(self, observed, expected):
         """Returns True if observed and expected are equal, False otherwise."""
@@ -312,9 +312,8 @@ class TestCase(orig_TestCase):
         """
         try:
             if not self._is_equal(observed, expected):
-                raise self.failureException, \
-                (msg or 'Got %s, but expected %s' % (`observed`, `expected`))
-        except (ValueError, TypeError), e:
+                raise self.failureException(msg or 'Got %s, but expected %s' % (repr(observed), repr(expected)))
+        except (ValueError, TypeError) as e:
             #The truth value of an array with more than one element is
             #ambiguous. Use a.any() or a.all()
             #descriptor 'tolist' of 'numpy.generic' object needs an argument
@@ -323,13 +322,12 @@ class TestCase(orig_TestCase):
     def failIfEqual(self, observed, expected, msg=None):
         """Fail if the two objects are equal as determined by =="""
         try:
-            self.failUnlessEqual(observed, expected)
+            self.assertEqual(observed, expected)
         except self.failureException:
             pass
         else:
-            raise self.failureException, \
-            (msg or 'Observed %s and expected %s: shouldn\'t test equal'\
-                % (`observed`, `expected`))
+            raise self.failureException(msg or 'Observed %s and expected %s: shouldn\'t test equal'\
+                % (repr(observed), repr(expected)))
         
         #following needed to get our version instead of unittest's
     assertEqual = assertEquals = failUnlessEqual
@@ -341,16 +339,14 @@ class TestCase(orig_TestCase):
         obs_items = list(observed)
         exp_items = list(expected)
         if len(obs_items) != len(exp_items):
-            raise self.failureException, \
-            (msg or 'Observed and expected are different lengths: %s and %s' \
+            raise self.failureException(msg or 'Observed and expected are different lengths: %s and %s' \
             % (len(obs_items), len(exp_items)))
             
         obs_items.sort()
         exp_items.sort()
         for index, (obs, exp) in enumerate(zip(obs_items, exp_items)):
             if obs != exp:
-                raise self.failureException, \
-                (msg or 'Observed %s and expected %s at sorted index %s' \
+                raise self.failureException(msg or 'Observed %s and expected %s at sorted index %s' \
                 % (obs, exp, index))
 
     def assertSameItems(self, observed, expected, msg=None):
@@ -358,8 +354,7 @@ class TestCase(orig_TestCase):
         obs_items = list(observed)
         exp_items = list(expected)
         if len(obs_items) != len(exp_items):
-            raise self.failureException, \
-            (msg or 'Observed and expected are different lengths: %s and %s' \
+            raise self.failureException(msg or 'Observed and expected are different lengths: %s and %s' \
             % (len(obs_items), len(exp_items)))
 
         obs_ids = [(id(i), i) for i in obs_items]
@@ -370,8 +365,7 @@ class TestCase(orig_TestCase):
             o_id, o = obs
             e_id, e = exp
             if o_id != e_id:    #i.e. the ids are different
-                raise self.failureException, \
-                (msg or \
+                raise self.failureException(msg or \
                 'Observed %s <%s> and expected %s <%s> at sorted index %s' \
                 % (o, o_id, e, e_id, index))
 
@@ -382,8 +376,7 @@ class TestCase(orig_TestCase):
         except:
             pass
         else:
-            raise self.failureException, \
-            (msg or 'Observed %s has same items as %s'%(`observed`, `expected`))
+            raise self.failureException(msg or 'Observed %s has same items as %s'%(repr(observed), repr(expected)))
 
     def assertContains(self, observed, item, msg=None):
         """Fail if item not in observed"""
@@ -392,8 +385,7 @@ class TestCase(orig_TestCase):
                 return
         except (TypeError, ValueError):
             pass
-        raise self.failureException, \
-        (msg or 'Item %s not found in %s' % (`item`, `observed`))
+        raise self.failureException(msg or 'Item %s not found in %s' % (repr(item), repr(observed)))
 
     def assertNotContains(self, observed, item, msg=None):
         """Fail if item in observed"""
@@ -402,8 +394,7 @@ class TestCase(orig_TestCase):
                 return
         except (TypeError, ValueError):
             return
-        raise self.failureException, \
-        (msg or 'Item %s should not have been in %s' % (`item`, `observed`))
+        raise self.failureException(msg or 'Item %s should not have been in %s' % (repr(item), repr(observed)))
 
     def assertGreaterThan(self, observed, value, msg=None):
         """Fail if observed is <= value"""
@@ -414,8 +405,7 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s has elements <= %s' % (`observed`, `value`))
+        raise self.failureException(msg or 'Observed %s has elements <= %s' % (repr(observed), repr(value)))
 
     def assertLessThan(self, observed, value, msg=None):
         """Fail if observed is >= value"""
@@ -426,8 +416,7 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s has elements >= %s' % (`observed`, `value`))
+        raise self.failureException(msg or 'Observed %s has elements >= %s' % (repr(observed), repr(value)))
 
     def assertIsBetween(self, observed, min_value, max_value, msg=None):
         """Fail if observed is not between min_value and max_value"""
@@ -443,9 +432,8 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s has elements not between %s, %s' % \
-        (`observed`, `min_value`, `max_value`))
+        raise self.failureException(msg or 'Observed %s has elements not between %s, %s' % \
+        (repr(observed), repr(min_value), repr(max_value)))
  
     def assertIsNotBetween(self, observed, min_value, max_value, msg=None):
         """Fail if observed is between min_value and max_value"""
@@ -461,9 +449,8 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s has elements between %s, %s' % \
-        (`observed`, `min_value`, `max_value`))
+        raise self.failureException(msg or 'Observed %s has elements between %s, %s' % \
+        (repr(observed), repr(min_value), repr(max_value)))
         
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
@@ -475,8 +462,7 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s has elements that are not probs' % (`observed`))
+        raise self.failureException(msg or 'Observed %s has elements that are not probs' % (repr(observed)))
 
     def _set_suite_pvalue(self, pvalue):
         """Sets the test suite pvalue to be used in similarity tests
@@ -506,8 +492,7 @@ class TestCase(orig_TestCase):
             if observed[0] == expected[0]:
                 return
         else:
-            raise self.failureException, \
-            (msg or 'p-value %s, t-test p %s' % (`pvalue`, `p`))
+            raise self.failureException(msg or 'p-value %s, t-test p %s' % (repr(pvalue), repr(p)))
 
     def assertSimilarFreqs(self, observed, expected, pvalue=0.01, msg=None):
         """Fail if observed p is lower than pvalue"""
@@ -526,8 +511,7 @@ class TestCase(orig_TestCase):
         if p > pvalue:
             return
         else:
-            raise self.failureException, \
-            (msg or 'p-value %s, G-test p %s' % (`pvalue`, `p`))
+            raise self.failureException(msg or 'p-value %s, G-test p %s' % (repr(pvalue), repr(p)))
             
     def assertIsPermutation(self, observed, items, msg=None):
         """Fail if observed is not a permutation of items"""
@@ -537,9 +521,8 @@ class TestCase(orig_TestCase):
             return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s is not a different permutation of items %s' % \
-        (`observed`, `items`))
+        raise self.failureException(msg or 'Observed %s is not a different permutation of items %s' % \
+        (repr(observed), repr(items)))
  
     def assertSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is not expected'"""
@@ -548,9 +531,8 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s is not the same as expected %s' % \
-        (`observed`, `expected`))
+        raise self.failureException(msg or 'Observed %s is not the same as expected %s' % \
+        (repr(observed), repr(expected)))
 
     def assertNotSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is expected'"""
@@ -559,7 +541,6 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s is the same as expected %s' % \
-        (`observed`, `expected`))
+        raise self.failureException(msg or 'Observed %s is the same as expected %s' % \
+        (repr(observed), repr(expected)))
 

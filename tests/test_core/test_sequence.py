@@ -288,13 +288,13 @@ class SequenceTests(TestCase):
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False]*27)
         self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'), 
-         map(bool, map(int,'000000000000001000000000')))
+         list(map(bool, list(map(int,'000000000000001000000000')))))
         self.assertEqual(g('-DSHSUHDSS'), 
-         map(bool, map(int,'1000000000')))
+         list(map(bool, list(map(int,'1000000000')))))
         self.assertEqual(g('UACHASCAGDS-'), 
-         map(bool, map(int,'000000000001')))
+         list(map(bool, list(map(int,'000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'), \
-         map(bool, map(int,'111000000001110000011100000000111')))
+         list(map(bool, list(map(int,'111000000001110000011100000000111')))))
 
     def test_gapMaps(self):
         """Sequence gapMaps should return dicts mapping gapped/ungapped pos"""

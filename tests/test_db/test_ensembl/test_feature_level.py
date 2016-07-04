@@ -40,9 +40,9 @@ class TestFeatureCoordLevels(TestCase):
                     feature_types=['gene', 'cpg', 'est'],
                     core_db=self.chicken.CoreDb,
                     otherfeature_db=self.chicken.OtherFeaturesDb)
-        self.assertEquals(chicken_feature_levels['repeat'].levels,
+        self.assertEqual(chicken_feature_levels['repeat'].levels,
                                 ['chromosome', 'scaffold'])
-        self.assertEquals(set(chicken_feature_levels['cpg'].levels),
+        self.assertEqual(set(chicken_feature_levels['cpg'].levels),
                             set(['chromosome', 'scaffold']))
     
     def test_repeat(self):
@@ -58,7 +58,7 @@ class TestFeatureCoordLevels(TestCase):
         for repeat in repeats:
             loc = repeat.Location
             obs.append((str(loc.CoordName), loc.Start, loc.End))
-        self.assertEquals(set(obs), set(expect))
+        self.assertEqual(set(obs), set(expect))
     
     def test_cpg(self):
         # contain 3 CpG island recorded at chromosome level
@@ -70,12 +70,12 @@ class TestFeatureCoordLevels(TestCase):
         for cpg in cpgs1:
             loc = cpg.Location
             obs.append((str(loc.CoordName), loc.Start, loc.End))
-        self.assertEquals(set(obs), set(exp))
+        self.assertEqual(set(obs), set(exp))
         
         # test cpg features record at scaffold level:
         coord2 = dict(CoordName='JH376196.1', Start=1, End=14640)
         cpgs2 = self.chicken.getFeatures(feature_types='cpg', **coord2)
-        self.assertEquals(len(list(cpgs2)), 3)
+        self.assertEqual(len(list(cpgs2)), 3)
     
 
 if __name__ == '__main__':

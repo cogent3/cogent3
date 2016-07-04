@@ -155,7 +155,7 @@ class SpeciesNameMap(dict):
     
     def __repr__(self):
         return 'Available species: %s' % ("'"+\
-                "'; '".join(self._common_species.keys())+"'")
+                "'; '".join(list(self._common_species.keys()))+"'")
     
     def getCommonName(self, name, level='raise'):
         """returns the common name for the given name (which can be either a
@@ -176,7 +176,7 @@ class SpeciesNameMap(dict):
             if level == 'raise':
                 raise RuntimeError(msg)
             elif level == 'warn':
-                print "WARN: %s" % msg
+                print("WARN: %s" % msg)
         
         return str(common_name)
     
@@ -196,12 +196,12 @@ class SpeciesNameMap(dict):
             if level == 'raise':
                 raise RuntimeError(msg)
             elif level == 'warn':
-                print "WARN: %s" % msg
+                print("WARN: %s" % msg)
         return str(species_name)
     
     def getSpeciesNames(self):
         """returns the list of species names"""
-        names = self._species_common.keys()
+        names = list(self._species_common.keys())
         names.sort()
         return [str(n) for n in names]
     

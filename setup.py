@@ -58,13 +58,13 @@ class BuildDocumentation(NullCommand):
         try:
             import sphinx
         except ImportError:
-            print "Failed to build html due to ImportErrors for sphinx"
+            print("Failed to build html due to ImportErrors for sphinx")
             return
         cwd = os.getcwd()
         os.chdir('doc')
         subprocess.call(["make", "html"])
         os.chdir(cwd)
-        print "Built index.html"
+        print("Built index.html")
 
 # Cython is now run via the Cythonize function rather than monkeypatched into 
 # distutils, so these legacy commands don't need to do anything extra.
@@ -82,15 +82,15 @@ try:
     version = tuple([int(v) \
         for v in re.split("[^\d]", version) if v.isdigit()])
     if version < (0, 17, 1):
-        print "Your Cython version is too old"
+        print("Your Cython version is too old")
         raise ImportError
 except ImportError:
     source_suffix = '.c'
     cythonize = lambda x:x
-    print "No Cython, will compile from .c files"
+    print("No Cython, will compile from .c files")
     for cmd in extra_commands:
         if cmd in sys.argv:
-            print "'%s' command not available without Cython" % cmd
+            print("'%s' command not available without Cython" % cmd)
             sys.exit(1)
 else:
     from Cython.Build import cythonize

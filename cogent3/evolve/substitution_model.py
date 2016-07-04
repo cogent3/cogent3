@@ -46,6 +46,7 @@ from cogent3.evolve.substitution_calculation import (
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
+import collections
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -73,7 +74,7 @@ def redundancyInPredicateMasks(preds):
     # there is some redundancy and the model will be overparameterised.
     if len(preds) <= 1:
         return 0
-    eqns = 1.0 * numpy.array([list(mask.flat) for mask in preds.values()])
+    eqns = 1.0 * numpy.array([list(mask.flat) for mask in list(preds.values())])
     svs = svd(eqns)[1]
     # count non-duplicate non-zeros singular values
     matrix_rank = len([sv for sv in svs if abs(sv) > 1e-8])
@@ -107,7 +108,7 @@ class _SubstitutionModel(object):
             motif_probs=None, optimise_motif_probs=False,
             equal_motif_probs=False, motif_probs_from_data=None,
             motif_probs_alignment=None, mprob_model=None,  
-            model_gaps=False, recode_gaps=False, motif_length=None,
+            model_gaps=False, recode_gaps=False, motif_length=1,
             name="", motifs=None):
         # subclasses can extend this incomplete docstring
         """
@@ -191,7 +192,7 @@ class _SubstitutionModel(object):
             motif_probs = self.countMotifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)
-            motif_probs = dict(zip(alphabet, motif_probs))
+            motif_probs = dict(list(zip(alphabet, motif_probs)))
         if motif_probs:
             self.adaptMotifProbs(motif_probs) # to check
             self.motif_probs = motif_probs
@@ -211,7 +212,7 @@ class _SubstitutionModel(object):
         s.append("name = '%s'; type = '%s';" %
                 (getattr(self, "name", None), getattr(self, "type", None)))
         if hasattr(self, "predicate_masks"):
-            parlist = self.predicate_masks.keys()
+            parlist = list(self.predicate_masks.keys())
             s.append("params = %s;" % parlist)
         motifs = self.getMotifs()
         s.append("number of motifs = %s;" % len(motifs))
@@ -430,7 +431,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             distribution = GammaDefn
         elif distribution in [None, "free"]:
             distribution = MonotonicDefn
-        elif isinstance(distribution, basestring):
+        elif isinstance(distribution, str):
             raise ValueError('Unknown distribution "%s"' % distribution)
         self.distrib_class = distribution
         
@@ -681,13 +682,13 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
-        for (name, matrix) in predicate_masks.items():
+        for (name, matrix) in list(predicate_masks.items()):
             if numpy.alltrue((matrix == 0).flat):
                 raise ValueError("Predicate %s is always false." % name)
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
         if self._do_scaling:
-            for (name, matrix) in predicate_masks.items():
+            for (name, matrix) in list(predicate_masks.items()):
                 if numpy.alltrue((matrix == self._instantaneous_mask).flat):
                     raise ValueError("Predicate %s is always true." % name)
             if redundancyInPredicateMasks(predicate_masks):
@@ -802,13 +803,13 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     
     def getParamList(self):
         """Return a list of parameter names."""
-        return self.predicate_masks.keys()
+        return list(self.predicate_masks.keys())
     
     def isInstantaneous(self, x, y):
         return self._isInstantaneous(x, y)
     
     def getSubstitutionRateValueFromQ(self, Q, motif_probs, pred):
-        pred_mask = self._adaptPredicates([pred])[0].values()[0]
+        pred_mask = list(self._adaptPredicates([pred])[0].values())[0]
         pred_row_totals = numpy.sum(pred_mask * Q, axis=1)
         inst_row_totals = numpy.sum(self._instantaneous_mask * Q, axis=1)
         r = sum(pred_row_totals * motif_probs)
@@ -849,7 +850,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def _adaptPredicates(self, rules):
         # dict or list of callables, predicate objects or predicate strings
         if isinstance(rules, dict):
-            rules = rules.items()
+            rules = list(rules.items())
         else:
             rules = [(None, rule) for rule in rules]
         predicate_masks = {}
@@ -865,7 +866,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def adaptPredicate(self, pred, label=None):
         if isinstance(pred, str):
             pred = predicate.parse(pred)
-        elif callable(pred):
+        elif isinstance(pred, collections.Callable):
             pred = predicate.UserPredicate(pred)
         pred_func = pred.makeModelPredicate(self)
         label = label or repr(pred)

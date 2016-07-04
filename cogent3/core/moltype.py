@@ -25,7 +25,7 @@ __status__ = "Production"
 from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
     AlphabetError, _make_complement_array
 from cogent3.util.misc import FunctionWrapper, add_lowercase, iterable, if_
-from cogent3.util.transform import allchars, keep_chars, first_index_in_set
+from cogent3.util.transform import keep_chars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
@@ -40,7 +40,7 @@ from cogent3.core.alignment import Alignment, DenseAlignment, \
 from random import choice
 
 import re
-import string
+from string import ascii_letters as letters
 
 import numpy
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
@@ -49,7 +49,8 @@ from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
 
-from string import maketrans, translate
+maketrans = str.maketrans
+translate = str.translate
 
 IUPAC_gap = '-'
 
@@ -305,7 +306,7 @@ RnaPairingRules = {
     'Extended': RnaExtendedPairs,
 }
 
-for k, v in RnaPairingRules.items():
+for k, v in list(RnaPairingRules.items()):
     RnaPairingRules[k] = (v, make_pairs(v))
 
 class CoreObjectGroup(object):
@@ -366,7 +367,7 @@ class AlphabetGroup(CoreObjectGroup):
         MolType=None, constructor=None):
         """Returns new AlphabetGroup."""
         if constructor is None:
-            if max(map(len, chars)) == 1:
+            if max(list(map(len, chars))) == 1:
                 constructor = CharAlphabet
                 chars = ''.join(chars)
                 degens = ''.join(degens)
@@ -517,7 +518,7 @@ class MolType(object):
         #make inverse degenerates from degenerates
         #ensure that lowercase versions also exist if appropriate
         inv_degens = {}
-        for key, val in self.Degenerates.items():
+        for key, val in list(self.Degenerates.items()):
             inv_degens[frozenset(val)] = key.upper()
             if add_lower:
                 inv_degens[frozenset(''.join(val).lower())] = key.lower()
@@ -593,7 +594,7 @@ class MolType(object):
         """
         most_specific = len(self.Alphabet) + 1
         result = self.Missing
-        for (code, motifs2) in self.Ambiguities.items():
+        for (code, motifs2) in list(self.Ambiguities.items()):
             for c in motifs:
                 if c not in motifs2:
                     break
@@ -636,7 +637,7 @@ class MolType(object):
         for i in self.Alphabet:
             curr = str(i)
             all[i] = i
-        for key, val in self.Degenerates.items():
+        for key, val in list(self.Degenerates.items()):
             all[key] = val
         for i in self.Gaps:
             all[i] = i
@@ -648,8 +649,8 @@ class MolType(object):
         Note: self.ComplementTable is only set if self.Complements exists.
         """
         if self.Complements:
-            self.ComplementTable = maketrans(''.join(self.Complements.keys()),
-                                             ''.join(self.Complements.values()))
+            self.ComplementTable = maketrans(''.join(list(self.Complements.keys())),
+                                             ''.join(list(self.Complements.values())))
     
     def complement(self, item):
         """Returns complement of item, using data from self.Complements.
@@ -658,8 +659,7 @@ class MolType(object):
         will return list of keys.
         """
         if not self.Complements:
-            raise TypeError, \
-            "Tried to complement sequence using alphabet without complements."
+            raise TypeError("Tried to complement sequence using alphabet without complements.")
         try:
             return item.translate(self.ComplementTable)
         except (AttributeError, TypeError):
@@ -778,7 +778,7 @@ class MolType(object):
                 ambi = self.Degenerates
                 def not_ambiguous(x):
                     return not x in ambi
-                return sequence.__class__(filter(not_ambiguous, sequence))
+                return sequence.__class__(list(filter(not_ambiguous, sequence)))
         
         elif method == 'random':
             degen = self.Degenerates
@@ -793,18 +793,18 @@ class MolType(object):
             else:
                 return sequence.__class__(result)
         else:
-            raise NotImplementedError, "Got unknown method %s" % method
+            raise NotImplementedError("Got unknown method %s" % method)
     
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
         try:
-            return sequence.__class__(sequence.translate( \
-            allchars, self.GapString))
+            trans = dict([(i, None) for i in map(ord, '-?')])
+            return sequence.__class__(sequence.translate(trans))
         except AttributeError:
             gap = self.Gaps
             def not_gap(x):
                 return not x in gap
-            return sequence.__class__(filter(not_gap, sequence))
+            return sequence.__class__(list(filter(not_gap, sequence)))
     
     def gapList(self, sequence):
         """Returns list of indices of all gaps in the sequence, or []."""
@@ -813,7 +813,7 @@ class MolType(object):
     
     def gapVector(self, sequence):
         """Returns list of bool indicating gap or non-gap in sequence."""
-        return map(self.isGap, sequence)
+        return list(map(self.isGap, sequence))
     
     def gapMaps(self, sequence):
         """Returns tuple containing dicts mapping between gapped and ungapped.
@@ -1004,19 +1004,19 @@ class MolType(object):
             if symbols.issubset(i):
                 lengths[len(i)] = i
         if lengths:  #found at least some matches
-            sorted = lengths.keys()
+            sorted = list(lengths.keys())
             sorted.sort()
             return inv_degens[lengths[sorted[0]]]
         
         #if we got here, nothing worked
-        raise TypeError, "Cannot find degenerate char for symbols: %s" \
-                % symbols
+        raise TypeError("Cannot find degenerate char for symbols: %s" \
+                % symbols)
 
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
     # want to prematurely assume DNA or Protein.
     Sequence = DefaultSequence,
-    motifset = string.letters,
+    motifset = letters,
     Ambiguities = {},
     label = 'text',
     ModelSeq = ModelSequence,
@@ -1068,7 +1068,7 @@ BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
     # want to prematurely assume _anything_ about the data.
     Sequence = ByteSequence,
-    motifset = map(chr, range(256)),
+    motifset = list(map(chr, list(range(256)))),
     Ambiguities = {},
     ModelSeq = ModelSequence,
     label = 'bytes')
@@ -1101,7 +1101,7 @@ class _CodonAlphabet(Alphabet):
     
 
 def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
-    if isinstance(gc, (int, basestring)):
+    if isinstance(gc, (int, str)):
         gc = GeneticCodes[gc]
     if include_stop_codons:
         motifset = list(gc.Codons)

@@ -23,7 +23,7 @@ For drawing trees use either:
 # Layout gets more complicated for rooted tree styles if dy is allowed to vary,
 # and constant-y is suitable for placing alongside a sequence alignment anyway.
 from cogent3.core.tree import TreeNode
-import rlg2mpl
+from . import rlg2mpl
 import matplotlib.colors
 from matplotlib.patches import PathPatch, Polygon
 from matplotlib.path import Path
@@ -314,7 +314,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         self.asArtist(height, width)
         result = []
         for node in self.postorder(include_self=True):
-            result.append([node.Name, id(node), node.x2, node.y2] + [map(id, node.Children)])
+            result.append([node.Name, id(node), node.x2, node.y2] + [list(map(id, node.Children))])
         return result
     
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
@@ -636,7 +636,7 @@ class AlignedShelvedDendrogram(ShelvedDendrogram):
         if hasattr(self, 'track_y'):
             return (self.track_y, self.track_y)
         else:
-            raise RuntimeError, self.Name
+            raise RuntimeError(self.Name)
     
 
 class UnrootedDendrogram(_Dendrogram):

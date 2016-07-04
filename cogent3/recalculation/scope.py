@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division, with_statement
+
 import warnings
 import numpy
 from contextlib import contextmanager
@@ -54,7 +54,7 @@ class ALL(_ExistentialQualifier):
 
 def theOneItemIn(items):
     assert len(items) == 1, items
-    return iter(items).next()
+    return next(iter(items))
 
 def _indexed(values):
     # This is the core of the redundancy elimination, used to group
@@ -63,7 +63,7 @@ def _indexed(values):
     # ([1.0, 2.0, 3.0], {'a':0, 'b':1, 'c':2, 'd':0, 'e':0})
     uniq = []
     index = {}
-    values = values.items()
+    values = list(values.items())
     values.sort()
     for (key, value) in values:
         if value in uniq:
@@ -190,7 +190,7 @@ class _Defn(object):
         used = []
         for (d, dim) in enumerate(self.valid_dimensions):
             seen = {}
-            for (scope_t, i) in self.index.items():
+            for (scope_t, i) in list(self.index.items()):
                 rest_of_scope = scope_t[:d]+scope_t[d+1:]
                 if rest_of_scope in seen:
                     if i != seen[rest_of_scope]:
@@ -292,7 +292,7 @@ class _Defn(object):
             if key not in result:
                 result[key] = set()
             result[key].add(scope_t)
-        return result.values()
+        return list(result.values())
     
     def interpretScope(self, **kw):
         """A set of the scope-tuples that match the input dict like
@@ -344,7 +344,7 @@ class _Defn(object):
                 list(self.valid_dimensions).index(d)
                 for d in dimensions
                 if d in self.valid_dimensions]
-        for (scope_t, i) in self.index.items():
+        for (scope_t, i) in list(self.index.items()):
             value = cell_value_lookup(self, i)
             value = self.wrapValue(value)
             scope = tuple([scope_t[i] for i in posns])
@@ -409,7 +409,7 @@ class SelectFromDimension(_Defn):
     
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(zip(self.valid_dimensions, scope_t))
+            scope = dict(list(zip(self.valid_dimensions, scope_t)))
             scope.update(self.selection)
             input_num = self.arg.outputOrdinalFor(scope)
             self.assignments[scope_t] = (input_num,)
@@ -446,7 +446,7 @@ class _NonLeafDefn(_Defn):
     
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(zip(self.valid_dimensions, scope_t))
+            scope = dict(list(zip(self.valid_dimensions, scope_t)))
             input_nums = [arg.outputOrdinalFor(scope) for arg in self.args]
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
@@ -484,7 +484,7 @@ class _LeafDefn(_Defn):
         if name is not None:
             self.name = name
         if self.name_required:
-            assert isinstance(self.name, basestring), self.name
+            assert isinstance(self.name, str), self.name
         if extra_label is not None:
             self.name = self.name + extra_label
     
@@ -579,7 +579,7 @@ class _LeafDefn(_Defn):
     def _local_repr(self, col_width, max_width):
         template = "%%%s.%sf" % (col_width, (col_width-1)//2)
         assignments = []
-        for (i,a) in self.assignments.items():
+        for (i,a) in list(self.assignments.items()):
             if a is None:
                 assignments.append('None')
             elif a.is_constant:
@@ -780,7 +780,7 @@ class ParameterController(object):
     
     def updateFromCalculator(self, calc):
         changed = []
-        for defn in self.defn_for.values():
+        for defn in list(self.defn_for.values()):
             if isinstance(defn, _LeafDefn):
                 defn.updateFromCalculator(calc)
                 changed.append(defn)
@@ -805,7 +805,7 @@ class ParameterController(object):
         lc = self.makeCalculator()
         try:
             lc.optimise(**kw)
-        except MaximumEvaluationsReached, detail:
+        except MaximumEvaluationsReached as detail:
             evals = detail[0]
             err_msg = 'FORCED EXIT from optimiser after %s evaluations' % evals
             if limit_action == 'ignore':

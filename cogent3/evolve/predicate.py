@@ -65,7 +65,7 @@ class predicate(object):
     def __invert__(self):
         return Not(self)
     
-    def __nonzero__(self):
+    def __bool__(self):
         warnings.warn('alphabet predicate used as truth value. Use only binary operators: &, | and ~', stacklevel=2)
         return True
     

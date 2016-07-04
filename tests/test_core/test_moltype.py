@@ -187,7 +187,7 @@ class CoreObjectGroupTests(TestCase):
         self.assertSameObj(c.Degen, None)
         self.assertSameObj(c.Base.Degen, None)
 
-        base, degen, gap, degengap = map(o, ['base','degen','gap','degengap'])
+        base, degen, gap, degengap = list(map(o, ['base','degen','gap','degengap']))
         c = CoreObjectGroup(base, degen, gap, degengap)
         self.assertSameObj(c.Base, base)
         self.assertSameObj(c.Base.Degen, degen)
@@ -418,7 +418,7 @@ class MolTypeTests(TestCase):
             if i in RnaMolType.Degenerates:
                 self.assertContains(RnaMolType.Degenerates[i], j)
             else:
-                self.assertEquals(i, j)
+                self.assertEqual(i, j)
         self.assertNotEqual(t, u)
         self.assertEqual(d(tuple('UCAG'), 'random'), tuple('UCAG'))
         self.assertEqual(len(s), len(t))
@@ -451,7 +451,7 @@ class MolTypeTests(TestCase):
         g = a.gapList
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), [0,1,2])
-        self.assertEqual(g('!@#$!@#$!@#$'), range(12))
+        self.assertEqual(g('!@#$!@#$!@#$'), list(range(12)))
         self.assertEqual(g('cguua!cgcuagua@cguasguadc#'), [5,14,25])
 
     def test_gapVector(self):
@@ -460,20 +460,20 @@ class MolTypeTests(TestCase):
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHFSDKJCUICDNINS'), [False]*27)
         self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'), 
-         map(bool, map(int,'000000000000001000000000')))
+         list(map(bool, list(map(int,'000000000000001000000000')))))
         self.assertEqual(g('-DSHFUHDSF'), 
-         map(bool, map(int,'1000000000')))
+         list(map(bool, list(map(int,'1000000000')))))
         self.assertEqual(g('UACHASJAIDS-'), 
-         map(bool, map(int,'000000000001')))
+         list(map(bool, list(map(int,'000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'), \
-         map(bool, map(int,'111000000001110000011100000000111')))
+         list(map(bool, list(map(int,'111000000001110000011100000000111')))))
         a = MolType({'A':1}, Gaps=dict.fromkeys('!@#$%'))
         g = a.gapVector
         self.assertEqual(g(''), [])
-        self.assertEqual(g('!!!'), map(bool, [1,1,1]))
+        self.assertEqual(g('!!!'), list(map(bool, [1,1,1])))
         self.assertEqual(g('!@#$!@#$!@#$'), [True] * 12)
         self.assertEqual(g('cguua!cgcuagua@cguasguadc#'), 
-         map(bool, map(int,'00000100000000100000000001')))
+         list(map(bool, list(map(int,'00000100000000100000000001')))))
 
     def test_gapMaps(self):
         """MolType gapMaps should return dicts mapping gapped/ungapped pos"""

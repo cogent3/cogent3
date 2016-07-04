@@ -30,7 +30,7 @@ def PamlMatrixParser(f):
     letter alphabetical order and a dictionary of frequencies for use by
     substitution_model.EmpiricalProteinMatrix"""
     matrix = numpy.zeros([20,20], Float)
-    next_number = numbers_in(f).next
+    next_number = numbers_in(f).__next__
     for row in range(1,20):
         for col in range(0, row):
             matrix[row,col] = matrix[col,row] = next_number()
@@ -45,6 +45,6 @@ def PamlMatrixParser(f):
     
     assert numpy.alltrue(matrix == numpy.transpose(matrix))
     
-    freqs = dict(zip(three_letter_order, freqs))
+    freqs = dict(list(zip(three_letter_order, freqs)))
     
     return (matrix, freqs)

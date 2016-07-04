@@ -28,16 +28,15 @@ def clustal_from_alignment(aln, interleave_len=None):
     try:
         order = aln.RowOrder
     except:
-        order = aln.keys()
+        order = list(aln.keys())
         order.sort()
     
     seqs = SequenceCollection(aln)
     clustal_list = ["CLUSTAL\n"]
     
     if seqs.isRagged():
-        raise ValueError,\
-             "Sequences in alignment are not all the same length." +\
-             "Cannot generate Clustal format."
+        raise ValueError("Sequences in alignment are not all the same length." +\
+             "Cannot generate Clustal format.")
     
     aln_len = seqs.SeqLen
     #Get all labels

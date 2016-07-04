@@ -19,7 +19,6 @@ silently deletes them. Does not check that the numbers actually correspond to
 the number of chars in the sequence printed so far.
 """
 from cogent3.parse.record import RecordError, DelimitedSplitter
-from string import strip
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -30,6 +29,8 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
+
+strip = str.strip
 
 def LabelLineParser(record, splitter, strict=True):
     """Returns dict mapping list of data to labels, plus list with field order.
@@ -47,8 +48,7 @@ def LabelLineParser(record, splitter, strict=True):
             key, val = splitter(line.rstrip())
         except:
             if strict:
-                raise RecordError, \
-                    "Failed to extract key and value from line %s" % line
+                raise RecordError("Failed to extract key and value from line %s" % line)
             else:
                 continue    #just skip the line if not strict
             
@@ -88,8 +88,8 @@ def MinimalClustalParser(record, strict=True):
 
     Data is dict of label -> sequence (pieces not joined).
     """
-    return LabelLineParser(map(delete_trailing_number, \
-        filter(is_clustal_seq_line, record)), last_space, strict)
+    return LabelLineParser(list(map(delete_trailing_number, \
+        list(filter(is_clustal_seq_line, record)))), last_space, strict)
 
 def ClustalParser(record, strict=True):
     seqs, labels = MinimalClustalParser(record, strict)

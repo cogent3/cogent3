@@ -1,7 +1,7 @@
 """The most commonly used constructors are available from this toplevel module.
 The rest are in the subpackages: phylo, evolve, maths, draw, parse and format."""
 
-import sys, re, cPickle
+import sys, re, pickle
 import numpy
 
 __author__ = ""
@@ -148,8 +148,8 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     # 
     if filename is not None and not (reader or static_column_types):
         if filename[filename.rfind(".")+1:] == 'pickle':
-            f = open(filename, 'U')
-            loaded_table = cPickle.load(f)
+            f = open(filename, newline=None)
+            loaded_table = pickle.load(f)
             f.close()
             return _Table(**loaded_table)
 
@@ -158,7 +158,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
                                     delimiter = sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
-        f = open(filename, "r")
+        f = open(filename, newline=None)
         if not reader:
             reader = autogen_reader(f, sep, limit=limit,
                         with_title=kwargs.get('with_title', False))
@@ -192,7 +192,8 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
 
     if filename:
         assert not (treestring or tip_names)
-        treestring = open(filename).read()
+        with open(filename) as tfile:
+            treestring = tfile.read()
         if format is None and filename.endswith('.xml'):
             format = "xml"
     if treestring:
@@ -217,6 +218,6 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
         tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
         tree = tree_builder(tips, 'root', {})
     else:
-        raise TreeError, 'filename or treestring not specified'
+        raise TreeError('filename or treestring not specified')
     return tree
 

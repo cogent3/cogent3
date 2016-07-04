@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+
 
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
@@ -105,7 +105,7 @@ class Display2D(Drawable):
             # print 'expect %s / %s matching' % (acceptable_noise, universe)
         
         key = (min_gap, window, threshold)
-        if not self._cache.has_key(key):
+        if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
                     window, threshold, min_gap, None)
             if hasattr(self.seq1, "reversecomplement"):

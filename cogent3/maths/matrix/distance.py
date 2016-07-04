@@ -79,7 +79,7 @@ class DistanceMatrix(Dict2D, Delegator):
         try:
             n = float(power)
         except ValueError:
-            raise TypeError, 'Must pass a floatable value to elementPow'
+            raise TypeError('Must pass a floatable value to elementPow')
        
         if ignore_invalid:
             def Pow(x):

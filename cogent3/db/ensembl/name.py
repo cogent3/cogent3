@@ -1,6 +1,6 @@
 import re
 
-from species import Species
+from .species import Species
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -32,9 +32,9 @@ def get_dbtype_from_name(name):
     try:
         name = _release.split(name)
         name = [s for s in _name_delim.split(name[0]) if s]
-    except TypeError, msg:
-        print "Error:"
-        print name, type(name), msg
+    except TypeError as msg:
+        print("Error:")
+        print(name, type(name), msg)
         raise
     dbtype = None
     if name[0] == "ensembl":

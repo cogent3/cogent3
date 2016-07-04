@@ -17,7 +17,7 @@ __status__ = "Development"
 
 def make_header(lines):
     """returns one header line from multiple header lines"""
-    lengths = map(len, lines)
+    lengths = list(map(len, lines))
     max_length = max(lengths)
     for index, line in enumerate(lines):
         if lengths[index] != max_length:
@@ -33,7 +33,7 @@ def make_header(lines):
         header += [c.strip()]
     return header
 
-int_series = lambda x: map(int, x.replace(',',' ').split())
+int_series = lambda x: list(map(int, x.replace(',',' ').split()))
 
 row_converter = ConvertFields([(i, int) for i in range(8)]+\
                               [(i, int) for i in range(10, 13)]+\
@@ -75,8 +75,8 @@ def MinimalPslParser(data, row_converter=row_converter):
 def PslToTable(data):
     """converts psl format to a table"""
     parser = MinimalPslParser(data)
-    version = parser.next()
-    header = parser.next()
+    version = next(parser)
+    header = next(parser)
     rows = [row for row in parser]
     table = LoadTable(header=header, rows=rows, title=version)
     return table

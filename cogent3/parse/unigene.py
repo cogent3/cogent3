@@ -4,7 +4,6 @@
 from cogent3.parse.record import MappedRecord, ByPairs, semi_splitter, \
     equal_pairs, LineOrientedConstructor, list_adder, int_setter
 from cogent3.parse.record_finder import GbFinder
-from string import maketrans, strip
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -14,6 +13,10 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
+
+maketrans = str.maketrans
+strip = str.strip
+rstrip = str.rstrip
 
 def _read_sts(line):
     """Turns an STS line (without label) into a record.
@@ -45,7 +48,7 @@ def _read_seq(line):
     '=' can also appear inside the _value_ of the second level!
     """
     first_level = semi_splitter(line)
-    second_level = map(equal_pairs, first_level)
+    second_level = list(map(equal_pairs, first_level))
     return UniGeneSeqRecord(second_level)
 
 def _read_protsim(line):
@@ -55,7 +58,7 @@ def _read_protsim(line):
     '=' can also appear inside the _value_ of the second level!
     """
     first_level = semi_splitter(line)
-    second_level = map(equal_pairs, first_level)
+    second_level = list(map(equal_pairs, first_level))
     return UniGeneProtSimRecord(second_level)
 
 class UniGene(MappedRecord):
@@ -108,5 +111,5 @@ if __name__ == '__main__':
         stdout.write('.')
         stdout.flush()
         count += 1
-    print "read %s records" % count
+    print("read %s records" % count)
 

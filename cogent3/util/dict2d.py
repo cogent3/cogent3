@@ -43,8 +43,8 @@ def average(upper, lower):
         val = (upper + lower)/2.0
         return val, val
     except TypeError:
-        raise TypeError, "%s or %s invalid types for averaging."\
-                % (str(upper), str(lower))
+        raise TypeError("%s or %s invalid types for averaging."\
+                % (str(upper), str(lower)))
 
 def largest(upper, lower):
     """Returns largest of the two values."""
@@ -168,8 +168,7 @@ class Dict2D(dict):
        
         init_method = self._guess_input_type(data)
         if not init_method:
-            raise Dict2DInitError, \
-            "Dict2D init failed (data unknown type, or Row/Col order needed)."
+            raise Dict2DInitError("Dict2D init failed (data unknown type, or Row/Col order needed).")
         #if we get here, we got an init method that it's safe to call
         init_method(data)
         #fill in any missing m[r][c] from RowOrder and ColOrder if self.Pad.
@@ -209,11 +208,10 @@ class Dict2D(dict):
         """Fills self from dict of dicts."""
         constructor = self.RowConstructor
         try:
-            for key, val in data.items():
+            for key, val in list(data.items()):
                 self[key] = constructor(val)
         except (TypeError, ValueError, AttributeError):
-            raise Dict2DInitError, \
-            "Dict2D init from dicts failed."
+            raise Dict2DInitError("Dict2D init from dicts failed.")
 
     def fromIndices(self, data):
         """Fills self from sequence of (row, col, value) sequences."""
@@ -224,8 +222,7 @@ class Dict2D(dict):
                 curr_row[col] = val
                 self[row] = curr_row
         except (TypeError, ValueError, AttributeError):
-            raise Dict2DInitError, \
-            "Dict2D init from indices failed."
+            raise Dict2DInitError("Dict2D init from indices failed.")
 
     def fromLists(self, data):
         """Fills self from list of lists.
@@ -233,14 +230,12 @@ class Dict2D(dict):
         Note that dimensions of list of lists must match RowOrder x ColOrder."""
         constructor = self.RowConstructor
         if (self.RowOrder is None) or (self.ColOrder is None):
-            raise Dict2DInitError, \
-            "Must have RowOrder and ColOrder to init Dict2D from list of lists."
+            raise Dict2DInitError("Must have RowOrder and ColOrder to init Dict2D from list of lists.")
         try:
             for key, row in zip(self.RowOrder, data):
-                self[key] = dict(zip(self.ColOrder, row))
+                self[key] = dict(list(zip(self.ColOrder, row)))
         except (TypeError):
-            raise Dict2DInitError, \
-            "Dict2D init from lists failed."
+            raise Dict2DInitError("Dict2D init from lists failed.")
             
     def pad(self, default=None):
         """Ensures self[r][c] exists for r in RowOrder for c in ColOrder.
@@ -267,14 +262,14 @@ class Dict2D(dict):
         #first, purge unwanted rows
         if self.RowOrder:
             wanted_keys = dict.fromkeys(self.RowOrder)
-            for key in self.keys():
+            for key in list(self.keys()):
                 if not key in wanted_keys:
                     del self[key]
         #then, purge unwanted cols
         if self.ColOrder:
             wanted_keys = dict.fromkeys(self.ColOrder)
-            for row in self.values():
-                for key in row.keys():
+            for row in list(self.values()):
+                for key in list(row.keys()):
                     if not key in wanted_keys:
                         del row[key]
 
@@ -288,18 +283,18 @@ class Dict2D(dict):
     def colKeys(self):
         """Returns list of keys corresponding to all cols."""
         result = {}
-        for row in self.values():
+        for row in list(self.values()):
             result.update(row)
         return list(result)
 
     def sharedColKeys(self):
         """Returns list of keys shared by all cols."""
-        rows = self.values()
+        rows = list(self.values())
         if not rows:
             return []
         result = rows[0]
         for row in rows:
-            for key in result.keys():
+            for key in list(result.keys()):
                 if key not in row:
                     del result[key]
         return list(result)
@@ -328,8 +323,7 @@ class Dict2D(dict):
                 self.ColOrder = row_order
         else:
             if rows != cols:
-                raise Dict2DError, \
-                "Rows and Cols must be the same to square a Dict2D."
+                raise Dict2DError("Rows and Cols must be the same to square a Dict2D.")
         self.pad(default)
             
     def _get_rows(self):
@@ -365,12 +359,11 @@ class Dict2D(dict):
                         curr_row = self[r]
                         yield [curr_row[c] for c in col_order]
                 except KeyError:
-                    raise Dict2DSparseError, \
-                    "Can't iterate over rows of sparse Dict2D."
+                    raise Dict2DSparseError("Can't iterate over rows of sparse Dict2D.")
             else:           #if there's no ColOrder, just return what's there
                 for r in row_order:
                     curr_row = self[r]
-                    yield curr_row.values()
+                    yield list(curr_row.values())
                 
     Rows = property(_get_rows)
 
@@ -406,8 +399,7 @@ class Dict2D(dict):
                 for c in col_order:
                     yield [self[r][c] for r in row_order]
             except KeyError:
-                raise Dict2DSparseError, \
-                "Can't iterate over cols of sparse Dict2D."
+                raise Dict2DSparseError("Can't iterate over cols of sparse Dict2D.")
     
     Cols = property(_get_cols)
 
@@ -438,7 +430,7 @@ class Dict2D(dict):
         if negate:
             #copy everything except the specified rows
             row_lookup = dict.fromkeys(rows)
-            for r, row in self.items():
+            for r, row in list(self.items()):
                 if r not in row_lookup:
                     result[r] = row
         else:
@@ -494,12 +486,12 @@ class Dict2D(dict):
         #if we're negating, pick out all the columns except specified indices
         if negate:
             col_lookup = dict.fromkeys(cols)
-            for key, row in self.items():
+            for key, row in list(self.items()):
                 result[key] = row_constructor([(i, row[i]) for i in row \
                 if (i in row) and (i not in col_lookup)])
         #otherwise, just get the requested indices
         else:
-            for key, row in self.items():
+            for key, row in list(self.items()):
                 result[key] = row_constructor([(i, row[i]) for i in cols \
                 if i in row])
         return self.__class__(result)
@@ -540,7 +532,7 @@ class Dict2D(dict):
         if negate:
             #have to cycle through every item and check that it's not in
             #the list of items to return
-            item_lookup = dict.fromkeys(map(tuple, items))
+            item_lookup = dict.fromkeys(list(map(tuple, items)))
             result = []
             if self.Pad:
                 default = self.Default
@@ -615,8 +607,7 @@ class Dict2D(dict):
                 for r in row_order:
                     result.append([self[r][c] for c in col_order])
             except KeyError:
-                raise Dict2DSparseError, \
-                "Unpadded Dict2D can't convert to list of lists if sparse."
+                raise Dict2DSparseError("Unpadded Dict2D can't convert to list of lists if sparse.")
         
         if headers:
             for header, row in zip(row_order, result):
@@ -642,7 +633,7 @@ class Dict2D(dict):
 
         #create new copy of the data
         data = {}
-        for key, row in self.items():
+        for key, row in list(self.items()):
             data[key] = row.copy()
         
         #convert the result to the same class as self
@@ -683,7 +674,7 @@ class Dict2D(dict):
             self.ColOrder = cols
         
         if rows is None:        #affect all rows
-            for r in self.values():
+            for r in list(self.values()):
                 for c in (cols or r):   #if not cols, affect everything in row
                     r[c] = val
         else:                   #affect only specified rows
@@ -710,7 +701,7 @@ class Dict2D(dict):
         """Applies f(x) to all elements of self."""
         for r in self:
             curr_row = self[r]
-            for c, val in curr_row.items():
+            for c, val in list(curr_row.items()):
                 curr_row[c] = f(val)
 
     def transpose(self):
@@ -719,8 +710,8 @@ class Dict2D(dict):
         Also swaps RowOrder and ColOrder.
         """
         t = {}
-        for r, row in self.items():
-            for c, val in row.items():
+        for r, row in list(self.items()):
+            for c, val in list(row.items()):
                 if c not in t:
                     t[c] = {}
                 t[c][r] = val
@@ -739,12 +730,10 @@ class Dict2D(dict):
         row_order = self.RowOrder
         col_order = self.ColOrder
         if (row_order is None) or (col_order is None):
-            raise Dict2DError, \
-            "Can't reflect a Dict2D without both RowOrder and ColOrder."
+            raise Dict2DError("Can't reflect a Dict2D without both RowOrder and ColOrder.")
 
         if row_order != col_order:
-            raise Dict2DError, \
-            "Can only reflect Dict2D if RowOrder and ColOrder are the same."
+            raise Dict2DError("Can only reflect Dict2D if RowOrder and ColOrder are the same.")
 
         constructor = self.RowConstructor
         default = self.Default

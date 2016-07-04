@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 import numpy, math, warnings
 from cogent3.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
 

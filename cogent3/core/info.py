@@ -118,7 +118,7 @@ class Info(MappedRecord, Delegator):
         else:
             refs = DbRefs()
         #move keys into refs if they belong there: allows init from flat dict 
-        for key, val in temp.items():
+        for key, val in list(temp.items()):
             if key in KnownDatabases:
                 refs[key] = val
                 del temp[key]

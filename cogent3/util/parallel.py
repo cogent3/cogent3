@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import with_statement
+
 import os, sys
 from contextlib import contextmanager
 import warnings
@@ -130,7 +130,7 @@ class MPIParallelContext(ParallelContext):
     def imap(self, f, s, chunksize=1):
         comm = self.comm
         (size, rank) = (comm.Get_size(), comm.Get_rank())
-        ordinals = range(0, len(s), size*chunksize)
+        ordinals = list(range(0, len(s), size*chunksize))
         # ensure same number of allgather calls in every process
         for start in ordinals:
             start += rank

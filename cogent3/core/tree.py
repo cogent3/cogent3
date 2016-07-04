@@ -33,6 +33,7 @@ from cogent3.maths.stats.test import correlation
 from operator import or_
 from cogent3.util.misc import InverseDict
 from random import shuffle, choice
+from functools import reduce
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -95,14 +96,31 @@ class TreeNode(object):
         """Returns Newick-format string representation of tree."""
         return self.getNewick()
     
+    # TODO have methods that need to rely on identity of self and
+    # other actually do that
+    # For now, the following comparison operators are peculiar in that
+    # that by omitting eq/ne methods those default to id()
+    # whereas sorting should be based on name
+    # I think the remove etc .. operations should explicitly
+    # used id()
+    #def __eq__(self, other):
+        #return self.Name == other.Name
+    
+    #def __ne__(self, other):
+        #return self.Name != other.Name
+    
+    def __lt__(self, other):
+        return self.Name < other.Name
+    
+    def __gt__(self, other):
+        return self.Name > other.Name
+    
     def compareName(self, other):
         """Compares TreeNode by name"""
         if self is other:
-            return 0
-        try:
-            return cmp(self.Name, other.Name)
-        except AttributeError:
-            return cmp(type(self), type(other))
+            return True
+        
+        return self.Name == other.Name
 
     def compareByNames(self, other):
         """Equality test for trees by name"""
@@ -111,7 +129,9 @@ class TreeNode(object):
             return True
         self_names = self.getNodeNames()
         other_names = other.getNodeNames()
+        self_names = [v for v in self_names if v is not None]
         self_names.sort()
+        other_names = [v for v in other_names if v is not None]
         other_names.sort()
         return self_names == other_names
 
@@ -135,7 +155,7 @@ class TreeNode(object):
     
     def extend(self, items):
         """Extends self.Children by items, in-place, cleaning up refs."""
-        self.Children.extend(map(self._to_self_child, items))
+        self.Children.extend(list(map(self._to_self_child, items)))
     
     def insert(self, index, i):
         """Inserts an item at specified position in self.Children."""
@@ -171,7 +191,7 @@ class TreeNode(object):
         if isinstance(i, slice):
             for c in curr:
                 c._parent = None
-            coerced_val = map(self._to_self_child, val)
+            coerced_val = list(map(self._to_self_child, val))
             self.Children[i] = coerced_val[:]
         else:   #assume we got a single index
             curr._parent = None
@@ -204,7 +224,7 @@ class TreeNode(object):
         """
         result = self.__class__()
         efc = self._exclude_from_copy
-        for k, v in self.__dict__.items():
+        for k, v in list(self.__dict__.items()):
             if k not in efc:  #avoid infinite recursion
                 result.__dict__[k] = deepcopy(self.__dict__[k])
         for c in self:
@@ -216,7 +236,7 @@ class TreeNode(object):
         def __copy_node(n):
             result = n.__class__()
             efc = n._exclude_from_copy
-            for k,v in n.__dict__.items():
+            for k,v in list(n.__dict__.items()):
                 if k not in efc:
                     result.__dict__[k] = deepcopy(n.__dict__[k])
             return result
@@ -392,7 +412,7 @@ class TreeNode(object):
         if not self.Children:
             if include_self:
                 yield self
-            raise StopIteration
+            return
         child_index_stack = [0]
         curr = self
         curr_children = self.Children
@@ -498,7 +518,7 @@ class TreeNode(object):
         if not self.Children:
             if include_self:
                 yield self
-            raise StopIteration
+            return None
         #use stack-based method: robust to large trees
         stack = [self]
         while stack:
@@ -628,7 +648,7 @@ class TreeNode(object):
         if self is other:
             return 0
         #otherwise, check the list of ancestors
-        my_ancestors = dict.fromkeys(map(id, [self] + self.ancestors()))
+        my_ancestors = dict.fromkeys(list(map(id, [self] + self.ancestors())))
         count = 0
         while other is not None:
             if id(other) in my_ancestors:
@@ -1114,7 +1134,7 @@ class TreeNode(object):
                 params = {}
                 child = children[0]
                 if self.Length is not None and child.Length is not None:
-                    shared_params = [n for (n,v) in self.params.items()
+                    shared_params = [n for (n,v) in list(self.params.items())
                         if v is not None
                         and child.params.get(n) is not None
                         and n is not "length"]
@@ -1153,9 +1173,9 @@ class TreeNode(object):
         
         new_tree = self._getSubTree(name_list, keep_root=keep_root)
         if new_tree is None:
-            raise TreeError, "no tree created in make sub tree"
+            raise TreeError("no tree created in make sub tree")
         elif new_tree.istip():
-            raise TreeError, "only a tip was returned from selecting sub tree"
+            raise TreeError("only a tip was returned from selecting sub tree")
         else:
             new_tree.Name = "root"
             # keep unrooted
@@ -1249,7 +1269,7 @@ class TreeNode(object):
                 result.pop()
             (lo, hi, end) = (mids[0], mids[-1], len(result))
             prefixes = [PAD] * (lo+1) + [PA+'|'] * (hi-lo-1) + [PAD] * (end-hi)
-            mid = (lo + hi) / 2
+            mid = (lo + hi) // 2
             prefixes[mid] = char1 + '-'*(LEN-2) + prefixes[mid][-1]
             result = [p+l for (p,l) in zip(prefixes, result)]
             if show_internal:
@@ -1280,7 +1300,7 @@ class TreeNode(object):
         xml = ["%s<clade>" % pad]
         if self.NameLoaded:
             xml.append("%s   <name>%s</name>" % (pad, self.Name))
-        for (n,v) in self.params.items():
+        for (n,v) in list(self.params.items()):
             if v == params.get(n, None):
                 continue
             xml.append("%s   <param><name>%s</name><value>%s</value></param>"
@@ -1424,7 +1444,7 @@ class TreeNode(object):
         constructor : a TreeNode or subclass constructor. If None, uses self
         """
         if num < 2:
-            raise TreeError, "Minimum number of children must be >= 2"
+            raise TreeError("Minimum number of children must be >= 2")
 
         if eps is None:
             eps = 0.0
@@ -1475,7 +1495,7 @@ class TreeNode(object):
 
         for n in self.traverse():
             if n.Name in res:
-                raise TreeError, "getNodesDict requires unique node names"
+                raise TreeError("getNodesDict requires unique node names")
             else:
                 res[n.Name] = n
 
@@ -1585,7 +1605,7 @@ class TreeNode(object):
         other_names = [i.Name for i in other.tips()]
         common_names = frozenset(self_names) & frozenset(other_names)
         if not common_names:
-            raise ValueError, "No names in common between the two trees."""
+            raise ValueError("No names in common between the two trees.""")
         if len(common_names) <= 2:
             return 1    #the two trees must match by definition in this case
         #figure out correct order of the two name matrices
@@ -2090,12 +2110,12 @@ class PhyloNode(TreeNode):
         """
         self_names = dict([(i.Name, i) for i in self.tips()])
         other_names = dict([(i.Name, i) for i in other.tips()])
-        common_names = frozenset(self_names.keys()) & \
-                       frozenset(other_names.keys())
+        common_names = frozenset(list(self_names.keys())) & \
+                       frozenset(list(other_names.keys()))
         common_names = list(common_names)
 
         if not common_names:
-            raise ValueError, "No names in common between the two trees."""
+            raise ValueError("No names in common between the two trees.""")
         if len(common_names) <= 2:
             return 1    #the two trees must match by definition in this case
 

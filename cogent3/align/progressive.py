@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
+
 from cogent3 import LoadTree
 from cogent3.phylo import nj as NJ
 from cogent3.phylo.distance import EstimateDistances
@@ -43,7 +43,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     else:
         param_vals = {}
     if isinstance(seqs, dict):
-        seq_names = seqs.keys()
+        seq_names = list(seqs.keys())
     else:
         seq_names = seqs.getSeqNames()
     
@@ -79,13 +79,13 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         param_vals = {}
         for param in est_params:
             numbers = dcalc.getParamValues(param)
-            print "Param Estimate Summary Stats: %s" % param
-            print numbers.summarize()
+            print("Param Estimate Summary Stats: %s" % param)
+            print(numbers.summarize())
             param_vals[param] = numbers.Median
     
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
     with LF.updatesPostponed():
-        for param, val in param_vals.items():
+        for param, val in list(param_vals.items()):
             LF.setParamRule(param, value=val, is_constant=True)
         LF.setParamRule('indel_rate', value=indel_rate, is_constant=True)
         LF.setParamRule('indel_length', value=indel_length, is_constant=True)

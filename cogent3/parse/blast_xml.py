@@ -219,9 +219,9 @@ class BlastXMLResult(BlastResult):
             # check if found any hits
             if len(rec_data) > 1:
                 for h in rec_data[1:]:
-                    hits.append(dict(zip(rec_data[0], h)))
+                    hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(zip(rec_data[0], ['' for x in rec_data[0]])))
+                hits.append(dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
             
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]

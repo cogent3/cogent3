@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """Provides tests for classes and functions in profile.py
 """
-from __future__ import division
-from string import translate
 from numpy import array, sum, sqrt, transpose, add, subtract, multiply,\
     divide, zeros
 from numpy.random import random
@@ -22,6 +20,8 @@ __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
+
+translate = str.translate
 
 class ProfileTests(TestCase):
     """Tests for Profile object"""

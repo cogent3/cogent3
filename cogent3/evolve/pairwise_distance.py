@@ -1,4 +1,4 @@
-from __future__ import division
+
 from numpy import log, zeros, float64, int32, array, sqrt, dot, diag, eye
 from numpy.linalg import det, norm, inv, LinAlgError
 
@@ -22,9 +22,9 @@ def get_pyrimidine_indices(moltype):
     """returns pyrimidine indices for the moltype"""
     states = list(moltype)
     if _same_moltype(RNA, moltype):
-        return map(states.index, 'CU')
+        return list(map(states.index, 'CU'))
     elif _same_moltype(DNA, moltype):
-        return map(states.index, 'CT')
+        return list(map(states.index, 'CT'))
     else:
         raise RuntimeError('Non-nucleic acid MolType')
 
@@ -34,7 +34,7 @@ def get_purine_indices(moltype):
     if not _same_moltype(RNA, moltype) and not _same_moltype(DNA, moltype):
         raise RuntimeError('Non-nucleic acid MolType')
     
-    return map(states.index, 'AG')
+    return list(map(states.index, 'AG'))
 
 def get_matrix_diff_coords(indices):
     """returns coordinates for off diagonal elements"""
@@ -45,7 +45,7 @@ def get_moltype_index_array(moltype, invalid=-9):
     canonical_chars = list(moltype)
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
-    max_ord = max(map(ord, moltype.All.keys()))
+    max_ord = max(list(map(ord, list(moltype.All.keys()))))
     char_to_index = zeros(max_ord+1, int32)
     # all non canonical_chars are ``invalid''
     char_to_index.fill(invalid)
@@ -59,7 +59,7 @@ def get_moltype_index_array(moltype, invalid=-9):
 
 def seq_to_indices(seq, char_to_index):
     """returns an array with sequence characters replaced by their index"""
-    ords = map(ord, seq)
+    ords = list(map(ord, seq))
     indices = char_to_index.take(ords)
     return indices
 
@@ -216,7 +216,7 @@ def _logdet(matrix, use_tk_adjustment=True):
     return total, p, d_xy, var
 
 try:
-    from _pairwise_distance import \
+    from ._pairwise_distance import \
         _fill_diversity_matrix as fill_diversity_matrix
     # raise ImportError # for testing
 except ImportError:
@@ -391,7 +391,7 @@ class TN93Pair(_NucleicSeqPair):
         self.pyr_coords = get_matrix_diff_coords(self.pyr_indices)
         self.pur_coords = get_matrix_diff_coords(self.pur_indices)
         
-        self.tv_coords = get_matrix_diff_coords(range(self._dim))
+        self.tv_coords = get_matrix_diff_coords(list(range(self._dim)))
         for coord in self.pur_coords + self.pyr_coords:
             self.tv_coords.remove(coord)
         
