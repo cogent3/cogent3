@@ -251,7 +251,7 @@ def test_container(container):
 
 def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
-    new = [c for c in map(chr, range(256)) if c not in good]
+    new = [c for c in map(chr, range(256)) if c not in good_chars]
     return str.maketrans("".join(new), default*len(new))
     
 def trans_all(bad_chars, default):
@@ -410,27 +410,27 @@ class keep_chars(object):
         keep = keep.encode('utf-8')
         self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
     
-    def __call__(self, s):#, a=None, d=None):
+    def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
-        #if a is None: a = self.allchars
-        #if d is None: d = self.delchars
-        return str.translate(s,self._strip_table)
+        return str.translate(s, self._strip_table)
 
-def exclude_chars(exclude,case_sens=True):
+def exclude_chars(exclude, case_sens=True):
     """Returns a filter function f(s) that returns a filtered string.
 
     Specifically, strips out everything is s that is in exlude.
     This filter is case sensitive by default.
     """
-    allchars = maketrans('','')
     if not case_sens:
         low = exclude.lower()
         up = exclude.upper()
         exclude = low + up
-    delchars = ''.join([c for c in allchars if c in exclude])
-
-    def filter_function(s,a=allchars, d=delchars):
-        return s.translate(a,d)
+    #strip_table = dict([(c, None) for c in self.allchars if c not in keep])
+    exclude = exclude.encode('utf-8')
+    strip_table = dict([(c, None) for c in exclude])
+    
+    def filter_function(s):
+        return s.translate(strip_table)
+    
     return filter_function
 
 def reorder(order):

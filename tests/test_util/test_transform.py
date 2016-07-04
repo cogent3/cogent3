@@ -663,8 +663,8 @@ class Filter_Criteria_Tests(TestCase):
     def test_keep_chars(self):
         """keep_chars returns a string containing only chars in keep"""
         f = keep_chars('ab c3*[')
-        self.assertEqual(f(''),'') #empty
-        self.assertRaises(AttributeError,f,None) #None
+        self.assertEqual(f(''), '') #empty
+        self.assertRaises(TypeError, f, None) #None
         
         #one character, case sensitive
         self.assertEqual(f('b'),'b')
@@ -687,7 +687,7 @@ class Filter_Criteria_Tests(TestCase):
         
         f = exclude_chars('ab c3*[')
         self.assertEqual(f(''),'') #empty
-        self.assertRaises(AttributeError,f,None) #None
+        self.assertRaises(AttributeError, f, None) #None
         
         #one character, case sensitive
         self.assertEqual(f('b'),'')
