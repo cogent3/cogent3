@@ -3,6 +3,11 @@
 """
 #SUPPORT2425
 #from __future__ import with_statement
+
+from warnings import filterwarnings
+filterwarnings("ignore", "invalid value encountered in",
+               category=RuntimeWarning)
+
 from cogent3.util.unit_test import main, TestCase#, numpy_err
 from cogent3.util.array import gapped_to_ungapped, unmasked_to_masked, \
     ungapped_to_gapped, masked_to_unmasked, pairs_to_array,\
@@ -154,7 +159,7 @@ class ArrayMathTests(TestCase):
         numpy.seterr(divide='ignore')
         try:
             try:
-                self.assertEqual(log2(0),float('-inf'))
+                self.assertEqual(log2(0), float('-inf'))
             except (ValueError, OverflowError):      #platform-dependent
                 pass
         finally:
@@ -162,9 +167,8 @@ class ArrayMathTests(TestCase):
 
         #SUPPORT2425
         ori_err = numpy.geterr()
-        numpy.seterr(divide='raise')
         try:
-        #with numpy_err(divide='raise'):
+            numpy.seterr(invalid='raise')
             self.assertRaises(FloatingPointError, log2, 0)
         finally:
             numpy.seterr(**ori_err)
@@ -401,7 +405,7 @@ class ArrayMathTests(TestCase):
 
     def test_scale_row_sum(self):
         """scale_row_sum should give same result as scale_row_sum_naive"""
-        m = array([[1.0,2,3,4],[2,4,4,0],[1,1,1,1],[0,0,0,100]])
+        m = array([[1.0, 2,3,4],[2,4,4,0],[1,1,1,1],[0,0,0,100]])
         scale_row_sum(m)
         self.assertFloatEqual(m, [[0.1,0.2,0.3,0.4],[0.2,0.4,0.4,0],\
                 [0.25,0.25,0.25,0.25],[0,0,0,1.0]])
@@ -412,11 +416,10 @@ class ArrayMathTests(TestCase):
 
         #SUPPORT2425
         ori_err = numpy.geterr()
-        numpy.seterr(divide='raise')
         try:
-        #with numpy_err(divide='raise'):
+            numpy.seterr(invalid='raise')
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
-                scale_row_sum, array([[1,0],[0,0]]))            
+                scale_row_sum, array([[1,0],[0,0]], float))            
         finally:
             numpy.seterr(**ori_err)
 
@@ -433,10 +436,10 @@ class ArrayMathTests(TestCase):
         #if any of the rows sums to zero, an exception will be raised.
 
         #SUPPORT2425
+        m = array([[1,0],[0,0]])
         ori_err = numpy.geterr()
-        numpy.seterr(divide='raise')
         try:
-        #with numpy_err(divide='raise'):
+            numpy.seterr(invalid='raise')
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
                 scale_row_sum_naive, array([[1,0],[0,0]]))
         finally:
