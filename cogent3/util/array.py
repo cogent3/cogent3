@@ -385,8 +385,6 @@ def sum_neg_off_diags_naive(m):
 def scale_row_sum(m, val=1):
     """Scales matrix in place so that each row sums to val (default: 1).
 
-    WARNING: will use 'integer division', not true division, if matrix is
-    an integer data type.
     """
     m /= (sum(m, axis=1)/val)[:,newaxis]
 
@@ -394,12 +392,10 @@ def scale_row_sum_naive(m, val=1):
     """Scales matrix in place so that each row sums to val (default:1).
 
     Naive implementation -- don't use. Primarily here to check correctness.
-    
-    WARNING: will use 'integer division'.
     """
-    for row in m:
-        row_sum = sum(row)
-        row /= (row_sum / val)
+    for i, row in enumerate(m):
+        row_sum = sum(row) / val
+        m[i] = row / row_sum
 
 def scale_trace(m, val=-1):
     """Scales matrix in place so that trace of result is val (default: -1).
