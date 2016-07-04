@@ -110,7 +110,8 @@ def safe_md5(open_file, block_size=2**20):
     while data:
         data = open_file.read(block_size)
         if data:
-            md5.update(data)
+            md5.update(data.encode('utf8'))
+    
     return md5
 
 def identity(x):
@@ -343,7 +344,7 @@ def unflatten(data, row_width, keep_extras=False):
         raise ValueError("unflatten: row_width must be at least 1.")
     result = []
     num_items = len(data)
-    slices = num_items / row_width
+    slices = num_items // row_width
     for s in range(slices):
         result.append(data[s * row_width:(s + 1) * row_width])
     if keep_extras:
@@ -389,21 +390,6 @@ def select(order, items):
     Return type is a list of whatever type the elements in items are.
     """
     return list(map(items.__getitem__, order))
-
-def sort_order(items, cmpfunc=None):
-    """Returns an array containing the sorted order of elements in items.
-
-    The returned array contains indexes. Looking up items[i] for i in
-    indexes returns a sorted list of the items in ascending order.
-
-    Useful for returning just the n best items, etc.
-    """
-    indexed = [(item, index) for index, item in enumerate(items)]
-    if cmpfunc is None:
-        indexed.sort()
-    else:
-        indexed.sort(cmpfunc)
-    return  [i[1] for i in indexed]
 
 def find_all(text, pat):
     """Returns list of all overlapping occurrences of a pattern in a text.
@@ -1158,52 +1144,6 @@ def getNewId(rand_f=randrange):
     return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
 #end function getNewId
 
-def generateCombinations(alphabet, combination_length):
-    """Returns an array of strings: all combinations of a given length.
-    
-    alphabet: a sequence (string or list) type object containing the
-        characters that can be used to make the combinations.
-    combination_length: a long-castable value (integer) specifying the
-        length of desired combinations.
-    
-    comb is used as an abbreviation of combinations throughout.
-    """
-
-    found_combs = []
-    num_combs = 0
-    try:
-        alphabet_len = len(alphabet)
-        combination_length = int(combination_length)
-    except TypeError as ValueError: #conversion failed
-        raise RuntimeError("Bad parameter: alphabet must be of sequence " + \
-                            "type and combination_length must be castable " + \
-                            "to long.")
-    #end parameter conversion try/catch
-
-    #the number of combs is alphabet length raised to the combination length
-    if combination_length != 0:
-        num_combs = pow(alphabet_len, combination_length)
-    #end if
-
-    for curr_comb_num in range(num_combs):
-        curr_digit = 0
-        curr_comb = [0] * combination_length
-
-        while curr_comb_num:
-            curr_comb[curr_digit] = curr_comb_num % alphabet_len
-            curr_comb_num = curr_comb_num / alphabet_len
-            curr_digit += 1
-        #end while
-
-        #now translate the list of digits into a list of characters
-        real_comb = []
-        for position in curr_comb: real_comb.append(alphabet[position])
-        found_combs.append("".join(real_comb))
-    #next combination number
-
-    return found_combs
-#end generateCombinations
-
 def toString(obj):
     """Public function to write a string of object's properties & their vals.
     
@@ -1215,9 +1155,8 @@ def toString(obj):
     value replaced with the word "object".
     """
 
-    ignored_types = [types.BuiltinFunctionType, types.BuiltinMethodType, \
-                    type, types.FunctionType, types.MethodType, \
-                    types.UnboundMethodType]
+    ignored_types = [types.BuiltinFunctionType, types.BuiltinMethodType,
+                    type, types.FunctionType, types.MethodType]
     result = []
     for slot in obj.__dict__:
         if not slot.startswith("__"):
