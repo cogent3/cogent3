@@ -1233,12 +1233,13 @@ class TreeNode(object):
             score = (non_null_scores or [None])[0]
         return (score, tree)
     
-    def sorted(self, sort_order=[]):
+    def sorted(self, sort_order=None):
         """An equivalent tree sorted into a standard order. If this is not
         specified then alphabetical order is used.  At each node starting from
         root, the algorithm will try to put the descendant which contains the
         lowest scoring tip on the left.
         """
+        sort_order = sort_order or []
         tip_names = self.getTipNames()
         tip_names.sort()
         full_sort_order = sort_order + tip_names

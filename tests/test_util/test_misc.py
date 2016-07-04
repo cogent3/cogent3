@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import (iterable, max_index, min_index,
     flatten, is_iterable, is_char, is_char_or_noniterable,
     is_str_or_noniterable, not_list_tuple, list_flatten,
-    recursive_flatten, unflatten, unzip, select, sort_order, find_all,
+    recursive_flatten, unflatten, unzip, select, find_all,
     find_many, unreserve,
     extract_delimited, caps_from_underscores,
     add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
@@ -18,7 +18,7 @@ from cogent3.util.misc import (iterable, max_index, min_index,
     ConstraintError, ConstrainedContainer,
     ConstrainedString, ConstrainedList, ConstrainedDict,
     MappedString, MappedList, MappedDict,
-    generateCombinations, makeNonnegInt,
+    makeNonnegInt,
     NonnegIntError, reverse_complement, not_none, get_items_except,
     NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
     revComp, safe_md5, 
@@ -134,12 +134,12 @@ class UtilsTests(TestCase):
 
         tmp_fp = get_tmp_filename(prefix='test_safe_md5', suffix='txt')
         self.files_to_remove.append(tmp_fp)
-        tmp_f = open(tmp_fp, 'w')
-        tmp_f.write('foo\n')
-        tmp_f.close()
-
-        obs = safe_md5(open(tmp_fp, newline=None))
-        self.assertEqual(obs.hexdigest(),exp)
+        with open(tmp_fp, 'w') as tmp_f:
+            tmp_f.write('foo\n')
+        
+        with open(tmp_fp, newline=None) as infile:
+            obs = safe_md5(infile)
+        self.assertEqual(obs.hexdigest(), exp)
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
@@ -283,18 +283,18 @@ class UtilsTests(TestCase):
             [1,2,3,4,5])
 
     def test_unflatten(self):
-       """unflatten should turn a 1D sequence into a 2D list"""
-       self.assertEqual(unflatten("abcdef", 1), list("abcdef"))
-       self.assertEqual(unflatten("abcdef", 1, True), list("abcdef"))
-       self.assertEqual(unflatten("abcdef", 2), ['ab','cd','ef'])
-       self.assertEqual(unflatten("abcdef", 3), ['abc','def'])
-       self.assertEqual(unflatten("abcdef", 4), ['abcd'])
-       #should be able to preserve extra items
-       self.assertEqual(unflatten("abcdef", 4, True), ['abcd', 'ef'])
-       self.assertEqual(unflatten("abcdef", 10), [])
-       self.assertEqual(unflatten("abcdef", 10, True), ['abcdef'])
-       #should succeed on empty sequnce
-       self.assertEqual(unflatten('',10), [])
+        """unflatten should turn a 1D sequence into a 2D list"""
+        self.assertEqual(unflatten("abcdef", 1), list("abcdef"))
+        self.assertEqual(unflatten("abcdef", 1, True), list("abcdef"))
+        self.assertEqual(unflatten("abcdef", 2), ['ab','cd','ef'])
+        self.assertEqual(unflatten("abcdef", 3), ['abc','def'])
+        self.assertEqual(unflatten("abcdef", 4), ['abcd'])
+        #should be able to preserve extra items
+        self.assertEqual(unflatten("abcdef", 4, True), ['abcd', 'ef'])
+        self.assertEqual(unflatten("abcdef", 10), [])
+        self.assertEqual(unflatten("abcdef", 10, True), ['abcdef'])
+        #should succeed on empty sequnce
+        self.assertEqual(unflatten('',10), [])
 
     def test_unflatten_bad_row_width(self):
         "unflatten should raise ValueError with row_width < 1"""
@@ -343,20 +343,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         #check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_sort_order(self):
-        """sort_order should return the ordered indices of items"""
-        self.assertEqual(sort_order('abc'), [0, 1, 2])
-        self.assertEqual(sort_order('cba'), [2,1,0])
-        self.assertEqual(sort_order('bca'), [2,0,1])
-
-    def test_sort_order_cmpfunc(self):
-        """sort_order should use cmpfunc if passed"""
-        self.assertEqual(sort_order([4, 8, 10], lambda x,y:cmp(y,x)), [2, 1, 0])
-
-    def test_sort_order_empty(self):
-        """sort_order should return empty list on empty sequence"""
-        self.assertEqual(sort_order([]), [])
 
     def test_find_all(self):
         """find_all should return list of all occurrences"""
@@ -1416,65 +1402,6 @@ class MappedDictTests(TestCase):
         assert 1 in d
         assert '5' not in d
 
-        
-
-
-class generateCombinationsTests(TestCase):
-    """Tests for public generateCombinations function."""
-    
-    def test_generateCombinations(self):
-        """function should return all combinations of given length"""
-        
-        #test all 3-position combinations of a 2-digit alphabet, since I can
-        #work that one out by hand ...
-        correct_result = [  "AAA", "AAB", "ABA", "ABB", \
-                            "BBB", "BBA", "BAB", "BAA"]
-                            
-        real_result = generateCombinations("AB", 3)
-        
-        correct_result.sort()
-        real_result.sort()
-        self.assertEqual(str(real_result), str(correct_result))
-    #end test_generateCombinations
-    
-    def test_generateCombinations_singleAlphabet(self):
-        """function should return correct value when alphabet is one char"""
-        
-        real_result = generateCombinations("A", 4)
-        self.assertEqual(str(real_result), str(["AAAA"]))
-    #end test_generateCombinations_singleAlphabet
-    
-    def test_generateCombinations_singleLength(self):
-        """function should return correct values if length is 1"""
-        
-        real_result = generateCombinations("ABC", 1)
-        self.assertEqual(str(real_result), str(["A", "B", "C"]))
-    #end test_generateCombinations_singleLength
-    
-    def test_generateCombinations_emptyAlphabet(self):
-        """function should return empty list if alphabet arg is [], "" """
-        
-        real_result = generateCombinations("", 4)
-        self.assertEqual(str(real_result), str([]))
-        
-        real_result = generateCombinations([], 4)
-        self.assertEqual(str(real_result), str([]))
-    #end test_generateCombinations_emptyAlphabet
-    
-    def test_generateCombinations_zeroLength(self):
-        """function should return empty list if length arg is 0 """
-        
-        real_result = generateCombinations("ABC", 0)
-        self.assertEqual(str(real_result), str([]))
-    #end test_generateCombinations_zeroLength
-    
-    def test_generateCombinations_badArgs(self):
-        """function should error if args are not castable to right type."""
-    
-        self.assertRaises(RuntimeError, generateCombinations, 12, 4)
-        self.assertRaises(RuntimeError, generateCombinations, [], None) 
-    #end test_generateCombinations_badArgs
-#end generateCombinationsTests
 
 class makeNonnegIntTests(TestCase):
     """Tests of the public makeNonnegInt function"""
@@ -1615,12 +1542,12 @@ class reverse_complementTests(TestCase):
 
     def test_curry(self):
         """curry should generate the function with parameters setted"""
-        curry_test = curry(cmp, 5)
-        knowns = ((3, 1),
-                (9, -1),
-                (5, 0))
+        curry_test = curry(lambda x,y: x == y, 5)
+        knowns = ((3, False),
+                (9, False),
+                (5, True))
         for arg2, result in knowns:
-            self.assertEqual (curry_test(arg2), result)
+            self.assertEqual(curry_test(arg2), result)
 
     def test_app_path(self):
         """app_path should return correct paths"""
