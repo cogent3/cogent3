@@ -45,7 +45,7 @@ else:
         BOL = CODES['BOL']
         CLEAR = CODES['UP'] + BOL + CODES['CLEAR_EOL']
         if CODES['GREEN']:
-            bar_template = CODES['GREEN'] + '%s' + CODES['NORMAL'] + '%s'
+            bar_template = CODES['GREEN'] + b'%s' + CODES['NORMAL'] + b'%s'
             def terminal_progress_bar(dots, width):
                 return bar_template % ('█' * dots, '█' * (width-dots))
         else:
