@@ -293,9 +293,9 @@ class TestCaseTests(TestCase):
             except:
                 message = str(exc_info()[1])
                 diff = first - second
-                self.assertEqual(message,
-                'Got %s, but expected %s (diff was %s)' \
-                % (repr(first), repr(second), repr(diff)))
+                exp = 'True is not false : Got %s, but expected %s (diff was %s)' \
+                    % (repr(first), repr(second), repr(diff))
+                self.assertEqual(message, exp)
             else:
                 raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
                 % (repr(first), repr(second)))
@@ -310,7 +310,7 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                'Got %s, but expected %s (diff was %s)' \
+                'True is not false : Got %s, but expected %s (diff was %s)' \
                 % (repr(first), repr(second), repr(diff)))
             else:
                 raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
@@ -340,7 +340,7 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                'Got %s, but expected %s (diff was %s)' \
+                'True is not false : Got %s, but expected %s (diff was %s)' \
                 % (repr(first), repr(second), repr(diff)))
             else:
                 raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
@@ -356,7 +356,7 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                'Got %s, but expected %s (diff was %s)' \
+                'True is not false : Got %s, but expected %s (diff was %s)' \
                 % (repr(first), repr(second), repr(diff)))
             else:
                 raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
@@ -619,8 +619,8 @@ class TestCaseTests(TestCase):
             self.assertNotContains({'a':1, 'b':2}, 'a')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, \
-            "Item 'a' should not have been in {'a': 1, 'b': 2}")
+            self.assertEqual(message,
+                "Item 'a' should not have been in {'b': 2, 'a': 1}")
         else:
             raise AssertionError("unit_test.assertNotContains failed on input %s and %s" \
             % (repr({'a':1, 'b':2}), repr('a')))
