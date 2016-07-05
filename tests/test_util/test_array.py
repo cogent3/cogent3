@@ -168,7 +168,7 @@ class ArrayMathTests(TestCase):
         #SUPPORT2425
         ori_err = numpy.geterr()
         try:
-            numpy.seterr(invalid='raise')
+            numpy.seterr(invalid='raise', divide='raise')
             self.assertRaises(FloatingPointError, log2, 0)
         finally:
             numpy.seterr(**ori_err)
