@@ -69,7 +69,10 @@ def MinimalPslParser(data, row_converter=row_converter):
         if header is not None:
             yield row_converter(rows[0])
             rows = []
-        
+    try:
+        data.close()
+    except AttributeError:
+        pass
     
 
 def PslToTable(data):

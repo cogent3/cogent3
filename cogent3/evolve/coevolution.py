@@ -1835,7 +1835,8 @@ def pickle_coevolution_result(coevolve_result,out_filepath='output.pkl'):
         out_filepath: path where the pickled result should be stored
     """
     try:
-        p = Pickler(open(out_filepath,'w'))
+        with open(out_filepath,'w') as infile:
+            p = Pickler(infile)
     except IOError:
         err = "Can't access filepath. Do you have write access? " + \
             out_filepath
@@ -1879,7 +1880,7 @@ def csv_to_coevolution_matrix(in_filepath):
         
         in_filepath: input filepath
     """
-    try: 
+    try:
         f = open(in_filepath)
     except IOError:
         err = \
@@ -1890,6 +1891,7 @@ def csv_to_coevolution_matrix(in_filepath):
     for line in f:
         values = line.strip().split(',')
         result.append(list(map(float,values)))
+    f.close()
     return array(result)
 
 

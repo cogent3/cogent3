@@ -619,8 +619,7 @@ class TestCaseTests(TestCase):
             self.assertNotContains({'a':1, 'b':2}, 'a')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message,
-                "Item 'a' should not have been in {'b': 2, 'a': 1}")
+            self.assertTrue("Item 'a' should not have been in" in message)
         else:
             raise AssertionError("unit_test.assertNotContains failed on input %s and %s" \
             % (repr({'a':1, 'b':2}), repr('a')))
