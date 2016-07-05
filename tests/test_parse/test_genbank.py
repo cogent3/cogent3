@@ -341,8 +341,10 @@ ORIGIN
             name = feature['locus_tag'][0]
             seq.addAnnotation(Feature, "CDS", name, spans)
         
-        parser = RichGenbankParser(open('data/annotated_seq.gb'),
+        infile = open('data/annotated_seq.gb')
+        parser = RichGenbankParser(infile,
             add_annotation=add_annotation)
+        infile.close()
         
         seq = [s for l, s in parser][0]
         cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])

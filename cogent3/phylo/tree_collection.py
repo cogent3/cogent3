@@ -132,4 +132,5 @@ def LoadTrees(filename):
         tree = LoadTree(treestring=line[1])
         trees.append((lnL, tree))
     trees.sort(reverse=True)
+    infile.close()
     return klass(trees)
