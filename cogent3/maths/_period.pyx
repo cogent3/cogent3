@@ -57,5 +57,6 @@ def seq_to_symbols(char* seq, list motifs, int motif_length,
         for j in range(num_motifs):
             if got == motifs[j]:
                 result[i] = 1
+    
     return result
     
