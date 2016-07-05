@@ -82,7 +82,6 @@ def _seq_to_symbols(seq, motifs, motif_length, result=None):
 
 try:
     from cogent3.maths._period import seq_to_symbols
-    #raise ImportError
 except ImportError:
     seq_to_symbols = _seq_to_symbols
 
@@ -93,6 +92,11 @@ class SeqToSymbols(object):
         super(SeqToSymbols, self).__init__()
         if type(motifs) == str:
             motifs = [motifs]
+        for i in range(len(motifs)):
+            try:
+                motifs[i] = motifs[i].encode('utf8')
+            except AttributeError:
+                pass
         self.motifs = motifs
         self.length = length
         self.motif_length = motif_length or len(motifs[0])
@@ -114,8 +118,10 @@ class SeqToSymbols(object):
         
         result = self.working
         result.fill(0)
-        if type(seq) != str:
-            seq = ''.join(seq)
+        if type(seq) == str:
+            seq = seq.encode('utf8')
+        elif type(seq) != bytes:
+            seq = b''.join(seq)
         
         return seq_to_symbols(seq, self.motifs, self.motif_length, result)
     

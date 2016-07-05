@@ -56,18 +56,20 @@ class TestPeriodStat(TestCase):
     
     def test_seq_to_symbol(self):
         """both py and pyx seq_to_symbol versions correctly convert a sequence"""
-        motifs = ['AA', 'AT', 'TT']
-        symbols = _seq_to_symbols('AATGGTTA', motifs, 2)
+        motifs = [b'AA', b'AT', b'TT']
+        symbols = _seq_to_symbols(b'AATGGTTA', motifs, 2)
         self.assertEqual(symbols, numpy.array([1,1,0,0,0,1,0,0]))
-        symbols = seq_to_symbols('AAGATT', motifs, 2, numpy.zeros(6, numpy.uint8))
+        symbols = seq_to_symbols(b'AAGATT', motifs, 2, numpy.zeros(6, numpy.uint8))
         self.assertEqual(symbols, numpy.array([1,0,0,1,1,0]))
     
     def test_seq_to_symbol_factory(self):
         """checks factory function for conversion works"""
         motifs = ['AA', 'AT', 'TT']
         seq_to_symbols = SeqToSymbols(motifs)
-        self.assertEqual(seq_to_symbols('AATGGTTA'),
+        got = seq_to_symbols('AATGGTTA')
+        self.assertEqual(got,
                         numpy.array([1,1,0,0,0,1,0,0]))
+        got = seq_to_symbols('AAGATT')
         self.assertEqual(seq_to_symbols('AAGATT'),
                         numpy.array([1,0, 0, 1, 1, 0], numpy.uint8))
     
@@ -80,10 +82,8 @@ class TestPeriodStat(TestCase):
         ipdft_calc = Ipdft(len(s), llim=2, period = 4)
         stat, p = blockwise_bootstrap(s, hybrid_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol)
-        # print 's=%.4f; p=%.3f' % (stat, p)
         stat, p = blockwise_bootstrap(s, ipdft_calc, block_size=10,
                     num_reps=1000, seq_to_symbols=seq_to_symbol)
-        # print 's=%.4f; p=%.3f' % (stat, p)
     
     def test_permutation_all(self):
         """performs permutation test of Hybrid, but considers all stats"""

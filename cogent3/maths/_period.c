@@ -2491,7 +2491,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  *         for j in range(num_motifs):
  *             if got == motifs[j]:             # <<<<<<<<<<<<<<
  *                 result[i] = 1
- *     return result
+ * 
  */
       if (unlikely(__pyx_v_motifs == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -2507,8 +2507,8 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  *         for j in range(num_motifs):
  *             if got == motifs[j]:
  *                 result[i] = 1             # <<<<<<<<<<<<<<
- *     return result
  * 
+ *     return result
  */
         __pyx_t_9 = __pyx_v_i;
         __pyx_t_10 = -1;
@@ -2527,15 +2527,15 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  *         for j in range(num_motifs):
  *             if got == motifs[j]:             # <<<<<<<<<<<<<<
  *                 result[i] = 1
- *     return result
+ * 
  */
       }
     }
   }
 
-  /* "cogent3/maths/_period.pyx":60
- *             if got == motifs[j]:
+  /* "cogent3/maths/_period.pyx":61
  *                 result[i] = 1
+ * 
  *     return result             # <<<<<<<<<<<<<<
  * 
  */
