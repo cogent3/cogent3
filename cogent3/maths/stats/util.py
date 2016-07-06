@@ -1037,7 +1037,7 @@ class FreqsI(object):
             order = list(used_freq.keys())
         result = []
         for key in order:
-            result.extend([key] * int(round(used_freq.get(key, 0))))
+            result.extend([key] * round(used_freq.get(key, 0)))
         if convert_to:
             return convert_to(result)
         else:

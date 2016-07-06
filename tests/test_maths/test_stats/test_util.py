@@ -2,7 +2,9 @@
 """Tests Numbers and Freqs objects, and their Unsafe versions.
 """
 from math import sqrt
+from collections import OrderedDict
 import numpy
+
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.stats.util import SummaryStatistics, SummaryStatisticsError,\
         Numbers, UnsafeNumbers, Freqs, UnsafeFreqs, NumberFreqs, \
@@ -930,7 +932,7 @@ class StaticFreqsTestsI(object):
         ct = self.ClassToTest
         f = ct({'a':23.1, 'b':12.5, 'c':56.7})
         f.round()
-        self.assertEqual(f,ct({'a':23, 'b':13, 'c':57}))
+        self.assertEqual(f,ct({'a':23, 'b':12, 'c':57}))
         g = ct({'a':23.1356, 'b':12.5731})
         g.round(3)
         self.assertEqual(g,ct({'a':23.136, 'b':12.573}))
@@ -950,7 +952,7 @@ class StaticFreqsTestsI(object):
         f.normalize(total=1.0/20)
         self.assertEqual(f.expand(order='abc'), list('a'*12 + 'b'*8))
         #test expand with scaling
-        g = ct({'c':0.5,'d':0.5})
+        g = ct({'c':0.51,'d':0.51})
         self.assertEqual(g.expand(order='cd'),['c','d'])
         self.assertEqual(g.expand(order='cd',scale=10),list(5*'c'+5*'d'))
         self.assertRaises(ValueError,g.expand,scale=33)
@@ -1428,7 +1430,7 @@ class FreqsTestsI(object):
         """Freqs round should round all frequencies to integers"""
         f = self.ClassToTest({'a':23.1, 'b':12.5, 'c':56.7})
         f.round()
-        self.assertEqual(f,{'a':23, 'b':13, 'c':57})
+        self.assertEqual(f,{'a':23, 'b':12, 'c':57})
         g = Freqs({'a':23.1356, 'b':12.5731})
         g.round(3)
         self.assertEqual(g,{'a':23.136, 'b':12.573})
@@ -1447,8 +1449,9 @@ class FreqsTestsI(object):
         f.normalize(total=1.0/20)
         self.assertEqual(f.expand(order='UCA'), list('U'*12 + 'C'*8))
         #test expand with scaling
-        g = self.ClassToTest({'A':0.5,'G':0.5})
-        self.assertEqual(g.expand(order='AG'),['A','G'])
+        g = self.ClassToTest({'A':0.51,'G':0.51})
+        got = g.expand(order='AG')
+        self.assertEqual(got,['A','G'])
         self.assertEqual(g.expand(order='AG',scale=10),list(5*'A'+5*'G'))
         self.assertRaises(ValueError,g.expand,scale=33)
 
@@ -1688,8 +1691,12 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
     def test_init_from_dicts(self):
         """UnsafeFreqs init should init LIKE A DICT from list of dicts"""
         # WARNING: Note the difference between this and Freqs init!
-        self.assertEqual(self.ClassToTest([{'a':1,'b':1}, {'a':2,'b':1}]), \
-            {'a':'b'})
+        # note, ensuring the dicts used stay ordered so expected result
+        # is consistent
+        a = OrderedDict([('a', 1), ('b', 1)])
+        b = OrderedDict([('a', 2), ('b', 1)])
+        got = self.ClassToTest([a, b])
+        self.assertEqual(got, {'a':'b'})
 
     def test_init_from_strings(self):
         """UnsafeFreqs init should FAIL from list of strings"""

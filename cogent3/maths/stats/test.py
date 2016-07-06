@@ -261,9 +261,9 @@ def calc_contingency_expected(matrix):
 
         #populate result with expected values
         for row in matrix:
-            row_sum = sum(matrix[row].values())
+            row_sum = sum(list(matrix[row].values()))
             for item in matrix[row]:
-                column_sum = sum(t_matrix[item].values())
+                column_sum = sum(list(t_matrix[item].values()))
                 #calculate expected frequency
                 Expected = (row_sum * column_sum)/overall_total
                 result[row][item] = [result[row][item]]
@@ -510,7 +510,12 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
             return t_one_observation(sum(a), b, tails, exp_diff,
                     none_on_zero_variance=none_on_zero_variance)
 
-        n2 = len(b)
+        b = array(b)
+        if b.shape:
+            n2 = len(b)
+        else:
+            n2 = 1
+        
         if n2 < 2:
             t, prob = t_one_observation(sum(b), a, reverse_tails(tails),
                     exp_diff, none_on_zero_variance=none_on_zero_variance)
@@ -1165,7 +1170,7 @@ def fisher(probs):
     -2 * SUM(ln(P)) gives chi-squared distribution with 2n degrees of freedom.
     """
     try:
-        return chi_high(-2 * sum(map(log, probs)), 2 * len(probs))
+        return chi_high(-2 * sum(list(map(log, probs))), 2 * len(probs))
     except OverflowError as e:
         return 0.0 
 

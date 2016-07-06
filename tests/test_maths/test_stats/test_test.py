@@ -1605,11 +1605,11 @@ class TestDistMatrixPermutationTest(TestCase):
         # looks at each possible permutation n times --
         # compare first row to rest
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n)
-        self.assertSimilarMeans(r, 0./6.)
+        self.assertSimilarMeans(r, 2./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='high')
         self.assertSimilarMeans(r, 0.77281447417149496,0)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,tails='low')
-        self.assertSimilarMeans(r, 4./6.)
+        self.assertSimilarMeans(r, 2./6.)
 
         ## The following lines are not part of the test code, but are useful in 
         ## figuring out what t-scores all of the permutations will yield. 
