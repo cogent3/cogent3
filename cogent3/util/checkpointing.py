@@ -27,8 +27,8 @@ class Checkpointer(object):
     def load(self):
         assert self.filename is not None, 'check .available() first'
         print("RESUMING from file '%s'" % self.filename)
-        f = open(self.filename)
-        obj = pickle.load(f)
+        with open(self.filename, 'rb') as f:
+            obj = pickle.load(f)
         self.last_time = time.time()
         return obj
     
@@ -42,7 +42,7 @@ class Checkpointer(object):
                 print("CHECKPOINTING to file '%s'" % self.filename)
                 if msg is not None:
                     print(msg)
-            f = open(self.filename, 'w')
-            pickle.dump(obj, f)
+            with open(self.filename, 'wb') as f:
+                pickle.dump(obj, f)
             self.last_time = now
     

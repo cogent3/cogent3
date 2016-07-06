@@ -22,7 +22,7 @@ def long_running_function(..., ui)
 
 
 import sys, time, contextlib, functools, warnings
-import os, atexit
+import os, atexit, io
 import threading
 import itertools
 from cogent3.util import parallel, terminal
@@ -315,7 +315,7 @@ def setupRootUiContext(progressBarConstructor=None, rate=None):
         klass = progressBarConstructor
     elif curses_terminal and sys.stdout.isatty():
         klass = CursesTerminalProgressBar
-    elif isinstance(sys.stdout, file):
+    elif isinstance(sys.stdout, io.IOBase):
         klass = LogFileOutput
         if rate is None:
             rate = 5.0
