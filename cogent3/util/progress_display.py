@@ -6,7 +6,7 @@ the same methods as the _Context class defined here.
 
 Long-running functions can be decorated with @display_wrap, and will then be
 given the extra argument 'ui'.  'ui' is a ProgressContext instance with methods
-.series(), .imap(), .map() and .display(), any one of which will cause a 
+.series(), .map() and .display(), any one of which will cause a 
 progress-bar to be displayed.
 
 @display_wrap
@@ -14,8 +14,6 @@ def long_running_function(..., ui)
     ui.display(msg, progress)  # progress is between 0.0 and 1.0
   or
     for item in ui.map(items, function)
-  or
-    for item in ui.imap(items, function)
   or
     for item in ui.series(items)
 """
@@ -199,7 +197,11 @@ class ProgressContext(object):
         
     def imap(self, f, s, pure=True, **kw):
         """Like itertools.imap() but with a progress bar"""
-        results = (parallel if pure else itertools).imap(f, s)
+        if pure:
+            func = parallel.map
+        else:
+            func = map
+        results = func(f, s)
         for result in self.series(results, count=len(s), **kw):
             yield result
     
