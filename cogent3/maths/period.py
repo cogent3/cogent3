@@ -249,7 +249,7 @@ def dft(x, **kwargs):
     """
     Return discrete fft and corresponding periods for signal x
     """
-    n = len(x) / 2 * 2
+    n = len(x) // 2 * 2
     x = array(x[:n])
     pwr = fft.rfft(x, n)[1:]
     freq = (arange(n/2+1)/(float(n)))[1:]
