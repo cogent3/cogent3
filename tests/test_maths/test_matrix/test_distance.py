@@ -402,7 +402,9 @@ class DistanceMatrixTests(TestCase):
             n.reflect(method=largest)
             for r in d.RowOrder:
                 for c in d.ColOrder:
-                    if d[r][c] > d[c][r]:
+                    if None in (d[r][c], d[c][r]):
+                        goal = d[c][r]
+                    elif d[r][c] > d[c][r]:
                         goal = d[r][c]
                     else:
                         goal = d[c][r]
