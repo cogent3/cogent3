@@ -2,7 +2,7 @@
 """Parser for NCBI Sequence Set XML format.
 DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
 """
-
+import io
 import xml.dom.minidom
 from cogent3.core import annotation, moltype
 
@@ -36,7 +36,7 @@ def GbSeqXmlParser(doc):
     """
     if isinstance(doc,xml.dom.minidom.Document):
         dom_obj = doc
-    elif isinstance(doc,file):
+    elif isinstance(doc, io.IOBase):
         dom_obj = xml.dom.minidom.parse(doc)
     elif isinstance(doc,str):
         dom_obj = xml.dom.minidom.parseString(doc)
