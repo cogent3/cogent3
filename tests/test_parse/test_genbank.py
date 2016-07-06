@@ -344,7 +344,7 @@ ORIGIN
         infile = open('data/annotated_seq.gb')
         parser = RichGenbankParser(infile,
             add_annotation=add_annotation)
-        infile.close()
+        
         
         seq = [s for l, s in parser][0]
         cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
@@ -370,7 +370,7 @@ ORIGIN
             got = cds[locus].getSlice().\
                     withoutTerminalStopCodon().getTranslation()
             self.assertEqual(str(got), expects[locus])
-    
+        infile.close()
 
 class LocationTests(TestCase):
     """Tests of the Location class."""
