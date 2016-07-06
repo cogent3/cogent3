@@ -481,16 +481,16 @@ class TestCase(orig_TestCase):
         observed, expected = asarray(observed), asarray(expected)
 
         t, p = t_two_sample(observed, expected)
-            
-        if p > pvalue:
-            return
-        elif p is None or not isfinite(p): #handle case where all elements were the same
+        
+        if p is None or not isfinite(p): #handle case where all elements were the same
             if not observed.shape:
                 observed = observed.reshape((1,))
             if not expected.shape:
                 expected = expected.reshape((1,))
             if observed[0] == expected[0]:
                 return
+        elif p > pvalue:
+            return
         else:
             raise self.failureException(msg or 'p-value %s, t-test p %s' % (repr(pvalue), repr(p)))
 
