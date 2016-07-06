@@ -615,11 +615,12 @@ class Profile(object):
                         data[row_idx,row[-num_to_keep]])[0] if item in\
                         nonzero(data[row_idx])[0]]
                     result.append(alpha.degenerateFromSequence(\
-                    list(map(str,take(co, to_take, axis=0)))))
+                    list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
             else:
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen,sorted)):
                     result.append(alpha.degenerateFromSequence(\
-                        list(map(str,take(co, [item for item in row[-num_to_keep:]\
+                        list(map(lambda x: x.decode('utf8'),
+                                 take(co, [item for item in row[-num_to_keep:]\
                         if item in nonzero(data[row_idx])[0]])))))
                                     
         elif not fully_degenerate: 
@@ -627,9 +628,16 @@ class Profile(object):
         else:
             result = []
             for row in self.Data:
-                result.append(alpha.degenerateFromSequence(\
-                list(map(str,take(co, nonzero(row)[0], axis=0)))))
-        return ''.join(map(str,result))
+                val = list(map(lambda x: x.decode('utf8'), take(co, nonzero(row)[0], axis=0)))
+                val = alpha.degenerateFromSequence(val)
+                result.append(val)
+        
+        try:
+            val = ''.join(map(lambda x: x.decode('utf8'), result))
+        except AttributeError:
+            val = ''.join(result)
+        
+        return val
 
 
     def randomIndices(self, force_accumulate=False, random_f = random):
@@ -657,7 +665,11 @@ class Profile(object):
         """
         co = self.CharOrder
         random_indices = self.randomIndices(force_accumulate,random_f)
-        return ''.join(map(str,take(co,random_indices)))
+        try:
+            val = ''.join(map(lambda x: x.decode('utf8'), take(co,random_indices)))
+        except AttributeError:
+            val = ''.join(take(co,random_indices))
+        return val
 
 
 
@@ -733,15 +745,15 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             #if all characters that the degenerate character maps onto are
             #in the character order, split its value up according to the
             #alphabet
-            curr_degens = degen[degen_char]
-            if all(map(char_order.__contains__, curr_degens)):
+            curr_degens = list(map(lambda x: x.encode('utf8'), degen[degen_char]))
+            if all(list(map(char_order.__contains__, curr_degens))):
                 contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
                         array(contains, float)/len(curr_degens)
     #for each character in the character order, make an entry of ones and 
     #zeros, matching the character order
     for c in char_order:
-        c = str(c)
+        c = c.decode('utf8')
         if c not in alphabet:
             raise ValueError("Found character in the character order "+\
             "that is not in the specified alphabet: %s"%(c)) 
