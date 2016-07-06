@@ -48,12 +48,20 @@ def average(upper, lower):
 
 def largest(upper, lower):
     """Returns largest of the two values."""
-    val = max(upper, lower)
+    if None not in (upper, lower):
+        val = max(upper, lower)
+    elif upper is None:
+        val = lower
+    else:
+        val = upper
     return val, val
 
 def smallest(upper, lower):
     """Returns smallest of the two values."""
-    val = min(upper, lower)
+    if None not in (upper, lower):
+        val = min(upper, lower)
+    else:
+        val = None
     return val, val
 
 def swap(upper, lower):
