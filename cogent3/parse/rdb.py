@@ -110,9 +110,10 @@ def create_acceptable_sequence(sequence):
     Will replace 'o' by '?'.
     Will strip out secondary structure annotation.
     """
-    t = maketrans('o','?')
+    trans_table = dict([(ord(c), None) for c in "{}[]()^"])
+    trans_table[ord("o")] = ord('?')
     # strip out secondary structure annotation {}[]()^
-    return sequence.translate(t, "{}[]()^") #should be accepted by RnaSequence
+    return sequence.translate(trans_table) #should be accepted by RnaSequence
     
     
 def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
