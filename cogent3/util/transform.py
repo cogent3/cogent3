@@ -412,6 +412,8 @@ class keep_chars(object):
     
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
+        if s is None:
+            raise TypeError
         if isinstance(s, bytes):
             s = s.decode('utf8')
         s = str(s)
