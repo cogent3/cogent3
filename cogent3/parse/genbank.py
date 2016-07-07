@@ -86,10 +86,14 @@ def indent_splitter(lines):
 def parse_sequence(lines, constructor=''.join):
     """Parses a GenBank sequence block. Doesn't care about ORIGIN line."""
     result = []
+    exclude = b"0123456789 \t\n\r/"
+    strip_table = dict([(c, None) for c in exclude])
+    
     for i in lines:
         if i.startswith('ORIGIN'):
             continue
-        result.append(i.translate(all_chars, '0123456789 \t\n\r/'))
+        
+        result.append(i.translate(strip_table))
     return constructor(result)
 
 def block_consolidator(lines):

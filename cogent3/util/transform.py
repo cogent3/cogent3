@@ -412,7 +412,10 @@ class keep_chars(object):
     
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
-        return str.translate(s, self._strip_table)
+        if isinstance(s, bytes):
+            s = s.decode('utf8')
+        s = str(s)
+        return s.translate(self._strip_table)
 
 def exclude_chars(exclude, case_sens=True):
     """Returns a filter function f(s) that returns a filtered string.
