@@ -1849,14 +1849,17 @@ def unpickle_coevolution_result(in_filepath):
         
         in_filepath: filepath to unpickle
     """
-    try: 
-        u = Unpickler(open(in_filepath, 'rb'))
+    try:
+        infile = open(in_filepath, 'rb')
+        u = Unpickler(infile)
     except IOError:
         err = \
          "Can't access filepath. Does it exist? Do you have read access? "+\
          in_filepath
         raise IOError(err)
-    return u.load()
+    r = u.load()
+    infile.close()
+    return r
     
 def coevolution_matrix_to_csv(coevolve_matrix,out_filepath='output.csv'):
     """ Write coevolve_matrix as csv file at output_filepath 
