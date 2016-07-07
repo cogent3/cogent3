@@ -244,7 +244,7 @@ def recursive_flatten_old(items, max_depth=None, curr_depth=0):
     return result
 
 def curry(f, *a, **kw):
-    """curry(f,x)(y) = f(x,y) or =lambda y: f(x,y)
+    """curry(f,x)(y) = f(x,y) or = lambda y: f(x,y)
     
     modified from python cookbook"""
     def curried(*more_a, **more_kw):

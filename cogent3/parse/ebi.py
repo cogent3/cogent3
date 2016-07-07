@@ -22,10 +22,21 @@ __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
 
 maketrans = str.maketrans
-strip = str.strip
-rstrip = str.rstrip
 
-all_chars = maketrans('','')
+def strip(x, chars=None):
+    if chars:
+        return x.strip(chars)
+    else:
+        return x.strip()
+
+def rstrip(x, chars=None):
+    if chars:
+        return x.rstrip(chars)
+    else:
+        return x.rstrip()
+
+    
+all_chars = bytes(range(256))
 
 def rstrip_(chars=None):
     return curry(rstrip, chars=chars) 
@@ -1300,6 +1311,9 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     by three blanks, so that the actual information begins with the sixth
     character. Information is not extended beyond character position 75 except
     for one exception: CC lines that contain the 'DATABASE' topic"""
+    exclude = b" \t\n\r/"
+    strip_table = dict([(c, None) for c in exclude])
+    
     for record in EbiFinder(lines):
         if strict and not record[0].startswith('ID'): 
             raise RecordError('Record must begin with ID line')
@@ -1320,7 +1334,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
             continue
 
         sequence = raw_dict.pop('')  #which is the linecode for sequence
-        sequence = ''.join(sequence).translate(all_chars,'\t\n ')
+        sequence = ''.join(sequence).translate(strip_table)
         
         if selected_labels:
             for key in list(raw_dict.keys()):

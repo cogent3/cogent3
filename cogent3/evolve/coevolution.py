@@ -1835,13 +1835,14 @@ def pickle_coevolution_result(coevolve_result,out_filepath='output.pkl'):
         out_filepath: path where the pickled result should be stored
     """
     try:
-        with open(out_filepath,'w') as infile:
-            p = Pickler(infile)
+        infile = open(out_filepath, 'wb')
+        p = Pickler(infile)
     except IOError:
         err = "Can't access filepath. Do you have write access? " + \
             out_filepath
         raise IOError(err)
     p.dump(coevolve_result)
+    infile.close()
 
 def unpickle_coevolution_result(in_filepath):
     """ Read in coevolve_result from a pickled file 
@@ -1849,7 +1850,7 @@ def unpickle_coevolution_result(in_filepath):
         in_filepath: filepath to unpickle
     """
     try: 
-        u = Unpickler(open(in_filepath))
+        u = Unpickler(open(in_filepath, 'rb'))
     except IOError:
         err = \
          "Can't access filepath. Does it exist? Do you have read access? "+\

@@ -45,6 +45,7 @@ class EbiTests(TestCase):
         expects = [
             {2:1}]
         self.assertEqual(list(map(item_empty_filter, inputs)), expects)
+    
     def test_rstrip_(self):
         """rstrip_ should generate the expected function"""
         test = ' aaa;  '
@@ -194,8 +195,9 @@ class EbiTests(TestCase):
         assertEqual(f(['aa; bb, bbb;', 'cc.'],delimiters=';,'),
                 ['aa', ['bb','bbb'], 'cc'])
         #test item_modifer
-        assertEqual(f('aa (bb) (cc).', '(', item_modifier=rstrip_(') ')),
-                ['aa','bb','cc'])
+        got = f('aa (bb) (cc).', '(', 
+                      item_modifier=rstrip_(') '))
+        assertEqual(got, ['aa','bb','cc'])
         assertEqual(f('aa (bb)xx (cc).', '(', item_modifier=rstrip_(') ')),
                 ['aa','bb)xx','cc'])
 
