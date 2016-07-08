@@ -57,7 +57,7 @@ def file_for_test(msg, baseline=False, prefixed=True):
     return os.path.join(dirname, fname)
 
 def fig2png(fig):
-    f = io.StringIO()
+    f = io.BytesIO()
     fig.savefig(f, format='png')
     return f.getvalue()
 

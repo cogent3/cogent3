@@ -99,7 +99,7 @@ def order_tied_to_cluster_similar(S, scores):
     assert set(new_order) == set(range(len(scores))) 
     return new_order
 
-def bit_encode(x, _bool2num=numpy.array(["0","1"]).take):
+def bit_encode(x, _bool2num=numpy.array([b"0",b"1"]).take):
     """Convert a boolean array into an integer"""
     return int(_bool2num(x).tostring(), 2)
 
