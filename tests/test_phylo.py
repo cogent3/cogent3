@@ -145,6 +145,12 @@ class ConsensusTests(unittest.TestCase):
         sct = ScoredTreeCollection(self.unrooted_trees_lengths)
         ct = sct.getConsensusTree()
         maj_tree = self.unrooted_trees_lengths[0][1]
+        # to ensure consistent comparison with majority, we root the ct same way
+        # as maj
+        tip_names = maj_tree.getTipNames()
+        ct = ct.rootedWithTip('d')
+        ct = ct.sorted(tip_names)
+        
         self.assertTrue(abs(get_ac(ct).Length-get_ac(maj_tree).Length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
@@ -404,7 +410,7 @@ class DistancesTests(unittest.TestCase):
                  ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
                  ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
                  ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
-                 ('c', 'b'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                 ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
                  ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
         got = d.getAllParamValues()
         for pair in expect:

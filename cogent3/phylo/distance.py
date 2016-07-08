@@ -19,7 +19,9 @@ __status__ = "Production"
 
 def get_name_combinations(names, group_size):
     """returns combinations of names"""
-    return list(combinations(names, group_size))
+    combined = list(tuple(sorted(p)) for p in combinations(names, group_size))
+    combined.sort()
+    return combined
 
 def get_pairwise_distance_from_triad(data, summary_function="mean"):
     """returns pairwise distances from lengths estimated from triads
