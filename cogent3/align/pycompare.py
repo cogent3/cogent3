@@ -65,6 +65,13 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     
     if band is None:
         band = max(len(seq1), len(seq2))
+    
+    if isinstance(seq1, str):
+        seq1 = seq1.encode('utf8')
+        
+    if isinstance(seq2, str):
+        seq2 = seq2.encode('utf8')
+    
     diagonals = list(range(-min(len(seq1), band), min(len(seq2), band)+1))
     result = []
     for diag_segments in ui.imap(one_diagonal, diagonals, noun='offset'):
