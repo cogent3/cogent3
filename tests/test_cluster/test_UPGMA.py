@@ -61,7 +61,8 @@ class UPGMATests(TestCase):
         """
         pairwise_dist = self.pairwise_distances
         cluster = upgma(pairwise_dist)
-        self.assertEqual(str(cluster), '(((b:0.5,a:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
+        cluster = cluster.sorted() # so we can make a stable comparison
+        self.assertEqual(str(cluster), '(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
         
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array
