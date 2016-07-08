@@ -24,11 +24,11 @@ class AllTests(TestCase):
         self.rna1 = RnaSequence('UCAGGG', Name='rna1')
         self.rna2 = RnaSequence('YCU-RG', Name='rna2')
         self.rna3 = RnaSequence('CAA-NR', Name='rna3')
-        self.model1 = ModelSequence('UCAGGG', Name='rna1',\
+        self.model1 = ModelSequence('UCAGGG', Name='rna1',
             Alphabet=RNA.Alphabets.DegenGapped)
-        self.model2 = ModelSequence('YCU-RG', Name='rna2',\
+        self.model2 = ModelSequence('YCU-RG', Name='rna2',
             Alphabet=RNA.Alphabets.DegenGapped)
-        self.model3 = ModelSequence('CAA-NR', Name='rna3',\
+        self.model3 = ModelSequence('CAA-NR', Name='rna3',
             Alphabet=RNA.Alphabets.DegenGapped)
 
         self.aln = Alignment([self.rna1, self.rna2, self.rna3], MolType=RNA)
@@ -88,28 +88,47 @@ class AllTests(TestCase):
     
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and DenseAlignment"""
-        # Used alphabet: ('U', 'C', 'A', 'G', '-', 'B', 'D', 'H',\
-        # 'K', 'M', 'N', 'S', 'R', 'W', 'V', 'Y')
-        exp = [[1,1,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0],\
-            [1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,1,0],\
-            [0,1,2,0,1,0,0,0,0,0,1,0,1,0,0,0,0]]
-        # This works
+        get_index = RNA.Alphabets.DegenGapped.index
+        #'UCAGGG'
+        #'YCU-RG'
+        #'CAA-NR'
+        
+        expected_counts = {0: {'U':1,'C':1,'A':1,'G':3},
+                           1: {'Y':1,'C':1,'U':1,'-':1,'R':1,'G':1},
+                           2: {'C':1,'A':2,'-':1,'N':1,'R':1}}
+        exp = [[0] * 17, [0] * 17, [0] * 17]
+        for seq_index in expected_counts:
+            for char in expected_counts[seq_index]:
+                exp[seq_index][get_index(char)] = expected_counts[seq_index][char]
+        exp = array(exp)
         self.assertEqual(self.da.getSeqFreqs().Data, exp)
         # This used to raise an error, but now works
         self.assertEqual(self.aln.getSeqFreqs().Data, exp)
 
     def test_subset_positions_DenseAlignment(self):
-        model1 = ModelSequence('UCG', Name='rna1',\
+        # because dict order volatile, need to grab the
+        # the index for ambig characters from the object
+        # The full data comes from these seqs
+        #'UCAGGG'
+        #'YCU-RG'
+        #'CAA-NR'
+        get_index = RNA.Alphabets.DegenGapped.index
+        G = get_index('-')
+        N = get_index('N')
+        R = get_index('R')
+        Y = get_index('Y')
+        full_data = array([[0,1,2,3,3,3],[Y,1,0,G,R,3],[1,2,2,G,N,R]])
+        
+        model1 = ModelSequence('UCG', Name='rna1',
             Alphabet=RNA.Alphabets.DegenGapped)
-        model2 = ModelSequence('YCG', Name='rna2',\
+        model2 = ModelSequence('YCG', Name='rna2',
             Alphabet=RNA.Alphabets.DegenGapped)
-        model3 = ModelSequence('CAR', Name='rna3',\
+        model3 = ModelSequence('CAR', Name='rna3',
             Alphabet=RNA.Alphabets.DegenGapped)
-        sub_da = DenseAlignment([model1, model2, model3],\
+        sub_da = DenseAlignment([model1, model2, model3],
             MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
-
-        full_data = array([[0,1,2,3,3,3],[15,1,0,4,12,3],[1,2,2,4,10,12]])
-        sub_data = array([[0,1,3],[15,1,3],[1,2,12]])
+         
+        sub_data = array([[0,1,3],[Y,1,3],[1,2,R]])
         
         # First check some data
         self.assertEqual(self.da.ArraySeqs, full_data)

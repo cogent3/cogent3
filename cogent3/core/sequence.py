@@ -1005,8 +1005,8 @@ class ModelSequenceBase(object):
     def _from_sequence(self, data):
         """Fills self using the values in data, via the Alphabet."""
         if self.Alphabet:
-            self._data = array(self.Alphabet.toIndices(data), \
-                self.Alphabet.ArrayType)
+            indices = self.Alphabet.toIndices(data)
+            self._data = array(indices, self.Alphabet.ArrayType)
         else:
             self._data = array(data)
     
@@ -1263,7 +1263,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         gap_indices = list(map(self.Alphabet.index, self.MolType.Gaps))
         valid_indices = self._data < len(self.Alphabet)
         for i in gap_indices:
-            valid_indices -= self._data == i
+            valid_indices[self._data == i] = False
         result = compress(valid_indices, self._data)
         return self.__class__(result, Info=self.Info)
 
