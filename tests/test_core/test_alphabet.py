@@ -198,10 +198,10 @@ class CharAlphabetTests(TestCase):
     def test_init(self):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet('UCAG')
-        i2c, c2i = r._indices_nums_to_chars, r._char_nums_to_indices
+        i2c, c2i = r._indices_nums_to_chars, r._chars_to_indices
         s = array([0,0,1,0,3,2], 'b').tostring()
         self.assertEqual(s.translate(i2c), b'UUCUGA')
-        self.assertEqual('UUCUGA'.translate(c2i), b'\000\000\001\000\003\002')
+        self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
         
     def test_fromString(self):
         """CharAlphabet fromString should return correct array"""
@@ -223,8 +223,8 @@ class CharAlphabetTests(TestCase):
     def test_fromArray(self):
         """CharAlphabet fromArray should return correct array"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.fromArray(array(['UUC','UGA'], 'c')), \
-            array([[0,0,1],[0,3,2]], 'B'))
+        got = r.fromArray(array(['UUC','UGA'], 'c'))
+        self.assertEqual(got, array([[0,0,1],[0,3,2]], 'B'))
 
     def test_toChars(self):
         """CharAlphabet toChars should convert an input array to chars"""
