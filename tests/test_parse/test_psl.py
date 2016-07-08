@@ -26,10 +26,11 @@ class Test(TestCase):
             'Q gap bases', 'T gap count', 'T gap bases', 'strand', 'Q name',
             'Q size', 'Q start', 'Q end', 'T name', 'T size', 'T start',
             'T end', 'block count', 'blockSizes', 'qStarts', 'tStarts']
-        
-        parser = MinimalPslParser(fname)
+        infile = open(fname)
+        parser = MinimalPslParser(infile)
         version = next(parser)
         header = next(parser)
+        infile.close()
         self.assertEqual(header, expect)
     
     def test_psl_to_table(self):
