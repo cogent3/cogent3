@@ -473,7 +473,7 @@ class JointEnumeration(Enumeration):
         for i in range(num_enums-1, -1, -1):
             length = lengths[i]
             result[i] = a % length
-            a /= array(length,a.dtype.char)
+            a //= array(length, a.dtype.char)
         return result
     
     # the following, _coerce_enumerations, is a class method because we use
@@ -693,11 +693,13 @@ class CharAlphabet(Alphabet):
         super(CharAlphabet, self).__init__(data, Gap, MolType=MolType)
         self._indices_to_chars, self._chars_to_indices = \
             _make_translation_tables(data)
-        self._char_nums_to_indices = array(range(256))
+        self._char_nums_to_indices = array(range(256), uint8)
+        for c, i in self._chars_to_indices.items():
+            self._char_nums_to_indices[c] = i
+        
         chars = bytearray(range(256))
         for i, c in self._indices_to_chars.items():
             chars[i] = c
-        
         self._indices_nums_to_chars = array(list(chars), 'B').view('c')
     
     def fromString(self, data):
@@ -730,7 +732,7 @@ class CharAlphabet(Alphabet):
         characters that's been converted into a numpy array. See
         fromString docstring for general behavior.
         """
-        return take(self._char_nums_to_indices, data)
+        return take(self._char_nums_to_indices, data.view('B'))
     
     def toChars(self, data):
         """Converts array of indices into array of elements.
@@ -738,7 +740,7 @@ class CharAlphabet(Alphabet):
         For example, on the 'UCAG' RNA alphabet, an array with the data
         [0,1,1] would return the characters [U,C,C] in a byte array.
         """
-        return take(self._indices_nums_to_chars, data)
+        return take(self._indices_nums_to_chars, data.astype('B'))
     
     def toString(self, data, delimiter='\n'):
         """Converts array of data into string.
