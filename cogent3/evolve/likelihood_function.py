@@ -250,6 +250,7 @@ class LikelihoodFunction(ParameterController):
                 group[dims] = []
             group[dims].append(param)
         table_order = list(group.keys())
+        table_order.sort()
         for table_dims in table_order:
             raw_table = self.getParamValueDict(
                 dimensions=table_dims, params=group[table_dims])

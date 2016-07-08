@@ -126,7 +126,7 @@ class LikelihoodCalcs(TestCase):
         """root is a reserved name"""
         aln = self.alignment.takeSeqs(self.alignment.Names[:4])
         aln = aln.todict()
-        one = aln.pop(list(aln.keys())[0])
+        one = aln.pop("Mouse")
         aln["root"] = one
         aln = LoadSeqs(data=aln)
         submod = Nucleotide()
