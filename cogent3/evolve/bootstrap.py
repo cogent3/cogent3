@@ -102,7 +102,9 @@ class ParametricBootstrapCore(object):
                 pc.updateFromCalculator(start_point)
             aln_rnd = random.Random(0)
             aln_rnd.setstate(alignment_random_state)
-            aln_rnd.jumpahead(i*10**9)
+            # TODO jumpahead was deprecated, we need to consider an alternate
+            # approach here. Commenting out for now.
+            #aln_rnd.jumpahead(i*10**9)
             simalign = null_pc.simulateAlignment(random_series=aln_rnd)
             (dummy, result) = each_model(simalign)
             return result
