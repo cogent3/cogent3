@@ -23,7 +23,7 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 try:
-    import _likelihood_tree as pyrex
+    from . import _likelihood_tree as pyrex
     #pyrex = importVersionedModule('_likelihood_tree', globals(), 
             #(2, 1), "pure Python/NumPy likelihoodihood tree")
 except ImportError:

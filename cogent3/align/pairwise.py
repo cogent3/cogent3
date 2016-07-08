@@ -35,7 +35,7 @@ def _importedPyrexAligningModule(name):
         return None
 
 try:
-    import _pairwise_pogs as pyrex_align_module,\
+    from . import _pairwise_pogs as pyrex_align_module,\
             _pairwise_seqs as pyrex_seq_align_module
 except ImportError:
     pyrex_align_module = pyrex_seq_align_module = None
