@@ -2414,14 +2414,15 @@ class ResampledMiTests(TestCase):
         w1 = make_weights(self.c1, 5)
         w2 = make_weights(self.c2, 5)
         e = [('A', {'C': 0.033333333333333333, 'B': 0.066666666666666666}),
-             ('C', {'A': 0.050000000000000003, 'B': 0.050000000000000003}),
-             ('B', {'A': 0.066666666666666666, 'C': 0.033333333333333333})]
+             ('B', {'A': 0.066666666666666666, 'C': 0.033333333333333333}),
+             ('C', {'A': 0.050000000000000003, 'B': 0.050000000000000003})]
         
         weights = []
         for w in w1,w2:
             for k, d in w:
                 weights += list(d.values())
         self.assertFloatEqual(sum(weights), 0.5)
+        w2.sort()
         self.assertEqual(w2, e)
     
     def test_scaled_mi(self):
