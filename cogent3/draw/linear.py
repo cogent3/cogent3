@@ -129,7 +129,7 @@ class Track(object):
         self.label = label
         assert isinstance(label, str), (tag, label)
         self.features = features
-        self.height = max(height, max([f.height for f in self.features]))
+        self.height = max(0, max([f.height for f in self.features if f.height is not None]))
         self.range = max_y or max(
             # xxx this works for zero-based only
             [getattr(f, 'value', None) for f in self.features]) or 0

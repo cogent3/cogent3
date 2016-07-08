@@ -44,6 +44,7 @@ else:
         CLEAR = CODES['UP'] + BOL + CODES['CLEAR_EOL']
         if CODES['GREEN']:
             bar_template = CODES['GREEN'] + b'%s' + CODES['NORMAL'] + b'%s'
+            bar_template = bar_template.decode('utf8')
             def terminal_progress_bar(dots, width):
                 return bar_template % ('█' * dots, '█' * (width-dots))
         else:
@@ -279,9 +280,17 @@ class CursesTerminalProgressBar(object):
             bar = terminal_progress_bar(dots, width)
 
         if self.line_count:
-            self.stderr.write(CLEAR * (self.line_count))
+            try:
+                out = CLEAR.decode('utf8')
+            except AttributeError:
+                out = CLEAR
+            self.stderr.write(out * (self.line_count))
         else:
-            self.stderr.write(BOL)
+            try:
+                out = BOL.decode('utf8')
+            except AttributeError:
+                out = BOL
+            self.stderr.write(out)
         self.stdout_log.regurgitate(self.stdout)
         self.stderr_log.regurgitate(self.stderr)
         

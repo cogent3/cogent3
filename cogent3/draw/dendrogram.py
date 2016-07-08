@@ -368,9 +368,10 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         scale = self.updateCoordinates(width-total_label_width, height)
 
         if shade_param is not None and max_value is None:
+            max_value = 0
             for edge in self.postorder(include_self=True):
-                sp = edge.params.get(shade_param, None)
-                if max_value is None or sp > max_value:
+                sp = edge.params.get(shade_param, 0)
+                if sp is not None and sp > max_value:
                     max_value = sp
         renderer = MatplotlibRenderer(shade_param=shade_param, 
                 max_value=max_value, font_size=font_size, **kw)
