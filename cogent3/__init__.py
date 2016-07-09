@@ -148,7 +148,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     # 
     if filename is not None and not (reader or static_column_types):
         if filename[filename.rfind(".")+1:] == 'pickle':
-            f = open(filename, newline=None)
+            f = open(filename, mode='rb')
             loaded_table = pickle.load(f)
             f.close()
             return _Table(**loaded_table)

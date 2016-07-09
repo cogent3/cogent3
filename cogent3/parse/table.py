@@ -2,7 +2,7 @@
 
 import pickle, csv
 from .record_finder import is_empty
-from gzip import GzipFile
+from gzip import open as open_
 import collections
 
 __author__ = "Gavin Huttley"
@@ -134,7 +134,7 @@ def load_delimited(filename, header = True, delimiter = ',',
         limit += 1 # don't count header line
     
     if filename.endswith('gz'):
-        f = GzipFile(filename, 'rb')
+        f = open_(filename, 'rt')
     else:
         f = open(filename, newline=None)
     

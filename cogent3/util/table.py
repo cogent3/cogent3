@@ -9,7 +9,7 @@ Table can read pickled and delimited formats.
 """
 
 import pickle, csv
-from gzip import GzipFile
+from gzip import open as open_
 
 import numpy
 from cogent3.format import table as table_format, bedgraph
@@ -354,8 +354,8 @@ class Table(DictArray):
                                       element_formatters=element_formatters,
                                       compact=compact)
     
-    def writeToFile(self, filename, mode = 'w', writer = None, format = None,
-                 sep = None, compress=None, **kwargs):
+    def writeToFile(self, filename, mode='w', writer=None, format=None,
+                 sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
         is provided, unformatted values are written to file in order to preserve
@@ -375,8 +375,8 @@ class Table(DictArray):
         if compress:
             if not filename.endswith('.gz'):
                 filename = '%s.gz' % filename
-            mode = ['wb', mode][mode == 'w']
-            outfile = GzipFile(filename, mode)
+            mode = 'wt'
+            outfile = open_(filename, mode)
         else:
             outfile = open(filename, mode)
         
@@ -390,6 +390,9 @@ class Table(DictArray):
             if len(suffix) > 1:
                 format = suffix[index]
         
+        if format == 'csv':
+            sep = sep or ','
+        
         if writer:
             rows = self.getRawData()
             rows.insert(0, self.Header[:])
@@ -397,7 +400,7 @@ class Table(DictArray):
             outfile.writelines("\n".join(rows))
         elif format == 'pickle':
             data = self.__getstate__()
-            pickle.dump(data, outfile)
+            pickle.dump(data, outfile, protocol=1)
         elif sep is not None and format != 'bedgraph':
             writer = csv.writer(outfile, delimiter = sep)
             if self.Title:
@@ -407,7 +410,7 @@ class Table(DictArray):
             if self.Legend:
                 writer.writerow([self.Legend])
         else:
-            table = self.tostring(format = format, **kwargs)
+            table = self.tostring(format=format, sep=sep, **kwargs)
             outfile.writelines(table + '\n')
         outfile.close()
     

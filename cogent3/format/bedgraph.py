@@ -102,7 +102,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     header = get_header(name=name, description=description,
                 color=color, **kwargs)
     
-    make_data_row = lambda x: '\t'.join(map(str, x))
+    make_data_row = lambda x: '\t'.join(list(map(str, x[:3])) + ['{0:.2f}'.format(x[-1])])
     # get independent spans for each chromosome
     bedgraph_data = []
     data = []
