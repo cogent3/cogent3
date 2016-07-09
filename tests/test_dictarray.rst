@@ -46,7 +46,7 @@ A    B    C
 ...                                                      [.1,.1,.7,.1],
 ...                                                      [.1,.1,.1,.7]])
 >>> mprobs = numpy.array([0.25, 0.25, 0.25, 0.25])
->>> print mprobs.dot(darr)
+>>> print(mprobs.dot(darr))
 [ 0.25  0.25  0.25  0.25]
->>> print numpy.dot(mprobs, darr)
+>>> print(numpy.dot(mprobs, darr))
 [ 0.25  0.25  0.25  0.25]

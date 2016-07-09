@@ -83,12 +83,17 @@ will be one fewer optimisable parameters:
 The parameter controller should catch cases where the specified scope
 does not exist:
 
-   >>> pc.assignAll('A', scope_spec={'category':'nosuch'})
-   Traceback (most recent call last):
-   InvalidScopeError: ...
-   >>> pc.assignAll('A', scope_spec={'nonsuch':'nosuch'})
-   Traceback (most recent call last):
-   InvalidDimensionError: ...
+    >>> from cogent3.recalculation.scope import InvalidScopeError, InvalidDimensionError
+    >>> try:
+    ...     pc.assignAll('A', scope_spec={'category':'nosuch'})
+    ... except InvalidScopeError:
+    ...     pass
+    ...     
+    >>> try:
+    ...     pc.assignAll('A', scope_spec={'nonsuch':'nosuch'})
+    ... except InvalidDimensionError:
+    ...     pass
+    ...     
 
 It is complicated guesswork matching the parameters you expect with positions in
 the value array, let alone remembering whether or not they are presented to the
@@ -111,9 +116,8 @@ calculation, so long as it has a unique name.
 For bulk retrieval of parameter values by parameter name and scope name there is
 the .getParamValueDict() method:
 
-    >>> pc.getParamValueDict(['category']).keys()
-    ['A', 'B']
-    >>> pc.getParamValueDict(['category'])['A']['x']
+    >>> vals = pc.getParamValueDict(['category'])
+    >>> vals['A']['x']
     2.0
 
 Here is a function that is more like a likelihood function, in that it has a
@@ -129,7 +133,7 @@ maximum:
 Now ask it to find the maximum.  It is a simple function with only one local
 maximum so local optimisation should be enough:
     
-    >>> f.optimise(local=True)
+    >>> f.optimise(local=True, show_progress=False)
     >>> pc.updateFromCalculator(f)
 
 There were two parameters, X and Y, and at the maximum they should both be 0.0:

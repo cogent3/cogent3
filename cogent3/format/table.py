@@ -405,7 +405,7 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
     num_row = len(rows)
     column_templates = column_templates or {}
     
-    float_template = '%%.%df' % digits
+    float_template = "{0:.%df}" % digits
     # if we have column templates, we use those, otherwise we adaptively
     # apply str/num format
     matrix = []
@@ -430,7 +430,7 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
                 except TypeError:
                     entry = column_templates[col_head] % entry
             elif isinstance(entry, float):
-                entry = float_template % float(entry)
+                entry = float_template.format(float(entry))
             else: # for any other python object
                 entry = '%s' % str(entry)
             

@@ -61,7 +61,7 @@ We create the simplest of tables.
 .. doctest::
 
     >>> t = Table(header = column_headings, rows = rows)
-    >>> print t
+    >>> print(t)
     =============================
                 Journal    Impact
     -----------------------------
@@ -85,7 +85,7 @@ We have several things we might want to specify when creating a table: the preci
 
     >>> t = Table(column_headings, rows, title='Journal impact factors', legend='From ISI',
     ...     digits=2, space='        ')
-    >>> print t
+    >>> print(t)
     Journal impact factors
     =================================
                 Journal        Impact
@@ -114,10 +114,10 @@ The Table class cannot handle arbitrary python objects, unless they are passed i
 
 .. doctest::
 
-    >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'],
+    >>> t2 = Table(['abcd', 'data'], [[str(list(range(1,6))), '0'],
     ...                               ['x', 5.0], ['y', None]],
     ...           missing_data='*')
-    >>> print t2
+    >>> print(t2)
     =========================
                abcd      data
     -------------------------
@@ -147,7 +147,7 @@ If you want to change the Header, use the ``withNewHeader`` method. This can be 
     >>> mod_header = t2.withNewHeader('abcd', 'ABCD')
     >>> assert mod_header.Header == ['ABCD', 'data']
     >>> mod_header = t2.withNewHeader(['abcd', 'data'], ['ABCD', 'DATA'])
-    >>> print mod_header
+    >>> print(mod_header)
     =========================
                ABCD      DATA
     -------------------------
@@ -179,7 +179,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
     ... row_ids = True, title = 'My Title',
     ... legend = 'Legend: this is a nonsense example.')
-    >>> print t3
+    >>> print(t3)
     My Title
     ==========================================
     edge.name        edge.parent        length
@@ -231,7 +231,7 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
     >>> h = ['A/C', 'A/G', 'A/T', 'C/A']
     >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
     >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30)
-    >>> print wrap_table
+    >>> print(wrap_table)
     ==============================
            A/C       A/G       A/T
     ------------------------------
@@ -247,7 +247,7 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
     <BLANKLINE>
     >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30,
     ...  row_ids=True)
-    >>> print wrap_table
+    >>> print(wrap_table)
     ==========================
        A/C       A/G       A/T
     --------------------------
@@ -277,7 +277,7 @@ We first create a table and show the default formatting behaviour for ``Table``.
 .. doctest::
 
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
-    >>> print t46
+    >>> print(t46)
     ===============================================
                       Gene    Type               LR
     -----------------------------------------------
@@ -294,7 +294,7 @@ We then format the ``LR`` column to use a scientific number format.
 
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
     >>> t46.setColumnFormat('LR', "%.4e")
-    >>> print t46
+    >>> print(t46)
     ============================================
                       Gene    Type            LR
     --------------------------------------------
@@ -312,7 +312,7 @@ It is safe to directly modify certain attributes, such as the title, legend and 
     >>> t46.Title = "A new title"
     >>> t46.Legend = "A new legend"
     >>> t46.Space = '  '
-    >>> print t46
+    >>> print(t46)
     A new title
     ========================================
                       Gene  Type          LR
@@ -333,7 +333,7 @@ We can provide settings for multiple columns.
     ... row_order = row_order)
     >>> t3.setColumnFormat('x', "%.1e")
     >>> t3.setColumnFormat('y', "%.2f")
-    >>> print t3
+    >>> print(t3)
     ===============================================================
     edge.name    edge.parent    length          x       y         z
     ---------------------------------------------------------------
@@ -363,7 +363,7 @@ We apply this to a table with mixed string, integer and floating point data.
 
     >>> t6 = Table(['ColHead'], [['a'], [1], [0.3], ['cc']],
     ... column_templates = dict(ColHead=formatcol))
-    >>> print t6
+    >>> print(t6)
     =======
     ColHead
     -------
@@ -390,7 +390,7 @@ and larger
     >>> t3
     Table(numrows=7, numcols=6, header=['edge.name', 'edge.parent', 'length',..], rows=[['Human', 'edge.0', 4.0000,..],..])
 
-.. note:: within a script use ``print repr(t3)`` to get the same representation.
+.. note:: within a script use ``print(repr(t3))`` to get the same representation.
 
 Table output
 ------------
@@ -399,7 +399,7 @@ Table can output in multiple formats, including restructured text or 'rest' and 
 
 .. doctest::
 
-    >>> print t.tostring(format='rest')
+    >>> print(t.tostring(format='rest'))
     +------------------------------+
     |    Journal impact factors    |
     +---------------------+--------+
@@ -434,7 +434,7 @@ Here is the latex format, note how the title and legend are joined into the late
 
 .. doctest::
 
-    >>> print t3.tostring(format='tex', justify="lrcccc", label="table:example")
+    >>> print(t3.tostring(format='tex', justify="lrcccc", label="table:example"))
     \begin{longtable}[htp!]{ l r c c c c }
     \hline
     \bf{edge.name} & \bf{edge.parent} & \bf{length} & \bf{x} & \bf{y} & \bf{z} \\
@@ -455,7 +455,7 @@ More complex latex table justifying is also possible. Specifying the width of in
 
 .. doctest::
 
-    >>> print t3.tostring(format='tex', justify=["l","p{3cm}","c","c","c","c"])
+    >>> print(t3.tostring(format='tex', justify=["l","p{3cm}","c","c","c","c"]))
     \begin{longtable}[htp!]{ l p{3cm} c c c c }
     \hline
     \bf{edge.name} & \bf{edge.parent} & \bf{length} & \bf{x} & \bf{y} & \bf{z} \\
@@ -470,7 +470,7 @@ More complex latex table justifying is also possible. Specifying the width of in
        edge.1 &        root & 4.0000 & 1.0e+00 & 3.00 & 6.0000 \\
     \hline
     \end{longtable}
-    >>> print t3.tostring(sep=',')
+    >>> print(t3.tostring(sep=','))
     edge.name,edge.parent,length,      x,   y,     z
         Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
     HowlerMon,     edge.0,4.0000,1.0e+00,3.00,6.0000
@@ -484,7 +484,7 @@ You can specify any standard text character that will work with your desired tar
 
 .. doctest::
 
-    >>> print t2.tostring(sep=', ')
+    >>> print(t2.tostring(sep=', '))
                abcd,   data
     "[1, 2, 3, 4, 5]",      0
                   x, 5.0000
@@ -504,7 +504,7 @@ Test the writing of phylip distance matrix format.
     >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
     >>> dist = Table(rows = rows, header = header,
     ...  row_ids = True)
-    >>> print dist.tostring(format = 'phylip')
+    >>> print(dist.tostring(format = 'phylip'))
        4
     a           0.0000  0.0883  0.1885  0.4408
     c           0.0883  0.0000  0.0883  0.4408
@@ -524,11 +524,11 @@ We then call the method, without this argument, then with it.
 .. doctest::
 
     >>> straight_html = dist.toRichHtmlTable()
-    >>> print straight_html
+    >>> print(straight_html)
     <table><tr><th>seq1/2</th><th>a...
     >>> rich_html = dist.toRichHtmlTable(row_cell_func=format_cell,
     ...                                  compact=False)
-    >>> print rich_html
+    >>> print(rich_html)
     <table>
     <tr>
     <th>seq1/2</th>
@@ -569,24 +569,24 @@ One export format available is bedGraph_. This format can be used for viewing da
     >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
     ...                     
-    >>> print bgraph.tostring(format='bedgraph', name='test track',
-    ...     graphType='bar', description='test of bedgraph', color=(255,0,0)) # doctest: +NORMALIZE_WHITESPACE
+    >>> print(bgraph.tostring(format='bedgraph', name='test track',
+    ...     graphType='bar', description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
     1	100	108	1.12
-    1	108	118	1.0
-    1	118	161	2.0
+    1	108	118	1.00
+    1	118	161	2.00
 
 The bedgraph formatter defaults to rounding values to 2 decimal places. You can adjust that precision using the ``digits`` argument.
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
     
-    >>> print bgraph.tostring(format='bedgraph', name='test track',  
+    >>> print(bgraph.tostring(format='bedgraph', name='test track',  
     ...     graphType='bar', description='test of bedgraph', color=(255,0,0),
-    ...     digits=0) # doctest: +NORMALIZE_WHITESPACE
+    ...     digits=0)) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
-    1	100	118	1.0
-    1	118	161	2.0
+    1	100	118	1.00
+    1	118	161	2.00
 
 .. note:: Writing files in bedgraph format is done using the ``writeToFile(format='bedgraph', name='test track', description='test of bedgraph', color=(255,0,0))``.
 
@@ -604,9 +604,9 @@ Saving a table object to file for later reloading can be done using the standard
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
     ... row_ids = True, title = 'My Title',
     ... legend = 'Legend: this is a nonsense example.')
-    >>> t3.writeToFile("t3.pickle")
+    >>> t3.writeToFile("t3.pickle", mode='wb')
     >>> t3_loaded = LoadTable(filename = "t3.pickle")
-    >>> print t3_loaded
+    >>> print(t3_loaded)
     My Title
     ==========================================
     edge.name        edge.parent        length
@@ -647,12 +647,12 @@ Saving a table object to file for later reloading can be done using the standard
     -----------------------
     <BLANKLINE>
     Legend: this is a nonsense example.
-    >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'], ['x', 5.0],
+    >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle')
     >>> t2.writeToFile('t2.csv', sep=',')
-    >>> t2_loaded = LoadTable(filename = 't2.csv', header = True, with_title = True,
+    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
     ...  sep = ',')
-    >>> print t2_loaded
+    >>> print(t2_loaded)
     A 
     title
     =========================
@@ -667,13 +667,13 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
 
 .. doctest::
     
-    >>> t2 = Table(['abcd', 'data'], [[str(range(1,6)), '0'], ['x', 5.0],
+    >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle',
     ... legend = "And\na legend too")
     >>> t2.writeToFile('t2.csv', sep=',')
     >>> t2_loaded = LoadTable(filename = 't2.csv', header = True,
     ... with_title = True, with_legend = True, sep = ',', digits = 2)
-    >>> print t2_loaded # doctest: +NORMALIZE_WHITESPACE
+    >>> print(t2_loaded) # doctest: +NORMALIZE_WHITESPACE
     A
     title
     =======================
@@ -688,16 +688,16 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
 
 A few things to note about the delimited file saving: formatting arguments are lost in saving to a delimited format; the ``header`` argument specifies whether the first line of the file should be treated as the header; the ``with_title`` and ``with_legend`` arguments are necessary if the file contains them, otherwise they become the header or part of the table. Importantly, if you wish to preserve numerical precision use the ``pickle`` format.
 
-``cPickle`` can load a useful object from the pickled ``Table`` by itself, without needing to know anything about the ``Table`` class.
+``pickle`` can load a useful object from the pickled ``Table`` by itself, without needing to know anything about the ``Table`` class.
 
 .. doctest::
 
-    >>> import cPickle
-    >>> f = file("t3.pickle")
-    >>> pickled = cPickle.load(f)
+    >>> import pickle
+    >>> f = open("t3.pickle", "rb")
+    >>> pickled = pickle.load(f)
     >>> f.close()
-    >>> pickled.keys()
-    ['digits', 'row_ids', 'rows', 'title', 'space', 'max_width', 'header',...
+    >>> sorted(pickled.keys())
+    ['digits', 'header', 'legend', 'max_width', 'missing_data',...
     >>> pickled['rows'][0]
     ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
 
@@ -709,12 +709,12 @@ You can also read and write tables in gzip compressed format. This can be done s
 
     >>> t2.writeToFile('t2.csv.gz', sep=',')
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
-    ...                 with_legend = True)
+    ...                 with_legend=True)
     >>> t2_gz.Shape == t2.Shape
     True
     >>> t2.writeToFile('t2.csv', sep=',', compress=True)
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
-    ...                 with_legend = True)
+    ...                 with_legend=True)
     >>> t2_gz.Shape == t2.Shape
     True
 
@@ -729,13 +729,13 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
     >>> from cogent3.parse.table import ConvertFields, SeparatorFormatParser
     >>> t3.Title = t3.Legend = None
     >>> comma_sep = t3.tostring(sep=",").splitlines()
-    >>> print comma_sep
+    >>> print(comma_sep)
     ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
     >>> converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep=",")
     >>> comma_sep = [line for line in reader(comma_sep)]
-    >>> print comma_sep
+    >>> print(comma_sep)
     [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human',...
     >>> t3.writeToFile("t3.tab", sep="\t")
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
@@ -743,7 +743,7 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
     >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
     ...       space=2)
     ...
-    >>> print t3a
+    >>> print(t3a)
     new title
     ======================================================
     edge.name  edge.parent  length       x       y       z
@@ -768,7 +768,7 @@ We can use the ``SeparatorFormatParser`` to ignore reading certain lines by usin
     ...      sep="\t", ignore=ignore_internal_nodes)
     ...
     >>> tips = LoadTable(filename="t3.tab", reader=reader, digits=1, space=2)
-    >>> print tips
+    >>> print(tips)
     =============================================
     edge.name  edge.parent  length    x    y    z
     ---------------------------------------------
@@ -784,7 +784,7 @@ We can also limit the amount of data to be read in, very handy for checking larg
 .. doctest::
 
     >>> t3a = LoadTable("t3.tab", sep='\t', limit=3)
-    >>> print t3a
+    >>> print(t3a)
     ================================================================
     edge.name    edge.parent    length         x         y         z
     ----------------------------------------------------------------
@@ -809,7 +809,7 @@ In the above example, the data type in a column is static, e.g. all values in ``
 
     >>> t3a = LoadTable(filename="t3.tab", static_column_types=True, digits=1,
     ...                 sep='\t')
-    >>> print t3a
+    >>> print(t3a)
     =======================================================
     edge.name    edge.parent    length      x      y      z
     -------------------------------------------------------
@@ -827,7 +827,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
 .. doctest::
 
     >>> t3b = LoadTable(header=['A', 'B'], rows=[[1,1], ['a', 2]], sep=2)
-    >>> print t3b
+    >>> print(t3b)
     ======
     A    B
     ------
@@ -858,8 +858,8 @@ We illustrate this capability by writing a short function that tries to cast ent
 .. doctest::
 
     >>> def CastLine():
-    ...     floats = lambda x: map(float, x)
-    ...     ints = lambda x: map(int, x)
+    ...     floats = lambda x: list(map(float, x))
+    ...     ints = lambda x: list(map(int, x))
     ...     def call(line):
     ...         try:
     ...             line = ints(line)
@@ -882,7 +882,7 @@ We then define a couple of lines, create an instance of ``ConvertFields`` and ca
     >>> tab_reader = SeparatorFormatParser(with_header=False, converter=cv,
     ...                                    sep='\t')
     >>> for line in tab_reader(data):
-    ...     print line
+    ...     print(line)
     [0, 1, 2, 3, 4]
     [0.0, 1.0, 2.0, 3.0, 4.0]
 
@@ -897,7 +897,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
     >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
     >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
     >>> for formatted in writer(comma_sep, has_header=True):
-    ...      print formatted
+    ...      print(formatted)
     edge.name | edge.parent | length | x | y | z
     "Human" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0
     "HowlerMon" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0
@@ -913,7 +913,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
     ...       sep="|", strip_wspace=True)
     >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
     ...       space=2)
-    >>> print t3a
+    >>> print(t3a)
     new title
     =============================================
     edge.name  edge.parent  length    x    y    z
@@ -944,7 +944,7 @@ We subset ``t4`` by column and reorder them.
 .. doctest::
 
     >>> new = t4.getColumns(['z', 'y'])
-    >>> print new
+    >>> print(new)
     My Title
     =============================
     edge.name         z         y
@@ -963,7 +963,7 @@ We use the column position indexes to do get the same table.
 .. doctest::
 
     >>> new = t4.getColumns([5, 4])
-    >>> print new
+    >>> print(new)
     My Title
     =============================
     edge.name         z         y
@@ -982,7 +982,7 @@ We can also using more general slicing, by both rows and columns. The following 
 .. doctest::
 
     >>> k = t4[4:, :'y']
-    >>> print k
+    >>> print(k)
     My Title
     ============================================
     edge.name    edge.parent    length         x
@@ -997,7 +997,7 @@ We can explicitly reference individual cells, in this case using both row and co
 .. doctest::
 
     >>> val = t4['HowlerMon', 'y']
-    >>> print val
+    >>> print(val)
     3.0
 
 We slice a single row,
@@ -1005,7 +1005,7 @@ We slice a single row,
 .. doctest::
 
     >>> new = t4[3]
-    >>> print new
+    >>> print(new)
     My Title
     ================================================================
     edge.name    edge.parent    length         x         y         z
@@ -1018,7 +1018,7 @@ and range of rows.
 .. doctest::
 
     >>> new = t4[3:6]
-    >>> print new
+    >>> print(new)
     My Title
     ================================================================
     edge.name    edge.parent    length         x         y         z
@@ -1032,7 +1032,7 @@ You can get disjoint rows.
 
 .. doctest::
 
-    >>> print t4.getDisjointRows(['Human', 'Mouse', 'DogFaced'])
+    >>> print(t4.getDisjointRows(['Human', 'Mouse', 'DogFaced']))
     My Title
     ================================================================
     edge.name    edge.parent    length         x         y         z
@@ -1047,7 +1047,7 @@ You can iterate over the table one row at a time and slice the rows. We illustra
 .. doctest::
 
     >>> for row in t:
-    ...     print row['Journal']
+    ...     print(row['Journal'])
     INT J PARASITOL
     J MED ENTOMOL
     Med Vet Entomol
@@ -1064,7 +1064,7 @@ and for multiple columns.
 .. doctest::
 
     >>> for row in t:
-    ...     print row['Journal'], row['Impact']
+    ...     print(row['Journal'], row['Impact'])
     INT J PARASITOL 2.9
     J MED ENTOMOL 1.4
     Med Vet Entomol 1.0
@@ -1098,7 +1098,7 @@ We want to be able to slice a table, based on some condition(s), to produce a ne
     ...         ('NP_109590_hs_mm_rn_dna', 'Con', 0.2121, 1, 0.6451),
     ...         ('NP_116116_hs_mm_rn_dna', 'Unco', 9.7474, 1, 0.0018))
     >>> t5 = Table(header, rows)
-    >>> print t5
+    >>> print(t5)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1120,7 +1120,7 @@ We then seek to obtain only those rows that contain probabilities < 0.05. We use
 .. doctest::
 
     >>> sub_table1 = t5.filtered(callback = "Prob < 0.05")
-    >>> print sub_table1
+    >>> print(sub_table1)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1150,9 +1150,9 @@ We can also do filtering using an external function, in this case we use a ``lam
 
 .. doctest::
 
-    >>> func = lambda (ty, pr): ty == 'Unco' and pr < 0.05
+    >>> func = lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] < 0.05
     >>> sub_table2 = t5.filtered(columns = ('type', 'Prob'), callback = func)
-    >>> print sub_table2
+    >>> print(sub_table2)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1166,7 +1166,7 @@ This can also be done using the string approach.
 .. doctest::
 
     >>> sub_table2 = t5.filtered(callback = "type == 'Unco' and Prob < 0.05")
-    >>> print sub_table2
+    >>> print(sub_table2)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1185,7 +1185,7 @@ We can also filter table columns using ``filteredByColumn``. Say we only want th
     ...     except TypeError:
     ...         return False
     ...     return True
-    >>> print t5.filteredByColumn(callback=is_numeric)
+    >>> print(t5.filteredByColumn(callback=is_numeric))
     =======================
          LR    df      Prob
     -----------------------
@@ -1215,7 +1215,7 @@ Tables may also be appended to each other, to make larger tables. We'll construc
     >>> geneB = Table(['edge.name', 'edge.parent', 'z'], [['Human','root',
     ... 7.0],['Mouse','root', 7.0], ['Rat','root', 7.0]],
     ... title='Gene B')
-    >>> print geneB
+    >>> print(geneB)
     Gene B
     ==================================
     edge.name    edge.parent         z
@@ -1230,7 +1230,7 @@ we now use the ``appended`` Table method to create a new table, specifying that 
 .. doctest::
 
     >>> new = geneA.appended('Gene', geneB, title='Appended tables')
-    >>> print new
+    >>> print(new)
     Appended tables
     ============================================
       Gene    edge.name    edge.parent         z
@@ -1248,7 +1248,7 @@ We repeat this without adding a new column.
 .. doctest::
 
     >>> new = geneA.appended(None, geneB, title="Appended, no new column")
-    >>> print new
+    >>> print(new)
     Appended, no new column
     ==================================
     edge.name    edge.parent         z
@@ -1281,7 +1281,7 @@ For completeness, we generate a table with no rows and assess its shape.
 
 .. doctest::
 
-    >>> func = lambda (ty, pr): ty == 'Unco' and pr > 0.1
+    >>> func = lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] > 0.1
     >>> sub_table3 = t5.filtered(columns = ('type', 'Prob'), callback = func)
     >>> sub_table3.Shape
     (0, 5)
@@ -1312,7 +1312,7 @@ We construct an example with mixed numerical and non-numerical data. We now comp
     :options: +NORMALIZE_WHITESPACE
 
     >>> mix = LoadTable(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
-    >>> print mix
+    >>> print(mix)
     ======
     A    B
     ------
@@ -1363,7 +1363,7 @@ We can normalise a numerical table by row,
 
 .. doctest::
 
-    >>> print non_mix.normalized(by_row=True)
+    >>> print(non_mix.normalized(by_row=True))
     ================
          A         B
     ----------------
@@ -1376,7 +1376,7 @@ or by column, such that the row/column sums are 1.
 
 .. doctest::
 
-    >>> print non_mix.normalized(by_row=False)
+    >>> print(non_mix.normalized(by_row=False))
     ================
          A         B
     ----------------
@@ -1389,7 +1389,7 @@ We normalize by an arbitrary function (maximum value) by row,
 
 .. doctest::
 
-    >>> print non_mix.normalized(by_row=True, denominator_func=max)
+    >>> print(non_mix.normalized(by_row=True, denominator_func=max))
     ================
          A         B
     ----------------
@@ -1402,7 +1402,7 @@ by column.
 
 .. doctest::
 
-    >>> print non_mix.normalized(by_row=False, denominator_func=max)
+    >>> print(non_mix.normalized(by_row=False, denominator_func=max))
     ================
          A         B
     ----------------
@@ -1419,7 +1419,7 @@ In some cases it is desirable to compute an additional column from existing colu
 .. doctest::
 
     >>> t7 = t4.withNewColumn('Sum', callback="z+x", digits=2)
-    >>> print t7
+    >>> print(t7)
     My Title
     ==================================================================
     edge.name    edge.parent    length       x       y       z     Sum
@@ -1437,10 +1437,10 @@ We test this with an externally defined function.
 
 .. doctest::
 
-    >>> func = lambda (x, y): x * y
+    >>> func = lambda x_y: x_y[0] * x_y[1]
     >>> t7 = t4.withNewColumn('Sum', callback=func, columns=("y","z"),
     ... digits=2)
-    >>> print t7
+    >>> print(t7)
     My Title
     ===================================================================
     edge.name    edge.parent    length       x       y       z      Sum
@@ -1455,7 +1455,7 @@ We test this with an externally defined function.
     -------------------------------------------------------------------
     >>> func = lambda x: x**3
     >>> t7 = t4.withNewColumn('Sum', callback=func, columns="y", digits=2)
-    >>> print t7
+    >>> print(t7)
     My Title
     ===================================================================
     edge.name    edge.parent    length       x       y       z      Sum
@@ -1477,7 +1477,7 @@ We want a table sorted according to values in a column.
 .. doctest::
 
     >>> sorted = t5.sorted(columns = 'LR')
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1499,7 +1499,7 @@ We want a table sorted according to values in a subset of columns, note the orde
 .. doctest::
 
     >>> sorted = t5.sorted(columns=('LR', 'type'))
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1521,7 +1521,7 @@ We now do a sort based on 2 columns.
 .. doctest::
 
     >>> sorted = t5.sorted(columns=('type', 'LR'))
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1543,7 +1543,7 @@ Reverse sort a single column
 .. doctest::
 
     >>> sorted = t5.sorted('LR', reverse = 'LR')
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1565,7 +1565,7 @@ Sort by just specifying the ``reverse`` column
 .. doctest::
 
     >>> sorted = t5.sorted(reverse='LR')
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1587,7 +1587,7 @@ Reverse sort one column but not another
 .. doctest::
 
     >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = 'LR')
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1609,7 +1609,7 @@ Reverse sort both columns.
 .. doctest::
 
     >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = ('type', 'LR'))
-    >>> print sorted
+    >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
     ---------------------------------------------------------
@@ -1635,7 +1635,7 @@ The Table object is capable of joins or merging of records in two tables. There 
 
     >>> a=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,3],[2,3,1],[2,6,5]], title="A")
-    >>> print a
+    >>> print(a)
     A
     =====================
     index    col2    col3
@@ -1646,7 +1646,7 @@ The Table object is capable of joins or merging of records in two tables. There 
     ---------------------
     >>> b=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,3],[2,2,1],[3,6,3]], title="B")
-    >>> print b
+    >>> print(b)
     B
     =====================
     index    col2    col3
@@ -1656,7 +1656,7 @@ The Table object is capable of joins or merging of records in two tables. There 
         3       6       3
     ---------------------
     >>> c=Table(header=["index","col_c2"],rows=[[1,2],[3,2],[3,5]],title="C")
-    >>> print c
+    >>> print(c)
     C
     ===============
     index    col_c2
@@ -1712,7 +1712,7 @@ The results of a standard join between tables ``a`` and ``b`` are
 
 .. doctest::
 
-    >>> print a.joined(b, ["index"], title='A&B')
+    >>> print(a.joined(b, ["index"], title='A&B'))
     A&B
     =========================================
     index    col2    col3    B_col2    B_col3
@@ -1726,7 +1726,7 @@ We demo the table specific indices.
 
 .. doctest::
 
-    >>> print a.joined(c, ["col2"], ["index"], title='A&C by "col2/index"')
+    >>> print(a.joined(c, ["col2"], ["index"], title='A&C by "col2/index"'))
     A&C by "col2/index"
     =================================
     index    col2    col3    C_col_c2
@@ -1739,7 +1739,7 @@ Tables ``a`` and ``c`` share a single row with the same value in the ``index`` c
 
 .. doctest::
 
-    >>> print a.joined(c, "index", title='A&C by "index"')
+    >>> print(a.joined(c, "index", title='A&C by "index"'))
     A&C by "index"
     =================================
     index    col2    col3    C_col_c2
@@ -1751,7 +1751,7 @@ A natural join of tables ``a`` and ``b`` results in a table with only rows that 
 
 .. doctest::
 
-    >>> print a.joined(b, title='A&B Natural Join')
+    >>> print(a.joined(b, title='A&B Natural Join'))
     A&B Natural Join
     =====================
     index    col2    col3
@@ -1764,7 +1764,7 @@ We test the outer join by defining an additional table with different dimensions
 .. doctest::
 
     >>> d=Table(header=["index", "col_c2"], rows=[[5,42],[6,23]], title="D")
-    >>> print d
+    >>> print(d)
     D
     ===============
     index    col_c2
@@ -1772,7 +1772,7 @@ We test the outer join by defining an additional table with different dimensions
         5        42
         6        23
     ---------------
-    >>> print c.joined(d,inner_join=False, title='C&D Outer join')
+    >>> print(c.joined(d,inner_join=False, title='C&D Outer join'))
     C&D Outer join
     ======================================
     index    col_c2    D_index    D_col_c2
@@ -1807,7 +1807,7 @@ We test that the ``joined`` method works when the column index orders differ.
     >>> t1 = Table(header = t1_header, rows = t1_rows, title='t1')
     >>> t2 = Table(header = t2_header, rows = t2_rows, title='t2')
     >>> t3 = t1.joined(t2, columns_self = ["b"], columns_other = ["b"])
-    >>> print t3
+    >>> print(t3)
     ==============
     a    b    t2_c
     --------------
@@ -1823,7 +1823,7 @@ We then establish that a join with no values does not cause a failure, just retu
     >>> t4 = LoadTable(header = t4_header, rows = t4_rows)
     >>> t4.Title = 't4'
     >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
-    >>> print t5
+    >>> print(t5)
     ==============
     a    b    t4_c
     --------------
@@ -1857,7 +1857,7 @@ Tables can be transposed.
     ...         [-2160, 57, 52],
     ...         [-11632, 47, 36]]
     >>> table = LoadTable(header=header,rows=rows,title=title)
-    >>> print table
+    >>> print(table)
     #Full OTU Counts
     =============================
     #OTU ID    14SK041    14SK802
@@ -1881,7 +1881,7 @@ We now transpose this. We require a new column heading for header data and an id
     >>> tp = table.transposed(new_column_name='sample',
     ...             select_as_header='#OTU ID', space=2)
     ...
-    >>> print tp
+    >>> print(tp)
     ==============================================================================
      sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
     ------------------------------------------------------------------------------
@@ -1895,7 +1895,7 @@ We test transposition with default value is the same.
 
     >>> tp = table.transposed(new_column_name='sample', space=2)
     ...
-    >>> print tp
+    >>> print(tp)
     ==============================================================================
      sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
     ------------------------------------------------------------------------------
@@ -1910,7 +1910,7 @@ We test transposition selecting a different column to become the header.
     >>> tp = table.transposed(new_column_name='sample',
     ...             select_as_header='14SK802', space=2)
     ...
-    >>> print tp
+    >>> print(tp)
     ==============================================================================
      sample    294    229   125    120    117     75      47    113     52      36
     ------------------------------------------------------------------------------
@@ -1925,9 +1925,9 @@ We can count the number of rows for which a condition holds. This method uses th
 
 .. doctest::
 
-    >>> print c.count("col_c2 == 2")
+    >>> print(c.count("col_c2 == 2"))
     2
-    >>> print c.joined(d,inner_join=False).count("index==3 and D_index==5")
+    >>> print(c.joined(d,inner_join=False).count("index==3 and D_index==5"))
     2
 
 Testing a sub-component
@@ -1946,17 +1946,17 @@ We check we can format an arbitrary 2D list, without a header, using the ``forma
     >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
     >>> head = ['one', 'two', 'three']
     >>> header, formatted = formattedCells(data, header = head)
-    >>> print formatted
+    >>> print(formatted)
     [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
-    >>> print header
+    >>> print(header)
     ['one', '  two', ' three']
 
 We directly test the latex formatting.
 
 .. doctest::
 
-    >>> print latex(formatted, header, justify='lrl', caption='A legend',
-    ...             label="table:test")
+    >>> print(latex(formatted, header, justify='lrl', caption='A legend',
+    ...             label="table:test"))
     \begin{longtable}[htp!]{ l r l }
     \hline
     \bf{one} & \bf{two} & \bf{three} \\
