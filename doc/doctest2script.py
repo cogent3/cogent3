@@ -14,10 +14,10 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 for filename in sys.argv[1:]:
-    print filename, 
+    print(filename) 
     (name, suffix) = os.path.splitext(filename)
     if suffix != '.rst':
-        print 'not a .rst file'
+        print('not a .rst file')
         continue
     f = open(filename,'r')
     s = ''.join(f.readlines())
@@ -27,4 +27,4 @@ for filename in sys.argv[1:]:
     f = open(name+'.py','w')
     f.write(s)
     f.close()
-    print '->', name+'.py'
+    print('->', name+'.py')
