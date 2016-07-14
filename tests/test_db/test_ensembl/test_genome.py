@@ -460,7 +460,7 @@ class TestVariation(GenomeTestBase):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
             self.assertEqual(snp.Ancestral, self.ancestral[i])
             self.assertEqual(snp.Symbol, self.snp_names[i])
-            self.assertEqual(snp.Effect, self.snp_effects[i])
+            self.assertEqual(set(snp.Effect), set(self.snp_effects[i]))
             self.assertEqual(snp.Alleles, self.snp_nt_alleles[i])
             self.assertEqual(snp.MapWeight, self.map_weights[i])
     
