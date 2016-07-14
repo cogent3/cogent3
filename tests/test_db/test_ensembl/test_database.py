@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 76
+Release = 81
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -61,9 +61,9 @@ class TestDatabase(TestCase):
     
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
-        expect = {'homo_sapiens_core_76_38.analysis': 61,
-                  'homo_sapiens_core_76_38.seq_region': 55616,
-                  'homo_sapiens_core_76_38.assembly': 102090}
+        expect = {'homo_sapiens_core_81_38.analysis': 61,
+                  'homo_sapiens_core_81_38.seq_region': 55616,
+                  'homo_sapiens_core_81_38.assembly': 102090}
         human = Database(account=account, release=Release,
                     species='human', db_type='core')
         table_names = [n.split('.')[1] for n in expect]

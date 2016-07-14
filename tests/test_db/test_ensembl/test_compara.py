@@ -14,7 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 76
+Release = 81
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -73,8 +73,13 @@ class TestCompara(ComparaTestBase):
         result = list(self.comp.getSyntenicRegions(region=brca2,
                         align_method='PECAN', align_clade='vertebrates'))[0]
         aln = result.getAlignment(feature_types='gene')
-        # the following expect confirmed using Ensembl's web-site
-        sub_aln = aln[7000: 7020]
+        # to improve test robustness across Ensembl releases, where alignment
+        # coordinates change due to inclusion of new species, we search for
+        # the mouse subseq and use the resulting coords to ensure we get the
+        # same match as that from the Ensembl website
+        mouse_name = [n for n in aln.Names if "Mus musculus" in n][0]
+        start = aln.todict()[mouse_name].find('AAGTCAAACTCTACCACTGG')
+        sub_aln = aln[start: start+20]
         seqs = list(sub_aln.todict().values())
         expect = set(['AGGGCTGACTCTGCCGCTGT', # human
                       'AAGTCAAACTCTACCACTGG', # mouse
