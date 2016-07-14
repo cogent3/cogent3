@@ -191,7 +191,7 @@ class Coordinate(object):
 
 class _CoordRecord(object):
     """store one record of the coord"""
-    def __init__(self, attrib, rank, name = None, coord_system_id=None):
+    def __init__(self, attrib, rank, name=None, coord_system_id=None):
         self.coord_system_id = coord_system_id
         self.name = name
         self.rank = rank
@@ -237,7 +237,7 @@ class CoordSystemCache(object):
                     val = record[column]
                     if isinstance(val, set): # join items in set to one string
                         try:
-                            val = ", ".join(val)
+                            val = ", ".join(sorted(val))
                         except TypeError:
                             pass
                     vals[column] = val
