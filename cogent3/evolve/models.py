@@ -29,7 +29,7 @@ codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK
 
 protein_models = [ 'DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
-    
+
 # Substitution model rate matrix predicates
 _gtr_preds = [MotifChange(x,y) for x,y in ['AC', 'AG', 'AT', 'CG', 'CT']]
 _kappa = (~MotifChange('R','Y')).aliased('kappa')
@@ -55,13 +55,13 @@ def GTR(**kw):
             name = 'GTR',
             predicates = _gtr_preds,
             **kw)
-    
+
 
 # Codon Models
 def CNFGTR(**kw):
     """Conditional nucleotide frequency codon substitution model, GTR variant
     (with params analagous to the nucleotide GTR model).
-    
+
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
     return substitution_model.Codon(
             motif_probs = None,
@@ -72,13 +72,13 @@ def CNFGTR(**kw):
             predicates = _gtr_preds+[_omega],
             mprob_model='conditional',
             **kw)
-        
-    
+
+
 
 def CNFHKY(**kw):
     """Conditional nucleotide frequency codon substitution model, HKY variant
     (with kappa, the ratio of transitions to transversions)
-    
+
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
     return substitution_model.Codon(
             motif_probs = None,
@@ -89,12 +89,12 @@ def CNFHKY(**kw):
             predicates = [_kappa, _omega],
             mprob_model='conditional',
             **kw)
-    
+
 
 def MG94HKY(**kw):
     """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
     the ratio of transitions to transversions)
-    
+
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
     return substitution_model.Codon(
             motif_probs = None,
@@ -105,12 +105,12 @@ def MG94HKY(**kw):
             predicates = [_kappa, _omega],
             mprob_model='monomer',
             **kw)
-    
+
 
 def MG94GTR(**kw):
     """Muse and Gaut 1994 codon substitution model, GTR variant (with params
     analagous to the nucleotide GTR model)
-    
+
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
     return substitution_model.Codon(
             motif_probs = None,
@@ -121,11 +121,11 @@ def MG94GTR(**kw):
             predicates = _gtr_preds+[_omega],
             mprob_model='monomer',
             **kw)
-    
+
 
 def GY94(**kw):
     """Goldman and Yang 1994 codon substitution model.
-    
+
     see, N Goldman and Z Yang, Mol. Biol. Evol., 11(5):725-36, 1994."""
     return Y98(**kw)
 
@@ -144,12 +144,12 @@ def Y98(**kw):
                 },
             mprob_model = 'tuple',
             **kw)
-    
+
 
 def H04G(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for substitutions
     to or from CpG's.
-    
+
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
     return substitution_model.Codon(
             motif_probs = None,
@@ -160,12 +160,12 @@ def H04G(**kw):
             predicates = [_cg, _kappa, _omega],
             mprob_model = 'tuple',
             **kw)
-    
+
 
 def H04GK(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for transition
     substitutions to or from CpG's.
-    
+
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
     return substitution_model.Codon(
             motif_probs = None,
@@ -176,12 +176,12 @@ def H04GK(**kw):
             predicates = [_cg_k, _kappa, _omega],
             mprob_model = 'tuple',
             **kw)
-    
+
 
 def H04GGK(**kw):
     """Huttley 2004 CpG substitution model. Includes a general term for
     substitutions to or from CpG's and an adjustment for CpG transitions.
-    
+
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
     return substitution_model.Codon(
             motif_probs = None,
@@ -192,7 +192,7 @@ def H04GGK(**kw):
             predicates = [_cg, _cg_k, _kappa, _omega],
             mprob_model = 'tuple',
             **kw)
-    
+
 
 # Protein Models
 
@@ -521,7 +521,7 @@ AH96_mtmammals_matrix = numpy.array(
                6.70000000e+01, 2.50000000e+01, 0.00000000e+00, 1.56000000e+02,
                8.00000000e+00, 5.40000000e+01, 0.00000000e+00, 1.07000000e+02,
                0.00000000e+00, 0.00000000e+00, 1.40000000e+01, 0.00000000e+00]])
-               
+
 AH96_mtmammals_freqs = {
             'A': 0.069199999999999998, 'C': 0.0064999999999999997,
             'E': 0.023599999999999999, 'D': 0.018599999999999998,
@@ -533,7 +533,7 @@ AH96_mtmammals_freqs = {
             'S': 0.072499999999999995, 'R': 0.0184,
             'T': 0.086999999999999994, 'W': 0.0293,
             'V': 0.042799999999999998, 'Y': 0.034000000000000002}
-            
+
 WG01_matrix = numpy.array(
         [[ 0.      , 1.02704 , 0.738998, 1.58285 , 0.210494, 1.41672 ,
               0.316954, 0.193335, 0.906265, 0.397915, 0.893496, 0.509848,
@@ -637,9 +637,9 @@ def DSO78(**kw):
     Matrix imported from PAML dayhoff.dat file"""
     sm = substitution_model.EmpiricalProteinMatrix(
                     DSO78_matrix, DSO78_freqs, name='DSO78', **kw)
-                        
+
     return sm
-    
+
 def JTT92(**kw):
     """Jones, Taylor and Thornton 1992 empirical protein model
     Jones DT, Taylor WR, Thornton JM.
@@ -648,9 +648,9 @@ def JTT92(**kw):
     Matrix imported from PAML jones.dat file"""
     sm = substitution_model.EmpiricalProteinMatrix(
                     JTT92_matrix, JTT92_freqs, name='JTT92', **kw)
-                        
+
     return sm
-    
+
 def AH96(**kw):
     """Adachi and Hasegawa 1996 empirical model for mitochondrial proteins.
     Adachi J, Hasegawa M.
@@ -662,9 +662,9 @@ def AH96(**kw):
                     AH96_freqs,
                     name='AH96_mtREV24',
                     **kw)
-                        
+
     return sm
-    
+
 def mtREV(**kw):
     return AH96(**kw)
 
@@ -680,12 +680,12 @@ def AH96_mtmammals(**kw):
                     AH96_mtmammals_freqs,
                     name='AH96_mtmammals',
                     **kw)
-    
+
     return sm
-    
+
 def mtmam(**kw):
     return AH96_mtmammals(**kw)
-    
+
 def WG01(**kw):
     """Whelan and Goldman 2001 empirical model for globular proteins.
     Whelan S, Goldman N.
@@ -698,6 +698,6 @@ def WG01(**kw):
                     WG01_freqs,
                     name='WG01',
                     **kw)
-                    
+
     return sm
 

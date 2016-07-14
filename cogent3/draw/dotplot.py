@@ -39,39 +39,39 @@ def _reinchify(figsize, posn, *args):
     (fw, fh) = figsize
     (x,y,w,h) = posn
     return [fw*x, fh*y, fw*w, fh*h]
-    
+
 def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     """'Fat' annotated X and Y axes for a dotplot
-    
+
     Returns a matplotlib axes object placed and scaled ready for plotting 
     a sequence vs sequence comparison between the sequences (or alignments) 
     seq1 and seq2, which are also displayed. The aspect ratio will depend on 
     the sequence lengths as the sequences are drawn to the same scale"""
-    
+
     import matplotlib.pyplot as plt
-    
+
     (x1, y1, w1, h1) = _reinchify(*seq1.figureLayout(
         labeled=True, bottom=bottom, margin=0))
     (x2, y2, w2, h2) = _reinchify(*seq2.figureLayout(
         labeled=False, bottom=left, margin=0))
-    
+
     # equalize points-per-base scales to get aspect ratio 1.0
     ipb = min(w1/len(seq1), w2/len(seq2))
     (w1, w2) = ipb*len(seq1), ipb*len(seq2)
-    
+
     # Figure with correct aspect
     # Indent enough for labels and/or vertical display
     (w,h), posn = figureLayout(width=w1, height=w2,
         left=max(x1,y2+h2), bottom=y1+h1, **kw)
     fig = plt.figure(figsize=(w,h), facecolor='white')
-    
+
     fw = fig.get_figwidth()
     fh = fig.get_figheight()
     # 2 sequence display axes
     x = seq1.asAxes(fig, [posn[0], posn[1]-h1/fh, posn[2], h1/fh])
     y = seq2.asAxes(fig, [posn[0]-h2/fw, posn[1], h2/fw, posn[3]], 
         vertical=True, labeled=False)
-    
+
     # and 1 dotplot axes
     d = fig.add_axes(posn, sharex=x, sharey=y)
     d.xaxis.set_visible(False)
@@ -92,7 +92,7 @@ class Display2D(Drawable):
         # Check inputs are sufficiently sequence-like
         assert len(self.seq1) == len(str(self.seq1))
         assert len(self.seq2) == len(str(self.seq2))
-    
+
     def _calc_lines(self, window, threshold, min_gap):
         # Cache dotplot line segment coordinates as they can sometimes
         # be re-used at different resolutions, colours etc.
@@ -103,7 +103,7 @@ class Display2D(Drawable):
             threshold = suitable_threshold(window, acceptable_noise/universe)
             # print 'require %s / %s bases' % (threshold, window)
             # print 'expect %s / %s matching' % (acceptable_noise, universe)
-        
+
         key = (min_gap, window, threshold)
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
@@ -115,9 +115,9 @@ class Display2D(Drawable):
             else:
                 rev = []
             self._cache[key] = (fwd, rev)
-        
+
         return self._cache[key]
-                
+
     def makeFigure(self, window=20, join_gaps=None, min_gap=0, **kw):
         """Drawing of a line segment based dotplot with annotated axes"""
         # hard to pick min_gap without knowing pixels per base, and
@@ -136,7 +136,7 @@ class Display2D(Drawable):
                 patch = PathPatch(path, edgecolor=colour, fill=False)
                 ax.add_patch(patch)
         return ax.get_figure()
-    
+
     def simplerMakeFigure(self):
         """Drawing of a matrix style dotplot with annotated axes"""
         import numpy
@@ -146,7 +146,7 @@ class Display2D(Drawable):
         seq2 = alphabet.toIndices(self.seq2)
         ax.pcolorfast(numpy.equal.outer(seq2, seq1))
         return ax.get_figure()
-        
-        
-        
-        
+
+
+
+

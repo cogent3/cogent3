@@ -42,13 +42,13 @@ __status__ = "Production"
 class TreeHandler(xml.sax.ContentHandler):
     def __init__(self, tree_builder):
         self.build_edge = tree_builder
-    
+
     def startDocument(self):
         self.stack = [({}, None, None)]
         self.data = {'clades':[], 'params':{}}
         self.in_clade = False
         self.current = None
-    
+
     def startElement(self, name, attrs):
         self.parent = self.data
         self.stack.append((self.data, self.in_clade, self.current))
@@ -59,34 +59,34 @@ class TreeHandler(xml.sax.ContentHandler):
         else:
             self.data = {}
             self.in_clade = False
-    
+
     def characters(self, text):
         self.current += str(text)
-    
+
     def endElement(self, name):
         getattr(self, 'process_%s' % name)(self.current, **self.data)
         (self.data, self.in_clade, self.current) = self.stack.pop()
         self.parent = self.stack[-1][0]
-    
+
     def endDocument(self):
         pass
-    
+
     def process_clade(self, text, name, params, clades):
         edge = self.build_edge(clades, name, params)
         self.parent['clades'].append(edge)
-    
+
     def process_param(self, text, name, value):
         self.parent['params'][name] = value
-    
+
     def process_name(self, text):
         self.parent['name'] = text.strip()
-    
+
     def process_value(self, text):
         if text == "None":
             self.parent['value'] = None
         else:
             self.parent['value'] = float(text)
-    
+
 
 def parse_string(text, tree_builder):
     handler = TreeHandler(tree_builder)

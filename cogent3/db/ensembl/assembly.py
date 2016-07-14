@@ -24,7 +24,7 @@ def location_query(table, query_start, query_end,
     # are pulled from, or explicitly state which columns
     if query is None:
         query = sql.select([table])
-    
+
     if where == 'within':
         query.append_whereclause(sql.and_(table.c[start_col] < query_start,
                                          table.c[end_col] > query_end))
@@ -85,42 +85,42 @@ class Coordinate(object):
             Start -= 1
         elif Start == End:
             End += 1
-        
+
         if Start > End:
             assert Strand == -1,\
                     "strand incorrect for start[%s] > end[%s]" % (Start, End)
             Start, End = End, Start
-        
+
         self.Start = Start
         self.End = End
         self.Strand = convert_strand(Strand)
         self.seq_region_id = seq_region_id
         self.genome = genome
-    
+
     def __len__(self):
         return self.End - self.Start
-    
+
     def __lt__(self, other):
         return (self.CoordName,self.Start) < (other.CoordName,other.Start)
-    
+
     def __eq__(self, other):
         return (self.CoordName,self.Start) == (other.CoordName,other.Start)
-    
+
     def _get_ensembl_start(self):
         # ensembl counting starts from 1
         return self.Start + 1
-    
+
     EnsemblStart = property(_get_ensembl_start)
-    
+
     def _get_ensembl_end(self):
         return self.End
-    
+
     EnsemblEnd = property(_get_ensembl_end)
-    
+
     def __str__(self):
         return '%s:%s:%s:%d-%d:%d' % (self.Species, self.CoordType,
                     self.CoordName, self.Start, self.End, self.Strand)
-    
+
     def __repr__(self):
         my_type = self.__class__.__name__
         name = _Species.getCommonName(self.Species)
@@ -128,11 +128,11 @@ class Coordinate(object):
         c = '%s(%r,%r,%r,%d-%d,%d)'%(my_type, name, coord_type,
                     self.CoordName, self.Start, self.End, self.Strand)
         return c.replace("'", "")
-    
+
     def adopted(self, other, shift=False):
         """adopts the seq_region_id (including CoordName and CoordType) of
         another coordinate.
-        
+
         Arguments:
             - shift: an int or True/False. If int, it's added to Start/End.
               If bool, other.Start is added to Start/End"""
@@ -142,7 +142,7 @@ class Coordinate(object):
                             Start=self.Start+shift, End=self.End+shift,
                             Strand=other.Strand,
                             seq_region_id=other.seq_region_id)
-    
+
     def shifted(self, value):
         """adds value to Start/End coords, returning a new instance."""
         new = self.copy()
@@ -150,17 +150,17 @@ class Coordinate(object):
         new.End += value
         assert len(new) > 0, 'shift generated a negative length'
         return new
-    
+
     def copy(self):
         """returns a copy"""
         return self.__class__(genome=self.genome, CoordName=self.CoordName,
             Start=self.Start, End=self.End, Strand = self.Strand,
             CoordType = self.CoordType, seq_region_id = self.seq_region_id)
-    
+
     def resized(self, from_start, from_end):
         """returns a new resized Coordinate with the
         Start=self.Start+from_start and End = self.End+from_end.
-        
+
         If you want to shift Start upstream, add a -ve number"""
         new = self.copy()
         new.Start += from_start
@@ -170,20 +170,20 @@ class Coordinate(object):
         except (ValueError, AssertionError):
             raise ValueError
         return new
-    
+
     def makeRelativeTo(self, other, make_relative=True):
         """returns a new coordinate with attributes adopted from other, and
         positioned relative to other."""
-        
+
         if other.Strand != self.Strand:
             Start = other.End-self.End
         elif make_relative:
             Start = self.Start-other.Start
         else:
             Start = self.Start+other.Start
-        
+
         End = Start+len(self)
-        
+
         return self.__class__(other.genome, CoordName=other.CoordName,
                             Start=Start, End=End, Strand=other.Strand,
                             seq_region_id=other.seq_region_id)
@@ -196,7 +196,7 @@ class _CoordRecord(object):
         self.name = name
         self.rank = rank
         self.attr = attrib
-    
+
     def __str__(self):
         return "coord_system_id = %d; name = %s; rank = %d; attr = %s "\
                 % (self.coord_system_id, self.name, self.rank, self.attr)
@@ -242,16 +242,16 @@ class CoordSystemCache(object):
                             pass
                     vals[column] = val
                 attr[key_val] = _CoordRecord(**vals)
-    
+
     def _get_seq_level_system(self, species):
         """returns the sequence level system for species"""
         sp_sys = self._species_coord_systems[species]
         for key, val in list(sp_sys.items()):
             if 'sequence_level' in val.attr:
                 return val.name
-        
+
         raise RuntimeError('no coord system for %s' % species)
-    
+
     def __call__(self, coord_type = None, core_db = None, species = None,
                  seq_level=False):
         """coord_type can be coord_type or coord_system_id"""
@@ -277,7 +277,7 @@ CoordSystem = CoordSystemCache()
 
 def _rank_checking(query_coord_type, target_coord_type, core_db, species):
     # assiting in constructingthe query language for assembly
-    
+
     # in order to convert between coordinate systems, we need to establish the
     # ranking for coordinate types
     # rank defines the order of conversion between coord system 'levels'
@@ -292,7 +292,7 @@ def _rank_checking(query_coord_type, target_coord_type, core_db, species):
                              coord_type=query_coord_type).rank
     target_rank = CoordSystem(core_db = core_db, species = species,
                              coord_type=target_coord_type).rank
-    
+
     if query_rank < target_rank:
         query_prefix, target_prefix = 'asm', 'cmp'
     elif query_rank > target_rank:
@@ -307,7 +307,7 @@ def _get_equivalent_coords(query_coord, assembly_row, query_prefix,
     start = query_coord.EnsemblStart
     end = query_coord.EnsemblEnd
     strand = query_coord.Strand
-    
+
     ori = assembly_row['ori']
     q_strand, t_strand = strand, strand * ori
     if 'seq_region' not in query_prefix:
@@ -316,20 +316,20 @@ def _get_equivalent_coords(query_coord, assembly_row, query_prefix,
     else:
         q_seq_region_id = assembly_row['_'.join([query_prefix, 'id'])]
         t_seq_region_id = assembly_row['_'.join([target_prefix, 'id'])]
-    
+
     # d -- distance
     d_start = max(0, start - int(assembly_row['%s_start' % query_prefix]))
     d_end = max(0, int(assembly_row['%s_end' % query_prefix]) - end)
     # q -- query (to differ from the origin query block)
     q_start = int(assembly_row['%s_start'%query_prefix]) + d_start
     q_end = int(assembly_row['%s_end'%query_prefix]) - d_end
-    
+
     if int(assembly_row['ori']) == -1:
         d_start, d_end = d_end, d_start
     # t -- target
     t_start = int(assembly_row['%s_start' % target_prefix]) + d_start
     t_end = int(assembly_row['%s_end' % target_prefix]) - d_end
-    
+
     q_location = Coordinate(CoordName=query_coord.CoordName, Start=q_start,
                     End=q_end, Strand=q_strand,
                     CoordType=query_coord.CoordType,
@@ -347,7 +347,7 @@ def assembly_exception_coordinate(loc):
     genome = loc.genome
     assemb_except_table = genome.CoreDb.getTable('assembly_exception')
     seq_region_table = genome.CoreDb.getTable('seq_region')
-    
+
     query = sql.select([assemb_except_table, seq_region_table.c.name],
                 sql.and_(
                 assemb_except_table.c.seq_region_id == \
@@ -371,7 +371,7 @@ def get_coord_conversion(query_location,target_coord_type,core_db,where=None):
     seq_region = core_db.getTable('seq_region')
     target_coord_system_id = CoordSystem(target_coord_type, core_db=core_db,
                                         species=species).coord_system_id
-    
+
     query_prefix, target_prefix = _rank_checking(query_location.CoordType,
                                         target_coord_type, core_db, species)
     if query_prefix == target_prefix:

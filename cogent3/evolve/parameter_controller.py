@@ -51,12 +51,12 @@ class _LikelihoodParameterController(_LF):
     """A ParameterController works by setting parameter rules. For each
     parameter in the model the edges of the tree are be partitioned into groups
     that share one value.
-    
+
     For usage see the setParamRule method.
     """
     # Basically wrapper around the more generic recalulation.ParameterController
     # class, which doesn't know about trees.
-    
+
     def __init__(self, model, tree, bins=1, loci=1,
             optimise_motif_probs=False, motif_probs_from_align=False, **kw):
         self.model = self._model = model
@@ -75,7 +75,7 @@ class _LikelihoodParameterController(_LF):
         self.optimise_motif_probs = optimise_motif_probs
         self._name = ''
         self._format = {}
-    
+
     def save(self, filename):
         f = open(filename, 'w')
         temp = {}
@@ -88,7 +88,7 @@ class _LikelihoodParameterController(_LF):
             for d in self.defns:
                 if id(d) in temp:
                     d.values = temp[id(d)]
-    
+
     def setDefaultTreeParameterRules(self):
         """Lengths are set to the values found in the tree (if any), and
         free to be optimised independently.
@@ -117,15 +117,15 @@ class _LikelihoodParameterController(_LF):
                         warnings.warn('Ignoring tree edge lengths',
                                         stacklevel=4)
                         break
-        
-    
+
+
     def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
                 include_ambiguity=False, is_independent=None, auto=False,
                 pseudocount=None, **kwargs):
         if 'is_const' in kwargs:
             is_constant = kwargs.pop('is_const')
             deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
+
         counts = self.model.countMotifs(align,
                 include_ambiguity=include_ambiguity)
         if is_constant is None:
@@ -139,13 +139,13 @@ class _LikelihoodParameterController(_LF):
         mprobs = counts/(1.0*sum(counts))
         self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant, 
                 is_independent=is_independent, auto=auto, **kwargs)
-    
+
     def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None, 
                 is_independent=None, auto=False, **kwargs):
         if 'is_const' in kwargs:
             is_constant = kwargs.pop('is_const')
             deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
+
         motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
@@ -154,7 +154,7 @@ class _LikelihoodParameterController(_LF):
             is_independent=is_independent, **kwargs)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
-    
+
     def setExpm(self, expm):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.setParamRule('expm', is_constant=True, value=expm)
@@ -170,12 +170,12 @@ class _LikelihoodParameterController(_LF):
             return self
         else:
             return super(_LF, self).makeCalculator(**kw)
-    
+
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
             is_clade=None, is_stem=None, outgroup_name=None):
         """From information specifying the scope of a parameter derive a list of
          edge names"""
-        
+
         if edges is not None:
             if tip_names or edge:
                 raise TreeError("Only ONE of edge, edges or tip_names")
@@ -195,14 +195,14 @@ class _LikelihoodParameterController(_LF):
                 is_clade = not is_stem
             edges = self.tree.getEdgeNames(species1, species2,
                 getstem=is_stem, getclade=is_clade, outgroup_name=outgroup_name)
-        
+
         return edges
-    
+
     def setParamRule(self, par_name, is_independent=None, is_constant=False,
             value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
-        
+
         Arguments:
             - par_name: The model parameter being modified.
             - is_constant, value: if True, the parameter is held constant at
@@ -214,7 +214,7 @@ class _LikelihoodParameterController(_LF):
             - bin, bins: the name(s) of the bin to apply rule.
             - locus, loci: the name of the locus/loci to apply rule.
             - **scope_info: tree scope arguments
-              
+
               - edge, edges: The name of the tree edge(s) affected by rule. ??
               - tip_names: a tuple of two tip names, specifying a tree scope
                 to apply rule.
@@ -230,9 +230,9 @@ class _LikelihoodParameterController(_LF):
         if 'is_const' in scope_info:
             is_constant = scope_info.pop('is_const')
             deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
+
         par_name = str(par_name)
-                
+
         scopes = {}
         for (single, plural) in [
                 ('bin', 'bins'),
@@ -250,11 +250,11 @@ class _LikelihoodParameterController(_LF):
                 v = scope_info.pop(plural)
                 if v:
                     scopes[single] = v
-                
+
         edges = self._process_scope_info(**scope_info)
         if edges:
             scopes['edge'] = edges
-        
+
         if is_constant:
             assert not (init or lower or upper)
         elif init is not None:
@@ -262,20 +262,20 @@ class _LikelihoodParameterController(_LF):
             value = init
         self.assignAll(par_name, scopes, value, lower, upper, is_constant, 
                 is_independent)
-    
+
     def setLocalClock(self, tip1name, tip2name):
         """Constrain branch lengths for tip1name and tip2name to be equal.
         This is a molecular clock condition. Currently only valid for tips
         connected to the same node.
-        
+
         Note: This is just a convenient interface to setParameterRule.
         """
         self.setParamRule("length", tip_names = [tip1name, tip2name],
                                 is_clade = 1, is_independent = 0)
-    
+
     def setConstantLengths(self, tree=None, exclude_list=[]):
         """Constrains edge lengths to those in the tree.
-        
+
         Arguments:
             - tree: must have the same topology as the current model.
               If not provided, the current tree length's are used.
@@ -284,17 +284,17 @@ class _LikelihoodParameterController(_LF):
         """
         if tree is None:
             tree = self.tree
-        
+
         with self.updatesPostponed():
             for edge in tree.getEdgeVector():
                 if edge.Length is None or edge.Name in exclude_list:
                     continue
                 self.setParamRule("length", edge=edge.Name, is_constant=1,
                                         value=edge.Length)
-    
+
     def getAic(self, second_order=False):
         """returns Aikake Information Criteria
-        
+
         Arguments:
             - second_order: if true, the second-order AIC is returned,
               adjusted by the alignment length"""
@@ -303,11 +303,11 @@ class _LikelihoodParameterController(_LF):
                                     for l in self.locus_names)
         else:
             sequence_length = None
-        
+
         lnL = self.getLogLikelihood()
         nfp = self.getNumFreeParams()
         return aic(lnL, nfp, sequence_length)
-    
+
     def getBic(self):
         """returns the Bayesian Information Criteria"""
         sequence_length = sum(len(self.getParamValue('lht', locus=l).index)
@@ -317,14 +317,14 @@ class _LikelihoodParameterController(_LF):
         return bic(lnL, nfp, sequence_length)
 
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
-    
+
     def setDefaultParamRules(self):
         try:
             self.assignAll(
                 'fixed_motif', None, value=-1, const=True, independent=True)
         except KeyError:
             pass
-    
+
     def makeLikelihoodDefn(self, sites_independent=True, discrete_edges=None):
         defns = self.model.makeParamControllerDefns(bin_names=self.bin_names)
         if discrete_edges is not None:
@@ -335,7 +335,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             self.tree, defns['align'], defns['psubs'], defns['word_probs'],
             defns['bprobs'], self.bin_names, self.locus_names,
             sites_independent)
-    
+
     def setAlignment(self, aligns, motif_pseudocount=None):
         """set the alignment to be used for computing the likelihood."""
         if type(aligns) is not list:
@@ -360,12 +360,12 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 if self.mprobs_from_alignment:
                     self.setMotifProbsFromData(align, locus=locus_name, auto=True,
                             pseudocount=motif_pseudocount)
-    
+
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def setDefaultParamRules(self):
         pass
-    
+
     def makeLikelihoodDefn(self, sites_independent=None,
             with_indel_params=True, kn=True):
         assert sites_independent is None or not sites_independent
@@ -373,7 +373,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         return dp_calculation.makeForwardTreeDefn(
                 self.model, self.tree, self.bin_names,
                 with_indel_params=with_indel_params, kn=kn)
-    
+
     def setSequences(self, seqs, locus=None):
         leaves = {}
         for (name, seq) in list(seqs.items()):
@@ -386,7 +386,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             leaves[name] = leaf
             assert name != "root", "'root' is a reserved name."
         self.setPogs(leaves, locus=locus)
-    
+
     def setPogs(self, leaves, locus=None):
         with self.updatesPostponed():
             for (name, pog) in list(leaves.items()):
@@ -396,4 +396,4 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                     for pog in list(leaves.values())], 0)
                 mprobs = counts/(1.0*sum(counts))
                 self.setMotifProbs(mprobs, locus=locus, is_constant=True, auto=True)
-    
+

@@ -65,7 +65,7 @@ class BinData(object):
         self.indel = indel
         self.Qd = Qd
         self.rate = rate
-    
+
     def __repr__(self):
         return 'Bin(Pi, Qd, %s, %s)' % (self.rate, vars(self.indel))
 
@@ -143,7 +143,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     indel = makeIndelModelDefn(with_indel_params, kn)
     subst = subst_model.makeFundamentalParamControllerDefns(bin_names)
     leaf = NonParamDefn('leaf', dimensions=('edge',))
-    
+
     if len(bin_names) > 1:
         switch = ProbabilityParamDefn('bin_switch', dimensions=['locus'])
         bprobs = PartitionDefn(
@@ -154,12 +154,12 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     else:
         edge_args = []
         edge_defn_constructor = EdgeSumAndAlignDefn
-    
+
     mprobs = subst['word_probs']
     bin_data = CalcDefn(BinData)(mprobs, indel, subst['Qd'])
     bin_data = bin_data.acrossDimension('bin', bin_names)
     edge_args.extend(bin_data)
-    
+
     (top, scores) = _recursive_defns(tree, subst, leaf, edge_defn_constructor,
         edge_args)
     defn = FwdDefn(top)

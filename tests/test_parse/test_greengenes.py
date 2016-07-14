@@ -26,14 +26,14 @@ class ParseGreengenesRecordsTests(TestCase):
 
         exp = [{'a':'1','b':'2','c':'3','d':'','e':'5'},
                {'q':'asdasd','c':'taco'}]
-        
+
         self.assertEqual(records, exp)
 
     def test_MinimalGreengenesParser_real(self):
         """Test MinimalGreengenesParser against real data"""
         res = MinimalGreengenesParser(real_data.splitlines())
         record1, record2 = list(res)
-       
+
         self.assertEqual(record1['G2_chip_tax_string'],'Unclassified')
         self.assertEqual(record1['authors'],'Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.')
         self.assertEqual(record1['bel3_div_ratio'],'')
@@ -42,7 +42,7 @@ class ParseGreengenesRecordsTests(TestCase):
         self.assertEqual(record2['ncbi_acc_w_ver'],'FJ832719.1')
         self.assertEqual(record2['timestamp'],'2010-03-23 14:08:27')
         self.assertEqual(record2['title'],'Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin')
-    
+
     def test_SpecificGreengenesParser_real(self):
         """Test SpecificGreengenesParser against real data"""
         fields = ['prokMSA_id','journal']

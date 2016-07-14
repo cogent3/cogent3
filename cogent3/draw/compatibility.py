@@ -70,7 +70,7 @@ def order_to_cluster_similar(S, elts=None, start=None):
 
 def tied_segments(scores):
     """(start, end) of each run of equal values in scores
-    
+
     >>> tied_segments([1,1,1,2])
     [(0, 3), (3, 4)]
     """
@@ -181,7 +181,7 @@ def shuffled(matrix):
     assert matrix.shape == (len(matrix), len(matrix)), matrix.shape
     index = numpy.random.permutation(numpy.arange(len(matrix)))
     return matrix[index,:][:,index]
-    
+
 def nss_significance(matrix, samples=10000):
     score = neighbour_similarity_score(matrix)
     scores = numpy.empty([samples])
@@ -191,14 +191,14 @@ def nss_significance(matrix, samples=10000):
     scores.sort()
     p = (samples-scores.searchsorted(score)+1) / samples
     return (score, sum(scores)/samples, p)
-    
+
 def inter_region_average(a):
     return a.sum()/numpy.product(a.shape)
-    
+
 def intra_region_average(a):
     d = numpy.diag(a)    # ignore the diagonal
     return (a.sum()-d.sum())/(numpy.product(a.shape)-len(d))
-    
+
 def integer_tick_label(sites):
     def _formatfunc(x, pos, _sites=sites, _n=len(sites)):
         if 0 < x < _n:
@@ -215,7 +215,7 @@ def boolean_similarity(matrix):
     both_true = numpy.inner(true, true)
     both_false = numpy.inner(false, false)
     return both_true + both_false
-    
+
 def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         include_incomplete=False, print_stats=True, max_site_labels=50):
     if print_stats:
@@ -228,9 +228,9 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     partpart = min_edges(partitions)      # [partition,partition]
     partimatrix = partpart[columns,:]     # [site, partition]
     sitematrix = partimatrix[:,columns]   # [site, site]
-    
+
     # RETICULATE, JE 1996
-    
+
     compatiblity = sitematrix <= 2
     if print_stats:
         print("Overall compatibility %.6f" % intra_region_average(compatiblity))
@@ -240,9 +240,9 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         else:
             print("Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
                     nss_significance(compatiblity, samples=samples))
-        
+
     # PARTIMATRIX, JWE 1997
-    
+
     # Remove the incomplete partitions with gaps or other ambiguities
     mask = 2**alignment.getNumSeqs()-1
     complete = [i for (i,(x, xz)) in enumerate(partitions) if xz==mask]
@@ -252,7 +252,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     # For scoring/ordering purposes, also remove the incomplete sequences
     complete_columns = [i for (i,c) in enumerate(columns) if c in complete]
     scoreable_partimatrix = partimatrix[complete_columns, :]
-    
+
     # Order partitions by increasing conflict score
     conflict = (scoreable_partimatrix > 2).sum(axis=0)
     conflict_order = numpy.argsort(conflict)
@@ -262,7 +262,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     support = (scoreable_partimatrix == 0).sum(axis=0)
     consist = (scoreable_partimatrix <= 2).sum(axis=0)
     conflict = (scoreable_partimatrix > 2).sum(axis=0)
-    
+
     # Similarity measure between partitions
     O = boolean_similarity(scoreable_partimatrix <= 2)
     s = 1.0*len(complete_columns)
@@ -270,7 +270,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     p,q = consist/s, conflict/s
     E = numpy.outer(p,p) + numpy.outer(q,q)
     S = (O-E)/numpy.sqrt(E*(1-E)/s)
-    
+
     # Order partitions for better visual grouping
     if "order_by_conflict":
         order = order_tied_to_cluster_similar(S, conflict)
@@ -279,22 +279,22 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         half = len(order) // 2
         if sum(conflict[order[:half]]) > sum(conflict[order[half:]]):
             order.reverse()
-    
+
     partimatrix = partimatrix[:, order]
     conflict = conflict[order]
     support = support[order]
     partitions = [partitions[i] for i in order]
-    
+
     if display:
         figwidth = 8.0
 
         (c_size, p_size) = partimatrix.shape
         s_size = num_seqs = alignment.getNumSeqs()
-        
+
         # Layout (including figure height) chosen to get aspect ratio of
         # 1.0 for the compatibility matrix, and if possible the other
         # matrices.
-        
+
         if s_size > s_limit:
             # too many species to show
             s_size = 0
@@ -303,12 +303,12 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
-        
+
         genemap = Display(alignment, recursive=s_size>0, 
                 colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
         figwidth = max(figwidth, figwidth/2 + annot_width)
-        
+
         bar_height = 0.5
         link_width = 0.3
         x_margin = 0.60
@@ -342,17 +342,17 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 sharex=axP, **kw)
         axZ = fig.add_axes([vert+p_width, y_margin, link_width, c_height], 
             frameon=False)
-            
+
         axA = genemap.asAxes(
             fig, [vert+p_width+link_width, y_margin, annot_width, c_height], 
             vertical=True, labeled=True)
-            
+
         axP.yaxis.set_visible(False)
         #for ax in [axC, axP, axS]:
             #ax.set_aspect(adjustable='box', aspect='equal')
-        
+
         fig.text(x_margin+c_width/2, .995, title, ha='center', va='top')
-        
+
         if not s_size:
             axS.set_visible(False)
         # No ticks for these non-float dimensions
@@ -371,7 +371,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         for axis in [axS.xaxis, axP.xaxis, axB.xaxis, axB.yaxis]:
             axis.set_major_formatter(matplotlib.ticker.NullFormatter())
             axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-        
+
         # Site dimension
         if c_size > max_site_labels:
             for axis in [axC.yaxis, axC.xaxis]:
@@ -383,7 +383,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
                 axis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
                 axis.set_major_formatter(matplotlib.ticker.FuncFormatter(isl))
-        
+
         # Species dimension
         if s_size:
             seq_names = [name.split('  ')[0] 
@@ -393,7 +393,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
             axS.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(seq_names))
             #axS.yaxis.grid(False) #, 'minor')
-    
+
         # Display the main matrices: compatibility and partimatrix
         axC.pcolorfast(compatiblity, cmap=plt.cm.gray)
         partishow = partimatrix <= 2
@@ -403,7 +403,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         (sx, sy) = numpy.nonzero(partimatrix.T==0)
         axP.scatter(sx+0.5, sy+0.5, color='lightgreen', marker='^',
             s=15)
-        
+
         # Make [partition, sequence] matrix
         # Not a good idea with too many sequences
         if s_size:
@@ -412,7 +412,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             for (i, (x, xz)) in enumerate(partitions):
                 partseq1[i] = bit_decode(x, num_seqs)
                 partseq2[i] = bit_decode(xz^x, num_seqs)
-            
+
             # Order sequqnces so as to place similar sequences adjacent
             O = boolean_similarity(partseq1)
             order = order_to_cluster_similar(O)
@@ -421,14 +421,14 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             seq_names = [seq_names[i] for i in order]
             axS.set_ylim(0, len(seq_names))
             axS.set_autoscale_on(False)
-    
+
             for (halfpart,color) in [(partseq1, 'red'),(partseq2, 'blue')]:
                 (sx, sy) = numpy.nonzero(halfpart)
                 axS.scatter(sx+0.5, sy+0.5, color=color, marker='o')
             axS.grid(False)
             #axS.yaxis.tick_right()
             #axS.yaxis.set_label_position('right')
-        
+
         # Bar chart of partition support and conflict scores
         #axB.set_autoscalex_on(False)
         if conflict.sum():
@@ -438,7 +438,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
                 1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
-        
+
         # Alignment features
         axA.set_ylim(0, len(alignment))
         axA.set_autoscale_on(False)
@@ -449,7 +449,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axA.xaxis.tick_top()
         axA.xaxis.set_label_position('top')
         #axA.xaxis.set_visible(False)
-        
+
         # "Zoom lines" linking informative-site coords to alignment coords 
         from matplotlib.patches import PathPatch
         from matplotlib.path import Path
@@ -465,7 +465,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
         path = Path(vertices, ops)
         axZ.add_patch(PathPatch(path, fill=False, linewidth=0.25))
-        
+
         # interactive navigation messes up axZ.  Could use callbacks but
         # probably not worth the extra complexity.
         for ax in [axC, axP, axS, axB, axZ, axA]:
@@ -473,7 +473,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
         return fig
 
-    
+
 if __name__ == '__main__':
     from cogent3 import LoadSeqs, DNA
     import sys, optparse, os.path

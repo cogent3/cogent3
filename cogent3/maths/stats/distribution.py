@@ -24,9 +24,9 @@ incbet = betai  #shouldn't have renamed it...
 #Probability integrals: low gives left-hand tail, high gives right-hand tail.
 def z_low(x):
     """Returns left-hand tail of z distribution (0 to x). 
-    
+
     x ranges from -infinity to +infinity; result ranges from 0 to 1
-    
+
     See Cephes docs for details."""
     y = x * SQRTH
     z = abs(y) #distribution is symmetric
@@ -40,9 +40,9 @@ def z_low(x):
 
 def z_high(x):
     """Returns right-hand tail of z distribution (0 to x). 
-    
+
     x ranges from -infinity to +infinity; result ranges from 0 to 1
-    
+
     See Cephes docs for details."""
     y = x * SQRTH
     z = abs(y)
@@ -62,12 +62,12 @@ def chi_low(x, df):
     """Returns left-hand tail of chi-square distribution (0 to x), given df.
 
     x ranges from 0 to infinity.
-    
+
     df, the degrees of freedom, ranges from 1 to infinity (assume integers).
     Typically, df is (r-1)*(c-1) for a r by c table.
-   
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     x = fix_rounding_error(x)
@@ -76,33 +76,33 @@ def chi_low(x, df):
     if df < 1:
         raise ValueError("chi_low: df must be >= 1 (got %s)." % df)
     return igam(df/2, x/2)
-    
+
 def chi_high(x, df):
     """Returns right-hand tail of chi-square distribution (x to infinity).
-    
+
     df, the degrees of freedom, ranges from 1 to infinity (assume integers).
     Typically, df is (r-1)*(c-1) for a r by c table.
-    
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     x = fix_rounding_error(x)
-    
+
     if x < 0:
         raise ValueError("chi_high: x must be >= 0 (got %s)." % x)
     if df < 1:
         raise ValueError("chi_high: df must be >= 1 (got %s)." % df)
     return igamc(df/2, x/2)
- 
+
 def t_low(t, df):
     """Returns left-hand tail of Student's t distribution (-infinity to x).
-    
+
     df, the degrees of freedom, ranges from 1 to infinity.
     Typically, df is (n-1) for a sample size of n.
-    
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     if df < 1:
@@ -111,12 +111,12 @@ def t_low(t, df):
 
 def t_high(t, df):
     """Returns right-hand tail of Student's t distribution (x to infinity).
-    
+
     df, the degrees of freedom, ranges from 1 to infinity.
     Typically, df is (n-1) for a sample size of n.
-    
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     if df < 1:
@@ -129,7 +129,7 @@ def tprob(t, df):
 
 def poisson_high(successes, mean):
     """Returns right tail of Poission distribution, Pr(X > x).
-    
+
     successes ranges from 0 to infinity. mean must be positive.
     """
     return pdtrc(successes, mean)
@@ -143,13 +143,13 @@ def poisson_low(successes, mean):
 
 def poisson_exact(successes, mean):
     """Returns Poisson probablity for exactly Pr(X=successes).
-    
+
     Formula is e^-(mean) * mean^(successes) / (successes)!
     """
     if successes == 0:
         return pdtr(0, mean)
     elif successes < mean:  #use left tail
-            return pdtr(successes, mean) - pdtr(successes-1, mean)
+        return pdtr(successes, mean) - pdtr(successes-1, mean)
     else: #successes > mean: use right tail
         return pdtrc(successes-1, mean) - pdtrc(successes, mean)
 
@@ -165,7 +165,7 @@ def binomial_low(successes, trials, prob):
 
 def binomial_exact(successes, trials, prob):
     """Returns binomial probability of exactly X successes.
-    
+
     Works for integer and floating point values.
 
     Note: this function is only a probability mass function for integer 
@@ -182,28 +182,28 @@ def f_low(df1, df2, x):
     """Returns left-hand tail of f distribution (0 to x).
 
     x ranges from 0 to infinity.
-    
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     return fdtr(df1, df2, x)
-    
+
 def f_high(df1, df2, x):
     """Returns right-hand tail of f distribution (x to infinity).
-    
+
     Result ranges from 0 to 1.
-    
+
     See Cephes docs for details.
     """
     return fdtrc(df1, df2, x)
-  
+
 def fprob(dfn, dfd, F, side='right'):
     """Returns both tails of F distribution (-inf to F and F to inf)
 
     Use in case of two-tailed test. Usually this method is called by
     f_two_sample, so you don't have to worry about choosing the right side.
-    
+
     side: right means return twice the right-hand tail of the F-distribution.
         Use in case var(a) > var (b)
           left means return twice the left-hand tail of the F-distribution.
@@ -218,7 +218,7 @@ def fprob(dfn, dfd, F, side='right'):
     else:
         raise ValueError("Not a valid value for side %s"%(side))
 
- 
+
 def stdtr(k, t):
     """Student's t distribution, -infinity to t.
 
@@ -315,7 +315,7 @@ def bdtrc(k, n, p):
         dk = k + 1
         dk = betai(dk, dn, p)
     return dk
-    
+
 def pdtr(k, m):
     """Returns sum of left tail of Poisson distribution, 0 through k.
 
@@ -350,7 +350,7 @@ def fdtr(a, b, x):
     w = a * x
     w /= float(b + w)
     return betai(0.5 * a, 0.5 * b, w)
-    
+
 
 def fdtrc(a, b, x):
     """Returns right tail of F distribution, x to infinity.
@@ -407,8 +407,8 @@ def stdtri(k, p):
     #handle extreme values
     rflg = -1
     if p >= 0.5:
-            p = 1.0 - p;
-            rflg = 1
+        p = 1.0 - p;
+        rflg = 1
     z = incbi(0.5*rk, 0.5, 2.0*p)
 
     if MAXNUM * z < rk:
@@ -454,7 +454,7 @@ def bdtri(k, n, y):
 
 def gdtri(a, b, y):
     """Returns Gamma such that y is the probability in the integral.
-    
+
     WARNING: if 1-y == 1, gives incorrect result. The scipy implementation
     gets around this by using cdflib, which is in Fortran. Until someone
     gets around to translating that, only use this function for values of
@@ -476,11 +476,11 @@ def fdtri(a, b, y):
     # If that is greater than y, then the solution w < .5.
     # Otherwise, solve at 1-y to remove cancellation in (b - b*w).
     if w > y or y < 0.001:
-            w = incbi(0.5*b, 0.5*a, y)
-            x = (b - b*w)/(a*w)
+        w = incbi(0.5*b, 0.5*a, y)
+        x = (b - b*w)/(a*w)
     else:
-            w = incbi(0.5*a, 0.5*b, 1.0-y)
-            x = b*w/(a*(1.0-w))
+        w = incbi(0.5*a, 0.5*b, 1.0-y)
+        x = b*w/(a*(1.0-w))
     return x
 
 

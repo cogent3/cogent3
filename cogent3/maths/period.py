@@ -70,35 +70,35 @@ class _PeriodEstimator(object):
         self.length = length
         self.llim = llim or 2
         self.ulim = ulim or (length-1)
-        
+
         if self.ulim > length:
             raise RuntimeError('Error: ulim > length')
-        
+
         self.period = period
-    
+
     def getNumStats(self):
         """returns the number of statistics computed by this calculator"""
         return 1
-    
+
 
 class AutoCorrelation(_PeriodEstimator):
     def __init__(self, length, llim=None, ulim=None, period=None):
         """class for repetitive calculation of autocorrelation for series of
         fixed length
-        
+
         e.g. if x = [1,1,1,1], xc = [1,2,3,4,3,2,1]
         The middle element of xc corresponds to a lag (period) of 0
         xc is always symmetric for real x
         N is the length of x"""
         super(AutoCorrelation, self).__init__(length, llim, ulim, period)
-        
+
         periods = list(range(-length+1, length))
-        
+
         self.min_idx = periods.index(self.llim)
         self.max_idx = periods.index(self.ulim)
         self.periods = array(periods[self.min_idx: self.max_idx + 1])
         self.xc = zeros(2*self.length-1)
-    
+
     def evaluate(self, x):
         x = array(x, float64)
         self.xc.fill(0.0)
@@ -106,9 +106,9 @@ class AutoCorrelation(_PeriodEstimator):
         xc = self.xc[self.min_idx: self.max_idx + 1]
         if self.period is not None:
             return xc[self.period-self.llim]
-        
+
         return xc, self.periods
-    
+
     __call__ = evaluate
 
 def auto_corr(x, llim=None, ulim=None):
@@ -122,11 +122,11 @@ def auto_corr(x, llim=None, ulim=None):
     return _autocorr(x)
 
 class Ipdft(_PeriodEstimator):
-    
+
     def __init__(self, length, llim=None, ulim=None, period=None, abs_ft_sig=True):
         """factory function for computing the integer period discrete Fourier
         transform for repeated application to signals of the same length.
-    
+
         Argument:
             - length: the signal length
             - llim: lower limit
@@ -142,42 +142,42 @@ class Ipdft(_PeriodEstimator):
         self.W = exp(-1j * 2 * pi / arange(1, self.ulim+1))
         self.X = array([0+0j] * self.length)
         self.abs_ft_sig = abs_ft_sig
-    
+
     def evaluate(self, x):
         x = array(x, float64)
         self.X.fill(0+0j)
         self.X = ipdft_inner(x, self.X, self.W, self.ulim, self.length)
         pwr = self.X[self.llim-1:self.ulim]
-        
+
         if self.abs_ft_sig:
             pwr = abs(pwr)
-        
+
         if self.period is not None:
             return pwr[self.period-self.llim]
-        
+
         return array(pwr), self.periods
-    
+
     __call__ = evaluate
-    
+
 
 class Goertzel(_PeriodEstimator):
     """Computes the power of a signal for a specific period"""
     def __init__(self, length=None, llim=None, ulim=None, period=None, abs_ft_sig=True):
         assert period is not None, "Goertzel requires a period"
         super(Goertzel, self).__init__(length=length, period=period)
-    
+
     def evaluate(self, x):
         x = array(x, float64)
         return _goertzel_inner(x, self.length, self.period)
-    
+
     __call__ = evaluate
 
 
 class Hybrid(_PeriodEstimator):
     """hybrid statistic and corresponding periods for signal x
-    
+
     See Epps. EURASIP Journal on Bioinformatics and Systems Biology, 2009"""
-    
+
     def __init__(self, length, llim=None, ulim=None, period=None, abs_ft_sig=True, return_all=False):
         """Arguments:
             - length: the length of signals to be encountered
@@ -190,12 +190,12 @@ class Hybrid(_PeriodEstimator):
         self.ipdft = Ipdft(length, llim, ulim, period, abs_ft_sig)
         self.auto = AutoCorrelation(length, llim, ulim, period)
         self._return_all = return_all
-    
+
     def getNumStats(self):
         """the number of stats computed by this calculator"""
         num = [1, 3][self._return_all]
         return num
-    
+
     def evaluate(self, x):
         if self.period is None:
             auto_sig, auto_periods = self.auto(x)
@@ -215,13 +215,13 @@ class Hybrid(_PeriodEstimator):
             else:
                 result = abs(hybrid)
         return result
-    
+
     __call__ = evaluate
 
 
 def ipdft(x, llim=None, ulim=None, period=None):
     """returns the integer period discrete Fourier transform of the signal x
-    
+
     Arguments:
         - x: series of symbols
         - llim: lower limit
@@ -234,11 +234,11 @@ def ipdft(x, llim=None, ulim=None, period=None):
 def hybrid(x, llim=None, ulim=None, period=None, return_all=False):
     """
     Return hybrid statistic and corresponding periods for signal x
-    
+
     Arguments:
         - return_all: whether to return the hybrid, ipdft, autocorr
           statistics as a numpy array, or just the hybrid statistic
-    
+
     See Epps. EURASIP Journal on Bioinformatics and Systems Biology, 2009, 9
     """
     hybrid_calc = Hybrid(len(x), llim, ulim, period, return_all=return_all)
@@ -265,4 +265,4 @@ if __name__ == "__main__":
     print(x)
     print(goertzel(x, 4))
     print(goertzel(x, 8))
-    
+

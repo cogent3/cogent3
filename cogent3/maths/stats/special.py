@@ -165,7 +165,7 @@ def ln_binomial(successes, trials, prob):
     successes: number of successes
     trials: number of trials
     prob: probability of success
-    
+
     Works for int and float values. Approximated by the gamma function.
 
     Note: no error checking (expects to be called through binomial_exact())
@@ -180,7 +180,7 @@ def ln_binomial(successes, trials, prob):
 
 def polevl(x, coef):
     """evaluates a polynomial y = C_0 + C_1x + C_2x^2 + ... + C_Nx^N
-    
+
     Coefficients are stored in reverse order, i.e. coef[0] = C_N
     """
     result = 0
@@ -260,7 +260,7 @@ def erfc(a):
         x = -a
     else:
         x = a
-    
+
     if x < 1:
         return 1 - erf(a)
 
@@ -283,7 +283,7 @@ def erfc(a):
 
     if a < 0:
         y = 2 - y
-    
+
     if y == 0:  #underflow
         if a < 0:
             return 2
@@ -438,7 +438,7 @@ def igam(a, x):
         ans += c
         if c/ans <= MACHEP:
             break
-    
+
     return ans * ax / a
 
 def lgam(x):
@@ -502,10 +502,10 @@ def lgam(x):
     else:
         q += polevl(p, GA)/x
     return q
-       
+
 def betai(aa, bb, xx):
     """Returns integral of the incomplete beta density function, from 0 to x.
-    
+
     See Cephes docs for details.
     """
     if aa <= 0 or bb <= 0:
@@ -559,7 +559,7 @@ def betai(aa, bb, xx):
     else:
         t = exp(y)
     return betai_result(t, flag)
-        
+
 def betai_result(t, flag):
     if flag == 1:
         if t <= MACHEP:
@@ -583,7 +583,7 @@ def incbcf(a, b, x):
     k6 = b - 1
     k7 = k4
     k8 = a + 2
-    
+
     pkm2 = 0
     qkm2 = 1
     pkm1 = 1
@@ -655,7 +655,7 @@ def incbd(a, b, x):
     k6 = a + b
     k7 = a + 1.0
     k8 = a + 2.0
-    
+
     pkm2 = 0.0
     qkm2 = 1.0
     pkm1 = 1.0
@@ -849,7 +849,7 @@ LQ = [
     2.1642788614495947685003E2,
     6.0118660497603843919306E1,
     ]
-    
+
 def expm1(x):
     """Something to do with exp? From Cephes."""
     if (x < -0.5) or (x > 0.5):
@@ -884,9 +884,9 @@ def igami(a, y0):
     if ((y0<0.0) or (y0>1.0) or (a<=0)):
         raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
     elif (y0==0.0):
-      return MAXNUM
+        return MAXNUM
     elif (y0==1.0):
-       return 0.0
+        return 0.0
     #approximation to inverse function
     d = 1.0/(9.0*a)
     y = ( 1.0 - d - ndtri(y0) * sqrt(d) )
@@ -1133,7 +1133,7 @@ def incbi(aa, bb, yy0):
     if d < MINLOG:
         x = 1.0
         return _incbi_under(rflg, x)
-        
+
     x = a/(a + b * exp(d))
     y = incbet(a, b, x)
     yp = (y - y0)/y0

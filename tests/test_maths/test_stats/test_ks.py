@@ -15,7 +15,7 @@ __status__ = "Production"
 
 class KSTests(TestCase):
     """Tests Kolmogorov-Smirnov."""
-    
+
     def setUp(self):
         self.x1 = [0.09916191, 0.29732882, 0.41475044, 0.68816838, 0.20841367,
         0.46129887, 0.22074544, 0.06889561, 0.88264852, 0.87726406, 0.76905072,
@@ -35,33 +35,33 @@ class KSTests(TestCase):
         0.9263595, 0.7969784, 1.2847108, 0.6393015, 0.6828791, 1.0817340,
         0.6586887, 0.7314203, 0.3998812, 0.9988478, 1.0225579, 1.2721428,
         0.6465969, 0.9133413]
-    
+
     def test_pk1x(self):
         """1 sample 1-sided should match answers from R"""
         self.assertFloatEqual(pkolmogorov1x(0.06, 30), 0.2248113)
-    
+
     def test_pk2x(self):
         """1 sample 2-sided should match answers from R"""
         self.assertFloatEqual(pkolmogorov2x(0.7199, 50), (1-6.661e-16))
         self.assertFloatEqual(pkolmogorov2x(0.08, 30), 0.01754027)
         self.assertFloatEqual(pkolmogorov2x(0.03, 300), 0.05753413)
-    
+
     def test_ps2x(self):
         """2 sample 2-sided smirnov should match answers from R"""
         self.assertFloatEqual(psmirnov2x(0.48, 20, 50), 0.9982277)
         self.assertFloatEqual(psmirnov2x(0.28, 20, 50), 0.8161612)
         self.assertFloatEqual(psmirnov2x(0.28, 50, 20), 0.8161612)
-    
+
     def tes_pk2x(self):
         """2 sample  2-sided kolmogorov should match answers from R"""
         self.assertFloatEqual(pkolmogorov1x(0.058, 50), 0.007530237)
         self.assertFloatEqual(pkolmogorov1x(0.018, 50), 4.887356e-26)
         self.assertFloatEqual(pkolmogorov1x(0.018, 5000), 0.922618)
-    
+
     def test_pkstwo(self):
         """kolmogorov asymptotic should match answers from R"""
         self.assertFloatEqual(pkstwo(2.3),[1-5.084e-05],eps=1e-5)
-    
+
     def test_ks2x(self):
         """KS two-sample, 2-sided should match answers from R"""
         D, Pval = ks_test(self.x1, self.x2)
@@ -82,7 +82,7 @@ class KSTests(TestCase):
         self.assertFloatEqual((D,Pval), (6.9388939039072284e-18, 1.), eps=1e-4)
         D, Pval = ks_test(self.x2, self.x1, alt="l")
         self.assertFloatEqual((D,Pval), (0.46, 2.542e-05), eps=1e-4)
-        
+
     def test_ks_boot(self):
         """excercising the bootstrapped version of KS"""
         D, Pval = ks_boot(self.x1[:10], self.x2[:10], num_reps=10)

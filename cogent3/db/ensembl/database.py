@@ -29,16 +29,16 @@ class Database(object):
                                 pool_recycle=pool_recycle)
         self._meta = sql.MetaData(self._db)
         self.Type = db_type
-        
+
     def __str__(self):
         return str(self.db_name)
-    
+
     def __eq__(self, other):
         return self._db == other._db
-    
+
     def __ne__(self, other):
         return self._db != other._db
-    
+
     def getTable(self, name):
         """returns the SQLalchemy table instance"""
         table = self._tables.get(name, None)
@@ -57,14 +57,14 @@ class Database(object):
                 # new arg name not supported, try old
                 table = sql.Table(name, self._meta, autoload=True,
                                     useexisting=True, *custom_columns)
-            
+
             self._tables[name] = table
         return table
-    
+
     def getDistinct(self, table_name, column):
         """returns the Ensembl data-bases distinct values for the named
         property_type.
-        
+
         Arguments:
             - table_name: the data base table name
             - column: valid values are biotype, status"""
@@ -83,19 +83,19 @@ class Database(object):
             else:
                 # a string
                 record = [record]
-            
+
             records.update(record)
         return records
-    
+
     def tableHasColumn(self, table_name, column):
         """returns True if table has column"""
         table = self.getTable(table_name)
         return hasattr(table.c, column)
-    
+
     def getTablesRowCount(self, table_name=None):
         """returns a cogent Table object with the row count for each table
         in the database
-        
+
         Arguments:
             - table_name: database table name. If none, all database tables
               assessed."""
@@ -109,8 +109,8 @@ class Database(object):
             table = self.getTable(name)
             count = table.count().execute().fetchone()[0]
             rows.append(['%s.%s' % (self.db_name, name), count])
-        
+
         return cogent_table.Table(header=['name', 'count'], rows=rows)
-    
+
 
 

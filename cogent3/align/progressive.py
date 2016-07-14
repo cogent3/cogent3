@@ -20,14 +20,14 @@ __status__ = "Production"
 def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     ui = None, ests_from_pairwise=True, param_vals=None):
     """Returns a multiple alignment and tree.
-    
+
     Uses the provided substitution model and a tree for determining the
     progressive order. If a tree is not provided a Neighbour Joining tree is
     constructed from pairwise distances estimated from pairwise aligning the
     sequences. If running in parallel, only the distance estimation is
     parallelised and only the master CPU returns the alignment and tree, other
     CPU's return None, None.
-    
+
     Arguments:
         - model: a substitution model
         - seqs: a sequence collection
@@ -46,9 +46,9 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         seq_names = list(seqs.keys())
     else:
         seq_names = seqs.getSeqNames()
-    
+
     two_seqs = len(seq_names) == 2
-    
+
     if tree:
         tip_names = tree.getTipNames()
         tip_names.sort()
@@ -66,13 +66,13 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
                                     if param not in _exclude_params]
         else:
             est_params = None
-        
+
         dcalc = EstimateDistances(seqs, model, do_pair_align=True,
                                     est_params=est_params)
         dcalc.run()
         dists = dcalc.getPairwiseDistances()
         tree = NJ.nj(dists)
-    
+
     LF = model.makeLikelihoodFunction(tree.bifurcating(name_unnamed=True), aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the Median to avoid the influence of outlier pairs
@@ -82,7 +82,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
             print("Param Estimate Summary Stats: %s" % param)
             print(numbers.summarize())
             param_vals[param] = numbers.Median
-    
+
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
     with LF.updatesPostponed():
         for param, val in list(param_vals.items()):

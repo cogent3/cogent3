@@ -125,7 +125,7 @@ ln_2 = log(2)
 
 def log2(x):
     """Returns the log (base 2) of x"
-    
+
     WARNING: log2(0) will give -inf on one platform, but it might raise
     an error (Overflow or ZeroDivision on another platform. So don't rely
     on getting -inf in your downstream code.
@@ -176,7 +176,7 @@ def safe_log(a):
 
 def row_uncertainty(a):
     """Returns uncertainty (Shannon's entropy) for each row in a IN BITS
-    
+
     a: numpy array (has to be 2-dimensional!)
 
     The uncertainty is calculated in BITS not NATS!!!
@@ -287,10 +287,10 @@ def hamming_distance(x,y):
 
     The Hamming distance is the number of characters which differ between
     two sequences (arrays).
-    
+
     WARNING: This function truncates the longest array to the length of 
     the shortest one.
-    
+
     Example:
     ABC, ABB -> 1
     ABCDEFG, ABCEFGH -> 4
@@ -352,7 +352,7 @@ def has_neg_off_diags(m):
 
 def has_neg_off_diags_naive(m):
     """Returns True if m has off-diagonal elements.
- 
+
     Naive, slow implementation -- don't use. Primarily here to check
     correctness of faster implementation.
     """
@@ -445,7 +445,7 @@ def with_diag(a, d):
 
 def only_nonzero(a):
     """Returns elements of a where the first element of a[i] is nonzero.
-    
+
     Result is a new array and does not share data with the original.
 
     NOTE: This is designed for arrays of rate matrices. If the first element
@@ -521,7 +521,7 @@ def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     sd: standard deviation of distribution to sample from. Default 0.05.
 
     Error model is additive.
-    
+
     WARNING: may reverse sign of element in some cases!
     WARNING: if an element is specified, the coordinate is relative to the
     flat array _without_ the diagonal, _not_ relative to the original array!
@@ -585,7 +585,7 @@ def merge_samples(*samples):
     """Merges list of samples into array of [vals,dists].
 
     value of each sample corresponds to its position in the list.
-    
+
     e.g. for [1,2,3] and [4,5,6], result will be:
     array([[1,2,3,4,5,6],[0,0,0,1,1,1]])
     """

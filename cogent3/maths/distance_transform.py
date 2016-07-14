@@ -166,9 +166,9 @@ def trans_hellinger(m):
 
 def dist_bray_curtis(datamtx, strict=True):
     """ returns bray curtis distance (normalized manhattan distance) btw rows
-    
+
     dist(a,b) = manhattan distance / sum on i( (a_i + b_i) )
-    
+
     see for example:
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
@@ -221,9 +221,9 @@ dist_bray_curtis_faith = dist_bray_curtis
 
 def dist_bray_curtis_magurran(datamtx, strict=True):
     """ returns bray curtis distance (quantitative sorensen) btw rows
-    
+
     dist(a,b) = 2*sum on i( min( a_i, b_i)) / sum on i( (a_i + b_i) )
-    
+
     see for example:
     Magurran 2004
     Bray 1957
@@ -275,7 +275,7 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
 
 def dist_canberra(datamtx, strict=True):
     """returns a row-row canberra dist matrix
-    
+
     see for example:
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
@@ -323,7 +323,7 @@ def dist_canberra(datamtx, strict=True):
             net = nan_to_num(net)
             num_nonzeros = nonzero(net)[0].size
             dists[i,j] = dists[j,i] = nan_to_num(net.sum()/num_nonzeros)
-            
+
     seterr(**oldstate)
     return dists
 
@@ -334,7 +334,7 @@ def dist_chisq(datamtx, strict=True):
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
     Vegitatio
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -395,7 +395,7 @@ def dist_chord(datamtx, strict=True):
 
     attributed to Orloci (with accent).  see Legendre 2001,
     ecologically meaningful... 
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -442,7 +442,7 @@ def dist_chord(datamtx, strict=True):
 
 def dist_euclidean(datamtx, strict=True):
     """returns a row by row euclidean dist matrix
-    
+
     returns the euclidean norm of row1 - row2 for all rows in datamtx
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
@@ -482,10 +482,10 @@ def dist_euclidean(datamtx, strict=True):
 
 def dist_gower(datamtx, strict=True):
     """returns a row-row gower dist matrix
-    
+
     see for example, Faith et al., 1987
-    
-    
+
+
     * note that the comparison between any two rows is dependent on the entire
     data matrix, d_ij is a fn of all of datamtx, not just i,j
     * comparisons are between rows (samples)
@@ -534,7 +534,7 @@ def dist_gower(datamtx, strict=True):
 
 def dist_hellinger(datamtx, strict=True):
     """returns a row-row hellinger dist matrix
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -583,11 +583,11 @@ def dist_hellinger(datamtx, strict=True):
 
 def dist_kulczynski(datamtx, strict=True):
     """ calculates the kulczynski distances between rows of a matrix
-    
+
     see for example Faith et al., composiitonal dissimilarity, 1987
     returns a distance of 1 between a row of zeros and a row with at least one
     nonzero element
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -642,7 +642,7 @@ def dist_manhattan(datamtx, strict=True):
 
     dist(a,b) = sum on i( abs(a_i - b_i) )
     negative values ok (but not tested)
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -673,7 +673,7 @@ def dist_manhattan(datamtx, strict=True):
         r1 = datamtx[i] # cache here
         for j in range(i):
             dists[i,j] = dists[j,i] = sum(abs(r1 - datamtx[j]))
-            
+
     return dists
 
 def dist_abund_jaccard(datamtx, strict=True):
@@ -688,7 +688,7 @@ def dist_abund_jaccard(datamtx, strict=True):
     V = sum of relative abundances of shared species in b
 
     The Chao-Jaccard distance is 1 - J_abd
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -719,7 +719,7 @@ def dist_abund_jaccard(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1, dtype='float')
 
     for i in range(numrows):
@@ -753,7 +753,7 @@ def dist_morisita_horn(datamtx, strict=True):
     dist(a,b) = 1 - 2*sum(a_i * b_i) /( (d_a + d_b)* N_a * N_b )
 
     see book: magurran 2004 pg 246
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -784,10 +784,10 @@ def dist_morisita_horn(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1, dtype='float')
     row_ds = (datamtx**2).sum(axis=1, dtype='float') # these are d_a, etc
-    
+
     for i in range(numrows):
         if row_ds[i] !=0.:
             row_ds[i] = row_ds[i] / rowsums[i]**2
@@ -815,11 +815,11 @@ def dist_morisita_horn(datamtx, strict=True):
 def dist_pearson(datamtx, strict=True):
     """ Calculates pearson distance (1-r) between rows
 
-    
+
     note that the literature sometimer refers to the pearson dissimilarity
     as (1 - r)/2 (e.g.: BC Blaxall et al. 2003: Differential Myocardial Gene
     Expression in the Development and Rescue of Murine Heart Failure)
-    
+
     for pearson's r, see for example: Thirteen Ways to Look at the 
     Correlation Coefficient by J rodgers, 1988
 
@@ -879,17 +879,17 @@ def dist_pearson(datamtx, strict=True):
             else:
                 bottom = sqrt(sum1 * sum2)
                 r = top/bottom
-                
+
             dists[i][j] = dists[j][i] = 1.0 - r
-            
+
     return dists
 
 def dist_soergel(datamtx, strict=True):
     """ Calculate soergel distance between rows of a matrix
-    
+
     see for example Evaluation of Distance Metrics..., Fechner 2004
     dist(a,b) = sum on i( abs(a_i - b_i) ) / sum on i( max(a_i, b_i) )
-    
+
     returns: a symmetric distance matrix, numrows X numrows
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
@@ -935,13 +935,13 @@ def dist_soergel(datamtx, strict=True):
 
 def dist_spearman_approx(datamtx, strict=True):
     """ Calculate spearman rank distance (1-r) using an approximation formula
-    
+
     considers only rank order of elements in a row, averaging ties 
     [19.2, 2.1, 0.03, 2.1] -> [3, 1.5, 0, 1.5]
     then performs dist(a,b) = 6 * sum(D^2) / (N*(N^2 - 1))
     where D is difference in rank of element i between row a and row b,
     N is the length of either row
-    
+
     * formula fails for < 2 columns, returns a zeros matrix
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
@@ -972,10 +972,10 @@ def dist_spearman_approx(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     if numcols < 2:
         return dists # formula fails for < 2 elements per row
-    
+
     for i in range(numrows):
         r1 = datamtx[i,:]
         rank1 = _rankdata(r1)
@@ -985,13 +985,13 @@ def dist_spearman_approx(datamtx, strict=True):
             rankdiff = rank1 - rank2
             dsqsum = sum((rankdiff)**2)
             dist = 6*dsqsum / float(numcols*(numcols**2-1))
-            
+
             dists[i][j] = dists[j][i] = dist
     return dists
 
 def dist_specprof(datamtx, strict=True):
     """returns a row-row species profile distance matrix
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1040,11 +1040,11 @@ def dist_specprof(datamtx, strict=True):
 
 def binary_dist_otu_gain(otumtx):
     """ Calculates number of new OTUs observed in sample A wrt sample B
-    
+
         This is an non-phylogenetic distance matrix analagous to unifrac_g. 
         The number of OTUs gained in each sample is computed with respect to
         each other sample.
-    
+
     """
     result = []
     for i in otumtx:
@@ -1094,7 +1094,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
     Dice dist = 1 - (2*c)/(a + b).
     also known as whittaker:
     whittaker = (a + b - c)/( 0.5*(a+b) ) - 1
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1124,7 +1124,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         row1 = datamtx[i]
         for j in range(i):
@@ -1158,7 +1158,7 @@ def binary_dist_hamming(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     hamm = a + b - 2c
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1191,7 +1191,7 @@ def binary_dist_hamming(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         first = datamtx[i]
         a = rowsums[i]
@@ -1202,12 +1202,12 @@ def binary_dist_hamming(datamtx, strict=True):
             dist = a + b - (2.0*c)
             dists[i][j] = dists[j][i] = dist
     return dists
-    
+
 def binary_dist_jaccard(datamtx, strict=True):
     """Calculates jaccard distance between rows, returns distance matrix.
 
     converts matrix to boolean.  jaccard dist = 1 - jaccard index
-    
+
     see for example: wikipedia jaccard index (20 jan 2009)
     this is identical to a binary version of the soergel distance
 
@@ -1216,7 +1216,7 @@ def binary_dist_jaccard(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     jaccard = 1 - (c/(a+b-c))
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1248,7 +1248,7 @@ def binary_dist_jaccard(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
         first = datamtx[i]
@@ -1277,7 +1277,7 @@ def binary_dist_lennon(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     lennon = 1 - (c/(c + min(a-c,b-c)))
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1309,7 +1309,7 @@ def binary_dist_lennon(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
         first = datamtx[i]
@@ -1339,7 +1339,7 @@ def binary_dist_ochiai(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     ochiai = 1 - (c/sqrt(a*b))
-    
+
     * comparisons are between rows (samples)
     * input: 2D numpy array.  Limited support for non-2D arrays if 
     strict==False
@@ -1373,7 +1373,7 @@ def binary_dist_ochiai(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         first = datamtx[i]
         a = rowsums[i]
@@ -1389,7 +1389,7 @@ def binary_dist_ochiai(datamtx, strict=True):
                 dist = 1.0 - (c/sqrt(a*b))
             dists[i][j] = dists[j][i] = dist
     return dists
-    
+
 def binary_dist_pearson(datamtx, strict=True):
     """Calculates binary pearson distance between rows, returns distance matrix
 
@@ -1412,7 +1412,7 @@ if __name__ == "__main__":
                             [0,0,0,0],
                             [8,6,2,1],
                                     ])
-    
+
     res = dist_euclidean(matrix1)
     print("euclidean distance result: \n")
     print(res)

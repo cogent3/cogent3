@@ -35,7 +35,7 @@ class TestPeriod(TestCase):
         nse = nse[:len(t)]
         self.sig = sin(2*pi*t) + nse
         self.p = 10
-    
+
     def test_inner_funcs(self):
         """python and pyrexed implementation should be the same"""
         if pyrex_available is not True:
@@ -64,7 +64,7 @@ class TestPeriod(TestCase):
         period = 10
         self.assertFloatEqual(py_goertzel_inner(x, N, period),
                               pyx_goertzel_inner(x, N, period))
-        
+
         ulim = 8
         N = 8
         x = array([ 0.,  1.,  0., -1.,  0.,  1.,  0., -1.])
@@ -81,7 +81,7 @@ class TestPeriod(TestCase):
         pyx_result = pyx_ipdft_inner(x, X, W, ulim, N)
         for i, j in zip(py_result, pyx_result):
             self.assertFloatEqual(abs(i), abs(j))
-        
+
         x = array([-0.07827614, 0.56637551, 1.01320526, 1.01536245, 0.63548361,
                 0.08560101, -0.46094955, -0.78065656, -0.8893556 , -0.56514145,
                 0.02325272,  0.63660719,  0.86291302,  0.82953598,  0.5706848 ,
@@ -109,19 +109,19 @@ class TestPeriod(TestCase):
         pyx_autocorr_inner(x, pyx_xc, N)
         for i, j in zip(py_xc, pyx_xc):
             self.assertFloatEqual(i, j)
-    
+
     def test_autocorr(self):
         """correctly compute autocorrelation"""
         s = [1,1,1,1]
         X, periods = auto_corr(s, llim=-3, ulim=None)
         exp_X = array([1,2,3,4,3,2,1], dtype=float)
         self.assertEqual(X, exp_X)
-                
+
         auto_x, auto_periods = auto_corr(self.sig, llim=2, ulim=50)
         max_idx = list(auto_x).index(max(auto_x))
         auto_p = auto_periods[max_idx]
         self.assertEqual(auto_p, self.p) 
-    
+
     def test_dft(self):
         """correctly compute discrete fourier transform"""
         dft_x, dft_periods = dft(self.sig)
@@ -129,7 +129,7 @@ class TestPeriod(TestCase):
         max_idx = list(dft_x).index(max(dft_x))
         dft_p = dft_periods[max_idx]
         self.assertEqual(int(dft_p), self.p)
-    
+
     def test_ipdft(self):
         """correctly compute integer discrete fourier transform"""
         s = [0, 1, 0, -1, 0, 1, 0, -1]
@@ -138,18 +138,18 @@ class TestPeriod(TestCase):
                           0.302+0.627j, 0]))
         X = abs(X)
         self.assertFloatEqual(X, exp_X, eps=1e-3)
-        
+
         ipdft_x, ipdft_periods = ipdft(self.sig, llim=2, ulim=50)
         ipdft_x = abs(ipdft_x)
         max_idx = list(ipdft_x).index(max(ipdft_x))
         ipdft_p = ipdft_periods[max_idx]
         self.assertEqual(ipdft_p, self.p)
-    
+
     def test_goertzel(self):
         """goertzel and ipdft should be the same"""
         ipdft_pwr, ipdft_prd = ipdft(self.sig, llim=10, ulim=10)
         self.assertFloatEqual(goertzel(self.sig, 10), ipdft_pwr)
-    
+
     def test_hybrid(self):
         """correctly compute hybrid statistic"""
         hybrid_x, hybrid_periods = hybrid(self.sig, llim=None, ulim=50)
@@ -157,7 +157,7 @@ class TestPeriod(TestCase):
         max_idx = list(hybrid_x).index(max(hybrid_x))
         hybrid_p = hybrid_periods[max_idx]
         self.assertEqual(hybrid_p, self.p)
-    
+
     def test_hybrid_returns_all(self):
         """correctly returns hybrid, ipdft and autocorr statistics"""
         ipdft_pwr, ipdft_prd = ipdft(self.sig, llim=2, ulim=50)
@@ -168,7 +168,7 @@ class TestPeriod(TestCase):
         self.assertEqual(hybrid_ipdft_autocorr_stats[0], hybrid_x)
         self.assertEqual(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
         self.assertEqual(hybrid_ipdft_autocorr_stats[2], auto_x)
-        
+
         ipdft_pwr, ipdft_prd = ipdft(self.sig, llim=10, ulim=10)
         auto_x, auto_periods = auto_corr(self.sig, llim=10, ulim=10)
         hybrid_x, hybrid_periods = hybrid(self.sig, llim=10, ulim=10)

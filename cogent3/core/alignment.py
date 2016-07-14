@@ -64,7 +64,7 @@ eps = 1e-6  #small number: 1-eps is almost 1, and is used for things like the
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
     """Returns list of num_seqs sequential, unique names.
-    
+
     First argument is ignored; expect this to be set as a class attribute.
     """
     return ['%s_%s' % (base_name,i) for i in range(start_at,start_at+num_seqs)]
@@ -81,7 +81,7 @@ class SeqLabeler(object):
     def __call__(self, s):
         """Returns seq name from seq id"""
         return self._map[s.Name]
-    
+
 
 def coerce_to_string(s):
     """Converts an arbitrary sequence into a string."""
@@ -99,7 +99,7 @@ def coerce_to_string(s):
 
 def seqs_from_array(a, Alphabet=None):
     """SequenceCollection from array of pos x seq: names are integers.
-    
+
     This is an InputHandler for SequenceCollection. It converts an arbitrary
     array of numbers into Sequence objects using seq_constructor, and
     leaves the sequences unlabeled.
@@ -108,7 +108,7 @@ def seqs_from_array(a, Alphabet=None):
 
 def seqs_from_model_seqs(seqs, Alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
-    
+
     This is an InputHandler for SequenceCollection. It converts a list of
     Sequence objects with _data and Name properties into a SequenceCollection
     that uses those sequences.
@@ -117,7 +117,7 @@ def seqs_from_model_seqs(seqs, Alphabet=None):
 
 def seqs_from_generic(seqs, Alphabet=None):
     """SequenceCollection from generic seq x pos data: seq of seqs of chars.
-    
+
     This is an InputHandler for SequenceCollection. It converts a generic list
     (each item in the list will be mapped onto an object using
     seq_constructor and assigns sequential integers (0-based) as names.
@@ -132,7 +132,7 @@ def seqs_from_generic(seqs, Alphabet=None):
 
 def seqs_from_fasta(seqs, Alphabet=None):
     """SequenceCollection from FASTA-format string or lines.
-    
+
     This is an InputHandler for SequenceCollection. It converts a FASTA-format
     string or collection of lines into a SequenceCollection object, preserving
     order..
@@ -144,7 +144,7 @@ def seqs_from_fasta(seqs, Alphabet=None):
 
 def seqs_from_dict(seqs, Alphabet=None):
     """SequenceCollection from dict of {label:seq_as_str}.
-    
+
     This is an InputHandler for SequenceCollection. It converts a dict in
     which the keys are the names and the values are the sequences
     (sequence only, no whitespace or other formatting) into a
@@ -155,7 +155,7 @@ def seqs_from_dict(seqs, Alphabet=None):
 
 def seqs_from_kv_pairs(seqs, Alphabet=None):
     """SequenceCollection from list of (key, val) pairs.
-    
+
     This is an InputHandler for SequenceCollection. It converts a dict in
     which the keys are the names and the values are the sequences
     (sequence only, no whitespace or other formatting) into a
@@ -166,7 +166,7 @@ def seqs_from_kv_pairs(seqs, Alphabet=None):
 
 def seqs_from_aln(seqs, Alphabet=None):
     """SequenceCollection from existing SequenceCollection object: copies data.
-    
+
     This is relatively inefficient: you should really use the copy() method
     instead, which duplicates the internal data structures.
     """
@@ -179,13 +179,13 @@ def seqs_from_empty(obj, *args, **kwargs):
 @total_ordering
 class SequenceCollection(object):
     """Base class for Alignment, but also just stores unaligned seqs.
-    
+
     Handles shared functionality: detecting the input type, writing out the
     sequences as different formats, translating the sequences, chopping off
     stop codons, looking up sequences by name, etc.
-    
+
     A SequenceCollection must support:
-    
+
     - input handlers for different data types
     - SeqData: behaves like list of lists of chars, holds seq data
     - Seqs: behaves like list of Sequence objects, iterable in name order
@@ -204,23 +204,23 @@ class SequenceCollection(object):
                         'empty': seqs_from_empty,
                         'kv_pairs':seqs_from_kv_pairs,
                     }
-    
+
     IsArray = set(['array', 'model_seqs'])
-    
+
     DefaultNameFunction = assign_sequential_names
-    
+
     def __init__(self, data, Names=None, Alphabet=None, MolType=None, \
             Name=None, Info=None, conversion_f=None, is_array=False, \
             force_same_data=False, \
             remove_duplicate_names=False, label_to_name=None,
             suppress_named_seqs=False):
         """Initialize self with data and optionally Info.
-        
+
         We are always going to convert to characters, so Sequence objects
         in the collection will lose additional special attributes they have.
         This is somewhat inefficient, so it might be worth revisiting this
         decision later.
-        
+
         The handling of sequence names requires special attention. Depending
         on the input data, we might get the names from the sequences themselves,
         or we might add them from Names that are passed in. However, the Names
@@ -234,7 +234,7 @@ class SequenceCollection(object):
         despite the fact that they are in arbitrary order in the original
         input. In this second situation, it is imortant that the sequences not
         be relabeled.
-        
+
         This is handled as followed. If the sequences are passed in using a
         method that does not carry the names with it, the Names that are passed
         in will be handed out to successive sequences. If the sequences are
@@ -243,40 +243,40 @@ class SequenceCollection(object):
         not be relabeled. Note that if you're passing in a data type that
         is already labeled (e.g. a list of Sequence objects) you _must_ have
         unique names beforehand.
-        
+
         It's possible that this additional handling should be moved to a
         separate object; the motivation for having it on Alignment __init__
         is that it's easy for users to construct Alignment objects directly.
-        
+
         Parameters:
-        
+
         data:           Data to convert into a SequenceCollection
-        
+
         Names:          Order of Names in the alignment. Should match the
                         names of the sequences (after processing by
                         label_to_name if present).
-        
+
         Alphabet:       Alphabet to use for the alignment (primarily important
                         for DenseAlignment)
-        
+
         MolType:        MolType to be applied to the Alignment and to each seq.
-        
+
         Name:           Name of the SequenceCollection.
-        
+
         Info:           Info object to be attached to the alignment itself.
-        
+
         conversion_f:   Function to convert string into sequence.
-        
+
         is_array:       True if input is an array, False otherwise.
-        
+
         force_same_data: True if data will be used as the same object.
-        
+
         remove_duplicate_names: True if duplicate names are to be silently
                         deleted instead of raising errors.
-        
+
         label_to_name: if present, converts name into f(name).
         """
-        
+
         #read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
             data = list(data)
@@ -302,7 +302,7 @@ class SequenceCollection(object):
                 label_to_name, remove_duplicate_names, \
                 Alphabet=self.Alphabet)
             self.Names = name_order
-            
+
             #will take only the seqs and names that are in name_order
             if per_seq_names != name_order:
                 good_indices = []
@@ -314,7 +314,7 @@ class SequenceCollection(object):
                 else:
                     curr_seqs = [curr_seqs[i] for i in good_indices]
                 per_seq_names = name_order
-            
+
             #create NamedSeqs dict for fast lookups
             if not suppress_named_seqs:
                 self.NamedSeqs = self._make_named_seqs(self.Names, curr_seqs)
@@ -328,14 +328,14 @@ class SequenceCollection(object):
         """Returns self in FASTA-format, respecting name order."""
         return ''.join(['>%s\n%s\n' % (name, self.getGappedSeq(name))
                 for name in self.Names])
-    
+
     def _make_named_seqs(self, names, seqs):
         """Returns NamedSeqs: dict of name:seq."""
         name_seq_tuples = list(zip(names, seqs))
         for n, s in name_seq_tuples:
             s.Name = n
         return dict(name_seq_tuples)
-    
+
     def _set_additional_attributes(self, curr_seqs):
         """Sets additional attributes based on current seqs: class-specific."""
         self.SeqData = curr_seqs
@@ -344,17 +344,17 @@ class SequenceCollection(object):
             self.SeqLen = max(list(map(len, curr_seqs)))
         except ValueError: #got empty sequence, for some reason?
             self.SeqLen = 0
-    
+
     def _force_same_data(self, data, Names):
         """Forces dict that was passed in to be used as self.NamedSeqs"""
         self.NamedSeqs = data
         self.Names = Names or list(data.keys())
-    
+
     def copy(self):
         """Returns deep copy of self."""
         result = self.__class__(self, MolType=self.MolType, Info=self.Info)
         return result
-    
+
     def _get_alphabet_and_moltype(self, Alphabet, MolType, data):
         """Returns Alphabet and MolType, giving MolType precedence."""
         if Alphabet is None and MolType is None:
@@ -379,7 +379,7 @@ class SequenceCollection(object):
             except AttributeError:
                 Alphabet = MolType.Alphabet
         return Alphabet, MolType
-    
+
     def _get_container_item(self, data):
         """Checks container for item with Alphabet or MolType"""
         curr_item = None
@@ -447,7 +447,7 @@ class SequenceCollection(object):
             else: #got names from seqs, so assume name_order is in Names
                 per_seq_names = names
                 name_order = Names
-        
+
         #check for duplicate names
         duplicates, fixed_names, fixed_seqs = \
             self._strip_duplicates(per_seq_names, curr_seqs)
@@ -464,22 +464,22 @@ class SequenceCollection(object):
                 str(sorted(duplicates.keys())))
 
         return per_seq_names, curr_seqs, name_order
-    
+
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
-        
+
         Override in subclasses where this behavior should differ.
         """
         if is_array:
             seqs = list(map(str, list(map(self.MolType.ModelSeq, seqs))))
         return list(map(self.MolType.Sequence, seqs))
-    
+
     def _guess_input_type(self, data):
         """Guesses input type of data; returns result as key of InputHandlers.
-        
+
         First checks whether data is an Alignment, then checks for some common
         string formats, then tries to do it based on string or array properties.
-        
+
         Returns 'empty' if check fails, i.e. if it can't recognize the sequence
         as a specific type. Note that bad sequences are not guaranteed to
         return 'empty', and may be recognized as another type incorrectly.
@@ -524,23 +524,23 @@ class SequenceCollection(object):
             return 'generic'
         except (IndexError, TypeError) as e:
             return 'empty'
-    
+
     def __eq__(self, other):
         """first tests as dict, then as str"""
         c = self.NamedSeqs == other
         if not c:
             c = str(self) == str(other)
-        
+
         return c
-    
+
     def __ne__(self, other):
-            """first tests as dict, then as str"""
-            c = self.NamedSeqs != other
-            if not c:
-                c = str(self) != str(other)
-            
-            return c
-        
+        """first tests as dict, then as str"""
+        c = self.NamedSeqs != other
+        if not c:
+            c = str(self) != str(other)
+
+        return c
+
     def __lt__(self, other):
         """cmp first tests as dict, then as str."""
         c = self.NamedSeqs < other
@@ -548,35 +548,35 @@ class SequenceCollection(object):
             return 0
         else:
             return str(self) < str(other)
-    
+
     def keys(self):
         """keys uses self.Names, which defaults to known keys if None.
-        
+
         Note: returns copy, not original.
         """
         return self.Names[:]
-    
+
     def values(self):
         """values returns values corresponding to self.Names."""
         return [self.NamedSeqs[n] for n in self.Names]
-    
+
     def items(self):
         """items returns (name, value) pairs."""
         return [(n, self.NamedSeqs[n]) for n in self.Names]
-    
+
     def iterSeqs(self, seq_order=None):
         """Iterates over values (sequences) in the alignment, in order.
-        
+
         seq_order: list of keys giving the order in which seqs will be returned.
         Defaults to self.Names. Note that only these sequences will be
         returned, and that KeyError will be raised if there are sequences
         in order that have been deleted from the Alignment. If self.Names
         is None, returns the sequences in the same order as
         self.NamedSeqs.values().
-        
+
         Use map(f, self.seqs()) to apply the constructor f to each seq. f must
         accept a single list as an argument.
-        
+
         Always returns references to the same objects that are values of the
         alignment.
         """
@@ -584,14 +584,14 @@ class SequenceCollection(object):
         get = ns.__getitem__
         for key  in seq_order or self.Names:
             yield get(key)
-    
+
     def _take_seqs(self): return list(self.iterSeqs())
-    
+
     Seqs = property(_take_seqs)   #access as attribute if using default order.
-    
+
     def takeSeqs(self, seqs, negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
-        
+
         Note that the seqs in the new alignment will be references to the
         same objects as the seqs in the old alignment.
         """
@@ -599,7 +599,7 @@ class SequenceCollection(object):
         result = {}
         if 'MolType' not in kwargs:
             kwargs['MolType'] = self.MolType
-        
+
         if negate:
             #copy everything except the specified seqs
             negated_names = []
@@ -609,7 +609,7 @@ class SequenceCollection(object):
                     result[r] = row
                     negated_names.append(r)
             seqs = negated_names #remember to invert the list of names
-        
+
         else:
             #copy only the specified seqs
             for r in seqs:
@@ -618,10 +618,10 @@ class SequenceCollection(object):
             return self.__class__(result, Names=seqs, **kwargs)
         else:
             return {}   #safe value; can't construct empty alignment
-    
+
     def getSeqIndices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
-        
+
         List will be in the same order as self.Names, if present.
         """
         get = self.NamedSeqs.__getitem__
@@ -632,25 +632,25 @@ class SequenceCollection(object):
             new_f = f
         #get all the seqs where the function is True
         return [key for key in self.Names if new_f(get(key))]
-    
+
     def takeSeqsIf(self, f, negate=False, **kwargs):
         """Returns new Alignment containing seqs where f(row) is True.
-        
+
         Note that the seqs in the new Alignment are the same objects as the
         seqs in the old Alignment, not copies.
         """
         #pass negate to get SeqIndices
         return self.takeSeqs(self.getSeqIndices(f, negate), **kwargs)
-    
+
     def iterItems(self, seq_order=None, pos_order=None):
         """Iterates over elements in the alignment.
-        
+
         seq_order (names) can be used to select a subset of seqs.
         pos_order (positions) can be used to select a subset of positions.
-        
+
         Always iterates along a seq first, then down a position (transposes
         normal order of a[i][j]; possibly, this should change)..
-        
+
         WARNING: Alignment.iterItems() is not the same as alignment.iteritems()
         (which is the built-in dict iteritems that iterates over key-value
         pairs).
@@ -663,12 +663,12 @@ class SequenceCollection(object):
             for row in self.iterSeqs(seq_order):
                 for i in row:
                     yield i
-    
+
     Items = property(iterItems)
-    
+
     def getItems(self, items, negate=False):
         """Returns list containing only specified items.
-        
+
         items should be a list of (row_key, col_key) tuples.
         """
         get = self.NamedSeqs.__getitem__
@@ -686,7 +686,7 @@ class SequenceCollection(object):
         #otherwise, just pick the selected items out of the list
         else:
             return [get(row)[col] for row, col in items]
-    
+
     def getItemIndices(self, f, negate=False):
         """Returns list of (key,val) tuples where f(self.NamedSeqs[key][val])."""
         get = self.NamedSeqs.__getitem__
@@ -701,34 +701,34 @@ class SequenceCollection(object):
                 if new_f(item):
                     result.append((row_label, col_idx))
         return result
-    
+
     def getItemsIf(self, f, negate=False):
         """Returns list of items where f(self.NamedSeqs[row][col]) is True."""
         return self.getItems(self.getItemIndices(f, negate))
-    
+
     def getSimilar(self, target, min_similarity=0.0, max_similarity=1.0, \
         metric=frac_same, transform=None):
         """Returns new Alignment containing sequences similar to target.
-        
+
         target: sequence object to compare to. Can be in the alignment.
-        
+
         min_similarity: minimum similarity that will be kept. Default 0.0.
-        
+
         max_similarity: maximum similarity that will be kept. Default 1.0.
         (Note that both min_similarity and max_similarity are inclusive.)
-        
+
         metric: similarity function to use. Must be f(first_seq, second_seq).
         The default metric is fraction similarity, ranging from 0.0 (0%
         identical) to 1.0 (100% identical). The Sequence classes have lots
         of methods that can be passed in as unbound methods to act as the
         metric, e.g. fracSameGaps.
-        
+
         transform: transformation function to use on the sequences before
         the metric is calculated. If None, uses the whole sequences in each
         case. A frequent transformation is a function that returns a specified
         range of a sequence, e.g. eliminating the ends. Note that the
         transform applies to both the real sequence and the target sequence.
-        
+
         WARNING: if the transformation changes the type of the sequence (e.g.
         extracting a string from an RnaSequence object), distance metrics that
         depend on instance data of the original class may fail.
@@ -736,7 +736,7 @@ class SequenceCollection(object):
         if transform:
             target = transform(target)
         m = lambda x: metric(target, x)
-        
+
         if transform:
             def f(x):
                 result = m(transform(x))
@@ -745,15 +745,15 @@ class SequenceCollection(object):
             def f(x):
                 result = m(x)
                 return min_similarity <= result <= max_similarity
-        
+
         return self.takeSeqsIf(f)
-    
+
     def distanceMatrix(self, f):
         """Returns Matrix containing pairwise distances between sequences.
         f is the distance function f(x,y) -> distance between x and y.
-        
+
         It's often useful to pass an unbound method in as f.
-        
+
         Does not assume that f(x,y) == f(y,x) or that f(x,x) == 0.
         """
         get = self.NamedSeqs.__getitem__
@@ -769,7 +769,7 @@ class SequenceCollection(object):
                 result[i][j] = d
                 result[j][i] = d
         return result
-    
+
     def isRagged(self):
         """Returns True if alignment has sequences of different lengths."""
         seqs = self.Seqs      #Get all sequences in alignment
@@ -780,47 +780,47 @@ class SequenceCollection(object):
                 return True
         #lengths were all equal
         return False
-    
+
     def toPhylip(self, generic_label=True, make_seqlabel=None):
         """
         Return alignment in PHYLIP format and mapping to sequence ids
-        
+
         raises exception if invalid alignment
-        
+
         Arguments:
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
         return phylip_from_alignment(self, generic_label=generic_label,
                         make_seqlabel=make_seqlabel)
-    
+
     def toFasta(self, make_seqlabel=None):
         """Return alignment in Fasta format
-        
+
         Arguments:
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
         return fasta_from_alignment(self, make_seqlabel=make_seqlabel)
-    
+
     def toNexus(self, seq_type, interleave_len=50):
         """
         Return alignment in NEXUS format and mapping to sequence ids
-        
+
         **NOTE** Not that every sequence in the alignment MUST come from
             a different species!! (You can concatenate multiple sequences from
             same species together before building tree)
-        
+
         seq_type: dna, rna, or protein
-        
+
         Raises exception if invalid alignment
         """
         return nexus_from_alignment(self, seq_type,
                                 interleave_len=interleave_len)
-    
+
     def getIntMap(self,prefix='seq_'):
         """Returns a dict with names mapped to enumerates integer names.
-            
+
             - prefix: prefix for sequence label. Default = 'seq_'
             - int_keys is a dict mapping int names to sorted original names.
         """
@@ -829,27 +829,27 @@ class SequenceCollection(object):
                 enumerate(sorted(self.NamedSeqs.keys()))])
         int_map = dict([(k, copy(get(v))) for k,v in list(int_keys.items())])
         return int_map, int_keys
-    
+
     def getNumSeqs(self):
         """Returns the number of sequences in the alignment."""
         return len(self.NamedSeqs)
-    
+
     def copyAnnotations(self, unaligned):
         """Copies annotations from seqs in unaligned to self, matching by name. 
-        
+
         Alignment programs like ClustalW don't preserve annotations,
         so this method is available to copy annotations off the unaligned
         sequences.  
-        
+
         unaligned should be a dictionary of Sequence instances.
-        
+
         Ignores sequences that are not in self, so safe to use on larger dict
         of seqs that are not in the current collection/alignment.
         """
         for name, seq in list(unaligned.items()):
             if name in self.NamedSeqs:
                 self.NamedSeqs[name].copyAnnotations(seq)
-    
+
     def annotateFromGff(self, f):
         """Copies annotations from gff-format file to self.
 
@@ -874,7 +874,7 @@ class SequenceCollection(object):
    ''' 
     def replaceSeqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
-        
+
         Arguments:
             - aa_to_codon: If True (default) aligns codons from protein 
               alignment, or, more generally, substituting in codons from a set
@@ -885,32 +885,32 @@ class SequenceCollection(object):
 
         If seqs is an alignment, any gaps in it will be ignored.
         """
-        
+
         if aa_to_codon:
             scale = 3
         else:
             scale = 1
-        
+
         if hasattr(seqs, 'NamedSeqs'):
             seqs = seqs.NamedSeqs
         else:
             seqs = SequenceCollection(seqs).NamedSeqs
-        
+
         new_seqs = []
         for label in self.Names:
             aligned = self.NamedSeqs[label]
             seq = seqs[label]
-            
+
             if isinstance(seq, Aligned):
                 seq = seq.data
-            
+
             if not aa_to_codon and len(seq) != len(aligned.data):
                 raise ValueError("seqs have different lengths")
-            
+
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
-        
+
         return self.__class__(new_seqs)
-    
+
     def getGappedSeq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
@@ -918,24 +918,24 @@ class SequenceCollection(object):
         SequenceCollection or Alignment.
         """
         return self.NamedSeqs[seq_name]
-  
+
     def __add__(self, other):
         """Concatenates sequence data for same names"""
         aligned = isinstance(self, Alignment)
-        
+
         if len(self.NamedSeqs) != len(other.NamedSeqs):
             raise ValueError("Alignments don't have same number of sequences")
-        
+
         concatenated = []
         for name in self.Names:
             if name not in other.Names:
                 raise ValueError("Right alignment doesn't have a '%s'" % name)
             new_seq = self.NamedSeqs[name] + other.NamedSeqs[name]
             concatenated.append(new_seq)
-        
+
         new = self.__class__(MolType=self.MolType,
                                 data=list(zip(self.Names, concatenated)))
-        
+
         if aligned:
             left = [a for a in self._shiftedAnnotations(new, 0) \
                         if a.map.End <= len(self)]
@@ -943,20 +943,20 @@ class SequenceCollection(object):
                         if a.map.Start >= len(self)]
             new.annotations = left + right
         return new
-    
+
     def addSeqs(self, other, before_name=None, after_name=None):
         """Returns new object of class self with sequences from other added.
-        
+
         By default the sequence is appended to the end of the alignment,
         this can be changed by using either before_name or after_name arguments.
-        
+
         Arguments:
             - other: same class as self or coerceable to that class
             - before_name: str - [default:None] name of the sequence before
               which sequence is added
             - after_name: str - [default:None] name of the sequence after
               which sequence is added
-              
+
         If both before_name and after_name are specified, the seqs will be
         inserted using before_name.
         """
@@ -967,33 +967,33 @@ class SequenceCollection(object):
             combined = self.Seqs + other.Seqs
         except AttributeError:
             combined = self.Seqs + list(other)
-        
+
         for seq in combined:
             assert seq.__class__ == self_seq_class,\
                 "Seq classes different: Expected %s, Got %s" % \
                     (seq.__class__, self_seq_class)
-                    
+
         combined_aln = self.__class__(data=combined)
-        
+
         if before_name is None and after_name is None:
             return combined_aln
-        
+
         if (before_name and before_name not in self.Names) \
             or \
             (after_name and after_name not in self.Names):
             name = before_name or after_name
             raise ValueError("The alignment doesn't have a sequence named '{0}'" 
                 .format(name))
-        
+
         if before_name is not None: # someone might have seqname of int(0)
             index = self.Names.index(before_name)
         elif after_name is not None:
             index = self.Names.index(after_name) + 1
-        
+
         names_before = self.Names[:index]
         names_after = self.Names[index:]
         new_names = combined_aln.Names[len(self.Names):]
-        
+
         aln_new = combined_aln.takeSeqs(new_names)
         if len(names_before) > 0:
             aln_before = self.takeSeqs(names_before)
@@ -1001,32 +1001,32 @@ class SequenceCollection(object):
             combined_aln = combined_aln.addSeqs(aln_new)
         else:                
             combined_aln = aln_new
-        
+
         if len(names_after) > 0:
             aln_after = self.takeSeqs(names_after)
             combined_aln = combined_aln.addSeqs(aln_after)
-        
+
         return combined_aln
-    
+
     def writeToFile(self, filename=None, format=None, **kwargs):
         """Write the alignment to a file, preserving order of sequences.
-        
+
         Arguments:
         - filename: name of the sequence file
         - format: format of the sequence file
-        
+
         If format is None, will attempt to infer format from the filename
         suffix.
         """
-        
+
         if filename is None:
             raise DataError('no filename specified')
-        
+
         # need to turn the alignment into a dictionary
         align_dict = {}
         for seq_name in self.Names:
             align_dict[seq_name] = str(self.NamedSeqs[seq_name])
-        
+
         if format is None and '.' in filename:
             # allow extension to work if provided
             format = filename[filename.rfind(".")+1:]
@@ -1034,11 +1034,11 @@ class SequenceCollection(object):
         if 'order' not in kwargs:
             kwargs['order'] = self.Names
         save_to_filename(align_dict, filename, format, **kwargs)
-    
+
     def __len__(self):
         """len of SequenceCollection returns length of longest sequence."""
         return self.SeqLen
-    
+
     def getTranslation(self, gc=None, **kwargs):
         """Returns a new alignment object with the DNA sequences translated,
         using the current codon moltype, into an amino acid sequence.
@@ -1057,27 +1057,27 @@ class SequenceCollection(object):
             return self.__class__(translated, **kwargs)
         except AttributeError as msg:
             raise AttributeError("%s -- %s" % (msg, "Did you set a DNA MolType?"))
-    
+
     def getSeq(self, seqname):
         """Return a sequence object for the specified seqname.
         """
         return self.NamedSeqs[seqname]
-    
+
     def todict(self):
         """Returns the alignment as dict of names -> strings.
 
         Note: returns strings, NOT Sequence objects.
         """
         align_dict = {}
-        
+
         for seq_name in self.Names:
             align_dict[seq_name] = str(self.NamedSeqs[seq_name])
-        
+
         return align_dict
-    
+
     def getPerSequenceAmbiguousPositions(self):
         """Returns dict of seq:{position:char} for ambiguous chars.
-        
+
         Used in likelihood calculations.
         """
         result = {}
@@ -1087,7 +1087,7 @@ class SequenceCollection(object):
                 if self.MolType.isAmbiguity(motif):
                     ambig[i] = motif
         return result
-    
+
     def degap(self, **kwargs):
         """Returns copy in which sequences have no gaps."""
         new_seqs = []
@@ -1099,10 +1099,10 @@ class SequenceCollection(object):
                 seq = self.NamedSeqs[seq_name]
             new_seqs.append((seq_name, seq.degap()))
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
-    
+
     def withModifiedTermini(self):
         """Changes the termini to include termini char instead of gapmotif.
-        
+
         Useful to correct the standard gap char output by most
         alignment programs when aligned sequences have different ends.
         """
@@ -1111,10 +1111,10 @@ class SequenceCollection(object):
             seq = self.NamedSeqs[name].withTerminiUnknown()
             seqs.append((name, seq))
         return self.__class__(MolType=self.MolType, data=seqs)
-    
+
     def hasTerminalStops(self, gc=None, allow_partial=False):
         """Returns True if any sequence has a terminal stop codon.
-        
+
         Arguments:
             - gc: genetic code object
             - allow_partial: if True and the sequence length is not divisible
@@ -1129,10 +1129,10 @@ class SequenceCollection(object):
                 seq = self.NamedSeqs[seq_name]
             stops.append(seq.hasTerminalStop(gc=gc, allow_partial=allow_partial))
         return max(stops)
-    
+
     def withoutTerminalStopCodons(self, gc=None, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
-        
+
         Arguments:
             - gc: genetic code object
             - allow_partial: if True and the sequence length is not divisible
@@ -1140,7 +1140,7 @@ class SequenceCollection(object):
         """
         new_seqs = []
         aligned = isinstance(self, Alignment)
-        
+
         new_length = 0
         for seq_name in self.Names:
             old_seq = self.NamedSeqs[seq_name]
@@ -1149,36 +1149,36 @@ class SequenceCollection(object):
                                             allow_partial=allow_partial)
                 new_seqs.append((seq_name, new_seq))
                 continue
-            
+
             new_seq = old_seq.data.withoutTerminalStopCodon(gc=gc,
                                         allow_partial=allow_partial)
-            
+
             diff = len(old_seq.data._seq) - len(new_seq._seq)
             if diff and not old_seq.map.spans[-1].lost:
                 new_length = max(new_length, (len(old_seq) - diff))
-            
+
             # calc lengths of gaps up to last span, add to raw seq length
             seq_length = sum([len(s) for s in old_seq.map.spans[:-1] if s.lost])
             seq_length += len(new_seq._seq)
-            
+
             new_length = max(new_length, seq_length)
-            
+
             new_seqs.append([seq_name, diff, old_seq.map, new_seq])
-        
+
         if aligned:
             if new_length == 0: # all seqs ended in a gap
                 new_length = len(self)
-            
+
             self_length = len(self)
             aln_diff = self_length - new_length
             assert aln_diff >= 0
-            
+
             for i, data in enumerate(new_seqs):
                 seq_name, diff, old_map, new_seq = data
                 if not aln_diff == diff == 0:
                     # duplicate the spans
                     spans = [deepcopy(s) for s in old_map.spans]
-                
+
                 if diff == 0: # seq unchanged
                     if aln_diff == 0: # aln length unchanged
                         new_map = old_map
@@ -1193,7 +1193,7 @@ class SequenceCollection(object):
                     seq = Aligned(new_map, new_seq)
                     new_seqs[i] = (seq_name, seq)
                     continue
-                
+
                 # seq length has changed, establish whether we need to adjust
                 # the last one and/or to add a lost span
                 index = -2
@@ -1204,25 +1204,25 @@ class SequenceCollection(object):
                     spans.append(LostSpan(diff))
                 else:
                     index = -1
-                
+
                 spans[index].End -= diff
                 spans[index].length -= diff
-                
+
                 new_map = Map(spans=spans, parent_length=new_length)
                 seq = Aligned(new_map, new_seq)
                 new_seqs[i] = (seq_name, seq)
-        
+
         return self.__class__(MolType=self.MolType, data=new_seqs, **kwargs)
-    
+
     def getSeqNames(self):
         """Return a list of sequence names."""
         return self.Names[:]
-    
+
     def getMotifProbs(self, alphabet=None, include_ambiguity=False,
             exclude_unobserved=False, allow_gap=False, pseudocount=0):
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.
-        
+
         Arguments:
             - include_ambiguity: if True resolved ambiguous codes are
               included in estimation of frequencies, default is False.
@@ -1235,7 +1235,7 @@ class SequenceCollection(object):
             alphabet = self.MolType.Alphabet
             if allow_gap:
                 alphabet = alphabet.Gapped
-        
+
         counts = {}
         for seq_name in self.Names:
             sequence = self.NamedSeqs[seq_name]
@@ -1247,17 +1247,17 @@ class SequenceCollection(object):
                 if not allow_gap:
                     if self.MolType.Gap in motif:
                         continue
-                
+
                 if motif in counts:
                     counts[motif] += 1
                 else:
                     counts[motif] = 1
-        
+
         probs = {}
         if not exclude_unobserved:
             for motif in alphabet:
                 probs[motif] = pseudocount
-        
+
         for (motif, count) in list(counts.items()):
             motif_set = alphabet.resolveAmbiguity(motif)
             if len(motif_set) > 1:
@@ -1267,31 +1267,31 @@ class SequenceCollection(object):
                     continue
             for motif in motif_set:
                 probs[motif] = probs.get(motif, pseudocount) + count
-        
+
         total = float(sum(probs.values()))
         for motif in probs:
             probs[motif] /= total
-        
+
         return probs
-    
+
     def getGapCount(self, seq_name):
         return len(self.NamedSeqs[seq_name].map.gaps())
-    
+
     def getSeqFreqs(self):
         """Returns Profile of counts: seq by character.
-        
+
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-sequence (i.e. per row).
         """
         return Profile(self._get_freqs(0), self.Alphabet)
-    
+
     def _make_gaps_ok(self, allowed_gap_frac):
         """Makes the gaps_ok function used by omitGapPositions and omitGapSeqs.
-        
+
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
         use of map() in takeSeqsIf.
-        
+
         WARNING: may not work correctly if component sequences have gaps that
         are not the Alignment gap character. This is because the gaps are
         checked at the position level (and the positions are lists), rather than
@@ -1305,24 +1305,24 @@ class SequenceCollection(object):
             except AttributeError:
                 num_gaps = len(list(filter(self.MolType.Gaps.__contains__, seq)))
             return num_gaps / seq_len <= allowed_gap_frac
-        
+
         return gaps_ok
-    
+
     def omitGapPositions(self, allowed_gap_frac=1-eps, del_seqs=False, \
         allowed_frac_bad_cols=0, seq_constructor=None):
         """Returns new alignment where all cols have <= allowed_gap_frac gaps.
-        
+
         allowed_gap_frac says what proportion of gaps is allowed in each
         column (default is 1-eps, i.e. all cols with at least one non-gap
         character are preserved).
-        
+
         If del_seqs is True (default:False), deletes the sequences that don't
         have gaps where everything else does. Otherwise, just deletes the
         corresponding column from all sequences, in which case real data as
         well as gaps can be removed.
-        
+
         Uses seq_constructor(seq) to make each new sequence object.
-        
+
         Note: a sequence that is all gaps will not be deleted by del_seqs
         (even if all the positions have been deleted), since it has no non-gaps
         in positions that are being deleted for their gap content. Possibly,
@@ -1343,14 +1343,14 @@ class SequenceCollection(object):
         cols_to_delete = dict.fromkeys(self.getPositionIndices(gaps_ok, \
             negate=True))
         default_gap_f = self.MolType.Gaps.__contains__
-        
+
         bad_cols_per_row = {}
         for key, row in list(self.NamedSeqs.items()):
             try:
                 is_gap = row.Alphabet.Gaps.__contains__
             except AttributeError:
                 is_gap = default_gap_f
-            
+
             for col in cols_to_delete:
                 if not is_gap(str(row)[col]):
                     if key not in bad_cols_per_row:
@@ -1373,23 +1373,23 @@ class SequenceCollection(object):
                 seq_constructor=seq_constructor)
         else:
             return {}
-    
+
     def omitGapSeqs(self, allowed_gap_frac=0):
         """Returns new alignment with seqs that have <= allowed_gap_frac.
-        
+
         allowed_gap_frac should be a fraction between 0 and 1 inclusive.
         Default is 0.
         """
         gaps_ok = self._make_gaps_ok(allowed_gap_frac)
-        
+
         return self.takeSeqsIf(gaps_ok)
-    
+
     def omitGapRuns(self, allowed_run=1):
         """Returns new alignment where all seqs have runs of gaps <=allowed_run.
-        
+
         Note that seqs with exactly allowed_run gaps are not deleted.
         Default is for allowed_run to be 1 (i.e. no consecutive gaps allowed).
-        
+
         Because the test for whether the current gap run exceeds the maximum
         allowed gap run is only triggered when there is at least one gap, even
         negative values for allowed_run will still let sequences with no gaps
@@ -1411,12 +1411,12 @@ class SequenceCollection(object):
             #can only get here if max_run was never exceeded (although this
             #does include the case where the sequence is empty)
             return True
-        
+
         return self.takeSeqsIf(ok_gap_run)
-    
+
     def omitSeqsTemplate(self, template_name, gap_fraction, gap_run):
         """Returns new alignment where all seqs are well aligned with template.
-        
+
         gap_fraction = fraction of positions that either have a gap in the
             template but not in the seq or in the seq but not in the template
         gap_run = number of consecutive gaps tolerated in query relative to
@@ -1425,7 +1425,7 @@ class SequenceCollection(object):
         template = self.NamedSeqs[template_name]
         gap_filter = make_gap_filter(template, gap_fraction, gap_run)
         return self.takeSeqsIf(gap_filter)
-    
+
     def toDna(self):
         """Returns the alignment as DNA."""
         seqs = [self.NamedSeqs[name].toDna() for name in self.Names]
@@ -1433,7 +1433,7 @@ class SequenceCollection(object):
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
-    
+
     def toRna(self):
         """Returns the alignment as RNA"""
         seqs = [self.NamedSeqs[name].toRna() for name in self.Names]
@@ -1441,7 +1441,7 @@ class SequenceCollection(object):
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
-    
+
     def rc(self):
         """Returns the reverse complement alignment"""
         seqs = [self.NamedSeqs[name].rc() for name in self.Names]
@@ -1449,14 +1449,14 @@ class SequenceCollection(object):
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
-    
+
     def reversecomplement(self):
         """Returns the reverse complement alignment. A synonymn for rc."""
         return self.rc()
-    
+
     def padSeqs(self, pad_length=None, **kwargs):
         """Returns copy in which sequences are padded to same length.
-            
+
             pad_length: Length all sequences are to be padded to.  Will pad
                 to max sequence length if pad_length is None or less than max
                 length.
@@ -1472,7 +1472,7 @@ class SequenceCollection(object):
         #pad_length is max sequence length.
         else:
             pad_length = max_len
-            
+
         #Get new sequence list
         new_seqs = []
         aligned = isinstance(self, Alignment)
@@ -1484,15 +1484,15 @@ class SequenceCollection(object):
                 seq = self.NamedSeqs[seq_name]
             padded_seq = seq + '-'*(pad_length-len(seq))
             new_seqs.append((seq_name, padded_seq))
-            
+
         #return new SequenceCollection object
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
-        
+
 @total_ordering
 class Aligned(object):
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
-    
+
     def __init__(self, map, data, length=None):
         #Unlike the normal map constructor, here we take a list of pairs of
         #alignment coordinates, NOT a list of pairs of sequence coordinates
@@ -1508,7 +1508,7 @@ class Aligned(object):
     def _get_moltype(self):
         return self.data.MolType
     MolType = property(_get_moltype)
-    
+
     def copy(self, memo=None, _nil=[], constructor='ignored'):
         """Returns a shallow copy of self
 
@@ -1524,48 +1524,48 @@ class Aligned(object):
 
     def __repr__(self):
         return '%s of %s' % (repr(self.map), repr(self.data))
-    
+
     def withTerminiUnknown(self):
         return self.__class__(self.map.withTerminiUnknown(), self.data)
-    
+
     def copyAnnotations(self, other):
         self.data.copyAnnotations(other)
-    
+
     def annotateFromGff(self, f):
         self.data.annotate_from_gff(f)
 
     def addFeature(self, *args, **kwargs):
         self.data.addFeature(*args, **kwargs)
-    
+
     def __str__(self):
         """Returns string representation of aligned sequence, incl. gaps."""
         return str(self.getGappedSeq())
-    
+
     def __lt__(self, other):
         """Compares based on string representations."""
         return str(self) < str(other)
-    
+
     def __eq__(self, other):
         """Compares based on string representations."""
         return str(self) == str(other)
-    
+
     def __ne__(self, other):
         """Compares based on string representations."""
         return str(self) != str(other)
-    
+
     def __iter__(self):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         return self.data.gappedByMapMotifIter(self.map)
-    
+
     def getGappedSeq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
         return self.data.gappedByMap(self.map, recode_gaps)
-    
+
     def __len__(self):
         # these make it look like Aligned should be a subclass of Map,
         # but then you have to be careful with __getitem__, __init__ and inverse.
         return len(self.map)
-    
+
     def __add__(self, other):
         if self.data is other.data:
             (map, seq) = (self.map + other.map, self.data)
@@ -1573,23 +1573,23 @@ class Aligned(object):
             seq = self.getGappedSeq() + other.getGappedSeq()
             (map, seq) = seq.parseOutGaps()
         return Aligned(map, seq)
-            
+
     def __getitem__(self, slice):
         return Aligned(self.map[slice], self.data)
-    
+
     def rc(self):
         return Aligned(self.map.reversed(), self.data)
-        
+
     def toRna(self):
         return Aligned(self.map, self.data.toRna())
-        
+
     def toDna(self):
         return Aligned(self.map, self.data.toDna())
-        
+
     def getTracks(self, policy):
         policy = policy.at(self.map.inverse())
         return self.data.getTracks(policy)
-    
+
     def remappedTo(self, map):
         #assert map is self.parent_map or ... ?
         #print 'REMAP', self.map, self
@@ -1598,33 +1598,33 @@ class Aligned(object):
         #print 'GIVES', result.map, result
         #print
         return result
-    
+
     def getAnnotationsMatching(self, alignment, *args):
         for annot in self.data.getAnnotationsMatching(*args):
             yield annot.remappedTo(alignment, self.map.inverse())
-    
+
     def gapVector(self):
         """Returns gapVector of GappedSeq, for omitGapPositions."""
         return self.getGappedSeq().gapVector()
-    
+
     def _masked_annotations(self, annot_types, mask_char, shadow):
         """returns a new aligned sequence with regions defined by align_spans
         and shadow masked."""
         new_data = self.data.withMaskedAnnotations(annot_types, mask_char, shadow)
         # we remove the mask annotations from self and new_data
         return self.__class__(self.map, new_data)
-    
+
 
 class AlignmentI(object):
     """Alignment interface object. Contains methods shared by implementations.
-    
+
     Note that subclasses should inherit both from AlignmentI and from
     SequenceCollection (typically).
-    
+
     Alignments are expected to be immutable once created. No mechanism is
     provided for maintaining reference consistency if data in the alignment
     are modified.
-    
+
     An Alignment is expected to be able to generate the following:
     - Seqs:         Sequence objects in the alignment, can turn themselves into
                     strings. These are usually thought of as "rows" in an
@@ -1642,19 +1642,19 @@ class AlignmentI(object):
     """
     DefaultGap = '-'                #default gap character for padding
     GapChars = dict.fromkeys('-?')  #default gap chars for comparisons
-    
+
     def iterPositions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
-        
+
         pos_order refers to a list of indices (ints) specifying the column
         order. This lets you rearrange positions if you want to (e.g. to pull
         out individual codon positions).
-        
+
         Note that self.iterPositions() always returns new objects, by default
         lists of elements. Use map(f, self.iterPositions) to apply the
         constructor or function f to the resulting lists (f must take a single
         list as a parameter).
-        
+
         Will raise IndexError if one of the indices in order exceeds the
         sequence length. This will always happen on ragged alignments:
         assign to self.SeqLen to set all sequences to the same length.
@@ -1664,15 +1664,15 @@ class AlignmentI(object):
         seq_order = self.Names
         for pos in pos_order:
             yield [get(seq)[pos] for seq in seq_order]
-    
+
     Positions = property(iterPositions)
-    
+
     def takePositions(self, cols, negate=False, seq_constructor=None):
         """Returns new Alignment containing only specified positions.
-        
+
         By default, the seqs will be lists, but an alternative constructor
         can be specified.
-        
+
         Note that takePositions will fail on ragged positions.
         """
         if seq_constructor is None:
@@ -1689,7 +1689,7 @@ class AlignmentI(object):
             for key, row in list(self.NamedSeqs.items()):
                 result[key] = seq_constructor([row[i] for i in cols])
         return self.__class__(result, Names=self.Names)
-    
+
     def getPositionIndices(self, f, negate=False):
         """Returns list of column indices for which f(col) is True."""
         #negate f if necessary
@@ -1698,10 +1698,10 @@ class AlignmentI(object):
         else:
             new_f = f
         return [i for i, col in enumerate(self.Positions) if new_f(col)]
-    
+
     def takePositionsIf(self, f, negate=False, seq_constructor=None):
         """Returns new Alignment containing cols where f(col) is True.
-        
+
         Note that the seqs in the new Alignment are always new objects. Default
         constructor is list(), but an alternative can be passed in.
         """
@@ -1709,7 +1709,7 @@ class AlignmentI(object):
             seq_constructor = self.MolType.Sequence
         return self.takePositions(self.getPositionIndices(f, negate), \
             seq_constructor=seq_constructor)
-    
+
     def IUPACConsensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
         """
@@ -1720,32 +1720,32 @@ class AlignmentI(object):
         for col in self.Positions:
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
-    
+
     def columnFreqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
         return list(map(constructor, self.Positions))
-    
+
     def columnProbs(self, constructor=Freqs):
         """Returns FrequencyDistribuutions w/ prob. of each item per column.
-        
+
         Implemented as a list of normalized Freqs objects.
         """
         freqs = self.columnFreqs(constructor)
-        
+
         for fd in freqs:
             fd.normalize()
         return freqs
-    
+
     def majorityConsensus(self, transform=None, constructor=Freqs):
         """Returns list containing most frequent item at each position.
-        
+
         Optional parameter transform gives constructor for type to which result
         will be converted (useful when consensus should be same type as
         originals).
         """
         col_freqs = self.columnFreqs(constructor)
-        
+
         consensus = [freq.Mode for freq in col_freqs]
         if transform == str:
             return coerce_to_string(consensus)
@@ -1753,12 +1753,12 @@ class AlignmentI(object):
             return transform(consensus)
         else:
             return consensus
-    
+
     def uncertainties(self, good_items=None):
         """Returns Shannon uncertainty at each position.
-        
+
         Usage: information_list = alignment.information(good_items=None)
-        
+
         If good_items is supplied, deletes any symbols that are not in
         good_items.
         """
@@ -1781,27 +1781,27 @@ class AlignmentI(object):
                 prob.normalize()
             uncertainties.append(prob.Uncertainty)
         return uncertainties
-    
+
     def scoreMatrix(self):
         """Returns a position specific score matrix for the alignment."""
         return Dict2D(dict([(i,Freqs(col)) for i, col in enumerate(self.Positions)]))
-    
+
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
-        
+
         index: if 0, will calculate the frequency of each symbol in each
         position (=column) in the alignment. Will return 2D array where the
         first index is the position, and the second index is the index of the
         symbol in the alphabet. For example, for the TCAG DNA Alphabet,
         result[3][0] would store the count of T at position 3 (i.e. the 4th
         position in the alignment.
-        
+
         if 1, does the same thing except that the calculation is performed for
         each sequence, so the 2D array has the sequence index as the first
         index, and the symbol index as the second index. For example, for the
         TCAG DNA Alphabet, result[3][0] would store the count of T in the
         sequence at index 3 (i.e. the 4th sequence).
-        
+
         First an DenseAligment object is created, next the calculation is done
         on this object. It is important that the DenseAlignment is initialized
         with the same MolType and Alphabet as the original Alignment.
@@ -1811,7 +1811,7 @@ class AlignmentI(object):
 
     def getPosFreqs(self):
         """Returns Profile of counts: position by character.
-        
+
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-position (i.e. per column).
         """
@@ -1828,8 +1828,8 @@ class AlignmentI(object):
               positions
             - random_series: a random number generator with
               .randint(min,max) .random() methods
-              
-            
+
+
         Notes: 
             By default (resampling all positions without replacement), generates
             a permutation of the positions of the alignment.
@@ -1867,56 +1867,56 @@ class AlignmentI(object):
         if start < end and len(self)-end >= window-1:
             for pos in range(start, end, step):
                 yield self[pos:pos+window]
-        
+
     def toPretty(self, name_order=None, interleave_len=None):
         """returns a string representation of the alignment in pretty print format
-        
+
         Arguments:
             - name_order: order of names for display.
             - interleave_len: maximum number of printed bases, defaults to alignment length"""
         output = defaultdict(list)
         names = name_order or self.Names
         num_seqs = len(names)
-        
+
         seqs = []
         for name in names:
             seq = str(self.NamedSeqs[name])
             seqs.append(seq)
-        
+
         positions = list(zip(*seqs))
-        
+
         for position in positions:
             ref = position[0]
             output[names[0]].append(ref)
             for seq_num in range(1, num_seqs):
                 val = '.' if position[seq_num] == ref else position[seq_num]
                 output[names[seq_num]].append(val)
-        
+
         label_width = max(list(map(len, names)))
         name_template = '{:>%d}' % label_width
         display_names = dict([(n, name_template.format(n)) for n in names])
-        
+
         make_line = lambda label, seq: "%s    %s" % (label, seq)
         if interleave_len is None:
             result = [make_line(display_names[n], ''.join(output[n])) for n in names]
             return '\n'.join(result)
-        
+
         align_length = len(self)
         result = []
         for start in range(0, align_length, interleave_len):
             for n in names:
                 result.append(make_line(display_names[n], ''.join(output[n][start: start+interleave_len])))
-            
+
             result.append('')
-        
+
         if not result[-1]:
             del(result[-1])
-        
+
         return '\n'.join(result)
-  
+
 def aln_from_array(a, array_type=None, Alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
-    
+
     This is an InputHandler for Alignment. It converts an arbitrary array
     of numbers without change, but adds successive integer names (0-based) to
     each sequence (i.e. column) in the input a. Data type of input is
@@ -1930,17 +1930,17 @@ def aln_from_array(a, array_type=None, Alphabet=None):
 
 def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
-    
+
     This is an InputHandler for Alignment. It converts a list of Sequence
     objects with _data and Label properties into the character array Alignment
     needs. All sequences must be the same length.
-    
+
     WARNING: Assumes that the ModelSeqs are already in the right alphabet. If
     this is not the case, e.g. if you are putting sequences on a degenerate
     alphabet into a non-degenerate alignment or you are putting protein
     sequences into a DNA alignment, there will be problems with the alphabet
     mapping (i.e. the resulting sequences may be meaningless).
-    
+
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
     data, names = [], []
@@ -1954,12 +1954,12 @@ def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
 
 def aln_from_generic(data, array_type=None, Alphabet=None):
     """Alignment from generic seq x pos data: sequence of sequences of chars.
-    
+
     This is an InputHandler for Alignment. It converts a generic list (each
     item in the list will be mapped onto an Array object, with character
     transformations, all items must be the same length) into a numpy array,
     and assigns sequential integers (0-based) as names.
-    
+
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
     result = array(list(map(Alphabet.toIndices, data)))
@@ -1984,11 +1984,11 @@ def aln_from_collection(seqs, array_type=None, Alphabet=None):
 
 def aln_from_fasta(seqs, array_type=None, Alphabet=None):
     """Alignment from FASTA-format string or lines.
-    
+
     This is an InputHandler for Alignment. It converts a FASTA-format string
     or collection of lines into an Alignment object. All sequences must be the
     same length.
-    
+
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
     if isinstance(seqs, str):
@@ -1998,7 +1998,7 @@ def aln_from_fasta(seqs, array_type=None, Alphabet=None):
 
 def aln_from_dict(aln, array_type=None, Alphabet=None):
     """Alignment from dict of {label:seq_as_str}.
-    
+
     This is an InputHandler for Alignment. It converts a dict in which the
     keys are the names and the values are the sequences (sequence only, no
     whitespace or other formatting) into an alignment. Because the dict
@@ -2009,7 +2009,7 @@ def aln_from_dict(aln, array_type=None, Alphabet=None):
 
 def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
     """Alignment from sequence of (key, value) pairs.
-    
+
     This is an InputHandler for Alignment. It converts a list in which the
     first item of each pair is the label and the second item is the sequence
     (sequence only, no whitespace or other formatting) into an alignment.
@@ -2021,7 +2021,7 @@ def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
 
 def aln_from_dense_aln(aln, array_type=None, Alphabet=None):
     """Alignment from existing DenseAlignment object: copies data.
-    
+
     Retrieves data from Positions field. Uses copy(), so array data type
     should be unchanged.
     """
@@ -2039,7 +2039,7 @@ def aln_from_empty(obj, *args, **kwargs):
 
 class DenseAlignment(AlignmentI, SequenceCollection):
     """Holds a dense array representing a multiple sequence alignment.
-    
+
     An Alignment is _often_, but not necessarily, an array of chars. You might
     want to use some other data type for the alignment if you have a large
     number of symbols. For example, codons on an ungapped DNA alphabet has
@@ -2050,17 +2050,17 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     max value, e.g. 255 for uint8), so in this case you would need to use
     UInt16, which can hold 65536 values. DO NOT USE SIGNED DATA TYPES FOR YOUR
     ALIGNMENT ARRAY UNLESS YOU LOVE MISERY AND HARD-TO-DEBUG PROBLEMS.
-    
+
     Implementation: aln[i] returns position i in the alignment.
-    
+
     aln.Positions[i] returns the same as aln[i] -- usually, users think of this
     as a 'column', because alignment editors such as Clustal typically display
     each sequence as a row so a position that cuts across sequences is a
     column.
-    
+
     aln.Seqs[i] returns a sequence, or 'row' of the alignment in standard
     terminology.
-    
+
     WARNING: aln.Seqs and aln.Positions are different views of the same array,
     so if you change one you will change the other. This will no longer be
     true if you assign to Seqs or Positions directly, so don't do it. If you
@@ -2069,36 +2069,36 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     get the two views out of sync, you will get all sorts of exceptions. No
     validation is performed on aln.Seqs and aln.Positions for performance
     reasons, so this can really get you into trouble.
-    
+
     Alignments are immutable, though this is not enforced. If you change the
     data after the alignment is created, all sorts of bad things might happen.
-    
+
     Class properties:
     Alphabet: should be an Alphabet object. Must provide mapping between items
     (possibly, but not necessarily, characters) in the alignment and indices
     of those characters in the resulting Alignment object.
-    
+
     SequenceType: Constructor to use when building sequences. Default: Sequence
-    
+
     InputHandlers: dict of {input_type:input_handler} where input_handler is
     from the InputHandlers above and input_type is a result of the method
     self._guess_input_type (should always be a string).
-    
+
     Creating a new array will always result in a new object unless you use
     the force_same_object=True parameter.
-    
+
     WARNING: Rebinding the Names attribute in a DenseAlignment is not
     recommended because not all methods will use the updated name order. This
     is because the original sequence and name order are used to produce data
     structures that are cached for efficiency, and are not updated if you
     change the Names attribute.
-    
+
     WARNING: DenseAlignment strips off Info objects from sequences that have
     them, primarily for efficiency.
     """
     MolType = None             #will be set to BYTES on moltype import
     Alphabet = None            #will be set to BYTES.Alphabet on moltype import
-    
+
     InputHandlers = {   'array':aln_from_array,
                         'model_seqs':aln_from_model_seqs,
                         'generic':aln_from_generic,
@@ -2110,7 +2110,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                         'kv_pairs':aln_from_kv_pairs,
                         'empty':aln_from_empty,
                     }
-    
+
     def __init__(self, *args, **kwargs):
         """Returns new DenseAlignment object. Inherits from SequenceCollection.
         """
@@ -2129,13 +2129,13 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             data = data._positions
         self.ArrayPositions = data
         self.Names = Names or self.DefaultNameFunction(len(data[0]))
-    
+
     def _get_positions(self):
         """Override superclass Positions to return positions as symbols."""
         return list(map(self.Alphabet.fromIndices, self.ArrayPositions))
-    
+
     Positions = property(_get_positions)
-    
+
     def _get_named_seqs(self):
         if not hasattr(self, '_named_seqs'):
             seqs = list(map(self.Alphabet.toString, self.ArraySeqs))
@@ -2143,66 +2143,66 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                 seqs = list(map(self.MolType.Sequence, seqs))
             self._named_seqs = self._make_named_seqs(self.Names, seqs)
         return self._named_seqs
-    
+
     NamedSeqs = property(_get_named_seqs)
-    
+
     def keys(self):
         """Supports dict-like interface: returns names as keys."""
         return self.Names
-    
+
     def values(self):
         """Supports dict-like interface: returns seqs as Sequence objects."""
         return [self.Alphabet.MolType.ModelSeq(i, Alphabet=self.Alphabet) \
             for i in self.ArraySeqs]
-    
+
     def items(self):
         """Supports dict-like interface; returns (name, seq) pairs."""
         return list(zip(list(self.keys()), list(self.values())))
-    
+
     def __iter__(self):
         """iter(aln) iterates over positions, returning array slices.
-        
+
         Each item in the result is be a position ('column' in standard
         terminology) within the alignment, with the sequneces in the same
         order as in the names.
-        
+
         The result shares data with the original array, so if you change
         the result you change the Alignment.
         """
         return iter(self.Positions)
-    
+
     def __getitem__(self, item):
         """getitem delegates to self.Positions., returning array slices.
-        
+
         The result is a column or slice of columns, supporting full slice
         functionality (including stride). Use this to get a selection of
         positions from the alignment.
-        
+
         Result shares data with the original array, so if you change the
         result you change the Alignment.
         """
         return self.Positions[item]
-    
+
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
-        
+
         Override in subclasses where this behavior should differ.
         """
         return seqs
-    
+
     def getSubAlignment(self, seqs=None, pos=None, invert_seqs=False, \
         invert_pos=False):
         """Returns subalignment of specified sequences and positions.
-        
+
         seqs and pos can be passed in as lists of sequence indices to keep
         or positions to keep.
-        
+
         invert_seqs: if True (default False), gets everything _except_ the
         specified sequences.
-        
+
         invert_pos: if True (default False), gets everything _except_ the
         specified positions.
-        
+
         Unlike most of the other code that gets things out of an alignment,
         this method returns a new alignment that does NOT share data with the
         original alignment.
@@ -2228,10 +2228,10 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             names = self.Names
         return self.__class__(data, list(map(str,names)), self.Alphabet, \
             conversion_f=aln_from_array)
-    
+
     def __str__(self):
         """Returns FASTA-format string.
-        
+
         Should be able to handle joint alphabets, e.g. codons.
         """
         result = []
@@ -2241,17 +2241,17 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         for l, s in zip(self.Names, self.ArraySeqs):
             result.append('>'+str(l)+'\n'+''.join(seq2str(s)))
         return '\n'.join(result) + '\n'
-    
+
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
-        
+
         index: if 0, will calculate the frequency of each symbol in each
         position (=column) in the alignment. Will return 2D array where the
         first index is the position, and the second index is the index of the
         symbol in the alphabet. For example, for the TCAG DNA Alphabet,
         result[3][0] would store the count of T at position 3 (i.e. the 4th
         position in the alignment.
-        
+
         if 1, does the same thing except that the calculation is performed for
         each sequence, so the 2D array has the sequence index as the first
         index, and the symbol index as the second index. For example, for the
@@ -2264,18 +2264,18 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             a = self.ArraySeqs
         count_f = self.Alphabet.counts
         return array(list(map(count_f, a)))
-    
+
     def getPosFreqs(self):
         """Returns Profile of counts: position by character.
-        
+
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-position (i.e. per column).
         """
         return Profile(self._get_freqs(1), self.Alphabet)
-    
+
     def getSeqEntropy(self):
         """Returns array containing Shannon entropy for each seq in self.
-        
+
         Uses the profile object from getSeqFreqs (see docstring) to calculate
         the per-symbol entropy in each sequence in the alignment, i.e. the
         uncertainty about each symbol in each sequence (or row). This can be
@@ -2284,10 +2284,10 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         p = self.getSeqFreqs()
         p.normalizePositions()
         return p.rowUncertainty()
-    
+
     def getPosEntropy(self):
         """Returns array containing Shannon entropy for each pos in self.
-        
+
         Uses the profile object from getPosFreqs (see docstring) to calculate
         the per-symbol entropy in each position in the alignment, i.e. the
         uncertainty about each symbol at each position (or column). This can
@@ -2297,7 +2297,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         p = self.getPosFreqs()
         p.normalizePositions()
         return p.rowUncertainty()
-    
+
     def IUPACConsensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
         """
@@ -2309,14 +2309,14 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             consensus.append(degen(str(alphabet.ModelSeq(col, \
                 Alphabet=alphabet.Alphabets.DegenGapped))))
         return coerce_to_string(consensus)
-    
+
     def _make_gaps_ok(self, allowed_gap_frac):
         """Makes the gaps_ok function used by omitGapPositions and omitGapSeqs.
-        
+
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
         use of map() in takeSeqsIf.
-        
+
         WARNING: may not work correctly if component sequences have gaps that
         are not the Alignment gap character. This is because the gaps are
         checked at the column level (and the positions are lists), rather than
@@ -2332,9 +2332,9 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             else:
                 num_gaps = sum(seq==self.Alphabet.GapIndex)
             return num_gaps / seq_len <= allowed_gap_frac
-        
+
         return gaps_ok
-    
+
     def columnFreqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
@@ -2351,8 +2351,8 @@ class DenseAlignment(AlignmentI, SequenceCollection):
               positions
             - randint and permutation: functions for random integer in a
               specified range, and permutation, respectively.
-              
-            
+
+
         Notes: 
             By default (resampling all positions without replacement), generates
             a permutation of the positions of the alignment.
@@ -2393,7 +2393,7 @@ class CodonDenseAlignment(DenseAlignment):
 
 def make_gap_filter(template, gap_fraction, gap_run):
     """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
-    
+
     Calculations relative to template.
     gap_run = number of consecutive gaps allowed in either the template or seq
     gap_fraction = fraction of positions that either have a gap in the template
@@ -2416,20 +2416,20 @@ def make_gap_filter(template, gap_fraction, gap_run):
                 logical_not(seq_gaps)).astype(uint8).tostring():
             return False
         return True
-    
+
     return result
 
 class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     MolType = None  #note: this is reset to ASCII in moltype module
     def __init__(self, *args, **kwargs):
         """Returns new Alignment object: see SequenceCollection."""
-        
+
         SequenceCollection.__init__(self, *args, **kwargs)
-        
+
         #need to convert seqs to Aligned objects
         seqs = self.SeqData
         names = self.Names
-        
+
         self._motif_probs = {}
         self._type = self.MolType.gettype()
         lengths = list(map(len, self.SeqData))
@@ -2445,22 +2445,22 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(self._seq_to_aligned(s, n))
         self.NamedSeqs = self.AlignedSeqs = dict(list(zip(names, aligned_seqs)))
         self.SeqData = self._seqs = aligned_seqs
-    
+
     def _coerce_seqs(self, seqs, is_array):
         if not min([isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]):
             seqs = list(map(self.MolType.Sequence, seqs))
         return seqs
-    
+
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
         (map, seq) = self.MolType.Sequence(seq, key).parseOutGaps()
         return Aligned(map, seq)
-    
+
     def getTracks(self, policy):
         # drawing code related
         # same as sequence but annotations go below sequence tracks
         return policy.tracksForAlignment(self)
-    
+
     def getChildTracks(self, policy):
         """The only Alignment method required for cogent3.draw"""
         tracks =  []
@@ -2468,8 +2468,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seq = self.NamedSeqs[label]
             tracks += seq.getTracks(policy.copy(seqname=label))
         return tracks
-    
-    
+
+
     def __repr__(self):
         seqs = []
         limit = 10
@@ -2483,16 +2483,16 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 elts.append('...')
             seqs.append("%s[%s]" % (name, delimiter.join(elts)))
         seqs = ', '.join(seqs)
-        
+
         return "%s x %s %s alignment: %s" % (len(self.Names),
                 self.SeqLen, self._type, seqs)
-    
+
     def _mapped(self, slicemap):
         align = []
         for name in self.Names:
             align.append((name, self.NamedSeqs[name][slicemap]))
         return self.__class__(MolType=self.MolType, data=align)
-    
+
     def gappedByMap(self, keep, **kwargs):
         # keep is a Map
         seqs = []
@@ -2502,27 +2502,27 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seq = aligned.data.gappedByMap(seqmap)
             seqs.append((seq_name, seq))
         return self.__class__(MolType=self.MolType, data=seqs, **kwargs)
-    
+
     def projectAnnotation(self, seq_name, annot):
         target_aligned = self.NamedSeqs[seq_name]
         if annot.parent is not self:
             raise ValueError('Annotation does not belong to this alignment')
         return annot.remappedTo(target_aligned.data, target_aligned.map)
-        
+
     def getProjectedAnnotations(self, seq_name, *args):
         aln_annots = self.getAnnotationsMatching(*args)
         return [self.projectAnnotation(seq_name, a) for a in aln_annots]
-    
+
     def getAnnotationsFromSequence(self, seq_name, *args):
         aligned = self.NamedSeqs[seq_name]
         return aligned.getAnnotationsMatching(self, *args)
-    
+
     def getAnnotationsFromAnySequence(self, *args):
         result = []
         for seq_name in self.Names:
             result.extend(self.getAnnotationsFromSequence(seq_name, *args))
         return result
-    
+
     def getBySequenceAnnotation(self, seq_name, *args):
         result = []
         for feature in self.getAnnotationsFromSequence(seq_name, *args):
@@ -2532,11 +2532,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 feature.map.Start, feature.map.End, self.Name or '')
             result.append(segment)
         return result
-    
+
     def withMaskedAnnotations(self, annot_types, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
-        
+
         Arguments:
             - annot_types: annotation type(s)
             - mask_char: must be a character valid for the seq MolType. The
@@ -2549,10 +2549,10 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             masked_seqs += [seq._masked_annotations(annot_types,mask_char,shadow)]
         new = self.__class__(data=masked_seqs, Info=self.Info, Name=self.Name)
         return new
-    
+
     def variablePositions(self, include_gap_motif = True):
         """Return a list of variable position indexes.
-        
+
         Arguments:
             - include_gap_motif: if False, sequences with a gap motif in a
               column are ignored."""
@@ -2569,12 +2569,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                     elif motif != '-' and motif1 != '-':
                         result.append(position)
                         break
-        
+
         return result
-    
+
     def filtered(self, predicate, motif_length=1, **kwargs):
         """The alignment positions where predicate(column) is true.
-        
+
         Arguments:
             - predicate: a callback function that takes an tuple of motifs and
               returns True/False
@@ -2584,48 +2584,48 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         kept = False
         seqs = [self.getGappedSeq(n).getInMotifSize(motif_length,
                                     **kwargs) for n in self.Names]
-        
+
         positions = list(zip(*seqs))
         for (position, column) in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
                 gv.append(position*motif_length)
                 kept = keep
-        
+
         if kept:
             gv.append(len(positions)*motif_length)
-        
+
         locations = [(gv[i], gv[i+1]) for i in range(0, len(gv), 2)]
-        
+
         keep = Map(locations, parent_length=len(self))
         return self.gappedByMap(keep, Info=self.Info)
-    
+
     def getSeq(self, seqname):
         """Return a ungapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ModelSequence.
         """
         return self.NamedSeqs[seqname].data
-    
+
     def getGappedSeq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ModelSequence.
         """
         return self.NamedSeqs[seq_name].getGappedSeq(recode_gaps)
-    
+
     def iterPositions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
-        
+
         pos_order refers to a list of indices (ints) specifying the column
         order. This lets you rearrange positions if you want to (e.g. to pull
         out individual codon positions).
-        
+
         Note that self.iterPositions() always returns new objects, by default
         lists of elements. Use map(f, self.iterPositions) to apply the
         constructor or function f to the resulting lists (f must take a single
         list as a parameter).
-        
+
         Will raise IndexError if one of the indices in order exceeds the
         sequence length. This will always happen on ragged alignments:
         assign to self.SeqLen to set all sequences to the same length.
@@ -2637,9 +2637,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         seqs = list(map(str, aligned_objs))
         for pos in pos_order:
             yield [seq[pos] for seq in seqs]
-    
+
     Positions = property(iterPositions)
-    
+
     def withGapsFrom(self, template):
         """Same alignment but overwritten with the gaps from 'template'"""
         if len(self) != len(template):
@@ -2662,38 +2662,38 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                     combo.append(s)
             result[name] = combo
         return Alignment(result, Alphabet=self.Alphabet.withGapMotif())
-         
+
     def getDegappedRelativeTo(self, name):
         """Remove all columns with gaps in sequence with given name.
-        
+
         Returns Alignment object of the same class.
         Note that the seqs in the new Alignment are always new objects.
-        
+
         Arguments:
             - name: sequence name
         """
         if name not in self.Names:
             raise ValueError("The alignment doesn't have a sequence named '{0}'"
                 .format(name))
-        
+
         gap = self.Alphabet.Gap
         non_gap_cols = [i for i, col in enumerate(self.getGappedSeq(name)) 
                                     if col != gap]
-        
+
         return self.takePositions(non_gap_cols)
-    
+
     def addFromReferenceAln(self, ref_aln, before_name=None, after_name=None):
         """
         Insert sequence(s) to self based on their alignment to a reference
         sequence. Assumes the first sequence in ref_aln.Names[0] is the
         reference.
-        
+
         By default the sequence is appended to the end of the alignment,
         this can be changed by using either before_name or after_name
         arguments.
-        
+
         Returns Alignment object of the same class.
-        
+
         Arguments:
             - ref_aln: reference alignment (Alignment object/series) of
               reference sequence and sequences to add.
@@ -2705,19 +2705,19 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             - after_name: name of the sequence after which sequence is added
               If both before_name and after_name are specified seqs will be
               inserted using before_name.
-        
+
         Example:
         Aln1:
         -AC-DEFGHI (name: seq1) 
         XXXXXX--XX (name: seq2)
         YYYY-YYYYY (name: seq3) 
-        
+
         Aln2:
         ACDEFGHI   (name: seq1) 
         KL--MNPR   (name: seqX)
         KLACMNPR   (name: seqY)
         KL--MNPR   (name: seqZ)
-        
+
         Out:
         -AC-DEFGHI (name: seq1) 
         XXXXXX--XX (name: seq2)
@@ -2726,28 +2726,28 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         -KL-ACMNPR (name: seqY)
         -KL---MNPR (name: seqZ)
         """
-        
+
         if type(ref_aln) != type(self): # let the seq class try and guess
             ref_aln = self.__class__(ref_aln)
-        
+
         ref_seq_name = ref_aln.Names[0]
-        
+
         if ref_seq_name not in self.Names:
             raise ValueError("The name of reference sequence ({0})"\
             "not found in the alignment \n(names in the alignment:\n{1}\n)"\
             .format(ref_seq_name, "\n".join(self.Names)))
-        
+
         if str(ref_aln.getGappedSeq(ref_seq_name)) \
             != str(self.getSeq(ref_seq_name)):
             raise ValueError("Reference sequences are unequal."\
             "The reference sequence must not contain gaps")
-        
+
         temp_aln = None
         for seq_name in ref_aln.Names[1:]:
             if seq_name in self.Names:
                 raise ValueError("The name of a sequence being added ({0})"\
                         "is already present".format(seq_name))
-            
+
             seq = ref_aln.getGappedSeq(seq_name)
             new_seq = Aligned(self.NamedSeqs[ref_seq_name].map, seq)
             if not temp_aln:
@@ -2755,7 +2755,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             else:
                 temp_aln = temp_aln.addSeqs(self.__class__({new_seq.Name:
                                             str(new_seq)}))
-        
+
         aln = self.addSeqs(temp_aln, before_name, after_name)
-        
+
         return aln

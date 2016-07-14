@@ -67,7 +67,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
             name=None, aligned=True, label_to_name=None, parser_kw={},
             constructor_kw={}, **kw):
     """Initialize an alignment or collection of sequences.
-    
+
     Arguments:
     - filename: name of the sequence file
     - format: format of the sequence file
@@ -86,12 +86,12 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
             label_to_name = lambda x: d.get(x, default_name)
       ...where d is a dict that's in scope, and default_name is what you want
       to assign any sequence that isn't in the dict.
-    
+
     If format is None, will attempt to infer format from the filename
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
-    
+
     if filename is None:
         assert data is not None
         assert format is None
@@ -162,7 +162,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
         if not reader:
             reader = autogen_reader(f, sep, limit=limit,
                         with_title=kwargs.get('with_title', False))
-        
+
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
@@ -179,7 +179,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
     underscore_unmunge=False):
 
     """Constructor for tree.
-    
+
     Arguments, use only one of:
         - filename: a file containing a newick or xml formatted tree.
         - treestring: a newick or xml formatted tree string.

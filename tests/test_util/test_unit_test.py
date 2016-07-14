@@ -38,7 +38,7 @@ __status__ = "Production"
 
 class FakeRandomTests(TestCase):
     """Tests FakeRandom class."""
-    
+
     def test_call_constant(self):
         """FakeRandom __call__ should return next item from list if constant"""
         const = FakeRandom([1])
@@ -119,7 +119,7 @@ class TestCaseTests(TestCase):
 
     small = 1e-7
     big = 1e-5
-    
+
     within_1e6_abs_pairs = [
                 (1, 1 + small),
                 (1 + small, 1),
@@ -134,7 +134,7 @@ class TestCaseTests(TestCase):
                 (array([1,2]), array([1,2+small])),
                 (array([[1,2],[3,4]]), array([[1,2+small],[3,4]]))
                 ]
-                
+
     within_1e6_rel_pairs = [
                 (1, 1 + 1 * small),
                 (1 + 1 * small, 1),
@@ -148,7 +148,7 @@ class TestCaseTests(TestCase):
                 (array([[1000,1000],[1000,1000]]), \
                     array([[1000+1000*small, 1000], [1000,1000]])),
             ]
- 
+
     outside_1e6_abs_pairs = [
                 (1, 1 + big),
                 (1 + big, 1),
@@ -164,7 +164,7 @@ class TestCaseTests(TestCase):
                 (array([1,1]), array([1,1+big])),
                 (array([[1,1],[1,1]]), array([[1,1+big],[1,1]])),
                 ]
-                
+
     outside_1e6_rel_pairs = [
                 (1, 1 + 1 * big),
                 (1 + 1 * big, 1),
@@ -269,7 +269,7 @@ class TestCaseTests(TestCase):
     def test_assertEqual_nested_array(self):
         self.assertEqual([[1,0], [0,1]],
                 [array([1,0]), array([0,1])])
-        
+
     def test_assertEqual_shape_mismatch(self):
         """assertEqual should raise when obs and exp shapes mismatch"""
         obs = [1,2,3]
@@ -419,7 +419,7 @@ class TestCaseTests(TestCase):
         second = [i[1] for i in self.unequal_pairs]
         self.assertRaises(AssertionError, \
             self.assertFloatEqual, first, second)
-        
+
 
     def test_assertFloatEqualAbs_mixed(self):
         """assertFloatEqualAbs should work on lists of mixed types."""
@@ -442,7 +442,7 @@ class TestCaseTests(TestCase):
         self.assertEqualItems('', '')
         self.assertEqualItems('abc', ['a','b','c'])
         self.assertEqualItems([0], [0.0])
-        
+
         try:
             self.assertEqualItems('abc', 'abcd')
         except:
@@ -479,17 +479,17 @@ class TestCaseTests(TestCase):
         z = 3
         y1 = 'abc' + 'def'
         z1 = 3.0
-        
+
         y_id = id(y)
         z_id = id(z)
         y1_id = id(y1)
         z1_id = id(z1)
-        
+
         self.assertSameItems([x,y,z], [x,y,z])
         self.assertSameItems([x,y,z], [z,x,y])
         self.assertSameItems('', '')
         self.assertSameItems([x,y,z], (x,y,z))
-        
+
         try:
             self.assertSameItems([x,y,z], [x,y,z,y])
         except:
@@ -509,7 +509,7 @@ class TestCaseTests(TestCase):
         else:
             raise AssertionError("unit_test.assertEqualItems failed on input %s and %s" \
             % (repr([x,y,z]), repr([y,x,z1])))
-        
+
         # assert y is not y1
         # try:
         #     self.assertSameItems([y], (y1,))
@@ -525,7 +525,7 @@ class TestCaseTests(TestCase):
         self.assertNotEqualItems('abc', '')
         self.assertNotEqualItems('abc', 'cbad')
         self.assertNotEqualItems([0], [0.01])
-        
+
         try:
             self.assertNotEqualItems('abc', 'abc')
         except:
@@ -561,7 +561,7 @@ class TestCaseTests(TestCase):
         self.assertContains(fake, 'x')
         self.assertContains(fake, 3)
         self.assertContains(fake, {'a':'b'})
-        
+
         try:
             self.assertContains('', [])
         except:
@@ -596,7 +596,7 @@ class TestCaseTests(TestCase):
         self.assertNotContains(fake, 'x')
         self.assertNotContains(fake, 3)
         self.assertNotContains(fake, {'a':'b'})
-        
+
         try:
             self.assertNotContains('', '')
         except:
@@ -637,7 +637,7 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertGreaterThan, None, 5)
         self.assertRaises(AssertionError, self.assertGreaterThan, 5.0, None)
         self.assertRaises(AssertionError, self.assertGreaterThan, None, 5.0)
- 
+
     def test_assertGreaterThan_numbers_true(self):
         """assertGreaterThan should pass when observed > value"""
         self.assertGreaterThan(10, 5)
@@ -721,7 +721,7 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertLessThan, None, 5)
         self.assertRaises(AssertionError, self.assertLessThan, 5.0, None)
         self.assertRaises(AssertionError, self.assertLessThan, None, 5.0)
- 
+
     def test_assertLessThan_numbers_true(self):
         """assertLessThan should pass when observed < value"""
         self.assertLessThan(10, 15)
@@ -796,7 +796,7 @@ class TestCaseTests(TestCase):
         """assertIsBetween should raise if min_value >= max_value"""
         self.assertRaises(AssertionError, self.assertIsBetween, 5, 6, 3)
         self.assertRaises(AssertionError, self.assertIsBetween, 5, 3, 3)
- 
+
     def test_assertIsBetween_equal(self):
         """assertIsBetween should raise when a value is equal to either bound"""
         self.assertRaises(AssertionError, self.assertIsBetween, 1, 1, 5)
@@ -829,7 +829,7 @@ class TestCaseTests(TestCase):
     def test_assertIsBetween_floats_true(self):
         """assertIsBetween should pass when in bounds"""
         self.assertIsBetween(5.0, 3.0 ,7.0)
-        
+
     def test_assertIsBetween_floats_false(self):
         """assertIsBetween should raise when out of bounds"""
         self.assertRaises(AssertionError, self.assertIsBetween, 5.0, 1.0, 3.0)
@@ -901,7 +901,7 @@ class TestCaseTests(TestCase):
         """assertIsProb should raise when compared against invalid numbers"""
         self.assertRaises(AssertionError, self.assertIsProb, -1)
         self.assertRaises(AssertionError, self.assertIsProb, 2)
-    
+
     def test_assertIsProb_numbers_list_true(self):
         """assertIsProb should pass when all elements are probs"""
         observed = [0, 1, 0]
@@ -941,7 +941,7 @@ class TestCaseTests(TestCase):
         """assertIsProb should raise when any element is not a prob"""
         observed = [-2.0, -4, 3.0]
         self.assertRaises(AssertionError, self.assertIsProb, observed)
-    
+
     def test_assertIsProb_numpy_array_true(self):
         """assertIsProb should pass when all elements are probs"""
         observed = array([0.0,0.4,0.8])
@@ -1043,7 +1043,7 @@ class TestCaseTests(TestCase):
         obs = [2,5,6]
         exp = [1,2,3,4,5,6,7,8,9]
         self.assertRaises(AssertionError, self.assertSimilarMeans, obs, exp)
-        
+
         # force stats to pass
         self._set_suite_pvalue(0.01)
         self.assertSimilarMeans(obs, exp)
@@ -1078,7 +1078,7 @@ class TestCaseTests(TestCase):
         self.assertNotSameObj("foo", "bar")
         self.assertNotSameObj(None, 5)
         self.assertNotSameObj(lambda x:5, lambda y:6)
-        
+
     def test_assertNotSameObj_false(self):
         """assertSameObj should raise when 'a is b'"""
         self.assertRaises(AssertionError, self.assertNotSameObj, "foo", "foo")
@@ -1134,7 +1134,7 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3, 7)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, -3, 3)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 2, 4)
-        
+
     def test_assertIsNotBetween_float_true(self):
         """assertIsNotBetween should pass when a number is not in bounds"""
         self.assertIsNotBetween(1.0, 2.0, 3.0)
@@ -1189,4 +1189,4 @@ class TestCaseTests(TestCase):
 
 if __name__ == '__main__':
     main()
-            
+

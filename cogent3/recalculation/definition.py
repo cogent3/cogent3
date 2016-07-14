@@ -92,26 +92,26 @@ __status__ = "Production"
 
 class CalculationDefn(_NonLeafDefn):
     """Defn for a derived value.  In most cases use CalcDefn instead
-    
+
     The only reason for subclassing this directly would be to override
     .makeCalcFunction() or setup()."""
-    
+
     recycling = False
-    
+
     # positional arguments are inputs to this step of the calculation,
     # keyword arguments are passed on to self.setup(), likely to end up
     # as static attributes of this CalculationDefn, to be used (as self.X)
     # by its 'calc' method.
-    
+
     def makeParamController(self):
         return ParameterController(self)
-    
+
     def setup(self):
         pass
-    
+
     def makeCalcFunction(self):
         return self.calc
-    
+
     def makeCell(self, *args):
         calc = self.makeCalcFunction()
         # can't calc outside correct parallel context, so can't do
@@ -119,7 +119,7 @@ class CalculationDefn(_NonLeafDefn):
         cell = EvaluatedCell(self.name, calc, args,
                 recycling=self.recycling, default=self.default)
         return cell
-        
+
     def makeCells(self, input_soup, variable=None):
         # input soups contains all necessary values for calc on self. 
         # Going from defns to cells.
@@ -132,13 +132,13 @@ class CalculationDefn(_NonLeafDefn):
             cell = self.makeCell(*args)
             cells.append(cell)
         return (cells, cells)
-    
+
 
 class _FuncDefn(CalculationDefn):
     def __init__(self, calc, *args, **kw):
         self.calc = calc
         CalculationDefn.__init__(self, *args, **kw)
-    
+
 
 # Use this rather than having to subclass CalculationDefinition
 # just to supply the 'calc' method.
@@ -146,58 +146,58 @@ class CalcDefn(object):
     """CalcDefn(function)(arg1, arg2)"""
     def __init__(self, calc, name=None, **kw):
         self.calc = calc
-        
+
         if name is None:
             name = self.calc.__name__
         else:
             assert isinstance(name, str), name
         kw['name'] = name        
         self.kw = kw
-    
+
     def __call__(self, *args):
         return _FuncDefn(self.calc, *args, **self.kw)
 
 class WeightedPartitionDefn(CalculationDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
     an array of floats with weighted average of 1.0"""
-    
+
     def __init__(self, weights, name):
         N = len(weights.bin_names)
         partition = PartitionDefn(size=N, name=name+'_partition')
         partition.user_param = False
         CalculationDefn.__init__(self, weights, partition,
                 name=name+'_distrib')
-    
+
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
         return values / scale
-    
+
 
 class MonotonicDefn(WeightedPartitionDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
     an ordered array of floats with weighted average of 1.0"""
-    
+
     def calc(self, weights, increments):
         values = numpy.add.accumulate(increments)
         scale = numpy.sum(weights * values)
         return values / scale
-    
+
 
 class GammaDefn(MonotonicDefn):
     """Uses 1 optimiser parameter to define a gamma distribution, divides
     the distribution into N equal probability bins and makes an array of
     their medians.  If N > 2 medians are approx means so their average
     is approx 1.0, but not quite so we scale them to make it exactly 1.0"""
-    
+
     name = 'gamma'
-    
+
     def __init__(self, weights, name=None, default_shape=1.0,
             extra_label=None, dimensions=()):
         name = self.makeName(name, extra_label)
         shape = PositiveParamDefn(name+'_shape',
             default=default_shape, dimensions=dimensions, lower=1e-2)
         CalculationDefn.__init__(self, weights, shape, name=name+'_distrib')
-    
+
     def calc(self, weights, a):
         from cogent3.maths.stats.distribution import gdtri
         weights = weights / numpy.sum(weights)
@@ -210,7 +210,7 @@ class GammaDefn(MonotonicDefn):
 
 class _InputDefn(_LeafDefn):
     user_param = True
-    
+
     def __init__(self, name=None, default=None, dimensions=None,
             lower=None, upper=None, **kw):
         _LeafDefn.__init__(self, name=name, dimensions=dimensions, **kw)
@@ -223,38 +223,38 @@ class _InputDefn(_LeafDefn):
             self.lower = lower
         if upper is not None:
             self.upper = upper
-    
+
     def makeParamController(self):
         return ParameterController(self)
-    
+
     def updateFromCalculator(self, calc):
         outputs = calc.getCurrentCellValuesForDefn(self)
         for (output, setting) in zip(outputs, self.uniq):
             setting.value = output
-    
+
     def getNumFreeParams(self):
         (cells, outputs) = self.makeCells({}, None)
         return len([c for c in cells if isinstance(c, OptPar)])    
 
 class ParamDefn(_InputDefn):
     """Defn for an optimisable, scalar input to the calculation"""
-    
+
     numeric = True
     const_by_default = False
     independent_by_default = False
     opt_par_class = OptPar
-    
+
     # These can be overridden in a subclass or the constructor
     default = 1.0
     lower = -1e10
     upper = +1e10
-    
+
     def makeDefaultSetting(self):
         return Var(bounds = (self.lower, self.default, self.upper))
-    
+
     def checkSettingIsValid(self, setting):
         pass
-    
+
     def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
         for (i, v) in enumerate(self.uniq):
@@ -265,9 +265,9 @@ class ParamDefn(_InputDefn):
             else:
                 cell = self.opt_par_class(self.name, scope, v.getBounds())
             uniq_cells.append(cell)
-        
+
         return (uniq_cells, uniq_cells)
-    
+
 
 # Example / basic ParamDefn subclasses
 
@@ -285,23 +285,23 @@ class RatioParamDefn(PositiveParamDefn):
 class NonScalarDefn(_InputDefn):
     """Defn for an array or other such object that is an input but
     can not be optimised"""
-    
+
     user_param = False
     numeric = False
     const_by_default = True
     independent_by_default = False
     default = None
-    
+
     def makeDefaultSetting(self):
         if self.default is None:
             return None
         else:
             return ConstVal(self.default)
-    
+
     def checkSettingIsValid(self, setting):
         if not isinstance(setting, ConstVal):
             raise ValueError("%s can only be constant" % self.name)
-    
+
     def makeCells(self, input_soup={}, variable=None):
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
@@ -313,18 +313,18 @@ class NonScalarDefn(_InputDefn):
             raise ValueError(msg % self.name)
         uniq_cells = [ConstCell(self.name, v.value) for v in self.uniq]
         return (uniq_cells, uniq_cells)
-    
+
     def getNumFreeParams(self):
         return 0
-        
+
     def updateFromCalculator(self, calc):
         pass # don't reset parallel_context etc.
 
-    
+
 
 def _proportions(total, params):
     """List of N proportions from N-1 ratios
-    
+
     >>> _proportions(1.0, [3, 1, 1])
     [0.125, 0.125, 0.375, 0.375]"""
     if len(params) == 0:
@@ -348,11 +348,11 @@ def _unpack_proportions(values):
 class PartitionDefn(_InputDefn):
     """A partition such as mprobs can be const or optimised.  Optimised is
     a bit tricky since it isn't just a scalar."""
-    
+
     numeric = False # well, not scalar anyway
     const_by_default = False
     independent_by_default = False
-    
+
     def __init__(self, default=None, name=None, dimensions=None,
             dimension=None, size=None, **kw):
         assert name
@@ -378,14 +378,14 @@ class PartitionDefn(_InputDefn):
         _InputDefn.__init__(self, name=name, default=default,
             dimensions=dimensions, **kw)
         self.checkValueIsValid(default, True)
-    
+
     def _makeDefaultValue(self):
         return numpy.array([1.0/self.size] * self.size)
-        
+
     def makeDefaultSetting(self):
         #return ConstVal(self.default)
         return Var((None, self.default.copy(), None))
-    
+
     def checkSettingIsValid(self, setting):
         value = setting.getDefaultValue()
         return self.checkValueIsValid(value, setting.is_constant)
@@ -410,7 +410,7 @@ class PartitionDefn(_InputDefn):
         if abs(sum(value) - 1.0) > .00001:
             raise ValueError("Elements of %s must sum to 1.0, not %s" %
                 (self.name, sum(value)))
-    
+
     def _makePartitionCell(self, name, scope, value):
         # This was originally put in its own function so as to provide a 
         # closure containing the value of sum(value), which is no longer 
@@ -424,7 +424,7 @@ class PartitionDefn(_InputDefn):
             return numpy.asarray(_proportions(1.0, ratios))
         partition = EvaluatedCell(name, r2p, tuple(ratios))
         return (ratios, partition)
-    
+
     def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
         all_cells = []
@@ -447,7 +447,7 @@ class PartitionDefn(_InputDefn):
             all_cells.append(partition)
             uniq_cells.append(partition)
         return (all_cells, uniq_cells)
-    
+
 def NonParamDefn(name, dimensions=None, **kw):
     # Just to get 2nd arg as dimensions
     return NonScalarDefn(name=name, dimensions=dimensions, **kw)
@@ -455,10 +455,10 @@ def NonParamDefn(name, dimensions=None, **kw):
 class ConstDefn(NonScalarDefn):
     # This isn't really needed - just use NonParamDefn
     name_required = False
-    
+
     def __init__(self, value, name=None, **kw):
         NonScalarDefn.__init__(self, default=value, name=name, **kw)
-    
+
     def checkSettingIsValid(self, setting):
         if setting is not None and setting.value is not self.default:
             raise ValueError("%s is constant" % self.name)
@@ -468,12 +468,12 @@ class SelectForDimension(_Defn):
     """A special kind of Defn used to bridge from Defns where a particular
     dimension is wrapped up inside an array to later Defns where each
     value has its own Defn, eg: gamma distributed rates"""
-    
+
     name = 'select'
     user_param = True
     numeric=True # not guarenteed!
     internal_dimensions = ()
-    
+
     def __init__(self, arg, dimension, name=None):
         assert not arg.activated, arg.name
         if name is not None:
@@ -486,7 +486,7 @@ class SelectForDimension(_Defn):
             self.valid_dimensions =  self.valid_dimensions + (dimension,)
         self.dimension = dimension
         arg.addClient(self)
-    
+
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
@@ -496,10 +496,10 @@ class SelectForDimension(_Defn):
             self.assignments[scope_t] = (input_num, pos)
         self._update_from_assignments()
         self.values = [self.arg.values[i][p] for (i,p) in self.uniq]
-    
+
     def _select(self, arg, p):
         return arg[p]
-    
+
     def makeCells(self, input_soup, variable=None):
         cells = []
         distribs = input_soup[id(self.arg)]
@@ -508,7 +508,7 @@ class SelectForDimension(_Defn):
                 self.name, (lambda x,p=bin_num:x[p]), (distribs[input_num],))
             cells.append(cell)
         return (cells, cells)
-    
+
 
 # Some simple CalcDefns
 
@@ -530,34 +530,34 @@ class VectorMatrixInnerDefn(CalculationDefn):
     name = 'evolve'
     def calc(self, pi, psub):
         return numpy.inner(pi, psub)
-        
+
     def getShortcutCell(self, pi, psub):
         if psub.is_stationary:
             return pi
-    
+
 class SumDefn(CalculationDefn):
     name = 'sum'
     def calc(self, *args):
         return sum(args)
-    
+
 
 class ProductDefn(CalculationDefn):
     name = 'product'
     def calc(self, *args):
         return numpy.product(args)
-    
+
 
 class CallDefn(CalculationDefn):
     name = 'call'
     def calc(self, func, *args):
         return func(*args)
-    
+
 
 class ParallelSumDefn(CalculationDefn):
     name = 'parallel_sum'
     def calc(self, comm, local):
         return comm.allreduce(local)  # default MPI op is SUM
-    
+
 
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
         'CallDefn', 'ParallelSumDefn'] + [

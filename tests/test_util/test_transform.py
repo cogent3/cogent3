@@ -77,7 +77,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(apply_each( \
             [self.is_char, self.is_vowel, self.is_consonant, self.is_number], \
             self.Letters[0]), [True, True, False, False])
-            
+
         self.assertEqual(apply_each( \
             [self.is_char, self.is_vowel, self.is_consonant, self.is_number], \
             self.Letters[1]), [True, False, True, False])
@@ -127,7 +127,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(conjoin([self.is_odd_letter, self.fail], 'b'), False)
         self.assertRaises(AssertionError, conjoin, \
             [self.is_odd_letter, self.fail], 'a')
-        
+
     def test_all(self):
         """all should return a function returning True if all components True"""
         odd_vowel = all([self.is_odd_letter, self.is_vowel, self.is_char])
@@ -161,7 +161,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(disjoin([self.is_odd_letter, self.fail], 'a'), True)
         self.assertRaises(AssertionError, \
             disjoin, [self.is_odd_letter, self.fail], 'b')
-        
+
     def test_any(self):
         """any should return a function returning True if any component True"""
         odd_vowel = any([self.is_odd_letter, self.is_vowel])
@@ -182,7 +182,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(either(self.is_odd_letter, self.fail)(x='a'), True)
         self.assertRaises(AssertionError, \
             either(self.is_odd_letter, self.fail), 'b')
-        
+
     def test_negate(self):
         """negate should return True if no component True"""
         self.assertEqual(negate([self.is_odd_letter,self.is_vowel], 'a'), False)
@@ -193,7 +193,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(negate([self.is_odd_letter, self.fail], x='a'), False)
         self.assertRaises(AssertionError, \
             negate, [self.is_odd_letter, self.fail], 'b')
-        
+
     def test_none(self):
         """none should return a function returning True if no component True"""
         odd_vowel = none([self.is_odd_letter, self.is_vowel])
@@ -214,7 +214,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(neither(self.is_odd_letter, self.fail)(x='a'), False)
         self.assertRaises(AssertionError, \
             neither(self.is_odd_letter, self.fail), 'b')
- 
+
     def test_compose(self):
         """compose should return function returning f(g(x))"""
         ds = compose(self.double, self.minusone)
@@ -234,7 +234,7 @@ class metafunctionsTests(TestCase):
             return list(map(str, x))
         printable_range = compose_many(''.join, to_strings, range)
         printable_arange = compose_many(''.join, to_strings, arange)
-        
+
         self.assertEqual(printable_range(3), '012')
         self.assertEqual(printable_range(0), '')
         self.assertEqual(printable_range(5), '01234')
@@ -246,7 +246,7 @@ class metafunctionsTests(TestCase):
         """identity should return x"""
         for i in ['a', 'abc', None, '', [], [1], 1, 2**50, 0.3e-50, {'a':3}]:
             assert identity(i) is i
-            
+
     def test_has_field(self):
         """has_field should return True if specified field exists."""
         x = has_x(1)
@@ -283,7 +283,7 @@ class metafunctionsTests(TestCase):
         alpha = has_x('x')
         zero = has_x(0)
         y = has_y('5')
-        
+
         tester = test_field('x')
         self.assertEqual(tester(num), True)
         self.assertEqual(tester(alpha), True)
@@ -407,7 +407,7 @@ class SequenceFunctionsTests(TestCase):
         self.assertFloatEqual(f(short, s4), 0.0)
         self.assertFloatEqual(f(s4, short), 0.0)
         self.assertFloatEqual(f(s1,s2), 0.6)
-        
+
         f = for_seq(is_ne)
         self.assertFloatEqual(f(s1, s1), 0.0)
         self.assertFloatEqual(f(s1, short), 0.0)
@@ -415,7 +415,7 @@ class SequenceFunctionsTests(TestCase):
         self.assertFloatEqual(f(short, s4), 1.0)
         self.assertFloatEqual(f(s4, short), 1.0)
         self.assertFloatEqual(f(s1, s2), 0.4)
-         
+
         f = for_seq(lt_5)
         self.assertFloatEqual(f(s3,s3), 1.0)
         self.assertFloatEqual(f(s3,s4), 0.0)
@@ -445,7 +445,7 @@ class SequenceFunctionsTests(TestCase):
         self.assertFloatEqual(f(s5,short), 4)
         f = for_seq(diff, aggregator=sumsq, normalizer=long_norm)
         self.assertFloatEqual(f(s5,short), 0.8)
-        
+
 
 
 class Filter_Criteria_Tests(TestCase):
@@ -485,7 +485,7 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_find_any(self):
         """find_any should be True if one of the words is in the string"""
-        
+
         f = find_any('ab')
         self.assertEqual(f(''),0) #empty
         self.assertRaises(AttributeError,f,None) # none
@@ -500,12 +500,12 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("joe"),0)
         self.assertEqual(f("only foo"),1)
         self.assertEqual(f("bar and foo"),1)
-        
+
         # does NOT work on numbers
-        
+
     def test_find_no(self):
         """find_no should be True if none of the words in the string"""
-       
+
         f = find_no('ab')
         self.assertEqual(f(''),1) #empty
         self.assertRaises(AttributeError,f,None) # none
@@ -520,7 +520,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("joe"),1)
         self.assertEqual(f("only foo"),0)
         self.assertEqual(f("bar and foo"),0)
-        
+
         # does NOT work on numbers
 
     def test_find_all(self):
@@ -540,20 +540,20 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("joe"),0)
         self.assertEqual(f("only foo"),0)
         self.assertEqual(f("bar and foo"),1)
-        
+
         # does NOT work on numbers
-        
+
     def test_keep_if_more(self):
         """keep_if_more should be True if #items in s > x"""
-        
+
         self.assertRaises(ValueError, keep_if_more,'lksfj','ksfd') #not int
         self.assertRaises(IndexError,keep_if_more,'ACGU',-3) #negative
-        
+
         f = keep_if_more('a',0) #zero
         self.assertEqual(f(''),0)
         self.assertEqual(f('a'),1)
         self.assertEqual(f('b'),0)
-        
+
         # works on strings
         f = keep_if_more('ACGU',5) #positive
         self.assertEqual(f(''),0)
@@ -577,12 +577,12 @@ class Filter_Criteria_Tests(TestCase):
 
         self.assertRaises(ValueError, exclude_if_more,'lksfj','ksfd') #not int
         self.assertRaises(IndexError,exclude_if_more,'ACGU',-3) #negative
-        
+
         f = exclude_if_more('a',0) #zero
         self.assertEqual(f(''),1)
         self.assertEqual(f('a'),0)
         self.assertEqual(f('b'),1)
-        
+
         # works on strings
         f = exclude_if_more('ACGU',5) #positive
         self.assertEqual(f(''),1)
@@ -600,18 +600,18 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f(''),1)
         self.assertEqual(f([0,1,2,3,4,5]),1)
         self.assertEqual(f([0,1,0,1]),0)
-        
+
     def test_keep_if_more_other(self):
         """keep_if_more_other should be True if #other items > x"""
 
         self.assertRaises(ValueError, keep_if_more_other,'lksfj','ks') #not int
         self.assertRaises(IndexError,keep_if_more_other,'ACGU',-3) #negative
-        
+
         f = keep_if_more_other('a',0) #zero
         self.assertEqual(f(''),0)
         self.assertEqual(f('a'),0)
         self.assertEqual(f('b'),1)
-        
+
         # works on strings
         f = keep_if_more_other('ACGU',5) #positive
         self.assertEqual(f(''),0)
@@ -630,17 +630,17 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f(''),0)
         self.assertEqual(f([0,1,2,3,4,5]),1)
         self.assertEqual(f([0,1,0,1]),0)
-        
+
     def test_exclude_if_more_other(self):
         """exclude_if_more_other should be True if #other items <= x"""
         self.assertRaises(ValueError, exclude_if_more_other,'lks','ks') #not int
         self.assertRaises(IndexError,exclude_if_more_other,'ACGU',-3) #negative
-        
+
         f = exclude_if_more_other('a',0) #zero
         self.assertEqual(f(''),1)
         self.assertEqual(f('a'),1)
         self.assertEqual(f('b'),0)
-        
+
         # works on strings
         f = exclude_if_more_other('ACGU',5) #positive
         self.assertEqual(f(''),1)
@@ -665,13 +665,13 @@ class Filter_Criteria_Tests(TestCase):
         f = keep_chars('ab c3*[')
         self.assertEqual(f(''), '') #empty
         self.assertRaises(TypeError, f, None) #None
-        
+
         #one character, case sensitive
         self.assertEqual(f('b'),'b')
         self.assertEqual(f('g'),'')
         self.assertEqual(f('xyz123'),'3')
         self.assertEqual(f('xyz  123'),'  3')
-        
+
         #more characters, case sensitive
         self.assertEqual(f('kjbwherzcagebcujrkcs'),'bcabcc')
         self.assertEqual(f('f[ffff*ff*fff3fff'),'[**3')
@@ -684,17 +684,17 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_exclude_chars(self):
         """exclude_chars returns string containing only chars not in exclude"""
-        
+
         f = exclude_chars('ab c3*[')
         self.assertEqual(f(''),'') #empty
         self.assertRaises(AttributeError, f, None) #None
-        
+
         #one character, case sensitive
         self.assertEqual(f('b'),'')
         self.assertEqual(f('g'),'g')
         self.assertEqual(f('xyz123'),'xyz12')
         self.assertEqual(f('xyz  123'),'xyz12')
-        
+
         #more characters, case sensitive
         self.assertEqual(f('axxxbxxxcxxx'),'xxxxxxxxx')
 
@@ -727,7 +727,7 @@ class Filter_Criteria_Tests(TestCase):
 
         self.assertRaises(KeyError, dict_test, empty_dict)
         self.assertRaises(IndexError, list_test, empty_list)
-        
+
     def test_reorder_inplace(self):
         """reorder_inplace should replace object's data with new order"""
         attr_test = reorder_inplace([3,2,1], 'Data')
@@ -749,7 +749,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(o.XYZ, [9,7,5])
         self.assertEqual(o.Data, ['d','c','b'])
         assert orig_data is o.Data
-    
+
     def test_float_from_string(self):
         """float_from_string should ignore funny chars"""
         ffs = float_from_string
@@ -769,7 +769,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_index(s2, is_vowel), 3)
         self.assertEqual(first_index(s3, is_vowel), None)
         self.assertEqual(first_index(s4, is_vowel), None)
-          
+
     def test_last_index(self):
         """last_index should return index of last occurrence where f(s)"""
         vowels = 'aeiou'
@@ -794,7 +794,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_index_in_set(s2, vowels), 3)
         self.assertEqual(first_index_in_set(s3, vowels), None)
         self.assertEqual(first_index_in_set(s4, vowels), None)
-          
+
     def test_last_index_in_set(self):
         """last_index_in_set should return index of last occurrence"""
         vowels = 'aeiou'
@@ -818,7 +818,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_index_not_in_set(s2, vowels), 0)
         self.assertEqual(first_index_not_in_set(s3, vowels), None)
         self.assertEqual(first_index_not_in_set(s4, vowels), 0)
-          
+
     def test_last_index_not_in_set(self):
         """last_index_not_in_set should return index of last occurrence"""
         vowels = 'aeiou'
@@ -843,7 +843,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first(s2, is_vowel), 'a')
         self.assertEqual(first(s3, is_vowel), None)
         self.assertEqual(first(s4, is_vowel), None)
-          
+
     def test_last(self):
         """last should return last occurrence where f(s)"""
         vowels = 'aeiou'
@@ -868,7 +868,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_in_set(s2, vowels), 'a')
         self.assertEqual(first_in_set(s3, vowels), None)
         self.assertEqual(first_in_set(s4, vowels), None)
-          
+
     def test_last_in_set(self):
         """last_in_set should return last occurrence"""
         vowels = 'aeiou'
@@ -892,7 +892,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_not_in_set(s2, vowels), 'b')
         self.assertEqual(first_not_in_set(s3, vowels), None)
         self.assertEqual(first_not_in_set(s4, vowels), 'c')
-          
+
     def test_last_not_in_set(self):
         """last_not_in_set should return last occurrence"""
         vowels = 'aeiou'

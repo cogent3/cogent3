@@ -59,7 +59,7 @@ def upgma(pairwise_distances):
 
 def find_smallest_index(matrix):
     """returns the index of the smallest element in a numpy array
-    
+
     for UPGMA clustering elements on the diagonal should first be
     substituted with a very large number so that they are always 
     larger than the rest if the values in the array."""
@@ -72,10 +72,10 @@ def find_smallest_index(matrix):
     #square matrix and return
     row_len = shape[0]
     return divmod(lowest_index, row_len)
-   
+
 def condense_matrix(matrix, smallest_index, large_value):
     """converges the rows and columns indicated by smallest_index
-    
+
     Smallest index is returned from find_smallest_index.
     For both the rows and columns, the values for the two indices are
     averaged. The resulting vector replaces the first index in the array
@@ -97,7 +97,7 @@ def condense_matrix(matrix, smallest_index, large_value):
 
 def condense_node_order(matrix, smallest_index, node_order):
     """condenses two nodes in node_order based on smallest_index info
-    
+
     This function is used to create a tree while condensing a matrix
     with the condense_matrix function. The smallest_index is retrieved
     with find_smallest_index. The first index is replaced with a node object
@@ -133,12 +133,12 @@ def condense_node_order(matrix, smallest_index, node_order):
 
 def UPGMA_cluster(matrix, node_order, large_number):
     """cluster with UPGMA
-    
+
     matrix is a numpy array.
     node_order is a list of PhyloNode objects corresponding to the matrix.
     large_number will be assigned to the matrix during the process and
     should be much larger than any value already in the matrix.
-    
+
     WARNING: Changes matrix in-place.
     WARNING: Expects matrix to already have diagonals assigned to large_number
              before this function is called.
@@ -160,10 +160,10 @@ def UPGMA_cluster(matrix, node_order, large_number):
 
 def inputs_from_dict2D(dict2d_matrix):
     """makes inputs for UPGMA_cluster from a Dict2D object
-    
+
     Dict2D object is a distance matrix with labeled Rows. The diagonal
     elements should have a very large positive number assigned (e.g.1e305).
-    
+
     The returned array is a numpy array with the distances.
     PhyloNode_order is a list of PhyloNode objects with the Data property
     assigned from the Dict2D Row order.

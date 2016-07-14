@@ -34,7 +34,7 @@ class TestEnsemblDbName(TestCase):
         n1 = EnsemblDbName('homo_sapiens_core_46_36h')
         n2 = EnsemblDbName('homo_sapiens_core_46_36h')
         self.assertEqual(n1, n2)
-    
+
     def test_name_without_build(self):
         """should correctly handle a db name without a build"""
         n = EnsemblDbName("pongo_pygmaeus_core_49_1")
@@ -48,7 +48,7 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.Prefix, "mustela_putorius_furo")
         self.assertEqual(n.Type, "core")
         self.assertEqual(n.Build, '1')
-    
+
     def test_ensemblgenomes_names(self):
         """correctly handle the ensemblgenomes naming system"""
         n = EnsemblDbName('aedes_aegypti_core_5_58_1e')
@@ -61,7 +61,7 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.Release, '6')
         self.assertEqual(n.GeneralRelease, '59')
         self.assertEqual(n.Type, 'compara')
-    
+
 class TestHostAccount(TestCase):
     def test_host_comparison(self):
         """instances with same host, account, database, port are equal"""
@@ -74,20 +74,20 @@ class TestHostAccount(TestCase):
         h3 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5300)
         self.assertNotEqual(h1, h3)
         self.assertNotEqual(hash(h1), hash(h3))
-    
+
 
 class TestDBconnects(TestCase):
-    
+
     def test_get_ensembl_account(self):
         """return an HostAccount with correct port"""
         for release in [48, '48', None]:
             act_new = get_ensembl_account(release=release)
             self.assertEqual(act_new.port, 5306)
-        
+
         for release in [45, '45']:
             act_old = get_ensembl_account(release=45)
             self.assertEqual(act_old.port, 3306)
-    
+
     def test_getdb(self):
         """should discover human entries correctly"""
         for name, db_name in [("human", "homo_sapiens_core_49_36k"),
@@ -99,11 +99,11 @@ class TestDBconnects(TestCase):
             result = result[0]
             self.assertEqual(result.Name, db_name)
             self.assertEqual(result.Release, '49')
-    
+
     def test_latest_release_number(self):
         """should correctly the latest release number"""
         self.assertGreaterThan(get_latest_release(), "53")
-    
+
     def test_get_all_available(self):
         """should return a listing of all the available databases on the
         indicated server"""
@@ -121,7 +121,7 @@ class TestDBconnects(TestCase):
         available = get_db_name(release="46")
         for db in available:
             self.assertEqual(db.Release, '46')
-    
+
     def test_active_connections(self):
         """connecting to a database on a specified server should be done once
         only, but same database on a different server should be done"""
@@ -131,13 +131,13 @@ class TestDBconnects(TestCase):
         engine2 = DbConnection(account=ensembl_acct,
                     db_name="homo_sapiens_core_46_36h")
         self.assertEqual(engine1, engine2)
-    
+
     def test_pool_recycle_option(self):
         """excercising ability to specify a pool recycle option"""
         ensembl_acct = get_ensembl_account(release='56')
         engine1 = DbConnection(account=ensembl_acct,
                     db_name="homo_sapiens_core_46_36h", pool_recycle=1000)
-        
+
 
 if __name__ == "__main__":
     main()

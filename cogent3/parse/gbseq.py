@@ -29,7 +29,7 @@ def GbSeqXmlParser(doc):
         - doc: An xml.dom.minidom.Document, file object of string
     Yields:
         - name, cogent sequence
-    
+
     CAUTION:
     This XML PARSER uses minidom. This means a bad performance for 
     big files (>5MB), and huge XML files will for sure crash the program!
@@ -47,11 +47,11 @@ def GbSeqXmlParser(doc):
                         'GBSeq_sequence')[0].childNodes[0].nodeValue
         name = record.getElementsByTagName(
                         'GBSeq_accession-version')[0].childNodes[0].nodeValue
-        
+
         #cast as string to de-unicode
         raw_string = str(raw_seq).upper()
         name=str(name)
-        
+
         if record.getElementsByTagName(
                         'GBSeq_moltype')[0].childNodes[0].nodeValue == '9':
             alphabet = moltype.PROTEIN
@@ -59,26 +59,26 @@ def GbSeqXmlParser(doc):
             alphabet = moltype.DNA
 
         seq = alphabet.makeSequence(raw_string, Name=name)
-        
+
         all = annotation.Map([(0,len(seq))], parent_length=len(seq))
         seq.addAnnotation(annotation.Source, all, name, all)
-        
+
         organism = str(record.getElementsByTagName(
                                 'GBSeq_organism')[0].childNodes[0].nodeValue)
-        
+
         seq.addAnnotation(annotation.Feature, "organism", organism, [(0,len(seq))])
-        
+
         features = record.getElementsByTagName('GBFeature')
         for feature in features:
             key = str(feature.getElementsByTagName(
                                     'GBFeature_key')[0].childNodes[0].nodeValue)
-            
+
             if key == 'source':
                 continue
-            
+
             spans = []
             feature_name = ""
-            
+
             for interval in feature.getElementsByTagName("GBInterval"):
                 try:
                     start = int(interval.getElementsByTagName(

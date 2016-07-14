@@ -18,7 +18,7 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getSpeciesName("homo_sapiens"), "Homo sapiens")
         self.assertEqual(Species.getCommonName("Mus musculus"), "Mouse")
         self.assertEqual(Species.getCommonName("mus_musculus"), "Mouse")
-    
+
     def test_get_ensembl_format(self):
         """should take common or latin names and return the corresponding
         ensembl db prefix"""
@@ -26,7 +26,7 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getEnsemblDbPrefix("mouse"), "mus_musculus")
         self.assertEqual(Species.getEnsemblDbPrefix("Mus musculus"),
                                                 "mus_musculus")
-    
+
     def test_add_new_species(self):
         """should correctly add a new species/common combination and infer the
         correct ensembl prefix"""
@@ -40,7 +40,7 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getEnsemblDbPrefix("Bushbaby"), "otolemur_garnettii")
         self.assertEqual(Species.getEnsemblDbPrefix(species_name), "otolemur_garnettii")
         self.assertEqual(Species.getEnsemblDbPrefix(common_name), "otolemur_garnettii")
-    
+
     def test_amend_existing(self):
         """should correctly amend an existing species"""
         species_name = 'Ochotona princeps'
@@ -58,14 +58,14 @@ class TestSpeciesNamemaps(TestCase):
             ensembl_pref)
         self.assertEqual(Species.getEnsemblDbPrefix(common_name2),
             ensembl_pref)
-    
+
     def test_get_compara_name(self):
         """should correctly form valid names for assignment onto objects"""
         self.assertEqual(Species.getComparaName('pika'), 'Pika')
         self.assertEqual(Species.getComparaName('C.elegans'), 'Celegans')
         self.assertEqual(Species.getComparaName('Caenorhabditis elegans'),
                 'Celegans')
-    
+
 
 if __name__ == "__main__":
     main()

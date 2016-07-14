@@ -125,7 +125,7 @@ def compose_many(*functions):
 
 def per_shortest(total, x, y):
     """Divides total by min(len(x), len(y)).
-    
+
     Useful for normalizing per-item results from sequences that are zipped
     together. Always returns 0 if one of the sequences is empty (to 
     avoid divide by zero error).
@@ -138,7 +138,7 @@ def per_shortest(total, x, y):
 
 def per_longest(total, x, y):
     """Divides total by max(len(x), len(y)).
-    
+
     Useful for normalizing per-item results from sequences that are zipped
     together. Always returns 0 if one of the sequences is empty (to 
     avoid divide by zero error).
@@ -155,7 +155,7 @@ class for_seq(object):
     f: f(i,j) applying to elements of the sequence.
 
     aggregator: method to reduce the list of results to a scalar. Default: sum.
-    
+
     normalizer: f(total, i, j) that normalizes the total as a function of
     i and j. Default is length_normalizer (divides by the length of the shorter
     of i and j). If normalizer is None, no normalization is performed.
@@ -211,7 +211,7 @@ def test_field(field_name, constructor=None):
 
 def index(constructor=None, overwrite=False):
     """Returns a function that constructs a dict mapping constructor to object.
-   
+
     If constructor is None, tries to make the objects the keys (only works if
     the objects defines __hash__.
 
@@ -253,7 +253,7 @@ def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
     new = [c for c in map(chr, range(256)) if c not in good_chars]
     return str.maketrans("".join(new), default*len(new))
-    
+
 def trans_all(bad_chars, default):
     """Returns translation table mapping all the 'bad chars' to default."""
     return str.maketrans(bad_chars, default*len(bad_chars))
@@ -261,14 +261,14 @@ def trans_all(bad_chars, default):
 
 def find_any(words, case_sens = False):
     """Tests if any of the given words occurs in the given string.
-    
+
     This filter is case INsensitive by default.
     """
     if not case_sens:
         used_words = [w.lower() for w in words]
     else:
         used_words = words
-    
+
     def apply_to(s):
         if not case_sens:
             used_s = s.lower()
@@ -282,7 +282,7 @@ def find_any(words, case_sens = False):
 
 def find_no(words, case_sens = False):
     """Returns True if none of the words appears in s.
-    
+
     This filter is case INsensitive by default.
     """
     f=find_any(words,case_sens)
@@ -293,7 +293,7 @@ def find_no(words, case_sens = False):
 
 def find_all(words, case_sens=False):
     """Returns True if all given words appear in s.
-    
+
     This filter is case INsensitive by default.
     """
     if not case_sens:
@@ -316,19 +316,19 @@ def find_all(words, case_sens=False):
 
 def keep_if_more(items,x,case_sens=False):
     """Returns True if #items in s > x. False otherwise.
-    
+
     This filter is case INsensitive by default.
     """
-    
+
     x = int(x)
     if x < 0:
         raise IndexError("x should be >= 0")
-    
+
     if not case_sens:
         used_items = [str(item).lower() for item in items]
     else:
         used_items = items
-    
+
     def find_more_good(s):
         if s and not case_sens:
             for i in s:
@@ -346,7 +346,7 @@ def keep_if_more(items,x,case_sens=False):
 
 def exclude_if_more(items,x,case_sens=False):
     """Returns True if #items in s < x.
-    
+
     This filter is case INsensitive by default.
     """
     f = keep_if_more(items,x,case_sens)
@@ -356,7 +356,7 @@ def exclude_if_more(items,x,case_sens=False):
 
 def keep_if_more_other(items,x,case_sens=False):
     """Returns True if #items in s other than those in items > x. 
-    
+
     This filter is case INsensitive by default.
     """
     x = int(x)
@@ -367,7 +367,7 @@ def keep_if_more_other(items,x,case_sens=False):
         used_items = [str(item).lower() for item in items]
     else:
         used_items = items
-        
+
     def apply_to(s):
         if s and not case_sens:
             used_s = [str(item).lower() for item in s]
@@ -384,7 +384,7 @@ def keep_if_more_other(items,x,case_sens=False):
 
 def exclude_if_more_other(items,x,case_sens=False):
     """Returns True if #items other than in items in s < x.
-    
+
     This filter is case INsensitive by default.
     """ 
     f = keep_if_more_other(items,x,case_sens)
@@ -406,10 +406,10 @@ class keep_chars(object):
             low = keep.lower()
             up = keep.upper()
             keep = low + up
-        
+
         keep = keep.encode('utf-8')
         self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
-    
+
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
         if s is None:
@@ -432,10 +432,10 @@ def exclude_chars(exclude, case_sens=True):
     #strip_table = dict([(c, None) for c in self.allchars if c not in keep])
     exclude = exclude.encode('utf-8')
     strip_table = dict([(c, None) for c in exclude])
-    
+
     def filter_function(s):
         return s.translate(strip_table)
-    
+
     return filter_function
 
 def reorder(order):
@@ -478,10 +478,10 @@ def float_from_string(data):
     """Extracts a floating point number from string in data, if possible."""
     return float(maybe_number(data))
 
-   
+
 def first_index(seq, f):
     """Returns index of first item in seq where f(item) is True, or None.
-    
+
     To invert the function, use lambda f: not f
     """
     for i, s in enumerate(seq):
@@ -490,9 +490,9 @@ def first_index(seq, f):
 
 def last_index(seq, f):
     """Returns index of last item in seq where f(item) is True, or None.
-    
+
     To invert the function, use lambda f: not f
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.
@@ -511,7 +511,7 @@ def first_index_in_set(seq, items):
 
 def last_index_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.
@@ -530,7 +530,7 @@ def first_index_not_in_set(seq, items):
 
 def last_index_not_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.
@@ -543,7 +543,7 @@ def last_index_not_in_set(seq, items):
 
 def first(seq, f):
     """Returns first item in seq where f(item) is True, or None.
-    
+
     To invert the function, use lambda f: not f
     """
     for s in seq:
@@ -552,9 +552,9 @@ def first(seq, f):
 
 def last(seq, f):
     """Returns last item in seq where f(item) is True, or None.
-    
+
     To invert the function, use lambda f: not f
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.
@@ -573,7 +573,7 @@ def first_in_set(seq, items):
 
 def last_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.
@@ -592,7 +592,7 @@ def first_not_in_set(seq, items):
 
 def last_not_in_set(seq, items):
     """Returns last occurrence of any of items in seq, or None.
-    
+
     NOTE: We could do this slightly more efficiently by iterating over s in
     reverse order, but then it wouldn't work on generators that can't be
     reversed.

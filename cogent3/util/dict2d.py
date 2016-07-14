@@ -88,7 +88,7 @@ def not_0(upper, lower):
         return upper, upper
     else:
         return upper, lower
-     
+
 def upper_to_lower(upper, lower):
     """ return new symm matrix with upper tri copied to lower tri"""
     return upper, upper
@@ -97,13 +97,13 @@ def lower_to_upper(upper, lower):
     """ return new symm matrix with upper tri copied to lower tri"""
     return lower, lower
 # End methods developed by Rob Knight
-    
+
 
 class Dict2D(dict):
     """Implements dict of dicts with expanded functionality
-    
+
         This class is useful for creating and working with 2D dictionaries.
-        
+
     """
     #override these in subclasses for convenient customization.
     RowOrder = None         #default RowOrder
@@ -111,29 +111,29 @@ class Dict2D(dict):
     Default = None          #default Default value when m[r][c] absent
     RowConstructor = dict   #default row constructor
     Pad = False             #default state for automatic col and item padding
-    
+
     #list of attributes that is copied by the copy() method
     _copied_attributes = ['RowOrder', 'ColOrder', 'Default', 'Pad', \
         'RowConstructor']
-    
+
     def __init__(self, data=None, RowOrder=None, ColOrder=None, Default=None,
         Pad=None, RowConstructor=None):
         """Returns new Dict2D with specified parameters.
-        
+
             data : can either be a dict of dicts, or a sequence of 3-item
             sequences giving row, col, value.
-            
+
             RowOrder: list of 'interesting' row keys. If passed in during
             init, all rows in RowOrder will be created. Rows not in RowOrder
             will not be printed or used in most calculations, if they exist.
             Default is None (calculates on the fly from self.keys().
-            
+
             ColOrder: list of 'interesting' column keys. If passed in 
             during init, all columns in ColOrder will be created in all rows.
             Columns not in ColOrder will not be printed or used in most
             calculations, if they exist. Default is None (calculates on the
             fly by examining the keys in each row. This can be expensive!
-            
+
             Default: value returned when m[r][c] doesn't exist.
 
             Pad: whether or not to pad Cols and Items with the default value 
@@ -150,13 +150,13 @@ class Dict2D(dict):
             Dict2D copy() to create an identical deep copy of your Dict2D
             and then work on that one, leaving the original untouched.
             See doc string for Dict2D.copy() for usage information.
-            
+
             usage: 
                 d = {'a':{'x':1,'y':2}, 'b':{'x':0, 'z':5}}
                 m = Dict2D(d)
                 m = Dict2D(d,Rows=['a','b'])
                 m = Dict2D(d,Cols=['x'],Default=99)
-        
+
         """
         #set the following as instance data if supplied; otherwise, will
         #fall through to class data
@@ -170,10 +170,10 @@ class Dict2D(dict):
             self.Pad = Pad
         if RowConstructor is not None:
             self.RowConstructor = RowConstructor
-       
+
         #initialize data as an empty dict if data = None
         data = data or {}
-       
+
         init_method = self._guess_input_type(data)
         if not init_method:
             raise Dict2DInitError("Dict2D init failed (data unknown type, or Row/Col order needed).")
@@ -244,7 +244,7 @@ class Dict2D(dict):
                 self[key] = dict(list(zip(self.ColOrder, row)))
         except (TypeError):
             raise Dict2DInitError("Dict2D init from lists failed.")
-            
+
     def pad(self, default=None):
         """Ensures self[r][c] exists for r in RowOrder for c in ColOrder.
 
@@ -256,7 +256,7 @@ class Dict2D(dict):
 
         row_order = self.RowOrder or self.rowKeys()
         col_order = self.ColOrder or self.colKeys()
-            
+
         for r in row_order:
             if r not in self:
                 self[r] = constructor()
@@ -306,7 +306,7 @@ class Dict2D(dict):
                 if key not in row:
                     del result[key]
         return list(result)
-        
+
 
     def square(self, default=None, reset_order=False):
         """Checks RowOrder and ColOrder share keys, and that self[r][c] exists.
@@ -318,7 +318,7 @@ class Dict2D(dict):
         col_order = self.ColOrder or self.colKeys()
         rows = dict.fromkeys(row_order)
         cols = dict.fromkeys(col_order)
-        
+
         if reset_order:
             if rows != cols:
                 for c in cols:
@@ -333,7 +333,7 @@ class Dict2D(dict):
             if rows != cols:
                 raise Dict2DError("Rows and Cols must be the same to square a Dict2D.")
         self.pad(default)
-            
+
     def _get_rows(self):
         """Iterates over the rows, using RowOrder/ColOrder.
 
@@ -350,10 +350,10 @@ class Dict2D(dict):
         raising an exception.
         """
         row_order = self.RowOrder or self.rowKeys()
-        
+
         if self.Pad:
             col_order = self.ColOrder or self.colKeys()
-            
+
             constructor = self.RowConstructor
             default = self.Default
             for r in row_order:
@@ -372,7 +372,7 @@ class Dict2D(dict):
                 for r in row_order:
                     curr_row = self[r]
                     yield list(curr_row.values())
-                
+
     Rows = property(_get_rows)
 
     def _get_cols(self):
@@ -395,7 +395,7 @@ class Dict2D(dict):
         """
         row_order = self.RowOrder or self.rowKeys()
         col_order = self.ColOrder or self.colKeys()
-        
+
         if self.Pad:
             default = self.Default
             constructor = self.RowConstructor
@@ -408,7 +408,7 @@ class Dict2D(dict):
                     yield [self[r][c] for r in row_order]
             except KeyError:
                 raise Dict2DSparseError("Can't iterate over cols of sparse Dict2D.")
-    
+
     Cols = property(_get_cols)
 
     def _get_items(self):
@@ -427,7 +427,7 @@ class Dict2D(dict):
 
     def getRows(self, rows, negate=False):
         """Returns new Dict2D containing only specified rows.
-        
+
         Note that the rows in the new Dict2D will be references to the
         same objects as the rows in the old Dict2D.
 
@@ -454,7 +454,7 @@ class Dict2D(dict):
 
     def getRowIndices(self, f, negate=False):
         """Returns list of keys of rows where f(row) is True.
-        
+
         List will be in the same order as self.RowOrder, if present.
         Note that the function is applied to the row as given by self.Rows,
         not to the original dict that contains it.
@@ -471,7 +471,7 @@ class Dict2D(dict):
 
     def getRowsIf(self, f, negate=False):
         """Returns new Dict2D containing rows where f(row) is True.
-        
+
         Note that the rows in the new Dict2D are the same objects as the
         rows in the old Dict2D, not copies.
         """
@@ -480,7 +480,7 @@ class Dict2D(dict):
 
     def getCols(self, cols, negate=False, row_constructor=None):
         """Returns new Dict2D containing only specified cols.
-        
+
         By default, the rows will be dicts, but an alternative constructor
         can be specified.
 
@@ -527,7 +527,7 @@ class Dict2D(dict):
 
     def getItems(self, items, negate=False):
         """Returns list containing only specified items.
-        
+
         items should be a list of (row_key, col_key) tuples.
 
         getItems will fail with KeyError if items that don't exist are
@@ -616,20 +616,20 @@ class Dict2D(dict):
                     result.append([self[r][c] for c in col_order])
             except KeyError:
                 raise Dict2DSparseError("Unpadded Dict2D can't convert to list of lists if sparse.")
-        
+
         if headers:
             for header, row in zip(row_order, result):
                 row.insert(0, header)
             result = [['-'] + list(col_order)] + result
         return result
-  
+
     def copy(self):
         """Returns a new deep copy of the data in self (rows are new objects).
-            
+
         NOTE: only copies the attributes in self._copied_attributes. Remember
         to override _copied_attributes in subclasses that need to copy
         additional data.
-            
+
             usage:
 
                 d = {'a':{'a':0}}
@@ -643,7 +643,7 @@ class Dict2D(dict):
         data = {}
         for key, row in list(self.items()):
             data[key] = row.copy()
-        
+
         #convert the result to the same class as self
         result = self.__class__(data)
 
@@ -654,7 +654,7 @@ class Dict2D(dict):
                 setattr(result, attr, curr_value)
 
         return result
-    
+
     def fill(self, val, rows=None, cols=None, set_orders=False):
         """Fills self[r][c] with val for r in rows and c in cols.
 
@@ -672,7 +672,7 @@ class Dict2D(dict):
         set_orders: if True, sets self.RowOrder to rows and self.ColOrder
         to cols (default False). Otherwise, RowOrder and ColOrder are
         unaffected. 
-        
+
         NOTE: RowOrder and ColOrder are _not_ used as defaults for rows and 
         cols, in order to make it convenient to fill only the elements that
         actually exist.
@@ -680,7 +680,7 @@ class Dict2D(dict):
         if set_orders:
             self.RowOrder = rows
             self.ColOrder = cols
-        
+
         if rows is None:        #affect all rows
             for r in list(self.values()):
                 for c in (cols or r):   #if not cols, affect everything in row
@@ -695,16 +695,16 @@ class Dict2D(dict):
                 curr_row = self[r]
                 for c in (cols or curr_row):
                     curr_row[c] = val
-            
+
     def setDiag(self, val):
         """Set the diagonal to val (required).
-        
+
         Note: only affects keys that are rows (i.e. does not create rows for
         keys that are in the cols only). Use self.square() in this situation.
         """
         for k in self:
             self[k][k] = val
-                
+
     def scale(self, f):
         """Applies f(x) to all elements of self."""
         for r in self:
@@ -714,7 +714,7 @@ class Dict2D(dict):
 
     def transpose(self):
         """Converts self in-place so self[r][c] -> self[c][r].
-        
+
         Also swaps RowOrder and ColOrder.
         """
         t = {}
@@ -726,7 +726,7 @@ class Dict2D(dict):
         self.clear()
         self.fromDicts(t)
         self.RowOrder, self.ColOrder = self.ColOrder, self.RowOrder
- 
+
     def reflect(self, method=average):
         """Reflects items across diagonal, as given by RowOrder and ColOrder.
 
@@ -750,7 +750,7 @@ class Dict2D(dict):
             if r not in self:
                 self[r] = constructor()
             curr_row = self[r]
-            
+
             for col_index in range(row_index):
                 c = row_order[col_index]
                 if c not in self:

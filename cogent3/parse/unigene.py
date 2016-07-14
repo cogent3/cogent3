@@ -20,7 +20,7 @@ rstrip = str.rstrip
 
 def _read_sts(line):
     """Turns an STS line (without label) into a record.
-    
+
     Infuritatingly, STS lines are not semicolon-delimited, and spaces appear
     in places they shouldn't. This was the case as of 10/9/03: expect this
     'feature' to be unstable!
@@ -43,7 +43,7 @@ class UniGeneProtSimRecord(MappedRecord):
 
 def _read_seq(line):
     """Turns a sequence line into a UniGeneSeqRecord.
-    
+
     BEWARE: first level delimiter is ';' and second level delimiter is '=', but
     '=' can also appear inside the _value_ of the second level!
     """
@@ -53,7 +53,7 @@ def _read_seq(line):
 
 def _read_protsim(line):
     """Turns a protsim line into a UniGeneProtSim record.
-    
+
     BEWARE: first level delimiter is ';' and second level delimiter is '=', but
     '=' can also appear inside the _value_ of the second level!
     """
@@ -84,7 +84,7 @@ def _seq_adder(obj, field, val):
 def _protsim_adder(obj, field, val):
     """Appends the current ProtSim record to specified field"""
     list_adder(obj, field, _read_protsim(val))
- 
+
 LinesToUniGene = LineOrientedConstructor()
 LinesToUniGene.Constructor = UniGene
 LinesToUniGene.FieldMap = {

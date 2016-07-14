@@ -30,13 +30,13 @@ class TestPair(TestCase):
     rna_char_indices = get_moltype_index_array(RNA)
     alignment = LoadSeqs(data=[('s1', 'ACGTACGTAC'),
                              ('s2', 'GTGTACGTAC')], moltype=DNA)
-    
+
     ambig_alignment = LoadSeqs(data=[('s1', 'RACGTACGTACN'),
                              ('s2', 'AGTGTACGTACA')], moltype=DNA)
-    
+
     diff_alignment = LoadSeqs(data=[('s1', 'ACGTACGTTT'),
                              ('s2', 'GTGTACGTAC')], moltype=DNA)
-    
+
     def test_char_to_index(self):
         """should correctly recode a DNA & RNA seqs into indices"""
         seq = 'TCAGRNY?-'
@@ -46,7 +46,7 @@ class TestPair(TestCase):
         seq = 'UCAGRNY?-'
         indices = seq_to_indices(seq, self.rna_char_indices)
         self.assertEqual(indices, expected)
-    
+
     def test_fill_diversity_matrix_all(self):
         """make correct diversity matrix when all chars valid"""
         s1 = seq_to_indices('ACGTACGTAC', self.dna_char_indices)
@@ -60,7 +60,7 @@ class TestPair(TestCase):
                          [0,3,0,0],
                          [0,0,3,0],
                          [0,0,0,2]], float))
-        
+
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
@@ -69,7 +69,7 @@ class TestPair(TestCase):
                          [1,2,0,0],
                          [0,0,2,1],
                          [0,0,0,2]], float))
-    
+
     def test_fill_diversity_matrix_some(self):
         """make correct diversity matrix when not all chars valid"""
         s1 = seq_to_indices('RACGTACGTACN', self.dna_char_indices)
@@ -83,7 +83,7 @@ class TestPair(TestCase):
                          [1,2,0,0],
                          [0,0,2,1],
                          [0,0,0,2]], float))
-    
+
     def test_python_vs_cython_fill_matrix(self):
         """python & cython fill_diversity_matrix give same answer"""
         s1 = seq_to_indices('RACGTACGTACN', self.dna_char_indices)
@@ -93,7 +93,7 @@ class TestPair(TestCase):
         matrix2 = numpy.zeros((4,4), float)
         pyx_fill_diversity_matrix(matrix2, s1, s2)
         self.assertFloatEqual(matrix1, matrix2)
-    
+
     def test_jc69_from_matrix(self):
         """compute JC69 from diversity matrix"""
         s1 = seq_to_indices('ACGTACGTAC', self.dna_char_indices)
@@ -103,7 +103,7 @@ class TestPair(TestCase):
         total, p, dist, var = _jc69_from_matrix(matrix)
         self.assertEqual(total, 10.0)
         self.assertEqual(p, 0.2)
-    
+
     def test_jc69_from_alignment(self):
         """compute JC69 dists from an alignment"""
         calc = JC69Pair(DNA, alignment=self.alignment)
@@ -117,15 +117,15 @@ class TestPair(TestCase):
                                 0.029752066125078681)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.StdErr['s1', 's2'], 0.1724878724)
-        
+
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
         self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2326161962)
-        
+
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
         self.assertTrue(calc.Dists['s1', 's2'] != 0.2326161962)
-    
+
     def test_tn93_from_matrix(self):
         """compute TN93 distances"""
         calc = TN93Pair(DNA, alignment=self.alignment)
@@ -138,15 +138,15 @@ class TestPair(TestCase):
         self.assertFloatEqual(calc.Variances['s1', 's2'], 0.04444444445376601)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.StdErr['s1', 's2'], 0.2108185107)
-        
+
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
         self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2554128119)
-        
+
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
         self.assertTrue(calc.Dists['s1', 's2'] != 0.2554128119)
-    
+
     def test_distance_pair(self):
         """get distances dict"""
         calc = TN93Pair(DNA, alignment=self.alignment)
@@ -156,7 +156,7 @@ class TestPair(TestCase):
         expect = {('s1', 's2'): dist, ('s2', 's1'): dist}
         self.assertEqual(list(dists.keys()), list(expect.keys()))
         self.assertFloatEqual(list(dists.values()), list(expect.values()))
-    
+
     def test_logdet_pair_dna(self):
         """logdet should produce distances that match MEGA"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
@@ -187,7 +187,7 @@ class TestPair(TestCase):
             got = dists[pair]
             expected = all_expected[pair]
             self.assertFloatEqual(got, expected)
-    
+
     def test_logdet_tk_adjustment(self):
         """logdet using tamura kumar differs from classic"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
@@ -197,8 +197,8 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         not_tk = logdet_calc.getPairwiseDistances()
         self.assertNotEqual(tk, not_tk)
-        
-    
+
+
     def test_logdet_pair_aa(self):
         """logdet shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
@@ -206,7 +206,7 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=PROTEIN, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
-    
+
     def test_logdet_missing_states(self):
         """should calculate logdet measurement with missing states"""
         data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
@@ -214,14 +214,14 @@ class TestPair(TestCase):
         aln = LoadSeqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        
+
         dists = logdet_calc.getPairwiseDistances()
         self.assertTrue(list(dists.values())[0] is not None)
-        
+
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
         self.assertTrue(list(dists.values())[0] is not None)
-    
+
     def test_logdet_variance(self):
         """calculate logdet variance consistent with hand calculation"""
         data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
@@ -230,7 +230,7 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         self.assertEqual(logdet_calc.Variances[1,1], None)
-       
+
         index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
@@ -249,13 +249,13 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
         self.assertFloatEqual(logdet_calc.Variances[1,1], var, eps=1e-3)
-    
+
     def test_logdet_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
         data = dict(seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
                     seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
         aln = LoadSeqs(data=data, moltype=DNA)
-        
+
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
@@ -263,7 +263,7 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
         self.assertTrue(list(dists.values())[0] is None)
-    
+
     def test_paralinear_pair_aa(self):
         """paralinear shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
@@ -271,7 +271,7 @@ class TestPair(TestCase):
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.getPairwiseDistances()
-    
+
     def test_paralinear_distance(self):
         """calculate paralinear variance consistent with hand calculation"""
         data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
@@ -279,7 +279,7 @@ class TestPair(TestCase):
         aln = LoadSeqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
-       
+
         index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
@@ -294,7 +294,7 @@ class TestPair(TestCase):
                 numpy.sqrt(f[0].prod() * f[1].prod()) )
 
         self.assertFloatEqual(paralinear_calc.Dists[1,1], dist, eps=1e-3)
-    
+
     def test_paralinear_variance(self):
         """calculate paralinear variance consistent with hand calculation"""
         data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
@@ -302,7 +302,7 @@ class TestPair(TestCase):
         aln = LoadSeqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
-       
+
         index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
         for p in zip(data[0][1], data[1][1]):
@@ -321,13 +321,13 @@ class TestPair(TestCase):
         var /= 16 * len(data[0][1])
 
         self.assertFloatEqual(paralinear_calc.Variances[1,1], var, eps=1e-3)
-    
+
     def test_paralinear_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
         data = dict(seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
                     seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
         aln = LoadSeqs(data=data, moltype=DNA)
-        
+
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.getPairwiseDistances()

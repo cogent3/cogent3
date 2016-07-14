@@ -12,7 +12,7 @@ __status__ = "Production"
 
 def deprecated(_type, old, new, version, stack_level=2):
     """a convenience function for deprecating classes, functions, arguments.
-    
+
     Arguments:
         - _type should be one of class, method, function, argument
         - old, new: the old and new names

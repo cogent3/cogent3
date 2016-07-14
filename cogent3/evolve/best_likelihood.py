@@ -40,7 +40,7 @@ def _take(array, indices):
 def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars='ACGT'):
     """return alignment broken into motifs as a transposed list with
     sequences as columns and aligned columns as rows
-    
+
     Arguments:
         exclude_chars: columns containing these characters will be excluded"""
     if exclude_chars:
@@ -49,7 +49,7 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars=
     else:
         allowed_chars = set(allowed_chars)
         exclude_func = lambda x: not allowed_chars.issuperset(x)
-    
+
     exclude_indices = set()
     array = []
     for name in aln.Names:
@@ -57,8 +57,8 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars=
         array.append(motifs)
         for motif_index, motif in enumerate(motifs):
             if exclude_func(motif):
-                    exclude_indices.update([motif_index])
-    
+                exclude_indices.update([motif_index])
+
     include_indices = set(range(len(array[0]))).difference(exclude_indices)
     include_indices = list(include_indices)
     include_indices.sort()
@@ -76,7 +76,7 @@ def count_column_freqs(columns_list):
 
 def get_ML_probs(columns_list, with_patterns=False):
     """returns the column log-likelihoods and frequencies
-    
+
     Argument:
         - with_patterns: the site patterns are returned"""
     n = len(columns_list)
@@ -103,7 +103,7 @@ def get_G93_lnL_from_array(columns_list):
 def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
     allowed_chars='ACGT', motif_length=None, return_length=False):
     """returns the best log-likelihood according to Goldman 1993.
-    
+
     Arguments:
         - alphabet: a sequence alphabet object.
         - motif_length: 1 for nucleotide, 2 for dinucleotide, etc ..
@@ -120,7 +120,7 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
         motif_length = alphabet.getMotifLen()
     else:
         kwargs = {}
-    
+
     aln = LoadSeqs(data=aln.todict(), **kwargs)
     columns = aligned_columns_to_rows(aln, motif_length, exclude_chars,
                                         allowed_chars)
@@ -128,6 +128,6 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
     log_likelihood = get_G93_lnL_from_array(columns)
     if return_length:
         return log_likelihood, num_cols
-    
+
     return log_likelihood
 

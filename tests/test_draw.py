@@ -71,7 +71,7 @@ def writefile(fname, content):
 
 def exercise(msg, fig):
     pass
-    
+
 def record(msg, fig):
     png = fig2png(fig)
     fname = file_for_test(msg, True)
@@ -86,7 +86,7 @@ class CheckOutput(object):
         self.failOnDifference = failOnDifference
         self.showAll = showAll
         self.anyFailures = False
-    
+
     def __call__(self, msg, fig):
         fname = file_for_test(msg, True)
         observed = fig2png(fig)
@@ -103,7 +103,7 @@ class CheckOutput(object):
                     print('difference from', fname)
         else:
             raise RuntimeError('No baseline image at %s' % fname)
-    
+
     def writeHTML(self):
         html = ['<html><head><title>Drawing Test Output</title></head>',
                 '<body>']
@@ -142,7 +142,7 @@ class CheckOutput(object):
 def do(msg, display, **kw):
     fig = display.makeFigure(**kw)
     test_figure(msg, fig)
-    
+
 
 def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
@@ -166,7 +166,7 @@ def makeSampleAlignment():
     align.addAnnotation(annotation.Variable, 'redline', 'align', [((0,15),1),((15,30),2),((30,45),3)])
     align.addAnnotation(annotation.Variable, 'blueline', 'align', [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
     return align
-    
+
 seq = makeSampleSequence()
 a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [((0,15),1),((15,30),2),((30,45),3)])
 v = seq.addAnnotation(annotation.Feature, 'gene', 'gene', [(0,15),(20,35),(40,55)])
@@ -174,7 +174,7 @@ b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [((0,15),1.5),((15,3
 
 align = makeSampleAlignment()
 
-        
+
 def green_cg(seq):
     seq = str(seq)
     posn = 0
@@ -242,7 +242,7 @@ class DrawingTests(unittest.TestCase):
                 color="green", label="C, D and E")
             do(klass.__name__, dendro, shade_param="length", 
                 show_params=["length"])
- 
+
         def callback(edge):
             return ["blue", "red"][edge.Name.startswith("A")]
         do("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
@@ -255,9 +255,9 @@ class DrawingTests(unittest.TestCase):
         fig = partimatrix(aln, samples=0, display=True, print_stats=False,
                 s_limit=10, title="brca1")
         test_figure('compatibility', fig)
-        
-        
-                
+
+
+
 if __name__ != "__main__":
     test_figure = exercise
 else:
@@ -283,11 +283,11 @@ else:
         test_figure = exercise
     else:
         raise RuntimeError('Unknown action %s' % action)
-    
+
     try:
         unittest.main()
     finally:
         if hasattr(test_figure, 'report'):
             test_figure.report()
-       
-    
+
+

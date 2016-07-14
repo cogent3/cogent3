@@ -57,20 +57,20 @@ def isTransition(motif1, motif2):
     a, b = motif1[position], motif2[position]
     transitions = {('A', 'G') : 1, ('C', 'T'):1}
     pair = (min(a, b), max(a, b))
-    
+
     return pair in transitions
 
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(motif2),\
         "motif1[%s] & motif2[%s] have inconsistent length" %\
         (motif1, motif2)
-    
+
     ndiffs, position = 0, -1
     for i in range(len(motif1)):
         if motif1[i] != motif2[i]:
             position = i
             ndiffs += 1
-            
+
     return ndiffs == 1, position
 
 def isinstantaneous(motif1, motif2):
@@ -110,7 +110,7 @@ class LikelihoodCalcs(TestCase):
     def setUp(self):
         self.alignment = ALIGNMENT.takeSeqs(OTU_NAMES)[0: 42]
         self.tree = LoadTree(tip_names=OTU_NAMES)
-    
+
     def _makeLikelihoodFunction(self, submod, translate=False, **kw):
         alignment = self.alignment
         if translate:
@@ -121,7 +121,7 @@ class LikelihoodCalcs(TestCase):
         if not translate:
             calc.setParamRule('kappa', value=3.0, is_constant=True)
         return calc
-    
+
     def test_no_seq_named_root(self):
         """root is a reserved name"""
         aln = self.alignment.takeSeqs(self.alignment.Names[:4])
@@ -136,7 +136,7 @@ class LikelihoodCalcs(TestCase):
             lf.setAlignment(aln)
         except AssertionError:
             pass
-        
+
         collection = aln.degap().NamedSeqs
         collection.pop("Human")
         tree = LoadTree(treestring="%s" % str(tuple(collection.keys())))
@@ -145,7 +145,7 @@ class LikelihoodCalcs(TestCase):
             lf.setSequences(collection)
         except AssertionError:
             pass
-    
+
     def test_binned_gamma(self):
         """just rate is gamma distributed"""
         submod = substitution_model.Codon(
@@ -162,7 +162,7 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(obs, 1.0)
         self.assertEqual(len(values), 3)
         shape = lf.getParamValue('rate_shape')
-    
+
     def test_binned_gamma_ordered_param(self):
         """rate is gamma distributed omega follows"""
         submod = substitution_model.Codon(
@@ -174,7 +174,7 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
         shape = lf.getParamValue('rate_shape')
-    
+
     def test_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
@@ -184,7 +184,7 @@ class LikelihoodCalcs(TestCase):
         values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
-    
+
     def test_complex_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
@@ -197,7 +197,7 @@ class LikelihoodCalcs(TestCase):
         values = list(lf.getParamValueDict(['bin'])['kappa_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
-    
+
     def test_codon(self):
         """test a three taxa codon model."""
         submod = substitution_model.Codon(
@@ -206,12 +206,12 @@ class LikelihoodCalcs(TestCase):
             motif_probs=None,
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             mprob_model='tuple')
-        
+
         likelihood_function = self._makeLikelihoodFunction(submod)
         likelihood_function.setParamRule('omega', value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -80.67069614541883)
-    
+
     def test_nucleotide(self):
         """test a nucleotide model."""
         submod = Nucleotide(
@@ -225,7 +225,7 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(likelihood_function.getNumFreeParams(), 0)
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -157.49363874840455)
-    
+
     def test_discrete_nucleotide(self):
         """test that partially discrete nucleotide model can be constructed, 
         differs from continuous, and has the expected number of free params"""
@@ -239,7 +239,7 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(likelihood_function.getNumFreeParams(), 12)
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertNotEqual(evolve_lnL,  -157.49363874840455)
-        
+
     def test_dinucleotide(self):
         """test a dinucleotide model."""
         submod = substitution_model.Dinucleotide(
@@ -251,18 +251,18 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -102.48145536663735)
-    
+
     def test_protein(self):
         """test a protein model."""
         submod = substitution_model.Protein(
             do_scaling=False, equal_motif_probs=True)
-        
+
         likelihood_function = self._makeLikelihoodFunction(submod, 
                 translate=True)
-        
+
         evolve_lnL = likelihood_function.getLogLikelihood()
         self.assertFloatEqual(evolve_lnL, -89.830370754876185)
-    
+
 
 class LikelihoodFunctionTests(TestCase):
     """tests for a tree analysis class. Various tests to create a tree analysis class,
@@ -272,20 +272,20 @@ class LikelihoodFunctionTests(TestCase):
         self.submodel = Nucleotide(
             do_scaling=True, model_gaps=False, equal_motif_probs=True,
             predicates = {'beta': 'transition'})
-        
+
         self.data = LoadSeqs(
                 filename = os.path.join(data_path, 'brca1_5.paml'),
                 moltype = self.submodel.MolType)
-        
+
         self.tree = LoadTree(
                 filename = os.path.join(data_path, 'brca1_5.tree'))
-    
+
     def _makeLikelihoodFunction(self, **kw):
         lf = self.submodel.makeLikelihoodFunction(self.tree, **kw)
         lf.setParamRule('beta', is_independent=True)
         lf.setAlignment(self.data)
         return lf
-    
+
     def _setLengthsAndBetas(self, likelihood_function):
         for (species, length) in [
                 ("DogFaced", 0.1),
@@ -301,9 +301,9 @@ class LikelihoodFunctionTests(TestCase):
             LCA = self.tree.getConnectingNode(species1, species2).Name
             likelihood_function.setParamRule("length", value=length, 
                     edge=LCA, is_constant=True)
-        
+
         likelihood_function.setParamRule("beta", value=4.0, is_constant=True)
-    
+
     def test_information_criteria(self):
         """test get information criteria from a model."""
         lf = self._makeLikelihoodFunction()
@@ -313,9 +313,9 @@ class LikelihoodFunctionTests(TestCase):
         self.assertFloatEqual(lf.getAic(), aic(lnL, nfp))
         self.assertFloatEqual(lf.getAic(second_order=True),
             aic(lnL, nfp, l))
-        
+
         self.assertFloatEqual(lf.getBic(), bic(lnL, nfp, l))
-    
+
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()
         likelihood_function = self._makeLikelihoodFunction()
@@ -346,7 +346,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-    
+
         likelihood_function = self._makeLikelihoodFunction(digits=2,space=2)
         self.assertEqual(str(likelihood_function), \
 """Likelihood Function Table\n\
@@ -369,19 +369,19 @@ motif  mprobs
     A    0.25
     G    0.25
 -------------""")
-    
+
     def test_calclikelihood(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(-250.686745262,
             likelihood_function.getLogLikelihood(),places=9)
-    
+
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(230.77670557,
             likelihood_function.getGStatistic(),places=6)
-    
+
     def test_ancestralsequences(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
@@ -395,13 +395,13 @@ motif  mprobs
         lf.setParamRule('beta', bin='high', value=10.0)
         lf.setAlignment(self.data)
         result = lf.reconstructAncestralSeqs()
-    
+
     def test_likely_ancestral(self):
         """excercising the most likely ancestral sequences"""
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         result = likelihood_function.likelyAncestralSeqs()
-    
+
     def test_simulateAlignment(self):
         "Simulate DNA alignment"
         likelihood_function = self._makeLikelihoodFunction()
@@ -409,21 +409,21 @@ motif  mprobs
         simulated_alignment = likelihood_function.simulateAlignment(20, exclude_internal = False)
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.getSeqNames()), 8)
-    
+
     def test_simulateHetergeneousAlignment(self):
         "Simulate substitution-heterogeneous DNA alignment"
         lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'])
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulateAlignment(100)
-    
+
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
         lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'], sites_independent=False)
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulateAlignment(100)
-    
+
     def test_simulateAlignment2(self):
         "Simulate alignment with dinucleotide model"
         al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
@@ -433,7 +433,7 @@ motif  mprobs
         lf.setAlignment(al)
         simalign = lf.simulateAlignment()
         self.assertEqual(len(simalign), 6)
-    
+
     def test_simulateAlignment3(self):
         """Simulated alignment with gap-induced ambiguous positions
         preserved"""
@@ -454,8 +454,8 @@ motif  mprobs
         self.assertEqual(
             re.sub('[ATCG]', 'x', simulated.todict()['a']),
             'x??xxxxxx?')
-        
-    
+
+
     def test_simulateAlignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
         def use_root_seq(root_sequence):
@@ -468,11 +468,11 @@ motif  mprobs
                                             root_sequence=root_sequence)
             root = simalign.NamedSeqs['root']
             self.assertEqual(str(root), str(root_sequence))
-        
+
         root_sequence = DNA.makeSequence('GTAATT')
         use_root_seq(root_sequence) # as a sequence instance
         use_root_seq('GTAATC') # as a string
-    
+
     def test_pc_initial_parameters(self):
         """Default parameter values from original annotated tree"""
         likelihood_function = self._makeLikelihoodFunction()
@@ -482,7 +482,7 @@ motif  mprobs
         lf.setAlignment(self.data)
         self.assertEqual(lf.getParamValue("length", "Human"), 0.3)
         self.assertEqual(lf.getParamValue("beta", "Human"), 4.0)
-    
+
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setParamRule("length", value=4.0, is_constant=True)
@@ -513,7 +513,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-        
+
         #self.submodel.setScaleRule("ts",['beta'])
         #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
         self.assertEqual(str(likelihood_function),\
@@ -542,7 +542,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-    
+
     def test_getMotifProbs(self):
         likelihood_function = self._makeLikelihoodFunction()
         mprobs = likelihood_function.getMotifProbs()
@@ -552,14 +552,14 @@ motif    mprobs
         obs = self.submodel.getMotifs()
         obs.sort()
         self.assertEqual(obs, keys)
-    
+
     def test_getAnnotatedTree(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setParamRule("length", value=4.0, edge="Human", is_constant=True)
         result = likelihood_function.getAnnotatedTree()
         self.assertEqual(result.getNodeMatchingName('Human').params['length'], 4.0)
         self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
-    
+
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setName("TEST")
@@ -589,16 +589,16 @@ motif    mprobs
       'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
  'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
         'edge.0': 1.0, 'Mouse': 1.0,'HowlerMon': 1.0}})
-    
+
     def test_get_statistics_from_empirical_model(self):
         """should return valid dict from an empirical substitution model"""
         submod = JTT92()
         aln = self.data.getTranslation()
-        
+
         lf = submod.makeLikelihoodFunction(self.tree)
         lf.setAlignment(aln)
         stats = lf.getParamValueDict(['edge'], params=['length'])
-    
+
     def test_constant_to_free(self):
         """excercise setting a constant param rule, then freeing it"""
         # checks by just trying to make the calculator
@@ -608,7 +608,7 @@ motif    mprobs
                         edges=['NineBande', 'DogFaced'], is_clade=True)
         lf.setParamRule('beta', init=2.0, is_constant=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
-    
+
     def test_get_psub_rate_matrix(self):
         """lf should return consistent rate matrix and psub"""
         lf = self.submodel.makeLikelihoodFunction(self.tree)
@@ -616,13 +616,13 @@ motif    mprobs
         Q = lf.getRateMatrixForEdge('NineBande')
         P = lf.getPsubForEdge('NineBande')
         self.assertFloatEqual(expm(Q.array)(1.0), P.array)
-        
+
         # should fail for a discrete Markov model
         dm = substitution_model.DiscreteSubstitutionModel(DNA.Alphabet)
         lf = dm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
         self.assertRaises(Exception, lf.getRateMatrixForEdge, 'NineBande')
-    
+
     def test_make_discrete_markov(self):
         """lf ignores tree lengths if a discrete Markov model"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')

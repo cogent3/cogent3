@@ -25,10 +25,10 @@ __status__ = "Production"
 
 class EnergyParams(object):
     """A data structure to hold parameters used in energy calculations"""
-    
+
     def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct):
         """Store the input params for later reference
-        
+
         nearest_neighbor_vals: a dictionary or dictionary-castable object 
             keyed by each nearest-neighbor pair and holding a value for each.
         gc_init: a floating-point castable value holding the initiation 
@@ -38,7 +38,7 @@ class EnergyParams(object):
         sym_correct: a floating-point castable value that is added into the
             calculation if a sequence is self-complementary
         """
-        
+
         self.nearestNeighbors = dict(nearest_neighbor_vals)
         self.gcInit = float(gc_init)
         self.atInit = float(at_init)
@@ -52,7 +52,7 @@ _NN_ENTHALPIES = {  "AA":-7.9, "TT":-7.9, "AT":-7.2, "TA":-7.2, \
         "CA":-8.5, "TG":-8.5, "GT":-8.4, "AC":-8.4, \
         "CT":-7.8, "AG":-7.8, "GA":-8.2, "TC":-8.2, \
         "CG":-10.6, "GC":-9.8, "GG":-8.0, "CC":-8.0}
-        
+
 _ENTHALPY_GC_INIT = 0.1
 _ENTHALPY_AT_INIT = 2.3
 _ENTHALPY_SYM = 0

@@ -38,7 +38,7 @@ class ConsensusTests(unittest.TestCase):
                 Tree("((a,b),c,d);"),
                 Tree("((a,c),b,d);"),
                 Tree("((a,b),c,d);")]
-        
+
         weights = list(map(log, [0.4,0.4,0.05,0.15])) # emphasizing the a,b clade
         self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
@@ -119,7 +119,7 @@ class ConsensusTests(unittest.TestCase):
         self.rooted_trees_lengths = [
                 (2, Tree('((a:0.3,c:0.4):0.2,(b:0.2,d:0.1):0.3);')),
                 (1, Tree('((a:0.1,b:0.1):0.05,(c:0.1,d:0.1):0.05);'))]
-    
+
     def test_majorityRule(self):
         """Tests for majority rule consensus trees"""
         trees = self.rooted_trees
@@ -134,7 +134,7 @@ class ConsensusTests(unittest.TestCase):
         """getTree should provide a reciprocal map of getSplits"""
         tree = LoadTree(filename=os.path.join(data_path,"murphy.tree"))
         self.assertTrue(tree.sameTopology(getTree(getSplits(tree))))
-    
+
     def test_consensus_tree_branch_lengths(self):
         """consensus trees should average branch lengths properly"""
         def get_ac(tree):
@@ -150,7 +150,7 @@ class ConsensusTests(unittest.TestCase):
         tip_names = maj_tree.getTipNames()
         ct = ct.rootedWithTip('d')
         ct = ct.sorted(tip_names)
-        
+
         self.assertTrue(abs(get_ac(ct).Length-get_ac(maj_tree).Length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
@@ -178,7 +178,7 @@ class ConsensusTests(unittest.TestCase):
         #for tree in cts:
         #    print str(tree)
         #self.assertTrue(set(map(str, cts))==set(['('+c+');' for c in 'abcd']))
-    
+
     def test_weighted_consensus_from_scored_trees_collection(self):
         """weighted consensus from a tree collection should be different"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
@@ -192,37 +192,37 @@ class ConsensusTests(unittest.TestCase):
         sct = LogLikelihoodScoredTreeCollection(self.trees_rooted_at_A)
         ctra = sct.getConsensusTree()
         self.assertTrue(ctrr.sameTopology(ctra))
-    
+
     def test_weighted_trees_satisyfing_cutoff(self):
         """build consensus tree from those satisfying cutoff"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
         cts = sct.getWeightedTrees(cutoff=0.8)
         for weight, tree in cts:
             self.assertTrue(tree.sameTopology(Tree('((a,b),c,d);')))
-        
+
         ct = cts.getConsensusTree()
         self.assertTrue(ct.sameTopology(Tree("((a,b),c,d);")))
-    
+
     def test_tree_collection_read_write_file(self):
         """should correctly read / write a collection from a file"""
         def eval_klass(coll):
             coll.writeToFile('sample.trees')
             read = LoadTrees('sample.trees')
             self.assertTrue(type(read) == type(coll))
-        
+
         eval_klass(LogLikelihoodScoredTreeCollection(self.scored_trees))
-        
+
         # convert lnL into p
         eval_klass(WeightedTreeCollection([(exp(s), t) 
                                     for s,t in self.scored_trees]))
         remove_files(['sample.trees'], error_on_missing=False)
-    
+
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
         self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
         self.dists = self.tree.getDistances()
-        
+
     def assertTreeDistancesEqual(self, t1, t2):
         d1 = t1.getDistances()
         d2 = t2.getDistances()
@@ -234,17 +234,17 @@ class TreeReconstructionTests(unittest.TestCase):
         """testing nj"""
         reconstructed = nj(self.dists)
         self.assertTreeDistancesEqual(self.tree, reconstructed)
-        
+
     def test_gnj(self):
         """testing gnj"""
         results = gnj(self.dists, keep=1)
         (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
-        
+
         results = gnj(self.dists, keep=10)
         (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
-        
+
         # Results should be a TreeCollection
         len(results)
         results.getConsensusTree()
@@ -284,8 +284,8 @@ class TreeReconstructionTests(unittest.TestCase):
         # if start tree has all seq names, should raise an error
         self.assertRaises(Exception, wls, self.dists,
                 start=[LoadTree(treestring='((a,c),b,(d,(e,f)))')])
-        
-    
+
+
 class DistancesTests(unittest.TestCase):
     def setUp(self):
         self.al = LoadSeqs(data = {'a':'GTACGTACGATC',
@@ -296,13 +296,13 @@ class DistancesTests(unittest.TestCase):
                             'b':'GTACGTACGTAC',
                             'c':'GTACGTACGTTC',
                             'e':'GTACGTACTGGT'}, aligned=False)
-    
+
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
         observed = dict([(frozenset(k),v) for (k,v) in list(observed.items())])
         expected = dict([(frozenset(k),v) for (k,v) in list(expected.items())])
         for key in expected:
             self.assertAlmostEqual(expected[key], observed[key], precision)
-            
+
     def test_EstimateDistances(self):
         """testing (well, exercising at least), EstimateDistances"""
         d = EstimateDistances(self.al, JC69())
@@ -315,14 +315,14 @@ class DistancesTests(unittest.TestCase):
                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
-        
+
         # excercise writing to file
         d.writeToFile('junk.txt')
         try:
             os.remove('junk.txt')
         except OSError:
             pass # probably parallel
-    
+
     def test_EstimateDistancesWithMotifProbs(self):
         """EstimateDistances with supplied motif probs"""
         motif_probs= {'A':0.1,'C':0.2,'G':0.2,'T':0.5}
@@ -336,7 +336,7 @@ class DistancesTests(unittest.TestCase):
                         ('c', 'e'): 0.37243}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
-    
+
     def test_EstimateDistances_fromThreeway(self):
         """testing (well, exercising at least), EsimateDistances fromThreeway"""
         d = EstimateDistances(self.al, JC69(), threeway=True)
@@ -349,7 +349,7 @@ class DistancesTests(unittest.TestCase):
                         ('b', 'c'): 0.0899339}
         result = d.getPairwiseDistances(summary_function="mean")
         self.assertDistsAlmostEqual(canned_result, result)
-    
+
     def test_EstimateDistances_fromUnaligned(self):
         """Excercising estimate distances from unaligned sequences"""
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
@@ -363,7 +363,7 @@ class DistancesTests(unittest.TestCase):
                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
-        
+
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
                                 rigorous_align=False)
         d.run()
@@ -375,7 +375,7 @@ class DistancesTests(unittest.TestCase):
                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
-    
+
     def test_EstimateDistances_other_model_params(self):
         """test getting other model params from EstimateDistances"""
         d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
@@ -386,14 +386,14 @@ class DistancesTests(unittest.TestCase):
         # this will be a dict with pairwise instances, it's called by the above
         # method, so the correctness of it's values is already checked
         kappa = d.getPairwiseParam('kappa')
-    
+
     def test_EstimateDistances_modify_lf(self):
         """tests modifying the lf"""
         def constrain_fit(lf):
             lf.setParamRule('kappa', is_constant=True)
             lf.optimise(local=True)
             return lf
-        
+
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
         d.run()
         result = d.getPairwiseDistances()
@@ -401,7 +401,7 @@ class DistancesTests(unittest.TestCase):
         d.run()
         expect = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(expect, result)
-        
+
     def test_get_raw_estimates(self):
         """correctly return raw result object"""
         d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])

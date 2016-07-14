@@ -45,7 +45,7 @@ def safe_for_tree(s):
 
 def bad_dnd_tokens(s, is_valid_name):
     """Returns list of bad dnd tokens from s, using is_valid_name for names.
-    
+
     Useful for finding trees with misformatted names that break parsing.
     """
     for t in DndTokenizer(s):
@@ -61,11 +61,11 @@ def bad_dnd_tokens(s, is_valid_name):
             continue
         #if we got here, nothing worked, so yield the current token
         yield t
-        
+
 
 def DndTokenizer(data):
     """Tokenizes data into a stream of punctuation, labels and lengths.
-    
+
     Note: data should all be a single sequence, e.g. a single string.
     """
     in_quotes = False
@@ -83,11 +83,11 @@ def DndTokenizer(data):
             sa = saved.append
         else:
             sa(d)
-    
+
 
 def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     """Returns tree from the Clustal .dnd file format, and anything equivalent.
-    
+
     Tree is made up of cogent3.base.tree.PhyloNode objects, with branch lengths
     (by default, although you can pass in an alternative constructor 
     explicitly).
@@ -104,7 +104,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     if left_count != right_count:
         raise RecordError("Found %s left parens but %s right parens." % \
             (left_count, right_count))
-    
+
     tokens = DndTokenizer(data)
     curr_node = None
     state = 'PreColon'
@@ -163,10 +163,10 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         state = 'PreColon'  #get here for any non-colon token
         state1 = 'PreClosed'
         last_token = t
-        
+
     if curr_node is not None and curr_node.Parent is not None:
         raise RecordError("Didn't get back to root of tree.")
-    
+
     if curr_node is None:       #no data -- return empty node
         return constructor()
     return curr_node    #this should be the root of the tree

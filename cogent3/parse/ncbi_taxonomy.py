@@ -68,7 +68,7 @@ class NcbiTaxon(object):
         Hidden      1 or 0; 1 if hidden by default in GenBank's listing
         HiddenSubtreeRoot   1 or 0; 1 if no sequences from this subtree exist
         Comments    free-text comments
-        
+
         RankId      Arbitrary number corresponding to rank. See RanksToNumbers.
         Name        Name of this node: must get from external source. Thanks
                     so much, NCBI...
@@ -91,7 +91,7 @@ class NcbiTaxon(object):
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
         self.Name = '' #will get name field from names.dmp; fillNames
         self.RankId = RanksToNumbers.get(self.Rank, None)
-        
+
     def __str__(self):
         """Writes data out in format we got it."""
         pieces = [str(getattr(self,f)) for f in self.Fields]
@@ -99,28 +99,28 @@ class NcbiTaxon(object):
         if pieces[1] == 'None':
             pieces[1] = pieces[0]
         return '\t|\t'.join(pieces) + '\t|\n'
-    
+
     def __lt__(self, other):
         """Compare by taxon rank."""
         try:
             return self.RankId < other.RankId
         except AttributeError:
             return True    #always sort ranked nodes above unranked
-    
+
     def __eq__(self, other):
         """Compare by taxon rank."""
         try:
             return self.RankId == other.RankId
         except AttributeError:
             return True
-    
+
     def __ne__(self, other):
         """Compare by taxon rank."""
         try:
             return self.RankId != other.RankId
         except AttributeError:
             return True
-    
+
 
 def NcbiTaxonParser(infile):
     """Returns a sequence of NcbiTaxon objects from sequence of lines."""
@@ -137,7 +137,7 @@ def NcbiTaxonLookup(taxa):
 
 class NcbiName(object):
     """Extracts name information: init from one line of NCBI's names.dmp.
-    
+
     Properties:
         TaxonId     TaxonId of this node
         Name        Text representation of the name, e.g. Homo sapiens
@@ -150,7 +150,7 @@ class NcbiName(object):
         line_pieces = list(map(strip, line.split('|')))
         line_pieces[0] = int(line_pieces[0])    #convert taxon_id
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
-        
+
     def __str__(self):
         """Writes data out in similar format as the one we got it from."""
         return '\t|\t'.join([str(getattr(self, f)) for f in self.Fields]) \
@@ -176,12 +176,12 @@ class NcbiTaxonomy(object):
         """Creates new taxonomy, using data in Taxa and Names.
 
         taxa should be the product of NcbiTaxonLookup.
-        
+
         names should be the product of NcbiNameLookup.
-        
+
         strict, if True, raises an error on finding taxa whose parents don't
         exist. Otherwise, will put them in self.Deadbeats keyed by parent ID.
-        
+
         Note: because taxa is a dict, nodes will be added in arbitrary order.
         """
         names_to_nodes = {}
@@ -193,7 +193,7 @@ class NcbiTaxonomy(object):
             else:
                 name = 'Unknown'
             t.Name = name
-            
+
             node = NcbiTaxonNode(t)
             names_to_nodes[name] = node
             ids_to_nodes[t_id] = node
@@ -216,10 +216,10 @@ class NcbiTaxonomy(object):
                         deadbeats[t.ParentId] = t
         self.Deadbeats = deadbeats
         self.Root = t.root()
-            
+
     def __getitem__(self, item):
         """If item is int, returns taxon by id: otherwise, searches by name.
-        
+
         Returns the relevant NcbiTaxonNode.
         Will raise KeyError if not present.
         """
@@ -236,7 +236,7 @@ class NcbiTaxonNode(TreeNode):
         self.Data = Data
         self._parent = None
         self.Children = []
-            
+
     def getRankedDescendants(self, rank):
         """Returns all descendants of self with specified rank as flat list."""
         curr = self.Rank
@@ -263,7 +263,7 @@ class NcbiTaxonNode(TreeNode):
     def _get_name(self):
         return self.Data.Name
     Name = property(_get_name)
-   
+
 def NcbiTaxonomyFromFiles(nodes_file, names_file, strict=False):
     """Returns new NcbiTaxonomy fron nodes and names files."""
     taxa = NcbiTaxonLookup(NcbiTaxonParser(nodes_file))

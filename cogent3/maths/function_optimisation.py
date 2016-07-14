@@ -38,7 +38,7 @@ def _simple_breed(best, num, mutation_rate, random_f):
 def _simple_score(child, target):
     """Returns the childs score as defined by the childs scoring function"""
     return child.score(target)
-    
+
 def _simple_init(parent, num):
     """Creates a list parent copies"""
     return [parent.copy() for i in range(num)]
@@ -89,7 +89,7 @@ def ga_evolve(parent, target, num, mutation_rate=0.01, score_f=_simple_score,
 
        Parent must implement methods copy(), mutate(), and score(target) to be
        used with the simple default functions.
-    
+
        Yields are performed at the end of each iteration and contain the tuple
        (generation, best). The default functions return the tuple
        (generation, (best_score, best_obj)).

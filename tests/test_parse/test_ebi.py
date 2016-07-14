@@ -32,7 +32,7 @@ def item_empty_filter(d):
     """return a dict with only nonempty values"""
     pairs = [(k,v) for (k,v) in d.items() if v]
     return dict(pairs)
-                    
+
 class EbiTests(TestCase):
     """ Tests ebi parsers and generic parsers and general functions """
     def setUp(self):
@@ -45,7 +45,7 @@ class EbiTests(TestCase):
         expects = [
             {2:1}]
         self.assertEqual(list(map(item_empty_filter, inputs)), expects)
-    
+
     def test_rstrip_(self):
         """rstrip_ should generate the expected function"""
         test = ' aaa;  '
@@ -54,7 +54,7 @@ class EbiTests(TestCase):
         #test default
         self.assertEqual(rstrip_()(test),
                 test.rstrip())
-    
+
     def test_hanging_paragraph_finder(self):
         """hanging_paragraph_finder should give expected results"""
         f = hanging_paragraph_finder
@@ -90,7 +90,7 @@ class EbiTests(TestCase):
         test_fail = test + ['c']
         self.assertRaises(RecordError, 
                 list, EbiFinder(test_fail))
-        
+
 
     def test_pairs_to_dict(self):
         """pairs_to_dict should return the expected dict"""
@@ -100,7 +100,7 @@ class EbiTests(TestCase):
         double = lambda x: x*2
         set_zero = lambda x: 0
         handlers ={ 'a': add_one, 'b': double,}
-        
+
         #test default all
         self.assertEqual(pairs_to_dict(sorted_items),
                 {'a': 1, 'b': 3})
@@ -129,7 +129,7 @@ class EbiTests(TestCase):
         sorted_items.append(('c', 4))
         self.assertEqual(pairs_to_dict(sorted_items, handlers=handlers,
             default_handler=set_zero), {'a': 2, 'b': 6, 'c': 0})
-        
+
         #test raise error when  no valid handlers were found 
         f = curry(pairs_to_dict, handlers=handlers)
         self.assertRaises(ValueError, f, sorted_items)
@@ -183,13 +183,13 @@ class EbiTests(TestCase):
         self.assertEqual(join_parser([]),'')
         self.assertEqual(join_parser(['', ' ']),'')
         self.assertEqual(join_parser(''),'')
-        
-        
+
+
     def test_join_split_parser(self):
         """join_split_parser: should return expected"""
         f = join_split_parser
         assertEqual = self.assertEqual
-        
+
         assertEqual(f(['aa; bb;', 'cc.']),
                 ['aa', 'bb', 'cc'])
         assertEqual(f(['aa; bb, bbb;', 'cc.'],delimiters=';,'),
@@ -215,7 +215,7 @@ class EbiTests(TestCase):
 
         self.assertEqual(f('aa=1; bb=2,3; cc=4:5', delimiters=';=,:'),
                 {'aa':'1', 'bb': ['2','3'], 'cc': '4:5'})
-        
+
         #test strict=False -> splits without dict() 
         self.assertEqual(f('aa=1; bb.', strict=False), [['aa', '1'], ['bb']])
 
@@ -294,7 +294,7 @@ class EbiTests(TestCase):
         the_first_valid = list(f(fake_records_valid[:-5], strict=True))[0]
         #[1] get the header_dict
         self.assertEqual(len(the_first_valid[1]),9) 
-        
+
         self.assertRaises(RecordError, list, 
                 f(fake_records_valid, strict=True))
 
@@ -357,7 +357,7 @@ class RootParsersKnownValues(TestCase):
                 ['01-AUG-1988 (Rel. 08, Created)',
                 '30-MAY-2000 (Rel. 39, Last sequence update)',
                 '10-MAY-2005 (Rel. 47, Last annotation update)'])
-        
+
     def test_de_itemparser(self):
         """de_itemparser: known values"""
         inputs = [
@@ -379,7 +379,7 @@ class RootParsersKnownValues(TestCase):
         exp = ['PRJNA38045','PRJNA41539']
         obs = pr_parser(inpr)
         self.assertEqual(obs,exp)
-        
+
     def test_de_parser(self):
         """de_parser should return expected list"""
         inputs = [
@@ -390,7 +390,7 @@ class RootParsersKnownValues(TestCase):
             "DE   A (aa)."]
         filtered_dicts = [item_empty_filter(de_parser([e])) for e in inputs]
         self.assertEqual(list(map(len, filtered_dicts)), [4, 3, 2, 2, 2])
-        
+
     def test_os_parser(self):   
         """os_parser should return expected list"""
         lines = [
@@ -398,7 +398,7 @@ class RootParsersKnownValues(TestCase):
             'OS   gine).']
         self.assertEqual(os_parser(lines),
                 ['Solanum melongena', 'Eggplant', 'Auber- gine'])
-        
+
         lines = \
             """OS   Escherichia coli.""".splitlines()
         self.assertEqual(os_parser(lines),
@@ -442,7 +442,7 @@ class RootParsersKnownValues(TestCase):
             'Name': 'Jon99Cii'},
             {'ORFNames': 'CG15519', 'Synonyms': ['SER2', 'Ser99Db'],
             'Name': 'Jon99Ciii'}])
-        
+
     def test_dr_parser(self):   
         """dr_parser should return expected dict"""
         lines = dr_lines
@@ -466,7 +466,7 @@ class FT_Tests(TestCase):
             ('VARIANT', 214, 214, 'V -> I. /FTId=VAR_009122')]
         #pprint(map(ft_basic_itemparser, inputs))
         self.assertEqual(list(map(ft_basic_itemparser, inputs)), expects)
-    
+
     def test_try_int(self):
         """try_int: known values"""
         inputs = ['9', '0', '-3', '2.3', '<9', '>9', '?', '?35', '']
@@ -524,7 +524,7 @@ class FT_Tests(TestCase):
              'MutateFrom': 'C', 'MutateTo': 'R,E,A'},
             {'Comment': ' Abolishes ATP-binding',
              'MutateFrom': 'Missing', 'MutateTo': ''}]
-        
+
         #pprint(map(ft_mutagen_parser, inputs))
         self.assertEqual(list(map(ft_mutagen_parser, inputs)), expects)
 
@@ -588,7 +588,7 @@ class CC_Tests(TestCase):
             ('Q9VYI0:fne', {'NbExp': '1', 
                     'IntAct': ['EBI-123485', 'EBI-126770']})]]
         self.assertEqual(list(map(cc_interaction_parser, inputs)), expects)
-        
+
     def test_cc_biophysicochemical_properties_parser(self):
         """cc_biophysicochemical_properties_parser: known values"""
         #pprint(cc['BIOPHYSICOCHEMICAL PROPERTIES'])  #topic specific parser
@@ -664,7 +664,7 @@ class CC_Tests(TestCase):
         self.assertEqual(cc['LICENSE'], [
             'This SWISS-PROT entry is copyright. It is produced through a '
                 'collaboration removed'])
-        
+
         #pprint(cc['DATABASE'])  #join_split_dict
         self.assertEqual(cc['DATABASE'], [{
             'NAME': 'CD40Lbase',
@@ -689,7 +689,7 @@ class ReferenceTests(TestCase):
     def test_refs_parser(self):
         """refs_parser: should return a dict of {RN: ref_dict}"""
         pass
-        
+
     def test_single_ref_parser(self):
         """single_ref_parser: should return the expected dict"""
         fake_ref_block = ['RN   [1]',
@@ -756,12 +756,12 @@ class ReferenceTests(TestCase):
             "RL   J. Mol. Biol. 168:321-331(1983)."]
         self.assertEqual( rl_parser(lines),
             'J. Mol. Biol. 168:321-331(1983)')
-    
+
     def test_rn_parser(self):
         """rn_parser should return expected str"""
         lines = [ "RN   [8]"]
         self.assertEqual( rn_parser(lines), 8)
-    
+
     def test_rg_parser(self):
         """rg_parser should return expected str"""
         lines = [ "RG   The mouse genome sequencing consortium;"]
@@ -773,7 +773,7 @@ class ReferenceTests(TestCase):
         lines = [ "RP   X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)."]
         self.assertEqual( rp_parser(lines),
                  'X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)')
-        
+
 #################################
 # global test data
 ft_lines = \

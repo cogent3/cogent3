@@ -26,7 +26,7 @@ class SpanTests(TestCase):
         self.after = Span(35, 40)
         self.reverse = Span(30, 35, Reverse=True)
         self.spans_zero = Span(-5, 5)
-        
+
     def test_init(self):
         """Span object should init with Start, End, and Length"""
         s = Span(0)
@@ -60,7 +60,7 @@ class SpanTests(TestCase):
         self.assertContains(self.spans_zero, 0)
         self.assertContains(self.spans_zero, -5)
         self.assertNotContains(self.spans_zero, 5)
-        
+
     def test_overlaps(self):
         """Span objects should be able to overlap points or spans"""
         self.assertTrue(self.full.overlaps(self.overlapping))
@@ -121,7 +121,7 @@ class SpanTests(TestCase):
 
         for i, j in zip(first, expected_order):
             self.assertSameObj(i, j)
-    
+
     def test_sort(self):
         """Span should support sort by 1st/2nd index and direction"""
         s, e, f, r, i, o = self.spans_zero, self.empty, self.full, \
@@ -149,7 +149,7 @@ class SpanTests(TestCase):
         self.assertFalse(f.startsBefore(30))
         self.assertTrue(f.startsBefore(31))
         self.assertTrue(f.startsBefore(1000))
-        
+
     def test_startsAfter(self):
         """Span startsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
@@ -188,7 +188,7 @@ class SpanTests(TestCase):
         self.assertFalse(f.startsInside(i))
         self.assertTrue(o.startsInside(f))
         self.assertFalse(o.endsInside(i))
-        
+
     def test_endsBefore(self):
         """Span endsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
@@ -201,7 +201,7 @@ class SpanTests(TestCase):
         self.assertFalse(f.endsBefore(30))
         self.assertFalse(f.endsBefore(31))
         self.assertTrue(f.endsBefore(1000))
-        
+
     def test_endsAfter(self):
         """Span endsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
@@ -267,7 +267,7 @@ class RangeInterfaceTests(object): #SpanTests):
         self.assertEqual(str(self.full), '((30,35,False))')
         self.assertEqual(str(self.reverse), '((30,35,True))')
 
- 
+
 class RangeTests(TestCase):
     """Tests of the Range object."""
     def setUp(self):
@@ -299,7 +299,7 @@ class RangeTests(TestCase):
         self.assertEqual(self.single.Spans, [Span(0,1)])
         #nothing
         self.assertEqual(Range().Spans, [])
-        
+
     def test_str(self):
         """Range str should print nested with parens"""
         self.assertEqual(str(self.one), '((0,100,False))')
@@ -488,13 +488,13 @@ class MapTests(TestCase):
         map = Map(spans, parent_length=100)
         coords = map.getCoordinates()
         self.assertEqual(coords, spans)
-        
+
         # should work for reversed Maps too
         spans = [(32, 20), (9, 0)]
         map = Map(spans, parent_length=100)
         coords = map.getCoordinates()
         self.assertEqual(coords, spans)
-    
+
 
 #run the following if invoked from command-line
 if __name__ == "__main__":

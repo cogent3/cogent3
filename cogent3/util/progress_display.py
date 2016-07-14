@@ -57,20 +57,20 @@ class TextBuffer(object):
     incomplete lines instead of just outputting or buffering them.  That
     allows the output to always end at a newline, ready for a progress bar
     to be shown, without postponing output of any incomplete last line."""
-    
+
     def __init__(self):
         self.chunks = []
         self.pending_eol = False
-        
+
     def write(self, text):
         self.chunks.append(text)
-    
+
     # multiprocessing calls these
     def flush(self):
         pass
     def isatty(self):
         return False
-        
+
     def regurgitate(self, out):
         if self.chunks:
             text = ''.join(self.chunks)
@@ -91,7 +91,7 @@ class TextBuffer(object):
 class ProgressContext(object):
     """The interface by which cogent algorithms can report progress to the
     user interface.  Calls self.progress_bar.set(progress, message)"""
-    
+
     def __init__(self, progress_bar=None, prefix=None, base=0.0, segment=1.0, 
             parent=None, rate=1.0):
         self.progress_bar = progress_bar
@@ -115,7 +115,7 @@ class ProgressContext(object):
         self._max_text_len = 0
         self.max_depth = 2
         self.rate = rate
-        
+
     def subcontext(self):
         """For any sub-task which may want to report its own progress, but should
         not get its own progress bar."""
@@ -128,14 +128,14 @@ class ProgressContext(object):
             segment = self.current*self.segment,
             parent = self,
             rate = self.rate) 
-    
+
     def display(self, msg=None, progress=None, current=0.0):
         """Inform the UI that we are are at 'progress' of the way through and 
         will be doing 'msg' until we reach and report at progress+current.
         """
         if self.depth > 0:
             msg = None
-            
+
         updated = False
         if progress is not None:
             self.progress = min(progress, 1.0)
@@ -161,18 +161,18 @@ class ProgressContext(object):
     def done(self):
         if self.depth == 0:
             self.progress_bar.done()
-    
+
     # Not much point while cogent is still full of print statements, but
     # .info() (and maybe other logging analogues such as .warning()) would
     # avoid the need to capture stdout:
-    
+
     #def info(self, text):
     #    """Display some information which may be more than fleetingly useful, 
     #    such as a summary of intermediate statistics or a very mild warning.  
     #    A GUI should make this information retrievable but not intrusive.
     #    For terminal UIs this is equivalent to printing"""
     #    raise NotImplementedError
-        
+
     def series(self, items, noun='', labels=None, start=None, end=1.0, count=None):
         """Wrap a looped-over list with a progress bar"""
         if count is None:
@@ -195,7 +195,7 @@ class ProgressContext(object):
             self.display(msg=labels[i], progress=start+step*i, current=step)
             yield item
         self.display(progress=end, current=0)
-        
+
     def imap(self, f, s, pure=True, **kw):
         """Like itertools.imap() but with a progress bar"""
         if pure:
@@ -205,11 +205,11 @@ class ProgressContext(object):
         results = func(f, s)
         for result in self.series(results, count=len(s), **kw):
             yield result
-    
+
     def eager_map(self, f, s, **kw):
         """Like regular Python2 map() but with a progress bar"""
         return list(self.imap(f,s, **kw))
-    
+
     def map(self, f, s, **kw):
         """Synonym for eager_map, unlike in Python3"""
         return self.eager_map(f, s, **kw)
@@ -220,7 +220,7 @@ class NullContext(ProgressContext):
     and other situations where all output is suppressed"""
     def subcontext(self, *args, **kw):
         return self
-        
+
     def display(self, *args, **kw):
         pass
 
@@ -234,10 +234,10 @@ class LogFileOutput(object):
         self.t0 = time.time()
         self.lpad = ''
         self.output = sys.stdout # sys.stderr
-    
+
     def done(self):
         pass
-    
+
     def set(self, progress, message):        
         if message:
             delta = '+%s' % int(time.time() - self.t0)
@@ -245,7 +245,7 @@ class LogFileOutput(object):
             print("%s %5s %3i%% %s" % (
                     self.lpad, delta, progress,
                     str(message.encode('utf8'))), file=self.output)
-            
+
 
 class CursesTerminalProgressBar(object):
     """Wraps stdout and stderr, displaying a progress bar via simple 
@@ -264,11 +264,11 @@ class CursesTerminalProgressBar(object):
         self.line_count = 0
         (sys.stdout, sys.stderr, self._stdout, self._stderr) = (
                 self.stdout_log, self.stderr_log, sys.stdout, sys.stderr)
-    
+
     def done(self):
         self.set(None, None)
         (sys.stdout, sys.stderr) = (self._stdout, self._stderr)
-    
+
     def set(self, progress, message):
         """Clear the existing progress bar, write out any accumulated
         stdout and stderr, then draw the updated progress bar."""
@@ -293,10 +293,10 @@ class CursesTerminalProgressBar(object):
             self.stderr.write(out)
         self.stdout_log.regurgitate(self.stdout)
         self.stderr_log.regurgitate(self.stderr)
-        
+
         if progress is not None:
             self.stderr.writelines([bar, '\n'])
-        
+
         if message is not None:
             self.stderr.writelines([str(message[:width].encode('utf8')), '\n'])
         self.line_count = (progress is not None) + (message is not None)
@@ -308,11 +308,11 @@ CURRENT.context = None
 
 class RootProgressContext(object):
     """The context between long running jobs, when there is no progress bar"""
-    
+
     def __init__(self, pbar_constructor, rate):
         self.pbar_constructor = pbar_constructor
         self.rate = rate
-        
+
     def subcontext(self):
         pbar = self.pbar_constructor()
         return ProgressContext(pbar, rate=self.rate)
@@ -332,7 +332,7 @@ def setupRootUiContext(progressBarConstructor=None, rate=None):
             rate = 5.0
     else:
         klass = None
-    
+
     if klass is None:
         CURRENT.context = NULL_CONTEXT
     else:
@@ -370,7 +370,7 @@ def subdemo(ui):
     for j in ui.series(list(range(10))):
         time.sleep(0.1)
     return
-    
+
 @display_wrap
 def demo(ui):
     print("non-linebuffered output, tricky but look:", end=' ')
@@ -386,7 +386,7 @@ def demo(ui):
 if __name__ == '__main__':
     #setupRootUiContext(rate=0.2)
     demo()
-    
+
 # This messes up interactive shells a bit:
 #CURRENT.start()
 #atexit.register(CURRENT.done)

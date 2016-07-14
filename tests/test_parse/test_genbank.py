@@ -19,7 +19,7 @@ __status__ = "Production"
 
 class GenBankTests(TestCase):
     """Tests of the GenBank main functions."""
-    
+
     def test_parse_locus(self):
         """parse_locus should give correct results on specimen locus lines"""
         line = 'LOCUS       AF108830                5313 bp    mRNA    linear   PRI 19-MAY-1999'
@@ -37,7 +37,7 @@ class GenBankTests(TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result['locus'], 'AF108830')
         self.assertEqual(result['length'], 5313)    #note: int, not str
-    
+
     def test_parse_single_line(self):
         """parse_single_line should split off the label and return the rest"""
         line_1 = 'VERSION     AF108830.1  GI:4868112\n'
@@ -45,7 +45,7 @@ class GenBankTests(TestCase):
         #should work if leading spaces
         line_2 = '      VERSION     AF108830.1  GI:4868112\n'
         self.assertEqual(parse_single_line(line_2), 'AF108830.1  GI:4868112')
-    
+
     def test_indent_splitter(self):
         """indent_splitter should split lines at correct locations"""
         #if lines have same indent, should not group together
@@ -62,7 +62,7 @@ class GenBankTests(TestCase):
         ]
         self.assertEqual(list(indent_splitter(lines)),\
             [[lines[0], lines[1]]])
-        
+
         #if both lines indented but second is more, should group with first
         lines = [
         ' abc    xxx',
@@ -70,7 +70,7 @@ class GenBankTests(TestCase):
         ]
         self.assertEqual(list(indent_splitter(lines)),\
             [[lines[0], lines[1]]])
-        
+
         #if both lines indented equally, should not group
         lines = [
         '   abc    xxx',
@@ -78,7 +78,7 @@ class GenBankTests(TestCase):
         ]
         self.assertEqual(list(indent_splitter(lines)), \
             [[lines[0]], [lines[1]]])
-        
+
         #for more complex situation, should produce correct grouping
         lines = [
         '  xyz',    #0 -
@@ -96,7 +96,7 @@ class GenBankTests(TestCase):
         ]
         self.assertEqual(list(indent_splitter(lines)), \
             [[lines[0]], lines[1:5], [lines[5]], lines[6:11], [lines[11]]])
-        
+
         #real example from genbank file
         lines = \
 """LOCUS       NT_016354           92123751 bp    DNA     linear   CON 29-AUG-2006
@@ -121,7 +121,7 @@ REFERENCE   2  (bases 1 to 92123751)
         self.assertEqual(list(indent_splitter(lines)), \
             [[lines[0]],[lines[1]],lines[2:8],[lines[8]],[lines[9]],lines[10:15],\
             [lines[15]], lines[16:]])
-    
+
     def test_parse_sequence(self):
         """parse_sequence should strip bad chars out of sequence lines"""
         lines = """
@@ -132,7 +132,7 @@ ORIGIN
 //\n\n\n""".split('\n')
         result = parse_sequence(lines)
         self.assertEqual(result, 'gggagcgcggcgcgggagcccgaggctgagactcaccggaggaagcggcgcgagcgccccgccatcgtcccggctgaagtgcagtgcctgggcttaagcagtcttcccacctcagc')
-    
+
     def test_block_consolidator(self):
         """block_consolidator should join the block together."""
         lines = """  ORGANISM  Homo sapiens
@@ -152,7 +152,7 @@ ORIGIN
         self.assertEqual(label, "COMMENT")
         self.assertEqual(data, ['', '                    Contact: Spindel ER',
                                 '                    Division of Neuroscience'])
-    
+
     def test_parse_organism(self):
         """parse_organism should return species, taxonomy (up to genus)"""
         #note: lines modified to include the following:
@@ -169,7 +169,7 @@ ORIGIN
             'Chordata Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia', \
             'Eutheria', 'Euarchontoglires', 'Primates abc. 2.', \
             'Catarrhini Hominidae', 'Homo'])
-    
+
     def test_parse_feature(self):
         """parse_feature should return dict containing annotations of feature"""
         example_feature=\
@@ -206,7 +206,7 @@ ORIGIN
         self.assertEqual(result['db_xref'], ['GI:9838451','IPI:12345'])
         self.assertEqual(result['translation'],['MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP'])
         self.assertEqual(len(result), 11)
-        
+
         short_feature = ['D-loop          15418..16866']
         result = parse_feature(short_feature)
         self.assertEqual(result['type'], 'D-loop')
@@ -230,7 +230,7 @@ ORIGIN
      /product="H-strand"'''
         result = parse_feature(bad_feature.split('\n'))
         self.assertEqual(result['partial'], [''])
-    
+
     def test_location_line_tokenizer(self):
         """location_line_tokenizer should tokenize location lines"""
         llt =location_line_tokenizer
@@ -244,7 +244,7 @@ ORIGIN
             '\n5..6), 7..8\t))'])),\
             ['join(','complement(','1..2',',','join(','complement(','3..4',\
             ')', ',', '5..6',')',',','7..8',')',')'])
-    
+
     def test_parse_simple_location_segment(self):
         """parse_simple_location_segment should parse simple segments"""
         lsp = parse_simple_location_segment
@@ -272,7 +272,7 @@ ORIGIN
         self.assertEqual(str(first), '<37')
         self.assertEqual(str(second), '>42')
         self.assertEqual(str(l), '<37..>42')
-    
+
     def test_parse_location_line(self):
         """parse_location_line should give correct list of location objects"""
         llt = location_line_tokenizer
@@ -296,7 +296,7 @@ ORIGIN
               'join(7..8,complement(9..10))))']))
         self.assertEqual(str(r), \
           'join(9..10,complement(7..8),5..6,complement(3..4),complement(1..2))')
-    
+
     def test_parse_reference(self):
         """parse_reference should give correct fields"""
         r = \
@@ -316,7 +316,7 @@ ORIGIN
         self.assertEqual(result['journal'], \
             '(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)')
         self.assertEqual(result['pubmed'], '15326224')
-    
+
     def test_parse_source(self):
         """parse_source should split into source and organism"""
         s = \
@@ -331,7 +331,7 @@ ORIGIN
         self.assertEqual(r['taxonomy'], ['Eukaryota','Metazoa', 'Chordata',\
             'Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',\
             'Eutheria', 'Proboscidea', 'Elephantidae', 'Loxodonta'])
-    
+
     def test_rich_parser(self):
         """correctly constructs +/- strand features"""
         # a custom annotation function
@@ -340,12 +340,12 @@ ORIGIN
             if feature['type'] != "CDS": return
             name = feature['locus_tag'][0]
             seq.addAnnotation(Feature, "CDS", name, spans)
-        
+
         infile = open('data/annotated_seq.gb')
         parser = RichGenbankParser(infile,
             add_annotation=add_annotation)
-        
-        
+
+
         seq = [s for l, s in parser][0]
         cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
         expects = {
@@ -365,7 +365,7 @@ ORIGIN
             'CNA00120': 'MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD'\
             'FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP'\
             'DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF'}
-        
+
         for locus in cds:
             got = cds[locus].getSlice().\
                     withoutTerminalStopCodon().getTranslation()
@@ -437,4 +437,4 @@ if __name__ == '__main__':
                     print(line)
     else:
         main()
-    
+

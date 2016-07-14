@@ -980,12 +980,12 @@ class Variation(_Region):
             self.allele_code_table = None
 
         super(Variation, self).__init__()
-        
+
         if genome.GeneralRelease < 70:
             self._get_flanking_seq_data = self._get_flanking_seq_data_lt_70
         else:
             self._get_flanking_seq_data = self._get_flanking_seq_data_ge_70
-        
+
         self._attr_ensembl_table_map = dict(Effect='variation_feature',
                                             Symbol='variation_feature',
                                             Validation='variation_feature',
@@ -1033,14 +1033,14 @@ class Variation(_Region):
         self._populate_cache_from_record(attr_name_map, 'variation_feature')
         # TODO handle obtaining the variation_feature if we were created in
         # any way other than through the Symbol or Effect
-    
+
     def _get_ancestral_data(self):
         # actually the variation table
         def str_or_none(val):
             if val is not None:
                 val = _quoted(val)
             return val
-        
+
         variation_id = self._table_rows['variation_feature']['variation_id']
         var_table = self.variation_table
         query = sql.select([var_table],
@@ -1049,7 +1049,7 @@ class Variation(_Region):
         self._table_rows['variation'] = record
         attr_name_map = [('Ancestral', 'ancestral_allele', str_or_none)]
         self._populate_cache_from_record(attr_name_map, 'variation')
-    
+
     def _get_seq_region_record(self, seq_region_id):
         # should this be on a parent class? or a generic function in assembly?
         seq_region_table = self.db.getTable('seq_region')
@@ -1057,7 +1057,7 @@ class Variation(_Region):
                            seq_region_table.c.seq_region_id == seq_region_id)
         record = asserted_one(query.execute())
         return record
-    
+
     def _get_flanking_seq_data_ge_70(self):
         """return the flanking sequence data if Release >= 70"""
         # variation_feature.alignment_quality == 1, means flanks match reference
@@ -1066,7 +1066,7 @@ class Variation(_Region):
         if not aligned_ref:
             self._cached['FlankingSeq'] = self.NULL_VALUE
             return
-        
+
         seqs = dict(up=self.NULL_VALUE, down=self.NULL_VALUE)
         for name, seq in list(seqs.items()):
             resized = [(-301, -1), (1, 301)][name == 'down']
@@ -1078,8 +1078,8 @@ class Variation(_Region):
             seqs[name] = seq
 
         self._cached[('FlankingSeq')] = (seqs['up'][-300:],seqs['down'][:300])
-        
-    
+
+
     def _get_flanking_seq_data_lt_70(self):
         # maps to flanking_sequence through variation_feature_id
         # if this fails, we grab from genomic sequence
@@ -1125,20 +1125,20 @@ class Variation(_Region):
     def _get_somatic(self):
         return self._get_cached_value('Somatic',
                                       self._get_variation_table_record)
-    
+
     Somatic = property(_get_somatic)
-    
+
     def _get_alleles(self):
         return self._get_cached_value('Alleles',
                                       self._get_variation_table_record)
 
     Alleles = property(_get_alleles)
-    
+
     def _get_ancestral(self):
         return self._get_cached_value('Ancestral', self._get_ancestral_data)
 
     Ancestral = property(_get_ancestral)
-    
+
     def _get_allele_table_record(self):
         variation_id = self._table_rows['variation_feature']['variation_id']
         allele_table = self.allele_table
@@ -1156,12 +1156,12 @@ class Variation(_Region):
 
         self._table_rows['allele_table'] = records
         data = []
-        
+
         if self.genome.GeneralRelease > 71:
             sample_id = 'population_id'
         else:
             sample_id = 'sample_id'
-        
+
         for rec in records:
             if not rec[sample_id]:
                 continue

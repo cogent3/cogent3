@@ -16,7 +16,7 @@ __status__ = "Development"
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
     pass
-    
+
 class RecordError(FileFormatError):
     """Exception raised when a record is bad."""
     pass
@@ -33,7 +33,7 @@ class Grouper(object):
     def __init__(self, NumItems=1):
         """Returns new Grouper object: will return n items at a time from seq"""
         self.NumItems = NumItems
-    
+
     def __call__(self, seq):
         """Returns iterator over seq, returning n items at a time."""
         try:
@@ -68,7 +68,7 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
     at the _last_ delimiter, last two delimiters, etc. for -1, -2, etc.)
     However, if the delimiter is None (the default) and max_splits is
     negative, will not preserve internal spaces.
-    
+
     Note: leaves empty fields in place.
     """
     is_int = isinstance(max_splits, int) or isinstance(max_splits, int)
@@ -110,7 +110,7 @@ last_colon = DelimitedSplitter(':', -1)
 
 class GenericRecord(dict):
     """Holds data for a generic field ->: value mapping.
-    
+
     Override Required with {name:prototype} mapping. Each required name
     will get a deepcopy of its prototype. For example, use an empty list to
     guarantee that each instance has its own list for a particular field to
@@ -138,7 +138,7 @@ class GenericRecord(dict):
 
     def __delitem__(self, item):
         """Deletes item or raises exception if item required. 
-        
+
         Note: Fails silently if item absent.
         """
         if item in self.Required:
@@ -218,7 +218,7 @@ class MappedRecord(GenericRecord):
             return self.Aliases.get(key, key)
         except TypeError:
             return key
-                
+
     def __getattr__(self, attr):
         """Returns None if field is absent, rather than raising exception."""
         if attr in self:
@@ -352,10 +352,10 @@ class LineOrientedConstructor(object):
         Fields:
             Lines: set of lines to construct record from (for convenience).
             Default is None.
-                
+
             LabelSplitter: function that returns (label, data) tuple.
             Default is to split on first space and strip components.
-            
+
             FieldMap: dict of {fieldname:handler} functions. Each function
             has the signature (obj, field, val) and performs an inplace
             action like setting field to val or appending val to field.
@@ -373,7 +373,7 @@ class LineOrientedConstructor(object):
         self.FieldMap = FieldMap or {}
         self.Constructor = Constructor
         self.Strict = Strict
-        
+
     def __call__(self, Lines=None):
         """Returns the record constructed from Lines, or self.Lines"""
         if Lines is None:
@@ -381,7 +381,7 @@ class LineOrientedConstructor(object):
         result = self.Constructor()
         fieldmap = self.FieldMap
         aka = result.unalias
-        
+
         splitter = self.LabelSplitter
         for line in Lines:
             #find out how many items we got, setting key and val appropiately
@@ -488,7 +488,7 @@ class FieldMorpher(object):
     """
     def __init__(self, Constructors, Default=raise_unknown_field):
         """Returns a new FieldMorpher, using appropriate constructors.
-        
+
         If a field is unknown, will try to set key and value to the results
         of Default(key, value): in other words, the signature of Default should
         take a key and a value and should return a key and a value. The 
@@ -498,7 +498,7 @@ class FieldMorpher(object):
         """
         self.Constructors = Constructors
         self.Default = Default
-        
+
     def __call__(self, data):
         """Returns a new dict containing information converted from data."""
         result = {}

@@ -46,7 +46,7 @@ class translation_table_tests(TestCase):
 
 class get_array_type_tests(TestCase):
     """Tests of the get_array_type top-level function."""
-    
+
     def test_get_array_type(self):
         """get_array_type should return unsigned type that fits elements."""
         self.assertEqual(get_array_type(0), uint8)
@@ -202,7 +202,7 @@ class CharAlphabetTests(TestCase):
         s = array([0,0,1,0,3,2], 'b').tostring()
         self.assertEqual(s.translate(i2c), b'UUCUGA')
         self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
-        
+
     def test_fromString(self):
         """CharAlphabet fromString should return correct array"""
         r = CharAlphabet('UCAG')
@@ -243,7 +243,7 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(r.toString(array([0,0,1,0,3,2], 'B')), 'UUCUGA')
         #should work with empty seq
         self.assertEqual(r.toString(array([], 'B')), '')
-        
+
     def test_pairs(self):
         """pairs should cache the same object."""
         r = CharAlphabet('UCAG')
@@ -307,7 +307,7 @@ class JointEnumerationTests(TestCase):
         v = [[0,1,2,0],[3,3,1,0], [1,1,0,0]]
         result = a.packArrays(v)
         self.assertEqual(result, array([7,15,18,0]))
-        
+
     def test_unpackArrays(self):
         """JointEnumeration unpackArrays should return correct arrays."""
         a = JointEnumeration(['xyz', 'abcd', 'ef'])

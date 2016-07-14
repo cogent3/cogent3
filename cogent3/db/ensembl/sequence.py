@@ -56,16 +56,16 @@ def get_lower_coord_conversion(coord, species, core_db):
             if coord_system[key].rank == rank:
                 coord_type = coord_system[key].name
                 break
-        
+
         if coord_type is None:
             continue
-        
+
         assemblies = get_coord_conversion(coord, coord_type, core_db)
-        
+
         if assemblies: 
             break
-        
-    
+
+
     return assemblies
 
 def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
@@ -76,16 +76,16 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
     species = genome.Species
     coord_type = CoordSystem(species=species,core_db=genome.CoreDb,
                              seq_level=True)
-    
+
     if DEBUG:
         print('Created Coordinate:',coord,coord.EnsemblStart,coord.EnsemblEnd)
         print(coord.CoordType, coord_type)
-    
+
     assemblies = get_coord_conversion(coord, coord_type, genome.CoreDb)
-    
+
     if not assemblies:
         raise NoItemError('no assembly for %s' % coord)
-    
+
     dna = genome.CoreDb.getTable('dna')
     seqs, positions = [], []
     for q_loc, t_loc in assemblies:
@@ -111,25 +111,25 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
                                             coord.genome.CoreDb)
     if not assemblies:
         raise NoItemError('no assembly for %s' % coord)
-    
+
     if DEBUG:
         print('\nMedium_level_assemblies = ', assemblies)
-    
+
     seqs, positions = [], []
     for q_loc, t_loc in assemblies:
         t_strand = t_loc.Strand
         temp_seq = _get_sequence_from_direct_assembly(t_loc, DEBUG)
         if t_strand == -1:
             temp_seq = temp_seq.rc()
-        
+
         if DEBUG:
             print(q_loc)
             print(t_loc)
             print('temp_seq = ', temp_seq[:10], '\n')
-        
+
         seqs.append(str(temp_seq))
         positions.append((q_loc.Start, q_loc.End))
-    
+
     sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
     return sequence
 
@@ -138,15 +138,15 @@ def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None,
         coord = _make_coord(genome, coord_name, start, end, 1)
     else:
         coord = coord.copy()
-    
+
     strand = coord.Strand
-    
+
     try: 
         sequence = _get_sequence_from_direct_assembly(coord, DEBUG)
     except NoItemError:
         ## means there is no assembly, so we do a thorough assembly by converting according to the "rank"
         sequence = _get_sequence_from_lower_assembly(coord, DEBUG)
-    
+
     if strand == -1:
         sequence = sequence.rc()
     return sequence

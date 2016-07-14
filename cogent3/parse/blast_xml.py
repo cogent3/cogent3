@@ -55,7 +55,7 @@ HSP_XML_FIELDS = (
 
 HSP_XML_FIELDNAMES = [x[0] for x in HSP_XML_FIELDS]
 HSP_XML_TAGNAMES = [x[1] for x in HSP_XML_FIELDS]
-     
+
 
 def get_tag(record, name, default=None):
     """
@@ -129,7 +129,7 @@ def parse_parameters(tag):
     result['gap_extend_penalty'] = float(get_tag(tag,'Parameters_gap-extend'))
     result['filter'] = get_tag(tag,'Parameters_filter')
     return result
-    
+
 def MinimalBlastParser7(lines, include_column_names=False, format='xml'):
     """Yields succesive records from lines (props, data list).
 
@@ -208,9 +208,9 @@ class BlastXMLResult(BlastResult):
 
         # code below copied from BlastResult, unchanged.
         mp = parser(data, True)
-                
+
         for props, rec_data in mp:
-         
+
             iteration = 1
             if self.ITERATION in props:
                 iteration = int(props[self.ITERATION])
@@ -222,12 +222,12 @@ class BlastXMLResult(BlastResult):
                     hits.append(dict(list(zip(rec_data[0], h))))
             else:
                 hits.append(dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
-            
+
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
 
             if query_id not in self: 
                 self[query_id] = [] 
             self[query_id].append(hits)
-        
+
 

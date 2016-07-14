@@ -33,7 +33,7 @@ class locuslinkTests(TestCase):
             'related mRNA|AK090391|n|NM_153775--AK090391\n'), \
             {'Description':'related mRNA','Id':'AK090391','IdType':'n',\
             'Printable':'NM_153775--AK090391'})
- 
+
     def test_read_accnum(self):
         """_read_accnum should perform correct conversions"""
         self.assertEqual(_read_accnum('NG_002740|30172554|na|1|1315\n'), \
@@ -50,7 +50,7 @@ class locuslinkTests(TestCase):
         self.assertEqual(_read_sts('RH35858|2|37920|na|seq_map|epcr\n'), \
             {'Name':'RH35858','Chromosome':'2','StsId':'37920', 'Segment':'na',\
             'SequenceKnown':'seq_map', 'Evidence':'epcr'})
-    
+
     def test_read_cdd(self):
         """_read_cdd should perform correct conversions"""
         self.assertEqual(_read_cdd(\
@@ -90,7 +90,7 @@ class locuslinkTests(TestCase):
         'cellular role|Pol II transcription|NR|Proteome|8760285\n'), \
         {'Category':'cellular role','Term':'Pol II transcription',\
         'EvidenceCode':'NR', 'Source':'Proteome', 'PubMedId':'8760285'})
-            
+
     def test_read_contig(self):
         """_read_contig should perform correct conversions"""
         self.assertEqual(_read_contig(\

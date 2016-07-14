@@ -181,6 +181,6 @@ class ParseGBseq(TestCase):
             self.assertEqual(sample_seq, seq.toFasta())
             self.assertEqual(str(seq.annotations), sample_annotations)
     pass
-    
+
 if __name__ == "__main__":
     main()

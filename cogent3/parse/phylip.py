@@ -32,7 +32,7 @@ def _split_line(line, id_offset):
     """
     if not line or not line.strip():
         return None, None
-  
+
     # extract id and sequence
     curr_id = line[0:id_offset].strip()
     curr_seq = line[id_offset:].strip().replace(" ", "")
@@ -55,7 +55,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
 
     returns (id, sequence) tuples
     """
-    
+
     seq_cache = {}
     interleaved_id_map = {}
     id_offset = 10
@@ -65,7 +65,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
         if curr_ct == -1:
             # get header info
             num_seqs, seq_len, interleaved = _get_header_info(line)
-          
+
             if not num_seqs or not seq_len:
                 return 
             curr_ct += 1

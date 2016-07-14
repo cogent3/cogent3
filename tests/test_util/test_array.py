@@ -55,7 +55,7 @@ class arrayTests(TestCase):
         self.m3 = array([0,0,1,1])
         self.m4 = array([0,0])
         self.m5 = array([1,1])
-    
+
     def test_unmasked_to_masked(self):
         """unmasked_to_masked should match hand-calculated results"""
         u2m = unmasked_to_masked
@@ -88,7 +88,7 @@ class arrayTests(TestCase):
         self.assertEqual(m2u(self.m4, True), array([0,1]))
         self.assertEqual(m2u(self.m5), array([-1,-1]))
         self.assertEqual(m2u(self.m5, True), array([-1,-1]))
-        
+
     def test_gapped_to_ungapped(self):
         """gapped_to_ungapped should match hand-calculated results"""
         g2u = gapped_to_ungapped
@@ -139,9 +139,9 @@ class arrayTests(TestCase):
         exp[4,5] = 0.6
         exp[5,7] = 0.9
         self.assertEqual(result, exp)
-         
+
 class ArrayMathTests(TestCase):
-    
+
     def test_ln_2(self):
         """ln_2: should be constant"""
         self.assertFloatEqual(ln_2, 0.693147)
@@ -293,7 +293,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(hd,1)
         self.assertEqual(hamming_distance(array('ABC', 'c'),array('ABC', 'c')),0)
         self.assertEqual(hamming_distance(array('ABC', 'c'),array('DDD', 'c')),3)
-       
+
     def test_hamming_distance_diff_length(self):
         """hamming_distance: truncates at shortest sequence"""
         self.assertEqual(hamming_distance(array('ABC', 'c'),array('ABBDDD', 'c')),1)
@@ -485,7 +485,7 @@ class ArrayMathTests(TestCase):
         #difference should be same either direction
         self.assertEqual(abs_diff(m,m2), 29.0)
         self.assertEqual(abs_diff(m2,m), 29.0)
-                
+
     def test_sq_diff(self):
         """sq_diff should calculate element-wise sum square of abs(first-second)"""     
         m =  array([[1.0,2,3],[4,5,6], [7,8,9]])
@@ -526,7 +526,7 @@ class ArrayMathTests(TestCase):
             [(0,0,0),(0,0,1),(0,1,0),(0,1,1),(1,0,0),(1,0,1),(1,1,0),(1,1,1)])
         self.assertEqual(cartesian_product([c,d,d]), \
             [(1.0,0,0),(1.0,0,1),(1.0,1,0),(1.0,1,1)])
-                
+
     def test_without_diag(self):
         """without_diag should omit diagonal from matrix"""
         a = array([[1,2,3],[4,5,6],[7,8,9]])
@@ -659,7 +659,7 @@ class ArrayMathTests(TestCase):
         s = merge_samples(array([3,4]), array([5,6]), array([1,2]))
         result = sort_merged_samples_by_value(s)
         self.assertEqual(result, array([[1,2,3,4,5,6],[2,2,0,0,1,1]]))
-            
+
     def test_classifiers(self):
         """classifiers should return all the 1D classifiers of samples"""
         first = array([2,1,5,3,5])
@@ -706,7 +706,7 @@ class ArrayMathTests(TestCase):
         residuals = m - a
         assert min(residuals) > -6
         assert max(residuals) < 6
-        
+
 
 if __name__ == '__main__':
     main()

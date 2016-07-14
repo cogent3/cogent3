@@ -87,7 +87,7 @@ class EUtilsTests(TestCase):
         result = sorted([item['ScientificName'] for item in data])
         self.assertEqual(result, ['Homo sapiens', 'Salmonella enterica'])
 
-        
+
     def test_query(self):
         """EUtils access via a query should work"""
         g = EUtils(db='protein', rettype='gi', retmax=100)
@@ -203,14 +203,14 @@ class NcbiTests(TestCase):
               '28901','Salmonella enterica','species')
         self.assertEqual(obs,exp)
 
-    
+
     def test_taxon_ids_to_lineages(self):
         """taxon_ids_to_lineages should return lineages from taxon ids"""
         taxon_ids = ['10090', '9606']
         result = [self.mouse_taxonomy, self.human_taxonomy]
         self.assertEqualItems(list(taxon_ids_to_lineages(taxon_ids)), result)
 
-    
+
 #    def test_taxon_ids_to_names(self):
 #        """taxon_ids_to_names should return names from taxon ids"""
 #        taxon_ids = ['10090', '9606']
@@ -234,7 +234,7 @@ class NcbiTests(TestCase):
     def test_get_unique_lineages(self):
         """get_unique_lineages should return all lineages from a query"""
         result = get_unique_lineages('angiotensin[ti] AND rodents[orgn]')
-        
+
         assert tuple(self.mouse_taxonomy) in result
         assert len(result) > 2
 
@@ -243,7 +243,7 @@ class NcbiTests(TestCase):
         result = get_unique_taxa('angiotensin[ti] AND primate[orgn]')
         assert 'Homo sapiens' in result
         assert len(result) > 2
-        
+
 
 if __name__ == '__main__':
     main()

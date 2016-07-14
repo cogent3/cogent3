@@ -53,7 +53,7 @@ class test_parameter_controller(unittest.TestCase):
         self.tree = LoadTree(treestring='((a,b),(c,d),e);')
         self.model = cogent3.evolve.substitution_model.Nucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True)
-        
+
     def test_scoped_local(self):
         model = cogent3.evolve.substitution_model.Nucleotide(
                 do_scaling=True, equal_motif_probs=True, model_gaps=True,
@@ -66,24 +66,24 @@ class test_parameter_controller(unittest.TestCase):
                             is_independent=True,
                             edges=['b','d'])
         self.assertEqual(null+2, lf.getNumFreeParams())
-    
+
     def test_setMotifProbs(self):
         """Mprobs supplied to the parameter controller"""
         model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
                 motif_probs_from_align=False)
-                
+
         mprobs = {'A':0.1,'C':0.2,'G':0.2,'T':0.5,'-':0.0}
         lf.setMotifProbs(mprobs)
         self.assertEqual(lf.getMotifProbs(), mprobs)
-        
+
         lf.setMotifProbsFromData(self.al[:1], is_constant=True)
         self.assertEqual(lf.getMotifProbs()['G'], 0.6)
-        
+
         lf.setMotifProbsFromData(self.al[:1], pseudocount=1)
         self.assertNotEqual(lf.getMotifProbs()['G'], 0.6)
-        
+
         # test with consideration of ambiguous states
         al = LoadSeqs(data = {'seq1': 'ACGTAAGNA', 'seq2': 'ACGTANGTC',
                                'seq3': 'ACGTACGTG'})
@@ -99,10 +99,10 @@ class test_parameter_controller(unittest.TestCase):
         model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
                 motif_probs_from_align=False, loci=["a", "b"])
-                
+
         mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
         mprobs_b = dict(A=.1, T=.2, C=.3, G=.4)
-        
+
         for is_constant in [False, True]:
             lf.setMotifProbs(mprobs_a, is_constant=is_constant)
             s = str(lf)
@@ -124,7 +124,7 @@ class test_parameter_controller(unittest.TestCase):
             lf.setDefaultParamRules()
             self.assertRaises((KeyError, TypeError,
                     AssertionError, ValueError), do_rules, rule_set)
-    
+
     def test_setLocalClock(self):
         pass
 
@@ -161,7 +161,7 @@ class test_parameter_controller(unittest.TestCase):
         self.assertAlmostEqual(lf.getLogLikelihood(),-27.84254174)
         self.assertEqual(rd['length']['c'],rd['length']['d'])
         self.assertNotEqual(rd['length']['a'],rd['length']['e'])
-        
+
     def test_complex_parameter_rules(self):
             # This test has many local minima and so does not cope
             # with changes to optimiser details.
@@ -183,26 +183,26 @@ class test_parameter_controller(unittest.TestCase):
         self.assertAlmostEqual(lf.getLogLikelihood(),-27.3252, 3)
         self.assertEqual(rd['kappa']['b'],rd['kappa']['d'])
         self.assertNotEqual(rd['kappa']['a'],rd['kappa']['b'])
-        
+
     def test_bounds(self):
         """Test setting upper and lower bounds for parameters"""
         lf = self.model.makeLikelihoodFunction(self.tree)
         lf.setParamRule('length', value=3, lower=0, upper=5)
-        
+
         # Out of bounds value should warn and keep bounded
         with warnings.catch_warnings(record=True) as w:
             lf.setParamRule('length', lower=0, upper=2)
             self.assertTrue(len(w), 'No warning issued')
         self.assertEqual(lf.getParamValue('length', edge='a'), 2)
-        
+
         # upper < lower bounds should fail
         self.assertRaises(ValueError, lf.setParamRule, 
             'length', lower=2, upper=0)
-        
-        
+
+
 if __name__ == '__main__':
     unittest.main()
 
-    
-    
-        
+
+
+

@@ -27,12 +27,12 @@ class AAIndexParser(object):
         This file is an abstract class for the parsers of the two AAIndex
         files.  The only real difference between the files is that AAIndex1
         has one additional field, labeled in here as Correlating.
-    
+
     """
 
     def __init__(self):
         """ Initialize the object. """
-        
+
     def __call__(self, infile):
         """ Parse AAIndex file into dict of AAIndex objects with ID as key
 
@@ -45,7 +45,7 @@ class AAIndexParser(object):
                 aa2p = AAIndex2Parser()
                 aaIndex2Objects = aa2p('data/AAIndex2')
         """
-        
+
         result = {}
 
         # Break down the file into records delimited by '//' and then
@@ -97,7 +97,7 @@ class AAIndexParser(object):
             i += 1
         # return the field of interest   
         return result
-        
+
 class AAIndex1Parser(AAIndexParser):
     """ Parse AAIndex1 file & return it as dict of AAIndex1 objects"""
 
@@ -128,7 +128,7 @@ class AAIndex1Parser(AAIndexParser):
 
         return AAIndex1Record(id, description, LITDB, authors,\
                 title, citations, comments, correlating, data)
-                    
+
 
     def _parse_correlating(self, raw):
         """ Parse Correlating entries from the current record """
@@ -160,7 +160,7 @@ class AAIndex1Parser(AAIndexParser):
         # init for use in result
         keys = 'ARNDCQEGHILKMFPSTWYV'  
         values = []
-        
+
         # get rid of leading white spaces, it makes../ the reg exp act weird
         raw = raw.lstrip()
         # split by any number/ types of white spaces
@@ -184,7 +184,7 @@ class AAIndex2Parser(AAIndexParser):
     def _parse_record(self, lines):
         """ Parse a single record and return it as a AAIndex2Record Object """
         # Init attributes of each record each run through
-       
+
         id = None
         description = None
         LITDB = None
@@ -253,12 +253,12 @@ class AAIndex2Parser(AAIndexParser):
                             new_row[c] = data[i]
                         i += 1
                 result[r] = new_row                      
-            
+
         return result
 
     def _parse_rowscols(self, raw):
         """ Returns two element list, 0: rows info, 1: cols info
-        
+
             This parses the data out of the data description line
             for each record in AAIndex2 so we know what the data is that
             we are looking at.
@@ -403,7 +403,7 @@ def AAIndexLookup(records):
         result[r.ID] = r
 
     return result
-        
+
 def AAIndex1FromFiles(file):
     """ Taking a file or list of data return a dict of AAIndex1Objects """
     aap = AAIndex1Parser()

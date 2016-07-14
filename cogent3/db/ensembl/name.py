@@ -17,13 +17,13 @@ def get_version_from_name(name):
     r = _release.search(name)
     if r is None:
         return None, None
-    
+
     # first number run is release, followed by build
     # note, for the ensemblgenomes naming system, the second digit run is the
     # standard Ensembl release and the first is for the specified genome
     release = name[r.start(): r.end()]
     b = [s for s in _name_delim.split(name[r.end():]) if s]
-    
+
     return release, b
 
 _name_delim = re.compile("_")
@@ -65,11 +65,11 @@ class EnsemblDbName(object):
         self.Name = db_name
         self.Type = get_dbtype_from_name(db_name)
         self.Prefix = get_db_prefix(db_name)
-        
+
         release, build = get_version_from_name(db_name)
         self.Release = release
         self.GeneralRelease = self.Release
-        
+
         if len(build) == 1:
             if self.Type != 'compara':
                 self.Build = build[0]
@@ -81,33 +81,33 @@ class EnsemblDbName(object):
             self.GeneralRelease = build[0]
         else:
             self.Build  = None
-        
+
         self.Species = None
         self.Species = Species.getSpeciesName(self.Prefix)
-    
+
     def __repr__(self):
         build = ['', "; Build='%s'" % self.Build][self.Build != None]
         s = "db(Prefix='%s'; Type='%s'; Release='%s'%s)" % (self.Prefix, self.Type,
                     self.Release, build)
         return s
-    
+
     def __str__(self):
         return self.Name
-    
+
     def __lt__(self, other):
         if isinstance(other, type(self)):
             other = other.Name
         return self.Name < other
-    
+
     def __eq__(self, other):
         if isinstance(other, type(self)):
             other = other.Name
         return self.Name == other
-    
+
     def __ne__(self, other):
         if isinstance(other, type(self)):
             other = other.Name
         return self.Name != other
-    
+
     def __hash__(self):
         return hash(self.Name)

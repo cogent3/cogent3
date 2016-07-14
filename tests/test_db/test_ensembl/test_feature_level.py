@@ -33,7 +33,7 @@ class TestFeatureCoordLevels(TestCase):
     def setUp(self):
         self.chicken = Genome(Species='chicken', Release=Release,
                             account=account)
-    
+
     def test_feature_levels(self):
         ChickenFeatureLevels = FeatureCoordLevels('chicken')
         chicken_feature_levels = ChickenFeatureLevels(
@@ -44,7 +44,7 @@ class TestFeatureCoordLevels(TestCase):
                                 ['chromosome', 'scaffold'])
         self.assertEqual(set(chicken_feature_levels['cpg'].levels),
                             set(['chromosome', 'scaffold']))
-    
+
     def test_repeat(self):
         # use chicken genome as it need to do conversion
         # chicken coordinate correspondent toRefSeq human IL2A region
@@ -59,7 +59,7 @@ class TestFeatureCoordLevels(TestCase):
             loc = repeat.Location
             obs.append((str(loc.CoordName), loc.Start, loc.End))
         self.assertEqual(set(obs), set(expect))
-    
+
     def test_cpg(self):
         # contain 3 CpG island recorded at chromosome level
         coord1 = dict(CoordName=26, Start=105184, End=184346)
@@ -71,12 +71,12 @@ class TestFeatureCoordLevels(TestCase):
             loc = cpg.Location
             obs.append((str(loc.CoordName), loc.Start, loc.End))
         self.assertEqual(set(obs), set(exp))
-        
+
         # test cpg features record at scaffold level:
         coord2 = dict(CoordName='JH376196.1', Start=1, End=14640)
         cpgs2 = self.chicken.getFeatures(feature_types='cpg', **coord2)
         self.assertEqual(len(list(cpgs2)), 3)
-    
+
 
 if __name__ == '__main__':
     main()

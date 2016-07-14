@@ -40,7 +40,7 @@ class ParameterOutOfBoundsError(Exception):
 
 class MaximumEvaluationsReached(Exception):
     pass
-    
+
 
 # The following functions are used to wrap the optimised function to
 # adapt it to the optimiser in various ways.  They can be combined.
@@ -69,13 +69,13 @@ def bounded_function(f, lower_bounds, upper_bounds):
     """Returns a function that raises an exception on out-of-bounds input 
     rather than bothering the real function with invalid input.  
     This is enough to get some unbounded optimisers working on bounded problems"""
-    
+
     def _wrapper(x, **kw):
         if numpy.alltrue(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
         else:
             raise ParameterOutOfBoundsError((lower_bounds, x, upper_bounds))
-    
+
     return _wrapper
 
 def bounds_exception_catching_function(f):
@@ -84,7 +84,7 @@ def bounds_exception_catching_function(f):
     MAXIMISED."""
     out_of_bounds_value = -numpy.inf
     acceptable_inf = numpy.isneginf
-    
+
     def _wrapper(x, **kw):
         try:
             result = f(x, **kw)
@@ -95,7 +95,7 @@ def bounds_exception_catching_function(f):
         except (ArithmeticError, ParameterOutOfBoundsError) as detail:
             result = out_of_bounds_value
         return result
-    
+
     return _wrapper
 
 def minimise(f, *args, **kw):
@@ -103,7 +103,7 @@ def minimise(f, *args, **kw):
     def nf(x):
         return -1 * f(x)
     return maximise(nf, *args, **kw)
-    
+
 @UI.display_wrap
 def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         max_restarts=None, max_evaluations=None, limit_action='warn',
@@ -118,7 +118,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     """
     do_global = (not local) or local is None
     do_local = local or local is None
-    
+
     assert limit_action in ['ignore', 'warn', 'raise', 'error']
     (get_best, f) = limited_use(f, max_evaluations)
 
@@ -126,7 +126,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     multidimensional_input = x.shape != ()
     if not multidimensional_input:
         x = numpy.atleast_1d(x)
-    
+
     if bounds is not None:
         (upper, lower) = bounds
         if upper is not None or lower is not None:
@@ -139,9 +139,9 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         raise ValueError("Initial parameter values must be valid %s" % repr(detail.args))
     if not numpy.isfinite(fval):
         raise ValueError("Initial parameter values must evaluate to a finite value, not %s. %s" % (fval, x))
-    
+
     f = bounds_exception_catching_function(f)
-    
+
     try:
         # Global optimisation 
         if do_global:
@@ -176,14 +176,14 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         # ensure state of calculator reflects optimised result, or
         # partialy optimised result if exiting on an exception.
         (f, x, evals) = get_best()
-                    
+
     # ... and returning this info the obvious way keeps this function 
     # potentially applicable optimising non-caching pure functions too.
     if not multidimensional_input:
         x = numpy.squeeze(x)
-    
+
     if return_eval_count:
         return x, evals
-    
+
     return x
 

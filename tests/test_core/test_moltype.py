@@ -66,7 +66,7 @@ class make_matches_tests(TestCase):
         self.assertEqual(m, {})
         m = make_matches('qaz')
         self.assertEqual(m, {('q','q'):True,('a','a'):True,('z','z'):True})
-    
+
     def test_init_gaps(self):
         """make_matches with only gaps should match all gaps to each other"""
         m = make_matches('', '~!')
@@ -124,7 +124,7 @@ class make_pairs_tests(TestCase):
     def setUp(self):
         """Define some standard pairs and other data"""
         self.pairs = {('U','A'):True, ('A','U'):True, ('G','U'):False}
-    
+
     def test_init_empty(self):
         """make_pairs should init ok with no parameters"""
         self.assertEqual(make_pairs(), {})
@@ -133,7 +133,7 @@ class make_pairs_tests(TestCase):
         """make_pairs with just pairs should equal the original"""
         self.assertEqual(make_pairs(self.pairs), self.pairs)
         self.assertNotSameObj(make_pairs(self.pairs), self.pairs)
-    
+
     def test_init_monomers(self):
         """make_pairs with pairs and monomers should equal just the pairs"""
         self.assertEqual(make_pairs(self.pairs, 'ABCDEFG'), self.pairs)
@@ -175,7 +175,7 @@ class make_pairs_tests(TestCase):
 
 class CoreObjectGroupTests(TestCase):
     """Tests of the CoreObjectGroup class."""
-    
+
     def test_init(self):
         """CoreObjectGroup should init with basic list of objects."""
         class o(object):
@@ -297,10 +297,10 @@ class MolTypeTests(TestCase):
             self.assertNotContains(b, i)
 
     def test_iter(self):
-       """MolType iter should iterate over monomer order"""
-       self.assertEqual(list(RnaMolType), ['U','C','A','G', 'u','c','a','g'])
-       a = MolType('ZXCV')
-       self.assertEqual(list(a), ['Z','X','C','V'])
+        """MolType iter should iterate over monomer order"""
+        self.assertEqual(list(RnaMolType), ['U','C','A','G', 'u','c','a','g'])
+        a = MolType('ZXCV')
+        self.assertEqual(list(a), ['Z','X','C','V'])
 
     def test_isGapped(self):
         """MolType isGapped should return True if gaps in seq"""
@@ -436,7 +436,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('-CUAGUCA'), 'CUAGUCA')
         self.assertEqual(g('---a---c---u----g---'), 'acug')
         self.assertEqual(g(tuple('---a---c---u----g---')), tuple('acug'))
-        
+
     def test_gapList(self):
         """MolType gapList should return correct gap positions"""
         g = RnaMolType.gapList
@@ -490,7 +490,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(gm(start_gaps), ({0:2,1:3,2:4},{2:0,3:1,4:2}))
         self.assertEqual(gm(end_gaps), ({0:0,1:1},{0:0,1:1}))
         self.assertEqual(gm(mid_gaps), ({0:2,1:5,2:7,3:8},{2:0,5:1,7:2,8:3}))
-        
+
     def test_countGaps(self):
         """MolType countGaps should return correct gap count"""
         c = RnaMolType.countGaps
@@ -526,7 +526,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(p('H'), 3)
         self.assertEqual(p('nRh'), 24)
         self.assertEqual(p('AUGCnGUCAg-aurGauc--gauhcgauacgws'), 96)
-       
+
     def test_MW(self):
         """MolType MW should return correct molecular weight"""
         r = RnaMolType.MW
@@ -642,7 +642,7 @@ class MolTypeTests(TestCase):
 
 class RnaMolTypeTests(TestCase):
     """Spot-checks of alphabet functionality applied to RNA alphabet."""
-    
+
     def test_contains(self):
         """RnaMolType should __contain__ the expected symbols."""
         keys = 'ucagrymkwsbhvdn?-'
@@ -690,23 +690,23 @@ class _AlphabetTestCase(TestCase):
     def assertEqualSeqs(self, a, b):
         """For when we don't care about the type, just the elements"""
         self.assertEqual(list(a), list(b))
-        
+
     def assertEqualSets(self, a, b):
         self.assertEqual(set(a), set(b))
-        
+
 
 class DNAAlphabet(_AlphabetTestCase):
     def setUp(self):
         self.alpha = DNA.Alphabet
-        
+
     def test_exclude(self):
         """Nucleotide alphabet testing excluding gap motif"""
         self.assertEqualSeqs(self.alpha, ['T','C','A','G'])
-        
+
     def test_include(self):
         """Nucleotide alphabet testing including gap motif"""
         self.assertEqualSets(self.alpha.withGapMotif(), ['A','C','G','T','-'])
-        
+
     def test_usesubset(self):
         """testing using a subset of motifs."""
         self.assertEqualSets(self.alpha.withGapMotif(), ['A','C','G','T','-'])
@@ -717,11 +717,11 @@ class DNAAlphabet(_AlphabetTestCase):
         self.assertEqualSets(alpha, ['T','C','A','G'])
         alpha = alpha.getSubset(motif_subset = ['A','T','G'])
         self.assertEqualSets(alpha, ['A','G','T'])
-        
+
 class DinucAlphabet(_AlphabetTestCase):
     def setUp(self):
         self.alpha = DNA.Alphabet.withGapMotif().getWordAlphabet(2)
-    
+
     def test_exclude(self):
         """Dinucleotide alphabet testing excluding gap motif"""
         expected = ['-A', '-C', '-G', '-T',
@@ -729,11 +729,11 @@ class DinucAlphabet(_AlphabetTestCase):
                     'C-', 'CA', 'CC', 'CG', 'CT',
                     'G-', 'GA', 'GC', 'GG', 'GT',
                     'T-', 'TA', 'TC', 'TG', 'TT']
-                    
+
         self.assertEqualSets(
                 self.alpha.getSubset(['--'], excluded=True)
                 , expected)
-        
+
     def test_include(self):
         """Dinucleotide alphabet testing including gap motif"""
         expected =  ['--', '-A', '-C', '-G', '-T',
@@ -742,14 +742,14 @@ class DinucAlphabet(_AlphabetTestCase):
                     'G-', 'GA', 'GC', 'GG', 'GT',
                     'T-', 'TA', 'TC', 'TG', 'TT']
         self.assertEqualSets(self.alpha, expected)
-        
+
     def test_usesubset(self):
         """testing using a subset of motifs."""
         alpha = self.alpha.getSubset(motif_subset = ['AA', 'CA','GT'])
         self.assertEqualSeqs(alpha, ['AA', 'CA','GT'])
 
         self.assertRaises(AlphabetError, alpha.getSubset, motif_subset = ['AA','CA','GT', 'TT'])
-    
+
     def test_usesubsetbyfreq(self):
         """testing using a subset of motifs by using motif probs."""
         motif_freqs = {'--':0, '-A': 0.0, '-C': 0, '-G': 0, '-T': 0,
@@ -757,27 +757,27 @@ class DinucAlphabet(_AlphabetTestCase):
                        'C-': 0, 'CA': 1, 'CC': 0, 'CG': 0, 'CT': 0,
                        'G-': 0, 'GA': 0, 'GC': 0, 'GG': 0, 'GT': 1,
                        'T-': 0, 'TA': 0, 'TC': 0, 'TG': 0, 'TT': 0}
-        
+
         alpha = self.alpha.getSubset(motif_freqs)
         self.assertEqualSets(alpha, ['AA', 'CA', 'GT'])
 
 class CodonAlphabet(_AlphabetTestCase):
     def setUp(self):
         self.alpha = STANDARD_CODON
-    
+
     def test_ambiguous_gaps(self):
         alpha = self.alpha.withGapMotif()
         self.assertEqual(len(alpha.resolveAmbiguity('AT?')), 4)
         self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
         self.assertEqual(len(alpha.resolveAmbiguity('???')), 62)
         self.assertEqual(len(alpha.resolveAmbiguity('---')), 1)
-        
+
         alpha = self.alpha
         self.assertEqual(len(alpha.resolveAmbiguity('AT?')), 4)
         self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
         self.assertEqual(len(alpha.resolveAmbiguity('???')), 61)
         self.assertRaises(Exception, alpha.resolveAmbiguity, '---')
-        
+
 
     def test_exclude(self):
         """testing excluding gap motif"""
@@ -796,7 +796,7 @@ class CodonAlphabet(_AlphabetTestCase):
                     'TGG', 'TGT', 'TTA', 'TTC', 'TTG',
                     'TTT']
         self.assertEqualSets(alpha, expected)
-        
+
     def test_include(self):
         """testing including gap motif"""
         alpha = self.alpha.withGapMotif()
@@ -814,7 +814,7 @@ class CodonAlphabet(_AlphabetTestCase):
                     'TGG', 'TGT', 'TTA', 'TTC', 'TTG',
                     'TTT']
         self.assertEqualSets(alpha, expected)
-  
+
 
 if __name__ == '__main__':
     main()

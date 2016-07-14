@@ -80,7 +80,7 @@ class MinimalClustalParserTests(TestCase):
         """MinimalClustalParser should return empty dict and list on null input"""
         result = MinimalClustalParser([])
         self.assertEqual(result, ({},[]))
-        
+
     def test_minimal(self):
         """MinimalClustalParser should handle single-line input correctly"""
         result = MinimalClustalParser([minimal]) #expects seq of lines

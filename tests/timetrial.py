@@ -44,16 +44,16 @@ def usage():
 
 def standard_dev(numbers = [], mean = 1):
     import math
-    
+
     sum = 0
-    
+
     for i in range(len(numbers)):
         sum = sum + math.pow(numbers[i] - mean, 2)
 
     sigma = math.sqrt(sum / (len(numbers) - 1))
 
     return sigma
-    
+
 def main():
     if args:
         command = ' '.join(map(str, args))
@@ -84,7 +84,7 @@ def main():
         if attempt == 5:
             print("Aborting early due to multiple errors")
             sys.exit(3)
-            
+
     times.sort()
     mean = total_time / len(times)
     sd   = standard_dev(times, mean)
@@ -110,14 +110,14 @@ def main():
     if len(times) != len(corrected_times):
         corrected_mean = corrected_total / len(corrected_times)
         corrected_sd   = standard_dev(corrected_times, corrected_mean)
-    
+
         print("")
         print("CORRECTED RESULTS")
         print("Fastest time   : %.3f" % corrected_times[0])
         print("Slowest time   : %.3f" % corrected_times[len(corrected_times)-1])
         print("Mean           : %.3f" % corrected_mean)
         print("Standard dev   : %.3f" % corrected_sd)
-    
+
 if __name__ == "__main__":
     main()
 

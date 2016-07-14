@@ -40,14 +40,14 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
     """Returns function that returns successive delimited records from file.
 
     Includes delimiter in return value. Returns list of relevant lines.
-    
+
     Default constructor is string.strip, but can supply another constructor
     to transform lines and/or coerce into correct type. If constructor is None,
     passes along the lines without alteration.
 
     Skips any lines for which ignore(line) evaluates True (default is to skip
     whitespace).
-    
+
     keep_delimiter: keep delimiter line at the end of last block if True 
     (default), otherwise discard delimiter line.
 
@@ -126,14 +126,14 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
     """Returns function that returns successive labeled records from file.
 
     Includes label line in return value. Returns list of relevant lines.
-    
+
     Default constructor is string.strip, but can supply another constructor
     to transform lines and/or coerce into correct type. If constructor is None,
     passes along the lines without alteration.
 
     Skips over any lines for which ignore(line) evaluates True (default is
     to skip empty lines).
-    
+
     NOTE: Does _not_ raise an exception if the last line is a label line: for
     some formats, this is acceptable. It is the responsibility of whatever is
     parsing the sets of lines returned into records to complain if a record
@@ -167,14 +167,14 @@ FastaFinder = LabeledRecordFinder(is_fasta_label)
 
 def LineGrouper(num, constructor=strip, ignore=is_empty):
     """Returns num lines at a time, stripping and ignoring blanks.
-    
+
     Default constructor is string.strip, but can supply another constructor
     to transform lines and/or coerce into correct type. If constructor is None,
     passes along the lines without alteration.
 
     Skips over any lines for which ignore(line) evaluates True: default is to
     skip whitespace lines.
-    
+
     """
     def parser(lines):
         curr = []

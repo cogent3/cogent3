@@ -38,7 +38,7 @@ def html(text, **kwargs):
 
 def _merge_cells(row):
     """merges runs of identical row cells.
-    
+
     returns a list with structure [((span_start, span_end), cell value),..]"""
     new_row = []
     last = 0
@@ -50,14 +50,14 @@ def _merge_cells(row):
             span=1
             continue
         span += 1
-    
+
     new_row.append(((last,last+span), row[i]))
     return new_row
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     element_formatters={}, merge_identical=True, compact=True):
     """returns just the html Table string
-    
+
     Arguments:
         - rows: table rows
         - row_cell_func: callback function that formats the row values. Must
@@ -69,7 +69,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
           formatting individual html table elements.
           e.g. {'table': lambda x: '<table border="1" class="docutils">'}
         - merge_identical: cells within a row are merged to one span.
-    
+
     Note: header_cell_func and row_cell_func override element_formatters.
     """
     formatted = element_formatters.get
@@ -78,20 +78,20 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     # escaping of characters
     if row_cell_func is None:
         row_cell_func = lambda v,r,c: '<td>%s</td>' % v
-    
+
     if header_cell_func is None:
         header_cell_func = lambda v, c: '<th>%s</th>' % v
-    
+
     if merge_identical:
         row_iterator = _merge_cells
     else:
         row_iterator = enumerate
-    
+
     if header:
         th = formatted('th', '<th>')
         row = [header_cell_func(label, i) for i, label in enumerate(header)]
         data += [formatted('tr', '<tr>')]+row+['</tr>']
-    
+
     formatted_rows = []
     td = formatted('td', '<td>')
     for ridx, row in enumerate(rows):
@@ -110,23 +110,23 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
 
 def latex(rows, header=None, caption=None, justify=None, label=None, position = None):
     """Returns the text a LaTeX longtable.
-    
+
     Arguments:
         - header: table header
         - position: table page position, default is here, top separate page
         - justify: column justification, default is right aligned.
         - caption: Table legend
         - label: for cross referencing"""
-    
+
     if not justify:
         numcols = [len(header), len(rows[0])][not header]
         justify = "r" * numcols
-    
+
     justify = "{ %s }" % " ".join(list(justify))
     if header:
         header = "%s \\\\" % " & ".join([r"\bf{%s}" % head.strip() for head in header])
     rows = ["%s \\\\" % " & ".join(row) for row in rows]
-    
+
     table_format = [r"\begin{longtable}[%s]%s" % (position or "htp!", justify)]
     table_format.append(r"\hline")
     table_format.append(header)
@@ -139,12 +139,12 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position = 
     if label:
         table_format.append(r"\label{%s}" % label)
     table_format.append(r"\end{longtable}")
-    
+
     return "\n".join(table_format)
 
 def simpleFormat(header, formatted_table, title = None, legend = None, max_width = 1e100, identifiers = None, borders = True, space = 2):
     """Returns a table in a simple text format.
-    
+
     Arguments:
         - header: series with column headings
         - formatted_table: a two dimensional structure (list/tuple) of strings
@@ -161,12 +161,12 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
     table = []
     if title:
         table.append(title)
-    
+
     try:
         space = " " * space
     except TypeError:
         pass
-    
+
     # if we are to split the table, creating sub tables, determine
     # the boundaries
     if len(space.join(header)) > max_width:
@@ -178,12 +178,12 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
         sep = len(space)
         min_length = sep * (identifiers - 1) + \
                      sum(col_widths[: identifiers])
-        
+
         if min_length > max_width:
             raise RuntimeError("Maximum width too small for identifiers")
-        
+
         begin, width = identifiers, min_length
-        
+
         subtable_boundaries = []
         for i in range(begin, len(header)):
             width += col_widths[i] + sep
@@ -192,14 +192,14 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
                                             width - col_widths[i] - sep))
                 width = min_length + col_widths[i] + sep
                 begin = i
-        
+
         # add the last sub-table
         subtable_boundaries.append((begin, len(header), width))
         # generate the table
         for start, end, width in subtable_boundaries:
             if start > identifiers: # we are doing a sub-table
                 table.append("continued: %s" % title)
-            
+
             subhead = space.join([space.join(header[:identifiers]),
                     space.join(header[start: end])])
             width = len(subhead)
@@ -210,7 +210,7 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
                 row = [space.join(row[:identifiers]),
                         space.join(row[start: end])]
                 table.append(space.join(row))
-            
+
             table.append("-" * width + "\n")
     # create the table as a list of correctly formatted strings
     else:
@@ -222,23 +222,23 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
             table.append('-' * length_head)
         else:
             table.append(header)
-        
+
         for row in formatted_table:
             table.append(space.join(row))
-        
+
         if borders:
             table.append('-' * length_head)
-    
+
     # add the legend, wrapped to the table widths
     if legend:
         wrapped = _merged_cell_text_wrap(legend, max_width, 0)
         table += wrapped
-    
+
     return '\n'.join(table)
 
 def gridTableFormat(header, formatted_table, title = None, legend = None):
     """Returns a table in restructured text grid format.
-    
+
     Arguments:
         - header: series with column headings
         - formatted_table: a two dimensional structure (list/tuple) of strings
@@ -254,13 +254,13 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
     for width in col_widths:
         row_delineate.append('-' * width)
         heading_delineate.append('=' * width)
-    
+
     row_delineate = '+-' + '-+-'.join(row_delineate) + '-+'
     heading_delineate = '+=' + '=+='.join(heading_delineate) + '=+'
     contiguous_delineator = '+' + '-' * (len(row_delineate) - 2) + '+'
-    
+
     table = []
-    
+
     # insert the title
     if title:
         table.append(contiguous_delineator)
@@ -270,22 +270,22 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
                                             space)
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = '|' + line + '|'
-            
+
             table += wrapped
         else:
             centered = title.center(len(row_delineate) - 2)
             table.append('|' + centered + '|')
-    
+
     # insert the heading row
     table.append(row_delineate)
     table.append('| ' + ' | '.join(header) + ' |')
     table.append(heading_delineate)
-    
+
     # concatenate the rows, separating by delineators
     for row in formatted_table:
         table.append('| ' + ' | '.join(row) + ' |')
         table.append(row_delineate)
-    
+
     if legend:
         if len(legend) > len(row_delineate) - 2:
             wrapped = _merged_cell_text_wrap(legend,
@@ -293,14 +293,14 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
                                             space)
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = '|' + line + '|'
-            
+
             table += wrapped
         else:
             ljust = legend.ljust(len(row_delineate) - 3)
             table.append('| ' + ljust + '|')
-        
+
         table.append(contiguous_delineator)
-    
+
     return '\n'.join(table)
 
 def separatorFormat(header, formatted_table, title = None, legend = None, sep = None):
@@ -308,7 +308,7 @@ def separatorFormat(header, formatted_table, title = None, legend = None, sep = 
     contains the sep character, that entry is put in quotes. Also, title and
     legends (if provided) are forced to a single line and all words forced to
     single spaces.
-    
+
     Arguments:
         - header: series with column headings
         - formatted_table: a two dimensional structure (list/tuple) of strings
@@ -319,28 +319,28 @@ def separatorFormat(header, formatted_table, title = None, legend = None, sep = 
     """
     if sep is None:
         raise RuntimeError("no separator provided")
-    
+
     if title:
         title = " ".join(" ".join(title.splitlines()).split())
-    
+
     if legend:
         legend = " ".join(" ".join(legend.splitlines()).split())
-    
+
     new_table = [sep.join(header)]
     for row in formatted_table:
         for cdex, cell in enumerate(row):
             if sep in cell:
                 row[cdex] = '"%s"' % cell
-    
+
     new_table += [sep.join(row) for row in formatted_table]
-    
+
     table = '\n'.join(new_table)
     # add the title to top of list
     if title:
         table = '\n'.join([title, table])
     if legend:
         table = '\n'.join([table, legend])
-    
+
     return table
 
 def FormatFields(formats):
@@ -354,17 +354,17 @@ def FormatFields(formats):
         if not index_format:
             index_format = ["%s" for index in range(len(line))]
             for index, format in formats:
-                    index_format[index] = format
+                index_format[index] = format
         formatted = [index_format[i] % line[i] for i in range(len(line))]
         return formatted
-    
+
     return callable
 
 def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
     """Returns a writer for a delimited tabular file. The writer has a
     has_header argument which ignores the formatter for a header line. Default
     format is string. Does not currently handle Titles or Legends.
-    
+
     Arguments:
     - formatter: a callable that returns a correctly formatted line.
     - ignore: lines for which ignore returns True are ignored
@@ -381,13 +381,13 @@ def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
             else:
                 formatted = sep.join(formatter(line))
             yield formatted
-    
+
     return callable
 
 def formattedCells(rows, header = None, digits=4, column_templates = None, missing_data = ''):
     """Return rows with each columns cells formatted as an equal length
     string.
-    
+
     Arguments:
         - row: the series of table rows
         - header: optional header
@@ -400,11 +400,11 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
         header = [''] * num_col
     else:
         num_col = len(header)
-    
+
     col_widths = [len(col) for col in header]
     num_row = len(rows)
     column_templates = column_templates or {}
-    
+
     float_template = "{0:.%df}" % digits
     # if we have column templates, we use those, otherwise we adaptively
     # apply str/num format
@@ -422,7 +422,7 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
                         float(entry) # could numerically be 0, so not missing
                     except (ValueError, TypeError):
                         entry = '%s' % missing_data
-            
+
             # attempt formatting
             if col_head in column_templates:
                 try: # for functions
@@ -433,17 +433,17 @@ def formattedCells(rows, header = None, digits=4, column_templates = None, missi
                 entry = float_template.format(float(entry))
             else: # for any other python object
                 entry = '%s' % str(entry)
-            
+
             formatted.append(entry)
             col_widths[cdex] = max(col_widths[cdex], len(entry))
         matrix.append(formatted)
-    
+
     # now normalise all cell entries to max column widths
     new_header = [header[i].rjust(col_widths[i]) for i in range(num_col)]
     for row in matrix:
         for cdex in range(num_col):
             row[cdex] = row[cdex].rjust(col_widths[cdex])
-    
+
     return new_header, matrix
 
 def phylipMatrix(rows, names):
@@ -454,7 +454,7 @@ def phylipMatrix(rows, names):
     # at 75th col
     # follow on dists start at col 3
     # outputs a square matrix
-    
+
     def new_name(names, oldname):
         # the name has to be unique in that number, the best way to ensure that
         # is to determine the number and revise the existing name so it has a
@@ -469,17 +469,17 @@ def phylipMatrix(rows, names):
             if not trial_name in names:
                 newname = trial_name
                 break
-        
+
         if not newname:
             raise RuntimeError("Can't create a unique name for %s" % oldname)
         else:
             print('WARN: Seqname %s changed to %s' % (oldname, newname))
         return newname
-    
+
     def append_species(name, formatted_dists, mat_breaks):
         rows = []
         name = name.ljust(12)
-        
+
         # format the distances first
         for i in range(len(mat_breaks)):
             if i == len(mat_breaks):
@@ -494,11 +494,11 @@ def phylipMatrix(rows, names):
         # mod first row of formatted_dists
         rows[0] = "%s%s" % (name.ljust(12), rows[0])
         return rows
-    
-    
+
+
     # number of seqs
     numseqs = len(names)
-    
+
     # determine wrapped table boundaries, if any
     prefix = 13
     mat_breaks = [0]
@@ -510,7 +510,7 @@ def phylipMatrix(rows, names):
             prefix = 3
             line_len = 73
             mat_breaks.append(i)
-    
+
     # build the formatted distance matrix
     dmat = ['   %d' % numseqs]
     for i in range(numseqs):
@@ -518,5 +518,5 @@ def phylipMatrix(rows, names):
         if len(name) > 10:
             name = new_name(names, name)
         dmat += append_species(name, rows[i], mat_breaks)
-    
+
     return "\n".join(dmat)

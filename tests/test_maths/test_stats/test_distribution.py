@@ -27,7 +27,7 @@ class DistributionsTests(TestCase):
         self.values = [0, 0.01, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 200]
         self.negvalues = [-i for i in self.values]
         self.df = [1, 10, 100]
-    
+
     def test_z_low(self):
         """z_low should match R's pnorm() function"""
         probs = [
@@ -39,7 +39,7 @@ class DistributionsTests(TestCase):
             5.000000e-01, 4.960106e-01, 4.601722e-01, 3.085375e-01,
             1.586553e-01, 2.275013e-02, 2.866516e-07, 7.619853e-24,
             2.753624e-89, 4.906714e-198, 0.000000e+00, 0.000000e+00]
-        
+
         for z, p in zip(self.values, probs):
             self.assertFloatEqual(z_low(z), p)
         for z, p in zip(self.negvalues, negprobs):
@@ -47,7 +47,7 @@ class DistributionsTests(TestCase):
 
     def test_z_high(self):
         """z_high should match R's pnorm(lower.tail=FALSE) function"""
-        
+
         negprobs = [
             0.5000000, 0.5039894, 0.5398278, 0.6914625, 0.8413447,
             0.9772499, 0.9999997, 1.0000000, 1.0000000, 1.0000000,
@@ -57,7 +57,7 @@ class DistributionsTests(TestCase):
             5.000000e-01, 4.960106e-01, 4.601722e-01, 3.085375e-01,
             1.586553e-01, 2.275013e-02, 2.866516e-07, 7.619853e-24,
             2.753624e-89, 4.906714e-198, 0.000000e+00, 0.000000e+00]
-        
+
         for z, p in zip(self.values, probs):
             self.assertFloatEqual(z_high(z), p)
         for z, p in zip(self.negvalues, negprobs):
@@ -65,12 +65,12 @@ class DistributionsTests(TestCase):
 
     def test_zprob(self):
         """zprob should match twice the z_high probability for abs(z)"""
-        
+
         probs = [2*i for i in [
             5.000000e-01, 4.960106e-01, 4.601722e-01, 3.085375e-01,
             1.586553e-01, 2.275013e-02, 2.866516e-07, 7.619853e-24,
             2.753624e-89, 4.906714e-198, 0.000000e+00, 0.000000e+00]]
-        
+
         for z, p in zip(self.values, probs):
             self.assertFloatEqual(zprob(z), p)
         for z, p in zip(self.negvalues, probs):
@@ -113,7 +113,7 @@ class DistributionsTests(TestCase):
                 1.00000e+00, 1.00000e+00, 9.99993e-01, 1.17845e-08,
             ],
         }
-        
+
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
                 self.assertFloatEqual(chi_high(x, df), p)
@@ -149,7 +149,7 @@ class DistributionsTests(TestCase):
                 4.997134e-37, 4.190166e-52, 7.236082e-73, 2.774197e-132,
             ],
         }
-        
+
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
                 self.assertFloatEqualRel(t_low(x, df), p, eps=1e-4)
@@ -187,7 +187,7 @@ class DistributionsTests(TestCase):
                 4.997134e-37, 4.190166e-52, 7.236082e-73, 2.774197e-132,
             ],
         }
-        
+
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
                 self.assertFloatEqualRel(t_high(x, df), p, eps=1e-4)
@@ -239,7 +239,7 @@ class DistributionsTests(TestCase):
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_low(*key), value)
-            
+
     def test_poisson_high(self):
         """Upper tail of poisson should match R for integer successes"""
         #WARNING: Results only guaranteed for integer successes: floating
@@ -320,14 +320,14 @@ class DistributionsTests(TestCase):
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_low(*key), value, 1e-4)
-           
+
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
         expected = list(map(float, "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split()))
 
         for i in range(len(expected)):
             self.assertFloatEqual(binomial_exact(i, 10, 0.3), expected[i])
-           
+
     def test_binomial_exact(self):
         """binomial_exact should match values from R for integer successes"""
         expected = {
@@ -357,7 +357,7 @@ class DistributionsTests(TestCase):
         (0.2, 60, 0.5): (8.673617e-19, 5.20417e-17),
         (.5,5,.3):(0.16807,0.36015),
         }
-        
+
         for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < binomial_exact(*key) < max_val
@@ -569,7 +569,7 @@ class DistributionsTests(TestCase):
                 for p in p_s:
                     self.assertFloatEqual(bdtr(k,n,p), exp[index])
                     index += 1
-                
+
     def test_bdtrc(self):
         """bdtrc should give same results as cephes"""
         k_s = [0,1,2,3,5]
@@ -702,7 +702,7 @@ class DistributionsTests(TestCase):
             for m in m_s:
                 self.assertFloatEqual(pdtr(k,m), exp[index])
                 index += 1
- 
+
     def test_pdtrc(self):
         """pdtrc should match cephes results"""
         k_s = [0,1,2,5,10]

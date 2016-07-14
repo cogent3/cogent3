@@ -20,7 +20,7 @@ class DbRefTests(TestCase):
         self.data = dict(Accession='xyz',Db='abc',Name='qwe',Description='blah',
             Data = list(range(20)))
         self.db = DbRef(**self.data)
-    
+
     def test_init_minimal(self):
         """DbRef minimal init should fill fields as expected"""
         d = DbRef('abc')
@@ -71,8 +71,8 @@ class infoTests(TestCase):
 class DbRefsTests(TestCase):
     """Tests of the DbRefs class."""
     def test_init_empty(self):
-       """DbRefs empty init should work as expected"""
-       self.assertEqual(DbRefs(), {})
+        """DbRefs empty init should work as expected"""
+        self.assertEqual(DbRefs(), {})
 
     def test_init_data(self):
         """DbRefs init with data should produce expected results"""

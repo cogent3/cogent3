@@ -54,7 +54,7 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
             if not seq.isupper():
                 seq = seq.upper()
         yield (name, seq)
-    
+
     f.close()
 
 def format_from_filename(filename, format=None):

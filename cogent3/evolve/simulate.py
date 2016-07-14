@@ -70,55 +70,55 @@ class AlignmentEvolver(object):
         self.site_bins = site_bins
         self.psub_for = psub_for
         self.motifs = motifs
-    
+
     def __call__(self, tree, root_sequence):
         #probsd = dict(enumerate(self.bin_probs))
         #bprobs = _randomMotifGenerator(self.random_series, probsd)
         #site_bins = [bprobs.next() for c in range(len(root_sequence))]
         return self.generateSimulatedSeqs(tree, root_sequence)
-    
+
     def generateSimulatedSeqs(self, parent, parent_seq):
         """recursively generate the descendant sequences by descending the tree
         from root.
         Each child will be set by mutating the parent motif based on the probs
         in the psub matrix of this edge.
-        
+
         random_series - get a random numer 0-1 by calling random_series.random()
         length - the desired alignment length
         parent - the edge structure.
         parent_seq - the corresponding sequence. This will be mutated for each
         of its children, based on their psub matricies.
         """
-        
+
         # This depends on parameter names 'mprobs', 'alignment2', 'bprobs' and
         # 'psubs'.  Might be better to integrate it into likelihood_calculation.
-        
+
         if self.exclude_internal and parent.Children:
             simulated_sequences = {}
         else:
             simulated_sequences = {parent.Name : ''.join(parent_seq)}
-        
+
         for edge in parent.Children:
             # The result for this edge - a list of motifs
-            
+
             # Keep original ambiguity codes
             if edge.Name in self.orig_ambig:
                 orig_seq_ambig = self.orig_ambig[edge.Name]
             else:
                 orig_seq_ambig = {}
-            
+
             # Matrix of substitution probabilities
             psubs = [self.psub_for(edge.Name, bin) for bin in self.bin_names]
-            
+
             # Make the semi-random sequence for this edge.
             edge_seq = evolveSequence(self.random_series, self.motifs,
                     parent_seq, self.site_bins, psubs, orig_seq_ambig)
-            
+
             # Pass this new edge sequence on down the tree
             descendant_sequences = self.generateSimulatedSeqs(
                     edge, edge_seq)
             simulated_sequences.update(descendant_sequences)
-        
+
         return simulated_sequences
-        
+
 

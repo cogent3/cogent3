@@ -29,7 +29,7 @@ def TinyseqParser(doc):
         - doc: An xml.dom.minidom.Document, file object of string
     Yields:
         - name, cogent sequence
-    
+
     CAUTION:
     This XML PARSER uses minidom. This means a bad performance for 
     big files (>5MB), and huge XML files will for sure crash the program!
@@ -47,26 +47,26 @@ def TinyseqParser(doc):
                         'TSeq_sequence')[0].childNodes[0].nodeValue
         name = record.getElementsByTagName(
                         'TSeq_accver')[0].childNodes[0].nodeValue
-        
+
         #cast as string to de-unicode
         raw_string = str(raw_seq).upper()
         name=str(name)
-        
+
         if record.getElementsByTagName(
                         'TSeq_seqtype')[0].getAttribute('value') == 'protein':
             alphabet = moltype.PROTEIN
         else:
             alphabet = moltype.DNA
-        
+
         seq = alphabet.makeSequence(raw_string, Name=name)
-        
+
         seq.addAnnotation(annotation.Feature, "genbank_id", name, [(0,len(seq))])
-        
+
         organism = str(record.getElementsByTagName(
                                     'TSeq_orgname')[0].childNodes[0].nodeValue)
-        
+
         seq.addAnnotation(annotation.Feature, "organism", organism, [(0,len(seq))])
-        
+
         yield (name, seq)
 
 

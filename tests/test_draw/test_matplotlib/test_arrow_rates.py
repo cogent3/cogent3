@@ -2,7 +2,7 @@
 from cogent3.draw.arrow_rates import make_arrow_plot, sample_data
 from cogent3.util.unit_test import TestCase, main
 from os import remove
-   
+
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight"]
@@ -14,7 +14,7 @@ __status__ = "Production"
 
 class arrow_rates_tests(TestCase):
     """Tests of top-level function, primarily checking that it writes the file.
-    
+
     WARNING: must visually inspect output to check correctness!
     """
     def test_make_arrow_plot(self):
@@ -25,4 +25,4 @@ class arrow_rates_tests(TestCase):
 
 if __name__ == '__main__':
     main()
-    
+

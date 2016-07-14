@@ -43,7 +43,7 @@ class _ExistentialQualifier(object):
             return self.__class__.__name__
         else:
             return '%s(%s)' % (self.__class__.__name__, self.cats)
-    
+
 
 class EACH(_ExistentialQualifier):
     independent = True
@@ -95,7 +95,7 @@ class Undefined(object):
         self.name = name
     def __repr__(self):
         return 'Undef(%s)' % self.name
-    
+
 
 def nullor(name, f, recycled=False):
     # If None, record as undefined.
@@ -127,34 +127,34 @@ class _Defn(object):
     name = '?'
     default = None
     user_param = False
-    
+
     def __init__(self):
         self.clients = []
         self.selection = {}
         self.assignments = {}
         self.activated = False
-    
+
     def makeName(self, name, extra_label=None):
         if name is None:
             name = self.name
         if extra_label is not None:
             name += extra_label
         return name
-    
+
     def getDefaultSetting(self):
         return None
-    
+
     def addClient(self, client):
         assert not self.activated, self.name
         assert not self.assignments, self.assignments
         self.clients.append(client)
-    
+
     def acrossDimension(self, dimension, cats):
         return [self.selectFromDimension(dimension, cat) for cat in cats]
-    
+
     def selectFromDimension(self, dimension, cat):
         return SelectFromDimension(self, **{dimension:cat})
-    
+
     def getRequiredScopes(self, arg_dimensions):
         # A list of scope dictionaries: [{dimension:value},] that this
         # Defn needs from an input Defn with `arg_dimensions`
@@ -173,7 +173,7 @@ class _Defn(object):
         else:
             result = [self.selection]
         return result
-    
+
     def addScopes(self, scopes):
         assert not self.activated
         for scope in scopes:
@@ -181,11 +181,11 @@ class _Defn(object):
             scope_t = tuple(scope_t)
             if scope_t not in self.assignments:
                 self.assignments[scope_t] = self.getDefaultSetting()
-    
+
     def outputOrdinalFor(self, scope):
         scope_t = tuple([scope[d] for d in self.valid_dimensions])
         return self.index[scope_t]
-    
+
     def usedDimensions(self):
         used = []
         for (d, dim) in enumerate(self.valid_dimensions):
@@ -199,7 +199,7 @@ class _Defn(object):
                 else:
                     seen[rest_of_scope] = i
         return tuple(used) + self.internal_dimensions
-    
+
     def _getPosnForScope(self, *args, **scope):
         scope = self.interpretPositionalScopeArgs(*args, **scope)
         posns = set()
@@ -211,27 +211,27 @@ class _Defn(object):
             raise IncompleteScopeError("%s distinct values of %s within %s" %
                     (len(posns), self.name, scope))
         return theOneItemIn(posns)
-    
+
     def wrapValue(self, value):
         if isinstance(value, Undefined):
             raise ValueError('Input "%s" is not defined' % value.name)
         if getattr(self, 'array_template', None) is not None:
             value = self.array_template.wrap(value)
         return value
-    
+
     def unwrapValue(self, value):
         if getattr(self, 'array_template', None) is not None:
             value = self.array_template.unwrap(value)
         return value
-    
+
     def getCurrentValueForScope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
         return self.wrapValue(self.values[posn])
-    
+
     def getCurrentSettingForScope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
         return self.uniq[posn]
-    
+
     def interpretPositionalScopeArgs(self, *args, **scope):
         # Carefully turn scope args into scope kwargs
         assert len(args) <= len(self.valid_dimensions), args
@@ -239,33 +239,33 @@ class _Defn(object):
             assert dimension not in scope, dimension
             scope[dimension] = arg
         return scope
-    
+
     def interpretScopes(self, independent=None, **kw):
         """A list of the scopes defined by the selecting keyword arguments.
-        
+
         Keyword arguments should be of the form dimension=settings,
         where settings are a list of categories from that
         dimension, or an instance of EACH or ALL wrapping such a list.
-        
+
         A missing list, None, or an uninstantiated ALL / EACH class
         is taken to mean the entire dimension.
-        
+
         If 'independent' (which defaults to self.independent_by_default)
         is true then category lists not wrapped as an EACH or an ALL will
         be treated as an EACH, otherwise as an ALL.
-        
+
         There will only be one scope in the resulting list unless at least
         one dimension is set to EACH."""
-        
+
         if independent is None:
             independent = self.independent_by_default
-        
+
         # interpretScopes is used for assigning, so should specify
         # the scope exactly
         for d in kw:
             if d not in self.valid_dimensions:
                 raise InvalidDimensionError(d)
-        
+
         # Initially ignore EACH, just get a full ungrouped set
         kw2 = {}
         independent_dimensions = []
@@ -284,7 +284,7 @@ class _Defn(object):
             if selection is not None:
                 kw2[dimension] = selection
         all = self.interpretScope(**kw2)
-        
+
         # Group independent scopes
         result = {}
         for scope_t in all:
@@ -293,7 +293,7 @@ class _Defn(object):
                 result[key] = set()
             result[key].add(scope_t)
         return list(result.values())
-    
+
     def interpretScope(self, **kw):
         """A set of the scope-tuples that match the input dict like
         {dimension:[categories]}"""
@@ -311,7 +311,7 @@ class _Defn(object):
             assert len(kw[d]), kw[d]
             selector.append((valid_dimensions.index(d), d, kw[d]))
             unused[d] = kw[d][:]
-        
+
         result = set()
         for scope_t in self.assignments:
             for (i, d, cs) in selector:
@@ -325,21 +325,21 @@ class _Defn(object):
                             unused[d].remove(scope_t[i])
                         if not unused[d]:
                             del unused[d]
-        
+
         if unused:
             # print unused, self.assignments.keys()
             raise InvalidScopeError(unused)
-        
+
         return result
-    
+
     def fillParValueDict(self, result, dimensions, cell_value_lookup):
         """Low level method for extracting values.  Pushes values of this 
         particular parameter/defn into the dict tree 'result', 
         eg: length_defn.fillParValueDict(['edge']) populates 'result' like
         {'length':{'human':1.0, 'mouse':1.0}}"""
-        
+
         assert self.name not in result, self.name
-        
+
         posns = [
                 list(self.valid_dimensions).index(d)
                 for d in dimensions
@@ -348,22 +348,22 @@ class _Defn(object):
             value = cell_value_lookup(self, i)
             value = self.wrapValue(value)
             scope = tuple([scope_t[i] for i in posns])
-            
+
             (d,key) = (result, self.name)
             for key2 in scope:
                 if key not in d: d[key] = {}
                 (d, key) = (d[key], key2)
-            
+
             if key in d and  value != d[key]:
                 msg = 'Multiple values for %s' % self.name
                 if scope:
                     msg += ' within scope %s' % '/'.join(scope)
                 raise IncompleteScopeError(msg)
             d[key] = value
-    
+
     def _update_from_assignments(self):
         (self.uniq, self.index) = _indexed(self.assignments)
-    
+
     def _local_repr(self, col_width, max_width):
         body = []
         for (i, arg) in enumerate(self.args):
@@ -378,25 +378,25 @@ class _Defn(object):
                 for nums in self.uniq:
                     row.append(nums[i])
             body.append((['', self.name][i==0], argname, row))
-        
+
         return '\n'.join(
             ['%-10s%-10s%s' % (label1[:9], label2[:9],
                     _fmtrow(col_width+1, settings, max_width))
             for (label1, label2, settings) in body])
-    
+
     def __repr__(self):
         return '%s(%s x %s)' % (self.__class__.__name__, self.name,
                 len(getattr(self, 'cells', [])))
-    
+
 
 class SelectFromDimension(_Defn):
     """A special kind of Defn used to bridge from Defns where a particular
     dimension is just part of the scope rules to later Defns where each
     value has its own Defn, eg: edges of a tree"""
-    
+
     name = 'select'
     #params = {}
-    
+
     def __init__(self, arg, **kw):
         assert not arg.activated, arg.name
         _Defn.__init__(self)
@@ -406,7 +406,7 @@ class SelectFromDimension(_Defn):
             d for d in arg.valid_dimensions if d not in kw])
         self.selection = kw
         arg.addClient(self)
-    
+
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
@@ -415,12 +415,12 @@ class SelectFromDimension(_Defn):
             self.assignments[scope_t] = (input_num,)
         self._update_from_assignments()
         self.values = [self.arg.values[i] for (i,) in self.uniq]
-    
+
     def makeCells(self, input_soup, variable=None):
         arg = input_soup[id(self.arg)]
         outputs = [arg[input_num] for (input_num,) in self.uniq]
         return ([], outputs)     
-    
+
 
 class _NonLeafDefn(_Defn):
     def __init__(self, *args, **kw):
@@ -440,10 +440,10 @@ class _NonLeafDefn(_Defn):
         if 'name' in kw:
             self.name = kw.pop('name')
         self.setup(**kw)
-    
+
     def setup(self):
         pass
-    
+
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
@@ -452,27 +452,27 @@ class _NonLeafDefn(_Defn):
         self._update_from_assignments()
         calc = self.makeCalcFunction()
         self.values = [nullor(self.name, calc, self.recycling)(*[a.values[i] for (i,a) in zip(u, self.args)]) for u in self.uniq]
-    
+
 
 class _LeafDefn(_Defn):
     """An input to the calculator, ie: a Defn with no inputs itself.
-    
+
     This class is incomplete - subclasses provide:
         makeDefaultSetting()
         adaptSetting(setting)
         makeCells(input_soup)"""
-    
+
     args = ()
     name = None
     name_required = True
-    
+
     # These can be overriden in a subclass or the constuctor.
     valid_dimensions = ()
     numeric = False
-    
+
     array_template = None
     internal_dimensions = ()
-    
+
     def __init__(self, name=None, extra_label=None,
             dimensions=None, independent_by_default=None):
         _Defn.__init__(self)
@@ -487,31 +487,31 @@ class _LeafDefn(_Defn):
             assert isinstance(self.name, str), self.name
         if extra_label is not None:
             self.name = self.name + extra_label
-    
+
     def getDefaultSetting(self):
         if (getattr(self, '_default_setting', None) is None or
                 self.independent_by_default):
             self._default_setting = self.makeDefaultSetting()
         return self._default_setting
-    
+
     def update(self):
         self._update_from_assignments()
         gdv = lambda x:x.getDefaultValue()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
-    
+
     def assignAll(self, scope_spec=None, value=None,
             lower=None, upper=None, const=None, independent=None):
         settings = []
         if const is None:
             const = self.const_by_default
-        
+
         for scope in self.interpretScopes(
                 independent=independent, **(scope_spec or {})):
             if value is None:
                 s_value = self.getMeanCurrentValue(scope)
             else:       
                 s_value = self.unwrapValue(value)
-            
+
             if const:
                 setting = ConstVal(s_value)
             elif not self.numeric:
@@ -526,7 +526,7 @@ class _LeafDefn(_Defn):
                     s_lower = lower
                 if upper is not None:
                     s_upper = upper
-                    
+
                 if s_lower > s_upper:
                     raise ValueError("Bounds: upper < lower")
                 elif (s_lower is not None) and s_value < s_lower:
@@ -540,12 +540,12 @@ class _LeafDefn(_Defn):
                 setting = Var((s_lower, s_value, s_upper))
             self.checkSettingIsValid(setting)
             settings.append((scope, setting))
-            
+
         for (scope, setting) in settings:
             for scope_t in scope:
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
-    
+
     def getMeanCurrentValue(self, scope):
         values = [self.assignments[s].getDefaultValue() for s in scope]
         if len(values) == 1:
@@ -558,7 +558,7 @@ class _LeafDefn(_Defn):
                             (len(values), self.name), stacklevel=4)
                     break
         return s_value
-                    
+
     def getCurrentBounds(self, scope):
         lowest = highest = None
         for s in scope:
@@ -566,16 +566,16 @@ class _LeafDefn(_Defn):
             if upper == lower: continue
             if lowest is None or lower < lowest: lowest = lower
             if highest is None or upper > highest: highest = upper
-        
+
         if lowest is None or highest is None:
             # All current settings are consts so use the class defaults
             (lowest, default, highest) = self.getDefaultSetting().getBounds()
         return (lowest, highest)
-    
+
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__,
                 self._local_repr(col_width=6, max_width=60))
-    
+
     def _local_repr(self, col_width, max_width):
         template = "%%%s.%sf" % (col_width, (col_width-1)//2)
         assignments = []
@@ -591,12 +591,12 @@ class _LeafDefn(_Defn):
                 assignments.append('Var') # %s' % str(i))
         return '%-20s%s' % (self.name[:19],
                 _fmtrow(col_width+1, assignments, max_width))
-    
+
 
 class ParameterController(object):
     """Holds a set of activated CalculationDefns, including their parameter
     scopes.  Makes calculators on demand."""
-    
+
     def __init__(self, top_defn):
         # topological sort
         indegree = {id(top_defn):0}
@@ -620,7 +620,7 @@ class ParameterController(object):
                 indegree[arg_id] -= 1
                 if indegree[arg_id] == 0:
                     Q.append(arg)
-        
+
         # propagate categories downwards
         top_defn.assignments = {}
         for pd in topdown:
@@ -632,9 +632,9 @@ class ParameterController(object):
             if not pd.assignments:
                 pd.addScopes([{}])
             pd.activated = True
-        
+
         self.defns = topdown[::-1]
-        
+
         self.defn_for = {}
         for defn in self.defns:
             #if not defn.args:
@@ -644,20 +644,20 @@ class ParameterController(object):
                 # duplicate
             else:
                 self.defn_for[defn.name] = defn
-        
+
         self._changed = set()
         self._update_suspended = False
         self.updateIntermediateValues(self.defns)
         self.setupParallelContext()
-    
+
     def getParamNames(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
         return [defn.name for defn in self.defns if defn.user_param and
             (defn.numeric or not scalar_only)]
-    
+
     def getUsedDimensions(self, par_name):
         return self.defn_for[par_name].usedDimensions()
-    
+
     def getParamValue(self, par_name, *args, **kw):
         """The value for 'par_name'.  Additional arguments specify the scope.
         Despite the name intermediate values can also be retrieved this way."""
@@ -665,7 +665,7 @@ class ParameterController(object):
         defn = self.defn_for[par_name]
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
-    
+
     def getParamInterval(self, par_name, *args, **kw):
         """Confidence interval for 'par_name' found by adjusting the 
         single parameter until the final result falls by 'dropoff', which
@@ -679,10 +679,10 @@ class ParameterController(object):
         defn = self.defn_for[par_name]
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
-    
+
     def getFinalResult(self):
         return self.defns[-1].getCurrentValueForScope()
-    
+
     def getParamValueDict(self, dimensions, p=None, dropoff=None,
             params=None, xtol=None):
         """A dict tree of parameter values, with parameter names as the
@@ -698,7 +698,7 @@ class ParameterController(object):
             ev = self.defn_for[param_name]
             ev.fillParValueDict(result, dimensions, callback)
         return result
-    
+
     def _makeValueCallback(self, dropoff, p, xtol=None):
         """Make a setting -> value function"""
         if p is not None:
@@ -715,7 +715,7 @@ class ParameterController(object):
                 opt_par = lc.opt_pars[0]
                 return lc._getCurrentCellInterval(opt_par, dropoff, xtol)
         return callback
-    
+
     @contextmanager
     def updatesPostponed(self):
         "Temporarily turn off calculation for faster input setting"
@@ -723,13 +723,13 @@ class ParameterController(object):
         yield
         self._update_suspended = old
         self._updateIntermediateValues()
-        
+
     def updateIntermediateValues(self, changed=None):
         if changed is None:
             changed = self.defns # all
         self._changed.update(id(defn) for defn in changed)
         self._updateIntermediateValues()
-    
+
     def _updateIntermediateValues(self):
         if self._update_suspended:
             return
@@ -741,7 +741,7 @@ class ParameterController(object):
                 for c in defn.clients:
                     self._changed.add(id(c))
         self._changed.clear()
-    
+
     def assignAll(self, par_name, *args, **kw):
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
@@ -751,10 +751,10 @@ class ParameterController(object):
             raise ValueError(msg)
         defn.assignAll(*args, **kw)
         self.updateIntermediateValues([defn])
-        
+
     def measureEvalsPerSecond(self, *args, **kw):
         return self.makeCalculator().measureEvalsPerSecond(*args, **kw)
-    
+
     def setupParallelContext(self, parallel_split=None):
         self.overall_parallel_context = parallel.getContext()
         with parallel.split(parallel_split) as parallel_context:
@@ -763,7 +763,7 @@ class ParameterController(object):
             if 'parallel_context' in self.defn_for:
                 self.assignAll(
                     'parallel_context', value=parallel_context, const=True)
-    
+
     def makeCalculator(self, calculatorClass=None, variable=None, **kw):
         cells = []
         input_soup = {}
@@ -777,7 +777,7 @@ class ParameterController(object):
         kw['overall_parallel_context'] = self.overall_parallel_context
         kw['remaining_parallel_context'] = self.remaining_parallel_context
         return calculatorClass(cells, input_soup, **kw)
-    
+
     def updateFromCalculator(self, calc):
         changed = []
         for defn in list(self.defn_for.values()):
@@ -785,7 +785,7 @@ class ParameterController(object):
                 defn.updateFromCalculator(calc)
                 changed.append(defn)
         self.updateIntermediateValues(changed)
-    
+
     def getNumFreeParams(self):
         return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
 
@@ -818,10 +818,10 @@ class ParameterController(object):
             self.updateFromCalculator(lc)
         if return_calculator:
             return lc
-    
+
     def graphviz(self, **kw):
         lc = self.makeCalculator()
         return lc.graphviz(**kw)
-        
+
 
 

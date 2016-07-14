@@ -32,14 +32,14 @@ class LikelihoodFunction(ParameterController):
     def setpar(self, param_name, value, edge=None, **scope):
         deprecated('method', 'setpar','setParamRule', '1.6')
         return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
-    
+
     def testfunction(self):
         deprecated('method', 'testfunction','getLogLikelihood', '1.6')
         return self.getLogLikelihood()
-    
+
     def getLogLikelihood(self):
         return self.getFinalResult()
-    
+
     def getPsubForEdge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
         try:
@@ -48,10 +48,10 @@ class LikelihoodFunction(ParameterController):
         except KeyError:
             array = self.getParamValue('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
-    
+
     def getRateMatrixForEdge(self, name, **kw):
         """returns the rate matrix (Q) for the named edge
-        
+
         Note: expm(Q) will give the same result as getPsubForEdge(name)"""
         try:
             array = self.getParamValue('Q', edge=name, **kw)
@@ -61,7 +61,7 @@ class LikelihoodFunction(ParameterController):
             else:
                 raise
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
-    
+
     def _getLikelihoodValuesSummedAcrossAnyBins(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:
             root_lhs = [self.getParamValue('lh', locus=locus, bin=bin) for
@@ -71,23 +71,23 @@ class LikelihoodFunction(ParameterController):
         else:
             root_lh = self.getParamValue('lh', locus=locus)
         return root_lh
-        
+
     def getFullLengthLikelihoods(self, locus=None):
         """Array of [site, motif] likelihoods from the root of the tree"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
         root_lht = self.getParamValue('root', locus=locus)
         return root_lht.getFullLengthLikelihoods(root_lh)
-    
+
     def getGStatistic(self, return_table=False, locus=None):
         """Goodness-of-fit statistic derived from the unambiguous columns"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
         root_lht = self.getParamValue('root', locus=locus)
         return root_lht.calcGStatistic(root_lh, return_table)
-    
+
     def reconstructAncestralSeqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
         of each alphabet state for each node in the tree.
-        
+
         Arguments:
             - locus: a named locus"""
         result = {}
@@ -114,11 +114,11 @@ class LikelihoodFunction(ParameterController):
             result[restricted_edge.Name] = array_template.wrap(
                     numpy.transpose(numpy.asarray(r)))
         return result
-    
+
     def likelyAncestralSeqs(self, locus=None):
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
-        
+
         Arguments:
             - locus: a named locus"""
         prob_array = self.reconstructAncestralSeqs(locus=locus)
@@ -130,14 +130,14 @@ class LikelihoodFunction(ParameterController):
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.MolType.makeSequence("".join(seq)))]
         return Alignment(data = seqs, MolType = self.model.MolType)
-    
+
     def getBinProbs(self, locus=None):
         hmm = self.getParamValue('bindex', locus=locus)
         lhs = [self.getParamValue('lh', locus=locus, bin=bin)
                 for bin in self.bin_names]
         array = hmm.getPosteriorProbs(*lhs)
         return DictArrayTemplate(self.bin_names, array.shape[1]).wrap(array)
-    
+
     def _valuesForDimension(self, dim):
         # in support of __str__
         if dim == 'edge':
@@ -153,7 +153,7 @@ class LikelihoodFunction(ParameterController):
         else:
             raise KeyError(dim)
         return result
-    
+
     def _valuesForDimensions(self, dims):
         # in support of __str__
         result = [[]]
@@ -164,7 +164,7 @@ class LikelihoodFunction(ParameterController):
                     new_result.append(r+[cat])
             result = new_result
         return result
-    
+
     def __str__(self):
         if not self._name:
             title = 'Likelihood Function Table'
@@ -173,7 +173,7 @@ class LikelihoodFunction(ParameterController):
         result = [title]
         result += self.getStatistics(with_motif_probs=True, with_titles=False)
         return '\n'.join(map(str, result))
-    
+
     def getAnnotatedTree(self):
         d = self.getParamValueDict(['edge'])
         tree = self._tree.deepcopy()
@@ -183,37 +183,37 @@ class LikelihoodFunction(ParameterController):
             for par in d:
                 edge.params[par] = d[par][edge.Name]
         return tree
-    
+
     def getMotifProbs(self, edge=None, bin=None, locus=None):
         motif_probs_array = self.getParamValue(
                 'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
         #return dict(zip(self._motifs, motif_probs_array))
-    
+
     def getBinPriorProbs(self, locus=None):
         bin_probs_array = self.getParamValue('bprobs', locus=locus)
         return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
-    
+
     def getScaledLengths(self, predicate, bin=None, locus=None):
         """A dictionary of {scale:{edge:length}}"""
         if not hasattr(self._model, 'getScaledLengthsFromQ'):
             return {}
-        
+
         def valueOf(param, **kw):
             return self.getParamValue(param, locus=locus, **kw)
-        
+
         if bin is None:
             bin_names = self.bin_names
         else:
             bin_names = [bin]
-        
+
         if len(bin_names) == 1:
             bprobs = [1.0]
         else:
             bprobs = valueOf('bprobs')
-        
+
         mprobs = [valueOf('mprobs', bin=b) for b in bin_names]
-        
+
         scaled_lengths = {}
         for edge in self._tree.getEdgeVector():
             if edge.isroot():
@@ -223,10 +223,10 @@ class LikelihoodFunction(ParameterController):
             scaled_lengths[edge.Name] = length * self._model.getScaleFromQs(
                     Qs, bprobs, mprobs, predicate)
         return scaled_lengths
-    
+
     def getStatistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
-        
+
         Arguments:
             - with_motif_probs: include the motif probability table
             - with_titles: include a title for each table based on it's
@@ -234,16 +234,16 @@ class LikelihoodFunction(ParameterController):
         result = []
         group = {}
         param_names = self.getParamNames()
-        
+
         mprob_name = [n for n in param_names if 'mprob' in n]
         if mprob_name:
             mprob_name = mprob_name[0]
         else:
             mprob_name = ''
-        
+
         if not with_motif_probs:
             param_names.remove(mprob_name)
-        
+
         for param in param_names:
             dims = tuple(self.getUsedDimensions(param))
             if dims not in group:
@@ -276,7 +276,7 @@ class LikelihoodFunction(ParameterController):
                         for part in scope:
                             d = d[part]
                     except KeyError:
-                            d = 'NA'
+                        d = 'NA'
                     else:
                         row_used = True
                     row[param] = d
@@ -295,32 +295,32 @@ class LikelihoodFunction(ParameterController):
                         max_width = 80, row_ids = row_ids,
                         title=title, **self._format))
         return result
-    
+
     def getStatisticsAsDict(self, with_parent_names=True,
                 with_edge_names=False):
         """Returns a dictionary containing the statistics for each edge of the
         tree, and any other information provided by the substitution model. The
         dictionary is keyed at the top-level by parameter name, and then by
         edge.name.
-        
+
         Arguments:
             - with_edge_names: if True, an ordered list of edge names is
               included under the top-level key 'edge.names'. Default is
               False.
         """
-        
+
         discontinued('method', "'getStatisticsAsDict' "
                 "use 'getParamValueDict(['edge'])' is nearly equivalent", 
                 '1.6')
-        
+
         stats_dict = self.getParamValueDict(['edge'])
-        
+
         if hasattr(self.model, 'scale_masks'):
             for predicate in self.model.scale_masks:
                 stats_dict[predicate] = self.getScaledLengths(predicate)
-        
+
         edge_vector = [e for e in self._tree.getEdgeVector() if not e.isroot()]
-        
+
         # do the edge names
         if with_parent_names:
             parents = {}
@@ -330,28 +330,28 @@ class LikelihoodFunction(ParameterController):
                 else:
                     parents[edge.Name] = str(edge.Parent.Name)
             stats_dict["edge.parent"] = parents
-        
+
         if with_edge_names:
             stats_dict['edge.name'] = (
                     [e.Name for e in edge_vector if e.istip()] +
                     [e.Name for e in edge_vector if not e.istip()])
-        
+
         return stats_dict
-    
+
     # For tests.  Compat with old LF interface
     def setName(self, name):
         self._name = name
-    
+
     def getName(self):
         return self._name or 'unnamed'
-    
+
     def setTablesFormat(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results
         of str(lf) too."""
         space = [space, 4][type(space)!=int]
         digits = [digits, 4][type(digits)!=int]
         self._format = dict(space=space, digits=digits)
-    
+
     def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)
         mprobs = self.getParamValue('mprobs', **kw)
@@ -362,7 +362,7 @@ class LikelihoodFunction(ParameterController):
         result = dict(result)
         values = [result[name] for name in edges]
         return DictArrayTemplate(edges, self._mprob_motifs).wrap(values)
-        
+
     def _nodeMotifProbs(self, tree, mprobs, kw):
         result = [(tree.Name, mprobs)]
         for child in tree.Children:
@@ -370,13 +370,13 @@ class LikelihoodFunction(ParameterController):
             child_mprobs = numpy.dot(mprobs, psub)
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
         return result
-        
+
     def simulateAlignment(self, sequence_length=None, random_series=None,
             exclude_internal=True, locus=None, seed=None, root_sequence=None):
         """
         Returns an alignment of simulated sequences with key's corresponding to
         names from the current attached alignment.
-        
+
         Arguments:
             - sequence_length: the legnth of the alignment to be simulated,
               default is the length of the attached alignment.
@@ -384,7 +384,7 @@ class LikelihoodFunction(ParameterController):
             - exclude_internal: if True, only sequences for tips are returned.
             - root_sequence: a sequence from which all others evolve.
         """
-        
+
         if sequence_length is None:
             lht = self.getParamValue('lht', locus=locus)
             sequence_length = len(lht.index)
@@ -394,24 +394,24 @@ class LikelihoodFunction(ParameterController):
                 orig_ambig[seq_name] = leaf.getAmbiguousPositions()
         else:
             orig_ambig = {}
-        
+
         if random_series is None:
             random_series = random.Random()
             random_series.seed(seed)
             parallel.sync_random(random_series)
-        
+
         def psub_for(edge, bin):
             return self.getPsubForEdge(edge, bin=bin, locus=locus)
-        
+
         if len(self.bin_names) > 1:
             hmm = self.getParamValue('bdist', locus=locus)
             site_bins = hmm.emit(sequence_length, random_series)
         else:
             site_bins = numpy.zeros([sequence_length], int)
-        
+
         evolver = AlignmentEvolver(random_series, orig_ambig, exclude_internal,
                 self.bin_names, site_bins, psub_for, self._motifs)
-        
+
         if root_sequence is not None: # we convert to a vector of motifs
             if isinstance(root_sequence, str):
                 root_sequence = self._model.MolType.makeSequence(root_sequence)
@@ -423,13 +423,13 @@ class LikelihoodFunction(ParameterController):
             mprobs = dict((m, p) for (m,p) in zip(self._motifs, mprobs))
             root_sequence = randomSequence(
                 random_series, mprobs, sequence_length)
-        
+
         simulated_sequences = evolver(self._tree, root_sequence)
-        
+
         return Alignment(
                 data = simulated_sequences,
                 MolType = self._model.MolType)
-       
+
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         for edge in self.tree.getEdgeVector(include_root=False):

@@ -25,7 +25,7 @@ class NullFile(object):
         pass
     def isatty(self):
         return False
-    
+
 
 def quiet(f, *args, **kw):
     # Checkpointer still has print statements
@@ -51,42 +51,42 @@ class OptimiserTestCase(TestCase):
     def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10,10]), **kw):
         local = kw.get('local', None)
         max_evaluations = kw.get('max_evaluations', None)
-        
+
         f, last, evals = MakeF()
-        
+
         x = quiet(maximise, f, [xinit], bounds, **kw)
         self.assertEqual(x, last[0]) # important for Calculator
         error = abs(x[0] - target)
         self.assertTrue(error < .0001, (kw, x, target, x))
-    
+
     def test_global(self):
         # Should find global minimum
         self._test_optimisation(local=False, seed=1)
-    
+
     def test_bounded(self):
         # Global minimum out of bounds, so find secondary one
         # numpy.seterr('raise')
         self._test_optimisation(bounds=([0.0],[10.0]), target=2, seed=1)
-    
+
     def test_local(self):
         # Global minimum not the nearest one
         self._test_optimisation(local=True, target=2)
-    
+
     def test_limited(self):
         self.assertRaises(MaximumEvaluationsReached, 
             self._test_optimisation, max_evaluations=5)
-    
+
     # def test_limited_warning(self):
     #     """optimiser warning if max_evaluations exceeded"""
     #     self._test_optimisation(max_evaluations=5, limit_action='warn')
-    
+
     def test_get_max_eval_count(self):
         """return the evaluation count from optimisation"""
         f, last, evals = MakeF()
         x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10,10]),
                     return_eval_count=True)
         self.assertTrue(e > 500)
-    
+
     def test_checkpointing(self):
         filename = 'checkpoint.tmp.pickle'
         if os.path.exists(filename):
@@ -97,7 +97,7 @@ class OptimiserTestCase(TestCase):
                 filename=filename, seed=1, init_temp=3.21)
         if os.path.exists(filename):
             os.remove(filename)
-    
+
 
 if __name__ == '__main__':
     main()

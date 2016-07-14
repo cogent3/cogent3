@@ -49,7 +49,7 @@ def MinimalFastaParser(infile, strict=True, \
 
     If strict is True (default), raises RecordError when label or seq missing.
     """
-    
+
     for rec in finder(infile):
         #first line must be a label line
         if not rec[0][0] in label_characters:
@@ -65,7 +65,7 @@ def MinimalFastaParser(infile, strict=True, \
                     rec)
             else:
                 continue
-            
+
         label = rec[0][1:].strip()
         label = label_to_name(label)
         seq = ''.join(rec[1:])
@@ -88,7 +88,7 @@ def xmfa_label_to_name(line):
         assert strand == '+'
     name = '%s:%s:%s-%s' % (sp, contig, lo, hi)
     return name
-   
+
 def is_xmfa_blank_or_comment(x):
     """Checks if x is blank or an XMFA comment line."""
     return (not x) or x.startswith('=') or x.isspace()
@@ -151,7 +151,7 @@ NcbiLabels = {
 
 def NcbiFastaLabelParser(line):
     """Creates an Info object and populates it with the line contents.
-    
+
     As of 11/12/03, all records in genpept.fsa and the human RefSeq fasta
     files were consistent with this format.
     """
@@ -173,14 +173,14 @@ class RichLabel(str):
     """Object for overloaded Fasta labels. Holds an Info object storing keyed
     attributes from the fasta label. The str is created from a provided format
     template that uses the keys from the Info object."""
-    
+
     def __new__(cls, info, template="%s"):
         """Arguments:
-        
+
             - info: a cogent3.core.info.Info instance
             - template: a string template, using a subset of the keys in info.
               Defaults to just '%s'.
-        
+
         Example:
             label = RichLabel(Info(name='rat', species='Rattus norvegicus'),
                         '%(name)s')"""
@@ -188,11 +188,11 @@ class RichLabel(str):
         new = str.__new__(cls, label)
         new.Info = info
         return new
-    
+
 
 def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False):
     """returns a function for creating a RichLabel's from a string
-    
+
     Arguments;
         - display_template: string format template
         - field_formatters: series of 
@@ -227,7 +227,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
 def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
         moltype=ASCII, done_groups=None, DEBUG=False):
     """yields related sequences as a separate seq collection
-    
+
     Arguments:
         - data: line iterable data source
         - label_to_name: LabelParser callback
@@ -236,7 +236,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
         - moltype: default is ASCII
         - done_groups: series of group keys to be excluded
         """
-    
+
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)
     group_ids = []
@@ -266,4 +266,4 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
                     aligned=aligned)
     seqs.Info = info
     yield seqs
-    
+

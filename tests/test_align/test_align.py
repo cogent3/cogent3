@@ -31,7 +31,7 @@ def matchedColumns(align):
             elif motif != consensus:
                 return False
         return True
-    
+
     return len(align.filtered(all_same))
 
 seq1 = DNA.makeSequence('aaaccggacattacgtgcgta', Name='FAKE01')
@@ -43,17 +43,17 @@ class AlignmentTestCase(unittest.TestCase):
         a1 = classic_align_pairwise(seq1, seq2, S, 10, 2, **kw)
         a2 = classic_align_pairwise(seq2, seq1, S, 10, 2, **kw)
         return [a1, a2]
-    
+
     def test_local(self):
         for a in self._aligned_both_ways(seq1, seq2, local=True):
             self.assertEqual(matchedColumns(a), 15)
             self.assertEqual(len(a), 19)
-    
+
     def test_gap_at_one_end(self):
         for a in self._aligned_both_ways(seq1, seq2, local=False):
             self.assertEqual(matchedColumns(a), 15)
             self.assertEqual(len(a), 23)
-    
+
     def test_gaps_at_both_ends(self):
         s = 'aaaccggttt'
         s1 = DNA.makeSequence(s[:-2], Name="A")
@@ -61,14 +61,14 @@ class AlignmentTestCase(unittest.TestCase):
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 6)
             self.assertEqual(len(a), 10)
-    
+
     def test_short(self):
         s1 = DNA.makeSequence('tacagta', Name="A")
         s2 = DNA.makeSequence('tacgtc', Name="B")
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 5)
             self.assertEqual(len(a), 7)
-    
+
     def test_pairwise_returns_score(self):
         """exercise pairwise local/global returns alignment score"""
         S = make_dna_scoring_dict(10, -1, -8)
@@ -76,7 +76,7 @@ class AlignmentTestCase(unittest.TestCase):
         self.assertTrue(score > 100)
         aln, score = global_pairwise(seq1, seq2, S, 10, 2, return_score=True)
         self.assertTrue(score > 100)
-    
+
     def test_codon(self):
         s1 = DNA.makeSequence('tacgccgta', Name="A")
         s2 = DNA.makeSequence('tacgta', Name="B")
@@ -89,7 +89,7 @@ class AlignmentTestCase(unittest.TestCase):
         a = lf.getLogLikelihood().edge.getViterbiPath().getAlignment()
         self.assertEqual(matchedColumns(a), 6)
         self.assertEqual(len(a), 9)
-    
+
     def test_local_tiebreak(self):
         """Should pick the first best-equal hit rather than the last one"""
         # so that the Pyrex and Python versions give the same result.
@@ -109,7 +109,7 @@ class UnalignedPairTestCase(unittest.TestCase):
         pc.setSequences({'A':seq1, 'B':seq2})
         LnL = pc.getLogLikelihood()
         assert isinstance(LnL, float)
-    
+
 
 class MultipleAlignmentTestCase(unittest.TestCase):
     def _make_aln(self, orig, model=dna_model, param_vals=None, 
@@ -126,7 +126,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         aln, tree = cogent3.align.progressive.TreeAlign(model, seqs,
                 tree=tree, param_vals=param_vals, show_progress=False, **kw)
         return aln
-    
+
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
         orig = dict((n,s.replace('-', '')) for (n,s) in list(seqs.items()))
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
@@ -138,7 +138,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         if param_vals:
             for param, val in param_vals:
                 self.assertEqual(aln.Info.AlignParams[param], val)
-    
+
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
         self._test_aln({
@@ -147,7 +147,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'C': 'ta---ta', 
                 'D': 'tac-gtc',
                 })
-         
+
     def test_progressive_est_tree(self):
         """excercise progressive alignment without a guide tree"""
         seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
@@ -155,12 +155,12 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                             'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
         aln, tree = cogent3.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False,
                         param_vals={'kappa': 4.0})
-        
+
         expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------',
                   'C': 'TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT',
                   'B': 'TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT'}
         self.assertEqual(aln.todict(), expect)
-    
+
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
         self._test_aln({
@@ -169,14 +169,14 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'C': 'ta---ta', 
                 'D': 'cac-cta',
                 }, model=HKY85(), param_vals=[('kappa',2.0)])
-    
+
     def test_TreeAlign_does_pairs(self):
         """test TreeAlign handles pairs of sequences"""
         self._test_aln({
                 'A': 'acttgtac', 
                 'B': 'ac--gtac',
                 })
-    
+
     def test_gap_at_start(self):
         """test progressive alignment, gaps at start"""
         self._test_aln({
@@ -185,7 +185,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'C': '-ac', 
                 'D': 'gac',
                 })
-    
+
     def test_gap_at_end(self):
         """test progressive alignment, gaps at end"""
         self._test_aln({
@@ -194,7 +194,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'C': 'gt-', 
                 'D': 'gta',
                 })
-    
+
     def test_gaps2(self):
         """Gaps have real costs, even end gaps"""
         self._test_aln({
@@ -203,7 +203,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 'C': 'ga', 
                 'D': 'a-',
                 })
-    
+
         self._test_aln({
                 'A': '-g', 
                 'B': '-g',
@@ -231,7 +231,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
 
 class HirschbergTestCase(MultipleAlignmentTestCase):
     # Force use of linear space algorithm
-    
+
     def _test_aln(self, seqs, **kw):
         tmp = cogent3.align.pairwise.HIRSCHBERG_LIMIT
         try:
@@ -242,7 +242,7 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
         return result
 
 
-    
+
 if __name__ == '__main__':
     unittest.main()
 

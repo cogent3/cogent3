@@ -18,7 +18,7 @@ __status__ = "Production"
 
 class functionTests(TestCase):
     """Tests of top-level functions."""
-    
+
     def test_ratio_two_best(self):
         """ratio_two_best should return ratio of two biggest items in list"""
         v = array([3, 2, 5, 2, 4, 10, 3])
@@ -67,7 +67,7 @@ class functionTests(TestCase):
         #should caculate distances from vector if supplied
         v = array([2,2,2,3])
         self.assertEqual(dists_from_v(m, v), sqrt(array([3,9,5])))
-        
+
     def test_weiss(self):
         """weiss should perform weiss calculation correctly"""
         e = array([12.0, 5.0, 0.1, 1e-3, 1e-15])

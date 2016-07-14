@@ -43,7 +43,7 @@ class GenomeTestBase(TestCase):
     brca2 = human.getGeneByStableId(StableId="ENSG00000139618")
 
 class TestGenome(GenomeTestBase):
-    
+
     def test_other_features(self):
         """should correctly return record for ENSESTG00000000010"""
         est = self.human.getEstMatching(StableId='ENSESTG00000000010')
@@ -134,17 +134,17 @@ class TestGenome(GenomeTestBase):
         'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
         'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
         'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
-    
+
     def test_get_distinct_biotype(self):
         """Genome instance getDistinct for biotype should work on all genomes"""
         for genome in self.gorilla, self.human, self.mouse, self.rat, self.macaq:
             biotypes = genome.getDistinct('biotype')
-        
+
     def test_get_distinct_effect(self):
         """Genome instance getDistinct for SNP effect should work on all genomes"""
         for genome in self.human, self.mouse, self.rat, self.macaq:
             biotypes = genome.getDistinct('effect')
-        
+
 
 
 class TestGene(GenomeTestBase):
@@ -204,7 +204,7 @@ class TestGene(GenomeTestBase):
         self.assertEqual(str(prot_seq),
             'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
                'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
-    
+
     def test_exon_phases(self):
         """correctly identify phase for an exon"""
         stable_id = 'ENSG00000171408'
@@ -217,7 +217,7 @@ class TestGene(GenomeTestBase):
         # can translate the sequence if we take those into account
         seq = exon1.Seq[1:-1].getTranslation()
         self.assertEqual(str(seq), 'HMLSKVGMWDFDIFLFDRLTN')
-    
+
     def test_cds_from_outofphase(self):
         """return a translatable Cds sequence from out-of-phase start"""
         # canonical transcript phase end_phase
@@ -231,7 +231,7 @@ class TestGene(GenomeTestBase):
             gene = self.human.getGeneByStableId(StableId=stable_id)
             transcript = gene.CanonicalTranscript
             prot_seq = transcript.ProteinSeq
-    
+
     def test_gene_transcripts(self):
         """should return multiple transcripts"""
         stable_id = 'ENSG00000012048'
@@ -451,7 +451,7 @@ class TestVariation(GenomeTestBase):
       ('GCTGAAGAAACCATTTCAAACAGGATTGGAATAGGGAAACCCGGCACTCAGCTCGGCGCAAGCCGGCGGTGCCTTCAGACTAGAGAGCCTCTCCTCCGGTGCGCTGCAAGTAGGGCCTCGGCTCGAGGTCAACATTCTAGTTGTCCAGCGCTCCCTCTCCGGCACCTCGGTGAGGCTAGTTGACCCGACAGGCGCGGATCATGAGCAGCTGCAGGAGAATGAAGAGCGGGGACGTAATGAGGCCGAACCAGAGCTCCCGAGTCTGCTCCGCCAGCTTCTGGCACAACAGCATCTCGAAGA',
 'GAACTTGAGACTCAGGACCGTAAGTACCCAGAAAAGGCGGAGCACCGCCAGCCGCTTCTCTCCATCCTGGAAGAGGCGCACGGACACGATGGTGGTGAAGTAGGTGCTGAGCCCGTCAGCGGCGAAGAAAGGCACGAACACGTTCCACCAGGAGAGGCCCGGGACCAGGCCATCCACACGCAGTGCCAGCAGCACAGAGAACACCAACAGGGCCAGCAGGTGCACGAAGATCTCGAAGGTGGCGAAGCCTAGCCACTGCACCAGCTCCCGGAGCGAGAAGAGCATCGCGCCCGTTGAGCG')]
     ancestral = [None, None, None, 'C', None]
-    
+
     def test_get_variation_by_symbol(self):
         """should return correct snp when query genome by symbol"""
         # supplement this test with some synonymous snp's, where they have no
@@ -463,7 +463,7 @@ class TestVariation(GenomeTestBase):
             self.assertEqual(set(snp.Effect), set(self.snp_effects[i]))
             self.assertEqual(snp.Alleles, self.snp_nt_alleles[i])
             self.assertEqual(snp.MapWeight, self.map_weights[i])
-    
+
     def test_somatic_attribute_correct(self):
         """Somatic attribute of variants should be correct"""
         symbols_somatic = [('COSM256414', True), ('rs80359189', False)]
@@ -471,7 +471,7 @@ class TestVariation(GenomeTestBase):
             snp = list(self.human.getVariation(Symbol=symbol, somatic=True,
                         flanks_match_ref=False))[0]
             self.assertEqual(snp.Somatic, expect)
-    
+
     def test_num_alleles(self):
         """should correctly infer the number of alleles"""
         for i in range(4):
@@ -484,14 +484,14 @@ class TestVariation(GenomeTestBase):
             snp = list(self.human.getVariation(Symbol=self.snp_names[i]))[0]
             if 'missense_variant' not in snp.Effect:
                 continue
-            
+
             self.assertEqual(snp.PeptideAlleles, self.snp_aa_alleles[i])
 
     def test_no_pep_alleles(self):
         """handle case where coding_sequence_variant has no peptide alleles"""
         snp = list(self.human.getVariation(Symbol='CM033341'))[0]
         self.assertTrue(snp.PeptideAlleles is None)
-    
+
     def test_get_peptide_location(self):
         """should return correct location for aa variants"""
         index = self.snp_names.index('rs11545807')
@@ -516,12 +516,12 @@ class TestVariation(GenomeTestBase):
 
     def test_get_flanking_seq(self):
         """should correctly get the flanking sequence if matches reference genome"""
-        
+
         for i in range(4): # only have flanking sequence for 3
             snp = list(self.human.getVariation(Symbol=self.snp_names[i],
                             flanks_match_ref=False))[0]
             self.assertEqual(snp.FlankingSeq, self.snp_flanks[i])
-    
+
     def test_variation_seq(self):
         """should return the sequence for a Variation snp if asked"""
         snp = list(self.human.getVariation(Symbol=self.snp_names[0]))[0]
@@ -542,12 +542,12 @@ class TestVariation(GenomeTestBase):
         allele_freqs = set((a, '%.4f' % f )
                     for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
         self.assertTrue(expect.issubset(allele_freqs))
-    
+
     def test_by_effect(self):
         """excercising select SNPs by effect"""
         for snp in self.human.getVariation(Effect='missense_variant', limit=1):
             break
-    
+
     def test_complex_query(self):
         """only return non-somatic SNPs that are validated and match reference"""
         i = 0
@@ -560,9 +560,9 @@ class TestVariation(GenomeTestBase):
             self.assertNotEqual(snp.FlankingSeq, NULL_VALUE)
             self.assertNotEqual(snp.Validation, NULL_VALUE)
             i += 1
-        
+
         self.assertEqual(i, limit)
-    
+
 
 class TestFeatures(GenomeTestBase):
     def setUp(self):
@@ -679,7 +679,7 @@ class TestFeatures(GenomeTestBase):
         exp = DNA.makeSequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'\
                 'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'\
                 'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
-        
+
         self.assertEqual(ms_repeat.Seq, ps_repeat.Seq.rc())
 
         ps_annot_seq = ps_repeat.getAnnotatedSeq(feature_types='repeat')
@@ -724,6 +724,6 @@ class TestAssembly(TestCase):
         positions = [(10, 23)]
         self.assertEqual(_assemble_seq([''.join(frags)],10,23,positions),
                                 expect)
-    
+
 if __name__ == "__main__":
     main()

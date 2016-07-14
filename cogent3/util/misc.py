@@ -67,11 +67,11 @@ class FilePath(str):
 
     def __add__(self,other):
         return FilePath(''.join([self,other]))
- 
+
 def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
                      result_constructor=FilePath):
     """ Generate a temporary filename and return as a FilePath object
-    
+
         tmp_dir: the directory to house the tmp_filename (default: '/tmp')
         prefix: string to append to beginning of filename (default: 'tmp')
             Note: It is very useful to have prefix be descriptive of the
@@ -111,7 +111,7 @@ def safe_md5(open_file, block_size=2**20):
         data = open_file.read(block_size)
         if data:
             md5.update(data.encode('utf8'))
-    
+
     return md5
 
 def identity(x):
@@ -223,7 +223,7 @@ def gzip_load(filename):
 
 def recursive_flatten_old(items, max_depth=None, curr_depth=0):
     """Removes all nesting from items, recursively.
-    
+
     Note: Default max_depth is None, which removes all nesting (including
     unpacking strings). Setting max_depth unpacks a maximum of max_depth levels
     of nesting, but will not raise exception if the structure is not really
@@ -245,7 +245,7 @@ def recursive_flatten_old(items, max_depth=None, curr_depth=0):
 
 def curry(f, *a, **kw):
     """curry(f,x)(y) = f(x,y) or = lambda y: f(x,y)
-    
+
     modified from python cookbook"""
     def curried(*more_a, **more_kw):
         return f(*(a + more_a), **dict(kw, **more_kw))
@@ -328,7 +328,7 @@ def unflatten(data, row_width, keep_extras=False):
     """Converts items in data into a list of row_width-length lists.
 
     row_width must be an integer. Will raise error if zero.
-    
+
     data can be any sequence type, but results will always be lists at the
     first level (including the common case of a list containing one sequence).
 
@@ -393,7 +393,7 @@ def select(order, items):
 
 def find_all(text, pat):
     """Returns list of all overlapping occurrences of a pattern in a text.
-    
+
     Each item in the (sorted) list is the index of one of the matches.
     """
     result = []
@@ -438,7 +438,7 @@ def unreserve(item):
 
 def add_lowercase(d):
     """Adds lowercase version of keys in d to itself. Converts vals as well.
-    
+
     Should work on sequences of strings as well as strings.
 
     Now also works on strings and sets.
@@ -474,7 +474,7 @@ def add_lowercase(d):
 
 def extract_delimited(line, left, right, start_index=0):
     """Returns the part of line from first left to first right delimiter.
-    
+
     Optionally begins searching at start_index.
 
     Note: finds the next complete field (i.e. if we start in an incomplete
@@ -624,7 +624,7 @@ class ClassChecker(object):
 
 class Delegator(object):
     """Mixin class that forwards unknown attributes to a specified object.
-    
+
     Handles properties correctly (this was somewhat subtle).
 
     WARNING: If you are delegating to an object that pretends to have every
@@ -639,7 +639,7 @@ class Delegator(object):
     """
     def __init__(self, obj):
         """Returns a new Delegator that uses methods of obj.
-        
+
         NOTE: It's important that this bypasses the normal attribute setting
         mechanism, or there's an infinite loop between __init__ and 
         __setattr__. However, subclasses should be able to use the normal
@@ -649,7 +649,7 @@ class Delegator(object):
 
     def __getattr__(self, attr):
         """Forwards unhandled attributes to self._handler.
-        
+
         Sets _handler to None on first use if not already set.
         """
         handler = self.__dict__.setdefault('_handler', None)
@@ -657,7 +657,7 @@ class Delegator(object):
 
     def __setattr__(self, attr, value):
         """Forwards requests to change unhandled attributes to self._handler.
-        
+
         This logic is rather complicated because of GenericRecord objects, which
         masquerade as having every attribute, which can be used as handlers for
         Delegators, which forward all requests to their handlers.
@@ -726,7 +726,7 @@ class ConstrainedContainer(object):
 
     def __init__(self, Constraint=None, Mask=None):
         """Returns new ConstrainedContainer, incorporating constraint.
-        
+
         WARNING: Does not perform validation. It is the subclass's 
         responsibility to perform validation during __init__ or __new__!
         """
@@ -749,8 +749,8 @@ class ConstrainedContainer(object):
                 constraint_ok = True
                 for c in self.Constraint:
                     if c not in constraint:
-                            constraint_ok = False
-                            break
+                        constraint_ok = False
+                        break
                 if constraint_ok:
                     return True
             except TypeError:
@@ -985,7 +985,7 @@ class ConstrainedList(ConstrainedContainer, list):
         else:
             raise ConstraintError("Sequence '%s' has items not in constraint '%s'"\
                 % (sequence, self.Constraint))
-    
+
     def append(self, item):
         """Appends item to self."""
         if not self.itemIsValid(item):
@@ -1017,20 +1017,20 @@ class ConstrainedList(ConstrainedContainer, list):
         if mask:
             result.Mask = mask
         return result
-    
+
     def __getitem__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
         if len(args) == 1 and type(args[0]) == int and not kwargs:
             val = list.__getitem__(self, args[0])
             return val
-        
+
         val = list.__getitem__(self, *args, **kwargs)
         result = self.__class__(val, Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
         return result
-    
+
 
 class MappedList(ConstrainedList):
     """As for ConstrainedList, but maps items on contains and getitem."""
@@ -1044,7 +1044,7 @@ class MappedList(ConstrainedList):
 
 class ConstrainedDict(ConstrainedContainer, dict):
     """Dict containing only keys that are valid on a specified constraint.
-    
+
     Default behavior when fed a sequence is to store counts of the items in
     that sequence, which is not the standard dict interface (should raise a
     ValueError instead) but which is surprisingly useful in practice.
@@ -1106,7 +1106,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
 
     def update(self, other):
         """Updates self with items in other.
-        
+
         Implementation note: currently uses __setitem__, so no need to apply
         masks in this method.
         """
@@ -1146,7 +1146,7 @@ def getNewId(rand_f=randrange):
 
 def toString(obj):
     """Public function to write a string of object's properties & their vals.
-    
+
     This function looks only at the local properties/methods/etc of the
     object it is sent, and only examines public and first-level private
     (starts with _ but not __) entries.  It ignores anything that is a
@@ -1202,11 +1202,11 @@ def makeNonnegInt(n):
 
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
-    
+
     seq: a string
     use_DNA: a boolean indicating (if true) that A should translate to T.  
         If false, RNA is assumed (A translates to U).  Default is True.
-    
+
     Returns a reverse complemented string.
     """
     bad_chars = set(seq) - set("ACGTUacgtu")
@@ -1279,7 +1279,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
 
     constructor: modify each splited fields.
     filter_: filter the splits if not False(default)
-    
+
     Note: the line input in parser is expected to be a str, but without check
     """
     def parser(line, index=0):
@@ -1321,10 +1321,10 @@ def NestedSplitter(delimiters=[None], same_level=False,
 
 def app_path(app,env_variable='PATH'):
     """Returns path to an app, or False if app does not exist in env_variable
-    
+
      This functions in the same way as which in that it returns
      the first path that contains the app.
-    
+
     """
     # strip off " characters, in case we got a FilePath object
     app = app.strip('"')
@@ -1348,13 +1348,13 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
     dir_name: name of directory to create
 
     fail_on_exist: if true raise an error if dir already exists
-    
+
     handle_errors_externally: if True do not raise Errors, but return
                    failure codes. This allows to handle errors locally and
                    e.g. hint the user at a --force_overwrite options.
-                   
+
     returns values (if no Error raised):
-    
+
          0:  dir could be safely made
          1:  directory already existed
          2:  a file with the same name exists          
@@ -1386,7 +1386,7 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
             makedirs(dir_name)
         except OSError:
             return ror(error_code_lookup['OTHER_OS_ERROR'])
-    
+
     return error_code_lookup['NO_ERROR']
 
 def handle_error_codes(dir_name, supress_errors=False,
@@ -1398,10 +1398,10 @@ def handle_error_codes(dir_name, supress_errors=False,
     error_code: the code for the error
     """
     error_code_lookup = get_create_dir_error_codes()
-    
+
     if error_code == None:
         error_code = error_code_lookup['NO_ERROR']
-    
+
     error_strings = \
         {error_code_lookup['DIR_EXISTS'] :
           "Directory already exists: %s" % dir_name,
@@ -1439,7 +1439,7 @@ def get_random_directory_name(suppress_mkdir=False,\
     suffix='',
     return_absolute_path=True):
     """Build a random directory name and create the directory 
-    
+
         suppress_mkdir: only build the directory name, don't
          create the directory (default: False)
         timestamp_pattern: string passed to strftime() to generate
@@ -1455,10 +1455,10 @@ def get_random_directory_name(suppress_mkdir=False,\
     # Define a set of characters to be used in the random directory name
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
-    
+
     # Get a time stamp
     timestamp = datetime.now().strftime(timestamp_pattern)
-        
+
     # Construct the directory name
     dirname = '%s%s%s%s' % (prefix,timestamp,\
                         ''.join([choice(picks) for i in range(rand_length)]),\
@@ -1472,7 +1472,7 @@ def get_random_directory_name(suppress_mkdir=False,\
             makedirs(abs_dirpath)
         except OSError:
             raise OSError("Cannot make directory %s. Do you have write access?" % dirpath)
-             
+
     # Return the path to the directory
     if return_absolute_path:
         return abs_dirpath
@@ -1482,15 +1482,15 @@ def get_independent_coords(spans, random_tie_breaker=False):
     """returns non-overlapping spans. spans must have structure
         [(start, end, ..), (..)]. spans can be decorated with arbitrary data
         after the end entry.
-    
+
     Arguments:
         - random_tie_breaker: break overlaps by randomly choosing the first
           or second span. Defaults to the first span.
     """
-    
+
     if len(spans) <= 1:
         return spans
-    
+
     last = spans[0]
     result = [last]
     for i in range(1, len(spans)):
@@ -1501,10 +1501,10 @@ def get_independent_coords(spans, random_tie_breaker=False):
             else:
                 result[-1] = last
             continue
-        
+
         result.append(curr)
         last = curr
-    
+
     return result
 
 def get_merged_overlapping_coords(start_end):
@@ -1522,40 +1522,40 @@ def get_merged_overlapping_coords(start_end):
             result[-1][-1] = prev_end
         else:
             pass # we lie completely within previous span
-    
+
     return result
 
 def get_run_start_indices(values, digits=None, converter_func=None):
     """returns starting index, value for all distinct values"""
     assert not (digits and converter_func), \
         'Cannot set both digits and converter_func'
-    
+
     if digits is not None:
         converter_func = lambda x: round(x, digits)
     elif converter_func is None:
         converter_func = lambda x: x
-    
+
     last_val = None
     for index, val in enumerate(values):
         val = converter_func(val)
         if val != last_val:
             yield [index, val]
-        
+
         last_val = val
-    
+
     return
 
 def get_merged_by_value_coords(spans_value, digits=None):
     """returns adjacent spans merged if they have the same value. Assumes
     [(start, end, val), ..] structure and that spans_value is sorted in
     ascending order.
-    
+
     Arguments:
         - digits: if None, any data can be handled and exact values are
           compared. Otherwise values are rounded to that many digits.
     """
     assert len(spans_value[0]) == 3, 'spans_value must have 3 records per row'
-    
+
     starts, ends, vals = list(zip(*spans_value))
     indices_distinct_vals = get_run_start_indices(vals, digits=digits)
     data = []
@@ -1568,10 +1568,10 @@ def get_merged_by_value_coords(spans_value, digits=None):
             data[-1][1] = ends[prev_index]
         except IndexError:
             pass
-        
+
         data.append([start, end, val])
-    
+
     if index < len(ends):
         data[-1][1] = ends[-1]
-    
+
     return data

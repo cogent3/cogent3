@@ -11,7 +11,7 @@ __status__ = "Production"
 
 def nexus_from_alignment(aln, seq_type, interleave_len=50):
     """returns a nexus formatted string
-    
+
     Arguments:
         - seq_type: dna, rna, or protein
         - interleave_len: the line width"""
@@ -36,6 +36,6 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
         nexus_out.append("")
         cur_ix += interleave_len
     nexus_out.append("    ;\nend;")
-    
+
     return '\n'.join(nexus_out)
 

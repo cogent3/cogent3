@@ -64,17 +64,17 @@ def dna_shapes():
             ('N', m, n)]:
         shapes[motif] = rectangle(width, height)
     return shapes
-    
+
 dna_shapes = dna_shapes()
 
 class TransformScalePart(Affine2DBase):
     """Just the translation factors of the child transform, no
     rotation or translation. 
-    
+
     a: Child transform from which scale is extracted
     source_dims: the dimensions (0:X, 1:Y, 2:I) from which the
     resulting X and Y scales are taken."""
-    
+
     def __init__(self, a, source_dims=[0,1]):
         self.input_dims = a.input_dims
         self.output_dims = a.output_dims
@@ -97,7 +97,7 @@ class TransformScalePart(Affine2DBase):
             self._invalid = 0
         return self._mtx
 
-        
+
 class _Colors(object):
     """colors.white = to_rgb("white"), same as just using "white"
     except that this lookup also checks the color is valid"""   
@@ -108,16 +108,16 @@ colors = _Colors()
 def llen(label, fontSize=10):
     # placeholder for better length-of-label code
     return len(label) * fontSize
-    
+
 class TrackDefn(object):
     def __init__(self, tag, features):
         assert tag
         self.tag = tag
         self.feature_types = features
-    
+
     def __iter__(self):
         return iter(self.feature_types)
-    
+
 
 class Track(object):
     def __init__(self, tag, features, level=0, label=None,
@@ -135,7 +135,7 @@ class Track(object):
             [getattr(f, 'value', None) for f in self.features]) or 0
         self.level = level
         self.needs_border = needs_border
-    
+
     def getShapes(self, span, rotated, height, 
             yrange=None, done_border=False):
         shape_list = [feature.shape(height,
@@ -149,10 +149,10 @@ class Track(object):
                     )
             shape_list = [border] + shape_list
         return shape_list
-    
+
     def __repr__(self):
         return "Track(%(tag)s,%(label)s)" % vars(self)
-    
+
 
 class CompositeTrack(Track):
     """Overlayed tracks"""
@@ -170,7 +170,7 @@ class CompositeTrack(Track):
         self.height = max([track.height for track in tracks])
         self.level = max([track.level for track in tracks])
         self.range = max([track.range for track in tracks])
-    
+
     def getShapes(self, span, rotated, height, 
             yrange=None, done_border=False):
         if yrange is None:
@@ -189,22 +189,22 @@ class CompositeTrack(Track):
             shape_list.extend(track.getShapes(span, rotated, height,
                     yrange=yrange, done_border=True))
         return shape_list
-    
+
 
 class Annotation(object):
     """A map, a style, and some values"""
-    
+
     def __init__(self, map, *args, **kw):
         self.map = map
         self.values = self._make_values(*args, **kw)
-    
+
     def _make_values(self, *args, **kw):
         # override for variables etc.
         return []
-    
+
     def __repr__(self):
         return "%s at %s" % (type(self), getattr(self, 'map', '?'))
-    
+
     # xxx styles do this.  what about maps/ others
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
@@ -216,7 +216,7 @@ class Annotation(object):
                         height, yrange, rotated))
             posn += span.length
         return g
-    
+
 class _SeqRepresentation(object):
     height = 20
     y_offset = 10
@@ -225,9 +225,9 @@ class _SeqRepresentation(object):
     def __init__(self, map, sequence, cvalues=None, colour_sequences=True, 
             font_properties=None):
         self.font_properties = font_properties
-        
+
         alphabet = self.alphabet = sequence.MolType.Alphabets.Degen
-        
+
         alphabet_colours = None 
         if cvalues:
             assert len(cvalues) == len(sequence)
@@ -238,10 +238,10 @@ class _SeqRepresentation(object):
             alphabet_colours = numpy.array([
                 matplotlib.colors.colorConverter.to_rgba(c, alpha=.5)
                 for c in color_specs])
-        
+
         # this could be faster is sequence were known to be a ModelSequence
         sequence = numpy.asarray(self.alphabet.toIndices(str(sequence)))
-        
+
         posn = 0
         used_count = 0
         offsets = []
@@ -267,7 +267,7 @@ class _SeqRepresentation(object):
 
     def shape(self, height, yrange, rotated):
         raise NotImplementedError
-        
+
 
 class _MultiShapeSeqRepresentation(_SeqRepresentation):
     def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
@@ -285,7 +285,7 @@ class _MultiShapeSeqRepresentation(_SeqRepresentation):
                 cvs = [colors.black]
             values.append((motif, cvs, offsets[positions]))
         self.per_shape_values = values
-            
+
 
 class _SingleShapeSeqRepresentation(_SeqRepresentation):
     def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
@@ -322,13 +322,13 @@ class SeqShapes(_MultiShapeSeqRepresentation):
     height = 10
     x_offset = 0.5
     y_offset = 0
-    
+
     def __init__(self, map, sequence, *args, **kw):
         super(SeqShapes, self).__init__(map, sequence, *args, **kw)
         default = dna_shapes['N']
         self.shapes = [dna_shapes.get(m, default) for m in self.alphabet]
         self.rshapes = [[(y,x) for (x,y) in v] for v in self.shapes]
-        
+
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
         (X, Y, I) = (0, 1, 2)
@@ -390,7 +390,7 @@ class SeqLine(object):
         x_offset = 0.0
         self.segments = [(span.Start+x_offset, span.End+x_offset)
             for span in map.spans if not span.lost]
-            
+
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
         trans = TransformScalePart(g.combined_transform)
@@ -412,11 +412,11 @@ class Feature(Annotation):
         self.value = value
         self.height = style.height
         #self.values = self._make_values(*args, **kw)
-    
+
     def shape(self, height, yrange, rotated):
         return self.style(height, self.label, self.map, self.value, yrange, 
                 rotated)
-    
+
 
 class _FeatureStyle(object):
     range_required = False
@@ -441,7 +441,7 @@ class _FeatureStyle(object):
         self.height = height
         self.proportion_of_track = thickness
         self.one_span = one_span
-    
+
     def __call__(self, height, label, map, value, yrange, rotated):
         #return self.FeatureClass(label, map)
         g = rlg2mpl.Group()
@@ -494,11 +494,11 @@ class _VariableThicknessFeatureStyle(_FeatureStyle):
             thickness = height*self.proportion_of_track
         return self._item_shape_scaled(start, end, tidy_start, tidy_end,
                 height/2, max(2, thickness), rotated, last)
-    
+
 class Box(_VariableThicknessFeatureStyle):
     arrow = False
     blunt = False
-    
+
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
             thickness, rotated, last):
         (top, bottom) = (middle+thickness/2, middle-thickness/2)
@@ -531,7 +531,7 @@ class Diamond(_VariableThicknessFeatureStyle):
         return rlg2mpl.Polygon(
             [(x-spread, middle), (x, middle+thickness/2), (x+spread, middle), 
             (x, middle-thickness/2)], **self.opts)
-    
+
 
 class Line(_FeatureStyle):
     """For a line segment graph"""
@@ -542,7 +542,7 @@ class Line(_FeatureStyle):
         #if self.orientation < 0:
         #    altitude = height - altitude
         return rlg2mpl.Line(start, altitude, end, altitude, **self.opts)
-    
+
 
 class Area(_FeatureStyle):
     """For a line segment graph"""
@@ -556,7 +556,7 @@ class Area(_FeatureStyle):
             start, end = end, start
             tidy_start, tidy_end = tidy_end, tidy_start
         return rlg2mpl.Rect(start, 0, end-start, altitude, **self.opts)
-    
+
 
 class DisplayPolicy(object):
     def _makeFeatureStyles(self):
@@ -644,7 +644,7 @@ class DisplayPolicy(object):
             ##Bacterial element specific
             #'oriT': Box(False, colors.linen),
         }
-    
+
     def _makeTrackDefns(self):
         return [TrackDefn(*args) for args in [
             ('Gene Structure',[
@@ -720,11 +720,11 @@ class DisplayPolicy(object):
                 'redline',
                 ]),
         ]]
-    
+
     _default_ignored_features =    ['C_region','N_region','S_region','V_region',
         'D_segment','J_segment','V_segment','iDNA','D-loop','oriT',]
     _default_keep_unexpected_tracks = True
-    
+
     dont_merge = []
     show_text = None # auto
     draw_bases = None
@@ -734,20 +734,20 @@ class DisplayPolicy(object):
     seqname = ''
     rowlen = None
     recursive = True
-    
+
     def __init__(self,
             min_feature_height = 20,
             min_graph_height = None,
             ignored_features=None,
             keep_unexpected_tracks=None,
             **kw):
-        
+
         self.seq_font = FontProperties(size=10)
         #self.label_font = FontProperties()
 
         if min_graph_height is None:
             min_graph_height = min_feature_height * 2
-        
+
         feature_styles = self._makeFeatureStyles()
         # yuk
         for style in list(feature_styles.values()):
@@ -755,16 +755,16 @@ class DisplayPolicy(object):
                 style.height = max(style.height, min_graph_height)
             else:
                 style.height = max(style.height, min_feature_height)
-        
+
         self._track_defns = self._makeTrackDefns()
-        
+
         if ignored_features is None:
             ignored_features = self._default_ignored_features
         self._ignored_features = ignored_features
         if keep_unexpected_tracks is None:
             keep_unexpected_tracks = self._default_keep_unexpected_tracks
         self.keep_unexpected_tracks = keep_unexpected_tracks
-        
+
         if not hasattr(self, '_track_map'):
             self._track_map = {}
             for track_defn in self._track_defns:
@@ -782,9 +782,9 @@ class DisplayPolicy(object):
         self.orientation = -1
         self.show_code = True
         self._logged_drops = []
-        
+
         self._setattrs(**kw)
-    
+
     def _setattrs(self, **kw):                 
         for (n,v) in list(kw.items()):
             if not hasattr(self, n):
@@ -792,18 +792,18 @@ class DisplayPolicy(object):
             if n.endswith('font'):
                 assert isinstance(kw[n], FontProperties)
             setattr(self, n, v)
-    
+
     def copy(self, **kw):
         new = copy.copy(self)
         new._setattrs(**kw)
         return new
-    
+
     def at(self, map):
         if map is None:
             return self
         else:
             return self.copy(map=self.map[map], depth=self.depth+1)
-    
+
     def mergeTracks(self, orig_tracks, keep_unexpected=None):
         # merge tracks with same names
         # order features within a track by level  # xxx remerge
@@ -816,7 +816,7 @@ class DisplayPolicy(object):
             if not track.level in tracks[track.tag]:
                 tracks[track.tag][track.level] = []
             tracks[track.tag][track.level].append(track)
-        
+
         track_order = [track.tag for track in self._track_defns
                 if track.tag in tracks]
         unexpected = [tag for tag in orig_track_tags if tag not in track_order]
@@ -826,7 +826,7 @@ class DisplayPolicy(object):
             track_order += unexpected
         elif unexpected:
             warnings.warn('dropped tracks ' + ','.join(unexpected), stacklevel=2)
-        
+
         sorted_tracks = []
         for track_tag in track_order:
             annots = []
@@ -839,7 +839,7 @@ class DisplayPolicy(object):
             else:
                 sorted_tracks.extend(annots)
         return sorted_tracks
-    
+
     def tracksForAlignment(self, alignment):
         annot_tracks = alignment.getAnnotationTracks(self)
         if self.recursive:
@@ -852,10 +852,10 @@ class DisplayPolicy(object):
             seq_tracks = []
         annot_tracks = self.mergeTracks(annot_tracks)
         return seq_tracks + annot_tracks
-    
+
     def tracksForSequence(self, sequence):
         seq_tracks = []
-        
+
         if self.show_code:
             # this should be based on resolution, not rowlen, but that's all
             # we have at this point
@@ -890,10 +890,10 @@ class DisplayPolicy(object):
                         cvalues = cvalues)
                 label = getattr(self, 'seqname', '')
                 seq_tracks = [Track('seq', [feature], level=2, label=label)]
-        
+
         annot_tracks = sequence.getAnnotationTracks(self)
         return self.mergeTracks(annot_tracks + seq_tracks)
-    
+
     def getStyleDefnForFeature(self, feature):
         if feature.type in self._track_map:
             (track_defn, level, style) = self._track_map[feature.type]
@@ -904,14 +904,14 @@ class DisplayPolicy(object):
                 warnings.warn('dropped feature ' + repr(feature.type))
                 self._logged_drops.append(feature.type)
             return (None, None, None)
-        
+
         if track_defn is None:
             warnings.warn('dropped feature ' + repr(feature.type))
             return (None, None, None)
         else:
             track_tag = track_defn.tag or feature.type
         return (track_tag, style, level)
-    
+
     def tracksForFeature(self, feature):
         (track_tag, style, level) = self.getStyleDefnForFeature(feature)
         if style is None:
@@ -919,7 +919,7 @@ class DisplayPolicy(object):
         annot_tracks = feature.getAnnotationTracks(self)
         return annot_tracks + [Track(track_tag,
                 [Feature(self.map, style, feature.Name)], level=level)]
-    
+
     def tracksForVariable(self, variable):
         (track_tag, style, level) = self.getStyleDefnForFeature(variable)
         if style is None:
@@ -933,42 +933,42 @@ class DisplayPolicy(object):
             if y > max_y: max_y = y
         return [Track(track_tag, segments, max_y=max_y, needs_border=True,
                 label=variable.Name, level=level)]
-    
+
 
 class Display(rlg2mpl.Drawable):
     """Holds a list of tracks and displays them all aligned
-    
+
     base: A sequence, alignment, or anything else offering .getTracks(policy)
     policy: A DisplayPolicy subclass.
     pad: Gap between tracks in points.
-    
+
     Other keyword arguments are used to modify the DisplayPolicy: 
-    
+
     Sequence display:
     show_text: Represent bases as characters.  Slow.
     draw_bases: Represent bases as rectangles if MolType allows.
     show_gaps: Represent bases as line segments.
     colour_sequences: Colour code sequences if MolType allows.
     seq_color_callback: f(seq)->[colours] for flexible seq coloring.
-    
+
     Layout:
     rowlen: wrap at this many characters per line.
     min_feature_height: minimum feature symbol height in points.
     min_graph_height: minimum height of any graphed features in points.
-    
+
     Inclusion:
     recursive: include the sequences of the alignment.
     ignored_features: list of feature type tags to leave out.
     keep_unexpected_tracks: show features not assigned to a track by the policy.
     """
-    
+
     def __init__(self, base, policy=DisplayPolicy, _policy=None, pad=1,
             yrange=None, **kw):
         self.pad = pad
         self.base = base
         self.yrange = yrange
         assert len(base) > 0, len(base)
-        
+
         if _policy is None:
             policy = policy(**kw).copy(
                 map=Map([(0, len(base))], parent_length=len(base)),
@@ -980,10 +980,10 @@ class Display(rlg2mpl.Drawable):
         self.smap=Map([(0, len(base))], parent_length=len(base))
 
         self._calc_tracks()
-    
+
     def __len__(self):
         return len(self.smap.inverse())
-    
+
     def _calc_tracks(self):
         y = 0
         self._tracks = []
@@ -996,23 +996,23 @@ class Display(rlg2mpl.Drawable):
             self._tracks.append((y+self.pad/2, (y+y2)/2, p))
             y = y2
         self.height = y
-        
+
         if self.yrange is None:
             self.yrange = {}
             for (y, ym, p) in self._tracks:
                 self.yrange[p.tag] = max(self.yrange.get(p.tag, 0), p.range)
-        
+
     def copy(self, **kw):
         new = copy.copy(self)
         new.policy = self.policy.copy(**kw)
         new._calc_tracks()
         return new
-    
+
     def __getitem__(self, slice):
         c = copy.copy(self)
         c.smap = self.smap.inverse()[slice].inverse()
         return c
-        
+
     def makeArtist(self, vertical=False):
         g = rlg2mpl.Group()
         for (y, ym, p) in self._tracks:
@@ -1030,14 +1030,14 @@ class Display(rlg2mpl.Drawable):
             g.rotate(90)
             g.scale(-1.0, 1.0)
         return g
-    
+
     def asAxes(self, fig, posn, labeled=True, vertical=False):
         ax = fig.add_axes(posn)
         self.applyScaleToAxes(ax, labeled=labeled, vertical=vertical)
         g = self.makeArtist(vertical=vertical)
         ax.add_artist(g)
         return ax
-        
+
     def applyScaleToAxes(self, ax, labeled=True, vertical=False):
         (seqaxis, trackaxis) = [ax.xaxis, ax.yaxis]
         if vertical:
@@ -1058,10 +1058,10 @@ class Display(rlg2mpl.Drawable):
                 for tick in trackaxis.get_major_ticks():
                     tick.label1.set_rotation('vertical')
                     tick.label2.set_rotation('vertical')
-            
+
         seqaxis.set_major_formatter(
             matplotlib.ticker.FuncFormatter(lambda x,pos:str(int(x))))
-        
+
         smap = self.smap.inverse()
         seq_lim = (smap.Start, smap.End)
         if vertical:
@@ -1070,7 +1070,7 @@ class Display(rlg2mpl.Drawable):
         else:
             ax.set_xlim(*seq_lim)
             ax.set_ylim(0, self.height or 0.1)
-    
+
     def figureLayout(self, labeled=True, vertical=False, width=None, 
             height=None, left=None, **kw):
 
@@ -1080,22 +1080,22 @@ class Display(rlg2mpl.Drawable):
                 left *= 12/72 * .5 # guess mixed chars, 12pt, inaccurate!
             else:
                 left = 0
-        
+
         height = height or (self.height or 0.1) / 72
-        
+
         useful_width = len(self)*16/72 # ie bigish font, wide chars
-        
+
         fkw = dict(leftovers=True, width=width, height=height, left=left, 
                 useful_width=useful_width, **kw)  
         (w,h),posn,kw = rlg2mpl.figureLayout(**fkw)
-        
+
         #points_per_base = w * posn[3] / len(self)
         if vertical:
             (w, h) = (h, w)
             posn[0:2] = reversed(posn[0:2])
             posn[2:4] = reversed(posn[2:4])
         return (w, h), posn, kw
-    
+
     def makeFigure(self, width=None, height=None, rowlen=None, **kw):
         if rowlen:
             rows = [self[i:i+rowlen] for i in range(0, len(self), rowlen)]
@@ -1114,6 +1114,6 @@ class Display(rlg2mpl.Drawable):
             posn = [x, (y+i*(y+h))/vzoom, w*len(row)/rowlen, h/vzoom]
             row.asAxes(fig, posn, **kw)
         return fig
-    
-        
-        
+
+
+

@@ -98,7 +98,7 @@ class TreeNodeTests(TestCase):
         self.BigName = list(map(TreeNode, '0123456789'))
         self.BigParent = TreeNode(Name = 'x', Children = self.BigName)
         self.Comparisons = list(map(TreeNode, 'aab'))
-        
+
         nodes = dict([(x, TreeNode(x)) for x in 'abcdefgh'])
         nodes['a'].append(nodes['b'])
         nodes['b'].append(nodes['c'])
@@ -116,7 +116,7 @@ class TreeNodeTests(TestCase):
         self.t2 = DndParser(self.s2, TreeNode)
         self.s4 = '(((H,G),(O,R)),X);'
         self.t4 = DndParser(self.s4, TreeNode)
-   
+
     def test_init_empty(self):
         """Empty TreeNode should init OK"""
         t = self.Empty
@@ -159,7 +159,7 @@ class TreeNodeTests(TestCase):
         """Coerces nodes to have <= n children"""
         t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
         t = DndParser(t_str)
-        
+
         # can't break up easily... sorry 80char
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
         obs = t.multifurcating(2)
@@ -185,7 +185,7 @@ class TreeNodeTests(TestCase):
         """Coerces nodes to have <= n children"""
         t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
         t = DndParser(t_str)
-        
+
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
         obs = t.multifurcating(2, name_unnamed=True)
 
@@ -205,7 +205,7 @@ class TreeNodeTests(TestCase):
         """Coerces nodes to have <= 2 children"""
         t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"
         t = DndParser(t_str)
-        
+
         # can't break up easily... sorry 80char
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
         obs = t.bifurcating()
@@ -237,7 +237,7 @@ class TreeNodeTests(TestCase):
         assert t is not u
         self.assertNotEqual(t, u)
         self.assertNotEqual(t, v)
-    
+
         f = TreeNode(1.0)
         g = TreeNode(1)
         self.assertNotEqual(f, g)
@@ -345,7 +345,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(items), 3)
         assert items[0] is n['d']
         assert items[-1] is n['f']
-    
+
     def test_slice(self):
         """TreeNode slicing should return list, not TreeNode"""
         nodes = self.TreeNode
@@ -363,13 +363,13 @@ class TreeNodeTests(TestCase):
         assert parent[0] is t
         assert t.Parent is parent
         assert nodes[0].Parent is None
-        
+
         u = TreeNode(2)
         parent[-2] = u
         assert parent[8] is u
         assert u.Parent is parent
         assert nodes[8].Parent is None
-        
+
         parent[1:6:2] = 'xyz'
         for i in [1,3,5]:
             assert nodes[i].Parent is None
@@ -430,7 +430,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 5)
         for i, n in enumerate(nodes):
             if i in [3,4,5,6,7]:
-               assert n.Parent is None
+                assert n.Parent is None
             else:
                 assert n.Parent is parent
 
@@ -460,7 +460,7 @@ class TreeNodeTests(TestCase):
         assert c.Name is not u.Name
         #note: Name _is_ same object if it's immutable, e.g. a string.
         #deepcopy doesn't copy data for immutable objects.
-    
+
         #need to check that we also copy arbitrary attributes
         t.XYZ = [3]
         c = t.copy()
@@ -491,7 +491,7 @@ class TreeNodeTests(TestCase):
         self.assertNotSameObj(t, t2)
         self.assertEqual(t.Name, t2.Name)
         self.assertNotEqual(t.Name, t3.Name)
-    
+
         self.assertEqual(t.XYZ, t2.XYZ)
         self.assertNotSameObj(t.XYZ, t2.XYZ)
 
@@ -514,7 +514,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(c.Name, u.Name)
         #note: Name _is_ same object if it's immutable, e.g. a string.
         #deepcopy doesn't copy data for immutable objects.
-    
+
         #need to check that we do not also copy arbitrary attributes
         t.XYZ = [3]
         c = t.copyTopology()
@@ -549,7 +549,7 @@ class TreeNodeTests(TestCase):
         assert c.Name is not u.Name
         #note: Name _is_ same object if it's immutable, e.g. a string.
         #deepcopy doesn't copy data for immutable objects.
-    
+
         #need to check that we also copy arbitrary attributes
         t.XYZ = [3]
         c = deepcopy(t)
@@ -729,7 +729,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(self.Empty.siblings(), [])
         self.assertEqual(self.Child.siblings(), [])
         self.assertEqual(self.OneChild.siblings(), [])
-        
+
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
         b = nodes['b']
@@ -754,7 +754,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(self.Empty.tips(), [])
         self.assertEqual(self.Child.tips(), [])
         self.assertEqual(self.OneChild.tips(), [self.Child])
-        
+
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
         b = nodes['b']
@@ -788,14 +788,14 @@ class TreeNodeTests(TestCase):
         """TreeNode iterNontips should iterate over non-terminal descendants"""
         tree = self.TreeRoot
         self.assertEqual([i.Name for i in tree.iterNontips()], list('bcf'))
-        
+
 
     def test_tipChildren(self):
         """TreeNode tipChildren should return all terminal children"""
         self.assertEqual(self.Empty.tipChildren(), [])
         self.assertEqual(self.Child.tipChildren(), [])
         self.assertEqual(self.OneChild.tipChildren(), [self.Child])
-        
+
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
         b = nodes['b']
@@ -820,7 +820,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(self.Empty.nonTipChildren(), [])
         self.assertEqual(self.Child.nonTipChildren(), [])
         self.assertEqual(self.OneChild.nonTipChildren(), [])
-        
+
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
         b = nodes['b']
@@ -872,7 +872,7 @@ class TreeNodeTests(TestCase):
         groups = parent.childGroups()
         self.assertEqual(len(groups), 3)
         self.assertEqual([len(i) for i in groups], [2,1,1])
-        
+
     def test_removeNode(self):
         """TreeNode removeNode should delete node by id, not value"""
         parent = self.Repeated
@@ -888,7 +888,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 2)
         self.assertEqual(parent.removeNode(children[0]), True)
         self.assertEqual(len(parent), 1)
-   
+
     def test_lowestCommonAncestor(self):
         """TreeNode lowestCommonAncestor should return LCA for set of tips"""
         t1 = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
@@ -932,7 +932,7 @@ class TreeNodeTests(TestCase):
         f = nodes['f']
         g = nodes['g']
         h = nodes['h']
-       
+
         self.assertEqual(a.lastCommonAncestor(a), a)
         self.assertEqual(a.lastCommonAncestor(b), a)
         self.assertEqual(a.lastCommonAncestor(g), a)
@@ -1009,7 +1009,7 @@ class TreeNodeTests(TestCase):
         result2, node_list = tree.makeTreeArray(dec_list)
         self.assertEqual(result2, \
                 array([[1,0,1,1,1], [1,0,1,1,0], [1,0,1,1,0], [0,0,0,1,0]]))
-   
+
     def test_reassignNames(self):
         """reassignNames should rename node names based on dict mapping"""
         t = self.TreeRoot
@@ -1054,7 +1054,7 @@ class TreeNodeTests(TestCase):
         is_deleted = lambda x: x.Name in deleted
         tree.removeDeleted(is_deleted)
         self.assertEqual(str(tree),str(result_tree))
-    
+
     def test_prune(self):
         """prune should reconstruct correct topology of tree."""
         tree = DndParser('((a:3,((c:1):1):1):2);',constructor=TreeNode)
@@ -1066,7 +1066,7 @@ class TreeNodeTests(TestCase):
         samename_bug.prune()
         exp_tree_str = '((A,B)SAMENAME,(C,D)SAMENAME);'
         self.assertEqual(str(samename_bug), exp_tree_str)
-        
+
     def test_getNodeMatchingName(self):
         """TreeNode getNodeMatchingName should return node that matches name"""
         nodes = self.TreeNode
@@ -1107,7 +1107,7 @@ class TreeNodeTests(TestCase):
 
         result = self.t.compareBySubsets(self.TreeRoot, exclude_absent_taxa=True)
         self.assertEqual(result, 1)
-       
+
         result = self.t.compareBySubsets(self.TreeRoot)
         self.assertEqual(result, 1)
 
@@ -1207,7 +1207,7 @@ class PhyloNodeTests(TestCase):
         f = nodes['f']
         g = nodes['g']
         h = nodes['h']
-       
+
         self.assertEqual(a.distance(a), 0)
         self.assertEqual(a.distance(b), 0)
         self.assertEqual(a.distance(c), 3)
@@ -1216,7 +1216,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(a.distance(f), 5)
         self.assertEqual(a.distance(g), 8)
         self.assertEqual(a.distance(h), 2)
-    
+
         self.assertEqual(b.distance(a), 0)
         self.assertEqual(b.distance(b), 0)
         self.assertEqual(b.distance(c), 3)
@@ -1225,7 +1225,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(b.distance(f), 5)
         self.assertEqual(b.distance(g), 8)
         self.assertEqual(b.distance(h), 2)
-        
+
         self.assertEqual(c.distance(a), 3)
         self.assertEqual(c.distance(b), 3)
         self.assertEqual(c.distance(c), 0)
@@ -1234,7 +1234,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(c.distance(f), 2)
         self.assertEqual(c.distance(g), 5)
         self.assertEqual(c.distance(h), 5)
-        
+
         self.assertEqual(d.distance(a), 4)
         self.assertEqual(d.distance(b), 4)
         self.assertEqual(d.distance(c), 1)
@@ -1243,7 +1243,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(d.distance(f), 3)
         self.assertEqual(d.distance(g), 6)
         self.assertEqual(d.distance(h), 6)
-        
+
         self.assertEqual(e.distance(a), 7)
         self.assertEqual(e.distance(b), 7)
         self.assertEqual(e.distance(c), 4)
@@ -1252,7 +1252,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(e.distance(f), 6)
         self.assertEqual(e.distance(g), 9)
         self.assertEqual(e.distance(h), 9)
-        
+
         self.assertEqual(f.distance(a), 5)
         self.assertEqual(f.distance(b), 5)
         self.assertEqual(f.distance(c), 2)
@@ -1261,7 +1261,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(f.distance(f), 0)
         self.assertEqual(f.distance(g), 3)
         self.assertEqual(f.distance(h), 7)
-        
+
         self.assertEqual(g.distance(a), 8)
         self.assertEqual(g.distance(b), 8)
         self.assertEqual(g.distance(c), 5)
@@ -1312,7 +1312,7 @@ class PhyloNodeTests(TestCase):
         exp = (array([[0,2.0,6.7],[2.0,0,6.7],[6.7,6.7,0.0]]), nodes)
         obs = self.t.tipToTipDistances(endpoints=names)
         self.assertEqual(obs, exp)
-        
+
         obs = self.t.tipToTipDistances(endpoints=nodes)
         self.assertEqual(obs, exp)
 
@@ -1335,7 +1335,7 @@ class PhyloNodeTests(TestCase):
         f = nodes['f']
         g = nodes['g']
         h = nodes['h']
-        
+
         self.assertEqual(str(h), 'h:2;')
         self.assertEqual(str(f), '(g:3)f:2;')
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c:3)b:0,h:2)a;')
@@ -1408,7 +1408,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(result.distance(result.getNodeMatchingName('h')), 14)
         self.assertEqual(result.getDistances(), tree.getDistances())
 
-        
+
     def test_rootAtMidpoint3(self):
         """ midpoint between nodes should behave correctly"""
         tree = DndParser('(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;')
@@ -1440,7 +1440,7 @@ class PhyloNodeTests(TestCase):
         self.assertTrue(tmid.isRoot())
         self.assertEqual(tmid.distance(\
             tmid.getNodeMatchingName('d')), 3)
-            
+
     def test_rootAtMidpoint5(self):
         """midpoint should be selected correctly when on an even 2tip tree
         """
@@ -1456,11 +1456,11 @@ class PhyloNodeTests(TestCase):
         self.assertFloatEqual(tmid.distance(\
             tmid.getNodeMatchingName('BLO_1')), 0.649351)
         self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0* 0.649351)
-    
+
     def test_setTipDistances(self):
         """setTipDistances should correctly set tip distances."""
         tree = DndParser('(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);',constructor=PhyloNode)
-        
+
         #expected distances for a post order traversal
         expected_tip_distances = [0,0,0.1,0,0,0.1,0.2,0,0,0.1,0,0,0.1,0.2,0.5]
         #tips should have distance of 0
@@ -1471,14 +1471,14 @@ class PhyloNodeTests(TestCase):
         for node in tree.traverse(self_before=False,self_after=True):
             self.assertEqual(node.TipDistance,expected_tip_distances[idx])
             idx+=1
-    
+
     def test_scaleBranchLengths(self):
         """scaleBranchLengths should correclty scale branch lengths."""
         tree = DndParser('(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);',constructor=PhyloNode)
         tree.scaleBranchLengths(max_length=100,ultrametric=True)
         expected_tree = '(((A1:20,B1:20):20,(A2:20,B2:20):20):60,((A3:20,B3:20):20,(A4:20,B4:20):20):60);'
         self.assertEqual(str(tree),expected_tree)
-    
+
     def test_unrooted(self):
         """unrooted should preserve tips, drop a node"""
         rooted = LoadTree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
@@ -1487,11 +1487,11 @@ class PhyloNodeTests(TestCase):
             sorted(unrooted.getTipNames()))
         self.assertLessThan(len(unrooted.getNodeNames()),
             len(rooted.getNodeNames()))
-    
+
 
 class Test_tip_tip_distances_I(object):
     """Abstract class for testing different implementations of tip_to_tip."""
-    
+
     def setUp(self):
         """Define a few standard trees"""
         constructor = PhyloNode
@@ -1499,13 +1499,13 @@ class Test_tip_tip_distances_I(object):
         self.root_one_level = DndParser(tree_one_level, constructor)
         self.root_two_level = DndParser(tree_two_level, constructor)
         self.root_one_child = DndParser(tree_one_child, constructor)
-    
+
     def test_one_level(self):
         """tip_to_tip should work for one-level multifurcating tree"""
         matrix, order = self.fun(self.root_one_level)
         self.assertEqual([i.Name for i in order], list('abc'))
         self.assertEqual(matrix, array([[0,3,4],[3,0,5],[4,5,0]]))
-    
+
     def test_two_level(self):
         """tip_to_tip should work for two-level tree"""
         matrix, order = self.fun(self.root_two_level)
@@ -1515,19 +1515,19 @@ class Test_tip_tip_distances_I(object):
 
 class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
     """Tests for the array implementation of tip_to_tip distances"""
-    
+
     def setUp(self):
         """Specify which method to call."""
         self.fun = lambda x: x.tipToTipDistances()
         super(Test_tip_tip_distances_array, self).setUp()
-    
+
     def test_std(self):
         """tip_to_tip should work for small but complex tree"""
         dist, tips = self.fun(self.root_std)
         tips = [tip.Name for tip in tips]
         self.assertEqual(dist, tree_std_dist)
         self.assertEqual(tips, tree_std_tips)
-    
+
     def test_one_child(self):
         """tip_to_tip should work for tree with a single child"""
         dist, tips = self.fun(self.root_one_child)
@@ -1553,17 +1553,17 @@ def comb_tree(num_leaves):
 # in passing by some of these tests.  See also xxx's
 
 class TreeInterfaceForLikelihoodFunction(TestCase):
-    
+
     default_newick = "((A:1,B:2)ab:3,((C:4,D:5)cd,E:6)cde:7)"
-    
+
     def _maketree(self, treestring=None):
         if treestring is None:
             treestring = self.default_newick
         return LoadTree(treestring=treestring, underscore_unmunge=True)
-    
+
     def setUp(self):
         self.default_tree = self._maketree()
-    
+
     def test_getEdgeNames(self):
         tree = self._maketree()
         for (a, b, outgroup, result) in [
@@ -1572,7 +1572,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
                 ('C', 'D', 'E', ['C', 'D'])]:
             self.assertEqual(tree.getEdgeNames(
                 a, b, True, False, outgroup), result)
-    
+
     def test_parser(self):
         """nasty newick"""
         nasty = "( (A :1.0,'B (b)': 2) [com\nment]pair:3,'longer name''s':4)dash_ed;"
@@ -1580,22 +1580,22 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         tree = self._maketree(nasty)
         tidied = tree.getNewick(with_distances=1)
         self.assertEqual(tidied, nice)
-    
+
     # Likelihood Function Interface
-    
+
     def test_getEdgeNames(self):
         tree = self.default_tree
         clade = tree.getEdgeNames('C', 'E', getstem=0, getclade=1)
         clade.sort()
         self.assertEqual(clade, ['C', 'D', 'E', 'cd'])
-        
+
         all = tree.getEdgeNames('C', 'E', getstem=1, getclade=1)
         all.sort()
         self.assertEqual(all, ['C', 'D', 'E', 'cd', 'cde'])
-        
+
         stem = tree.getEdgeNames('C', 'E', getstem=1, getclade=0)
         self.assertEqual(stem, ['cde'])
-    
+
     def test_getEdgeNamesUseOutgroup(self):
         t1 = LoadTree(treestring="((A,B)ab,(F,(C,D)cd)cdf,E)root;")
         # a, e, ogroup f
@@ -1606,31 +1606,31 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
                                         outgroup_name = "F")
             edges.sort()
             self.assertEqual(expected, edges)
-    
+
     def test_getConnectingNode(self):
         tree = self.default_tree
         self.assertEqual(tree.getConnectingNode('A', 'B').Name, 'ab')
         self.assertEqual(tree.getConnectingNode('A', 'C').Name, 'root')
-    
+
     def test_getNodeMatchingName(self):
         tree = self.default_tree
         for (name, expect_tip) in [('A', True), ('ab', False)]:
             edge = tree.getNodeMatchingName(name)
             self.assertEqual(edge.Name, name)
             self.assertEqual(edge.istip(), expect_tip)
-    
+
     def test_getEdgeVector(self):
         '''correctly return vector of edges from a tree'''
         tree = self.default_tree
         names = [e.Name for e in tree.getEdgeVector()]
         self.assertEqual(names,
             ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde', 'root'])
-        
+
         names = [e.Name for e in tree.getEdgeVector(include_root=False)]
         self.assertEqual(names,
             ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde'])
-        
-    
+
+
     def test_getNewickRecursive(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
@@ -1644,28 +1644,28 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
-   
+
         tree.Name = "a_l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
-   
+
         tree.Name = "a l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
-   
+
         tree.Name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          quoted_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False),quoted_name)
-   
+
     def test_getNewick(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
@@ -1678,45 +1678,45 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
         self.assertEqual(tree.getNewick(escape_name=True), ugly_name_esc)
         self.assertEqual(tree.getNewick(escape_name=False), ugly_name)
-   
+
         tree.Name = "a_l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
-   
+
         tree.Name = "a l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         self.assertEqual(tree.getNewickRecursive(escape_name=True), \
                          ugly_name_esc)
         self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
-   
+
         tree.Name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         self.assertEqual(tree.getNewick(escape_name=True), \
                          quoted_name_esc)
         self.assertEqual(tree.getNewick(escape_name=False),quoted_name)
-   
+
     def test_XML(self):
         # should add some non-length parameters
         orig = self.default_tree
         xml = orig.getXML()
         parsed = LoadTree(treestring=xml)
         self.assertEqual(str(orig), str(parsed))
-    
+
     # Magic methods
-    
+
     def test_str(self):
         """testing (well, exercising at least), __str__"""
         str(self.default_tree)
-    
+
     def test_repr(self):
         """testing (well, exercising at least), __repr__"""
         repr(self.default_tree)
-    
+
     def test_eq(self):
         """testing (well, exercising at least), __eq__"""
         # xxx not good enough!
@@ -1724,13 +1724,13 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         t2 = self._maketree()
         self.assertTrue(t1 == t1)
         self.assertFalse(t1 == t2)
-    
+
     def test_balanced(self):
         """balancing an unrooted tree"""
         t = LoadTree(treestring='((a,b),((c1,(c2,(c3,(c4,(c5,(c6,c7)))))),(d,e)),f)')
         b = LoadTree(treestring='(c1,(c2,(c3,(c4,(c5,(c6,c7))))),((d,e),((a,b),f)))')
         self.assertEqual(str(t.balanced()), str(b))
-    
+
     def test_params_merge(self):
         t = LoadTree(treestring='((((a,b)ab,c)abc),d)')
         for (label, length, beta) in [('a',1, 20),('b',3,2.0),('ab',4,5.0),]:
@@ -1741,7 +1741,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertRaises(ValueError, t.getSubTree, ['b','c','xxx'])
         self.assertEqual(str(t.getSubTree(['b','c','xxx'],ignore_missing=True)),
             '(b:7,c)root;')
-    
+
     def test_making_from_list(self):
         tipnames_with_spaces = ['a_b','a b',"T'lk"]
         tipnames_with_spaces.sort()
@@ -1749,7 +1749,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         result = t.getTipNames()
         result.sort()
         assert result == tipnames_with_spaces
-    
+
     def test_getsetParamValue(self):
         """test getting, setting of param values"""
         t = LoadTree(treestring='((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)')
@@ -1764,12 +1764,12 @@ class SmallTreeReshapeTestClass(TestCase):
         new_tree = LoadTree(treestring="((a,b),(c,d))")
         new_tree = new_tree.unrooted()
         self.assertTrue(len(new_tree.Children) > 2, 'not unrooted right')
-    
+
     def test_reroot(self):
         tree = LoadTree(treestring="((a,b),(c,d),e)")
         tree2 = tree.rootedWithTip('b')
         self.assertEqual(tree2.getNewick(), "(a,b,((c,d),e));")
-    
+
     def test_sameShape(self):
         """test topology assessment"""
         t1 = LoadTree(treestring="(((s1,s5),s3),s2,s4);")
@@ -1789,7 +1789,7 @@ class SmallTreeReshapeTestClass(TestCase):
 
 class TestTree(TestCase):
     """tests for a single tree-type"""
-    
+
     def setUp(self):
         self.name = 'small tree - '
         self.otu_names = ['NineBande', 'Mouse', 'HowlerMon', 'DogFaced']
@@ -1798,7 +1798,7 @@ class TestTree(TestCase):
         self.newick_sorted = '(DogFaced,((HowlerMon,Human),Mouse),NineBande);'
         self.newick_reduced = '((HowlerMon,Mouse),NineBande,DogFaced);'
         self.tree = LoadTree(treestring = self.newick)
-    
+
     def test_sorttree(self):
         """testing (well, exercising at least) treesort"""
         new_tree = self.tree.sorted()
@@ -1806,17 +1806,17 @@ class TestTree(TestCase):
             self.assertEqual(
                 self.newick_sorted,
                 new_tree.getNewick(with_distances=0))
-    
+
     def test_getsubtree(self):
         """testing getting a subtree"""
         subtree = self.tree.unrooted().getSubTree(self.otu_names)
-        
+
         new_tree = LoadTree(treestring = self.newick_reduced).unrooted()
-        
+
         # check we get the same names
         self.assertEqual(*[len(t.Children) for t in (subtree,new_tree)])
         self.assertEqual(str(subtree), str(new_tree))
-    
+
     def test_getsubtree_2(self):
         """tree.getSubTree() has same pairwise tip dists as tree (len0 node)
         """
@@ -1962,14 +1962,14 @@ class BigTreeSingleTests(TestTree):
         self.newick = '((((((((FlyingFox,DogFaced),((FreeTaile,LittleBro),(TombBat,RoundEare))),(FalseVamp,LeafNose)),(((Horse,Rhino),(Pangolin,(Cat,Dog))),(Llama,(Pig,(Cow,(Hippo,(SpermWhal,HumpbackW))))))),(Mole,Hedgehog)),(TreeShrew,(FlyingLem,((Jackrabbit,(FlyingSqu,(OldWorld,(Mouse,Rat)))),(Galago,(HowlerMon,(Rhesus,(Orangutan,(Gorilla,(Human,Chimpanzee)))))))))),(((NineBande,HairyArma),(Anteater,Sloth)),(((Dugong,Manatee),((AfricanEl,AsianElep),(RockHyrax,TreeHyrax))),(Aardvark,((GoldenMol,(Madagascar,Tenrec)),(LesserEle,GiantElep)))))),(caenolest,(phascogale,(wombat,bandicoot))));'
         self.newick_reduced = '(((((TombBat,(((Horse,Rhino),(Pangolin,Cat)),(Pig,SpermWhal))),Hedgehog),(Orangutan,Gorilla)),((HairyArma,Sloth),((Manatee,AsianElep),GoldenMol))),bandicoot);'
         self.tree = LoadTree(treestring = self.newick)
-    
+
     def test_getEdgeNames(self):
         """testing (well, exercising at least), getedgenames"""
         # Fell over on small tree because "stem descended from root
         # joiner was a tip"
         a,b = self.otu_names[:2]
         clade = self.tree.getEdgeNames(a, b, True, False)
-    
+
     def test_getTipNames(self):
         """testing (well, exercising at least), getTipNames"""
         a,b = self.otu_names[:2]

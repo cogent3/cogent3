@@ -33,7 +33,7 @@ _reversed_chrs = ''.join(_all_chrs)
 
 def convert2DDict(twoDdict, header = None, row_order = None):
     """Returns a 2 dimensional list.
-    
+
     Arguments:
         - twoDdict: a 2 dimensional dict with top level keys corresponding to
           column headings, lower level keys correspond to row headings but are
@@ -45,11 +45,11 @@ def convert2DDict(twoDdict, header = None, row_order = None):
     if not header:
         header = list(twoDdict.keys())
         header.sort()
-    
+
     if not row_order: # we assume rows consistent across dict
         row_order = list(twoDdict[header[0]].keys())
         row_order.sort()
-    
+
     # make twoD list
     table = []
     for row in row_order:
@@ -64,15 +64,15 @@ class _Header(list):
     def __new__(cls, arg):
         n = list.__new__(cls, list(arg))
         return n
-    
+
     def __setslice__(self, *args):
         """disallowed"""
         raise RuntimeError("Table Header is immutable, use withNewHeader")
-    
+
     def __setitem__(self, *args):
         """disallowed"""
         raise RuntimeError("Table Header is immutable, use withNewHeader")
-    
+
 
 class Table(DictArray):
     def __init__(self, header = None, rows = None, row_order = None, digits = 4,
@@ -109,26 +109,26 @@ class Table(DictArray):
                 assert num_cols == len(rows[0])
         except (IndexError, TypeError, AssertionError):
             raise RuntimeError("header and rows must be provided to Table")
-        
+
         header = [str(head) for head in header]
         if isinstance(rows, dict):
             rows = convert2DDict(rows, header = header,
                                 row_order = row_order)
-        
+
         # if row_ids, we select that column as the row identifiers
         if row_ids:
             identifiers = [row[0] for row in rows]
         else:
             identifiers = len(rows)
-        
+
         if not dtype:
             dtype = "O"
         DictArray.__init__(self, rows, identifiers, header, dtype = dtype)
-        
+
         # forcing all column headings to be strings
         self._header = _Header([str(head) for head in header])
         self._missing_data = missing_data
-        
+
         self.Title = str(title)
         self.Legend = str(legend)
         try:
@@ -138,11 +138,11 @@ class Table(DictArray):
         self._digits = digits
         self._row_ids = row_ids
         self._max_width = max_width
-        
+
         # some attributes are not preserved in any file format, so always based
         # on args
         self._column_templates = column_templates or {}
-    
+
     def __repr__(self):
         row = []
         try:
@@ -156,7 +156,7 @@ class Table(DictArray):
         except IndexError:
             # an empty table
             pass
-        
+
         row_trunc = ', '.join(row)
         header_trunc = ', '.join(map(repr, self.Header[:3]))
         if self.Shape[1] > 3:
@@ -165,22 +165,22 @@ class Table(DictArray):
         else:
             header_trunc = '[%s]' % header_trunc
             row_trunc = '[%s]' % row_trunc
-        
+
         if self.Shape[0] > 1:
             row_trunc = '[%s,..]' % row_trunc
         else:
             row_trunc = '[[%s]]' % row_trunc
-        
+
         if self.Shape[0] == 0:
             row_trunc = str([])
-        
+
         result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
             (self.Shape[0], self.Shape[1], header_trunc, row_trunc)
         return result
-    
+
     def __str__(self):
         return self.tostring()
-    
+
     def __getitem__(self, names):
         (index, remaining) = self.template.interpretIndex(names)
         # if we have two integers, return a single value
@@ -191,7 +191,7 @@ class Table(DictArray):
         for i, idx in enumerate(new_index):
             if isinstance(idx, int):
                 new_index[i] = slice(idx, idx+1, None)
-            
+
         index = tuple(new_index)
         rows = self.array[index]
         result = None
@@ -203,13 +203,13 @@ class Table(DictArray):
             kwargs = self._get_persistent_attrs()
             result = self.__class__(header, rows, **kwargs)
         return result
-    
+
     def __getstate__(self):
         data = self._get_persistent_attrs()
         del(data['column_templates'])
         data.update(dict(header = self.Header, rows = self.getRawData()))
         return data
-    
+
     def __setstate__(self, data):
         limit_ids = data.pop('limit_ids', None)
         if limit_ids is not None:
@@ -217,20 +217,20 @@ class Table(DictArray):
         new = Table(**data)
         self.__dict__.update(new.__dict__)
         return self
-    
+
     def _get_header(self):
         """returns Header value"""
         return self._header
-    
+
     def _set_header(self, data):
         """disallowed"""
         raise RuntimeError("not allowed to set the Header")
-    
+
     Header = property(_get_header, _set_header)
-    
+
     def withNewHeader(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
-        
+
         Arguments:
             - old: the old column header(s). Can be a string or series of
               them.
@@ -240,17 +240,17 @@ class Table(DictArray):
         if type(old) == str:
             old = [old]
             new = [new]
-        
+
         assert len(old) == len(new), 'Mismatched number of old/new labels'
         indices = list(map(self.Header.index, old))
         new_header = list(self.Header)
         for i in range(len(old)):
             new_header[indices[i]] = new[i]
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = new_header, rows = self.getRawData(), **kw)
-    
+
     def _get_persistent_attrs(self):
         kws = dict(row_ids = self._row_ids, title = self.Title,
                    legend = self.Legend, digits = self._digits,
@@ -258,10 +258,10 @@ class Table(DictArray):
                    missing_data = self._missing_data,
                    column_templates = self._column_templates or None)
         return kws
-    
+
     def setColumnFormat(self, column_head, format_template):
         """Provide a formatting template for a named column.
-        
+
         Arguments:
             - column_head: the column label.
             - format_template: string formatting template or a function that
@@ -269,18 +269,18 @@ class Table(DictArray):
         """
         assert column_head in self.Header, \
                "Unknown column heading %s" % column_head
-        
+
         self._column_templates[column_head] = format_template
-    
+
     def tostring(self, borders=True, sep=None, format='', **kwargs):
         """Return the table as a formatted string.
-        
+
         Arguments:
             - format: possible formats are 'rest', 'latex', 'html', 'phylip',
               'bedgraph', or simple text (default).
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
               Overrides format.
-        
+
         NOTE: If format is bedgraph, assumes that column headers are chrom,
         start, end, value. In that order!
         """
@@ -288,7 +288,7 @@ class Table(DictArray):
             missing_data = "%.4f" % 0.0
         else:
             missing_data = self._missing_data
-        
+
         # convert self to a 2D list
         formatted_table = self.array.tolist()
         if format != 'bedgraph':
@@ -325,7 +325,7 @@ class Table(DictArray):
         else:
             return table_format.simpleFormat(*args + (self._max_width,
                                 self._row_ids, borders, self.Space))
-    
+
     def toRichHtmlTable(self, row_cell_func=None, header_cell_func=None,
                 element_formatters={}, merge_identical=True, compact=True):
         """returns just the table html code.
@@ -353,14 +353,14 @@ class Table(DictArray):
                                       header_cell_func=header_cell_func,
                                       element_formatters=element_formatters,
                                       compact=compact)
-    
+
     def writeToFile(self, filename, mode='w', writer=None, format=None,
                  sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
         is provided, unformatted values are written to file in order to preserve
         numerical accuracy.
-        
+
         Arguments:
             - mode: file opening mode
             - format: Valid formats are those of the tostring method plus
@@ -371,7 +371,7 @@ class Table(DictArray):
               filename (if not already added).
         """
         compress = compress or filename.endswith('.gz')
-        
+
         if compress:
             if not filename.endswith('.gz'):
                 filename = '%s.gz' % filename
@@ -379,7 +379,7 @@ class Table(DictArray):
             outfile = open_(filename, mode)
         else:
             outfile = open(filename, mode)
-        
+
         if format is None:
             # try guessing from filename suffix
             if compress:
@@ -389,10 +389,10 @@ class Table(DictArray):
             suffix = filename.split('.')
             if len(suffix) > 1:
                 format = suffix[index]
-        
+
         if format == 'csv':
             sep = sep or ','
-        
+
         if writer:
             rows = self.getRawData()
             rows.insert(0, self.Header[:])
@@ -413,21 +413,21 @@ class Table(DictArray):
             table = self.tostring(format=format, sep=sep, **kwargs)
             outfile.writelines(table + '\n')
         outfile.close()
-    
+
     def toBedgraph(self, chrom_col, start_col, end_col):
         """docstring for toBedgraph"""
         pass
-    
+
     def appended(self, new_column, *tables, **kwargs):
         """Append an arbitrary number of tables to the end of this one.
         Returns a new table object. Optional keyword arguments to the new
         tables constructor may be passed.
-        
+
         Arguments:
             - new_column: provide a heading for the new column, each tables
             title will be placed in it. If value is false, the result is no
             additional column."""
-        
+
         # convert series of tables
         if isinstance(tables[0], tuple) or isinstance(tables[0], list):
             tables = tuple(tables[0])
@@ -437,7 +437,7 @@ class Table(DictArray):
             header = [new_column] + self.Header
         else:
             header = self.Header
-        
+
         big_twoD = ()
         table_series = (self,) + tables
         for table in table_series:
@@ -455,29 +455,29 @@ class Table(DictArray):
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header, big_twoD, **kw)
-    
+
     def getRawData(self, columns = None):
         """Returns raw data as a 1D or 2D list of rows from columns. If one
         column, its a 1D list.
-        
+
         Arguments:
             - columns: if None, all data are returned"""
-        
+
         if columns is None:
             return self.array.tolist()
-        
+
         if isinstance(columns, str):
             # assumes all column headings are strings.
             columns = (columns,)
-        
+
         column_indices = list(map(self.Header.index, columns))
         result = self.array.take(column_indices, axis=1)
-        
+
         if len(columns) == 1:
             result = result.flatten()
-        
+
         return result.tolist()
-    
+
     def _callback(self, callback, row, columns=None, num_columns=None):
         if isinstance(callback, collections.Callable):
             row_segment = row.take(columns)
@@ -486,27 +486,27 @@ class Table(DictArray):
             return callback(row_segment)
         else:
             return eval(callback, {}, row)
-    
+
     def filtered(self, callback, columns=None, **kwargs):
         """Returns a sub-table of rows for which the provided callback
         function returns True when passed row data from columns. Row data
         is a 1D list if more than one column, raw row[col] value otherwise.
-        
+
         Arguments:
             - columns: the columns whose values determine whether a row is to
             be included.
             - callback: Can be a function, which takes the sub-row delimited
             by columns and returns True/False, or a string representing valid
             python code to be evaluated."""
-        
+
         if isinstance(columns, str):
             columns = (columns,)
-        
+
         if columns:
             num_columns = len(columns)
         else:
             num_columns = None
-        
+
         row_indexes = []
         if not isinstance(callback, collections.Callable):
             data = self
@@ -514,20 +514,20 @@ class Table(DictArray):
         else:
             data = self.array
             cols = list(map(self.Header.index, columns))
-        
+
         for rdex, row in enumerate(data):
             if self._callback(callback, row, cols, num_columns):
                 row_indexes.append(rdex)
-            
+
         sub_set = numpy.take(self, row_indexes, 0)
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = self.Header, rows = sub_set, **kw)
-    
+
     def filteredByColumn(self, callback, **kwargs):
         """Returns a table with columns identified by callback
-        
+
         Arguments:
             - callback: A function which takes the columns delimited
             by columns and returns True/False, or a string representing valid
@@ -540,27 +540,27 @@ class Table(DictArray):
                 append(index)
         columns = numpy.take(self.Header, column_indices)
         return self.getColumns(columns, **kwargs)
-    
+
     def count(self, callback, columns=None, **kwargs):
         """Returns number of rows for which the provided callback
         function returns True when passed row data from columns. Row data
         is a 1D list if more than one column, raw row[col] value otherwise.
-        
+
         Arguments:
             - columns: the columns whose values determine whether a row is to
             be included.
             - callback: Can be a function, which takes the sub-row delimited
             by columns and returns True/False, or a string representing valid
             python code to be evaluated."""
-        
+
         if isinstance(columns, str):
             columns = (columns,)
-        
+
         if columns:
             num_columns = len(columns)
         else:
             num_columns = None
-        
+
         count = 0
         if not isinstance(callback, collections.Callable):
             data = self
@@ -568,35 +568,35 @@ class Table(DictArray):
         else:
             data = self.array
             cols = list(map(self.Header.index, columns))
-        
+
         for row in data:
             if self._callback(callback, row, cols, num_columns):
                 count += 1
         return count
-    
+
     def sorted(self, columns=None, reverse=None, **kwargs):
         """Returns a new table sorted according to columns order.
-        
+
         If only reverse is provided, that order is used.
-        
+
         Arguments:
             - columns: column headings, their order determines the sort order.
             - reverse: column headings, these columns will be reverse sorted.
-            
+
             Either can be provided as just a single string, or a series of
             strings.
         """
-        
+
         if reverse and columns is None:
             columns = reverse
-        
+
         if columns is None:
             columns = self.Header
         elif isinstance(columns, str):
             columns = [columns]
-        
+
         indices = [self.Header.index(col) for col in columns]
-        
+
         if not reverse:
             is_reversed = [False] * len(columns)
             reverse_indices = []
@@ -608,16 +608,16 @@ class Table(DictArray):
                 col = self.Header[header_index]
                 if col in reverse:
                     reverse_indices += [index]
-            
+
             is_reversed = [col in reverse for col in columns]
-        
+
         reverse_indices = numpy.array(reverse_indices)
-        
+
         dtypes = [(self.Header[i], self.array.dtype) for i in indices]
-        
+
         # applying the decorate-sort-undecorate approach
         aux_list = self.array.take(indices, axis=1)
-        
+
         # we figure out the casting funcs for any reversed elements
         cast = []
         for index in reverse_indices:
@@ -629,29 +629,29 @@ class Table(DictArray):
                 func = lambda x: x * -1
             func = numpy.vectorize(func)
             aux_list[:, index] = func(aux_list[:, index])
-        
+
         aux_list = numpy.rec.fromarrays(aux_list.copy().T, dtype=dtypes)
         indices = aux_list.argsort()
         new_twoD = self.array.take(indices, axis=0)
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = self.Header, rows = new_twoD, **kw)
-    
+
     def getColumns(self, columns, **kwargs):
         """Return a slice of columns"""
         # check whether we have integer columns
-        
+
         if isinstance(columns, str):
             columns = [columns]
-        
+
         is_int = min([isinstance(val, int) for val in columns])
         indexes = []
         if is_int:
             indexes = columns
         else:
             indexes = [self.Header.index(head) for head in columns]
-        
+
         if self._row_ids:
             # we disallow reordering of identifiers, and ensure they are only
             # presented once
@@ -661,35 +661,35 @@ class Table(DictArray):
                 except ValueError:
                     pass
             indexes = list(range(self._row_ids)) + indexes
-        
+
         columns = numpy.take(numpy.asarray(self.Header, dtype="O"),
                                indexes)
         new = numpy.take(self.array, indexes, axis=1)
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = columns, rows = new, **kw)
-    
+
     def getDisjointRows(self, rows, **kwargs):
         """Return the nominated disjoint rows."""
         if isinstance(rows, str):
             rows = [rows]
-        
+
         indexes = []
         for row in rows:
             idx, drop = self.template.interpretIndex(row)
             indexes.append(idx[0])
-        
+
         new = self.array.take(indexes, axis=0)
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = self.Header, rows = new, **kw)
-    
+
     def withNewColumn(self, new_column, callback, columns = None, **kwargs):
         """Returns a new table with an additional column, computed using
         callback.
-        
+
         Arguments:
             - new_column: new column heading
             - columns: the columns whose values determine whether a row is to
@@ -697,39 +697,39 @@ class Table(DictArray):
             - callback: Can be a function, which takes the sub-row delimited
             by columns and returns True/False, or a string representing valid
             python code to be evaluated."""
-        
+
         if isinstance(columns, str):
             columns = (columns,)
-        
+
         if columns is not None:
             num_columns = len(columns)
         else:
             num_columns = None
-        
+
         if not isinstance(callback, collections.Callable):
             data = self
             cols = columns
         else:
             data = self.array
             cols = list(map(self.Header.index, columns))
-        
+
         twoD = [list(row) + [self._callback(callback, row, cols,
                 num_columns)] for row in data]
-        
+
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
         return Table(header = self.Header + [new_column], rows = twoD, **kw)
-    
+
     def getDistinctValues(self, column):
         """returns the set of distinct values for the named column(s)"""
         columns = [column, [column]][type(column) == str]
         data = self.getRawData(column)
-        
+
         if len(columns) > 1:
             data = [tuple(row) for row in data]
-        
+
         return set(data)
-    
+
     def joined(self, other_table, columns_self=None, columns_other=None,
                 inner_join=True, **kwargs):
         """returns a new table containing the join of this table and
@@ -742,7 +742,7 @@ class Table(DictArray):
         is preserved. The column headers of the output are made unique by
         replacing the headers of other_table with
         <other_table.Title>_<other_table.Header>.
-        
+
         Arguments:
             - other_table: A table object which will be joined with this
               table. other_table must have a title.
@@ -756,12 +756,12 @@ class Table(DictArray):
             - inner_join: if False, the outer join of the two tables is
               returned.
         """
-        
+
         if other_table.Title is None:
             raise RuntimeError("Cannot join if a other_table.Title is None")
         elif self.Title == other_table.Title:
             raise RuntimeError("Cannot join if a table.Title's are equal")
-        
+
         columns_self = [columns_self,[columns_self]][type(columns_self)==str]
         columns_other = [columns_other,
                             [columns_other]][type(columns_other)==str]
@@ -770,7 +770,7 @@ class Table(DictArray):
                                 "specify column indices for an outer join"
             columns_self = []
             columns_other = []
-        
+
         if columns_self is None and columns_other is None:
             # we do the natural inner join
             columns_self=[]
@@ -786,10 +786,10 @@ class Table(DictArray):
         elif len(columns_self)!=len(columns_other):
             raise RuntimeError("Error during table join: key columns have "\
                   "different dimensions!")
-        
+
         # create new 2d list for the output
         joined_table=[]
-        
+
         #resolve column indices from Header, if necessary
         columns_self_indices=[]
         columns_other_indices=[]
@@ -798,7 +798,7 @@ class Table(DictArray):
                 columns_self_indices.append(col)
             else:
                 columns_self_indices.append(self.Header.index(col))
-        
+
         for col in columns_other:
             if type(col)==int:
                 columns_other_indices.append(col)
@@ -824,7 +824,7 @@ class Table(DictArray):
             else:
                 key_lookup[key]=[row_index]
             row_index=row_index+1
-            
+
         for this_row in self:
             # assemble key for query of other_table
             key=tuple([this_row[col] for col in columns_self_indices])
@@ -833,28 +833,28 @@ class Table(DictArray):
                     other_row=[other_table[output_row_index,c] \
                                                   for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
-        
+
         new_header=self.Header+[other_table.Title+"_"+other_table.Header[c] \
                                                   for c in output_mask_other]
         if not joined_table:
             # YUK, this is to stop dimension check in DictArray causing
             # failures
             joined_table = numpy.empty((0,len(new_header)))
-        
+
         return Table(header=new_header, rows=joined_table, **kwargs)
-    
+
     def summed(self, indices=None, col_sum=True, strict=True, **kwargs):
         """returns the sum of numerical values for column(s)/row(s)
-        
+
         Arguments:
             - indices: column name(s) or indices or row indices
             - col_sum: sums values in the indicated column, the default. If
               False, returns the row sum.
             - strict: if False, ignores cells with non-numeric data in the
               column/row."""
-        
+
         all = indices is None
-        
+
         if type(indices) == str:
             assert col_sum, "Must use row integer indices"
             indices = self.Header.index(indices)
@@ -862,7 +862,7 @@ class Table(DictArray):
             indices = [indices]
         elif not all:
             raise RuntimeError("unknown indices type: %s" % indices)
-        
+
         if not all:
             vals = self.array.take([indices], axis=[0,1][col_sum]).flatten()
             if strict:
@@ -875,7 +875,7 @@ class Table(DictArray):
                 vals = self.array
             else:
                 vals = self.array.transpose() 
-            
+
             if strict:
                 result = vals.sum(axis=0).tolist()
             else:
@@ -889,19 +889,19 @@ class Table(DictArray):
                     except TypeError:
                         num = sum(r for r in row if type(r) != str)
                     append(num)
-            
-        
+
+
         return result
-    
+
     def normalized(self, by_row=True, denominator_func=None, **kwargs):
         """returns a table with elements expressed as a fraction according
         to the results from func
-        
+
         Arguments:
             - by_row: normalisation done by row
             - denominator_func: a callback function that takes an array and
               returns a value to be used as the denominator. Default is sum."""
-        
+
         if denominator_func:
             data = self.array
             if not by_row:
@@ -909,23 +909,23 @@ class Table(DictArray):
             denominators = [denominator_func(row) for row in data]
         else:
             denominators = self.summed(col_sum=not by_row)
-        
+
         if by_row:
             values = self.array
         else:
             values = self.array.transpose()
-        
+
         rows = [values[i]/denom for i, denom in enumerate(denominators)]
         rows = numpy.array(rows)
-        
+
         if not by_row:
             rows = rows.transpose()
-        
+
         return Table(header=self.Header, rows=rows, **kwargs)
-    
+
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.
-        
+
         Arguments:
             - new_column_name: the existing header will become a column with
               this name
@@ -935,20 +935,20 @@ class Table(DictArray):
         select_as_header = select_as_header or self.Header[0]
         assert select_as_header in self.Header, \
                     '"%s" not in table Header' % select_as_header
-        
+
         raw_data = self.getRawData()
         raw_data.insert(0, self.Header)
         transposed = numpy.array(raw_data, dtype='O')
         transposed = transposed.transpose()
-        
+
         # indices for the header and non header rows
         header_index = self.Header.index(select_as_header)
-        
+
         data_indices = list(range(0, header_index))+list(range(header_index+1,
                                                     len(transposed)))
-        
+
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
         header = [new_column_name]+header[1:] # [1:] slice excludes old name
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
-    
+

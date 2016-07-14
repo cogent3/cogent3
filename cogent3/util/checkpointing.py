@@ -20,10 +20,10 @@ class Checkpointer(object):
         self.last_time = time.time()
         self.noisy = noisy
         self._redundant = parallel.getCommunicator().Get_rank() > 0
-    
+
     def available(self):
         return self.filename is not None and os.path.exists(self.filename)
-    
+
     def load(self):
         assert self.filename is not None, 'check .available() first'
         print("RESUMING from file '%s'" % self.filename)
@@ -31,7 +31,7 @@ class Checkpointer(object):
             obj = pickle.load(f)
         self.last_time = time.time()
         return obj
-    
+
     def record(self, obj, msg=None, always=False):
         if self.filename is None or self._redundant:
             return
@@ -45,4 +45,4 @@ class Checkpointer(object):
             with open(self.filename, 'wb') as f:
                 pickle.dump(obj, f)
             self.last_time = now
-    
+

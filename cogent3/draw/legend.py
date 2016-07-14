@@ -20,12 +20,12 @@ __status__ = "Production"
 
 class Legend(Drawable):
     """A class for drawing a legend for a display policy
-    
+
     Arguments:
         - policy: a reference to a Display policy class"""
     def __init__(self, policy = DisplayPolicy):
         self.policy = policy
-    
+
     def _makeSampleSequence(self, feature_type):
         seq = moltype.DNA.makeSequence('aaaccggttt' * 7)
         v = seq.addAnnotation(annotation.Feature,
@@ -35,7 +35,7 @@ class Legend(Drawable):
         v = seq.addAnnotation(annotation.Feature,
                 feature_type, feature_type, [(20,70)])
         return seq
-        
+
     def populateAxes(self, ax, columns = 3):
         """ Returns the legend as a matplotlib artist
         Arguments:
@@ -73,7 +73,7 @@ class Legend(Drawable):
                 x = 0
                 y -= 1
             ax.axhline((y+.7)*30)
-    
+
     def makeFigure(self, margin=0, default_aspect=1.3, **kw):
         kw['margin'] = margin
         kw['default_aspect'] = default_aspect
@@ -83,7 +83,7 @@ class Legend(Drawable):
             frame_on=False, xticks=[], yticks=[])
         g = self.populateAxes(ax, **kw)
         return fig
-        
+
 if __name__ == '__main__':
     Legend().showFigure()
-    
+

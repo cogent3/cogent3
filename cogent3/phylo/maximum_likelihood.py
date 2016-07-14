@@ -16,11 +16,11 @@ __status__ = "Production"
 
 class ML(TreeEvaluator):
     """(err, best_tree) = ML(model, alignment, [dists]).trex()
-    
+
     'model' can be a substitution model or a likelihood function factory 
     equivalent to SubstitutionModel.makeLikelihoodFunction(tree).
     If 'dists' is provided uses WLS to get initial values for lengths"""
-    
+
     def __init__(self, model, alignment, dists=None, opt_args={}):
         self.opt_args = opt_args
         self.names = alignment.getSeqNames()
@@ -34,14 +34,14 @@ class ML(TreeEvaluator):
         else:
             fake_wls = lambda a:(None, None)
             self.wlsMakeTreeScorer = lambda n: fake_wls
-    
+
     def evaluateTree(self, tree):
         names = tree.getTipNames()
         subalign = self.alignment.takeSeqs(names)
         lf = self.lf_factory(tree)
         lf.setAlignment(subalign)
         return lf.getLogLikelihood()
-            
+
     def makeTreeScorer(self, names):
         subalign = self.alignment.takeSeqs(names)
         wls_eval = self.wlsMakeTreeScorer(names)
@@ -60,12 +60,12 @@ class ML(TreeEvaluator):
             tree = lf.getAnnotatedTree()
             return (err, tree)
         return evaluate
-    
+
     def result2output(self, err, ancestry, annotated_tree, names):
         return (-1.0*err, annotated_tree)
 
     def results2output(self, results):
         return LogLikelihoodScoredTreeCollection(results)
-    
 
-    
+
+

@@ -19,7 +19,7 @@ __status__ = "Development"
 fname = 'data/test.psl'
 
 class Test(TestCase):
-    
+
     def test_header(self):
         """should return correct header"""
         expect = ['match', 'mis-match', 'rep. match', "N's", 'Q gap count',
@@ -32,10 +32,10 @@ class Test(TestCase):
         header = next(parser)
         infile.close()
         self.assertEqual(header, expect)
-    
+
     def test_psl_to_table(self):
         table = PslToTable(fname)
-    
+
     def test_getting_seq_coords(self):
         """get correct sequence coordinates to produce a trimmed sequence"""
         table = PslToTable(fname)
@@ -43,8 +43,8 @@ class Test(TestCase):
             query_name = row["Q name"]
             query_strand = row["strand"]
             q_start = row["Q start"]
-        
-    
+
+
 
 if __name__ == "__main__":
     main()
