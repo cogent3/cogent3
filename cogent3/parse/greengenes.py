@@ -37,7 +37,7 @@ def DefaultDelimitedSplitter(delimiter):
 
 def MinimalGreengenesParser(lines,LineDelim="=",RecStart="BEGIN",RecEnd="END"):
     """Parses raw Greengeens 16S rRNA Gene records
-   
+
     lines  :  open records file
     LineDelim  :  individual line delimiter, eg foo=bar
     RecStart  :  start identifier for a record
@@ -61,7 +61,7 @@ all_ids = lambda x,y: True
 specific_ids = lambda x,y: x in y
 def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
     """Yield specific fields from successive Greengenes records
-    
+
     If ids are specified, only the records for the set of ids passed in will
     be returned. Parser will silently ignore ids that are not present in the
     set of ids as well as silently ignore ids in the set that are not present

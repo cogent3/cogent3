@@ -30,7 +30,7 @@ def parse_nexus_tree(tree_f):
         trans_table = parse_trans_table(trans_table_s)
     dnd = parse_dnd(dnd_s)
     return trans_table, dnd
-    
+
 def get_tree_info(tree_f):
     """returns the trees section of a Nexus file:
     takes a handle for a Nexus formatted file as input:
@@ -64,17 +64,17 @@ def split_tree_info(tree_info):
     trans_table = []
     dnd = []
     state = "in_header"
-    
+
     for line in tree_info:
         line_lower = line.lower()
         if state == "in_header":
             header.append(line)
             if line_lower.strip() == 'translate':
-                    state = "in_trans"
+                state = "in_trans"
             elif line_lower.startswith('tree'):
-                    state = "in_dnd"
-                    dnd.append(line)
-            
+                state = "in_dnd"
+                dnd.append(line)
+
         elif state == "in_trans":
             trans_table.append(line)
             if line.strip() == ';':
@@ -114,7 +114,7 @@ def parse_dnd(dnd):#get rooted info
         data = dnd_s[dnd_index:]
         dnd_dict[name] = data
     return dnd_dict
-           
+
 def get_BL_table(branch_lengths):
     """returns the section of the log file with the BL table
     as a list of strings"""
@@ -178,7 +178,7 @@ def parse_PAUP_log(branch_lengths):
         parent = info["parent"]
         bl = float(info["bl"])
         taxa = parse_taxa(info["taxa"])
-                   
+
         BL_dict[taxa] = (parent, bl)
 
     return BL_dict

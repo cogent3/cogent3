@@ -79,7 +79,7 @@ class NcbiTaxonTests(TestCase):
         assert node_2 == node_2
         assert node_4 < node_1
         assert node_3 > node_4
-        
+
     def test_str(self):
         """NcbiTaxon str should write data in input format from nodes.dmp"""
         good = '''2\t|\t1\t|\tsuperkingdom\t|\t\t|\t0\t|\t0\t|\t11\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|\n'''
@@ -95,7 +95,7 @@ class NcbiTaxonTests(TestCase):
         bad_node_parentid = '''7\t|\t\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n''' #contains no parent_id; not valid
         self.assertRaises(ValueError, NcbiTaxon, bad_node_taxid)
         self.assertRaises(ValueError, NcbiTaxon, bad_node_parentid)
-       
+
 class NcbiNameTests(TestCase):
     """Tests proper parsing NCBI name file, e.g. names.dmp."""
     def test_init(self):
@@ -116,7 +116,7 @@ class NcbiNameTests(TestCase):
         self.assertEqual(name_3.NameClass, 'scientific name')
         self.assertEqual(name_4.TaxonId, 7)
         self.assertEqual(name_4.NameClass, 'scientific name')
-   
+
     def test_str(self):
         """NcbiName str should return line in original format"""
         line = '''1\t|\troot\t|\t\t|\tscientific name|\n''' 
@@ -127,10 +127,10 @@ class NcbiNameTests(TestCase):
         """NcbiName init should raise correct errors on bad data"""
         bad_name_taxid = '''\t|\troot\t|\t\t|\tscientific name\t|\n'''#no tax_id
         self.assertRaises(ValueError, NcbiName, bad_name_taxid)
-       
+
 class NcbiNameLookupTest(TestCase):
     """Tests of the NcbiNameLookup factory function."""
-    
+
     def test_init(self):
         """NcbiNameLookup should map taxon ids to scientific names"""
         names = list(NcbiNameParser(good_names)) #list of objects
@@ -156,7 +156,7 @@ class NcbiTaxonLookupTest(TestCase):
         self.nodes = list(NcbiTaxonParser(good_nodes))
         self.taxID_to_obj = NcbiTaxonLookup(self.nodes)
         self.names_to_obj = NcbiNameLookup(self.names)
-        
+
     def test_init(self):
         """NcbiTaxonLookup should have correct fields for input NcbiTaxon"""
         line1_obj = self.nodes[0] #NcbiTaxon objects made from lines of 
@@ -199,7 +199,7 @@ class NcbiTaxonomyTests(TestCase):
         self.assertEqual(self.tx['1'].Name, 'root')
         self.assertEqual(self.tx['root'].Parent, None)
         self.assertEqual(self.tx.Deadbeats, {})
-    
+
     def test_init_bad(self):
         """NcbiTaxonomyFromFiles should produce deadbeats by default"""
         bad_tx = NcbiTaxonomyFromFiles(bad_nodes, good_names)
@@ -213,8 +213,8 @@ class NcbiTaxonomyTests(TestCase):
         tx = NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
         self.assertRaises(MissingParentError, NcbiTaxonomyFromFiles, \
             bad_nodes, good_names, strict=True)
-            
-    
+
+
     def test_Ancestors(self):
         """NcbiTaxonomy should support Ancestors correctly, not incl. self"""
         result = self.tx['7'].ancestors()
@@ -263,7 +263,7 @@ class NcbiTaxonNodeTests(TestCase):
     """Tests of the NcbiTaxonNode class.
 
     Note: only testing methods that differ from the TreeNode base class.
-       
+
     Note: nested_species is explicitly designed to test the case where the nodes
     file does _not_ contain the root, and where the id of the de facto
     root is not 1, to make sure there's nothing special about a node 
@@ -329,6 +329,6 @@ class NcbiTaxonNodeTests(TestCase):
         gr = tx[3].getRankedDescendants('group')
         self.assertEqual(gr, [tx[123]])
         assert tx[3] is tx['a']
-       
+
 if __name__ == '__main__':
     main()

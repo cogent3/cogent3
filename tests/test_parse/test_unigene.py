@@ -22,13 +22,13 @@ class unigeneTests(TestCase):
         """_read_sts should perform correct conversions"""
         self.assertEqual(_read_sts('ACC=RH128467 UNISTS=211775\n'), \
             {'ACC':'RH128467', 'UNISTS':'211775'})
-            
+
     def test_read_expression(self):
         """_read_expression should perform correct conversions"""
         self.assertEqual(_read_expression(\
             'embryo ; whole body ; mammary gland ; brain\n'),
             ['embryo', 'whole body', 'mammary gland', 'brain'])
-            
+
     def test_read_seq(self):
         """_read_seq should perform correct conversions"""
         #reset the found fields, since we can't guarantee order of test
@@ -136,6 +136,6 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
 
         #test that the synonym mapping works OK
         self.assertEqual(second.SequenceIds[0].NucleotideId, 'g8185938')
-            
+
 if __name__ == '__main__':
     main()

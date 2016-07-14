@@ -31,7 +31,7 @@ _CONTROLS = {
 
 class TerminalUnavailableError(RuntimeError):
     pass
-    
+
 class CursesOutput(object):
     def __init__(self):
         if curses is None:
@@ -42,20 +42,20 @@ class CursesOutput(object):
             curses.setupterm()
         except (curses.error, IOError) as detail:
             raise TerminalUnavailableError(detail)
-    
+
     def getColumns(self):
         return curses.tigetnum('cols')
-    
+
     def getLines(self):
         return curses.tigetnum('lines')
-    
+
     def getCodes(self):
         # Get the color escape sequence template or '' if not supported
         # setab and setaf are for ANSI escape sequences
         bgColorSeq = curses.tigetstr('setab') or curses.tigetstr('setb') or ''
         fgColorSeq = curses.tigetstr('setaf') or curses.tigetstr('setf') or ''
         codes = {}
-        
+
         for color in COLORS:
             # Get the color index from curses
             colorIndex = getattr(curses, 'COLOR_%s' % color)
@@ -66,9 +66,9 @@ class CursesOutput(object):
                     codes[key] = curses.tparm(termseq, colorIndex)
                 except curses.error:
                     codes[key] = ''
-        
+
         for control in _CONTROLS:
             # Set the control escape sequence
             codes[control] = curses.tigetstr(_CONTROLS[control]) or ''
-        
+
         return codes

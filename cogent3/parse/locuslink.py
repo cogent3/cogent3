@@ -136,7 +136,7 @@ contig_wrapper = FieldWrapper(['Accession', 'Gi', 'Strain', 'From', 'To', \
     'Orientation', 'Chromosome', 'Assembly'], pipes)
 def _read_contig(line):
     """Reads CONTIG lines. Format described in full docstring.
-    
+
     Accession|Gi|Strain|From|To|Orientation|Chromosome|Assembly
     """
     return MappedRecord(contig_wrapper(line))
@@ -166,7 +166,7 @@ class LocusLink(MappedRecord):
         'LINK':'Links', 'DB_DESCR':'DbDescriptions','DB_LINK':'DbLinks',
         'PMID':'PubMedIds','GRIF':'Grifs', 'SUMFUNC':'FunctionSummaries',
         'GO':'GoIds', 'EXTANNOT':'ExternalAnnotations'}
-              
+
 def _accession_adder(obj, field, line):
     """Adds accessions to relevant field"""
     list_adder(obj, field, _read_accession(line))

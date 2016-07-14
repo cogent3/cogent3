@@ -35,7 +35,7 @@ class WeightCalculatorTests(TestCase):
                                  SSSGSSSGSSGEDADDLMFDLSLNFSQSAHSASEQQLGGGAAAGNLSLSLVDKDLDSFSEGSLGSHFEFPDYCTPELSEMIAGDWL\
                                  EANFSDLVFTY'), 46685.97)
 
-     
+
 #run if called from command-line
 if __name__ == "__main__":
     main()

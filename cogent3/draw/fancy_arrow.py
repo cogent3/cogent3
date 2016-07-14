@@ -24,9 +24,9 @@ class FancyArrow(Polygon):
         """Returns a new Arrow.
 
         length_includes_head: True if head is counted in calculating the length.
-        
+
         shape: ['full', 'left', 'right']
-        
+
         overhang: distance that the arrow is swept back (0 overhang means
         triangular shape).
 
@@ -76,7 +76,7 @@ class FancyArrow(Polygon):
             sx = float(dy)/distance
             M = array([[cx, sx],[-sx,cx]])
             verts = dot(coords, M) + (x+dx, y+dy)
-        
+
         Polygon.__init__(self, list(map(tuple, verts)), **kwargs)
 
 def arrow(axis, x, y, dx, dy, **kwargs):

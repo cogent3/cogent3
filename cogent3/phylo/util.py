@@ -56,7 +56,7 @@ def triangularOrder(keys):
     for j in range(1, N):
         for i in range(0, j):
             yield (keys[i], keys[j])
-            
+
 def distanceDictAndNamesTo1D(dists, names):
     """Distances converted into a triangular matrix implemented as a 1D array
     where j > i and i is the inner dimension:

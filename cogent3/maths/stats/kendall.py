@@ -67,7 +67,7 @@ def pkendall(x, n, divisor, working):
 
 def kendalls_tau(x, y, return_p=True):
     """returns kendall's tau
-    
+
     Arguments:
         - return_p: returns the probability from the normal approximation when
           True, otherwise just returns tau"""
@@ -95,14 +95,14 @@ def kendalls_tau(x, y, return_p=True):
                     y_tied += 1
                 if y_diff:
                     x_tied += 1
-    
+
     diff = con - discor
     total = con + discor
     denom = ((total + y_tied) * (total + x_tied))**0.5
     variance = (4*n+10) / (9*n*(n-1))
     tau = diff / denom
     stat = tau
-    
+
     if x_tied or y_tied:
         x_tied = array([v for v in Freqs(x).values() if v > 1])
         y_tied = array([v for v in Freqs(y).values() if v > 1])

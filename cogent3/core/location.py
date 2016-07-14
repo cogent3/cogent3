@@ -80,7 +80,7 @@ def _norm_slice(index, length):
 def as_map(slice, length):
     """Take anything that might be used as a subscript: Integer, Slice,
     or Map, and return a Map."""
-    
+
     if isinstance(slice, (list, tuple)):
         spans = []
         for i in slice:
@@ -99,112 +99,112 @@ def as_map(slice, length):
 
 class SpanI(object):
     """Abstract interface for Span and Range objects.
-    
+
     Required properties: Start, End (must both be numbers)
     """
     __slots__ = []      #override in subclass
-    
+
     def __contains__(self, other):
         """Returns True if other entirely contained in self."""
         raise NotImplementedError
-    
+
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
         raise NotImplementedError
-    
+
     def reverse(self):
         """Reverses self."""
         raise NotImplementedError
-    
+
     def __iter__(self):
         """Iterates over indices contained in self."""
         raise NotImplementedError
-    
+
     def __str__(self):
         """Returns string representation of self."""
         return '(%s,%s)' % (self.Start, self.End)
-    
+
     def __len__(self):
         """Returns length of self."""
         raise NotImplementedError
-    
+
     def __lt__(self):
         """Compares indices of self with indices of other."""
         raise NotImplementedError
-    
+
     def startsBefore(self, other):
         """Returns True if self starts before other or other.Start."""
         try:
             return self.Start < other.Start
         except AttributeError:
             return self.Start < other
-    
+
     def startsAfter(self, other):
         """Returns True if self starts after other or after other.Start."""
         try:
             return self.Start > other.Start
         except AttributeError:
             return self.Start > other
-    
+
     def startsAt(self, other):
         """Returns True if self starts at the same place as other."""
         try:
             return self.Start == other.Start
         except AttributeError:
             return self.Start == other
-    
+
     def startsInside(self, other):
         """Returns True if self's start in other or equal to other."""
         try:
             return self.Start in other
         except (AttributeError, TypeError):  #count other as empty span
             return False
-    
+
     def endsBefore(self, other):
         """Returns True if self ends before other or other.End."""
         try:
             return self.End < other.End
         except AttributeError:
             return self.End < other
-    
+
     def endsAfter(self, other):
         """Returns True if self ends after other or after other.End."""
         try:
             return self.End > other.End
         except AttributeError:
             return self.End > other
-    
+
     def endsAt(self, other):
         """Returns True if self ends at the same place as other."""
         try:
             return self.End == other.End
         except AttributeError:
             return self.End == other
-    
+
     def endsInside(self, other):
         """Returns True if self's end in other or equal to other."""
         try:
             return self.End in other
         except (AttributeError, TypeError):  #count other as empty span
             return False
-    
+
 @total_ordering
 class Span(SpanI):
     """A contiguous location, not much more than (start, end)
-    
+
     Spans don't even know what map they are on.  The only smarts the class
     has is the ability to slice correctly.  Spans do not expect to be
     reverse-sliced (sl[5,3]) and treat positions as relative to themselves,
     not an underlying sequence (eg sl[:n] == sl[0:n]), so this slicing is
     very different to feature slicing.
-    
+
     Spans may optionaly have a value, which gets preserved when they are remapped etc."""
-    
+
     lost = False
-    
+
     __slots__ = ( 'tidy_start', 'tidy_end', 'length', 'value',
             'Start', 'End', 'Reverse')
-    
+
     def __init__(self, Start, End=None, tidy_start=False, tidy_end=False,
             value=None, Reverse=False):
         self._new_init(Start, End, Reverse)
@@ -213,14 +213,14 @@ class Span(SpanI):
         self.value = value
         self.length = self.End - self.Start
         assert self.length >= 0
-    
+
     def _new_init(self, Start, End=None, Reverse=False):
         """Returns a new Span object, with Start, End, and Reverse properties.
-        
+
         If End is not supplied, it is set to Start + 1 (providing a 1-element
         range).
         Reverse defaults to False.
-        
+
         This should replace the current __init__ method when deprecated vars
         are removed.
         """
@@ -235,27 +235,27 @@ class Span(SpanI):
                 End = Start + 1
             elif Start > End:
                 Start, End = End, Start
-            
+
             self.Start = Start
             self.End = End
             self.Reverse = Reverse
-    
+
     def __setstate__(self, args):
-         self.__init__(*args)
-    
+        self.__init__(*args)
+
     def __getstate__(self):
         return (self.Start, self.End, self.tidy_start, self.tidy_end, \
         self.value, self.Reverse)
-    
+
     def __repr__(self):
         (start, end) = (self.Start, self.End)
         if self.Reverse:
             (end, start) = (start, end)
         return '%s:%s' % (start, end)
-    
+
     def reversed(self):
         return self.__class__(self.Start, self.End, self.tidy_end, self.tidy_start, self.value, Reverse=not self.Reverse)
-    
+
     def __getitem__(self, slice):
         start,end,step = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
@@ -267,34 +267,34 @@ class Span(SpanI):
         else:
             (Start, End, Reverse) = (self.Start+start, self.Start+end, False)
         return type(self)(Start, End, tidy_start, tidy_end, self.value, Reverse)
-    
+
     def __mul__(self, scale):
         return Span(self.Start * scale, self.End * scale,
                 self.tidy_start, self.tidy_end, self.value, self.Reverse)
-    
+
     def __div__(self, scale):
         assert not self.Start % scale or self.End % scale
         return Span(self.Start // scale, self.End // scale,
                 self.tidy_start, self.tidy_end, self.value, self.Reverse)
-    
+
     def remapWith(self, map):
         """The list of spans corresponding to this span on its grandparent, ie:
         C is a span of a feature on B which itself is a feature on A, so to
         place C on A return that part of B (map) covered by C (self)"""
-        
+
         (offsets, spans) = (map.offsets, map.spans)
         map_length = offsets[-1] + spans[-1].length
-        
+
         # don't try to remap any non-corresponding end region(s)
         # this won't matter if all spans lie properly within their
         # parent maps, but that might not be true of Display slices.
         (zlo, zhi) = (max(0, self.Start), min(map_length, self.End))
-        
+
         # Find the right span(s) of the map
         first = bisect_right(offsets, zlo) - 1
         last = bisect_left(offsets, zhi, first) -1
         result = spans[first:last+1]
-        
+
         # Cut off something at either end to get
         # the same position and length as 'self'
         if result:
@@ -304,14 +304,14 @@ class Span(SpanI):
                 result[-1] = result[-1][:result[-1].length-end_trim]
             if start_trim > 0:
                 result[0] = result[0][start_trim:]
-        
+
         # May need to add a bit at either end if the span didn't lie entirely
         # within its parent map (eg: Display slice, inverse of feature map).
         if self.Start < 0:
             result.insert(0, LostSpan(-self.Start))
         if self.End > map_length:
             result.append(LostSpan(self.End-map_length))
-        
+
         # If the ends of self are meaningful then so are the new ends,
         # but not any new internal breaks.
         if result:
@@ -319,21 +319,21 @@ class Span(SpanI):
                 result[0].tidy_start = True
             if self.tidy_end:
                 result[-1].tidy_end = True
-        
+
         # Deal with case where self is a reverse slice.
         if self.Reverse:
             result = [part.reversed() for part in result]
             result.reverse()
-        
+
         if self.value is not None:
             result = [copy.copy(s) for s in result]
             for s in result: s.value = self.value
-        
+
         return result
-    
+
     def __contains__(self, other):
         """Returns True if other completely contained in self.
-        
+
         other must either be a number or have Start and End properties.
         """
         try:
@@ -342,7 +342,7 @@ class Span(SpanI):
             #other is scalar: must be _less_ than self.End,
             #for the same reason that 3 is not in range(3).
             return other >= self.Start and other < self.End
-    
+
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
         #remember to subtract 1 from the Ends, since self.End isn't really
@@ -351,15 +351,15 @@ class Span(SpanI):
             return (self.Start in other) or (other.Start in self)
         except AttributeError:  #other was probably a number?
             return other in self
-    
+
     def reverse(self):
         """Reverses self."""
         self.Reverse = not self.Reverse
-    
+
     def reversedRelativeTo(self, length):
         """Returns a new span with positions adjusted relative to length. For
         use in reverse complementing of nucleic acids"""
-        
+
         # if reverse complementing, the start becomes the length minus the end
         # position
         start = length - self.End
@@ -367,10 +367,10 @@ class Span(SpanI):
         end = start + self.length
         return self.__class__(start, end, value = self.value,
                 Reverse = not self.Reverse)
-    
+
     def __iter__(self):
         """Iterates over indices contained in self.
-        
+
         NOTE: to make sure that the same items are contained whether going
         through the range in forward or reverse, need to adjust the indices
         by 1 if going backwards.
@@ -379,15 +379,15 @@ class Span(SpanI):
             return iter(range(self.End-1, self.Start-1, -1))
         else:
             return iter(range(self.Start, self.End, 1))
-    
+
     def __str__(self):
         """Returns string representation of self."""
         return '(%s,%s,%s)' % (self.Start, self.End, bool(self.Reverse))
-    
+
     def __len__(self):
         """Returns length of self."""
         return self.End - self.Start
-    
+
     def __lt__(self, other):
         """Compares indices of self with indices of other."""
         if hasattr(other, 'Start') and hasattr(other, 'End'):
@@ -396,7 +396,7 @@ class Span(SpanI):
             return s < o
         else:
             return type(self) < type(other)
-    
+
     def __eq__(self, other):
         """Compares indices of self with indices of other."""
         if hasattr(other, 'Start') and hasattr(other, 'End'):
@@ -404,55 +404,55 @@ class Span(SpanI):
                 and self.Reverse == other.Reverse
         else:
             return type(self) == type(other)
-    
+
 
 class _LostSpan(object):
     """A placeholder span which doesn't exist in the underlying sequence"""
-    
+
     __slots__ = ['length', 'value']
     lost = True
     terminal = False
-    
+
     def __init__(self, length, value=None):
         self.length = length
         self.value = value
-    
+
     def __len__(self):
         return self.length
-    
+
     def __setstate__(self, args):
-         self.__init__(*args)
-    
+        self.__init__(*args)
+
     def __getstate__(self):
         return (self.length, self.value)
-    
+
     def __repr__(self):
         return '-%s-' % (self.length)
-    
+
     def where(self, index):
         return None
-    
+
     def reversed(self):
         return self
-    
+
     def __getitem__(self, slice):
         (start,end,step) = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
         return self.__class__(abs(end-start), self.value)
-    
+
     def __mul__(self, scale):
         return LostSpan(self.length * scale, self.value)
-    
+
     def __div__(self, scale):
         assert not self.length % 3
         return LostSpan(self.length // scale, self.value)
-    
+
     def remapWith(self, map):
         return [self]
-    
+
     def reversedRelativeTo(self, length):
         return self
-    
+
 
 # Save memory by only making one of each small gap
 _lost_span_cache = {}
@@ -469,11 +469,11 @@ class TerminalPadding(_LostSpan):
     terminal = True
     def __repr__(self):
         return '?%s?' % (self.length)
-    
+
 
 class Map(object):
     """A map holds a list of spans.  """
-    
+
     def __init__(self, locations=None, spans=None, tidy=False,
             parent_length=None, termini_unknown=False):
         assert parent_length is not None
@@ -493,7 +493,7 @@ class Map(object):
                     diff = max(start, end) - parent_length
                     start = [start, parent_length][start > parent_length]
                     end = [end, parent_length][end > parent_length]
-                
+
                 span = Span(start, end, tidy, tidy, Reverse=reverse)
                 if diff < 0:
                     spans += [LostSpan(-diff), span]
@@ -501,7 +501,7 @@ class Map(object):
                     spans += [span, LostSpan(diff)]
                 else:
                     spans += [span]
-        
+
         self.offsets = []
         self.useful = False
         self.complete = True
@@ -521,24 +521,24 @@ class Map(object):
                 self.End = max(self.End, span.End)
                 if self.Reverse is not None and (span.Reverse != self.Reverse):
                     self.Reverse = None
-        
+
         if termini_unknown:
             if spans[0].lost:
                 spans[0] = TerminalPadding(spans[0].length)
             if spans[-1].lost:
                 spans[-1] = TerminalPadding(spans[-1].length)
-        
+
         self.spans = spans
         self.length = posn
         self.parent_length = parent_length
         self.__inverse = None
-    
+
     def __len__(self):
         return self.length
-    
+
     def __repr__(self):
         return repr(self.spans) + '/%s' % self.parent_length
-    
+
     def __getitem__(self, slice):
         # A possible shorter map at the same level
         slice = as_map(slice, len(self))
@@ -546,42 +546,42 @@ class Map(object):
         for span in slice.spans:
             new_parts.extend(span.remapWith(self))
         return Map(spans=new_parts, parent_length=self.parent_length)
-    
+
     def __mul__(self, scale):
         # For Protein -> DNA
         new_parts = []
         for span in self.spans:
             new_parts.append(span * scale)
         return Map(spans=new_parts, parent_length=self.parent_length*scale)
-    
+
     def __div__(self, scale):
         # For DNA -> Protein
         new_parts = []
         for span in self.spans:
             new_parts.append(span / scale)
         return Map(spans=new_parts, parent_length=self.parent_length // scale)
-    
+
     def __add__(self, other):
         if other.parent_length != self.parent_length:
             raise ValueError("Those maps belong to different sequences")
         return Map(spans=self.spans + other.spans, parent_length=self.parent_length)
-        
+
     def withTerminiUnknown(self):
         return Map(self, spans=self.spans[:],
                 parent_length=self.parent_length,
                 termini_unknown = True)
-    
+
     def getCoveringSpan(self):
         if self.Reverse:
             span = (self.End, self.Start)
         else:
             span = (self.Start, self.End)
         return Map([span], parent_length=self.parent_length)
-    
+
     def covered(self):
         """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
         [Span(10,25), Span(80, 90)]"""
-        
+
         delta = {}
         for span in self.spans:
             if span.lost:
@@ -607,18 +607,18 @@ class Map(object):
             last_y = y
         assert y == 0
         return Map(result, parent_length=self.parent_length)
-    
+
     def reversed(self):
         """Reversed location on same parent"""
         spans = [s.reversed() for s in self.spans]
         spans.reverse()
         return Map(spans=spans, parent_length=self.parent_length)
-    
+
     def nucleicReversed(self):
         """Same location on reversed parent"""
         spans = [s.reversedRelativeTo(self.parent_length) for s in self.spans]
         return Map(spans=spans, parent_length=self.parent_length)
-    
+
     def gaps(self):
         """The gaps (lost spans) in this map"""
         locations = []
@@ -628,11 +628,11 @@ class Map(object):
                 locations.append((offset, offset+s.length))
             offset += s.length
         return Map(locations, parent_length=len(self))
-    
+
     def shadow(self):
         """The 'negative' map of the spans not included in this map"""
         return self.inverse().gaps()
-    
+
     def nongap(self):
         locations = []
         offset = 0
@@ -641,17 +641,17 @@ class Map(object):
                 locations.append((offset, offset+s.length))
             offset += s.length
         return Map(locations, parent_length=len(self))
-    
+
     def withoutGaps(self):
         return Map(
                 spans = [s for s in self.spans if not s.lost],
                 parent_length = self.parent_length)
-    
+
     def inverse(self):
         if self.__inverse is None:
             self.__inverse = self._inverse()
         return self.__inverse
-    
+
     def _inverse(self):
         # can't work if there are overlaps in the map
         # tidy ends don't survive inversion
@@ -666,7 +666,7 @@ class Map(object):
                 else:
                     temp.append((span.Start, span.End, posn, posn+span.length))
             posn += span.length
-        
+
         temp.sort()
         new_spans = []
         last_hi = 0
@@ -680,23 +680,23 @@ class Map(object):
         if self.parent_length > last_hi:
             new_spans.append(LostSpan(self.parent_length-last_hi))
         return Map(spans=new_spans, parent_length=len(self))
-    
+
     def getCoordinates(self):
         """returns span coordinates as [(v1, v2), ...]
-        
+
         v1/v2 are (start, end) unless the map is reversed, in which case it will
         be (end, start)"""
-        
+
         if self.Reverse:
             order_func = lambda x: (max(x), min(x))
         else:
             order_func = lambda x: x
-        
+
         coords = list(map(order_func,
                     [(s.Start, s.End) for s in self.spans if not s.lost]))
-        
+
         return coords
-    
+
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""
@@ -706,7 +706,7 @@ class SpansOnly(ConstrainedList):
 @total_ordering
 class Range(SpanI):
     """Complex object consisting of many spans."""
-    
+
     def __init__(self, Spans=[]):
         """Returns a new Range object with data in Spans.
         """
@@ -719,23 +719,23 @@ class Range(SpanI):
         else:
             for s in iterable(Spans):
                 if hasattr(s, 'Spans'):
-                  result.extend(s.Spans)
+                    result.extend(s.Spans)
                 else:
                     result.append(s)
         self.Spans = result
-    
+
     def __str__(self):
         """Returns string representation of self."""
         return '(%s)' % ','.join(map(str, self.Spans))
-    
+
     def __len__(self):
         """Returns sum of span lengths.
-        
+
         NOTE: if spans overlap, will count multiple times. Use reduce() to
         get rid of overlaps.
         """
         return sum(map(len, self.Spans))
-    
+
     def __lt__(self, other):
         """Compares spans of self with indices of other."""
         if hasattr(other, 'Spans'):
@@ -746,7 +746,7 @@ class Range(SpanI):
                 self.Spans[0].End < other.End
         else:
             return object < other
-    
+
     def __eq__(self, other):
         """Compares spans of self with indices of other."""
         if hasattr(other, 'Spans'):
@@ -757,17 +757,17 @@ class Range(SpanI):
                 self.Spans[0].End == other.End
         else:
             return object == other
-    
+
     def _get_start(self):
         """Finds earliest start of items in self.Spans."""
         return min([i.Start for i in self.Spans])
     Start = property(_get_start)
-    
+
     def _get_end(self):
         """Finds latest end of items in self.Spans."""
         return max([i.End for i in self.Spans])
     End = property(_get_end)
-    
+
     def _get_reverse(self):
         """Reverse is True if any piece is reversed."""
         for i in self.Spans:
@@ -775,15 +775,15 @@ class Range(SpanI):
                 return True
         return False
     Reverse = property(_get_reverse)
-    
+
     def reverse(self):
         """Reverses all spans in self."""
         for i in self.Spans:
             i.reverse()
-    
+
     def __contains__(self, other):
         """Returns True if other completely contained in self.
-        
+
         other must either be a number or have Start and End properties.
         """
         if hasattr(other, 'Spans'):
@@ -801,7 +801,7 @@ class Range(SpanI):
                 if other in i:
                     return True
             return False
-    
+
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
         if hasattr(other, 'Spans'):
@@ -814,32 +814,32 @@ class Range(SpanI):
                 if i.overlaps(other):
                     return True
         return False
-    
+
     def overlapsExtent(self, other):
         """Returns True if any positions in self's extent also in other's."""
         if hasattr(other, 'Extent'):
             return self.Extent.overlaps(other.Extent)
         else:
             return self.Extent.overlaps(other)
-    
+
     def sort(self):
         """Sorts the spans in self."""
         self.Spans.sort()
-    
+
     def __iter__(self):
         """Iterates over indices contained in self."""
         return chain(*[iter(i) for i in self.Spans])
-    
+
     def _get_extent(self):
         """Returns Span object representing the extent of self."""
         return Span(self.Start, self.End)
     Extent = property(_get_extent)
-    
+
     def simplify(self):
         """Reduces the spans in self in-place to get fewest spans.
-        
+
         Will not condense spans with opposite directions.
-        
+
         Will condense adjacent but nonoverlapping spans (e.g. (1,3) and (4,5)).
         """
         forward = []
@@ -851,7 +851,7 @@ class Range(SpanI):
                 direction = reverse
             else:
                 direction = forward
-            
+
             found_overlap = False
             for other in direction:
                 if span.overlaps(other) or (span.Start == other.End) or \
@@ -863,38 +863,38 @@ class Range(SpanI):
             if not found_overlap:
                 direction.append(span)
         self.Spans[:] = forward + reverse
-    
+
 
 class Point(Span):
     """Point is a special case of Span, where Start always equals End.
-    
+
     Note that, as per Python standard, a point is _between_ two elements
     in a sequence. In other words, a point does not contain any elements.
     If you want a single element, use a Span where End = Start + 1.
-    
+
     A Point does have a direction (i.e. a Reverse property) to indicate
     where successive items would go if it were expanded.
     """
-    
+
     def __init__(self, Start, Reverse=False):
         """Returns new Point object."""
         self.Reverse = Reverse
         self._start = Start
-    
+
     def _get_start(self):
         """Returns self.Start."""
         return self._start
-    
+
     def _set_start(self, Start):
         """Sets self.Start and self.End."""
         self._start = Start
-    
+
     Start = property(_get_start, _set_start)
     End = Start     #start and end are synonyms for the same property
 
 def RangeFromString(string, delimiter=','):
     """Returns Range object from string of the form 1-5,11,20,30-50.
-    
+
     Ignores whitespace; expects values to be comma-delimited and positive.
     """
     result = Range()

@@ -41,7 +41,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     """Makes an arrow plot.
 
     Parameters:
-    
+
     data: dict with probabilities for the bases and pair transitions.
     size: size of the graph in inches.
     display: 'length', 'width', or 'alpha' for arrow property to change.
@@ -49,11 +49,11 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     max_arrow_width: maximum width of an arrow, data coordinates.
     arrow_sep: separation between arrows in a pair, data coordinates.
     alpha: maximum opacity of arrows, default 0.8.
-    
+
     **kwargs can be anything allowed by a Arrow object, e.g. 
     linewidth and edgecolor.
     """
-    
+
     xlim(-0.5,1.5)
     ylim(-0.5,1.5)
     gcf().set_size_inches(size,size)
@@ -133,7 +133,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
 
     d = (r2/2 + arrow_h_offset - 0.5)/r2    #distance for diags
     r2v = arrow_sep/r2                      #offset for diags
-  
+
     #tuple of x, y for start position
     positions = {\
         'AT': (arrow_h_offset, 1+arrow_sep),
@@ -212,25 +212,25 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
             orig_position = array([[length/2.0, alo]])
         else:
             raise ValueError("Got unknown position parameter %s" % where)
-            
 
-        
+
+
         M = array([[cx, sx],[-sx,cx]])
         coords = dot(orig_position, M) + [[x_pos, y_pos]]
         x, y = ravel(coords)
         orig_label = rate_labels[pair]
         label = '$%s_{_{\mathrm{%s}}}$' % (orig_label[0], orig_label[1:])
-   
+
         text(x, y, label, size=label_text_size, ha='center', va='center', \
             color=labelcolor or fc)
 
     for p in list(positions.keys()):
         draw_arrow(p)
-    
+
     if graph_name is not None:
         savefig(graph_name)
 
-            
+
     #test data
 all_on_max = dict([(i, 1) for i in 'TCAG'] + \
         [(i+j, 0.6) for i in 'TCAG' for j in 'TCAG'])
@@ -318,7 +318,7 @@ if __name__ == '__main__':
 
     size = 4
     gcf().set_size_inches(size,size)
-    
+
     make_arrow_plot(d, display=display, linewidth=0.001, edgecolor=None,
         normalize_data=scaled, head_starts_at_zero=True, size=size,
         graph_name='arrows.png')

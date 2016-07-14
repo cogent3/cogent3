@@ -48,14 +48,14 @@ class RdbTests(TestCase):
 
 class InfoMakerTests(TestCase):
     """Tests for the Constructor InfoMaker. Should return an Info object"""
-    
+
     def test_empty(self):
         """InfoMaker: should return empty Info from empty header"""
         empty_header = []
         obs = InfoMaker(empty_header)
         exp = Info()
         self.assertEqual(obs,exp)
-    
+
     def test_full(self):
         """InfoMaker should return Info object with name, value pairs"""
         test_header = ['acc: X3402','abc:1','mty: ssu','seq: Mit. X3402',\
@@ -70,7 +70,7 @@ class InfoMakerTests(TestCase):
 
 class GenericRdbTest(TestCase):
     "SetUp data for all Rdb parsers"""
-    
+
     def setUp(self):
         self.empty = []
         self.labels = 'mty:ssu\nseq:bac\n//\nttl:joe\nseq:mit\n//'.split('\n')
@@ -87,7 +87,7 @@ class GenericRdbTest(TestCase):
 
 class MinimalRdbParserTests(GenericRdbTest):
     """Tests of MinimalRdbParser: returns (headerLines,sequence) tuples"""
-    
+
     def test_empty(self):
         """MinimalRdbParser should return empty list from file w/o seqs"""
         self.assertEqual(list(MinimalRdbParser(self.empty)),[])
@@ -119,7 +119,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         self.assertEqual(len(res),1)
         first = res[0]
         self.assertEqual(first, (['seq:H.Sapiens'], 'AGUCAUCUAGAUHCAUHC'))
-       
+
         res = list(MinimalRdbParser(self.multiline))
         self.assertEqual(len(res),1)
         first = res[0]
@@ -142,7 +142,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         a, b = f
         self.assertEqual(a, (['seq:mit'], 'ACU'))
         self.assertEqual(b, (['seq:pla'], 'AAA'))
-        
+
     def test_strange(self):
         """MRP: handle strange char. according to constr. and strip off '*'"""
         f = list(MinimalRdbParser(self.strange))
@@ -152,7 +152,7 @@ class MinimalRdbParserTests(GenericRdbTest):
 
 class RdbParserTests(GenericRdbTest):
     """Tests for the RdbParser. Should return Sequence objects"""
-    
+
     def test_empty(self):
         """RdbParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(RdbParser(self.empty)), [])
@@ -167,7 +167,7 @@ class RdbParserTests(GenericRdbTest):
             RdbParser(self.labels,strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.labels, strict=False)), [])
-        
+
     def test_only_sequences(self):
         """RdbParser should return empty list form file w/o lables"""
         #should fail if strict (the default)
@@ -176,7 +176,7 @@ class RdbParserTests(GenericRdbTest):
         #if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.nolabels, strict=False)), 
             [])
-    
+
     def test_single(self):
         """RdbParser should read single record as (header,seq) tuple"""
         res = list(RdbParser(self.oneseq))
@@ -185,7 +185,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(first, Sequence('AGUCAUCUAGAUHCAUHC'))
         self.assertEqual(first.Info, Info({'Species':'H.Sapiens',\
             'OriginalSeq':'AGUCAUCUAGAUHCAUHC'}))
-       
+
         res = list(RdbParser(self.multiline))
         self.assertEqual(len(res),1)
         first = res[0]
@@ -215,7 +215,7 @@ class RdbParserTests(GenericRdbTest):
                 value = all[1].strip().upper()
                 info[name] = value
             return info
-        
+
         f = list(RdbParser(self.oneseq, to_dna, alternativeConstr))
         self.assertEqual(len(f), 1)
         a = f[0]
@@ -233,7 +233,7 @@ class RdbParserTests(GenericRdbTest):
                 return DnaSequence(x,  **kwargs)
             except Exception:
                 raise RecordError("Could not convert sequence")
-       
+
         self.assertRaises(RecordError, list, RdbParser(self.oneX,dnastrict))
         f = list(RdbParser(self.oneX, dnastrict, strict=False))
         self.assertEqual(len(f), 2)

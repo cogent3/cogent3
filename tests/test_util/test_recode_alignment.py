@@ -17,7 +17,7 @@ from cogent3.core.alphabet import Alphabet
 from cogent3.util.recode_alignment import alphabets, recode_dense_alignment,\
     build_alphabet_map, recode_freq_vector, recode_alignment,\
     recode_counts_and_freqs, recode_count_matrix
-    
+
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
@@ -29,7 +29,7 @@ __status__ = "Beta"
 
 class RecodeAlignmentTests(TestCase):
     """ Tests of functions in recode_alphabet.py 
-        
+
         These functions will probably move at some point, and the unit tests
             will move with them.
     """
@@ -138,7 +138,7 @@ class RecodeAlignmentTests(TestCase):
         actual = recode_dense_alignment(self.aln,\
           alphabet_def=self.hydropathy_3)
         self.assertEqual(actual,expected_h3)
-        
+
         # different alphabet
         actual = recode_dense_alignment(self.aln, alphabet_def=self.all_to_a)
         self.assertEqual(actual,expected_aa)
@@ -146,7 +146,7 @@ class RecodeAlignmentTests(TestCase):
         # original charactars which aren't remapped are let in original state
         actual = recode_dense_alignment(self.aln, alphabet_def=[('a','b')])
         self.assertEqual(actual,self.aln)
-        
+
         # non-alphabetic character mapped same as alphabetic characters
         actual = recode_dense_alignment(self.aln, alphabet_def=[('.','-')])
         expected = DenseAlignment(\
@@ -162,7 +162,7 @@ class RecodeAlignmentTests(TestCase):
         # provided with alphabet_def
         self.assertEqual(recode_dense_alignment(\
          self.aln, alphabet_def=self.orig), self.aln)
-    
+
     # THE FUNCTION THAT THESE TESTS APPLY TO ONLY EXISTS AS A STUB RIGHT 
     # NOW -- WILL UNCOMMENT THE TESTS WHEN THE FUNCTIONS IS READY.
     # --GREG C. (11/19/08)      
@@ -227,7 +227,7 @@ class RecodeAlignmentTests(TestCase):
     def test_recode_freq_vector(self):
         """recode_freq_vector: bg freqs updated to reflect recoded alphabet
         """
-   
+
         freqs = {'A':0.21, 'E':0.29, 'C':0.05, 'D':0.45}
         a_def = [('A','AEC'),('E','D')]
         expected = {'A':0.55, 'E':0.45}
@@ -251,7 +251,7 @@ class RecodeAlignmentTests(TestCase):
         expected = {'X':0.55, 'Y':0.45}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
             expected)
-        
+
     def test_recode_freq_vector_ignores(self):
         """recode_freq_vector: ignored chars are ignored
         """

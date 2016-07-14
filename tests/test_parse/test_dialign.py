@@ -95,25 +95,25 @@ class TestDialign(unittest.TestCase):
         for name, seq in list(aln_seqs.items()):
             self.aln_seqs[name] = PROTEIN.Sequence(seq,Name=name)
         self.QualityScores = "00000005888882222229999999900000006666666666633334000333345555333333000000000000000"
-        
+
     def test_line_split(self):
         """test splitting of sequence record lines"""
         result = parse_data_line("HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg ")
         self.assertEqual(result, ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg"))
         result = parse_data_line("                       1111111111 1000001111 1111033333 3333333333 3000000000 ")
         self.assertEqual(result, (None, "11111111111000001111111103333333333333333000000000"))
-    
+
     def test_aligned_from_dialign(self):
         """test getting aligned seqs"""
         aligned_seq = dict(list(DialignParser(data, seq_maker=PROTEIN.Sequence)))
         assert aligned_seq == self.aln_seqs
-    
+
     def test_quality_scores(self):
         """test quality scores correctly returned"""
         result = dict(list(DialignParser(data, seq_maker=PROTEIN.Sequence,
                                         get_scores=True)))
         assert result["QualityScores"] == self.QualityScores
-    
+
 
 if __name__ == '__main__':
     unittest.main()

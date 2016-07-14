@@ -44,7 +44,7 @@ class SubstitutionParameterDefn(RatioParamDefn):
 
 class ExpDefn(CalculationDefn):
     name = 'exp'
-    
+
     def calc(self, expm):
         (allow_eigen, check_eigen, allow_pade) = {
             'eigen': (True, False, False),
@@ -52,12 +52,12 @@ class ExpDefn(CalculationDefn):
             'pade': (False, False, True),
             'either': (True, True, True),
             }[str(expm)]
-        
+
         if not allow_eigen:
             return PadeExponentiator
-        
+
         eigen = CheckedExponentiator if check_eigen else FastExponentiator
-        
+
         if not allow_pade:
             return eigen
         else:

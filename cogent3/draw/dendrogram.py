@@ -50,7 +50,7 @@ def _first_non_none(values):
     for item in values:
         if item is not None:
             return item
-            
+
 def SimpleColormap(color0, color1, name=None):
     """Linear interpolation between any two colours"""
     c0 = to_rgb(color0)
@@ -61,14 +61,14 @@ def SimpleColormap(color0, color1, name=None):
 
 class ScalarColormapShading(object):
     """Returns color interpolated between two colors based on scalar value.
-    
+
     Parameters:
     shade_param: parameter to look at for shading purposes
     min_val: minimum value of the parameter over the whole tree
     max_val: maximum value of the parameter over the whole tree
     color0: color to use when the parameter is at its minimum
     color1: color to use when the parameter is at its maximum
-    
+
     Note: this is just a convenience wrapper for coloring. You can color
     the tree using any arbitrary function of the individual nodes by passing
     edge_color_callback to makeColorCallback (or to other objects
@@ -81,7 +81,7 @@ class ScalarColormapShading(object):
         self.max_val = max_val
         self.shade_param = shade_param
         self.cmap = cmap
-    
+
     def __call__(self, edge):
         """Returns color given node."""
         value = edge.params.get(self.shade_param, None)
@@ -97,12 +97,12 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
         edge_color="black", highlight_color="red", edge_color_callback=None,
         callback_returns_name=None, cmap=None):
     """Makes a callback f(node)->color using several strategies.
-    
+
     The possibilities are:
-    
+
     1.  You want all the nodes to have the same color. Pass in edge_color as
         something other than "black".
-    
+
     2.  You want to shade the nodes from one color to another based on the value
         of a parameter. Pass the name of the parameter as a string to shade_param
         (e.g. the parameter might be "GC" for GC content). Pass in the max and
@@ -116,17 +116,17 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
         1 (for highlight), and pass in the name of this parameter as
         shade_param (e.g. the parameter might be "is_mammal", which you would
         set to 0 (False) or 1 (True) to highlight the mammals.
-    
+
     4.  You have f(node) -> color. Pass in f as edge_color_callback.
-    
+
     Alternatively, set the Color attribute of the dendrogram edges.
     """
     if callback_returns_name is not None:
         pass # give deprecation warning?, no longer needed
-    
+
     edge_color = to_rgb(edge_color)
     highlight_color = to_rgb(highlight_color)
-    
+
     if edge_color_callback is not None:
         return lambda edge:edge_color_callback(edge)
     elif shade_param:
@@ -136,11 +136,11 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
                 shade_param, min_value, max_value, cmap)
     else:
         return lambda edge:edge_color
-        
-    
+
+
 class MatplotlibRenderer(object):
     """Returns a matplitlib render including font size, stroke width, etc.
-    
+
     Note: see documentation for makeColorCallback above to figure
     out how to make it color things the way you want. Dynamically varying the
     stroke width is not yet implemented by should be.
@@ -156,25 +156,25 @@ class MatplotlibRenderer(object):
         if label_pad is None:
             label_pad = 8
         self.labelPadDistance = label_pad
-    
+
     def edge_color(self, edge):
         if edge.Color is None:
             return self.calculated_edge_color(edge.original)
         else:
             return edge.Color
-        
+
     def line(self, x1, y1, x2, y2, edge=None):
         opts = self.line_opts.copy()
         if edge is not None:
             opts['edgecolor'] = self.edge_color(edge)
         path = Path([(x1, y1), (x2, y2)], [Path.MOVETO, Path.LINETO])
         return PathPatch(path,  **opts)
-    
+
     def polygon(self, vertices, color):
         opts = self.line_opts.copy()
         opts['color'] = color
         return Polygon(vertices, **opts)
-        
+
     def string(self, x, y, string, ha=None, va=None, rotation=None, color=None):
         opts = self.text_opts.copy()
         if ha is not None:
@@ -186,10 +186,10 @@ class MatplotlibRenderer(object):
         if color is not None:
             opts['color'] = color
         return Text(x, y, string, **opts)
-        
+
 class DendrogramLabelStyle(object):
     """Label options"""
-    
+
     def __init__(self, show_params=None, show_internal_labels=False,
             label_template=None, edge_label_callback=None):
         if edge_label_callback is None:
@@ -204,7 +204,7 @@ class DendrogramLabelStyle(object):
                     label_template = "%s"
                 else:
                     label_template = ""
-            
+
             def edge_label_callback(edge):
                 try:
                     if hasattr(label_template, 'substitute'):
@@ -214,13 +214,13 @@ class DendrogramLabelStyle(object):
                         return label_template % edge.params
                 except KeyError:
                     return ""  # param missing - probably just the root edge
-                        
+
         self.edgeLabelCallback = edge_label_callback
         self.showInternalLabels = show_internal_labels
-    
+
     def getEdgeLabel(self, edge):
         return self.edgeLabelCallback(edge)
-    
+
     def getNodeLabel(self, edge):
         if edge.Name is not None:
             return edge.Name
@@ -254,7 +254,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     # The algorithm is split into 4 passes over the tree for easier
     # code reuse - vertical drawing, new tree styles, new graphics
     # libraries etc.
-    
+
     aspect_distorts_lengths = True
 
     def __init__(self, edge, use_lengths=True):
@@ -265,21 +265,21 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         self.original = edge  # for edge_color_callback
         self.Collapsed = False
         self.use_lengths_default = use_lengths
-    
+
     # Colors are properties so that invalid color names are caught immediately
     Color = ValidColorProperty('_Color', 'Color of line segment')
     NameColor = ValidColorProperty('_NameColor', 'Color of node name')
     CladeColor = ValidColorProperty('_CladeColor', 'Color of collapsed descendants')
-    
+
     def __repr__(self):
         return '%s %s %s %s' % (
                 self.depth, self.length, self.height, self.Children)
-    
+
     def updateGeometry(self, use_lengths, depth=None, track_coordinates=None):
         """Calculate tree node attributes such as height and depth.
         Despite the name this first pass is ignorant of issues like
         scale and orientation"""
-        
+
         if self.Length is None or not use_lengths:
             if depth is None:
                 self.length = 0
@@ -287,9 +287,9 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
                 self.length = 1
         else:
             self.length = self.Length
-        
+
         self.depth = (depth or 0) + self.length
-        
+
         children = self.Children
         if children:
             for c in children:
@@ -303,7 +303,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             self.height = self.length
             self.leafcount = self.edgecount = 1
             self.longest_label = self.Name or ''
-        
+
         if track_coordinates is not None and self.Name != "root":
             self.track_y = track_coordinates[self.Name]
         else:
@@ -316,7 +316,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         for node in self.postorder(include_self=True):
             result.append([node.Name, id(node), node.x2, node.y2] + [list(map(id, node.Children))])
         return result
-    
+
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
         (width, height),posn,kw = rlg2mpl.figureLayout(width, height, margin=0,
             default_aspect=0.5, leftovers=True, **kw)
@@ -338,16 +338,16 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             margin=margin*72, **kw)
         ax.add_artist(g)
         return fig
-    
+
     def asArtist(self, width, height, margin=20, use_lengths=None,
             scale_bar="left", show_params=None, show_internal_labels=False,
             label_template=None, edge_label_callback=None, shade_param=None, 
             max_value=None, font_size=None, **kw):
-        
+
         if use_lengths is None:
             use_lengths = self.use_lengths_default
         self.updateGeometry(use_lengths=use_lengths)
-        
+
         if width <= 2 * margin:
             raise ValueError('%spt not wide enough for %spt margins' %
                     (width, margin))
@@ -364,7 +364,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if width < total_label_width:
             raise ValueError('%spt not wide enough for ""%s"' %
                     (width, self.longest_label))
-    
+
         scale = self.updateCoordinates(width-total_label_width, height)
 
         if shade_param is not None and max_value is None:
@@ -396,11 +396,11 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             if scale_bar:
                 ss.append(renderer.line(x1, 0.0, x2, 0.0))
                 ss.append(renderer.string((x1+x2)/2, 5, str(unit), va='bottom', ha='center'))
-        
+
         g = rlg2mpl.Group(*ss)
         g.translate(margin+left_labels, margin)
         return g
-    
+
     def _draw(self, renderer, label_style):
         g = []
         g += self._draw_edge(renderer, label_style)
@@ -412,7 +412,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
                 g += child._draw(renderer, label_style)
             g += self._draw_node_label(renderer, label_style)
         return g
-    
+
     def _draw_node(self, renderer, label_style):
         g = []
         # Joining line for square form
@@ -421,7 +421,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             if max(cys) > min(cys):
                 g.append(renderer.line(self.x2, min(cys), self.x2, max(cys), self))
         return g
-    
+
     def _draw_edge(self, renderer, label_style):
         g = []
         if ((self.x1, self.y1) == (self.x2, self.y2)):
@@ -430,7 +430,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
 
         # Main line
         g.append(renderer.line(self.x1, self.y1, self.x2, self.y2, self))
-        
+
         # Edge Label
         text = label_style.getEdgeLabel(self)
         if text:
@@ -444,13 +444,13 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             g.append(renderer.string(midx, midy, text, ha='center', va='bottom', 
                     rotation=180/numpy.pi*rot))
         return g
-    
+
     def _draw_node_label(self, renderer, label_style):
         text = label_style.getNodeLabel(self)
         color = self.NameColor
         (x, ha, y, va) = self.getLabelCoordinates(text, renderer)
         return [renderer.string(x, y, text, ha=ha, va=va, color=color)]
-        
+
     def _draw_collapsed_clade(self, renderer, label_style):
         text = label_style.getNodeLabel(self)
         color = _first_non_none([self.CladeColor, self.Color, 'black'])
@@ -470,7 +470,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         g.append(renderer.string(
                 x-self.x2+r, y, text, ha=ha, va=va, color=self.NameColor))
         return g
-    
+
     def setCollapsed(self, collapsed=True, label=None, color=None):
         if color is not None:
             self.CladeColor = color
@@ -484,7 +484,7 @@ class Dimensions(object):
         self.x = xscale
         self.y = yscale
         self.height = total_tree_height
-    
+
 
 class _RootedDendrogram(_Dendrogram):
     """_RootedDendrogram subclasses provide yCoords and xCoords, which examine
@@ -492,27 +492,27 @@ class _RootedDendrogram(_Dendrogram):
     a tuple for start/end of the line representing the edge."""
     def labelMargins(self, label_width):
         return (0, label_width)
-            
+
     def widthRequired(self):
         return self.leafcount
-    
+
     def xCoords(self, scale, x1):
         raise NotImplementedError
-    
+
     def yCoords(self, scale, y1):
         raise NotImplementedError
-        
+
     def updateCoordinates(self, width, height):
         xscale = width / self.height
         yscale = height / self.widthRequired()
         scale = Dimensions(xscale, yscale, self.height)
-        
+
         # y coords done postorder, x preorder, y first.
         # so it has to be done in 2 passes.
         self.update_y_coordinates(scale)
         self.update_x_coordinates(scale)
         return xscale
-    
+
     def update_y_coordinates(self, scale, y1=None):
         """The second pass through the tree.  Y coordinates only
         depend on the shape of the tree and yscale"""
@@ -523,20 +523,20 @@ class _RootedDendrogram(_Dendrogram):
             child.update_y_coordinates(scale, child_y)
             child_y -= child.widthRequired() * scale.y
         (self.y1, self.y2) = self.yCoords(scale, y1)
-    
+
     def update_x_coordinates(self, scale, x1=0):
         """For non 'square' styles the x coordinates will depend
         (a bit) on the y coodinates, so they should be done first"""
         (self.x1, self.x2) = self.xCoords(scale, x1)
         for child in self.Children:
             child.update_x_coordinates(scale, self.x2)
-    
+
     def getLabelCoordinates(self, text, renderer):
         return (self.x2+renderer.labelPadDistance, 'left', self.y2, 'center')
 
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
-    
+
     def yCoords(self, scale, y1):
         cys = [c.y1 for c in self.Children]
         if cys:
@@ -544,7 +544,7 @@ class SquareDendrogram(_RootedDendrogram):
         else:
             y2 = y1 - 0.5 * scale.y
         return (y2, y2)
-    
+
     def xCoords(self, scale, x1):
         dx = scale.x * self.length
         x2 = x1 + dx
@@ -578,7 +578,7 @@ class StraightDendrogram(_RootedDendrogram):
         for child in self.Children:
             child.y1 = y2
         return (y1, y2)
-    
+
     def xCoords(self, scale, x1):
         dx = self.length * scale.x
         dy = self.y2 - self.y1
@@ -600,13 +600,13 @@ class _ContemporaneousMixin(object):
     # Overrides init to change default for use_lengths
     def __init__(self, edge, use_lengths=False):
         super(_ContemporaneousMixin, self).__init__(edge, use_lengths)
-        
+
     def xCoords(self, scale, x1):
         return (x1, (scale.height-(self.height-self.length))*scale.x)
 
 class ContemporaneousDendrogram(_ContemporaneousMixin, SquareDendrogram):
     pass
-    
+
 class ContemporaneousStraightDendrogram(_ContemporaneousMixin, StraightDendrogram):
     pass
 
@@ -615,7 +615,7 @@ class ShelvedDendrogram(ContemporaneousDendrogram):
     """A dendrogram in which internal nodes also get a row to themselves"""
     def widthRequired(self):
         return self.edgecount  # as opposed to tipcount
-    
+
     def yCoords(self, scale, y1):
         cys = [c.y1 for c in self.Children]
         if cys:
@@ -625,27 +625,27 @@ class ShelvedDendrogram(ContemporaneousDendrogram):
         return (y2, y2)
 
 class AlignedShelvedDendrogram(ShelvedDendrogram):
-    
+
     def update_y_coordinates(self, scale, y1=None):
         """The second pass through the tree.  Y coordinates only
         depend on the shape of the tree and yscale"""
         for child in self.Children:
             child.update_y_coordinates(scale, None)
         (self.y1, self.y2) = self.yCoords(scale, None)
-    
+
     def yCoords(self, scale, y1):
         if hasattr(self, 'track_y'):
             return (self.track_y, self.track_y)
         else:
             raise RuntimeError(self.Name)
-    
+
 
 class UnrootedDendrogram(_Dendrogram):
     aspect_distorts_lengths = True
 
     def labelMargins(self, label_width):
         return (label_width, label_width)
-    
+
     def wedgeVertices(self):
         tip_dists = [(c.depth-self.depth)*self.scale for c in self.iterTips()]
         (near, far) = (min(tip_dists), max(tip_dists))
@@ -676,7 +676,7 @@ class UnrootedDendrogram(_Dendrogram):
                 best_args = (scale, mid_x, mid_y, direction, angle)
         self._update_coordinates(*best_args)
         return best_scale
-    
+
     def _update_coordinates(self, s, x1, y1, a, da):
         # Constant angle algorithm.  Should add maximim daylight step.
         (x2, y2) = (x1+self.length*s*numpy.sin(a), y1+self.length*s*numpy.cos(a))
@@ -686,7 +686,7 @@ class UnrootedDendrogram(_Dendrogram):
             self.scale = s
             (l,r,t,b), vertices = self.wedgeVertices()
             return vertices
-            
+
         a -= self.leafcount * da / 2
         if not self.Children:
             points = [(x2, y2)]
@@ -697,7 +697,7 @@ class UnrootedDendrogram(_Dendrogram):
                 points += child._update_coordinates(s, x2, y2, a+ca/2, da)
                 a += ca
         return points
-    
+
     def getLabelCoordinates(self, text, renderer):
         (dx, dy) = (numpy.sin(self.angle), numpy.cos(self.angle))
         pad = renderer.labelPadDistance
@@ -710,4 +710,4 @@ class UnrootedDendrogram(_Dendrogram):
             return (x, 'center', y, 'bottom')
         else:
             return (x, 'center', y, 'top')
-    
+

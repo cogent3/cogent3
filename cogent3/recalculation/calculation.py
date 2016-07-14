@@ -32,104 +32,104 @@ class OptPar(object):
     """One parameter, as seen by the optimiser, eg: length of one edge.
     An OptPar reports changes to the ParameterValueSet for its parameter.
     """
-    
+
     is_constant = False
     recycled = False
     args = ()
     # Use of __slots__ here and in Cell gives 8% speedup on small calculators.
     __slots__ = ['clients', 'client_ranks', 'name', 'lower', 'default_value',
             'upper', 'scope', 'order', 'label', 'consequences', 'rank']
-    
+
     def __init__(self, name, scope, bounds):
         self.clients = []
         self.client_ranks = []
         self.name = name
         for (attr, v) in zip(['lower', 'default_value', 'upper'], bounds):
             setattr(self, attr, float(v))
-        
+
         # controls order in optimiser - group for LF
         self.scope = scope
         self.order = (len(scope), scope and min(scope), name)
         self.label = self.name
-    
+
     def addClient(self, client):
         self.clients.append(client)
-    
+
     def __lt__(self, other):
         # optimisation is more efficient if params for one edge are neighbours
         return self.order < other.order
-    
+
     def __eq__(self, other):
         # optimisation is more efficient if params for one edge are neighbours
         return self.order == other.order
-    
+
     def __ne__(self, other):
         # optimisation is more efficient if params for one edge are neighbours
         return self.order != other.order
-    
+
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, self.label)
-    
+
     def getOptimiserBounds(self):
         lower = self.transformToOptimiser(self.lower)
         upper = self.transformToOptimiser(self.upper)
         return (lower, upper)
-    
+
     def transformFromOptimiser(self, value):
         return value
-    
+
     def transformToOptimiser(self, value):
         return value
-    
+
 
 class LogOptPar(OptPar):
     # For ratios, optimiser sees log(param value).  Conversions to/from
     # optimiser representation are only done by Calculator.change(),
     # .getValueArray() and .getBoundsArrrays().
-    
+
     def transformFromOptimiser(self, value):
         return numpy.exp(value)
-    
+
     def transformToOptimiser(self, value):
         try:
             return numpy.log(value)
         except OverflowError:
             raise OverflowError('log(%s)' % value)
-    
+
 
 class EvaluatedCell(object):
     __slots__ = ['client_ranks', 'rank', 'calc', 'args', 'is_constant',
         'clients', 'failure_count', 'name', 'arg_ranks',
         'consequences', 'recycled', 'default']
-    
+
     def __init__(self, name, calc, args, recycling=None, default=None):
         self.name = name
         self.rank = None
         self.calc = calc
         self.default = default
         self.args = tuple(args)
-        
+
         self.recycled = recycling
         if recycling:
             self.args = (self,) + self.args
-        
+
         self.is_constant = True
         for arg in args:
             arg.addClient(self)
             if not arg.is_constant:
                 self.is_constant = False
-        
+
         self.clients = []
         self.client_ranks = []
         self.failure_count = 0
-    
+
     def addClient(self, client):
         self.clients.append(client)
-    
+
     def update(self, data):
         data[self.rank] = self.calc(
                 *[data[arg_rank] for arg_rank in self.arg_ranks])
-    
+
     def prime(self, data_sets):
         if self.is_constant:
             # Just calc once
@@ -139,7 +139,7 @@ class EvaluatedCell(object):
         else:
             for data in data_sets:
                 self.update(data)
-    
+
     def reportError(self, detail, data):
         self.failure_count += 1
         if self.failure_count <= 5:
@@ -151,28 +151,28 @@ class EvaluatedCell(object):
             print('%s inputs were:', len(self.arg_ranks))
             for (i, arg) in enumerate(self.arg_ranks):
                 print('%s: ' % i + repr(data[arg]))
-    
+
 
 class ConstCell(object):
     __slots__ = ['name', 'scope', 'value', 'rank', 'consequences', 'clients']
-    
+
     recycled = False
     is_constant = True
     args = ()
-    
+
     def __init__(self, name, value):
         self.name = name
         self.clients = []
         self.value = value
-    
+
     def addClient(self, client):
         self.clients.append(client)
-    
+
 
 class Calculator(object):
     """A complete hierarchical function with N evaluation steps to call
     for each change of inputs.  Made by a ParameterController."""
-    
+
     def __init__(self, cells, defns, remaining_parallel_context=None,
                 overall_parallel_context=None, trace=None, with_undo=True):
         if trace is None:
@@ -208,7 +208,7 @@ class Calculator(object):
                         arg.client_ranks.append(i)
                     self.arg_ranks[i].append(arg.rank)
                     cell.arg_ranks.append(arg.rank)
-                
+
                 with parallel.parallel_context(self.remaining_parallel_context):
                     try:
                         cell.prime(self.cell_values)
@@ -220,33 +220,33 @@ class Calculator(object):
                         raise
             else:
                 raise RuntimeError('Unexpected Cell type %s' % type(cell))
-        
+
         self._switch = 0
         self.recycled_cells = [
                 cell.rank for cell in self._cells if cell.recycled]
         self.spare = [None] * len (self._cells)
-        
+
         for cell in self._cells[::-1]:
             for arg in cell.args:
                 arg.consequences[cell.rank] = True
                 arg.consequences.update(cell.consequences)
-        
+
         self._programs = {}
         # Just for timings pre-calc these
         for opt_par in self.opt_pars:
             self.cellsChangedBy([(opt_par.rank, None)])
-        
+
         self.last_values = self.getValueArray()
         self.last_undo = []
         self.elapsed_time = 0.0
         self.evaluations = 0
         self.setTracing(trace)
         self.optimised = False
-    
+
     def _graphviz(self):
         """A string in the 'dot' graph description language used by the
         program 'Graphviz'.  One box per cell, grouped by Defn."""
-        
+
         lines = ['digraph G {\n rankdir = LR\n ranksep = 1\n']
         evs = []
         for cell in self._cells:
@@ -283,24 +283,24 @@ class Calculator(object):
         lines.extend(edges)
         lines.append('}')
         return '\n'.join(lines).replace('edge', 'egde').replace('QQQ', 'edge')
-    
+
     def graphviz(self, keep=False):
         """Use Graphviz to display a graph representing the inner workings of
         the calculator.  Leaves behind a temporary file (so that Graphviz can
         redraw it with different settings) unless 'keep' is False"""
-        
+
         import tempfile, os, sys
-        
+
         if sys.platform != 'darwin':
             raise NotImplementedError("Graphviz support Mac only at present")
-        
+
         GRAPHVIZ = '/Applications/Graphviz.app'
         # test that graphviz is installed
         if not os.path.exists(GRAPHVIZ):
             raise RuntimeError('%s not present' % GRAPHVIZ)
-        
+
         text = self._graphviz()
-        
+
         fn = tempfile.mktemp(prefix="calc_", suffix=".dot")
         f = open(fn, 'w')
         f.write(text)
@@ -312,17 +312,17 @@ class Calculator(object):
         if not keep:
             time.sleep(5)
             os.remove(fn)
-    
+
     def optimise(self, **kw):
         x = self.getValueArray()
         bounds = self.getBoundsVectors()
         maximise(self, x, bounds, **kw)
         self.optimised = True
-    
+
     def setTracing(self, trace=False):
         """With 'trace' true every evaluated is printed.  Useful for profiling
         and debugging."""
-        
+
         self.trace = trace
         if trace:
             print()
@@ -342,7 +342,7 @@ class Calculator(object):
                     groups.append((cell.name, group))
                     groupd[cell.name] = group
                 groupd[cell.name].append(cell)
-            
+
             widths = []
             for (name, cells) in groups:
                 width = 4 + len(cells)
@@ -354,17 +354,17 @@ class Calculator(object):
             for width in widths:
                 print('-' * width, '|', end=' ')
             print()
-    
+
     def getValueArray(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
         values = [p.transformToOptimiser(self._getCurrentCellValue(p))
                 for p in self.opt_pars]
         return values
-    
+
     # getBoundsVectors and testoptparvector make up the old LikelihoodFunction
     # interface expected by the optimiser.
-    
+
     def getBoundsVectors(self):
         """2 arrays: minimums, maximums"""
         lower = numpy.zeros([len(self.opt_pars)], Float)
@@ -374,7 +374,7 @@ class Calculator(object):
             lower[i] = lb
             upper[i] = ub
         return (lower, upper)
-    
+
     def fuzz(self, random_series=None, seed=None):
         # Slight randomisation suitable for removing right-on-the-
         # ridge starting points before local optimisation.
@@ -390,33 +390,33 @@ class Calculator(object):
             X[i] = max(l,min(u,(1.0 + sign*step*X[i])))
         self.testoptparvector(X)
         self.optimised = False
-    
+
     def testoptparvector(self, values):
         """AKA self().  Called by optimisers.  Returns the output value
         after doing any recalculation required for the new input 'values'
         array"""
-        
+
         assert len(values) == len(self.opt_pars)
         changes = [(i, new) for (i, (old, new))
                 in enumerate(zip(self.last_values, values))
                 if old != new]
         return self.change(changes)
-    
+
     __call__ = testoptparvector
-    
+
     def testfunction(self):
         """Return the current output value without changing any inputs"""
         return self._getCurrentCellValue(self._cells[-1])
-    
+
     def change(self, changes):
         """Returns the output value after applying 'changes', a list of
         (optimisable_parameter_ordinal, new_value) tuples."""
-        
+
         t0 = time.time()
         self.evaluations += 1
         assert parallel.getContext() is self.overall_parallel_context, (
             parallel.getContext(), self.overall_parallel_context)
-        
+
         # If ALL of the changes made in the last step are reversed in this step
         # then it is safe to undo them first, taking advantage of the 1-deep
         # cache.
@@ -429,15 +429,15 @@ class Calculator(object):
                 self._switch = not self._switch
                 for (i, v) in self.last_undo:
                     self.last_values[i] = v
-        
+
         self.last_undo = []
         program = self.cellsChangedBy(changes)
-        
+
         if self.with_undo:
             self._switch = not self._switch
             data = self.cell_values[self._switch]
             base = self.cell_values[not self._switch]
-            
+
             # recycle and undo interact in bad ways
             for rank in self.recycled_cells:
                 if data[rank] is not base[rank]:
@@ -450,7 +450,7 @@ class Calculator(object):
                         assert data[cell.rank] is not base[cell.rank]
         else:
             data = self.cell_values[self._switch]
-        
+
         # Set new OptPar values
         changed_optpars = []
         for (i, v)  in changes:
@@ -461,21 +461,21 @@ class Calculator(object):
                 data[i] = self.opt_pars[i].transformFromOptimiser(v)
             else:
                 data[i] = v
-        
+
         with parallel.parallel_context(self.remaining_parallel_context):
             try:
                 if self.trace:
                     self.tracingUpdate(changes, program, data)
                 else:
                     self.plainUpdate(program, data)
-                
+
                 # if non-optimiser parameter was set then undo is invalid
                 if (self.last_undo and
                         max(self.last_undo)[0] >= len(self.opt_pars)):
                     self.last_undo = []
                 else:
                     self.last_undo = changed_optpars
-            
+
             except CalculationInterupted as detail:
                 if self.with_undo:
                     self._switch = not self._switch
@@ -484,12 +484,12 @@ class Calculator(object):
                 self.last_undo = []
                 (cell, exception) = detail.args
                 raise exception
-            
+
             finally:
                 self.elapsed_time += time.time() - t0
-        
+
         return self.cell_values[self._switch][-1]
-    
+
     def cellsChangedBy(self, changes):
         # What OptPars have been changed determines cells to update
         change_key = list(dict(changes).keys())
@@ -505,7 +505,7 @@ class Calculator(object):
             self._programs[change_key] = program = (
                 [cell for cell in self._cells if cell.rank in consequences])
         return program
-    
+
     def plainUpdate(self, program, data):
         try:
             for cell in program:
@@ -517,12 +517,12 @@ class Calculator(object):
             # Non-fatal but unexpected error. Warn and cancel this calculation.
             cell.reportError(detail, data)
             raise CalculationInterupted(cell, detail)
-    
+
     def tracingUpdate(self, changes, program, data):
         # Does the same thing as plainUpdate, but also produces lots of
         # output showing how long each step of the calculation takes.
         # One line per call, '-' for undo, '+' for calculation
-                
+
         exception = None
         elapsed = {}
         for cell in program:
@@ -534,7 +534,7 @@ class Calculator(object):
                 error_cell = cell
                 break
             elapsed[cell.rank] = (t1-t0)
-        
+
         tds = []
         for ((name, cells), width) in self._cellsGroupedForDisplay:
             text = ''.join([' +'[cell.rank in elapsed] for cell in cells])
@@ -544,7 +544,7 @@ class Calculator(object):
                 elipsis = ['   ','...'][not not text.strip()]
                 text = text[:edge_width] + elipsis + text[-edge_width:]
             tds.append('%s%4s' % (text, int(TRACE_SCALE*elap+0.5) or ''))
-        
+
         par_descs = []
         for (i,v) in changes:
             cell = self._cells[i]
@@ -560,7 +560,7 @@ class Calculator(object):
             raise CalculationInterupted(cell, exception)
         else:
             print('%-15s | %s' % (repr(data[-1])[:15], par_descs))
-    
+
     def measureEvalsPerSecond(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second
         # an each-optpar-in-turn simulated annealing type optimiser
@@ -601,16 +601,16 @@ class Calculator(object):
                 rate = rounds_per_sample * len(x) / delta
                 samples.append(rate)
                 elapsed += delta
-        
+
         if wall:
             samples.sort()
             return samples[len(samples)//2]
         else:
             return sum(samples) / len(samples)
-    
+
     def _getCurrentCellValue(self, cell):
         return self.cell_values[self._switch][cell.rank]
-    
+
     def getCurrentCellValuesForDefn(self, defn):
         cells = self.results_by_id[id(defn)]
         return [self.cell_values[self._switch][cell.rank] for cell in cells]
@@ -619,7 +619,7 @@ class Calculator(object):
         return find_root(func, origX, direction, bound, xtol=xtol,
                 expected_exception = (
                     ParameterOutOfBoundsError, ArithmeticError))
-    
+
     def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==
         # f(max) == f(opt)-dropoff.  Uses None when a bound is hit.
@@ -636,12 +636,12 @@ class Calculator(object):
             highX = self.__getBoundedRoot(func, origX, +1, upper, xtol)
         finally:
             func(origX)
-        
+
         triple = []
         for x in [lowX, origX, highX]:
             if x is not None:
                 x = opt_par.transformFromOptimiser(x)
             triple.append(x)
         return tuple(triple)
-        
-    
+
+

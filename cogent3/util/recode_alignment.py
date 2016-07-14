@@ -178,7 +178,7 @@ def build_alphabet_map(alphabet_id=None,alphabet_def=None):
         if not alphabet_id:
             raise ValueError("Must provide an alphabet_id or alphabet definiton.")
         raise ValueError("Invalid alphabet id.")
-        
+
     result = {}
     for new, old in alphabet_def:
         for old_c in old:
@@ -188,7 +188,7 @@ def build_alphabet_map(alphabet_id=None,alphabet_def=None):
 
 def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
     """Return new DenseAlignment recoded in the provided reduced-state alphabet
-    
+
         aln: the DenseAlignment object to be recoded
         alphabet_id: string identifying an alphabet in 
             cogent3.util.recode_alignment.alphabets. 
@@ -201,11 +201,11 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
             e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')] 
             (See cogent3.util.recode_alignment.alphabets.values() 
             for more examples.)  
-         
+
         Note: either alphabet_id OR alphabet_def must be passed. Either
             provide the alphabet, or have it is looked up. If both are provided
             the alphabet_id is ignored.
-         
+
     """
 
     # Construct a dict mapping from UInt8s in alignment to their 
@@ -216,7 +216,7 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,\
         alphabet_def=alphabet_def)
-   
+
     # Create the recoded version of seqs.Alphabet 
     new_indices = list(range(len(aln.Alphabet)))
     for old, new in list(alphabet_map.items()):
@@ -226,13 +226,13 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
     # that are not mapped are ignored. Returns a new DenseAlignment.
     return DenseAlignment(take(new_indices,aln.ArraySeqs).transpose(),\
         aln.Names[:],MolType=aln.MolType)
-        
+
 def recode_alignment(aln,alphabet_id=None,alphabet_def=None):
     raise NotImplementedError
 
 def recode_freq_vector(alphabet_def,freqs,ignores='BXZ'):
     """ recode the bg_freqs to reflect the recoding defined in alphabet_def
-        
+
         alphabet_def: list of tuples where new char is first tuple element
             and sequence of old chars is second tuple element. (For examples,
             see cogent3.util.recode_alignment.alphabets.values())
@@ -266,7 +266,7 @@ def square_matrix_to_dict(matrix,key_order='ACDEFGHIKLMNPQRSTVWY'):
 
 def recode_count_matrix(alphabet,count_matrix,aa_order):
     """Recodes a subsitution count matrix 
-    
+
         alphabet: the alphabet to be used for recoding the matrix
          (see cogent3.util.recode_alignment.alphabets.values()) for
          examples
@@ -275,7 +275,7 @@ def recode_count_matrix(alphabet,count_matrix,aa_order):
         aa_order: the order of the rows/cols in the matrix as a string
          (for cogent3.evolve.models.DSO78_matrix this would be
          'ACDEFGHIKLMNPQRSTVWY')
-        
+
     """
     m = square_matrix_to_dict(count_matrix,aa_order)
     result = zeros(len(aa_order)**2).reshape(len(aa_order),len(aa_order))
@@ -300,7 +300,7 @@ def recode_count_matrix(alphabet,count_matrix,aa_order):
             r.append(result[row_c][col_c])
         cm.append(r)
     return array(cm)
- 
+
 def recode_counts_and_freqs(alphabet,count_matrix=DSO78_matrix,\
     freqs=DSO78_freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
     """ recode a substituion count matrix and a vector of character freqs

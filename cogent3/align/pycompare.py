@@ -39,7 +39,7 @@ def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
                 was_high = False
     if was_high:
         d_segments.append((start, i_hi))
-        
+
     return d_segments
 
 try:
@@ -54,7 +54,7 @@ except ImportError:
 @UI.display_wrap
 def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None):
     """A list of line segments covering the window-mers with identical matches > threshold
-    
+
     Gaps of size less than min_gap will be hidden, which saves on line segments.
     if 'band' is not None then it limits the searched area
     """
@@ -62,16 +62,16 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
         segs = segments_from_diagonal(seq1, seq2, window, threshold, 
                 min_gap_length, dia)
         return [((start, start+dia), (end, end+dia)) for (start, end) in segs]
-    
+
     if band is None:
         band = max(len(seq1), len(seq2))
-    
+
     if isinstance(seq1, str):
         seq1 = seq1.encode('utf8')
-        
+
     if isinstance(seq2, str):
         seq2 = seq2.encode('utf8')
-    
+
     diagonals = list(range(-min(len(seq1), band), min(len(seq2), band)+1))
     result = []
     for diag_segments in ui.imap(one_diagonal, diagonals, noun='offset'):

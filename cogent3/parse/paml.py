@@ -26,5 +26,5 @@ def PamlParser(f):
             seq_line = seq_line.strip()
             length += len(seq_line)
             currseq.append(seq_line)
-        
+
         yield (seqname, ''.join(currseq))

@@ -18,16 +18,16 @@ class _fake_seq(str):
         new = str.__new__(cls, Seq)
         new.Label = Label
         return new
-    
+
     def __getitem__(self, *args, **kwargs):
         new_seq = str.__getitem__(self, *args, **kwargs)
         return self.__new__(self.__class__,self.Label, new_seq)
-    
+
 
 def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
     """Returns a FASTA string given a list of sequences. A sequence.Label
        attribute takes precedence over sequence.Name.
-    
+
         - seqs can be a list of sequence objects or strings.
         - make_seqlabel: callback function that takes the seq object and returns
           a label str
@@ -43,7 +43,7 @@ def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
             label = seq.Label
         elif hasattr(seq, 'Name') and seq.Name:
             label = seq.Name
-        
+
         # wrap sequence lines
         seq_str = str(seq)
         if line_wrap is not None:
@@ -54,15 +54,15 @@ def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
                                         for j in range(numlines)]
         else:
             body = ["%s" % seq_str]
-        
+
         fasta_list.append('>'+label)
         fasta_list += body
-    
+
     return '\n'.join(fasta_list)
 
 def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
     """Returns a FASTA string given an alignment.
-    
+
         - aln can be an Alignment object or dict.
         - make_seqlabel: callback function that takes the seq object and returns
           a label str
@@ -81,7 +81,7 @@ def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
         seq_dict = aln.NamedSeqs
     except AttributeError:
         seq_dict = aln
-    
+
     ordered_seqs = []
     for label in order:
         seq = seq_dict[label]

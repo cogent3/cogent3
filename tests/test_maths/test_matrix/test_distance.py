@@ -29,7 +29,7 @@ class DistanceMatrixTests(TestCase):
         v1 = {'A':1, 'B':2, 'C':3}
         v2 = {'A':4, 'B':5, 'C':6}
         v3 = {'A':7, 'B':8, 'C':9}
-        
+
         self.m1 = {'A':dict(v1),\
                    'B':dict(v2),\
                    'C':dict(v3)}
@@ -118,14 +118,14 @@ class DistanceMatrixTests(TestCase):
         self.assertEqual(d.Pad, False)
         self.assertEqual(d.Default, 42)
         self.assertEqual(d.RowConstructor, Freqs)
-    
+
     def test_Order_defaults(self):
         """ RowOrder and ColOrder are set to default as expected """
         for m in self.matrices:
             dm = DistanceMatrix(data=m)
             self.assertEqual(dm.RowOrder, self.default_keys)
             self.assertEqual(dm.ColOrder, self.default_keys)
-                               
+
     def test_Order_parameters(self):
         """ RowOrder and ColOrder are set to paramters as expected """
         row_order = ['a']
@@ -152,7 +152,7 @@ class DistanceMatrixTests(TestCase):
         actual = dm.colKeys()
         actual.sort()
         self.assertEqual(actual,goal)
-        
+
     def test_sharedColKeys(self):
         """ sharedColKeys functions properly """
         # no shared keys b/c a is not in RowOrder and therefore not padded
@@ -173,7 +173,7 @@ class DistanceMatrixTests(TestCase):
         actual = dm.sharedColKeys()
         actual.sort()
         self.assertEqual(actual, self.default_keys + ['b'])
-    
+
     def test_default_padding(self):
         """ Default padding functions as expected """
         for m in self.matrices:
@@ -181,7 +181,7 @@ class DistanceMatrixTests(TestCase):
             for r in self.default_keys:
                 for c in self.default_keys:
                     dm[r][c]
-    
+
     def test_init_data_types(self):
         """ Correct init from varying data types  """
         # No data
@@ -198,7 +198,7 @@ class DistanceMatrixTests(TestCase):
         # data is list of lists
         dm = DistanceMatrix(data=[[1]],RowOrder=['a'],ColOrder=['b'], Pad=False)
         self.assertEqual(dm,{'a':{'b':1}})
-        
+
         # data is in Indices form
         dm = DistanceMatrix(data=[('a','b',1)], Pad=False)
         self.assertEqual(dm,{'a':{'b':1}})
@@ -245,7 +245,7 @@ class DistanceMatrixTests(TestCase):
         """ Integrity of attribute forwarding following a copy()"""
         dm = DistanceMatrix(data=self.m2, RowOrder=list(self.m2.keys()), info=self.aar)
         c = dm.copy()
-       
+
         # dm.ID == '5'
         self.assertEqual(c.ID, dm.ID)
         self.assertEqual(c.Correlating, dm.Correlating)
@@ -253,7 +253,7 @@ class DistanceMatrixTests(TestCase):
 
         c.ID = '0'
         self.assertNotEqual(c.ID,dm.ID)
-    
+
     def test_setDiag(self):
         """ setDiag works as expected """
         for m in self.matrices:
@@ -262,7 +262,7 @@ class DistanceMatrixTests(TestCase):
             # based on it
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(m.keys()))
-            
+
             # set diag to 42
             dm.setDiag(42)
             # test that diag is 42
@@ -364,10 +364,10 @@ class DistanceMatrixTests(TestCase):
                     Pad=False)
             dm['A']['A'] = 'p'
             self.assertRaises(TypeError,dm.elementPow,2,ignore_invalid=False)
-            
+
             dm['A']['A'] = None
             self.assertRaises(TypeError,dm.elementPow,2,ignore_invalid=False)
-           
+
     def test_elementPow_invalid_pow(self):
         """ elementPow correctly raises error on invalid power """
         for m in self.matrices:
@@ -377,7 +377,7 @@ class DistanceMatrixTests(TestCase):
                     Pad=False)
             self.assertRaises(TypeError,dm.elementPow,None,ignore_invalid=False)
             self.assertRaises(TypeError,dm.elementPow,'a',ignore_invalid=False)
-        
+
     def test_transpose(self):
         """ transpose functions as expected """
         for m in self.matrices:
@@ -410,7 +410,7 @@ class DistanceMatrixTests(TestCase):
                         goal = d[c][r]
                     self.assertEqual(n[r][c],goal)
                     self.assertEqual(n[c][r],goal)
-        
+
     ######
     # Following tests copied (and slightly modified) from test_DistanceMatrix and
     # written by Rob Knight. Intended to test inheritance

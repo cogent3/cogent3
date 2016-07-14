@@ -20,7 +20,7 @@ __status__ = "Production"
 
 class SpecialTests(TestCase):
     """Tests miscellaneous functions."""
-    
+
     def test_permutations(self):
         """permutations should return expected results"""
         self.assertEqual(permutations(1,1), 1)
@@ -37,7 +37,7 @@ class SpecialTests(TestCase):
         self.assertRaises(IndexError,permutations,10,50)
         self.assertRaises(IndexError,permutations,-1,50)
         self.assertRaises(IndexError,permutations,10,-5)
-        
+
     def test_permutations_float(self):
         """permutations should use gamma function when floats as input"""
         self.assertFloatEqual(permutations(1.0,1), 1)
@@ -186,7 +186,7 @@ class SpecialTests(TestCase):
         (.5,5,.3):(math.log(0.16807),math.log(0.36015)),
         (10,100.5,.5):(math.log(7.578011e-18),math.log(1.365543e-17)),
         }
-        
+
         for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
@@ -216,7 +216,7 @@ class SpecialTests(TestCase):
     def test_log_one_minus_small(self):
         """log_one_minus_x should return -x if x is small"""
         self.assertFloatEqualRel(log_one_minus(1e-30), 1e-30)
-        
+
     def test_one_minus_exp_large(self):
         """one_minus_exp_x should return 1 - math.exp(x) if x is large"""
         self.assertFloatEqual(one_minus_exp(0.2), 1-(math.exp(0.2)))
@@ -551,7 +551,7 @@ class SpecialTests(TestCase):
                     i += 1
         #specific cases that failed elsewhere
         self.assertFloatEqual(incbi(999,2,1e-10), 0.97399698104554944)
-       
+
 #execute tests if called from command line
 if __name__ == '__main__':
     main()

@@ -225,10 +225,10 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
           cctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactg
           aataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg
 """)
- 
+
 class MinimalPhylipParserTests(PhylipGenericTest):
     """Tests of MinimalPhylipParser: returns (label, seq) tuples."""
-       
+
     def test_empty(self):
         """MinimalFastaParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(MinimalPhylipParser(self.empty)), [])
@@ -301,6 +301,6 @@ CAAAACCCATCATCAAAACC
 >B.subtilis
 GGCAGCCAATCACGGCAGCC
 ''')
-             
+
 if __name__ == '__main__':
     main()

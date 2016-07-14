@@ -31,7 +31,7 @@ def mpower(A, exponent):
 
 def pkolmogorov1x(statistic, n):
     """Probability function for the one-sided one sample Kolmogorov statistics.
-    
+
     Translated from R 2.4."""
     statistic = asarray(statistic)
     if statistic <= 0:
@@ -56,7 +56,7 @@ def pkolmogorov2x(statistic, n):
         for j in range(m):
             if(i-j+1<0):
                 H[i*m+j]=0
-    
+
     for i in range(m):
         H[i*m] -= h**(i+1)
         H[(m-1) * m+i] -= h**(m-i)
@@ -99,7 +99,7 @@ def pkstwo(x_vector, tolerance=1e-6):
                 s *= -1
                 k += 1
             x_vector[i] = new
-    
+
     return x_vector
 
 def psmirnov2x(statistic, least, most):
@@ -121,5 +121,5 @@ def psmirnov2x(statistic, least, most):
                 u_vector[j] = 0
             else:
                 u_vector[j] = w * u_vector[j] + u_vector[j-1]
-    
+
     return u_vector[most]

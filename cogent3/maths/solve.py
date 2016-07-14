@@ -39,7 +39,7 @@ def bisection(func, a, b, args=(), xtol=1e-10, maxiter=400):
 def brent(func, a, b, args=(), xtol=1e-10, maxiter=100):
     """Fast and robust root-finding method.  Given a function and an
     interval with func(a) * func(b) < 0, find the root between a and b.
-    
+
     From Numerical Recipes
     """
     if b < a:
@@ -99,7 +99,7 @@ def brent(func, a, b, args=(), xtol=1e-10, maxiter=100):
 def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
     if xtol is None:
         xtol = 1e-10
-    
+
     def sign_func(z):
         # +ve if f(z) is +ve
         # zero if f(z) is -ve (what we want)
@@ -112,7 +112,7 @@ def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
                 return 1
         except expected_exception:
             return -1
-    
+
     # Bracket root
     # Start out ignoring the bound as that is likely to be an error-
     # prone part of the range, and if there are multiple roots we want the
@@ -133,15 +133,15 @@ def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
         y = sign_func(x2)
         if y <= 0 or x2 == bound:
             break
-    
+
     # Hit a bound (or error).
     # Look for -ve between the +ve x1 and error x2
     if y == -1:
         x2 = bisection(sign_func, x1, x2, xtol=max(xtol, 1e-5))
         y = sign_func(x2)
-    
+
     if y != 0:
         return None
-    
+
     return brent(func, x1, x2, xtol=xtol)
 

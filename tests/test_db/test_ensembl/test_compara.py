@@ -44,14 +44,14 @@ class TestCompara(ComparaTestBase):
         """compara should attach valid genome attributes by common name"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         self.assertEqual(brca2.Symbol.lower(), 'brca2')
-    
+
     def test_get_related_genes(self):
         """should correctly return the related gene regions from each genome"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                 Relationship="ortholog_one2one")
         self.assertEqual("ortholog_one2one", Orthologs.Relationships[0])
-    
+
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
         clec2d = self.comp.Mouse.getGeneByStableId(
@@ -59,14 +59,14 @@ class TestCompara(ComparaTestBase):
         orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
                         Relationship='ortholog_one2many')
         self.assertTrue(len(orthologs.Members) < 4)
-    
+
     def test_get_collection(self):
         brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                         Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
         self.assertTrue(len(collection.Seqs[0])> 1000)
-    
+
     def test_getting_alignment(self):
         mid = "ENSMUSG00000041147"
         brca2 = self.comp.Mouse.getGeneByStableId(StableId=mid)
@@ -88,19 +88,19 @@ class TestCompara(ComparaTestBase):
                   ])
         self.assertEqual(set(seqs), expect)
         self.assertTrue(len(aln) > 1000)
-    
+
     def test_generate_method_clade_data(self):
         """should correctly determine the align_method align_clade options for
         a group of species"""
         # we should correctly infer the method_species_links, which is a
         # cogent3.util.Table instance
         self.assertTrue(self.comp.method_species_links.Shape > (0,0))
-    
+
     def test_no_method_clade_data(self):
         """generate a Table with no rows if no alignment data"""
         compara = Compara(['S.cerevisiae'], Release=Release, account=account)
         self.assertEqual(compara.method_species_links.Shape[0], 0)
-    
+
     def test_get_syntenic_returns_nothing(self):
         """should correctly return None for a SyntenicRegion with golden-path
         assembly gap"""
@@ -110,7 +110,7 @@ class TestCompara(ComparaTestBase):
                         CoordName='1', Start=Start, End=End,
                         align_method='PECAN', align_clade='vertebrates'))
         self.assertEqual(related, [])
-    
+
     def test_get_species_set(self):
         """should return the correct set of species"""
         expect = set(['Homo sapiens', 'Ornithorhynchus anatinus',
@@ -119,18 +119,18 @@ class TestCompara(ComparaTestBase):
         Orthologs = self.comp.getRelatedGenes(gene_region=brca1,
                         Relationship="ortholog_one2one")
         self.assertEqual(Orthologs.getSpeciesSet(), expect)
-        
+
     def test_pool_connection(self):
         """excercising ability to specify pool connection"""
         dog = Compara(['chimp', 'dog'], Release=Release, account=account,
                 pool_recycle=1000)
-        
-    
+
+
 
 class TestSyntenicRegions(TestCase):
     comp = Compara(['human', 'chimp', 'macaque'], account=account,
                   Release=Release)
-    
+
     def test_correct_alignments(self):
         """should return the correct alignments"""
         # following cases have a mixture of strand between ref seq and others
@@ -197,8 +197,8 @@ class TestSyntenicRegions(TestCase):
                 got_start, got_end = list(map(int, got_names[species][3].split('-')))
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
                 self.assertFloatEqual(abs(slope), 1.0, eps=1e-3)
-        
-    
+
+
     def test_failing_region(self):
         """should correctly handle queries where multiple Ensembl have
         genome block associations for multiple coord systems"""
@@ -207,8 +207,8 @@ class TestSyntenicRegions(TestCase):
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
                                 align_method='PECAN',
                                 align_clade='vertebrates'))
-        
-    
+
+
 
 if __name__ == "__main__":
     main()

@@ -35,7 +35,7 @@ def rstrip(x, chars=None):
     else:
         return x.rstrip()
 
-    
+
 all_chars = bytes(range(256))
 
 def rstrip_(chars=None):
@@ -98,7 +98,7 @@ def pairs_to_dict(key_values, dict_mode=None,
         multiples = {} #auxillary dict recording the keys with multi_values
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place
-            
+
             Warning: using outer auxillary dictionary: multiples"""
             if key in dictionary:
                 if not key in multiples:
@@ -123,7 +123,7 @@ def pairs_to_dict(key_values, dict_mode=None,
         raise ValueError('Unknown dict_mode:%s. \ndict_mode must be one of '
                 'overwrite_value, no_duplicated_key, allow_multi_value and '
                 'always_multi_value.' % dict_mode)
-        
+
     #generate the handle_value function. 
     if not handlers and not default_handler:
         handle_value = lambda x, y: (x, y) 
@@ -152,7 +152,7 @@ def pairs_to_dict(key_values, dict_mode=None,
 
 def linecode_maker(line):
     """return the linecode and the line.
-    
+
     The two-character line code that begins each line is always followed
     by three blanks, so that the actual information begins with the sixth
     character."""
@@ -161,7 +161,7 @@ def linecode_maker(line):
 
 def labeloff(lines, splice_from=5):
     """strip off the first splice_from characters from each line
-    
+
     Warning: without check!"""
     return [line[splice_from:] for line in lines]
 
@@ -175,7 +175,7 @@ def join_parser(lines, join_str=' ', chars_to_strip=' ;.'):
         result = join_str.join(lines)
 
     return result.strip(chars_to_strip)
-    
+
 def join_split_parser(lines, delimiters=';', item_modifier=strip, 
         same_level=False, **kwargs):
     """return a nested list from lines, join lines before using NestedSplitter.
@@ -183,7 +183,7 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
     delimiters: delimiters used by NestedSplitter
     item_modifier: passed to NestedSplitter, modify each splitted item.
     kwargs: passed to join_parser
-    
+
     Examples:
     join_split_parser(['aa; bb;', 'cc.']) -> ['aa', 'bb', 'cc']
     join_split_parser(['aa; bb, bbb;', 'cc.'], delimiters=';,') 
@@ -192,7 +192,7 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
     item_modifer=rstrip_(')) -> ['aa','bb','cc']
     """
     result = join_parser(lines, **kwargs)
-    
+
     return NestedSplitter(delimiters, 
         constructor=item_modifier, same_level=same_level)(result)
 
@@ -261,7 +261,7 @@ def mapping_parser(line, fields, delimiters=[';', None],
 
     if None in result:
         del result[None]
-    
+
     return result
 
 
@@ -328,7 +328,7 @@ def ac_parser(lines):
 
 def dt_parser(lines):
     """return the origal lines from DT lines.
-    
+
     Note: not complete parsing
 
     The DT (DaTe) lines show the date of creation and last modification of the
@@ -359,7 +359,7 @@ def dt_parser(lines):
 # gn_parser
 def gn_parser(lines):
     """return a list of dict from GN lines.
-    
+
     The GN (Gene Name) line indicates the name(s) of the gene(s) that code for
     the stored protein sequence. The GN line contains three types of
     information: Gene names, Ordered locus names, ORF names. format:
@@ -400,7 +400,7 @@ def oc_parser(lines):
 
 def os_parser(lines):
     """return a list from OS lines.
-    
+
     OS (Organism Species) line specifies the organism which was the source of
     the stored sequence.  The last OS line is terminated by a period.
 
@@ -417,7 +417,7 @@ def os_parser(lines):
     lines = labeloff(lines)
     return join_split_parser(lines, 
         delimiters='(', item_modifier=rstrip_(') ')) 
-        
+
 def ox_parser(lines):
     """return a dict from OX lines.
 
@@ -490,7 +490,7 @@ def dr_itemparser(lines):
 def de_parser(lines):
     """return a dict of {OfficalName: str, Synonyms: str, Fragment: bool,
     Contains: [itemdict,],  Includes: [itemdict,]} from DE lines
-    
+
     The DE (DEscription) lines contain general descriptive information about
     the sequence stored. This information is generally sufficient to identify
     the protein precisely.
@@ -503,7 +503,7 @@ def de_parser(lines):
     a section delimited by '[Contains: ...]'. All the individual components are
     listed in that section and are separated by semi-colons (';'). Synonyms are
     allowed at the level of the precursor and for each individual component.
-    
+
     If a protein is known to include multiple functional domains each of which
     is described by a different name, the description starts with the name of
     the overall protein, followed by a section delimited by '[Includes: ]'. All
@@ -546,7 +546,7 @@ def de_parser(lines):
     if joined.endswith(fragment_label):
         fragment = True
         joined = joined.rsplit('(', 1)[0]
-        
+
     #Process Contains
     contains = []
     if contains_label in joined:
@@ -569,18 +569,18 @@ def de_parser(lines):
 
 def de_itemparser(line):
     """return a dict of {OfficalName: str, Synonyms: [str,]} from a de_item
-    
+
     The description item is a str, always starts with the proposed official
     name of the protein. Synonyms are indicated between brackets. Examples
     below
-    
+
     'Annexin A5 (Annexin V) (Lipocortin V) (Endonexin II)'
     """
     fieldnames = ['OfficalName', 'Synonyms']
     fields = [e.strip(') ') for e in line.split('(')]
     #if no '(', fields[1:] will be []
     return dict(list(zip(fieldnames, [fields[0], fields[1:]])))
-    
+
 def pr_parser(line):
     """Returns a list of [project id, project id, ...]"""
     labeloff(line)
@@ -595,7 +595,7 @@ def ft_parser(lines):
     sites, enzyme active sites, local secondary structure or other
     characteristics reported in the cited references. Sequence conflicts
     between references are also included in the feature table.
-    
+
     The FT lines have a fixed format. The column numbers allocated to each of
     the data items within each FT line are shown in the following table (column
     numbers not referred to in the table are always occupied by blanks).
@@ -674,9 +674,9 @@ def ft_parser(lines):
 
 def ft_basic_itemparser(item_lines):
     """-> (key, start, end, description) from lines of a feature item.
-    
+
     A feature item (generated by itemfinder) has the same keyname.
-    
+
     WARNING: not complete, location fields need further work?
     """
     #cut_postions: the postions to split the line into fields
@@ -714,7 +714,7 @@ def try_int(obj):
 
 def ft_id_parser(description):
     """return a dict of {'Description':,'Id':} from raw decription str
-    
+
     Examples.
     FT   PROPEP       25     48
     FT                                /FTId=PRO_0000021449.
@@ -740,7 +740,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter='('):
     description str 
 
     Warning: if both id and mutation should be parsed, always parse id first.
-    
+
     Note: will add exceptions later
 
     Examples.
@@ -750,7 +750,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter='('):
     FT   CONFLICT    802    802       K -> Q (in Ref. 4, 5 and 10).
     """
     fieldnames = 'MutateFrom MutateTo Comment'.split()
-    
+
     #split desc into mutation and comment
     desc = description.rstrip(' )')
     try:
@@ -783,7 +783,7 @@ def ft_mutagen_parser(description):
 
 def ft_id_mutation_parser(description):
     """return a dict from description str
-    
+
     Examples.
     FT   VARIANT     214    214       V -> I.
     FT                                /FTId=VAR_009122.
@@ -795,7 +795,7 @@ def ft_id_mutation_parser(description):
     desc = desc_id_dict.pop('Description')
     result = dict(desc_id_dict, **ft_mutation_parser(desc))
     return result
-    
+
 ft_description_parsers = {
     'VARIANT': ft_id_mutation_parser,
     'VARSPLIC': ft_id_mutation_parser,
@@ -807,7 +807,7 @@ ft_description_parsers = {
     'MUTAGEN': ft_mutagen_parser,
     #'NON_TER': ft_choplast_parser, 
     #'NON_CONS': ft_choplast_parser,
-    
+
 }
 
 
@@ -821,10 +821,10 @@ all_cc_topics = dict.fromkeys([
     'MISCELLANEOUS', 'PATHWAY', 'PHARMACEUTICAL', 'POLYMORPHISM', 'PTM',
     'RNA EDITING', 'SIMILARITY', 'SUBCELLULAR LOCATION', 'SUBUNIT',
     'TISSUE SPECIFICITY', 'TOXIC DOSE'])
-    
+
 def cc_parser(lines, strict=False):
     """return a dict of {topic: a list of values} from CC lines.
-    
+
     some topics have special format and will use specific parsers defined in
     handlers
 
@@ -891,7 +891,7 @@ def cc_parser(lines, strict=False):
 
 def cc_basic_itemparser(topic):
     """return (topic_name, topic_content as a list) from a cc topic block. 
-    
+
     Format of a topic as input of this function: [ 
     '-!- TOPIC: First line of a comment block;',
     '    second and subsequent lines of a comment block.']
@@ -919,7 +919,7 @@ def cc_basic_itemparser(topic):
 def cc_itemfinder(lines):
     """yield each topic/license as a list from CC lines without label and
     leading spaces.
-    
+
     Warning: hardcoded LICENSE handling"""
 
     ## all the codes except the return line  tries to preprocess the 
@@ -963,7 +963,7 @@ def cc_interaction_parser(content_list):
         params = join_split_dict_parser([params])
         result.append((interactor.strip(), params))
     return result
-        
+
 cc_alternative_products_event_finder = LabeledRecordFinder(
         lambda x: x.startswith('Event='))
 cc_alternative_products_name_finder = LabeledRecordFinder(
@@ -1001,7 +1001,7 @@ def cc_alternative_products_parser(content_list):
 
 def cc_biophysicochemical_properties_parser(content):
     """return a dict from content_list of a ~ topic.
-    
+
     Format of a ~ topic block:
     CC   -!- BIOPHYSICOCHEMICAL PROPERTIES:
     CC       Absorption:
@@ -1045,7 +1045,7 @@ def cc_biophysicochemical_properties_parser(content):
     sub_key_contents = list(map(get_sub_key_content,
             hanging_paragraph_finder(content)))
     return pairs_to_dict(sub_key_contents, 'no_duplicated_key')
-    
+
 cc_content_parsers = {
     #? not complete: further group alternative splicing?
     'ALTERNATIVE PRODUCTS': cc_alternative_products_parser, 
@@ -1060,7 +1060,7 @@ cc_content_parsers = {
 # REFs parser
 def refs_parser(lines):
     """return a dict of {RN: single_ref_dict}
-    
+
     These lines comprise the literature citations. The citations indicate the
     sources from which the data has been abstracted.  if several references are
     given, there will be a reference block for each.
@@ -1101,7 +1101,7 @@ def single_ref_parser(lines, strict=False):
     #parse each field with relevant parser
     parsed_dict = pairs_to_dict(list(raw_dict.items()), handlers=ref_parsers)
     rn = parsed_dict.pop('RN')
-    
+
     return rn, parsed_dict
 
 
@@ -1235,7 +1235,7 @@ def rl_parser(lines):
 
 def rt_parser(lines):
     """return joined line stripped of .";
-    
+
     The RT (Reference Title) lines give the title of the paper (or other work)
     cited as exactly as possible given the limitations of the computer 
     character set. The format of the RT line is:
@@ -1313,7 +1313,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     for one exception: CC lines that contain the 'DATABASE' topic"""
     exclude = b" \t\n\r/"
     strip_table = dict([(c, None) for c in exclude])
-    
+
     for record in EbiFinder(lines):
         if strict and not record[0].startswith('ID'): 
             raise RecordError('Record must begin with ID line')
@@ -1328,27 +1328,27 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
                 if rlabel not in raw_dict:
                     raise RecordError('The record lacks required label: '\
                         '%s' % rlabel)
-        
+
         # no sequence found
         if '' not in raw_dict:
             continue
 
         sequence = raw_dict.pop('')  #which is the linecode for sequence
         sequence = ''.join(sequence).translate(strip_table)
-        
+
         if selected_labels:
             for key in list(raw_dict.keys()):
                 if key not in selected_labels:
                     del raw_dict[key]
-        
+
         header_dict = raw_dict 
         yield sequence, header_dict
 
 def linecode_merging_maker(line):
     """return merged linecode and the line.
-    
+
     All valid reference linecodes merged into REF
-    
+
     Warning: using global ref_parsers"""
     linecode = linecode_maker(line)[0] 
     if linecode in ref_parsers:
@@ -1361,7 +1361,7 @@ def parse_header(header_dict, strict=True):
     """Parses a dictionary of header lines"""
     return pairs_to_dict(list(header_dict.items()), 'no_duplicated_key',
             handlers = _parsers)
- 
+
 _parsers = {
     'ID': id_parser,
     'AC': ac_parser,
@@ -1417,7 +1417,7 @@ def EbiParser(lines, seq_constructor=Sequence,
                 raise #RecordError, str(e)
             else:
                 continue
-        
+
         yield sequence, header
 
 
@@ -1560,5 +1560,5 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
     #        else:
     #            if 'Plasmid' in de:
     #                print de, '\n'
-    
-    
+
+

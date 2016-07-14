@@ -12,9 +12,9 @@ __status__ = "Production"
 def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     """returns a phylip formatted string and an ID map of new to original
     sequence names. Sequences are sequential.
-    
+
     Fails if all sequences are not the same length.
-    
+
     Arguments:
         - generic_label: if true then numbered seq labels are generated
         - make_seqlabel: callback function that takes the seq object and
@@ -28,11 +28,11 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     num_seqs = len(aln.Seqs)
     if not aln or not num_seqs:
         return ""
-    
+
     phylip_out = ["%d %d" % (num_seqs, aln.SeqLen)]
     id_map = {}
     cur_seq_id = 1
-    
+
     for seq_name, seq in zip(aln.Names, aln.Seqs):
         if make_seqlabel is not None:
             label = make_seqlabel(seq)
@@ -41,5 +41,5 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
         id_map[label] = seq_name
         phylip_out.append("%s %s" % (label, seq))
         cur_seq_id += 1
-    
+
     return '\n'.join(phylip_out), id_map

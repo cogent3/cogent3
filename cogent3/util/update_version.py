@@ -48,12 +48,12 @@ class VersionUpdater(object):
         self.IsRelease = IsRelease
         self.Verbose = Verbose
         self.MockRun = MockRun
-        
+
         self.CodesDirectory = path.join(self.PyCogentDirectory, 'cogent')
         self.TestsDirectory = path.join(self.PyCogentDirectory, 'tests')
         self.DocDirectory = path.join(self.PyCogentDirectory, 'doc')
         self.IncludesDirectory = path.join(self.PyCogentDirectory, 'include')
-        
+
         if not os.access(path.join(self.CodesDirectory, '__init__.py'),os.R_OK):
             raise IOError("Could not locate cogent/__init__.py")
         if not os.access(path.join(self.TestsDirectory, '__init__.py'),os.R_OK):
@@ -80,7 +80,7 @@ class VersionUpdater(object):
 
     def _get_code_files(self):
         """Support method, provides relative locations for code files
-        
+
         Yields file name and file type
         """
         for dirpath, dirnames, filenames in os.walk(self.CodesDirectory):
@@ -97,7 +97,7 @@ class VersionUpdater(object):
 
     def _get_doc_files(self):
         """Support method, provides relative locations for test files
-        
+
         Only yields conf.py currently
         """
         return [(path.join(self.DocDirectory, 'conf.py'), 'Python')]
@@ -249,7 +249,7 @@ class VersionUpdater(object):
 
     def updateDocFiles(self):
         """Updates version strings in documentation files
-        
+
         So far we only update conf.py
         """
         for filename, filetype in self._get_doc_files():
@@ -257,7 +257,7 @@ class VersionUpdater(object):
 
             if self.Verbose:
                 print('Reading %s' % filename)
-           
+
             if filename.endswith('conf.py'):
                 lines, write_out = self._update_doc_conf_file(lines, filename)
             else:
@@ -265,7 +265,7 @@ class VersionUpdater(object):
 
             if write_out:
                 self._file_writer(lines, filename) 
-        
+
     def updateIncludeFiles(self):
         """Updates version strings in include files"""
         for filename, filetype in self._get_include_files():
@@ -274,7 +274,7 @@ class VersionUpdater(object):
 
             if self.Verbose:
                 print('Reading %s' % filename)
-            
+
             if filetype is 'PyRex':
                 lines, write_out = self._update_pyrex_file(lines, filename)
             elif filetype is 'Header':

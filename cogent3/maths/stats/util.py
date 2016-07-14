@@ -157,7 +157,7 @@ class SummaryStatistics(object):
             return ''
         return str(Table("Statistic Value".split(), result,
             column_templates={'Value': "%.4g"}))
-    
+
     def _get_count(self):
         """Returns Count if possible (tries to calculate as sum/mean)."""
         if self._count is None:
@@ -187,12 +187,12 @@ class SummaryStatistics(object):
                 raise SummaryStatisticsError("Insufficient data to calculate mean.")
         return self._mean
     Mean = property(_get_mean)
-    
+
     def _get_median(self):
         """Returns Median."""
         return self._median
     Median = property(_get_median)
-    
+
     def _get_standard_deviation(self):
         """Returns StandardDeviation if possible (calc as sqrt(var)."""
         if self._standard_deviation is None:
@@ -213,17 +213,17 @@ class SummaryStatistics(object):
                 raise SummaryStatisticsError("Insufficient data to calculate variance.")
         return self._variance
     Variance = property(_get_variance)
-    
+
     def _get_sum_squares(self):
         """Returns SumSquares if possible."""
         if self._sum_squares is None:
             raise SummaryStatisticsError("Insufficient data to calculate sum of squares.")
         return self._sum_squares
     SumSquares = property(_get_sum_squares)
-    
+
     def __lt__(self, other):
         """SummaryStatistics compares by count, then sum, then variance.
-        
+
         Absent values compare as 0.
         """
         result = False
@@ -238,10 +238,10 @@ class SummaryStatistics(object):
                 other_attr = 0
             result = result or my_attr < other_attr
         return result
-    
+
     def __gt__(self, other):
         """SummaryStatistics compares by count, then sum, then variance.
-        
+
         Absent values compare as 0.
         """
         result = False
@@ -256,10 +256,10 @@ class SummaryStatistics(object):
                 other_attr = 0
             result = result or my_attr > other_attr
         return result
-    
+
     def __eq__(self, other):
         """SummaryStatistics compares by count, then sum, then variance.
-        
+
         Absent values compare as 0.
         """
         result = False
@@ -274,10 +274,10 @@ class SummaryStatistics(object):
                 other_attr = 0
             result = result or my_attr == other_attr
         return result
-    
+
     def __ne__(self, other):
         """SummaryStatistics compares by count, then sum, then variance.
-        
+
         Absent values compare as 0.
         """
         result = False
@@ -297,19 +297,19 @@ class SummaryStatistics(object):
 
 class NumbersI(object):
     """Interface for Numbers, a list that performs numeric operations."""
-    
+
     _is_sorted = False
-    
+
     def isValid(self):
         """Checks that all items in self are numbers."""
         for i in self:
             if not (isinstance(i, int) or isinstance(i, float)):
                 return False
         return True
-    
+
     def items(self):
         """Returns list of (item, 1) tuples for each item in self.
-        
+
         This is necessary because we want to delegate attribute accesses
         (specifically, method calls for stats functions) to a 
         Freqs object. Freqs tests whether an
@@ -323,10 +323,10 @@ class NumbersI(object):
         own items() method.
         """
         return list(zip(self, [1] * len(self)))
-  
+
     def toFixedWidth(self, fieldwidth=10):
         """Returns string with elements mapped to fixed field width.
-        
+
         Always converts to scientific notation. Minimum fieldwidth is 7,
         since it's necessary to account for '-xe-yyy'.
 
@@ -373,8 +373,8 @@ class NumbersI(object):
         if inclusive:
             operator = ge
         else:
-             operator = gt
-       
+            operator = gt
+
         for i, curr in enumerate(self):
             if operator(curr, value):
                 return i
@@ -382,7 +382,7 @@ class NumbersI(object):
         if stop_at_ends:
             return i
         #default is to return None
-             
+
     def firstIndexLessThan(self, value, inclusive=False, stop_at_ends=False):
         """Returns first index of self that is less than value.
 
@@ -395,7 +395,7 @@ class NumbersI(object):
             operator = le
         else:
             operator = lt
-       
+
         for i, curr in enumerate(self):
             if operator(curr, value):
                 return i
@@ -416,9 +416,9 @@ class NumbersI(object):
             operator = ge
         else:
             operator = gt
-       
+
         latest = None
-       
+
         for i, curr in enumerate(self):
             if operator(curr, value):
                 latest = i
@@ -439,9 +439,9 @@ class NumbersI(object):
             operator = le
         else:
             operator = lt
-       
+
         latest = None
-       
+
         for i, curr in enumerate(self):
             if operator(curr, value):
                 latest = i
@@ -449,7 +449,7 @@ class NumbersI(object):
             return 0
         else:
             return latest
-  
+
     def _get_sum(self):
         """Returns sum of items in self."""
         return sum(self)
@@ -457,7 +457,7 @@ class NumbersI(object):
     Sum = property(_get_sum)
 
     Count = property(list.__len__)
-    
+
     def _get_sum_squares(self):
         """Returns sum of squares of items in self."""
         return sum([i*i for i in self])
@@ -465,7 +465,7 @@ class NumbersI(object):
 
     def _get_variance(self):
         """Returns sample variance of items in self.
-        
+
         Fault-tolerant: returns zero if one or no items.
         """
         if not self:
@@ -496,10 +496,10 @@ class NumbersI(object):
             mean = 0.0
         return mean
     Mean = property(_get_mean)
-    
+
     def _get_mode(self):
         """Returns the most frequent item. If a tie, picks one at random.
-        
+
         Usage: most_frequent = self.mode()
 
         """
@@ -511,10 +511,10 @@ class NumbersI(object):
                 best = item
         return best
     Mode = property(_get_mode)
-    
+
     def quantile(self, quantile):
         """Returns the specified quantile.
-        
+
         Uses method type 7 from R. Only sorts on first call, so subsequent
         modifications may result in incorrect estimates unless directly sorted
         prior to using."""
@@ -527,18 +527,18 @@ class NumbersI(object):
         diff = index - lo
         stat = (1-diff) * self[lo] + diff * self[hi]
         return stat
-    
+
     def _get_median(self):
         """Returns the median"""
         return self.quantile(0.5)
-    
+
     Median = property(_get_median)
-    
+
     def summarize(self):
         """Returns summary statistics for self."""
         return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
             Variance=self.Variance, Median = self.Median)
-        
+
     def choice(self):
         """Returns random element from self."""
         return choice(self)
@@ -601,7 +601,7 @@ class Numbers(NumbersI, MappedList):
     UnsafeNumbers, but impossible for it to hold invalid data.
     """
     Mask = FunctionWrapper(float)
-    
+
     def __init__(self, data=None, Constraint=None, Mask=None):
         """Initializes a new Numbers object.
 
@@ -622,7 +622,7 @@ class Numbers(NumbersI, MappedList):
         else:
             data = []
         MappedList.__init__(self, data, Constraint, Mask)
- 
+
 class FreqsI(object):
     """Interface for frequency distribution, i.e. a set of value -> count pairs.
     """
@@ -661,7 +661,7 @@ class FreqsI(object):
         op: operator to apply to old and new values (default is add,
         but sub and mul might also be useful. Use names from the operator
         module).
-        
+
         Returns modified version of self as result.
         """
         for key, val in list(other.items()):
@@ -699,7 +699,7 @@ class FreqsI(object):
 
     newFromDicts = classmethod(newFromDicts)
 
-        
+
     def fromSeq(self, seq, op=add, weight=1, uses_key=False):
         """Adds counts to self inplace from seq. Each item adds 'weight' counts.
 
@@ -802,7 +802,7 @@ class FreqsI(object):
                     return self.fromSeq
         # should never get here because of return values
         raise NotImplementedError("Fell off end of _find_conversion_function")
-                
+
     def isValid(self):
         """Checks presence of required keys, and that all vals are numbers."""
         for k in self.RequiredKeys:
@@ -840,10 +840,10 @@ class FreqsI(object):
         result = self.copy()
         result -= other
         return result
-          
+
     def __str__(self):
         """Prints the items of self out as tab-delimited text.
-        
+
         Value, Frequency pairs are printed one pair to a line. Headers are 
         'Value' and 'Count'.
         """
@@ -859,7 +859,7 @@ class FreqsI(object):
 
     def __delitem__(self, key):
         """May not delete key if it is required.
-        
+
         WARNING: Will not work if your class doesn't subclass dict as well
         as FreqsI.
         """
@@ -873,7 +873,7 @@ class FreqsI(object):
         """Returns new Freqs with keys remapped using key_map.
 
         key_map should be a dict of {old_key:new_key}.
-        
+
         Values are summed across all keys that map to the same new value.
         Keys that are not in the key_map are omitted (if default is None),
         or set to the default.
@@ -908,7 +908,7 @@ class FreqsI(object):
 
         Ensures that all the required keys are present, if self.RequiredKeys
         is set.
-        
+
         Does the transformation in place.
 
         If purge is True (the default), purges any keys that are not in
@@ -916,7 +916,7 @@ class FreqsI(object):
 
         Can also pass in a number to divide by instead of using the total,
         which is useful for getting the average across n data sets.
-        
+
         Usage: self.normalize()
 
         """
@@ -928,7 +928,7 @@ class FreqsI(object):
             for r in req:
                 if r not in self:
                     self[r] = 0
-            
+
         if total is None:
             total = self.Sum
         if total != 0:          #avoid divide by zero
@@ -950,7 +950,7 @@ class FreqsI(object):
 
     def randomSequence(self, n):
         """Returns list of n random choices, with replacement.
-        
+
         Will raise IndexError if there are no items in self.
         """
         num_items = self.Sum
@@ -970,16 +970,16 @@ class FreqsI(object):
                         to_delete.append(i)
         else:
             to_delete = items
-            
+
         for i in to_delete:
             try:
                 del self[i]
             except KeyError:
                 pass #don't care if it wasn't in the dictionary
-    
+
     def scale(self, factor=1, offset=0):
         """Linear transform of values in freqs where val = facto*val + offset.
-        
+
         Usage: f.scale(factor, offset)
 
         Does the transformation in place.
@@ -991,7 +991,7 @@ class FreqsI(object):
         """Rounds frequencies in Freqs to ndigits (default:0, i.e. integers).
 
         Usage: f.round()
-        
+
         Does the transformation in place
         """
         for k,v in list(self.items()):
@@ -1011,12 +1011,12 @@ class FreqsI(object):
         convert_to should be a callable that takes an arbitrary sequence and
         converts it into the desired output format. Default is list, but
         ''.join is also popular.
-        
+
         scale should be the number you want your frequencies multiplied with.
         Scaling only makes sense if your original freqs are fractions (and 
         otherwise it won't work anyway). The scaling and rounding are done
         on a copy of the original, so the original data is not changed.
-        
+
         Calls round() on each frequency, so if your values are normalized you'll
         need to renormalize them (e.g. self.normalize(); self.normalize(1.0/100)
         to get percentages) or the counts will be zero for anything that's less
@@ -1026,7 +1026,7 @@ class FreqsI(object):
         """
         if scale:
             if sum([round(scale*v) for v in list(self.values())]) != scale:
-               raise ValueError("Can't round to the desired number (%d)"%(scale))
+                raise ValueError("Can't round to the desired number (%d)"%(scale))
             else:
                 used_freq = self.copy()
                 used_freq.scale(factor=scale)
@@ -1045,17 +1045,17 @@ class FreqsI(object):
 
     def _get_count(self):
         """Calculates number of categories in the frequency distribution.
-        
+
         Useful for other stats functions. Assumes that keys are categories.
-        
+
         Usage: count = self.count()
-        
+
         Note that for NumberFreqs, Count will instead return the total number
         of observations.
         """
         return len(self)
     Count = property(_get_count)
- 
+
     def _get_sum(self):
         """Returns sum of items in self."""
         return sum(self.values())
@@ -1068,7 +1068,7 @@ class FreqsI(object):
 
     def _get_variance(self):
         """Returns sample variance of counts in categories in self.
-        
+
         Fault-tolerant: returns 0 if 0 or 1 items.
         """
         if not self:
@@ -1102,10 +1102,10 @@ class FreqsI(object):
 
     def _get_uncertainty(self):
         """Returns the uncertainty of the Freqs.
-        
+
         Calculates the Shannon uncertainty, defined as the sum of weighted
         log probabilities (multiplied by -1).
-        
+
         Usage: H = self.uncertainty()
 
         """
@@ -1120,7 +1120,7 @@ class FreqsI(object):
 
     def _get_mode(self):
         """Returns the most frequent item. If a tie, picks one at random.
-        
+
         Usage: most_frequent = self.mode()
 
         """
@@ -1170,7 +1170,7 @@ class UnsafeFreqs(FreqsI, dict):
         result = self.__class__()
         result.update(self)
         return result
- 
+
 def freqwatcher(x):
     """Checks frequencies are correct type and >= 0."""
     try:
@@ -1184,7 +1184,7 @@ def freqwatcher(x):
 
 class Freqs(FreqsI, MappedDict):
     """Holds a frequency distribution, i.e. a set of category -> count pairs.
-    
+
     Class data:
         ValueMask: function that transforms values before they are entered.
         RequiredKeys: keys that are automatically added with frequency 0 before
@@ -1194,10 +1194,10 @@ class Freqs(FreqsI, MappedDict):
     dictionary. Use UnsafeFreqs if speed is more important than validation.
     """
     ValueMask = FunctionWrapper(freqwatcher)
- 
+
     def __init__(self, data=None, Constraint=None, Mask=None, ValueMask=None):
         """Passes on to superclass, but adds required keys if absent.
-        
+
         Parameters (for polymorphism with MappedDict superclass):
 
         data:           data to load into self
@@ -1233,7 +1233,7 @@ class NumberFreqsI(FreqsI):
     def _get_count(self):
         """Calculates sum of frequencies in the frequency distribution (i.e.
         number of occurrences). Useful for other stats functions.
-        
+
         Usage: count = self.count()
         """
         return sum(self.values())
@@ -1255,30 +1255,30 @@ class NumberFreqsI(FreqsI):
 
     def _get_uncertainty(self):
         """Returns the uncertainty of the NumberFreqs.
-        
+
         Calculates the Shannon uncertainty, defined as the sum of weighted
         log probabilities (multiplied by -1).
 
         Handled by conversion to Freqs, since numbers treated as categories.
-        
+
         Usage: H = self.uncertainty()
         """
         f = UnsafeFreqs()
         f += self
         return f.Uncertainty
-        
+
     Uncertainty = property(_get_uncertainty)
-    
+
     def quantile(self, quantile):
         """Returns the specified quantile.
-        
+
         Uses method type 7 from R."""
         def value_at_expanded_index(values, counts, index):
             cumsum = counts.cumsum()
             for i in range(cumsum.shape[0]):
                 if cumsum[i] > index:
                     return values[i]
-            
+
         vals = sorted(self.keys())
         counts = array([self[val] for val in vals])
         index = quantile * (counts.sum()-1)
@@ -1292,11 +1292,11 @@ class NumberFreqsI(FreqsI):
             hi_val = 0
         stat = (1-diff) * lo_val + diff * hi_val
         return stat
-    
+
     def _get_median(self):
         """returns the median"""
         return self.quantile(0.5)
-    
+
     Median = property(_get_median)
 
 
@@ -1312,19 +1312,19 @@ class UnsafeNumberFreqs(NumberFreqsI, dict):
     valid (will raise various exceptions depending on circumstances).
     """
     RequiredKeys = None
-    
+
     def copy(self):
         """Returns copy of data in self, preserving class."""
         result = self.__class__()
         result.update(self)
         return result
- 
+
 class NumberFreqs(NumberFreqsI, MappedDict):
     """Class holding freqs where both keys and values are numbers.
 
     Mean, variance etc. assume that the data are frequencies of other
     numbers rather than treating each key as a separate category.
-    
+
     Changes calculation of mean, standard deviation, etc. by assuming that
     the keys have weight proportional to their values (i.e. if the key is
     5 and the value is 3, it contributes 15 'units' rather than 3 to things
@@ -1332,16 +1332,16 @@ class NumberFreqs(NumberFreqsI, MappedDict):
 
     Performs (expensive) validation to ensure that keys are floats and
     values are non-negative floats.
-    
+
     All keys and values are automatically converted to float.
     """
     RequiredKeys = None
     Mask = FunctionWrapper(float)
     ValueMask = FunctionWrapper(freqwatcher)
- 
+
     def __init__(self, data=None, Constraint=None, Mask=None, ValueMask=None):
         """Passes on to superclass, but adds required keys if absent.
-        
+
         Parameters (for polymorphism with MappedDict superclass):
 
         data:           data to load into self

@@ -43,26 +43,26 @@ class HostAccount(object):
         self.passwd = passwd
         self.port = port or 3306
         self._hash = hash((self.host, self.user, self.port))
-    
+
     def __lt__(self, other):
         return self._hash < other._hash
-    
+
     def __eq__(self, other):
         return self._hash == other._hash
-    
+
     def __ne__(self, other):
         return self._hash != other._hash
-    
+
     def __hash__(self):
         return self._hash
-    
+
     def __str__(self):
         return '%s:%s@%s:%s' % (self.user,self.passwd,self.host,self.port)
-    
+
 
 def get_ensembl_account(release=None):
     """returns an HostAccount for ensembl.
-    
+
     Arguments:
         - release: if not specified, returns for the ensembl MySQL server
           hosting releases from 48"""
@@ -106,7 +106,7 @@ def make_db_name_pattern(species=None, db_type=None, release=None):
     if release:
         pattern = "%s%s%s" % (pattern, sep, release)
     assert pattern
-    
+
     return "'%s%s'" % (pattern, sep)
 
 def get_db_name(account=None, species=None, db_type=None, release=None,
@@ -114,11 +114,11 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
     """returns the listing of valid data-base names as EnsemblDbName objects"""
     if account is None:
         account = get_ensembl_account(release=release)
-    
+
     if DEBUG:
         print("Connection To:", account)
         print("Selecting For:", species, db_type, release)
-    
+
     server = DbConnection(account, db_name='PARENT')
     cursor = server.cursor()
     show = "SHOW DATABASES"

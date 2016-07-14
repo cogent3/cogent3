@@ -41,17 +41,17 @@ class GetTagTests(TestCase):
         self.assertEqual(get_tag(self.single_tag,'non-existing tag',\
                                  'pink elephant'),'pink elephant')
         self.assertEqual(get_tag(self.single_tag,'inner'),'content')
-        
+
     def test_get_tag_fail(self):
         """Make sure the tag and name parameters are in the proper types."""
         self.assertRaises(AttributeError, get_tag,None,"h1")
         self.assertRaises(AttributeError, get_tag,\
                           "<h1>This is not a XML tag object</h1>","h1")
 
-        
+
 class MinimalBlastParser7Tests(TestCase):
     """Tests for the functions required by the Blast XML parsers."""
-    
+
     def setUp(self):
         self.hit1 = xml.dom.minidom.parseString(HIT_WITH_ONE_HSP)
         self.hit2 = xml.dom.minidom.parseString(HIT_WITH_TWO_HSPS)
@@ -71,7 +71,7 @@ class MinimalBlastParser7Tests(TestCase):
         self.assertEqual(data.get('reference'), 'furry')
         self.assertEqual(data.get('query_letters'), 27)
         self.assertEqual(data.get('database'), 'Cats')
-   
+
     def test_parse_parameters(self):
         """Fields from XML parameter tag should be available as dict."""
         data = parse_parameters(self.param)
@@ -80,7 +80,7 @@ class MinimalBlastParser7Tests(TestCase):
         self.assertEqual(data.get('gap_open_penalty'), 11.1)
         self.assertEqual(data.get('gap_extend_penalty'), 22.2)
         self.assertEqual(data.get('filter'), 'F')
-        
+
     def test_parse_header_complete(self):
         """Fields from header+param tag should be available as dict."""
         # try to process header with parameters etc in the XML
@@ -116,12 +116,12 @@ class MinimalBlastParser7Tests(TestCase):
         self.assertEqual(int(d['SUBJECT_END']),19)
         self.assertEqual(int(d['GAP_OPENINGS']),0)
         self.assertEqual(int(d['ALIGNMENT_LENGTH']),14)
-        
+
         self.assertEqual(d['QUERY_ALIGN'],'ELEPHANTTHISISAHITTIGER')
         self.assertEqual(d['MIDLINE_ALIGN'],'ORCA-WHALE')
         self.assertEqual(d['SUBJECT_ALIGN'],'SEALSTHIS---HIT--GER')
-        
-        
+
+
 class BlastXmlResultTests(TestCase):
     """Tests parsing of output of Blast with output mode 7 (XML)."""
     def setUp(self):
@@ -146,7 +146,7 @@ class BlastXmlResultTests(TestCase):
         for query_id,hits in self.result.iterHitsByQuery():
             n_iter += 1
         self.assertEqual(n_iter,1)
-        
+
     def test_parsed_hsps(self):
         """The result should have the right number of hsps."""
         n_hsps = 0
@@ -190,7 +190,7 @@ class BlastXmlResultTests(TestCase):
             self.assertEqual(gap_hsp['GAP_OPENINGS'],'33')
 
 
-                
+
 HSP_XML = """
         <Hsp>
               <Hsp_num>1</Hsp_num>
@@ -297,4 +297,4 @@ COMPLETE_XML = """<?xml version="1.0"?>
 
 if __name__ == '__main__':
     main()
-    
+

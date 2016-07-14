@@ -13,10 +13,10 @@ __status__ = "Production"
 class _Annotatable(object):
     # default
     annotations = ()
-    
+
     # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
     # __getitem__
-    
+
     def _slicedAnnotations(self, new, slice):
         result = []
         if self.annotations:
@@ -36,7 +36,7 @@ class _Annotatable(object):
                         if annot.map.useful:
                             result.append(annot)
         return result
-    
+
     def _shiftedAnnotations(self, new, shift):
         result = []
         if self.annotations:
@@ -45,7 +45,7 @@ class _Annotatable(object):
                 annot = annot.remappedTo(new, newmap)
                 result.append(annot)
         return result
-    
+
     def _as_map(self, index):
         """Can take a slice, integer, map or feature, or even a list/tuple of those"""
         if type(index) in [list, tuple]:
@@ -69,28 +69,28 @@ class _Annotatable(object):
         else:
             map = as_map(index, len(self))
         return map
-    
+
     def __getitem__(self, index):
         map = self._as_map(index)
         new = self._mapped(map)
         sliced_annots = self._slicedAnnotations(new, map)
         new.attachAnnotations(sliced_annots)
         return new
-    
+
     def _mapped(self, map):
         raise NotImplementedError
-    
+
     def getAnnotationTracks(self, policy):
         result = []
         for annot in self.annotations:
             result.extend(annot.getTracks(policy))
         return result
-    
+
     def addAnnotation(self, klass, *args, **kw):
         annot = klass(self, *args, **kw)
         self.attachAnnotations([annot])
         return annot
-    
+
     def attachAnnotations(self, annots):
         for annot in annots:
             if annot.parent is not self:
@@ -102,7 +102,7 @@ class _Annotatable(object):
         self.annotations.extend(annots)
         for annot in annots:
             annot.attached = True
-    
+
     def detachAnnotations(self, annots):
         for annot in annots:
             if annot.parent is not self:
@@ -111,10 +111,10 @@ class _Annotatable(object):
             if annot.attached:
                 self.annotations.remove(annot)
                 annot.attached = False
-    
+
     def addFeature(self, type, Name, spans):
         return self.addAnnotation(Feature, type, Name, spans)
-    
+
     def getAnnotationsMatching(self, annotation_type, Name=None):
         result = []
         for annotation in self.annotations:
@@ -122,7 +122,7 @@ class _Annotatable(object):
                     Name is None or Name == annotation.Name):
                 result.append(annotation)
         return result
-    
+
     def getRegionCoveringAll(self, annotations, feature_class=None):
         spans = []
         annotation_types = []
@@ -133,16 +133,16 @@ class _Annotatable(object):
         map = Map(spans=spans, parent_length=len(self))
         map = map.covered() # No overlaps
         Name = ','.join(annotation_types)
-        
+
         if feature_class is None:
             feature_class = _Feature
-        
+
         return feature_class(self, map, type='region', Name=Name)
-    
+
     def getByAnnotation(self, annotation_type, Name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
         annotation_type and Name one at a time.
-        
+
         Arguments:
             - ignore_partial: if True, annotations that extend beyond the
             current sequence are ignored."""
@@ -155,7 +155,7 @@ class _Annotatable(object):
                 raise msg
             seq.Info['Name'] = annotation.Name
             yield seq
-    
+
     def _annotations_nucleic_reversed_on(self, new):
         """applies self.annotations to new with coordinates adjusted for
         reverse complement."""
@@ -169,7 +169,7 @@ class _Annotatable(object):
 
 class _Feature(_Annotatable):
     qualifier_names = ['type', 'Name']
-    
+
     def __init__(self, parent, map, original=None, **kw):
         assert isinstance(parent, _Annotatable), parent
         self.parent = parent
@@ -181,24 +181,24 @@ class _Feature(_Annotatable):
         else:
             self.base = parent
             self.base_map = map
-        
+
         for n in self.qualifier_names:
             if n in kw:
                 setattr(self, n, kw.pop(n))
             else:
                 setattr(self, n, getattr(original, n))
         assert not kw, kw
-    
+
     def attach(self):
         self.parent.attachAnnotations([self])
-    
+
     def detach(self):
         self.parent.detachAnnotations([self])
-    
+
     def _mapped(self, slicemap):
         Name = "%s of %s" % (repr(slicemap), self.Name)
         return self.__class__(self, slicemap, type="slice", Name=Name)
-    
+
     def getSlice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
         and the full length of this feature is not present in the sequence
@@ -207,7 +207,7 @@ class _Feature(_Annotatable):
         if not (complete or map.complete):
             map = map.withoutGaps()
         return self.base[map]
-    
+
     def withoutLostSpans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""
         if self.map.complete:
@@ -218,53 +218,53 @@ class _Feature(_Annotatable):
             sliced_annots = self._slicedAnnotations(new, keep)
             new.attachAnnotations(sliced_annots)
         return new
-    
+
     def asOneSpan(self):
         new_map = self.map.getCoveringSpan()
         return self.__class__(self.parent, new_map, type="span", Name=self.Name)
-    
+
     def getShadow(self):
         return self.__class__(self.parent, self.map.shadow(), type='region',
                 Name='not '+ self.Name)
-    
+
     def __len__(self):
         return len(self.map)
-    
+
     def __repr__(self):
         Name = getattr(self, 'Name', '')
         if Name: Name = ' "%s"' % Name
         return '%s%s at %s' % (self.type, Name, self.map)
-    
+
     def remappedTo(self, grandparent, gmap):
         map = gmap[self.map]
         return self.__class__(grandparent, map, original=self)
-    
+
     def getCoordinates(self):
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
         return self.map.getCoordinates()
-    
+
 
 class AnnotatableFeature(_Feature):
     """These features can themselves be annotated."""
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
         return self.__class__(self.parent, new_map, type='slice', Name='')
-    
+
     def remappedTo(self, grandparent, gmap):
         new = _Feature.remappedTo(self, grandparent, gmap)
         new.annotations = [annot for annot in self.annotations if annot.map.useful]
         return new
-    
+
     def getTracks(self, policy):
         return policy.at(self.map).tracksForFeature(self)
-    
+
 
 class Source(_Feature):
     # Has two maps - where it is on the sequence it annotates, and
     # where it is on the original sequence.
     type = 'source'
-    
+
     def __init__(self, seq, map, accession, basemap):
         self.accession = accession
         self.Name = repr(basemap) + ' of ' + accession
@@ -272,7 +272,7 @@ class Source(_Feature):
         self.attached = False
         self.map = map
         self.basemap = basemap
-    
+
     def remappedTo(self, grandparent, gmap):
         new_map = gmap[self.map]
         # unlike other annotations, sources are divisible, so throw
@@ -281,7 +281,7 @@ class Source(_Feature):
         new_map = new_map[ng]
         basemap = self.basemap[ng]
         return self.__class__(grandparent, new_map, self.accession, basemap)
-    
+
     def withoutLostSpans(self):
         return self
 
@@ -295,15 +295,15 @@ def Feature(parent, type, Name, spans, value=None):
 
 class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
-    
+
     def getTracks(self, policy):
         return policy.tracksForVariable(self)
-    
+
     def withoutLostSpans(self):
         if self.map.complete:
             return self
         raise NotImplementedError
-        
+
 
 def Variable(parent, type, Name, xxy_list):
     """A variable that has 2 x-components (start, end) and a single y component.
@@ -319,7 +319,7 @@ def Variable(parent, type, Name, xxy_list):
 
 class _SimpleVariable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['data']
-    
+
     def getTracks(self, policy):
         return policy.tracks_for_value(self)
 
@@ -331,7 +331,7 @@ class _SimpleVariable(_Feature):
         data = numpy.asarray(data)[indicies]
         new = self.__class__(self.parent, self.map[keep], data=data, original=self)
         return new
-        
+
 def SimpleVariable(parent, type, Name, data):
     """A simple variable type of annotation, such as a computed property of
     a sequence that varies spatially."""

@@ -14,7 +14,7 @@ __status__ = "Production"
 
 class ExpectedImportError(ImportError):
     pass
-        
+
 def fail(msg):
     print(msg, file=sys.stderr)
     raise ExpectedImportError

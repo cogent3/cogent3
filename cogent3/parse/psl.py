@@ -23,7 +23,7 @@ def make_header(lines):
         if lengths[index] != max_length:
             for i in range(lengths[index], max_length):
                 line.append('')
-    
+
     header = []
     for t, b in zip(*lines):
         if t.strip().endswith('-'):
@@ -44,32 +44,32 @@ def MinimalPslParser(data, row_converter=row_converter):
     """returns version, header and rows from data"""
     if type(data) == str:
         data = open(data)
-    
+
     psl_version = None
     header = None
     rows = []
-    
+
     for record in data:
         if psl_version is None:
             assert 'psLayout version' in record
             psl_version = record.strip()
             yield psl_version
             continue
-        
+
         if not record.strip():
             continue
-        
+
         if header is None and record[0] == '-':
             header = make_header(rows)
             yield header
             rows = []
             continue
-        
+
         rows += [record.rstrip().split('\t')]
         if header is not None:
             yield row_converter(rows[0])
             rows = []
-    
+
     try:
         data.close()
     except AttributeError:

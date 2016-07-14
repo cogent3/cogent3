@@ -43,7 +43,7 @@ class FastaTests(TestCase):
         self.fasta_with_label_species=\
               '>1st:Dog\nAAAA\n>2nd:Cat\nCCCC\n>3rd:Mouse\nGGGG\n>4th:Rat\nUUUU'
         self.alignment_object.RowOrder = ['1st','2nd','3rd','4th']
-    
+
     def test_fastaFromSequence(self):
         """should return correct fasta string."""
         self.assertEqual(fasta_from_sequences(''),'')
@@ -57,7 +57,7 @@ class FastaTests(TestCase):
         seqs = [self.alignment_object.NamedSeqs[label] for label in self.labels]
         self.assertEqual(fasta_from_sequences(seqs, 
                         make_seqlabel=make_seqlabel), self.fasta_with_label_species)
-    
+
     def test_fasta_from_alignment(self):
         """should return correct fasta string."""
         self.assertEqual(fasta_from_alignment({}),'')

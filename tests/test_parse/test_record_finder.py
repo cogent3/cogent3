@@ -22,7 +22,7 @@ class TailedRecordFinderTests(TestCase):
         """Define a standard TailedRecordFinder"""
         self.endswith_period = lambda x: x.endswith('.')
         self.period_tail_finder = TailedRecordFinder(self.endswith_period)
-        
+
     def test_parsers(self):
         """TailedRecordFinder should split records into lines correctly"""
         lines = '>abc\ndef\nz.\n>efg\nz.'.split()
@@ -42,7 +42,7 @@ class TailedRecordFinderTests(TestCase):
         lines = '>abc  \n \t def\n  z. \t\n>efg \nz.'.split('\n')
         self.assertEqual(list(fl(lines)), \
             [['>abc', ' \t def', '  z.'], ['>efg','z.']])
-   
+
     def test_parsers_leftover(self):
         """TailedRecordFinder should raise error or yield leftover"""
         f = self.period_tail_finder
@@ -56,11 +56,11 @@ class TailedRecordFinderTests(TestCase):
         bad = ['abc']
 
         result = [['abc', 'def','.'], ['ghi','j.']]
-        
+
         self.assertEqual(list(f(good)), result)
         self.assertEqual(list(f(good+blank)), result)
         self.assertRaises(RecordError, list, f(good+bad))
-        
+
         f2 = TailedRecordFinder(self.endswith_period, strict=False)
         self.assertEqual(list(f2(good+bad)), result + [['abc']])
 
@@ -68,10 +68,10 @@ class TailedRecordFinderTests(TestCase):
         """TailedRecordFinder should skip lines to ignore."""
         def never(line):
             return False
-        
+
         def ignore_labels(line):
             return (not line) or line.isspace() or line.startswith('#')
-        
+
         lines = ['abc','\n','1.','def','#ignore','2.']
         self.assertEqual(list(TailedRecordFinder(self.endswith_period)(lines)), 
             [['abc', '1.'],['def','#ignore','2.']])
@@ -103,7 +103,7 @@ class DelimitedRecordFinderTests(TestCase):
         lines = '  \t   abc  \n \t   def\n  // \t\n\t\t efg \n//'.split('\n')
         self.assertEqual(list(DelimitedRecordFinder('//')(lines)), \
             [['abc', 'def', '//'], ['efg','//']])
-   
+
     def test_parsers_error(self):
         """DelimitedRecordFinder should raise RecordError if trailing data"""
         good =  [   '  \t   abc  \n',
@@ -118,7 +118,7 @@ class DelimitedRecordFinderTests(TestCase):
 
         result = [['abc', 'def', '//'], ['efg','//']]
         r = DelimitedRecordFinder('//')
-        
+
         self.assertEqual(list(r(good)), result)
         self.assertEqual(list(r(good+blank)), result)
         try:
@@ -135,10 +135,10 @@ class DelimitedRecordFinderTests(TestCase):
         """DelimitedRecordFinder should skip lines to ignore."""
         def never(line):
             return False
-        
+
         def ignore_labels(line):
             return (not line) or line.isspace() or line.startswith('#')
-        
+
         lines = ['>abc','\n','1', '$$', '>def','#ignore','2', '$$']
         self.assertEqual(list(DelimitedRecordFinder('$$')(lines)), 
             [['>abc', '1', '$$'],['>def','#ignore','2', '$$']])
@@ -148,13 +148,13 @@ class DelimitedRecordFinderTests(TestCase):
         self.assertEqual(list(DelimitedRecordFinder('$$', 
             ignore=ignore_labels)(lines)),
             [['>abc','1','$$'],['>def','2','$$']])
- 
+
 class LabeledRecordFinderTests(TestCase):
     """Tests of the LabeledRecordFinder factory function."""
     def setUp(self):
         """Define a standard LabeledRecordFinder"""
         self.FastaLike = LabeledRecordFinder(lambda x: x.startswith('>'))
-        
+
     def test_parsers(self):
         """LabeledRecordFinder should split records into lines correctly"""
         lines = '>abc\ndef\n//\n>efg\n//'.split()
@@ -174,7 +174,7 @@ class LabeledRecordFinderTests(TestCase):
         lines = '  \t   >abc  \n \t   def\n  // \t\n\t\t >efg \n//'.split('\n')
         self.assertEqual(list(fl(lines)), \
             [['>abc', 'def', '//'], ['>efg','//']])
-   
+
     def test_parsers_leftover(self):
         """LabeledRecordFinder should not raise RecordError if last line label"""
         fl = self.FastaLike
@@ -188,7 +188,7 @@ class LabeledRecordFinderTests(TestCase):
         bad = ['>abc']
 
         result = [['>abc', 'def'], ['>efg','ghi']]
-        
+
         self.assertEqual(list(fl(good)), result)
         self.assertEqual(list(fl(good+blank)), result)
         self.assertEqual(list(fl(good+bad)), result + [['>abc']])
@@ -197,13 +197,13 @@ class LabeledRecordFinderTests(TestCase):
         """LabeledRecordFinder should skip lines to ignore."""
         def never(line):
             return False
-        
+
         def ignore_labels(line):
             return (not line) or line.isspace() or line.startswith('#')
-        
+
         def is_start(line):
             return line.startswith('>')
-        
+
         lines = ['>abc','\n','1','>def','#ignore','2']
         self.assertEqual(list(LabeledRecordFinder(is_start)(lines)), 
             [['>abc', '1'],['>def','#ignore','2']])
@@ -213,7 +213,7 @@ class LabeledRecordFinderTests(TestCase):
         self.assertEqual(list(LabeledRecordFinder(is_start, 
             ignore=ignore_labels)(lines)),
             [['>abc','1'],['>def','2']])
- 
+
 class LineGrouperTests(TestCase):
     """Tests of the LineGrouper class."""
     def test_parser(self):
@@ -238,10 +238,10 @@ class LineGrouperTests(TestCase):
         """LineGrouper should skip lines to ignore."""
         def never(line):
             return False
-        
+
         def ignore_labels(line):
             return (not line) or line.isspace() or line.startswith('#')
-        
+
         lines = ['abc','\n','1','def','#ignore','2']
         self.assertEqual(list(LineGrouper(1)(lines)), 
             [['abc'], ['1'],['def'],['#ignore'],['2']])
@@ -249,7 +249,7 @@ class LineGrouperTests(TestCase):
             [[i.strip()] for i in lines])
         self.assertEqual(list(LineGrouper(2, ignore=ignore_labels)(lines)),
             [['abc','1'],['def','2']])
-        
-         
+
+
 if __name__ == '__main__':
     main()

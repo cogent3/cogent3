@@ -41,7 +41,7 @@ class ProfileError(Exception):
 class Profile(object):
     """Profile class
     """
-    
+
     def __init__(self, Data, Alphabet, CharOrder=None):
         """Initializes a new Profile object.
 
@@ -49,7 +49,7 @@ class Profile(object):
         Specifically, each row of the array corresponds to a position in the
         Alignment. Each column of the array corresponds to a character in the
         Alphabet.
-        
+
         Alphabet: an Alphabet object or anything that can act as a list of
             characters
         CharOrder: optional list of characters to which the columns
@@ -69,11 +69,11 @@ class Profile(object):
             self._translation_table = self._make_translation_table()
         except:
             pass
-    
+
     def __str__(self):
         """Returns string representation of self.Data"""
         return str(self.Data)
-    
+
     def _make_translation_table(self):
         """Makes a translation tables between the CharOrder and indices
         """
@@ -83,7 +83,7 @@ class Profile(object):
 
     def hasValidData(self, err=1e-16):
         """Returns True if all rows in self.Data add up to one
-        
+
         err -- float, maximum deviation from 1 allowed, default is 1e-16
 
         Rounding errors might occur, so a small deviation from 1 is allowed.
@@ -101,7 +101,7 @@ class Profile(object):
         """Checks Alphabet, CharOrder, and size of self.Data"""
         if not reduce(logical_and, [c in self.Alphabet\
             for c in self.CharOrder]):
-                return False
+            return False
         elif self.Data.shape[1] != len(self.CharOrder):
             return False
         return True
@@ -131,7 +131,7 @@ class Profile(object):
                 "Character %s is not present in the profile's CharacterOrder"\
                     %(character))
             return self.Data[pos, self.CharOrder.index(character)]
- 
+
     def copy(self):
         """Returns a copy of the Profile object
 
@@ -141,7 +141,7 @@ class Profile(object):
         and the copy.
         """ 
         return self.__class__(self.Data, self.Alphabet, self.CharOrder)
-    
+
     def normalizePositions(self):
         """Normalizes the data by position (the rows!) to one
 
@@ -168,7 +168,7 @@ class Profile(object):
 
     def normalizeSequences(self):
         """Normalized the data by sequences (the columns) to one
-        
+
         It does not make sense to normalize anything with negative
         numbers in there. However, the method does NOT check for that, 
         because it would slow down the calculations too much. It will work, 
@@ -189,7 +189,7 @@ class Profile(object):
             %(zero_indices))
         else:
             self.Data = self.Data/col_sums
-            
+
     def prettyPrint(self, include_header=False, transpose_data=False,\
         column_limit=None, col_sep='\t'):
         """Returns a string method of the data and character order.
@@ -223,10 +223,10 @@ class Profile(object):
         else:
             formatted_res = r
         return '\n'.join([col_sep.join(map(str,i)) for i in formatted_res])
-        
+
     def reduce(self,other,op=add,normalize_input=True,normalize_output=True):
         """Reduces two profiles with some operator and returns a new Profile
-        
+
         other: Profile object
         op: operator (e.g. add, subtract, multiply, divide)
         normalize_input: whether the input profiles will be normalized
@@ -238,7 +238,7 @@ class Profile(object):
         safety it'll try to normalize the data before collapsing them.
         If you do not normalize your data and set normalize_input to 
         False, you might get unexpected results. 
-        
+
         It does check whether self.Data and other.Data have the same shape
         It does not check whether self and other have the same 
         CharOrder. The resulting Profile gets the alphabet and
@@ -251,7 +251,7 @@ class Profile(object):
         if normalize_input:
             self.normalizePositions()
             other.normalizePositions()
-        
+
         try:
             ##SUPPORT2425
             ori_err = numpy.geterr()
@@ -263,22 +263,22 @@ class Profile(object):
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError("Can't do operation on input profiles")
         result = Profile(new_data, self.Alphabet, self.CharOrder)
-        
+
         if normalize_output:
             result.normalizePositions()
         return result
 
     def __add__(self,other):
         """Binary + operator: adds two profiles element-wise.
-        
+
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=add, normalize_input=False,\
             normalize_output=False)
-    
+
     def __sub__(self,other):
         """Binary - operator: subtracts two profiles element-wise
-        
+
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=subtract, normalize_input=False,\
@@ -286,7 +286,7 @@ class Profile(object):
 
     def __mul__(self,other):
         """* operator: multiplies two profiles element-wise
-        
+
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=multiply, normalize_input=False,\
@@ -306,7 +306,7 @@ class Profile(object):
         """/ operator for new-style division: divides 2 profiles element-wise.
 
         Used when __future__.division is in action.
-        
+
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=divide, normalize_input=False,\
@@ -329,7 +329,7 @@ class Profile(object):
         except ValueError: #frames not aligned 
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"\
             %(self.Data.shape,other.Data.shape))
-    
+
     def toOddsMatrix(self, symbol_freqs=None):
         """Returns the OddsMatrix of a profile as a new Profile.
 
@@ -350,12 +350,12 @@ class Profile(object):
             symbol_freqs = ones(pl)/pl
         else:
             symbol_freqs = array(symbol_freqs)
-            
+
         #raise error when symbol_freqs has wrong length
         if len(symbol_freqs) != pl:
             raise ProfileError("Length of symbol freqs should be %s, but is %s"\
             %(pl,len(symbol_freqs)))
-        
+
         #raise error when symbol freqs contains zero (to prevent 
         #ZeroDivisionError or 'inf' in the resulting matrix)
         if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
@@ -381,7 +381,7 @@ class Profile(object):
 
     def _score_indices(self, seq_indices, offset=0):
         """Returns score of the profile for each slice of the seq_indices
-        
+
         seq_indices: translation of sequence into indices that match the 
         characters in the CharOrder of the profile
         offset: where to start the matching procedure
@@ -399,7 +399,7 @@ class Profile(object):
             slice = seq_indices[starting_pos:starting_pos+pl]
             result.append(sum(array([data[i] for i in zip(r,slice)]), axis=0))
         return array(result)
-    
+
     def _score_profile(self, profile, offset=0):
         """Returns score of the profile against the input_profile.
 
@@ -427,7 +427,7 @@ class Profile(object):
 
         Returns the score of the profile against all possible subsequences/
         subprofiles of the input_data. 
-    
+
         This method determines how well a profile fits at different places
         in the sequence. This is very useful when the profile is a motif and 
         you want to find the position in the sequence that best matches the
@@ -460,7 +460,7 @@ class Profile(object):
         2   0   0   .5  .5
         3   0   0   0   1   
         4   .25 .25 .25 .25
-       
+
         pos 0: rows 0,1,2 -> 0.55
         pos 1: rows 1,2,3 -> 1.25
         pos 2: rows 2,3,4 -> 0.45
@@ -474,7 +474,7 @@ class Profile(object):
         #raise error if profile is empty
         if not data.any():
             raise ProfileError("Can't score an empty profile")
-        
+
         #figure out what the input_data type is
         if isinstance(input_data,Profile):
             is_profile = True
@@ -484,7 +484,7 @@ class Profile(object):
                 raise ProfileError("Profiles must have same character order")
         else: #assumes it get a sequence
             to_score_length = len(input_data)
-       
+
         #Profile should fit at least once in the sequence/profile_to_score
         if to_score_length < pl:
             raise ProfileError("Sequence or Profile to score should be at least %s "%(pl)+\
@@ -511,10 +511,10 @@ class Profile(object):
                 "CharOrder")
             #now the profile is scored against the list of indices   
             return self._score_indices(seq_indices,offset)
-     
+
     def rowUncertainty(self):
         """Returns the uncertainty (Shannon's entropy) for each row in profile
-        
+
         Entropy is returned in BITS (not in NATS).
         """
         if not self.Data.any():
@@ -523,7 +523,7 @@ class Profile(object):
             return row_uncertainty(self.Data)
         except ValueError:
             raise ProfileError("Profile has to be two dimensional to calculate rowUncertainty")
-            
+
     def columnUncertainty(self):
         """Returns uncertainty (Shannon's entropy) for each column in profile
 
@@ -578,18 +578,18 @@ class Profile(object):
         position (row) of the profile. Example: pos 0 [.2,.1,.3,.4]
         (CharOrder: TCAG). To cover .65 (=cutoff) we need two characters:
         A and G, which results in the degenerate character R.
-        
+
         fully_degenerate: determines whether the fully degenerate character
         is returned at a position. For the example above an 'N' would
         be returned.
-       
+
         inlcude_all: all possibilities are included in the degenerate 
         character. Example: row = UCAG = [.1,.3,.3,.3] cutoff = .4, 
         consensus = 'V' (even though only 2 chars would be enough to 
         reach the cutoff value).
 
         The Alphabet of the Profile should implement degenerateFromSequence.
-        
+
         Note that cutoff has priority over fully_degenerate. In other words,
         if you specify a cutoff value and set fully_degenerate to true, 
         the calculation will be done with the cutoff value. If nothing 
@@ -622,7 +622,7 @@ class Profile(object):
                         list(map(lambda x: x.decode('utf8'),
                                  take(co, [item for item in row[-num_to_keep:]\
                         if item in nonzero(data[row_idx])[0]])))))
-                                    
+
         elif not fully_degenerate: 
             result = take(co, argmax(self.Data, axis=-1), axis=0)
         else:
@@ -631,12 +631,12 @@ class Profile(object):
                 val = list(map(lambda x: x.decode('utf8'), take(co, nonzero(row)[0], axis=0)))
                 val = alpha.degenerateFromSequence(val)
                 result.append(val)
-        
+
         try:
             val = ''.join(map(lambda x: x.decode('utf8'), result))
         except AttributeError:
             val = ''.join(result)
-        
+
         return val
 
 
@@ -673,10 +673,10 @@ class Profile(object):
 
 
 
-        
+
 def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     """Returns a Profile with the meaning of each character in the alphabet
-    
+
     alphabet: Alphabet object (should have 'Degenerates'if split_degenerates
     is set to True)
     char_order: string indicating the order of the characters in the profile
@@ -696,17 +696,17 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     others are ignored. E.g. in the DnaAlphabet, if the char order is 
     TACG, ? (which maps to TCAG-) wouldn't be split up, 'R' (which maps 
     to 'AG') would.
-    
+
     Any degenerate characters IN the character order will NOT be split up.
     It doesn't make sense to split up a character that is in the char order
     because it would create an empty column in the profile, so it might
     as well be left out alltogether.
-    
+
     Example 1:
     Alphabet = DnaAlphabet
     Character order = "TCAG"
     Split degenerates = False
-    
+
     All the nonzero rows in the resulting profile are:
     65: [0,0,1,0] (A)
     67: [0,1,0,0] (C)
@@ -718,20 +718,20 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     Alphabet = DnaAlphabet
     Character order = "AGN"
     Split degenerates = True
-    
+
     All the nonzero rows in the resulting profile are:
     65: [1,0,0] (A)
     71: [0,1,0] (G)
     78: [0,0,1] (N)
     82: [.5,.5,0] (R)
     All other rows will be [0,0,0].
-    
+
     Errors are raised when the character order is empty or when there's a
     character in the character order that is not in the alphabet.
     """
     if not char_order: #both testing for None and for empty string
         char_order = list(alphabet)
-    
+
     char_order = array(char_order, 'c')
     lc = len(char_order) #length char_order
 

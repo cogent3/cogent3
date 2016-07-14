@@ -51,7 +51,7 @@ def euclidean_distance(q1, q2):
     """Returns Euclidean distance between arrays q1 and q2."""
     diff = ravel(q1 - q2)
     return sqrt(sum(diff*diff, axis=0))
-    
+
 def euclidean_norm(m):
     """Returns Euclidean norm of an array or matrix m."""
     flattened = ravel(m)
@@ -59,7 +59,7 @@ def euclidean_norm(m):
 
 def _dists_from_mean_slow(qs):
     """Returns distance of each item in qs from the mean.
-    
+
     WARNING: Slow method used only for compatibility testing. Do not use.
     """
     n = len(qs)
@@ -78,7 +78,7 @@ def dists_from_v(a, v=None):
         v = mean(a, axis=0)
     diff = a - v
     return(sqrt(sum(diff*diff, axis=1)))
-        
+
 def weiss(eigens):
     """Returns Weiss(20003) statistic, sum(ln(1+i)) for i in vector of eigens."""
     return sum(log(1+eigens), axis=0)

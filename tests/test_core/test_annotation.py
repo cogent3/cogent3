@@ -41,20 +41,20 @@ class TestAnnotations(unittest.TestCase):
     def setUp(self):
         self.seq = makeSampleSequence()
         self.aln = makeSampleAlignment()
-    
+
     def test_inherit_feature(self):
         """should be able to subclass and extend _Feature"""
         class NewFeat(_Feature):
             def __init__(self, *args, **kwargs):
                 super(NewFeat, self).__init__(*args, **kwargs)
-            
+
             def newMethod(self):
                 if len(self.map.spans) > 1:
                     as_one = self.asOneSpan() # should create new instance of NewFeat
                     return as_one.newMethod()
                 return True
-            
-        
+
+
         seq = DNA.makeSequence('ACGTACGTACGT')
         f = seq.addAnnotation(NewFeat, as_map([(1,3), (5,7)], len(seq)),
                                 type='gene', Name='abcd')
@@ -62,21 +62,21 @@ class TestAnnotations(unittest.TestCase):
         self.assertEqual(type(f.getShadow()), NewFeat)
         f2 = seq.addAnnotation(NewFeat, as_map([(3,5)], len(seq)),
                                 type='gene', Name='def')
-        
+
         self.assertEqual(type(seq.getRegionCoveringAll([f, f2],
                                                 feature_class=NewFeat)),
                         NewFeat)
         # now use the new method
         f.newMethod()
-        
-    
+
+
     def test_slice_seq_with_annotations(self):
         newseq = self.seq[:5] + self.seq[10:]
         for annot_type in ["CDS", "5'UTR"]:
             orig = str(list(self.seq.getByAnnotation(annot_type))[0])
             new = str(list(newseq.getByAnnotation(annot_type))[0])
             assert orig == new, (annot_type, orig, new)
-    
+
     def test_aln_annotations(self):
         """test that annotations to alignment and its' sequences"""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
@@ -103,7 +103,7 @@ class TestAnnotations(unittest.TestCase):
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, (annot_type, name, expected,
                                                     observed)
-    
+
     def test_slice_aln_with_annotations(self):
         """test that annotations of sequences and alignments survive alignment
         slicing."""
@@ -140,7 +140,7 @@ class TestAnnotations(unittest.TestCase):
                 seq_ltr = seq_ltr.withoutLostSpans()
                 expected = expected.replace('-', '')
             self.assertEqual(seq_ltr.getSlice(), expected)
-        
+
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
@@ -150,12 +150,12 @@ class TestAnnotations(unittest.TestCase):
                      "LTR" : {"FAKE01": "CCCAAAATTTTTT",
                               "FAKE02": "CCC-----TTTTT"}
                     }
-        
+
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
                                 "FAKE02": "GGGGGGGGGG"},
                         "5'UTR": {"FAKE01": "TTT",
                                 "FAKE02": "TTT"}}
-        
+
         rc = self.aln.rc()
         # rc'ing an Alignment or Sequence rc's their annotations too. This means
         # slicing returns the same sequence as the non-rc'd alignment/seq
@@ -166,7 +166,7 @@ class TestAnnotations(unittest.TestCase):
             observed = list(rc.getByAnnotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, ("-", annot_type, expected, observed)
-            
+
             if annot_type in ["misc_feature", "LTR"]:
                 continue # because seqs haven't been annotated with it
             for name in self.aln.Names:
@@ -192,7 +192,7 @@ class TestMapSpans(unittest.TestCase):
         reverse = Span(70, 80, Reverse=True)
         assert forward.reversedRelativeTo(100) == reverse
         assert reverse.reversedRelativeTo(100) == forward
-    
+
     def test_map(self):
         """reversing a map with multiple spans should preserve span relative
         order"""
@@ -203,8 +203,8 @@ class TestMapSpans(unittest.TestCase):
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
-    
-    
+
+
 
 if __name__ == '__main__':
     unittest.main()

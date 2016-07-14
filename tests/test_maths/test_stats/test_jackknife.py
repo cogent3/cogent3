@@ -18,11 +18,11 @@ def pmcc(data, axis=1):
     This code implementation is on the proviso that the data that is provided
     is two dimensional: [[Y1], [Y2]] (trying to determine the correlation
     coefficient between data sets Y1 and Y2"""
-    
+
     if axis is 0:
         data = data.transpose()
         axis = 1
-    
+
     other_axis = 0
     mean = data.mean(axis=axis)
     data_less_mean = np.array([data[0] - mean[0],
@@ -57,13 +57,13 @@ class JackknifeTests(TestCase):
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
         self.assertEqual(test_knife.n, data.shape[1])
         self.assertEqual(test_knife._jackknifed_stat, None)
-        
+
         # Vector
         mean_stat = stat_maker(mean, data, 1)
         test_knife = JackknifeStats(data.shape[1], mean_stat)
         self.assertEqual(test_knife.n, data.shape[1])
         self.assertEqual(test_knife._jackknifed_stat, None)
-    
+
     def test_jackknife_stats(self):
         """jackknife results should match Sokal & Rolf example"""
         # Scalar
@@ -72,7 +72,7 @@ class JackknifeTests(TestCase):
         self.assertAlmostEqual(test_knife.JackknifedStat, 1.2905845)
         self.assertAlmostEqual(test_knife.Exception, 0.2884490)
         self.assertTrue(test_knife._jackknifed_stat is not None)
-        
+
         # Vector
         mean_stat = stat_maker(mean, data, 1)
         test_knife = JackknifeStats(data.shape[1], mean_stat)
@@ -80,12 +80,12 @@ class JackknifeTests(TestCase):
         got_jk_stat = test_knife.JackknifedStat
         expected_standard_err = [30.69509346, 1.87179671]
         got_standard_err = test_knife.Exception
-        
+
         for index in [0,1]:
             self.assertAlmostEqual(got_jk_stat[index], expected_jk_stat[index])
             self.assertAlmostEqual(got_standard_err[index],
                                    expected_standard_err[index])
-    
+
     def test_tables(self):
         """jackknife should work for calculators return scalars or vectors"""
         # Scalar
@@ -105,11 +105,11 @@ class JackknifeTests(TestCase):
                                    expected_subsample_stats[index], places=4)
             self.assertAlmostEqual(got_pseudovalues[index],
                                    expected_pseudovalues[index], places=4)
-        
+
         # Vector
         mean_stat = stat_maker(mean, data, 1)
         test_knife = JackknifeStats(data.shape[1], mean_stat)
-        
+
         test_knife.jackknife()
         expected_pseudovalues = data.transpose()
         expected_subsample_stats = [[ 198.9091, 11.8336],
@@ -126,7 +126,7 @@ class JackknifeTests(TestCase):
                                     [ 194.2727, 12.2773]]
         got_subsample_stats = test_knife._subset_statistics
         got_pseudovalues = test_knife._pseudovalues
-        
+
         for index1 in range(data.shape[1]):
             for index2 in range(data.shape[0]):
                 self.assertAlmostEqual(got_subsample_stats[index1][index2],
@@ -135,8 +135,8 @@ class JackknifeTests(TestCase):
                 self.assertAlmostEqual(got_pseudovalues[index1][index2],
                                        expected_pseudovalues[index1][index2],
                                        places=4)
-        
-    
+
+
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
     """
     seqs = [s1, s2]
     alignments = [[], []]
-    
+
     for posn in aligned_positions:
         for (dimension, pos) in enumerate(posn):
             if pos is not None:
@@ -28,13 +28,13 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
             else:
                 c = gap_value
             alignments[dimension].append(c)
-    
+
     for dimension in [0,1]:
         alignments[dimension].reverse()
-    
+
     if isinstance(s1, str):
         alignments = [''.join(a) for a in alignments]
-    
+
     return alignments
 
 def gap_traceback(aligned_positions):

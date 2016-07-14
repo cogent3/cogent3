@@ -57,31 +57,31 @@ def get_header(name=None, description=None, color=None, **kwargs):
     """returns header line for bedgraph"""
     min_header = 'track type=bedGraph name="%(name)s" '\
         + 'description="%(description)s" color=%(color)s'
-    
+
     assert None not in (name, description, color)
     header = [min_header % {'name': name, 'description': description,
                            'color': ','.join(map(str,color))}]
-    
+
     if kwargs:
         if not set(kwargs) <= set(bedgraph_fields):
             not_allowed = set(kwargs) - set(bedgraph_fields)
             raise RuntimeError(
                 "incorrect arguments provided to bedgraph %s" % 
                 str(list(not_allowed)))
-        
+
         if 'altColor' in kwargs:
             kwargs['altColor'] = ','.join(map(str,kwargs['altColor']))
-        
+
         header_suffix = []
         for key in kwargs:
             if key in _booleans:
                 kwargs[key] = booleans(key, kwargs[key])
-            
+
             raise_invalid_vals(key, kwargs[key])
             header_suffix.append('%s=%s' % (key, kwargs[key]))
-        
+
         header += header_suffix
-    
+
     return ' '.join(header)
 
 def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
@@ -89,7 +89,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     """returns a bed formatted string. Input data must be provided as
     [(chrom, start, end, val), ...]. These will be merged such that adjacent
     records with the same value will be combined.
-    
+
     Arguments:
         - name: track name
         - description: track description
@@ -98,10 +98,10 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
         - **kwargs: keyword=val, .. valid bedgraph format modifiers
         see https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
     """
-    
+
     header = get_header(name=name, description=description,
                 color=color, **kwargs)
-    
+
     make_data_row = lambda x: '\t'.join(list(map(str, x[:3])) + ['{0:.2f}'.format(x[-1])])
     # get independent spans for each chromosome
     bedgraph_data = []
@@ -110,7 +110,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     for chrom, start, end, val in chrom_start_end_val:
         if curr_chrom is None:
             curr_chrom = chrom
-        
+
         if curr_chrom != chrom:
             data = get_merged_by_value_coords(data, digits=digits)
             bedgraph_data += [make_data_row([curr_chrom, s, e, v])
@@ -119,11 +119,11 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
             curr_chrom = chrom
         else:
             data.append([start, end, val])
-    
+
     if data != []:
         data = get_merged_by_value_coords(data, digits=digits)
         bedgraph_data += [make_data_row([curr_chrom, s, e, v])
                             for s, e, v in data]
-    
+
     bedgraph_data = [header] + bedgraph_data
     return '\n'.join(bedgraph_data)

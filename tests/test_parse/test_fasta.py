@@ -35,10 +35,10 @@ class GenericFastaTest(TestCase):
         self.oneX='>123\nX\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
         self.nolabels = 'GJ>DSJGSJDF\nSFHKLDFS>jkfs\n'.split('\n')
         self.empty = []
- 
+
 class MinimalFastaParserTests(GenericFastaTest):
     """Tests of MinimalFastaParser: returns (label, seq) tuples."""
-       
+
     def test_empty(self):
         """MinimalFastaParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(MinimalFastaParser(self.empty)), [])
@@ -54,7 +54,7 @@ class MinimalFastaParserTests(GenericFastaTest):
         #if not strict, should skip the records
         self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)), 
             [])
-        
+
     def test_single(self):
         """MinimalFastaParser should read single record as (label, seq) tuple"""
         f = list(MinimalFastaParser(self.oneseq))
@@ -66,10 +66,10 @@ class MinimalFastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('xyz', 'UUUUCCAAAAAG'))
-    
+
     def test_gt_bracket_in_seq(self):
         """MinimalFastaParser handles alternate finder function
-            
+
             this test also illustrates how to use the MinimalFastaParser
             to handle "sequences" that start with a > symbol, which can
             happen when we abuse the MinimalFastaParser to parse
@@ -109,7 +109,7 @@ class MinimalFastaParserTests(GenericFastaTest):
 
 class FastaParserTests(GenericFastaTest):
     """Tests of FastaParser: returns sequence objects."""
-       
+
     def test_empty(self):
         """FastaParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(FastaParser(self.empty)), [])
@@ -124,7 +124,7 @@ class FastaParserTests(GenericFastaTest):
             FastaParser(self.labels,strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(FastaParser(self.labels, strict=False)), [])
-        
+
     def test_single(self):
         """FastaParser should read single record as seq object"""
         f = list(FastaParser(self.oneseq))
@@ -186,7 +186,7 @@ class FastaParserTests(GenericFastaTest):
                 return Dna(x, check=True, **kwargs)
             except Exception as e:
                 raise RecordError("Could not convert sequence")
-        
+
         self.assertRaises(RecordError, list, FastaParser(self.oneX, dnastrict))
         f = list(FastaParser(self.oneX, dnastrict, strict=False))
         self.assertEqual(len(f), 2)
@@ -316,7 +316,7 @@ class NcbiFastaParserTests(TestCase):
             ('TTTTCCCC', ['xyz'], ['qwe'], 'descr'))
         self.assertEqual((c, c.Info.GI, c.Info.DDBJ, c.Info.Description),
             ('tcagTCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
-    
+
 
 class LabelParsingTest(TestCase):
     """Test generic fasta label parsing"""
@@ -327,7 +327,7 @@ class LabelParsingTest(TestCase):
         k = RichLabel(Info(species="rat"), "%(species)s")
         l = RichLabel(Info(species="rat", seq_id="xy5"), "%(species)s")
         self.assertEqual(k, l)
-        
+
         # labels should construct from Info components correctly
         k = RichLabel(Info(species="rat", seq_id="xy5"),
                       "%(seq_id)s:%(species)s")
@@ -335,18 +335,18 @@ class LabelParsingTest(TestCase):
         k = RichLabel(Info(species="rat", seq_id="xy5"),
                       "%(species)s:%(seq_id)s")
         self.assertEqual(k, "rat:xy5")
-        
+
         # extra components should be ignored
         k = RichLabel(Info(species="rat", seq_id="xy5"), "%(species)s")
         self.assertEqual(k, "rat")
-        
+
         # the label should have Info object
         self.assertEqual(k.Info.species, "rat")
         self.assertEqual(k.Info.seq_id, "xy5")
-        
+
         # label should be constructable just like a normal string
         self.assertEqual(RichLabel('a'), 'a')
-    
+
     def test_label_parser(self):
         """label parser factory function cope with mixed structure labels"""
         # the label parser factory function should correctly handle label lines
@@ -361,13 +361,13 @@ class LabelParsingTest(TestCase):
                               (">abcd Human:misc", "misc:abcd"),
                               (">abcd:Human misc", "misc:abcd")]:
             self.assertEqual(make(label), expect)
-        
+
         # should raise an assertion error if template doesn't match at least one field name
         self.assertRaises(AssertionError, LabelParser, "%s:%s",
                                     [[0,"accession", str],
                                     [2, "species", str]],
                                     split_with=": ")
-    
+
 
 class GroupFastaParsingTest(TestCase):
     """test parsing of grouped sequences in a collection"""
@@ -393,7 +393,7 @@ class GroupFastaParsingTest(TestCase):
             self.assertEqual(got, want)
             self.assertEqual(group.Info.Group, "group%s" % (count+1))
             count += 1
-        
+
         # check we don't return a done group
         done_groups = ["group1"]
         parser = GroupFastaParser(data, label_to_name, done_groups=done_groups,
@@ -403,8 +403,8 @@ class GroupFastaParsingTest(TestCase):
             want = expected[1]
             self.assertEqual(got, want)
             self.assertEqual(group.Info.Group, "group2")
-        
-    
+
+
 
 if __name__ == '__main__':
     main()

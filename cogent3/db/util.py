@@ -19,7 +19,7 @@ class UrlGetter(object):
     BaseUrl = ''        #override in derived classes
     KeyValDelimiter = '='
     FieldDelimiter = '&'
-    
+
     def __init__(self, **kwargs):
         """Returns new instance with arbitrary kwargs."""
         self.__dict__.update(self.Defaults)
@@ -49,18 +49,18 @@ class UrlGetter(object):
 
     def retrieve(self, fname, **kwargs):
         """Gets URL and writes to file fname, temporarily overriding kwargs. 
-        
+
         Note: produces no return value."""
         self._temp_args = kwargs
         urlretrieve(str(self), fname)
         self._temp_args = None
-        
+
 def expand_slice(s):
     """Takes a start and end accession, and gets the whole range.
 
     WARNING: Unlike standard slices, includes the last item in the range.
     In other words, obj[AF1001:AF1010] will include AF1010.
-    
+
     Both accessions must have the same non-numeric prefix.
     """
     start, step, end = s.start, s.step, s.stop

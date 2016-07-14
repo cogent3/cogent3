@@ -27,7 +27,7 @@ class test_aaindex1_parser(TestCase):
     def test_init(self):
         """ AAI1: Test that init run w/o error """
         aa1p = AAIndex1Parser()
-        
+
     def test_read_file_as_list(self):
         """AAI1: Test that a file is correctly opened as a list """
         aap = AAIndex1Parser()
@@ -36,7 +36,7 @@ class test_aaindex1_parser(TestCase):
     def test_correct_num_of_records(self):
         """AAI1: Test that one object is created per record """
         self.assertEqual(6, len(self.AAIndexObjects))
-       
+
     def test_ID_entries(self):
         """ AAI1: Test ID Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].ID, 'ANDN920101')
@@ -54,7 +54,7 @@ class test_aaindex1_parser(TestCase):
         """ AAI1: Test Multi Line Description Entries """        
         self.assertEqual(self.AAIndexObjects['JURD980101'].Description,\
         'Modified Kyte-Doolittle hydrophobicity scale (Juretic et al., 1998)')
-        
+
     def test_LITDB_entries(self):
         """ AAI1: Test LITDB Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].LITDBEntryNum,\
@@ -86,7 +86,7 @@ class test_aaindex1_parser(TestCase):
         """ AAI1: Test Single Line Title Entries """
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Title,\
         'Structural prediction of membrane-bound proteins')     
-        
+
     def test_Citation_entries(self):
         """ AAI1: Test Citation Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Citation,\
@@ -95,7 +95,7 @@ class test_aaindex1_parser(TestCase):
         'Eur. J. Biochem. 128, 565-575 (1982)')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Citation,\
         'Theoretical and Computational Chemistry, 5, 405-445 (1998)')
-         
+
     def test_Comments_entries(self):
         """ AAI1: Test Comments Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Comments,\
@@ -108,30 +108,30 @@ class test_aaindex1_parser(TestCase):
         '(Cyh 113.7)')
 
     def test_single_line_Correlating_entries(self):
-         """ AAI1: Test single line Correlating Entries """
-         self.assertEqual(self.AAIndexObjects['ANDN920101'].\
-         Correlating['BUNA790102'], 0.949)
+        """ AAI1: Test single line Correlating Entries """
+        self.assertEqual(self.AAIndexObjects['ANDN920101'].\
+        Correlating['BUNA790102'], 0.949)
 
     def test_empty_Correlating_entries(self):
         """ AAI1: Test empty Correlating Entries """       
         self.assertEqual(self.AAIndexObjects['WILM950104'].Correlating, {})
 
     def test_multi_line_Correlating_entries(self):
-         """ AAI1: Test multi line Correlating Entries """
-         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-         Correlating['ARGP820102'], 0.961)
-         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-         Correlating['MIYS850101'], 0.822)
-         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-         Correlating['JURD980101'], 0.800)
+        """ AAI1: Test multi line Correlating Entries """
+        self.assertEqual(self.AAIndexObjects['ARGP820103'].\
+        Correlating['ARGP820102'], 0.961)
+        self.assertEqual(self.AAIndexObjects['ARGP820103'].\
+        Correlating['MIYS850101'], 0.822)
+        self.assertEqual(self.AAIndexObjects['ARGP820103'].\
+        Correlating['JURD980101'], 0.800)
 
-         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-         Correlating['KYTJ820101'], 0.996)
-         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-         Correlating['NADH010101'], 0.925)
-         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-         Correlating['OOBM770101'], -0.903)
-                                    
+        self.assertEqual(self.AAIndexObjects['JURD980101'].\
+        Correlating['KYTJ820101'], 0.996)
+        self.assertEqual(self.AAIndexObjects['JURD980101'].\
+        Correlating['NADH010101'], 0.925)
+        self.assertEqual(self.AAIndexObjects['JURD980101'].\
+        Correlating['OOBM770101'], -0.903)
+
     def test_Data_entries(self):
         """ AAI1: Test Data Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Data['A'],\
@@ -153,7 +153,7 @@ class test_aaindex1_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['V'],\
         4.2)                  
 
-                   
+
 class test_aaindex2_parser(TestCase):
     def setUp(self):
         """ Setup some variables """
@@ -219,7 +219,7 @@ class test_aaindex2_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Title,\
         'Optimization of a new score function for the generation of '+\
         'accurate alignments')
-        
+
     def test_Citation_entries(self):
         """ AAI2: Test citation entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Citation,\
@@ -243,28 +243,28 @@ class test_aaindex2_parser(TestCase):
         '* #  Blocks Database = /data/blocks_5.0/blocks.dat ' +
         '* #  Cluster Percentage: >= 50 ' +
         '* #  Entropy =   0.4808, Expected =  -0.3573')
-      
+
     def test_Data_entries_20x20_LTM(self):
-         """ AAI2: correct data entries when 20x20 LTM"""
-         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['A']['A'],\
-         3.)
-         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['Y']['R'],\
-         -6.)
-         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['V']['V'],\
-         5.)
-         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['A']['A'],\
-         2.4)
-         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['Y']['R'],\
-         -2.0)
-         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['V']['V'],\
-         3.4)
-         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['A']['A'],\
-         2.5)
-         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['Y']['R'],\
-         -0.9)
-         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['V']['V'],\
-         4.2)
-         
+        """ AAI2: correct data entries when 20x20 LTM"""
+        self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['A']['A'],\
+        3.)
+        self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['Y']['R'],\
+        -6.)
+        self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['V']['V'],\
+        5.)
+        self.assertEqual(self.AAIndexObjects['BENS940103'].Data['A']['A'],\
+        2.4)
+        self.assertEqual(self.AAIndexObjects['BENS940103'].Data['Y']['R'],\
+        -2.0)
+        self.assertEqual(self.AAIndexObjects['BENS940103'].Data['V']['V'],\
+        3.4)
+        self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['A']['A'],\
+        2.5)
+        self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['Y']['R'],\
+        -0.9)
+        self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['V']['V'],\
+        4.2)
+
     def test_Data_entries_20x20_Square(self):
         """ AAI2: correct data entries when 20x20 squ matrix """
         self.assertEqual(self.AAIndexObjects['HENS920104'].Data['V']['Y'],\
@@ -285,7 +285,7 @@ class test_aaindex2_parser(TestCase):
         # so this method should just serve as a reminder to test this
         # when we begin parsing data other than square matrices.
         pass
-        
+
     def test_Data_entries_21x21_LTM(self):
         """ AAI2: correct data entries when 21x21 LTM"""
         self.assertEqual(self.AAIndexObjects['KOSJ950101'].Data['-']['-'],\
@@ -305,7 +305,7 @@ class test_aaindex2_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['OVEJ920102'].Data['D']['E'],\
         0.109)
 
-        
+
 class AAIndexRecordTests(TestCase):
     """ AAIR: Tests AAIndexRecord class """
 
@@ -578,7 +578,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
         self.assertEqual(square['*']['R'], None)
 
 # Data for parser tests
-        
+
 fake_file_aaindex1 =\
 """
 H ANDN920101
@@ -878,5 +878,5 @@ if __name__ == '__main__':
     main()
 
 
-                                                                                                                          
+
 

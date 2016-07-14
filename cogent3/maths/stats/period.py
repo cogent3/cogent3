@@ -48,14 +48,14 @@ def g_statistic(X, p=None, idx=None):
     g_obs = power/X.sum()
     M = numpy.floor(1/g_obs)
     pmax = len(X)
-    
+
     result = numpy.zeros((int(M+1),), float)
     pmax_fact = factorial(pmax)
     for index in range(1, min(pmax, int(M))+1):
         v = (-1)**(index-1)*pmax_fact/factorial(pmax-index)/factorial(index)
         v *= (1-index*g_obs)**(pmax-1)
         result[index] = v
-    
+
     p_val = result.sum()
     return g_obs, p_val
 
@@ -70,14 +70,14 @@ def _seq_to_symbols(seq, motifs, motif_length, result=None):
         result = numpy.zeros(len(seq), numpy.uint8)
     else:
         result.fill(0)
-    
+
     if motif_length is None:
         motif_length = len(motifs[0])
-    
+
     for i in range(len(seq) - motif_length + 1):
         if seq[i: i + motif_length] in motifs:
             result[i] = 1
-    
+
     return result
 
 try:
@@ -103,34 +103,34 @@ class SeqToSymbols(object):
         self.working = None
         if length is not None:
             self.setResultArray(length)
-    
+
     def setResultArray(self, length):
         """sets a result array for length"""
         self.working = numpy.zeros(length, numpy.uint8)
         self.length = length
-    
+
     def __call__(self, seq, result=None):
         if result is None and self.working is None:
             self.setResultArray(len(seq))
         elif self.working is not None:
             if len(seq) != self.working.shape[0]:
                 self.setResultArray(len(seq))
-        
+
         result = self.working
         result.fill(0)
         if type(seq) == str:
             seq = seq.encode('utf8')
         elif type(seq) != bytes:
             seq = b''.join(seq)
-        
+
         return seq_to_symbols(seq, self.motifs, self.motif_length, result)
-    
+
 
 def circular_indices(vector, start, length, num):
     """docstring for circular_indices"""
     if start > length:
         start = start-length
-        
+
     if start+num < length:
         return vector[start: start+num]
     # get all till end, then from beginning
@@ -148,10 +148,10 @@ def sampled_places(block_size, length):
     for seg_num in range(num_seg):
         i = choice(vector)
         result += circular_indices(vector, i, length, block_size)
-    
+
     if remainder:
         result += circular_indices(vector, i+block_size, length, remainder)
-    
+
     assert len(result) == length, len(result)
     return result
 
@@ -159,7 +159,7 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
     """returns observed statistic and the probability from the bootstrap
     test of observing more `power' by chance than that estimated from the
     observed signal
-    
+
     Arguments:
         - signal: a series, can be a sequence object
         - calc: function to calculate the period power, e.g. ipdft, hybrid,
@@ -172,38 +172,38 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
           interation. Default to 1.
     """
     signal_length = len(signal)
-    
+
     if seq_to_symbols is not None:
         dtype='c'
     else:
         dtype=None # let numpy guess
-    
+
     signal = numpy.array(list(signal), dtype=dtype)
-    
+
     if seq_to_symbols is not None:
         symbolic = seq_to_symbols(signal)
         data = symbolic
     else:
         data = signal
-    
+
     obs_stat = calc(data)
     if seq_to_symbols is not None:
         if sum(symbolic) == 0:
             p = [numpy.array([1.0, 1.0, 1.0]), 1.0][num_stats == 1]
-            
+
             return obs_stat, p
-    
+
     if num_stats is None:
         try:
             num_stats = calc.getNumStats()
         except AttributeError:
             num_stats = 1
-    
+
     if num_stats == 1:
         count = 0
     else:
         count = numpy.zeros(num_stats)
-    
+
     for rep in range(num_reps):
         # get sample positions
         sampled_indices = sampled_places(block_size, signal_length)
@@ -219,7 +219,7 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
             count[sim_stat >= obs_stat] += 1
         elif sim_stat >= obs_stat:
             count += 1
-        
+
     return obs_stat, count / num_reps
 
 

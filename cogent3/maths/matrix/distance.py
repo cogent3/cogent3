@@ -30,7 +30,7 @@ class DistanceMatrix(Dict2D, Delegator):
     RowOrder = list('ACDEFGHIKLMNPQRSTVWY')
     ColOrder = list('ACDEFGHIKLMNPQRSTVWY')
     Pad = True
-    
+
     def __init__(self, data=None, RowOrder=None, ColOrder=None, Default=None,
         Pad=None, RowConstructor=None, info=None):
         """ Init dict with pre-exisitng data: dict of dicts
@@ -61,7 +61,7 @@ class DistanceMatrix(Dict2D, Delegator):
                 ColOrder=self.ColOrder, Default=Default, Pad=self.Pad,\
                 RowConstructor=RowConstructor)
         Delegator.__init__(self, info)
-        
+
         # The power to which the original data has been raised to give
         # the current data, starts at 1., modified by elementPow()
         # accessed as self.Power
@@ -69,18 +69,18 @@ class DistanceMatrix(Dict2D, Delegator):
 
     def elementPow(self, power, ignore_invalid=True):
         """ Raises all elements in matrix to power
-            
+
             power: the power to raise all elements in the matrix to,
                 must be a floatable value or a TypeError is raise
             ignore_invalid: leaves invalid (not floatable) 
                 matrix data untouched
-        
+
         """
         try:
             n = float(power)
         except ValueError:
             raise TypeError('Must pass a floatable value to elementPow')
-       
+
         if ignore_invalid:
             def Pow(x):
                 try:
@@ -90,13 +90,13 @@ class DistanceMatrix(Dict2D, Delegator):
         else:
             def Pow(x):
                 return x**n
-            
+
         self.scale(Pow)
         self.Power = self.Power * n
-                                
+
     def copy(self):
         """ Returns a deep copy of the DistanceMatrix object """
         # Is there a better way to do this? It's tricky to keep the delegator
         # part functioning
         return deepcopy(self)
-    
+

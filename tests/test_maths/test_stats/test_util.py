@@ -72,7 +72,7 @@ class SummaryStatisticsTests(TestCase):
         self.assertEqual(s.Sum, 3)
         s = SummaryStatistics(Count=3, Mean=5)
         self.assertEqual(s.Sum, 15)
-        
+
     def test_Mean(self):
         """SummaryStatistics Mean should work if Mean or Count and Sum ok"""
         s = SummaryStatistics(Mean=3)
@@ -87,7 +87,7 @@ class SummaryStatisticsTests(TestCase):
         self.assertEqual(s.Variance, 9)
         s = SummaryStatistics(Variance=9)
         self.assertEqual(s.StandardDeviation, 3)
-        
+
     def test_Variance(self):
         """SummaryStatistics Variance should work if it or std dev ok"""
         s = SummaryStatistics(StandardDeviation=3)
@@ -95,7 +95,7 @@ class SummaryStatisticsTests(TestCase):
         self.assertEqual(s.Variance, 9)
         s = SummaryStatistics(Variance=9)
         self.assertEqual(s.StandardDeviation, 3)
- 
+
     def test_SumSquares(self):
         """SummaryStatistics SumSquares should work if set"""
         s = SummaryStatistics(SumSquares=3)
@@ -132,7 +132,7 @@ class NumbersTestsI(object):
     def test_init_empty(self):
         """Numbers should initialize OK with empty list"""
         self.assertEqual(self.ClassToTest([]), [])
-        
+
     def test_init_single(self):
         """Numbers should initialize OK with single number"""
         self.assertEqual(self.ClassToTest([5.0]), [5.0])
@@ -159,7 +159,7 @@ class NumbersTestsI(object):
         #test that addition of an empty list works
         self.assertFloatEqual(self.integers + self.empty, self.integers)
         self.assertFloatEqual(self.empty + self.floats, self.floats)
-    
+
     def test_add_repeated(self):
         """Numbers should support repeated addition, a+b+c"""
         self.assertFloatEqual(self.floats + self.floats + self.floats,
@@ -184,7 +184,7 @@ class NumbersTestsI(object):
         """Numbers should support slice assignment"""
         self.floats[0:1] = [1, 2, 3]
         self.assertFloatEqual(self.floats, [1, 2, 3, 2.7])
-    
+
     def test_append_good(self):
         """Numbers should support append of a number"""
         self.floats.append(1)
@@ -228,7 +228,7 @@ class NumbersTestsI(object):
                                             '-1.23e+302',
                                             '-1.23e-298',
                                             ]))
- 
+
     def test_toFixedWidth_specified_precision(self):
         """Numbers should convert all kinds of floats to specified precision"""
         self.assertEqual(self.mixed.toFixedWidth(7), ''.join([
@@ -254,7 +254,7 @@ class NumbersTestsI(object):
                                             ' -1e+302',
                                             ' -1e-298',
                                             ]))
- 
+
         self.assertEqual(self.mixed.toFixedWidth(12), ''.join([
                                             ' +0.0000e+00',
                                             ' +1.0000e+00',
@@ -282,7 +282,7 @@ class NumbersTestsI(object):
         zero = self.zero
         zero.normalize()
         self.assertEqual(zero, [0,0,0,0,0])
-       
+
     def test_normalize_parameter(self):
         """Numbers normalize(x) should divide items by x"""
         first = self.ClassToTest([0, 1, 2, 3, 4])
@@ -397,7 +397,7 @@ class NumbersTestsI(object):
         self.assertEqual(self.empty.Mean, None)
         self.assertEqual(self.zero.Mean, 0)
         self.assertEqual(self.ints.Mean, 3)
-    
+
     def test_NumberQuantiles(self):
         """quantiles should be correct"""
         num = self.ClassToTest(list(range(1,11)))
@@ -407,7 +407,7 @@ class NumbersTestsI(object):
         self.assertFloatEqual(num.Median, 5.5)
         self.assertFloatEqual(num.quantile(.75), 7.75)
         self.assertFloatEqual(num.quantile(.77), 7.93)
-    
+
     def test_summarize(self):
         """Numbers summarize should return SummaryStatistics object"""
         self.assertEqual(self.ints.summarize(), SummaryStatistics(Mean=3,\
@@ -431,7 +431,7 @@ class NumbersTestsI(object):
             assert n in self.ints
         v = Numbers(nums).Variance
         self.assertNotEqual(v, 0)
-        
+
     def test_subset(self):
         """Numbers subset should delete (or keep) selected items"""
         odd = [5,1,3]
@@ -555,7 +555,7 @@ class UnsafeNumbersTests(TestCase, NumbersTestsI):
 
 class StaticFreqsTestsI(object):
     """Tests of the interface shared by Freqs and UnsafeFreqs (static keys).
-    
+
     All of these tests assume keys on the alphabet 'abcde'.
 
     These tests were added to ensure that array-based objects that implement
@@ -593,13 +593,13 @@ class StaticFreqsTestsI(object):
         f = ct()
         self.assertEqual(f.fromTuples([('a',4),('b',3),('a',2), ('b',4)], \
             func,uses_key=True), ct({'a':6,'b':12}))
-        
+
     def test_newFromTuples(self):
         """Freqs newFromTuples should work as expected."""
         ct = self.ClassToTest
         self.assertEqual(ct.newFromTuples([('a',4),('b',3),('a',2)]), \
             ct({'a':6,'b':3}))
-        
+
     def test_fromDict(self):
         """Freqs fromDict should add from dict of {key:count}"""
         ct = self.ClassToTest
@@ -617,7 +617,7 @@ class StaticFreqsTestsI(object):
         """Freqs newFromDict should work as expected."""
         ct = self.ClassToTest
         self.assertEqual(ct.newFromDict({'a':6,'b':3}), ct({'a':6,'b':3}))
-     
+
     def test_fromDicts(self):
         """Freqs fromDicts should add from list of dicts of {key:count}"""
         ct = self.ClassToTest
@@ -635,7 +635,7 @@ class StaticFreqsTestsI(object):
         """Freqs newFromDicts should work as expected."""
         ct = self.ClassToTest
         self.assertEqual(ct.newFromDicts([{'a':6},{'b':3}]), ct({'a':6,'b':3}))
- 
+
     def test_fromSeq(self):
         """Freqs fromSeq should add items from sequence, according to weight"""
         ct = self.ClassToTest
@@ -753,7 +753,7 @@ class StaticFreqsTestsI(object):
         self.assertEqual(r, ct({'a':4, 'b':6, 'c':3}))
         self.assertEqual(f, orig)
         #note that list of strings will give implementation-dependent result
-        
+
     def test_isub(self):
         """Freqs -= should subtract in place using any known data type"""
         ct = self.ClassToTest
@@ -791,7 +791,7 @@ class StaticFreqsTestsI(object):
         self.assertEqual(r, ct({'a':0, 'b':2}))
         self.assertEqual(f, orig)
         #note that list of strings will give implementation-dependent results
-        
+
     def test_copy(self):
         """Freqs copy should preserve class of original"""
         d = {'a':4, 'b':3, 'c':6}
@@ -809,7 +809,7 @@ class StaticFreqsTestsI(object):
         pass
 
     #The following test custom methods
-        
+
     def test_rekey(self):
         """Freqs rekey should map the results onto new keys"""
         #note that what happens to unmapped keys is implementation-dependent
@@ -831,7 +831,7 @@ class StaticFreqsTestsI(object):
         for i in 'abc':
             if i in f:
                 self.assertEqual(f[i], 0)
-        
+
         #check with explicit constructor and default
         d = self.ClassToTest({'a':3, 'b':5, 'c':6, 'd':7, 'e':1})
         f = d.rekey({'a':'+', 'b':'-', 'c':'+'}, default='x', constructor=dict)
@@ -845,7 +845,7 @@ class StaticFreqsTestsI(object):
         d = ct(orig)
         d.purge()
         self.assertEqual(d, ct(orig))
-       
+
     def test_normalize(self):
         """Freqs should allow normalization"""
         ct = self.ClassToTest
@@ -876,14 +876,14 @@ class StaticFreqsTestsI(object):
         for index, value in enumerate(vals):
             self.assertEqual(self.Alphabetic.choice(value-0.01),keys[index])
             self.assertEqual(self.Alphabetic.choice(value+0.01), keys[index+1])
-            
+
     def test_randomSequence_good(self):
         """Freqs randomSequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
         keys = list(self.Alphabetic.keys())
         probs = [float(i)/total for i in list(self.Alphabetic.values())]
-        
+
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob*10000 for prob in probs]
@@ -926,7 +926,7 @@ class StaticFreqsTestsI(object):
         self.assertEqual(f,ct({'a':250, 'b':250}))
         f.scale(0.001)
         self.assertEqual(f,ct({'a':0.25,'b':0.25}))
-    
+
     def test_round(self):
         """Freqs round should round all frequencies to integers"""
         ct = self.ClassToTest
@@ -936,7 +936,7 @@ class StaticFreqsTestsI(object):
         g = ct({'a':23.1356, 'b':12.5731})
         g.round(3)
         self.assertEqual(g,ct({'a':23.136, 'b':12.573}))
- 
+
     def test_expand(self):
         """Freqs expand should give expected results"""
         ct = self.ClassToTest
@@ -986,7 +986,7 @@ class StaticFreqsTestsI(object):
         self.assertFloatEqual(self.Empty.StandardDeviation, None)
         #WARNING: Standard deviation with empty categories is implementation-
         #dependent
-       
+
     def test_Mean(self):
         """Freqs Mean should return mean of counts in categories"""
         self.assertEqual(self.Alphabetic.Mean, 8/5.0)
@@ -1014,7 +1014,7 @@ class StaticFreqsTestsI(object):
         self.assertFloatEqual(s.Variance, 0.8)
         self.assertFloatEqual(s.StandardDeviation, sqrt(0.8))
         self.assertFloatEqual(s.Mean, 8.0/5)
- 
+
     def test_getSortedList(self):
         """Freqs getSortedList should return sorted list of key, val tuples"""
         #behavior is implementation-defined with empty list, so skip tests.
@@ -1030,13 +1030,13 @@ class StaticFreqsTestsI(object):
             [('e',1),('d',1),('c',1),('b',5),('a',3)])
         self.assertEqual(a.getSortedList(by_val=False, descending=False), \
             [('a',3),('b',5),('c',1),('d',1),('e',1)])
- 
+
 class FreqsStaticTests(StaticFreqsTestsI, TestCase):
     ClassToTest = Freqs
 
 class UnsafeFreqsStaticTests(StaticFreqsTestsI, TestCase):
     ClassToTest = UnsafeFreqs
-        
+
 class FreqsTestsI(object):
     """Tests of the interface shared by Freqs and UnsafeFreqs."""
     ClassToTest = None
@@ -1063,8 +1063,8 @@ class FreqsTestsI(object):
         f = self.ClassToTest()
         self.assertEqual(f.fromTuples([('a',4),('b',3),('a',2), ('b',4)], \
             func,uses_key=True), {'a':6,'b':12})
-        
-    
+
+
     def test_fromDict(self):
         """Freqs fromDict should add from dict of {key:count}"""
         f = self.ClassToTest()
@@ -1076,7 +1076,7 @@ class FreqsTestsI(object):
         #should work with a different operator
         f.fromDict({'b':7}, op=mul)
         self.assertEqual(f, {'a':6, 'b':14, 'c':4.5})
-    
+
     def test_fromDicts(self):
         """Freqs fromDicts should add from list of dicts of {key:count}"""
         f = self.ClassToTest()
@@ -1208,7 +1208,7 @@ class FreqsTestsI(object):
         r = f + ['abc', 'def', 'abc']
         self.assertEqual(r, {'a':3, 'b':4, 'abc':2, 'def':1})
         self.assertEqual(f, f)
-        
+
     def test_isub(self):
         """Freqs -= should subtract in place using any known data type"""
         f = self.ClassToTest({'a':5, 'b':4})
@@ -1256,7 +1256,7 @@ class FreqsTestsI(object):
         r = f - ['abc', 'def', 'abc']
         self.assertEqual(r, {'a':3, 'b':4, 'abc':3, 'def':9})
         self.assertEqual(f, orig)
-        
+
     def test_copy(self):
         """Freqs copy should preserve class of original"""
         d = {'a':4, 'b':3, 'c':6}
@@ -1299,7 +1299,7 @@ class FreqsTestsI(object):
         self.assertEqual(a, {'c':1,'d':1})
 
     #The following test custom methods
-        
+
     def test_rekey(self):
         """Freqs rekey should map the results onto new keys."""
         d = self.ClassToTest({'a':3, 'b':5, 'c':6, 'd':7, 'e':1})
@@ -1325,7 +1325,7 @@ class FreqsTestsI(object):
         #should have no effect if repeated
         working.purge()
         self.assertEqual(working, {-2:3,-1:1})
-       
+
     def test_normalize(self):
         """Freqs should allow normalization on any type"""
         self.Empty.normalize()
@@ -1378,14 +1378,14 @@ class FreqsTestsI(object):
         for index, value in enumerate(vals):
             self.assertEqual(self.Alphabetic.choice(value-0.01),keys[index])
             self.assertEqual(self.Alphabetic.choice(value+0.01), keys[index+1])
-            
+
     def test_randomSequence_good(self):
         """Freqs randomSequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
         keys = list(self.Alphabetic.keys())
         probs = [float(i)/total for i in list(self.Alphabetic.values())]
-        
+
         rand_seq = self.Alphabetic.randomSequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob*10000 for prob in probs]
@@ -1425,7 +1425,7 @@ class FreqsTestsI(object):
         self.assertEqual(f,{'a':250, 'b':250})
         f.scale(0.001)
         self.assertEqual(f,{'a':0.25,'b':0.25})
-    
+
     def test_round(self):
         """Freqs round should round all frequencies to integers"""
         f = self.ClassToTest({'a':23.1, 'b':12.5, 'c':56.7})
@@ -1434,7 +1434,7 @@ class FreqsTestsI(object):
         g = Freqs({'a':23.1356, 'b':12.5731})
         g.round(3)
         self.assertEqual(g,{'a':23.136, 'b':12.573})
- 
+
     def test_expand(self):
         """Freqs expand should give expected results"""
         f = self.ClassToTest({'U':3, 'A':5, 'C':2})
@@ -1500,7 +1500,7 @@ class FreqsTestsI(object):
         self.assertFloatEqual(self.Empty.StandardDeviation, None)
         self.assertFloatEqual(self.PosNeg.StandardDeviation, 0)
         self.assertEqual(self.Constant.StandardDeviation, 0)
-       
+
     def test_Mean(self):
         """Freqs Mean should return mean of counts in categories"""
         self.assertEqual(self.Alphabetic.Mean, 8/5.0)
@@ -1538,7 +1538,7 @@ class FreqsTestsI(object):
         self.assertFloatEqual(s.Variance, 0.8)
         self.assertFloatEqual(s.StandardDeviation, sqrt(0.8))
         self.assertFloatEqual(s.Mean, 8.0/5)
- 
+
     def test_getSortedList(self):
         """Freqs getSortedList should return sorted list of key, val tuples"""
         e = self.Empty
@@ -1559,7 +1559,7 @@ class FreqsTestsI(object):
             [('e',1),('d',1),('c',1),('b',5),('a',3)])
         self.assertEqual(a.getSortedList(by_val=False, descending=False), \
             [('a',3),('b',5),('c',1),('d',1),('e',1)])
- 
+
 class FreqsTests(FreqsTestsI, TestCase):
     """Tests of Freqs-specific behavior, mostly validation."""
     ClassToTest = Freqs
@@ -1579,23 +1579,23 @@ class FreqsTests(FreqsTestsI, TestCase):
     def test_init_empty(self):
         """Freqs should initialize OK with empty list"""
         self.assertEqual(self.ClassToTest([]), {})
-                         
+
     def test_init_single(self):
         """Freqs should initialize OK with single item"""
         self.assertEqual(self.ClassToTest(['X']), {'X':1.0})
-                        
+
     def test_init_same_key(self):
         """Freqs should initialize OK with duplicate items"""
         self.assertEqual(self.ClassToTest([1]*5), {1:5})
-    
+
     def test_init_two_keys(self):
         """Freqs should initialize OK with distinct items"""
         self.assertEqual(self.ClassToTest([0,1,0,0,1]), {1:2,0:3})
-        
+
     def test_init_strings(self):
         """Freqs should initialize OK with characters in string"""
         self.assertEqual(self.ClassToTest('zabcz'), {'z':2,'a':1,'b':1,'c':1})
-    
+
     def test_init_fails_negative(self):
         """Freqs init should fail on negative frequencies"""
         self.assertRaises(ConstraintError, self.ClassToTest, {'a':3, 'b':-3})
@@ -1625,7 +1625,7 @@ class FreqsTests(FreqsTestsI, TestCase):
         self.assertEqual(fd, {'a':1,'b':1,'c':1})
         self.assertRaises(ConstraintError, fd.setdefault, 'x', 1)
         self.assertRaises(ConstraintError, fd.__setitem__, 'x', 1)
-    
+
     def test_init_alphabet_failure(self):
         """Freqs should fail if keys don't match alphabet"""
         try:
@@ -1634,7 +1634,7 @@ class FreqsTests(FreqsTestsI, TestCase):
             pass
         else:
             self.fail()
-    
+
     def test_setitem_bad(self):
         """Freqs should not allow negative values"""
         self.assertRaises(ConstraintError, self.Empty.__setitem__, 'xyz', -0.01)
@@ -1667,19 +1667,19 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
     def test_init_empty(self):
         """UnsafeFreqs should initialize OK with empty list"""
         self.assertEqual(self.ClassToTest([]), {})
-                         
+
     def test_init_single(self):
         """UnsafeFreqs init FAILS with single item"""
         self.assertRaises(ValueError, self.ClassToTest, ['X'])
-                        
+
     def test_init_same_key(self):
         """UnsafeFreqs init FAILS with list of items"""
         self.assertRaises(TypeError, self.ClassToTest, [1]*5)
-    
+
     def test_init_strings(self):
         """UnsafeFreqs init FAILS with string"""
         self.assertRaises(ValueError, self.ClassToTest, 'zabcz')
-    
+
     def test_init_negative(self):
         """UnsafeFreqs init should SUCCEED on negative frequencies"""
         self.assertEqual(self.ClassToTest({'a':3, 'b':-3}), {'a':3,'b':-3})
@@ -1751,7 +1751,7 @@ class FreqsSubclassTests(TestCase):
 class NumberFreqsTestsI(object):
     """Interface for tests of safe and unsafe NumberFreqs classes."""
     ClassToTest = None
-    
+
     def setUp(self):
         """defines some standard frequency distributions to check"""
         self.NumericUnique = self.ClassToTest([1,2,3,4,5])
@@ -1817,7 +1817,7 @@ class NumberFreqsTestsI(object):
         self.assertFloatEqual(self.NumericDuplicated.StandardDeviation,1.108678)
         self.assertFloatEqual(self.PosNeg.StandardDeviation, 1.825742)
         self.assertFloatEqual(self.Constant.StandardDeviation, 0.0)
-    
+
     def test_NumberFreqsQuantiles(self):
         """quantiles should match Numbers, including Median"""
         data={32: 60, 33: 211, 34: 141, 35: 70,
@@ -1825,7 +1825,7 @@ class NumberFreqsTestsI(object):
              21: 1, 22: 1, 23: 58, 24: 12, 25: 3,
              26: 74, 27: 10, 28: 77, 29: 20, 30: 102,
              31: 47}
-        
+
         nums = Numbers(NumberFreqs(data=data).expand())
         number_freqs = self.ClassToTest()
         number_freqs.update(data)
@@ -1833,9 +1833,9 @@ class NumberFreqsTestsI(object):
             num_q = nums.quantile(quantile)
             num_f = number_freqs.quantile(quantile)
             self.assertFloatEqual(num_f, num_q)
-        
+
         self.assertFloatEqual(number_freqs.Median, nums.Median)
-    
+
     def test_normalize(self):
         """NumberFreqs should allow normalization on any type"""
         self.Empty.normalize()
@@ -1849,7 +1849,7 @@ class NumberFreqsTestsI(object):
         expected = {-2:0.25, -1:0.25, 1:0.25, 2:0.25}
         for key, val in list(expected.items()):
             self.assertFloatEqual(self.PosNeg[key], val)
-        
+
     def test_Uncertainty(self):
         """NumberFreqs Shannon entropy values should match spreadsheet"""
         self.assertEqual(self.Empty.Uncertainty, 0)
@@ -1876,7 +1876,7 @@ class NumberFreqsTestsI(object):
 class NumberFreqsTests(NumberFreqsTestsI, TestCase):
     """Tests of (safe) NumberFreqs classes."""
     ClassToTest = NumberFreqs
-    
+
     def setUp(self):
         """defines some standard frequency distributions to check"""
         self.NumericUnique = self.ClassToTest([1,2,3,4,5])
@@ -1896,7 +1896,7 @@ class NumberFreqsTests(NumberFreqsTestsI, TestCase):
 class UnsafeNumberFreqsTests(NumberFreqsTestsI, TestCase):
     """Tests of UnsafeNumberFreqs classes."""
     ClassToTest = UnsafeNumberFreqs
-    
+
     def setUp(self):
         """defines some standard frequency distributions to check"""
         self.NumericUnique = self.ClassToTest({1:1,2:1,3:1,4:1,5:1})

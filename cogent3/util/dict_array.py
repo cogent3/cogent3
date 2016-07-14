@@ -33,7 +33,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-    
+
 class DictArrayTemplate(object):
     def __init__(self, *dimensions):
         self.names = []
@@ -46,11 +46,11 @@ class DictArrayTemplate(object):
             self.names.append(names)
             self.ordinals.append(dict((c,i) for (i,c) in enumerate(names)))
         self._shape = tuple(len(keys) for keys in self.names)
-    
+
     def __eq__(self, other):
         return self is other or (
             isinstance(other, DictArrayTemplate) and self.names == other.names)
-    
+
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
@@ -70,14 +70,14 @@ class DictArrayTemplate(object):
         value = numpy.asarray(value)
         assert value.shape == self._shape, (value.shape, self._shape)
         return value
-        
+
     def wrap(self, array, dtype = None):
         # dtype is numpy
         array = numpy.asarray(array, dtype=dtype)
         for (dim, categories) in enumerate(self.names):
             assert len(categories) == numpy.shape(array)[dim], "cats=%s; dim=%s" % (categories, dim)
         return DictArray(array, self)
-    
+
     def interpretIndex(self, names):
         if not isinstance(names, tuple):
             names = (names,)
@@ -102,7 +102,7 @@ class DictArrayTemplate(object):
         else:
             klass = None
         return (tuple(index), klass)
-    
+
     def array_repr(self, a):
         if len(a.shape) == 1:
             heading = [str(n) for n in self.names[0]]
@@ -113,16 +113,16 @@ class DictArrayTemplate(object):
         else:
             return '%s dimensional %s' % (
                 len(self.names), type(self).__name__)
-        
+
         formatted = table.formattedCells(rows=a, header=heading)
         return str(table.simpleFormat(formatted[0], formatted[1], space=4))
-    
+
 
 class DictArray(object):
     """Wraps a numpy array so that it can be indexed with strings like nested
     dictionaries (only ordered), for things like substitution matrices and
     bin probabilities."""
-    
+
     def __init__(self, *args, **kwargs):
         """allow alternate ways of creating for time being"""
         if len(args) <= 2:
@@ -138,26 +138,26 @@ class DictArray(object):
             create_new = DictArrayTemplate(*args[1:]).wrap(args[0], dtype=dtype)
             self.__dict__ = create_new.__dict__
         self.Shape = self.array.shape
-    
+
     def asarray(self):
         return self.array
-    
+
     def __array__(self, dtype=None):
         array = self.array
         if dtype is not None:
             array = array.astype(dtype)
         return array
-    
+
     def asdict(self):
         return dict(list(self.items()))
-    
+
     def __getitem__(self, names):
         (index, remaining) = self.template.interpretIndex(names)
         result = self.array[index]
         if remaining is not None:
             result = self.__class__(result, remaining)
         return result
-    
+
     def __iter__(self):
         (index, remaining) = self.template.interpretIndex(0)
         for elt in self.array:
@@ -165,22 +165,22 @@ class DictArray(object):
                 yield elt
             else:
                 yield remaining.wrap(elt)
-    
+
     def __len__(self):
         return len(self.template.names[0])
-    
+
     def keys(self):
         return self.template.names[0][:]
-    
+
     def items(self):
         return [(n,self[n]) for n in list(self.keys())]
-    
+
     def __repr__(self):
         return self.template.array_repr(self.array)
-        
+
     def __ne__(self, other):
         return not self.__eq__(other)
-        
+
     def __eq__(self, other):
         if self is other:
             return True
@@ -193,4 +193,4 @@ class DictArray(object):
             return self.asdict() == other
         else:
             return False
-    
+

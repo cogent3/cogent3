@@ -66,13 +66,13 @@ __status__ = "Production"
 
 class FakeRandom(object):
     """Drop-in substitute for random.random that provides items from list."""
-    
+
     def __init__(self, data, circular=False):
         """Returns new FakeRandom object, using list of items in data.
 
         circular: if True (default is False), wraps the list around. Otherwise,
         raises IndexError when we run off the end of the list.
-        
+
         WARNING: data must always be iterable, even if it's a single item.
         """
         self._data = data
@@ -81,7 +81,7 @@ class FakeRandom(object):
 
     def __call__(self, *args, **kwargs):
         """Returns next item from the list in self._data.
-        
+
         Raises IndexError when we run out of data.
         """
         self._ptr += 1
@@ -119,13 +119,13 @@ class TestCase(orig_TestCase):
         """Applies function to (data, expected) tuples, treating data as args
         """
         for (data, expected) in known_values:
-                observed = eval('call(' + arg_prefix + 'data)')
-                try:
-                    allowed_diff = float(eps)
-                except TypeError:
-                    self.assertEqual(observed, expected)
-                else:
-                    self.assertFloatEqual(observed, expected, allowed_diff)
+            observed = eval('call(' + arg_prefix + 'data)')
+            try:
+                allowed_diff = float(eps)
+            except TypeError:
+                self.assertEqual(observed, expected)
+            else:
+                self.assertFloatEqual(observed, expected, allowed_diff)
 
     def assertFloatEqualRel(self, obs, exp, eps=1e-6):
         """Tests whether two floating point numbers/arrays are approx. equal.
@@ -206,7 +206,7 @@ class TestCase(orig_TestCase):
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
                     (repr(observed), repr(expected)))
-    
+
     def assertFloatEqualAbs(self, obs, exp, eps=1e-6):
         """
         Tests whether two floating point numbers are approximately equal.
@@ -257,7 +257,7 @@ class TestCase(orig_TestCase):
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
                     (repr(observed), repr(expected)))
-    
+
     def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None, \
                          abs_eps=None):
         """Tests whether two floating point numbers are approximately equal.
@@ -288,7 +288,7 @@ class TestCase(orig_TestCase):
             except (TypeError, ValueError, AttributeError, NotImplementedError):
                 self.fail("Got %s, but expected %s" % \
                         (repr(observed), repr(expected)))
-                                    
+
     def _is_equal(self, observed, expected):
         """Returns True if observed and expected are equal, False otherwise."""
         #errors to catch: TypeError when obs is None
@@ -328,7 +328,7 @@ class TestCase(orig_TestCase):
         else:
             raise self.failureException(msg or 'Observed %s and expected %s: shouldn\'t test equal'\
                 % (repr(observed), repr(expected)))
-        
+
         #following needed to get our version instead of unittest's
     assertEqual = assertEquals = failUnlessEqual
 
@@ -341,7 +341,7 @@ class TestCase(orig_TestCase):
         if len(obs_items) != len(exp_items):
             raise self.failureException(msg or 'Observed and expected are different lengths: %s and %s' \
             % (len(obs_items), len(exp_items)))
-            
+
         obs_items.sort()
         exp_items.sort()
         for index, (obs, exp) in enumerate(zip(obs_items, exp_items)):
@@ -434,7 +434,7 @@ class TestCase(orig_TestCase):
             pass
         raise self.failureException(msg or 'Observed %s has elements not between %s, %s' % \
         (repr(observed), repr(min_value), repr(max_value)))
- 
+
     def assertIsNotBetween(self, observed, min_value, max_value, msg=None):
         """Fail if observed is between min_value and max_value"""
         try:
@@ -443,7 +443,7 @@ class TestCase(orig_TestCase):
 
             if min_value >= max_value:
                 raise ValueError
-            
+
             if logical_or(asarray(observed) >= max_value,
                           asarray(observed) <= min_value).all():
                 return
@@ -451,7 +451,7 @@ class TestCase(orig_TestCase):
             pass
         raise self.failureException(msg or 'Observed %s has elements between %s, %s' % \
         (repr(observed), repr(min_value), repr(max_value)))
-        
+
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:
@@ -481,7 +481,7 @@ class TestCase(orig_TestCase):
         observed, expected = asarray(observed), asarray(expected)
 
         t, p = t_two_sample(observed, expected)
-        
+
         if p is None or not isfinite(p): #handle case where all elements were the same
             if not observed.shape:
                 observed = observed.reshape((1,))
@@ -501,18 +501,18 @@ class TestCase(orig_TestCase):
 
         obs_ravel = ravel(asarray(observed))
         exp_ravel = ravel(asarray(expected))
-            
+
         m = zeros((2,len(obs_ravel)))
         m[0,:] = obs_ravel
         m[1,:] = exp_ravel
-        
+
         G, p = G_ind(m)
 
         if p > pvalue:
             return
         else:
             raise self.failureException(msg or 'p-value %s, G-test p %s' % (repr(pvalue), repr(p)))
-            
+
     def assertIsPermutation(self, observed, items, msg=None):
         """Fail if observed is not a permutation of items"""
         try:
@@ -523,7 +523,7 @@ class TestCase(orig_TestCase):
             pass
         raise self.failureException(msg or 'Observed %s is not a different permutation of items %s' % \
         (repr(observed), repr(items)))
- 
+
     def assertSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is not expected'"""
         try:

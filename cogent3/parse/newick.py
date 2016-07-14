@@ -33,7 +33,7 @@ class TreeParseError(FileFormatError):
 
 class _Tokeniser(object):
     """Supplies an iterable stream of Newick tokens from 'text'
-    
+
     By default this is very forgiving of non-standard unquoted labels.
     Two options can change how unquoted labels are interpreted:
       To prohibit internal spaces and quotes set strict_labels=True.
@@ -42,13 +42,13 @@ class _Tokeniser(object):
     NOTE: underscore_unmunging is part of the Newick standard, although it
     is often inconvenient for other purposes.
     """
-    
+
     def __init__(self, text, strict_labels=False, underscore_unmunge=True):
         self.text = text
         self.posn = None
         self.strict_unquoted_labels = strict_labels
         self.underscore_unmunge = underscore_unmunge
-        
+
     def error(self, detail=""):
         if self.token:
             msg = 'Unexpected "%s" at ' % self.token
@@ -63,7 +63,7 @@ class _Tokeniser(object):
         else:
             msg += 'char %s "%s"' % (column, sample)
         return TreeParseError(msg + '. ' + detail)
-                            
+
     def tokens(self):
         closing_quote_token = None
         column = 0
@@ -77,7 +77,7 @@ class _Tokeniser(object):
             self.token = token
             column += len(token or '')
             self.posn = (line, column)
-            
+
             if token == "":
                 pass
             elif in_comment:
@@ -121,19 +121,19 @@ class _Tokeniser(object):
             elif token.strip():
                 text = token
                 label_complete = self.strict_unquoted_labels
-            
+
             if label_complete:
                 self.token = None
                 yield text
                 text = None
-                
+
             if not token_consumed:
                 self.token = token
                 yield token  
 
 def parse_string(text, constructor, **kw):
     """Parses a Newick-format string, using specified constructor for tree.
-    
+
     Calls constructor(children, name, attributes)
 
     Note: underscore_unmunge, if True, replaces underscores with spaces in

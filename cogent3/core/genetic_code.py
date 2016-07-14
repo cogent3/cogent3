@@ -46,7 +46,7 @@ class GeneticCode(object):
             sgc['TTT'] == 'F'
             sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
             sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
-    
+
     CodeSequence : 64 character string containing NCBI genetic code translation
 
     GeneticCode is immutable once created.
@@ -66,7 +66,7 @@ class GeneticCode(object):
         if (len(CodeSequence) != 64):
             raise GeneticCodeInitError("CodeSequence: %s has length %d, but expected 64"\
                   % (CodeSequence, len(CodeSequence)))
-                  
+
         self.CodeSequence = CodeSequence
         self.ID = ID
         self.Name = Name
@@ -107,7 +107,7 @@ class GeneticCode(object):
 
         codons should be a list of 4 codons.
         aa should be a list of 4 amino acid symbols.
-        
+
         Possible states:
             - All amino acids are the same: returns list of one quartet.
             - Two groups of 2 aa: returns list of two doublets.
@@ -140,10 +140,10 @@ class GeneticCode(object):
             else:
                 blocks.extend([[codons[2]],[codons[3]]])
             return blocks
-    
+
     def _get_blocks(self):
         """Returns list of lists of codon blocks in the genetic code.
-        
+
         A codon block can be:
             - a quartet, if all 4 XYn codons have the same amino acid.
             - a doublet, if XYt and XYc or XYa and XYg have the same aa.
@@ -176,9 +176,9 @@ class GeneticCode(object):
                 blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
             self._blocks = blocks
             return self._blocks
-           
+
     Blocks = property(_get_blocks)
-    
+
     def __str__(self):
         """Returns CodeSequence that constructs the GeneticCode."""
         return self.CodeSequence
@@ -186,7 +186,7 @@ class GeneticCode(object):
     def __repr__(self):
         """Returns reconstructable representation of the GeneticCode."""
         return 'GeneticCode(%s)' % str(self)
-    
+
     def __eq__(self, other):
         """ Allows two GeneticCode objects to be compared to each other.
         Two GeneticCode objects are equal if they have equal CodeSequences.
@@ -195,7 +195,7 @@ class GeneticCode(object):
 
     def __getitem__(self, item):
         """Returns amino acid corresponding to codon, or codons for an aa.
-        
+
         Returns [] for empty list of codons, 'X' for unknown amino acid.
         """
         item = str(item)
@@ -207,13 +207,13 @@ class GeneticCode(object):
             return self.Codons.get(key, 'X')
         else:
             raise InvalidCodonError("Codon or aa %s has wrong length" % item)
-            
+
     def translate(self, dna, start=0):
         """ Translates DNA to protein with current GeneticCode.
-        
+
         dna         = a string of nucleotides
         start       = position to begin translation (used to implement frames)
-        
+
         Returns string containing amino acid sequence. Translates the entire
         sequence: it is the caller's responsibility to find open reading frames.
 
@@ -224,7 +224,7 @@ class GeneticCode(object):
         if start + 1 > len(dna):
             raise ValueError("Translation starts after end of RNA")
         return ''.join([self[dna[i:i+3]] for i in range(start, len(dna)-2, 3)])
-    
+
     def getStopIndices(self, dna, start=0):
         """returns indexes for stop codons in the specified frame"""
         stops = self['*']
@@ -234,7 +234,7 @@ class GeneticCode(object):
         found = [hit.start() for hit in stop_pattern.finditer(seq)]
         found = [index for index in found if index % 3 == start]
         return found
-    
+
     def sixframes(self, dna):
         """Returns six-frame translation as dict containing {frame:translation}
         """
@@ -253,7 +253,7 @@ class GeneticCode(object):
 
     def changes(self, other):
         """Returns dict of {codon:'XY'} for codons that differ.
-        
+
         X is the string representation of the amino acid in self, Y is the
         string representation of the amino acid in other. Always returns a
         2-character string.

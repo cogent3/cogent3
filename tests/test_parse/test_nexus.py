@@ -193,7 +193,7 @@ line1 = "    40                root                  0             0           0
 line2 = "outgroup25 (1)*         40                 40            24            52"
 line3 = "    39                  40                 57            15            72"
 line4 = "AF078391l (2)           39                 56            48            81"
- 
+
 
 
 class NexusParserTests(TestCase):
@@ -206,7 +206,7 @@ class NexusParserTests(TestCase):
         #check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
-        
+
         #check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
         self.assertEqual(Trans_table['2'], 'AF078391l')
@@ -231,7 +231,7 @@ class NexusParserTests(TestCase):
         #check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
-        
+
         #check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
         self.assertEqual(Trans_table['2'], 'AF078391l')
@@ -340,8 +340,8 @@ class NexusParserTests(TestCase):
         self.assertEqual(BL_dict['2'], ('39', 56))
         self.assertEqual(BL_dict['26'], ('34', 5))
         self.assertEqual(BL_dict['21'], ('40', 45))
-        
-      
+
+
 
 #run if called from command line
 if __name__ == '__main__':

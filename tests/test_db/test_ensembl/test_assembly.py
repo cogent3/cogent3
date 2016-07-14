@@ -42,7 +42,7 @@ class TestLocation(TestCase):
         self.assertEqual(human_loc.Strand, -1)
         self.assertEqual(human_loc.Species, "Homo sapiens")
         self.assertEqual(human_loc.seq_region_id, 131539)
-    
+
     def test_get_coord_conversion(self):
         """should correctly map between different coordinate levels"""
         # not really testing the contig coordinates are correct
@@ -55,7 +55,7 @@ class TestLocation(TestCase):
             self.assertTrue(result[0].Start >= Start)
             self.assertTrue(result[0].End <= End)
             self.assertTrue(result[0].Strand == Strand)
-        
+
     def test_coord_shift(self):
         """adding coordinates should produce correct results"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
@@ -67,7 +67,7 @@ class TestLocation(TestCase):
             self.assertEqual(loc2.End, loc1.End+shift)
             self.assertEqual(id(loc1.genome), id(loc2.genome))
         self.assertNotEqual(id(loc1), id(loc2))
-    
+
     def test_coord_resize(self):
         """resizing should work"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
@@ -80,7 +80,7 @@ class TestLocation(TestCase):
         self.assertEqual(loc2.Start, loc1.Start+front_shift)
         self.assertEqual(loc2.End, loc1.End+back_shift)
         self.assertEqual(loc1.Strand, loc2.Strand)
-    
+
     def test_adopted(self):
         """coordinate should correctly adopt seq_region_id properties of 
         provided coordinate"""
@@ -100,7 +100,7 @@ class TestLocation(TestCase):
         c3 = c1.adopted(c2, shift = 100)
         self.assertEqual(c3.Start, c1.Start+100)
         self.assertEqual(c3.End, c1.End+100)
-    
+
 
 class TestCoordSystem(TestCase):
     def test_call(self):
@@ -110,7 +110,7 @@ class TestCoordSystem(TestCase):
         self.assertEqual(human_chrom.coord_system_id, 4)
         self.assertEqual(human_contig.name, 'contig')
         self.assertEqual(human_contig.attr, 'default_version, sequence_level')
-    
+
 
 if __name__ == '__main__':
     main()

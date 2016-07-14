@@ -104,7 +104,7 @@ class TestsTests(TestCase):
         results = tuple(std(inp, ax) for ax in [None, 0, 1])
         for obs, exp in zip(results, exps):
             testing.assert_almost_equal(obs, exp)
-            
+
     def test_std_3d(self):
         """Should produce from 3darray the same std devs as scipy.stats.std"""
         inp3d = array(#2,2,3
@@ -124,7 +124,7 @@ class TestsTests(TestCase):
         res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
         for obs, exp in zip(res, exp3d):
             testing.assert_almost_equal(obs, exp)
-            
+
     def test_median(self):
         """_median should work similarly to numpy.mean (in terms of axis)"""
         m = array([[1,2,3],[4,5,6],[7,8,9],[10,11,12]])
@@ -160,7 +160,7 @@ class TestsTests(TestCase):
         self.assertFloatEqual(combinations(123456789, 2), 123456789*123456788/2)
         #check an arbitrary value in R
         self.assertFloatEqual(combinations(1234567, 12), 2.617073e64)
-    
+
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""
         self.assertFloatEqual(multiple_comparisons(1e-7, 10000), 1-0.9990005)
@@ -206,7 +206,7 @@ class TestsTests(TestCase):
         self.assertFloatEqual(regress(x, y), (-0.05322, 8.7038), 0.001)
         #higher precision from OpenOffice
         self.assertFloatEqual(regress(x, y), (-0.05322215,8.70402730))
-        
+
         #add test to confirm no overflow error with large numbers
         x = [32119,33831]
         y = [2.28,2.43]
@@ -254,7 +254,7 @@ class TestsTests(TestCase):
         x = [14.40, 15.20, 11.30, 2.50, 22.70, 14.90, 1.41, 15.81, 4.19, 15.39,
              17.25, 9.52]
         self.assertFloatEqual(regress_major(x, y), (18.93633,-32.55208))
-    
+
     def test_sign_test(self):
         """sign_test, should match values from R"""
         v = [("two sided", 26, 50, 0.88772482734078251),
@@ -287,11 +287,11 @@ class GTests(TestCase):
         self.assertFloatEqual(0, G_2_by_2(1, 1, 1, 1, False, False)[0])
         self.assertFloatEqual(0, G_2_by_2(100, 100, 100, 100, False, False)[0])
         self.assertFloatEqual(0, G_2_by_2(100, 100, 100, 100, True, False)[0])
-   
+
     def test_G_2_by_2_bad_data(self):
         """G_2_by_2 should raise ValueError if any counts are negative"""
         self.assertRaises(ValueError, G_2_by_2, 1, -1, 1, 1)
-   
+
     def test_G_2_by_2_2tailed_examples(self):
         """G_2_by_2 values should match examples in Sokal & Rohlf"""
         #example from p 731, Sokal and Rohlf (1995)
@@ -330,7 +330,7 @@ class GTests(TestCase):
         self.assertFloatEqual(result['b']['env1'], [1, 1.875])
         self.assertFloatEqual(result['b']['env3'], [1, 1.25])
         self.assertFloatEqual(result['b']['env2'], [3, 1.875])
-        
+
     def test_Gfit_unequal_lists(self):
         """Gfit should raise errors if lists unequal"""
         #lists must be equal
@@ -339,12 +339,12 @@ class GTests(TestCase):
     def test_Gfit_negative_observeds(self):
         """Gfit should raise ValueError if any observeds are negative."""
         self.assertRaises(ValueError, G_fit, [-1, 2, 3], [1, 2, 3])
-    
+
     def test_Gfit_nonpositive_expecteds(self):
         """Gfit should raise ZeroExpectedError if expecteds are zero/negative"""
         self.assertRaises(ZeroExpectedError, G_fit, [1, 2, 3], [0, 1, 2])
         self.assertRaises(ZeroExpectedError, G_fit, [1, 2, 3], [-1, 1, 2])
-    
+
     def test_Gfit_good_data(self):
         """Gfit tests for fit should match examples in Sokal and Rohlf"""
         #example from p. 699, Sokal and Rohlf (1995)
@@ -357,7 +357,7 @@ class GTests(TestCase):
         #with correction
         self.assertFloatEqualAbs(G_fit(obs, exp)[0], 8.76938, 0.00002)
         self.assertFloatEqualAbs(G_fit(obs, exp)[1], 0.26964, 0.00002)
-        
+
         #example from p. 700, Sokal and Rohlf (1995)
         obs = [130, 46]
         exp = [132, 44]
@@ -446,7 +446,7 @@ class LikelihoodTests(TestCase):
         equal_answer = [1, 1, 1, 1]
         unequal_answer = [2, 1, 0.5, 0.5]
         not_unity = [0.7, 0.7, 0.7, 0.7]
-        
+
         for obs, exp in zip(likelihoods(equal, unequal), equal_answer):
             self.assertFloatEqual(obs, exp)
 
@@ -464,7 +464,7 @@ class LikelihoodTests(TestCase):
         #(calculated using StarCalc)
         for obs, exp in zip(likelihoods(not_unity, unequal), products):
             self.assertFloatEqual(obs, exp)
-        
+
     def test_posteriors_unequal_lists(self):
         """posteriors should raise ValueError if input lists unequal lengths"""
         self.assertRaises(ValueError, posteriors, [1, 2, 3], [1])
@@ -495,7 +495,7 @@ class BayesUpdateTests(TestCase):
         #BEWARE: low precision in second item, so need to adjust threshold
         #for assertFloatEqual accordingly (and use assertFloatEqualAbs).
         self.result = [0.136690646154, 0.000000009712, 0.863309344133]
-       
+
     def test_bayes_updates_bad_data(self):
         """bayes_updates should raise ValueError on unequal-length lists"""
         self.assertRaises(ValueError, bayes_updates, self.bad)
@@ -519,7 +519,7 @@ class BayesUpdateTests(TestCase):
         #additional non-discriminating evidence should not affect result
         for obs, exp in zip(bayes_updates(self.extra), self.result):
             self.assertFloatEqualAbs(obs, exp, 1e-11)
-        
+
 
 class StatTests(TestsHelper):
     """Tests that the t and z tests are implemented correctly"""
@@ -552,7 +552,7 @@ class StatTests(TestsHelper):
         y = [0, 0, 0]
         self.assertEqual(t_paired(x,x), (None, None))
         self.assertEqual(t_paired(x,y), (None, None))
-        
+
     def test_t_paired_1tailed(self):
         """t_paired should match pre-calculated 1-tailed values"""
         x, y = self.x, self.y
@@ -576,7 +576,7 @@ class StatTests(TestsHelper):
         #check that there's no significant difference from the true mean
         self.assertFloatEqual(
             t_paired(y, x,exp_diff=0.2)[1], 1, 1e-4)
-            
+
     def test_t_paired_bad_data(self):
         """t_paired should raise ValueError on lists of different lengths"""
         self.assertRaises(ValueError, t_paired, self.y, [1, 2, 3])
@@ -649,7 +649,7 @@ class StatTests(TestsHelper):
         #do some one-tailed tests as well
         self.assertFloatEqualAbs(t_one_sample(y, tails='low'),(4, 0.9987),1e-4)
         self.assertFloatEqualAbs(t_one_sample(y,tails='high'),(4,0.001259),1e-4)
-   
+
     def test_t_two_sample_switch(self):
         """t_two_sample should call t_one_observation if 1 item in sample."""
         sample = array([4.02, 3.88, 3.34, 3.87, 3.18])
@@ -904,7 +904,7 @@ class CorrelationTests(TestsHelper):
         # Pearson (verified with R).
         self.data1 = [106, 86, 100, 101, 99, 103, 97, 113, 112, 110]
         self.data2 = [7, 0, 27, 50, 28, 29, 20, 12, 6, 17]
-        
+
         # For testing spearman.
         self.a = [1,2,4,3,1,6,7,8,10,4]
         self.b = [2,10,20,1,3,7,5,11,6,13]
@@ -1143,7 +1143,7 @@ class CorrelationTests(TestsHelper):
         c = [15, 10, 5, 20]
 
         bad = [1,2,3]   #originally gave r = 1.0000000002
-        
+
         self.assertFloatEqual(correlation(x,x), (1, 0))
         self.assertFloatEqual(correlation(x,y), (0,1))
         self.assertFloatEqual(correlation(y,z), (0,1))
@@ -1303,16 +1303,16 @@ class Ftest(TestCase):
         self.assertFloatEqual(f_value(b,a), (7,8,0.2285714))
         too_short = array([4])
         self.assertRaises(ValueError, f_value, too_short, b)
-    
+
     def test_f_two_sample(self):
         """f_two_sample should match values from R""" 
-        
+
         #The expected values in this test are obtained through R.
         #In R the F test is var.test(x,y) different alternative hypotheses
         #can be specified (two sided, less, or greater).
         #The vectors are random samples from a particular normal distribution
         #(mean and sd specified).
-        
+
         #a: 50 elem, mean=0 sd=1
         a = [-0.70701689, -1.24788845, -1.65516470,  0.10443876, -0.48526915,
         -0.71820656, -1.02603596,  0.03975982, -2.23404324, -0.21509363,
@@ -1336,7 +1336,7 @@ class Ftest(TestCase):
         -0.319146503,  2.206220810, -0.566351124, -0.720397392, -0.452001377,
          0.250890097,  0.320685395, -1.014632725, -3.010346273, -1.703955054,
          0.592587381, -1.237451255,  0.172243366, -0.452641122, -0.982148581]
-       
+
         #c: 60 elem, mean=5, sd=1
         c=[4.654329, 5.242129, 6.272640, 5.781779, 4.391241, 3.800752,
         4.559463, 4.318922, 3.243020, 5.121280, 4.126385, 5.541131,
@@ -1359,11 +1359,11 @@ class Ftest(TestCase):
 
         a,b,c,d = list(map(array,[a,b,c,d]))
         self.assertEqual(list(map(len,[a,b,c,d])), [50, 50, 60, 30])
-        
+
         #allowed error. This big, because results from R 
         #are rounded at 4 decimals
         error = 1e-4 
-                
+
         self.assertFloatEqual(f_two_sample(a,a), (49, 49, 1, 1), eps=error)
         self.assertFloatEqual(f_two_sample(a,b), (49, 49, 0.8575, 0.5925),
             eps=error)
@@ -1400,30 +1400,30 @@ class MannWhitneyTests(TestCase):
     x = list(map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
             " 126 128 128 128".split()))
     y = list(map(int, "100 105 107 107 108 111 116 120 121 123".split()))
-    
+
     def test_mw_test(self):
         """mann-whitney test results should match Sokal & Rohlf"""
         U, p = mw_test(self.x, self.y)
         self.assertFloatEqual(U, 123.5)
         self.assertTrue(0.02 <= p <= 0.05)
-    
+
     def test_mw_boot(self):
         """excercising the Monte-carlo variant of mann-whitney"""
         U, p = mw_boot(self.x, self.y, 10)
         self.assertFloatEqual(U, 123.5)
         self.assertTrue(0 <= p <= 0.5)
-    
+
 
 class KendallTests(TestCase):
     """check accuracy of Kendall tests against values from R"""
-    
+
     def do_test(self, x, y, alt_expecteds):
         """conducts the tests for each alternate hypothesis against expecteds"""
         for alt, exp_p, exp_tau in alt_expecteds:
             tau, p_val = kendall_correlation(x, y, alt=alt, warn=False)
             self.assertFloatEqual(tau, exp_tau, eps=1e-3)
             self.assertFloatEqual(p_val, exp_p, eps=1e-3)
-    
+
     def test_exact_calcs(self):
         """calculations of exact probabilities should match R"""
         x = (44.4, 45.9, 41.9, 53.3, 44.7, 44.1, 50.7, 45.2, 60.1)
@@ -1432,7 +1432,7 @@ class KendallTests(TestCase):
                      ["lt",  0.9624, 0.4444444],
                      ["ts",  0.1194, 0.4444444]]
         self.do_test(x,y,expecteds)
-    
+
     def test_with_ties(self):
         """tied values calculated from normal approx"""
         # R example with ties in x
@@ -1442,7 +1442,7 @@ class KendallTests(TestCase):
                      ["lt", 0.942, 0.4225771],
                      ["ts", 0.1159, 0.4225771]]
         self.do_test(x,y,expecteds)
-        
+
         # R example with ties in y
         x = (44.4, 45.9, 41.9, 53.3, 44.7, 44.1, 50.7, 45.2, 60.1)
         y = ( 2.6,  3.1,  2.5,  5.0,  3.1,  4.0,  5.2,  2.8,  3.8)
@@ -1457,7 +1457,7 @@ class KendallTests(TestCase):
                    ["lt",   0.971, 0.5142857],
                    ["ts", 0.05782, 0.5142857]]
         self.do_test(x,y,expecteds)
-    
+
     def test_bigger_vectors(self):
         """docstring for test_bigger_vectors"""
         # q < expansion
@@ -1575,7 +1575,7 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
             tails='low')
         self.assertSimilarMeans(r, 0./6.)
-        
+
         # looks at each possible permutation n times --
         # compare last row to rest
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False)
@@ -1638,7 +1638,7 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(distance_matrix_permutation_test(\
             m,[(0,0),(0,1),(0,2)],\
             n=5,f=fake_stat_test,return_scores=True),(42.,42.,0.,[42.]*5))
-    
+
     def test_ANOVA_one_way(self):
         """ANOVA one way returns same values as ANOVA on a stats package
         """

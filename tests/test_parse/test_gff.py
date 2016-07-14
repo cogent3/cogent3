@@ -49,18 +49,18 @@ class GffTest(TestCase):
         for (line,canned_result) in data_lines:
             result = next(GffParser(StringIO(line)))
             self.assertEqual(result,canned_result)
-            
+
     def testGffParserHeaders(self):
         """Test GffParser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
             result = list(GffParser(StringIO(header+data)))
             self.assertEqual(result,[x[1] for x in data_lines])
-            
+
     def test_parse_attributes(self):
         """Test parse_attributes"""
         self.assertEqual([parse_attributes(x[1][8]) for x in data_lines],
                     ['HBA_HUMAN', 'dJ102G20.C1.1', '', 'BROADO5'])
-                               
+
 if __name__ == '__main__':
     main()

@@ -40,7 +40,7 @@ def Rect(x, y, width, height, **kw):
 def Polygon(vertices, **kw):
     """Acts like the RLG shape class of the same name"""
     return mpatches.Polygon(vertices, **line_options(**kw))
-    
+
 def String(x, y, text, textAnchor='start', fontName=None, fontSize=10, 
         fillColor='black', rotation=None):
     """Acts like the RLG shape class of the same name"""
@@ -54,7 +54,7 @@ def String(x, y, text, textAnchor='start', fontName=None, fontSize=10,
 
 class Group(matplotlib.artist.Artist):
     """Acts like the RLG shape class of the same name
-    
+
     Groups elements together.  May apply a transform to its contents."""
 
     def __init__(self, *elements):
@@ -74,16 +74,16 @@ class Group(matplotlib.artist.Artist):
         matplotlib.artist.Artist.set_figure(self, fig)
         for c in self.contents:
             c.set_figure(fig)
-    
+
     def set_clip_path(self, patch):
         matplotlib.artist.Artist.set_clip_path(self, patch)
         for c in self.contents:
             c.set_clip_path(patch)
-          
+
     def set_transform(self, transform):
         matplotlib.artist.Artist.set_transform(self, transform)
         self.outer_transform.set(self.get_transform())
-        
+
     def add(self, node, name=None):
         """Appends non-None child node to the 'contents' attribute. In addition,
         if a name is provided, it is subsequently accessible by name
@@ -91,7 +91,7 @@ class Group(matplotlib.artist.Artist):
         # propagates properties down
         node.set_transform(node.get_transform() + self.combined_transform)
         self.contents.append(node)
-    
+
     def rotate(self, theta):
         """Convenience to help you set transforms"""
         self.group_transform.rotate_deg(theta)
@@ -146,7 +146,7 @@ class Drawable(object):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(width,height), facecolor='white')
         return fig
-                
+
     def drawFigure(self, title=None, **kw):
         """Draw the figure.  
         Extra arguments are forwarded to self.makeFigure()"""
@@ -155,14 +155,14 @@ class Drawable(object):
         if title is not None:
             fig.suptitle(title)
         plt.draw_if_interactive()
-        
+
     def showFigure(self, title=None, **kw):
         """Make the figure and immediately pyplot.show() it.  
         Extra arguments are forwarded to self.makeFigure()"""
         self.drawFigure(title, **kw)
         import matplotlib.pyplot as plt
         plt.show()
-        
+
     def drawToFile(self, fname, **kw):
         """Save in a file named 'fname'
         Extra arguments are forwarded to self.makeFigure() unless 
@@ -177,10 +177,10 @@ class Drawable(object):
                 makefig_kw[k] = v    
         fig = self.makeFigure(**makefig_kw)
         fig.savefig(fname, **savefig_kw)
-        
+
     def drawToPDF(self, filename, total_width=None, height=None, **kw):
         # Matches, as far as possible, old ReportLab version
-        
+
         if total_width is not None:
             kw['width'] = total_width / 72
         kw2 = {}
@@ -199,7 +199,7 @@ class Drawable(object):
 # Matplotlib has fancy_box and fancy_arrow.  The code below is 
 # similar, except that the two ends of the box have independent 
 # styles: open, square, rounded, pointy, or blunt
-        
+
 class PathBuilder(object):
     """Path, made up of straight lines and bezier curves."""
     # Only used by the _End classes below
@@ -228,7 +228,7 @@ class PathBuilder(object):
         self.operators.append(Path.CLOSEPOLY)
 
 class _End(object):
-    
+
     def __init__(self, x_near, x_far, y_first, y_second, **kw):
         self.x_near = x_near
         self.x_far = x_far
@@ -236,19 +236,19 @@ class _End(object):
         self.y_second = y_second
         for (n, v) in list(kw.items()):
             setattr(self, n, v)
-    
+
     def moveToStart(self, path):
         path.moveTo(*self.startPoint())
-    
+
     def drawToStart(self, path):
         path.lineTo(*self.startPoint())
-    
+
     def finish(self, path):
         path.closePath()
-    
+
     def startPoint(self):
         return (self.x_near, self.y_first)
-        
+
     def __add__(self, oppo):
         p = PathBuilder()
         self.moveToStart(p)
@@ -257,22 +257,22 @@ class _End(object):
         oppo.drawEnd(p)
         self.finish(p)
         return p.asPath()        
-    
+
 class Open(_End):
     def finish(self, path):
         self.drawToStart(path)
-    
+
     def drawEnd(self, path):
         path.moveTo(self.x_near, self.y_second)
-    
+
 class Square(_End):
     def drawEnd(self, path):
         path.lineTo(self.x_near, self.y_second)
-    
+
 class Rounded(_End):
     def startPoint(self):
         return (self.x_near + self.dx, self.y_first)
-    
+
     def drawEnd(self, path):
         path.curveTo(self.x_near, self.y_first, self.x_near, self.y_first,
                 self.x_near, self.y_first + self.dy)
@@ -283,10 +283,10 @@ class Rounded(_End):
 class Pointy(_End):
     def _effective_dx(self):
         return max(abs(self.dx), abs(self.dy))*self.dx/abs(self.dx)
-    
+
     def startPoint(self):
         return (self.x_near + self._effective_dx(), self.y_first)
-    
+
     def drawEnd(self, path):
         head_start = self.x_near + self._effective_dx()
         middle = (self.y_first + self.y_second) / 2
@@ -332,4 +332,4 @@ def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False,
         end = Square(x1, x2, y1, y2)
     return end
 
-    
+

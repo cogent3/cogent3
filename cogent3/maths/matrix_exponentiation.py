@@ -27,23 +27,23 @@ __status__ = "Production"
 class _Exponentiator(object):
     def __init__(self, Q):
         self.Q = Q
-    
+
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
-    
+
 
 class EigenExponentiator(_Exponentiator):
     """A matrix ready for fast exponentiation.  P=exp(Q*t)"""
-    
+
     __slots__ = ['Q', 'ev', 'roots', 'evI', 'evT']
-    
+
     def __init__(self, Q, roots, ev, evT, evI):
         self.Q = Q
         self.evI = evI
         self.evT = evT
         self.ev = ev
         self.roots = roots
-    
+
     def __call__(self, t):
         exp_roots = numpy.exp(t*self.roots)
         result = numpy.inner(self.evT * exp_roots, self.evI)
@@ -51,14 +51,14 @@ class EigenExponentiator(_Exponentiator):
             result = numpy.asarray(result.real)
         result = numpy.maximum(result, 0.0)
         return result
-    
+
 
 def SemiSymmetricExponentiator(motif_probs, Q):
     """Like EigenExponentiator, but more numerically stable and
     30% faster when the rate matrix (Q/motif_probs) is symmetrical.
     Only usable when all motif probs > 0.  Unlike the others
     it needs to know the motif probabilities."""
-    
+
     H = numpy.sqrt(motif_probs)
     H2 = numpy.divide.outer(H, H)
     #A = Q * H2
@@ -78,7 +78,7 @@ class TaylorExponentiator(_Exponentiator):
     def __init__(self, Q):
         self.Q = Q
         self.q = 21
-    
+
     def __call__(self, t=1.0):
         """Compute the matrix exponential using a Taylor series of order q."""
         A = self.Q * t
@@ -96,12 +96,12 @@ class TaylorExponentiator(_Exponentiator):
             warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k+1))
             self.q = k + 1
         return eA
-    
+
 
 class PadeExponentiator(_Exponentiator):
     def __init__(self, Q):
         self.Q = Q
-    
+
     def __call__(self, t=1.0):
         """Compute the matrix exponential using Pade approximation of order q.
         """
@@ -111,7 +111,7 @@ class PadeExponentiator(_Exponentiator):
         norm = numpy.maximum.reduce(numpy.sum(numpy.absolute(A), axis=1))
         j = int(numpy.floor(numpy.log(max(norm, 0.5))/numpy.log(2.0))) + 1
         A = A / 2.0**j
-        
+
         # How many iterations required
         e = 1.0
         q = 0
@@ -121,7 +121,7 @@ class PadeExponentiator(_Exponentiator):
             q2 = 2.0 * q
             qf *= q**2 / (q2 * (q2-1) * q2 * (q2+1))
             e = 8 * (norm/(2**j))**(2*q) * qf
-        
+
         # Pade Approximation for exp(A)
         X = A
         c = 1.0/2
@@ -148,7 +148,7 @@ def FastExponentiator(Q):
     (roots, evT) = eig(Q)
     ev = evT.T
     return EigenExponentiator(Q, roots, ev, evT, inv(ev))
-    
+
 def CheckedExponentiator(Q):
     (roots, evT) = eig(Q)
     ev = evT.T
@@ -157,7 +157,7 @@ def CheckedExponentiator(Q):
     if not numpy.allclose(Q, reQ):
         raise ArithmeticError("eigen failed precision test")
     return EigenExponentiator(Q, roots, ev, evT, evI)
-    
+
 def RobustExponentiator(Q):
     return PadeExponentiator(Q)
 

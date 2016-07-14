@@ -23,17 +23,17 @@ def IndexGen(length):
 class JackknifeStats(object):
     """Computes the jackknife statistic for a particular statistical function
     as outlined by 'Tukey's Jackknife Method' Biometry by Sokal/Rohlf."""
-    
+
     def __init__(self, length, calc_stat, gen_index=IndexGen):
         """Initialise the jackknife class:
-        
+
         length: The length of the data set (since data is not passed to this
                 class).
         calc_stat: A callback function that computes the required statistic
                        of a defined dataset.
         gen_index: A callback function that generates a list of indices
                            that are used to sub-sample the dataset."""
-        
+
         super(JackknifeStats, self).__init__()
         self.n = length
         self.calc_stat = calc_stat
@@ -43,12 +43,12 @@ class JackknifeStats(object):
         self._jackknifed_stat = None
         self._sample_statistic = None
         self._standard_error = None
-    
+
     def jackknife(self):
         """Computes the jackknife statistics and standard error"""
         n = self.n
         n_minus_1 = n - 1
-        
+
         # compute the statistic in question on the whole data set
         self._sample_statistic = self.calc_stat(list(range(self.n)))
         n_sample_statistic = n * self._sample_statistic
@@ -61,43 +61,43 @@ class JackknifeStats(object):
             subset_statistics.append(stat)
             pseudovalue = n_sample_statistic - n_minus_1 * stat
             pseudovalues.append(pseudovalue)
-        
+
         self._pseudovalues = np.array(pseudovalues)
         self._subset_statistics = np.array(subset_statistics)
         self._jackknifed_stat = self._pseudovalues.mean(axis=0)
-        
+
         # Compute the approximate standard error of the jackknifed estimate
         # of the statistic
         variance = np.square(self._pseudovalues - self._jackknifed_stat).sum(axis=0)
         variance_norm = np.divide(variance, n * n_minus_1)
         self._standard_error = np.sqrt(variance_norm)
-    
+
     @property
     def SampleStat(self):
         if self._sample_statistic is None:
             self.jackknife()
         return self._sample_statistic
-    
+
     @property
     def JackknifedStat(self):
         if self._jackknifed_stat is None:
             self.jackknife()
         return self._jackknifed_stat
-    
+
     @property
     def Exception(self):
         if self._standard_error is None:
             self.jackknife()
         return self._standard_error
-    
+
     @property
     def SubSampleStats(self):
         """Return a table of the sub-sample statistics"""
-        
+
         # if the statistics haven't been run yet.
         if self._subset_statistics is None:
             self.jackknife()
-        
+
         # generate table
         title = 'Subsample Stats'
         rows = []
@@ -111,27 +111,27 @@ class JackknifeStats(object):
             except TypeError:
                 row.append(subset_statistics)
             rows.append(row)
-        
+
         header = ['i']
         subset_stats = self._subset_statistics[0]
-        
+
         try:
             num_datasets = len(subset_stats)
             for i in range(num_datasets):
                 header.append('Stat_%s-i'%i)
         except TypeError:
             header.append('Stat-i')
-        
+
         return LoadTable(rows=rows, header=header,title=title)
-    
+
     @property
     def Pseudovalues(self):
         """Return a table of the Pseudovalues"""
-        
+
         # if the statistics haven't been run yet.
         if self._pseudovalues is None:
             self.jackknife()
-        
+
         # detailed table
         title = 'Pseudovalues'
         rows = []
@@ -144,33 +144,33 @@ class JackknifeStats(object):
             except TypeError:
                 row.append(pseudovalues)
             rows.append(row)
-        
+
         header = ['i']
         pseudovalues = self._pseudovalues[0]
-        
+
         try:
             num_datasets = len(pseudovalues)
             for i in range(num_datasets):
                 header.append('Pseudovalue_%s-i'%i)
         except TypeError:
             header.append('Pseudovalue-i')
-        
+
         return LoadTable(rows=rows, header=header,title=title)
-    
+
     @property
     def SummaryStats(self):
         """Return a summary table with the statistic value(s) calculated for the
         the full data-set, the jackknife statistics and standard errors."""
-        
+
         # if the statistics haven't been run yet.
         if self._jackknifed_stat is None:
             self.jackknife()
-        
+
         header = ['Sample Stat', 'Jackknife Stat', 'Standard Error']
         title = 'Summary Statistics'
         rows = np.vstack((self._sample_statistic,
                 self._jackknifed_stat, self._standard_error))
         rows = rows.transpose()
         return LoadTable(header=header, rows=rows, title=title)
-    
+
 

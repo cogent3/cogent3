@@ -50,7 +50,7 @@ class Dict2DTests(TestCase):
         """Dict2D init should work as expected"""
         #NOTE: currently only tests init from dict of dicts. Other initializers
         #are tested in the test_guess_input* and test_from* methods
-       
+
         #should compare equal to the relevant dict
         for d in [self.empty, self.single_same, self.single_diff, self.dense, \
             self.sparse]:
@@ -107,7 +107,7 @@ class Dict2DTests(TestCase):
         # Will fail if Error is raised
         d = Dict2D(data=[[1,2,3],[4,5,6]], RowOrder=list('ab'), \
                 ColOrder=list('def'))
-    
+
     def test_guess_input_type_fromDict(self):
         """Dict2D init can correctly guess input type: Dict """
         # Will fail if error is raised 
@@ -176,7 +176,7 @@ class Dict2DTests(TestCase):
         self.assertEqualItems(Dict2D(self.dense).rowKeys(), ['a','b',])
         self.assertEqualItems(Dict2D(self.square).rowKeys(), ['a','b','c'])
         self.assertEqualItems(Dict2D(self.sparse).rowKeys(), ['a','d'])
-        
+
     def test_colKeys(self):
         """Dict2D colKeys should find all the keys of component cols"""
         self.assertEqual(Dict2D(self.empty).colKeys(), [])
@@ -324,7 +324,7 @@ class Dict2DTests(TestCase):
         #negate should work
         d.RowOrder = d.ColOrder = None
         self.assertEqual(d.getRowIndices(lt_15, negate=True), ['c'])
-        
+
 
     def test_getRowsIf(self):
         """Dict2D getRowsIf should return object with rows wher f(x) is True"""
@@ -359,7 +359,7 @@ class Dict2DTests(TestCase):
         self.assertEqual(d.getCols('bc', negate=True), {
             'a':{'a':1}, 'b':{'a':2}, 'c':{'a':3},
             })
-    
+
     def test_getColIndices(self):
         """Dict2D getColIndices should return list of indices of matching cols"""
         d = Dict2D(self.square)
@@ -424,7 +424,7 @@ class Dict2DTests(TestCase):
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.getItemsIf(lt_5), [1,2,3,4])
         self.assertEqual(d.getItemsIf(lt_5, negate=True), [6,9])
-        
+
 
     def test_toLists(self):
         """Dict2D toLists should convert dict into list of lists"""
@@ -451,7 +451,7 @@ class Dict2DTests(TestCase):
 
         #works without RowOrder or ColOrder
         goal = [[1,2,3],[2,4,6],[3,6,9]]
-        
+
         # headers=False
         d = Dict2D(self.square)
         l = d.toLists()
@@ -459,7 +459,7 @@ class Dict2DTests(TestCase):
             r.sort()
         l.sort()
         self.assertEqual(l,goal)
-        
+
         # headers=True
         d.toLists(headers=True)
         l = d.toLists()
@@ -485,7 +485,7 @@ class Dict2DTests(TestCase):
         self.assertEqual(s2.Pad, True)
         assert 'Default' not in s2.__dict__
         assert 'RowConstructor' not in s2.__dict__
-   
+
     def test_fill(self):
         """Dict2D fill should fill in specified values"""
         #with no parameters, should just fill in elements that exist
@@ -550,7 +550,7 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.sparse)
         d.setDiag(-1)
         self.assertEqual(d, {'a':{'a':-1,'c':3},'d':{'b':2,'d':-1}})
-    
+
     def test_scale(self):
         """Dict2D scale should apply f(x) to each d[i][j]"""
         doubler = lambda x: x * 2
@@ -574,7 +574,7 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.sparse)
         d.scale(doubler)
         self.assertEqual(d, {'a':{'a':2,'c':6},'d':{'b':4}})
-   
+
     def test_transpose(self):
         """Dict2D transpose should work on both dense and sparse matrices, in place"""
         #should do nothing to empty matrix
@@ -661,7 +661,7 @@ class Dict2DTests(TestCase):
             row_delimiter='y', formatter=my_formatter), \
             '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
 
-        
-        
+
+
 if __name__ == '__main__':
     main()

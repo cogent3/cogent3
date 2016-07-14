@@ -17,7 +17,7 @@ __status__ = "Production"
 
 class GeneticCodeTests(TestCase):
     """Tests of the GeneticCode class."""
-        
+
     def setUp(self):
         """Set up some standard genetic code representations."""
         self.SGC = \
@@ -26,7 +26,7 @@ class GeneticCodeTests(TestCase):
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG"
         self.AllG= \
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-        
+
         self.WrongLength= [
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
             "",
@@ -101,7 +101,7 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(mtgc.changes(
             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'),
             {'AGA':'*R', 'AGG':'*R', 'ATA':'MI', 'TGA':'W*'})
-    
+
     def test_str(self):
         """GeneticCode str() should return its code string"""
         code_strings = self.SGC, self.mt, self.AllG
@@ -139,7 +139,7 @@ class GeneticCodeTests(TestCase):
             self.assertEqual(allg[codon], aa)
         #check that degenerate codon returns X
         self.assertEqual(sgc['NNN'], 'X')
-        
+
     def test_getitem_aa(self):
         """GeneticCode getitem should return codon set for aa"""
         #for all G, should return all the codons (in some order)
@@ -154,7 +154,7 @@ class GeneticCodeTests(TestCase):
         exp_ile = ['ATT', 'ATC', 'ATA']
         obs_ile = sgc['I']
         self.assertEqual(obs_ile, exp_ile)
-        
+
         exp_arg = ['AGA', 'AGG', 'CGT', 'CGC', 'CGA', 'CGG']
         obs_arg = sgc['R']
         self.assertEqual(obs_ile, exp_ile)
@@ -169,7 +169,7 @@ class GeneticCodeTests(TestCase):
 
         #unknown aa should return []
         self.assertEqual(sgc['U'], [])
-    
+
     def test_getitem_invalid_length(self):
         """GeneticCode getitem should raise InvalidCodonError on wrong length"""
         sgc = GeneticCode(self.SGC)
@@ -265,16 +265,16 @@ class GeneticCodeTests(TestCase):
         #check shortest translatable sequences
         self.assertEqual(sgc.translate('AAA'), 'K')
         self.assertEqual(sgc.translate(''), '')
-        
+
         #check that different code gives different results
         self.assertEqual(mt.translate(seq), 'MHDFW')
 
         #check translation with invalid codon(s)
         self.assertEqual(sgc.translate('AAANNNCNC123UUU'), 'KXXXF')
-        
+
     def test_sixframes(self):
         """GeneticCode sixframes should provide six-frame translation"""
-        
+
         class fake_rna(str):
             """Fake RNA class with reverse-complement"""
             def __new__(cls, seq, rev):
@@ -290,13 +290,13 @@ class GeneticCodeTests(TestCase):
         sgc = GeneticCode(self.SGC)
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
-        
+
         # should also actually work with an RNA or DNA sequence!!!
         test_rna = RNA.makeSequence('AUGCUAACAUAAA')
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
-        
-    
+
+
     def test_stop_indexes(self):
         """should return stop codon indexes for a specified frame"""
         sgc = GeneticCode(self.SGC)
@@ -305,7 +305,7 @@ class GeneticCodeTests(TestCase):
         for frame, expect in enumerate(expected):
             got = sgc.getStopIndices(seq, start=frame)
             self.assertEqual(got, expect)
-    
+
     def test_Synonyms(self):
         """GeneticCode Synonyms should return aa -> codon set mapping."""
         expected_synonyms = {

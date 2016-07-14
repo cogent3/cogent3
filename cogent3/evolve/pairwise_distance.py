@@ -33,7 +33,7 @@ def get_purine_indices(moltype):
     states = list(moltype)
     if not _same_moltype(RNA, moltype) and not _same_moltype(DNA, moltype):
         raise RuntimeError('Non-nucleic acid MolType')
-    
+
     return list(map(states.index, 'AG'))
 
 def get_matrix_diff_coords(indices):
@@ -49,12 +49,12 @@ def get_moltype_index_array(moltype, invalid=-9):
     char_to_index = zeros(max_ord+1, int32)
     # all non canonical_chars are ``invalid''
     char_to_index.fill(invalid)
-    
+
     for i in range(len(canonical_chars)):
         c = canonical_chars[i]
         o = ord(c)
         char_to_index[o] = i
-    
+
     return char_to_index
 
 def seq_to_indices(seq, char_to_index):
@@ -65,7 +65,7 @@ def seq_to_indices(seq, char_to_index):
 
 def _fill_diversity_matrix(matrix, seq1, seq2):
     """fills the diversity matrix for valid positions.
-    
+
     Assumes the provided sequences have been converted to indices with
     invalid characters being negative numbers (use get_moltype_index_array
     plus seq_to_indices)."""
@@ -73,7 +73,7 @@ def _fill_diversity_matrix(matrix, seq1, seq2):
     paired = paired[paired.min(axis=1) >= 0]
     for i in range(len(paired)):
         matrix[paired[i][0], paired[i][1]] += 1
-    
+
 
 def _jc69_from_matrix(matrix):
     """computes JC69 stats from a diversity matrix"""
@@ -82,35 +82,35 @@ def _jc69_from_matrix(matrix):
     diffs = total - sum(matrix[i,i] for i in range(matrix.shape[0]))
     if total == 0:
         return invalid
-    
+
     p = diffs / total
     if p >= 0.75: # cannot take log
         return invalid
-    
+
     factor = (1 - (4 / 3) * p)
-    
+
     dist = -3.0 * log(factor) / 4
     var = p * (1 - p) / (factor * factor * total)
     return total, p, dist, var
 
 def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_coords, tv_coords):
     invalid = None, None, None, None
-    
+
     total = matrix.sum()
     freqs = matrix.sum(axis=0) + matrix.sum(axis=1)
     freqs /= (2*total)
-    
+
     if total == 0:
         return invalid
-    
+
     # 
     p = matrix.take(pur_coords + pyr_coords + tv_coords).sum() / total
-    
+
     freq_purs = freqs.take(pur_indices).sum()
     prod_purs = freqs.take(pur_indices).prod()
     freq_pyrs = freqs.take(pyr_indices).sum()
     prod_pyrs = freqs.take(pyr_indices).prod()
-    
+
     # purine transition diffs
     pur_ts_diffs = matrix.take(pur_coords).sum()
     pur_ts_diffs /= total
@@ -119,21 +119,21 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     pyr_ts_diffs /= total
     # transversions
     tv_diffs = matrix.take(tv_coords).sum() / total
-    
+
     coeff1 = 2 * prod_purs / freq_purs
     coeff2 = 2 * prod_pyrs / freq_pyrs
     coeff3 = 2 * (freq_purs * freq_pyrs - \
             (prod_purs * freq_pyrs / freq_purs) -\
             (prod_pyrs * freq_purs / freq_pyrs))
-    
-    
+
+
     term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2*freq_purs)
     term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2*freq_pyrs)
     term3 = 1 - tv_diffs / (2 * freq_purs * freq_pyrs)
-    
+
     if term1 <= 0 or term2 <= 0 or term3 <= 0: # log will fail
         return invalid
-    
+
     dist = -coeff1 * log(term1) - coeff2 * log(term2) - coeff3 * log(term3)
     v1 = 1 / term1
     v2 = 1 / term2
@@ -144,7 +144,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     var = v1**2 * pur_ts_diffs + v2**2 * pyr_ts_diffs + v4**2 * tv_diffs - \
           (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
     var /= total
-    
+
     return total, p, dist, var
 
 def _logdetcommon(matrix):
@@ -175,35 +175,35 @@ def _logdetcommon(matrix):
     var_term = dot(M_matrix, frequency).diagonal().sum()
 
     return total, p, frequency, freqs, var_term
-    
+
 def _paralinear(matrix):
     """the paralinear distance from a diversity matrix"""
-    
+
     invalid = (None,)*4
-    
+
     total, p, frequency, freqs, var_term = _logdetcommon(matrix)
     if frequency is None:
         return invalid
-   
+
     r = matrix.shape[0]
     d_xy = - log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
     var = (var_term - (1 / sqrt(freqs[0]*freqs[1])).sum()) / (r**2 * total)
 
     return total, p, d_xy, var
-    
+
 
 def _logdet(matrix, use_tk_adjustment=True):
     """returns the LogDet from a diversity matrix
     Arguments:
         - use_tk_adjustment: when True, unequal state frequencies are allowed
     """
-    
+
     invalid = (None,)*4
 
     total, p, frequency, freqs, var_term = _logdetcommon(matrix)
     if frequency is None:
         return invalid
-    
+
     r = matrix.shape[0]
     if use_tk_adjustment:
         coeff = (sum(sum(freqs)**2)/4 - 1) / (r - 1)
@@ -234,26 +234,26 @@ def _number_formatter(template):
 
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
-    
+
     def __init__(self, moltype, invalid=-9, alignment=None):
         super(_PairwiseDistance, self).__init__()
         self.moltype = moltype
         self.char_to_indices = get_moltype_index_array(moltype)
         self._dim = len(list(moltype))
         self._dists = None
-        
+
         self.Names = None
         self.IndexedSeqs = None
-        
+
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
-        
+
         self._func_args = []
-    
+
     def _convert_seqs_to_indices(self, alignment):
         assert type(alignment.MolType) == type(self.moltype), \
             'Alignment does not have correct MolType'
-        
+
         self._dists = {}
         self.Names = alignment.Names[:]
         indexed_seqs = []
@@ -261,19 +261,19 @@ class _PairwiseDistance(object):
             seq = alignment.getGappedSeq(name)
             indexed = seq_to_indices(str(seq), self.char_to_indices)
             indexed_seqs.append(indexed)
-        
+
         self.IndexedSeqs = array(indexed_seqs)
-    
+
     @staticmethod
     def func():
         pass # over ride in subclasses
-    
+
     @display_wrap
     def run(self, alignment=None, ui=None):
         """computes the pairwise distances"""
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
-        
+
         matrix = zeros((self._dim, self._dim), float64)
         done = 0.0
         to_do = (len(self.Names) * len(self.Names) - 1) / 2
@@ -290,8 +290,8 @@ class _PairwiseDistance(object):
                 total, p, dist, var = self.func(matrix, *self._func_args)
                 self._dists[(name_1, name_2)] = (total, p, dist, var)
                 self._dists[(name_2, name_1)] = (total, p, dist, var)
-        
-    
+
+
     def getPairwiseDistances(self):
         """returns a 2D dictionary of pairwise distances."""
         if self._dists is None:
@@ -304,9 +304,9 @@ class _PairwiseDistance(object):
                 val = self._dists[(name_1, name_2)][2]
                 dists[(name_1, name_2)] = val
                 dists[(name_2, name_1)] = val
-        
+
         return dists
-    
+
     def _get_stats(self, stat, transform=None, **kwargs):
         """returns a table for the indicated statistics"""
         if self._dists is None:
@@ -327,18 +327,18 @@ class _PairwiseDistance(object):
         table = LoadTable(header=header, rows=rows, row_ids = True,
                 missing_data='*', **kwargs)
         return table
-    
+
     @property
     def Dists(self):
         kwargs = dict(title='Pairwise Distances', digits=4)
         return self._get_stats(2, **kwargs)
-    
+
     @property
     def StdErr(self):
         stderr = lambda x: sqrt(x)
         kwargs = dict(title='Standard Error of Pairwise Distances', digits=4)
         return self._get_stats(3, transform=stderr, **kwargs)
-    
+
     @property
     def Variances(self):
         kwargs = dict(title='Variances of Pairwise Distances', digits=4)
@@ -347,19 +347,19 @@ class _PairwiseDistance(object):
         if table is not None:
             for name in self.Names:
                 table.setColumnFormat(name, var_formatter)
-        
+
         return table
-    
+
     @property
     def Proportions(self):
         kwargs = dict(title='Proportion variable sites', digits=4)
         return self._get_stats(1, **kwargs)
-    
+
     @property
     def Lengths(self):
         kwargs = dict(title='Pairwise Aligned Lengths', digits=0)
         return self._get_stats(0, **kwargs)
-    
+
 
 class _NucleicSeqPair(_PairwiseDistance):
     """docstring for _NucleicSeqPair"""
@@ -368,7 +368,7 @@ class _NucleicSeqPair(_PairwiseDistance):
         if not _same_moltype(DNA, self.moltype) and \
             not _same_moltype(RNA, self.moltype):
             raise RuntimeError('Invalid MolType for this metric')
-    
+
 
 class JC69Pair(_NucleicSeqPair):
     """calculator for pairwise alignments"""
@@ -376,7 +376,7 @@ class JC69Pair(_NucleicSeqPair):
         """states: the valid sequence states"""
         super(JC69Pair, self).__init__(*args, **kwargs)
         self.func = _jc69_from_matrix
-    
+
 
 class TN93Pair(_NucleicSeqPair):
     """calculator for pairwise alignments"""
@@ -386,26 +386,26 @@ class TN93Pair(_NucleicSeqPair):
         self._freqs = zeros(self._dim, float64)
         self.pur_indices = get_purine_indices(self.moltype)
         self.pyr_indices = get_pyrimidine_indices(self.moltype)
-        
+
         # matrix coordinates
         self.pyr_coords = get_matrix_diff_coords(self.pyr_indices)
         self.pur_coords = get_matrix_diff_coords(self.pur_indices)
-        
+
         self.tv_coords = get_matrix_diff_coords(list(range(self._dim)))
         for coord in self.pur_coords + self.pyr_coords:
             self.tv_coords.remove(coord)
-        
+
         # flattened
         self.pyr_coords = [i * 4 + j for i, j in self.pyr_coords]
         self.pur_coords = [i * 4 + j for i, j in self.pur_coords]
         self.tv_coords = [i * 4 + j for i, j in self.tv_coords]
-        
+
         self.func = _tn93_from_matrix
         self._func_args = [self._freqs, self.pur_indices,
             self.pyr_indices, self.pur_coords,
             self.pyr_coords, self.tv_coords]
-        
-    
+
+
 
 class LogDetPair(_PairwiseDistance):
     """computes logdet distance between sequence pairs"""
@@ -416,11 +416,11 @@ class LogDetPair(_PairwiseDistance):
         super(LogDetPair, self).__init__(*args, **kwargs)
         self.func = _logdet
         self._func_args = [use_tk_adjustment]
-    
+
     def run(self, use_tk_adjustment=None, *args, **kwargs):
         if use_tk_adjustment is not None:
             self._func_args = [use_tk_adjustment]
-        
+
         super(LogDetPair, self).run(*args, **kwargs)
 
 class ParalinearPair(_PairwiseDistance):

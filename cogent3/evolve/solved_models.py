@@ -17,7 +17,7 @@ try:
             #(1, 0), "only matrix exponentiating DNA models")
 except ImportError:
     _solved_models = None
- 
+
 class PredefinedNucleotide(Nucleotide):
     _default_expm_setting = None
 
@@ -43,7 +43,7 @@ class PredefinedNucleotide(Nucleotide):
         result = numpy.empty([4,4], float)
         _solved_models.calc_TN93_P(self._do_scaling, pi, time, kappa_y, kappa_r, result)
         return result
-        
+
     def checkPsubCalculationsMatch(self):
         pi = numpy.array([.1, .2, .3, .4])
         params = [4,6][:len(self.parameter_order)]

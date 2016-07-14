@@ -28,7 +28,7 @@ def majorityRule(trees, strict=False):
           when false the highest scoring < 50% node will be used if
           there is more than one node with the same score this will be
           arbitrarily chosen on sort order
-    
+
     Returns:
         a list of cogent3.evolve.tree objects
     """
@@ -50,7 +50,7 @@ def weightedMajorityRule(weighted_trees, strict=False, attr='support',
     Returns:
         A list of consensus trees. List length will always be one if method is
         'unrooted'.
-    
+
     Bryant, D. (2003). A classification of consensus methods for phylogenetics.
     DIMACS series in discrete mathematics and theoretical computer science, 
     61:163-184.
@@ -90,14 +90,14 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
     cladecounts = [(count, clade) for (clade, count) in list(cladecounts.items())]
     cladecounts.sort()
     cladecounts.reverse()
-    
+
     if strict:
         # Remove any with support < 50%
         for index, (count, clade) in enumerate(cladecounts):
             if count <= 0.5 * total:
                 cladecounts = cladecounts[:index]
                 break
-    
+
     # Remove conflicts
     accepted_clades = set()
     counts = {}
@@ -106,13 +106,13 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             if clade.intersection(accepted_clade) and not (
                     clade.issubset(accepted_clade) or
                     clade.issuperset(accepted_clade)):
-                        break
+                break
         else:
             accepted_clades.add(clade)
             counts[clade] = count
             weighted_length = edgelengths[clade]
             edgelengths[clade] = weighted_length and weighted_length / count
-    
+
     nodes = {}
     queue = []
     tree_build = TreeBuilder().createEdge    
@@ -123,7 +123,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             nodes[tip_name] = tree_build([], tip_name, params)
         else:
             queue.append(((len(clade), clade)))
-            
+
     while queue:
         queue.sort()
         (size, clade) = queue.pop(0)
@@ -140,10 +140,10 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
         nodes[clade] = tree_build(children, None, 
             {attr:counts[clade], 'length':edgelengths[clade]})
         queue = new_queue
-    
+
     for root in list(nodes.values()):
         root.Name = 'root' # Yuk
-    
+
     return [root for root in list(nodes.values())]
 
 def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
@@ -165,7 +165,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
             tips = frozenset.union(*split)
         elif tips != frozenset.union(*split):
             raise NotImplementedError('all trees must have the same taxa')
-    
+
     # Normalise split lengths by split weight and split weights by total weight
     for split in split_lengths:
         if not split_lengths[split] is None:
@@ -189,7 +189,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
         else:
             accepted_splits[split] = \
                     {attr : weight, 'length' : split_lengths[split]}
-    
+
     return [getTree(accepted_splits)]
 
 def getSplits(tree):
@@ -203,7 +203,7 @@ def getSplits(tree):
         if tree.isTip():
             return ({frozenset([tree.Name]) : {'length' : tree.Length}}, 
                     [tree.Name])
-        
+
         splits = defaultdict(lambda : {'length' : 0.})
         tips = []
         for child in tree.Children:
@@ -217,7 +217,7 @@ def getSplits(tree):
             else:
                 splits[split] = {'length':tree.Length+splits[split]['length']}
         return splits, tips
-    
+
     splits, tips = getTipsAndSplits(tree)
     tips = frozenset(tips)
     return {frozenset([tips - s, s]) : params for s, params in list(splits.items())}
@@ -253,7 +253,7 @@ def getTree(splits):
             if child.Split <= half:
                 included.append(child)
                 test_half = test_half.union(child.Split)
-        
+
         if test_half == half: # Found it
             split = Edge(included, None, params)
             split.Split = half
@@ -268,7 +268,7 @@ def getTree(splits):
         for half in split:
             if addHalfSplit(tree, half, params):
                 break
-    
+
     # Balance the tree for the sake of reproducibility
     tree = tree.balanced()
     return tree
@@ -282,4 +282,4 @@ if __name__ == "__main__":
     print("Consensus of %s trees from %s" % (len(trees),sys.argv[1:]))
     outtrees = majorityRule(trees, strict=True)
     for tree in outtrees:
-            print(tree.asciiArt(compact=True, show_internal=False))
+        print(tree.asciiArt(compact=True, show_internal=False))

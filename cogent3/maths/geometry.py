@@ -69,9 +69,9 @@ def distance(first, second):
 def sphere_points(n):
     """Calculates uniformly distributed points on a unit sphere using the 
     Golden Section Spiral algorithm.
-    
+
     Arguments:
-    
+
         -n: number of points
     """
     points = []
@@ -89,12 +89,12 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     create a crystallographic unit cell or a biological molecule, requires 
     orthogonal coordinates, a fractionalization matrix (fmx), 
     an orthogonalization matrix (omx) and rotation matrices (mxs).
-    
+
     Returns all coordinates with included identity, which should be the first
     matrix in mxs.
-    
+
     Arguments:
-    
+
         - coords: an array of orthogonal coordinates
         - fmx: fractionalization matrix
         - omx: orthogonalization matrix
@@ -120,9 +120,9 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
 def coords_to_crystal(coords, fmx, omx, n=1):
     """Applies primitive lattice translations to produce a crystal from the 
     contents of a unit cell.
-    
+
     Returns all coordinates with included zero translation (0, 0, 0).
-    
+
     Arguments:
         - coords: an array of orthogonal coordinates
         - fmx: fractionalization matrix

@@ -40,7 +40,7 @@ class TestIntegratingExponentiator(TestCase):
         Q = array([[1., 1.], [0., 1.]])
         def integral(t):
             return array([[exp(t)-1., exp(t)*(t-1.)+1.], [0., exp(t)-1.]])
-        
+
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(1.),
             integral(1.))
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(2.),

@@ -19,10 +19,10 @@ def _s2i(s):
 
 def test(r=1, **kw):   
     S = make_dna_scoring_dict(10, -1, -8)
-    
+
     seq2 = DNA.makeSequence('AAAATGCTTA' * r)
     seq1 = DNA.makeSequence('AATTTTGCTG' * r)
-    
+
     t0 = time.clock()
     try:
         # return_alignment is False in order to emphasise the quadratic part of the work.
@@ -32,7 +32,7 @@ def test(r=1, **kw):
     else:
         t = time.clock() - t0
         return int ( (len(seq1)*len(seq2))/t/1000 )
-        
+
 if __name__ == '__main__':
     d = 2
     e = 1

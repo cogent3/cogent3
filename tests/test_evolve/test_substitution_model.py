@@ -23,7 +23,7 @@ class NucleotideModelTestMethods(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(
                 do_scaling=True, model_gaps=False)
-            
+
     def test_isTransition(self):
         """testing isTransition"""
         isTransition = self.submodel.getPredefinedPredicate('transition')
@@ -39,7 +39,7 @@ class NucleotideModelTestMethods(TestCase):
         assert not isTransversion('C', 'T')
         assert isTransversion('A', 'T')
         assert isTransversion('C', 'G')
-        
+
     def test_isIndel(self):
         """testing indel comparison nucleotide model"""
         model = substitution_model.Nucleotide(
@@ -49,24 +49,24 @@ class NucleotideModelTestMethods(TestCase):
         assert isIndel('-', 'G')
         #assert not self.submodel.isIndel('-', '-')
         assert not isIndel('a', 't')
-        
+
     def test_PredicateChecks(self):
         # overparameterisation
         self.assertRaises(ValueError, substitution_model.Nucleotide,
                 model_gaps=False, predicates=['transition', 'transversion'])
-        
+
 class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
                 model_gaps=True, mprob_model='tuple')
-        
+
     def test_asciiArt(self):
         model = substitution_model.Dinucleotide(mprob_model='tuple', 
             predicates=['k:transition'])    
         model.asciiArt()
         model = substitution_model.Dinucleotide(mprob_model='tuple')
         model.asciiArt()
-        
+
     def test_isIndel(self):
         """testing indel comparison for dinucleotide model"""
         # these are non-instantaneous
@@ -76,14 +76,14 @@ class MultiLetterMotifSubstModelTests(TestCase):
 
         #assert not self.submodel.isIndel('--', '--')
         assert not isIndel('AT', 'AA')
-        
+
         assert isIndel('AA', 'A-')
         assert isIndel('-A', 'CA')
         assert isIndel('TA', '-A')
 
         # isIndel can now assume it won't get any non-instantaneous pairs
         # assert self.submodel.isIndel('-a', 'a-') == 0
-    
+
 nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
 
 class TupleModelMotifProbFuncs(TestCase):
@@ -112,7 +112,7 @@ class ThreeLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(motif_length=3,
             mprob_model='tuple')
-        
+
     def test_isIndel(self):
         """testing indel comparison for trinucleotide model"""
         isIndel = self.submodel.getPredefinedPredicate('indel')
@@ -132,7 +132,7 @@ class CodonSubstModelTests(TestCase):
             mprob_model='tuple')
         self.mitocode = substitution_model.Codon(model_gaps=False, gc=2,
             mprob_model='tuple')
-        
+
     def test_isTransition(self):
         """testing codon isTransition"""
         isTransition = self.standardcode.getPredefinedPredicate('transition')
@@ -148,10 +148,10 @@ class CodonSubstModelTests(TestCase):
         # mito code         
         assert isTransition('CTT', 'CTC')
         assert isTransition('CTA', 'CTG')
-                            
+
         assert not isTransition('GAG', 'GTG')
         assert not isTransition('CCC', 'CGC')
-        
+
     def test_isReplacement(self):
         """test isReplacement for the two major genetic codes"""
         isReplacement = self.standardcode.getPredefinedPredicate('replacement')
@@ -163,7 +163,7 @@ class CodonSubstModelTests(TestCase):
         # for the vert mitocho code, instantaneous replacement
         isReplacement = self.mitocode.getPredefinedPredicate('replacement')
         assert isReplacement('AAA', 'AAC')
-        
+
     def test_isSilent(self):
         """testing isSilent for the two major genetic codes"""
         isSilent = self.standardcode.getPredefinedPredicate('silent')
@@ -174,36 +174,36 @@ class CodonSubstModelTests(TestCase):
         # for vert mito code
         isSilent = self.mitocode.getPredefinedPredicate('silent')
         assert isSilent('TCC', 'TCA')
-         
+
     def test_isIndel(self):
         """test isIndel for codon model"""
         isIndel = self.standardcode.getPredefinedPredicate('indel')
         assert isIndel('CTA', '---')
         assert not isIndel('---', '---')
         assert isIndel('---', 'TTC')
-                
+
     def test_str_(self):
         """str() and repr() of a substitution model"""
         s = str(self.standardcode)
         r = repr(self.standardcode)
 
-    
+
 class ModelDataInteractionTestMethods(TestCase):
-        
+
     def test_excludeinggaps(self):
         """testing excluding gaps from model"""
         model = substitution_model.Nucleotide(model_gaps=False)
         assert len(model.getAlphabet()) == 4
-                
+
     def test_includinggaps(self):
         """testing excluding gaps from model"""
         model = substitution_model.Nucleotide(model_gaps=True)
         assert len(model.getAlphabet()) == 5
-                
+
     def test_getMotifs(self):
         """testing return of motifs"""
         model_motifs = substitution_model.Nucleotide().getMotifs()
-    
+
     def test_getParamList(self):
         """testing getting the parameter list"""
         model = substitution_model.Nucleotide()
@@ -211,10 +211,10 @@ class ModelDataInteractionTestMethods(TestCase):
 
         model = substitution_model.Nucleotide(predicates=['beta:transition'])
         self.assertEqual(model.getParamList(), ['beta'])
-        
-    
+
+
     # need to ensure entering motif probs that sum to 1, that motif sets are the same
 
 if __name__ == '__main__':
-        main()
+    main()
 

@@ -43,7 +43,7 @@ def std_(x, axis=None):
     The result is unbiased, matching the result from MLab.std
     """
     x = asarray(x)
-    
+
     if axis is None:
         d = x - mean(x)
         return sqrt(sum(d**2)/(len(x)-1))
@@ -63,7 +63,7 @@ def std_(x, axis=None):
         return result
     else:
         raise ValueError("axis out of bounds")
-    
+
 # tested only by std
 def var(x, axis=None):
     """Returns unbiased standard deviations over given axis.
@@ -129,24 +129,24 @@ def median(m, axis=None):
 class ZeroExpectedError(ValueError):
     """Class for handling tests where an expected value was zero."""
     pass
-   
+
 def G_2_by_2(a, b, c, d, williams=1, directional=1):
     """G test for independence in a 2 x 2 table.
 
     Usage: G, prob = G_2_by_2(a, b, c, d, willliams, directional)
 
     Cells are in the order:
-    
+
         a b
         c d
-    
+
     a, b, c, and d can be int, float, or long.
     williams is a boolean stating whether to do the Williams correction.
     directional is a boolean stating whether the test is 1-tailed.
-    
+
     Briefly, computes sum(f ln f) for cells - sum(f ln f) for
     rows and columns + f ln f for the table.
-    
+
     Always has 1 degree of freedom
 
     To generalize the test to r x c, use the same protocol:
@@ -158,7 +158,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     observed G, and then either halve or halve and subtract from
     one depending on whether the directional prediction was
     upheld. 
-    
+
     The default test is now one-tailed (Rob Knight 4/21/03).
 
     See Sokal & Rohlf (1995), ch. 17. Specifically, see box 17.6 (p731).
@@ -171,7 +171,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     #raise error if any counts were negative
     if min(cells) < 0:
         raise ValueError("G_2_by_2 got negative cell counts(s): must all be >= 0.")
-    
+
     G = 0
     #Add x ln x for items, adding zero for items whose counts are zero
     for i in [_f for _f in cells if _f]:
@@ -200,7 +200,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         G /= q
 
     p = chi_high(max(G,0), 1)
-    
+
     #find which tail we were in if the test was directional
     if directional:
         is_high =  ((b == 0) or (d != 0 and (a/b > c/d)))
@@ -220,7 +220,7 @@ def safe_sum_p_log_p(a, base=None):
 
 def G_ind(m, williams=False):
     """Returns G test for independence in an r x c table.
-    
+
     Requires input data as a numpy array. From Sokal and Rohlf p 738.
     """
     f_ln_f_elements = safe_sum_p_log_p(m)
@@ -239,47 +239,47 @@ def G_ind(m, williams=False):
 
 
 def calc_contingency_expected(matrix):
-        """Calculates expected frequencies from a table of observed frequencies
+    """Calculates expected frequencies from a table of observed frequencies
 
-        The input matrix is a dict2D object and represents a frequency table
-        with different variables in the rows and columns. (observed
-        frequencies as values)
-                                
-        The expected value is calculated with the following equation:
-            Expected = row_total x column_total / overall_total
-                                            
-        The returned matrix (dict2D) has lists of the observed and the 
-        expected frequency as values
-        """
-        #transpose matrix for calculating column totals
-        t_matrix = matrix.copy()
-        t_matrix.transpose()
+    The input matrix is a dict2D object and represents a frequency table
+    with different variables in the rows and columns. (observed
+    frequencies as values)
 
-        overall_total = sum(list(matrix.Items))
-        #make new matrix for storing results
-        result = matrix.copy()
+    The expected value is calculated with the following equation:
+        Expected = row_total x column_total / overall_total
 
-        #populate result with expected values
-        for row in matrix:
-            row_sum = sum(list(matrix[row].values()))
-            for item in matrix[row]:
-                column_sum = sum(list(t_matrix[item].values()))
-                #calculate expected frequency
-                Expected = (row_sum * column_sum)/overall_total
-                result[row][item] = [result[row][item]]
-                result[row][item].append(Expected)
-        return result
+    The returned matrix (dict2D) has lists of the observed and the 
+    expected frequency as values
+    """
+    #transpose matrix for calculating column totals
+    t_matrix = matrix.copy()
+    t_matrix.transpose()
+
+    overall_total = sum(list(matrix.Items))
+    #make new matrix for storing results
+    result = matrix.copy()
+
+    #populate result with expected values
+    for row in matrix:
+        row_sum = sum(list(matrix[row].values()))
+        for item in matrix[row]:
+            column_sum = sum(list(t_matrix[item].values()))
+            #calculate expected frequency
+            Expected = (row_sum * column_sum)/overall_total
+            result[row][item] = [result[row][item]]
+            result[row][item].append(Expected)
+    return result
 
 def G_fit(obs, exp, williams=1):
     """G test for fit between two lists of counts.
 
     Usage: test, prob = G_fit(obs, exp, williams)
-    
+
     obs and exp are two lists of numbers.
     williams is a boolean stating whether to do the Williams correction.
-    
+
     SUM(2 f(obs)ln (f(obs)/f(exp)))
-    
+
     See Sokal and Rohlf chapter 17.
     """
     k = len(obs)
@@ -287,7 +287,7 @@ def G_fit(obs, exp, williams=1):
         raise ValueError("G_fit requires two lists of equal length.")
     G = 0
     n = 0
-    
+
     for o, e in zip(obs, exp):
         if o < 0:
             raise ValueError("G_fit requires all observed values to be positive.")
@@ -296,7 +296,7 @@ def G_fit(obs, exp, williams=1):
         if o:   #if o is zero, o * log(o/e) must be zero as well.
             G += o * log(o/e)
             n += o
-    
+
     G *= 2
     if williams:
         q = 1 + (k + 1)/(6*n)
@@ -331,7 +331,7 @@ def chi_square_from_Dict2D(data):
     (r-1)*(c-1) if cols and rows are both > 1
     otherwise is just 1 - the # of rows or columns
     (whichever is greater than 1)
-    
+
     """
     test =  sum([((item[0] - item[1]) * (item[0] - item[1]))/item[1] \
                    for item in data.Items])
@@ -345,9 +345,9 @@ def chi_square_from_Dict2D(data):
         raise ValueError("data matrix must have data")
     else:
         df = (len(data) - 1) * (len([col for col in data.Cols]) - 1)
-    
+
     return test, chi_high(test, df)
-    
+
 
 def likelihoods(d_given_h, priors):
     """Calculate likelihoods through marginalization, given Pr(D|H) and priors.
@@ -421,13 +421,13 @@ def bayes_updates(ds_given_h, priors = None):
 
 def t_paired(a,b, tails=None, exp_diff=0):
     """Returns t and prob for TWO RELATED samples of scores a and b.  
-    
+
     From Sokal and Rohlf (1995), p. 354.
     Calculates the vector of differences and compares it to exp_diff
     using the 1-sample t test.
 
     Usage:   t, prob = t_paired(a, b, tails, exp_diff)
-    
+
     t is a float; prob is a probability.
     a and b should be equal-length lists of paired observations (numbers).
     tails should be None (default), 'high', or 'low'.
@@ -442,7 +442,7 @@ def t_paired(a,b, tails=None, exp_diff=0):
     except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
         FloatingPointError):
         return (None, None)
-    
+
 
 def t_one_sample(a,popmean=0, tails=None):
     """Returns t for ONE group of scores a, given a population mean.
@@ -469,7 +469,7 @@ def t_one_sample(a,popmean=0, tails=None):
 
 def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
     """Returns t, prob for two INDEPENDENT samples of scores a, and b.  
-    
+
     From Sokal and Rohlf, p 223.  
 
     Usage:   t, prob = t_two_sample(a,b, tails, exp_diff)
@@ -515,7 +515,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
             n2 = len(b)
         else:
             n2 = 1
-        
+
         if n2 < 2:
             t, prob = t_one_observation(sum(b), a, reverse_tails(tails),
                     exp_diff, none_on_zero_variance=none_on_zero_variance)
@@ -677,7 +677,7 @@ def _permute_observations(x_items, y_items, permutations,
 def t_one_observation(x, sample, tails=None, exp_diff=0,
                       none_on_zero_variance=True):
     """Returns t-test for significance of single observation versus a sample.
-    
+
     Equation for 1-observation t (Sokal and Rohlf 1995 p 228):
     t = obs - mean - exp_diff / (var * sqrt((n+1)/n)) 
     df = n - 1
@@ -710,7 +710,7 @@ def t_one_observation(x, sample, tails=None, exp_diff=0,
 
 def pearson(x_items, y_items):
     """Returns Pearson's product moment correlation coefficient.
-    
+
     This will always be a value between -1.0 and +1.0. x_items and y_items must
     be the same length, and cannot have fewer than 2 elements each. If one or
     both of the input vectors do not have any variation, the return value will
@@ -1018,7 +1018,7 @@ def regress_origin(x,y):
 
 def regress_R2(x, y):
     """Returns the R^2 value for the regression of x and y
-    
+
     Used the method explained on pg 334 ofJ.H. Zar, Biostatistical analysis,
     fourth edition. 1999
     """
@@ -1045,7 +1045,7 @@ def regress_residuals(x, y):
         e = y - (slope * x) - intercept
         residuals.append(e)
     return residuals
-    
+
 def stdev_from_mean(x):
     """returns num standard deviations from the mean of each val in x[]"""
     x = array(x)
@@ -1073,7 +1073,7 @@ def regress_major(x, y):
     slope = cov/(eigen_1 - var_y)
     intercept = mean_y - (mean_x * slope)
     return (slope, intercept)
-    
+
 
 def z_test(a, popmean=0, popstdev=1, tails=None):
     """Returns z and probability score for a single sample of items.
@@ -1139,7 +1139,7 @@ def combinations(n, k):
 
 def multiple_comparisons(p, n):
     """Corrects P-value for n multiple comparisons.
-    
+
     Calculates directly if p is large and n is small; resorts to logs
     otherwise to avoid rounding (1-p) to 1
     """
@@ -1150,7 +1150,7 @@ def multiple_comparisons(p, n):
 
 def multiple_inverse(p_final, n):
     """Returns p_initial for desired p_final with n multiple comparisons.
-    
+
     WARNING: multiple_inverse is not very reliable when p_final is very close
     to 1 (say, within 1e-4) since we then take the ratio of two very similar
     numbers.
@@ -1159,7 +1159,7 @@ def multiple_inverse(p_final, n):
 
 def multiple_n(p_initial, p_final):
     """Returns number of comparisons such that p_initial maps to p_final.
-    
+
     WARNING: not very accurate when p_final is very close to 1.
     """
     return log_one_minus(p_final)/log_one_minus(p_initial)
@@ -1222,7 +1222,7 @@ def ANOVA_one_way(a):
     within a category. The analysis must include 2 or more categories(lists).
     the lists must have a Mean and variance attribute. Recommende to make
     the Numbers objects
-    
+
     An F value is first calculated as the variance of the group means
     divided by the mean of the within-group variances.
     """
@@ -1281,7 +1281,7 @@ def MonteCarloP(value, rand_values, tail = 'high'):
 
 def sign_test(success, trials, alt="two sided"):
     """Returns the probability for the sign test.
-    
+
     Arguments:
         - success: the number of successes
         - trials: the number of trials
@@ -1308,14 +1308,14 @@ def sign_test(success, trials, alt="two sided"):
 
 def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     """Returns the statistic and probability from the Kolmogorov-Smirnov test.
-    
+
     Arguments:
         - x, y: vectors of numbers whose distributions are to be compared.
         - alt: the alternative hypothesis, default is 2-sided.
         - exact: whether to compute the exact probability
         - warn_for_ties: warns when values are tied. This should left at True
           unless a monte carlo variant, like ks_boot, is being used.
-    
+
     Note the 1-sample cases are not implemented, although their cdf's are
     implemented in ks.py"""
     # translation from R 2.4
@@ -1335,7 +1335,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
             ties = True
         else:
             ties = False
-        
+
         combined = array(combined, dtype=[('stat', float), ('sample', int)])
         combined.sort(order='stat')
         cumsum = zeros(combined.shape[0], float)
@@ -1345,7 +1345,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
         cumsum = cumsum.cumsum()
         if exact == None:
             exact = num_x * num_y < 1e4
-        
+
         if alt in two:
             stat = max(fabs(cumsum))
         elif alt in lo:
@@ -1358,16 +1358,16 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:
         raise NotImplementedError
-    
+
     if Pval == None:
         if alt in two:
             Pval = 1 - pkstwo(sqrt(n) * stat)
         else:
             Pval = exp(-2 * n * stat**2)
-    
+
     if ties and warn_for_ties:
         warnings.warn("Cannot compute correct KS probability with ties")
-    
+
     try: # if numpy arrays were input, the Pval can be an array of len==1
         Pval = Pval[0]
     except (TypeError, IndexError):
@@ -1391,7 +1391,7 @@ def _get_bootstrap_sample(x, y, num_reps):
 def ks_boot(x, y, alt = "two sided", num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
     for when there are ties.
-    
+
     Arguments:
         - x, y: vectors of numbers
         - alt: alternate hypothesis, as per ks_test
@@ -1422,10 +1422,10 @@ def mw_test(x, y):
     normal approximation"""
     if len(x) > len(y):
         x, y = y, x
-    
+
     num_x = len(x)
     num_y = len(y)
-    
+
     x = list(zip(x, zeros(len(x), int), zeros(len(x), int)))
     y = list(zip(y, ones(len(y), int), zeros(len(y), int)))
     combined = x+y
@@ -1442,7 +1442,7 @@ def mw_test(x, y):
         if value == prev and start is None:
             start = index
             continue
-        
+
         if value != prev and start is not None:
             ties = True
             ave_rank = _average_rank(start, index)
@@ -1453,14 +1453,14 @@ def mw_test(x, y):
             start = None
         combined['rank'][index] = index+1
         prev = value
-    
+
     if start is not None:
         ave_rank = _average_rank(start, index)
         num_tied = index - start + 2
         T += (num_tied**3 - num_tied)
         for i in range(start-1, index+1):
             combined['rank'][i] = ave_rank
-    
+
     total = combined.shape[0]
     x_ranks_sum = sum(combined['rank'][i] for i in range(total) if combined['sample'][i] == 0)
     prod = num_x * num_y
@@ -1475,11 +1475,11 @@ def mw_test(x, y):
 
 def mw_boot(x, y, num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Mann-Whitney test.
-    
+
     Arguments:
         - x, y: vectors of numbers
         - num_reps: number of replicates for the  bootstrap
-    
+
     Uses the same Monte-Carlo resampling code as kw_boot
     """
     tol = MACHEP * 100
@@ -1504,7 +1504,7 @@ def permute_2d(m, p):
 
 def mantel(m1, m2, n):
     """Compares two distance matrices. Reports P-value for correlation.
-    
+
     The p-value is based on a two-sided test.
 
     WARNING: The two distance matrices must be symmetric, hollow distance
@@ -1600,7 +1600,7 @@ def _flatten_lower_triangle(matrix):
     for col_num in range(matrix.shape[1]):
         for row_num in range(matrix.shape[0]):
             if col_num < row_num:
-                    flattened.append(matrix[row_num][col_num])
+                flattened.append(matrix[row_num][col_num])
     return flattened
 
 def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
@@ -1608,40 +1608,40 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     test of association that tau==0. Uses the large sample approximation when
     len(x) >= 50 or when there are ties, otherwise it computes the probability
     exactly.
-    
+
     Based on the algorithm implemented in R v2.5
-    
+
     Arguments:
         - alt: the alternate hypothesis (greater, less, two sided)
         - exact: when False, forces use of the large sample approximation
           (normal distribution). Not allowed for len(x) >= 50.
         - warn: whether to warn about tied values
     """
-    
+
     assert len(x) == len(y), "data (x, y) not of same length"
     assert len(x) > 2, "not enough observations"
-    
+
     # possible alternate hypotheses arguments
     lo = ["less", "lo", "lower", "l", "lt"]
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided", "ts"]
-    
+
     ties = False
     num = len(x)
     ties = len(set(x)) != num or len(set(y)) != num
     if ties and warn:
         warnings.warn("Tied values, using normal approximation")
-    
+
     if not ties and num < 50:
         exact = True
-    
+
     if num < 50 and not ties and exact:
         combs = int(num * (num-1) / 2)
         working = []
         for i in range(combs):
             row = [-1 for j in range(combs)]
             working.append(row)
-        
+
         tau = kendalls_tau(x, y, False)
         q = round((tau+1)*num*(num-1) / 4)
         if alt in two:
@@ -1755,7 +1755,7 @@ def get_ltm_cells(cells):
 
         cells: list of indices into a 2D integer-indexable object
          (typically a list or lists of array of arrays)
-    
+
     """
     new_cells = []
     for cell in cells:

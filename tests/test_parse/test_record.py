@@ -130,8 +130,8 @@ class GenericRecordTests(TestCase):
         assert isinstance(h, self.gr)
         self.assertEqual(h.X, 'y')
         self.assertEqual(h, {'a':'abc', 'b':[], 'c':{}})
-        
-        
+
+
 
 class MappedRecordTests(TestCase):
     """Tests of the MappedRecord class"""
@@ -259,7 +259,7 @@ class MappedRecordTests(TestCase):
         s.Aliases = {'C':'c'}
         s['C'] = 3
         self.assertEqual(s, {'a':3, 'c':3, 'Required':None})
-    
+
     def test_delitem(self):
         """MappedRecord delitem should only work for keys, not attributes"""
         s = self.single
@@ -356,15 +356,15 @@ class MappedRecordTests(TestCase):
         b = m()
         assert a['abc'] is not b['abc']
         assert a['abc'] == b['abc']
-        
-    
+
+
 class dummy(object):
     """Do-nothing class whose attributes can be freely abused."""
     pass
 
 class TypeSetterTests(TestCase):
     """Tests of the TypeSetter class"""
-        
+
     def test_setter_empty(self):
         """TypeSetter should set attrs to vals on empty init"""
         d = dummy()
@@ -387,7 +387,7 @@ class TypeSetterTests(TestCase):
 
 class TypeSetterLikeTests(TestCase):
     """Tests of the functions that behave similarly to TypeSetter products"""
-    
+
     def test_list_adder(self):
         """list_adder should add items to list, creating if necessary"""
         d = dummy()
@@ -398,7 +398,7 @@ class TypeSetterLikeTests(TestCase):
         list_adder(d, 'y', [2,3])
         self.assertEqual(d.x, [3, 'abc'])
         self.assertEqual(d.y, [[2,3]])
-    
+
     def test_list_extender(self):
         """list_adder should add items to list, creating if necessary"""
         d = dummy()
@@ -411,7 +411,7 @@ class TypeSetterLikeTests(TestCase):
         self.assertEqual(d.y, [2,3])
         list_extender(d, 'y', None)
         self.assertEqual(d.y, [2,3,None])
-        
+
     def test_dict_adder(self):
         """dict_adder should add items to dict, creating if necessary"""
         d = dummy()
@@ -427,7 +427,7 @@ class TypeSetterLikeTests(TestCase):
 
 class LineOrientedConstructorTests(TestCase):
     """Tests of the LineOrientedConstructor class"""
-    
+
     def test_init_empty(self):
         """LOC empty init should succeed with expected defaults"""
         l = LineOrientedConstructor()
@@ -449,7 +449,7 @@ class LineOrientedConstructorTests(TestCase):
         self.assertEqual(result, {})
         result = l(data)
         self.assertEqual(result, {'abc':'xyz', '3':'n', 'fgh':None})
-   
+
     def test_full_LOC(self):
         """LOC should behave as expected when initialized with rich data"""
         data = ["abc\t def"," 3 \t n","  abc   \txyz\n\n", "x\t5", "fgh   ", 
@@ -501,7 +501,7 @@ class FieldWrapperTests(TestCase):
         f = FieldWrapper(fields, constructor=fake_dict)
         self.assertEqual(f('x y'), {'a':'x','b':'y'})
         assert isinstance(f('x y'), fake_dict)
-        
+
 class StrictFieldWrapperTests(TestCase):
     """Tests of the StrictFieldWrapper factory function"""
     def test_default(self):
@@ -528,14 +528,14 @@ class StrictFieldWrapperTests(TestCase):
         f = StrictFieldWrapper(fields, constructor=fake_dict)
         self.assertEqual(f('x y'), {'a':'x','b':'y'})
         assert isinstance(f('x y'), fake_dict)
-        
+
 class FieldMorpherTests(TestCase):
     """Tests of the FieldMorpher class."""
     def test_default(self):
         """FieldMorpher default should use correct constructors"""
         fm = FieldMorpher({'a':int, 'b':str})
         self.assertEqual(fm({'a':'3', 'b':456}), {'a':3,'b':'456'})
-        
+
     def test_default_error(self):
         """FieldMorpher default should raise FieldError on unknown fields"""
         fm = FieldMorpher({'a':int, 'b':str})
@@ -549,6 +549,6 @@ class FieldMorpherTests(TestCase):
         self.assertEqual(fm({3:3, 4:'4'}), {'3':'3', 4:4})
         #check that unrecognized values get the appropriate conversion
         self.assertEqual(fm({3:3, 5:'5'}), {'3':'3', '5':4.5})
-        
+
 if __name__ == '__main__':
     main()

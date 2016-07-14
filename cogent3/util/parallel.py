@@ -19,7 +19,7 @@ __status__ = "Production"
 
 # A flag to control if excess CPUs are worth a warning.
 inefficiency_forgiven = False
-       
+
 class _FakeCommunicator(object):
     """Looks like a 1-cpu MPI communicator, but isn't"""
     def Get_rank(self):
@@ -78,38 +78,38 @@ class NonParallelContext(ParallelContext):
     """This dummy parallel context is used when there is only one CPU available
     """
     size = 1
-    
+
     def getCommunicator(self):
         return FAKE_MPI_COMM
 
     def split(self, jobs):
         return (self, self)
-    
+
     def imap(self, f, s, chunksize=None):
         for element in s:
             yield f(element)
 
-        
+
 NONE = NonParallelContext()
 
 class UnFlattened(list):
     pass
-    
+
 class MPIParallelContext(ParallelContext):
     """This parallel context divides the available CPUs into groups of equal 
     size.  Inner levels of potential parallelism can then further subdivide
     those groups.  It helps to have a CPU count which is divisible by the
     task count."""
-    
+
     def __init__(self, comm=None):
         if comm is None:
             comm = MPI.COMM_WORLD
         self.comm = comm
         self.size = comm.Get_size()
-    
+
     def getCommunicator(self):
         return self.comm
-    
+
     def split(self, jobs):
         assert jobs > 0
         size = self.size
@@ -126,7 +126,7 @@ class MPIParallelContext(ParallelContext):
             next = klass(self.comm.Split(rank // group_count, rank))
             sub = klass(self.comm.Split(rank % group_count, rank))
         return (next, sub)
-        
+
     def imap(self, f, s, chunksize=1):
         comm = self.comm
         (size, rank) = (comm.Get_size(), comm.Get_rank())
@@ -158,21 +158,21 @@ class PicklableAndCallable(object):
             except KeyError:
                 raise RuntimeError
         return self.func(*args, **kw)
-    
+
 class MultiprocessingParallelContext(ParallelContext):
     """At the outermost opportunity, this parallel context delegates all
     work to a multiprocessing.Pool.  
     Subprocesses may also make pools if the outer pool is more than half idle.
-    
+
     Ideally the pool would be reused for later tasks, but cogent code mostly 
     uses map() with functions defined in local scopes, which are unpicklable,
     so that is hacked around and pools are only ever used for one map() call"""
-    
+
     def __init__(self, size=None):
         if size is None:
             size = multiprocessing.cpu_count()
         self.size = size
-    
+
     def getCommunicator(self):
         return FAKE_MPI_COMM
 
@@ -183,7 +183,7 @@ class MultiprocessingParallelContext(ParallelContext):
             return self
         else:
             return type(self)(size)
-        
+
     def split(self, jobs):
         assert jobs > 0
         group_count = min(self.size, jobs)
@@ -209,18 +209,18 @@ class MultiprocessingParallelContext(ParallelContext):
 
 class ContextStack(threading.local):
     """This singleton object holds the current and enclosing parallel contexts."""
-    
+
     def __init__(self):
         # Because this is a thread.local, any secondary threads will see this 
         # default and so not attempt to use MPI/multiprocessing:
         self.stack = []
         self.top = NONE
-    
+
     def setInitial(self, context):
         """The real initialiser.  Should be called once from the main thread."""
         assert self.stack == [] and self.top is NONE
         self.top = context
-        
+
     @contextmanager
     def pushed(self, context):
         """Temporarily enter a pre-existing parallel context"""
@@ -252,12 +252,12 @@ class ContextStack(threading.local):
 
     def map(self, f, s):
         return list(self.imap(f, s))
-    
+
     def getCommunicator(self):
         """For code needing an MPI communicator interface.  If not
         using MPI this will be a dummy communicator of 1 CPU."""
         return self.top.getCommunicator()
-        
+
     def getContext(self):
         return self.top
 
@@ -297,4 +297,4 @@ def sync_random(r):
     r.setstate(state)
 
 
-    
+

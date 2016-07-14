@@ -4,7 +4,7 @@ from cogent3.util.warning import deprecated
 from cogent3.recalculation.definition import (NonParamDefn, CalcDefn, 
     EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
     DictArrayTemplate)
-    
+
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
@@ -16,20 +16,20 @@ __status__ = "Production"
 
 class PsubMatrixDefn(PartitionDefn):
     "Square 2D array made of 1D partitions"
-    
+
     numeric = False # well, not scalar anyway
     const_by_default = False
     independent_by_default = True
-    
+
     def __init__(self, default=None, name=None, dimensions=None,
             dimension=None, size=None, **kw):
         PartitionDefn.__init__(self, default, name, dimensions,
             dimension, size, **kw)
-        
+
         (dim_name, dim_cats) = self.internal_dimension
         self.internal_dimensions = (dim_name, dim_name+"2")
         self.array_template = DictArrayTemplate(dim_cats, dim_cats)
-    
+
     def _makeDefaultValue(self):
         # Purely flat default doesn't work well so start at approx t=0.5
         flat = numpy.ones([self.size, self.size], float) / self.size
@@ -42,7 +42,7 @@ class PsubMatrixDefn(PartitionDefn):
                     (value.shape, self.name, self.size, self.size))
         for part in value:
             PartitionDefn.checkValueIsValid(self, part, is_constant)
-    
+
     def makeCells(self, input_soup={}, variable=None):
         uniq_cells = []
         all_cells = []
@@ -87,10 +87,10 @@ class PartialyDiscretePsubsDefn(object):
             dimensions=('locus', 'edge'))
         self.choices = [psubs, dpsubs]
         self.discrete_edges = discrete_edges
-    
+
     def selectFromDimension(self, dimension, category):
         assert dimension == 'edge', dimension
         special = category in self.discrete_edges
         return self.choices[special].selectFromDimension(dimension, category)
-    
+
 

@@ -59,7 +59,7 @@ def is_generator_unique(Q):
         # Can't deal with non-primary roots yet
         if isclose(expe[i], expe[j]):
             raise NotImplementedError('non-primary root detected:\n'+repr(Q))
-    
+
     # If the real parts of the eigenvalues are distinct, we're ok
     # For each candidate complex conjugate pair, check for equivalent Qs 
     for i, j in real_close:
@@ -87,7 +87,7 @@ def logm(P):
     evT = ev
     if not allclose(P, innerproduct(evT * roots, evI)):
         raise ArithmeticError("eigendecomposition failed")
-    
+
     log_roots = log(roots)
     return innerproduct(evT * log_roots, evI)
 
@@ -96,10 +96,10 @@ def logm_taylor(P, tol=1e-30):
     norm of P-I is > 1, raises an exception since the series is not gauranteed
     to converge. The series is continued until the Frobenius norm of the current
     element is < tol.
-    
+
     Note: This exit condition is theoretically crude but seems to work
     reasonably well.
-    
+
     Arguments:
         tol - the tolerance
     """
@@ -107,7 +107,7 @@ def logm_taylor(P, tol=1e-30):
     I = eye(P.shape[0])
     X = P - I
     assert norm(X, ord='fro') < 1, "Frobenius norm > 1"
-    
+
     Y = I
     Q = zeros(P.shape, dtype="double")
     i = 1

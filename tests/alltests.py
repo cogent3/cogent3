@@ -20,9 +20,9 @@ __status__ = "Production"
 
 def my_import(name):
     """Imports a module, possibly qualified with periods. Returns the module.
-    
+
     __import__ only imports the top-level module.
-    
+
     Recipe from python documentation at:
     http://www.python.org/doc/2.4/lib/built-in-funcs.html
     """
@@ -145,7 +145,7 @@ def suite():
             if not any(map(module_present, mysqls)):
                 test_ensembl = False
                 print("None of %s modules present: skipping test" % ", ".join(mysqls), file=sys.stderr)
-            
+
             if not module_present('sqlalchemy'):
                 test_ensembl = False
                 print("Module 'sqlalchemy' not present: skipping test", file=sys.stderr)
@@ -167,11 +167,11 @@ def suite():
             modules_to_test.append(db_test)
     else:
         print("Environment variable TEST_DB=1 not set: skipping db tests", file=sys.stderr)
-    
+
     assert sys.version_info >= (2, 6)
-    
+
     alltests = unittest.TestSuite()
-    
+
     for module in modules_to_test:
         if module.endswith('.rst'):
             module = os.path.join(*module.split(".")[:-1]) + ".rst"
@@ -190,10 +190,10 @@ class BoobyTrappedStream(object):
     def write(self, text):
         self.output.write(text)
         raise RuntimeError("Output not allowed in tests")
-        
+
     def flush(self):
         pass
-        
+
     def isatty(self):
         return False
 

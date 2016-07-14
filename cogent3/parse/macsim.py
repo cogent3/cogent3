@@ -25,17 +25,17 @@ def MacsimParser(doc):
                         'seq-name')[0].childNodes[0].nodeValue
         raw_seq = record.getElementsByTagName(
                         'seq-data')[0].childNodes[0].nodeValue
-        
+
         #cast as string to de-unicode
         raw_string = ''.join(str(raw_seq).upper().split())
         name=str(name).strip()
-        
+
         if str(record.getAttribute('seq-type')).lower() == 'protein':
             alphabet = moltype.PROTEIN
         else:
             alphabet = moltype.DNA
 
         seq = alphabet.makeSequence(raw_string, Name=name)
-                
+
         yield (name, seq)
-        
+

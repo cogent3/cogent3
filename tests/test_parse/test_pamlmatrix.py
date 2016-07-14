@@ -57,6 +57,6 @@ class TestParsePamlMatrix(TestCase):
         self.assertEqual(DSO78_matrix,matrix)
         self.assertEqual(DSO78_freqs,freqs)
     pass
-    
+
 if __name__ == "__main__":
     main()

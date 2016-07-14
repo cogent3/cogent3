@@ -52,7 +52,7 @@ class DbRef(object):
             return int(self) > int(other)
         except:
             return str(self) > str(other)
-        
+
     def __lt__(self, other):
         """Compares by accession: tries numeric first, then alphabetic"""
         try:
@@ -67,7 +67,7 @@ class DbRef(object):
             return int(self) == int(other)
         except:
             return str(self) == str(other)
-    
+
     def __ne__(self, other):
         """Compares by accession: tries numeric first, then alphabetic"""
         try:
@@ -87,7 +87,7 @@ def _make_list(obj):
 
 class DbRefs(MappedRecord, ConstrainedDict):
     """Holds Database -> [Accessions] mapping.
-    
+
     The accessions for a particular database are always stored as a list.
 
     DbRefs will ultimately contain methods for actually getting the records
@@ -104,7 +104,7 @@ KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept',
 
 class Info(MappedRecord, Delegator):
     """Dictionary that stores attributes for Sequence objects.
-    
+
     Delegates to DbRefs for database IDs.
     """
     Required = {'Refs':None}
@@ -122,7 +122,7 @@ class Info(MappedRecord, Delegator):
             if key in KnownDatabases:
                 refs[key] = val
                 del temp[key]
-                
+
         Delegator.__init__(self, refs)
         self['Refs'] = refs
         MappedRecord.__init__(self, temp)
@@ -140,7 +140,7 @@ class Info(MappedRecord, Delegator):
             return setattr(self.Refs, attr, val)
         else:
             return super(Info, self).__setattr__(attr, val)
-            
+
     def __getitem__(self, item):
         """Checks for item in Refs first."""
         if item in KnownDatabases:
@@ -154,7 +154,7 @@ class Info(MappedRecord, Delegator):
             return setattr(self.Refs, item, val)
         else:
             return super(Info, self).__setitem__(item, val)
-    
+
     def __contains__(self, item):
         """Checks for item in Refs first."""
         if item in KnownDatabases:

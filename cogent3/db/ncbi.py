@@ -230,10 +230,10 @@ class EUtils(object):
         #adjust retmax if max_recs is set: no point getting more records
         if max_recs is not None and max_recs < retmax:
             self.retmax = max_recs
-    
+
     def __getitem__(self, query):
         """Gets an query from NCBI. Assumes lists are lists of accessions.
-        
+
         Returns a handle to the result (either in memory or file on disk).
         WARNING: result is not guaranteed to contain any data.
         """
@@ -242,13 +242,13 @@ class EUtils(object):
             #query = expand_slice(query)
             queries = make_lists_of_expanded_slices_of_set_size(query)
             return self.grab_data(queries)
-        
+
         #check if it's a list -- if so, delimit with ' '
         if isinstance(query, list) or isinstance(query,tuple):
             #query = ' '.join(map(str, query))
             queries = make_lists_of_accessions_of_set_size(query)
             return self.grab_data(queries)
-        
+
         # most likey a general set of search terms 
         #e.g. '9606[taxid] OR 28901[taxid]' . So just return.
         return self.grab_data([query])
@@ -274,7 +274,7 @@ class EUtils(object):
             result = open(self.filename, 'w')
         else:
             result = StringIO()
-   
+
         for query in queries:
             self.term=query
             search_query = ESearch(**self.__dict__)
@@ -430,7 +430,7 @@ def get_taxa_names_lineages(lines):
 def parse_taxonomy_using_elementtree_xml_parse(search_result):
     """Returns upper level XML taxonomy information from GenBank.
         search_result: StringIO object
-    
+
     Returns list of all results in the form of:
         [{result_01},{result_02},{result_03}]
     For each dict the key and values would be:
@@ -440,9 +440,9 @@ def parse_taxonomy_using_elementtree_xml_parse(search_result):
     """
     xml_data = parse(search_result)
     xml_data_root = xml_data.getroot()
-    
+
     tax_info_list = ['']
-    
+
     l = []
     for individual_result in xml_data_root:
         children = list(individual_result)
@@ -478,7 +478,7 @@ def taxon_ids_to_names_and_lineages(ids, retmax=1000):
 
 def taxon_ids_to_lineages(ids, retmax=1000):
     """Returns full taxonomy (excluding species) from set of taxon ids.
-    
+
     WARNING: Resulting lineages aren't in the same order as input. Use
     taxon_ids_to_name_and_lineage if you need the names and/or lineages 
     associated with the specific ids.
@@ -548,7 +548,7 @@ def get_unique_taxa(query, db='protein'):
 
 if __name__ == '__main__':
     from sys import argv, exit
-    
+
     if len(argv) < 5:
         print("Syntax: python ncbi.py db rettype retmax query.")
         exit()

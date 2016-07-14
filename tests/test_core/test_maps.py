@@ -51,13 +51,13 @@ class MapTest(unittest.TestCase):
             #print (start, end), r,
             if r != expected:
                 self.fail(repr((r, expected)))
-            
+
     def test_maps_on_maps(self):
         seq = DNA.makeSequence('ATCGATCGAT' * 5, Name='base')
         feat1 = annotate(seq, 10, 20, 'fake')
         feat2 = annotate(feat1, 3, 5, 'fake2')
         feat3 = annotate(seq, 1, 3, 'left')
-        
+
         seq2 = seq[5:]
         self.assertEqual(structure(seq), ('seq', 50,
             [('fake', '[10:20]/50',
@@ -68,43 +68,43 @@ class MapTest(unittest.TestCase):
             [('fake', '[5:15]/45',
                 [('fake2', '[3:5]/10')])])
             )
-            
-    
+
+
     def test_getByAnnotation(self):
         seq = DNA.makeSequence('ATCGATCGAT' * 5, Name='base')
         seq.addAnnotation(Feature, 'test_type', 'test_label', [(5,10)])
         seq.addAnnotation(Feature, 'test_type', 'test_label2', [(15,18)])
-        
+
         answer = list(seq.getByAnnotation('test_type'))
         self.assertEqual( len(answer), 2)
         self.assertEqual( str(answer[0]), 'TCGAT')
         self.assertEqual( str(answer[1]), 'TCG')
-        
+
         answer = list(seq.getByAnnotation('test_type', 'test_label'))
         self.assertEqual( len(answer), 1)
         self.assertEqual( str(answer[0]), 'TCGAT')
-        
+
         # test ignoring of a partial annotation
         sliced_seq = seq[:17]
         answer = list(sliced_seq.getByAnnotation('test_type', ignore_partial=True))
         self.assertEqual(len(answer), 1)
         self.assertEqual( str(answer[0]), 'TCGAT')
-    
+
     def test_getBySequenceAnnotation(self):
         aln = LoadSeqs(data={
                 'a': 'ATCGAAATCGAT',
                 'b': 'ATCGA--TCGAT'})
         b = aln.getSeq('b')
         b.addAnnotation(Feature, 'test_type', 'test_label', [(4,6)])
-        
+
         answer = aln.getBySequenceAnnotation('b', 'test_type')[0].todict()
         self.assertEqual(answer, {'b':'A--T', 'a':'AAAT'})
-    
+
 
 if 0:  # old, needs fixes
     # Maps
     a = Map([(10,20)], parent_length=100)
-    
+
     for (desc, map, expected) in [
         ('a ', a,                                "Map([10:20] on base)"),
         ('i ', a.inverse(),                     "Map([-10-, 0:10, -80-] on Map([10:20] on base))"),
@@ -123,5 +123,5 @@ if 0:  # old, needs fixes
             bad = True
 
 if __name__ == '__main__':
-        unittest.main()
-        
+    unittest.main()
+

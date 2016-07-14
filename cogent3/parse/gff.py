@@ -20,7 +20,7 @@ def GffParser(f):
         line = line.strip()
         if not line:
             continue
-        
+
         # parse columns
         cols = line.split('\t')
         if len(cols) == 8:
@@ -28,7 +28,7 @@ def GffParser(f):
         assert len(cols) == 9, line
         (seqname, source, feature, start, end, score,
                 strand, frame, attributes) = cols
-        
+
         # adjust for python 0-based indexing etc.
         (start, end) = (int(start) - 1, int(end))
         # start is always meant to be less than end in GFF
@@ -38,12 +38,12 @@ def GffParser(f):
             start, end = abs(start), abs(end)
             if start > end:
                 start, end = end, start
-        
+
         # but we use reversal of indices when the feature is on the opposite
         # strand
         if strand == '-':
             (start, end) = (end, start)
-        
+
         # should parse attributes too
         yield (seqname, source, feature, start, end, score,
                 strand, frame, attributes, comments)

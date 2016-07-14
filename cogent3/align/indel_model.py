@@ -41,7 +41,7 @@ class _SimpleIndelParams(object):
         assert 0.0 < indel_rate < 1.0, indel_rate
         self.indel_rate = indel_rate
         self.indel_length = indel_length
-        
+
 class SimpleIndelModel(_SimpleIndelParams):
     """P(gap open), P(gap extend) with const P(extend match)"""
 
@@ -67,11 +67,11 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         distance = distance * self.indel_rate
         extend = self.indel_length
         close = 1.0 - extend
-        
+
         # First indel event
         indel = 1.0 - numpy.exp(-distance)
         insert = deletion = indel / 2.0
-    
+
         # Second indel event
         if distance < 0.0001:
             secondary_indel = distance/2
@@ -82,11 +82,11 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         secondary_deletion = secondary_insert = secondary_indel / 2.0
         same_len = (1 - extend)/(1 + extend)
         longer = shorted = (1.0 - same_len) /  2
-    
+
         eMX = insert * (1 - secondary_deletion*(1 - longer))
         eMY = deletion + insert * secondary_deletion * longer
         eMZ = (eMX + eMY)
-        
+
         eXM =  extend * secondary_deletion * same_len + \
                 close * (deletion/4 + (1.0-indel))
         eXX =  extend * (secondary_insert*extend/close + 
@@ -95,28 +95,28 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         #eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
         eXY =  extend * secondary_deletion * longer + \
                 close * deletion*3/4
-                
+
         #e = 1 + ( extend * secondary_indel/2 / close)
         #print e, (eXM + eXX + eXY)
         e = eXM + eXX + eXY
-    
+
         #assert eMM + eMX + eMY == 1.0, (eMM + eMX + eMY)
-    
+
         tMX = tMY = eMZ / 2
         tMM = 1.0 - eMZ
         tXM = tYM = eXM / e
         tXX = tYY = eXX / e
         tXY = tYX = eXY / e
-    
+
         tm = numpy.array([
             [tMM, tMX, tMY],
             [tXM, tXX, tXY],
             [tYM, tYX, tYY]])
-    
+
         if(min(tm.flat)<0):
             raise ValueError
-        
+
         return PairTransitionMatrix('MXY', tm)
 
-                    
+
 

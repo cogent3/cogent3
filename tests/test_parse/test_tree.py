@@ -157,7 +157,7 @@ class DndParserTests(TestCase):
         self.assertEqual(len(t[0]), 0)  #first child is terminal
         self.assertEqual(len(t[1]), 2)  #second child has two children
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0):6.0);')
-        
+
     def test_gnodedata(self):
         """DndParser should assign Name to internal nodes correctly"""
         t = DndParser(nodedata)

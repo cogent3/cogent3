@@ -56,16 +56,16 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     return (pc, aln)
 
 def quiet(f, *args, **kw):
-        import sys, io
-        temp = io.StringIO()
-        _stdout = sys.stdout
-        try:
-                sys.stdout = temp
-                result = f(*args, **kw)
-        finally:
-                #pass
-                sys.stdout = _stdout
-        return result
+    import sys, io
+    temp = io.StringIO()
+    _stdout = sys.stdout
+    try:
+        sys.stdout = temp
+        result = f(*args, **kw)
+    finally:
+        #pass
+        sys.stdout = _stdout
+    return result
 
 def evals_per_sec(*args):
     pc, aln = makePC(*args) #quiet(makeLF, *args)
@@ -76,7 +76,7 @@ def evals_per_sec(*args):
 class CompareImplementations(object):
     def __init__(self, switch):
         self.switch = switch
-    
+
     def __call__(self, *args):
         self.switch(0)
         (pc,aln) = quiet(makePC, *args)
@@ -96,7 +96,7 @@ def benchmarks(test):
     alphabets = ["Nucleotide", "Dinucleotide", "Codon"]
     sequence_lengths = [18, 2004]
     treesizes = [5, 20]
-    
+
     for (optimise_motifs, parameterisation) in [
             (False, 'global'), (False, 'local'), (True, 'global')]:
         print(parameterisation, ['', 'opt motifs'][optimise_motifs])

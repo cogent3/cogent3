@@ -24,21 +24,21 @@ class TestCigar(unittest.TestCase):
         self.aln = LoadSeqs(data = {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1})
         self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}
-    
+
     def test_map_to_cigar(self):
         """convert a Map to cigar string"""
         assert map_to_cigar(self.map) == self.cigar_text
-    
+
     def test_cigar_to_map(self):
         """test generating a Map from cigar"""
         map = cigar_to_map(self.cigar_text)
         assert str(map) == str(self.map)
-    
+
     def test_aligned_from_cigar(self):
         """test generating aligned seq from cigar"""
         aligned_seq = aligned_from_cigar(self.cigar_text, self.seq)
         assert aligned_seq == self.aln_seq
-    
+
     def test_slice_cigar(self):
         """test slicing cigars"""
         for start, end in self.slices:
@@ -50,13 +50,13 @@ class TestCigar(unittest.TestCase):
                 assert ori1 == slicealn1
             else:
                 assert map1.length == len(ori1)
-            
+
             # test by_align = False
             map2, loc2 = slice_cigar(self.cigar_text, start, end, by_align = False)
             slicealn2 = self.seq[start:end].gappedByMap(map2)
             ori2 = self.aln_seq[loc2[0]:loc2[1]]
             assert slicealn2 == ori2
-    
+
     def test_CigarParser(self):
         """test without slice"""
         aln = CigarParser(self.seqs, self.cigars)
@@ -68,11 +68,11 @@ class TestCigar(unittest.TestCase):
             annot = self.aln.getAnnotationsFromAnySequence("annot%d"%i)
             slice_aln = aln.getRegionCoveringAll(annot).asOneSpan().getSlice()
             i += 1
-            
+
             cmp_aln = CigarParser(self.seqs, self.cigars, sliced = True,
                                   ref_seqname = "FAKE01", start = start, end = end)
             assert cmp_aln == slice_aln 
-    
+
 
 
 if __name__ == '__main__':

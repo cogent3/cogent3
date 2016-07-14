@@ -34,17 +34,17 @@ def PamlMatrixParser(f):
     for row in range(1,20):
         for col in range(0, row):
             matrix[row,col] = matrix[col,row] = next_number()
-            
+
     freqs = [next_number() for i in range(20)]
     total = sum(freqs)
     assert abs(total-1) < 0.001, freqs
     freqs = [freq/total for freq in freqs]
-    
+
     matrix = numpy.take(matrix, reorder, 0)
     matrix = numpy.take(matrix, reorder, 1)
-    
+
     assert numpy.alltrue(matrix == numpy.transpose(matrix))
-    
+
     freqs = dict(list(zip(three_letter_order, freqs)))
-    
+
     return (matrix, freqs)

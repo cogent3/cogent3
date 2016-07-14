@@ -56,7 +56,7 @@ def cigar_to_map(cigar_text):
             n = int(n)
         else:
             n = 1
-            
+
         if c == 'M':
             spans.append(Span(posn, posn+n))
             posn += n
@@ -120,7 +120,7 @@ def slice_cigar(cigar_text, start, end, by_align=True):
 def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, end = None, moltype=DNA):
     """return an alignment from raw sequences and cigar strings
     if sliced, will return an alignment correspondent to ref sequence start to end
-    
+
     Arguments:
         seqs - raw sequences as {seqname: seq}
         cigars - corresponding cigar text as {seqname: cigar_text}

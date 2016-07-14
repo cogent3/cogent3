@@ -32,7 +32,7 @@ class LightweightTreeTip(str):
         node = constructor([], str(self), {})
         node.Length = max(0.0, length)
         return node
-        
+
 class LightweightTreeNode(frozenset):
     """Set of (length, child node) tuples"""
     def convert(self, constructor=None, length=None):
@@ -44,10 +44,10 @@ class LightweightTreeNode(frozenset):
         if length is not None:
             node.Length = max(0.0, length)
         return node
-        
+
     def __or__(self, other):
         return type(self)(frozenset.__or__(self, other))
-        
+
 class PartialTree(object):
     """A candidate tree stored as
       (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
@@ -60,7 +60,7 @@ class PartialTree(object):
         self.nodes = nodes
         self.tips = tips
         self.score = score
-        
+
     def getDistSavedJoinScoreMatrix(self):
         d = self.d
         L = len(d)
@@ -82,14 +82,14 @@ class PartialTree(object):
         right_length = 0.5 * (d[i,j] - ij_dist_diff)
 
         score = self.score + d[i,j]
-        
+
         left_length = max(0.0, left_length)
         right_length = max(0.0, right_length)
-        
+
         # Join i and k to make new node
         new_node = LightweightTreeNode(
                 [(left_length, nodes[i]), (right_length, nodes[j])])
-        
+
         # Store new node at i
         new_dists = 0.5 * (d[i] + d[j] - d[i,j])
         d[:, i] = new_dists
@@ -97,7 +97,7 @@ class PartialTree(object):
         d[i, i] = 0.0
         nodes[i] = new_node
         tips[i] = new_tip_set
-        
+
         # Eliminate j
         d[j, :] = d[L-1, :]
         d[:, j] = d[:, L-1]
@@ -107,9 +107,9 @@ class PartialTree(object):
         nodes.pop()
         tips[j] = tips[L-1]
         tips.pop()
-        
+
         return type(self)(d, nodes, tips, score)
-    
+
     def asScoreTreeTuple(self):
         assert len(self.nodes) == 3 # otherwise next line needs generalizing
         lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d)/4
@@ -122,7 +122,7 @@ class Pair(object):
     """A candidate neighbour join, not turned into an actual PartialTree until
     and unless we decide to use it, because calculating just the topology is 
     faster than calculating the whole new distance matrix etc. as well."""
-    
+
     __slots__ = ['tree', 'i', 'j', 'topology', 'new_partition']
     def __init__(self, tree, i, j, topology, new_partition):
         self.tree = tree
@@ -130,12 +130,12 @@ class Pair(object):
         self.j = j
         self.topology = topology
         self.new_partition = new_partition
-        
+
     def joined(self):
         new_tree = self.tree.join(self.i,self.j)
         new_tree.topology = self.topology
         return new_tree
-        
+
 
 def uniq_neighbour_joins(trees, encode_partition):
     """Generate all joinable pairs from all trees, best first, 
@@ -173,13 +173,13 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     Result:
         - a sorted list of (tree length, tree) tuples
     """
-     
+
     (names, d) = distanceDictTo2D(dists)
 
     if keep is None:
         keep = len(names) * 5
     all_keep = keep + dkeep
-        
+
     # For recognising duplicate topologies, encode partitions (ie: edges) as 
     # frozensets of tip names, which should be quickly comparable.
     arbitrary_anchor = names[0]
@@ -190,13 +190,13 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
             included = all_tips - included
         return included
         # could also convert to long int, or cache, would be faster?    
-    
+
     tips = [frozenset([n]) for n in names]
     nodes = [LightweightTreeTip(name) for name in names]
     star_tree = PartialTree(d, nodes, tips, 0.0)
     star_tree.topology = frozenset([])
     trees = [star_tree]
-    
+
     # Progress display auxiliary code
     template = ' size %%s/%s  trees %%%si' % (len(names), len(str(all_keep)))
     total_work = 0
@@ -206,18 +206,18 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         total_work_before[L] = total_work
         max_candidates = min(all_keep, max_candidates*L*(L-1)//2)
         total_work += max_candidates
-        
+
     def _show_progress():
         t = len(next_trees)
         work_done = total_work_before[L] + t
         ui.display(msg=template % (L, t), progress=work_done/total_work)
-    
+
     for L in range(len(names), 3, -1):
         # Generator of candidate joins, best first.
         # Note that with dkeep>0 this generator is used up a bit at a time
         # by 2 different interupted 'for' loops below.
         candidates = uniq_neighbour_joins(trees, encode_partition)
-        
+
         # First take up to 'keep' best ones
         next_trees = []
         _show_progress()
@@ -231,13 +231,13 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         # topological distance to others
         best_topology = next_trees[0].topology
         prior_td = [len(best_topology ^ tree.topology) for tree in trees]
-        
+
         # Maintain a separate queue of joins for each possible 
         # topological distance 
         max_td = (max(prior_td) + 1) // 2
         queue = [deque() for g in range(max_td+1)]
         queued = 0
-        
+
         # Now take up to dkeep joins, an equal number of the best at each 
         # topological distance, while not calculating any more TDs than 
         # necessary.
@@ -261,9 +261,9 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
                 _show_progress()
 
             target_td = target_td % max_td + 1
-        
+
         trees = [pair.joined() for pair in next_trees]
-                
+
     result = [tree.asScoreTreeTuple() for tree in trees]
     result.sort()
     return ScoredTreeCollection(result)

@@ -34,19 +34,19 @@ def _ancestry2paths(A):
 
 class WLS(TreeEvaluator):
     """(err, best_tree) = WLS(dists).trex()"""
-    
+
     def __init__(self, dists, weights = None):
         """Arguments:
             - dists: a dict with structure (seq1, seq2): distance
             - weights: an equivalently structured dict with measurements of
               variability of the distance estimates. By default, the sqrt of
               distance is used."""
-        
+
         self.dists = dists
         self.weights = weights or \
                             dict((key, 1.0/(dists[key]**2)) for key in dists)
         (self.names, dists) = distanceDictTo1D(self.dists)
-    
+
     def makeTreeScorer(self, names):
         dists = distanceDictAndNamesTo1D(self.dists, names)
         weights = distanceDictAndNamesTo1D(self.weights, names)
@@ -72,11 +72,11 @@ class WLS(TreeEvaluator):
             err = sum(diffs**2)
             return (err, lengths)
         return evaluate
-    
+
     def result2output(self, err, ancestry, lengths, names):
         return (err, ancestry2tree(ancestry, lengths, names))
 
 def wls(*args, **kw):
     (err, tree) = WLS(*args).trex(**kw)
     return tree
-    
+

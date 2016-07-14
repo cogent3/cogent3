@@ -46,13 +46,13 @@ def parse_data_line(line):
 
 def DialignParser(lines, seq_maker=None, get_scores=False):
     """Yields label, sequence pairs.
-    
+
     The alignment quality info is recorded in the sequence
     case and the score line. Font info can be handled by
     providing a custom seq_maker function. The quality
     scores are returned as the last value pair with
     name 'QualityScores' when get_scores is True."""
-    
+
     if seq_maker is None:
         seq_maker = ASCII.Sequence
     seqs = {}
@@ -68,12 +68,12 @@ def DialignParser(lines, seq_maker=None, get_scores=False):
             seqs[name].append(seq)
         else:
             seqs[name] = [seq]
-    
+
     # concat sequence blocks
     for name, seq_segs in list(seqs.items()):
         seq = "".join(seq_segs)
         yield name, seq_maker(seq, Name=name)
-    
+
     if get_scores:
         yield "QualityScores", "".join(quality_scores)
 

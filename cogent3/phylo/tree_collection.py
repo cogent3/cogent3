@@ -25,19 +25,19 @@ class ScoredTreeCollection(_UserList):
                 self.scoredTreeFormat(tree.getNewick(with_distances=True),
                 str(score)))
         f.close()
-    
+
     def scoredTreeFormat(self, tree, score):
         return [tree, '\t[', score, ']\n']
-    
+
     def getConsensusTree(self, strict=None, method='unrooted'):
         ctrees = self.getConsensusTrees(strict, method=method)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
-    
+
     def getConsensusTrees(self, strict=True, method='unrooted'):
         if strict is None: strict = True
         return consensus.weightedMajorityRule(self, strict, method=method)
-    
+
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
     def scoredTreeFormat(self, tree, score):
@@ -45,14 +45,14 @@ class UsefullyScoredTreeCollection(ScoredTreeCollection):
 
 class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
-    
+
     def getConsensusTrees(self, strict=False, method='unrooted'):
         if strict is None: strict = False
         return consensus.weightedMajorityRule(self, strict, method=method)
 
 class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (log likelihood, tree) tuples"""
-        
+
     def __init__(self, trees):
         list.__init__(self, trees)
         # Quick and very dirty check of order
@@ -61,7 +61,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     def getConsensusTree(self, cutoff=None, strict=False, alpha=0.05):
         """See documentation for getConsensusTrees"""
         return self.getConsensusTrees(cutoff, strict, alpha)[0]
-        
+
     def getConsensusTrees(self, cutoff=None, strict=False, alpha=0.05):
         """Returns a weighted consensus tree as described in Holland (2006).
         Weights transformed according to the class IV transformation in Jermiin
@@ -87,7 +87,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         14(12):1296.
         """
         return self.getWeightedTrees(cutoff, alpha).getConsensusTrees(strict)
-        
+
     def getWeightedTrees(self, cutoff=None, alpha=0.05):
         if cutoff is None:
             cutoff = 0.99
@@ -108,7 +108,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         weights.reverse()
         return WeightedTreeCollection((weight/denominator, tree)
                 for (weight, (lnL, tree)) in zip(weights, self))
-        
+
 
 def LoadTrees(filename):
     """Parse a file of (score, tree) lines. Scores can be positive probabilities

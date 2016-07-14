@@ -76,7 +76,7 @@ def ancestry2tree(A, lengths, tip_names):
             tips[i] = tip_names[tip]
             tip += 1
     assert tip == len(tip_names)
-    
+
     constructor = TreeBuilder().createEdge
     free = {}
     for i in numpy.argsort(numpy.sum(A, axis=0)):
@@ -116,24 +116,24 @@ def grown(B, split_edge):
 
 class TreeEvaluator(object):
     """Subclass must provide makeTreeScorer and result2output"""
-    
+
     def results2output(self, results):
         return ScoredTreeCollection(results)
-        
+
     def evaluateTopology(self, tree):
         """Optimal (score, tree) for the one topology 'tree'"""
         (ancestry, names, lengths) = tree2ancestry(tree)
         evaluate = self.makeTreeScorer(names)
         (err, lengths) = evaluate(ancestry)
         return self.result2output(err, ancestry, lengths, names)
-    
+
     def evaluateTree(self, tree):
         """score for 'tree' with lengths as-is"""
         (ancestry, names, lengths) = tree2ancestry(tree)
         evaluate = self.makeTreeScorer(names)
         (err, result) = evaluate(ancestry, lengths=lengths)
         return err
-    
+
     def _consistentNameOrder(self, fixed_names, ordered_names=None):
         """fixed_names followed by ordered_names without duplicates"""
         all_names = set(self.names)
@@ -148,7 +148,7 @@ class TreeEvaluator(object):
         names = list(fixed_names) + [n for n in ordered_names 
                 if n not in fixed_names_set]
         return names
-        
+
     @UI.display_wrap
     def trex(self, a=8, k=1000, start=None, order=None, return_all=False, 
             filename=None, interval=None, ui=None):
@@ -158,13 +158,13 @@ class TreeEvaluator(object):
         'start' is an optional list of initial trees.  Each of the trees must
         contain the same tips.
         'filename' and 'interval' control checkpointing.
-        
+
         Advanced step-wise addition algorithm
         M. J. Wolf, S. Easteal, M. Kahn, B. D. McKay, and L. S. Jermiin.
         Trexml: a maximum-likelihood approach for extensive tree-space
         exploration.
         Bioinformatics, 16(4):383 94, 2000."""
-        
+
         checkpointer = checkpointing.Checkpointer(filename, interval)
         if checkpointer.available():
             (init_tree_size, fixed_names, trees) = checkpointer.load()
@@ -179,7 +179,7 @@ class TreeEvaluator(object):
                 # check the start tree represents a subset of tips
                 assert set(tree.getTipNames()) < set(self.names), \
                     "Starting tree names not a subset of the sequence names"
-                
+
                 (ancestry, fixed_names2, lengths) = tree2ancestry(
                         tree, order=fixed_names)
                 assert fixed_names2 == fixed_names
@@ -189,7 +189,7 @@ class TreeEvaluator(object):
             trees = [(None, None, numpy.identity(3, int))]
             names = self._consistentNameOrder([], order)
             init_tree_size = 3
-            
+
         tree_size = len(names)
         assert tree_size > 3
         if a > tree_size:
@@ -206,7 +206,7 @@ class TreeEvaluator(object):
                     trees2.append((None, None, ancestry2))
             trees = trees2
             init_tree_size = n
-        
+
         # Pre calculate how much work is to be done, for progress display
         tree_count = len(trees)
         total_work = 0
@@ -216,7 +216,7 @@ class TreeEvaluator(object):
             total_work += evals * n
             tree_count = min(k, evals)
             work_done.append(total_work)
-        
+
         # For each tree size, grow at each edge of each tree. Keep best k.
         for n in range(init_tree_size+1, tree_size+1):
             evaluate = self.makeTreeScorer(names[:n])            
@@ -227,21 +227,21 @@ class TreeEvaluator(object):
                 ancestry = grown(old_ancestry, split_edge)
                 (err, lengths) = evaluate(ancestry)
                 return (err, tree_ordinal, split_edge, lengths, ancestry)
-            
+
             specs = [(i, tree, edge) 
                         for (i,tree) in enumerate(trees) 
                         for edge in range(n*2-5)]
 
             candidates = ui.imap(grown_tree, specs, noun=('%s leaf tree' % n),
                 start=work_done[n-1]/total_work, end=work_done[n]/total_work)
-            
+
             best = ismallest(candidates, k)
-            
+
             trees = [(err, lengths, ancestry) for (err, parent_ordinal, 
                     split_edge, lengths, ancestry) in best]
-            
+
             checkpointer.record((n, names[:n], trees))
-        
+
         results = (self.result2output(err, ancestry, lengths, names)
                     for (err, lengths, ancestry) in trees)
         if return_all:
@@ -249,4 +249,4 @@ class TreeEvaluator(object):
         else:
             result = next(results)
         return result
-    
+

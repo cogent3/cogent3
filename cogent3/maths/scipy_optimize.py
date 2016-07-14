@@ -1337,7 +1337,7 @@ class Brent:
     def set_bracket(self, brack = None):
         self.brack = brack
         self._brack_info = self.get_bracket_info()
-        
+
     def get_bracket_info(self):
         #set up
         func = self.func

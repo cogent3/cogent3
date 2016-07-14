@@ -18,7 +18,7 @@ class DisplayString(str):
         new.repr_length = repr_length or len(str(arg))
         new.with_quotes = with_quotes
         return new
-    
+
     def __repr__(self):
         if self.num_words is not None:
             new = " ".join(self.split()[:self.num_words])
@@ -30,7 +30,7 @@ class DisplayString(str):
             new += '...'
         new = [new, "'%s'" % new][self.with_quotes]
         return new
-    
+
 
 class CaseInsensitiveString(str):
     """A case insensitive string class. Comparisons are case insensitive."""
@@ -39,14 +39,14 @@ class CaseInsensitiveString(str):
         n._hash=hash(''.join(list(n)).lower())
         n._lower = ''.join(list(n)).lower()
         return n
-    
+
     def __eq__(self, other):
         return self._lower == ''.join(list(other)).lower()
-    
+
     def __hash__(self):
         # dict hashing done via lower case
         return self._hash
-    
+
     def __str__(self):
         return ''.join(list(self))
 
@@ -58,13 +58,13 @@ class LazyRecord(object):
         """blind constructor of caches"""
         self._cached = {}
         self._table_rows = {}
-    
+
     def _get_cached_value(self, attr_name, get_attr_func):
         if attr_name not in self._cached:
             get_attr_func()
-        
+
         return self._cached[attr_name]
-    
+
     def _populate_cache_from_record(self, attr_column, table_name):
         """attr_column: the attribute name <-> table column key mappin
         table_name: the key in _table_rows"""
@@ -72,22 +72,22 @@ class LazyRecord(object):
         for attr, column, func in attr_column:
             if attr not in self._cached:
                 self._cached[attr] = func(table[column])
-    
+
     def _set_null_values(self, attrs, table_name = None):
         for attr in attrs:
             self._cached[attr] = self.NULL_VALUE
-        
+
         if table_name:
             self._table_rows[table_name] = self.NULL_VALUE
-    
+
 
 class NoItemError(Exception):
     def __init__(self, value):
         self.value = value
-    
+
     def __str__(self):
         return repr(self.value)
-    
+
 
 def convert_strand(val):
     """ensures a consistent internal representation of strand"""
@@ -130,4 +130,4 @@ def yield_selected(sqlalchemy_select, limit=100):
         offset += limit
         if count == 0 or count < limit:
             break
-    
+
