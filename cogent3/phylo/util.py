@@ -15,6 +15,7 @@ __maintainer__ = "pm67nz@gmail.com"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 def namesFromDistanceDict(dists):
     """Unique names from within the tuples which make up the keys of 'dists'"""
     names = []
@@ -23,6 +24,7 @@ def namesFromDistanceDict(dists):
             if name not in names:
                 names.append(name)
     return names
+
 
 def lookupSymmetricDict(dists, a, b):
     """dists[a,b] or dists[b,a], whichever is present, so long as they
@@ -36,6 +38,7 @@ def lookupSymmetricDict(dists, a, b):
     else:
         raise ValueError("d[%s,%s] != d[%s,%s]" % (a, b, b, a))
 
+
 def distanceDictTo2D(dists):
     """(names, dists).  Distances converted into a straightforward distance
     matrix"""
@@ -48,6 +51,7 @@ def distanceDictTo2D(dists):
                 d[i, j] = lookupSymmetricDict(dists, a, b)
     return (names, d)
 
+
 def triangularOrder(keys):
     """Indices for extracting a 1D representation of a triangular matrix
     where j > i and i is the inner dimension:
@@ -57,6 +61,7 @@ def triangularOrder(keys):
         for i in range(0, j):
             yield (keys[i], keys[j])
 
+
 def distanceDictAndNamesTo1D(dists, names):
     """Distances converted into a triangular matrix implemented as a 1D array
     where j > i and i is the inner dimension:
@@ -65,6 +70,7 @@ def distanceDictAndNamesTo1D(dists, names):
     for (name_i, name_j) in triangularOrder(names):
         d.append(lookupSymmetricDict(dists, name_i, name_j))
     return numpy.array(d)
+
 
 def distanceDictTo1D(dists):
     """(names, dists).  Distances converted into a triangular matrix

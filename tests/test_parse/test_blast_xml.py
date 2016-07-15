@@ -24,6 +24,7 @@ import xml.dom.minidom
 
 class GetTagTests(TestCase):
     """Tests for the auxiliary function evaluating the tag objects."""
+
     def setUp(self):
         self.single_tag = xml.dom.minidom.parseString(\
             "<outer>bla <inner>content</inner>bla</outer>")
@@ -124,6 +125,7 @@ class MinimalBlastParser7Tests(TestCase):
 
 class BlastXmlResultTests(TestCase):
     """Tests parsing of output of Blast with output mode 7 (XML)."""
+
     def setUp(self):
         self.result = BlastXMLResult(COMPLETE_XML, xml=True)
 
@@ -188,7 +190,6 @@ class BlastXmlResultTests(TestCase):
 
             gap_hsp = self.result[query][0][1]
             self.assertEqual(gap_hsp['GAP_OPENINGS'], '33')
-
 
 
 HSP_XML = """

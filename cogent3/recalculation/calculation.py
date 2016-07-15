@@ -25,8 +25,10 @@ __status__ = "Production"
 # Cells and OptPars are held by a Calculator
 # For docstring see definitions.py
 
+
 class CalculationInterupted(Exception):
     pass
+
 
 class OptPar(object):
     """One parameter, as seen by the optimiser, eg: length of one edge.
@@ -628,6 +630,7 @@ class Calculator(object):
         (lower, upper) = opt_par.getOptimiserBounds()
         opt_value = self._getCurrentCellValue(opt_par)
         origX = opt_par.transformToOptimiser(opt_value)
+
         def func(x):
             Y = self.change([(opt_par.rank, x)])
             return Y - (origY - dropoff)

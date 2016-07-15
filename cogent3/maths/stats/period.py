@@ -19,6 +19,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def chi_square(x, p, df=1):
     """returns the chisquare statistic and it's probability"""
     N = len(x)
@@ -28,6 +29,7 @@ def chi_square(x, p, df=1):
     D = s / (N - p)
     p_val = 1 - igam(df / 2.0, D / 2)
     return D, p_val
+
 
 def g_statistic(X, p=None, idx=None):
     """
@@ -59,6 +61,7 @@ def g_statistic(X, p=None, idx=None):
     p_val = result.sum()
     return g_obs, p_val
 
+
 def _seq_to_symbols(seq, motifs, motif_length, result=None):
     """return symbolic represetation of the sequence
     Arguments: 
@@ -85,9 +88,11 @@ try:
 except ImportError:
     seq_to_symbols = _seq_to_symbols
 
+
 class SeqToSymbols(object):
     """class for converting all occurrences of motifs in passed sequence
     to 1/0 otherwise"""
+
     def __init__(self, motifs, length=None, motif_length=None):
         super(SeqToSymbols, self).__init__()
         if type(motifs) == str:
@@ -136,6 +141,7 @@ def circular_indices(vector, start, length, num):
     # get all till end, then from beginning
     return vector[start:] + vector[:start + num - length]
 
+
 def sampled_places(block_size, length):
     """returns randomly sampled positions with block_size to make a new vector
     with length
@@ -154,6 +160,7 @@ def sampled_places(block_size, length):
 
     assert len(result) == length, len(result)
     return result
+
 
 def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None, num_stats=None):
     """returns observed statistic and the probability from the bootstrap

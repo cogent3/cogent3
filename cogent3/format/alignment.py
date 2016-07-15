@@ -13,6 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def save_to_filename(alignment, filename, format, **kw):
     """Arguments:
             - alignment: to be written
@@ -34,12 +35,14 @@ def save_to_filename(alignment, filename, format, **kw):
     finally:
         f.close()
 
+
 def write_alignment_to_file(f, alignment, format, **kw):
     format = format.lower()
     if format not in WRITERS:
         raise FileFormatError("Unsupported file format %s" % format)
     writer = WRITERS[format](f)
     writer.writealignment(alignment, **kw)
+
 
 class _AlignmentWriter(TextIOBase):
     """A virtual class for writing sequence files."""
@@ -118,6 +121,7 @@ class _AlignmentWriter(TextIOBase):
 
 
 class PhylipWriter(_AlignmentWriter):
+
     def writealignment(self, alignmentdict, block_size=60, order=[]):
         """Write the alignment to a file.
 
@@ -159,6 +163,7 @@ class PhylipWriter(_AlignmentWriter):
 
 
 class PamlWriter(_AlignmentWriter):
+
     def writealignment(self, alignmentdict, block_size=60, order=[]):
         """Write the alignment to a file.
 
@@ -186,6 +191,7 @@ class PamlWriter(_AlignmentWriter):
 
 
 class FastaWriter(_AlignmentWriter):
+
     def writealignment(self, alignmentdict, block_size=60, order=[]):
         """Write the alignment to a file.
 
@@ -212,6 +218,7 @@ class FastaWriter(_AlignmentWriter):
 
 
 class GDEWriter(_AlignmentWriter):
+
     def writealignment(self, alignmentdict, block_size=60, order=[]):
         """Write the alignment to a file.
 

@@ -39,6 +39,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class UtilsTests(TestCase):
     """Tests of individual functions in utils"""
 
@@ -106,6 +107,7 @@ class UtilsTests(TestCase):
     def test_toString(self):
         """should stringify an object"""
         class foo(object):
+
             def __init__(self):
                 self.bar = 5
         exp = 'bar: 5'
@@ -126,7 +128,6 @@ class UtilsTests(TestCase):
     #    exp = True
     #    obs = timeLimitReached(start, timelimit)
     #    self.assertEqual(obs, exp)
-
 
     def test_safe_md5(self):
         """Make sure we have the expected md5"""
@@ -367,7 +368,6 @@ class UtilsTests(TestCase):
         # note difference between 2-char string and 1-string list
         self.assertEqual(find_many('abcabca', ['bc']), [1, 4])
         self.assertRaises(TypeError, find_many, 'abcabca', [3])
-
 
     def test_unreserve(self):
         """unreserve should trim trailing underscore if present."""
@@ -696,6 +696,7 @@ class UtilsTests(TestCase):
         def wrap_gen():  # need to wrap generator so we can actually test this
             gen = get_run_start_indices(data, digits=1,
                                         converter_func=lambda x: x)
+
             def call():
                 for v in gen:
                     pass
@@ -741,10 +742,10 @@ class UtilsTests(TestCase):
                          [[20, 24, 0.1]])
 
 
-
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
     pass
+
 
 class ClassCheckerTests(TestCase):
     """Unit tests for the ClassChecker class."""
@@ -822,13 +823,16 @@ class ClassCheckerTests(TestCase):
         assert 3 not in c
         assert c.Classes is not self.strcheck.Classes
 
+
 class modifiable_string(str):
     """Mutable class to allow arbitrary attributes to be set"""
     pass
 
+
 class _list_and_string(list, Delegator):
     """Trivial class to demonstrate Delegator.
     """
+
     def __init__(self, items, string):
         Delegator.__init__(self, string)
         self.NormalAttribute = 'default'
@@ -847,6 +851,7 @@ class _list_and_string(list, Delegator):
     def _get_constant_property(self):
         return self._constant
     constant = property(_get_constant_property)
+
 
 class DelegatorTests(TestCase):
     """Verify that Delegator works with attributes and properties."""
@@ -884,7 +889,6 @@ class DelegatorTests(TestCase):
         # should get AttributeError if changing a read-only property
         self.assertRaises(AttributeError, setattr, ls, 'constant', 'xyz')
 
-
     def test_setattr(self):
         """Delegator should set attributes in correct places"""
         ls = _list_and_string([1, 2, 3], 'abcd')
@@ -916,9 +920,9 @@ class DelegatorTests(TestCase):
         assert c._handler == d._handler
 
 
-
 class FunctionWrapperTests(TestCase):
     """Tests of the FunctionWrapper class"""
+
     def test_init(self):
         """FunctionWrapper should initialize with any callable"""
         f = FunctionWrapper(str)
@@ -942,19 +946,25 @@ class FunctionWrapperTests(TestCase):
 
 class _simple_container(object):
     """example of a container to constrain"""
+
     def __init__(self, data):
         self._data = list(data)
+
     def __getitem__(self, item):
         return self._data.__getitem__(item)
 
+
 class _constrained_simple_container(_simple_container, ConstrainedContainer):
     """constrained version of _simple_container"""
+
     def __init__(self, data):
         _simple_container.__init__(self, data)
         ConstrainedContainer.__init__(self, None)
 
+
 class ConstrainedContainerTests(TestCase):
     """Tests of the generic ConstrainedContainer interface."""
+
     def setUp(self):
         """Make a couple of standard containers"""
         self.alphabet = _constrained_simple_container('abc')
@@ -1014,6 +1024,7 @@ class ConstrainedContainerTests(TestCase):
         self.numbers.Constraint = {1: 'a', 2: 'b', 3: 'c'}
         self.assertRaises(ConstraintError, setattr, self.numbers, \
                           'Constraint', '1')
+
 
 class ConstrainedStringTests(TestCase):
     """Tests that ConstrainedString can only contain allowed items."""
@@ -1095,8 +1106,10 @@ class ConstrainedStringTests(TestCase):
         assert 'x' not in a
         self.assertRaises(TypeError, a.__contains__, 1)
 
+
 class MappedStringTests(TestCase):
     """MappedString should behave like ConstrainedString, but should map items."""
+
     def test_init_masks(self):
         """MappedString should init OK with masks"""
         def mask(x):
@@ -1107,9 +1120,9 @@ class MappedStringTests(TestCase):
         assert 'x' not in a
 
 
-
 class ConstrainedListTests(TestCase):
     """Tests that bad data can't sneak into ConstrainedLists."""
+
     def test_init_good_data(self):
         """ConstrainedList should init OK if list matches constraint"""
         self.assertEqual(ConstrainedList('abc', 'abcd'), list('abc'))
@@ -1145,7 +1158,6 @@ class ConstrainedListTests(TestCase):
         # should fail if we add the constraint back
         b.Constraint = {'4': 1, 5: 2}
         self.assertRaises(ConstraintError, b.__add__, c)
-
 
     def test_iadd_prevents_bad_data(self):
         """ConstrainedList should allow in-place addition only of compliant data"""
@@ -1238,8 +1250,10 @@ class ConstrainedListTests(TestCase):
         assert 2 in a
         assert 'x' not in a
 
+
 class MappedListTests(TestCase):
     """MappedList should behave like ConstrainedList, but map items."""
+
     def test_setitem_masks(self):
         """MappedList setitem with masks should transform input"""
         a = MappedList('12333', list(range(5)), lambda x: int(x) + 1)
@@ -1250,8 +1264,10 @@ class MappedListTests(TestCase):
         assert '1' in a
         assert 'x' not in a
 
+
 class ConstrainedDictTests(TestCase):
     """Tests that bad data can't sneak into ConstrainedDicts."""
+
     def test_init_good_data(self):
         """ConstrainedDict should init OK if list matches constraint"""
         self.assertEqual(ConstrainedDict(dict.fromkeys('abc'), 'abcd'), \
@@ -1353,6 +1369,7 @@ class ConstrainedDictTests(TestCase):
         assert '1' in d
         assert not 1 in d
 
+
 class MappedDictTests(TestCase):
     """MappedDict should work like ConstrainedDict, but map keys."""
 
@@ -1424,6 +1441,7 @@ class makeNonnegIntTests(TestCase):
         self.assertRaises(NonnegIntError, makeNonnegInt, "blue")
     # end test_makeNonnegInt_noncastable
 # end makeNonnegIntTests
+
 
 class reverse_complementTests(TestCase):
     """Tests of the public reverse_complement function"""
@@ -1537,8 +1555,6 @@ class reverse_complementTests(TestCase):
         self.assertEqual(NestedSplitter(';,:')(''), [''])
         self.assertEqual(NestedSplitter(';,:')('  '), [''])
         self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])
-
-
 
     def test_curry(self):
         """curry should generate the function with parameters setted"""

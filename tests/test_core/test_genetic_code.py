@@ -15,6 +15,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
 
+
 class GeneticCodeTests(TestCase):
     """Tests of the GeneticCode class."""
 
@@ -237,7 +238,6 @@ class GeneticCodeTests(TestCase):
         }
         self.assertEqual(sgc.Anticodons, exp_anticodons)
 
-
     def test_translate(self):
         """GeneticCode translate should return correct amino acid string"""
         allg = GeneticCode(self.AllG)
@@ -279,9 +279,11 @@ class GeneticCodeTests(TestCase):
             """Fake RNA class with reverse-complement"""
             def __new__(cls, seq, rev):
                 return str.__new__(cls, seq)
+
             def __init__(self, seq, rev):
                 self.seq = seq
                 self.rev = rev
+
             def rc(self):
                 return self.rev
 
@@ -295,7 +297,6 @@ class GeneticCodeTests(TestCase):
         test_rna = RNA.makeSequence('AUGCUAACAUAAA')
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
-
 
     def test_stop_indexes(self):
         """should return stop codon indexes for a specified frame"""

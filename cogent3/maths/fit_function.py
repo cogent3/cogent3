@@ -17,6 +17,7 @@ __maintainer__ = "Antonio Gonzalez Pena"
 __email__ = "antgonza@gmail.com"
 __status__ = "Prototype"
 
+
 def fit_function(x_vals, y_vals, func, n_params, iterations=2):
     """ Fit any function to any array of values of x and y.
     :Parameters:

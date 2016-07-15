@@ -13,6 +13,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def PairTransitionMatrix(order, a):
     """A matrix for Pair HMMs with gap states X and Y, match state M, 
     and optionally a silent wait state W"""
@@ -36,11 +37,13 @@ def ClassicGapScores(d, e):
 
 
 class _SimpleIndelParams(object):
+
     def __init__(self, indel_rate, indel_length):
         assert 0.0 < indel_length < 1.0, indel_length
         assert 0.0 < indel_rate < 1.0, indel_rate
         self.indel_rate = indel_rate
         self.indel_length = indel_length
+
 
 class SimpleIndelModel(_SimpleIndelParams):
     """P(gap open), P(gap extend) with const P(extend match)"""
@@ -56,6 +59,7 @@ class SimpleIndelModel(_SimpleIndelParams):
             [1 - g, 0, 0, g],
         ])
         return PairTransitionMatrix('WXYM', T).withoutSilentStates()
+
 
 class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
     """Sequence Alignments and Pair HMMs Using Evolutionary History 

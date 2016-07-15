@@ -14,8 +14,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class SpanTests(TestCase):
     """Tests of the Span object."""
+
     def setUp(self):
         """Define some standard Spans"""
         self.empty = Span(0, 0)
@@ -136,7 +138,6 @@ class SpanTests(TestCase):
         for i, j in zip(first, expected_order):
             self.assertSameObj(i, j)
 
-
     def test_startsBefore(self):
         """Span startsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
@@ -246,8 +247,10 @@ class SpanTests(TestCase):
         self.assertTrue(e.endsInside(Span(0, 1)))
         self.assertFalse(e.endsInside(Span(-1, 0)))
 
+
 class RangeInterfaceTests(object):  # SpanTests):
     """A single-element Range should behave like the corresponding Span."""
+
     def setUp(self):
         """Define some standard Spans"""
         self.empty = Range(Span(0, 0))
@@ -270,6 +273,7 @@ class RangeInterfaceTests(object):  # SpanTests):
 
 class RangeTests(TestCase):
     """Tests of the Range object."""
+
     def setUp(self):
         """Set up a few standard ranges."""
         self.one = Range(Span(0, 100))
@@ -471,8 +475,10 @@ class RangeTests(TestCase):
         self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14), \
                                    Span(-100, 100, Reverse=True)])
 
+
 class RangeFromStringTests(TestCase):
     """Tests of the RangeFromString factory function."""
+
     def test_init(self):
         self.assertEqual(RangeFromString(''), Range())
         self.assertEqual(RangeFromString('  3  , 4\t, ,, 10  ,'),
@@ -480,8 +486,10 @@ class RangeFromStringTests(TestCase):
         self.assertEqual(RangeFromString('3,4-10,1-5'),
                          Range([Span(3), Span(4, 10), Span(1, 5)]))
 
+
 class MapTests(TestCase):
     """tests of the Map class"""
+
     def test_get_coords(self):
         """getCoordinates should return raw coordinates matching input"""
         spans = [(0, 9), (20, 32)]

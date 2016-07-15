@@ -9,6 +9,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def nexus_from_alignment(aln, seq_type, interleave_len=50):
     """returns a nexus formatted string
 

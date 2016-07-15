@@ -9,6 +9,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def pog_traceback(pogs, aligned_positions):
     upto = [0, 0]
     align_builder = POGBuilder(pogs)
@@ -28,7 +29,9 @@ def pog_traceback(pogs, aligned_positions):
 
     return result_pog
 
+
 class POGBuilder(object):
+
     def __init__(self, children):
         self.children = children
         self.remap = [{} for child in children]
@@ -183,6 +186,7 @@ class POG(object):
         else:
             end = index.stop
         assert end >= start, (start, end, index, self.length)
+
         def moved(i, j):
             i2 = max(min(i, end), start) - start
             j2 = max(min(j, end), start) - start
@@ -215,6 +219,7 @@ class POG(object):
             print('  ', ('node%s' % i), '[label="%s"]' % label, file=dot)
         print('}', file=dot)
         print('', file=dot)
+
 
 class LeafPOG(POG):
     """The POG for a known sequence contains no indels."""

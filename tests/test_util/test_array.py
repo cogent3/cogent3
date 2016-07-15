@@ -40,8 +40,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class arrayTests(TestCase):
     """Tests of top-level functions."""
+
     def setUp(self):
         """set up some standard sequences and masks"""
         self.gap_state = array('-', 'c')
@@ -139,6 +141,7 @@ class arrayTests(TestCase):
         exp[4, 5] = 0.6
         exp[5, 7] = 0.9
         self.assertEqual(result, exp)
+
 
 class ArrayMathTests(TestCase):
 
@@ -422,7 +425,6 @@ class ArrayMathTests(TestCase):
                               scale_row_sum, array([[1, 0], [0, 0]], float))            
         finally:
             numpy.seterr(**ori_err)
-
 
     def test_scale_row_sum_naive(self):
         """scale_row_sum_naive should scale rows to correct values"""

@@ -16,8 +16,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class TailedRecordFinderTests(TestCase):
     """Tests of the TailedRecordFinder factory function."""
+
     def setUp(self):
         """Define a standard TailedRecordFinder"""
         self.endswith_period = lambda x: x.endswith('.')
@@ -82,8 +84,10 @@ class TailedRecordFinderTests(TestCase):
                                                  ignore=ignore_labels)(lines)),
                          [['abc', '1.'], ['def', '2.']])
 
+
 class DelimitedRecordFinderTests(TestCase):
     """Tests of the DelimitedRecordFinder factory function."""
+
     def test_parsers(self):
         """DelimitedRecordFinder should split records into lines correctly"""
         lines = 'abc\ndef\n//\nefg\n//'.split()
@@ -149,8 +153,10 @@ class DelimitedRecordFinderTests(TestCase):
                                                     ignore=ignore_labels)(lines)),
                          [['>abc', '1', '$$'], ['>def', '2', '$$']])
 
+
 class LabeledRecordFinderTests(TestCase):
     """Tests of the LabeledRecordFinder factory function."""
+
     def setUp(self):
         """Define a standard LabeledRecordFinder"""
         self.FastaLike = LabeledRecordFinder(lambda x: x.startswith('>'))
@@ -214,8 +220,10 @@ class LabeledRecordFinderTests(TestCase):
                                                   ignore=ignore_labels)(lines)),
                          [['>abc', '1'], ['>def', '2']])
 
+
 class LineGrouperTests(TestCase):
     """Tests of the LineGrouper class."""
+
     def test_parser(self):
         """LineGrouper should return n non-blank lines at a time"""
         good = ['  \t   >abc  \n',

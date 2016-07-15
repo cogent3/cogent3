@@ -18,6 +18,7 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"
 
+
 def make_ignore_f(start_line):
     """Make an ignore function that ignores bad gg lines"""
     def ignore(line):
@@ -25,15 +26,18 @@ def make_ignore_f(start_line):
         return not line or ['', ''] == line or [start_line, ''] == line
     return ignore
 
+
 def DefaultDelimitedSplitter(delimiter):
     """Wraps delimited splitter to handle empty records"""
     parser = DelimitedSplitter(delimiter=delimiter)
+
     def f(line):
         parsed = parser(line)
         if len(parsed) == 1:
             parsed.append('')
         return parsed
     return f
+
 
 def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"):
     """Parses raw Greengeens 16S rRNA Gene records
@@ -59,6 +63,8 @@ def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"
 
 all_ids = lambda x, y: True
 specific_ids = lambda x, y: x in y
+
+
 def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
     """Yield specific fields from successive Greengenes records
 

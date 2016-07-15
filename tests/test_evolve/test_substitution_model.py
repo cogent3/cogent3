@@ -19,7 +19,9 @@ __status__ = "Production"
 base_path = os.getcwd()
 data_path = os.path.join(base_path, 'data')
 
+
 class NucleotideModelTestMethods(TestCase):
+
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(
             do_scaling=True, model_gaps=False)
@@ -55,7 +57,9 @@ class NucleotideModelTestMethods(TestCase):
         self.assertRaises(ValueError, substitution_model.Nucleotide,
                           model_gaps=False, predicates=['transition', 'transversion'])
 
+
 class MultiLetterMotifSubstModelTests(TestCase):
+
     def setUp(self):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
                                                         model_gaps=True, mprob_model='tuple')
@@ -86,6 +90,7 @@ class MultiLetterMotifSubstModelTests(TestCase):
 
 nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
 
+
 class TupleModelMotifProbFuncs(TestCase):
     dinucs = ('TT', 'CT', 'AT', 'GT',
               'TC', 'CC', 'AC', 'GC',
@@ -108,7 +113,9 @@ class TupleModelMotifProbFuncs(TestCase):
                (13, 1), (13, 12), (14, 2), (14, 12), (15, 3), (15, 12)])
         )
 
+
 class ThreeLetterMotifSubstModelTests(TestCase):
+
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(motif_length=3,
                                                       mprob_model='tuple')
@@ -126,7 +133,9 @@ class ThreeLetterMotifSubstModelTests(TestCase):
         assert not isIndel('AAA', '--A')
         assert not isIndel('C--', 'CTT')
 
+
 class CodonSubstModelTests(TestCase):
+
     def setUp(self):
         self.standardcode = substitution_model.Codon(model_gaps=True, gc=1,
                                                      mprob_model='tuple')
@@ -211,7 +220,6 @@ class ModelDataInteractionTestMethods(TestCase):
 
         model = substitution_model.Nucleotide(predicates=['beta:transition'])
         self.assertEqual(model.getParamList(), ['beta'])
-
 
     # need to ensure entering motif probs that sum to 1, that motif sets are the same
 

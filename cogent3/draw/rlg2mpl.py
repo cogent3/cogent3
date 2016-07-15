@@ -24,22 +24,27 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def line_options(strokeColor='black', fillColor='black', strokeWidth=1):
     """Map from RLD line option names"""
     return dict(edgecolor=strokeColor, facecolor=fillColor, linewidth=strokeWidth)
+
 
 def Line(x1, y1, x2, y2, **kw):
     """Acts like the RLG shape class of the same name"""
     path = Path([(x1, y1), (x2, y2)], [Path.MOVETO, Path.LINETO])
     return mpatches.PathPatch(path, **line_options(**kw))
 
+
 def Rect(x, y, width, height, **kw):
     """Acts like the RLG shape class of the same name"""
     return mpatches.Rectangle((x, y), width, height, **line_options(**kw))
 
+
 def Polygon(vertices, **kw):
     """Acts like the RLG shape class of the same name"""
     return mpatches.Polygon(vertices, **line_options(**kw))
+
 
 def String(x, y, text, textAnchor='start', fontName=None, fontSize=10, 
            fillColor='black', rotation=None):
@@ -51,6 +56,7 @@ def String(x, y, text, textAnchor='start', fontName=None, fontSize=10,
     va = 'baseline'
     mpl_kw = dict((n, v) for (n, v) in list(locals().items()) if n.islower())
     return Text(**mpl_kw)
+
 
 class Group(matplotlib.artist.Artist):
     """Acts like the RLG shape class of the same name
@@ -135,6 +141,7 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
         assert not margins, list(margins.keys())
         return (total_width, total_height), posn
 
+
 class Drawable(object):
     # Superclass for objects which can generate a matplotlib figure, in order 
     # to supply consistent and convenient showFigure() and drawToFile() 
@@ -142,6 +149,7 @@ class Drawable(object):
     # Subclasses must provide .makeFigure() which will make use of 
     # _makeFigure() matplotlib.pyplot import done at runtime to give the 
     # user every chance to change the matplotlib backend first
+
     def _makeFigure(self, width, height, **kw):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(width, height), facecolor='white')
@@ -227,6 +235,7 @@ class PathBuilder(object):
         self.points.append((0.0, 0.0))  # ignored
         self.operators.append(Path.CLOSEPOLY)
 
+
 class _End(object):
 
     def __init__(self, x_near, x_far, y_first, y_second, **kw):
@@ -258,18 +267,24 @@ class _End(object):
         self.finish(p)
         return p.asPath()        
 
+
 class Open(_End):
+
     def finish(self, path):
         self.drawToStart(path)
 
     def drawEnd(self, path):
         path.moveTo(self.x_near, self.y_second)
 
+
 class Square(_End):
+
     def drawEnd(self, path):
         path.lineTo(self.x_near, self.y_second)
 
+
 class Rounded(_End):
+
     def startPoint(self):
         return (self.x_near + self.dx, self.y_first)
 
@@ -280,7 +295,9 @@ class Rounded(_End):
         path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
                      self.x_near + self.dx, self.y_second)    
 
+
 class Pointy(_End):
+
     def _effective_dx(self):
         return max(abs(self.dx), abs(self.dy)) * self.dx / abs(self.dx)
 
@@ -306,8 +323,10 @@ class Pointy(_End):
                     (head_start, self.y_second)]:
                 path.lineTo(x, y)
 
+
 def _sign(x):
     return x and x / abs(x)
+
 
 def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False, 
         min_width=0.5, proportion_of_track=0.6):

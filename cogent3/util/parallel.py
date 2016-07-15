@@ -20,26 +20,36 @@ __status__ = "Production"
 # A flag to control if excess CPUs are worth a warning.
 inefficiency_forgiven = False
 
+
 class _FakeCommunicator(object):
     """Looks like a 1-cpu MPI communicator, but isn't"""
+
     def Get_rank(self):
         return 0
+
     def Get_size(self):
         return 1
+
     def Split(self, colour, key=0):
         return (self, self)
+
     def allreduce(self, value, op=None):
         return value
+
     def allgather(self, value):
         return [value]
+
     def bcast(self, obj, source):
         return obj
+
     def Bcast(self, array, source):
         pass
+
     def Barrier(self):
         pass
 
 FAKE_MPI_COMM = _FakeCommunicator()
+
 
 class _FakeMPI(object):
     # required MPI module constants
@@ -92,8 +102,10 @@ class NonParallelContext(ParallelContext):
 
 NONE = NonParallelContext()
 
+
 class UnFlattened(list):
     pass
+
 
 class MPIParallelContext(ParallelContext):
     """This parallel context divides the available CPUs into groups of equal 
@@ -147,10 +159,14 @@ class MPIParallelContext(ParallelContext):
 
 # Helping MultiprocessingParallelContext map unpicklable functions
 _FUNCTIONS = {}
+
+
 class PicklableAndCallable(object):
+
     def __init__(self, key):
         self.key = key
         self.func = None
+
     def __call__(self, *args, **kw):
         if self.func is None:
             try:
@@ -158,6 +174,7 @@ class PicklableAndCallable(object):
             except KeyError:
                 raise RuntimeError
         return self.func(*args, **kw)
+
 
 class MultiprocessingParallelContext(ParallelContext):
     """At the outermost opportunity, this parallel context delegates all
@@ -287,8 +304,10 @@ split = CONTEXT.split
 imap = CONTEXT.imap
 map = CONTEXT.map
 
+
 def use_multiprocessing(cpus=None):
     CONTEXT.setInitial(MultiprocessingParallelContext(cpus))
+
 
 def sync_random(r):
     # Only matters with MPI

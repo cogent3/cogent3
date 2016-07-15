@@ -11,6 +11,7 @@ __status__ = "Production"
 
 import warnings
 
+
 def MsfParser(f):
     """Read sequences from a msf format file"""
     alignmentdict = {}

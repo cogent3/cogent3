@@ -21,6 +21,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def _transpose(array):
     new_array = []
     num_cols = len(array[0])
@@ -31,11 +32,13 @@ def _transpose(array):
         new_array.append(new_row)
     return new_array
 
+
 def _take(array, indices):
     new_array = []
     for index in indices:
         new_array.append(array[index])
     return new_array
+
 
 def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars='ACGT'):
     """return alignment broken into motifs as a transposed list with
@@ -66,6 +69,7 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars='A
     array = _take(array, include_indices)
     return array
 
+
 def count_column_freqs(columns_list):
     """return the frequency of columns"""
     col_freq_dict = {}
@@ -73,6 +77,7 @@ def count_column_freqs(columns_list):
         column = ' '.join(column)
         col_freq_dict[column] = col_freq_dict.get(column, 0) + 1
     return col_freq_dict
+
 
 def get_ML_probs(columns_list, with_patterns=False):
     """returns the column log-likelihoods and frequencies
@@ -91,6 +96,7 @@ def get_ML_probs(columns_list, with_patterns=False):
         col_lnL_freqs.append(row)
     return col_lnL_freqs
 
+
 def get_G93_lnL_from_array(columns_list):
     """return the best log likelihood for a list of aligned columns"""
     col_stats = get_ML_probs(columns_list)
@@ -99,6 +105,7 @@ def get_G93_lnL_from_array(columns_list):
         pattern_lnL = log(freq) * num
         log_likelihood += pattern_lnL
     return log_likelihood
+
 
 def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
                       allowed_chars='ACGT', motif_length=None, return_length=False):

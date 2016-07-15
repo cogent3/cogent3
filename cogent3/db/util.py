@@ -13,6 +13,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class UrlGetter(object):
     Defaults = {}  # override in derived classes -- default values
     PrintedFields = {}  # override in derived classes -- fields to print
@@ -55,6 +56,7 @@ class UrlGetter(object):
         urlretrieve(str(self), fname)
         self._temp_args = None
 
+
 def expand_slice(s):
     """Takes a start and end accession, and gets the whole range.
 
@@ -79,6 +81,7 @@ def expand_slice(s):
     return [prefix + format_string % i \
             for i in range(range_start, range_end + 1, step)]
 
+
 def make_lists_of_expanded_slices_of_set_size(s, size_limit=200):
     """Returns a list of Accessions terms from 'expand_slice'.
     GenBank URLs are limited in size. This helps break up larger lists
@@ -96,6 +99,7 @@ def make_lists_of_expanded_slices_of_set_size(s, size_limit=200):
         subset = full_list[start:end]
         l.append(' '.join(subset))
     return l
+
 
 def make_lists_of_accessions_of_set_size(s, size_limit=200):
     """Returns list of search terms  that contain accessions up to the size

@@ -14,11 +14,13 @@ __status__ = "Production"
 
 
 class _Exponentiator(object):
+
     def __init__(self, Q):
         self.Q = Q
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
+
 
 class VanLoanIntegratingExponentiator(_Exponentiator):
 
@@ -52,6 +54,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
 
     def __call__(self, t=1.0):
         return self.expm(t)[:len(self.Q), len(self.Q):]
+
 
 class VonBingIntegratingExponentiator(_Exponentiator):
 

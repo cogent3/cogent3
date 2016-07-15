@@ -28,6 +28,7 @@ seqnames = ['Chimpanzee', 'Rhesus', 'Orangutan',
 
 REPLICATES = 2
 
+
 def float_ge_zero(num, epsilon=1e-6):
     """compare whether a floating point value is >= zero with epsilon
     tolerance."""
@@ -38,7 +39,9 @@ def float_ge_zero(num, epsilon=1e-6):
     else:
         return False
 
+
 class BootstrapTests(unittest.TestCase):
+
     def gettree(self):
         treeobj = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
 

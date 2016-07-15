@@ -28,7 +28,9 @@ __status__ = "Production"
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
 
+
 class LikelihoodFunction(ParameterController):
+
     def setpar(self, param_name, value, edge=None, **scope):
         deprecated('method', 'setpar', 'setParamRule', '1.6')
         return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)

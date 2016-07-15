@@ -9,6 +9,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def PamlParser(f):
     d = f.readline().split()
     numseqs, seqlen = int(d[0]), int(d[1])

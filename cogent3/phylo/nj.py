@@ -27,14 +27,18 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class LightweightTreeTip(str):
+
     def convert(self, constructor, length):
         node = constructor([], str(self), {})
         node.Length = max(0.0, length)
         return node
 
+
 class LightweightTreeNode(frozenset):
     """Set of (length, child node) tuples"""
+
     def convert(self, constructor=None, length=None):
         if constructor is None:
             constructor = TreeBuilder().createEdge
@@ -48,6 +52,7 @@ class LightweightTreeNode(frozenset):
     def __or__(self, other):
         return type(self)(frozenset.__or__(self, other))
 
+
 class PartialTree(object):
     """A candidate tree stored as
       (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
@@ -55,6 +60,7 @@ class PartialTree(object):
       is reduced as 2 of them are joined, while the number of partitions is 
       increased as a new edge is introduced.
       """
+
     def __init__(self, d, nodes, tips, score):
         self.d = d
         self.nodes = nodes
@@ -118,12 +124,14 @@ class PartialTree(object):
         tree.Name = "root"
         return (self.score + sum(lengths), tree)
 
+
 class Pair(object):
     """A candidate neighbour join, not turned into an actual PartialTree until
     and unless we decide to use it, because calculating just the topology is 
     faster than calculating the whole new distance matrix etc. as well."""
 
     __slots__ = ['tree', 'i', 'j', 'topology', 'new_partition']
+
     def __init__(self, tree, i, j, topology, new_partition):
         self.tree = tree
         self.i = i
@@ -184,6 +192,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     # frozensets of tip names, which should be quickly comparable.
     arbitrary_anchor = names[0]
     all_tips = frozenset(names)
+
     def encode_partition(tips):
         included = frozenset(tips)
         if arbitrary_anchor not in included:

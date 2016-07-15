@@ -44,10 +44,12 @@ def ismallest(data, size):
 # the pth pair of tips passes through edge j.  For ML calculations the
 # ancestry matrix is converted back into an ordinary cogent tree object.
 
+
 def tree2ancestry(tree, order=None):
     nodes = tree.unrooted().getEdgeVector()[:-1]
     if order is not None:
         lookup = dict([(k, i) for (i, k) in enumerate(order)])
+
         def _ordered_tips_first(n):
             if n.Children:
                 return len(order)
@@ -66,6 +68,7 @@ def tree2ancestry(tree, order=None):
     names = [n.Name for n in nodes if not n.Children]
     lengths = [n.Length for n in nodes]
     return (A, names, lengths)
+
 
 def ancestry2tree(A, lengths, tip_names):
     """Convert edge x edge ancestry matrix to a cogent Tree object"""
@@ -94,6 +97,7 @@ def ancestry2tree(A, lengths, tip_names):
         free[i] = node
     return constructor(list(free.values()), 'root', {})
 
+
 def grown(B, split_edge):
     """Ancestry matrix 'B' with one extra leaf added at 'split_edge'.
     Row/column order within the matrix is independent of the topology it 
@@ -113,6 +117,7 @@ def grown(B, split_edge):
     A[sibling, parent] = 1
     A[split_edge, parent] = 1
     return A
+
 
 class TreeEvaluator(object):
     """Subclass must provide makeTreeScorer and result2output"""

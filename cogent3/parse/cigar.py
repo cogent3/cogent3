@@ -31,6 +31,7 @@ __status__ = "Production"
 
 pattern = re.compile('([0-9]*)([DM])')
 
+
 def map_to_cigar(map):
     """convert a Map into a cigar string"""
     cigar = ''
@@ -46,6 +47,7 @@ def map_to_cigar(map):
         else:
             cigar += str(num_chars) + char
     return cigar
+
 
 def cigar_to_map(cigar_text):
     """convert cigar string into Map"""
@@ -65,6 +67,7 @@ def cigar_to_map(cigar_text):
     map = Map(spans=spans, parent_length=posn)
     return map
 
+
 def aligned_from_cigar(cigar_text, seq, moltype=DNA):
     """returns an Aligned sequence from a cigar string, sequence and moltype"""
     if isinstance(seq, str):
@@ -72,6 +75,7 @@ def aligned_from_cigar(cigar_text, seq, moltype=DNA):
     map = cigar_to_map(cigar_text)
     aligned_seq = seq.gappedByMap(map)
     return aligned_seq
+
 
 def _slice_by_aln(map, left, right):
     slicemap = map[left:right]
@@ -81,12 +85,14 @@ def _slice_by_aln(map, left, right):
         location = []
     return slicemap, location
 
+
 def _slice_by_seq(map, start, end):
     re_map = map.inverse()
     slicemap = re_map[start:end]
     aln_start, aln_end = slicemap.Start, slicemap.End
     new_map = map[aln_start:aln_end]
     return new_map, [aln_start, aln_end]
+
 
 def _remap(map):
     start = map.Start
@@ -106,6 +112,7 @@ def _remap(map):
         new_map = Map(spans=spans, parent_length=length)
     return new_map
 
+
 def slice_cigar(cigar_text, start, end, by_align=True):
     """slices a cigar string as an alignment"""
     map = cigar_to_map(cigar_text)
@@ -116,6 +123,7 @@ def slice_cigar(cigar_text, start, end, by_align=True):
     if hasattr(new_map, 'Start'):
         new_map = _remap(new_map)
     return new_map, location
+
 
 def CigarParser(seqs, cigars, sliced=False, ref_seqname=None, start=None, end=None, moltype=DNA):
     """return an alignment from raw sequences and cigar strings

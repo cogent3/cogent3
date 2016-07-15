@@ -13,6 +13,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def argpicks(freqs, random_series):
     partition = numpy.add.accumulate(freqs)
     assert abs(partition[-1] - 1.0) < 1e-6, (freqs, partition)
@@ -21,14 +22,17 @@ def argpicks(freqs, random_series):
         i = bisect.bisect_left(partition, x)
         yield i
 
+
 def argpick(freqs, random_series):
     return next(argpicks(freqs, random_series))
+
 
 def _randomMotifGenerator(random_series, motif_probs):
     motifs = list(motif_probs.keys())
     freqs = [motif_probs[m] for m in motifs]
     for i in argpicks(freqs, random_series):
         yield motifs[i]
+
 
 def evolveSequence(random_series, motifs, parent_seq, site_cats,
                    psubs, preserved_sites=()):
@@ -54,13 +58,16 @@ def evolveSequence(random_series, motifs, parent_seq, site_cats,
         seq.append(edge_motif)
     return seq
 
+
 def randomSequence(random_series, motif_probs, sequence_length):
     getRootRandomMotif = _randomMotifGenerator(random_series, motif_probs).__next__
     return [getRootRandomMotif() for i in range(sequence_length)]
 
+
 class AlignmentEvolver(object):
     # Encapsulates settings that are constant throughout the recursive generation
     # of a synthetic alignment.
+
     def __init__(self, random_series, orig_ambig, exclude_internal,
                  bin_names, site_bins, psub_for, motifs):
         self.random_series = random_series

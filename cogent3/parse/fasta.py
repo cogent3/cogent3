@@ -24,23 +24,28 @@ strip = str.strip
 
 Sequence = BYTES.Sequence
 
+
 def is_fasta_label(x):
     """Checks if x looks like a FASTA label line."""
     return x.startswith('>')
+
 
 def is_gde_label(x):
     """Checks if x looks like a GDE label line."""
     return x and x[0] in '%#'
 
+
 def is_blank_or_comment(x):
     """Checks if x is blank or a FASTA comment line."""
     return (not x) or x.startswith('#') or x.isspace()
+
 
 def is_blank(x):
     """Checks if x is blank."""
     return (not x) or x.isspace()
 
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
+
 
 def MinimalFastaParser(infile, strict=True, \
                        label_to_name=str, finder=FastaFinder, \
@@ -74,9 +79,11 @@ def MinimalFastaParser(infile, strict=True, \
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank) 
 
+
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,\
                               label_characters='%#')
+
 
 def xmfa_label_to_name(line):
     (loc, strand, contig) = line.split()
@@ -89,6 +96,7 @@ def xmfa_label_to_name(line):
     name = '%s:%s:%s-%s' % (sp, contig, lo, hi)
     return name
 
+
 def is_xmfa_blank_or_comment(x):
     """Checks if x is blank or an XMFA comment line."""
     return (not x) or x.startswith('=') or x.isspace()
@@ -96,18 +104,22 @@ def is_xmfa_blank_or_comment(x):
 XmfaFinder = LabeledRecordFinder(is_fasta_label, \
                                  ignore=is_xmfa_blank_or_comment)
 
+
 def MinimalXmfaParser(infile, strict=True):
     # Fasta-like but with header info like ">1:10-1000 + chr1"
     return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name,
                               finder=XmfaFinder)
 
+
 def MinimalInfo(label):
     """Minimal info data maker: returns Name, and empty dict for info{}."""
     return label, {}
 
+
 def NameLabelInfo(label):
     """Returns name as label split on whitespace, and Label in Info."""
     return label.split()[0], {'Label': label}
+
 
 def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
     """Yields successive sequences from infile as (name, sequence) tuples.
@@ -149,6 +161,7 @@ NcbiLabels = {
     'ref': 'RefSeq',
 }
 
+
 def NcbiFastaLabelParser(line):
     """Creates an Info object and populates it with the line contents.
 
@@ -165,9 +178,11 @@ def NcbiFastaLabelParser(line):
     info.Description = description
     return gi, info
 
+
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
     return FastaParser(infile, seq_maker=seq_maker, 
                        info_maker=NcbiFastaLabelParser, strict=strict)
+
 
 class RichLabel(str):
     """Object for overloaded Fasta labels. Holds an Info object storing keyed
@@ -207,6 +222,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     assert indexed, "display_template [%s] does not use a field name"\
                     % display_template
     sep = re.compile("[%s]" % split_with)
+
     def call(label):
         label = [label, label[1:]][label[0] == ">"]
         label = sep.split(label)
@@ -223,6 +239,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                 info[name] = label[index]
         return RichLabel(info, display_template)
     return call
+
 
 def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
                      moltype=ASCII, done_groups=None, DEBUG=False):

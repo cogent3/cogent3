@@ -19,8 +19,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class recordsTests(TestCase):
     """Tests of top-level functionality in records."""
+
     def test_string_and_strip(self):
         """string_and_strip should convert all items to strings and strip them"""
         self.assertEqual(string_and_strip(), [])
@@ -32,8 +34,10 @@ class recordsTests(TestCase):
         """raise_unknown_field should always raise FieldError"""
         self.assertRaises(FieldError, raise_unknown_field, 'xyz', 123)
 
+
 class GrouperTests(TestCase):
     """Tests of the Grouper class."""
+
     def test_call(self):
         """Grouper should return lists containing correct number of groups"""
         empty = []
@@ -62,8 +66,10 @@ class GrouperTests(TestCase):
             iterator = g('abcd')
             self.assertRaises(ValueError, list, iterator)
 
+
 class DelimitedSplitterTests(TestCase):
     """Tests of the DelimitedSplitter factory function."""
+
     def test_parsers(self):
         """DelimitedSplitter should return function with correct behavior"""
         empty = DelimitedSplitter()
@@ -90,6 +96,7 @@ class DelimitedSplitterTests(TestCase):
         self.assertEqual(lasttwo(''), [])
         self.assertEqual(lasttwo('x'), ['x'])
         self.assertEqual(lasttwo('x;'), ['x', ''])
+
 
 class GenericRecordTests(TestCase):
     """Tests of the GenericRecord class"""
@@ -130,7 +137,6 @@ class GenericRecordTests(TestCase):
         assert isinstance(h, self.gr)
         self.assertEqual(h.X, 'y')
         self.assertEqual(h, {'a': 'abc', 'b': [], 'c': {}})
-
 
 
 class MappedRecordTests(TestCase):
@@ -362,6 +368,7 @@ class dummy(object):
     """Do-nothing class whose attributes can be freely abused."""
     pass
 
+
 class TypeSetterTests(TestCase):
     """Tests of the TypeSetter class"""
 
@@ -384,6 +391,7 @@ class TypeSetterTests(TestCase):
         self.assertEqual(d.zz, 3)
         i(d, 'xx', '456')
         self.assertEqual(d.xx, 456)
+
 
 class TypeSetterLikeTests(TestCase):
     """Tests of the functions that behave similarly to TypeSetter products"""
@@ -425,6 +433,7 @@ class TypeSetterLikeTests(TestCase):
         self.assertEqual(d.x, {3: None, 'a': 0})
         self.assertEqual(d.y, {None: None})
 
+
 class LineOrientedConstructorTests(TestCase):
     """Tests of the LineOrientedConstructor class"""
 
@@ -454,6 +463,7 @@ class LineOrientedConstructorTests(TestCase):
         """LOC should behave as expected when initialized with rich data"""
         data = ["abc\t def", " 3 \t n", "  abc   \txyz\n\n", "x\t5", "fgh   ", 
                 "x\t3    "]
+
         class rec(MappedRecord):
             Required = {'abc': []}
         maps = {'abc': list_adder, 'x': int_setter, 'fgh': bool_setter}
@@ -471,12 +481,15 @@ class LineOrientedConstructorTests(TestCase):
         self.assertEqual(result, \
                          {'abc': ['def', 'xyz'], '3': 'n', 'fgh': False, 'x': 3})
 
+
 class fake_dict(dict):
     """Test that constructors return the correct subclass"""
     pass
 
+
 class FieldWrapperTests(TestCase):
     """Tests of the FieldWrapper factory function"""
+
     def test_default(self):
         """Default FieldWrapper should wrap fields and labels"""
         fields = list('abcde')
@@ -502,8 +515,10 @@ class FieldWrapperTests(TestCase):
         self.assertEqual(f('x y'), {'a': 'x', 'b': 'y'})
         assert isinstance(f('x y'), fake_dict)
 
+
 class StrictFieldWrapperTests(TestCase):
     """Tests of the StrictFieldWrapper factory function"""
+
     def test_default(self):
         """Default StrictFieldWrapper should wrap fields if count correct"""
         fields = list('abcde')
@@ -529,8 +544,10 @@ class StrictFieldWrapperTests(TestCase):
         self.assertEqual(f('x y'), {'a': 'x', 'b': 'y'})
         assert isinstance(f('x y'), fake_dict)
 
+
 class FieldMorpherTests(TestCase):
     """Tests of the FieldMorpher class."""
+
     def test_default(self):
         """FieldMorpher default should use correct constructors"""
         fm = FieldMorpher({'a': int, 'b': str})

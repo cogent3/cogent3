@@ -16,8 +16,10 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
 
+
 class test_aaindex1_parser(TestCase):
     """ Tests aindex1_parser class """
+
     def setUp(self):
         """ Setup some variables """
         self._fake_file = list(fake_file_aaindex1.split('\n'))
@@ -155,6 +157,7 @@ class test_aaindex1_parser(TestCase):
 
 
 class test_aaindex2_parser(TestCase):
+
     def setUp(self):
         """ Setup some variables """
         self._fake_file = list(fake_file_aaindex2.split('\n'))
@@ -435,6 +438,7 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         self.assertFloatEqualAbs(square['*']['*'], None)
         self.assertFloatEqualAbs(square['*']['R'], None)
 
+
 class AAIndex2RecordTests(AAIndexRecordTests):
     """ AAIR2: Tests AAIndex2Records class """
 
@@ -455,8 +459,6 @@ class AAIndex2RecordTests(AAIndexRecordTests):
                     new_row[c] = values[i]
                     i += 1
             self.LTMdata[r] = new_row
-
-
 
         self.aarLTM = AAIndex2Record(self.id, self.description,\
                                      self.LITDB_entry_num, self.authors, self.title,\

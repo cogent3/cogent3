@@ -23,6 +23,7 @@ __maintainer__ = "Amanda Birmingham"
 __email__ = "amanda.birmingham@thermofisher.com"
 __status__ = "Production"
 
+
 class EnergyParams(object):
     """A data structure to hold parameters used in energy calculations"""
 

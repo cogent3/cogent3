@@ -42,14 +42,17 @@ __status__ = "Production"
 
 to_rgb = matplotlib.colors.colorConverter.to_rgb
 
+
 def _sign(x):
     """Returns True if x is positive, False otherwise."""
     return x and x / abs(x)
+
 
 def _first_non_none(values):
     for item in values:
         if item is not None:
             return item
+
 
 def SimpleColormap(color0, color1, name=None):
     """Linear interpolation between any two colours"""
@@ -58,6 +61,7 @@ def SimpleColormap(color0, color1, name=None):
     cn = ['red', 'green', 'blue']
     d = dict((n, [(0, s, s), (1, e, e)]) for (n, s, e) in zip(cn, c0, c1))
     return matplotlib.colors.LinearSegmentedColormap(name, d)
+
 
 class ScalarColormapShading(object):
     """Returns color interpolated between two colors based on scalar value.
@@ -74,6 +78,7 @@ class ScalarColormapShading(object):
     edge_color_callback to makeColorCallback (or to other objects
     that delegate to it).
     """
+
     def __init__(self, shade_param, min_val, max_val, cmap):
         """Returns a new callback for SimpleScalarShading: f(obj) -> color"""
         assert max_val, 'Need to know the maximum before shading can be done'
@@ -92,6 +97,7 @@ class ScalarColormapShading(object):
             normed = (value_to_show - self.min_val) / (self.max_val - self.min_val)
             color = self.cmap(normed)
             return color    
+
 
 def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
                       edge_color="black", highlight_color="red", edge_color_callback=None,
@@ -145,6 +151,7 @@ class MatplotlibRenderer(object):
     out how to make it color things the way you want. Dynamically varying the
     stroke width is not yet implemented by should be.
     """
+
     def __init__(self, font_size=None, stroke_width=3, label_pad=None, **kw):
         self.calculated_edge_color = makeColorCallback(**kw)
         self.text_opts = {}
@@ -186,6 +193,7 @@ class MatplotlibRenderer(object):
         if color is not None:
             opts['color'] = color
         return Text(x, y, string, **opts)
+
 
 class DendrogramLabelStyle(object):
     """Label options"""
@@ -229,16 +237,20 @@ class DendrogramLabelStyle(object):
         else:
             return ""
 
+
 def ValidColorProperty(real_name, doc='A color name or other spec'):
     """Can only be set to Null or a valid color"""
     def getter(obj):
         return getattr(obj, real_name, None)
+
     def setter(obj, value):
         if value is not None: to_rgb(value)
         setattr(obj, real_name, value)
+
     def deleter(obj):
         setattr(obj, real_name, None)
     return property(getter, setter, deleter, doc)
+
 
 class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     # One of these for each tree edge.  Extra attributes:
@@ -480,6 +492,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
 
 
 class Dimensions(object):
+
     def __init__(self, xscale, yscale, total_tree_height):
         self.x = xscale
         self.y = yscale
@@ -490,6 +503,7 @@ class _RootedDendrogram(_Dendrogram):
     """_RootedDendrogram subclasses provide yCoords and xCoords, which examine
     attributes of a node (its length, coodinates of its children) and return
     a tuple for start/end of the line representing the edge."""
+
     def labelMargins(self, label_width):
         return (0, label_width)
 
@@ -534,6 +548,7 @@ class _RootedDendrogram(_Dendrogram):
     def getLabelCoordinates(self, text, renderer):
         return (self.x2 + renderer.labelPadDistance, 'left', self.y2, 'center')
 
+
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
@@ -559,6 +574,7 @@ class SquareDendrogram(_RootedDendrogram):
 
 
 class StraightDendrogram(_RootedDendrogram):
+
     def yCoords(self, scale, y1):
         # has a side effect of adjusting the child y1's to meet nodes' y2's
         cys = [c.y1 for c in self.Children]
@@ -593,6 +609,7 @@ class StraightDendrogram(_RootedDendrogram):
         vertices = [(self.x2, self.y2), (l, t), (r, b)]
         return (l, r, t, b), vertices
 
+
 class _ContemporaneousMixin(object):
     """A dendrogram with all of the tips lined up.  
     Tidy but not suitable for displaying evolutionary distances accurately"""
@@ -604,8 +621,10 @@ class _ContemporaneousMixin(object):
     def xCoords(self, scale, x1):
         return (x1, (scale.height - (self.height - self.length)) * scale.x)
 
+
 class ContemporaneousDendrogram(_ContemporaneousMixin, SquareDendrogram):
     pass
+
 
 class ContemporaneousStraightDendrogram(_ContemporaneousMixin, StraightDendrogram):
     pass
@@ -613,6 +632,7 @@ class ContemporaneousStraightDendrogram(_ContemporaneousMixin, StraightDendrogra
 
 class ShelvedDendrogram(ContemporaneousDendrogram):
     """A dendrogram in which internal nodes also get a row to themselves"""
+
     def widthRequired(self):
         return self.edgecount  # as opposed to tipcount
 
@@ -623,6 +643,7 @@ class ShelvedDendrogram(ContemporaneousDendrogram):
         else:
             y2 = y1 - 0.5 * scale.y
         return (y2, y2)
+
 
 class AlignedShelvedDendrogram(ShelvedDendrogram):
 

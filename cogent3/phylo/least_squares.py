@@ -20,6 +20,7 @@ __status__ = "Production"
 # to a "paths" matrix or "split metric" in which S[p,j] iff the path between
 # the pth pair of tips passes through edge j.
 
+
 def _ancestry2paths(A):
     """Convert edge x edge ancestry matrix to tip-to-tip path x edge 
     split metric matrix.  The paths will be in the same triangular matrix order 
@@ -31,6 +32,7 @@ def _ancestry2paths(A):
         path = A[tip1] ^ A[tip2]
         paths.append(path)
     return numpy.array(paths)
+
 
 class WLS(TreeEvaluator):
     """(err, best_tree) = WLS(dists).trex()"""
@@ -53,6 +55,7 @@ class WLS(TreeEvaluator):
         # dists and weights are 1D forms of triangular tip x tip matrices
         # The order of the tip-to-tip paths is the same for dists, weights and A  
         weights_dists = weights * dists
+
         def evaluate(ancestry,
                      lengths=None,
                      sum=sum,
@@ -75,6 +78,7 @@ class WLS(TreeEvaluator):
 
     def result2output(self, err, ancestry, lengths, names):
         return (err, ancestry2tree(ancestry, lengths, names))
+
 
 def wls(*args, **kw):
     (err, tree) = WLS(*args).trex(**kw)

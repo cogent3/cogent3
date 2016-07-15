@@ -19,10 +19,12 @@ three_letter_order = 'ARNDCQEGHILKMFPSTWYV'
 aa_order = numpy.array([ord(aa) for aa in three_letter_order])
 reorder = numpy.argsort(aa_order)
 
+
 def numbers_in(f):
     for line in f:
         for word in line.split():
             yield float(word)
+
 
 def PamlMatrixParser(f):
     """Parses a matrix of amino acid transition probabilities and amino acid

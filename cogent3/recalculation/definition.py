@@ -135,6 +135,7 @@ class CalculationDefn(_NonLeafDefn):
 
 
 class _FuncDefn(CalculationDefn):
+
     def __init__(self, calc, *args, **kw):
         self.calc = calc
         CalculationDefn.__init__(self, *args, **kw)
@@ -144,6 +145,7 @@ class _FuncDefn(CalculationDefn):
 # just to supply the 'calc' method.
 class CalcDefn(object):
     """CalcDefn(function)(arg1, arg2)"""
+
     def __init__(self, calc, name=None, **kw):
         self.calc = calc
 
@@ -156,6 +158,7 @@ class CalcDefn(object):
 
     def __call__(self, *args):
         return _FuncDefn(self.calc, *args, **self.kw)
+
 
 class WeightedPartitionDefn(CalculationDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
@@ -236,6 +239,7 @@ class _InputDefn(_LeafDefn):
         (cells, outputs) = self.makeCells({}, None)
         return len([c for c in cells if isinstance(c, OptPar)])    
 
+
 class ParamDefn(_InputDefn):
     """Defn for an optimisable, scalar input to the calculation"""
 
@@ -274,13 +278,16 @@ class ParamDefn(_InputDefn):
 class PositiveParamDefn(ParamDefn):
     lower = 0.0
 
+
 class ProbabilityParamDefn(PositiveParamDefn):
     upper = 1.0
+
 
 class RatioParamDefn(PositiveParamDefn):
     lower = 1e-6
     upper = 1e+6
     opt_par_class = LogOptPar
+
 
 class NonScalarDefn(_InputDefn):
     """Defn for an array or other such object that is an input but
@@ -321,7 +328,6 @@ class NonScalarDefn(_InputDefn):
         pass  # don't reset parallel_context etc.
 
 
-
 def _proportions(total, params):
     """List of N proportions from N-1 ratios
 
@@ -334,6 +340,7 @@ def _proportions(total, params):
     return _proportions(total * part, params[1:half]) + \
         _proportions(total * (1.0 - part), params[half:])
 
+
 def _unpack_proportions(values):
     """List of N-1 ratios from N proportions"""
     if len(values) == 1:
@@ -344,6 +351,7 @@ def _unpack_proportions(values):
     ratio = num / denom
     return [ratio] + _unpack_proportions(values[:half]) + \
         _unpack_proportions(values[half:])
+
 
 class PartitionDefn(_InputDefn):
     """A partition such as mprobs can be const or optimised.  Optimised is
@@ -420,6 +428,7 @@ class PartitionDefn(_InputDefn):
         ratios = _unpack_proportions(value)
         ratios = [LogOptPar(name + '_ratio', scope, (1e-6, r, 1e+6))
                   for r in ratios]
+
         def r2p(*ratios):
             return numpy.asarray(_proportions(1.0, ratios))
         partition = EvaluatedCell(name, r2p, tuple(ratios))
@@ -448,9 +457,11 @@ class PartitionDefn(_InputDefn):
             uniq_cells.append(partition)
         return (all_cells, uniq_cells)
 
+
 def NonParamDefn(name, dimensions=None, **kw):
     # Just to get 2nd arg as dimensions
     return NonScalarDefn(name=name, dimensions=dimensions, **kw)
+
 
 class ConstDefn(NonScalarDefn):
     # This isn't really needed - just use NonParamDefn
@@ -519,6 +530,7 @@ class SelectForDimension(_Defn):
 
 class SwitchDefn(CalculationDefn):
     name = 'switch'
+
     def calc(self, condition, *args):
         return args[condition]
 
@@ -526,8 +538,10 @@ class SwitchDefn(CalculationDefn):
         if condition.is_constant:
             return self.calc(self, condition.value, *args)
 
+
 class VectorMatrixInnerDefn(CalculationDefn):
     name = 'evolve'
+
     def calc(self, pi, psub):
         return numpy.inner(pi, psub)
 
@@ -535,26 +549,31 @@ class VectorMatrixInnerDefn(CalculationDefn):
         if psub.is_stationary:
             return pi
 
+
 class SumDefn(CalculationDefn):
     name = 'sum'
+
     def calc(self, *args):
         return sum(args)
 
 
 class ProductDefn(CalculationDefn):
     name = 'product'
+
     def calc(self, *args):
         return numpy.product(args)
 
 
 class CallDefn(CalculationDefn):
     name = 'call'
+
     def calc(self, func, *args):
         return func(*args)
 
 
 class ParallelSumDefn(CalculationDefn):
     name = 'parallel_sum'
+
     def calc(self, comm, local):
         return comm.allreduce(local)  # default MPI op is SUM
 

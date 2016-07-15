@@ -12,11 +12,13 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class arrow_rates_tests(TestCase):
     """Tests of top-level function, primarily checking that it writes the file.
 
     WARNING: must visually inspect output to check correctness!
     """
+
     def test_make_arrow_plot(self):
         """arrow_plot should write correct file and not raise exception"""
         make_arrow_plot(sample_data, graph_name='arrows.png')

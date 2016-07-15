@@ -88,6 +88,7 @@ __status__ = "Beta"
 gDefaultExcludes = ''.join([IUPAC_gap, IUPAC_missing])
 gDefaultNullValue = nan
 
+
 def build_rate_matrix(count_matrix, freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
 
     epm = EmpiricalProteinMatrix(count_matrix, freqs)
@@ -99,10 +100,13 @@ def build_rate_matrix(count_matrix, freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
 
 # Mutual Information Analysis
 # Mutual Information Calculators
+
+
 def mi(h1, h2, joint_h):
     """ Calc Mutual Information given two entropies and their joint entropy
     """
     return h1 + h2 - joint_h
+
 
 def normalized_mi(h1, h2, joint_h):
     """ MI normalized by joint entropy, as described in Martin 2005 """
@@ -110,6 +114,8 @@ def normalized_mi(h1, h2, joint_h):
 nmi = normalized_mi
 
 # Other functions used in MI calculations
+
+
 def join_positions(pos1, pos2):
     """ Merge two positions and return as a list of strings
 
@@ -122,18 +128,23 @@ def join_positions(pos1, pos2):
     """
     return [''.join([r1, r2]) for r1, r2 in zip(pos1, pos2)]
 
+
 def joint_entropy(pos1, pos2):
     """ Calculate the joint entroy of a pair of positions """
     return Freqs(join_positions(pos1, pos2)).Uncertainty
 
 # Exclude handlers (functions for processing position strings with exclude
 # characters)
+
+
 def ignore_excludes(pos, excludes=gDefaultExcludes):
     """ Return position data as-is (results in excludes treated as other chars)
     """
     return pos
 
 # Functions for scoring coevolution on the basis of Mutual Information
+
+
 def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,\
             null_value=gDefaultNullValue, excludes=gDefaultExcludes, exclude_handler=None):
     """ Calculate mutual information of a pair of alignment positions
@@ -193,6 +204,7 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,\
         result = null_value
     return result
 
+
 def mi_position(alignment, position,\
                 positional_entropies=None, mi_calculator=mi, null_value=gDefaultNullValue,\
                 excludes=gDefaultExcludes, exclude_handler=None):
@@ -235,6 +247,7 @@ def mi_position(alignment, position,\
                             exclude_handler=exclude_handler)
     return result
 
+
 def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,\
                  excludes=gDefaultExcludes, exclude_handler=None):
     """ Calc mi over all position pairs in an alignment
@@ -276,6 +289,8 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,\
 # End Mutual Information Analysis
 
 # Start Normalized Mutual Information Analysis (Martin 2005)
+
+
 def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,\
                        null_value=gDefaultNullValue, excludes=gDefaultExcludes,\
                        exclude_handler=None):
@@ -301,6 +316,7 @@ def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,\
                    null_value=null_value, excludes=excludes,\
                    exclude_handler=exclude_handler)
 nmi_pair = normalized_mi_pair
+
 
 def normalized_mi_position(alignment, position, positional_entropies=None,\
                            null_value=gDefaultNullValue, excludes=gDefaultExcludes,\
@@ -329,6 +345,7 @@ def normalized_mi_position(alignment, position, positional_entropies=None,\
                        mi_calculator=nmi, null_value=null_value, excludes=excludes,\
                        exclude_handler=exclude_handler)
 nmi_position = normalized_mi_position
+
 
 def normalized_mi_alignment(alignment, null_value=gDefaultNullValue,\
                             excludes=gDefaultExcludes, exclude_handler=None):
@@ -387,6 +404,7 @@ protein_dict = {
 }
 default_sca_freqs = protein_dict
 
+
 def freqs_to_array(f, alphabet):
     """Takes data in freqs object and turns it into array.
 
@@ -395,6 +413,7 @@ def freqs_to_array(f, alphabet):
         of things to appear in the resulting array
     """
     return array([f.get(i, 0) for i in alphabet])
+
 
 def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
     """Returns list of allowed perturbations as characters
@@ -417,6 +436,7 @@ def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
             result.append(char)
     return result
 
+
 def probs_from_dict(d, alphabet):
     """ Convert dict of alphabet char probabilities to list in alphabet's order
 
@@ -428,6 +448,7 @@ def probs_from_dict(d, alphabet):
 
     """
     return array([d[c] for c in alphabet])
+
 
 def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
     """Return the frequencies in aln of chars in alphabet's order
@@ -478,6 +499,7 @@ def get_positional_frequencies(aln, position_number, alphabet,\
     return (alphabet_as_indices == position_data).sum(1) * \
         (scaled_aln_size / len(position_data))
 
+
 def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
     """Get probs of observering the freq of each char given it's natural freq 
         In Suel 2003 supplementary material, this step is defined as:
@@ -515,6 +537,7 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
                                           scaled_aln_size, natural_prob))
     return array(results)
 
+
 def get_subalignments(aln, position, selections):
     """ returns subalns w/ seq[pos] == selection for each in selections 
         aln: an alignment object
@@ -537,6 +560,7 @@ def get_subalignments(aln, position, selections):
         result.append(aln.getSubAlignment(seqs=seqs_to_keep))
     return result
 
+
 def get_dg(position_probs, aln_probs):
     """ Return delta_g vector
 
@@ -552,6 +576,7 @@ def get_dg(position_probs, aln_probs):
     for position_prob, aln_prob in zip(position_probs, aln_probs):
         results.append(log(position_prob / aln_prob))
     return array(results)
+
 
 def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
     """Return delta_delta_g value
@@ -582,7 +607,6 @@ def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
         this.
     """
     return norm(all_dgs - subaln_dgs) / scaled_aln_size * e
-
 
 
 def sca_pair(alignment, pos1, pos2, cutoff,\
@@ -710,6 +734,7 @@ def sca_pair(alignment, pos1, pos2, cutoff,\
     else:
         return max(ddg_values)
 
+
 def sca_position(alignment, position, cutoff,\
                  position_freqs=None, position_probs=None, dgs=None,\
                  perturbations=None, scaled_aln_size=100,\
@@ -797,6 +822,7 @@ def sca_position(alignment, position, cutoff,\
                                background_freqs=background_freqs))
     return array(result)
 
+
 def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,\
                   scaled_aln_size=100, return_all=False, alphabet=default_sca_alphabet,\
                   background_freqs=default_sca_freqs):
@@ -867,6 +893,8 @@ def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,\
 # Start Resampled Mutual Information Analysis 
 # (developed by Hutley and Easton, and first published in 
 # Caporaso et al., 2008)
+
+
 def make_weights(freqs, n):
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
@@ -880,6 +908,7 @@ def make_weights(freqs, n):
         alts = Freqs([(c, w / (2 * n)) for c, w in list(alts.items())])
         weights += [(C, alts)]
     return weights
+
 
 def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
     """Return entropies and weights for comparable alignment.
@@ -916,7 +945,6 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
             pair_freqs -= [new_pr]
             obs1 -= c
 
-
         obs1 += a
         # make comparable alignments by mods to col 2
         weights = weights2[b]
@@ -937,6 +965,7 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
 
         pair_freqs += [pr]
     return scales
+
 
 def resampled_mi_pair(alignment, pos1, pos2, weights=None,
                       excludes=gDefaultExcludes, exclude_handler=None,
@@ -982,6 +1011,7 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
 
     return scaled_mi
 
+
 def resampled_mi_position(alignment, position, positional_entropies=None,
                           excludes=gDefaultExcludes, exclude_handler=None,
                           null_value=gDefaultNullValue):
@@ -995,6 +1025,7 @@ def resampled_mi_position(alignment, position, positional_entropies=None,
                                       exclude_handler=exclude_handler,
                                       null_value=null_value)
     return result
+
 
 def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
                            exclude_handler=None, null_value=gDefaultNullValue):
@@ -1012,6 +1043,8 @@ def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
 # End Resampled Mutual Information Analysis
 
 # Begin ancestral_states analysis        
+
+
 def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
 
@@ -1047,6 +1080,7 @@ def ancestral_state_alignment(aln, tree, ancestral_seqs=None,\
         result.append(row)
     return ltm_to_symmetric(array(result))
 
+
 def ancestral_state_position(aln, tree, position,\
                              ancestral_seqs=None, null_value=gDefaultNullValue):
 
@@ -1056,6 +1090,7 @@ def ancestral_state_position(aln, tree, position,\
         result.append(ancestral_state_pair(\
             aln, tree, position, i, ancestral_seqs, null_value))
     return array(result)
+
 
 def ancestral_state_pair(aln, tree, pos1, pos2,\
                          ancestral_seqs=None, null_value=gDefaultNullValue):
@@ -1151,6 +1186,7 @@ method_abbrevs_to_names = {'mi': 'Mutual Information',\
 # validation
 # is only performed once by coevolve_alignment.
 
+
 def sca_input_validation(alignment, **kwargs):
     """SCA specific validations steps """
 
@@ -1183,6 +1219,7 @@ def sca_input_validation(alignment, **kwargs):
         background_freqs = default_sca_freqs
     validate_alphabet(alphabet, background_freqs)
 
+
 def validate_alphabet(alphabet, freqs):
     """SCA validation: ValueError if set(alphabet) != set(freqs.keys()) 
     """
@@ -1190,6 +1227,7 @@ def validate_alphabet(alphabet, freqs):
     freq_chars = set(freqs.keys())
     if alphabet_chars != freq_chars:
         raise ValueError("Alphabet and background freqs must contain identical sets of chars.")
+
 
 def ancestral_states_input_validation(alignment, **kwargs):
     """Ancestral States (AS) specific validations steps """
@@ -1208,6 +1246,7 @@ def ancestral_states_input_validation(alignment, **kwargs):
         validate_ancestral_seqs(alignment, kwargs['tree'],\
                                 kwargs['ancestral_seqs'])
 
+
 def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
     """AS validation: ValueError if incompatible aln, tree, & ancestral seqs
 
@@ -1225,6 +1264,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
     if edges != seqs:
         raise ValueError("Must be ancestral seqs for all edges and root in tree, and no more.")
 
+
 def validate_tree(alignment, tree):
     """AS validation: ValueError if tip and seq names aren't same 
     """
@@ -1234,10 +1274,13 @@ def validate_tree(alignment, tree):
 # End method-specific error checking functions
 
 # General (opposed to algorithm-specific) validation functions
+
+
 def validate_position(alignment, position):
     """ValueError if position is outside the range of the alignment """
     if not 0 <= position < len(alignment):
         raise ValueError("Position is outside the range of the alignment: " + str(position))
+
 
 def validate_alignment(alignment):
     """ValueError on ambiguous alignment characters"""
@@ -1248,6 +1291,7 @@ def validate_alignment(alignment):
     if bad_seqs:
         raise ValueError('Ambiguous characters in sequences: %s' \
                          % '; '.join(map(str, bad_seqs)))
+
 
 def coevolve_alignments_validation(method, alignment1, alignment2,\
                                    min_num_seqs, max_num_seqs, **kwargs):
@@ -1295,6 +1339,7 @@ coevolve_alignment_functions = \
     {'mi': mi_alignment, 'nmi': normalized_mi_alignment,\
      'rmi': resampled_mi_alignment, 'sca': sca_alignment,\
      'an': ancestral_state_alignment}
+
 
 def coevolve_alignment(method, alignment, **kwargs):
     """ Apply coevolution method to alignment (for intramolecular coevolution)
@@ -1355,6 +1400,7 @@ def merge_alignments(alignment1, alignment2):
                        ' not common to both alignments?')
     return LoadSeqs(data=result, aligned=DenseAlignment)
 
+
 def n_random_seqs(alignment, n):
     """Given alignment, return n random seqs in a new alignment object.
 
@@ -1364,6 +1410,7 @@ def n_random_seqs(alignment, n):
     seq_names = alignment.Names
     shuffle(seq_names)
     return alignment.takeSeqs(seq_names[:n]) 
+
 
 def coevolve_alignments(method, alignment1, alignment2,\
                         return_full=False, merged_aln_filepath=None, min_num_seqs=2,\
@@ -1536,6 +1583,7 @@ coevolve_position_functions = \
      'rmi': resampled_mi_position, 'sca': sca_position,\
      'an': ancestral_state_position}
 
+
 def coevolve_position(method, alignment, position, **kwargs):
     """ Apply provided coevolution method to a column in alignment 
 
@@ -1563,6 +1611,7 @@ coevolve_pair_functions = \
     {'mi': mi_pair, 'nmi': normalized_mi_pair,\
      'rmi': resampled_mi_pair, 'sca': sca_pair,\
      'an': ancestral_state_pair}
+
 
 def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
     """ Apply provided coevolution method to columns pos1 & pos2 of alignment 
@@ -1741,6 +1790,7 @@ def is_parsimony_informative(column_freqs, minimum_count=2,\
             return False
     return count_gte_minimum >= minimum_differences
 
+
 def filter_non_parsimony_informative(aln, coevolution_matrix,\
                                      null_value=gDefaultNullValue, minimum_count=2, minimum_differences=2,\
                                      ignored=gDefaultExcludes, intermolecular_data_only=False, strict=False):
@@ -1770,10 +1820,12 @@ def filter_non_parsimony_informative(aln, coevolution_matrix,\
                 except IndexError:
                     coevolution_matrix[i - len_aln1, :] = null_value
 
+
 def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
     """ return function to identify aln positions with > max_exclude_percent 
     """
     excludes = {}.fromkeys(excludes)
+
     def f(col):
         exclude_count = 0
         for c in col: 
@@ -1781,6 +1833,7 @@ def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
                 exclude_count += 1
         return exclude_count / len(col) > max_exclude_percent
     return f
+
 
 def filter_exclude_positions(aln, coevolution_matrix,\
                              max_exclude_percent=0.1, null_value=gDefaultNullValue,\
@@ -1825,6 +1878,8 @@ def filter_exclude_positions(aln, coevolution_matrix,\
 # Functions for archiving/retrieiving coevolve results
 # These functions are extremely general -- should they go 
 # somewhere else, or should I be using pre-existing code?
+
+
 def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
     """ Pickle coevolve_result and store it at output_filepath 
 
@@ -1844,6 +1899,7 @@ def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
     p.dump(coevolve_result)
     infile.close()
 
+
 def unpickle_coevolution_result(in_filepath):
     """ Read in coevolve_result from a pickled file 
 
@@ -1860,6 +1916,7 @@ def unpickle_coevolution_result(in_filepath):
     r = u.load()
     infile.close()
     return r
+
 
 def coevolution_matrix_to_csv(coevolve_matrix, out_filepath='output.csv'):
     """ Write coevolve_matrix as csv file at output_filepath 
@@ -1899,7 +1956,6 @@ def csv_to_coevolution_matrix(in_filepath):
     return array(result)
 
 
-
 # End functions for archiving/retrieiving coevolve results
 
 # Start functions for analyzing the results of a coevolution run.
@@ -1919,6 +1975,7 @@ def identify_aln_positions_above_threshold(coevolution_matrix, threshold,\
         if s != null_value and s >= threshold: 
             results.append(i)
     return results
+
 
 def aln_position_pairs_cmp_threshold(coevolution_matrix,\
                                      threshold, cmp_function, null_value=gDefaultNullValue,\
@@ -1952,12 +2009,14 @@ def aln_position_pairs_cmp_threshold(coevolution_matrix,\
         results = [(j, i + adjustment) for i, j in results]
     return results
 
+
 def aln_position_pairs_ge_threshold(coevolution_matrix,\
                                     threshold, null_value=gDefaultNullValue,\
                                     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(\
         coevolution_matrix, threshold, greater_equal, null_value, intermolecular_data_only)
+
 
 def aln_position_pairs_le_threshold(coevolution_matrix,\
                                     threshold, null_value=gDefaultNullValue,\
@@ -1966,6 +2025,7 @@ def aln_position_pairs_le_threshold(coevolution_matrix,\
     return aln_position_pairs_cmp_threshold(\
         coevolution_matrix, threshold, less_equal,\
         null_value, intermolecular_data_only)
+
 
 def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue,\
                         symmetric=False, ignore_diagonal=False):
@@ -2012,17 +2072,20 @@ def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue
                 total_hits += 1
     return total_hits, total_non_null
 
+
 def count_ge_threshold(m, threshold, null_value=gDefaultNullValue,\
                        symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
     return count_cmp_threshold(m, threshold, greater_equal, null_value,\
                                symmetric, ignore_diagonal)
 
+
 def count_le_threshold(m, threshold, null_value=gDefaultNullValue,\
                        symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
     return count_cmp_threshold(m, threshold, less_equal, null_value,\
                                symmetric, ignore_diagonal)
+
 
 def ltm_to_symmetric(m):
     """ Copies values from lower triangle to upper triangle"""
@@ -2036,7 +2099,6 @@ def ltm_to_symmetric(m):
 
 
 # End functions for analyzing the results of a coevolution run
-
 
 
 # Script functionality
@@ -2095,6 +2157,7 @@ def build_coevolution_matrix_filepath(input_filepath,\
     result = '.'.join([_f for _f in [result] + suffixes if _f])
 
     return result
+
 
 def parse_coevolution_matrix_filepath(filepath):
     """ Parses a coevolution matrix filepath into constituent parts.

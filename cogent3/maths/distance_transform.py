@@ -81,6 +81,7 @@ __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
 
+
 def _rankdata(a):
     """ Ranks the data in a, dealing with ties appropritely.  First ravels 
     a.  Adapted from Gary Perlman's |Stat ranksort.
@@ -104,6 +105,7 @@ def _rankdata(a):
                 sumranks = dupcount = 0
     return newarray
 
+
 def trans_chord(m):
     """perform a chord distance transformation on the rows of m
 
@@ -117,6 +119,7 @@ def trans_chord(m):
     row_norms = sqrt(sum(square(m), axis=1))
     result = m / row_norms
     return result
+
 
 def trans_chisq(m):
     """perform a chi squared distance transformation on the rows of m
@@ -134,6 +137,7 @@ def trans_chisq(m):
     result /= sqrt(col_sums)
     return result
 
+
 def trans_specprof(m):
     """perform a species profile distance transformation on the rows of m
 
@@ -148,6 +152,7 @@ def trans_specprof(m):
     result = m / row_sums
     return result
 
+
 def trans_hellinger(m):
     """perform a hellinger distance transformation on the rows of m
 
@@ -161,7 +166,6 @@ def trans_hellinger(m):
     row_sums = sum(m, axis=1)
     result = sqrt(m / row_sums)
     return result
-
 
 
 def dist_bray_curtis(datamtx, strict=True):
@@ -219,6 +223,7 @@ def dist_bray_curtis(datamtx, strict=True):
 
 dist_bray_curtis_faith = dist_bray_curtis
 
+
 def dist_bray_curtis_magurran(datamtx, strict=True):
     """ returns bray curtis distance (quantitative sorensen) btw rows
 
@@ -273,6 +278,7 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
                 dists[i][j] = dists[j][i] = dissim
     return dists
 
+
 def dist_canberra(datamtx, strict=True):
     """returns a row-row canberra dist matrix
 
@@ -326,6 +332,7 @@ def dist_canberra(datamtx, strict=True):
 
     seterr(**oldstate)
     return dists
+
 
 def dist_chisq(datamtx, strict=True):
     """returns a row-row chisq dist matrix
@@ -390,6 +397,7 @@ def dist_chisq(datamtx, strict=True):
             dists[i, j] = dists[j, i] = dist
     return dists
 
+
 def dist_chord(datamtx, strict=True):
     """returns a row-row chord dist matrix
 
@@ -440,6 +448,7 @@ def dist_chord(datamtx, strict=True):
 
     return dists
 
+
 def dist_euclidean(datamtx, strict=True):
     """returns a row by row euclidean dist matrix
 
@@ -479,6 +488,7 @@ def dist_euclidean(datamtx, strict=True):
             dists[r, c] = dists[c, r] = dist
 
     return dists
+
 
 def dist_gower(datamtx, strict=True):
     """returns a row-row gower dist matrix
@@ -532,6 +542,7 @@ def dist_gower(datamtx, strict=True):
 
     return dists
 
+
 def dist_hellinger(datamtx, strict=True):
     """returns a row-row hellinger dist matrix
 
@@ -580,6 +591,7 @@ def dist_hellinger(datamtx, strict=True):
             dists[i, j] = dists[j, i] = dist
 
     return dists
+
 
 def dist_kulczynski(datamtx, strict=True):
     """ calculates the kulczynski distances between rows of a matrix
@@ -637,6 +649,7 @@ def dist_kulczynski(datamtx, strict=True):
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
+
 def dist_manhattan(datamtx, strict=True):
     """ returns manhattan (city block) distance between rows
 
@@ -675,6 +688,7 @@ def dist_manhattan(datamtx, strict=True):
             dists[i, j] = dists[j, i] = sum(abs(r1 - datamtx[j]))
 
     return dists
+
 
 def dist_abund_jaccard(datamtx, strict=True):
     """Calculate abundance-based Jaccard distance between rows
@@ -747,6 +761,7 @@ def dist_abund_jaccard(datamtx, strict=True):
             dists[i][j] = dists[j][i] = 1 - similarity
     return dists
 
+
 def dist_morisita_horn(datamtx, strict=True):
     """ returns morisita-horn distance between rows
 
@@ -811,6 +826,7 @@ def dist_morisita_horn(datamtx, strict=True):
                 dist = 1 - similarity
             dists[i][j] = dists[j][i] = dist
     return dists
+
 
 def dist_pearson(datamtx, strict=True):
     """ Calculates pearson distance (1-r) between rows
@@ -884,6 +900,7 @@ def dist_pearson(datamtx, strict=True):
 
     return dists
 
+
 def dist_soergel(datamtx, strict=True):
     """ Calculate soergel distance between rows of a matrix
 
@@ -932,6 +949,7 @@ def dist_soergel(datamtx, strict=True):
                 cur_d = top / bot
             dists[i][j] = dists[j][i] = cur_d
     return dists
+
 
 def dist_spearman_approx(datamtx, strict=True):
     """ Calculate spearman rank distance (1-r) using an approximation formula
@@ -989,6 +1007,7 @@ def dist_spearman_approx(datamtx, strict=True):
             dists[i][j] = dists[j][i] = dist
     return dists
 
+
 def dist_specprof(datamtx, strict=True):
     """returns a row-row species profile distance matrix
 
@@ -1038,6 +1057,7 @@ def dist_specprof(datamtx, strict=True):
 
     return dists
 
+
 def binary_dist_otu_gain(otumtx):
     """ Calculates number of new OTUs observed in sample A wrt sample B
 
@@ -1058,6 +1078,7 @@ def binary_dist_otu_gain(otumtx):
         result.append(row)
     return array(result)
 
+
 def binary_dist_chisq(datamtx, strict=True):
     """Calculates binary chi-square dist between rows, returns dist matrix.
 
@@ -1066,6 +1087,7 @@ def binary_dist_chisq(datamtx, strict=True):
     datamtx = datamtx.astype(bool)
     datamtx = datamtx.astype(float)
     return dist_chisq(datamtx, strict=True)
+
 
 def binary_dist_chord(datamtx, strict=True):
     """Calculates binary chord dist between rows, returns dist matrix.
@@ -1076,6 +1098,7 @@ def binary_dist_chord(datamtx, strict=True):
     datamtx = datamtx.astype(bool)
     datamtx = datamtx.astype(float)
     return dist_chord(datamtx, strict=True)
+
 
 def binary_dist_sorensen_dice(datamtx, strict=True):
     """Calculates Sorensen-Dice distance btw rows, returning distance matrix.
@@ -1136,6 +1159,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
+
 def binary_dist_euclidean(datamtx, strict=True):
     """Calculates binary euclidean distance between rows, returns dist matrix.
 
@@ -1144,6 +1168,7 @@ def binary_dist_euclidean(datamtx, strict=True):
     datamtx = datamtx.astype(bool)
     datamtx = datamtx.astype(float)
     return dist_euclidean(datamtx, strict=True)
+
 
 def binary_dist_hamming(datamtx, strict=True):
     """Calculates hamming distance btw rows, returning distance matrix.
@@ -1202,6 +1227,7 @@ def binary_dist_hamming(datamtx, strict=True):
             dist = a + b - (2.0 * c)
             dists[i][j] = dists[j][i] = dist
     return dists
+
 
 def binary_dist_jaccard(datamtx, strict=True):
     """Calculates jaccard distance between rows, returns distance matrix.
@@ -1263,6 +1289,7 @@ def binary_dist_jaccard(datamtx, strict=True):
                 dist = 1.0 - (c / (a + b - c))
             dists[i][j] = dists[j][i] = dist
     return dists
+
 
 def binary_dist_lennon(datamtx, strict=True):
     """Calculates lennon distance between rows, returns distance matrix.
@@ -1327,6 +1354,7 @@ def binary_dist_lennon(datamtx, strict=True):
             dists[i][j] = dists[j][i] = dist
     return dists
 
+
 def binary_dist_ochiai(datamtx, strict=True):
     """Calculates ochiai distance btw rows, returning distance matrix.
 
@@ -1389,6 +1417,7 @@ def binary_dist_ochiai(datamtx, strict=True):
                 dist = 1.0 - (c / sqrt(a * b))
             dists[i][j] = dists[j][i] = dist
     return dists
+
 
 def binary_dist_pearson(datamtx, strict=True):
     """Calculates binary pearson distance between rows, returns distance matrix

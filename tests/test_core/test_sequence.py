@@ -24,12 +24,14 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class SequenceTests(TestCase):
     """Tests of the Sequence class."""
     SEQ = Sequence
     RNA = RnaSequence
     DNA = DnaSequence
     PROT = ProteinSequence
+
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
         # NOTE: ModelSequences can't be initialized empty because it screws up
@@ -86,7 +88,6 @@ class SequenceTests(TestCase):
         r = self.DNA('UCA')
         self.assertEqual(str(r), 'TCA')
         self.assertEqual(str(r.toRna()), 'UCA')
-
 
     def test_toFasta(self):
         """Sequence toFasta() should return Fasta-format string"""
@@ -195,7 +196,6 @@ class SequenceTests(TestCase):
         assert not self.RNA('---CGAUA----CGUACG---ACU---').isGap()
         assert self.RNA('').isGap()
         assert self.RNA('----------').isGap()
-
 
     def test_isDegenerate(self):
         """Sequence isDegenerate should return True if degen symbol in seq"""
@@ -662,6 +662,7 @@ class SequenceTests(TestCase):
 
 class SequenceSubclassTests(TestCase):
     """Only one general set of tests, since the subclasses are very thin."""
+
     def test_DnaSequence(self):
         """DnaSequence should behave as expected"""
         x = DnaSequence('tcag')
@@ -738,8 +739,10 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 
 class CodonSequenceTests(SequenceTests, TestCase):
+
     class SequenceClass(ModelCodonSequence):
         Alphabet = DNA.Alphabets.Base.Triples
+
     def test_init(self):
         """Sequence should do round-trip from string"""
         orig = ''
@@ -766,11 +769,13 @@ class CodonSequenceTests(SequenceTests, TestCase):
         w = r.toKwords(2, overlapping=False)
         self.assertEqual(w, array([2132]))
 
+
 class DnaSequenceGapTests(TestCase):
     """Tests of gapped DNA sequences."""
     class SequenceClass(ModelNucleicAcidSequence):
         Alphabet = DNA.Alphabets.Gapped
         Gap = '-'
+
     def test_init(self):
         """Gapped sequence should init ok"""
         orig = 'TC---'
@@ -798,6 +803,7 @@ class DnaSequenceGapTests(TestCase):
         """Gapped sequence regap() should return correct sequence"""
         sc = self.SequenceClass
         self.assertEqual(str(sc('TC').regap(sc('A---A-'))), 'T---C-')
+
 
 class SequenceIntegrationTests(TestCase):
     """Should be able to convert regular to model sequences, and back"""
@@ -850,6 +856,7 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(str(r.toRna()), 'UUUCGU')
         self.assertEqual(str(r.toDna()), 'TTTCGT')
 
+
 class ModelSequenceTests(SequenceTests):
     """Tests of the ModelSequence class's inheritance of SequenceI."""
     SEQ = ModelSequence
@@ -861,6 +868,7 @@ class ModelSequenceTests(SequenceTests):
         """ModelSequence distance should work with function of indices"""
         s1 = self.RNA('AUGC')
         s2 = self.RNA('AAGC')
+
         def f(x, y):
             if x == 2 or y == 2:
                 return 10

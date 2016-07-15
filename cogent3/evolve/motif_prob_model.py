@@ -14,6 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def makeModel(mprob_model, tuple_alphabet, mask):        
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
@@ -26,7 +27,9 @@ def makeModel(mprob_model, tuple_alphabet, mask):
     else:
         raise ValueError("Unknown mprob model '%s'" % str(mprob_model))
 
+
 class MotifProbModel(object):    
+
     def __init__(self, *whatever, **kw):
         raise NotImplementedError
 
@@ -80,6 +83,7 @@ class MotifProbModel(object):
 
 
 class SimpleMotifProbModel(MotifProbModel):
+
     def __init__(self, alphabet):
         self.alphabet = alphabet
 
@@ -95,6 +99,7 @@ class SimpleMotifProbModel(MotifProbModel):
 
 
 class ComplexMotifProbModel(MotifProbModel):
+
     def __init__(self, tuple_alphabet, mask):
         """Arguments:
             - tuple_alphabet: series of multi-letter motifs
@@ -192,6 +197,7 @@ class MonomerProbModel(ComplexMotifProbModel):
 
 
 class PosnSpecificMonomerProbModel(MonomerProbModel):
+
     def getCountedAlphabet(self):
         return self.tuple_alphabet
 
@@ -255,7 +261,9 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             motif_probs = [motif_probs] * self.word_length
         return motif_probs
 
+
 class ConditionalMotifProbModel(ComplexMotifProbModel):
+
     def getInputAlphabet(self):
         return self.tuple_alphabet
 

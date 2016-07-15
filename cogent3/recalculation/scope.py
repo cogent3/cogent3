@@ -18,16 +18,20 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class ScopeError(KeyError):
     pass
+
 
 class InvalidScopeError(ScopeError):
     """for scopes including an unknown value for a known dimension"""
     pass
 
+
 class InvalidDimensionError(ScopeError):
     """for scopes including an unknown dimension"""
     pass
+
 
 class IncompleteScopeError(ScopeError):
     """For underspecified scope when retrieving values"""
@@ -36,8 +40,10 @@ class IncompleteScopeError(ScopeError):
 
 # Can be passed to _LeafDefn.interpretScopes()
 class _ExistentialQualifier(object):
+
     def __init__(self, cats=None):
         self.cats = cats
+
     def __repr__(self):
         if self.cats is None:
             return self.__class__.__name__
@@ -48,6 +54,7 @@ class _ExistentialQualifier(object):
 class EACH(_ExistentialQualifier):
     independent = True
 
+
 class ALL(_ExistentialQualifier):
     independent = False
 
@@ -55,6 +62,7 @@ class ALL(_ExistentialQualifier):
 def theOneItemIn(items):
     assert len(items) == 1, items
     return next(iter(items))
+
 
 def _indexed(values):
     # This is the core of the redundancy elimination, used to group
@@ -91,8 +99,10 @@ def _fmtrow(width, values, maxwidth):
 class Undefined(object):
     # Placeholder for a value that can't be calculated
     # because input 'name' has not been provided.
+
     def __init__(self, name):
         self.name = name
+
     def __repr__(self):
         return 'Undef(%s)' % self.name
 
@@ -122,6 +132,7 @@ def nullor(name, f, recycled=False):
 # post activation (once it becomes part of a parameter controller) it
 # holds a dynamic list of scope assignments.
 # This means defn.makeParamController() can only be called once.
+
 
 class _Defn(object):
     name = '?'
@@ -423,6 +434,7 @@ class SelectFromDimension(_Defn):
 
 
 class _NonLeafDefn(_Defn):
+
     def __init__(self, *args, **kw):
         _Defn.__init__(self)
         valid_dimensions = []
@@ -709,6 +721,7 @@ class ParameterController(object):
                 return defn.values[posn]
         else:
             assert dropoff > 0, dropoff
+
             def callback(defn, posn):
                 lc = self.makeCalculator(variable=defn.uniq[posn])
                 assert len(lc.opt_pars) == 1, lc.opt_pars

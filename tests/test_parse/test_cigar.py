@@ -13,7 +13,9 @@ __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"
 
+
 class TestCigar(unittest.TestCase):
+
     def setUp(self):
         self.cigar_text = '3D2M3D6MDM2D3MD'
         self.aln_seq = DNA.makeSequence('---AA---GCTTAG-A--CCT-')
@@ -72,7 +74,6 @@ class TestCigar(unittest.TestCase):
             cmp_aln = CigarParser(self.seqs, self.cigars, sliced=True,
                                   ref_seqname="FAKE01", start=start, end=end)
             assert cmp_aln == slice_aln 
-
 
 
 if __name__ == '__main__':

@@ -15,6 +15,7 @@ __status__ = "Development"
 
 strip = str.strip
 
+
 class MissingParentError(Exception):
     pass
 
@@ -50,6 +51,7 @@ RanksToNumbers = {
     'no rank': 28,
 }
 
+
 @total_ordering
 class NcbiTaxon(object):
     """Extracts taxon information: init from one line of NCBI's nodes.dmp.
@@ -79,6 +81,7 @@ class NcbiTaxon(object):
               'TranslTableInherited',
               'TranslTableMt', 'TranslTableMtInherited', 'Hidden', 
               'HiddenSubtreeRoot', 'Comments'] 
+
     def __init__(self, line):
         """Returns new NcbiTaxon from line containing taxonomy data."""
         line_pieces = list(map(strip, line.split('|')))
@@ -128,12 +131,14 @@ def NcbiTaxonParser(infile):
         if line.strip():
             yield NcbiTaxon(line)
 
+
 def NcbiTaxonLookup(taxa):
     """Returns dict of TaxonId -> NcbiTaxon object."""
     result = {}
     for t in taxa:
         result[t.TaxonId] = t
     return result
+
 
 class NcbiName(object):
     """Extracts name information: init from one line of NCBI's names.dmp.
@@ -145,6 +150,7 @@ class NcbiName(object):
         NameClass   Kind of name, e.g. scientific name, synonym, etc.
     """
     Fields = ['TaxonId', 'Name', 'UniqueName', 'NameClass']
+
     def __init__(self, line):
         """Returns new NcbiName from line containing name data."""
         line_pieces = list(map(strip, line.split('|')))
@@ -156,11 +162,13 @@ class NcbiName(object):
         return '\t|\t'.join([str(getattr(self, f)) for f in self.Fields]) \
             + '|\n'
 
+
 def NcbiNameParser(infile):
     """Returns sequence of NcbiName objects from sequence of lines."""
     for line in infile:
         if line.strip():
             yield NcbiName(line)
+
 
 def NcbiNameLookup(names):
     """Returns dict mapping taxon id -> NCBI scientific name."""
@@ -170,8 +178,10 @@ def NcbiNameLookup(names):
             result[name.TaxonId] = name
     return result
 
+
 class NcbiTaxonomy(object):
     """Holds root node of a taxonomy tree, plus lookup by id or name."""
+
     def __init__(self, taxa, names, strict=False):
         """Creates new taxonomy, using data in Taxa and Names.
 
@@ -228,6 +238,7 @@ class NcbiTaxonomy(object):
         except ValueError:
             return self.ByName[item]
 
+
 class NcbiTaxonNode(TreeNode):
     """Provides some additional methods specific to Ncbi taxa."""
 
@@ -263,6 +274,7 @@ class NcbiTaxonNode(TreeNode):
     def _get_name(self):
         return self.Data.Name
     Name = property(_get_name)
+
 
 def NcbiTaxonomyFromFiles(nodes_file, names_file, strict=False):
     """Returns new NcbiTaxonomy fron nodes and names files."""

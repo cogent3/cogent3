@@ -15,6 +15,7 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
+
 class CenterOfMassTests(TestCase):
     """Tests for the center of mass functions"""
 

@@ -44,8 +44,11 @@ bad_rule_sets = [
         {'par_name': 'length', 'is_clade': True, 'edges': ['b', 'f'], },
     ],
 ]
+
+
 class test_parameter_controller(unittest.TestCase):
     """Tesing Parameter Controller"""
+
     def setUp(self):
         # length all edges 1 except c=2.  b&d transitions all other transverions
         self.al = LoadSeqs(
@@ -114,6 +117,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_setParamRules(self):
         lf = self.model.makeLikelihoodFunction(self.tree)
+
         def do_rules(rule_set):
             for rule in rule_set:
                 lf.setParamRule(**rule)

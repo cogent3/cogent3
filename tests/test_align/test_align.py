@@ -21,6 +21,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def matchedColumns(align):
     """Count the matched columns in an alignment"""
     def all_same(column):
@@ -37,7 +38,9 @@ def matchedColumns(align):
 seq1 = DNA.makeSequence('aaaccggacattacgtgcgta', Name='FAKE01')
 seq2 = DNA.makeSequence('ccggtcaggttacgtacgtt', Name='FAKE02')
 
+
 class AlignmentTestCase(unittest.TestCase):
+
     def _aligned_both_ways(self, seq1, seq2, **kw):
         S = make_dna_scoring_dict(10, -1, -8)
         a1 = classic_align_pairwise(seq1, seq2, S, 10, 2, **kw)
@@ -103,6 +106,7 @@ class AlignmentTestCase(unittest.TestCase):
 
 
 class UnalignedPairTestCase(unittest.TestCase):
+
     def test_forward(self):
         tree = cogent3.LoadTree(tip_names='AB')
         pc = dna_model.makeLikelihoodFunction(tree, aligned=False)  
@@ -112,6 +116,7 @@ class UnalignedPairTestCase(unittest.TestCase):
 
 
 class MultipleAlignmentTestCase(unittest.TestCase):
+
     def _make_aln(self, orig, model=dna_model, param_vals=None, 
                   indel_rate=0.1, indel_length=0.5, **kw):
         kw['indel_rate'] = indel_rate
@@ -228,7 +233,6 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             })    
 
 
-
 class HirschbergTestCase(MultipleAlignmentTestCase):
     # Force use of linear space algorithm
 
@@ -240,7 +244,6 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
         finally:
             cogent3.align.pairwise.HIRSCHBERG_LIMIT = tmp
         return result
-
 
 
 if __name__ == '__main__':

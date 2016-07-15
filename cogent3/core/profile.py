@@ -33,6 +33,7 @@ __status__ = "Production"
 maketrans = str.maketrans
 translate = str.translate
 
+
 class ProfileError(Exception):
     """Error raised for exceptions occuring in the Profile object"""
     pass
@@ -639,7 +640,6 @@ class Profile(object):
 
         return val
 
-
     def randomIndices(self, force_accumulate=False, random_f=random):
         """Returns random indices matching current probability matrix.
 
@@ -670,8 +670,6 @@ class Profile(object):
         except AttributeError:
             val = ''.join(take(co, random_indices))
         return val
-
-
 
 
 def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):

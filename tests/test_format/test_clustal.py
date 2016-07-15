@@ -16,9 +16,11 @@ __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
+
 class ClustalTests(TestCase):
     """Tests for Clustal writer.
     """
+
     def setUp(self):
         """Setup for Clustal tests."""
         self.unaligned_dict = {'1st': 'AAA', '2nd': 'CCCC', '3rd': 'GGGG',

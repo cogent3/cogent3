@@ -14,11 +14,14 @@ __status__ = "alpha"
 Release = 23
 account = HostAccount('mysql-eg-publicsql.ebi.ac.uk', 'anonymous', '', port=4157)
 
+
 class MZ_ComparaTestBase(TestCase):
     comp = Compara(['D.grimshawi', 'D.melanogaster'], Release=Release,
                    account=account, division='metazoa')
 
+
 class MZ_TestCompara(MZ_ComparaTestBase):
+
     def test_query_genome(self):
         """compara should attach valid genome attributes by common name"""
         brca2 = self.comp.Dmelanogaster.getGeneByStableId("FBgn0050169")
@@ -48,7 +51,9 @@ class MZ_TestCompara(MZ_ComparaTestBase):
         collection = Orthologs.getSeqCollection()
         self.assertTrue(len(collection.Seqs[0]) > 1000)
 
+
 class MZ_Genome(TestCase):
+
     def test_get_general_release(self):
         """should correctly infer the general release"""
         rel_lt_65 = Genome('D.melanogaster', Release=22, account=account)
@@ -58,7 +63,6 @@ class MZ_Genome(TestCase):
         rel_gt_65 = Genome('D.melanogaster', Release=23, account=account)
         self.assertEqual(rel_gt_65.GeneralRelease, 76)
         self.assertEqual(rel_gt_65.CoreDb.db_name, 'drosophila_melanogaster_core_23_76_546')
-
 
 
 if __name__ == "__main__":

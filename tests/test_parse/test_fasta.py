@@ -17,14 +17,17 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 def Dna(seq, *args, **kwargs):
     seq = seq.replace('u', 't')
     seq = seq.replace('U', 'T')
     d = DnaSequence(seq, *args, **kwargs)
     return d
 
+
 class GenericFastaTest(TestCase):
     """Setup data for all the various FASTA parsers."""
+
     def setUp(self):
         """standard files"""
         self.labels = '>abc\n>def\n>ghi\n'.split('\n')
@@ -35,6 +38,7 @@ class GenericFastaTest(TestCase):
         self.oneX = '>123\nX\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
         self.nolabels = 'GJ>DSJGSJDF\nSFHKLDFS>jkfs\n'.split('\n')
         self.empty = []
+
 
 class MinimalFastaParserTests(GenericFastaTest):
     """Tests of MinimalFastaParser: returns (label, seq) tuples."""
@@ -76,6 +80,7 @@ class MinimalFastaParserTests(GenericFastaTest):
             fasta-like sequence quality files.
         """
         oneseq_w_gt = '>abc\n>CAG\n'.split('\n')
+
         def get_two_line_records(infile):
             line1 = None
             for line in infile:
@@ -106,6 +111,7 @@ class MinimalFastaParserTests(GenericFastaTest):
         a, b = f
         self.assertEqual(a, ('abc', 'caggac'))
         self.assertEqual(b, ('456', 'cg'))
+
 
 class FastaParserTests(GenericFastaTest):
     """Tests of FastaParser: returns sequence objects."""
@@ -195,8 +201,10 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual((a.Name, a), ('abc', 'caggac'.upper()))
         self.assertEqual((b.Name, b), ('456', 'cg'.upper()))
 
+
 class NcbiFastaLabelParserTests(TestCase):
     """Tests of the label line parser for NCBI's FASTA identifiers."""
+
     def test_init(self):
         """Labels from genpept.fsa should work as expected"""
         i = NcbiFastaLabelParser(
@@ -218,8 +226,10 @@ class NcbiFastaLabelParserTests(TestCase):
         self.assertEqual(i.DDBJ, ['BAB10506.1'])
         self.assertEqual(i.Description, '(AB005238)')
 
+
 class NcbiFastaParserTests(TestCase):
     """Tests of the NcbiFastaParser."""
+
     def setUp(self):
         """Define a few standard files"""
         self.peptide = [
@@ -320,6 +330,7 @@ class NcbiFastaParserTests(TestCase):
 
 class LabelParsingTest(TestCase):
     """Test generic fasta label parsing"""
+
     def test_rich_label(self):
         """rich label correctly constructs label strings"""
         # labels should be equal based on the result of applying their
@@ -371,6 +382,7 @@ class LabelParsingTest(TestCase):
 
 class GroupFastaParsingTest(TestCase):
     """test parsing of grouped sequences in a collection"""
+
     def test_groups(self):
         """correctly yield grouped sequences from fasta formatted data"""
         data = [">group1:seq1_id:species1",
@@ -403,7 +415,6 @@ class GroupFastaParsingTest(TestCase):
             want = expected[1]
             self.assertEqual(got, want)
             self.assertEqual(group.Info.Group, "group2")
-
 
 
 if __name__ == '__main__':

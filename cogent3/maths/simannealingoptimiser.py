@@ -24,6 +24,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class AnnealingSchedule(object):
     """Responsible for the shape of the simulated annealing temperature profile"""
 
@@ -74,6 +75,7 @@ class AnnealingHistory(object):
 
 
 class AnnealingState(object):
+
     def __init__(self, X, function, random_series):
         self.random_series = random_series
         self.NFCNEV = 1
@@ -121,6 +123,7 @@ class AnnealingState(object):
 
 
 class AnnealingRun(object):
+
     def __init__(self, function, X, schedule, random_series):
         self.history = AnnealingHistory()
         self.schedule = schedule
@@ -199,7 +202,6 @@ class SimulatedAnnealing(object):
                  random_series=None, seed=None, 
                  tolerance=None, temp_reduction=0.5, init_temp=5.0,
                  temp_iterations=5, step_cycles=20):
-
         """Optimise function(xopt).
 
         Arguments:

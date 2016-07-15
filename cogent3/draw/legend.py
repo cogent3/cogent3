@@ -18,11 +18,13 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class Legend(Drawable):
     """A class for drawing a legend for a display policy
 
     Arguments:
         - policy: a reference to a Display policy class"""
+
     def __init__(self, policy=DisplayPolicy):
         self.policy = policy
 

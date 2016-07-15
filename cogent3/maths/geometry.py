@@ -14,6 +14,7 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
+
 def center_of_mass(coordinates, weights=-1):
     """Calculates the center of mass for a dataset.
 
@@ -31,6 +32,7 @@ def center_of_mass(coordinates, weights=-1):
     else:
         return center_of_mass_two_array(coordinates, weights)
 
+
 def center_of_mass_one_array(data, weight_idx=-1):
     """Calculates the center of mass for a dataset
 
@@ -43,6 +45,7 @@ def center_of_mass_one_array(data, weight_idx=-1):
     coordinates = take(data, (coord_idx), 1)
     weights = take(data, (weight_idx,), 1)
     return sum(coordinates * weights, 0) / sum(weights, 0)
+
 
 def center_of_mass_two_array(coordinates, weights):
     """Calculates the center of mass for a set of weighted coordinates
@@ -59,12 +62,14 @@ def center_of_mass_two_array(coordinates, weights):
         weights = weights[:, newaxis]
         return sum(coordinates * weights, 0) / sum(weights, 0)
 
+
 def distance(first, second):
     """Calculates Euclideas distance between two vectors (or arrays).
 
     WARNING: Vectors have to be the same dimension.
     """
     return sqrt(sum(((first - second) ** 2).ravel()))
+
 
 def sphere_points(n):
     """Calculates uniformly distributed points on a unit sphere using the 
@@ -83,6 +88,7 @@ def sphere_points(n):
         phi = k * inc
         points.append([cos(phi) * r, y, sin(phi) * r])
     return array(points)
+
 
 def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     """Applies symmetry transformation matrices on coordinates. This is used to
@@ -116,6 +122,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     # a vstack(arrays) with a following reshape is faster then 
     # the equivalent creation of a new array via array(arrays).
     return vstack(all_coords).reshape((len(all_coords), coords.shape[0], 3))
+
 
 def coords_to_crystal(coords, fmx, omx, n=1):
     """Applies primitive lattice translations to produce a crystal from the 

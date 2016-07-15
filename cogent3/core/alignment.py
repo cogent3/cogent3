@@ -56,11 +56,13 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class DataError(Exception):
     pass
 
 eps = 1e-6  # small number: 1-eps is almost 1, and is used for things like the
             # default number of gaps to allow in a column.
+
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
     """Returns list of num_seqs sequential, unique names.
@@ -68,6 +70,7 @@ def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
     First argument is ignored; expect this to be set as a class attribute.
     """
     return ['%s_%s' % (base_name, i) for i in range(start_at, start_at + num_seqs)]
+
 
 class SeqLabeler(object):
     """Allows flexible seq labeling in toFasta()."""
@@ -97,6 +100,7 @@ def coerce_to_string(s):
     except(TypeError, ValueError):
         return ''.join(map(str, s))  # general case (slow, might not be correct)
 
+
 def seqs_from_array(a, Alphabet=None):
     """SequenceCollection from array of pos x seq: names are integers.
 
@@ -106,6 +110,7 @@ def seqs_from_array(a, Alphabet=None):
     """
     return list(transpose(a)), None
 
+
 def seqs_from_model_seqs(seqs, Alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
 
@@ -114,6 +119,7 @@ def seqs_from_model_seqs(seqs, Alphabet=None):
     that uses those sequences.
     """
     return seqs, [s.Name for s in seqs]
+
 
 def seqs_from_generic(seqs, Alphabet=None):
     """SequenceCollection from generic seq x pos data: seq of seqs of chars.
@@ -130,6 +136,7 @@ def seqs_from_generic(seqs, Alphabet=None):
             names.append(None)
     return seqs, names
 
+
 def seqs_from_fasta(seqs, Alphabet=None):
     """SequenceCollection from FASTA-format string or lines.
 
@@ -142,6 +149,7 @@ def seqs_from_fasta(seqs, Alphabet=None):
     names, seqs = list(zip(*list(cogent3.parse.fasta.MinimalFastaParser(seqs))))
     return list(seqs), list(names)
 
+
 def seqs_from_dict(seqs, Alphabet=None):
     """SequenceCollection from dict of {label:seq_as_str}.
 
@@ -152,6 +160,7 @@ def seqs_from_dict(seqs, Alphabet=None):
     will not necessarily be in alphabetical order."""
     names, seqs = list(map(list, list(zip(*list(seqs.items())))))
     return seqs, names
+
 
 def seqs_from_kv_pairs(seqs, Alphabet=None):
     """SequenceCollection from list of (key, val) pairs.
@@ -164,6 +173,7 @@ def seqs_from_kv_pairs(seqs, Alphabet=None):
     names, seqs = list(map(list, list(zip(*seqs))))
     return seqs, names
 
+
 def seqs_from_aln(seqs, Alphabet=None):
     """SequenceCollection from existing SequenceCollection object: copies data.
 
@@ -172,9 +182,11 @@ def seqs_from_aln(seqs, Alphabet=None):
     """
     return seqs.Seqs, seqs.Names
 
+
 def seqs_from_empty(obj, *args, **kwargs):
     """SequenceCollection from empty data: raise exception."""
     raise ValueError("Cannot create empty SequenceCollection.")
+
 
 @total_ordering
 class SequenceCollection(object):
@@ -865,13 +877,13 @@ class SequenceCollection(object):
                                                     parse_attributes(attributes), 
                                                     [(start, end)])
 
-
             '''
             self.NamedSeqs[seqname].data.addFeature(
                                 feature,
                                 parse_attributes(attributes),
                                 [(start, end)])
    ''' 
+
     def replaceSeqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
 
@@ -1488,6 +1500,7 @@ class SequenceCollection(object):
         # return new SequenceCollection object
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
 
+
 @total_ordering
 class Aligned(object):
     """One sequence in an alignment, a map between alignment coordinates and
@@ -1914,6 +1927,7 @@ class AlignmentI(object):
 
         return '\n'.join(result)
 
+
 def aln_from_array(a, array_type=None, Alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
 
@@ -1927,6 +1941,7 @@ def aln_from_array(a, array_type=None, Alphabet=None):
     else:
         result = a.astype(array_type)
     return transpose(result), None
+
 
 def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
@@ -1952,6 +1967,7 @@ def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
         result = result.astype(array_type)
     return result, names
 
+
 def aln_from_generic(data, array_type=None, Alphabet=None):
     """Alignment from generic seq x pos data: sequence of sequences of chars.
 
@@ -1973,6 +1989,7 @@ def aln_from_generic(data, array_type=None, Alphabet=None):
         result = result.astype(array_type)
     return result, names
 
+
 def aln_from_collection(seqs, array_type=None, Alphabet=None):
     """Alignment from SequenceCollection object, or its subclasses."""
     names = seqs.Names
@@ -1981,6 +1998,7 @@ def aln_from_collection(seqs, array_type=None, Alphabet=None):
     if array_type:
         result = result.astype(array_type)
     return result, names
+
 
 def aln_from_fasta(seqs, array_type=None, Alphabet=None):
     """Alignment from FASTA-format string or lines.
@@ -1996,6 +2014,7 @@ def aln_from_fasta(seqs, array_type=None, Alphabet=None):
     return aln_from_model_seqs([ModelSequence(s, Name=l, Alphabet=Alphabet)\
                                 for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)], array_type)
 
+
 def aln_from_dict(aln, array_type=None, Alphabet=None):
     """Alignment from dict of {label:seq_as_str}.
 
@@ -2006,6 +2025,7 @@ def aln_from_dict(aln, array_type=None, Alphabet=None):
     names, seqs = list(zip(*sorted(aln.items())))
     result = array(list(map(Alphabet.toIndices, seqs)), array_type)
     return result, list(names)
+
 
 def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
     """Alignment from sequence of (key, value) pairs.
@@ -2019,6 +2039,7 @@ def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
     result = array(list(map(Alphabet.toIndices, seqs)), array_type)
     return result, list(names)
 
+
 def aln_from_dense_aln(aln, array_type=None, Alphabet=None):
     """Alignment from existing DenseAlignment object: copies data.
 
@@ -2031,11 +2052,13 @@ def aln_from_dense_aln(aln, array_type=None, Alphabet=None):
         result = aln.ArrayPositions.astype(array_type)
     return transpose(result), aln.Names[:]
 
+
 def aln_from_empty(obj, *args, **kwargs):
     """Alignment from empty data: raise exception."""
     raise ValueError("Cannot create empty alignment.")
 
 # Implementation of Alignment base class
+
 
 class DenseAlignment(AlignmentI, SequenceCollection):
     """Holds a dense array representing a multiple sequence alignment.
@@ -2121,7 +2144,6 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         self.ArraySeqs = transpose(self.ArrayPositions)
         self.SeqData = self.ArraySeqs
         self.SeqLen = len(self.ArrayPositions)
-
 
     def _force_same_data(self, data, Names):
         """Forces array that was passed in to be used as self.ArrayPositions"""
@@ -2379,6 +2401,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                                 Info=self.Info, Names=self.Names)
         return result
 
+
 class CodonDenseAlignment(DenseAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
     InputHandlers = {'array': aln_from_array,
@@ -2391,6 +2414,7 @@ class CodonDenseAlignment(DenseAlignment):
                         'empty': aln_from_empty,
                         }
 
+
 def make_gap_filter(template, gap_fraction, gap_run):
     """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
 
@@ -2401,6 +2425,7 @@ def make_gap_filter(template, gap_fraction, gap_run):
     NOTE: template and seq must both be ModelSequence objects.
     """
     template_gaps = array(template.gapVector())
+
     def result(seq):
         """Returns True if seq adhers to the gap threshold and gap fraction."""
         seq_gaps = array(seq.gapVector())
@@ -2419,8 +2444,10 @@ def make_gap_filter(template, gap_fraction, gap_run):
 
     return result
 
+
 class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     MolType = None  # note: this is reset to ASCII in moltype module
+
     def __init__(self, *args, **kwargs):
         """Returns new Alignment object: see SequenceCollection."""
 
@@ -2468,7 +2495,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seq = self.NamedSeqs[label]
             tracks += seq.getTracks(policy.copy(seqname=label))
         return tracks
-
 
     def __repr__(self):
         seqs = []

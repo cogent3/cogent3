@@ -24,27 +24,36 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
+
 class has_x(object):
     # convenience class for has_field and related functions
+
     def __init__(self, x):
         self.x = x
+
     def __hash__(self):
         return hash(self.x)
+
     def __str__(self):
         return str(self.x)
 
+
 class has_y(object):
     # convenience class for has_field and related functions
+
     def __init__(self, y):
         self.y = y
+
     def __hash__(self):
         return hash(self.y)
+
     def __str__(self):
         return str(self.y)
 
 
 class metafunctionsTests(TestCase):
     """Tests of standalone functions."""
+
     def setUp(self):
         """Define some standard functions and data."""
         self.Numbers = list(range(20))
@@ -230,6 +239,7 @@ class metafunctionsTests(TestCase):
     def test_compose_many(self):
         """compose_many should return composition of all args"""
         from numpy import arange
+
         def to_strings(x):
             return list(map(str, x))
         printable_range = compose_many(''.join, to_strings, range)
@@ -353,8 +363,10 @@ class metafunctionsTests(TestCase):
             assert not test_list(item)
             assert not test_str(item)
 
+
 class SequenceFunctionsTests(TestCase):
     """Tests of standalone functions for dealing with sequences."""
+
     def test_per_shortest(self):
         """per_shortest should divide by min(len(x), len(y))"""
         self.assertEqual(per_shortest(20, 'aaaaaa', 'bbbb'), 5)
@@ -447,7 +459,6 @@ class SequenceFunctionsTests(TestCase):
         self.assertFloatEqual(f(s5, short), 0.8)
 
 
-
 class Filter_Criteria_Tests(TestCase):
     """Tests of standalone functions used as filter criteria"""
 
@@ -481,7 +492,6 @@ class Filter_Criteria_Tests(TestCase):
                          'abcdeEFGHI12345&*(!@')
 
         self.assertEqual('qazwsxedcrfv'.translate(some), 'qaVwsVedVrfV') 
-
 
     def test_find_any(self):
         """find_any should be True if one of the words is in the string"""
@@ -926,7 +936,6 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(list(comb(list(range(5)), 5)),
                          [[0, 1, 2, 3, 4]])
 
-
     def test_cross_comb(self):
         """cross_comb should produce correct combinations"""
         v1 = list(range(2))
@@ -942,8 +951,6 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(list(_increment_comb(vv1, v2)), v1_x_v2)
         self.assertEqual(list(cross_comb([v1, v2])), v1_x_v2)
         self.assertEqual(list(cross_comb([v1, v2, v3])), v1v2v3)
-
-
 
  # run tests if invoked from the commandline
 if __name__ == '__main__':

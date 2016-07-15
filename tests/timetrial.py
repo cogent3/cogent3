@@ -39,8 +39,10 @@ if not type:
 
 output = "timing/" + script + "-" + str(int(time.time())) + "-" + type
 
+
 def usage():
     pass
+
 
 def standard_dev(numbers=[], mean=1):
     import math
@@ -53,6 +55,7 @@ def standard_dev(numbers=[], mean=1):
     sigma = math.sqrt(sum / (len(numbers) - 1))
 
     return sigma
+
 
 def main():
     if args:

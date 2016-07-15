@@ -15,7 +15,9 @@ __status__ = "Production"
 
 from cogent3.util.unit_test import TestCase, main
 
+
 class FormatBedgraph(TestCase):
+
     def test_only_required_columns(self):
         """generate bedgraph from minimal data"""
         table = Table(header=['chrom', 'start', 'end', 'value'],
@@ -104,7 +106,6 @@ class FormatBedgraph(TestCase):
                         '\n'.join(['track type=bedGraph name="test track" '\
                                    + 'description="test of bedgraph" color=255,0,0 smoothingWindow=10',
                                    '1\t100\t110\t1', '1\t150\t160\t10']))
-
 
     def test_raises_on_incorrect_format_val(self):
         """raise AssertionError when provide incorrect format value"""

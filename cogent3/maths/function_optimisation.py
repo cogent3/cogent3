@@ -23,6 +23,7 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Production"
 
+
 def _simple_breed(best, num, mutation_rate, random_f):
     """Returns num copies of parent with mutation_rate changes"""
     result = []
@@ -35,19 +36,23 @@ def _simple_breed(best, num, mutation_rate, random_f):
             result.append(parent)
     return result
 
+
 def _simple_score(child, target):
     """Returns the childs score as defined by the childs scoring function"""
     return child.score(target)
 
+
 def _simple_init(parent, num):
     """Creates a list parent copies"""
     return [parent.copy() for i in range(num)]
+
 
 def _simple_select(population, scores):
     """Returns a tuple: (best_score, best_child)"""
     scored = list(zip(scores, population))
     scored.sort()
     return scored[0]
+
 
 def great_deluge(a, step_factor=500, max_iter=100, max_total_iters=1000):
     """This generator makes random variations of the object a to minimize cost.
@@ -81,6 +86,7 @@ def great_deluge(a, step_factor=500, max_iter=100, max_total_iters=1000):
             iter_count += 1
         yield ((iter_count, total_iters), a)
         total_iters += 1
+
 
 def ga_evolve(parent, target, num, mutation_rate=0.01, score_f=_simple_score, 
               breed_f=_simple_breed, select_f=_simple_select, 

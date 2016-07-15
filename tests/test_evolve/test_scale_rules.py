@@ -4,6 +4,7 @@ import unittest
 from cogent3 import LoadTree
 from cogent3.evolve import substitution_model
 
+
 def a_c(x, y):
     return (x == 'A' and y == 'C') or (x == 'C' and y == 'A')
 
@@ -22,6 +23,7 @@ a_c = MotifChange('A', 'C')
 trans = MotifChange('A', 'G') | MotifChange('T', 'C')
 
 TREE = LoadTree(tip_names='ab')
+
 
 class ScaleRuleTests(unittest.TestCase):
 

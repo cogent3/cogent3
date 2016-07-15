@@ -10,6 +10,7 @@ from numpy.random import randint, normal
 import numpy
 from cogent3.util.transform import cross_comb
 
+
 def cartesian_product(lists):
     """Returns cartesian product of lists as list of tuples.
 
@@ -34,6 +35,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
 
+
 def gapped_to_ungapped(orig, gap_state, remove_mask=False):
     """Return array converting gapped to ungapped indices based on gap state.
 
@@ -45,12 +47,14 @@ def gapped_to_ungapped(orig, gap_state, remove_mask=False):
     """
     return masked_to_unmasked(orig == gap_state, remove_mask)
 
+
 def ungapped_to_gapped(orig, gap_state):
     """Returns array mapping indices in ungapped sequence to indices in orig.
 
     See documentation for unmasked_to_masked for more detail.
     """
     return unmasked_to_masked(orig == gap_state)
+
 
 def masked_to_unmasked(mask, remove_mask=False):
     """Returns array mapping indices in orig to indices in ungapped.
@@ -69,12 +73,14 @@ def masked_to_unmasked(mask, remove_mask=False):
         result = where(mask, -1, result)
     return result
 
+
 def unmasked_to_masked(mask):
     """Returns array mapping indices in ungapped to indices in original.
 
     Any position where the mask is True will be omitted from the final result.
     """
     return compress(logical_not(mask), arange(len(mask)))
+
 
 def pairs_to_array(pairs, num_items=None, transform=None):
     """Returns array with same data as pairs (list of tuples).
@@ -123,6 +129,7 @@ def pairs_to_array(pairs, num_items=None, transform=None):
 
 ln_2 = log(2)
 
+
 def log2(x):
     """Returns the log (base 2) of x"
 
@@ -131,6 +138,7 @@ def log2(x):
     on getting -inf in your downstream code.
     """
     return log(x) / ln_2
+
 
 def safe_p_log_p(a):
     """Returns -(p*log2(p)) for every non-negative, nonzero p in a.
@@ -153,6 +161,7 @@ def safe_p_log_p(a):
     put(flat, nz_i, x)
     return c
 
+
 def safe_log(a):
     """Returns the log (base 2) of each nonzero item in a.
 
@@ -174,6 +183,7 @@ def safe_log(a):
     put(flat, nz_i, log_nz)
     return c
 
+
 def row_uncertainty(a):
     """Returns uncertainty (Shannon's entropy) for each row in a IN BITS
 
@@ -192,6 +202,7 @@ def row_uncertainty(a):
         return sum(safe_p_log_p(a), 1)
     except ValueError:
         raise ValueError("Array has to be two-dimensional")
+
 
 def column_uncertainty(a):
     """Returns uncertainty (Shannon's entropy) for each column in a in BITS
@@ -282,6 +293,7 @@ def column_degeneracy(a, cutoff=.5):
     # to change to the number of characters, add 1
     return clip(array(degen) + 1, 0, a.shape[0])
 
+
 def hamming_distance(x, y):
     """Returns the Hamming distance between two arrays.
 
@@ -298,6 +310,7 @@ def hamming_distance(x, y):
     shortest = min(list(map(len, [x, y])))
     return sum(x[:shortest] != y[:shortest], axis=0)
 
+
 def norm(a):
     """Returns the norm of a matrix or vector
 
@@ -309,6 +322,7 @@ def norm(a):
     """
     return sqrt(sum((a * a).flat))
 
+
 def euclidean_distance(a, b):
     """Returns the Euclidean distance between two vectors/arrays
     a,b: numpy vectors or arrays
@@ -317,12 +331,15 @@ def euclidean_distance(a, b):
     sizes, but no check for this has been built in. 
     """
     return norm(a - b)
+
+
 def count_simple(a, alphabet_len):
     """Counts items in a. """
     result = zeros(alphabet_len, Int)
     for i in ravel(a):
         result[i] += 1
     return result
+
 
 def count_alphabet(a, alphabet_len):
     """Counts items in a, using =="""
@@ -335,9 +352,11 @@ def count_alphabet(a, alphabet_len):
         result[i] = sum(a == i)
     return result
 
+
 def is_complex(m):
     """Returns True if m has a complex component."""
     return m.dtype.char == 'D'
+
 
 def is_significantly_complex(m, threshold=0.1):
     """Returns True if the sum of m's imaginary component exceeds threshold."""
@@ -346,9 +365,11 @@ def is_significantly_complex(m, threshold=0.1):
             return True
     return False
 
+
 def has_neg_off_diags(m):
     """Returns True if m has negative off-diagonal elements."""
     return min(ravel(m * logical_not(identity(len(m))))) < 0
+
 
 def has_neg_off_diags_naive(m):
     """Returns True if m has off-diagonal elements.
@@ -364,10 +385,12 @@ def has_neg_off_diags_naive(m):
     else:
         return False
 
+
 def sum_neg_off_diags(m):
     """Returns sum of negative off-diags in m."""
     return sum(compress(ravel(less(m, 0)), \
                         ravel((m * logical_not(identity(len(m)))))))
+
 
 def sum_neg_off_diags_naive(m):
     """Returns sum of negative off-diags in m.
@@ -382,11 +405,13 @@ def sum_neg_off_diags_naive(m):
                 sum += item
     return sum
 
+
 def scale_row_sum(m, val=1):
     """Scales matrix in place so that each row sums to val (default: 1).
 
     """
     m /= (sum(m, axis=1) / val)[:, newaxis]
+
 
 def scale_row_sum_naive(m, val=1):
     """Scales matrix in place so that each row sums to val (default:1).
@@ -396,6 +421,7 @@ def scale_row_sum_naive(m, val=1):
     for i, row in enumerate(m):
         row_sum = sum(row) / val
         m[i] = row / row_sum
+
 
 def scale_trace(m, val=-1):
     """Scales matrix in place so that trace of result is val (default: -1).
@@ -408,12 +434,14 @@ def scale_trace(m, val=-1):
     """
     m *= val / trace(m)
 
+
 def abs_diff(first, second):
     """Calculates element-wise sum of abs(first - second).
 
     Return value may be real or complex.
     """
     return sum(ravel(abs(first - second)))
+
 
 def sq_diff(first, second):
     """Calculates element-wise sum of (first - second)**2.
@@ -423,14 +451,17 @@ def sq_diff(first, second):
     diff = first - second
     return sum(ravel((diff * diff)))
 
+
 def norm_diff(first, second):
     """Returns square root of sq_diff, normalized to # elements."""
     size = len(ravel(first))
     return sqrt(sq_diff(first, second)) / size
 
+
 def without_diag(a):
     """Returns copy of square matrix a, omitting diagonal elements."""
     return array([concatenate((r[:i], r[i + 1:])) for i, r in enumerate(a)])
+
 
 def with_diag(a, d):
     """Returns copy of matrix a with d inserted as diagonal to yield square."""
@@ -442,6 +473,7 @@ def with_diag(a, d):
         result_row[i] = d[i]
         result_row[i + 1:] = r[i:]
     return result
+
 
 def only_nonzero(a):
     """Returns elements of a where the first element of a[i] is nonzero.
@@ -458,6 +490,7 @@ def only_nonzero(a):
     first_element_selector = [0] * len(a.shape)
     first_element_selector[0] = slice(None, None)
     return take(a, numpy.ravel(nonzero(a[first_element_selector])), axis=0)
+
 
 def combine_dimensions(m, dim):
     """Aggregates all dimensions of m between dim and the end.
@@ -476,6 +509,7 @@ def combine_dimensions(m, dim):
         return reshape(m, shape[:dim] + (product(shape[dim:]),))
     else:  # counting from start
         return reshape(m, (product(shape[:dim]),) + shape[dim:])
+
 
 def split_dimension(m, dim, shape=None):
     """Splits specified dimension of m into shape.
@@ -500,6 +534,7 @@ def split_dimension(m, dim, shape=None):
     new_dim = tuple(map(int, new_dim))
     return reshape(m, new_dim)
 
+
 def non_diag(m):
     """From a sequence of n flattened 2D matrices, returns non-diag elements.
 
@@ -513,6 +548,7 @@ def non_diag(m):
     all_wanted += (arange(num_rows) * num_elements)[:, newaxis]
     return reshape(take(ravel(m), ravel(all_wanted), axis=0), \
                    (num_rows, num_elements - side_length))
+
 
 def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     """Perturbs one off-diagonal element of rate matrix m by random number.
@@ -538,6 +574,7 @@ def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     flat[element_to_change] += normal(mean, sd)
     return with_diag(elements, -sum(elements, 1))
 
+
 def perturb_one_off_diag_fixed(m, size):
     """Perturbs a random off-diag element of rate matrix m by factor of size."""
     elements = without_diag(m)
@@ -545,6 +582,7 @@ def perturb_one_off_diag_fixed(m, size):
     element_to_change = randint(0, len(flat))
     flat[element_to_change] *= (1.0 + size)
     return with_diag(elements, -sum(elements, 1))
+
 
 def perturb_off_diag(m, mean=0, sd=0.01):
     """Perturbs all off-diagonal elements of m by adding random number.
@@ -558,6 +596,7 @@ def perturb_off_diag(m, mean=0, sd=0.01):
     random = normal(mean, sd, elements.shape)
     result = elements + random
     return with_diag(result, -sum(result, 1))
+
 
 def perturb_off_diag_frac(m, size):
     """Perturbs all off-diagonal elements of m by about a specified fraction.
@@ -581,6 +620,7 @@ def size_to_stdev(size):
     """
     return size * size * pi / 2.0
 
+
 def merge_samples(*samples):
     """Merges list of samples into array of [vals,dists].
 
@@ -592,9 +632,11 @@ def merge_samples(*samples):
     return concatenate([array((a, zeros(a.shape) + i)) \
                         for i, a in enumerate(samples)], 1)
 
+
 def sort_merged_samples_by_value(a):
     """Sorts result of merge_samples by value (i.e. first row)."""
     return take(a, argsort(a[0]), 1)
+
 
 def classifiers(*samples):
     """Returns all 1D classifier separating first sample from the remainder.
@@ -622,6 +664,7 @@ def classifiers(*samples):
         result.append((i, reversed, fp, fn, tp, tn))
     return result
 
+
 def minimize_error_count(classifiers):
     """Returns the classifier from a list of classifiers that minimizes errors.
 
@@ -631,6 +674,7 @@ def minimize_error_count(classifiers):
     """
     c = array(classifiers)
     return classifiers[argmin(sum(c[:, 2:4], 1))]
+
 
 def minimize_error_rate(classifiers):
     """Returns the classifier from a list of classifiers that minimizes errors.
@@ -642,6 +686,7 @@ def minimize_error_rate(classifiers):
     c = array(classifiers)
     return classifiers[argmin(\
         1.0 * c[:, 2] / (c[:, 2] + c[:, 5]) + 1.0 * c[:, 3] / (c[:, 3] + c[:, 4]))]
+
 
 def mutate_array(a, sd, mean=0):
     """Return mutated copy of the array (or vector), adding mean +/- sd."""

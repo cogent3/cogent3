@@ -14,9 +14,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics
 
+
 def _same_moltype(ref, query):
     """if ref and query have the same states"""
     return set(ref) == set(query)
+
 
 def get_pyrimidine_indices(moltype):
     """returns pyrimidine indices for the moltype"""
@@ -28,6 +30,7 @@ def get_pyrimidine_indices(moltype):
     else:
         raise RuntimeError('Non-nucleic acid MolType')
 
+
 def get_purine_indices(moltype):
     """returns purine indices for the moltype"""
     states = list(moltype)
@@ -36,9 +39,11 @@ def get_purine_indices(moltype):
 
     return list(map(states.index, 'AG'))
 
+
 def get_matrix_diff_coords(indices):
     """returns coordinates for off diagonal elements"""
     return [(i, j) for i in indices for j in indices if i != j]
+
 
 def get_moltype_index_array(moltype, invalid=-9):
     """returns the index array for a molecular type"""
@@ -57,11 +62,13 @@ def get_moltype_index_array(moltype, invalid=-9):
 
     return char_to_index
 
+
 def seq_to_indices(seq, char_to_index):
     """returns an array with sequence characters replaced by their index"""
     ords = list(map(ord, seq))
     indices = char_to_index.take(ords)
     return indices
+
 
 def _fill_diversity_matrix(matrix, seq1, seq2):
     """fills the diversity matrix for valid positions.
@@ -92,6 +99,7 @@ def _jc69_from_matrix(matrix):
     dist = -3.0 * log(factor) / 4
     var = p * (1 - p) / (factor * factor * total)
     return total, p, dist, var
+
 
 def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_coords, tv_coords):
     invalid = None, None, None, None
@@ -126,7 +134,6 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
                   (prod_purs * freq_pyrs / freq_purs) -\
                   (prod_pyrs * freq_purs / freq_pyrs))
 
-
     term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2 * freq_purs)
     term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2 * freq_pyrs)
     term3 = 1 - tv_diffs / (2 * freq_purs * freq_pyrs)
@@ -146,6 +153,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     var /= total
 
     return total, p, dist, var
+
 
 def _logdetcommon(matrix):
     invalid = (None,) * 5
@@ -175,6 +183,7 @@ def _logdetcommon(matrix):
     var_term = dot(M_matrix, frequency).diagonal().sum()
 
     return total, p, frequency, freqs, var_term
+
 
 def _paralinear(matrix):
     """the paralinear distance from a diversity matrix"""
@@ -222,6 +231,7 @@ try:
 except ImportError:
     fill_diversity_matrix = _fill_diversity_matrix
 
+
 def _number_formatter(template):
     """flexible number formatter"""
     def call(val):
@@ -231,6 +241,7 @@ def _number_formatter(template):
             result = val
         return result
     return call
+
 
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
@@ -290,7 +301,6 @@ class _PairwiseDistance(object):
                 total, p, dist, var = self.func(matrix, *self._func_args)
                 self._dists[(name_1, name_2)] = (total, p, dist, var)
                 self._dists[(name_2, name_1)] = (total, p, dist, var)
-
 
     def getPairwiseDistances(self):
         """returns a 2D dictionary of pairwise distances."""
@@ -363,6 +373,7 @@ class _PairwiseDistance(object):
 
 class _NucleicSeqPair(_PairwiseDistance):
     """docstring for _NucleicSeqPair"""
+
     def __init__(self, *args, **kwargs):
         super(_NucleicSeqPair, self).__init__(*args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and \
@@ -372,6 +383,7 @@ class _NucleicSeqPair(_PairwiseDistance):
 
 class JC69Pair(_NucleicSeqPair):
     """calculator for pairwise alignments"""
+
     def __init__(self, *args, **kwargs):
         """states: the valid sequence states"""
         super(JC69Pair, self).__init__(*args, **kwargs)
@@ -380,6 +392,7 @@ class JC69Pair(_NucleicSeqPair):
 
 class TN93Pair(_NucleicSeqPair):
     """calculator for pairwise alignments"""
+
     def __init__(self, *args, **kwargs):
         """states: the valid sequence states"""
         super(TN93Pair, self).__init__(*args, **kwargs)
@@ -406,9 +419,9 @@ class TN93Pair(_NucleicSeqPair):
                            self.pyr_coords, self.tv_coords]
 
 
-
 class LogDetPair(_PairwiseDistance):
     """computes logdet distance between sequence pairs"""
+
     def __init__(self, use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
             - use_tk_adjustment: use the correction of Tamura and Kumar 2002
@@ -423,8 +436,10 @@ class LogDetPair(_PairwiseDistance):
 
         super(LogDetPair, self).run(*args, **kwargs)
 
+
 class ParalinearPair(_PairwiseDistance):
     """computes the paralinear distance (Lake 1994) between sequence pairs"""
+
     def __init__(self, *args, **kwargs):
         super(ParalinearPair, self).__init__(*args, **kwargs)
         self.func = _paralinear

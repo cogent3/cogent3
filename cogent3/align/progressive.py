@@ -16,6 +16,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 @UI.display_wrap
 def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
               ui=None, ests_from_pairwise=True, param_vals=None):

@@ -30,7 +30,9 @@ else:
 human = Genome(Species='human', Release=Release, account=account)
 platypus = Genome(Species='platypus', Release=Release, account=account)
 
+
 class TestLocation(TestCase):
+
     def test_init(self):
         human_loc = Coordinate(CoordName='x', Start=1000, End=10000, Strand=-1,
                                genome=human)
@@ -103,6 +105,7 @@ class TestLocation(TestCase):
 
 
 class TestCoordSystem(TestCase):
+
     def test_call(self):
         human_chrom = CoordSystem('chromosome', core_db=human.CoreDb,
                                   species='human')

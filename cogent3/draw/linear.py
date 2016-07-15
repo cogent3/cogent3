@@ -42,6 +42,7 @@ __status__ = "Production"
 
 MAX_WIDTH = 72 * 8
 
+
 def dna_shapes():
     w = .5 / 2
     s = .75 / 2
@@ -49,6 +50,7 @@ def dna_shapes():
     r = 8
     y = 5
     n = (r + y) / 2
+
     def rectangle(x, y):
         return [(-x, 0), (-x, y), (x, y), (x, 0)]
     shapes = {}
@@ -66,6 +68,7 @@ def dna_shapes():
     return shapes
 
 dna_shapes = dna_shapes()
+
 
 class TransformScalePart(Affine2DBase):
     """Just the translation factors of the child transform, no
@@ -101,15 +104,19 @@ class TransformScalePart(Affine2DBase):
 class _Colors(object):
     """colors.white = to_rgb("white"), same as just using "white"
     except that this lookup also checks the color is valid"""   
+
     def __getattr__(self, attr):
         return matplotlib.colors.colorConverter.to_rgb(attr)
 colors = _Colors()
+
 
 def llen(label, fontSize=10):
     # placeholder for better length-of-label code
     return len(label) * fontSize
 
+
 class TrackDefn(object):
+
     def __init__(self, tag, features):
         assert tag
         self.tag = tag
@@ -120,6 +127,7 @@ class TrackDefn(object):
 
 
 class Track(object):
+
     def __init__(self, tag, features, level=0, label=None,
                  needs_border=False, max_y=None, height=None):
         assert tag
@@ -156,6 +164,7 @@ class Track(object):
 
 class CompositeTrack(Track):
     """Overlayed tracks"""
+
     def __init__(self, tag, tracks, label=None):
         if label is None:
             labels = list(dict([(track.label, True)
@@ -217,6 +226,7 @@ class Annotation(object):
             posn += span.length
         return g
 
+
 class _SeqRepresentation(object):
     height = 20
     y_offset = 10
@@ -270,6 +280,7 @@ class _SeqRepresentation(object):
 
 
 class _MultiShapeSeqRepresentation(_SeqRepresentation):
+
     def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
         motifs = list(range(len(self.alphabet)))
         values = []
@@ -288,6 +299,7 @@ class _MultiShapeSeqRepresentation(_SeqRepresentation):
 
 
 class _SingleShapeSeqRepresentation(_SeqRepresentation):
+
     def _calc_values(self, sequence, cvalues, alphabet_colours, offsets):
         if cvalues:
             cvs = cvalues
@@ -318,6 +330,7 @@ class SeqText(_MultiShapeSeqRepresentation):
                 g.add(s)
         return g
 
+
 class SeqShapes(_MultiShapeSeqRepresentation):
     height = 10
     x_offset = 0.5
@@ -344,6 +357,7 @@ class SeqShapes(_MultiShapeSeqRepresentation):
             a.set_transform(trans)
         return g
 
+
 class SeqDots(_SingleShapeSeqRepresentation):
     # Something wrong with this one.
     height = 5
@@ -363,6 +377,7 @@ class SeqDots(_SingleShapeSeqRepresentation):
         g.add(a)
         a.set_transform(trans)
         return g
+
 
 class SeqLineSegments(_SingleShapeSeqRepresentation):
     height = 5
@@ -405,6 +420,7 @@ class SeqLine(object):
 
 class Feature(Annotation):
     """An Annotation with a style and location rather than values"""
+
     def __init__(self, map, style, label=None, value=None):
         self.map = map
         self.style = style
@@ -420,6 +436,7 @@ class Feature(Annotation):
 
 class _FeatureStyle(object):
     range_required = False
+
     def __init__(self, fill=True, color=colors.black, min_width=0.5,
                  showLabel=False, height=1, thickness=0.6, closed=True,
                  one_span=False, **kw):
@@ -485,7 +502,9 @@ class _FeatureStyle(object):
                 pass  # warnings.warn("couldn't fit feature label '%s'" % label)
         return g
 
+
 class _VariableThicknessFeatureStyle(_FeatureStyle):
+
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         if yrange:
@@ -494,6 +513,7 @@ class _VariableThicknessFeatureStyle(_FeatureStyle):
             thickness = height * self.proportion_of_track
         return self._item_shape_scaled(start, end, tidy_start, tidy_end,
                                        height / 2, max(2, thickness), rotated, last)
+
 
 class Box(_VariableThicknessFeatureStyle):
     arrow = False
@@ -514,16 +534,20 @@ class Box(_VariableThicknessFeatureStyle):
         path = end1 + end2
         return PathPatch(path, **rlg2mpl.line_options(**self.opts))   
 
+
 class Arrow(Box):
     arrow = True
     blunt = False
+
 
 class BluntArrow(Box):
     arrow = True
     blunt = True
 
+
 class Diamond(_VariableThicknessFeatureStyle):
     """diamond"""
+
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
                            thickness, rotated, last):
         x = (start + end) / 2
@@ -536,6 +560,7 @@ class Diamond(_VariableThicknessFeatureStyle):
 class Line(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
+
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         altitude = value * (height - 1) / yrange
@@ -547,6 +572,7 @@ class Line(_FeatureStyle):
 class Area(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
+
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         altitude = value * (height - 1) / yrange
@@ -559,6 +585,7 @@ class Area(_FeatureStyle):
 
 
 class DisplayPolicy(object):
+
     def _makeFeatureStyles(self):
         return {
             # gene structure

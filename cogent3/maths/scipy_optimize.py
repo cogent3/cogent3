@@ -36,17 +36,21 @@ except ImportError:
 
 # These have been copied from Numeric's MLab.py
 # I don't think they made the transition to scipy_core
+
+
 def max(m, axis=0):
     """max(m,axis=0) returns the maximum of m along dimension axis.
     """
     m = asarray(m)
     return numpy.maximum.reduce(m, axis)
 
+
 def min(m, axis=0):
     """min(m,axis=0) returns the minimum of m along dimension axis.
     """
     m = asarray(m)
     return numpy.minimum.reduce(m, axis)
+
 
 def is_array_scalar(x):
     """Test whether `x` is either a scalar or an array scalar.
@@ -76,9 +80,11 @@ def vecnorm(x, ord=2):
     else:
         return numpy.sum(abs(x)**ord, axis=0)**(1.0 / ord)
 
+
 def rosen(x):  # The Rosenbrock function
     x = asarray(x)
     return numpy.sum(100.0 * (x[1:] - x[:-1]**2.0)**2.0 + (1 - x[:-1])**2.0, axis=0)
+
 
 def rosen_der(x):
     x = asarray(x)
@@ -91,6 +97,7 @@ def rosen_der(x):
     der[-1] = 200 * (x[-1] - x[-2]**2)
     return der
 
+
 def rosen_hess(x):
     x = atleast_1d(x)
     H = numpy.diag(-400 * x[:-1], 1) - numpy.diag(400 * x[:-1], -1)
@@ -101,6 +108,7 @@ def rosen_hess(x):
     H = H + numpy.diag(diagonal)
     return H
 
+
 def rosen_hess_prod(x, p):
     x = atleast_1d(x)
     Hp = numpy.zeros(len(x), dtype=x.dtype)
@@ -110,12 +118,15 @@ def rosen_hess_prod(x, p):
     Hp[-1] = -400 * x[-2] * p[-2] + 200 * p[-1]
     return Hp
 
+
 def wrap_function(function, args):
     ncalls = [0]
+
     def function_wrapper(x):
         ncalls[0] += 1
         return function(x, *args)
     return ncalls, function_wrapper
+
 
 def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
          full_output=0, disp=1, retall=0, callback=None):
@@ -295,7 +306,6 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
             print("         Iterations: %d" % iterations)
             print("         Function evaluations: %d" % fcalls[0])
 
-
     if full_output:
         retlist = x, fval, iterations, fcalls[0], warnflag
         if retall:
@@ -306,7 +316,6 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
             retlist = (x, allvecs)
 
     return retlist
-
 
 
 def _cubicmin(a, fa, fpa, b, fb, c, fc):
@@ -350,6 +359,7 @@ def _quadmin(a, fa, fpa, b, fb):
     if (B <= 0): return None
     xmin = a - C / (2.0 * B)
     return xmin
+
 
 def zoom(a_lo, a_hi, phi_lo, phi_hi, derphi_lo,
          phi, derphi, phi0, derphi0, c1, c2):
@@ -422,6 +432,7 @@ def zoom(a_lo, a_hi, phi_lo, phi_hi, derphi_lo,
             break
     return a_star, val_star, valprime_star
 
+
 def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
                 args=(), c1=1e-4, c2=0.9, amax=50):
     """Find alpha that satisfies strong Wolfe conditions.
@@ -469,6 +480,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
     _ls_fc = 0
     _ls_gc = 0
     _ls_ingfk = None
+
     def phi(alpha):
         global _ls_fc
         _ls_fc += 1
@@ -485,6 +497,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
             return numpy.dot(_ls_ingfk, pk)
     else:
         fprime = myfprime
+
         def phiprime(alpha):
             global _ls_gc, _ls_ingfk
             _ls_gc += 1
@@ -633,8 +646,10 @@ def approx_fprime(xk, f, epsilon, *args):
         ei[k] = 0.0
     return grad
 
+
 def check_grad(func, grad, x0, *args):
     return sqrt(sum((grad(x0, *args) - approx_fprime(x0, func, _epsilon, *args))**2))
+
 
 def approx_fhess_p(x0, p, fprime, epsilon, *args):
     f2 = fprime(*((x0 + epsilon * p,) + args))
@@ -934,7 +949,6 @@ def fmin_cg(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf, epsilon=_epsilon,
             callback(func_calls[0], xk, old_fval)
         k += 1
 
-
     if disp or full_output:
         fval = old_fval
     if warnflag == 2:
@@ -961,7 +975,6 @@ def fmin_cg(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf, epsilon=_epsilon,
             print("         Function evaluations: %d" % func_calls[0])
             print("         Gradient evaluations: %d" % grad_calls[0])
 
-
     if full_output:
         retlist = xk, fval, func_calls[0], grad_calls[0], warnflag
         if retall:
@@ -972,6 +985,7 @@ def fmin_cg(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf, epsilon=_epsilon,
             retlist = (xk, allvecs)
 
     return retlist
+
 
 def fmin_ncg(f, x0, fprime, fhess_p=None, fhess=None, args=(), avextol=1e-5,
              epsilon=_epsilon, maxiter=None, full_output=0, disp=1, retall=0,
@@ -1232,7 +1246,6 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
         print(header)
         print("%5.0f   %12.6g %12.6g %s" % (fmin_data + (step,)))
 
-
     while (abs(xf - xm) > (tol2 - 0.5 * (b - a))):
         golden = 1
         # Check for parabolic fit
@@ -1318,8 +1331,10 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
     else:
         return xf
 
+
 class Brent:
     # need to rethink design of __init__
+
     def __init__(self, func, tol=1.48e-8, maxiter=500):
         self.func = func
         self.tol = tol
@@ -1756,7 +1771,6 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
     if maxfun is None:
         maxfun = N * 1000
 
-
     if direc is None:
         direc = eye(N, dtype=float)
     else:
@@ -1834,8 +1848,6 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             retlist = (x, allvecs)
 
     return retlist
-
-
 
 
 def _endprint(x, flag, fval, maxfun, xtol, disp):
@@ -1984,7 +1996,6 @@ def main():
     times.append(time.time() - start)
     algor.append('BFGS without gradient\t')
 
-
     print()
     print("Newton-CG with Hessian product")
     print("==============================")
@@ -1993,7 +2004,6 @@ def main():
     print(x)
     times.append(time.time() - start)
     algor.append('Newton-CG with hessian product')
-
 
     print()
     print("Newton-CG with full Hessian")

@@ -37,8 +37,10 @@ options = [make_option('--pycogent_dir', dest='pycogent_dir', type='string',
            make_option('--new_version_short', dest='version_short', type='string',
                        default=None)]
 
+
 class VersionUpdater(object):
     """Handles version update of files contained within the PyCogent tree"""
+
     def __init__(self, PyCogentDirectory=None, Version=None, \
                  IsRelease=False, Verbose=False, MockRun=False, VersionShort=None):
         self.PyCogentDirectory = PyCogentDirectory
@@ -324,6 +326,7 @@ class VersionUpdater(object):
 
             if write_out:
                 self._file_writer(lines, filename) 
+
 
 def main(arg_list=argv):
     parser = OptionParser(option_list=options)

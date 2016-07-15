@@ -22,6 +22,7 @@ This XML PARSER uses minidom. This means a bad performance for
 big files (>5MB), and huge XML files will for sure crash the program!
 """
 
+
 def GbSeqXmlParser(doc):
     """Parser for NCBI Sequence Set XML format.
     DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
@@ -100,6 +101,7 @@ def GbSeqXmlParser(doc):
                         "GBQualifier_value")[0].childNodes[0].nodeValue
             seq.addAnnotation(annotation.Feature, key, feature_name, spans)
         yield (name, seq)
+
 
 def parse(*args):
     return GbSeqXmlParser(*args).next()[1]

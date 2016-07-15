@@ -22,10 +22,12 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
     template = 'f = % #10.6g  ±  % 9.3e   evals = %6i '
     label = label.rjust(5)
     goal = [1.0e-20]
+
     def _display_progress(remaining, *args):
         if remaining > goal[0]:
             goal[0] = remaining
@@ -37,6 +39,7 @@ def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
 
 class ParameterOutOfBoundsError(Exception):
     pass
+
 
 class MaximumEvaluationsReached(Exception):
     pass
@@ -51,6 +54,7 @@ def limited_use(f, max_evaluations=None):
     evals = [0]
     best_fval = [-numpy.inf]
     best_x = [None]
+
     def wrapped_f(x):
         if evals[0] >= max_evaluations:
             raise MaximumEvaluationsReached(evals[0])
@@ -60,10 +64,12 @@ def limited_use(f, max_evaluations=None):
             best_fval[0] = fval
             best_x[0] = x.copy()
         return fval
+
     def get_best():
         f(best_x[0])  # for calculator, ensure best last
         return best_fval[0], best_x[0], evals[0]
     return get_best, wrapped_f
+
 
 def bounded_function(f, lower_bounds, upper_bounds):
     """Returns a function that raises an exception on out-of-bounds input 
@@ -77,6 +83,7 @@ def bounded_function(f, lower_bounds, upper_bounds):
             raise ParameterOutOfBoundsError((lower_bounds, x, upper_bounds))
 
     return _wrapper
+
 
 def bounds_exception_catching_function(f):
     """Returns a function that return -inf on out-of-bounds or otherwise 
@@ -98,11 +105,13 @@ def bounds_exception_catching_function(f):
 
     return _wrapper
 
+
 def minimise(f, *args, **kw):
     """See maximise"""
     def nf(x):
         return -1 * f(x)
     return maximise(nf, *args, **kw)
+
 
 @UI.display_wrap
 def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,

@@ -13,23 +13,28 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"
 
+
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
     pass
+
 
 class RecordError(FileFormatError):
     """Exception raised when a record is bad."""
     pass
 
+
 class FieldError(RecordError):
     """Exception raised when a field within a record is bad."""
     pass
+
 
 class Grouper(object):
     """Acts as iterator that returns lists of n items at a time from seq.
 
     Note: returns a partial list if not evenly divisible by n.
     """
+
     def __init__(self, NumItems=1):
         """Returns new Grouper object: will return n items at a time from seq"""
         self.NumItems = NumItems
@@ -56,9 +61,11 @@ class Grouper(object):
 # Example of the instances Grouper provides:
 ByPairs = Grouper(2)
 
+
 def string_and_strip(*items):
     """Converts items to strings and strips them."""
     return [str(i).strip() for i in items]
+
 
 def DelimitedSplitter(delimiter=None, max_splits=1):
     """Returns function that returns stripped fields split by delimiter.
@@ -108,6 +115,7 @@ space_pairs = DelimitedSplitter(None)
 equal_pairs = DelimitedSplitter('=')
 last_colon = DelimitedSplitter(':', -1)
 
+
 class GenericRecord(dict):
     """Holds data for a generic field ->: value mapping.
 
@@ -125,6 +133,7 @@ class GenericRecord(dict):
     instead.
     """
     Required = {}
+
     def __init__(self, *args, **kwargs):
         """Reads kwargs as properties of self."""
         # perform init on temp dict to preserve interface: will then translate
@@ -295,6 +304,7 @@ class MappedRecord(GenericRecord):
 # The following methods are useful for handling particular types of fields in
 # line-oriented parsers
 
+
 def TypeSetter(constructor=None):
     """Returns function that takes obj, field, val and sets obj.field = val.
 
@@ -318,6 +328,7 @@ complex_setter = TypeSetter(complex)
 bool_setter = TypeSetter(bool)
 identity_setter = TypeSetter()
 
+
 def list_adder(obj, field, val):
     """Adds val to list in obj.field, creating list if necessary."""
     try:
@@ -325,12 +336,14 @@ def list_adder(obj, field, val):
     except AttributeError:
         setattr(obj, field, [val])
 
+
 def list_extender(obj, field, val):
     """Adds val to list in obj.field, creating list if necessary."""
     try:
         getattr(obj, field).extend(iterable(val))
     except AttributeError:
         setattr(obj, field, list(val))
+
 
 def dict_adder(obj, field, val):
     """If val is a sequence, adds key/value pair in obj.field: else adds key."""
@@ -343,8 +356,10 @@ def dict_adder(obj, field, val):
     except AttributeError:
         setattr(obj, field, {key: value})
 
+
 class LineOrientedConstructor(object):
     """Constructs a MappedRecord from a sequence of lines."""
+
     def __init__(self, Lines=None, LabelSplitter=space_pairs, FieldMap=None,
                  Constructor=MappedRecord, Strict=False):
         """Returns new LineOrientedConstructor.
@@ -419,6 +434,7 @@ class LineOrientedConstructor(object):
                     raise FieldError("Could not handle line %s" % (line,))
         return result
 
+
 def FieldWrapper(fields, splitter=None, constructor=None):
     """Returns dict containing field->val mapping, one level.
 
@@ -444,6 +460,7 @@ def FieldWrapper(fields, splitter=None, constructor=None):
         def parser(line):
             return dict(list(zip(fields, splitter(line))))
     return parser
+
 
 def StrictFieldWrapper(fields, splitter=None, constructor=None):
     """Returns dict containing field->val mapping, one level.
@@ -477,15 +494,18 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             return dict(list(zip(fields, items)))
     return parser
 
+
 def raise_unknown_field(field, data):
     """Raises a FieldError, displaying the offending field and data."""
     raise FieldError("Got unknown field %s with data %s" % (field, data))
+
 
 class FieldMorpher(object):
     """When called, applies appropriate constructors to each value of dict.
 
     Initialize using a dict of fieldname:constructor pairs.
     """
+
     def __init__(self, Constructors, Default=raise_unknown_field):
         """Returns a new FieldMorpher, using appropriate constructors.
 

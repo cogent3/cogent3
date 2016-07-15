@@ -13,6 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class CannedModelsTest(TestCase):
     """Check each canned model can actually be instantiated."""
 

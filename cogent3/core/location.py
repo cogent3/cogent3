@@ -57,6 +57,7 @@ __status__ = "Prototype"
 
 strip = str.strip
 
+
 def _norm_index(i, length, default):
     """For converting s[:3] to s[0:3], s[-1] to s[len(s)-1] and s[0:lots] to s[0:len(s)]"""
     if i is None:
@@ -64,6 +65,7 @@ def _norm_index(i, length, default):
     elif i < 0:
         i += length
     return min(max(i, 0), length)
+
 
 def _norm_slice(index, length):
     """_norm_slice(slice(1, -2, 3), 10) -> (1,8,3)"""
@@ -76,6 +78,7 @@ def _norm_slice(index, length):
         if start < 0: start += length
         if start >= length: raise IndexError(index)
         return (start, start + 1, 1)
+
 
 def as_map(slice, length):
     """Take anything that might be used as a subscript: Integer, Slice,
@@ -96,6 +99,7 @@ def as_map(slice, length):
         assert (step or 1) == 1
         map = Map([(lo, hi)], parent_length=length)
     return map
+
 
 class SpanI(object):
     """Abstract interface for Span and Range objects.
@@ -187,6 +191,7 @@ class SpanI(object):
             return self.End in other
         except (AttributeError, TypeError):  # count other as empty span
             return False
+
 
 @total_ordering
 class Span(SpanI):
@@ -456,6 +461,8 @@ class _LostSpan(object):
 
 # Save memory by only making one of each small gap
 _lost_span_cache = {}
+
+
 def LostSpan(length, value=None):
     global _lost_span_cache
     if value is None and length < 1000:
@@ -465,8 +472,10 @@ def LostSpan(length, value=None):
     else:
         return _LostSpan(length, value)
 
+
 class TerminalPadding(_LostSpan):
     terminal = True
+
     def __repr__(self):
         return '?%s?' % (self.length)
 
@@ -703,6 +712,7 @@ class SpansOnly(ConstrainedList):
     Mask = FunctionWrapper(Span)
     _constraint = ClassChecker(Span)
 
+
 @total_ordering
 class Range(SpanI):
     """Complex object consisting of many spans."""
@@ -891,6 +901,7 @@ class Point(Span):
 
     Start = property(_get_start, _set_start)
     End = Start  # start and end are synonyms for the same property
+
 
 def RangeFromString(string, delimiter=','):
     """Returns Range object from string of the form 1-5,11,20,30-50.

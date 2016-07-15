@@ -27,6 +27,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def order_to_cluster_similar(S, elts=None, start=None):
     """Order so as to keep the most similar parts adjacent to each other
     S is expected to be a square matrix, and the returned list of 
@@ -68,6 +69,7 @@ def order_to_cluster_similar(S, elts=None, start=None):
         run = run[1:]
     return run
 
+
 def tied_segments(scores):
     """(start, end) of each run of equal values in scores
 
@@ -77,6 +79,7 @@ def tied_segments(scores):
     pos = numpy.flatnonzero(numpy.diff(scores))
     pos = numpy.concatenate(([0], pos + 1, [len(scores)]))
     return list(zip(pos[:-1], pos[1:]))
+
 
 def order_tied_to_cluster_similar(S, scores):
     """Use similarity measure S to make similar elements
@@ -99,9 +102,11 @@ def order_tied_to_cluster_similar(S, scores):
     assert set(new_order) == set(range(len(scores))) 
     return new_order
 
+
 def bit_encode(x, _bool2num=numpy.array([b"0", b"1"]).take):
     """Convert a boolean array into an integer"""
     return int(_bool2num(x).tostring(), 2)
+
 
 def bit_decode(x, numseqs):
     """Convert an integer into a boolean array"""
@@ -146,6 +151,7 @@ def binary_partitions(alignment):
                 break  # if R/Y split OK no need to consider W/S split. 
     return (sites, columns, partitions)
 
+
 def min_edges(columns):
     """Given two boolean arrays each representing an informative alignment 
     position, there are 4 possible combinations for each sequence: 
@@ -168,6 +174,7 @@ def min_edges(columns):
             result[i, j] = result[j, i] = len(combos) - 1
     return result
 
+
 def neighbour_similarity_score(matrix):
     left = matrix[:-1]
     right = matrix[1:]
@@ -177,10 +184,12 @@ def neighbour_similarity_score(matrix):
     neighbours = numpy.product(left.shape) + numpy.product(upper.shape)
     return same / neighbours
 
+
 def shuffled(matrix):
     assert matrix.shape == (len(matrix), len(matrix)), matrix.shape
     index = numpy.random.permutation(numpy.arange(len(matrix)))
     return matrix[index, :][:, index]
+
 
 def nss_significance(matrix, samples=10000):
     score = neighbour_similarity_score(matrix)
@@ -192,12 +201,15 @@ def nss_significance(matrix, samples=10000):
     p = (samples - scores.searchsorted(score) + 1) / samples
     return (score, sum(scores) / samples, p)
 
+
 def inter_region_average(a):
     return a.sum() / numpy.product(a.shape)
+
 
 def intra_region_average(a):
     d = numpy.diag(a)    # ignore the diagonal
     return (a.sum() - d.sum()) / (numpy.product(a.shape) - len(d))
+
 
 def integer_tick_label(sites):
     def _formatfunc(x, pos, _sites=sites, _n=len(sites)):
@@ -207,6 +219,7 @@ def integer_tick_label(sites):
             return ""
     return _formatfunc    
 
+
 def boolean_similarity(matrix):
     # same as numpy.equal.outer(matrix, matrix).trace(axis1=1, axis2=3)
     # but that would use much memory
@@ -215,6 +228,7 @@ def boolean_similarity(matrix):
     both_true = numpy.inner(true, true)
     both_false = numpy.inner(false, false)
     return both_true + both_false
+
 
 def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 include_incomplete=False, print_stats=True, max_site_labels=50):

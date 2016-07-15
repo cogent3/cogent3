@@ -54,8 +54,10 @@ DnaMolType = MolType(
 )
 ProteinMolType = PROTEIN
 
+
 class make_matches_tests(TestCase):
     """Tests of the make_matches top-level function"""
+
     def test_init_empty(self):
         """make_matches should init ok with no parameters"""
         self.assertEqual(make_matches(), {})
@@ -119,8 +121,10 @@ class make_matches_tests(TestCase):
         }
         self.assertEqual(m, exp)
 
+
 class make_pairs_tests(TestCase):
     """Tests of the top-level make_pairs factory function."""
+
     def setUp(self):
         """Define some standard pairs and other data"""
         self.pairs = {('U', 'A'): True, ('A', 'U'): True, ('G', 'U'): False}
@@ -173,12 +177,14 @@ class make_pairs_tests(TestCase):
         })
         self.assertEqual(p, self.pairs)
 
+
 class CoreObjectGroupTests(TestCase):
     """Tests of the CoreObjectGroup class."""
 
     def test_init(self):
         """CoreObjectGroup should init with basic list of objects."""
         class o(object):
+
             def __init__(self, s):
                 self.s = s
         base = o('base')
@@ -193,6 +199,7 @@ class CoreObjectGroupTests(TestCase):
         self.assertSameObj(c.Base.Degen, degen)
         self.assertSameObj(c.Degen.Gapped, degengap)
 
+
 class AlphabetGroupTests(TestCase):
     """Tests of the AlphabetGroup class."""
 
@@ -206,8 +213,10 @@ class AlphabetGroupTests(TestCase):
         self.assertEqual(''.join(g.Gapped), 'AB-')
         self.assertEqual(''.join(g.DegenGapped), 'AB-C?')
 
+
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""
+
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
         a = MolType('Abc')
@@ -640,6 +649,7 @@ class MolTypeTests(TestCase):
         self.assertTrue(d('tccaggg', 'ccctgga'))
         self.assertFalse(d('TCCAGGG', 'NCCTGGA'))
 
+
 class RnaMolTypeTests(TestCase):
     """Spot-checks of alphabet functionality applied to RNA alphabet."""
 
@@ -687,6 +697,7 @@ class RnaMolTypeTests(TestCase):
 
 
 class _AlphabetTestCase(TestCase):
+
     def assertEqualSeqs(self, a, b):
         """For when we don't care about the type, just the elements"""
         self.assertEqual(list(a), list(b))
@@ -696,6 +707,7 @@ class _AlphabetTestCase(TestCase):
 
 
 class DNAAlphabet(_AlphabetTestCase):
+
     def setUp(self):
         self.alpha = DNA.Alphabet
 
@@ -718,7 +730,9 @@ class DNAAlphabet(_AlphabetTestCase):
         alpha = alpha.getSubset(motif_subset=['A', 'T', 'G'])
         self.assertEqualSets(alpha, ['A', 'G', 'T'])
 
+
 class DinucAlphabet(_AlphabetTestCase):
+
     def setUp(self):
         self.alpha = DNA.Alphabet.withGapMotif().getWordAlphabet(2)
 
@@ -760,7 +774,9 @@ class DinucAlphabet(_AlphabetTestCase):
         alpha = self.alpha.getSubset(motif_freqs)
         self.assertEqualSets(alpha, ['AA', 'CA', 'GT'])
 
+
 class CodonAlphabet(_AlphabetTestCase):
+
     def setUp(self):
         self.alpha = STANDARD_CODON
 
@@ -776,7 +792,6 @@ class CodonAlphabet(_AlphabetTestCase):
         self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
         self.assertEqual(len(alpha.resolveAmbiguity('???')), 61)
         self.assertRaises(Exception, alpha.resolveAmbiguity, '---')
-
 
     def test_exclude(self):
         """testing excluding gap motif"""

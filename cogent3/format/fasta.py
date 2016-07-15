@@ -11,6 +11,7 @@ __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
+
 class _fake_seq(str):
     """a holder for string sequences that allows provision of a seq.Label
     attribute, required by fasta formatting funcs."""
@@ -59,6 +60,7 @@ def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
         fasta_list += body
 
     return '\n'.join(fasta_list)
+
 
 def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
     """Returns a FASTA string given an alignment.

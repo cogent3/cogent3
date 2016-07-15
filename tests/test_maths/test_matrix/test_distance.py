@@ -18,6 +18,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
 
+
 class DistanceMatrixTests(TestCase):
 
     def setUp(self):
@@ -425,6 +426,7 @@ class DistanceMatrixTests(TestCase):
         self.assertEqual(d.toDelimited(headers=False), \
                          '1\t2\t3\n2\t4\t6\n3\t6\t9')
         # set up a custom formatter...
+
         def my_formatter(x):
             try:
                 return '%1.1f' % x

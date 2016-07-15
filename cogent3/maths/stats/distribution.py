@@ -22,6 +22,8 @@ __status__ = "Production"
 incbet = betai  # shouldn't have renamed it...
 
 # Probability integrals: low gives left-hand tail, high gives right-hand tail.
+
+
 def z_low(x):
     """Returns left-hand tail of z distribution (0 to x). 
 
@@ -37,6 +39,7 @@ def z_low(x):
             return 1 - 0.5 * erfc(z)
         else:
             return 0.5 * erfc(z)
+
 
 def z_high(x):
     """Returns right-hand tail of z distribution (0 to x). 
@@ -54,9 +57,11 @@ def z_high(x):
         else:
             return 0.5 * erfc(z)
 
+
 def zprob(x):
     """Returns both tails of z distribution (-inf to -x, inf to x)."""
     return 2 * z_high(abs(x))
+
 
 def chi_low(x, df):
     """Returns left-hand tail of chi-square distribution (0 to x), given df.
@@ -77,6 +82,7 @@ def chi_low(x, df):
         raise ValueError("chi_low: df must be >= 1 (got %s)." % df)
     return igam(df / 2, x / 2)
 
+
 def chi_high(x, df):
     """Returns right-hand tail of chi-square distribution (x to infinity).
 
@@ -95,6 +101,7 @@ def chi_high(x, df):
         raise ValueError("chi_high: df must be >= 1 (got %s)." % df)
     return igamc(df / 2, x / 2)
 
+
 def t_low(t, df):
     """Returns left-hand tail of Student's t distribution (-infinity to x).
 
@@ -108,6 +115,7 @@ def t_low(t, df):
     if df < 1:
         raise ValueError("t_low: df must be >= 1 (got %s)." % df)
     return stdtr(df, t)
+
 
 def t_high(t, df):
     """Returns right-hand tail of Student's t distribution (x to infinity).
@@ -123,9 +131,11 @@ def t_high(t, df):
         raise ValueError("t_high: df must be >= 1 (got %s)." % df)
     return stdtr(df, -t)  # distribution is symmetric
 
+
 def tprob(t, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t_high(abs(t), df)
+
 
 def poisson_high(successes, mean):
     """Returns right tail of Poission distribution, Pr(X > x).
@@ -134,12 +144,14 @@ def poisson_high(successes, mean):
     """
     return pdtrc(successes, mean)
 
+
 def poisson_low(successes, mean):
     """Returns left tail of Poisson distribution, Pr(X <= x).
 
     successes ranges from 0 to infinity. mean must be positive.
     """
     return pdtr(successes, mean)
+
 
 def poisson_exact(successes, mean):
     """Returns Poisson probablity for exactly Pr(X=successes).
@@ -153,15 +165,18 @@ def poisson_exact(successes, mean):
     else:  # successes > mean: use right tail
         return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
 
+
 def binomial_high(successes, trials, prob):
     """Returns right-hand binomial tail (X > successes) given prob(success)."""
     if -1 <= successes < 0:
         return 1
     return bdtrc(successes, trials, prob)
 
+
 def binomial_low(successes, trials, prob):
     """Returns left-hand binomial tail (X <= successes) given prob(success)."""
     return bdtr(successes, trials, prob)
+
 
 def binomial_exact(successes, trials, prob):
     """Returns binomial probability of exactly X successes.
@@ -178,6 +193,7 @@ def binomial_exact(successes, trials, prob):
         raise ValueError("Binomial successes must be between 0 and trials.")
     return exp(ln_binomial(successes, trials, prob))
 
+
 def f_low(df1, df2, x):
     """Returns left-hand tail of f distribution (0 to x).
 
@@ -189,6 +205,7 @@ def f_low(df1, df2, x):
     """
     return fdtr(df1, df2, x)
 
+
 def f_high(df1, df2, x):
     """Returns right-hand tail of f distribution (x to infinity).
 
@@ -197,6 +214,7 @@ def f_high(df1, df2, x):
     See Cephes docs for details.
     """
     return fdtrc(df1, df2, x)
+
 
 def fprob(dfn, dfd, F, side='right'):
     """Returns both tails of F distribution (-inf to F and F to inf)
@@ -271,6 +289,7 @@ def stdtr(k, t):
     p = 0.5 + 0.5 * p
     return p
 
+
 def bdtr(k, n, p):
     """Binomial distribution, 0 through k.
 
@@ -290,6 +309,7 @@ def bdtr(k, n, p):
         return pow(1 - p, dn)
     else:
         return betai(dn, k + 1, 1 - p)
+
 
 def bdtrc(k, n, p):
     """Complement of binomial distribution, k+1 through n.
@@ -316,6 +336,7 @@ def bdtrc(k, n, p):
         dk = betai(dk, dn, p)
     return dk
 
+
 def pdtr(k, m):
     """Returns sum of left tail of Poisson distribution, 0 through k.
 
@@ -327,6 +348,7 @@ def pdtr(k, m):
         raise ValueError("Poisson m must be >= 0.")
     return igamc(k + 1, m)
 
+
 def pdtrc(k, m):
     """Returns sum of right tail of Poisson distribution, k+1 through infinity.
 
@@ -337,6 +359,7 @@ def pdtrc(k, m):
     if m < 0:
         raise ValueError("Poisson m must be >= 0.")
     return igam(k + 1, m)
+
 
 def fdtr(a, b, x):
     """Returns left tail of F distribution, 0 to x.
@@ -364,12 +387,14 @@ def fdtrc(a, b, x):
     w = float(b) / (b + a * x)
     return betai(0.5 * b, 0.5 * a, w)
 
+
 def gdtr(a, b, x):
     """Returns integral from 0 to x of Gamma distribution with params a and b.
     """
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
     return igam(b, a * x)
+
 
 def gdtrc(a, b, x):
     """Returns integral from x to inf of Gamma distribution with params a and b.
@@ -380,12 +405,14 @@ def gdtrc(a, b, x):
 
 # note: ndtri for the normal distribution is already imported
 
+
 def chdtri(df, y):
     """Returns inverse of chi-squared distribution."""
     y = fix_rounding_error(y)
     if(y < 0.0 or y > 1.0 or df < 1.0):
         raise ZeroDivisionError("y must be between 0 and 1; df >= 1")
     return 2 * igami(0.5 * df, y)
+
 
 def stdtri(k, p):
     """Returns inverse of Student's t distribution. k = df."""
@@ -416,6 +443,7 @@ def stdtri(k, p):
     t = sqrt(rk / z - rk)
     return rflg * t
 
+
 def pdtri(k, p):
     """Inverse of Poisson distribution.
 
@@ -426,6 +454,7 @@ def pdtri(k, p):
         raise ZeroDivisionError("k must be >=0, p between 1 and 0.")
     v = k + 1;
     return igami(v, p)
+
 
 def bdtri(k, n, y):
     """Inverse of binomial distribution.
@@ -452,6 +481,7 @@ def bdtri(k, n, y):
             p = 1.0 - incbi(dn, dk, y)
     return p
 
+
 def gdtri(a, b, y):
     """Returns Gamma such that y is the probability in the integral.
 
@@ -464,6 +494,7 @@ def gdtri(a, b, y):
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
         raise ZeroDivisionError("a and b must be non-negative, y from 0 to 1.")
     return igami(b, 1.0 - y) / a
+
 
 def fdtri(a, b, y):
     """Returns inverse of F distribution."""

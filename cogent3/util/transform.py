@@ -32,17 +32,22 @@ __status__ = "Production"
 maketrans = str.maketrans
 
 # standard combinatorial HOF's from Mertz
+
+
 def apply_each(functions, *args, **kwargs):
     """Returns list containing result of applying each function to args."""
     return [f(*args, **kwargs) for f in functions]
+
 
 def bools(items):
     """Returns list of booleans: reflects state of each item."""
     return list(map(bool, items))
 
+
 def bool_each(functions, *args, **kwargs):
     """Returns list of booleans: results of applying each function to args."""
     return bools(apply_each(functions, *args, **kwargs))
+
 
 def conjoin(functions, *args, **kwargs):
     """Returns True if all functions return True when applied to args."""
@@ -51,11 +56,13 @@ def conjoin(functions, *args, **kwargs):
             return False
     return True
 
+
 def all(functions):
     """Returns function that returns True when all components return True."""
     def apply_to(*args, **kwargs):
         return conjoin(functions, *args, **kwargs)
     return apply_to
+
 
 def both(f, g):
     """Returns function that returns True when functions f and g return True."""
@@ -65,6 +72,7 @@ def both(f, g):
         return f(*args, **kwargs) and g(*args, **kwargs)
     return apply_to
 
+
 def disjoin(functions, *args, **kwargs):
     """Returns True if any of the component functions return True."""
     for f in functions:
@@ -72,17 +80,20 @@ def disjoin(functions, *args, **kwargs):
             return True
     return False
 
+
 def any(functions):
     """Returns a function that returns True if any component returns True."""
     def apply_to(*args, **kwargs):
         return disjoin(functions, *args, **kwargs)
     return apply_to
 
+
 def either(f, g):
     """Returns a function that returns True if either f or g returns True."""
     def apply_to(*args, **kwargs):
         return f(*args, **kwargs) or g(*args, **kwargs)
     return apply_to
+
 
 def negate(functions, *args, **kwargs):
     """Returns True if all functions return False."""
@@ -91,11 +102,13 @@ def negate(functions, *args, **kwargs):
             return False
     return True
 
+
 def none(functions):
     """Returns a function that returns True if all components return False."""
     def apply_to(*args, **kwargs):
         return negate(functions, *args, **kwargs)
     return apply_to
+
 
 def neither(f, g):
     """Returns a function that returns True if neither f not g returns True."""
@@ -103,16 +116,19 @@ def neither(f, g):
         return not(f(*args, **kwargs)) and not(g(*args, **kwargs))
     return apply_to
 
+
 def compose(f, g):
     """Returns a function that returns the result of applying f to g(x)."""
     def apply_to(*args, **kwargs):
         return f(g(*args, **kwargs))
     return apply_to
 
+
 def compose_many(*functions):
     """Returns a function that composes all input functions."""
     funs = list(functions)
     funs.reverse()
+
     def apply_to(*args, **kwargs):
         result = funs[0](*args, **kwargs)
         for f in funs[1:]:
@@ -122,6 +138,7 @@ def compose_many(*functions):
     return apply_to
 
 # factory for making functions that apply to sequences
+
 
 def per_shortest(total, x, y):
     """Divides total by min(len(x), len(y)).
@@ -136,6 +153,7 @@ def per_shortest(total, x, y):
     else:
         return total / shortest
 
+
 def per_longest(total, x, y):
     """Divides total by max(len(x), len(y)).
 
@@ -148,6 +166,7 @@ def per_longest(total, x, y):
         return 0
     else:
         return total / longest
+
 
 class for_seq(object):
     """Returns function that applies f(i,j) to i,j in zip(first, second).
@@ -163,6 +182,7 @@ class for_seq(object):
     Will always truncate to length of the shorter sequence (because of the use
     of zip).
     """
+
     def __init__(self, f, aggregator=sum, normalizer=per_shortest):
         self.f = f
         self.aggregator = aggregator
@@ -178,11 +198,13 @@ class for_seq(object):
 
 # convenience functions for modifying objects
 
+
 def has_field(field_name):
     """Returns a function that returns True if the obj has the field_name."""
     def field_checker(obj):
         return hasattr(obj, field_name)
     return field_checker
+
 
 def extract_field(field_name, constructor=None):
     """Returns a function that returns the value of the specified field.
@@ -191,12 +213,14 @@ def extract_field(field_name, constructor=None):
     Returns None if the constructor fails or the attribute doesn't exist.
     """
     f = constructor or identity
+
     def result(x):
         try:
             return f(getattr(x, field_name))
         except:
             return None
     return result
+
 
 def test_field(field_name, constructor=None):
     """Returns True if obj.field_name is True. False otherwise.
@@ -205,9 +229,11 @@ def test_field(field_name, constructor=None):
     If accessing the field raises an exception, returns False.
     """
     extractor = extract_field(field_name, constructor)
+
     def result(x):
         return bool(extractor(x))
     return result
+
 
 def index(constructor=None, overwrite=False):
     """Returns a function that constructs a dict mapping constructor to object.
@@ -235,6 +261,7 @@ def index(constructor=None, overwrite=False):
             return index
         return result
 
+
 def test_container(container):
     """Returns function that tests safely if item in container.
 
@@ -249,10 +276,12 @@ def test_container(container):
 
 #allchars = maketrans('','')
 
+
 def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
     new = [c for c in map(chr, range(256)) if c not in good_chars]
     return str.maketrans("".join(new), default * len(new))
+
 
 def trans_all(bad_chars, default):
     """Returns translation table mapping all the 'bad chars' to default."""
@@ -280,12 +309,14 @@ def find_any(words, case_sens=False):
         return False
     return apply_to
 
+
 def find_no(words, case_sens=False):
     """Returns True if none of the words appears in s.
 
     This filter is case INsensitive by default.
     """
     f = find_any(words, case_sens)
+
     def apply_to(s):
         return not f(s)
     return apply_to
@@ -344,15 +375,18 @@ def keep_if_more(items, x, case_sens=False):
             return False
     return find_more_good
 
+
 def exclude_if_more(items, x, case_sens=False):
     """Returns True if #items in s < x.
 
     This filter is case INsensitive by default.
     """
     f = keep_if_more(items, x, case_sens)
+
     def apply_to(s):
         return not f(s)
     return apply_to
+
 
 def keep_if_more_other(items, x, case_sens=False):
     """Returns True if #items in s other than those in items > x. 
@@ -382,12 +416,14 @@ def keep_if_more_other(items, x, case_sens=False):
             return False
     return apply_to
 
+
 def exclude_if_more_other(items, x, case_sens=False):
     """Returns True if #items other than in items in s < x.
 
     This filter is case INsensitive by default.
     """ 
     f = keep_if_more_other(items, x, case_sens)
+
     def apply_to(s):
         return not f(s)
     return apply_to
@@ -400,6 +436,7 @@ class keep_chars(object):
     This filter is case sensitive by default.
     """
     allchars = bytes(range(256))
+
     def __init__(self, keep, case_sens=True):
         """Returns a new keep_chars object, based on string keep"""
         if not case_sens:
@@ -418,6 +455,7 @@ class keep_chars(object):
             s = s.decode('utf8')
         s = str(s)
         return s.translate(self._strip_table)
+
 
 def exclude_chars(exclude, case_sens=True):
     """Returns a filter function f(s) that returns a filtered string.
@@ -438,6 +476,7 @@ def exclude_chars(exclude, case_sens=True):
 
     return filter_function
 
+
 def reorder(order):
     """Returns a function that rearranges sequence into specified order.
 
@@ -452,6 +491,7 @@ def reorder(order):
     def result(items):
         return select(order, items)
     return result
+
 
 def reorder_inplace(order, attr=None):
     """Returns a function that rearranges the items in attr, in place.
@@ -474,6 +514,7 @@ def reorder_inplace(order, attr=None):
 
 maybe_number = keep_chars('0123456789.+-eE')
 
+
 def float_from_string(data):
     """Extracts a floating point number from string in data, if possible."""
     return float(maybe_number(data))
@@ -487,6 +528,7 @@ def first_index(seq, f):
     for i, s in enumerate(seq):
         if f(s):
             return i
+
 
 def last_index(seq, f):
     """Returns index of last item in seq where f(item) is True, or None.
@@ -503,11 +545,13 @@ def last_index(seq, f):
             found = i
     return found
 
+
 def first_index_in_set(seq, items):
     """Returns index of first occurrence of any of items in seq, or None."""
     for i, s in enumerate(seq):
         if s in items:
             return i
+
 
 def last_index_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
@@ -522,11 +566,13 @@ def last_index_in_set(seq, items):
             found = i
     return found
 
+
 def first_index_not_in_set(seq, items):
     """Returns index of first occurrence of any of items in seq, or None."""
     for i, s in enumerate(seq):
         if not s in items:
             return i
+
 
 def last_index_not_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
@@ -541,6 +587,7 @@ def last_index_not_in_set(seq, items):
             found = i
     return found
 
+
 def first(seq, f):
     """Returns first item in seq where f(item) is True, or None.
 
@@ -549,6 +596,7 @@ def first(seq, f):
     for s in seq:
         if f(s):
             return s
+
 
 def last(seq, f):
     """Returns last item in seq where f(item) is True, or None.
@@ -565,11 +613,13 @@ def last(seq, f):
             found = s
     return found
 
+
 def first_in_set(seq, items):
     """Returns first occurrence of any of items in seq, or None."""
     for s in seq:
         if s in items:
             return s
+
 
 def last_in_set(seq, items):
     """Returns index of last occurrence of any of items in seq, or None.
@@ -584,11 +634,13 @@ def last_in_set(seq, items):
             found = s
     return found
 
+
 def first_not_in_set(seq, items):
     """Returns first occurrence of any of items in seq, or None."""
     for s in seq:
         if not s in items:
             return s
+
 
 def last_not_in_set(seq, items):
     """Returns last occurrence of any of items in seq, or None.
@@ -602,6 +654,7 @@ def last_not_in_set(seq, items):
         if s not in items:
             found = s
     return found
+
 
 def perm(items, n=None):
     """Yields each successive permutation of items.
@@ -618,6 +671,7 @@ def perm(items, n=None):
             rest = items[:i] + items[i + 1:]
             for p in perm(rest, n - 1):
                 yield v + p
+
 
 def comb(items, n=None):
     """Yields each successive combination of n items.
@@ -637,12 +691,14 @@ def comb(items, n=None):
             for c in comb(rest, n - 1):
                 yield v + c
 
+
 def _increment_comb(outcomes, vector):
     """Yields each new outcome as an expansion of existing outcomes.
     """
     for outcome in outcomes:
         for e in vector:
             yield outcome + [e]
+
 
 def cross_comb(vectors):
     """Yields each cross combination of a sequence of sequences (e.g. lists).

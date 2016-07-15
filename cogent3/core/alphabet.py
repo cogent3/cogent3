@@ -38,8 +38,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class AlphabetError(Exception):
     pass
+
 
 def get_array_type(num_elements):
     """Returns smallest array type that can contain sequence on num_elements.
@@ -75,6 +77,7 @@ def get_array_type(num_elements):
         return uint16
     return uint32
 
+
 def _make_translation_tables(a):
     """Makes translation tables between chars and indices.
 
@@ -95,10 +98,12 @@ def _make_translation_tables(a):
     chars = ''.join(a)
     return str.maketrans(indices, chars), str.maketrans(chars, indices)
 
+
 def _make_complement_array(a, complements):
     """Makes translation array between item indices and their complements."""
     comps = [complements.get(i, i) for i in a]
     return array(list(map(a.index, comps)))
+
 
 class Enumeration(tuple):
     """An ordered set of objects, e.g. a list of taxon labels or sequence ids.
@@ -332,6 +337,7 @@ class Enumeration(tuple):
 
     Triples = property(_get_triples)
 
+
 class JointEnumeration(Enumeration):
     """Holds an enumeration composed of subenumerations. Immutable.
 
@@ -480,6 +486,7 @@ class JointEnumeration(Enumeration):
     # the following, _coerce_enumerations, is a class method because we use
     # it in __new__ before we have an instance to call it on.
     _coerce_enumerations = classmethod(_coerce_enumerations)
+
 
 class Alphabet(Enumeration):
     """An ordered set of fixed-length strings, e.g. the 61 sense codons.
@@ -672,6 +679,7 @@ class Alphabet(Enumeration):
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
+
 class CharAlphabet(Alphabet):
     """Holds an alphabet whose items are single chars.
 
@@ -683,6 +691,7 @@ class CharAlphabet(Alphabet):
     map characters and indices instead of having to extract each element
     searately for remapping.
     """
+
     def __init__(self, data=[], Gap='-', MolType=None):
         """Initializes self from items.
 

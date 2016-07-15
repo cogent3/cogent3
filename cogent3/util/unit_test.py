@@ -64,6 +64,7 @@ __status__ = "Production"
 #    try: yield None
 #    finally: numpy.seterr(**ori_err)
 
+
 class FakeRandom(object):
     """Drop-in substitute for random.random that provides items from list."""
 
@@ -91,6 +92,7 @@ class FakeRandom(object):
                 self._ptr = 0
         return self._data[self._ptr]
 
+
 class TestCase(orig_TestCase):
     """Adds some additional utility methods to unittest.TestCase.
 
@@ -107,7 +109,6 @@ class TestCase(orig_TestCase):
         if set(d1) != set(d2):
             return None
         return list(d1.values()), [d2[k] for k in d1]  # might not be in same order
-
 
     def errorCheck(self, call, known_errors):
         """Applies function to (data, error) tuples, checking for error

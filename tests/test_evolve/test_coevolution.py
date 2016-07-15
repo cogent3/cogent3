@@ -59,6 +59,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
 
+
 class CoevolutionTests(TestCase):
     """ Tests of coevolution.py """
 
@@ -289,7 +290,6 @@ class CoevolutionTests(TestCase):
         self.assertRaises(AssertionError, coevolve_alignments_validation,\
                           method, aln1, aln2, 2, None, tree=t)
 
-
     def test_coevolve_alignments_validation_min_num_seqs(self):
         """coevolve_alignments_validation: ValueError on fewer than min_num_seqs """
         method = mi_alignment
@@ -314,7 +314,6 @@ class CoevolutionTests(TestCase):
         self.assertRaises(ValueError,\
                           coevolve_alignments_validation, method, aln1, aln2, 3, 2)
 
-
     def test_coevolve_alignments_validation_moltypes(self):
         """coevolve_alignments_validation: valid for acceptable MolTypes
         """
@@ -329,7 +328,6 @@ class CoevolutionTests(TestCase):
                           sca_alignment, aln1, aln2, 2, None)
         self.assertRaises(AssertionError, coevolve_alignments_validation,\
                           ancestral_state_alignment, aln1, aln2, 2, None)
-
 
     def test_coevolve_alignments(self):
         """ coevolve_alignments: returns correct len(aln1) x len(aln2) matrix
@@ -410,7 +408,6 @@ class CoevolutionTests(TestCase):
         # clean up the temporary file
         remove(tmp_filepath)
 
-
     def test_coevolve_alignments_different_MolType(self):
         """ coevolve_alignments: different MolTypes supported """
         aln1 = DenseAlignment(data={'1': 'AC', '2': 'AU'}, MolType=RNA)
@@ -433,7 +430,6 @@ class CoevolutionTests(TestCase):
                           [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
         self.assertFloatEqual(coevolve_alignments(nmi_alignment, aln1, aln2),\
                               expected)
-
 
     def test_mi_pair_cols_default_exclude_handling(self):
         """ mi_pair returns null_value on excluded by default """
@@ -550,7 +546,6 @@ class CoevolutionTests(TestCase):
                              MolType=PROTEIN)
         resampled_mi_alignment(aln)
 
-
     def test_coevolve_alignment(self):
         """ coevolve_alignment functions as expected with varied input """
         aln1 = DenseAlignment(data={'1': 'ACDEF', '2': 'ACFEF', '3': 'ACGEF'},\
@@ -593,7 +588,6 @@ class CoevolutionTests(TestCase):
         self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',\
                                                            output_dir='./duh', method='sca', parameter=0.25,\
                                                            alphabet='xx'), './duh/blah.xx.sca_25')
-
 
         self.assertRaises(ValueError, build_coevolution_matrix_filepath,\
                           './blah.fasta', './duh/', 'sca')
@@ -738,7 +732,6 @@ class CoevolutionTests(TestCase):
         self.assertEqual(count_le_threshold(m, 4), (2, 6))
         self.assertEqual(count_le_threshold(m, 8), (6, 6))
         self.assertEqual(count_le_threshold(m, 9), (6, 6))
-
 
     def test_count_ge_threshold_symmetric_ignore_diagonal(self):
         """count_ge_threshold works with symmetric and/or ignoring diag = True
@@ -1082,7 +1075,6 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
 
-
         # filter one position (defualt max_exclude_percentage, 
         # non-defualt excludes)
         aln = LoadSeqs(data={'1': 'WCDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},\
@@ -1216,7 +1208,6 @@ class CoevolutionTests(TestCase):
         actual = filter_threshold_based_multiple_interdependency(\
             None, m, 0.35, 1, less_equal, True)
         self.assertFloatEqual(actual, expected)
-
 
     def test_filter_threshold_based_multiple_interdependency_intramolecular(self):
         "multiple interdependency filter functions with intramolecular data "
@@ -1523,14 +1514,12 @@ class CoevolutionTests(TestCase):
         expected = [log(0.1 / 0.5), log(0.2 / 0.6), log(0.3 / 0.7)]
         self.assertFloatEqual(get_dg(p, a), expected)
 
-
     def test_get_dgg(self):
         """get_dgg: returns delta_delta_g value given two delta_g vectors """
         v1 = array([0.05, 0.5, 0.1])
         v2 = array([0.03, 0.05, 0.1])
         expected = sqrt(sum((v1 - v2) * (v1 - v2))) / 100 * e
         self.assertFloatEqual(get_dgg(v1, v2), expected)
-
 
     def test_get_positional_probabilities_w_def_num_seqs(self):
         """get_positional_probabilities: works w/ num_seqs scaled to 100 (def)
@@ -1714,7 +1703,6 @@ class CoevolutionTests(TestCase):
                           self.dna_aln, 0, cutoff=0.2, alphabet='ACGTBC',\
                           background_freqs=self.dna_base_freqs)
 
-
     def test_sca_position_returns_same_as_sca_pair(self):
         """sca_position: returns same as sca_pair called on each pos """
         expected = []
@@ -1788,7 +1776,6 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 304, 0.32), 0.3, 0.1)
         # covariation w/ self 
         self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 295, 0.32), 7.70358628)
-
 
     def test_sca_position_gpcr(self):
         """sca_position: reproduces several GPCR data from Suel et al., 2003 
@@ -2175,7 +2162,6 @@ class AncestorCoevolve(TestCase):
                           ancestral_state_pair, self.aln1_2,\
                           42, 0, tree=self.t1, ancestral_states=self.ancestral_states2_1)
 
-
     def test_ancestral_state_alignment_non_bifurcating_tree(self):
         """ancestral_state_alignment: handles non-bifurcating tree correctly
         """
@@ -2376,6 +2362,8 @@ class AncestorCoevolve(TestCase):
         pass
 
 # following are support funcs for ResampledMiTests
+
+
 def make_freqs(c12):
     c1, c2 = Freqs(), Freqs()
     for a, b in c12.expand():
@@ -2383,11 +2371,13 @@ def make_freqs(c12):
         c2 += b
     return c1, c2
 
+
 def make_sample(freqs):
     d = []
     for i, s in enumerate(freqs.expand()):
         d += [("s%d" % i, s)]
     return LoadSeqs(data=d)
+
 
 def _calc_mi():
     """one mutual info hand calc"""
@@ -2397,7 +2387,9 @@ def _calc_mi():
     k = 34 / 42 * -log(34 / 42, 2) - (3 / 42 * log(3 / 42, 2)) - (5 / 42 * log(5 / 42, 2))
     return i + j - k
 
+
 class ResampledMiTests(TestCase):
+
     def setUp(self):
         self.c12 = Freqs()
         self.c12 += ['AA'] * 2
@@ -2471,7 +2463,6 @@ ALN_FILE_INC_SHAPE =\
     """Seq_1   ACDKLM
 Seq_2   LINCK-
 Seq_3 VX.MABN"""
-
 
 
 gpcr_ungapped = """>OPSD_SPAAU

@@ -31,6 +31,7 @@ _all_chrs = [chr(i) for i in range(256)]
 _all_chrs.reverse()
 _reversed_chrs = ''.join(_all_chrs)
 
+
 def convert2DDict(twoDdict, header=None, row_order=None):
     """Returns a 2 dimensional list.
 
@@ -59,6 +60,7 @@ def convert2DDict(twoDdict, header=None, row_order=None):
         table.append(string_row)
     return table
 
+
 class _Header(list):
     """a convenience class for storing the Header"""
     def __new__(cls, arg):
@@ -75,6 +77,7 @@ class _Header(list):
 
 
 class Table(DictArray):
+
     def __init__(self, header=None, rows=None, row_order=None, digits=4,
                  space=4, title='', missing_data='', max_width=1e100,
                  row_ids=False, legend='', column_templates=None,
@@ -889,7 +892,6 @@ class Table(DictArray):
                     except TypeError:
                         num = sum(r for r in row if type(r) != str)
                     append(num)
-
 
         return result
 

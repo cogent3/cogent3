@@ -23,8 +23,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class FeatureTypeCache(LazyRecord):
     """stores critical indices for different feature types"""
+
     def __init__(self, genome):
         super(FeatureTypeCache, self).__init__()
         self.genome = genome
@@ -66,6 +68,7 @@ class FeatureTypeCache(LazyRecord):
 
 class Genome(object):
     """An Ensembl Genome"""
+
     def __init__(self, Species, Release, account=None, pool_recycle=None):
         super(Genome, self).__init__()
 
@@ -444,7 +447,6 @@ class Genome(object):
             gene = klass(self, db, Location=new, data=record)
             yield gene
 
-
     def _get_variation_features(self, db, klass, target_coord, query_coord,
                                 where_feature):
         """returns variation instances within the specified region"""
@@ -551,7 +553,6 @@ class Genome(object):
         if self.GeneralRelease > 67:
             consequence_type += 's'  # change to plural column name
 
-
         if Effect is not None:
             if like:
                 query = \
@@ -585,7 +586,6 @@ class Genome(object):
         for record in query.execute():
             yield Variation(self, self.CoreDb, Effect=Effect, Symbol=Symbol,
                             data=record)
-
 
     def getRegion(self, region=None, CoordName=None, Start=None, End=None,
                   Strand=None, ensembl_coord=False):
@@ -623,7 +623,6 @@ class Genome(object):
         consequence_type = 'consequence_type'
         if self.GeneralRelease > 67:
             consequence_type += 's'  # change to plural column name
-
 
         property_map = {'effect': ('variation_feature', consequence_type),
                         'biotype': ('gene', 'biotype'),

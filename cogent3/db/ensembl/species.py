@@ -132,8 +132,10 @@ _species_common_map = [['Acyrthosiphon pisum', 'A.pisum'],
                        ['Xenopus tropicalis', 'Xenopus'],
                        ['Zea mays', 'Z.mays']]
 
+
 class SpeciesNameMap(dict):
     """mapping between common names and latin names"""
+
     def __init__(self, species_common=_species_common_map):
         """provides latin name:common name mappings"""
         self._species_common = {}

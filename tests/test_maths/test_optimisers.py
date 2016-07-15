@@ -14,15 +14,19 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def quartic(x):
     # Has global maximum at -4 and local maximum at 2
     # http://www.wolframalpha.com/input/?i=x**2*%283*x**2%2B8*x-48%29
     # Scaled down 10-fold to avoid having to change init_temp
     return x**2 * (3 * x**2 + 8 * x - 48)
 
+
 class NullFile(object):
+
     def write(self, x):
         pass
+
     def isatty(self):
         return False
 
@@ -37,9 +41,11 @@ def quiet(f, *args, **kw):
         sys.stdout = orig
     return result
 
+
 def MakeF():
     evals = [0]
     last = [0]
+
     def f(x):
         evals[0] += 1
         last[0] = x
@@ -47,7 +53,9 @@ def MakeF():
         return -0.1 * quartic(x)
     return f, last, evals
 
+
 class OptimiserTestCase(TestCase):
+
     def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10, 10]), **kw):
         local = kw.get('local', None)
         max_evaluations = kw.get('max_evaluations', None)

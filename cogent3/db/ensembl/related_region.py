@@ -18,11 +18,13 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class _RelatedRegions(LazyRecord):
     # a basic related region, capable of providing the sequences
     # obtaining SyntenicRegions -- for getting aligned blocks -- is delegated
     # to compara
     Type = None
+
     def __init__(self):
         super(_RelatedRegions, self).__init__()
 
@@ -60,6 +62,7 @@ class _RelatedRegions(LazyRecord):
 
 class RelatedGenes(_RelatedRegions):
     Type = 'related_genes'
+
     def __init__(self, compara, Members, Relationships):
         super(RelatedGenes, self).__init__()
         self.compara = compara
@@ -85,6 +88,7 @@ class RelatedGenes(_RelatedRegions):
 class SyntenicRegion(LazyRecord):
     """a class that takes the genome, compara instances and is used to build
     Aligned sequences for Ensembl multiple alignments"""
+
     def __init__(self, parent, genome, identifiers_values, am_ref_member,
                  Location=None):
         # create with method_link_species_set_id, at least, in
@@ -108,7 +112,6 @@ class SyntenicRegion(LazyRecord):
 
         for identifier, value in list(dict(identifiers_values).items()):
             self._cached[identifier] = value
-
 
     def __len__(self):
         return len(self._get_cached_value('Region', self._make_map_func))
@@ -242,6 +245,7 @@ class SyntenicRegion(LazyRecord):
 
 class SyntenicRegions(_RelatedRegions):
     Type = 'syntenic_regions'
+
     def __init__(self, compara, Members, ref_location):
         super(SyntenicRegions, self).__init__()
         self.compara = compara

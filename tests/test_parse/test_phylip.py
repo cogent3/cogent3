@@ -16,8 +16,10 @@ __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Production"
 
+
 class PhylipGenericTest(TestCase):
     """Setup data for Phylip parsers."""
+
     def setUp(self):
         """standard files"""
         self.big_interleaved = StringIO("""10 705 I
@@ -225,6 +227,7 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
           cctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactg
           aataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg
 """)
+
 
 class MinimalPhylipParserTests(PhylipGenericTest):
     """Tests of MinimalPhylipParser: returns (label, seq) tuples."""

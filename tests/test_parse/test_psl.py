@@ -18,6 +18,7 @@ __status__ = "Development"
 
 fname = 'data/test.psl'
 
+
 class Test(TestCase):
 
     def test_header(self):
@@ -43,7 +44,6 @@ class Test(TestCase):
             query_name = row["Q name"]
             query_strand = row["strand"]
             q_start = row["Q start"]
-
 
 
 if __name__ == "__main__":

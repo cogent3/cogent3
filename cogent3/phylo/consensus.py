@@ -35,6 +35,7 @@ def majorityRule(trees, strict=False):
     trees = [(1, tree) for tree in trees]
     return weightedMajorityRule(trees, strict, "count", method='rooted')
 
+
 def weightedMajorityRule(weighted_trees, strict=False, attr='support',
                          method='unrooted'):
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
@@ -67,6 +68,7 @@ def weightedMajorityRule(weighted_trees, strict=False, attr='support',
         return weightedUnrootedMajorityRule(weighted_trees, strict, attr)
     else:
         raise ValueError('method must be "rooted" or "unrooted"')
+
 
 def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
     """See documentation for weightedMajorityRule"""
@@ -146,6 +148,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
 
     return [root for root in list(nodes.values())]
 
+
 def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
     """See documentation for weightedMajorityRule. All trees must have the same
     tips"""
@@ -192,6 +195,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
 
     return [getTree(accepted_splits)]
 
+
 def getSplits(tree):
     """Return a dict keyed by the splits equivalent to the tree.
     Values are {'length' : edge.Length} for the corresponding edge.
@@ -221,6 +225,7 @@ def getSplits(tree):
     splits, tips = getTipsAndSplits(tree)
     tips = frozenset(tips)
     return {frozenset([tips - s, s]): params for s, params in list(splits.items())}
+
 
 def getTree(splits):
     """Convert a dict keyed by splits into the equivalent tree.

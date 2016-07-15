@@ -13,7 +13,9 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"
 
+
 class ParseGreengenesRecordsTests(TestCase):
+
     def setUp(self):
         pass
 
@@ -56,7 +58,6 @@ class ParseGreengenesRecordsTests(TestCase):
         records = list(res)
         exp = [('604867', 'ISME J (2010) In press')]
         self.assertEqual(records, exp)
-
 
     def test_make_ignore_f(self):
         """Properly ignore empty records and the start line"""

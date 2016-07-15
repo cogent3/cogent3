@@ -47,16 +47,20 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def distance_from_r_squared(m1, m2):
     """Estimates distance as 1-r^2: no correl = max distance"""
     return 1 - (correlation(m1.flat, m2.flat)[0])**2
+
 
 def distance_from_r(m1, m2):
     """Estimates distance as (1-r)/2: neg correl = max distance"""
     return (1 - correlation(m1.flat, m2.flat)[0]) / 2
 
+
 class TreeError(Exception):
     pass
+
 
 class TreeNode(object):
     """Store information about a tree node. Mutable.
@@ -354,6 +358,7 @@ class TreeNode(object):
                 yield curr
             if curr.Children:
                 stack.extend(curr.Children[::-1])  # 20% faster than reversed    
+
     def postorder(self, include_self=True):
         """Performs postorder iteration over tree.
 
@@ -1616,6 +1621,7 @@ class TreeNode(object):
         other_matrix = other.tipToTipDistances()[0][other_order][:, other_order]
         return dist_f(self_matrix, other_matrix)
 
+
 class PhyloNode(TreeNode):
 
     def __init__(self, *args, **kwargs):
@@ -1642,7 +1648,6 @@ class PhyloNode(TreeNode):
     def __str__(self):
         """Returns string version of self, with names and distances."""
         return self.getNewick(with_distances=True)
-
 
     def distance(self, other):
         """Returns branch length between self and other."""
@@ -1859,7 +1864,6 @@ class PhyloNode(TreeNode):
         # max_dist, tip_names = tree.maxTipTipDistance()
         # this is slow
 
-
         max_dist, tip_names = self.maxTipTipDistance()
         half_max_dist = max_dist / 2.0
         if max_dist == 0.0:  # only pathological cases with no lengths
@@ -1899,7 +1903,6 @@ class PhyloNode(TreeNode):
             climb_node.Length = half_max_dist - dist_climbed
             new_root.Length = old_br_len - climb_node.Length
             return new_root.unrootedDeepcopy()
-
 
     def _find_midpoint_nodes(self, max_dist, tip_pair):
         """returns the nodes surrounding the maxTipTipDistance midpoint 
@@ -2131,6 +2134,7 @@ class PhyloNode(TreeNode):
         other_matrix = other.tipToTipDistances(endpoints=other_nodes)[0]
 
         return dist_f(self_matrix, other_matrix)
+
 
 class TreeBuilder(object):
     # Some tree code which isn't needed once the tree is finished.

@@ -11,8 +11,10 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class Setting(object):
     pass
+
 
 class Var(Setting):
     # placeholder for a single optimiser parameter

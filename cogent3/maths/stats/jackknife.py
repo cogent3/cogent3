@@ -12,13 +12,16 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def IndexGen(length):
     data = tuple(range(length))
+
     def gen(i):
         temp = list(data)
         temp.pop(i)
         return temp
     return gen
+
 
 class JackknifeStats(object):
     """Computes the jackknife statistic for a particular statistical function

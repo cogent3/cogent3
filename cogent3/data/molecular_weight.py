@@ -52,12 +52,15 @@ ProteinWeightCorrection = 18.0  # terminal residues not dehydrated
 DnaWeightCorrection = 61.96  # assumes 5' monophosphate, 3' OH
 RnaWeightCorrection = DnaWeightCorrection
 
+
 class WeightCalculator(object):
     """Calculates molecular weight of a non-degenerate sequence."""
+
     def __init__(self, Weights, Correction):
         """Returns a new WeightCalculator object (class, so serializable)."""
         self.Weights = Weights
         self.Correction = Correction
+
     def __call__(self, seq, correction=None):
         """Returns the molecular weight of a specified sequence."""
         if not seq:

@@ -10,7 +10,9 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class TestSpeciesNamemaps(TestCase):
+
     def test_get_name_type(self):
         """should return the (latin|common) name given a latin, common or ensembl
         db prefix names"""

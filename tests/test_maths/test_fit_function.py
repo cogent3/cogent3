@@ -15,6 +15,7 @@ __maintainer__ = "Antonio Gonzalez Pena"
 __email__ = "antgonza@gmail.com"
 __status__ = "Prototype"
 
+
 class fit_function_test(TestCase):
     """Tests of top-level fit functions."""
 

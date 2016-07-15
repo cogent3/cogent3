@@ -28,16 +28,20 @@ __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
 
+
 def item_empty_filter(d):
     """return a dict with only nonempty values"""
     pairs = [(k, v) for (k, v) in d.items() if v]
     return dict(pairs)
 
+
 class EbiTests(TestCase):
     """ Tests ebi parsers and generic parsers and general functions """
+
     def setUp(self):
         """ Construct some fake data for testing purposes """
         pass
+
     def test_item_empty_filter(self):
         """item_empty_filter: known values"""
         inputs = [
@@ -90,7 +94,6 @@ class EbiTests(TestCase):
         test_fail = test + ['c']
         self.assertRaises(RecordError, 
                           list, EbiFinder(test_fail))
-
 
     def test_pairs_to_dict(self):
         """pairs_to_dict should return the expected dict"""
@@ -183,7 +186,6 @@ class EbiTests(TestCase):
         self.assertEqual(join_parser([]), '')
         self.assertEqual(join_parser(['', ' ']), '')
         self.assertEqual(join_parser(''), '')
-
 
     def test_join_split_parser(self):
         """join_split_parser: should return expected"""
@@ -315,6 +317,7 @@ class EbiTests(TestCase):
 
 class RootParsersKnownValues(TestCase):
     """Test most xx_parsers with known value"""
+
     def test_id_parser(self):
         """id_parser should return expected dict"""
         id_line = [
@@ -448,8 +451,10 @@ class RootParsersKnownValues(TestCase):
         lines = dr_lines
         self.assertEqual(dr_parser(lines), dr_expect)
 
+
 class FT_Tests(TestCase):
     """Tests for FT parsers. """
+
     def test_ft_basic_itemparser(self):
         """ft_basic_itemparser: known values"""
         inputs = [
@@ -510,6 +515,7 @@ class FT_Tests(TestCase):
 
         #pprint(map(ft_mutation_parser, inputs))
         self.assertEqual(list(map(ft_mutation_parser, inputs)), expects)
+
     def test_ft_mutation_parser_raise(self):
         """ft_mutation_parser: raise ValueError"""
         pass
@@ -531,6 +537,7 @@ class FT_Tests(TestCase):
     def test_ft_id_mutation_parser(self):
         """ft_id_mutation_parser: known values"""
         pass
+
     def test_ft_parser(self):   
         """ft_parser should return expected dict"""
         lines = ft_lines
@@ -540,6 +547,7 @@ class FT_Tests(TestCase):
 
 class CC_Tests(TestCase):
     """tests for cc_parsers. """
+
     def test_cc_itemfinder_valid(self):
         """cc_itemfinder: yield each expected block.""" 
         # pprint(list(cc_itemfinder(labeloff(cc_lines))))
@@ -682,6 +690,7 @@ class CC_Tests(TestCase):
 
 class ReferenceTests(TestCase):
     """Tests for parsers related to reference blocks"""
+
     def test_ref_finder(self):
         """ref_finder: should return a list of ref blocks"""
         pass

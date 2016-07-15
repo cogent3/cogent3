@@ -26,6 +26,7 @@ __status__ = "Production"
 
 strip = str.strip
 
+
 class QueryNotFoundError(Exception): pass
 
 # eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
@@ -119,6 +120,7 @@ rettypes['unists'] = 'DocSum Brief ExternalLink unists_gene unists_nucleotide un
 for key, val in list(rettypes.items()):
     rettypes[key] = dict.fromkeys(val.split())
 
+
 class ESearch(UrlGetter):
     """Performs an ESearch, getting a list of ids from an arbitrary query."""
     PrintedFields = dict.fromkeys(['db', 'usehistory', 'term', 'retmax', 
@@ -126,6 +128,7 @@ class ESearch(UrlGetter):
     Defaults = {'db': 'nucleotide', 'usehistory': 'y', 'retmax': 1000, 
                 'tool': default_tool_string, 'email': default_email_address}
     BaseUrl = eutils_base + '/esearch.fcgi?'
+
 
 class EFetch(UrlGetter):
     """Retrieves a list of primary ids.
@@ -141,6 +144,7 @@ class EFetch(UrlGetter):
                 'email': default_email_address}
     BaseUrl = eutils_base + '/efetch.fcgi?'
 
+
 class ELink(UrlGetter):
     """Retrieves a list of ids from one db that link to another db."""
     PrintedFields = dict.fromkeys(['db', 'id', 'reldate', 'mindate', 'maxdate',
@@ -149,20 +153,26 @@ class ELink(UrlGetter):
     Defaults = {'tool': default_tool_string, 'email': default_email_address}
     BaseUrl = eutils_base + '/elink.fcgi?'
 
+
 class ESearchResult(object):
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+
     def __str__(self):
         return str(self.__dict__)
+
 
 def id_list_constructor(id_list_node):
     """Takes an id_list xml node and converts it into list of ids as strings"""
     return [str_constructor(n) for n in id_list_node.childNodes \
             if n.nodeType != n.TEXT_NODE]
 
+
 def int_constructor(node):
     """Makes an int out of node's first textnode child."""
     return int(node.firstChild.data)
+
 
 def str_constructor(node):
     """Makes an str out of node's first textnode child."""
@@ -173,6 +183,7 @@ def str_constructor(node):
 esearch_constructors = {'Count': int_constructor, 'RetMax': int_constructor,\
                         'RetStart': int_constructor, 'QueryKey': int_constructor, \
                         'WebEnv': str_constructor, 'IdList': id_list_constructor}
+
 
 def ESearchResultParser(result_as_string):
     """Parses an ESearch result. Returns ESearchResult object."""
@@ -192,6 +203,7 @@ def ESearchResultParser(result_as_string):
         else:  # just keep the data if we don't know what it is
             result[name] = n.toxml()
     return ESearchResult(**result)
+
 
 def ELinkResultParser(text):
     """Gets the linked ids out of a single ELink result.
@@ -218,6 +230,7 @@ def ELinkResultParser(text):
 
 class EUtils(object):
     """Retrieves records from NCBI using EUtils."""
+
     def __init__(self, filename=None, wait=0.5, retmax=100, url_limit=400, DEBUG=False, max_recs=None, **kwargs):
         self.__dict__.update(kwargs)
         self.filename = filename
@@ -343,6 +356,7 @@ class EUtils(object):
 
 # The following are convenience wrappers for some of the above functionality
 
+
 def get_primary_ids(term, retmax=100, max_recs=None, **kwargs):
     """Gets primary ids from query."""
     search_result = None
@@ -373,14 +387,17 @@ def get_primary_ids(term, retmax=100, max_recs=None, **kwargs):
         search_query.retstart = records_got
     return search_result.IdList
 
+
 def ids_to_taxon_ids(ids, db='nucleotide'):
     """Converts primary ids to taxon ids"""
     link = ELink(id=' '.join(ids), db='taxonomy', dbfrom=db, DEBUG=True)
     return ELinkResultParser(link.read())
 
+
 def get_between_tags(line):
     """"Returns portion of line between xml tags."""
     return line.split('>', 1)[1].rsplit('<', 1)[0]
+
 
 def taxon_lineage_extractor(lines):
     """Extracts lineage from taxonomy record lines, not incl. species."""
@@ -393,6 +410,7 @@ def taxon_lineage_extractor(lines):
 
 taxon_record_finder = DelimitedRecordFinder('</Taxon>', constructor=None, 
                                             strict=False)
+
 
 def get_taxid_name_lineage(rec):
     """Returns taxon id, name, and lineage from single xml taxon record."""
@@ -408,6 +426,7 @@ def get_taxid_name_lineage(rec):
         elif line.startswith(lineage_tag):
             lineage = list(map(strip, get_between_tags(line).split(';')))
     return taxid, name, lineage
+
 
 def get_taxa_names_lineages(lines):
     """Extracts taxon, name and lineage from each entry in an XML record."""
@@ -464,6 +483,7 @@ def parse_taxonomy_using_elementtree_xml_parse(search_result):
         l.append(d)
     return l
 
+
 def taxon_ids_to_names_and_lineages(ids, retmax=1000):
     """Yields taxon id, name and lineage for a set of taxon ids."""
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
@@ -475,6 +495,7 @@ def taxon_ids_to_names_and_lineages(ids, retmax=1000):
     result.seek(0)
     data = parse_taxonomy_using_elementtree_xml_parse(result)
     return [(i['TaxId'], i['ScientificName'], i['Lineage'])for i in data]
+
 
 def taxon_ids_to_lineages(ids, retmax=1000):
     """Returns full taxonomy (excluding species) from set of taxon ids.
@@ -502,6 +523,7 @@ def taxon_ids_to_lineages(ids, retmax=1000):
 #    transformed_ids = fix_taxon_ids(ids)
 #    return e[transformed_ids].read().splitlines()
 
+
 def taxon_ids_to_names(ids, retmax=1000):
     """Returns names (e.g. species) from set of taxon ids.
 
@@ -517,6 +539,7 @@ def taxon_ids_to_names(ids, retmax=1000):
     h.seek(0)
     result = parse_taxonomy_using_elementtree_xml_parse(h)
     return [i['ScientificName'] for i in result]
+
 
 def fix_taxon_ids(ids):
     """Fixes list of taxonomy ids by adding [taxid] to each.
@@ -537,10 +560,12 @@ def fix_taxon_ids(ids):
     transformed_ids = ' OR '.join(transformed_ids)
     return transformed_ids
 
+
 def get_unique_lineages(query, db='protein'):
     """Gets the unique lineages directly from a query."""
     return set(map(tuple, taxon_ids_to_lineages(ids_to_taxon_ids(
         get_primary_ids(query, db=db), db=db))))
+
 
 def get_unique_taxa(query, db='protein'):
     """Gets the unique lineages directly from a query."""

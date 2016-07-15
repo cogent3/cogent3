@@ -9,6 +9,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def GffParser(f):
     assert not isinstance(f, str)
     for line in f:
@@ -47,6 +48,7 @@ def GffParser(f):
         # should parse attributes too
         yield (seqname, source, feature, start, end, score,
                strand, frame, attributes, comments)
+
 
 def parse_attributes(attribute_string):
     """Returns region of attribute string between first pair of double quotes"""

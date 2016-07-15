@@ -37,6 +37,7 @@ valid_values = dict(autoScale=['on', 'off'], graphType=['bar', 'points'],
                     windowingFunction=['maximum', 'mean', 'minimum'],
                     smoothingWindow=['off'] + list(map(str, list(range(2, 17)))))
 
+
 def raise_invalid_vals(key, val):
     """raises RuntimeError on invalid values for keys """
     if key not in valid_values:
@@ -45,6 +46,7 @@ def raise_invalid_vals(key, val):
         raise AssertionError('Invalid bedgraph key/val pair: '\
                              + 'got %s=%s; valid values are %s' % (key, val, valid_values[key]))
 
+
 def booleans(key, val):
     """returns ucsc formatted boolean"""
     if val in (1, True, 'on', 'On', 'ON'):
@@ -52,6 +54,7 @@ def booleans(key, val):
     else:
         val = 'off'
     return val
+
 
 def get_header(name=None, description=None, color=None, **kwargs):
     """returns header line for bedgraph"""
@@ -83,6 +86,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
         header += header_suffix
 
     return ' '.join(header)
+
 
 def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
              color=None, **kwargs):

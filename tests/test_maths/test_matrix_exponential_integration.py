@@ -15,7 +15,9 @@ __maintainer__ = 'Ben Kaehler'
 __email__ = 'benjamin.kaehler@anu.edu.au'
 __status__ = "Production"
 
+
 class TestIntegratingExponentiator(TestCase):
+
     def test_van_loan_integrating_exponentiator(self):
         """VanLoanIntegratingExponentiator should reproduce Felsenstein
         analytic result, should throw if we pass it a defected matrix and ask
@@ -38,6 +40,7 @@ class TestIntegratingExponentiator(TestCase):
                           q, -diag(q), cmme.CheckedExponentiator)
 
         Q = array([[1., 1.], [0., 1.]])
+
         def integral(t):
             return array([[exp(t) - 1., exp(t) * (t - 1.) + 1.], [0., exp(t) - 1.]])
 
@@ -81,7 +84,6 @@ class TestIntegratingExponentiator(TestCase):
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(2.),
                               expm.VanLoanIntegratingExponentiator(p, 
                                                                    exponentiator=cmme.FastExponentiator)(2.))
-
 
 
 if __name__ == '__main__':

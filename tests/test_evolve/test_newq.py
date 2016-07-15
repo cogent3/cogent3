@@ -24,16 +24,19 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def _dinuc_root_probs(x, y=None):
     if y is None:
         y = x
     return dict([(n1 + n2, p1 * p2) 
                  for n1, p1 in list(x.items()) for n2, p2 in list(y.items())])
 
+
 def _trinuc_root_probs(x, y, z):
     return dict([(n1 + n2 + n3, p1 * p2 * p3) 
                  for n1, p1 in list(x.items()) for n2, p2 in list(y.items())
                  for n3, p3 in list(z.items())])
+
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
@@ -48,6 +51,7 @@ def make_p(length, coord, val):
         Q[i, i] -= row_sum[i]
     Q *= scale
     return expm(Q)(length)
+
 
 class NewQ(TestCase):
     aln = LoadSeqs(data={
@@ -315,6 +319,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
 
     lf.setAlignment(results['aln'])
     return lf
+
 
 def MakeCachedObjects(model, tree, seq_length, opt_args):
     """simulates an alignment under F81, all models should be the same"""

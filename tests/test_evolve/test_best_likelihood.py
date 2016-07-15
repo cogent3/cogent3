@@ -17,6 +17,7 @@ __status__ = "Production"
 
 IUPAC_DNA_ambiguities = 'NRYWSKMBDHV'
 
+
 def makeSampleAlignment(gaps=False, ambiguities=False):
     if gaps:
         seqs_list = ['AAA--CTTTGG-T', 'CCCCC-TATG-GT', '-AACCCTTTGGGT']
@@ -27,7 +28,9 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
     seqs = list(zip('abc', seqs_list))
     return LoadSeqs(data=seqs)
 
+
 class TestGoldman93(TestCase):
+
     def setUp(self):
         self.aln = makeSampleAlignment()
         self.gapped_aln = makeSampleAlignment(gaps=True)

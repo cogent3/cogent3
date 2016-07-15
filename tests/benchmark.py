@@ -19,11 +19,13 @@ __status__ = "Production"
 ALIGNMENT = LoadSeqs(filename="data/brca1.fasta")
 TREE = LoadTree(filename="data/murphy.tree")
 
+
 def subtree(size):
     names = ALIGNMENT.getSeqNames()[:size]
     assert len(names) == size
     tree = TREE.getSubTree(names)  # .balanced()
     return names, tree
+
 
 def brca_test(subMod, names, tree, length, par_rules, **kw):
     #names = ALIGNMENT.getSeqNames()[:taxa]
@@ -38,9 +40,11 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
     #lf = par_controller.makeCalculator(aln)
     return (par_controller, aln)
 
+
 def measure_evals_per_sec(pc, aln):
     pc.setAlignment(aln)
     return pc.measureEvalsPerSecond(time_limit=2.0, wall=False)
+
 
 def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     modelClass = eval(modelClass)
@@ -55,6 +59,7 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     (pc, aln) = brca_test(subMod, taxa, tree, length, par_rules, **kw)
     return (pc, aln)
 
+
 def quiet(f, *args, **kw):
     import sys, io
     temp = io.StringIO()
@@ -67,13 +72,16 @@ def quiet(f, *args, **kw):
         sys.stdout = _stdout
     return result
 
+
 def evals_per_sec(*args):
     pc, aln = makePC(*args)  # quiet(makeLF, *args)
     speed1 = measure_evals_per_sec(pc, aln)
     speed = str(int(speed1))
     return speed
 
+
 class CompareImplementations(object):
+
     def __init__(self, switch):
         self.switch = switch
 
@@ -91,6 +99,7 @@ class CompareImplementations(object):
         if speed in ['+1.0', '-1.0']:
             speed = ''
         return speed
+
 
 def benchmarks(test):
     alphabets = ["Nucleotide", "Dinucleotide", "Codon"]
@@ -125,6 +134,7 @@ def benchmarks(test):
         print()
     print()
 
+
 def silly_predicate(a, b):
     return a.count('A') > a.count('T') or b.count('A') > b.count('T')
 
@@ -133,6 +143,7 @@ def silly_predicate(a, b):
 #    return 'a' in a
 #mA = Codon()
 #mA.setPredicates({'asym': asym_predicate})
+
 
 def exponentiator_switch(switch):
     import cogent3.evolve.substitution_calculation

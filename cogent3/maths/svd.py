@@ -22,8 +22,10 @@ __status__ = "Production"
 
 array_type = type(array([0.1]))
 
+
 def var(x):
     return std(x)**2
+
 
 def ratio_two_best(eigenvalues):
     """Returns ratio of best to second best eigenvalue (from vector)."""
@@ -34,6 +36,7 @@ def ratio_two_best(eigenvalues):
         eigs = abs(eigenvalues)
         sorted = sort(eigs)
         return sorted[-1] / sorted[-2]
+
 
 def ratio_best_to_sum(eigenvalues):
     """Returns ratio of best singular value to sum. Expects a vector.
@@ -47,15 +50,18 @@ def ratio_best_to_sum(eigenvalues):
         sorted = sort(eigs)
         return sorted[-1] / sum(eigenvalues, axis=0)
 
+
 def euclidean_distance(q1, q2):
     """Returns Euclidean distance between arrays q1 and q2."""
     diff = ravel(q1 - q2)
     return sqrt(sum(diff * diff, axis=0))
 
+
 def euclidean_norm(m):
     """Returns Euclidean norm of an array or matrix m."""
     flattened = ravel(m)
     return sqrt(sum(flattened * flattened, axis=0))
+
 
 def _dists_from_mean_slow(qs):
     """Returns distance of each item in qs from the mean.
@@ -69,6 +75,7 @@ def _dists_from_mean_slow(qs):
         result[i] = euclidean_distance(average, qs[i])
     return result
 
+
 def dists_from_v(a, v=None):
     """Returns vector of distances between each row in a from v.
 
@@ -79,9 +86,11 @@ def dists_from_v(a, v=None):
     diff = a - v
     return(sqrt(sum(diff * diff, axis=1)))
 
+
 def weiss(eigens):
     """Returns Weiss(20003) statistic, sum(ln(1+i)) for i in vector of eigens."""
     return sum(log(1 + eigens), axis=0)
+
 
 def three_item_combos(items):
     """Iterates over the 3-item sets from items.
@@ -96,6 +105,7 @@ def three_item_combos(items):
             for k in range(j + 1, total):
                 yield curr_i, curr_j, items[k]
 
+
 def two_item_combos(items):
     """Iterates over the 2-item sets from items.
 
@@ -107,13 +117,16 @@ def two_item_combos(items):
         for j in range(i + 1, total):
             yield curr_i, items[j]
 
+
 def pca_qs(flat_qs):
     """Returns Principal Components vector from correlations in flat_qs."""
     return eigvals(corrcoef(flat_qs))
 
+
 def pca_cov_qs(flat_qs):
     """Returns Principal Components vector from covariance in flat_qs."""
     return eigvals(cov(flat_qs))
+
 
 def svd_qs(flat_qs):
     """Returns singular vals from flat_qs directly (returns v, ignores u,w)."""

@@ -85,7 +85,9 @@ Tree constructed using UPGMAbased on DIALIGN fragment weight scores
 
 """.splitlines()
 
+
 class TestDialign(unittest.TestCase):
+
     def setUp(self):
         aln_seqs = {"HTL2": "ldtapC-LFSDGS------PQKAAYVL-------WDQTILQQDITPLPSHethSAQKGELLALICGLRAak------------",
                     "MMLV": "pdadhtw-YTDGSSLLQEGQRKAGAAVtteteviWa----KALDAG---T---SAQRAELIALTQALKm--------------",

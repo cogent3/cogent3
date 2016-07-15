@@ -20,6 +20,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class DistributionsTests(TestCase):
     """Tests of particular statistical distributions."""
 
@@ -1320,7 +1321,6 @@ class DistributionsTests(TestCase):
                 for p in p_s:
                     self.assertFloatEqual(bdtri(k, n, p), exp[index])
                     index += 1
-
 
     def test_gdtri(self):
         """gdtri should match cephes results"""

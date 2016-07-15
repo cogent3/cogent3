@@ -28,6 +28,7 @@ numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
 BIG_NUM = 1e305
 
+
 def upgma(pairwise_distances):
     """Uses the UPGMA algorithm to cluster sequences
 
@@ -57,6 +58,7 @@ def upgma(pairwise_distances):
             index += 1
     return tree
 
+
 def find_smallest_index(matrix):
     """returns the index of the smallest element in a numpy array
 
@@ -72,6 +74,7 @@ def find_smallest_index(matrix):
     # square matrix and return
     row_len = shape[0]
     return divmod(lowest_index, row_len)
+
 
 def condense_matrix(matrix, smallest_index, large_value):
     """converges the rows and columns indicated by smallest_index
@@ -94,6 +97,7 @@ def condense_matrix(matrix, smallest_index, large_value):
     matrix[second_index] = large_value
     matrix[:, second_index] = large_value
     return matrix
+
 
 def condense_node_order(matrix, smallest_index, node_order):
     """condenses two nodes in node_order based on smallest_index info
@@ -131,6 +135,7 @@ def condense_node_order(matrix, smallest_index, node_order):
     node_order[index2] = None
     return node_order
 
+
 def UPGMA_cluster(matrix, node_order, large_number):
     """cluster with UPGMA
 
@@ -157,6 +162,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
         matrix = condense_matrix(matrix, smallest_index, large_number)
         tree = node_order[smallest_index[0]]
     return tree
+
 
 def inputs_from_dict2D(dict2d_matrix):
     """makes inputs for UPGMA_cluster from a Dict2D object

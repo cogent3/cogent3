@@ -22,6 +22,7 @@ __status__ = "Production"
 
 rstrip = str.rstrip
 
+
 class AAIndexParser(object):
     """ Abstract class for AAIndex file parsers
         This file is an abstract class for the parsers of the two AAIndex
@@ -98,6 +99,7 @@ class AAIndexParser(object):
         # return the field of interest   
         return result
 
+
 class AAIndex1Parser(AAIndexParser):
     """ Parse AAIndex1 file & return it as dict of AAIndex1 objects"""
 
@@ -128,7 +130,6 @@ class AAIndex1Parser(AAIndexParser):
 
         return AAIndex1Record(id, description, LITDB, authors,\
                               title, citations, comments, correlating, data)
-
 
     def _parse_correlating(self, raw):
         """ Parse Correlating entries from the current record """
@@ -224,7 +225,6 @@ class AAIndex2Parser(AAIndexParser):
         # split by any number/ types of white spaces
         data = re.split('\s*', raw)
 
-
         # If square matrix
         if len(data) == (len(rows) * len(cols)):
             result = dict.fromkeys(rows)
@@ -296,7 +296,6 @@ class AAIndexRecord(object):
         """
         pass
 
-
     def toDistanceMatrix(self, include_stops=False):
         """ Builds a DistanceMatrix object based on self """
         data = self._toSquareDistanceMatrix(include_stops=include_stops)
@@ -308,6 +307,7 @@ class AAIndexRecord(object):
             return DistanceMatrix(data=data, info=self)
 
         return None
+
 
 class AAIndex1Record(AAIndexRecord):
     """ Stores records from AAIndex1, inherits from AAIndexRecord """
@@ -360,6 +360,7 @@ class AAIndex1Record(AAIndexRecord):
 
 class AAIndex2Record(AAIndexRecord):
     """ Stores records from AAIndex2, inherits from AAIndexRecord  """
+
     def __init__(self, id,
                  description, LITDB_entry_num,
                  authors, title,
@@ -371,7 +372,6 @@ class AAIndex2Record(AAIndexRecord):
                                description, LITDB_entry_num,
                                authors, title,
                                citation, comments, data)
-
 
     def _toSquareDistanceMatrix(self, include_stops=False):
         """ Returns data as a square matrix
@@ -396,6 +396,7 @@ class AAIndex2Record(AAIndexRecord):
         # Right now we are only dealing with square matrices
         return result
 
+
 def AAIndexLookup(records):
     """ Build a dict of AAIndexObjects hashed by ID """    
     result = {}
@@ -404,10 +405,12 @@ def AAIndexLookup(records):
 
     return result
 
+
 def AAIndex1FromFiles(file):
     """ Taking a file or list of data return a dict of AAIndex1Objects """
     aap = AAIndex1Parser()
     return AAIndexLookup(aap(file))
+
 
 def AAIndex2FromFiles(file):
     """ Taking a file or list of data return a dict of AAIndex2Objects """
@@ -438,6 +441,7 @@ I    A/L     R/K     N/M     D/F     C/P     Q/S     E/T     G/W     H/Y     I/V
      4.9    10.1     5.3     5.0     6.6     7.5     6.6     5.3     5.7     5.6
 //
 """
+
 
 def getWoeseDistanceMatrix():
     """ Return the Woese Polar Requirement Distance Matrix """

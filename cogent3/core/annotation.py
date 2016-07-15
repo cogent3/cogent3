@@ -10,6 +10,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class _Annotatable(object):
     # default
     annotations = ()
@@ -247,6 +248,7 @@ class _Feature(_Annotatable):
 
 class AnnotatableFeature(_Feature):
     """These features can themselves be annotated."""
+
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
         return self.__class__(self.parent, new_map, type='slice', Name='')
@@ -285,6 +287,7 @@ class Source(_Feature):
     def withoutLostSpans(self):
         return self
 
+
 def Feature(parent, type, Name, spans, value=None):
     if isinstance(spans, Map):
         map = spans
@@ -292,6 +295,7 @@ def Feature(parent, type, Name, spans, value=None):
     else:
         map = Map(locations=spans, parent_length=len(parent))
     return AnnotatableFeature(parent, map, type=type, Name=Name)
+
 
 class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
@@ -317,6 +321,7 @@ def Variable(parent, type, Name, xxy_list):
     map = Map([(start, end)], parent_length=len(parent))
     return _Variable(parent, map, type=type, Name=Name, xxy_list=xxy_list)
 
+
 class _SimpleVariable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['data']
 
@@ -331,6 +336,7 @@ class _SimpleVariable(_Feature):
         data = numpy.asarray(data)[indicies]
         new = self.__class__(self.parent, self.map[keep], data=data, original=self)
         return new
+
 
 def SimpleVariable(parent, type, Name, data):
     """A simple variable type of annotation, such as a computed property of

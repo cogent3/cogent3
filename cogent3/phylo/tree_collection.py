@@ -7,7 +7,9 @@ __credits__ = ["Peter Maxwell", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 
+
 class _UserList(list):
+
     def __getitem__(self, index):
         # Helpful to keep type after truncation like [self[:10]],
         # but not self[0] or self[x,y,-1]
@@ -16,8 +18,10 @@ class _UserList(list):
             result = type(self)(result)
         return result
 
+
 class ScoredTreeCollection(_UserList):
     """An ordered list of (score, tree) tuples"""
+
     def writeToFile(self, filename):
         f = open(filename, 'w')
         for (score, tree) in self:
@@ -40,8 +44,10 @@ class ScoredTreeCollection(_UserList):
 
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
+
     def scoredTreeFormat(self, tree, score):
         return [score, '\t', tree, '\n']
+
 
 class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
@@ -49,6 +55,7 @@ class WeightedTreeCollection(UsefullyScoredTreeCollection):
     def getConsensusTrees(self, strict=False, method='unrooted'):
         if strict is None: strict = False
         return consensus.weightedMajorityRule(self, strict, method=method)
+
 
 class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (log likelihood, tree) tuples"""

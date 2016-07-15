@@ -23,6 +23,7 @@ __status__ = "Production"
 
 translate = str.translate
 
+
 class ProfileTests(TestCase):
     """Tests for Profile object"""
 

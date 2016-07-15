@@ -29,6 +29,7 @@ else:
 
 
 class TestEnsemblDbName(TestCase):
+
     def test_cmp_name(self):
         """should validly compare names by attributes"""
         n1 = EnsemblDbName('homo_sapiens_core_46_36h')
@@ -62,7 +63,9 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.GeneralRelease, '59')
         self.assertEqual(n.Type, 'compara')
 
+
 class TestHostAccount(TestCase):
+
     def test_host_comparison(self):
         """instances with same host, account, database, port are equal"""
         h1 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5306)

@@ -19,22 +19,27 @@ __status__ = "Production"
 
 maketrans = str.maketrans
 
+
 class GeneticCodeError(Exception):
     pass
 
+
 class GeneticCodeInitError(ValueError, GeneticCodeError):
     pass
+
 
 class InvalidCodonError(KeyError, GeneticCodeError):
     pass
 
 _dna_trans = maketrans('TCAG', 'AGTC')
 
+
 def _simple_rc(seq):
     """simple reverse-complement: works only on unambiguous uppercase DNA"""
     return seq.translate(_dna_trans)[::-1]
 
 _bases = "TCAG"
+
 
 class GeneticCode(object):
     """Holds codon to amino acid mapping, and vice versa.

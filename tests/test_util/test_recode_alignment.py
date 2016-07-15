@@ -27,6 +27,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
 
+
 class RecodeAlignmentTests(TestCase):
     """ Tests of functions in recode_alphabet.py 
 
@@ -48,7 +49,6 @@ class RecodeAlignmentTests(TestCase):
             data={'1': 'CDDFBXZ', '2': 'CDD-BXZ', '3': 'AAAASS-'})
         self.aln2 = LoadSeqs(\
             data={'1': 'CDDFBXZ', '2': 'CDD-BXZ', '3': 'AAAASS-'})
-
 
     def test_build_alphabet_map_handles_bad_data(self):
         """build_alphabet_map:  bad data raises error """
@@ -265,7 +265,6 @@ class RecodeAlignmentTests(TestCase):
                               expected)
 
 
-
 class RecodeMatrixTests(TestCase):
     """ Tests of substitution matrix recoding. """
 
@@ -286,7 +285,6 @@ class RecodeMatrixTests(TestCase):
         self.input_freqs2 = dict(list(zip(self.aa_order2, [0.2] * 5)))
         self.alphabet2 = [('D', 'DE'), ('L', 'LI'), ('C', 'C')]
         self.alphabet2_w_ambig = [('D', 'DEX'), ('L', 'LIB'), ('C', 'CZ')]
-
 
     def test_recode_counts_and_freqs(self):
         """recode_counts_and_freqs: functions as expected

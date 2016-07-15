@@ -14,6 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class ConvertFields(object):
     """converter for input data to Table"""
 
@@ -98,8 +99,8 @@ def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
             if limit is not None and num_lines >= limit:
                 break
 
-
     return callable
+
 
 def autogen_reader(infile, sep, with_title, limit=None):
     """returns a SeparatorFormatParser with field convertor for numeric column
@@ -127,6 +128,7 @@ def autogen_reader(infile, sep, with_title, limit=None):
 
     return SeparatorFormatParser(converter=ConvertFields(numeric_fields),
                                  sep=sep, limit=limit)
+
 
 def load_delimited(filename, header=True, delimiter=',',
                    with_title=False, with_legend=False, limit=None):

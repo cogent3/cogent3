@@ -17,6 +17,7 @@ __status__ = "Production"
 
 # As used by BAliBASE
 
+
 def MacsimParser(doc):
     doc = doc.getElementsByTagName('macsim')[0]
     align = doc.getElementsByTagName('alignment')[0]

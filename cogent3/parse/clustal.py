@@ -32,6 +32,7 @@ __status__ = "Development"
 
 strip = str.strip
 
+
 def LabelLineParser(record, splitter, strict=True):
     """Returns dict mapping list of data to labels, plus list with field order.
 
@@ -59,6 +60,7 @@ def LabelLineParser(record, splitter, strict=True):
             labels.append(key)
     return result, labels
 
+
 def is_clustal_seq_line(line):
     """Returns True if line starts with a non-blank character but not 'CLUSTAL'.
 
@@ -68,6 +70,7 @@ def is_clustal_seq_line(line):
         (not line.startswith('CLUSTAL')) and (not line.startswith('MUSCLE'))
 
 last_space = DelimitedSplitter(None, -1)
+
 
 def delete_trailing_number(line):
     """Deletes trailing number from a line.
@@ -83,6 +86,7 @@ def delete_trailing_number(line):
     except ValueError:  # no trailing numbers
         return line
 
+
 def MinimalClustalParser(record, strict=True):
     """Returns (data, label_order) tuple.
 
@@ -90,6 +94,7 @@ def MinimalClustalParser(record, strict=True):
     """
     return LabelLineParser(list(map(delete_trailing_number, \
                                     list(filter(is_clustal_seq_line, record)))), last_space, strict)
+
 
 def ClustalParser(record, strict=True):
     seqs, labels = MinimalClustalParser(record, strict)

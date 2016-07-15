@@ -39,9 +39,11 @@ _dnd_tokens_and_spaces = _dnd_token_str + ' \t\v\n'
 remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces, \
                               '-' * len(_dnd_tokens_and_spaces))
 
+
 def safe_for_tree(s):
     """Makes string s safe for DndParser by removing significant chars."""
     return s.translate(remove_dnd_tokens)
+
 
 def bad_dnd_tokens(s, is_valid_name):
     """Returns list of bad dnd tokens from s, using is_valid_name for names.
@@ -170,6 +172,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     if curr_node is None:  # no data -- return empty node
         return constructor()
     return curr_node  # this should be the root of the tree
+
 
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""

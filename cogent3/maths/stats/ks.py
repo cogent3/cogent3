@@ -22,12 +22,14 @@ PIO4 = pi / 4
 PIO2 = pi / 2
 INVSQRT2PI = 1 / sqrt(2 * pi)
 
+
 def mpower(A, exponent):
     """matrix power"""
     new = A
     for i in range(1, exponent):
         new = matrixmultiply(new, A)
     return new
+
 
 def pkolmogorov1x(statistic, n):
     """Probability function for the one-sided one sample Kolmogorov statistics.
@@ -44,6 +46,7 @@ def pkolmogorov1x(statistic, n):
     p = sum(exp(coeffs + (n - j) * log(1 - statistic - j / n) + \
                 (j - 1) * (log(statistic + j / n))))
     return 1 - statistic * p
+
 
 def pkolmogorov2x(statistic, n):
     """Probability function for Kolmogorovs distribution."""
@@ -71,6 +74,7 @@ def pkolmogorov2x(statistic, n):
     for i in range(1, n + 1):
         s *= i / n
     return s
+
 
 def pkstwo(x_vector, tolerance=1e-6):
     """Probability from the Kolmogorov asymptotic distribution."""
@@ -101,6 +105,7 @@ def pkstwo(x_vector, tolerance=1e-6):
             x_vector[i] = new
 
     return x_vector
+
 
 def psmirnov2x(statistic, least, most):
     if least > most:

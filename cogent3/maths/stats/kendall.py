@@ -19,6 +19,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def as_paired_ranks(x, y):
     """return as matrix of paired ranks"""
     n = len(x)
@@ -33,6 +34,7 @@ def as_paired_ranks(x, y):
     for i in range(n):
         ranked += [[rank_val_map_x[paired[i][0]], rank_val_map_y[paired[i][1]]]]
     return ranked
+
 
 def ckendall(k, n, w):
     # translated from R 2.5
@@ -50,6 +52,7 @@ def ckendall(k, n, w):
             w[n][k] = s
     return w[n][k]
 
+
 def pkendall(x, n, divisor, working):
     # translated from R 2.5
     q = floor(x + 1e-7)
@@ -64,6 +67,7 @@ def pkendall(x, n, divisor, working):
             p += result
         x = p / divisor
     return x
+
 
 def kendalls_tau(x, y, return_p=True):
     """returns kendall's tau

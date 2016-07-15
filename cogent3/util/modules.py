@@ -12,12 +12,15 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class ExpectedImportError(ImportError):
     pass
+
 
 def fail(msg):
     print(msg, file=sys.stderr)
     raise ExpectedImportError
+
 
 def importVersionedModule(name, exec_globals, min_version, alt_desc):
     if 'COGENT_PURE_PYTHON' in os.environ:

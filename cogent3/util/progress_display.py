@@ -45,11 +45,13 @@ else:
         if CODES['GREEN']:
             bar_template = CODES['GREEN'] + b'%s' + CODES['NORMAL'] + b'%s'
             bar_template = bar_template.decode('utf8')
+
             def terminal_progress_bar(dots, width):
                 return bar_template % ('█' * dots, '█' * (width - dots))
         else:
             def terminal_progress_bar(dots, width):
                 return '.' * dots
+
 
 class TextBuffer(object):
     """A file-like object which accumulates written text.  Specialised for 
@@ -68,6 +70,7 @@ class TextBuffer(object):
     # multiprocessing calls these
     def flush(self):
         pass
+
     def isatty(self):
         return False
 
@@ -218,6 +221,7 @@ class ProgressContext(object):
 class NullContext(ProgressContext):
     """A UI context which discards all output.  Useful on secondary MPI cpus, 
     and other situations where all output is suppressed"""
+
     def subcontext(self, *args, **kw):
         return self
 
@@ -230,6 +234,7 @@ class NullContext(ProgressContext):
 
 class LogFileOutput(object):
     """A fake progress bar for when progress bars are impossible"""
+
     def __init__(self):
         self.t0 = time.time()
         self.lpad = ''
@@ -250,6 +255,7 @@ class LogFileOutput(object):
 class CursesTerminalProgressBar(object):
     """Wraps stdout and stderr, displaying a progress bar via simple 
     ascii/curses art and scheduling other output around its redraws."""
+
     def __init__(self):
         global curses_terminal
         assert curses_terminal is not None
@@ -305,6 +311,7 @@ class CursesTerminalProgressBar(object):
 NULL_CONTEXT = NullContext()
 CURRENT = threading.local()
 CURRENT.context = None
+
 
 class RootProgressContext(object):
     """The context between long running jobs, when there is no progress bar"""
@@ -365,11 +372,13 @@ def display_wrap(slow_function):
         return result
     return f
 
+
 @display_wrap
 def subdemo(ui):
     for j in ui.series(list(range(10))):
         time.sleep(0.1)
     return
+
 
 @display_wrap
 def demo(ui):

@@ -15,6 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Development"
 
+
 def make_header(lines):
     """returns one header line from multiple header lines"""
     lengths = list(map(len, lines))
@@ -39,6 +40,7 @@ row_converter = ConvertFields([(i, int) for i in range(8)] +\
                               [(i, int) for i in range(10, 13)] +\
                               [(i, int) for i in range(14, 18)] +\
                               [(i, int_series) for i in range(18, 21)])
+
 
 def MinimalPslParser(data, row_converter=row_converter):
     """returns version, header and rows from data"""
@@ -74,6 +76,7 @@ def MinimalPslParser(data, row_converter=row_converter):
         data.close()
     except AttributeError:
         pass
+
 
 def PslToTable(data):
     """converts psl format to a table"""

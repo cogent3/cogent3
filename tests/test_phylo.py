@@ -28,10 +28,13 @@ __status__ = "Production"
 base_path = os.getcwd()
 data_path = os.path.join(base_path, 'data')
 
+
 def Tree(t):
     return LoadTree(treestring=t)
 
+
 class ConsensusTests(unittest.TestCase):
+
     def setUp(self):
         self.trees = [
             Tree("((a,b),c,d);"),
@@ -219,6 +222,7 @@ class ConsensusTests(unittest.TestCase):
 
 
 class TreeReconstructionTests(unittest.TestCase):
+
     def setUp(self):
         self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
         self.dists = self.tree.getDistances()
@@ -287,6 +291,7 @@ class TreeReconstructionTests(unittest.TestCase):
 
 
 class DistancesTests(unittest.TestCase):
+
     def setUp(self):
         self.al = LoadSeqs(data={'a': 'GTACGTACGATC',
                                    'b': 'GTACGTACGTAC',

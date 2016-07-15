@@ -10,6 +10,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def deprecated(_type, old, new, version, stack_level=2):
     """a convenience function for deprecating classes, functions, arguments.
 
@@ -27,6 +28,7 @@ def deprecated(_type, old, new, version, stack_level=2):
     with catch_warnings():
         simplefilter("always")
         _warn(msg, DeprecationWarning, stack_level)
+
 
 def discontinued(_type, name, version, stack_level=2):
     """convenience func to warn about discontinued attributes
