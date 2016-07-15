@@ -351,7 +351,7 @@ def chi_square_from_Dict2D(data):
     (whichever is greater than 1)
 
     """
-    test =  sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
+    test = sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
                  for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])

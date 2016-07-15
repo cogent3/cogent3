@@ -980,7 +980,7 @@ class ConstrainedList(ConstrainedContainer, list):
 
     def __add__(self, other):
         """Returns copy of self added to copy of other if constraint correct."""
-        result = self.__class__(list(self) + list(map(self.Mask, other)) ,
+        result = self.__class__(list(self) + list(map(self.Mask, other)),
                                 Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
