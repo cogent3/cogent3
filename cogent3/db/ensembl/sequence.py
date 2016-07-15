@@ -25,12 +25,12 @@ def _assemble_seq(frags, start, end, frag_positions):
     """returns a single string in which missing sequence is replaced by 'N'"""
     prev_end = start
     assert len(frag_positions) == len(frags), "Mismatched number of "\
-    "fragments and positions"
+        "fragments and positions"
     assembled = []
     for index, (frag_start, frag_end) in enumerate(frag_positions):
         diff = frag_start - prev_end
         assert diff >= 0, 'fragment position start < previous end: %s, %s' %\
-        (frag_start, prev_end)
+            (frag_start, prev_end)
         assembled += ['N' * diff, frags[index]]
         prev_end = frag_end
     diff = end - frag_end

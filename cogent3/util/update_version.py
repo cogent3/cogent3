@@ -209,7 +209,7 @@ class VersionUpdater(object):
             if self.Verbose:
                 print('Version string found on line %d' % lineno)
             lines[lineno] = '#define PYCOGENT_VERSION "%s"\n' \
-            % self.Version
+                % self.Version
         else:
             print("No version string found in %s" % filename)
         return (lines, found_version_line)

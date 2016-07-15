@@ -210,7 +210,7 @@ class Span(SpanI):
     lost = False
 
     __slots__ = ('tidy_start', 'tidy_end', 'length', 'value',
-                  'Start', 'End', 'Reverse')
+                 'Start', 'End', 'Reverse')
 
     def __init__(self, Start, End=None, tidy_start=False, tidy_end=False,
                  value=None, Reverse=False):

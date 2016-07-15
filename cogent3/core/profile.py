@@ -505,7 +505,7 @@ class Profile(object):
             # translate seq to indices
             if hasattr(self, '_translation_table'):
                 seq_indices = array(list(map(ord, translate(str(input_data),
-                                                           self._translation_table))))
+                                                            self._translation_table))))
             else:  # need to figure out where each item is in the charorder
                 idx = self.CharOrder.index
                 seq_indices = array(list(map(idx, input_data)))
@@ -637,7 +637,7 @@ class Profile(object):
             result = []
             for row in self.Data:
                 val = list(map(lambda x: x.decode('utf8'),
-                           take(co, nonzero(row)[0], axis=0)))
+                               take(co, nonzero(row)[0], axis=0)))
                 val = alpha.degenerateFromSequence(val)
                 result.append(val)
 
@@ -757,7 +757,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             if all(list(map(char_order.__contains__, curr_degens))):
                 contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
-                array(contains, float) / len(curr_degens)
+                    array(contains, float) / len(curr_degens)
     # for each character in the character order, make an entry of ones and
     # zeros, matching the character order
     for c in char_order:

@@ -198,9 +198,9 @@ class GenericRegion(_Region):
         my_type = self.__class__.__name__
         return "%s(Species='%s'; CoordName='%s'; Start=%s; End=%s;"\
                " length=%s; Strand='%s')" % (my_type,
-                                              self.genome.Species,
-                                              self.Location.CoordName, self.Location.Start,
-                                              self.Location.End, len(self), '-+'[self.Location.Strand > 0])
+                                             self.genome.Species,
+                                             self.Location.CoordName, self.Location.Start,
+                                             self.Location.End, len(self), '-+'[self.Location.Strand > 0])
 
     def _get_seq_region_record(self, CoordName):
         # override the _Region class method, since, we take the provided Start
@@ -379,7 +379,7 @@ class Gene(_StableRegion):
                            transcript_table.c.transcript_id == canonical_id)
         records = query.execute().fetchall()
         assert len(records) == 1,\
-        "wrong number of records from CanonicalTranscript"
+            "wrong number of records from CanonicalTranscript"
         record = records[0]
         transcript = Transcript(self.genome, self.db, canonical_id,
                                 data=record)
@@ -597,14 +597,14 @@ class Transcript(_StableRegion):
             if exon.exon_id == end_exon_id:
                 end_index = index
         assert None not in (start_index, end_index), \
-        'Error in matching transcript and exons'
+            'Error in matching transcript and exons'
 
         start_exon = self.Exons[start_index]
 
         if start_index == end_index:
             shift_start = [seq_start, len(start_exon) - seq_end][flip_coords]
             shift_end = [seq_end - len(start_exon), -
-                                       1 * seq_start][flip_coords]
+                         1 * seq_start][flip_coords]
         else:
             shift_start = [seq_start, 0][flip_coords]
             shift_end = [0, -1 * seq_start][flip_coords]
@@ -653,7 +653,7 @@ class Transcript(_StableRegion):
             coord = exon.Location.copy()
             if exon.StableId == start_exon.StableId:
                 coord.Start = [coord.Start,
-                    start_exon.Location.End][flip_coords]
+                               start_exon.Location.End][flip_coords]
                 coord.End = [start_exon.Location.Start, coord.End][flip_coords]
             if len(coord) != 0:
                 untranslated_5exons.append(Exon(self.genome, self.db,
@@ -1358,10 +1358,10 @@ class Repeat(GenericRegion):
 
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
                " Strand='%s', Score=%.1f)" % (my_type,
-                                               self.Location.CoordName,
-                                               self.Location.Start, self.Location.End, len(
-                                                   self),
-                                               '-+'[self.Location.Strand > 0], self.Score)
+                                              self.Location.CoordName,
+                                              self.Location.Start, self.Location.End, len(
+                                                  self),
+                                              '-+'[self.Location.Strand > 0], self.Score)
 
     def _get_repeat_consensus_record(self):
         repeat_consensus_table = self.db.getTable('repeat_consensus')

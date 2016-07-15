@@ -620,7 +620,7 @@ class Calculator(object):
     def __getBoundedRoot(self, func, origX, direction, bound, xtol):
         return find_root(func, origX, direction, bound, xtol=xtol,
                          expected_exception=(
-                    ParameterOutOfBoundsError, ArithmeticError))
+                             ParameterOutOfBoundsError, ArithmeticError))
 
     def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==

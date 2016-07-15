@@ -132,8 +132,8 @@ def TableToValues(table, constructors=None, header=None):
     return [[c(val) for c, val in zip(c_list, row)] for row in table], header
 
 psiblast_constructors = {'% identity': float, 'alignment length': int,
-                       'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int,
-                       's. start': int, 's. end': int, 'e-value': float, 'bit score': float}
+                         'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int,
+                         's. start': int, 's. end': int, 'e-value': float, 'bit score': float}
 # make case-insensitive
 for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
@@ -186,7 +186,7 @@ def PsiBlastParser9(lines):
                 first_query = False
             table, header = PsiBlastTableParser(record)
             curr_resultset.append([dict(list(zip(header, row)))
-                                  for row in table])
+                                   for row in table])
     return result
 
 
@@ -371,22 +371,22 @@ class BlastResult(dict):
         MISMATCHES: (_lt, int),
         E_VALUE: (_lt, float),
         BIT_SCORE: (_gt, float)
-        }
+    }
 
     # set up valid blast keys
     HitKeys = set([ITERATION,
-                    QUERY_ID,
-                    SUBJECT_ID,
-                    PERCENT_IDENTITY,
-                    ALIGNMENT_LENGTH,
-                    MISMATCHES,
-                    GAP_OPENINGS,
-                    QUERY_START,
-                    QUERY_END,
-                    SUBJECT_START,
-                    SUBJECT_END,
-                    E_VALUE,
-                    BIT_SCORE])
+                   QUERY_ID,
+                   SUBJECT_ID,
+                   PERCENT_IDENTITY,
+                   ALIGNMENT_LENGTH,
+                   MISMATCHES,
+                   GAP_OPENINGS,
+                   QUERY_START,
+                   QUERY_END,
+                   SUBJECT_START,
+                   SUBJECT_END,
+                   E_VALUE,
+                   BIT_SCORE])
 
     def __init__(self, data, psiblast=False):
         """
@@ -492,9 +492,9 @@ class BlastResult(dict):
 fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='',
                                                    ignore=never_ignore)
 fasta_field_map = {'NCBI sequence id': 'seq_id',
-                    'NCBI taxonomy id': 'tax_id',
-                    'Common name': 'common_name',
-                    'Scientific name': 'scientific_name'}
+                   'NCBI taxonomy id': 'tax_id',
+                   'Common name': 'common_name',
+                   'Scientific name': 'scientific_name'}
 
 
 def FastacmdTaxonomyParser(lines):

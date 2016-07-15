@@ -83,10 +83,10 @@ PARSERS = {
     'gbk': genbank.RichGenbankParser,
     'genbank': genbank.RichGenbankParser,
     'msf': gcg.MsfParser,
-    }
+}
 
 XML_PARSERS = {
     'gbseq': gbseq.GbSeqXmlParser,
     'tseq': tinyseq.TinyseqParser,
     'macsim': macsim.MacsimParser,
-    }
+}

@@ -93,7 +93,7 @@ def rosen_der(x):
     xm_p1 = x[2:]
     der = numpy.zeros_like(x)
     der[1:-1] = 200 * (xm - xm_m1**2) - 400 * \
-                       (xm_p1 - xm**2) * xm - 2 * (1 - xm)
+        (xm_p1 - xm**2) * xm - 2 * (1 - xm)
     der[0] = -400 * x[0] * (x[1] - x[0]**2) - 2 * (1 - x[0])
     der[-1] = 200 * (x[-1] - x[-2]**2)
     return der
@@ -808,7 +808,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         A1 = I - sk[:, numpy.newaxis] * yk[numpy.newaxis, :] * rhok
         A2 = I - yk[:, numpy.newaxis] * sk[numpy.newaxis, :] * rhok
         Hk = numpy.dot(A1, numpy.dot(Hk, A2)) + rhok * sk[:, numpy.newaxis] \
-        * sk[numpy.newaxis, :]
+            * sk[numpy.newaxis, :]
 
     if disp or full_output:
         fval = old_fval

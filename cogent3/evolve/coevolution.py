@@ -281,10 +281,10 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
     for i in range(aln_length):
         for j in range(i + 1):
             result[i, j] = mi_pair(alignment, pos1=i, pos2=j,
-                                  h1=positional_entropies[
-                                      i], h2=positional_entropies[j],
-                                  mi_calculator=mi_calculator, null_value=null_value,
-                                  excludes=excludes, exclude_handler=exclude_handler)
+                                   h1=positional_entropies[
+                                       i], h2=positional_entropies[j],
+                                   mi_calculator=mi_calculator, null_value=null_value,
+                                   excludes=excludes, exclude_handler=exclude_handler)
     # copy the lower triangle to the upper triangle to make
     # the matrix symmetric
     ltm_to_symmetric(result)
@@ -1012,7 +1012,7 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
                  seq_freqs.Uncertainty)
     scales = calc_pair_scale(seqs, col1, col2, weights1, weights2)
     scaled_mi = 1 - sum([w * seq_freqs[pr] for pr, e, w in scales
-                       if entropy <= e])
+                         if entropy <= e])
 
     return scaled_mi
 
@@ -1297,7 +1297,7 @@ def validate_alignment(alignment):
     """ValueError on ambiguous alignment characters"""
     bad_seqs = []
     for name, ambiguous_pos in \
-    list(alignment.getPerSequenceAmbiguousPositions().items()):
+            list(alignment.getPerSequenceAmbiguousPositions().items()):
         if ambiguous_pos:
             bad_seqs.append(name)
     if bad_seqs:
@@ -1312,7 +1312,7 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
     valid_methods_for_different_moltypes = {}.fromkeys(
         [mi_alignment, nmi_alignment, resampled_mi_alignment])
     if (alignment1.MolType != alignment2.MolType) and \
-    method not in valid_methods_for_different_moltypes:
+            method not in valid_methods_for_different_moltypes:
         raise AssertionError("Different MolTypes only supported for %s" %
                              ' '.join(map(str, list(valid_methods_for_different_moltypes.keys()))))
 
@@ -1326,7 +1326,7 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
             set([n.split('+')[0].strip()
                  for n in kwargs['tree'].getTipNames()])
         assert alignment1_names == alignment2_names == tip_names,\
-        "Alignment and tree sequence names must perfectly overlap"
+            "Alignment and tree sequence names must perfectly overlap"
     else:
         # no tree passed in
         assert alignment1_names == alignment2_names,\
@@ -1394,9 +1394,9 @@ def merge_alignments(alignment1, alignment2):
     # Created maps from the final seq ids (i.e., seq id before plus) to the
     # seq ids in the original alignments
     aln1_name_map = \
-    dict([(n.split('+')[0].strip(), n) for n in alignment1.Names])
+        dict([(n.split('+')[0].strip(), n) for n in alignment1.Names])
     aln2_name_map = \
-    dict([(n.split('+')[0].strip(), n) for n in alignment2.Names])
+        dict([(n.split('+')[0].strip(), n) for n in alignment2.Names])
 
     try:
         for merged_name, orig_name in list(aln1_name_map.items()):
@@ -2108,7 +2108,7 @@ def count_le_threshold(m, threshold, null_value=gDefaultNullValue,
 def ltm_to_symmetric(m):
     """ Copies values from lower triangle to upper triangle"""
     assert m.shape[0] == m.shape[1], \
-    "Making matrices symmetric only supported for square matrices"
+        "Making matrices symmetric only supported for square matrices"
 
     for i in range(len(m)):
         for j in range(i):

@@ -39,10 +39,10 @@ default_email_address = 'Michael.Robeson@colorado.edu'
 
 # databases last updated 7/22/05
 valid_databases = dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",
-                               "genome", "books", "cancerchromosomes", "cdd", "domains", "gene",
-                               "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",
-                               "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",
-                               "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
+                                 "genome", "books", "cancerchromosomes", "cdd", "domains", "gene",
+                                 "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",
+                                 "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",
+                                 "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
 
 # rettypes last updated 7/22/05
 # somehow, I don't think we'll be writing parsers for all these...

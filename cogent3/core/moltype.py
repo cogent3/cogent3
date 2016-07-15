@@ -69,7 +69,7 @@ IUPAC_DNA_ambiguities = {
     'D': ('A', 'T', 'G'),
     'H': ('A', 'C', 'T'),
     'V': ('A', 'C', 'G')
-    }
+}
 IUPAC_DNA_ambiguities_complements = {
     'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
     'M': 'K', 'K': 'M',
@@ -105,7 +105,7 @@ IUPAC_RNA_ambiguities = {
     'D': ('A', 'U', 'G'),
     'H': ('A', 'C', 'U'),
     'V': ('A', 'C', 'G')
-    }
+}
 
 IUPAC_RNA_ambiguities_complements = {
     'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', '-': '-',

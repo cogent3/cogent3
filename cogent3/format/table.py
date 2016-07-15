@@ -29,7 +29,7 @@ def _merged_cell_text_wrap(text, max_line_length, space):
     wrapped = textwrap.wrap(text, width=max_line_width,
                             initial_indent=buffer, subsequent_indent=buffer)
     wrapped = ["%s" % line.ljust(max_line_width + 2 * space)
-                                 for line in wrapped]
+               for line in wrapped]
     return wrapped
 
 
@@ -185,7 +185,7 @@ def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e1
         col_widths = [len(head) for head in header]
         sep = len(space)
         min_length = sep * (identifiers - 1) + \
-        sum(col_widths[: identifiers])
+            sum(col_widths[: identifiers])
 
         if min_length > max_width:
             raise RuntimeError("Maximum width too small for identifiers")

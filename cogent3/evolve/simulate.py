@@ -53,7 +53,7 @@ def evolveSequence(random_series, motifs, parent_seq, site_cats,
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = \
-                _randomMotifGenerator(random_series, mprobs)
+                    _randomMotifGenerator(random_series, mprobs)
             edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
     return seq

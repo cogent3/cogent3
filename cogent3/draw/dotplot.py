@@ -65,7 +65,7 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     # Figure with correct aspect
     # Indent enough for labels and/or vertical display
     (w, h), posn = figureLayout(width=w1, height=w2,
-                               left=max(x1, y2 + h2), bottom=y1 + h1, **kw)
+                                left=max(x1, y2 + h2), bottom=y1 + h1, **kw)
     fig = plt.figure(figsize=(w, h), facecolor='white')
 
     fw = fig.get_figwidth()
@@ -117,7 +117,7 @@ class Display2D(Drawable):
                 rev = dotplot(str(self.seq1.reversecomplement()),
                               str(self.seq2), window, threshold, min_gap, None)
                 rev = [((len1 - x1, y1), (len1 - x2, y2))
-                        for ((x1, y1), (x2, y2)) in rev]
+                       for ((x1, y1), (x2, y2)) in rev]
             else:
                 rev = []
             self._cache[key] = (fwd, rev)

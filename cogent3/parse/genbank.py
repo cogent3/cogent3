@@ -30,7 +30,7 @@ rna_lc_cmp = 'aaugcyrwskmvhdbn'
 rna_trans = maketrans(rna_lc + rna_lc.upper(), rna_lc_cmp + rna_lc_cmp.upper())
 
 locus_fields = [None, 'locus', 'length', None,
-    'mol_type', 'topology', 'db', 'date']
+                'mol_type', 'topology', 'db', 'date']
 _locus_parser = FieldWrapper(locus_fields)
 
 # need to turn off line stripping, because whitespace is significant

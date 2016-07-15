@@ -319,7 +319,7 @@ def Variable(parent, type, Name, xxy_list):
     end = max([max(x1, x2) for ((x1, x2), y) in xxy_list])
     if start != 0:
         xxy_list = [((x1 - start, x2 - start), y)
-                     for ((x1, x2), y) in xxy_list]
+                    for ((x1, x2), y) in xxy_list]
         end -= start
     #values = [location.Span(x1-start, x2-start, True, True, y) for ((x1, x2), y) in xxy]
     map = Map([(start, end)], parent_length=len(parent))

@@ -1279,7 +1279,7 @@ class TreeNode(object):
                 result.pop()
             (lo, hi, end) = (mids[0], mids[-1], len(result))
             prefixes = [PAD] * (lo + 1) + [PA + '|'] * \
-                                (hi - lo - 1) + [PAD] * (end - hi)
+                (hi - lo - 1) + [PAD] * (end - hi)
             mid = (lo + hi) // 2
             prefixes[mid] = char1 + '-' * (LEN - 2) + prefixes[mid][-1]
             result = [p + l for (p, l) in zip(prefixes, result)]
@@ -1626,7 +1626,7 @@ class TreeNode(object):
         other_order = [other_names.index(i) for i in common_names]
         self_matrix = self.tipToTipDistances()[0][self_order][:, self_order]
         other_matrix = other.tipToTipDistances()[0][other_order][
-                                               :, other_order]
+            :, other_order]
         return dist_f(self_matrix, other_matrix)
 
 
@@ -2129,7 +2129,7 @@ class PhyloNode(TreeNode):
         self_names = dict([(i.Name, i) for i in self.tips()])
         other_names = dict([(i.Name, i) for i in other.tips()])
         common_names = frozenset(list(self_names.keys())) & \
-        frozenset(list(other_names.keys()))
+            frozenset(list(other_names.keys()))
         common_names = list(common_names)
 
         if not common_names:
@@ -2197,6 +2197,6 @@ class TreeBuilder(object):
             Name=self._unique_name(name),
             NameLoaded=nameLoaded and (name is not None),
             Params=params,
-            )
+        )
         self._known_edges[id(node)] = node
         return node

@@ -361,7 +361,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
         axA = genemap.asAxes(
             fig, [vert + p_width + link_width,
-                y_margin, annot_width, c_height],
+                  y_margin, annot_width, c_height],
             vertical=True, labeled=True)
 
         axP.yaxis.set_visible(False)

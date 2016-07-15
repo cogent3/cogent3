@@ -90,7 +90,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             else:
                 edgelengths[tips] = length
     cladecounts = [(count, clade)
-                    for (clade, count) in list(cladecounts.items())]
+                   for (clade, count) in list(cladecounts.items())]
     cladecounts.sort()
     cladecounts.reverse()
 
@@ -176,7 +176,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
             split_lengths[split] /= split_weights[split]
     total_weight = sum(w for w, t in weighted_trees[::-1])
     weighted_splits = [(w / total_weight, s)
-                        for s, w in list(split_weights.items())]
+                       for s, w in list(split_weights.items())]
     weighted_splits.sort(reverse=True)
 
     # Remove conflicts and any with support < 50% if strict

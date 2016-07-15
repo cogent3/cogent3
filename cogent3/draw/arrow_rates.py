@@ -23,11 +23,11 @@ __status__ = "Production"
 
 rc('text', usetex=True)
 rates_to_bases = {'r1': 'AT', 'r2': 'TA', 'r3': 'GA', 'r4': 'AG', 'r5': 'CA', 'r6': 'AC',
-                'r7': 'GT', 'r8': 'TG', 'r9': 'CT', 'r10': 'TC', 'r11': 'GC', 'r12': 'CG'}
+                  'r7': 'GT', 'r8': 'TG', 'r9': 'CT', 'r10': 'TC', 'r11': 'GC', 'r12': 'CG'}
 numbered_bases_to_rates = dict(
     [(v, k) for k, v in list(rates_to_bases.items())])
 lettered_bases_to_rates = dict([(v, 'r' + v)
-                               for k, v in list(rates_to_bases.items())])
+                                for k, v in list(rates_to_bases.items())])
 
 
 def add_dicts(d1, d2):
@@ -68,7 +68,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
     min_text_size = size
     label_text_size = size * 2.5
     text_params = {'ha': 'center', 'va': 'center', 'family': 'sans-serif',
-                 'fontweight': 'bold'}
+                   'fontweight': 'bold'}
     r2 = sqrt(2)
 
     deltas = {
@@ -132,7 +132,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
     max_head_width = 2.5 * max_arrow_width
     max_head_length = 2 * max_arrow_width
     arrow_params = {'length_includes_head': True, 'shape': shape,
-                  'head_starts_at_zero': head_starts_at_zero}
+                    'head_starts_at_zero': head_starts_at_zero}
     ax = gca()
     sf = 0.6  # max arrow size represents this in data coords
 

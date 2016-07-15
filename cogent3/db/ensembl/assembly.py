@@ -130,7 +130,7 @@ class Coordinate(object):
         name = _Species.getCommonName(self.Species)
         coord_type = self.CoordType
         c = '%s(%r,%r,%r,%d-%d,%d)' % (my_type, name, coord_type,
-                                     self.CoordName, self.Start, self.End, self.Strand)
+                                       self.CoordName, self.Start, self.End, self.Strand)
         return c.replace("'", "")
 
     def adopted(self, other, shift=False):
@@ -236,7 +236,7 @@ class CoordSystemCache(object):
         self._species_coord_systems[species] = {}
         coord_table = core_db.getTable('coord_system')
         records = sql.select([coord_table]).where(coord_table.c.attrib.like('default%')).\
-        execute().fetchall()    # only select default version
+            execute().fetchall()    # only select default version
         for record in records:
             attr = self._species_coord_systems[species]
             for key in ['coord_system_id', 'name']:

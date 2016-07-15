@@ -41,7 +41,7 @@ class FeatureTypeCache(LazyRecord):
         record = asserted_one(query.execute())
         self._table_rows['analysis_description'] = record
         quoted_limited = lambda x: DisplayString(x, with_quotes=True,
-                                                  num_words=2)
+                                                 num_words=2)
         self._populate_cache_from_record(
             [('CpGisland', 'analysis_id', quoted_limited)],
             'analysis_description')
@@ -383,7 +383,7 @@ class Genome(object):
         simple_feature_table = db.getTable('simple_feature')
         feature_types = ['CpGisland']
         feature_type_ids = [str(self._feature_type_ids.get(f))
-                                for f in feature_types]
+                            for f in feature_types]
         # fix the following
         query = sql.select([simple_feature_table],
                            sql.and_(simple_feature_table.c.analysis_id.in_(feature_type_ids),

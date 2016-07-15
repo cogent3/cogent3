@@ -46,7 +46,7 @@ class WLS(TreeEvaluator):
 
         self.dists = dists
         self.weights = weights or \
-        dict((key, 1.0 / (dists[key]**2)) for key in dists)
+            dict((key, 1.0 / (dists[key]**2)) for key in dists)
         (self.names, dists) = distanceDictTo1D(self.dists)
 
     def makeTreeScorer(self, names):
