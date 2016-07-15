@@ -15,7 +15,7 @@ __status__ = "Production"
 
 
 data = \
-"""
+    """
                            DIALIGN 2.2.1 
                            *************
 

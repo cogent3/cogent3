@@ -2459,19 +2459,19 @@ class ResampledMiTests(TestCase):
 
 
 ALN_FILE=\
-"""Seq_1   ACDEFG
+    """Seq_1   ACDEFG
 Seq_2   STVWY-
 Seq_3 WY.ZBX"""
 
 #J in here
 ALN_FILE_WRONG_KEY=\
-"""Seq_1   ACDKLM
+    """Seq_1   ACDKLM
 Seq_2   JINCK-
 Seq_3 VX.MAB"""
 
 #last seq too long
 ALN_FILE_INC_SHAPE=\
-"""Seq_1   ACDKLM
+    """Seq_1   ACDKLM
 Seq_2   LINCK-
 Seq_3 VX.MABN"""
 

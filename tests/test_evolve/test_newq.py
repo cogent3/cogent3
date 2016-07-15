@@ -51,9 +51,9 @@ def make_p(length, coord, val):
 
 class NewQ(TestCase):
     aln = LoadSeqs(data={
-    'seq1': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
-    'seq2': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT'},
-    moltype=DNA)
+        'seq1': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
+        'seq2': 'TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT'},
+        moltype=DNA)
     tree = LoadTree(tip_names=['seq1', 'seq2'])
 
     symm_nuc_probs = dict(A=0.25,T=0.25,C=0.25,G=0.25)
@@ -249,10 +249,10 @@ class NewQ(TestCase):
         """return correct motif probability vector for tree nodes"""
         tree = LoadTree(treestring='(a:.2,b:.2,(c:.1,d:.1):.1)')
         aln = LoadSeqs(data={
-        'a': 'TGTG',
-        'b': 'TGTG',
-        'c': 'TGTG',
-        'd': 'TGTG',
+            'a': 'TGTG',
+            'b': 'TGTG',
+            'c': 'TGTG',
+            'd': 'TGTG',
         })
 
         motifs = ['T', 'C', 'A', 'G']

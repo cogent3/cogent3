@@ -33,10 +33,10 @@ class GeneticCodeTests(TestCase):
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
         ]
         self.NcbiStandard = [
-        'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-        1,
-        'Standard Nuclear',
-        '---M---------------M---------------M----------------------------',
+            'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+            1,
+            'Standard Nuclear',
+            '---M---------------M---------------M----------------------------',
         ]
 
     def test_init(self):

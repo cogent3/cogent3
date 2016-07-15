@@ -234,8 +234,8 @@ class DrawingTests(unittest.TestCase):
                 SquareDendrogram, 
                 ContemporaneousDendrogram, 
                 ShelvedDendrogram, 
-        #        StraightDendrogram, 
-        #        ContemporaneousStraightDendrogram
+            #        StraightDendrogram, 
+            #        ContemporaneousStraightDendrogram
                 ]:
             dendro = klass(t)
             dendro.getConnectingNode('Ccccccccccc', 'Eeeeeeeeeee').setCollapsed(

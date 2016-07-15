@@ -50,49 +50,49 @@ class GenBankTests(TestCase):
         """indent_splitter should split lines at correct locations"""
         #if lines have same indent, should not group together
         lines = [
-        'abc    xxx',
-        'def    yyy'
+            'abc    xxx',
+            'def    yyy'
         ]
         self.assertEqual(list(indent_splitter(lines)),\
             [[lines[0]], [lines[1]]])
         #if second line is indented, should group with first
         lines = [
-        'abc    xxx',
-        ' def    yyy'
+            'abc    xxx',
+            ' def    yyy'
         ]
         self.assertEqual(list(indent_splitter(lines)),\
             [[lines[0], lines[1]]])
 
         #if both lines indented but second is more, should group with first
         lines = [
-        ' abc    xxx',
-        '  def    yyy'
+            ' abc    xxx',
+            '  def    yyy'
         ]
         self.assertEqual(list(indent_splitter(lines)),\
             [[lines[0], lines[1]]])
 
         #if both lines indented equally, should not group
         lines = [
-        '   abc    xxx',
-        '   def    yyy'
+            '   abc    xxx',
+            '   def    yyy'
         ]
         self.assertEqual(list(indent_splitter(lines)), \
             [[lines[0]], [lines[1]]])
 
         #for more complex situation, should produce correct grouping
         lines = [
-        '  xyz',    #0 -
-        '  xxx',    #1 -
-        '   yyy',   #2
-        '   uuu',   #3
-        '   iii',   #4
-        '  qaz',    #5 -
-        '  wsx',    #6 -
-        '   az',    #7
-        '   sx',    #8
-        '        gb',#9
-        '   bg',    #10
-        '  aaa',    #11 -
+            '  xyz',    #0 -
+            '  xxx',    #1 -
+            '   yyy',   #2
+            '   uuu',   #3
+            '   iii',   #4
+            '  qaz',    #5 -
+            '  wsx',    #6 -
+            '   az',    #7
+            '   sx',    #8
+            '        gb',#9
+            '   bg',    #10
+            '  aaa',    #11 -
         ]
         self.assertEqual(list(indent_splitter(lines)), \
             [[lines[0]], lines[1:5], [lines[5]], lines[6:11], [lines[11]]])

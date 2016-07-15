@@ -412,8 +412,8 @@ class RootParsersKnownValues(TestCase):
             "OG   Plasmid IncFII R1-19 (R1 drd-19)."]
         self.assertEqual(og_parser(lines),
             ['XXX; xx', [
-            'Plasmid R6-5', 'Plasmid IncFII R100 (NR1)',
-            'Plasmid IncFII R1-19 (R1 drd-19)']])
+                'Plasmid R6-5', 'Plasmid IncFII R100 (NR1)',
+                'Plasmid IncFII R1-19 (R1 drd-19)']])
 
     def test_ox_parser(self):   
         """ox_parser should return expected dict"""
@@ -777,7 +777,7 @@ class ReferenceTests(TestCase):
 #################################
 # global test data
 ft_lines = \
-"""FT   CHAIN        29    262       Granzyme A.
+    """FT   CHAIN        29    262       Granzyme A.
 FT                                /FTId=PRO_0000027394.
 FT   ACT_SITE     69     69       Charge relay system.
 FT   VARIANT     121    121       T -> M (in dbSNP:3104233).
@@ -790,7 +790,7 @@ FT   STRAND       33     34
 FT   TURN         37     38""".splitlines()
 
 ft_expect = \
-{'ACT_SITE': [{'Start': 69, 'End': 69, 'Description': 'Charge relay system'}],
+    {'ACT_SITE': [{'Start': 69, 'End': 69, 'Description': 'Charge relay system'}],
  'CHAIN': [{'Description': {'Description': 'Granzyme A',
                             'Id': 'PRO_0000027394'},
             'End': 262,
@@ -817,7 +817,7 @@ ft_expect = \
               'Start': 1}]}
 
 dr_lines =\
-"""DR   MIM; 140050; gene.
+    """DR   MIM; 140050; gene.
 DR   GO; GO:0001772; C:immunological synapse; TAS.
 DR   GO; GO:0005634; C:nucleus; TAS.
 DR   GO; GO:0006915; P:apoptosis; TAS.
@@ -839,7 +839,7 @@ dr_expect =\
     'MIM': [['140050', 'gene']]}
 
 cc_lines = \
-"""CC   -!- ALLERGEN: Causes an allergic reaction in human. Binds to IgE.
+    """CC   -!- ALLERGEN: Causes an allergic reaction in human. Binds to IgE.
 CC       bovine dander.
 CC   -!- ALTERNATIVE PRODUCTS:
 CC       Event=Alternative splicing; Named isoforms=3;

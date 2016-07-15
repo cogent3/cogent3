@@ -25,14 +25,14 @@ class UPGMATests(TestCase):
         """creates inputs"""
         self.pairwise_distances = {('a', 'b'): 1.0,
         ('a', 'c'):4.0,
-        ('a', 'd'):20.0,
-        ('a', 'e'):22.0,
-        ('b', 'c'):5.0,
-        ('b', 'd'):21.0,
-        ('b', 'e'):23.0,
-        ('c', 'd'):10.0,
-        ('c', 'e'):12.0,
-        ('d', 'e'):2.0}
+            ('a', 'd'):20.0,
+            ('a', 'e'):22.0,
+            ('b', 'c'):5.0,
+            ('b', 'd'):21.0,
+            ('b', 'e'):23.0,
+            ('c', 'd'):10.0,
+            ('c', 'e'):12.0,
+            ('d', 'e'):2.0}
         #create a list of PhyloNode objects
         a, b, c, d, e = list(map(PhyloNode, 'abcde'))
         self.node_order = [a, b, c, d, e]

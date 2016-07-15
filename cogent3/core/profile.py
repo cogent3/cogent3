@@ -122,13 +122,13 @@ class Profile(object):
         """
         if not 0 <= pos < len(self.Data):
             raise ProfileError(\
-            "Position %s is not present in the profile"%(pos))
+                "Position %s is not present in the profile"%(pos))
         if character is None:
             return self.Data[pos,:]
         else:
             if character not in self.CharOrder:
                 raise ProfileError(\
-                "Character %s is not present in the profile's CharacterOrder"\
+                    "Character %s is not present in the profile's CharacterOrder"\
                     %(character))
             return self.Data[pos, self.CharOrder.index(character)]
 
@@ -611,11 +611,11 @@ class Profile(object):
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen,sorted)):
                     to_take = [item for item in row[-num_to_keep:]\
                     if item in nonzero(data[row_idx])[0]] +\
-                    [item for item in nonzero(data[row_idx] ==\
+                        [item for item in nonzero(data[row_idx] ==\
                         data[row_idx,row[-num_to_keep]])[0] if item in\
                         nonzero(data[row_idx])[0]]
                     result.append(alpha.degenerateFromSequence(\
-                    list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
+                        list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
             else:
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen,sorted)):
                     result.append(alpha.degenerateFromSequence(\

@@ -143,10 +143,10 @@ def FastaParser(infile,seq_maker=None,info_maker=MinimalInfo,strict=True):
 
 #labeled fields in the NCBI FASTA records
 NcbiLabels = {
-'dbj':'DDBJ',
-'emb':'EMBL',
-'gb':'GenBank',
-'ref':'RefSeq',
+    'dbj':'DDBJ',
+    'emb':'EMBL',
+    'gb':'GenBank',
+    'ref':'RefSeq',
 }
 
 def NcbiFastaLabelParser(line):

@@ -72,8 +72,8 @@ class TestIntegratingExponentiator(TestCase):
 
         p = array([[ 0.86758487,  0.05575623,  0.0196798 ,  0.0569791 ],
         [ 0.01827347,  0.93312148,  0.02109664,  0.02750842],
-        [ 0.04782582,  0.1375742 ,  0.80046869,  0.01413129],
-        [ 0.23022035,  0.22306947,  0.06995306,  0.47675713]])
+            [ 0.04782582,  0.1375742 ,  0.80046869,  0.01413129],
+            [ 0.23022035,  0.22306947,  0.06995306,  0.47675713]])
 
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(1.),
                 expm.VanLoanIntegratingExponentiator(p,

@@ -769,7 +769,7 @@ def sca_position(alignment,position,cutoff,\
         for i in range(len(alignment)):
             position_freqs.append(\
                 get_positional_frequencies(\
-                alignment,i,alphabet,scaled_aln_size))
+                    alignment,i,alphabet,scaled_aln_size))
 
     if not position_probs:
         position_probs = []
