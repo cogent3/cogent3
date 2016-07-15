@@ -17,13 +17,16 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class Dict2DError(Exception):
     """All Dict2D-specific errors come from here."""
     pass
 
+
 class Dict2DInitError(ValueError, Dict2DError):
     """Raised if Dict2D init fails."""
     pass
+
 
 class Dict2DSparseError(KeyError, Dict2DError):
     """Raised on operations that fail because the Dict2D is sparse."""
@@ -46,6 +49,7 @@ def average(upper, lower):
         raise TypeError("%s or %s invalid types for averaging."\
                         % (str(upper), str(lower)))
 
+
 def largest(upper, lower):
     """Returns largest of the two values."""
     if None not in (upper, lower):
@@ -56,6 +60,7 @@ def largest(upper, lower):
         val = upper
     return val, val
 
+
 def smallest(upper, lower):
     """Returns smallest of the two values."""
     if None not in (upper, lower):
@@ -64,9 +69,11 @@ def smallest(upper, lower):
         val = None
     return val, val
 
+
 def swap(upper, lower):
     """Swaps the two values."""
     return lower, upper
+
 
 def nonzero(upper, lower):
     """Fills both values to whichever evaluates True, or leaves in place."""
@@ -76,6 +83,7 @@ def nonzero(upper, lower):
         return lower, lower
     else:
         return upper, lower
+
 
 def not_0(upper, lower):
     """Fills both values to whichever is not equal to 0, or leaves in place."""
@@ -89,9 +97,11 @@ def not_0(upper, lower):
     else:
         return upper, lower
 
+
 def upper_to_lower(upper, lower):
     """ return new symm matrix with upper tri copied to lower tri"""
     return upper, upper
+
 
 def lower_to_upper(upper, lower):
     """ return new symm matrix with upper tri copied to lower tri"""
@@ -306,7 +316,6 @@ class Dict2D(dict):
                 if key not in row:
                     del result[key]
         return list(result)
-
 
     def square(self, default=None, reset_order=False):
         """Checks RowOrder and ColOrder share keys, and that self[r][c] exists.

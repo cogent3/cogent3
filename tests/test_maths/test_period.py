@@ -27,7 +27,9 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class TestPeriod(TestCase):
+
     def setUp(self):
         t = arange(0, 10, 0.1)
         n = random.randn(len(t))

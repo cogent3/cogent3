@@ -69,6 +69,7 @@ def get_tag(record, name, default=None):
     else:
         return default
 
+
 def parse_hit(hit_tag, query_id=1):
     """
     Parses a 'Hit' dom object.
@@ -85,6 +86,7 @@ def parse_hit(hit_tag, query_id=1):
     for hsp_tag in hit_tag.getElementsByTagName('Hsp'):
         result.append(hit_data + parse_hsp(hsp_tag))
     return result
+
 
 def parse_hsp(hsp_tag):
     """
@@ -120,6 +122,7 @@ def parse_header(tag):
             result[k] = data[k]
     return result
 
+
 def parse_parameters(tag):
     """Parses a 'BlastOutput_param' dom object."""
     result = {}
@@ -129,6 +132,7 @@ def parse_parameters(tag):
     result['gap_extend_penalty'] = float(get_tag(tag, 'Parameters_gap-extend'))
     result['filter'] = get_tag(tag, 'Parameters_filter')
     return result
+
 
 def MinimalBlastParser7(lines, include_column_names=False, format='xml'):
     """Yields succesive records from lines (props, data list).

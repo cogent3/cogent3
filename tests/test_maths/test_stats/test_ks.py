@@ -13,6 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class KSTests(TestCase):
     """Tests Kolmogorov-Smirnov."""
 

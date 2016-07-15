@@ -198,7 +198,6 @@ class TestPair(TestCase):
         not_tk = logdet_calc.getPairwiseDistances()
         self.assertNotEqual(tk, not_tk)
 
-
     def test_logdet_pair_aa(self):
         """logdet shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)

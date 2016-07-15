@@ -15,11 +15,13 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, **kw):
     # warnings.warn("cogent3.align.align.dotplot moved to cogent3.align.compare.dotplot",
     #    DeprecationWarning)
     return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length, 
                              band, **kw)
+
 
 def make_dna_scoring_dict(match, transition, transversion):
     DNA = {}
@@ -35,6 +37,7 @@ def make_dna_scoring_dict(match, transition, transversion):
                 score = transversion
             DNA[a, b] = score
     return DNA
+
 
 def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw):
     """Generic alignment with any substitution model and indel model"""
@@ -54,6 +57,7 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, retu
     else:
         return score
 
+
 def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     """Alignment specified by gap costs and a score matrix"""
     TM = indel_model.ClassicGapScores(d, e)
@@ -69,8 +73,11 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM
+
+
 def local_pairwise(s1, s2, S, d, e, return_score=False):
     return classic_align_pairwise(s1, s2, S, d, e, True, return_score=return_score)
+
 
 def global_pairwise(s1, s2, S, d, e, return_score=False):
     return classic_align_pairwise(s1, s2, S, d, e, False, return_score=return_score)

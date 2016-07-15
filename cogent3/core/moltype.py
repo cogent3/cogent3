@@ -198,9 +198,11 @@ PROTEIN_WITH_STOP_ambiguities = {
     'Z': ['Q', 'E'],
 }
 
+
 class FoundMatch(Exception):
     """Raised when a match is found in a deep loop to skip many levels"""
     pass
+
 
 def make_matches(monomers=None, gaps=None, degenerates=None):
     """Makes a dict of symbol pairs (i,j) -> strictness.
@@ -238,6 +240,7 @@ def make_matches(monomers=None, gaps=None, degenerates=None):
             except FoundMatch:
                 pass  # flow control: break out of doubly nested loop
     return result
+
 
 def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
     """Makes a dict of symbol pairs (i,j) -> strictness.
@@ -308,6 +311,7 @@ RnaPairingRules = {
 
 for k, v in list(RnaPairingRules.items()):
     RnaPairingRules[k] = (v, make_pairs(v))
+
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
@@ -386,6 +390,7 @@ class AlphabetGroup(CoreObjectGroup):
             for i in self._items:
                 i._complement_array = _make_complement_array(i, comps)
 
+
 class MolType(object):
     """MolType: Handles operations that depend on the sequence type (e.g. DNA).
 
@@ -399,6 +404,7 @@ class MolType(object):
     not be what you expect. Use preserve_existing_moltypes=True if you
     don't want to reset the moltype.
     """
+
     def __init__(self, motifset, Gap=IUPAC_gap, Missing=IUPAC_missing,\
                  Gaps=None,
                  Sequence=None, Ambiguities=None,
@@ -776,6 +782,7 @@ class MolType(object):
                 return sequence.__class__(self.stripDegenerate(sequence))
             except:
                 ambi = self.Degenerates
+
                 def not_ambiguous(x):
                     return not x in ambi
                 return sequence.__class__(list(filter(not_ambiguous, sequence)))
@@ -802,6 +809,7 @@ class MolType(object):
             return sequence.__class__(sequence.translate(trans))
         except AttributeError:
             gap = self.Gaps
+
             def not_gap(x):
                 return not x in gap
             return sequence.__class__(list(filter(not_gap, sequence)))
@@ -1081,6 +1089,7 @@ AB = MolType(
     ModelSeq=ModelSequence,
     label='ab')
 
+
 class _CodonAlphabet(Alphabet):
     """Codon alphabets are DNA TupleAlphabets with a genetic code attribute and some codon-specific methods"""
 
@@ -1111,6 +1120,7 @@ def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
     a = _CodonAlphabet(motifset, MolType=DNA)
     a._gc = gc
     return a
+
 
 def _method_codon_alphabet(ignore, *args, **kwargs):
     """If CodonAlphabet is set as a property, it gets self as extra 1st arg."""

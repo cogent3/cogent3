@@ -18,6 +18,7 @@ __status__ = "Production"
 
 strip = str.strip
 
+
 def parse_nexus_tree(tree_f):
     """returns a dict mapping taxa # to name from the translation table,
     and a dict mapping tree name to dnd string;
@@ -30,6 +31,7 @@ def parse_nexus_tree(tree_f):
         trans_table = parse_trans_table(trans_table_s)
     dnd = parse_dnd(dnd_s)
     return trans_table, dnd
+
 
 def get_tree_info(tree_f):
     """returns the trees section of a Nexus file:
@@ -49,12 +51,14 @@ def get_tree_info(tree_f):
             else:
                 result.append(line)
 
+
 def check_tree_info(tree_info):
     """makes sure that there is a tree section in the file"""
     if tree_info:
         pass
     else:
         raise RecordError("not a valid Nexus Tree File")
+
 
 def split_tree_info(tree_info):
     """Returns header, table, and dnd info from tree section of Nexus file.:
@@ -83,6 +87,7 @@ def split_tree_info(tree_info):
         elif state == "in_dnd":
             dnd.append(line)
     return header, trans_table, dnd
+
 
 def parse_trans_table(trans_table):
     """returns a dict with the taxa names indexed by number"""
@@ -115,6 +120,7 @@ def parse_dnd(dnd):  # get rooted info
         dnd_dict[name] = data
     return dnd_dict
 
+
 def get_BL_table(branch_lengths):
     """returns the section of the log file with the BL table
     as a list of strings"""
@@ -134,6 +140,7 @@ def get_BL_table(branch_lengths):
             else:
                 result.append(line)
     return result
+
 
 def find_fields(line, field_order=["taxa", "parent", "bl"], \
                 field_delims=[0, 21, 36, 49]):
@@ -166,6 +173,7 @@ def parse_taxa(taxa_field):
         data_match = re.search(r'\d+', term)
         data = data_match.group(0)
     return data            
+
 
 def parse_PAUP_log(branch_lengths):
     """gets branch length info from a PAUP log file

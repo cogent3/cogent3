@@ -20,16 +20,20 @@ __status__ = "Production"
 
 # Custom subclasses of Defn (see cogent3.recalulation) for use by substitution models.
 
+
 class AlignmentAdaptDefn(CalculationDefn):
     name = 'leaf_likelihoods'
+
     def calc(self, model, alignment):
         return model.convertAlignment(alignment)       
+
 
 class LengthDefn(PositiveParamDefn):
     name = 'length'
     valid_dimensions = ('edge',)
     independent_by_default = True
     upper = 10.0
+
 
 class RateDefn(RatioParamDefn):
     name = 'rate'
@@ -38,9 +42,11 @@ class RateDefn(RatioParamDefn):
     lower = 1e-3
     upper = 1e+3
 
+
 class SubstitutionParameterDefn(RatioParamDefn):
     valid_dimensions = ('edge', 'bin', 'locus')
     independent_by_default = False
+
 
 class ExpDefn(CalculationDefn):
     name = 'exp'

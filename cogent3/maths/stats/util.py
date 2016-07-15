@@ -123,13 +123,16 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class SummaryStatisticsError(ValueError):
     """Raised when not possible to calculate a requested summary statistic."""
     pass
 
+
 @total_ordering
 class SummaryStatistics(object):
     """Minimal statistics interface. Object is read-only once created."""
+
     def __init__(self, Count=None, Sum=None, Mean=None, StandardDeviation=None,
                  Variance=None, SumSquares=None, Median=None):
         """Returns a new SummaryStatistics object."""
@@ -292,7 +295,6 @@ class SummaryStatistics(object):
                 other_attr = 0
             result = result or my_attr != other_attr
         return result
-
 
 
 class NumbersI(object):
@@ -580,6 +582,7 @@ class NumbersI(object):
 
     Mode = property(_get_mode)
 
+
 class UnsafeNumbers(NumbersI, list):
     """Subclass of list that should only hold floating-point numbers.
 
@@ -589,6 +592,7 @@ class UnsafeNumbers(NumbersI, list):
     numbers, and performs almost no validation.
     """
     pass
+
 
 class Numbers(NumbersI, MappedList):
     """Safe version of Numbers that validates on all list operations.
@@ -622,6 +626,7 @@ class Numbers(NumbersI, MappedList):
         else:
             data = []
         MappedList.__init__(self, data, Constraint, Mask)
+
 
 class FreqsI(object):
     """Interface for frequency distribution, i.e. a set of value -> count pairs.
@@ -699,7 +704,6 @@ class FreqsI(object):
 
     newFromDicts = classmethod(newFromDicts)
 
-
     def fromSeq(self, seq, op=add, weight=1, uses_key=False):
         """Adds counts to self inplace from seq. Each item adds 'weight' counts.
 
@@ -748,7 +752,6 @@ class FreqsI(object):
         return result.fromSeqs(seqs, op, weight, uses_key)
 
     newFromSeqs = classmethod(newFromSeqs)
-
 
     def _find_conversion_function(self, data):
         """Figures out which conversion function to use for data."""
@@ -1133,7 +1136,6 @@ class FreqsI(object):
         return best
     Mode = property(_get_mode)
 
-
     def summarize(self):
         """Returns summary statistics for self."""
         return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
@@ -1157,6 +1159,7 @@ class FreqsI(object):
         else:
             return items
 
+
 class UnsafeFreqs(FreqsI, dict):
     """Holds a frequency distribution, i.e. a set of categpory -> count pairs.
 
@@ -1171,6 +1174,7 @@ class UnsafeFreqs(FreqsI, dict):
         result.update(self)
         return result
 
+
 def freqwatcher(x):
     """Checks frequencies are correct type and >= 0."""
     try:
@@ -1181,6 +1185,7 @@ def freqwatcher(x):
         return x
     else:
         raise ConstraintError("Got frequency %s < 0." % x)
+
 
 class Freqs(FreqsI, MappedDict):
     """Holds a frequency distribution, i.e. a set of category -> count pairs.
@@ -1211,6 +1216,7 @@ class Freqs(FreqsI, MappedDict):
         for key in self.RequiredKeys:
             if key not in self:
                 self[key] = 0.0
+
 
 class NumberFreqsI(FreqsI):
     """Interface for frequency distribution where values and counts are numbers.
@@ -1318,6 +1324,7 @@ class UnsafeNumberFreqs(NumberFreqsI, dict):
         result = self.__class__()
         result.update(self)
         return result
+
 
 class NumberFreqs(NumberFreqsI, MappedDict):
     """Class holding freqs where both keys and values are numbers.

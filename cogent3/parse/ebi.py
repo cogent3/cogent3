@@ -23,11 +23,13 @@ __status__ = "Development"
 
 maketrans = str.maketrans
 
+
 def strip(x, chars=None):
     if chars:
         return x.strip(chars)
     else:
         return x.strip()
+
 
 def rstrip(x, chars=None):
     if chars:
@@ -37,6 +39,7 @@ def rstrip(x, chars=None):
 
 
 all_chars = bytes(range(256))
+
 
 def rstrip_(chars=None):
     return curry(rstrip, chars=chars) 
@@ -96,6 +99,7 @@ def pairs_to_dict(key_values, dict_mode=None,
 
     elif dict_mode == 'allow_multi_value':
         multiples = {}  # auxillary dict recording the keys with multi_values
+
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place
 
@@ -150,6 +154,7 @@ def pairs_to_dict(key_values, dict_mode=None,
 #################################
 # generic parsers
 
+
 def linecode_maker(line):
     """return the linecode and the line.
 
@@ -159,11 +164,13 @@ def linecode_maker(line):
     linecode = line.split('   ', 1)[0]
     return linecode, line
 
+
 def labeloff(lines, splice_from=5):
     """strip off the first splice_from characters from each line
 
     Warning: without check!"""
     return [line[splice_from:] for line in lines]
+
 
 def join_parser(lines, join_str=' ', chars_to_strip=' ;.'):
     """return a joined str from a list of lines, strip off chars requested from
@@ -175,6 +182,7 @@ def join_parser(lines, join_str=' ', chars_to_strip=' ;.'):
         result = join_str.join(lines)
 
     return result.strip(chars_to_strip)
+
 
 def join_split_parser(lines, delimiters=';', item_modifier=strip, 
                       same_level=False, **kwargs):
@@ -195,6 +203,7 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
 
     return NestedSplitter(delimiters, 
                           constructor=item_modifier, same_level=same_level)(result)
+
 
 def join_split_dict_parser(lines, delimiters=[';', ('=', 1), ','], 
                            dict_mode=None, strict=True, **kwargs):
@@ -286,6 +295,7 @@ def id_parser(lines):
     return mapping_parser(lines[0], delimiters=[';', None],
                           fields=('EntryName', 'DataClass', 'MolType', ('Length', int)))
 
+
 def sq_parser(lines):
     """return a mapping dict from SQ lines (only one line).
 
@@ -303,6 +313,7 @@ def sq_parser(lines):
     return mapping_parser(lines[0], delimiters=[';', None],
                           fields=(None, ('Length', int), None, ('MolWeight', int), None, 'Crc64'))
 
+
 def kw_parser(lines):
     """return a list of keywords from KW lines.
 
@@ -311,6 +322,7 @@ def kw_parser(lines):
     """
     lines = labeloff(lines)
     return join_split_parser(lines)
+
 
 def ac_parser(lines):
     """return a list of accession numbers from AC lines.
@@ -325,6 +337,7 @@ def ac_parser(lines):
     """
     lines = labeloff(lines)
     return join_split_parser(lines)
+
 
 def dt_parser(lines):
     """return the origal lines from DT lines.
@@ -357,6 +370,8 @@ def dt_parser(lines):
 
 #################################
 # gn_parser
+
+
 def gn_parser(lines):
     """return a list of dict from GN lines.
 
@@ -386,6 +401,7 @@ gn_itemparser = join_split_dict_parser
 gn_itemfinder = DelimitedRecordFinder('and', constructor=None, strict=False,
                                       keep_delimiter=False)
 
+
 def oc_parser(lines):
     """return a list from OC lines.
 
@@ -397,6 +413,7 @@ def oc_parser(lines):
     """
     lines = labeloff(lines)
     return join_split_parser(lines)
+
 
 def os_parser(lines):
     """return a list from OS lines.
@@ -418,6 +435,7 @@ def os_parser(lines):
     return join_split_parser(lines, 
                              delimiters='(', item_modifier=rstrip_(') ')) 
 
+
 def ox_parser(lines):
     """return a dict from OX lines.
 
@@ -430,6 +448,7 @@ def ox_parser(lines):
     taxonomic code."""
     lines = labeloff(lines)
     return join_split_dict_parser(lines)
+
 
 def og_parser(lines):
     """return a list from OG lines
@@ -479,6 +498,7 @@ def dr_parser(lines):
     result = pairs_to_dict(keyvalues, 'always_multi_value')
     return result
 
+
 def dr_itemparser(lines):
     """return a key, value pair from lines of a DR item.
     """
@@ -487,6 +507,8 @@ def dr_itemparser(lines):
 
 #################################
 # de_parser
+
+
 def de_parser(lines):
     """return a dict of {OfficalName: str, Synonyms: str, Fragment: bool,
     Contains: [itemdict,],  Includes: [itemdict,]} from DE lines
@@ -567,6 +589,7 @@ def de_parser(lines):
     result.update(primary)
     return result
 
+
 def de_itemparser(line):
     """return a dict of {OfficalName: str, Synonyms: [str,]} from a de_item
 
@@ -581,6 +604,7 @@ def de_itemparser(line):
     # if no '(', fields[1:] will be []
     return dict(list(zip(fieldnames, [fields[0], fields[1:]])))
 
+
 def pr_parser(line):
     """Returns a list of [project id, project id, ...]"""
     labeloff(line)
@@ -588,6 +612,8 @@ def pr_parser(line):
 
 #################################
 # ft_parser
+
+
 def ft_parser(lines):
     """return a list of ft items from FT lines.
 
@@ -672,6 +698,7 @@ def ft_parser(lines):
         result.setdefault(keyname, []).  append(curr)
     return result
 
+
 def ft_basic_itemparser(item_lines):
     """-> (key, start, end, description) from lines of a feature item.
 
@@ -701,6 +728,7 @@ def ft_basic_itemparser(item_lines):
     # convert start and end points to int, is possible
     from_point, to_point = list(map(try_int, (from_point, to_point)))
     return keyname, from_point, to_point, description.strip(' .')
+
 
 def try_int(obj):
     """return int(obj), or original obj if failed"""
@@ -734,6 +762,7 @@ def ft_id_parser(description):
     # replace desc in fields with (desc, id) to get the result
     result = dict(list(zip(fieldnames, [desc, id])))
     return result  
+
 
 def ft_mutation_parser(description, mutation_comment_delimiter='('):
     """return a  dict of {'MutateFrom': , 'MutateTo':,'Comment':} from 
@@ -770,6 +799,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter='('):
     result = dict(list(zip(fieldnames, [mut_from, mut_to, comment])))
     return result
 
+
 def ft_mutagen_parser(description):
     """return a dict from MUTAGEN description
 
@@ -780,6 +810,7 @@ def ft_mutagen_parser(description):
     FT   MUTAGEN     169    177       Missing: Abolishes ATP-binding.
     """
     return ft_mutation_parser(description, mutation_comment_delimiter=':')
+
 
 def ft_id_mutation_parser(description):
     """return a dict from description str
@@ -821,6 +852,7 @@ all_cc_topics = dict.fromkeys([
     'MISCELLANEOUS', 'PATHWAY', 'PHARMACEUTICAL', 'POLYMORPHISM', 'PTM',
     'RNA EDITING', 'SIMILARITY', 'SUBCELLULAR LOCATION', 'SUBUNIT',
     'TISSUE SPECIFICITY', 'TOXIC DOSE'])
+
 
 def cc_parser(lines, strict=False):
     """return a dict of {topic: a list of values} from CC lines.
@@ -889,6 +921,7 @@ def cc_parser(lines, strict=False):
 
     return result
 
+
 def cc_basic_itemparser(topic):
     """return (topic_name, topic_content as a list) from a cc topic block. 
 
@@ -915,6 +948,7 @@ def cc_basic_itemparser(topic):
         content += labeloff(topic[1:], num_format_leading_spaces)
 
     return keyname, content
+
 
 def cc_itemfinder(lines):
     """yield each topic/license as a list from CC lines without label and
@@ -968,6 +1002,8 @@ cc_alternative_products_event_finder = LabeledRecordFinder(
     lambda x: x.startswith('Event='))
 cc_alternative_products_name_finder = LabeledRecordFinder(
     lambda x: x.startswith('Name='))
+
+
 def cc_alternative_products_parser(content_list):
     """return a list from AlternativeProucts lines.
 
@@ -998,6 +1034,7 @@ def cc_alternative_products_parser(content_list):
             event_dict['Names'] = list(map(join_split_dict_parser, names))
         result.append(event_dict)
     return result 
+
 
 def cc_biophysicochemical_properties_parser(content):
     """return a dict from content_list of a ~ topic.
@@ -1072,6 +1109,8 @@ is_ref_line = lambda x: x.startswith('RN')
 ref_finder = LabeledRecordFinder(is_ref_line)
 
 required_ref_labels = 'RN RP RL RA/RG RL'.split()
+
+
 def single_ref_parser(lines, strict=False):
     """return rn, ref_dict from lines of a single reference block
 
@@ -1127,6 +1166,7 @@ def rx_parser(lines):
     lines = labeloff(lines) 
     return join_split_dict_parser(lines, delimiters=['; ', '='])
 
+
 def rc_parser(lines):
     """return a dict from RC lines.
 
@@ -1139,6 +1179,7 @@ def rc_parser(lines):
     """
     lines = labeloff(lines) 
     return join_split_dict_parser(lines)
+
 
 def rg_parser(lines):
     """return a list of str(group names) from RG lines
@@ -1153,6 +1194,7 @@ def rg_parser(lines):
     """
     lines = labeloff(lines) 
     return join_split_parser(lines)
+
 
 def ra_parser(lines):
     """return a list from RA lines.
@@ -1175,6 +1217,7 @@ def ra_parser(lines):
     lines = labeloff(lines) 
     return join_split_parser(lines, chars_to_strip=';', delimiters=',')
 
+
 def rp_parser(lines):
     """return joined str stripped of '.'.
 
@@ -1184,6 +1227,7 @@ def rp_parser(lines):
     """
     lines = labeloff(lines) 
     return ' '.join(lines).strip('. ')
+
 
 def rl_parser(lines):
     """return joined str stipped of '.'.
@@ -1233,6 +1277,7 @@ def rl_parser(lines):
     lines = labeloff(lines) 
     return ' '.join(lines).strip('. ')
 
+
 def rt_parser(lines):
     """return joined line stripped of .";
 
@@ -1269,6 +1314,8 @@ ref_parsers = {
 required_labels = 'ID AC DT DE OS OC OX SQ REF'.split() + ['']
 #################################
 # Minimal Ebi parser
+
+
 def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     """yield each (sequence as a str, a dict of header) from ebi record lines
 
@@ -1344,6 +1391,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
         header_dict = raw_dict 
         yield sequence, header_dict
 
+
 def linecode_merging_maker(line):
     """return merged linecode and the line.
 
@@ -1357,6 +1405,8 @@ def linecode_merging_maker(line):
 
 #################################
 # EbiParser
+
+
 def parse_header(header_dict, strict=True):
     """Parses a dictionary of header lines"""
     return pairs_to_dict(list(header_dict.items()), 'no_duplicated_key',
@@ -1388,6 +1438,7 @@ _parsers = {
     '': None,
     '//': None,
 }
+
 
 def EbiParser(lines, seq_constructor=Sequence, 
               header_constructor=parse_header, strict=True, selected_labels=[]):
@@ -1538,7 +1589,6 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
 //
 """.split('\n')
         pprint(list(EbiParser(lines, strict=False, selected_labels=[])))
-
 
     #from time import time
     # sys.exit()

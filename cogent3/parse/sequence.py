@@ -19,6 +19,7 @@ __status__ = "Production"
 
 _lc_to_wc = ''.join([[chr(x), '?']['A' <= chr(x) <= 'Z'] for x in range(256)])
 
+
 def FromFilenameParser(filename, format=None, **kw):
     """Arguments:
             - filename: name of the sequence alignment file
@@ -27,6 +28,7 @@ def FromFilenameParser(filename, format=None, **kw):
     format = format_from_filename(filename, format)
     f = open(filename, newline=None)
     return FromFileParser(f, format, **kw)
+
 
 def FromFileParser(f, format, dialign_recode=False, **kw):
     format = format.lower()
@@ -56,6 +58,7 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
         yield (name, seq)
 
     f.close()
+
 
 def format_from_filename(filename, format=None):
     """Detects format based on filename."""

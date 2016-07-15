@@ -10,6 +10,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def _goertzel_inner(x, N, period):
     coeff = 2.0 * cos(2 * pi / period)
     s_prev = 0.0
@@ -21,6 +22,7 @@ def _goertzel_inner(x, N, period):
     pwr = sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
     return pwr
 
+
 def _ipdft_inner(x, X, W, ulim, N):  # naive python
     for p in range(ulim):
         w = 1
@@ -30,15 +32,18 @@ def _ipdft_inner(x, X, W, ulim, N):  # naive python
             X[p] = X[p] + x[n] * w
     return X
 
+
 def _ipdft_inner2(x, X, W, ulim, N):  # fastest python
     p = x[::-1]  # reversed
     X = polyval(p, W)
     return X
 
+
 def _autocorr_inner2(x, xc, N):  # fastest python
     products = multiply.outer(x, x)
     v = [products.trace(offset=m) for m in range(-len(x) + 1, len(x))]
     xc.put(range(xc.shape[0]), v)
+
 
 def _autocorr_inner(x, xc, N):  # naive python
     for m in range(-N + 1, N):
@@ -56,6 +61,7 @@ except ImportError:
     autocorr_inner = _autocorr_inner2
     goertzel_inner = _goertzel_inner
 
+
 def goertzel(x, period):
     """returns the array(power), array(period) from series x for period
     result objects are arrays for consistency with that other period
@@ -63,8 +69,10 @@ def goertzel(x, period):
     calc = Goertzel(len(x), period=period)
     return calc(x)
 
+
 class _PeriodEstimator(object):
     """parent class for period estimation"""
+
     def __init__(self, length, llim=None, ulim=None, period=None):
         super(_PeriodEstimator, self).__init__()
         self.length = length
@@ -82,6 +90,7 @@ class _PeriodEstimator(object):
 
 
 class AutoCorrelation(_PeriodEstimator):
+
     def __init__(self, length, llim=None, ulim=None, period=None):
         """class for repetitive calculation of autocorrelation for series of
         fixed length
@@ -111,6 +120,7 @@ class AutoCorrelation(_PeriodEstimator):
 
     __call__ = evaluate
 
+
 def auto_corr(x, llim=None, ulim=None):
     """returns the autocorrelation of x
     e.g. if x = [1,1,1,1], xc = [1,2,3,4,3,2,1]
@@ -120,6 +130,7 @@ def auto_corr(x, llim=None, ulim=None):
     """
     _autocorr = AutoCorrelation(len(x), llim=llim, ulim=ulim)
     return _autocorr(x)
+
 
 class Ipdft(_PeriodEstimator):
 
@@ -162,6 +173,7 @@ class Ipdft(_PeriodEstimator):
 
 class Goertzel(_PeriodEstimator):
     """Computes the power of a signal for a specific period"""
+
     def __init__(self, length=None, llim=None, ulim=None, period=None, abs_ft_sig=True):
         assert period is not None, "Goertzel requires a period"
         super(Goertzel, self).__init__(length=length, period=period)
@@ -231,6 +243,7 @@ def ipdft(x, llim=None, ulim=None, period=None):
     ipdft_calc = Ipdft(len(x), llim, ulim, period)
     return ipdft_calc(x)
 
+
 def hybrid(x, llim=None, ulim=None, period=None, return_all=False):
     """
     Return hybrid statistic and corresponding periods for signal x
@@ -244,6 +257,7 @@ def hybrid(x, llim=None, ulim=None, period=None, return_all=False):
     hybrid_calc = Hybrid(len(x), llim, ulim, period, return_all=return_all)
     x = array(x, float)
     return hybrid_calc(x)
+
 
 def dft(x, **kwargs):
     """

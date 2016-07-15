@@ -26,6 +26,7 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
 else:
     account = get_ensembl_account(release=Release)
 
+
 def calc_slope(x1, y1, x2, y2):
     """computes the slope from two coordinate sets, assigning a delta of 1
     when values are identical"""
@@ -35,11 +36,14 @@ def calc_slope(x1, y1, x2, y2):
     delta_x = [delta_x, 1][delta_x == 0]
     return delta_y / delta_x
 
+
 class ComparaTestBase(TestCase):
     comp = Compara(['human', 'mouse', 'rat', 'platypus'], Release=Release,
                    account=account)
 
+
 class TestCompara(ComparaTestBase):
+
     def test_query_genome(self):
         """compara should attach valid genome attributes by common name"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
@@ -126,7 +130,6 @@ class TestCompara(ComparaTestBase):
                       pool_recycle=1000)
 
 
-
 class TestSyntenicRegions(TestCase):
     comp = Compara(['human', 'chimp', 'macaque'], account=account,
                    Release=Release)
@@ -198,7 +201,6 @@ class TestSyntenicRegions(TestCase):
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
                 self.assertFloatEqual(abs(slope), 1.0, eps=1e-3)
 
-
     def test_failing_region(self):
         """should correctly handle queries where multiple Ensembl have
         genome block associations for multiple coord systems"""
@@ -207,7 +209,6 @@ class TestSyntenicRegions(TestCase):
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
                                                              align_method='PECAN',
                                                              align_clade='vertebrates'))
-
 
 
 if __name__ == "__main__":

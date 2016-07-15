@@ -20,6 +20,7 @@ __status__ = "alpha"
 # local reference to the sqlalchemy substring function
 substr = sql.sql.func.substr
 
+
 def _assemble_seq(frags, start, end, frag_positions):
     """returns a single string in which missing sequence is replaced by 'N'"""
     prev_end = start
@@ -36,6 +37,7 @@ def _assemble_seq(frags, start, end, frag_positions):
     assert diff >= 0, 'end[%s] < previous frag_end[%s]' % (end, frag_end)
     assembled += ['N' * diff]
     return DNA.makeSequence(''.join(assembled))
+
 
 def _make_coord(genome, coord_name, start, end, strand):
     """returns a Coordinate"""
@@ -65,8 +67,8 @@ def get_lower_coord_conversion(coord, species, core_db):
         if assemblies: 
             break
 
-
     return assemblies
+
 
 def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
     # TODO clean up use of a coord
@@ -106,6 +108,7 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
     sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
     return sequence
 
+
 def _get_sequence_from_lower_assembly(coord, DEBUG):
     assemblies = get_lower_coord_conversion(coord, coord.genome.Species,
                                             coord.genome.CoreDb)
@@ -132,6 +135,7 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
 
     sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
     return sequence
+
 
 def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None, strand=1, DEBUG=False):
     if coord is None:

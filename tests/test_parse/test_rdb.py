@@ -18,6 +18,7 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
+
 class RdbTests(TestCase):
     """Tests for top-level functions in Rdb.py"""
 
@@ -46,6 +47,7 @@ class RdbTests(TestCase):
         s = "XYZ1234"
         self.assertEqual(f(s), "XYZ1234")
 
+
 class InfoMakerTests(TestCase):
     """Tests for the Constructor InfoMaker. Should return an Info object"""
 
@@ -68,6 +70,7 @@ class InfoMakerTests(TestCase):
         exp.Gene = 'ssu'
         self.assertEqual(obs, exp)
 
+
 class GenericRdbTest(TestCase):
     "SetUp data for all Rdb parsers"""
 
@@ -84,6 +87,7 @@ class GenericRdbTest(TestCase):
         self.oneX =\
             'seq:bac\nX\n//\nseq:mit\nACT\n//\nseq:pla\nAAA\n//'.split('\n')
         self.strange = 'seq:bac\nACGUXxAaKkoo---*\n//'.split('\n')
+
 
 class MinimalRdbParserTests(GenericRdbTest):
     """Tests of MinimalRdbParser: returns (headerLines,sequence) tuples"""
@@ -149,6 +153,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         obs = f[0]
         exp = (['seq:bac'], 'ACGUXxAaKkoo---')
         self.assertEqual(obs, exp)
+
 
 class RdbParserTests(GenericRdbTest):
     """Tests for the RdbParser. Should return Sequence objects"""

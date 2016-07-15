@@ -14,6 +14,7 @@ __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
 
+
 def clustal_from_alignment(aln, interleave_len=None):
     """Returns a string in Clustal format.
 

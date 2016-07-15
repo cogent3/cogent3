@@ -14,7 +14,9 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class _FeatureLevelRecord(object):
+
     def __init__(self, feature_type, coord_system_names):
         self.feature_type = feature_type
         self.levels = coord_system_names
@@ -27,6 +29,7 @@ class _FeatureLevelRecord(object):
 class FeatureCoordLevelsCache(object):
     _species_feature_levels = {}
     _species_feature_dbs = {}
+
     def __init__(self, species):
         self.Species = _Species.getSpeciesName(species)
 
@@ -105,8 +108,8 @@ class FeatureCoordLevelsCache(object):
         return self._species_feature_levels[species]
 
 
-
 class FeatureCoordLevels(FeatureCoordLevelsCache):
+
     def __init__(self, species):
         self.Species = _Species.getSpeciesName(species)
 

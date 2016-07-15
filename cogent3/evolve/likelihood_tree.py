@@ -29,7 +29,9 @@ try:
 except ImportError:
     pyrex = None
 
+
 class _LikelihoodTreeEdge(object):
+
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
@@ -188,6 +190,7 @@ class _LikelihoodTreeEdge(object):
         return LikelihoodTreeLeaf(likelihoods, likelihoods, 
                                   self.counts, self.index, self.edge_name, self.alphabet, None)
 
+
 class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # Should be a subclass of regular tree edge?
 
@@ -224,6 +227,7 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     def getLogSumAcrossSites(self, lhs):
         return numpy.inner(numpy.log(lhs), self.counts)
 
+
 class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
     integer_type = numerictypes(int)   # match checkArrayInt1D
     float_type = numerictypes(float)   # match checkArrayDouble1D/2D
@@ -253,6 +257,7 @@ else:
 FLOAT_TYPE = LikelihoodTreeEdge.float_type
 INTEGER_TYPE = LikelihoodTreeEdge.integer_type
 
+
 def _indexed(values):
     # >>> _indexed(['a', 'b', 'c', 'a', 'a'])
     # (['a', 'b', 'c'], [3, 1, 1], [0, 1, 2, 0, 0])
@@ -271,6 +276,7 @@ def _indexed(values):
             seen[key] = i
         index[c] = i
     return unique, counts, index
+
 
 def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):    
     if alphabet is None:
@@ -303,7 +309,9 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
     return LikelihoodTreeLeaf(uniq_motifs, likelihoods, 
                               counts, index, seq_name, alphabet, sequence)
 
+
 class LikelihoodTreeLeaf(object):
+
     def __init__(self, uniq, likelihoods, counts, index, edge_name, 
                  alphabet, sequence):
         if sequence is not None:

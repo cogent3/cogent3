@@ -33,9 +33,11 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class IndexOrValueError(IndexError, ValueError): pass
 
 var = cov  # cov will calculate variance if called on a vector
+
 
 def std_(x, axis=None):
     """Returns standard deviations by axis (similiar to numpy.std)
@@ -65,6 +67,8 @@ def std_(x, axis=None):
         raise ValueError("axis out of bounds")
 
 # tested only by std
+
+
 def var(x, axis=None):
     """Returns unbiased standard deviations over given axis.
 
@@ -89,6 +93,7 @@ def var(x, axis=None):
     sample_SS = sum(x**2, axis) - sum(x, axis)**2 / n
     return sample_SS / (n - 1)
 
+
 def std(x, axis=None):
     """computed unbiased standard deviations along given axis or flat array.
 
@@ -103,6 +108,7 @@ def std(x, axis=None):
     except IndexError as e:  # just to avoid breaking the old test code
         raise IndexOrValueError(e)
     return sqrt(sample_variance)
+
 
 def median(m, axis=None):
     """Returns medians by axis (similiar to numpy.mean)
@@ -126,9 +132,11 @@ def median(m, axis=None):
 
     return array(median_vals)
 
+
 class ZeroExpectedError(ValueError):
     """Class for handling tests where an expected value was zero."""
     pass
+
 
 def G_2_by_2(a, b, c, d, williams=1, directional=1):
     """G test for independence in a 2 x 2 table.
@@ -209,6 +217,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
             G = -G
     return G, p
 
+
 def safe_sum_p_log_p(a, base=None):
     """Calculates p * log(p) safely for an array that may contain zeros."""
     flat = ravel(a)
@@ -217,6 +226,7 @@ def safe_sum_p_log_p(a, base=None):
     if base:
         logs /= log(base)
     return sum(nz * logs, 0)
+
 
 def G_ind(m, williams=False):
     """Returns G test for independence in an r x c table.
@@ -270,6 +280,7 @@ def calc_contingency_expected(matrix):
             result[row][item].append(Expected)
     return result
 
+
 def G_fit(obs, exp, williams=1):
     """G test for fit between two lists of counts.
 
@@ -304,6 +315,7 @@ def G_fit(obs, exp, williams=1):
 
     return G, chi_high(G, k - 1)
 
+
 def G_fit_from_Dict2D(data):
     """G test for fit on a Dict2D
 
@@ -318,6 +330,7 @@ def G_fit_from_Dict2D(data):
             exp_counts.append(item[1])
     g_val, prob = G_fit(obs_counts, exp_counts)
     return g_val, prob
+
 
 def chi_square_from_Dict2D(data):
     """Chi Square test on a Dict2D
@@ -369,6 +382,7 @@ def likelihoods(d_given_h, priors):
     # to get its likelihood
     return [d / wt_sum for d in d_given_h]
 
+
 def posteriors(likelihoods, priors):
     """Calculate posterior probabilities given priors and likelihoods.
 
@@ -382,6 +396,7 @@ def posteriors(likelihoods, priors):
         raise ValueError("Lists not equal lengths.")
     # Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors)]
+
 
 def bayes_updates(ds_given_h, priors=None):
     """Successively apply lists of Pr(D|H) to get Pr(H|D) by marginalization.
@@ -418,6 +433,7 @@ def bayes_updates(ds_given_h, priors=None):
     # the ds_given_h is zero.
     except (ZeroDivisionError, FloatingPointError):
         return [0] * length
+
 
 def t_paired(a, b, tails=None, exp_diff=0):
     """Returns t and prob for TWO RELATED samples of scores a and b.  
@@ -558,6 +574,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
     return result
 
+
 def _t_test_no_variance(mean1, mean2, tails):
     """Handles case where two distributions have no variance."""
     if tails is not None and tails != 'high' and tails != 'low':
@@ -581,6 +598,7 @@ def _t_test_no_variance(mean1, mean2, tails):
             result = (float('inf'), 1.0)
 
     return result
+
 
 def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
                     exp_diff=0):
@@ -651,6 +669,7 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
 
     return obs_t, param_p_val, perm_t_stats, nonparam_p_val
 
+
 def _permute_observations(x_items, y_items, permutations,
                           permute_f=permutation):
     """Returns permuted versions of the sequences of observations.
@@ -673,6 +692,7 @@ def _permute_observations(x_items, y_items, permutations,
     rand_xs = [combined_obs[perm[:num_x]] for perm in perms]
     rand_ys = [combined_obs[perm[num_x:num_total_obs]] for perm in perms]
     return rand_xs, rand_ys
+
 
 def t_one_observation(x, sample, tails=None, exp_diff=0,
                       none_on_zero_variance=True):
@@ -707,6 +727,7 @@ def t_one_observation(x, sample, tails=None, exp_diff=0,
         result = (None, None)
 
     return result
+
 
 def pearson(x_items, y_items):
     """Returns Pearson's product moment correlation coefficient.
@@ -748,6 +769,7 @@ def pearson(x_items, y_items):
     elif r < -1.0:
         r = -1.0
     return r
+
 
 def spearman(x_items, y_items):
     """Returns Spearman's rho.
@@ -796,6 +818,7 @@ def spearman(x_items, y_items):
             rho = numerator / denominator
     return rho
 
+
 def _get_rank(data):
     """Ranks the elements of a list. Used in Spearman correlation."""
     indices = list(range(len(data)))
@@ -823,6 +846,7 @@ def _get_rank(data):
         ties += dup_ranks - 1
     return ranks, ties
 
+
 def correlation(x_items, y_items):
     """Returns Pearson correlation between x and y, and its significance.
 
@@ -833,6 +857,7 @@ def correlation(x_items, y_items):
     """
     return correlation_test(x_items, y_items, method='pearson', tails=None,
                             permutations=0)[:2]
+
 
 def correlation_test(x_items, y_items, method='pearson', tails=None,
                      permutations=999, confidence_level=0.95):
@@ -960,6 +985,7 @@ def correlation_test(x_items, y_items, method='pearson', tails=None,
     return (corr_coeff, parametric_p_val, permuted_corr_coeffs,
             nonparametric_p_val, (ci_low, ci_high))
 
+
 def correlation_matrix(series, as_rows=True):
     """Returns pairwise correlations between each pair of series.
     """
@@ -969,6 +995,7 @@ def correlation_matrix(series, as_rows=True):
         return corrcoef(transpose(array(series)))
     else:
         return corrcoef(array(series))
+
 
 def regress(x, y):
     """Returns coefficients to the regression line "y=ax+b" from x[] and y[].  
@@ -1005,6 +1032,7 @@ def regress(x, y):
     det = Sxx * N - Sx * Sx
     return (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
 
+
 def regress_origin(x, y):
     """Returns coefficients to regression "y=ax+b" passing through origin.
 
@@ -1015,6 +1043,7 @@ def regress_origin(x, y):
     """
     x, y = array(x, 'Float64'), array(y, 'Float64')
     return sum(x * y) / sum(x * x), 0
+
 
 def regress_R2(x, y):
     """Returns the R^2 value for the regression of x and y
@@ -1036,6 +1065,7 @@ def regress_R2(x, y):
     totSS = Syy - ((Sy * Sy) / n)
     return regSS / totSS
 
+
 def regress_residuals(x, y):
     """reports the residual (error) for each point from the linear regression"""
     slope, intercept = regress(x, y)
@@ -1046,10 +1076,12 @@ def regress_residuals(x, y):
         residuals.append(e)
     return residuals
 
+
 def stdev_from_mean(x):
     """returns num standard deviations from the mean of each val in x[]"""
     x = array(x)
     return (x - mean(x)) / std(x)
+
 
 def regress_major(x, y):
     """Returns major-axis regression line of y on x.
@@ -1096,6 +1128,7 @@ tails should be None (default), 'high', or 'low'.
             FloatingPointError):
         return None
 
+
 def z_tailed_prob(z, tails):
     """Returns appropriate p-value for given z, depending on tails."""
     if tails == 'high':
@@ -1104,6 +1137,7 @@ def z_tailed_prob(z, tails):
         return z_low(z)
     else:
         return zprob(z)
+
 
 def t_tailed_prob(t, df, tails):
     """Return appropriate p-value for given t and df, depending on tails."""
@@ -1114,6 +1148,7 @@ def t_tailed_prob(t, df, tails):
     else:
         return tprob(t, df)
 
+
 def reverse_tails(tails):
     """Swaps high for low or vice versa, leaving other values alone."""
     if tails == 'high':
@@ -1122,6 +1157,7 @@ def reverse_tails(tails):
         return 'high'
     else:
         return tails
+
 
 def tail(prob, test):
     """If test is true, returns prob/2. Otherwise returns 1-(prob/2).
@@ -1132,10 +1168,12 @@ def tail(prob, test):
     else:
         return 1 - prob
 
+
 def combinations(n, k):
     """Returns the number of ways of choosing k items from n.
     """
     return exp(lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1))
+
 
 def multiple_comparisons(p, n):
     """Corrects P-value for n multiple comparisons.
@@ -1148,6 +1186,7 @@ def multiple_comparisons(p, n):
     else:
         return one_minus_exp(-n * p)
 
+
 def multiple_inverse(p_final, n):
     """Returns p_initial for desired p_final with n multiple comparisons.
 
@@ -1157,12 +1196,14 @@ def multiple_inverse(p_final, n):
     """
     return one_minus_exp(log_one_minus(p_final) / n)
 
+
 def multiple_n(p_initial, p_final):
     """Returns number of comparisons such that p_initial maps to p_final.
 
     WARNING: not very accurate when p_final is very close to 1.
     """
     return log_one_minus(p_final) / log_one_minus(p_initial)
+
 
 def fisher(probs):
     """Uses Fisher's method to combine multiple tests of a hypothesis.
@@ -1173,6 +1214,7 @@ def fisher(probs):
         return chi_high(-2 * sum(list(map(log, probs))), 2 * len(probs))
     except OverflowError as e:
         return 0.0 
+
 
 def f_value(a, b):
     """Returns the num df, the denom df, and the F value.
@@ -1215,6 +1257,7 @@ def f_two_sample(a, b, tails=None):
             side = 'left'
         return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
 
+
 def ANOVA_one_way(a):
     """Performs a one way analysis of variance
 
@@ -1253,6 +1296,7 @@ def ANOVA_one_way(a):
     F = between_MS / within_MS
     return dfn, dfd, F, between_MS, within_MS, group_means, f_high(dfn, dfd, F)
 
+
 def MonteCarloP(value, rand_values, tail='high'):
     """takes a true value and a list of random values as
         input and returns a p-value
@@ -1278,6 +1322,7 @@ def MonteCarloP(value, rand_values, tail='high'):
                 break
         p_val = num_better / pop_size
     return p_val
+
 
 def sign_test(success, trials, alt="two sided"):
     """Returns the probability for the sign test.
@@ -1305,6 +1350,7 @@ def sign_test(success, trials, alt="two sided"):
     else:
         raise RuntimeError("alternate [%s] not in %s" % (lo + hi + two))
     return p
+
 
 def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     """Returns the statistic and probability from the Kolmogorov-Smirnov test.
@@ -1374,6 +1420,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         pass
     return stat, Pval
 
+
 def _get_bootstrap_sample(x, y, num_reps):
     """yields num_reps random samples drawn with replacement from x and y"""
     combined = array(list(x) + list(y))
@@ -1387,6 +1434,7 @@ def _get_bootstrap_sample(x, y, num_reps):
         sampled_x = sampled[:num_x]
         sampled_y = sampled[num_x:]
         yield sampled_x, sampled_y
+
 
 def ks_boot(x, y, alt="two sided", num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
@@ -1413,9 +1461,11 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
             num_greater += 1
     return observed_stat, num_greater / num_reps
 
+
 def _average_rank(start_rank, end_rank):
     ave_rank = sum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
     return ave_rank
+
 
 def mw_test(x, y):
     """computes the Mann-Whitney U statistic and the probability using the
@@ -1473,6 +1523,7 @@ def mw_test(x, y):
     p = zprob(z)
     return U, p
 
+
 def mw_boot(x, y, num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Mann-Whitney test.
 
@@ -1494,6 +1545,7 @@ def mw_boot(x, y, num_reps=1000):
             num_greater += 1
     return observed_stat, num_greater / num_reps
 
+
 def permute_2d(m, p):
     """Performs 2D permutation of matrix m according to p."""
     return m[p][:, p]
@@ -1501,6 +1553,7 @@ def permute_2d(m, p):
     m_t = transpose(m)
     r_t = take(m_t, p, axis=0)
     return take(transpose(r_t), p, axis=0)
+
 
 def mantel(m1, m2, n):
     """Compares two distance matrices. Reports P-value for correlation.
@@ -1515,6 +1568,7 @@ def mantel(m1, m2, n):
     mantel_test() for more control over how the test is performed.
     """
     return mantel_test(m1, m2, n)[0]
+
 
 def mantel_test(m1, m2, n, alt="two sided",
                 suppress_symmetry_and_hollowness_check=False):
@@ -1583,8 +1637,10 @@ def mantel_test(m1, m2, n, alt="two sided",
         perm_stats.append(r)
     return (better + 1) / (n + 1), orig_stat, perm_stats
 
+
 def is_symmetric_and_hollow(matrix):
     return (matrix.T == matrix).all() and (trace(matrix) == 0)
+
 
 def _flatten_lower_triangle(matrix):
     """Returns a list containing the flattened lower triangle of the matrix.
@@ -1602,6 +1658,7 @@ def _flatten_lower_triangle(matrix):
             if col_num < row_num:
                 flattened.append(matrix[row_num][col_num])
     return flattened
+
 
 def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     """returns the statistic (tau) and probability from Kendall's non-parametric
@@ -1664,6 +1721,7 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 
 # Start functions for distance_matrix_permutation_test
 
+
 def distance_matrix_permutation_test(matrix, cells, cells2=None,\
                                      f=t_two_sample, tails=None, n=1000, return_scores=False,\
                                      is_symmetric=True):
@@ -1720,6 +1778,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
     if return_scores: result.append(stats)
     return tuple(result)
 
+
 def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
     """get values from matrix positions in cells and cells2
 
@@ -1749,6 +1808,7 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
                     if (i, j) not in cells:
                         cells2_values.append(val)
     return cells_values, cells2_values
+
 
 def get_ltm_cells(cells):
     """converts matrix indices so all are below the diagonal

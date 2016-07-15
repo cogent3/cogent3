@@ -24,6 +24,7 @@ __status__ = "Production"
 
 class SummaryStatisticsTests(TestCase):
     """Tests of summary stats functions."""
+
     def test_init(self):
         """SummaryStatistics should initialize correctly."""
         # check empty init -- can access private vars, but can't get
@@ -121,6 +122,7 @@ class SummaryStatisticsTests(TestCase):
         all = [c, a, d, b, e]
         all.sort()
         self.assertEqual(all, [e, a, c, d, b])
+
 
 class NumbersTestsI(object):
     """Abstract class with tests for Numbers objects.
@@ -474,6 +476,7 @@ class NumbersTestsI(object):
         self.ints.extend([1, 2, 2, 3, 3, 3])
         self.assertEqual(self.ints.Mode, 3)
 
+
 class NumbersTests(TestCase, NumbersTestsI):
     """Tests of the (safe) Numbers class."""
     ClassToTest = Numbers
@@ -509,6 +512,7 @@ class NumbersTests(TestCase, NumbersTestsI):
     def test_append_bad(self):
         """Numbers should reject append of a non-number"""
         self.assertRaises(ValueError, self.floats.append, "abc")
+
 
 class UnsafeNumbersTests(TestCase, NumbersTestsI):
     """Tests of the UnsafeNumbers class."""
@@ -553,6 +557,7 @@ class UnsafeNumbersTests(TestCase, NumbersTestsI):
         self.mixed.append('abc')
         assert not self.mixed.isValid()
 
+
 class StaticFreqsTestsI(object):
     """Tests of the interface shared by Freqs and UnsafeFreqs (static keys).
 
@@ -585,6 +590,7 @@ class StaticFreqsTestsI(object):
         f.fromTuples([('b', 7)], op=mul)
         self.assertEqual(f, ct({'a': 6, 'b': 14, 'c': 4.5}))
         # check that it works with something that depends on the key
+
         def func(key, first, second):
             if key == 'a':
                 return first + second
@@ -1031,11 +1037,14 @@ class StaticFreqsTestsI(object):
         self.assertEqual(a.getSortedList(by_val=False, descending=False), \
                          [('a', 3), ('b', 5), ('c', 1), ('d', 1), ('e', 1)])
 
+
 class FreqsStaticTests(StaticFreqsTestsI, TestCase):
     ClassToTest = Freqs
 
+
 class UnsafeFreqsStaticTests(StaticFreqsTestsI, TestCase):
     ClassToTest = UnsafeFreqs
+
 
 class FreqsTestsI(object):
     """Tests of the interface shared by Freqs and UnsafeFreqs."""
@@ -1055,6 +1064,7 @@ class FreqsTestsI(object):
         f.fromTuples([('b', 7)], op=mul)
         self.assertEqual(f, {'a': 6, 'b': 14, 'c': 4.5})
         # check that it works with something that depends on the key
+
         def func(key, first, second):
             if key == 'a':
                 return first + second
@@ -1063,7 +1073,6 @@ class FreqsTestsI(object):
         f = self.ClassToTest()
         self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2), ('b', 4)], \
                                       func, uses_key=True), {'a': 6, 'b': 12})
-
 
     def test_fromDict(self):
         """Freqs fromDict should add from dict of {key:count}"""
@@ -1560,9 +1569,11 @@ class FreqsTestsI(object):
         self.assertEqual(a.getSortedList(by_val=False, descending=False), \
                          [('a', 3), ('b', 5), ('c', 1), ('d', 1), ('e', 1)])
 
+
 class FreqsTests(FreqsTestsI, TestCase):
     """Tests of Freqs-specific behavior, mostly validation."""
     ClassToTest = Freqs
+
     def setUp(self):
         """defines some standard frequency distributions to check"""
         self.Alphabetic = self.ClassToTest('abcdeaab')
@@ -1646,6 +1657,7 @@ class FreqsTests(FreqsTestsI, TestCase):
         self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', "-1")
         self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', "xxxx")
 
+
 class UnsafeFreqsTests(FreqsTestsI, TestCase):
     """Tests of UnsafeFreqs-specific behavior, mostly validation."""
     ClassToTest = UnsafeFreqs
@@ -1707,6 +1719,7 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
         # WARNING: Note the difference between this and Freqs init!
         self.assertEqual(self.ClassToTest([('a', 3), ('b', 10), ('a', 2)]), \
                          {'a': 2, 'b': 10})
+
 
 class FreqsSubclassTests(TestCase):
     """Freqs subclassing should work correctly, esp. with RequiredKeys."""
@@ -1873,6 +1886,7 @@ class NumberFreqsTestsI(object):
         self.assertEqual(rand.count(1), 1000)
         self.assertEqual(len(rand), 1000)
 
+
 class NumberFreqsTests(NumberFreqsTestsI, TestCase):
     """Tests of (safe) NumberFreqs classes."""
     ClassToTest = NumberFreqs
@@ -1892,6 +1906,7 @@ class NumberFreqsTests(NumberFreqsTestsI, TestCase):
     def test_add_bad(self):
         """NumberFreqs add should fail if key not numeric"""
         self.assertRaises(ValueError, self.Empty.__iadd__, {'a': -1})
+
 
 class UnsafeNumberFreqsTests(NumberFreqsTestsI, TestCase):
     """Tests of UnsafeNumberFreqs classes."""

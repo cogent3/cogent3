@@ -46,8 +46,10 @@ bad = ['dshfjsdfhdfsj', 'hfsdjksdfhjsdf']
 
 space_labels = ['abc uca', 'def ggg ccc']
 
+
 class clustalTests(TestCase):
     """Tests of top-level functions."""
+
     def test_is_clustal_seq_line(self):
         """is_clustal_seq_line should reject blanks and 'CLUSTAL'"""
         ic = is_clustal_seq_line
@@ -74,8 +76,10 @@ class clustalTests(TestCase):
         self.assertEqual(dtn('a b 3'), 'a b')
         self.assertEqual(dtn('a b c \t 345'), 'a b c')
 
+
 class MinimalClustalParserTests(TestCase):
     """Tests of the MinimalClustalParser class"""
+
     def test_null(self):
         """MinimalClustalParser should return empty dict and list on null input"""
         result = MinimalClustalParser([])

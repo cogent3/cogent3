@@ -46,6 +46,7 @@ ARRAY_TYPE = type(array(1))
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
+
 @total_ordering
 class SequenceI(object):
     """Abstract class containing Sequence interface.
@@ -57,6 +58,7 @@ class SequenceI(object):
     # isn't a string in your base class, but it's probably better to make
     # self._seq a property that contains the string.
     LineWrap = None  # used for formatting FASTA strings
+
     def __str__(self):
         """__str__ returns self._seq unmodified."""
         return self._seq
@@ -491,6 +493,7 @@ class SequenceI(object):
             result = self.__class__(prefix + mid + suffix, Info=self.Info)
         return result
 
+
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
@@ -754,6 +757,7 @@ class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
     pass
 
+
 class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon
 
@@ -761,10 +765,12 @@ class ProteinWithStopSequence(Sequence):
     """
     pass
 
+
 class NucleicAcidSequence(Sequence):
     """Base class for DNA and RNA sequences. Abstract."""
     PROTEIN = None  # will set in moltype
     CodonAlphabet = None  # will set in moltype
+
     def reversecomplement(self):
         """Converts a nucleic acid sequence to its reverse complement.
         Synonymn for rc."""
@@ -915,12 +921,15 @@ class ABSequence(Sequence):
     """Used for two-state modeling; MolType set in moltypes."""
     pass
 
+
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
+
     def __init__(self, Seq='', Name=None, Info=None, check=False, \
                  preserve_case=True):
         return super(ByteSequence, self).__init__(Seq, Name=Name, Info=Info, \
                                                   check=check, preserve_case=preserve_case)
+
 
 @total_ordering
 class ModelSequenceBase(object):
@@ -1252,6 +1261,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
     See docstrings for ModelSequenceBase and SequenceI for information about
     these respective classes.
     """
+
     def stripBad(self):
         """Returns copy of self with bad chars excised"""
         valid_indices = self._data < len(self.Alphabet)
@@ -1341,6 +1351,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         return for_seq(f=lambda x, y: (x, y) in similar_pairs, \
                        normalizer=per_shortest)(str(self), str(other))
 
+
 class ModelNucleicAcidSequence(ModelSequence):
     """Abstract class defining ops for codons, translation, etc."""
 
@@ -1381,6 +1392,7 @@ class ModelRnaSequence(ModelNucleicAcidSequence):
         return super(ModelNucleicAcidSequence, self).__init__(data, \
                                                               *args, **kwargs)
 
+
 class ModelDnaSequence(ModelNucleicAcidSequence):
     MolType = None  # set to DNA in moltype.py
     Alphabet = None  # set to DNA.Alphabets.DegenGapped in moltype.py
@@ -1396,6 +1408,7 @@ class ModelDnaSequence(ModelNucleicAcidSequence):
 class ModelCodonSequence(ModelSequence):
     """Abstract base class for codon sequences, incl. string conversion."""
     SequenceClass = ModelNucleicAcidSequence
+
     def __str__(self):
         """Joins triplets together as string."""
         return self.Delimiter.join(map(''.join, \
@@ -1436,10 +1449,12 @@ class ModelCodonSequence(ModelSequence):
             result[:, i] = v
         return ModelRnaSequence(ravel(result), Name=self.Name)
 
+
 class ModelDnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
     Alphabet = None  # set to DNA.Alphabets.Base.Triples in moltype.py
     SequenceClass = ModelDnaSequence
+
 
 class ModelRnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
@@ -1453,9 +1468,11 @@ class ModelRnaCodonSequence(ModelCodonSequence):
                                Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
 
+
 class ModelProteinSequence(ModelSequence):
     MolType = None  # set to PROTEIN in moltype.py
     Alphabet = None  # set to PROTEIN.Alphabets.DegenGapped in moltype.py
+
 
 class ModelProteinWithStopSequence(ModelSequence):
     MolType = None  # set to PROTEIN_WITH_STOP in moltype.py

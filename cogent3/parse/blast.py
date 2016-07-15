@@ -17,17 +17,21 @@ __status__ = "Prototype"
 strip = str.strip
 upper = str.upper
 
+
 def iter_finder(line):
     """Split record on rows that start with iteration label."""
     return line.startswith("# Iteration:")
+
 
 def query_finder(line):
     """Split record on rows that start with query label."""
     return line.startswith("# Query:")
 
+
 def iteration_set_finder(line):
     """Split record on rows that begin a new iteration."""
     return line.startswith("# Iteration: 1")
+
 
 def _is_junk(line, t_strs):
     """Ignore empty line, line with blast info, or whitespace line"""
@@ -40,15 +44,18 @@ def _is_junk(line, t_strs):
             return True
     return False
 
+
 def is_blast_junk(line):
     """Ignore empty line or lines with blast info"""
     return _is_junk(line, ("BLAST", "TBLAS"))
+
 
 def is_blat_junk(line):
     """Ignore empty line or lines with blat info"""
     return _is_junk(line, ("BLAT",))
 
 label_constructors = {'ITERATION': int}  # add other label constructors here
+
 
 def make_label(line):
     """Make key, value for colon-delimited comment lines.
@@ -79,6 +86,7 @@ PsiBlastFinder = LabeledRecordFinder(iter_finder, constructor=strip, \
 PsiBlastQueryFinder = LabeledRecordFinder(iteration_set_finder, \
                                           constructor=strip, ignore=is_blast_junk)
 
+
 def GenericBlastParser9(lines, finder, make_col_headers=False):
     """Yields successive records from lines (props, data list) 
 
@@ -108,6 +116,7 @@ def GenericBlastParser9(lines, finder, make_col_headers=False):
                 data.append(list(map(strip, line.split("\t"))))
         yield props, data
 
+
 def TableToValues(table, constructors=None, header=None):
     """Converts table to values according to constructors.
 
@@ -128,8 +137,10 @@ psiblast_constructors = {'% identity': float, 'alignment length': int, \
 for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
 
+
 def PsiBlastTableParser(table):
     return TableToValues(table, psiblast_constructors)
+
 
 def MinimalBlastParser9(lines, include_column_names=False):
     """Yields succesive records from lines (props, data list).
@@ -138,6 +149,7 @@ def MinimalBlastParser9(lines, include_column_names=False):
     """
     return GenericBlastParser9(lines, BlastFinder, include_column_names)
 
+
 def MinimalPsiBlastParser9(lines, include_column_names=False):
     """Yields successive records from lines (props, data list) 
 
@@ -145,12 +157,14 @@ def MinimalPsiBlastParser9(lines, include_column_names=False):
     """
     return GenericBlastParser9(lines, PsiBlastFinder, include_column_names)
 
+
 def MinimalBlatParser9(lines, include_column_names=True):
     """Yields successive records from lines (props, data list) 
 
        lines must be of blat output (blast9) format 
     """
     return GenericBlastParser9(lines, BlatFinder, include_column_names)
+
 
 def PsiBlastParser9(lines):
     """Returns fully parsed PSI-BLAST result.
@@ -172,6 +186,7 @@ def PsiBlastParser9(lines):
             table, header = PsiBlastTableParser(record)
             curr_resultset.append([dict(list(zip(header, row))) for row in table])
     return result
+
 
 def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     """
@@ -207,7 +222,6 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
             return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
 
 
-
 def AllProteinIds9(lines, filter_identity=True, threshold=None, \
                    keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
                    keep_values=False):
@@ -241,6 +255,7 @@ def AllProteinIds9(lines, filter_identity=True, threshold=None, \
         out_ct += 1
     return out_ids 
 
+
 def LastProteinIds9(lines, filter_identity=True, threshold=None, \
                     keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
                     keep_values=False):
@@ -270,6 +285,7 @@ def LastProteinIds9(lines, filter_identity=True, threshold=None, \
         return []
     return get_blast_ids(props, data, filter_identity, threshold, keep_values)
 
+
 def QMEBlast9(lines):
     """Returns query, match and e-value for each line in Blast-9 output.
 
@@ -291,6 +307,7 @@ def QMEBlast9(lines):
             pass
     return result
 
+
 def QMEPsiBlast9(lines):
     """Returns successive query, match, e-value from lines of Psi-Blast run.
 
@@ -304,6 +321,7 @@ def QMEPsiBlast9(lines):
             pass
         result.extend(QMEBlast9(iteration))
     return result
+
 
 class BlastResult(dict):
     """Adds convenience methods to BLAST result dict.
@@ -368,7 +386,6 @@ class BlastResult(dict):
                     E_VALUE,
                     BIT_SCORE])
 
-
     def __init__(self, data, psiblast=False):
         """
         Init using blast results
@@ -383,7 +400,6 @@ class BlastResult(dict):
             parser = MinimalPsiBlastParser9
 
         mp = parser(data, True)
-
 
         for props, rec_data in mp:
 
@@ -476,6 +492,7 @@ fasta_field_map = {'NCBI sequence id': 'seq_id',
                     'NCBI taxonomy id': 'tax_id',
                     'Common name': 'common_name',
                     'Scientific name': 'scientific_name'}
+
 
 def FastacmdTaxonomyParser(lines):
     """Yields successive records from the results of fastacmd -T.

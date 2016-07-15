@@ -5,7 +5,6 @@ parameters involved in a maximum-likelihood based tree analysis.
 """
 
 
-
 import numpy
 import pickle, warnings
 
@@ -30,6 +29,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.ed.au"
 __status__ = "Production"
 
+
 def _category_names(dimension, specified):
     if type(specified) is int:
         cats = ['%s%s' % (dimension, i) for i in range(specified)]
@@ -39,6 +39,7 @@ def _category_names(dimension, specified):
     assert len(set(cats)) == len(cats), ("%s names must be unique" % dimension)
     return list(cats)
 
+
 def load(filename):
     # first cut at saving pc's
     f = open(filename, 'rb')
@@ -46,6 +47,7 @@ def load(filename):
     assert version < 2.0, version
     pc.updateIntermediateValues()
     return pc
+
 
 class _LikelihoodParameterController(_LF):
     """A ParameterController works by setting parameter rules. For each
@@ -117,7 +119,6 @@ class _LikelihoodParameterController(_LF):
                         warnings.warn('Ignoring tree edge lengths',
                                       stacklevel=4)
                         break
-
 
     def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
                               include_ambiguity=False, is_independent=None, auto=False,
@@ -316,6 +317,7 @@ class _LikelihoodParameterController(_LF):
         nfp = self.getNumFreeParams()
         return bic(lnL, nfp, sequence_length)
 
+
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
     def setDefaultParamRules(self):
@@ -363,6 +365,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):
+
     def setDefaultParamRules(self):
         pass
 

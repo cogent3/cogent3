@@ -14,6 +14,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class ML(TreeEvaluator):
     """(err, best_tree) = ML(model, alignment, [dists]).trex()
 
@@ -45,6 +46,7 @@ class ML(TreeEvaluator):
     def makeTreeScorer(self, names):
         subalign = self.alignment.takeSeqs(names)
         wls_eval = self.wlsMakeTreeScorer(names)
+
         def evaluate(ancestry, lengths=None):
             if lengths is None:
                 (wls_err, init_lengths) = wls_eval(ancestry)

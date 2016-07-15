@@ -12,6 +12,7 @@ __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"
 
+
 def is_blank(x):
     """Checks if x is blank."""
     return not x.strip()
@@ -26,6 +27,7 @@ def _get_header_info(line):
     is_interleaved = len(header_parts) > 2
     return num_seqs, length, is_interleaved
 
+
 def _split_line(line, id_offset):
     """
     First 10 chars must be blank or contain id info
@@ -38,6 +40,7 @@ def _split_line(line, id_offset):
     curr_seq = line[id_offset:].strip().replace(" ", "")
 
     return curr_id, curr_seq
+
 
 def MinimalPhylipParser(data, id_map=None, interleaved=True):
     """Yields successive sequences from data as (label, seq) tuples.
@@ -97,7 +100,6 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
             seq_cache[curr_id_ix].append(curr_seq)
         curr_ct += 1
 
-
     # return joined sequences if interleaved
     if interleaved:
         for curr_id_ix, seq_parts in list(seq_cache.items()):
@@ -114,6 +116,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
     else:
         if seq_cache:
             yield seq_cache[0], ''.join(seq_cache[1:])
+
 
 def get_align_for_phylip(data, id_map=None):
     """

@@ -39,7 +39,9 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class TreeHandler(xml.sax.ContentHandler):
+
     def __init__(self, tree_builder):
         self.build_edge = tree_builder
 

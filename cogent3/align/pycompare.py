@@ -14,6 +14,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
                               diagonal):
     d_segments = []
@@ -50,6 +51,7 @@ try:
 except ImportError:
     _compare = None
     segments_from_diagonal = py_segments_from_diagonal
+
 
 @UI.display_wrap
 def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None):

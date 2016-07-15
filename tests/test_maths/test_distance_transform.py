@@ -19,9 +19,9 @@ __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
 
 
-
 class functionTests(TestCase):
     """Tests of top-level functions."""
+
     def setUp(self):
         self.mat_test = asmatrix([[10, 10, 20],
                                   [10, 15, 10],
@@ -46,7 +46,6 @@ class functionTests(TestCase):
                                                   [1, 0, 0, 1],
                                                   [0, 0, 3, 0],
                                                   [0, 0, 0, 1]])
-
 
     def get_sym_mtx_from_uptri(self, mtx):
         """helper fn, only for square matrices"""
@@ -143,7 +142,6 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and dense1 compared with calcs done
         by hand"""
 
-
         self.assertFloatEqual(dist_morisita_horn(self.zeromtx),
                               zeros((4, 4), 'd'))
 
@@ -159,7 +157,6 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand"""
 
-
         self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4, 4) * 1, 'd'))
 
         mtx1expected = array([[0, 21.1 / 27.1],
@@ -172,7 +169,6 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand"""
 
-
         self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4, 4) * 1, 'd'))
 
         mtx1expected = array([[0, 21.1 / 27.1],
@@ -184,7 +180,6 @@ class functionTests(TestCase):
 
         tests inputs of empty mtx, zeros, and dense1 compared with calcs done
         by hand/manhattan dist"""
-
 
         self.assertFloatEqual(dist_soergel(self.zeromtx), zeros((4, 4) * 1, 'd'))
 
@@ -201,7 +196,6 @@ class functionTests(TestCase):
 
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand"""
-
 
         self.assertFloatEqual(dist_kulczynski(self.zeromtx),
                               zeros((4, 4) * 1, 'd'))
@@ -281,7 +275,6 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and results compared with calcs done
         by hand"""
 
-
         self.assertFloatEqual(binary_dist_chord(self.zeromtx),
                               zeros((4, 4), 'd'))
 
@@ -290,13 +283,11 @@ class functionTests(TestCase):
         self.assertFloatEqual(binary_dist_chord(self.mtx1),
                               mtx1expected)
 
-
     def test_binary_dist_lennon(self):
         """tests binary_dist_lennon
 
         tests inputs of empty mtx, zeros, and results compared with calcs done
         by hand"""
-
 
         self.assertFloatEqual(binary_dist_lennon(self.zeromtx),
                               zeros((4, 4), 'd'))
@@ -326,7 +317,6 @@ class functionTests(TestCase):
                               zeros((4, 4), 'd'))
 
         self.assertFloatEqual(binary_dist_pearson(self.dense1), zeros((3, 3)))
-
 
     def test_binary_dist_jaccard(self):
         """tests binary_dist_jaccard
@@ -385,7 +375,6 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand""" 
 
-
         self.assertFloatEqual(binary_dist_sorensen_dice(self.zeromtx),
                               zeros((4, 4), 'd'))
 
@@ -424,7 +413,6 @@ class functionTests(TestCase):
                               sparse1expected)
         self.assertFloatEqual(binary_dist_euclidean(self.zeromtx),
                               zeros((4, 4), 'd'))
-
 
     # zj's stuff
     def test_chord_transform(self):
@@ -516,7 +504,6 @@ class functionTests(TestCase):
             [0, 0, 1],
             [1, 1, 0],
             ]))
-
 
     def test_dist_bray_curtis_magurran2(self):
         """ should match hand-calculated values"""

@@ -18,6 +18,7 @@ try:
 except ImportError:
     _solved_models = None
 
+
 class PredefinedNucleotide(Nucleotide):
     _default_expm_setting = None
 
@@ -52,6 +53,7 @@ class PredefinedNucleotide(Nucleotide):
         P2 = self.calcPsubMatrix(pi, .5, *params)
         assert numpy.allclose(P1, P2)
 
+
 def _solvedNucleotide(name, predicates, rate_matrix_required=True, **kw):
     if _solved_models is not None and not rate_matrix_required:
         klass = PredefinedNucleotide
@@ -63,13 +65,16 @@ kappa_y = MotifChange('T', 'C').aliased('kappa_y')
 kappa_r = MotifChange('A', 'G').aliased('kappa_r')
 kappa = (kappa_y | kappa_r).aliased('kappa')
 
+
 def TN93(**kw):
     """Tamura and Nei 1993 model"""
     return _solvedNucleotide('TN93', [kappa_y, kappa_r], recode_gaps=True, **kw)
 
+
 def HKY85(**kw):
     """Hasegawa, Kishino and Yanamo 1985 model"""
     return _solvedNucleotide('HKY85', [kappa], recode_gaps=True, **kw)
+
 
 def F81(**kw):
     """Felsenstein's 1981 model"""

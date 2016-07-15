@@ -30,6 +30,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class alignment_tests(TestCase):
     """Tests of top-level functions."""
 
@@ -271,7 +272,6 @@ class SequenceCollectionBaseTests(object):
             # DenseAlignment is allowed to strip Info objects
             self.assertEqual([i.Info.x for i in b.Seqs], [5, 4, 3])
 
-
     def test_init_pairs(self):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
         seqs = [['x', 'XXX'], ['b', 'BBB'], ['c', 'CCC']]
@@ -360,7 +360,6 @@ class SequenceCollectionBaseTests(object):
         # check that the unordered seq matches one of the lists
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
-
 
     def test_iterSeqs(self):
         """SequenceCollection iterSeqs() method should support reordering of seqs"""
@@ -592,12 +591,10 @@ class SequenceCollectionBaseTests(object):
                              'c': {'a': 2 / 7.0, 'b': 3 / 7.0, 'c': 7 / 7.0},
             })
 
-
     def test_isRagged(self):
         """SequenceCollection isRagged should return true if ragged alignment"""
         assert(not self.identical.isRagged())
         assert(not self.gaps.isRagged())
-
 
     def test_toPhylip(self):
         """SequenceCollection should return PHYLIP string format correctly"""
@@ -815,7 +812,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln.getSeq('seq1'), 'GATTTT')
         self.assertRaises(KeyError, aln.getSeq, 'seqx')
 
-
     def test_todict(self):
         """SequenceCollection.todict should return dict of strings (not obj)"""
         aln = self.Class({'seq1': 'GATTTT', 'seq2': 'GATC??'})
@@ -839,8 +835,6 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({'s1': 'AATGR--', 's2': '-T-AG?-'}, MolType=DNA)
         self.assertEqual(aln.withModifiedTermini(), \
                          {'s1': 'AATGR??', 's2': '?T-AG??'})
-
-
 
     def test_omitSeqsTemplate(self):
         """SequenceCollection.omitSeqsTemplate returns new aln with well-aln to temp"""
@@ -1014,7 +1008,6 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
                                  'ACNEFGHIKLMNUVWP-',                                     
                                  ])
 
-
         self.assertRaises(ValueError, align_rag.toPhylip)
 
     def test_padSeqs_ragged(self):
@@ -1033,6 +1026,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.padSeqs, 5)
 
+
 class AlignmentBaseTests(SequenceCollectionBaseTests):
     """Tests of basic Alignment functionality. All Alignments should pass these.
 
@@ -1040,6 +1034,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     type of Alignment. Override self.Constructor with your alignment class
     as a constructor.
     """
+
     def test_Positions(self):
         """SequenceCollection Positions property should iterate over positions, using self.Names"""
         r = self.Class({'a': 'AAAAAA', 'b': 'AAA---', 'c': 'AAAA--'})
@@ -1190,7 +1185,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                               seq_constructor=coerce_to_string), \
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
 
-
     def test_IUPACConsensus_RNA(self):
         """SequenceCollection IUPACConsensus should use RNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['UCAGN-UCAGN-UCAGN-UCAGAGCAUN-',
@@ -1229,6 +1223,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(PROTEIN),
                          'ACBEFGHIKLMNPZRS?UVWX-')
+
     def test_isRagged(self):
         """SequenceCollection isRagged should return true if ragged alignment"""
         assert(not self.identical.isRagged())
@@ -1250,7 +1245,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """SequenceCollection.majorityConsensus should return commonest symbol per column"""
         # Check the exact strings expected from string transform
         self.assertEqual(self.sequences.majorityConsensus(str), 'UCAG')
-
 
     def test_uncertainties(self):
         """SequenceCollection.uncertainties should match hand-calculated values"""
@@ -1301,7 +1295,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             9: {'A': 1.0, 'C': 2.0, 'U': 4.0},
         }
         self.assertEqual(self.many.scoreMatrix(), scoreMatrix)
-
 
     def test_sample(self):
         """Alignment.sample should permute alignment by default"""
@@ -1379,7 +1372,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                   "seq2    .C..",
                   "seq3    .C.."]
         self.assertEqual(got, '\n'.join(expect))
-
 
 
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
@@ -1504,7 +1496,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
-
 
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func
@@ -1645,7 +1636,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
                           aln2_wrong_refseq)  # test wrong_refseq
 
 
-
 class DenseAlignmentSpecificTests(TestCase):
     """Tests of the DenseAlignment object and its methods"""
 
@@ -1654,6 +1644,7 @@ class DenseAlignmentSpecificTests(TestCase):
         self.a = DenseAlignment(array([[0, 1, 2], [3, 4, 5]]), \
                                 conversion_f=aln_from_array)
         self.a2 = DenseAlignment(['ABC', 'DEF'], Names=['x', 'y'])
+
         class ABModelSequence(ModelSequence):
             Alphabet = AB.Alphabet
         self.ABModelSequence = ABModelSequence
@@ -1835,8 +1826,10 @@ class DenseAlignmentSpecificTests(TestCase):
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
 
+
 class IntegrationTests(TestCase):
     """Test for integration between regular and model seqs and alns"""
+
     def setUp(self):
         """Intialize some standard sequences"""
         self.r1 = RNA.Sequence('AAA', Name='x')

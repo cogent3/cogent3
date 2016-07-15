@@ -16,9 +16,11 @@ __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
+
 class FastaTests(TestCase):
     """Tests for Fasta writer.
     """
+
     def setUp(self):
         """Setup for Fasta tests."""
         self.strings = ['AAAA', 'CCCC', 'gggg', 'uuuu']

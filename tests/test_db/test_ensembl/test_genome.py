@@ -34,6 +34,7 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
 else:
     account = get_ensembl_account(release=Release)
 
+
 class GenomeTestBase(TestCase):
     human = Genome(Species="human", Release=Release, account=account)
     mouse = Genome(Species="mouse", Release=Release, account=account)
@@ -41,6 +42,7 @@ class GenomeTestBase(TestCase):
     macaq = Genome(Species="macaque", Release=Release, account=account)
     gorilla = Genome(Species="gorilla", Release=Release, account=account)
     brca2 = human.getGeneByStableId(StableId="ENSG00000139618")
+
 
 class TestGenome(GenomeTestBase):
 
@@ -146,8 +148,8 @@ class TestGenome(GenomeTestBase):
             biotypes = genome.getDistinct('effect')
 
 
-
 class TestGene(GenomeTestBase):
+
     def _eval_brca2(self, brca2):
         """tests all attributes correctly created"""
         self.assertEqual(brca2.Symbol.lower(), 'brca2')
@@ -374,7 +376,6 @@ class TestGene(GenomeTestBase):
             else:
                 self.assertEqual(len(transcript.Introns), exp_number)
 
-
     def test_intron(self):
         """should get correct Intron sequence, regardless of strand"""
         # IL2 is on - strand, IL13 is on + strand, both have three introns
@@ -426,7 +427,6 @@ class TestGene(GenomeTestBase):
             intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
             self.assertEqual(intron_seq[-10:], exp_seq3.upper())
-
 
 
 class TestVariation(GenomeTestBase):
@@ -565,6 +565,7 @@ class TestVariation(GenomeTestBase):
 
 
 class TestFeatures(GenomeTestBase):
+
     def setUp(self):
         self.igf2 = self.human.getGeneByStableId(StableId='ENSG00000167244')
 

@@ -18,6 +18,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class SpecialTests(TestCase):
     """Tests miscellaneous functions."""
 
@@ -207,7 +208,6 @@ class SpecialTests(TestCase):
             assert obs > previous_value
             previous_value = obs
             start += step
-
 
     def test_log_one_minus_large(self):
         """log_one_minus_x should return math.log(1-x) if x is large"""

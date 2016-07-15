@@ -17,11 +17,13 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def get_name_combinations(names, group_size):
     """returns combinations of names"""
     combined = list(tuple(sorted(p)) for p in combinations(names, group_size))
     combined.sort()
     return combined
+
 
 def get_pairwise_distance_from_triad(data, summary_function="mean"):
     """returns pairwise distances from lengths estimated from triads
@@ -50,6 +52,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
         pairwise_stats[pair] = getattr(values, summary_func)
 
     return pairwise_stats
+
 
 class EstimateDistances(object):
     """Base class used for estimating pairwise distances between sequences.

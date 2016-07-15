@@ -20,8 +20,10 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class _CallablePredicate(object):
     # A predicate in the context of a particular model
+
     def __init__(self, pred, model):
         self.model = model
         self.alphabet = model.getAlphabet()
@@ -56,6 +58,7 @@ class _CallablePredicate(object):
 
 
 class predicate(object):
+
     def __and__(self, other):
         return All(self, other)
 
@@ -83,6 +86,7 @@ class predicate(object):
 
 
 class PredicateAlias(predicate):
+
     def __init__(self, name, subpredicate):
         self.name = name
         self.subpredicate = subpredicate
@@ -96,10 +100,12 @@ class PredicateAlias(predicate):
 
 
 class _UnaryPredicate(predicate):
+
     def __init__(self, subpredicate):
         assert isinstance(subpredicate, predicate), subpredicate
         self.subpredicate = subpredicate
         self.__doc__ = repr(self)
+
     def __repr__(self):
         if hasattr(self, '_op_repr'):
             return "%s(%s)" % (self._op_repr, self.subpredicate)
@@ -108,11 +114,13 @@ class _UnaryPredicate(predicate):
 
 
 class _GenericPredicate(predicate):
+
     def __init__(self, *subpredicates):
         for p in subpredicates:
             assert isinstance(p, predicate), p
         self.subpredicates = subpredicates
         self.__doc__ = repr(self)
+
     def __repr__(self):
         if hasattr(self, '_op_repr'):
             return '(%s)' % (' %s ' % self._op_repr).join([repr(p) for p in self.subpredicates])
@@ -124,8 +132,10 @@ class _GenericPredicate(predicate):
 
 class Not(_UnaryPredicate):
     _op_repr = '~'
+
     def interpret(self, model):
         subpred = self.subpredicate.interpret(model)
+
         def call(*args):
             return not subpred(*args)
         call.__doc__ = repr(self)
@@ -134,8 +144,10 @@ class Not(_UnaryPredicate):
 
 class All(_GenericPredicate):
     _op_repr = '&'
+
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
+
         def call(*args):
             for subpredicate in subpreds:
                 if not subpredicate(*args):
@@ -147,8 +159,10 @@ class All(_GenericPredicate):
 
 class Any(_GenericPredicate):
     _op_repr = '|'
+
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
+
         def call(*args):
             for subpredicate in subpreds:
                 if subpredicate(*args):
@@ -159,6 +173,7 @@ class Any(_GenericPredicate):
 
 
 class ModelSays(predicate):
+
     def __init__(self, name):
         self.name = name
 
@@ -170,6 +185,7 @@ class ModelSays(predicate):
 
 
 class DirectedMotifChange(predicate):
+
     def __init__(self, from_motif, to_motif,
                  diff_at=None):
 
@@ -217,6 +233,7 @@ class DirectedMotifChange(predicate):
 
         from_motifs = [resolve(m) for m in self.from_motif]
         to_motifs = [resolve(m) for m in self.to_motif]
+
         def call(x, y):
             diffs = [X != Y for (X, Y) in zip(x, y)]
             matches = []
@@ -230,6 +247,7 @@ class DirectedMotifChange(predicate):
 
 
 class UndirectedMotifChange(DirectedMotifChange):
+
     def __repr__(self):
         if self.diff_at is not None:
             diff = '[%d]' % self.diff_at
@@ -258,18 +276,23 @@ def MotifChange(x, y=None, forward_only=False, diff_at=None):
     else:
         return UndirectedMotifChange(x, y, diff_at=diff_at)
 
+
 class UserPredicate(predicate):
+
     def __init__(self, f):
         self.f = f
+
     def __repr__(self):
         return 'UserPredicate(%s)' % (
             getattr(self.f, '__name__', None) or repr(self.f))
+
     def interpret(self, model):
         return self.f
 
 
 silent = ModelSays('silent')
 replacement = ModelSays('replacement')
+
 
 def parse(rule):
     if ':' in rule:

@@ -29,12 +29,16 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class _PartialLikelihoodDefn(CalculationDefn):
+
     def setup(self, edge_name):
         self.edge_name = edge_name
 
+
 class LeafPartialLikelihoodDefn(_PartialLikelihoodDefn):
     name = "sequence"
+
     def calc(self, lh_tree):
         lh_leaf = lh_tree.getEdge(self.edge_name)
         return lh_leaf.input_likelihoods
@@ -101,6 +105,7 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
 
     return plh
 
+
 def recursive_lht_build(edge, leaves):
     if edge.istip():
         lhe = leaves[edge.Name]
@@ -112,8 +117,10 @@ def recursive_lht_build(edge, leaves):
         lhe = LikelihoodTreeEdge(lht_children, edge_name=edge.Name)
     return lhe
 
+
 class LikelihoodTreeDefn(CalculationDefn):
     name = 'lht'
+
     def setup(self, tree):
         self.tree = tree
 
@@ -123,6 +130,7 @@ class LikelihoodTreeDefn(CalculationDefn):
 
 class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):
     name = 'local_lht'
+
     def calc(self, parallel_context, lht):
         return lht.parallelShare(parallel_context)
 
@@ -177,10 +185,13 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
 
     return tll
 
+
 def log_sum_across_sites(root, root_lh):
     return root.getLogSumAcrossSites(root_lh)
 
+
 class BinnedSiteDistribution(object):
+
     def __init__(self, bprobs):
         self.bprobs = bprobs
 
@@ -204,6 +215,7 @@ class BinnedSiteDistribution(object):
 
 
 class PatchSiteDistribution(object):
+
     def __init__(self, switch, bprobs):
         half = len(bprobs) // 2
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
@@ -239,6 +251,7 @@ class PatchSiteDistribution(object):
 
 
 class BinnedLikelihood(object):
+
     def __init__(self, distrib, root):
         self.distrib = distrib
         self.root = root
@@ -258,6 +271,7 @@ class BinnedLikelihood(object):
 
 
 class SiteHmm(object):
+
     def __init__(self, distrib, root):
         self.root = root
         self.distrib = distrib

@@ -16,6 +16,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class locuslinkTests(TestCase):
     """Tests toplevel functions."""
 

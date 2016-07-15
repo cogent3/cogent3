@@ -14,6 +14,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class TransitionMatrix(object):
     """The transition matrix for a Markov process.  Just a square
     numpy array plus a list of state 'tags', eg:

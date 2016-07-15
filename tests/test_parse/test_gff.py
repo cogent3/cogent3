@@ -42,8 +42,10 @@ data_lines = [
      ('12345', 'Source with spaces', 'feature with spaces', 3600000000, 101, '1e-5', '-', '.', 'Sequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"', None)),
 ]
 
+
 class GffTest(TestCase):
     """Setup data for all the GFF parsers."""
+
     def testGffParserData(self):
         """Test GffParser with valid data lines"""
         for (line, canned_result) in data_lines:

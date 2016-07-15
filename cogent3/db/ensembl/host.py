@@ -34,8 +34,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class HostAccount(object):
     """host account data"""
+
     def __init__(self, host, user, passwd, port=None):
         super(HostAccount, self).__init__()
         self.host = host
@@ -69,12 +71,15 @@ def get_ensembl_account(release=None):
     port = [None, 5306][release is None or int(release) > 47]
     return HostAccount("ensembldb.ensembl.org", "anonymous", "", port=port)
 
+
 def _get_default_connection():
     return "ensembldb.ensembl.org", "anonymous", ""
+
 
 class EngineCache(object):
     """storage of active connections, indexed by account, database name"""
     _db_account = {}
+
     def __call__(self, account, db_name=None, pool_recycle=None):
         """returns an active SQLAlchemy connection engine"""
         assert account and db_name, "Must provide an account and a db"
@@ -94,6 +99,7 @@ class EngineCache(object):
 
 DbConnection = EngineCache()
 
+
 def make_db_name_pattern(species=None, db_type=None, release=None):
     """returns a pattern for matching the db name against"""
     sep = r"%"
@@ -108,6 +114,7 @@ def make_db_name_pattern(species=None, db_type=None, release=None):
     assert pattern
 
     return "'%s%s'" % (pattern, sep)
+
 
 def get_db_name(account=None, species=None, db_type=None, release=None,
                 division=None, DEBUG=False):
@@ -143,6 +150,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
                 print("FAIL:", row[0])
             continue
     return dbs
+
 
 def get_latest_release(account=None):
     """returns the number of the latest release based on the compara db"""

@@ -13,8 +13,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class db_util_tests(TestCase):
     """Tests of top-level functions."""
+
     def test_last_nondigit_index(self):
         """last_nondigit_index should return i such that s[i:] is numeric"""
         ldi = last_nondigit_index
@@ -51,6 +53,7 @@ class db_util_tests(TestCase):
 
 class UrlGetterTests(TestCase):
     """Tests of the UrlGetter class"""
+
     def retrieval_test(self):
         """Urlgetter should init, read and retrieve"""
         class Google(UrlGetter):

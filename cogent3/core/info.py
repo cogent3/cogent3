@@ -15,6 +15,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Prototype"
 
+
 class DbRef(object):
     """Holds a database accession, and optionally other data.
 
@@ -26,6 +27,7 @@ class DbRef(object):
 
     str(DbRef) always returns the accession.
     """
+
     def __init__(self, Accession, Db='', Name='', Description='', \
                  Data=None):
         """Returns new DbRef.
@@ -60,7 +62,6 @@ class DbRef(object):
         except:
             return str(self) < str(other)
 
-
     def __eq__(self, other):
         """Compares by accession: tries numeric first, then alphabetic"""
         try:
@@ -85,6 +86,7 @@ def _make_list(obj):
     else:
         return [obj]
 
+
 class DbRefs(MappedRecord, ConstrainedDict):
     """Holds Database -> [Accessions] mapping.
 
@@ -102,12 +104,14 @@ KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept',
                                 'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene', 
                                 'KEGG', 'BRENDA', 'EcoCyc', 'HumanCyc', 'BLOCKS'])
 
+
 class Info(MappedRecord, Delegator):
     """Dictionary that stores attributes for Sequence objects.
 
     Delegates to DbRefs for database IDs.
     """
     Required = {'Refs': None}
+
     def __init__(self, *args, **kwargs):
         """Returns new Info object. Creates DbRefs if necessary."""
         temp = dict(*args, **kwargs)

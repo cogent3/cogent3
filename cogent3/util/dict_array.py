@@ -35,6 +35,7 @@ __status__ = "Production"
 
 
 class DictArrayTemplate(object):
+
     def __init__(self, *dimensions):
         self.names = []
         self.ordinals = []

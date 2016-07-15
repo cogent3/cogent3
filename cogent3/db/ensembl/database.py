@@ -13,8 +13,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class Database(object):
     """holds the data-base connection and table attributes"""
+
     def __init__(self, account, species=None, db_type=None, release=None,
                  pool_recycle=None, division=None):
         self._tables = {}

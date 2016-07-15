@@ -14,14 +14,19 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class FakeModel(object):
+
     def __init__(self, alphabet):
         self.alphabet = alphabet
         self.MolType = alphabet.MolType
+
     def getAlphabet(self):
         return self.alphabet
 
+
 class TestPredicates(unittest.TestCase):
+
     def setUp(self):
         self.alphabet = CodonAlphabet()
         self.model = FakeModel(self.alphabet)

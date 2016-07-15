@@ -12,6 +12,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def pmcc(data, axis=1):
     """Compute the Product-moment correlation coefficient.
     Expression 15.3 from Biometry by Sokal/Rohlf
@@ -39,6 +40,8 @@ data = np.array([[159, 179, 100, 45, 384, 230, 100, 320, 80, 220, 320, 210],
                   15.39, 17.25, 9.52]])
 
 # factory function generator for the statistical function of interest
+
+
 def stat_maker(func, data, axis):
     def calc_stat(coords):
         subset_data = data.take(coords, axis)
@@ -46,10 +49,14 @@ def stat_maker(func, data, axis):
     return calc_stat
 
 # function to compute mean of a np array
+
+
 def mean(data, axis):
     return data.mean(axis=axis)
 
+
 class JackknifeTests(TestCase):
+
     def test_proper_initialise(self):
         """jackknife should initialise correctly"""
         # Scalar
@@ -135,8 +142,6 @@ class JackknifeTests(TestCase):
                 self.assertAlmostEqual(got_pseudovalues[index1][index2],
                                        expected_pseudovalues[index1][index2],
                                        places=4)
-
-
 
 
 if __name__ == "__main__":

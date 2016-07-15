@@ -10,6 +10,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class DisplayString(str):
     """provides a mechanism for customising the str() and repr() of objects"""
     def __new__(cls, arg, num_words=None, repr_length=None, with_quotes=False):
@@ -50,10 +51,12 @@ class CaseInsensitiveString(str):
     def __str__(self):
         return ''.join(list(self))
 
+
 class LazyRecord(object):
     """a convenience class for conducting lazy evaluations of class
     properties"""
     NULL_VALUE = None
+
     def __init__(self):
         """blind constructor of caches"""
         self._cached = {}
@@ -82,6 +85,7 @@ class LazyRecord(object):
 
 
 class NoItemError(Exception):
+
     def __init__(self, value):
         self.value = value
 
@@ -100,6 +104,7 @@ def convert_strand(val):
         val = 1
     return val
 
+
 def asserted_one(items):
     """asserts items has a single value and returns it"""
     one = False
@@ -112,9 +117,11 @@ def asserted_one(items):
     else:
         raise NoItemError('No items')
 
+
 def what_columns(table):
     """shows what columns are in a table"""
     print([c.name for c in table.c])
+
 
 def yield_selected(sqlalchemy_select, limit=100):
     """takes a SQLAlchemy select condition, yielding limit per db query

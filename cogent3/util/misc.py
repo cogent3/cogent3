@@ -68,6 +68,7 @@ class FilePath(str):
     def __add__(self, other):
         return FilePath(''.join([self, other]))
 
+
 def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
                      result_constructor=FilePath):
     """ Generate a temporary filename and return as a FilePath object
@@ -114,9 +115,11 @@ def safe_md5(open_file, block_size=2**20):
 
     return md5
 
+
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
     return x
+
 
 def if_(test, true_result, false_result):
     """Convenience function for one-line if/then/else with known return values.
@@ -132,6 +135,7 @@ def if_(test, true_result, false_result):
     else:
         return false_result
 
+
 def iterable(item):
     """If item is iterable, returns item. Otherwise, returns [item].
 
@@ -143,6 +147,7 @@ def iterable(item):
     except TypeError:
         return [item]
 
+
 def max_index(items):
     """Returns index of the largest item.
 
@@ -150,11 +155,13 @@ def max_index(items):
     """
     return max([(item, index) for index, item in enumerate(items)])[1]
 
+
 def min_index(items):
     """Returns index of the smallest item.
 
     items can be any sequence. If there is a tie, returns earliest item"""
     return min([(item, index) for index, item in enumerate(items)])[1]
+
 
 def flatten(items):
     """Removes one level of nesting from items.
@@ -169,8 +176,10 @@ def flatten(items):
             result.append(i)
     return result
 
+
 class DepthExceededError(Exception):
     pass
+
 
 def deep_list(x):
     """Convert tuple recursively to list."""
@@ -178,16 +187,19 @@ def deep_list(x):
         return list(map(deep_list, x))
     return x
 
+
 def deep_tuple(x):
     """Convert list recursively to tuple."""
     if isinstance(x, list):
         return tuple(map(deep_tuple, x))
     return x
 
+
 def between(xxx_todo_changeme, number):
     """Same as: min_ <= number <= max_."""
     (min_, max_) = xxx_todo_changeme
     return min_ <= number <= max_
+
 
 def combinate(items, n):
     """Returns combinations of items."""
@@ -196,6 +208,7 @@ def combinate(items, n):
         for i in range(len(items) - n + 1):
             for cc in combinate(items[i + 1:], n - 1):
                 yield [items[i]] + cc
+
 
 def gzip_dump(object, filename, bin=2):
     """Saves a compressed object to file."""
@@ -206,6 +219,7 @@ def gzip_dump(object, filename, bin=2):
     except AttributeError:
         pass
     file.close()
+
 
 def gzip_load(filename):
     """Loads a compressed object from file."""
@@ -220,6 +234,7 @@ def gzip_load(filename):
     object = loads(buffer)
     file.close()
     return object
+
 
 def recursive_flatten_old(items, max_depth=None, curr_depth=0):
     """Removes all nesting from items, recursively.
@@ -242,6 +257,7 @@ def recursive_flatten_old(items, max_depth=None, curr_depth=0):
         except:
             result.append(i)
     return result
+
 
 def curry(f, *a, **kw):
     """curry(f,x)(y) = f(x,y) or = lambda y: f(x,y)
@@ -271,6 +287,7 @@ def curry(f, *a, **kw):
     return curried
 # end curry
 
+
 def is_iterable(obj):
     """return True if obj is iterable"""
     try:
@@ -279,6 +296,7 @@ def is_iterable(obj):
         return False
     else:
         return True
+
 
 def is_char(obj):
     """return True if obj is a char (str with lenth<=1)"""
@@ -318,11 +336,13 @@ def recursive_flatten(items, max_depth=None, curr_depth=1,
     return result
 # end recursive_flatten
 
+
 def not_list_tuple(obj):
     """return False if obj is a list or a tuple"""
     return not isinstance(obj, (list, tuple))
 
 list_flatten = curry(recursive_flatten, is_leaf=not_list_tuple)
+
 
 def unflatten(data, row_width, keep_extras=False):
     """Converts items in data into a list of row_width-length lists.
@@ -353,6 +373,7 @@ def unflatten(data, row_width, keep_extras=False):
             result.append(last_slice)
     return result
 
+
 def unzip(items):
     """Performs the reverse of zip, i.e. produces separate lists from tuples.
 
@@ -375,6 +396,7 @@ def unzip(items):
     else:
         return []
 
+
 def select(order, items):
     """Returns the elements from items specified in order, a list of indices.
 
@@ -391,6 +413,7 @@ def select(order, items):
     """
     return list(map(items.__getitem__, order))
 
+
 def find_all(text, pat):
     """Returns list of all overlapping occurrences of a pattern in a text.
 
@@ -405,6 +428,7 @@ def find_all(text, pat):
             last = curr + 1
     except ValueError:  # raised when no more matches
         return result
+
 
 def find_many(text, pats):
     """Returns sorted list of all occurrences of all patterns in text.
@@ -425,7 +449,6 @@ def find_many(text, pats):
     return result
 
 
-
 def unreserve(item):
     """Removes trailing underscore from item if it has one.
 
@@ -435,6 +458,7 @@ def unreserve(item):
         return item[:-1]
     else:
         return item
+
 
 def add_lowercase(d):
     """Adds lowercase version of keys in d to itself. Converts vals as well.
@@ -472,6 +496,7 @@ def add_lowercase(d):
             d[new_key] = new_val
     return d
 
+
 def extract_delimited(line, left, right, start_index=0):
     """Returns the part of line from first left to first right delimiter.
 
@@ -495,10 +520,12 @@ def extract_delimited(line, left, right, start_index=0):
     # if we got here, we found the start and end of the field
     return line[field_start + 1:field_end]
 
+
 def caps_from_underscores(string):
     """Converts words_with_underscores to CapWords."""
     words = string.split('_')
     return ''.join([w.title() for w in words])
+
 
 def InverseDict(d):
     """Returns inverse of d, setting keys to values and vice versa.
@@ -518,6 +545,7 @@ def InverseDict(d):
     else:
         temp = dict(d)
     return dict([(val, key) for key, val in temp.items()])
+
 
 def InverseDictMulti(d):
     """Returns inverse of d, setting keys to values and values to list of keys.
@@ -542,6 +570,7 @@ def InverseDictMulti(d):
         result[val].append(key)
     return result
 
+
 def DictFromPos(seq):
     """Returns dict mapping items to list of positions of those items in seq.
 
@@ -557,6 +586,7 @@ def DictFromPos(seq):
         result[s].append(i)
     return result
 
+
 def DictFromFirst(seq):
     """Returns dict mapping each item to index of its first occurrence in seq.
 
@@ -569,6 +599,7 @@ def DictFromFirst(seq):
             result[s] = i
     return result
 
+
 def DictFromLast(seq):
     """Returns dict mapping each item to index of its last occurrence in seq.
 
@@ -576,6 +607,7 @@ def DictFromLast(seq):
     lists.
     """
     return dict([(item, index) for index, item in enumerate(seq)])
+
 
 def DistanceFromMatrix(matrix):
     """Returns function(i,j) that looks up matrix[i][j].
@@ -589,6 +621,7 @@ def DistanceFromMatrix(matrix):
         return matrix[i][j]
     return result
 
+
 def PairsFromGroups(groups):
     """Returns dict such that d[(i,j)] exists iff i and j share a group.
 
@@ -601,8 +634,10 @@ def PairsFromGroups(groups):
                 result[(i, j)] = None
     return result
 
+
 class ClassChecker(object):
     """Container for classes: 'if t in x == True' if t is the right class."""
+
     def __init__(self, *Classes):
         """Returns a new ClassChecker that accepts specified classes."""
         type_type = type(str)
@@ -622,6 +657,7 @@ class ClassChecker(object):
         """Informal string representation: returns list"""
         return str(self.Classes)
 
+
 class Delegator(object):
     """Mixin class that forwards unknown attributes to a specified object.
 
@@ -637,6 +673,7 @@ class Delegator(object):
 
     Warning: will not work on classes that use __slots__ instead of __dict__.
     """
+
     def __init__(self, obj):
         """Returns a new Delegator that uses methods of obj.
 
@@ -690,16 +727,21 @@ class Delegator(object):
                 pass  # will try to create the attribute on self
         return object.__setattr__(self, attr, value)
 
+
 class FunctionWrapper(object):
     """Wraps a function to hide it from a class so that it isn't a method."""
+
     def __init__(self, Function):
         self.Function = Function
+
     def __call__(self, *args, **kwargs):
         return self.Function(*args, **kwargs)
+
 
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
     pass
+
 
 class ConstrainedContainer(object):
     """Mixin class providing constraint checking to a container.
@@ -908,6 +950,7 @@ class ConstrainedString(str, ConstrainedContainer):
         else:
             return items
 
+
 class MappedString(ConstrainedString):
     """As for ConstrainedString, but maps __contained__ and __getitem__."""
 
@@ -1042,6 +1085,7 @@ class MappedList(ConstrainedList):
         except (TypeError, ValueError):
             return False
 
+
 class ConstrainedDict(ConstrainedContainer, dict):
     """Dict containing only keys that are valid on a specified constraint.
 
@@ -1115,6 +1159,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
         for key in other:
             self[key] = other[key]
 
+
 class MappedDict(ConstrainedDict):
     """As for ConstrainedDict, but maps keys on contains and getitem."""
 
@@ -1137,12 +1182,14 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return self.Mask(item) in super(MappedDict, self)
 
+
 def getNewId(rand_f=randrange):
     """Creates a random 12-digit integer to be used as an id."""
 
     NUM_DIGITS = 12
     return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
 # end function getNewId
+
 
 def toString(obj):
     """Public function to write a string of object's properties & their vals.
@@ -1180,6 +1227,8 @@ def toString(obj):
 # end toString
 
 # A class for exceptions caused when param cannot be cast to nonneg int
+
+
 class NonnegIntError(ValueError):
     """for exceptions caused when param cannot be cast to nonneg int"""
 
@@ -1187,6 +1236,7 @@ class NonnegIntError(ValueError):
         self.args = args
     # end __init__
 # end NonnegIntError
+
 
 def makeNonnegInt(n):
     """Public function to cast input to nonneg int and return, or raise err"""
@@ -1199,6 +1249,7 @@ def makeNonnegInt(n):
 
     return n
 # end makeNonnegInt
+
 
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
@@ -1234,6 +1285,7 @@ def reverse_complement(seq, use_DNA=True):
 revComp = reverse_complement
 # end revComp
 
+
 def timeLimitReached(start_time, time_limit):
     """Return true if more that time_limit has elapsed since start_time"""
 
@@ -1244,6 +1296,7 @@ def timeLimitReached(start_time, time_limit):
     return result
 # end _time_limit_reached
 
+
 def not_none(seq):
     """Returns True if no item in seq is None."""
     for i in seq:
@@ -1251,6 +1304,7 @@ def not_none(seq):
             return False
     return True
 # end not_none
+
 
 def get_items_except(seq, indices, seq_constructor=None):
     """Returns all items in seq that are not in indices
@@ -1268,6 +1322,7 @@ def get_items_except(seq, indices, seq_constructor=None):
             seq_constructor = seq.__class__
     return seq_constructor(result)
 # end get_items_except
+
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
@@ -1319,6 +1374,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
     return parser
 # end NestedSplitter
 
+
 def app_path(app, env_variable='PATH'):
     """Returns path to an app, or False if app does not exist in env_variable
 
@@ -1336,11 +1392,14 @@ def app_path(app, env_variable='PATH'):
     return False
 
 # some error codes for creating a dir
+
+
 def get_create_dir_error_codes():
     return {'NO_ERROR': 0,
             'DIR_EXISTS': 1,
             'FILE_EXISTS': 2,
             'OTHER_OS_ERROR': 3}
+
 
 def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
     """Create a dir safely and fail meaningful.
@@ -1389,6 +1448,7 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
 
     return error_code_lookup['NO_ERROR']
 
+
 def handle_error_codes(dir_name, supress_errors=False,
                        error_code=None):
     """Wrapper function for error_handling.
@@ -1418,6 +1478,7 @@ def handle_error_codes(dir_name, supress_errors=False,
     else:
         raise OSError(error_strings[error_code])
 
+
 def remove_files(list_of_filepaths, error_on_missing=True):
     """Remove list of filepaths, optionally raising an error if any are missing
     """
@@ -1430,6 +1491,7 @@ def remove_files(list_of_filepaths, error_on_missing=True):
 
     if error_on_missing and missing:
         raise OSError("Some filepaths were not accessible: %s" % '\t'.join(missing))
+
 
 def get_random_directory_name(suppress_mkdir=False,\
                               timestamp_pattern='%Y%m%d%H%M%S',\
@@ -1478,6 +1540,7 @@ def get_random_directory_name(suppress_mkdir=False,\
         return abs_dirpath
     return dirpath
 
+
 def get_independent_coords(spans, random_tie_breaker=False):
     """returns non-overlapping spans. spans must have structure
         [(start, end, ..), (..)]. spans can be decorated with arbitrary data
@@ -1507,6 +1570,7 @@ def get_independent_coords(spans, random_tie_breaker=False):
 
     return result
 
+
 def get_merged_overlapping_coords(start_end):
     """merges overlapping spans, assumes sorted by start"""
     result = [start_end[0]]
@@ -1524,6 +1588,7 @@ def get_merged_overlapping_coords(start_end):
             pass  # we lie completely within previous span
 
     return result
+
 
 def get_run_start_indices(values, digits=None, converter_func=None):
     """returns starting index, value for all distinct values"""
@@ -1544,6 +1609,7 @@ def get_run_start_indices(values, digits=None, converter_func=None):
         last_val = val
 
     return
+
 
 def get_merged_by_value_coords(spans_value, digits=None):
     """returns adjacent spans merged if they have the same value. Assumes

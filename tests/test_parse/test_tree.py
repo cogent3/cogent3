@@ -66,6 +66,7 @@ double = '(abc:3, def:4);'
 onenest = '(abc:3, (def:4, ghi:5):6 );'
 nodedata = '(abc:3, (def:4, ghi:5)jkl:6 );'
 
+
 class DndTokenizerTests(TestCase):
     """Tests of the DndTokenizer factory function."""
 
@@ -102,8 +103,10 @@ class DndTokenizerTests(TestCase):
         obs = list(DndTokenizer(minimal))
         self.assertEqual(obs, exp)
 
+
 class DndParserTests(TestCase):
     """Tests of the DndParser factory function."""
+
     def test_nonames(self):
         """DndParser should produce the correct tree when there are no names"""
         obs = DndParser(no_names)
@@ -220,8 +223,10 @@ class DndParserTests(TestCase):
         self.assertEqual(obs.getNewick(with_distances=True), \
                          tree_unesc.getNewick(with_distances=True))
 
+
 class PhyloNodeTests(TestCase):
     """Check that PhyloNode works the way I think"""
+
     def test_gops(self):
         """Basic PhyloNode operations should work as expected"""
         p = PhyloNode()

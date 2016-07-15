@@ -11,6 +11,7 @@ __status__ = "Production"
 
 EPS = 1e-15
 
+
 def bisection(func, a, b, args=(), xtol=1e-10, maxiter=400):
     """Bisection root-finding method.  Given a function and an interval with
     func(a) * func(b) < 0, find the root between a and b.
@@ -35,6 +36,7 @@ def bisection(func, a, b, args=(), xtol=1e-10, maxiter=400):
         else:
             b = p
     raise RuntimeError("bisection failed after %d iterations." % maxiter)
+
 
 def brent(func, a, b, args=(), xtol=1e-10, maxiter=100):
     """Fast and robust root-finding method.  Given a function and an
@@ -95,6 +97,7 @@ def brent(func, a, b, args=(), xtol=1e-10, maxiter=100):
         fb = func(b, *args)
         i += 1
     raise RuntimeError("solver failed after %d iterations." % maxiter)
+
 
 def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
     if xtol is None:

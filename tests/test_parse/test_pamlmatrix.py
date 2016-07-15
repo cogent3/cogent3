@@ -51,7 +51,9 @@ data = """
       applications to mitochondrial protein evolution. Mol. Biol. Evol. 15:1600-1611.
 """
 
+
 class TestParsePamlMatrix(TestCase):
+
     def test_parse(self):
         matrix, freqs = PamlMatrixParser(StringIO(data))
         self.assertEqual(DSO78_matrix, matrix)

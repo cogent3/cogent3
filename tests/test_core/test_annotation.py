@@ -15,6 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def makeSampleSequence(with_gaps=False):
     raw_seq = 'AACCCAAAATTTTTTGGGGGGGGGGCCCC'
     cds = (15, 25)
@@ -25,6 +26,7 @@ def makeSampleSequence(with_gaps=False):
     seq.addAnnotation(Feature, 'CDS', 'CDS', [cds])
     seq.addAnnotation(Feature, "5'UTR", "5' UTR", [utr])
     return seq
+
 
 def makeSampleAlignment():
     seq1 = makeSampleSequence()
@@ -37,7 +39,9 @@ def makeSampleAlignment():
     aln.addAnnotation(Feature, "LTR", "fake", [(2, 15)])
     return aln
 
+
 class TestAnnotations(unittest.TestCase):
+
     def setUp(self):
         self.seq = makeSampleSequence()
         self.aln = makeSampleAlignment()
@@ -45,6 +49,7 @@ class TestAnnotations(unittest.TestCase):
     def test_inherit_feature(self):
         """should be able to subclass and extend _Feature"""
         class NewFeat(_Feature):
+
             def __init__(self, *args, **kwargs):
                 super(NewFeat, self).__init__(*args, **kwargs)
 
@@ -53,7 +58,6 @@ class TestAnnotations(unittest.TestCase):
                     as_one = self.asOneSpan()  # should create new instance of NewFeat
                     return as_one.newMethod()
                 return True
-
 
         seq = DNA.makeSequence('ACGTACGTACGT')
         f = seq.addAnnotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
@@ -68,7 +72,6 @@ class TestAnnotations(unittest.TestCase):
                          NewFeat)
         # now use the new method
         f.newMethod()
-
 
     def test_slice_seq_with_annotations(self):
         newseq = self.seq[:5] + self.seq[10:]
@@ -183,9 +186,11 @@ class TestAnnotations(unittest.TestCase):
                 assert str(observed) == expected, ("-", annot_type, name, expected,
                                                    observed)
 
+
 class TestMapSpans(unittest.TestCase):
     """Test attributes of Map & Spans classes critical to annotation
     manipulation."""
+
     def test_span(self):
         length = 100
         forward = Span(20, 30)
@@ -203,7 +208,6 @@ class TestMapSpans(unittest.TestCase):
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
-
 
 
 if __name__ == '__main__':

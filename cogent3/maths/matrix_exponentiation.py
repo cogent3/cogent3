@@ -24,7 +24,9 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class _Exponentiator(object):
+
     def __init__(self, Q):
         self.Q = Q
 
@@ -75,6 +77,7 @@ def SemiSymmetricExponentiator(motif_probs, Q):
 # approach they look like they do.  They are derived from code in SciPy.
 
 class TaylorExponentiator(_Exponentiator):
+
     def __init__(self, Q):
         self.Q = Q
         self.q = 21
@@ -99,6 +102,7 @@ class TaylorExponentiator(_Exponentiator):
 
 
 class PadeExponentiator(_Exponentiator):
+
     def __init__(self, Q):
         self.Q = Q
 
@@ -141,13 +145,16 @@ class PadeExponentiator(_Exponentiator):
             F = numpy.dot(F, F)
         return F
 
+
 def chooseFastExponentiators(Q):
     return (FastExponentiator, CheckedExponentiator)
+
 
 def FastExponentiator(Q):
     (roots, evT) = eig(Q)
     ev = evT.T
     return EigenExponentiator(Q, roots, ev, evT, inv(ev))
+
 
 def CheckedExponentiator(Q):
     (roots, evT) = eig(Q)
@@ -157,6 +164,7 @@ def CheckedExponentiator(Q):
     if not numpy.allclose(Q, reQ):
         raise ArithmeticError("eigen failed precision test")
     return EigenExponentiator(Q, roots, ev, evT, evI)
+
 
 def RobustExponentiator(Q):
     return PadeExponentiator(Q)

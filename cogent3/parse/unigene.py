@@ -18,6 +18,7 @@ maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip
 
+
 def _read_sts(line):
     """Turns an STS line (without label) into a record.
 
@@ -28,18 +29,22 @@ def _read_sts(line):
     filtered = line.replace('=', ' ')
     return MappedRecord(list(ByPairs(filtered.split())))
 
+
 def _read_expression(line):
     """Turns a semicolon-delimited  expression line into list of expressions"""
     return semi_splitter(line)
+
 
 class UniGeneSeqRecord(MappedRecord):
     Aliases = {'ACC': 'Accession', 'CLONE': 'CloneId', 'END': 'End',\
                'LID': 'LibraryId', 'SEQTYPE': 'SequenceType', 'TRACE': 'Trace', \
                'EST': 'EstId', 'NID': 'NucleotideId', 'PID': 'ProteinId'}
 
+
 class UniGeneProtSimRecord(MappedRecord):
     Aliases = {'ORG': 'Species', 'PROTGI': 'ProteinGi', 'ProtId': 'ProteinId',\
                'PCT': 'PercentSimilarity', 'ALN': 'AlignmentScore'}
+
 
 def _read_seq(line):
     """Turns a sequence line into a UniGeneSeqRecord.
@@ -51,6 +56,7 @@ def _read_seq(line):
     second_level = list(map(equal_pairs, first_level))
     return UniGeneSeqRecord(second_level)
 
+
 def _read_protsim(line):
     """Turns a protsim line into a UniGeneProtSim record.
 
@@ -61,6 +67,7 @@ def _read_protsim(line):
     second_level = list(map(equal_pairs, first_level))
     return UniGeneProtSimRecord(second_level)
 
+
 class UniGene(MappedRecord):
     """Holds data for a UniGene record."""
     Required = {'STS': [], 'PROTSIM': [], 'SEQUENCE': [], 'EXPRESS': []}
@@ -69,17 +76,21 @@ class UniGene(MappedRecord):
                'EXPRESS': 'ExpressedIn', 'CHROMOSOME': 'Chromosome', 'ID': 'UniGeneId', \
                'TITLE': 'UniGeneTitle', 'LOCUSLINK': 'LocusLinkId'}
 
+
 def _expressions_setter(obj, field, val):
     """Sets specified field to a list of expressions"""
     setattr(obj, field, semi_splitter(val))
+
 
 def _sts_adder(obj, field, val):
     """Appends the current STS-type record to specified field"""
     list_adder(obj, field, _read_sts(val))
 
+
 def _seq_adder(obj, field, val):
     """Appends the current Sequence-type record to specified field"""
     list_adder(obj, field, _read_seq(val))
+
 
 def _protsim_adder(obj, field, val):
     """Appends the current ProtSim record to specified field"""
@@ -95,6 +106,7 @@ LinesToUniGene.FieldMap = {
     'SEQUENCE': _seq_adder,
     'STS': _sts_adder,
 }
+
 
 def UniGeneParser(lines):
     """Treats lines as a stream of unigene records"""

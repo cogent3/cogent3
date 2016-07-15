@@ -46,8 +46,10 @@ good_names = '''1\t|\tall\t|\t\t|\tsynonym\t|
 10\t|\tFakus namus\t|\t\t|\tscientific name\t|
 '''.split('\n')
 
+
 class NcbiTaxonTests(TestCase):
     """Tests proper parsing of NCBI node file, e.g. nodes.dmp"""
+
     def test_init(self):
         """NcbiTaxon init should return object containing taxonomy data"""
         good_1 = '''1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|\n'''
@@ -96,8 +98,10 @@ class NcbiTaxonTests(TestCase):
         self.assertRaises(ValueError, NcbiTaxon, bad_node_taxid)
         self.assertRaises(ValueError, NcbiTaxon, bad_node_parentid)
 
+
 class NcbiNameTests(TestCase):
     """Tests proper parsing NCBI name file, e.g. names.dmp."""
+
     def test_init(self):
         """NcbiName should init OK with well-formed name line"""
         line_1 = '''1\t|\tall\t|\t\t|\tsynonym\t|\n'''
@@ -128,6 +132,7 @@ class NcbiNameTests(TestCase):
         bad_name_taxid = '''\t|\troot\t|\t\t|\tscientific name\t|\n'''  # no tax_id
         self.assertRaises(ValueError, NcbiName, bad_name_taxid)
 
+
 class NcbiNameLookupTest(TestCase):
     """Tests of the NcbiNameLookup factory function."""
 
@@ -148,8 +153,10 @@ class NcbiNameLookupTest(TestCase):
         self.assertEqual(sci_names[7].Name, 'Azorhizobium caulinodans')
         self.assertEqual(sci_names[9].Name, 'Buchnera aphidicola')
 
+
 class NcbiTaxonLookupTest(TestCase):
     """Tests of the NcbiTaxonLookup factory function."""
+
     def setUp(self):
         """Sets up the class tests"""
         self.names = list(NcbiNameParser(good_names))
@@ -186,8 +193,10 @@ class NcbiTaxonLookupTest(TestCase):
         self.assertEqual(self.taxID_to_obj[7].TranslTableMt, 0)
         self.assertEqual(self.taxID_to_obj[7].TranslTableMtInherited, 1)
 
+
 class NcbiTaxonomyTests(TestCase):
     """Tests of the NcbiTaxonomy class."""
+
     def setUp(self):
         self.tx = NcbiTaxonomyFromFiles(good_nodes, good_names)
 
@@ -213,7 +222,6 @@ class NcbiTaxonomyTests(TestCase):
         tx = NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
         self.assertRaises(MissingParentError, NcbiTaxonomyFromFiles, \
                           bad_nodes, good_names, strict=True)
-
 
     def test_Ancestors(self):
         """NcbiTaxonomy should support Ancestors correctly, not incl. self"""
@@ -258,6 +266,7 @@ class NcbiTaxonomyTests(TestCase):
         assert self.tx[9].lastCommonAncestor(self.tx[7]) is self.tx[7]
         assert self.tx[9].lastCommonAncestor(self.tx[10]) is self.tx[6]
         assert self.tx[9].lastCommonAncestor(self.tx[1]) is self.tx[1]
+
 
 class NcbiTaxonNodeTests(TestCase):
     """Tests of the NcbiTaxonNode class.

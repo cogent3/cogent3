@@ -35,8 +35,10 @@ _locus_parser = FieldWrapper(locus_fields)
 # need to turn off line stripping, because whitespace is significant
 GbFinder = DelimitedRecordFinder('//', constructor=rstrip)
 
+
 class PartialRecordError(Exception):
     pass
+
 
 def parse_locus(line):
     """Parses a locus line, including conversion of Length to an int.
@@ -55,10 +57,12 @@ def parse_locus(line):
         del result[None]
     return result
 
+
 def parse_single_line(line):
     """Generic parser: splits off the label, and return the rest."""
     label, data = line.split(None, 1)
     return data.rstrip()
+
 
 def indent_splitter(lines):
     """Yields the lines whenever it hits a line with same indent level as first.
@@ -83,6 +87,7 @@ def indent_splitter(lines):
     if curr:
         yield curr
 
+
 def parse_sequence(lines, constructor=''.join):
     """Parses a GenBank sequence block. Doesn't care about ORIGIN line."""
     result = []
@@ -95,6 +100,7 @@ def parse_sequence(lines, constructor=''.join):
 
         result.append(i.translate(strip_table))
     return constructor(result)
+
 
 def block_consolidator(lines):
     """Takes block with label and multiline data, and returns (label, [data]).
@@ -118,6 +124,7 @@ def block_consolidator(lines):
             data.append(line)
     return label, data
 
+
 def parse_organism(lines):
     """Takes ORGANISM block. Returns organism, [taxonomy].
 
@@ -138,6 +145,7 @@ def parse_organism(lines):
         taxa[-1] = last[:-1]
     return species, taxa
 
+
 def is_feature_component_start(line):
     """Checks if a line starts with '/', ignoring whitespace."""
     return line.lstrip().startswith('/')
@@ -146,6 +154,7 @@ feature_component_iterator = LabeledRecordFinder(is_feature_component_start)
 
 _join_with_empty = dict.fromkeys(['translation'])
 _leave_as_lines = {}
+
 
 def parse_feature(lines):
     """Parses a feature. Doesn't handle subfeatures.
@@ -206,6 +215,7 @@ def parse_feature(lines):
         result[label.lower()].append(curr_data)
     return result
 
+
 def location_line_tokenizer(lines):
     """Tokenizes location lines into spans, joins and complements."""
     curr = []
@@ -228,6 +238,7 @@ def location_line_tokenizer(lines):
             curr.append(char)
     if curr:
         yield ''.join(curr).strip()
+
 
 def parse_simple_location_segment(segment):
     """Parses location segment of form a..b or a, incl. '<' and '>'."""
@@ -252,6 +263,7 @@ def parse_simple_location_segment(segment):
             first_ambiguity = segment[0]
             segment = segment[1:]
         return Location(int(segment), Ambiguity=first_ambiguity)
+
 
 def parse_location_line(tokens, parser=parse_simple_location_segment):
     """Parses location line tokens into location list."""
@@ -279,6 +291,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
             curr.append(parser(t))
     return LocationList(stack)
 
+
 class Location(object):
     """GenBank location object. Integer, or low, high, or 2-base bound.
 
@@ -298,6 +311,7 @@ class Location(object):
 
     WARNING: Coordinates are based on 1, not 0, as in GenBank format.
     """
+
     def __init__(self, data, Ambiguity=None, IsBetween=False, IsBounds=False, \
                  Accession=None, Db=None, Strand=1):
         """Returns new LocalLocation object."""
@@ -377,12 +391,14 @@ class Location(object):
         except TypeError:
             return self._data[-1].last()
 
+
 class LocationList(list):
     """List of Location objects.
 
     WARNING: Coordinates are based on 1, not 0, to match GenBank format.
     """
     BIGNUM = 1e300
+
     def first(self):
         """Returns first base of self."""
         curr = self.BIGNUM
@@ -450,6 +466,7 @@ reference_label_marker = ' ' * 11
 reference_field_finder = LabeledRecordFinder(lambda x: \
                                              not x.startswith(reference_label_marker), constructor=None)
 
+
 def parse_reference(lines):
     """Simple parser for single reference."""
     result = {}
@@ -457,6 +474,7 @@ def parse_reference(lines):
         label, data = block_consolidator(field)
         result[label.lower()] = ' '.join(map(strip, data))
     return result
+
 
 def parse_source(lines):
     """Simple parser for source fields."""
@@ -472,20 +490,32 @@ def parse_source(lines):
     return result
 
 # adaptors to update curr with data from each parser
+
+
 def locus_adaptor(lines, curr):
     curr.update(parse_locus(lines[0]))
+
+
 def source_adaptor(lines, curr):
     curr.update(parse_source(lines))
+
+
 def ref_adaptor(lines, curr):
     if 'references' not in curr:
         curr['references'] = []
     curr['references'].append(parse_reference(lines))
+
+
 def feature_table_adaptor(lines, curr):
     if 'features' not in curr:
         curr['features'] = []
     curr['features'].extend(parse_feature_table(lines))
+
+
 def sequence_adaptor(lines, curr):
     curr['sequence'] = parse_sequence(lines)
+
+
 def generic_adaptor(lines, curr):
     label, data = block_consolidator(lines)
     curr[label.lower()] = ' '.join(map(strip, lines))
@@ -499,6 +529,7 @@ handlers = {
     '//': lambda lines, curr: None,
     '?': lambda lines, curr: None
 }
+
 
 def MinimalGenbankParser(lines, handlers=handlers,\
                          default_handler=generic_adaptor):
@@ -517,6 +548,7 @@ def MinimalGenbankParser(lines, handlers=handlers,\
 
         if not bad_record:
             yield curr
+
 
 def parse_location_segment(location_segment):
     """Parses a location segment into its component pieces.
@@ -548,6 +580,7 @@ def parse_location_segment(location_segment):
         first, second = s.split('.')
         return Location([lsp(first[1:]), lsp(second[:-1])])
 
+
 def parse_location_atom(location_atom):
     """Parses a location atom, supposed to be a single-base position."""
     a = location_atom
@@ -558,6 +591,7 @@ def parse_location_atom(location_atom):
     return Location(int(a))
 
 wanted_types = dict.fromkeys(['CDS'])
+
 
 def extract_nt_prot_seqs(rec, wanted=wanted_types):
     """Extracts nucleotide seqs, and, where possible, protein seqs, from recs."""
@@ -572,6 +606,7 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print('dt:', translation)
         print('ct:', GeneticCodes[f.get('transl_table', '1')[0]].translate(seq))
         print('s :', seq)
+
 
 def RichGenbankParser(handle, info_excludes=None, moltype=None,
                       skip_contigs=False, add_annotation=None):
@@ -649,6 +684,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                 seq.addAnnotation(Feature, feature['type'], name, spans)
 
         yield (rec['locus'], seq)
+
 
 def parse(*args):
     return RichGenbankParser(*args).next()[1]

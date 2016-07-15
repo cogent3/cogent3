@@ -46,6 +46,7 @@ from cogent3.parse.sequence import FromFilenameParser
 from cogent3.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
     CodonAlphabet
 
+
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
         for (a_name, a_seq) in FromFilenameParser(filename, format):
@@ -62,6 +63,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if name is not None:
         seq.Name = name
     return seq
+
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
              name=None, aligned=True, label_to_name=None, parser_kw={},
@@ -111,6 +113,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     else:  # generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name,
                                   label_to_name=label_to_name, **constructor_kw)
+
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
               row_order=None, digits=4, space=4, title='', missing_data='',
@@ -175,9 +178,9 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
 
     return table
 
+
 def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
              underscore_unmunge=False):
-
     """Constructor for tree.
 
     Arguments, use only one of:

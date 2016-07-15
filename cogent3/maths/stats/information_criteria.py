@@ -28,6 +28,7 @@ def aic(lnL, nfp, sample_size=None):
 
     return -2 * lnL + 2 * nfp * correction
 
+
 def bic(lnL, nfp, sample_size):
     """returns Bayesian Information Criterion
 

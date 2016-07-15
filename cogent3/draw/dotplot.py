@@ -18,6 +18,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def suitable_threshold(window, desired_probability):
     """Use cumulative binomial distribution to find the number of identical
     bases which we expect a nucleotide window-mer to have with the desired
@@ -35,10 +36,12 @@ def suitable_threshold(window, desired_probability):
             break
     return matches
 
+
 def _reinchify(figsize, posn, *args):
     (fw, fh) = figsize
     (x, y, w, h) = posn
     return [fw * x, fh * y, fw * w, fh * h]
+
 
 def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     """'Fat' annotated X and Y axes for a dotplot
@@ -78,7 +81,9 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     d.yaxis.set_visible(False)
     return d
 
+
 class Display2D(Drawable):
+
     def __init__(self, seq1, seq2, **kw):
         if not isinstance(seq1, Display):
             seq1 = Display(seq1, **kw)

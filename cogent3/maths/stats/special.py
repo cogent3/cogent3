@@ -36,6 +36,7 @@ TWOOPI = 6.36619772367581343075535E-1  # 2/pi
 ROUND_ERROR = 1e-14    # fp rounding error: causes some tests to fail
                         # will round to 0 if smaller in magnitude than this
 
+
 def fix_rounding_error(x):
     """If x is almost in the range 0-1, fixes it.
 
@@ -58,6 +59,7 @@ def log_one_minus(x):
     else:
         return log(1 - x)
 
+
 def one_minus_exp(x):
     """Returns 1-exp(x). Useful for probability calculations.
     """
@@ -65,6 +67,7 @@ def one_minus_exp(x):
         return -x
     else:
         return 1 - exp(x)
+
 
 def permutations(n, k):
     """Returns the number of ways of choosing k items from n, in order.
@@ -82,6 +85,7 @@ def permutations(n, k):
         return permutations_exact(n, k)
     else:
         return exp(ln_permutations(n, k))
+
 
 def permutations_exact(n, k):
     """Calculates permutations by integer division.
@@ -105,6 +109,7 @@ def ln_permutations(n, k):
     """
     return lgam(n + 1) - lgam(n - k + 1)
 
+
 def combinations(n, k):
     """Returns the number of ways of choosing k items from n, in order.
 
@@ -122,6 +127,7 @@ def combinations(n, k):
         return combinations_exact(n, k)
     else:
         return exp(ln_combinations(n, k))
+
 
 def combinations_exact(n, k):
     """Calculates combinations by integer division.
@@ -150,6 +156,7 @@ def combinations_exact(n, k):
 
     return product
 
+
 def ln_combinations(n, k):
     """Calculates combinations by difference in log of gamma function.
 
@@ -158,6 +165,7 @@ def ln_combinations(n, k):
     Note: no error checking (expects to be called through combinations())
     """
     return lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1)
+
 
 def ln_binomial(successes, trials, prob):
     """Returns the natural log of the binomial distribution.
@@ -253,6 +261,7 @@ def erf(a):
         return 1 - erfc(a)
     z = a * a
     return a * polevl(z, ZT) / polevl(z, ZU)
+
 
 def erfc(a):
     """Returns the complement of the error function of a: see Cephes docs."""
@@ -414,6 +423,7 @@ def igamc(a, x):
             break
     return ans * ax
 
+
 def igam(a, x):
     """Left tail of incomplete gamma function: see Cephes docs for details"""
     if x <= 0 or a <= 0:
@@ -440,6 +450,7 @@ def igam(a, x):
             break
 
     return ans * ax / a
+
 
 def lgam(x):
     """Natural log of the gamma fuction: see Cephes docs for details"""
@@ -503,6 +514,7 @@ def lgam(x):
         q += polevl(p, GA) / x
     return q
 
+
 def betai(aa, bb, xx):
     """Returns integral of the incomplete beta density function, from 0 to x.
 
@@ -560,6 +572,7 @@ def betai(aa, bb, xx):
         t = exp(y)
     return betai_result(t, flag)
 
+
 def betai_result(t, flag):
     if flag == 1:
         if t <= MACHEP:
@@ -569,6 +582,7 @@ def betai_result(t, flag):
     return t
 
 incbet = betai  # shouldn't have renamed in first place...
+
 
 def incbcf(a, b, x):
     """Incomplete beta integral, first continued fraction representation.
@@ -641,6 +655,7 @@ def incbcf(a, b, x):
         n += 1
         if n >= 300:
             return ans
+
 
 def incbd(a, b, x):
     """Incomplete beta integral, second continued fraction representation.
@@ -716,6 +731,7 @@ def incbd(a, b, x):
         if n >= 300:
             return ans
 
+
 def Gamma(x):
     """Returns the gamma function, a generalization of the factorial.
 
@@ -762,11 +778,13 @@ def Gamma(x):
     q = polevl(x, GQ)
     return z * p / q
 
+
 def Gamma_small(x, z):
     if x == 0:
         raise OverflowError("Bad value of x in Gamma function.")
     else:
         return z / ((1 + 0.5772156649015329 * x) * x)
+
 
 def stirf(x):
     """Stirling's approximation for the Gamma function.
@@ -785,6 +803,7 @@ def stirf(x):
     else:
         y = pow(x, x - 0.5) / y
     return SQTPI * y * w
+
 
 def pseries(a, b, x):
     """Power series for incomplete beta integral.
@@ -822,6 +841,7 @@ def pseries(a, b, x):
             s = exp(t)
     return(s)
 
+
 def log1p(x):
     """Log for values close to 1: from Cephes math library"""
     z = 1 + x
@@ -850,6 +870,7 @@ LQ = [
     6.0118660497603843919306E1,
 ]
 
+
 def expm1(x):
     """Something to do with exp? From Cephes."""
     if (x < -0.5) or (x > 0.5):
@@ -871,6 +892,7 @@ EQ = [
     2.2726554820815502876593E-1,
     2.0000000000000000000897E0,
 ]
+
 
 def igami(a, y0):
     # bound the solution
@@ -1045,6 +1067,7 @@ Q2 = [
 
 exp_minus_2 = 0.13533528323661269189
 
+
 def ndtri(y0):
     """Inverse normal distribution function.
 
@@ -1080,6 +1103,7 @@ def ndtri(y0):
     if code != 0:
         x = -x
     return x
+
 
 def incbi(aa, bb, yy0):
     """Incomplete beta inverse function. See Cephes for docs."""
@@ -1144,6 +1168,7 @@ def incbi(aa, bb, yy0):
         return _incbi_ihalve(\
             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
 
+
 def _incbi_done(rflg, x):
     """Final test in incbi."""
     if rflg:
@@ -1153,14 +1178,18 @@ def _incbi_done(rflg, x):
             x = 1.0 - x
     return x
 
+
 def _incbi_under(rflg, x):
     """Underflow handler in incbi."""
     x = 0.0
     return _incbi_done(rflg, x)
 
+
 class IhalveRepeat(Exception): pass
 
     # Resort to interval halving if not close enough.
+
+
 def _incbi_ihalve(\
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):
     """Interval halving in incbi."""
@@ -1241,6 +1270,7 @@ def _incbi_ihalve(\
                 return _incbi_under(rflg, x)
         except IhalveRepeat:
             continue
+
 
 def _incbi_newt(\
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):

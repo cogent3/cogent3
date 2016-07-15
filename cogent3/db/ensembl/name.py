@@ -12,6 +12,8 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
 _release = re.compile("\d+")
+
+
 def get_version_from_name(name):
     """returns the release and build identifiers from an ensembl db_name"""
     r = _release.search(name)
@@ -27,6 +29,8 @@ def get_version_from_name(name):
     return release, b
 
 _name_delim = re.compile("_")
+
+
 def get_dbtype_from_name(name):
     """returns the data base type from the name"""
     try:
@@ -43,6 +47,7 @@ def get_dbtype_from_name(name):
         dbtype = name[-1]
     return dbtype
 
+
 def get_db_prefix(name):
     """returns the db prefix, typically an organism or `ensembl'"""
     name = _release.split(name)
@@ -55,9 +60,11 @@ def get_db_prefix(name):
         raise RuntimeError("Unknown name structure: %s" % "_".join(name))
     return prefix
 
+
 class EnsemblDbName(object):
     """container for a db name, inferring different attributes from the name,
     such as species, version, build"""
+
     def __init__(self, db_name):
         """db_name: and Emsembl database name"""
         if isinstance(db_name, EnsemblDbName):

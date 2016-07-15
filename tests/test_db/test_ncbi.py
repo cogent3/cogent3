@@ -22,6 +22,7 @@ strip = str.strip
 
 class EUtilsTests(TestCase):
     """Tests of the EUtils class."""
+
     def test_simple_get(self):
         """EUtils simple access of an item should work"""
         g = EUtils(db='protein', rettype='gp')
@@ -46,7 +47,6 @@ class EUtilsTests(TestCase):
         is_locus = lambda x: x.startswith('LOCUS')
         loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
-
 
     def test_get_list(self):
         """EUtils access of a list should work"""
@@ -87,7 +87,6 @@ class EUtilsTests(TestCase):
         result = sorted([item['ScientificName'] for item in data])
         self.assertEqual(result, ['Homo sapiens', 'Salmonella enterica'])
 
-
     def test_query(self):
         """EUtils access via a query should work"""
         g = EUtils(db='protein', rettype='gi', retmax=100)
@@ -120,6 +119,7 @@ class EUtilsTests(TestCase):
 
 class ESearchTests(TestCase):
     """Tests of the ESearch class: gets primary ids from search."""
+
     def test_simple_search(self):
         """ESearch Access via a query should return accessions"""
         s = ESearch(db='protein', rettype='gi', retmax=1000,
@@ -128,8 +128,10 @@ class ESearchTests(TestCase):
         parsed = ESearchResultParser(result)
         assert '83304912' in parsed.IdList  # gi of human cardiac beta myh7
 
+
 class ELinkTests(TestCase):
     """Tests of the ELink class: converts ids between databases"""
+
     def test_simple_elink(self):
         """ELink should retrieve a link from a single id"""
         l = ELink(db='taxonomy', dbfrom='protein', id='83304912')
@@ -146,8 +148,10 @@ class ELinkTests(TestCase):
         self.assertEqual(sorted(parsed), ['10090', '9606'])  
         # human and mouse sequences
 
+
 class EFetchTests(TestCase):
     """Tests of the EFetch class: gets records using primary ids."""
+
     def test_simple_efetch(self):
         """EFetch should return records from list of ids"""
         f = EFetch(db='protein', rettype='fasta', retmode='text', 
@@ -156,8 +160,10 @@ class EFetchTests(TestCase):
         assert result[0].startswith('>')
         assert result[1].startswith('madaemaafg'.upper())
 
+
 class NcbiTests(TestCase):
     """Tests of top-level convenience wrappers."""
+
     def setUp(self):
         """Define some lengthy data."""
         self.mouse_taxonomy = list(map(strip, 'cellular organisms; Eukaryota; Opisthokonta; Metazoa; Eumetazoa; Bilateria; Coelomata; Deuterostomia; Chordata; Craniata; Vertebrata; Gnathostomata; Teleostomi; Euteleostomi; Sarcopterygii; Tetrapoda; Amniota; Mammalia; Theria; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Muridae; Murinae; Mus; Mus'.split(';')))
@@ -202,7 +208,6 @@ class NcbiTests(TestCase):
         exp = ('cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella',\
                '28901', 'Salmonella enterica', 'species')
         self.assertEqual(obs, exp)
-
 
     def test_taxon_ids_to_lineages(self):
         """taxon_ids_to_lineages should return lineages from taxon ids"""

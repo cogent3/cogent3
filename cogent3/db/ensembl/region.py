@@ -26,6 +26,7 @@ DEFAULT_PARENT_LENGTH = 2 ** 30
 _quoted = lambda x: DisplayString(x, with_quotes=True)
 _limit_words = lambda x: DisplayString(x, with_quotes=True, num_words=3)
 
+
 class _Region(LazyRecord):
     """a simple genomic region object"""
     Type = None
@@ -167,7 +168,6 @@ class _Region(LazyRecord):
         return self.Seq
 
 
-
 class GenericRegion(_Region):
     """a generic genomic region"""
 
@@ -214,7 +214,6 @@ class GenericRegion(_Region):
                                      seq_region_table.c.coord_system_id.in_(coord_system_ids)))
         record = asserted_one(record.execute().fetchall())
         self._table_rows['seq_region'] = record
-
 
 
 class _StableRegion(GenericRegion):
@@ -271,6 +270,7 @@ class _StableRegion(GenericRegion):
                 if element.StableId == StableId:
                     return element
         return None
+
 
 class Gene(_StableRegion):
     """a gene region"""
@@ -922,10 +922,9 @@ class Exon(_StableRegion):
         return self._get_cached_value('PhaseEnd', self._make_phase)
 
 
-
-
 class Intron(GenericRegion):
     Type = 'intron'
+
     def __init__(self, genome, db, rank, transcript_stable_id, Location=None):
         GenericRegion.__init__(self, genome, db, Location=Location)
         self.TranscriptStableId = transcript_stable_id
@@ -960,6 +959,7 @@ def _set_to_string(val):
     while len(val) == 1 and type(val) in (tuple, list):
         val = val[0]
     return val
+
 
 class Variation(_Region):
     """genomic variation"""
@@ -1078,7 +1078,6 @@ class Variation(_Region):
             seqs[name] = seq
 
         self._cached[('FlankingSeq')] = (seqs['up'][-300:], seqs['down'][:300])
-
 
     def _get_flanking_seq_data_lt_70(self):
         # maps to flanking_sequence through variation_feature_id
@@ -1305,6 +1304,7 @@ class Variation(_Region):
         return len(result)
 
     NumAlleles = property(_get_number_alleles)
+
 
 class CpGisland(GenericRegion):
     Type = 'CpGisland'

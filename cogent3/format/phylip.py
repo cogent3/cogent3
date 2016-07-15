@@ -9,6 +9,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     """returns a phylip formatted string and an ID map of new to original
     sequence names. Sequences are sequential.

@@ -27,6 +27,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class TreeParseError(FileFormatError):
     pass
 
@@ -130,6 +131,7 @@ class _Tokeniser(object):
             if not token_consumed:
                 self.token = token
                 yield token  
+
 
 def parse_string(text, constructor, **kw):
     """Parses a Newick-format string, using specified constructor for tree.

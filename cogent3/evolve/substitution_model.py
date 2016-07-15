@@ -59,6 +59,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def predicate2matrix(alphabet, pred, mask=None):
     """From a test like istransition() produce an MxM boolean matrix"""
     M = len(alphabet)
@@ -68,6 +69,7 @@ def predicate2matrix(alphabet, pred, mask=None):
             if mask is None or mask[i, j]:
                 result[i, j] = pred(alphabet[i], alphabet[j])
     return result
+
 
 def redundancyInPredicateMasks(preds):
     # Calculate the nullity of the predicates.  If non-zero
@@ -80,6 +82,7 @@ def redundancyInPredicateMasks(preds):
     matrix_rank = len([sv for sv in svs if abs(sv) > 1e-8])
     return len(preds) - matrix_rank
 
+
 def _maxWidthIfTruncated(pars, delim, each):
     # 'pars' is an array of lists of strings, how long would the longest
     # list representation be if the strings were truncated at 'each'
@@ -89,8 +92,10 @@ def _maxWidthIfTruncated(pars, delim, each):
         + len(delim) * (len(par_list) - 1)
         for par_list in pars.flat])
 
+
 def _isSymmetrical(matrix):
     return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
+
 
 def extend_docstring_from(cls, pre=False): 
     def docstring_inheriting_decorator(fn):
@@ -99,6 +104,7 @@ def extend_docstring_from(cls, pre=False):
         fn.__doc__ = ''.join(parts) 
         return fn 
     return docstring_inheriting_decorator
+
 
 class _SubstitutionModel(object):
     # Subclasses must provide
@@ -389,7 +395,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     @extend_docstring_from(_SubstitutionModel)
     def __init__(self, alphabet, with_rate=False, ordered_param=None, 
                  distribution=None, partitioned_params=None, do_scaling=None, **kw):
-
         """
          - with_rate: Add a 'rate' parameter which varies by bin. 
          - ordered_param: name of a single parameter which distinguishes any bins.
@@ -593,6 +598,7 @@ class General(_ContinuousSubstitutionModel):
     def calcExchangeabilityMatrix(self, mprobs, *params):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
+
 class GeneralStationary(_ContinuousSubstitutionModel):
     """A continuous substitution model with one free parameter for each and 
     every possible instantaneous substitution, except the last in each column.
@@ -637,6 +643,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
                 raise ParameterOutOfBoundsError
             R[i, j] = required / mprobs[i]
         return R
+
 
 class Empirical(_ContinuousSubstitutionModel):
     """A continuous substitution model with a predefined instantaneous rate 
@@ -884,6 +891,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 
 
 class _Nucleotide(SubstitutionModel):
+
     def getPredefinedPredicates(self):
         return {
             'transition': predicate.parse('R/R') | predicate.parse('Y/Y'),
@@ -894,18 +902,21 @@ class _Nucleotide(SubstitutionModel):
 
 class Nucleotide(_Nucleotide):
     """A nucleotide substitution model."""
+
     def __init__(self, **kw):
         SubstitutionModel.__init__(self, moltype.DNA.Alphabet, **kw)
 
 
 class Dinucleotide(_Nucleotide):
     """A nucleotide substitution model."""
+
     def __init__(self, **kw):
         SubstitutionModel.__init__(self, moltype.DNA.Alphabet, motif_length=2, **kw)
 
 
 class Protein(SubstitutionModel):
     """Base protein substitution model."""
+
     def __init__(self, with_selenocysteine=False, **kw):
         alph = moltype.PROTEIN.Alphabet
         if not with_selenocysteine:
@@ -940,8 +951,10 @@ class Codon(_Nucleotide):
 
     def getPredefinedPredicates(self):
         gc = self.getAlphabet().getGeneticCode()
+
         def silent(x, y):
             return x != '---' and y != '---' and gc[x] == gc[y]
+
         def replacement(x, y):
             return x != '---' and y != '---' and gc[x] != gc[y]
 

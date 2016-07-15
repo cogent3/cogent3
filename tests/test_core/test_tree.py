@@ -22,6 +22,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class TreeTests(TestCase):
     """Tests of top-level functions."""
 
@@ -48,7 +49,6 @@ class TreeTests(TestCase):
         self.assertEqual(names, ['a a', 'b b', 'c c'])
         self.assertEqual(str(t), result_str) 
         self.assertEqual(t.getNewick(with_distances=True), result_str) 
-
 
 
 def _new_child(old_node, constructor):
@@ -83,6 +83,7 @@ tree_one_child_dist = \
      [4., 5., 0., 3.6],
      [1.6, 2.6, 3.6, 0.]]
 tree_one_child_tips = ['a', 'b', 'c', 'd']
+
 
 class TreeNodeTests(TestCase):
     """Tests of the TreeNode class."""
@@ -262,7 +263,6 @@ class TreeNodeTests(TestCase):
         f = TreeNode(Name='foo')
         g = f.copy()
         self.assertTrue(f != g)
-
 
     def test_append(self):
         """TreeNode append should add item to end of self"""
@@ -528,7 +528,6 @@ class TreeNodeTests(TestCase):
         c = t.copy()
         self.assertEqual(str(c), str(t))
 
-
     def _test_copy_copy(self):
         """copy.copy should raise TypeError on TreeNode"""
         t = TreeNode('t')
@@ -563,7 +562,6 @@ class TreeNodeTests(TestCase):
         t = self.TreeRoot
         c = deepcopy(t)
         self.assertEqual(str(c), str(t))
-
 
     def test_Parent(self):
         """TreeNode Parent should hold correct data and be mutable"""
@@ -789,7 +787,6 @@ class TreeNodeTests(TestCase):
         tree = self.TreeRoot
         self.assertEqual([i.Name for i in tree.iterNontips()], list('bcf'))
 
-
     def test_tipChildren(self):
         """TreeNode tipChildren should return all terminal children"""
         self.assertEqual(self.Empty.tipChildren(), [])
@@ -984,7 +981,6 @@ class TreeNodeTests(TestCase):
         self.assertEqual(f.separation(c), 1)
         self.assertEqual(c.separation(f), 1)
 
-
     def test_nameUnnamedNodes(self):
         """nameUnnamedNodes assigns an arbitrary value when Name == None"""
         tree, tree_nodes = self.TreeRoot, self.TreeNode
@@ -1114,6 +1110,7 @@ class TreeNodeTests(TestCase):
 
 class PhyloNodeTests(TestCase):
     """Tests of phylogeny-specific methods."""
+
     def setUp(self):
         """Creates a standard tree"""
         nodes = dict([(x, PhyloNode(x)) for x in 'abcdefgh'])
@@ -1323,7 +1320,6 @@ class PhyloNodeTests(TestCase):
         result_tree = DndParser('((a:3.0,c:3.0):2.0);', constructor=PhyloNode)
         self.assertEqual(str(tree), str(result_tree))
 
-
     def test_str(self):
         """PhyloNode str should give expected results"""
         nodes, tree = self.TreeNode, self.TreeRoot
@@ -1407,7 +1403,6 @@ class PhyloNodeTests(TestCase):
         result = tree.rootAtMidpoint()
         self.assertEqual(result.distance(result.getNodeMatchingName('h')), 14)
         self.assertEqual(result.getDistances(), tree.getDistances())
-
 
     def test_rootAtMidpoint3(self):
         """ midpoint between nodes should behave correctly"""
@@ -1513,6 +1508,7 @@ class Test_tip_tip_distances_I(object):
         self.assertFloatEqual(matrix, \
                               array([[0, 3, 4, 1.4], [3, 0, 5, 2.4], [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]))
 
+
 class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
     """Tests for the array implementation of tip_to_tip distances"""
 
@@ -1536,6 +1532,8 @@ class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
         self.assertEqual(tips, tree_one_child_tips)
 
 # for use with testing iterative copy method
+
+
 def comb_tree(num_leaves):
     """Returns a comb node_class tree."""
     branch_child = 1
@@ -1551,6 +1549,7 @@ def comb_tree(num_leaves):
 # Moved  from test_tree2.py during code sprint on 04/14/10
 # Missing tests: edge attributes (Name, Length, Children) only get tested
 # in passing by some of these tests.  See also xxx's
+
 
 class TreeInterfaceForLikelihoodFunction(TestCase):
 
@@ -1629,7 +1628,6 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         names = [e.Name for e in tree.getEdgeVector(include_root=False)]
         self.assertEqual(names,
                          ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde'])
-
 
     def test_getNewickRecursive(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
@@ -1758,7 +1756,9 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         node = t.getNodeMatchingName('ab')
         self.assertEqual(4.321, node.params['zz'], 4)
 
+
 class SmallTreeReshapeTestClass(TestCase):
+
     def test_rootswaps(self):
         """testing (well, exercising at least), unrooted"""
         new_tree = LoadTree(treestring="((a,b),(c,d))")
@@ -1950,8 +1950,11 @@ class TestTree(TestCase):
         self.assertEqual(obs, exp)
 
 # the following class repeats the above tests but using a big tree and big data-set
+
+
 class BigTreeSingleTests(TestTree):
     """using the big-tree for single-tree tests"""
+
     def setUp(self):
         self.name = 'big tree - '
         self.otu_names = ['Horse', 'TombBat', 'Rhino', 'Pig', 'AsianElep',

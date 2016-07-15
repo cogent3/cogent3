@@ -22,6 +22,7 @@ data_path = os.path.join(base_path, 'data')
 
 class ReadingWritingFileFormats(unittest.TestCase):
     """Testing ability to read file formats."""
+
     def setUp(self):
         pass
 
@@ -65,8 +66,10 @@ class ReadingWritingFileFormats(unittest.TestCase):
     def test_msf(self):
         self._loadfromfile('formattest.msf', test_write=False)
 
+
 class AlignmentTestMethods(unittest.TestCase):
     """Testing Alignment methods"""
+
     def setUp(self):
         self.alignment = LoadSeqs(filename=os.path.join(data_path, 'brca1_5.paml'))
 
@@ -371,7 +374,6 @@ class AlignmentTestMethods(unittest.TestCase):
             except AttributeError:
                 pass
 
-
     def test_seqnames(self):
         s1 = self.alignment.getSeq('Mouse')
         self.assertEqual(s1.getName(), 'Mouse')
@@ -483,10 +485,10 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(mprobs, expected)
 
 
-
 # fileformats doesn't catch an exception when the file has no data!
 class SequenceTestMethods(unittest.TestCase):
     """Testing Sequence methods"""
+
     def setUp(self):
         self.seq = Sequence(DNA, 'ATGACGTTGCGTAGCATAGCTCGA')
 

@@ -60,6 +60,7 @@ def isTransition(motif1, motif2):
 
     return pair in transitions
 
+
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(motif2),\
         "motif1[%s] & motif2[%s] have inconsistent length" %\
@@ -73,12 +74,14 @@ def numdiffs_position(motif1, motif2):
 
     return ndiffs == 1, position
 
+
 def isinstantaneous(motif1, motif2):
     if motif1 != motif2 and (motif1 == '-' * len(motif1) or \
                              motif2 == '-' * len(motif1)):
         return True
     ndiffs, position = numdiffs_position(motif1, motif2)
     return ndiffs
+
 
 def getposition(motif1, motif2):
     ndiffs, position = numdiffs_position(motif1, motif2)
@@ -88,6 +91,7 @@ def getposition(motif1, motif2):
 # funcs for testing the monomer weighted substitution matrices
 _root_probs = lambda x: dict([(n1 + n2, p1 * p2) \
                               for n1, p1 in list(x.items()) for n2, p2 in list(x.items())])
+
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
@@ -107,6 +111,7 @@ def make_p(length, coord, val):
 class LikelihoodCalcs(TestCase):
     """tests ability to calculate log-likelihoods for several
     substitution models."""
+
     def setUp(self):
         self.alignment = ALIGNMENT.takeSeqs(OTU_NAMES)[0: 42]
         self.tree = LoadTree(tip_names=OTU_NAMES)
@@ -268,6 +273,7 @@ class LikelihoodFunctionTests(TestCase):
     """tests for a tree analysis class. Various tests to create a tree analysis class,
     set parameters, and test various functions.
     """
+
     def setUp(self):
         self.submodel = Nucleotide(
             do_scaling=True, model_gaps=False, equal_motif_probs=True,
@@ -454,7 +460,6 @@ motif  mprobs
         self.assertEqual(
             re.sub('[ATCG]', 'x', simulated.todict()['a']),
             'x??xxxxxx?')
-
 
     def test_simulateAlignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""

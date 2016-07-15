@@ -13,8 +13,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class DbRefTests(TestCase):
     """Tests of the DbRef object."""
+
     def setUp(self):
         """Define a standard DbRef object"""
         self.data = dict(Accession='xyz', Db='abc', Name='qwe', Description='blah',
@@ -58,8 +60,10 @@ class DbRefTests(TestCase):
         # check that it ignores other attributes
         self.assertEqual(DbRef('x', 'y', 'z', 'a', 'b'), DbRef('x'))
 
+
 class infoTests(TestCase):
     """Tests of top-level functions."""
+
     def test_make_list(self):
         """_make_list should always return a list"""
         self.assertEqual(_make_list('abc'), ['abc'])
@@ -68,8 +72,10 @@ class infoTests(TestCase):
         self.assertEqual(_make_list({'x': 'y'}), [{'x': 'y'}])
         self.assertEqual(_make_list([1, 2, 3]), [1, 2, 3])
 
+
 class DbRefsTests(TestCase):
     """Tests of the DbRefs class."""
+
     def test_init_empty(self):
         """DbRefs empty init should work as expected"""
         self.assertEqual(DbRefs(), {})
@@ -81,8 +87,10 @@ class DbRefsTests(TestCase):
         d.GenBank = 'xyz'
         self.assertEqual(d['GenBank'], ['xyz'])
 
+
 class InfoTests(TestCase):
     """Tests of the Info class."""
+
     def test_init_empty(self):
         """Info empty init should work as expected"""
         d = Info()

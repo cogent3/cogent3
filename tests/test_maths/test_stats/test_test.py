@@ -32,6 +32,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class TestsHelper(TestCase):
     """Class with utility methods useful for other tests."""
 
@@ -83,6 +84,7 @@ class TestsHelper(TestCase):
 
 class TestsTests(TestCase):
     """Tests miscellaneous functions."""
+
     def test_std(self):
         """Should produce a standard deviation of 1.0 for a std normal dist"""
         expected = 1.58113883008
@@ -282,6 +284,7 @@ class TestsTests(TestCase):
 
 class GTests(TestCase):
     """Tests implementation of the G tests for fit and independence."""
+
     def test_G_2_by_2_2tailed_equal(self):
         """G_2_by_2 should return 0 if all cell counts are equal"""
         self.assertFloatEqual(0, G_2_by_2(1, 1, 1, 1, False, False)[0])
@@ -476,6 +479,7 @@ class LikelihoodTests(TestCase):
         product = [0, 0.125, 0, 0.1, 0.25]
         for obs, exp in zip(posteriors(first, second), product):
             self.assertFloatEqual(obs, exp)
+
 
 class BayesUpdateTests(TestCase):
     """Tests implementation of Bayes calculations"""
@@ -895,6 +899,7 @@ class StatTests(TestsHelper):
 
 class CorrelationTests(TestsHelper):
     """Tests of correlation coefficients and Mantel test."""
+
     def setUp(self):
         """Sets up variables used in the tests."""
         super(CorrelationTests, self).setUp()
@@ -1380,7 +1385,6 @@ class Ftest(TestCase):
                                  (29, 49, 0.0028), eps=error)
         assert f_two_sample(d, a, tails='low')[3] < 2.2e-16  # p value
 
-
     def test_MonteCarloP(self):
         """MonteCarloP calcs a p-value from a val and list of random vals"""
         val = 3.0
@@ -1486,6 +1490,7 @@ class KendallTests(TestCase):
                      ["lt", 0.5711, 0.02564103],
                      ["ts", 0.9524, 0.02564103]]
         self.do_test(x, y, expecteds)
+
 
 class TestDistMatrixPermutationTest(TestCase):
     """Tests of distance_matrix_permutation_test"""

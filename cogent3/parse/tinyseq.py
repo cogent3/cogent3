@@ -22,6 +22,7 @@ This XML PARSER uses minidom. This means a bad performance for
 big files (>5MB), and huge XML files will for sure crash the program!
 """
 
+
 def TinyseqParser(doc):
     """Parser for NCBI Tiny Seq XML format.
     DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI TSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_TSeq.dtd"

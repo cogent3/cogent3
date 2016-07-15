@@ -13,6 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def bound_brent(func, brack=None, **kw):
     """Given a function and an initial point, find another
     point within the bounds, then use the two points to
@@ -95,6 +96,7 @@ class _SciPyOptimiser(object):
 
 class Powell(_SciPyOptimiser):
     """Uses an infinity avoiding version of the Brent line search."""
+
     def _minimise(self, f, x, **kw):
         result = fmin_powell(f, x, linesearch=bound_brent, **kw)
         # same length full-results tuple as simplex:
@@ -105,6 +107,7 @@ class Powell(_SciPyOptimiser):
 class DownhillSimplex(_SciPyOptimiser):
     """On a small brca1 tree this fails to find a minimum as good as the
     other optimisers.  Restarts help a lot though."""
+
     def _minimise(self, f, x, **kw):
         return fmin(f, x, **kw)
 

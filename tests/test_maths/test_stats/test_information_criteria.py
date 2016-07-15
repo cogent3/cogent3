@@ -12,8 +12,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 class InformationCriteria(TestCase):
     """Tests calculation of AIC and BIC measures."""
+
     def test_aic(self):
         """correctly compute AIC from Burnham & Anderson 2002, p102"""
         self.assertFloatEqual(aic(-9.7039, 4), 27.4078)

@@ -23,8 +23,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class translation_table_tests(TestCase):
     """Tests of top-level translation table functions"""
+
     def test_make_translation_tables(self):
         """_make_translation_tables should translate from chars to indices"""
         a = 'ucag'
@@ -44,6 +46,7 @@ class translation_table_tests(TestCase):
         result = ''.join([RNA.Alphabet[i] for i in complements])
         self.assertEqual(result, 'AGUC')
 
+
 class get_array_type_tests(TestCase):
     """Tests of the get_array_type top-level function."""
 
@@ -57,8 +60,10 @@ class get_array_type_tests(TestCase):
         self.assertEqual(get_array_type(65536), uint16)
         self.assertEqual(get_array_type(65537), uint32)
 
+
 class EnumerationTests(TestCase):
     """Tests of the Enumeration object."""
+
     def test_init(self):
         """Enumeration init should work from any sequence"""
         a = Enumeration('abc')
@@ -193,8 +198,10 @@ class EnumerationTests(TestCase):
         b = array([0, 0, 0, 0] * 10000)
         same = (a == b)
 
+
 class CharAlphabetTests(TestCase):
     """Tests of CharAlphabets."""
+
     def test_init(self):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet('UCAG')
@@ -218,7 +225,6 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(a.isValid('d'), False)
         self.assertEqual(a.isValid(['a', 'b']), True)
         self.assertEqual(a.isValid(['a', None]), False)
-
 
     def test_fromArray(self):
         """CharAlphabet fromArray should return correct array"""
@@ -263,6 +269,7 @@ class CharAlphabetTests(TestCase):
 
 class JointEnumerationTests(TestCase):
     """Tests of JointEnumerations."""
+
     def test_init(self):
         """JointEnumeration init should work as expected"""
         # should work for alphabet object

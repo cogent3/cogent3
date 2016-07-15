@@ -27,13 +27,16 @@ __status__ = "Production"
 strip = str.strip
 rstrip = str.rstrip
 
+
 def is_empty(line):
     """Returns True empty lines and lines consisting only of whitespace."""
     return (not line) or line.isspace()
 
+
 def never_ignore(line):
     """Always returns False."""
     return False
+
 
 def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
                           keep_delimiter=True, strict=True):
@@ -83,6 +86,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
 # The following is an example of the sorts of iterators RecordFinder returns.
 GbFinder = DelimitedRecordFinder('//')
 
+
 def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
                        strict=True):
     """Returns function that returns successive tailed records from lines.
@@ -122,6 +126,7 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
 
     return parser
 
+
 def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
     """Returns function that returns successive labeled records from file.
 
@@ -159,11 +164,13 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
             yield curr
     return parser
 
+
 def is_fasta_label(x):
     """Checks if x looks like a FASTA label line."""
     return x.startswith('>')
 # The following is an example of the sorts of iterators RecordFinder returns.
 FastaFinder = LabeledRecordFinder(is_fasta_label)
+
 
 def LineGrouper(num, constructor=strip, ignore=is_empty):
     """Returns num lines at a time, stripping and ignoring blanks.

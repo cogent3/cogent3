@@ -62,9 +62,11 @@ def InfoMaker(header_lines):
         info[name] = value
     return info
 
+
 def is_seq_label(x):
     "Check if x looks like a sequence label line."""
     return x.startswith('seq:')
+
 
 def MinimalRdbParser(infile, strict=True):
     """Yield successive sequences as (headerLines, sequence) tuples.
@@ -100,6 +102,7 @@ def MinimalRdbParser(infile, strict=True):
                 continue
 
         yield headerLines, sequence
+
 
 def create_acceptable_sequence(sequence):
     """Return clean sequence as string, 'o' -> '?', sec. structure deleted

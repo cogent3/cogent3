@@ -15,12 +15,15 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def SimpleAnnotation(parent, locations, Name):
     return Feature(parent, '', Name, locations)
+
 
 def annotate(parent, start, end, Name):
     annot = parent.addAnnotation(SimpleAnnotation, locations=[(start, end)], Name=Name)
     return annot
+
 
 def structure(a, depth=0):
     annots = [structure(annot, depth + 1) for annot in a.annotations]
@@ -31,8 +34,10 @@ def structure(a, depth=0):
     else:
         return (a.Name, repr(a.map))
 
+
 class MapTest(unittest.TestCase):
     """Testing annotation of and by maps"""
+
     def test_spans(self):
         # a simple two part map of length 10
         map = Map([(0, 5), (5, 10)], parent_length=10)
@@ -68,7 +73,6 @@ class MapTest(unittest.TestCase):
                                            [('fake', '[5:15]/45',
                                              [('fake2', '[3:5]/10')])])
         )
-
 
     def test_getByAnnotation(self):
         seq = DNA.makeSequence('ATCGATCGAT' * 5, Name='base')

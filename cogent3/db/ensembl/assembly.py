@@ -14,6 +14,7 @@ __maintainer__ = "Hua Ying"
 __email__ = "Hua.Ying@anu.edu.au"
 __status__ = "alpha"
 
+
 def location_query(table, query_start, query_end,
                    start_col='seq_region_start', end_col='seq_region_end', query=None,
                    where='overlap'):
@@ -43,6 +44,7 @@ def location_query(table, query_start, query_end,
     query = query.order_by(table.c[start_col])
     return query
 
+
 def _get_coord_type_and_seq_region_id(coord_name, core_db):
     seq_region_table = core_db.getTable('seq_region')
     rows = sql.select([seq_region_table]).\
@@ -65,7 +67,9 @@ def _get_coord_type_and_seq_region_id(coord_name, core_db):
     coord_type = species_coord_sys[selected_row['coord_system_id']].name
     return selected_row, coord_type
 
+
 class Coordinate(object):
+
     def __init__(self, genome, CoordName, Start, End, Strand=1,
                  CoordType=None, seq_region_id=None, ensembl_coord=False):
         if not CoordType or not (seq_region_id or Start or End):
@@ -191,6 +195,7 @@ class Coordinate(object):
 
 class _CoordRecord(object):
     """store one record of the coord"""
+
     def __init__(self, attrib, rank, name=None, coord_system_id=None):
         self.coord_system_id = coord_system_id
         self.name = name
@@ -221,6 +226,7 @@ class CoordSystemCache(object):
     _species_coord_systems = {}
     columns = ['coord_system_id', 'name', 'rank', 'attrib']  # columns needed from coord_system table
     # the attrib property has sequence_level, which means this the coordinate system employed for sequence
+
     def _set_species_system(self, core_db, species):
         if species in self._species_coord_systems:
             return
@@ -275,6 +281,7 @@ class CoordSystemCache(object):
 
 CoordSystem = CoordSystemCache()
 
+
 def _rank_checking(query_coord_type, target_coord_type, core_db, species):
     # assiting in constructingthe query language for assembly
 
@@ -300,6 +307,7 @@ def _rank_checking(query_coord_type, target_coord_type, core_db, species):
     else:
         query_prefix, target_prefix = '', ''
     return query_prefix, target_prefix
+
 
 def _get_equivalent_coords(query_coord, assembly_row, query_prefix,
                            target_prefix, target_coord_type):
@@ -342,6 +350,7 @@ def _get_equivalent_coords(query_coord, assembly_row, query_prefix,
                             ensembl_coord=True)
     return [q_location, t_location]
 
+
 def assembly_exception_coordinate(loc):
     """returns a coordinate conversion for one with an assembly exception"""
     genome = loc.genome
@@ -360,6 +369,7 @@ def assembly_exception_coordinate(loc):
     s, conv_loc = _get_equivalent_coords(loc, record, "seq_region",
                                          "exc_seq_region", loc.CoordType)
     return conv_loc
+
 
 def get_coord_conversion(query_location, target_coord_type, core_db, where=None):
     """returns the ???"""

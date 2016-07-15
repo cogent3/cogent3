@@ -14,8 +14,10 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def _s2i(s):
     return numpy.array(['ATCG'.index(c) for c in s])
+
 
 def test(r=1, **kw):   
     S = make_dna_scoring_dict(10, -1, -8)

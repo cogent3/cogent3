@@ -18,6 +18,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def my_import(name):
     """Imports a module, possibly qualified with periods. Returns the module.
 
@@ -32,6 +33,7 @@ def my_import(name):
         mod = getattr(mod, comp)
     return mod
 
+
 def module_present(modules):
     """returns True if dependencies present"""
     if type(modules) == str:
@@ -42,6 +44,7 @@ def module_present(modules):
     except ImportError:
         return False
     return True
+
 
 def suite():
     modules_to_test = [
@@ -182,7 +185,9 @@ def suite():
         alltests.addTest(test)
     return alltests
 
+
 class BoobyTrappedStream(object):
+
     def __init__(self, output):
         self.output = output
 

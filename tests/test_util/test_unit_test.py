@@ -72,6 +72,7 @@ class FakeRandomTests(TestCase):
             result = f((5, 5))  # shape parameter ignored
             self.assertEqual(result, [1, 2, 3])
 
+
 class TestCaseTests(TestCase):
     """Tests for extension of the built-in unittest framework.
 
@@ -179,6 +180,7 @@ class TestCaseTests(TestCase):
         (1e5, 1e5 + 1),
         (array([1, 1]), array([1, 1 + 1 * big])),
         ]
+
     def test_assertNotEqual_None(self):
         """assertNotEqual should raise exception with two copies of None"""
         try:
@@ -225,7 +227,6 @@ class TestCaseTests(TestCase):
             else:
                 raise AssertionError("unit_test.assertNotEqual failed on input %s and %s" \
                                      % (repr(first), repr(second)))
-
 
     def test_assertEqual_None(self):
         """assertEqual should not raise exception with two copies of None"""
@@ -300,7 +301,6 @@ class TestCaseTests(TestCase):
                 raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
                                      % (repr(first), repr(second)))
 
-
     def test_assertFloatEqualAbs_unequal(self):
         """assertFloatEqualAbs should raise exception when values differ by >eps"""
         for first, second in self.outside_1e6_abs_pairs:
@@ -345,7 +345,6 @@ class TestCaseTests(TestCase):
             else:
                 raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
                                      % (repr(first), repr(second)))
-
 
     def test_assertFloatEqualRel_unequal(self):
         """assertFloatEqualRel should raise exception when values differ by >eps"""
@@ -419,7 +418,6 @@ class TestCaseTests(TestCase):
         second = [i[1] for i in self.unequal_pairs]
         self.assertRaises(AssertionError, \
                           self.assertFloatEqual, first, second)
-
 
     def test_assertFloatEqualAbs_mixed(self):
         """assertFloatEqualAbs should work on lists of mixed types."""
@@ -554,6 +552,7 @@ class TestCaseTests(TestCase):
         self.assertContains({'a': 1, 'b': 2}, 'a')
 
         class _fake_container(object):
+
             def __contains__(self, other):
                 return True
 
@@ -589,6 +588,7 @@ class TestCaseTests(TestCase):
         self.assertNotContains({'a': 1, 'b': 2}, 3.0)
 
         class _fake_container(object):
+
             def __contains__(self, other):
                 return False
 
@@ -1073,6 +1073,7 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertSameObj, None, "bar")
         self.assertRaises(AssertionError, self.assertSameObj, lambda x: 5, \
                           lambda y: 6)
+
     def test_assertNotSameObj_true(self):
         """assertNotSameObj should pass when 'a is not b'"""
         self.assertNotSameObj("foo", "bar")
@@ -1161,6 +1162,7 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3.0, 7.0)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, -3.0, 3.0)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 2.0, 4.0)
+
     def test_assertIsNotBetween_mixed_true(self):
         """assertIsNotBetween should pass when a number is not in bounds"""
         self.assertIsNotBetween(1, 2.0, 3.0)

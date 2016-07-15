@@ -37,13 +37,16 @@ _omega = replacement.aliased('omega')
 _cg = MotifChange('CG').aliased('G')
 _cg_k = (_cg & _kappa).aliased('G.K')
 
+
 def K80(**kw):
     """Kimura 1980"""
     return HKY85(equal_motif_probs=True, optimise_motif_probs=False, **kw)
 
+
 def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
     return F81(equal_motif_probs=True, optimise_motif_probs=False, **kw)
+
 
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
@@ -72,7 +75,6 @@ def CNFGTR(**kw):
         predicates=_gtr_preds + [_omega],
         mprob_model='conditional',
         **kw)
-
 
 
 def CNFHKY(**kw):
@@ -128,6 +130,7 @@ def GY94(**kw):
 
     see, N Goldman and Z Yang, Mol. Biol. Evol., 11(5):725-36, 1994."""
     return Y98(**kw)
+
 
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
@@ -628,6 +631,7 @@ WG01_freqs = {
     'T': 0.061012706101270617, 'W': 0.014385901438590145,
     'V': 0.070895607089560719, 'Y': 0.035274203527420354}
 
+
 def DSO78(**kw):
     """Dayhoff et al 1978 empirical protein model
     Dayhoff, MO, Schwartz RM, and Orcutt, BC. 1978
@@ -640,6 +644,7 @@ def DSO78(**kw):
 
     return sm
 
+
 def JTT92(**kw):
     """Jones, Taylor and Thornton 1992 empirical protein model
     Jones DT, Taylor WR, Thornton JM.
@@ -650,6 +655,7 @@ def JTT92(**kw):
         JTT92_matrix, JTT92_freqs, name='JTT92', **kw)
 
     return sm
+
 
 def AH96(**kw):
     """Adachi and Hasegawa 1996 empirical model for mitochondrial proteins.
@@ -665,8 +671,10 @@ def AH96(**kw):
 
     return sm
 
+
 def mtREV(**kw):
     return AH96(**kw)
+
 
 def AH96_mtmammals(**kw):
     """Adachi and Hasegawa 1996 empirical model for mammalian mitochondrial
@@ -683,8 +691,10 @@ def AH96_mtmammals(**kw):
 
     return sm
 
+
 def mtmam(**kw):
     return AH96_mtmammals(**kw)
+
 
 def WG01(**kw):
     """Whelan and Goldman 2001 empirical model for globular proteins.

@@ -19,6 +19,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 def _is_Q_ok(Q):
     """Tests whether a square matrix is a valid transition rate matrix"""
     n = Q.shape[0]
@@ -31,6 +32,7 @@ def _is_Q_ok(Q):
     if not allclose(Q.dot(one), 0.):
         return False
     return True
+
 
 def is_generator_unique(Q):
     """Conservatively tests whether a transition rate matrix uniquely yields
@@ -76,6 +78,7 @@ def is_generator_unique(Q):
 
     return True
 
+
 def logm(P):
     """Returns logarithm of a matrix.
 
@@ -90,6 +93,7 @@ def logm(P):
 
     log_roots = log(roots)
     return innerproduct(evT * log_roots, evI)
+
 
 def logm_taylor(P, tol=1e-30):
     """returns the matrix log computed using the taylor series. If the Frobenius

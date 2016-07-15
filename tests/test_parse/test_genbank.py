@@ -17,6 +17,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class GenBankTests(TestCase):
     """Tests of the GenBank main functions."""
 
@@ -336,6 +337,7 @@ ORIGIN
         """correctly constructs +/- strand features"""
         # a custom annotation function
         from cogent3.core.annotation import Feature
+
         def add_annotation(seq, feature, spans):
             if feature['type'] != "CDS": return
             name = feature['locus_tag'][0]
@@ -344,7 +346,6 @@ ORIGIN
         infile = open('data/annotated_seq.gb')
         parser = RichGenbankParser(infile,
                                    add_annotation=add_annotation)
-
 
         seq = [s for l, s in parser][0]
         cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
@@ -372,8 +373,10 @@ ORIGIN
             self.assertEqual(str(got), expects[locus])
         infile.close()
 
+
 class LocationTests(TestCase):
     """Tests of the Location class."""
+
     def test_init(self):
         """Location should init with 1 or 2 values, plus params."""
         l = Location(37)
@@ -400,8 +403,10 @@ class LocationTests(TestCase):
         l5 = Location([l4, l3], Strand=-1)
         self.assertEqual(str(l5), 'complement(37^42..(37.42))')
 
+
 class LocationListTests(TestCase):
     """Tests of the LocationList class."""
+
     def test_extract(self):
         """LocationList extract should return correct sequence"""
         l = Location(3)

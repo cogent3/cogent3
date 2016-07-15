@@ -53,6 +53,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
 
+
 class RecodeError(Exception):
     """ A generic error to be raised when errors occur in recoding """
     pass
@@ -152,6 +153,7 @@ alphabets = {\
     # without having specify the original alphabet differently.
     'orig': list(zip('ACDEFGHIKLMNPQRSTVWY', 'ACDEFGHIKLMNPQRSTVWY'))} 
 
+
 def build_alphabet_map(alphabet_id=None, alphabet_def=None):
     """ return dict mapping old alphabet chars to new alphabet chars
 
@@ -185,6 +187,7 @@ def build_alphabet_map(alphabet_id=None, alphabet_def=None):
             result[old_c] = new
 
     return result
+
 
 def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     """Return new DenseAlignment recoded in the provided reduced-state alphabet
@@ -227,8 +230,10 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     return DenseAlignment(take(new_indices, aln.ArraySeqs).transpose(),\
                           aln.Names[:], MolType=aln.MolType)
 
+
 def recode_alignment(aln, alphabet_id=None, alphabet_def=None):
     raise NotImplementedError
+
 
 def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
     """ recode the bg_freqs to reflect the recoding defined in alphabet_def
@@ -258,11 +263,14 @@ def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
     return result
 
 # The following code is for recoding substitution matrices 
+
+
 def square_matrix_to_dict(matrix, key_order='ACDEFGHIKLMNPQRSTVWY'):
     result = {}
     for c, row in zip(key_order, matrix):
         result[c] = dict(list(zip(key_order, row)))
     return result
+
 
 def recode_count_matrix(alphabet, count_matrix, aa_order):
     """Recodes a subsitution count matrix 
@@ -300,6 +308,7 @@ def recode_count_matrix(alphabet, count_matrix, aa_order):
             r.append(result[row_c][col_c])
         cm.append(r)
     return array(cm)
+
 
 def recode_counts_and_freqs(alphabet, count_matrix=DSO78_matrix,\
                             freqs=DSO78_freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):

@@ -18,6 +18,7 @@ __status__ = "Production"
 
 
 class TestPeriodStat(TestCase):
+
     def setUp(self):
         x = [1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 
              0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 

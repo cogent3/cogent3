@@ -27,6 +27,8 @@ from cogent3.util.warning import discontinued, deprecated
 
 
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
+
+
 def _importedPyrexAligningModule(name):  
     try:
         return importVersionedModule(name, globals(), (3, 1),
@@ -64,6 +66,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class PointerEncoding(object):
     """Pack very small ints into a byte.  The last field, state, is assigned
     whatever bits are left over after the x and y pointers have claimed what 
@@ -84,16 +87,20 @@ class PointerEncoding(object):
             print(self.max_states, "states allowed in viterbi traceback")
         self.positions = numpy.array([0, x, x + y], int)
         #a.flags.writeable = False
+
     def encode(self, x, y, s):
         parts = numpy.asarray([x, y, s], int)
         assert all(parts < self.limits), (parts, self.limits)
         return (parts << self.positions).sum()
+
     def decode(self, coded):
         return (coded >> self.positions) % self.limits
+
     def getEmptyArray(self, shape):
         return numpy.zeros(shape, self.dtype)
 
 DEBUG = False
+
 
 def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                  preds, state_directions, T,
@@ -178,7 +185,9 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
         best_score = numpy.log(best_score)
     return best + (best_score,)
 
+
 class TrackBack(object):
+
     def __init__(self, tlist):
         self.tlist = tlist
 
@@ -209,6 +218,7 @@ class TrackBack(object):
 
 
 class Pair(object):
+
     def __init__(self, alignable1, alignable2, backward=False):
         alignables = [alignable1, alignable2]
         assert alignable1.alphabet == alignable2.alphabet
@@ -346,6 +356,7 @@ class Pair(object):
 
 
 class _Alignable(object):
+
     def __init__(self, leaf):
         self.leaf = leaf
         self.alphabet = leaf.alphabet
@@ -551,6 +562,7 @@ def adaptPairTM(pairTM, finite=False):
 
 class PairEmissionProbs(object):
     """A pair of sequences and the psubs that relate them, but no gap TM"""
+
     def __init__(self, pair, bins):
         self.pair = pair
         self.bins = bins
@@ -814,6 +826,7 @@ class PairEmissionProbs(object):
 
 
 class BinData(object):
+
     def __init__(self, mprobs, Qd, rate=1.0):
         self.Qd = Qd
         self.mprobs = mprobs
@@ -826,6 +839,7 @@ class BinData(object):
 
 
 class PairBinData(object):
+
     def __init__(self, mprobs, psub1, psub2):
         self.mprobs = mprobs
         self.ppsubs = [psub1, psub2]
@@ -865,6 +879,7 @@ class ReversiblePairEmissionProbs(object):
 
 
 class DPFlags(object):
+
     def __init__(self, viterbi, local=False, use_logs=None,
                  use_cost_function=True, use_scaling=None, backward=False):
         if use_logs is None:
@@ -895,6 +910,7 @@ class DPFlags(object):
 
 
 class PairHMM(object):
+
     def __init__(self, emission_probs, transition_matrix, finite=False):
         self.emission_probs = emission_probs
         self.transition_matrix = transition_matrix
@@ -949,6 +965,7 @@ class PairHMM(object):
 class _ViterbiPath(object):
     """Heavyweight object representing the Viterbi path (ie: best alignment) 
     and all of the inputs used to generate it."""
+
     def __init__(self, pair_hmm, result):
         (self.vscore, self.tb) = result
         (state_directions, T) = pair_hmm._transition_matrix
@@ -961,6 +978,7 @@ class _ViterbiPath(object):
 
 
 class GlobalViterbiPath(_ViterbiPath):
+
     def getAlignable(self, ratio=None):
         # Used during progressive sequence alignment.
         # Because the alignment depends on the total length (so long as the
@@ -982,6 +1000,7 @@ class GlobalViterbiPath(_ViterbiPath):
 
 class LocalViterbiPath(_ViterbiPath):
     # Only for pairwise alignments.  Local and POGs don't mix well.
+
     def getAlignment(self):
         """The alignment as a standard PyCogent Alignment object"""
         seqs = self.pair_hmm.emission_probs.pair.getSeqNamePairs()

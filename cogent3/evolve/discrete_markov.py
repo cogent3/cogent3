@@ -14,6 +14,7 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 class PsubMatrixDefn(PartitionDefn):
     "Square 2D array made of 1D partitions"
 
@@ -71,6 +72,7 @@ class PsubMatrixDefn(PartitionDefn):
             uniq_cells.append(matrix)
         return (all_cells, uniq_cells)
 
+
 def DiscreteSubstitutionModel(*args, **kw):
     deprecated("class",
                "cogent3.evolve.discrete_markov.DiscreteSubstitutionModel",
@@ -79,7 +81,9 @@ def DiscreteSubstitutionModel(*args, **kw):
     from cogent3.evolve.substitution_model import DiscreteSubstitutionModel
     return DiscreteSubstitutionModel(*args, **kw)
 
+
 class PartialyDiscretePsubsDefn(object):
+
     def __init__(self, alphabet, psubs, discrete_edges):
         motifs = tuple(alphabet)
         dpsubs = PsubMatrixDefn(

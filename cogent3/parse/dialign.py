@@ -16,6 +16,7 @@ __status__ = "Production"
 _header = re.compile("^\s+[=]+")
 _quality_scores = re.compile("^ +\d+[\s\d]*$")
 
+
 def align_block_lines(lines):
     counter = 0
     for line in lines:
@@ -31,6 +32,7 @@ def align_block_lines(lines):
             break
         yield line
 
+
 def parse_data_line(line):
     if _quality_scores.findall(line):
         line = line.split()
@@ -43,6 +45,7 @@ def parse_data_line(line):
         name = line[0]
         seq = "".join(line[2:])
     return name, seq
+
 
 def DialignParser(lines, seq_maker=None, get_scores=False):
     """Yields label, sequence pairs.

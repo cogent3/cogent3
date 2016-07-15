@@ -29,10 +29,13 @@ _CONTROLS = {
     'HIDE_CURSOR': 'cinvis', 'SHOW_CURSOR': 'cnorm'
     }
 
+
 class TerminalUnavailableError(RuntimeError):
     pass
 
+
 class CursesOutput(object):
+
     def __init__(self):
         if curses is None:
             raise TerminalUnavailableError("No curses modules")

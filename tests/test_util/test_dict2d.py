@@ -15,6 +15,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Development"
 
+
 class Dict2DTests(TestCase):
     """ Tests of the Dict2DTests class """
 
@@ -325,7 +326,6 @@ class Dict2DTests(TestCase):
         d.RowOrder = d.ColOrder = None
         self.assertEqual(d.getRowIndices(lt_15, negate=True), ['c'])
 
-
     def test_getRowsIf(self):
         """Dict2D getRowsIf should return object with rows wher f(x) is True"""
         d = Dict2D(self.square)
@@ -424,7 +424,6 @@ class Dict2DTests(TestCase):
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.getItemsIf(lt_5), [1, 2, 3, 4])
         self.assertEqual(d.getItemsIf(lt_5, negate=True), [6, 9])
-
 
     def test_toLists(self):
         """Dict2D toLists should convert dict into list of lists"""
@@ -651,6 +650,7 @@ class Dict2DTests(TestCase):
         self.assertEqual(d.toDelimited(headers=False), \
                          '1\t2\t3\n2\t4\t6\n3\t6\t9')
         # set up a custom formatter...
+
         def my_formatter(x):
             try:
                 return '%1.1f' % x
@@ -660,7 +660,6 @@ class Dict2DTests(TestCase):
         self.assertEqual(d.toDelimited(headers=True, item_delimiter='x', \
                                        row_delimiter='y', formatter=my_formatter), \
                          '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
-
 
 
 if __name__ == '__main__':

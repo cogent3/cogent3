@@ -56,10 +56,12 @@ def file_for_test(msg, baseline=False, prefixed=True):
     fname = msg.replace(' ', '_') + '.' + file_ext
     return os.path.join(dirname, fname)
 
+
 def fig2png(fig):
     f = io.BytesIO()
     fig.savefig(f, format='png')
     return f.getvalue()
+
 
 def writefile(fname, content):
     dirname = os.path.dirname(fname)
@@ -69,15 +71,19 @@ def writefile(fname, content):
     f.write(content)
     f.close()
 
+
 def exercise(msg, fig):
     pass
+
 
 def record(msg, fig):
     png = fig2png(fig)
     fname = file_for_test(msg, True)
     writefile(fname, png)
 
+
 class CheckOutput(object):
+
     def __init__(self, failOnDifference=True, showAll=False):
         if not os.path.exists('draw_results/baseline'):
             raise RuntimeError(
@@ -139,6 +145,7 @@ class CheckOutput(object):
             else:
                 print("See draw_results/comparison.html")
 
+
 def do(msg, display, **kw):
     fig = display.makeFigure(**kw)
     test_figure(msg, fig)
@@ -151,6 +158,7 @@ def makeSampleSequence():
     v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'repeat_unit', [(39, 49)])
     v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'rep2', [(49, 60)])
     return seq
+
 
 def makeSampleAlignment():
     # must be an esier way to make an alignment of annotated sequences!
@@ -255,7 +263,6 @@ class DrawingTests(unittest.TestCase):
         fig = partimatrix(aln, samples=0, display=True, print_stats=False,
                           s_limit=10, title="brca1")
         test_figure('compatibility', fig)
-
 
 
 if __name__ != "__main__":

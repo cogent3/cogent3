@@ -23,6 +23,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
 
+
 class DistanceMatrix(Dict2D, Delegator):
     """ 2D dict giving distances from A to B and vice versa """
 

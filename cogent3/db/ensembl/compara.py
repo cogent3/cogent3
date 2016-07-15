@@ -19,8 +19,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
+
 class Compara(object):
     """comaparison among genomes"""
+
     def __init__(self, species, Release, account=None, pool_recycle=None,
                  division=None):
         assert Release, 'invalid release specified'
@@ -408,7 +410,6 @@ class Compara(object):
             assert ref_location is not None, "Failed to make the reference"\
             " location"
             yield SyntenicRegions(self, members, ref_location=ref_location)
-
 
     def getDistinct(self, property_type):
         """returns the Ensembl data-bases distinct values for the named

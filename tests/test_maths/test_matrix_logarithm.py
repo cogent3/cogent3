@@ -14,8 +14,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
 class logarithm_tests(TestCase):
     """Tests of top-level matrix logarithm functions."""
+
     def test_logm(self):
         """logm results should match scipy's"""
         p = array([[0.86758487, 0.05575623, 0.0196798, 0.0569791],

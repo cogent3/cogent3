@@ -19,6 +19,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 def _merged_cell_text_wrap(text, max_line_length, space):
     """ left justify wraps text into multiple rows"""
     max_line_width = max_line_length - (2 * space)
@@ -30,11 +31,13 @@ def _merged_cell_text_wrap(text, max_line_length, space):
     wrapped = ["%s" % line.ljust(max_line_width + 2 * space) for line in wrapped]
     return wrapped
 
+
 def html(text, **kwargs):
     """Returns the text as html."""
     from docutils.core import publish_string
     # assuming run from the correct directory
     return publish_string(source=text, writer_name='html', **kwargs)
+
 
 def _merge_cells(row):
     """merges runs of identical row cells.
@@ -53,6 +56,7 @@ def _merge_cells(row):
 
     new_row.append(((last, last + span), row[i]))
     return new_row
+
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
               element_formatters={}, merge_identical=True, compact=True):
@@ -108,6 +112,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
         data = '\n'.join(data)
     return data
 
+
 def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
     """Returns the text a LaTeX longtable.
 
@@ -141,6 +146,7 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
     table_format.append(r"\end{longtable}")
 
     return "\n".join(table_format)
+
 
 def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e100, identifiers=None, borders=True, space=2):
     """Returns a table in a simple text format.
@@ -236,6 +242,7 @@ def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e1
 
     return '\n'.join(table)
 
+
 def gridTableFormat(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
 
@@ -303,6 +310,7 @@ def gridTableFormat(header, formatted_table, title=None, legend=None):
 
     return '\n'.join(table)
 
+
 def separatorFormat(header, formatted_table, title=None, legend=None, sep=None):
     """Returns a table with column entries separated by a delimiter. If an entry
     contains the sep character, that entry is put in quotes. Also, title and
@@ -343,6 +351,7 @@ def separatorFormat(header, formatted_table, title=None, legend=None, sep=None):
 
     return table
 
+
 def FormatFields(formats):
     """Formats row fields by index.
     Arguments:
@@ -350,6 +359,7 @@ def FormatFields(formats):
           eg [(0, "'%s'"), (4, '%.4f')]. All non-specified columns are
           formatted as strings."""
     index_format = []
+
     def callable(line, index_format=index_format):
         if not index_format:
             index_format = ["%s" for index in range(len(line))]
@@ -359,6 +369,7 @@ def FormatFields(formats):
         return formatted
 
     return callable
+
 
 def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     """Returns a writer for a delimited tabular file. The writer has a
@@ -370,6 +381,7 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     - ignore: lines for which ignore returns True are ignored
     - sep: the delimiter deparating fields."""
     formatter = formatter or []
+
     def callable(lines, formatter=formatter, has_header=False):
         if not formatter:
             formatter = FormatFields([(i, "%s") for i in range(len(lines[0]))])
@@ -383,6 +395,7 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
             yield formatted
 
     return callable
+
 
 def formattedCells(rows, header=None, digits=4, column_templates=None, missing_data=''):
     """Return rows with each columns cells formatted as an equal length
@@ -446,6 +459,7 @@ def formattedCells(rows, header=None, digits=4, column_templates=None, missing_d
 
     return new_header, matrix
 
+
 def phylipMatrix(rows, names):
     """Return as a distance matrix in phylip's matrix format."""
     # phylip compatible format is num taxa starting at col 4
@@ -494,7 +508,6 @@ def phylipMatrix(rows, names):
         # mod first row of formatted_dists
         rows[0] = "%s%s" % (name.ljust(12), rows[0])
         return rows
-
 
     # number of seqs
     numseqs = len(names)
