@@ -250,11 +250,11 @@ class RdbParserTests(GenericRdbTest):
         r1 = RnaSequence("-??GG-UGAA--CGCU---ACGU-N???---",\
             Info=Info({'Species': "unidentified Thermus OPB AF027020",\
             'Refs':{'rRNA':['AF027020']},\
-            'OriginalSeq':'-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
+                'OriginalSeq':'-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
         r2 = RnaSequence("---CGAUCG--UAUACG-N???-",\
             Info=Info({'Species':'Thermus silvanus X84211',\
             'Refs':{'rRNA':['X84211']},\
-            'OriginalSeq':'---CGAU[C(G){--UA}U]ACG-Nooo-'}))
+                'OriginalSeq':'---CGAU[C(G){--UA}U]ACG-Nooo-'}))
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split('\n'), strict=True))
         self.assertEqual(len(obs), 2)
         self.assertEqual(obs[0], r1)
@@ -284,7 +284,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(obs[1].Info, r2.Info)
 
 RDB_LINES_ONLY_GOOD=\
-"""acc:AF027020
+    """acc:AF027020
 seq: unidentified Thermus OPB AF027020
 -o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---
 //
@@ -295,7 +295,7 @@ seq: Thermus silvanus X84211
 """
 
 RDB_LINES_GOOD_BAD=\
-"""acc:AF027020
+    """acc:AF027020
 seq: unidentified Thermus OPB AF027020
 -o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---
 //

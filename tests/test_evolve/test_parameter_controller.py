@@ -24,24 +24,24 @@ data_path = os.path.join(base_path, 'data')
 
 good_rule_sets = [
     [
-    {'par_name' : 'length','is_independent':True},
+        {'par_name' : 'length','is_independent':True},
     ],
     [
-    {'par_name' : 'length','is_independent':True},
+        {'par_name' : 'length','is_independent':True},
     ],
     [
-    {'par_name' : 'length','is_clade' :True, 'is_independent':True, 'edges' : ['a','b']},
+        {'par_name' : 'length','is_clade' :True, 'is_independent':True, 'edges' : ['a','b']},
     ],
     [
-    {'par_name' : 'length','is_independent':True, 'edges' : ['a','c','e']},
+        {'par_name' : 'length','is_independent':True, 'edges' : ['a','c','e']},
     ],
     [
-    {'par_name' : 'length','is_independent':True, 'edge' : 'a'},
+        {'par_name' : 'length','is_independent':True, 'edge' : 'a'},
     ],
 ]
 bad_rule_sets = [
     [
-    {'par_name' : 'length','is_clade' :True, 'edges' : ['b','f'],},
+        {'par_name' : 'length','is_clade' :True, 'edges' : ['b','f'],},
     ],
 ]
 class test_parameter_controller(unittest.TestCase):

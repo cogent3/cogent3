@@ -270,107 +270,107 @@ class GeneticCode(object):
 
 
 NcbiGeneticCodeData = [GeneticCode(*data) for data in [
-[
-'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-1,
-'Standard Nuclear',
-'---M---------------M---------------M----------------------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG',
-2,
-'Vertebrate Mitochondrial',
-'--------------------------------MMMM---------------M------------',
-],
-[
-'FFLLSSSSYY**CCWWTTTTPPPPHHQQRRRRIIMMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-3,
-'Yeast Mitochondrial',
-'----------------------------------MM----------------------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-4,
-'Mold, Protozoan, and Coelenterate Mitochondrial, and Mycoplasma/Spiroplasma Nuclear',
-'--MM---------------M------------MMMM---------------M------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSSSVVVVAAAADDEEGGGG',
-5,
-'Invertebrate Mitochondrial',
-'---M----------------------------MMMM---------------M------------',
-],
-[
-'FFLLSSSSYYQQCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-6,
-'Ciliate, Dasycladacean and Hexamita Nuclear',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
-9,
-'Echinoderm and Flatworm Mitochondrial',
-'-----------------------------------M---------------M------------',
-],
-[
-'FFLLSSSSYY**CCCWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-10,
-'Euplotid Nuclear',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-11,
-'Bacterial Nuclear and Plant Plastid',
-'---M---------------M------------MMMM---------------M------------',
-],
-[
-'FFLLSSSSYY**CC*WLLLSPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-12,
-'Alternative Yeast Nuclear',
-'-------------------M---------------M----------------------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSGGVVVVAAAADDEEGGGG',
-13,
-'Ascidian Mitochondrial',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYYY*CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
-14,
-'Alternative Flatworm Mitochondrial',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYY*QCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-15,
-'Blepharisma Nuclear',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYY*LCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-16,
-'Chlorophycean Mitochondrial',
-'-----------------------------------M----------------------------',
-],
-[
-'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
-20,
-'Trematode Mitochondrial',
-'-----------------------------------M---------------M------------',
-],
-[
-'FFLLSS*SYY*LCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-22,
-'Scenedesmus obliquus Mitochondrial',
-'-----------------------------------M----------------------------',
-],
-[
-'FF*LSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
-23,
-'Thraustochytrium Mitochondrial',
-],
+    [
+        'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        1,
+        'Standard Nuclear',
+        '---M---------------M---------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG',
+        2,
+        'Vertebrate Mitochondrial',
+        '--------------------------------MMMM---------------M------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWTTTTPPPPHHQQRRRRIIMMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        3,
+        'Yeast Mitochondrial',
+        '----------------------------------MM----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        4,
+        'Mold, Protozoan, and Coelenterate Mitochondrial, and Mycoplasma/Spiroplasma Nuclear',
+        '--MM---------------M------------MMMM---------------M------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSSSVVVVAAAADDEEGGGG',
+        5,
+        'Invertebrate Mitochondrial',
+        '---M----------------------------MMMM---------------M------------',
+        ],
+    [
+        'FFLLSSSSYYQQCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        6,
+        'Ciliate, Dasycladacean and Hexamita Nuclear',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
+        9,
+        'Echinoderm and Flatworm Mitochondrial',
+        '-----------------------------------M---------------M------------',
+        ],
+    [
+        'FFLLSSSSYY**CCCWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        10,
+        'Euplotid Nuclear',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        11,
+        'Bacterial Nuclear and Plant Plastid',
+        '---M---------------M------------MMMM---------------M------------',
+        ],
+    [
+        'FFLLSSSSYY**CC*WLLLSPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        12,
+        'Alternative Yeast Nuclear',
+        '-------------------M---------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSGGVVVVAAAADDEEGGGG',
+        13,
+        'Ascidian Mitochondrial',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYYY*CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
+        14,
+        'Alternative Flatworm Mitochondrial',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY*QCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        15,
+        'Blepharisma Nuclear',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY*LCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        16,
+        'Chlorophycean Mitochondrial',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNNKSSSSVVVVAAAADDEEGGGG',
+        20,
+        'Trematode Mitochondrial',
+        '-----------------------------------M---------------M------------',
+        ],
+    [
+        'FFLLSS*SYY*LCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        22,
+        'Scenedesmus obliquus Mitochondrial',
+        '-----------------------------------M----------------------------',
+        ],
+    [
+        'FF*LSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG',
+        23,
+        'Thraustochytrium Mitochondrial',
+        ],
 ]]
 
 #build dict of GeneticCodes keyed by ID (as int, not str)

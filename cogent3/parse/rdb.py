@@ -142,8 +142,8 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
                 yield SeqConstructor(clean_seq, Info = info)
             except AlphabetError:
                 raise RecordError(\
-                "Sequence construction failed on record with reference %s."\
-                %(info.Refs))
+                    "Sequence construction failed on record with reference %s."\
+                    %(info.Refs))
         else:
             #not strict: just skip any record that raises an exception
             try:

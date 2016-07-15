@@ -37,8 +37,8 @@ class unigeneTests(TestCase):
         self.assertEqual(_read_seq('ACC=BC025044.1\n'), \
             UniGeneSeqRecord({'ACC':'BC025044.1'}))
         self.assertEqual(_read_seq(\
-"ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"), \
-        UniGeneSeqRecord({   'ACC':'AI842963.1','NID':'g5477176',
+            "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"), \
+            UniGeneSeqRecord({   'ACC':'AI842963.1','NID':'g5477176',
             'CLONE':'UI-M-AO1-aem-f-10-0-UI', 'END':"3'", 
             'LID':'1944', 'SEQTYPE':'EST',
             'TRACE':'158501677'}) )
@@ -130,7 +130,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(second.SCOUNT, 1)
         self.assertEqual(second.STS, [])
         self.assertEqual(second.SEQUENCE, list(map(UniGeneSeqRecord, [
-        {'ACC':'AW990320.1','NID':'g8185938',
+            {'ACC':'AW990320.1','NID':'g8185938',
         'CLONE':'IMAGE:1513482','END':"5'",'LID':'1043',
         'SEQTYPE':'EST','TRACE':'94472873'}])))
 

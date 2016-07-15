@@ -223,38 +223,38 @@ class NcbiFastaParserTests(TestCase):
     def setUp(self):
         """Define a few standard files"""
         self.peptide = [
-'>gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]',
-'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL',
-'SEIQNIKSELKYVPKAEQ',
-'>gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]',
-'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY',
-'PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD'
-]
+            '>gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]',
+            'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL',
+            'SEIQNIKSELKYVPKAEQ',
+            '>gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]',
+            'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY',
+            'PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD'
+            ]
         self.nasty = [
-'  ',                               #0  ignore leading blank line
-'>gi|abc|ref|def|',                 #1  no description -- ok
-'UCAG',                             #2  single line of sequence
-'#comment',                         #3  comment -- skip
-'  \t   ',                          #4  ignore blank line between records
-'>gi|xyz|gb|qwe|  \tdescr   \t\t',  #5  desciption has whitespace
-'UUUU',                             #6  two lines of sequence
-'CCCC',                             #7  
-'>gi|bad|ref|nonsense',             #8  missing last pipe -- error
-'ACU',                              #9  
-'>gi|bad|description',              #10 not enough fields -- error       
-'AAA',                              #11
-'>gi|bad|ref|stuff|label',          #12
-'XYZ',                              #13 bad sequence -- error
-'>gi|bad|gb|ignore| description',   #14 label without sequence -- error
-'>  gi  |  123  | dbj  | 456 | desc|with|pipes| ',#15 label w/ whitespace -- OK
-'ucag',                             #16
-'  \t  ',                           #17 ignore blank line inside record
-'UCAG',                             #18
-'tgac',                             #19 lowercase should be OK
-'# comment',                        #20 comment -- skip
-'NNNN',                             #21 degenerates should be OK
-'   ',                              #22 ignore trailing blank line
-]
+            '  ',                               #0  ignore leading blank line
+            '>gi|abc|ref|def|',                 #1  no description -- ok
+            'UCAG',                             #2  single line of sequence
+            '#comment',                         #3  comment -- skip
+            '  \t   ',                          #4  ignore blank line between records
+            '>gi|xyz|gb|qwe|  \tdescr   \t\t',  #5  desciption has whitespace
+            'UUUU',                             #6  two lines of sequence
+            'CCCC',                             #7  
+            '>gi|bad|ref|nonsense',             #8  missing last pipe -- error
+            'ACU',                              #9  
+            '>gi|bad|description',              #10 not enough fields -- error       
+            'AAA',                              #11
+            '>gi|bad|ref|stuff|label',          #12
+            'XYZ',                              #13 bad sequence -- error
+            '>gi|bad|gb|ignore| description',   #14 label without sequence -- error
+            '>  gi  |  123  | dbj  | 456 | desc|with|pipes| ',#15 label w/ whitespace -- OK
+            'ucag',                             #16
+            '  \t  ',                           #17 ignore blank line inside record
+            'UCAG',                             #18
+            'tgac',                             #19 lowercase should be OK
+            '# comment',                        #20 comment -- skip
+            'NNNN',                             #21 degenerates should be OK
+            '   ',                              #22 ignore trailing blank line
+            ]
         self.empty = []
         self.no_label = ['ucag']
 

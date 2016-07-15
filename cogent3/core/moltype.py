@@ -330,20 +330,20 @@ class CoreObjectGroup(object):
         self.Base.NonDegen = self.Base
 
         statements = [
-        "self.Degen.Gapped = self.DegenGapped",
-        "self.Degen.Ungapped = self.Degen",
-        "self.Degen.Degen = self.Degen",
-        "self.Degen.NonDegen = self.Base",
+            "self.Degen.Gapped = self.DegenGapped",
+            "self.Degen.Ungapped = self.Degen",
+            "self.Degen.Degen = self.Degen",
+            "self.Degen.NonDegen = self.Base",
 
-        "self.Gapped.Gapped = self.Gapped",
-        "self.Gapped.Ungapped = self.Base",
-        "self.Gapped.Degen = self.DegenGapped",
-        "self.Gapped.NonDegen = self.Gapped",
+            "self.Gapped.Gapped = self.Gapped",
+            "self.Gapped.Ungapped = self.Base",
+            "self.Gapped.Degen = self.DegenGapped",
+            "self.Gapped.NonDegen = self.Gapped",
 
-        "self.DegenGapped.Gapped = self.DegenGapped",
-        "self.DegenGapped.Ungapped = self.Degen",
-        "self.DegenGapped.Degen = self.DegenGapped",
-        "self.DegenGapped.NonDegen = self.Gapped",
+            "self.DegenGapped.Gapped = self.DegenGapped",
+            "self.DegenGapped.Ungapped = self.Degen",
+            "self.DegenGapped.Degen = self.DegenGapped",
+            "self.DegenGapped.NonDegen = self.Gapped",
         ]
         for s in statements:
             try:

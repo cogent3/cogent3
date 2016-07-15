@@ -585,9 +585,9 @@ motif    mprobs
     G    0.2500
 ---------------""")
         self.assertEqual(likelihood_function.getParamValueDict(['edge']), {
- 'beta': {'NineBande': 1.0, 'edge.1': 1.0,'DogFaced': 1.0, 'Human': 1.0,
+            'beta': {'NineBande': 1.0, 'edge.1': 1.0,'DogFaced': 1.0, 'Human': 1.0,
       'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
- 'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
+            'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
         'edge.0': 1.0, 'Mouse': 1.0,'HowlerMon': 1.0}})
 
     def test_get_statistics_from_empirical_model(self):

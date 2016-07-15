@@ -54,7 +54,7 @@ class locuslinkTests(TestCase):
     def test_read_cdd(self):
         """_read_cdd should perform correct conversions"""
         self.assertEqual(_read_cdd(\
-        'Immunoglobulin C-2 Type|smart00408|103|na|4.388540e+01\n'),
+            'Immunoglobulin C-2 Type|smart00408|103|na|4.388540e+01\n'),
             {'Name':'Immunoglobulin C-2 Type','Key':'smart00408',\
             'Score':'103', 'EValue':'na', 'BitScore':'4.388540e+01'})
 
@@ -87,15 +87,15 @@ class locuslinkTests(TestCase):
     def test_read_extannot(self):
         """_read_extannot should perform correct conversions"""
         self.assertEqual(_read_extannot(\
-        'cellular role|Pol II transcription|NR|Proteome|8760285\n'), \
-        {'Category':'cellular role','Term':'Pol II transcription',\
+            'cellular role|Pol II transcription|NR|Proteome|8760285\n'), \
+            {'Category':'cellular role','Term':'Pol II transcription',\
         'EvidenceCode':'NR', 'Source':'Proteome', 'PubMedId':'8760285'})
 
     def test_read_contig(self):
         """_read_contig should perform correct conversions"""
         self.assertEqual(_read_contig(\
-        'NT_011109.15|29800594|na|31124734|31133047|-|19|reference\n'),\
-        {'Accession':'NT_011109.15','Gi':'29800594','Strain':'na',\
+            'NT_011109.15|29800594|na|31124734|31133047|-|19|reference\n'),\
+            {'Accession':'NT_011109.15','Gi':'29800594','Strain':'na',\
         'From':'31124734','To':'31133047','Orientation':'-',\
         'Chromosome':'19','Assembly':'reference'})
 
@@ -252,30 +252,30 @@ PMID: 14499652"""
         self.assertEqual(first.SUMMARY, ["""Summary: The protein encoded by this gene is a plasma glycoprotein of unknown function. The protein shows sequence similarity to the variable regions of some immunoglobulin supergene family member proteins."""])
         self.assertEqual(first.CHR, ['19'])
         self.assertEqual(first.STS, [
-        {'Name':'RH65092','Chromosome':'-','StsId':'10673','Segment':'na',\
+            {'Name':'RH65092','Chromosome':'-','StsId':'10673','Segment':'na',\
             'SequenceKnown':'na','Evidence':'epcr'},
-        {'Name':'WI-16009','Chromosome':'-','StsId':'52209','Segment':'na',\
+            {'Name':'WI-16009','Chromosome':'-','StsId':'52209','Segment':'na',\
             'SequenceKnown':'na','Evidence':'epcr'},
-        {'Name':'G59506','Chromosome':'-','StsId':'136670','Segment':'na',\
+            {'Name':'G59506','Chromosome':'-','StsId':'136670','Segment':'na',\
             'SequenceKnown':'na','Evidence':'epcr'},
         ])
         self.assertEqual(first.COMP, [
-        {'TaxonId':'10090','Symbol':'A1bg','Chromosome':'na','Position':'na',\
+            {'TaxonId':'10090','Symbol':'A1bg','Chromosome':'na','Position':'na',\
            'LocusId':'117586', 'ChromosomeSelf':'19','SymbolSelf':'A1BG',\
            'MapName':'ncbi_mgd'},
-        {'TaxonId':'10090','Symbol':'A1bg','Chromosome':'7','Position':'7  cM',\
+            {'TaxonId':'10090','Symbol':'A1bg','Chromosome':'7','Position':'7  cM',\
            'LocusId':'117586', 'ChromosomeSelf':'19','SymbolSelf':'A1BG',\
            'MapName':'ncbi_mgd'},
         ])
         self.assertEqual(first.BUTTON, ['unigene.gif','snp.gif','homol.gif', \
             'ensembl.gif', 'ucsc.gif', 'mgc.gif'])
         self.assertEqual(first.LINK, [ \
-        'http://www.ncbi.nlm.nih.gov/UniGene/clust.cgi?ORG=Hs&CID=390608',
-        'http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?locusId=1',
-        'http://www.ncbi.nlm.nih.gov/HomoloGene/homolquery.cgi?TEXT=1[loc]&TAXID=9606',
-        'http://www.ensembl.org/Homo_sapiens/contigview?geneid=NM_130786',
-        'http://genome.ucsc.edu/cgi-bin/hgTracks?org=human&position=NM_130786',
-        'http://mgc.nci.nih.gov/Genes/GeneInfo?ORG=Hs&CID=390608',
+            'http://www.ncbi.nlm.nih.gov/UniGene/clust.cgi?ORG=Hs&CID=390608',
+            'http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?locusId=1',
+            'http://www.ncbi.nlm.nih.gov/HomoloGene/homolquery.cgi?TEXT=1[loc]&TAXID=9606',
+            'http://www.ensembl.org/Homo_sapiens/contigview?geneid=NM_130786',
+            'http://genome.ucsc.edu/cgi-bin/hgTracks?org=human&position=NM_130786',
+            'http://mgc.nci.nih.gov/Genes/GeneInfo?ORG=Hs&CID=390608',
         ])
         self.assertEqual(first.UNIGENE, ['Hs.390608'])
         self.assertEqual(first.OMIM, ['138670'])
@@ -284,13 +284,13 @@ PMID: 14499652"""
         self.assertEqual(first.MAPLINK, ['default_human_gene|A1BG'])
         self.assertEqual(first.PMID, ['12477932','8889549','3458201','2591067'])
         self.assertEqual(first.GO, [ \
-        {'Category':'molecular function','Term':'molecular_function unknown',\
+            {'Category':'molecular function','Term':'molecular_function unknown',\
         'EvidenceCode':'ND','GoId':'GO:0005554','Source':'GOA',\
         'PubMedId':'3458201'},
-        {'Category':'biological process','Term':'biological_process unknown',\
+            {'Category':'biological process','Term':'biological_process unknown',\
         'EvidenceCode':'ND','GoId':'GO:0000004','Source':'GOA',\
         'PubMedId':'na'},
-        {'Category':'cellular component','Term':'extracellular',\
+            {'Category':'cellular component','Term':'extracellular',\
         'EvidenceCode':'IDA','GoId':'GO:0005576','Source':'GOA',\
         'PubMedId':'3458201'},
         ])

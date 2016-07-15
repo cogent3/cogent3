@@ -4,8 +4,8 @@
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.parse.aaindex import AAIndex1Parser, AAIndex2Parser,\
-AAIndexRecord, AAIndex1Record, AAIndex2Record, AAIndex1FromFiles,\
-AAIndex2FromFiles
+    AAIndexRecord, AAIndex1Record, AAIndex2Record, AAIndex1FromFiles,\
+    AAIndex2FromFiles
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -580,7 +580,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
 # Data for parser tests
 
 fake_file_aaindex1 =\
-"""
+    """
 H ANDN920101
 D alpha-CH chemical shifts (Andersen et al., 1992)
 R LIT:1810048b PMID:1575719
@@ -687,7 +687,7 @@ I    A/L     R/K     N/M     D/F     C/P     Q/S     E/T     G/W     H/Y     I/V
 """
 
 fake_file_aaindex2 =\
-"""
+    """
 H ALTS910101
 D The PAM-120 matrix (Altschul, 1991)
 R LIT:1713145 PMID:2051488
