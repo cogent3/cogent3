@@ -53,7 +53,7 @@ class DistanceMatrixTests(TestCase):
                                   "something", "This is a test, this is only a test",
                                   [0.987, 0.783, 1., 0], aar_data)
 
-        # From test_Dict2D, used in tests at end of this file for 
+        # From test_Dict2D, used in tests at end of this file for
         # inheritance testing
         self.empty = {}
         self.single_same = {'a': {'a': 2}}
@@ -264,7 +264,7 @@ class DistanceMatrixTests(TestCase):
         """ setDiag works as expected """
         for m in self.matrices:
             # create a deep copy so we can test against original
-            # matrix without it being effected by altering the object 
+            # matrix without it being effected by altering the object
             # based on it
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(m.keys()))
@@ -448,4 +448,3 @@ class DistanceMatrixTests(TestCase):
 
 if __name__ == '__main__':
     main()
-

@@ -199,7 +199,7 @@ class DistributionsTests(TestCase):
         """tprob should match twice the t_high probability for abs(t)"""
 
         probs = {
-            1: [2 * i for i in 
+            1: [2 * i for i in
                   [0.500000000, 0.496817007, 0.468274483, 0.352416382,
                       0.250000000, 0.147583618, 0.062832958, 0.031725517,
                       0.015902251, 0.010606402, 0.006365349, 0.001591536,

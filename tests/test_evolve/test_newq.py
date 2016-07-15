@@ -28,12 +28,12 @@ __status__ = "Production"
 def _dinuc_root_probs(x, y=None):
     if y is None:
         y = x
-    return dict([(n1 + n2, p1 * p2) 
+    return dict([(n1 + n2, p1 * p2)
                  for n1, p1 in list(x.items()) for n2, p2 in list(y.items())])
 
 
 def _trinuc_root_probs(x, y, z):
-    return dict([(n1 + n2 + n3, p1 * p2 * p3) 
+    return dict([(n1 + n2 + n3, p1 * p2 * p3)
                  for n1, p1 in list(x.items()) for n2, p2 in list(y.items())
                  for n3, p3 in list(z.items())])
 
@@ -65,11 +65,11 @@ class NewQ(TestCase):
     asymm_nuc_probs = dict(A=0.1, T=0.1, C=0.4, G=0.4)
     asymm_root_probs = _dinuc_root_probs(asymm_nuc_probs)
     posn_root_probs = _dinuc_root_probs(symm_nuc_probs, asymm_nuc_probs)
-    cond_root_probs = dict([(n1 + n2, p1 * [.1, .7][n1 == n2]) 
+    cond_root_probs = dict([(n1 + n2, p1 * [.1, .7][n1 == n2])
                             for n1, p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
 
-    # Each of these (data, model) pairs should give a result different 
-    # from any of the simpler models applied to the same data.  
+    # Each of these (data, model) pairs should give a result different
+    # from any of the simpler models applied to the same data.
     ordered_by_complexity = [
         # P(AA) == P(GG) == P(AG)
         [symm_root_probs, 'tuple'],
@@ -112,7 +112,7 @@ class NewQ(TestCase):
     def test_get_statistics(self):
         """get statistics should correctly apply arguments"""
         for (mprobs, model) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+            di = Nucleotide(motif_length=2, motif_probs=mprobs,
                             mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
@@ -122,7 +122,7 @@ class NewQ(TestCase):
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
         for (mprobs, model) in self.ordered_by_complexity:
-            di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+            di = Nucleotide(motif_length=2, motif_probs=mprobs,
                             mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
@@ -144,7 +144,7 @@ class NewQ(TestCase):
         for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
             results = []
             for (dummy, model) in self.ordered_by_complexity:
-                di = Nucleotide(motif_length=2, motif_probs=mprobs, 
+                di = Nucleotide(motif_length=2, motif_probs=mprobs,
                                 mprob_model=model)
                 lf = di.makeLikelihoodFunction(self.tree)
                 lf.setParamRule('length', is_independent=False, init=0.4)
@@ -386,7 +386,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #     tree = LoadTree(treestring='(a:0.4,b:0.4,c:0.6)')
 #     opt_args = dict(max_restarts=1, local=True)
 #     make_cached = MakeCachedObjects(Nucleotide(), tree, 100000, opt_args)
-#     
+#
 #     def _setup_discrete_from_general(self, gen_lf):
 #         dis_lf = self.make_cached('discrete')
 #         for edge in self.tree:
@@ -394,14 +394,14 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #             dis_lf.setParamRule('psubs', edge=edge.Name, init=init)
 #         dis_lf.setMotifProbs(gen_lf.getMotifProbs())
 #         return dis_lf
-#     
+#
 #     def test_discrete_vs_general1(self):
 #         """compares fully general models"""
 #         gen_lf = self.make_cached('general')
 #         gen_lnL = gen_lf.getLogLikelihood()
 #         dis_lf = self._setup_discrete_from_general(gen_lf)
 #         self.assertFloatEqual(gen_lnL, dis_lf.getLogLikelihood())
-#     
+#
 #     def test_general_vs_constructed_general(self):
 #         """a constructed general lnL should be identical to General"""
 #         sm_lf = self.make_cached('constructed_gen')
@@ -409,7 +409,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         gen_lf = self.make_cached('general')
 #         gen_lnL = gen_lf.getLogLikelihood()
 #         self.assertFloatEqualAbs(sm_lnL, gen_lnL, eps=0.1)
-#     
+#
 #     def test_general_stationary(self):
 #         """General stationary should be close to General"""
 #         gen_stat_lf = self.make_cached('gen_stat')
@@ -417,7 +417,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         gen_stat_lnL = gen_stat_lf.getLogLikelihood()
 #         gen_lnL = gen_lf.getLogLikelihood()
 #         self.assertLessThan(gen_stat_lnL, gen_lnL)
-#     
+#
 #     def test_general_stationary_is_stationary(self):
 #         """should be stationary"""
 #         gen_stat_lf = self.make_cached('gen_stat')
@@ -427,7 +427,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #             psub = gen_stat_lf.getPsubForEdge(edge.Name)
 #             pi = dot(mprobs, psub.array)
 #             self.assertFloatEqual(mprobs, pi)
-#     
+#
 #     def test_general_is_not_stationary(self):
 #         """should not be stationary"""
 #         gen_lf = self.make_cached('general')
@@ -443,4 +443,3 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 
 if __name__ == "__main__":
     main()
-

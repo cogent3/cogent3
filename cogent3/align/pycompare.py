@@ -61,7 +61,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     if 'band' is not None then it limits the searched area
     """
     def one_diagonal(dia):
-        segs = segments_from_diagonal(seq1, seq2, window, threshold, 
+        segs = segments_from_diagonal(seq1, seq2, window, threshold,
                                       min_gap_length, dia)
         return [((start, start + dia), (end, end + dia)) for (start, end) in segs]
 

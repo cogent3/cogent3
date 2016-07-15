@@ -3,7 +3,7 @@ import sqlalchemy as sql
 
 from cogent3 import DNA
 from cogent3.core.alignment import SequenceCollection, Alignment, Aligned
-from cogent3.parse import cigar 
+from cogent3.parse import cigar
 
 from cogent3.db.ensembl.util import LazyRecord, asserted_one, NoItemError
 from cogent3.db.ensembl.assembly import location_query
@@ -351,5 +351,3 @@ class SyntenicRegions(_RelatedRegions):
             aln = aln.filtered(lambda x: set(x) != set('-'))
 
         return aln
-
-

@@ -100,13 +100,13 @@ class metafunctionsTests(TestCase):
         expects = [[True, False], [False, False], [False, True]]
         for i in range(len(expects)):
             self.assertEqual(apply_each(
-                [self.is_alpha_digit, self.is_digit_alpha], 
+                [self.is_alpha_digit, self.is_digit_alpha],
                 self.firsts[i], self.seconds[i]), expects[i])
             self.assertEqual(apply_each(
-                [self.is_alpha_digit, self.is_digit_alpha], 
+                [self.is_alpha_digit, self.is_digit_alpha],
                 self.firsts[i], second=self.seconds[i]), expects[i])
             self.assertEqual(apply_each(
-                [self.is_alpha_digit, self.is_digit_alpha], 
+                [self.is_alpha_digit, self.is_digit_alpha],
                 second=self.seconds[i], first=self.firsts[i]), expects[i])
 
     def test_bools(self):
@@ -126,13 +126,13 @@ class metafunctionsTests(TestCase):
         """conjoin should return True if all components True"""
         self.assertEqual(
             conjoin([self.is_odd_letter, self.is_vowel], 'a'), True)
-        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], x='b'), 
+        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], x='b'),
                          False)
         self.assertEqual(
             conjoin([self.is_odd_letter, self.is_vowel], 'c'), False)
         self.assertEqual(
             conjoin([self.is_odd_letter, self.is_vowel], 'e'), True)
-        # technically, this one should be true as well, but I left it off to 
+        # technically, this one should be true as well, but I left it off to
         # have an even vowel test case...
         self.assertEqual(
             conjoin([self.is_odd_letter, self.is_vowel], 'u'), False)
@@ -145,7 +145,7 @@ class metafunctionsTests(TestCase):
         """all should return a function returning True if all components True"""
         odd_vowel = all([self.is_odd_letter, self.is_vowel, self.is_char])
         self.assertEqual(odd_vowel('a'), True)
-        self.assertEqual(list(map(odd_vowel, 'abceu')), 
+        self.assertEqual(list(map(odd_vowel, 'abceu')),
                          [True, False, False, True, False])
         odd_number = all([self.is_odd_number, self.is_number])
         self.assertEqual(list(map(odd_number, list(range(5)))), [
@@ -494,7 +494,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(''.translate(none), '')
         self.assertEqual('abcdeEFGHI12345&*(!@'.translate(none), '*' * 20)
 
-        self.assertEqual('qazwsxedcrfv'.translate(some), 'VVzVVxVVcVVv') 
+        self.assertEqual('qazwsxedcrfv'.translate(some), 'VVzVVxVVcVVv')
 
     def test_trans_all(self):
         """trans_all should return trans table mapping all bad chars to x"""
@@ -510,7 +510,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual('abcdeEFGHI12345&*(!@'.translate(none),
                          'abcdeEFGHI12345&*(!@')
 
-        self.assertEqual('qazwsxedcrfv'.translate(some), 'qaVwsVedVrfV') 
+        self.assertEqual('qazwsxedcrfv'.translate(some), 'qaVwsVedVrfV')
 
     def test_find_any(self):
         """find_any should be True if one of the words is in the string"""
@@ -942,7 +942,7 @@ class Filter_Criteria_Tests(TestCase):
     def test_perm(self):
         """perm should return correct permutations"""
         self.assertEqual(list(perm('abc')), [
-                         'abc', 'acb', 'bac', 'bca', 'cab', 'cba']) 
+                         'abc', 'acb', 'bac', 'bca', 'cab', 'cba'])
 
     def test_comb(self):
         """comb should return correct combinations"""

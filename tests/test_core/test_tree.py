@@ -37,8 +37,8 @@ class TreeTests(TestCase):
         #t = DndParser(t_str)
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
-        self.assertEqual(str(t), result_str) 
-        self.assertEqual(t.getNewick(with_distances=True), result_str) 
+        self.assertEqual(str(t), result_str)
+        self.assertEqual(t.getNewick(with_distances=True), result_str)
         t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
         # NOTE: Tree silently converts spaces to underscores (only for output),
         # presumably for Newick compatibility.
@@ -47,8 +47,8 @@ class TreeTests(TestCase):
         #t = DndParser(t_str, unescape_name=True)
         names = [i.Name for i in t.tips()]
         self.assertEqual(names, ['a a', 'b b', 'c c'])
-        self.assertEqual(str(t), result_str) 
-        self.assertEqual(t.getNewick(with_distances=True), result_str) 
+        self.assertEqual(str(t), result_str)
+        self.assertEqual(t.getNewick(with_distances=True), result_str)
 
 
 def _new_child(old_node, constructor):
@@ -478,7 +478,7 @@ class TreeNodeTests(TestCase):
     def test_copy(self):
         """TreeNode.copy() should work on deep trees"""
         t = comb_tree(1024)  # should break recursion limit on regular copy
-        t.Name = 'foo' 
+        t.Name = 'foo'
         t.XYZ = [3]
         t2 = t.copy()
         t3 = t.copy()
@@ -1077,12 +1077,12 @@ class TreeNodeTests(TestCase):
         self.assertEqual(t.subset(), frozenset('HGRM'))
         c = t.Children[0]
         self.assertEqual(c.subset(), frozenset('HG'))
-        leaf = c.Children[1] 
-        self.assertEqual(leaf.subset(), frozenset('')) 
+        leaf = c.Children[1]
+        self.assertEqual(leaf.subset(), frozenset(''))
 
     def test_subsets(self):
         """subsets should return all subsets descending from a set"""
-        t = self.t 
+        t = self.t
         self.assertEqual(t.subsets(), frozenset(
             [frozenset('HG'), frozenset('RM')]))
 
@@ -1305,7 +1305,7 @@ class PhyloNodeTests(TestCase):
 
     def test_tipToTipDistances_endpoints(self):
         """Test getting specifc tip distances  with tipToTipDistances"""
-        nodes = [self.t.getNodeMatchingName('H'), 
+        nodes = [self.t.getNodeMatchingName('H'),
                  self.t.getNodeMatchingName('G'),
                  self.t.getNodeMatchingName('M')]
         names = ['H', 'G', 'M']
@@ -1861,7 +1861,7 @@ class TestTree(TestCase):
         sub2 = t2.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
         sub2_dists = sub2.getDistances()
         for pair, dist in list(sub2_dists.items()):
-            self.assertEqual((pair, dist), (pair, orig_dists[pair]))        
+            self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_4(self):
         """tree.getSubTree() handles keep_root correctly

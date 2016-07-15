@@ -88,7 +88,7 @@ class functionTests(TestCase):
         dense1expected = array([[0.0, sqrt(17.), sqrt(.9**2 + 19**2)],
                                 [sqrt(17.), 0.0, sqrt(4.9**2 + 20**2)],
                                 [sqrt(.9**2 + 19**2), sqrt(4.9**2 + 20**2), 0.0]], 'd')
-        self.assertFloatEqual(dist_euclidean(self.dense1), dense1expected)       
+        self.assertFloatEqual(dist_euclidean(self.dense1), dense1expected)
 
     def test_dist_gower(self):
         """tests dist_gower
@@ -363,7 +363,7 @@ class functionTests(TestCase):
         """tests binary_dist_hamming
 
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
-        by hand"""        
+        by hand"""
 
         self.assertFloatEqual(binary_dist_hamming(self.zeromtx),
                               zeros((4, 4), 'd'))
@@ -376,7 +376,7 @@ class functionTests(TestCase):
         """tests binary_dist_sorensen_dice
 
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
-        by hand""" 
+        by hand"""
 
         self.assertFloatEqual(binary_dist_sorensen_dice(self.zeromtx),
                               zeros((4, 4), 'd'))
@@ -389,7 +389,7 @@ class functionTests(TestCase):
         sparse1expected = array([[0, 0, 1., 1.],
                                  [0, 0, 1, 1],
                                  [1, 1, 0, 1],
-                                 [1, 1, 1, 0]], 'd') 
+                                 [1, 1, 1, 0]], 'd')
 
         self.assertFloatEqual(binary_dist_sorensen_dice(self.sparse1),
                               sparse1expected)
@@ -522,11 +522,11 @@ class functionTests(TestCase):
             ]))
 
     # def test_no_dupes(self):
-        #""" here we check all distance functions in distance_transform for 
+        #""" here we check all distance functions in distance_transform for
         # duplicate
-        # results.  Uses an unsafe hack to get all distance functions, 
+        # results.  Uses an unsafe hack to get all distance functions,
         # thus disabled by default
-        # The dataset is from Legendre 2001, Ecologically Meaningful... 
+        # The dataset is from Legendre 2001, Ecologically Meaningful...
         # also, doesn't actually raise an error on failing, just prints to
         # stdout
         #"""

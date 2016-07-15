@@ -113,6 +113,3 @@ class Database(object):
             rows.append(['%s.%s' % (self.db_name, name), count])
 
         return cogent_table.Table(header=['name', 'count'], rows=rows)
-
-
-

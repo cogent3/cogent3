@@ -127,4 +127,3 @@ def kendalls_tau(x, y, return_p=True):
         return tau, zprob(stat / variance**0.5)
     else:
         return tau
-

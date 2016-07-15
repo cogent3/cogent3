@@ -11,7 +11,7 @@ from cogent3.parse.record import DelimitedSplitter, GenericRecord
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Daniel McDonald"] 
+__credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Daniel McDonald"
@@ -55,7 +55,7 @@ def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"
     # make sure to ignore the starting record
     ignore = make_ignore_f(RecStart)
 
-    parser = DelimitedRecordFinder(RecordDelim, constructor=line_parser, 
+    parser = DelimitedRecordFinder(RecordDelim, constructor=line_parser,
                                    keep_delimiter=False, ignore=ignore)
 
     for record in parser(lines):
@@ -88,4 +88,3 @@ def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
     for record in parser:
         if id_lookup(record['prokMSA_id'], ids):
             yield tuple([record[field] for field in fields])
-

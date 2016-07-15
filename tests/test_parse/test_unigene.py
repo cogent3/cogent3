@@ -40,7 +40,7 @@ class unigeneTests(TestCase):
         self.assertEqual(_read_seq(
             "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"),
             UniGeneSeqRecord({'ACC': 'AI842963.1', 'NID': 'g5477176',
-                                 'CLONE': 'UI-M-AO1-aem-f-10-0-UI', 'END': "3'", 
+                                 'CLONE': 'UI-M-AO1-aem-f-10-0-UI', 'END': "3'",
                                  'LID': '1944', 'SEQTYPE': 'EST',
                                  'TRACE': '158501677'}))
 
@@ -92,7 +92,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(first.STS, [{'ACC': 'RH128467', 'UNISTS': '211775'},
                                      {'ACC': 'M16465', 'UNISTS': '178878'}])
         exp_prot_sim = list(map(UniGeneProtSimRecord, [
-            {'ORG': 'Homo sapiens', 'PROTGI': '107251', 
+            {'ORG': 'Homo sapiens', 'PROTGI': '107251',
              'PROTID': 'pir:JC1139', 'PCT': '91', 'ALN': '97'},
             {'ORG': 'Mus musculus', 'PROTGI': '116487',
              'PROTID': 'sp:P08207', 'PCT': '100', 'ALN': '97'},

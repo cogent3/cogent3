@@ -34,10 +34,10 @@ class Dict2DSparseError(KeyError, Dict2DError):
 
 
 # Following methods based on methods developed by Rob Knight
-# These methods are intended to be used by the reflect function of 
-# SquareMatrix. Each method takes two values, and returns two values. The 
-# idea is to reflect a matrix you take the value from the upper triangle, 
-# and the value from the lower triangle perform the intended operation on 
+# These methods are intended to be used by the reflect function of
+# SquareMatrix. Each method takes two values, and returns two values. The
+# idea is to reflect a matrix you take the value from the upper triangle,
+# and the value from the lower triangle perform the intended operation on
 # them, and then return the new values for the upper triangle and the lower
 # triangle.
 def average(upper, lower):
@@ -262,7 +262,7 @@ class Dict2D(dict):
 
         default, if not specified, uses self.Default.
         """
-        constructor = self.RowConstructor 
+        constructor = self.RowConstructor
         if default is None:
             default = self.Default
 
@@ -479,7 +479,7 @@ class Dict2D(dict):
         else:
             new_f = f
         # get all the rows where the function is True
-        row_order = self.RowOrder or self 
+        row_order = self.RowOrder or self
         return [key for key, row in zip(row_order, self.Rows)
                 if new_f(row)]
 
@@ -587,7 +587,7 @@ class Dict2D(dict):
             new_f = lambda x: not f(x)
         else:
             new_f = f
-        result = [] 
+        result = []
         for row_label in self.RowOrder or self:
             curr_row = self[row_label]
             for col_label in self.ColOrder or curr_row:
@@ -774,7 +774,7 @@ class Dict2D(dict):
                 if c not in self:
                     self[c] = constructor()
                 curr_col = self[c]
-                # Note that rows and cols need to be transposed, the way the 
+                # Note that rows and cols need to be transposed, the way the
                 # functions are currently written. I think that changing the
                 # functions would break existing code, and they make sense
                 # as written.

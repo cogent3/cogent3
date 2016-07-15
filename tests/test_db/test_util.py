@@ -49,7 +49,7 @@ class db_util_tests(TestCase):
         list of lists"""
         expected_list = ['HM780503 HM780506 HM780660 HM780780']
         observed = make_lists_of_accessions_of_set_size(
-            ['HM780503', 'HM780506', 'HM780660', 'HM780780'], size_limit=3)        
+            ['HM780503', 'HM780506', 'HM780660', 'HM780780'], size_limit=3)
         self.assertEqual(observed, expected_list)
 
 

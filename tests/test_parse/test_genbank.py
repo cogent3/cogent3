@@ -215,7 +215,7 @@ ORIGIN
         self.assertEqual(result['type'], 'D-loop')
         self.assertEqual(result['raw_location'], ['15418..16866'])
         # can get more than one = in a line
-        # from AF260826  
+        # from AF260826
         bad_feature = \
         """     tRNA            1173..1238
                      /note="codon recognized: AUC; Cove score = 16.56"
@@ -445,4 +445,3 @@ if __name__ == '__main__':
                     print(line)
     else:
         main()
-

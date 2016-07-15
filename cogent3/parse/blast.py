@@ -210,7 +210,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
         else:
             return [x[p_ix] for x in data]
     else:
-        # will raise exception if invalid threshold passed 
+        # will raise exception if invalid threshold passed
         max_val = float(threshold)
 
         # figure out what we're keeping
@@ -246,16 +246,16 @@ def AllProteinIds9(lines, filter_identity=True, threshold=None,
 
     mpbp = output_parser(lines)
 
-    # get last record. 
+    # get last record.
     props = data = None
     out_ids = {}
     out_ct = 1
     for rec in mpbp:
         props, data = rec
-        out_ids[out_ct] = get_blast_ids(props, data, filter_identity, 
+        out_ids[out_ct] = get_blast_ids(props, data, filter_identity,
                                         threshold, keep_values)
         out_ct += 1
-    return out_ids 
+    return out_ids
 
 
 def LastProteinIds9(lines, filter_identity=True, threshold=None,
@@ -279,7 +279,7 @@ def LastProteinIds9(lines, filter_identity=True, threshold=None,
     """
 
     mpbp = output_parser(lines)
-    # get last record. 
+    # get last record.
     props = data = None
     for rec in mpbp:
         props, data = rec
@@ -357,13 +357,13 @@ class BlastResult(dict):
     E_VALUE = 'E-VALUE'
     BIT_SCORE = 'BIT SCORE'
 
-    # standard comparison for each field, e.g.  
+    # standard comparison for each field, e.g.
     # want long matches, small e-values
     _lt = lambda x, y: cmp(x, y) == -1
-    _le = lambda x, y: cmp(x, y) <= 0 
-    _gt = lambda x, y: cmp(x, y) == 1 
-    _ge = lambda x, y: cmp(x, y) >= 0 
-    _eq = lambda x, y: cmp(x, y) == 0 
+    _le = lambda x, y: cmp(x, y) <= 0
+    _gt = lambda x, y: cmp(x, y) == 1
+    _ge = lambda x, y: cmp(x, y) >= 0
+    _eq = lambda x, y: cmp(x, y) == 0
 
     FieldComparisonOperators = {
         PERCENT_IDENTITY: (_gt, float),
@@ -371,7 +371,7 @@ class BlastResult(dict):
         MISMATCHES: (_lt, int),
         E_VALUE: (_lt, float),
         BIT_SCORE: (_gt, float)
-        }   
+        }
 
     # set up valid blast keys
     HitKeys = set([ITERATION,
@@ -421,14 +421,14 @@ class BlastResult(dict):
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
 
-            if query_id not in self: 
-                self[query_id] = [] 
+            if query_id not in self:
+                self[query_id] = []
             self[query_id].append(hits)
 
     def iterHitsByQuery(self, iteration=-1):
         """Iterates over set of hits, returning list of hits for each query"""
         for query_id in self:
-            yield query_id, self[query_id][iteration] 
+            yield query_id, self[query_id][iteration]
 
     def iterHitsByTarget(self, iteration=-1):
         """Iterates over set of hits, returning list of hits for each target"""
@@ -464,9 +464,9 @@ class BlastResult(dict):
 
         # enumerate hits
         for q, hits in self.iterHitsByQuery(iteration=iteration):
-            best_hits = [] 
+            best_hits = []
             for hit in hits:
-                # check if want to skip self hit 
+                # check if want to skip self hit
                 if not return_self:
                     if hit[self.SUBJECT_ID] == q:
                         continue
@@ -474,7 +474,7 @@ class BlastResult(dict):
                 if len(best_hits) < n:
                     best_hits.append(hit)
                 else:
-                    for ix, best_hit in enumerate(best_hits):  
+                    for ix, best_hit in enumerate(best_hits):
                         new_val = cast_fun(hit[field])
                         old_val = cast_fun(best_hit[field])
                         if cmp_fun(new_val, old_val):
@@ -517,5 +517,3 @@ def FastacmdTaxonomyParser(lines):
             except (TypeError, ValueError, KeyError):
                 continue
         yield result
-
-

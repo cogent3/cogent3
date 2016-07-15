@@ -692,4 +692,3 @@ def minimize_error_rate(classifiers):
 def mutate_array(a, sd, mean=0):
     """Return mutated copy of the array (or vector), adding mean +/- sd."""
     return a + normal(mean, sd, a.shape)
-

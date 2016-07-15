@@ -347,7 +347,7 @@ class TestPair(TestCase):
 
         self.assertFloatEqual(logdet_calc.Dists[1, 1],
                               paralinear_calc.Dists[1, 1], eps=1e-3)
-        self.assertFloatEqual(paralinear_calc.Variances[1, 1], 
+        self.assertFloatEqual(paralinear_calc.Variances[1, 1],
                               logdet_calc.Variances[1, 1], eps=1e-3)
 
 if __name__ == '__main__':

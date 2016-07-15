@@ -5,7 +5,7 @@ from numpy import array, sum, sqrt, transpose, add, subtract, multiply,\
     divide, zeros
 from numpy.random import random
 
-from cogent3.util.unit_test import TestCase, main  # , numpy_err 
+from cogent3.util.unit_test import TestCase, main  # , numpy_err
 from cogent3.core.moltype import DNA
 from cogent3.core.sequence import ModelSequence
 from cogent3.core.profile import Profile, ProfileError, CharMeaningProfile
@@ -64,7 +64,7 @@ class ProfileTests(TestCase):
                     CharOrder="AG")
         self.assertEqual(p.CharOrder, "AG")
         assert p.Alphabet is DNA
-        # non-character alphabet        
+        # non-character alphabet
         p = Profile(array([[.1, .2], [.4, .3]]), Alphabet=[7, 3],
                     CharOrder=[3, 7])
         self.assertEqual(p.CharOrder, [3, 7])
@@ -223,7 +223,7 @@ class ProfileTests(TestCase):
         self.assertEqual(p.prettyPrint(include_header=True),
                          "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
         # it will truncate the CharOrder if data is transposed
-        # and CharOrder is longer then the number of rows in the 
+        # and CharOrder is longer then the number of rows in the
         # transposed data
         self.assertEqual(p.prettyPrint(include_header=True,
                                        transpose_data=True), "A\t2\t3\t4\nB\t4\t5\t8")
@@ -305,7 +305,7 @@ class ProfileTests(TestCase):
         self.assertEqual(self.empty.reduce(self.empty,
                                            normalize_input=False, normalize_output=False).Data.tolist(), [[]])
 
-        # more specific tests of the operators will be in the 
+        # more specific tests of the operators will be in the
         # separate functions
 
     def test__add_(self):
@@ -408,7 +408,7 @@ class ProfileTests(TestCase):
              [ 1.485, -1.322, -1.322, -1.322],
              [ 1.263, -0.737, -2.322, -0.322]]),
             Alphabet="ACTG")
-        self.assertFloatEqual(p.toLogOddsMatrix().Data, p_exp.Data, eps=1e-3) 
+        self.assertFloatEqual(p.toLogOddsMatrix().Data, p_exp.Data, eps=1e-3)
         # works on empty matrix
         self.assertEqual(self.empty.toLogOddsMatrix().Data.tolist(), [[]])
 
@@ -423,7 +423,7 @@ class ProfileTests(TestCase):
         # Errors will be raised on invalid input. Errors are not handled
         # in this method. Validation of the input is done elsewhere
         self.assertRaises(IndexError, self.score2._score_indices,
-                          array([3, 1, 63, 0, 4, 2, 3]), offset=3) 
+                          array([3, 1, 63, 0, 4, 2, 3]), offset=3)
 
     def test__score_profile(self):
         """_score_profile: should work on valid input"""
@@ -460,7 +460,7 @@ class ProfileTests(TestCase):
                               [1.7, 0.5])
         self.assertFloatEqual(self.score2.score("TCAAGT", offset=3),
                               [0.5])
-        # raises error on invalid offset 
+        # raises error on invalid offset
         self.assertRaises(ProfileError, self.score2.score,
                           "TCAAGT", offset=4)
         # works on seq of minimal length
@@ -470,9 +470,9 @@ class ProfileTests(TestCase):
         self.assertRaises(ProfileError, self.score2.score, "", offset=0)
         # raises error on empty profile
         self.assertRaises(ProfileError, self.empty.score, "ACGT")
-        # raises error when sequence contains characters that 
+        # raises error when sequence contains characters that
         # are not in the characterorder
-        self.assertRaises(ProfileError, self.score2.score, "ACBRT") 
+        self.assertRaises(ProfileError, self.score2.score, "ACBRT")
 
     def test_score_sequence_object(self):
         """score: should work correctly on Sequence object as input
@@ -517,7 +517,7 @@ class ProfileTests(TestCase):
                               [1.25, 0.45])
         self.assertFloatEqual(self.score2.score(p1, offset=2),
                               [0.45])
-        # raises error on invalid offset 
+        # raises error on invalid offset
         self.assertRaises(ProfileError, self.score2.score,
                           p1, offset=3)
         # works on profile of minimal length
@@ -528,7 +528,7 @@ class ProfileTests(TestCase):
         # raises error on empty profile
         self.assertRaises(ProfileError, self.empty.score, p1)
         # raises error when character order doesn't match
-        self.assertRaises(ProfileError, self.score2.score, p5) 
+        self.assertRaises(ProfileError, self.score2.score, p5)
 
     def test_rowUncertainty(self):
         """rowUncertainty: should handle full and empty profiles
@@ -567,7 +567,7 @@ class ProfileTests(TestCase):
         # always found because of floating point error. E.g. second row
         # in this example
         self.assertEqual(p1.rowDegeneracy(cutoff=1), [2, 4, 1, 4, 2])
-        # when the cutoff can't be found, the number of columns in the 
+        # when the cutoff can't be found, the number of columns in the
         # profile is returned (for each row)
         self.assertEqual(p1.rowDegeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
 
@@ -590,7 +590,7 @@ class ProfileTests(TestCase):
         # always found because of floating point error. E.g. second row
         # in this example
         self.assertEqual(p1.columnDegeneracy(cutoff=1), [2, 4, 1, 4, 2])
-        # when the cutoff can't be found, the number of rows in the 
+        # when the cutoff can't be found, the number of rows in the
         # profile is returned (for each column)
         self.assertEqual(p1.columnDegeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
 

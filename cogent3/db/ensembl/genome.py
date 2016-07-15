@@ -40,7 +40,7 @@ class FeatureTypeCache(LazyRecord):
                            analysis_description_table.c.display_label.like('%CpG%'))
         record = asserted_one(query.execute())
         self._table_rows['analysis_description'] = record
-        quoted_limited = lambda x: DisplayString(x, with_quotes=True, 
+        quoted_limited = lambda x: DisplayString(x, with_quotes=True,
                                                   num_words=2)
         self._populate_cache_from_record(
             [('CpGisland', 'analysis_id', quoted_limited)],
@@ -276,12 +276,12 @@ class Genome(object):
         # XREF table calls
         # for gene symbols, these need to be matched against the display_label
         # attribute of core.xref table
-        # for description, these need to be matched against the description 
+        # for description, these need to be matched against the description
         # field of the xref table
 
         # TODO catch conditions where user passes in both a symbol and a
         # biotype
-        args = dict(Symbol=Symbol, Description=Description, 
+        args = dict(Symbol=Symbol, Description=Description,
                     StableId=StableId, BioType=BioType, like=like)
         query = self._get_gene_query(self.CoreDb, **args)
         records = query.execute()
@@ -457,7 +457,7 @@ class Genome(object):
             new = Coordinate(self, CoordName=query_coord.CoordName,
                              Start=record['seq_region_start'],
                              End=record['seq_region_end'],
-                             Strand=record['seq_region_strand'], 
+                             Strand=record['seq_region_strand'],
                              seq_region_id=record['seq_region_id'],
                              ensembl_coord=True)
 
@@ -484,7 +484,7 @@ class Genome(object):
             dbs["var_db"] = self.VarDb
         if 'est' in feature_types:
             dbs["otherfeature_db"] = self.OtherFeaturesDb
-        feature_coord_levels = self._feature_coord_levels(self.Species, 
+        feature_coord_levels = self._feature_coord_levels(self.Species,
                                                           feature_types=feature_types, **dbs)
         return feature_coord_levels
 
@@ -653,4 +653,3 @@ class Genome(object):
 
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))
-

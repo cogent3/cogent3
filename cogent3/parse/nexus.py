@@ -172,7 +172,7 @@ def parse_taxa(taxa_field):
         term = term_match.group(0)
         data_match = re.search(r'\d+', term)
         data = data_match.group(0)
-    return data            
+    return data
 
 
 def parse_PAUP_log(branch_lengths):

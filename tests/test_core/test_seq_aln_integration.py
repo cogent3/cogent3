@@ -144,7 +144,7 @@ class AllTests(TestCase):
         obs_sub_da_TP = self.da.takePositions([0, 1, 5])
         obs_sub_da_SA = self.da.getSubAlignment(pos=[0, 1, 5])
 
-        # When using the getSubAlignment method the data is right 
+        # When using the getSubAlignment method the data is right
         self.assertEqual(obs_sub_da_SA, sub_da)
         self.assertNotEqual(obs_sub_da_SA, self.da)
         self.assertEqual(obs_sub_da_SA.ArraySeqs, sub_data)
@@ -174,12 +174,12 @@ class AllTests(TestCase):
 
     def test_takePositions_sequence_order(self):
         """Alignment takePositions should maintain seq order"""
-        # This works        
+        # This works
         self.assertEqual(self.da.Names, ['rna1', 'rna2', 'rna3'])
         sub_da = self.da.getSubAlignment(pos=[0, 1, 5])
         self.assertEqual(sub_da.Names, ['rna1', 'rna2', 'rna3'])
         # seq order not maintained in Alignment
-        self.assertEqual(self.aln.Names, ['rna1', 'rna2', 'rna3']) 
+        self.assertEqual(self.aln.Names, ['rna1', 'rna2', 'rna3'])
         sub_aln = self.aln.takePositions([0, 1, 5])
         self.assertEqual(sub_aln.Names, ['rna1', 'rna2', 'rna3'])
 
@@ -234,7 +234,7 @@ class AllTests(TestCase):
         other_da3 = DenseAlignment([self.model1, self.model2, self.model3])
         # Should this compare False even though the data is exactly the same?
         # The MolType is different...
-        self.assertEqual(self.da == other_da3, True) 
+        self.assertEqual(self.da == other_da3, True)
         assert alltrue(
             list(map(alltrue, self.da.ArraySeqs == other_da3.ArraySeqs)))
 

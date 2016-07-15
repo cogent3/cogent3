@@ -46,7 +46,7 @@ valid_databases = dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",
 
 # rettypes last updated 7/22/05
 # somehow, I don't think we'll be writing parsers for all these...
-# WARNING BY RK 4/13/09: THESE RETTYPES ARE HIGHLY MISLEADING AND NO LONGER 
+# WARNING BY RK 4/13/09: THESE RETTYPES ARE HIGHLY MISLEADING AND NO LONGER
 # WORK. See this URL for the list of "official" rettypes, which is highly
 # incomplete and has some important omissions (e.g. rettype 'gi' is missing
 # but is the "official" replacement for 'GiList'):
@@ -124,9 +124,9 @@ for key, val in list(rettypes.items()):
 
 class ESearch(UrlGetter):
     """Performs an ESearch, getting a list of ids from an arbitrary query."""
-    PrintedFields = dict.fromkeys(['db', 'usehistory', 'term', 'retmax', 
+    PrintedFields = dict.fromkeys(['db', 'usehistory', 'term', 'retmax',
                                    'retstart', 'tool', 'email'])
-    Defaults = {'db': 'nucleotide', 'usehistory': 'y', 'retmax': 1000, 
+    Defaults = {'db': 'nucleotide', 'usehistory': 'y', 'retmax': 1000,
                 'tool': default_tool_string, 'email': default_email_address}
     BaseUrl = eutils_base + '/esearch.fcgi?'
 
@@ -264,7 +264,7 @@ class EUtils(object):
             queries = make_lists_of_accessions_of_set_size(query)
             return self.grab_data(queries)
 
-        # most likey a general set of search terms 
+        # most likey a general set of search terms
         # e.g. '9606[taxid] OR 28901[taxid]' . So just return.
         return self.grab_data([query])
 
@@ -410,7 +410,7 @@ def taxon_lineage_extractor(lines):
             between_tags = line.split('>', 1)[1].rsplit('<', 1)[0]
             yield list(map(strip, between_tags.split(';')))
 
-taxon_record_finder = DelimitedRecordFinder('</Taxon>', constructor=None, 
+taxon_record_finder = DelimitedRecordFinder('</Taxon>', constructor=None,
                                             strict=False)
 
 
@@ -474,9 +474,9 @@ def parse_taxonomy_using_elementtree_xml_parse(search_result):
             # We only want to retain the upper-level taxonomy information
             # from the xml parser and ignore all the rest of the information.
             # May revisit this in the future so that we can extract
-            # 'GeneticCode', 'GCId', 'GCName', etc... <-- These values at this 
+            # 'GeneticCode', 'GCId', 'GCName', etc... <-- These values at this
             # level have whitespace, so we just ignore. Must traverse deeper to
-            # obtain this information. Again, may implement in the future if 
+            # obtain this information. Again, may implement in the future if
             # needed
             if value == '':
                 continue
@@ -517,7 +517,7 @@ def taxon_ids_to_lineages(ids, retmax=1000):
 #    """Returns names (e.g. species) from set of taxon ids.
 #
 #    WARNING: Resulting lineages aren't in the same order as input. Use
-#    taxon_ids_to_name_and_lineage if you need the names and/or lineages 
+#    taxon_ids_to_name_and_lineage if you need the names and/or lineages
 #    associated with the specific ids.
 #    """
 #    e = EUtils(db='taxonomy', rettype='brief', retmode='text', retmax=retmax,
@@ -586,5 +586,3 @@ if __name__ == '__main__':
     print('Query: ', query)
     e = EUtils(db=db, rettype=rettype, retmax=retmax, DEBUG=True)
     print(e[query].read())
-
-

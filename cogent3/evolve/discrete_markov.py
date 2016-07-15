@@ -1,7 +1,7 @@
 import numpy
 
 from cogent3.util.warning import deprecated
-from cogent3.recalculation.definition import (NonParamDefn, CalcDefn, 
+from cogent3.recalculation.definition import (NonParamDefn, CalcDefn,
                                               EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
                                               DictArrayTemplate)
 
@@ -39,7 +39,7 @@ class PsubMatrixDefn(PartitionDefn):
 
     def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size, self.size):
-            raise ValueError("Wrong array shape %s for %s, expected (%s,%s)" % 
+            raise ValueError("Wrong array shape %s for %s, expected (%s,%s)" %
                              (value.shape, self.name, self.size, self.size))
         for part in value:
             PartitionDefn.checkValueIsValid(self, part, is_constant)
@@ -66,7 +66,7 @@ class PsubMatrixDefn(PartitionDefn):
                     all_cells.extend(ratios)
                     rows.append(partition)
                 all_cells.extend(rows)
-                matrix = EvaluatedCell(self.name, lambda *x: numpy.array(x), 
+                matrix = EvaluatedCell(self.name, lambda *x: numpy.array(x),
                                        rows)
             all_cells.append(matrix)
             uniq_cells.append(matrix)
@@ -87,7 +87,7 @@ class PartialyDiscretePsubsDefn(object):
     def __init__(self, alphabet, psubs, discrete_edges):
         motifs = tuple(alphabet)
         dpsubs = PsubMatrixDefn(
-            name="dpsubs", dimension=('motif', motifs), default=None, 
+            name="dpsubs", dimension=('motif', motifs), default=None,
             dimensions=('locus', 'edge'))
         self.choices = [psubs, dpsubs]
         self.discrete_edges = discrete_edges
@@ -96,5 +96,3 @@ class PartialyDiscretePsubsDefn(object):
         assert dimension == 'edge', dimension
         special = category in self.discrete_edges
         return self.choices[special].selectFromDimension(dimension, category)
-
-

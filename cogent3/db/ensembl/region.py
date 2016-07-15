@@ -140,10 +140,10 @@ class _Region(LazyRecord):
         return data
 
     def getAnnotatedSeq(self, feature_types=None, where_feature=None):
-        regions = list(self.getFeatures(feature_types=feature_types, 
+        regions = list(self.getFeatures(feature_types=feature_types,
                                         where_feature=where_feature))
         # seq_map is on the + strand, regardless the actual strand of sequence
-        seq_map = Map(locations=[(self.Location.Start, self.Location.End)], 
+        seq_map = Map(locations=[(self.Location.Start, self.Location.End)],
                       parent_length=DEFAULT_PARENT_LENGTH)
         seq_map = seq_map.inverse()
 
@@ -163,7 +163,7 @@ class _Region(LazyRecord):
                         # again, change feature map to -1 strand sequence if
                         # needed.
                         feature_map = feature_map.nucleicReversed()
-                    self.Seq.addAnnotation(Feature, feature_type, 
+                    self.Seq.addAnnotation(Feature, feature_type,
                                            feature_name, feature_map)
 
         return self.Seq
@@ -530,14 +530,14 @@ class Transcript(_StableRegion):
             self._set_null_values(["Introns"])
             return
 
-        exon_positions = [(exon.Location.Start, exon.Location.End) 
+        exon_positions = [(exon.Location.Start, exon.Location.End)
                           for exon in self.Exons]
         exon_positions.sort()
         end = exon_positions[-1][-1]
         exon_map = Map(locations=exon_positions, parent_length=end)
         intron_map = exon_map.shadow()
 
-        intron_positions = [(span.Start, span.End) 
+        intron_positions = [(span.Start, span.End)
                             for span in intron_map.spans if span.Start != 0]
 
         chrom = self.Location.CoordName
@@ -547,7 +547,7 @@ class Transcript(_StableRegion):
         if strand == -1:
             intron_positions.reverse()
         for s, e in intron_positions:
-            coord = self.genome.makeLocation(CoordName=chrom, Start=s, End=e, 
+            coord = self.genome.makeLocation(CoordName=chrom, Start=s, End=e,
                                              Strand=strand, ensembl_coord=False)
             introns.append(Intron(self.genome, self.db, rank, self.StableId,
                                   coord))
@@ -556,7 +556,7 @@ class Transcript(_StableRegion):
         self._cached['Introns'] = tuple(introns)
 
     def _get_introns(self):
-        return self._get_cached_value('Introns', 
+        return self._get_cached_value('Introns',
                                       self._get_intron_transcript_records)
 
     Introns = property(_get_introns)
@@ -762,7 +762,7 @@ class Transcript(_StableRegion):
             out = ['\n****\nFAILED=%s' % self.StableId]
             for exon in self.TranslatedExons:
                 out += ['TranslatedExon[rank=%d]\n' % exon.Rank, exon,
-                        exon.Location, 
+                        exon.Location,
                         '%s ... %s' % (exon.Seq[:20], exon.Seq[-20:])]
                 sys.stderr.write('\n'.join(map(str, out)) + '\n')
             raise
@@ -1323,7 +1323,7 @@ class CpGisland(GenericRegion):
     Type = 'CpGisland'
 
     def __init__(self, genome, db, Location, Score):
-        super(CpGisland, self).__init__(genome=genome, db=db, 
+        super(CpGisland, self).__init__(genome=genome, db=db,
                                         Location=Location)
         self.Score = Score
 

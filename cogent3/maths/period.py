@@ -279,4 +279,3 @@ if __name__ == "__main__":
     print(x)
     print(goertzel(x, 4))
     print(goertzel(x, 8))
-

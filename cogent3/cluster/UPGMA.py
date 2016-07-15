@@ -92,7 +92,7 @@ def condense_matrix(matrix, smallest_index, large_value):
     # replace info in the row and column for first index with new_vector
     matrix[first_index] = new_vector
     matrix[:, first_index] = new_vector
-    # replace the info in the row and column for the second index with 
+    # replace the info in the row and column for the second index with
     # high numbers so that it is ignored
     matrix[second_index] = large_value
     matrix[:, second_index] = large_value

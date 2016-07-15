@@ -111,7 +111,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     if total == 0:
         return invalid
 
-    # 
+    #
     p = matrix.take(pur_coords + pyr_coords + tv_coords).sum() / total
 
     freq_purs = freqs.take(pur_indices).sum()

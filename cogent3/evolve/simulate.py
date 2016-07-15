@@ -128,5 +128,3 @@ class AlignmentEvolver(object):
             simulated_sequences.update(descendant_sequences)
 
         return simulated_sequences
-
-

@@ -72,7 +72,7 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     fh = fig.get_figheight()
     # 2 sequence display axes
     x = seq1.asAxes(fig, [posn[0], posn[1] - h1 / fh, posn[2], h1 / fh])
-    y = seq2.asAxes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]], 
+    y = seq2.asAxes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]],
                     vertical=True, labeled=False)
 
     # and 1 dotplot axes
@@ -114,7 +114,7 @@ class Display2D(Drawable):
             fwd = dotplot(str(self.seq1), str(self.seq2),
                           window, threshold, min_gap, None)
             if hasattr(self.seq1, "reversecomplement"):
-                rev = dotplot(str(self.seq1.reversecomplement()), 
+                rev = dotplot(str(self.seq1.reversecomplement()),
                               str(self.seq2), window, threshold, min_gap, None)
                 rev = [((len1 - x1, y1), (len1 - x2, y2))
                         for ((x1, y1), (x2, y2)) in rev]
@@ -152,7 +152,3 @@ class Display2D(Drawable):
         seq2 = alphabet.toIndices(self.seq2)
         ax.pcolorfast(numpy.equal.outer(seq2, seq1))
         return ax.get_figure()
-
-
-
-

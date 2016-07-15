@@ -88,8 +88,8 @@ def great_deluge(a, step_factor=500, max_iter=100, max_total_iters=1000):
         total_iters += 1
 
 
-def ga_evolve(parent, target, num, mutation_rate=0.01, score_f=_simple_score, 
-              breed_f=_simple_breed, select_f=_simple_select, 
+def ga_evolve(parent, target, num, mutation_rate=0.01, score_f=_simple_score,
+              breed_f=_simple_breed, select_f=_simple_select,
               init_f=_simple_init, random_f=normal, max_generations=1000):
     """Evolves a population based on the parent to the target
 

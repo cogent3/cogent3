@@ -39,4 +39,3 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
     nexus_out.append("    ;\nend;")
 
     return '\n'.join(nexus_out)
-

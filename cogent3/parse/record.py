@@ -86,7 +86,7 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
         def parser(line):
             to_insert = delimiter or ' '  # re-join fields w/ space if None
             fields = line.split(delimiter)
-            if (fields == []) or (fields == ['']):  
+            if (fields == []) or (fields == ['']):
                 return []  # empty string or only delimiter: return nothing
             # if not enough fields, count from the start, not the end
             if len(fields) < max_splits:
@@ -202,7 +202,7 @@ class MappedRecord(GenericRecord):
             return prototype[:]
         elif isinstance(prototype, str) or isinstance(prototype, int) or\
                 isinstance(prototype, int) or isinstance(prototype, tuple)\
-                or isinstance(prototype, complex) or prototype is None: 
+                or isinstance(prototype, complex) or prototype is None:
             return prototype  # immutable type: use directly
         else:
             return deepcopy(prototype)
@@ -538,4 +538,3 @@ class FieldMorpher(object):
                 else:
                     result[new_key] = new_val
         return result
-

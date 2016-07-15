@@ -95,7 +95,7 @@ class ProgressContext(object):
     """The interface by which cogent algorithms can report progress to the
     user interface.  Calls self.progress_bar.set(progress, message)"""
 
-    def __init__(self, progress_bar=None, prefix=None, base=0.0, segment=1.0, 
+    def __init__(self, progress_bar=None, prefix=None, base=0.0, segment=1.0,
                  parent=None, rate=1.0):
         self.progress_bar = progress_bar
         self.desc = ''
@@ -125,12 +125,12 @@ class ProgressContext(object):
         if self.depth == self.max_depth:
             return NullContext()
         return ProgressContext(
-            progress_bar=self.progress_bar, 
+            progress_bar=self.progress_bar,
             prefix=self.message,
             base=self.base + self.progress * self.segment,
             segment=self.current * self.segment,
             parent=self,
-            rate=self.rate) 
+            rate=self.rate)
 
     def display(self, msg=None, progress=None, current=0.0):
         """Inform the UI that we are are at 'progress' of the way through and 
@@ -153,7 +153,7 @@ class ProgressContext(object):
             updated = True
 
         if updated and (
-                (self.depth == 0 and self.progress in [0.0, 1.0]) or 
+                (self.depth == 0 and self.progress in [0.0, 1.0]) or
                 time.time() > self.t_last + self.rate):
             self.render()
 
@@ -171,8 +171,8 @@ class ProgressContext(object):
     # avoid the need to capture stdout:
 
     # def info(self, text):
-    #    """Display some information which may be more than fleetingly useful, 
-    #    such as a summary of intermediate statistics or a very mild warning.  
+    #    """Display some information which may be more than fleetingly useful,
+    #    such as a summary of intermediate statistics or a very mild warning.
     #    A GUI should make this information retrievable but not intrusive.
     #    For terminal UIs this is equivalent to printing"""
     #    raise NotImplementedError
@@ -245,7 +245,7 @@ class LogFileOutput(object):
     def done(self):
         pass
 
-    def set(self, progress, message):        
+    def set(self, progress, message):
         if message:
             delta = '+%s' % int(time.time() - self.t0)
             progress = int(100 * progress + 0.5)
@@ -391,7 +391,7 @@ def demo(ui):
             print('\nhalfway through, a new line: ', end=' ')
         if i % 2:
             subdemo()
-        print(i, ".", end=' ') 
+        print(i, ".", end=' ')
     print("done")
 
 if __name__ == '__main__':
@@ -401,6 +401,3 @@ if __name__ == '__main__':
 # This messes up interactive shells a bit:
 # CURRENT.start()
 # atexit.register(CURRENT.done)
-
-
-

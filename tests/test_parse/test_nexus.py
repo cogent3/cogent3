@@ -204,7 +204,7 @@ class NexusParserTests(TestCase):
 
         # check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],
-                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
         # check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
@@ -228,7 +228,7 @@ class NexusParserTests(TestCase):
 
         # check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],
-                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
         # check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
@@ -296,15 +296,15 @@ class NexusParserTests(TestCase):
         header, trans_table, dnd = split_tree_info(tree_info)
         dnd_dict = parse_dnd(dnd)
         self.assertEqual(dnd_dict['tree PAUP_1'],
-                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
-#------------------------------------------------------        
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
+#------------------------------------------------------
 
     def test_get_BL_table(self):
         """get_BL_table returns the section of the log file w/ the BL table"""
         BL_table = get_BL_table(PAUP_log)
         self.assertEqual(len(BL_table), 40)
         self.assertEqual(BL_table[0],
-                         "    40                root                  0             0             0")         
+                         "    40                root                  0             0             0")
         self.assertEqual(BL_table[39],
                          "outgroup258 (21)*       40                 45            27            67")
 

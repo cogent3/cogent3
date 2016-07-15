@@ -68,6 +68,3 @@ class ML(TreeEvaluator):
 
     def results2output(self, results):
         return LogLikelihoodScoredTreeCollection(results)
-
-
-

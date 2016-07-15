@@ -175,4 +175,3 @@ def load_delimited(filename, header=True, delimiter=',',
                     pass
                 pass
     return header, rows, title, legend
-

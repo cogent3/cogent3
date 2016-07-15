@@ -22,7 +22,7 @@ def PamlParser(f):
         while length < seqlen:
             seq_line = f.readline()
             if not seq_line:
-                raise ValueError('Sequence "%s" is short: %s < %s' % 
+                raise ValueError('Sequence "%s" is short: %s < %s' %
                                  (seqname, length, seqlen))
             seq_line = seq_line.strip()
             length += len(seq_line)

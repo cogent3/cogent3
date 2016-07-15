@@ -9,7 +9,7 @@ from cogent3 import LoadTree
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", 
+__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley",
                "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -118,7 +118,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
 
     nodes = {}
     queue = []
-    tree_build = TreeBuilder().createEdge    
+    tree_build = TreeBuilder().createEdge
     for clade in accepted_clades:
         if len(clade) == 1:
             tip_name = next(iter(clade))
@@ -140,7 +140,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             new_queue.append((len(ancestor), ancestor))
         children = [nodes.pop(c) for c in clade]
         assert len([children])
-        nodes[clade] = tree_build(children, None, 
+        nodes[clade] = tree_build(children, None,
                                   {attr: counts[clade], 'length': edgelengths[clade]})
         queue = new_queue
 
@@ -207,7 +207,7 @@ def getSplits(tree):
 
     def getTipsAndSplits(tree):
         if tree.isTip():
-            return ({frozenset([tree.Name]): {'length': tree.Length}}, 
+            return ({frozenset([tree.Name]): {'length': tree.Length}},
                     [tree.Name])
 
         splits = defaultdict(lambda: {'length': 0.})

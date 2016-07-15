@@ -54,7 +54,7 @@ class AAIndexParser(object):
         # in a dict keyed by the records unique ID string
         AAIndexRecordFinder = DelimitedRecordFinder('//', constructor=rstrip)
         # parser is a generator of AAIndexRecords from file
-        parser = AAIndexRecordFinder(infile)       
+        parser = AAIndexRecordFinder(infile)
 
         for r in parser:
             new_record = self._parse_record(r)
@@ -97,7 +97,7 @@ class AAIndexParser(object):
                     i += 1
                 break
             i += 1
-        # return the field of interest   
+        # return the field of interest
         return result
 
 
@@ -160,7 +160,7 @@ class AAIndex1Parser(AAIndexParser):
         """ Parse the data field from current record into a dict
         """
         # init for use in result
-        keys = 'ARNDCQEGHILKMFPSTWYV'  
+        keys = 'ARNDCQEGHILKMFPSTWYV'
         values = []
 
         # get rid of leading white spaces, it makes../ the reg exp act weird
@@ -215,7 +215,7 @@ class AAIndex2Parser(AAIndexParser):
             return None
 
         return AAIndex2Record(id, description, LITDB, authors,
-                              title, citations, comments, data)                       
+                              title, citations, comments, data)
 
     def _parse_data(self, raw, rows, cols):
         """ Parse the data field from current record into dict """
@@ -253,7 +253,7 @@ class AAIndex2Parser(AAIndexParser):
                         except ValueError:
                             new_row[c] = data[i]
                         i += 1
-                result[r] = new_row                      
+                result[r] = new_row
 
         return result
 
@@ -400,7 +400,7 @@ class AAIndex2Record(AAIndexRecord):
 
 
 def AAIndexLookup(records):
-    """ Build a dict of AAIndexObjects hashed by ID """    
+    """ Build a dict of AAIndexObjects hashed by ID """
     result = {}
     for r in records:
         result[r.ID] = r
@@ -417,7 +417,7 @@ def AAIndex1FromFiles(file):
 def AAIndex2FromFiles(file):
     """ Taking a file or list of data return a dict of AAIndex2Objects """
     aap = AAIndex2Parser()
-    return AAIndexLookup(aap(file))    
+    return AAIndexLookup(aap(file))
 
 Woese_data = """//
 H WOEC730101
@@ -452,5 +452,4 @@ def getWoeseDistanceMatrix():
     for m in aaindexObjects:
         distance_matrices[m] = aaindexObjects[m].toDistanceMatrix()
 
-    return distance_matrices['WOEC730101']    
-
+    return distance_matrices['WOEC730101']

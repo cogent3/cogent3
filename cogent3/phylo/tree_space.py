@@ -150,12 +150,12 @@ class TreeEvaluator(object):
             assert set(ordered_names).issubset(all_names)
         else:
             ordered_names = self.names
-        names = list(fixed_names) + [n for n in ordered_names 
+        names = list(fixed_names) + [n for n in ordered_names
                                      if n not in fixed_names_set]
         return names
 
     @UI.display_wrap
-    def trex(self, a=8, k=1000, start=None, order=None, return_all=False, 
+    def trex(self, a=8, k=1000, start=None, order=None, return_all=False,
              filename=None, interval=None, ui=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
@@ -224,7 +224,7 @@ class TreeEvaluator(object):
 
         # For each tree size, grow at each edge of each tree. Keep best k.
         for n in range(init_tree_size + 1, tree_size + 1):
-            evaluate = self.makeTreeScorer(names[:n])            
+            evaluate = self.makeTreeScorer(names[:n])
 
             def grown_tree(spec):
                 (tree_ordinal, tree, split_edge) = spec
@@ -233,8 +233,8 @@ class TreeEvaluator(object):
                 (err, lengths) = evaluate(ancestry)
                 return (err, tree_ordinal, split_edge, lengths, ancestry)
 
-            specs = [(i, tree, edge) 
-                     for (i, tree) in enumerate(trees) 
+            specs = [(i, tree, edge)
+                     for (i, tree) in enumerate(trees)
                      for edge in range(n * 2 - 5)]
 
             candidates = ui.imap(grown_tree, specs, noun=('%s leaf tree' % n),
@@ -242,7 +242,7 @@ class TreeEvaluator(object):
 
             best = ismallest(candidates, k)
 
-            trees = [(err, lengths, ancestry) for (err, parent_ordinal, 
+            trees = [(err, lengths, ancestry) for (err, parent_ordinal,
                                                    split_edge, lengths, ancestry) in best]
 
             checkpointer.record((n, names[:n], trees))
@@ -254,4 +254,3 @@ class TreeEvaluator(object):
         else:
             result = next(results)
         return result
-

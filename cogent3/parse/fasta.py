@@ -77,7 +77,7 @@ def MinimalFastaParser(infile, strict=True,
 
         yield label, seq
 
-GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank) 
+GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
@@ -182,7 +182,7 @@ def NcbiFastaLabelParser(line):
 
 
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
-    return FastaParser(infile, seq_maker=seq_maker, 
+    return FastaParser(infile, seq_maker=seq_maker,
                        info_maker=NcbiFastaLabelParser, strict=strict)
 
 
@@ -288,4 +288,3 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
                             aligned=aligned)
     seqs.Info = info
     yield seqs
-

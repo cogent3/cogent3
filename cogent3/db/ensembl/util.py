@@ -137,4 +137,3 @@ def yield_selected(sqlalchemy_select, limit=100):
         offset += limit
         if count == 0 or count < limit:
             break
-

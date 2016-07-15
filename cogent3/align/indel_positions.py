@@ -90,7 +90,7 @@ class POGBuilder(object):
         # in case of tail gap
         for (dim, child) in enumerate(self.children):
             pos = len(child)
-            self.remap[dim][pos] = len(self.aligned_positions)  
+            self.remap[dim][pos] = len(self.aligned_positions)
 
         # Keep only those child gaps which sit entirely within a gap
         # in this alignment

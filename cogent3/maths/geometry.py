@@ -111,7 +111,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     all_coords = [coords]  # the first matrix is identity
     if mode == 'fractional':  # working with fractional matrices
         coords = dot(coords, fmx.transpose())
-    # add column of 1.    
+    # add column of 1.
     coords4 = c_[coords, array([ones(len(coords))]).transpose()]
     for i in range(1, len(mxs)):  # skip identity
         rot_mx = mxs[i].transpose()
@@ -121,7 +121,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
             new_coords = dot(new_coords, omx.transpose()
                              )  # return to orthogonal
         all_coords.append(new_coords)
-    # a vstack(arrays) with a following reshape is faster then 
+    # a vstack(arrays) with a following reshape is faster then
     # the equivalent creation of a new array via array(arrays).
     return vstack(all_coords).reshape((len(all_coords), coords.shape[0], 3))
 
@@ -139,19 +139,16 @@ def coords_to_crystal(coords, fmx, omx, n=1):
         - n: number of layers of unit-cells == (2*n+1)^2 unit-cells
     """
     rng = list(range(-n, n + 1))  # a range like -2, -1, 0, 1, 2
-    fcoords = dot(coords, fmx.transpose())  # fractionalize 
+    fcoords = dot(coords, fmx.transpose())  # fractionalize
     vectors = [(x, y, z) for x in rng for y in rng for z in rng]
-    # looking for the center Thickened cube numbers: 
+    # looking for the center Thickened cube numbers:
     # a(n)=n*(n^2+(n-1)^2)+(n-1)*2*n*(n-1) ;)
     all_coords = []
     for primitive_vector in vectors:
         all_coords.append(fcoords + primitive_vector)
-    # a vstack(arrays) with a following reshape is faster then 
-    # the equivalent creation of a new array via array(arrays) 
+    # a vstack(arrays) with a following reshape is faster then
+    # the equivalent creation of a new array via array(arrays)
     all_coords = vstack(all_coords).reshape((len(all_coords),
                                              coords.shape[0], coords.shape[1], 3))
     all_coords = dot(all_coords, omx.transpose())  # orthogonalize
     return all_coords
-
-
-

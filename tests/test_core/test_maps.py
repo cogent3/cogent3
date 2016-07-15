@@ -132,4 +132,3 @@ if 0:  # old, needs fixes
 
 if __name__ == '__main__':
     unittest.main()
-

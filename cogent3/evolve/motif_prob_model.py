@@ -15,7 +15,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def makeModel(mprob_model, tuple_alphabet, mask):        
+def makeModel(mprob_model, tuple_alphabet, mask):
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
     elif mprob_model == "monomer":
@@ -28,16 +28,16 @@ def makeModel(mprob_model, tuple_alphabet, mask):
         raise ValueError("Unknown mprob model '%s'" % str(mprob_model))
 
 
-class MotifProbModel(object):    
+class MotifProbModel(object):
 
     def __init__(self, *whatever, **kw):
         raise NotImplementedError
 
-    def calcWordProbs(self, *monomer_probs):  
+    def calcWordProbs(self, *monomer_probs):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
-    def calcWordWeightMatrix(self, *monomer_probs):  
+    def calcWordWeightMatrix(self, *monomer_probs):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
@@ -55,7 +55,7 @@ class MotifProbModel(object):
         result = None
         for seq_name in alignment.getSeqNames():
             sequence = alignment.getGappedSeq(seq_name, recode_gaps)
-            leaf = makeLikelihoodTreeLeaf(sequence, self.getCountedAlphabet(), 
+            leaf = makeLikelihoodTreeLeaf(sequence, self.getCountedAlphabet(),
                                           seq_name)
             count = leaf.getMotifCounts(include_ambiguity=include_ambiguity)
             if result is None:
@@ -95,7 +95,7 @@ class SimpleMotifProbModel(MotifProbModel):
 
     def makeMotifWordProbDefns(self):
         monomer_probs = self.makeMotifProbsDefn()
-        return (monomer_probs, monomer_probs, monomer_probs)       
+        return (monomer_probs, monomer_probs, monomer_probs)
 
 
 class ComplexMotifProbModel(MotifProbModel):
@@ -136,7 +136,7 @@ class ComplexMotifProbModel(MotifProbModel):
             context = new_word[:diff] + new_word[diff + 1:]
             self.mutant_motif[i, j] = monomers.index(mutant_motif)
             c = contexts.index(context)
-            self.context_indices[i, j] = c * length + diff 
+            self.context_indices[i, j] = c * length + diff
 
     def _mutations(self):
         diff_pos = lambda x, y: [i for i in range(len(x)) if x[i] != y[i]]
@@ -166,14 +166,14 @@ class MonomerProbModel(ComplexMotifProbModel):
         monomer_probs /= monomer_probs.sum()
         return monomer_probs
 
-    def calcWordProbs(self, monomer_probs):  
+    def calcWordProbs(self, monomer_probs):
         result = numpy.product(monomer_probs.take(self.m2w), axis=-1)
         # maybe simpler but slower, works ok:
         # result = numpy.product(monomer_probs ** (w2m, axis=-1))
         result /= result.sum()
         return result
 
-    def calcWordWeightMatrix(self, monomer_probs):  
+    def calcWordWeightMatrix(self, monomer_probs):
         result = monomer_probs.take(self.mutant_motif) * self.mask
         return result
 
@@ -211,19 +211,19 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         assert len(monomer_probs) == self.m2w.shape[1], (
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
         result = numpy.product(
-            [monomer_probs[i].take(self.m2w[:, i]) 
+            [monomer_probs[i].take(self.m2w[:, i])
              for i in positions], axis=0)
         result /= result.sum()
         return result
 
-    def calcWordWeightMatrix(self, monomer_probs):  
+    def calcWordWeightMatrix(self, monomer_probs):
         positions = list(range(self.word_length))
         monomer_probs = numpy.array(monomer_probs)  # so [posn, motif]
         size = monomer_probs.shape[-1]
         # should be constant
         extended_indices = self.mutated_posn * size + self.mutant_motif
         # print size, self.word_length
-        # for a in [extended_indices, self.mutated_posn, self.mutant_motif, 
+        # for a in [extended_indices, self.mutated_posn, self.mutant_motif,
         #        monomer_probs]:
         #    print a.shape, a.max()
 
@@ -232,7 +232,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def makeMotifWordProbDefns(self):
         monomer_probs = substitution_calculation.PartitionDefn(
-            name="psmprobs", default=None, 
+            name="psmprobs", default=None,
             dimensions=('locus', 'position', 'edge'),
             dimension=('motif', tuple(self.getInputAlphabet())))
         monomer_probs3 = monomer_probs.acrossDimension('position', [
@@ -270,7 +270,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def getCountedAlphabet(self):
         return self.tuple_alphabet
 
-    def calcWordWeightMatrix(self, motif_probs): 
+    def calcWordWeightMatrix(self, motif_probs):
         context_probs = numpy.dot(motif_probs, self.w2c)
         context_probs[context_probs == 0.0] = numpy.inf
         result = motif_probs / context_probs.take(self.context_indices)
@@ -281,4 +281,3 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
         mprobs_matrix = substitution_calculation.CalcDefn(
             self.calcWordWeightMatrix, name="mprobs_matrix")(mprobs)
         return (mprobs, mprobs, mprobs_matrix)
-

@@ -131,5 +131,3 @@ def pca_cov_qs(flat_qs):
 def svd_qs(flat_qs):
     """Returns singular vals from flat_qs directly (returns v, ignores u,w)."""
     return svd(flat_qs)[1]
-
-

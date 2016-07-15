@@ -102,10 +102,10 @@ class MinimalRdbParserTests(GenericRdbTest):
     def test_only_labels(self):
         """MinimalRdbParser should return empty list from file w/o seqs"""
         # should fail if strict (the default)
-        self.assertRaises(RecordError, list, 
+        self.assertRaises(RecordError, list,
                           MinimalRdbParser(self.labels, strict=True))
         # if not strict, should skip the records
-        self.assertEqual(list(MinimalRdbParser(self.labels, strict=False)), 
+        self.assertEqual(list(MinimalRdbParser(self.labels, strict=False)),
                          [])
 
     def test_only_sequences(self):
@@ -114,7 +114,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         self.assertRaises(RecordError, list,
                           MinimalRdbParser(self.nolabels, strict=True))
         # if not strict, should skip the records
-        self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)), 
+        self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)),
                          [])
 
     def test_single(self):
@@ -168,7 +168,7 @@ class RdbParserTests(GenericRdbTest):
     def test_only_labels(self):
         """RdbParser should return empty list from file w/o seqs"""
         # should fail if strict (the default)
-        self.assertRaises(RecordError, list, 
+        self.assertRaises(RecordError, list,
                           RdbParser(self.labels, strict=True))
         # if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.labels, strict=False)), [])
@@ -179,7 +179,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertRaises(RecordError, list,
                           RdbParser(self.nolabels, strict=True))
         # if not strict, should skip the records
-        self.assertEqual(list(RdbParser(self.nolabels, strict=False)), 
+        self.assertEqual(list(RdbParser(self.nolabels, strict=False)),
                          [])
 
     def test_single(self):
@@ -215,7 +215,7 @@ class RdbParserTests(GenericRdbTest):
                 all = line.strip().split(':', 1)
                 # strip out empty lines, lines without name, lines without
                 # colon
-                if not all[0] or len(all) != 2: 
+                if not all[0] or len(all) != 2:
                     continue
                 name = all[0].upper()
                 value = all[1].strip().upper()

@@ -38,10 +38,10 @@ import inspect
 from cogent3.core import moltype
 from cogent3.evolve import parameter_controller, predicate, motif_prob_model
 from cogent3.evolve.substitution_calculation import (
-    SubstitutionParameterDefn as ParamDefn, 
+    SubstitutionParameterDefn as ParamDefn,
     RateDefn, LengthDefn, ProductDefn, CallDefn, CalcDefn,
-    PartitionDefn, NonParamDefn, AlignmentAdaptDefn, ExpDefn, 
-    ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension, 
+    PartitionDefn, NonParamDefn, AlignmentAdaptDefn, ExpDefn,
+    ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension,
     WeightedPartitionDefn)
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
@@ -98,13 +98,13 @@ def _isSymmetrical(matrix):
     return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
 
 
-def extend_docstring_from(cls, pre=False): 
+def extend_docstring_from(cls, pre=False):
     def docstring_inheriting_decorator(fn):
         parts = [getattr(cls, fn.__name__).__doc__, fn.__doc__ or '']
         if pre:
             parts.reverse()
-        fn.__doc__ = ''.join(parts) 
-        return fn 
+        fn.__doc__ = ''.join(parts)
+        return fn
     return docstring_inheriting_decorator
 
 
@@ -112,10 +112,10 @@ class _SubstitutionModel(object):
     # Subclasses must provide
     #  .makeParamControllerDefns()
 
-    def __init__(self, alphabet, 
+    def __init__(self, alphabet,
                  motif_probs=None, optimise_motif_probs=False,
                  equal_motif_probs=False, motif_probs_from_data=None,
-                 motif_probs_alignment=None, mprob_model=None,  
+                 motif_probs_alignment=None, mprob_model=None,
                  model_gaps=False, recode_gaps=False, motif_length=1,
                  name="", motifs=None):
         # subclasses can extend this incomplete docstring
@@ -152,7 +152,7 @@ class _SubstitutionModel(object):
         self.name = name
         self._optimise_motif_probs = optimise_motif_probs
 
-        # ALPHABET        
+        # ALPHABET
         if recode_gaps:
             if model_gaps:
                 warnings.warn("Converting gaps to wildcards AND modeling gaps")
@@ -186,10 +186,10 @@ class _SubstitutionModel(object):
         isinst = self._isInstantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
-        self.mprob_model = motif_prob_model.makeModel(mprob_model, alphabet, 
+        self.mprob_model = motif_prob_model.makeModel(mprob_model, alphabet,
                                                       self._instantaneous_mask_f)
 
-        # MOTIF PROBS        
+        # MOTIF PROBS
         if equal_motif_probs:
             assert not (motif_probs or motif_probs_alignment), \
                 "Motif probs equal or provided but not both"
@@ -304,7 +304,7 @@ class _SubstitutionModel(object):
         return makeLikelihoodTreeLeaf(sequence, self.getAlphabet(), name)
 
     def countMotifs(self, alignment, include_ambiguity=False):
-        return self.mprob_model.countMotifs(alignment, 
+        return self.mprob_model.countMotifs(alignment,
                                             include_ambiguity, self.recode_gaps)
 
     def makeAlignmentDefn(self, model):
@@ -370,16 +370,16 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         assert word_probs is mprobs_matrix, "Must use simple mprob model"
         motifs = tuple(self.getAlphabet())
         return PsubMatrixDefn(
-            name="psubs", dimension=('motif', motifs), default=None, 
+            name="psubs", dimension=('motif', motifs), default=None,
             dimensions=('locus', 'edge'))
 
 
 class _ContinuousSubstitutionModel(_SubstitutionModel):
     # subclass must provide:
     #
-    # - parameter_order: a list of parameter names corresponding to the 
+    # - parameter_order: a list of parameter names corresponding to the
     #   arguments of:
-    # 
+    #
     # - calcExchangeabilityMatrix(*params)
     #   convert len(self.parameter_order) params to a matrix
 
@@ -397,7 +397,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     _default_expm_setting = 'either'
 
     @extend_docstring_from(_SubstitutionModel)
-    def __init__(self, alphabet, with_rate=False, ordered_param=None, 
+    def __init__(self, alphabet, with_rate=False, ordered_param=None,
                  distribution=None, partitioned_params=None, do_scaling=None, **kw):
         """
          - with_rate: Add a 'rate' parameter which varies by bin. 
@@ -429,7 +429,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                     ordered_param = 'rate'
                 else:
                     raise ValueError(
-                        'distribution provided without ordered_param')      
+                        'distribution provided without ordered_param')
         elif not isinstance(ordered_param, str):
             warnings.warn('ordered_param should be a string or None')
             assert len(ordered_param) == 1, 'More than one ordered_param'
@@ -458,7 +458,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
         if 'rate' in partitioned_params:
             with_rate = True
-        self.with_rate = with_rate  
+        self.with_rate = with_rate
 
         # CACHED SHORTCUTS
         self._exponentiator = None
@@ -975,4 +975,3 @@ class Codon(_Nucleotide):
             'replacement': predicate.UserPredicate(replacement),
         })
         return preds
-

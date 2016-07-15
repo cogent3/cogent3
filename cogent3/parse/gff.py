@@ -56,4 +56,3 @@ def parse_attributes(attribute_string):
     if '"' in attribute_string:
         attribute_string = attribute_string[:attribute_string.find('"')]
     return attribute_string
-

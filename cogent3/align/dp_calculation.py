@@ -185,4 +185,3 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     defn = FwdDefn(top)
     #defn = SumDefn(*scores)
     return AnnotateFloatDefn(defn, top)
-

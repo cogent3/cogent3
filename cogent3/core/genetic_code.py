@@ -100,7 +100,7 @@ class GeneticCode(object):
         for c in stop_codons:
             del sense_codons[c]
         self.SenseCodons = sense_codons
-        # create anticodons    
+        # create anticodons
         ac = {}
         for aa, codons in list(self.Synonyms.items()):
             ac[aa] = list(map(_simple_rc, codons))

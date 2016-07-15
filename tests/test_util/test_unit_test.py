@@ -116,7 +116,7 @@ class TestCaseTests(TestCase):
         (array([]), zeros(0)),
         (zeros(3), zeros(3)),
         (array([0, 0, 0]), zeros(3)),
-        (array([]), []), 
+        (array([]), []),
         ]
 
     small = 1e-7
@@ -188,7 +188,7 @@ class TestCaseTests(TestCase):
             self.assertNotEqual(None, None)
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, 
+            self.assertEqual(message,
                              'Observed None and expected None: shouldn\'t test equal')
         else:
             raise AssertionError("unit_test.assertNotEqual failed on input %s and %s"
@@ -392,7 +392,7 @@ class TestCaseTests(TestCase):
         try:
             self.assertFloatEqual(originals, modified)
         except:
-            pass            
+            pass
         else:
             raise AssertionError(
                 "unit_test.assertFloatEqual failed on lists of dissimilar values")
@@ -448,7 +448,7 @@ class TestCaseTests(TestCase):
             self.assertEqualItems('abc', 'abcd')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, 
+            self.assertEqual(message,
                              'Observed and expected are different lengths: 3 and 4')
         else:
             raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
@@ -458,7 +458,7 @@ class TestCaseTests(TestCase):
             self.assertEqualItems('cab', 'acc')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, 
+            self.assertEqual(message,
                              'Observed b and expected c at sorted index 1')
         else:
             raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
@@ -531,7 +531,7 @@ class TestCaseTests(TestCase):
             self.assertNotEqualItems('abc', 'abc')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, 
+            self.assertEqual(message,
                              "Observed 'abc' has same items as 'abc'")
         else:
             raise AssertionError("unit_test.assertNotEqualItems failed on input %s and %s"
@@ -1211,4 +1211,3 @@ class TestCaseTests(TestCase):
 
 if __name__ == '__main__':
     main()
-

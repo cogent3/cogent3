@@ -102,7 +102,7 @@ class MinimalClustalParserTests(TestCase):
         self.assertEqual(labels, ['abc', 'def', 'xyz'])
         self.assertEqual(data, {
             'abc':
-            ['GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA', 
+            ['GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA',
                 'GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC',
                 'UGACUAGUCAGCUAGCAUCGAUCAGU'
                 ],

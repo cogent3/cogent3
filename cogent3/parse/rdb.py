@@ -51,7 +51,7 @@ def InfoMaker(header_lines):
     for line in header_lines:
         all = line.strip().split(':', 1)
         # strip out empty lines, lines without name, lines without colon
-        if not all[0] or len(all) != 2: 
+        if not all[0] or len(all) != 2:
             continue
         try:
             name = _field_names[all[0]]

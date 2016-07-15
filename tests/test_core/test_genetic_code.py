@@ -341,5 +341,3 @@ class GeneticCodeTests(TestCase):
 # Run tests if called from command line
 if __name__ == '__main__':
     main()
-
-

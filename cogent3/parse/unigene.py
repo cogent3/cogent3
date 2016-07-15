@@ -124,4 +124,3 @@ if __name__ == '__main__':
         stdout.flush()
         count += 1
     print("read %s records" % count)
-

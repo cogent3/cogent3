@@ -184,7 +184,7 @@ class LocusLink(MappedRecord):
                'ACCNUM': 'AccessionNumbers', 'TYPE': 'AccessionTypes', 'PROT': 'ProteinIds',
                'OFFICIAL_SYMBOL': 'OfficialSymbol', 'PREFERRED_SYMBOL': 'PreferredSymbol',
                'OFFICIAL_GENE_NAME': 'OfficialGeneName',
-               'PREFERRED_GENE_NAME': 'PreferredGeneName', 
+               'PREFERRED_GENE_NAME': 'PreferredGeneName',
                'PREFERRED_PRODUCT': 'PreferredProducts',
                'ALIAS_SYMBOL': 'SymbolAliases', 'ALIAS_PROT': 'ProteinAliases',
                'PHENOTYPE': 'Phenotypes', 'PHENOTYPE_ID': 'PhenotypeIds',

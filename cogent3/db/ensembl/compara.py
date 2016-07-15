@@ -85,7 +85,7 @@ class Compara(object):
         # TODO this should make the dict values the actual Genome instances
         id_genome = []
         for r in condition.execute():
-            id_genome += [(r['taxon_id'], 
+            id_genome += [(r['taxon_id'],
                            self._genomes[r['name'].replace('_', ' ').capitalize()])]
         self._species_id_map = dict(id_genome)
         assert len(self._species_id_map) == len(self.Species)
@@ -430,4 +430,3 @@ class Compara(object):
                 "ERROR: Unknown property type: %s" % property_type)
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))
-

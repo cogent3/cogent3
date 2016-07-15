@@ -149,7 +149,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     - limit: exits after this many lines. Only applied for non pickled data
       file types.
     """
-    # 
+    #
     if filename is not None and not (reader or static_column_types):
         if filename[filename.rfind(".") + 1:] == 'pickle':
             f = open(filename, mode='rb')
@@ -224,4 +224,3 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
     else:
         raise TreeError('filename or treestring not specified')
     return tree
-

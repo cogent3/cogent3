@@ -88,4 +88,3 @@ class Legend(Drawable):
 
 if __name__ == '__main__':
     Legend().showFigure()
-

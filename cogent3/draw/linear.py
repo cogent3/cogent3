@@ -8,9 +8,9 @@ import matplotlib.transforms
 from matplotlib.text import Text
 from matplotlib.patches import PathPatch
 from matplotlib.font_manager import FontProperties
-from matplotlib.collections import (CircleCollection, PolyCollection, 
+from matplotlib.collections import (CircleCollection, PolyCollection,
                                     LineCollection, RegularPolyCollection)
-from matplotlib.transforms import (IdentityTransform, 
+from matplotlib.transforms import (IdentityTransform,
                                    blended_transform_factory, Affine2DBase)
 import numpy
 
@@ -103,7 +103,7 @@ class TransformScalePart(Affine2DBase):
 
 class _Colors(object):
     """colors.white = to_rgb("white"), same as just using "white"
-    except that this lookup also checks the color is valid"""   
+    except that this lookup also checks the color is valid"""
 
     def __getattr__(self, attr):
         return matplotlib.colors.colorConverter.to_rgb(attr)
@@ -145,7 +145,7 @@ class Track(object):
         self.level = level
         self.needs_border = needs_border
 
-    def getShapes(self, span, rotated, height, 
+    def getShapes(self, span, rotated, height,
                   yrange=None, done_border=False):
         shape_list = [feature.shape(height,
                                     yrange or self.range, rotated) for feature in self.features]
@@ -181,7 +181,7 @@ class CompositeTrack(Track):
         self.level = max([track.level for track in tracks])
         self.range = max([track.range for track in tracks])
 
-    def getShapes(self, span, rotated, height, 
+    def getShapes(self, span, rotated, height,
                   yrange=None, done_border=False):
         if yrange is None:
             yrange = self.range
@@ -233,13 +233,13 @@ class _SeqRepresentation(object):
     y_offset = 10
     x_offset = 0
 
-    def __init__(self, map, sequence, cvalues=None, colour_sequences=True, 
+    def __init__(self, map, sequence, cvalues=None, colour_sequences=True,
                  font_properties=None):
         self.font_properties = font_properties
 
         alphabet = self.alphabet = sequence.MolType.Alphabets.Degen
 
-        alphabet_colours = None 
+        alphabet_colours = None
         if cvalues:
             assert len(cvalues) == len(sequence)
             cvalues = numpy.asarray(cvalues)
@@ -307,7 +307,7 @@ class _SingleShapeSeqRepresentation(_SeqRepresentation):
         elif alphabet_colours is not None:
             cvs = alphabet_colours.take(sequence, axis=0)
         else:
-            cvs = [colors.black] 
+            cvs = [colors.black]
         self.cvalues = cvs
         self.offsets = offsets
 
@@ -353,7 +353,7 @@ class SeqShapes(_MultiShapeSeqRepresentation):
         for (motif, cvalues, offsets) in self.per_shape_values:
             shape = shapes[motif]
             a = PolyCollection([shape], closed=True,
-                               facecolors=cvalues, edgecolors=cvalues, offsets=offsets, 
+                               facecolors=cvalues, edgecolors=cvalues, offsets=offsets,
                                transOffset=g.combined_transform)
             g.add(a)
             a.set_transform(trans)
@@ -392,7 +392,7 @@ class SeqLineSegments(_SingleShapeSeqRepresentation):
         segment = [(.1, 0), (.9, 0)]
         if rotated:
             segment = [(y, x) for (x, y) in segment]
-        a = LineCollection([segment], colors=self.cvalues, 
+        a = LineCollection([segment], colors=self.cvalues,
                            offsets=self.offsets, transOffset=g.combined_transform)
         a.set_linewidth(3)
         g.add(a)
@@ -432,7 +432,7 @@ class Feature(Annotation):
         #self.values = self._make_values(*args, **kw)
 
     def shape(self, height, yrange, rotated):
-        return self.style(height, self.label, self.map, self.value, yrange, 
+        return self.style(height, self.label, self.map, self.value, yrange,
                           rotated)
 
 
@@ -483,7 +483,7 @@ class _FeatureStyle(object):
                 (tidy_start, tidy_end) = (span.tidy_start, span.tidy_end)
             shape = self._item_shape(
                 start, end,
-                tidy_start, tidy_end, height, value, yrange, rotated, 
+                tidy_start, tidy_end, height, value, yrange, rotated,
                 last=i == len(map.spans) - 1)
             g.add(shape)
             last = end
@@ -495,7 +495,7 @@ class _FeatureStyle(object):
             if (text_width < abs(first - last)):
                 label_shape = Text(
                     (first + last) / 2, height / 2, label,
-                    ha="center", va="center", 
+                    ha="center", va="center",
                     rotation=[0, 90][rotated],
                     # font_properties=self.label_font,
                 )
@@ -525,7 +525,7 @@ class Box(_VariableThicknessFeatureStyle):
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
                            thickness, rotated, last):
         (top, bottom) = (middle + thickness / 2, middle - thickness / 2)
-        kw = dict(min_width=self.min_width, pointy=False, closed=self.closed, 
+        kw = dict(min_width=self.min_width, pointy=False, closed=self.closed,
                   blunt=self.blunt, proportion_of_track=self.proportion_of_track)
         kw['rounded'] = tidy_start
         #kw['closed'] = self.closed or tidy_start
@@ -535,7 +535,7 @@ class Box(_VariableThicknessFeatureStyle):
         kw['pointy'] = last and self.arrow
         end2 = rlg2mpl.End(end, start, top, bottom, **kw)
         path = end1 + end2
-        return PathPatch(path, **rlg2mpl.line_options(**self.opts))   
+        return PathPatch(path, **rlg2mpl.line_options(**self.opts))
 
 
 class Arrow(Box):
@@ -556,7 +556,7 @@ class Diamond(_VariableThicknessFeatureStyle):
         x = (start + end) / 2
         spread = max(abs(start - end), self.min_width) / 2
         return rlg2mpl.Polygon(
-            [(x - spread, middle), (x, middle + thickness / 2), (x + spread, middle), 
+            [(x - spread, middle), (x, middle + thickness / 2), (x + spread, middle),
              (x, middle - thickness / 2)], **self.opts)
 
 
@@ -815,7 +815,7 @@ class DisplayPolicy(object):
 
         self._setattrs(**kw)
 
-    def _setattrs(self, **kw):                 
+    def _setattrs(self, **kw):
         for (n, v) in list(kw.items()):
             if not hasattr(self, n):
                 warnings.warn('surprising kwarg "%s"' % n, stacklevel=3)
@@ -904,7 +904,7 @@ class DisplayPolicy(object):
                 seqrepr_class = SeqText
             elif draw_bases:
                 seqrepr_class = SeqShapes
-            elif self.rowlen <= 1000 and (self.colour_sequences 
+            elif self.rowlen <= 1000 and (self.colour_sequences
                                           or cvalues is not None):
                 seqrepr_class = SeqLineSegments
             elif self.show_gaps:
@@ -912,10 +912,10 @@ class DisplayPolicy(object):
             else:
                 seqrepr_class = None
             if seqrepr_class is not None:
-                colour_sequences = self.colour_sequences 
+                colour_sequences = self.colour_sequences
                 if colour_sequences is None:
                     colour_sequences = seqrepr_class != SeqText
-                feature = seqrepr_class(self.map, sequence, 
+                feature = seqrepr_class(self.map, sequence,
                                         colour_sequences=colour_sequences,
                                         font_properties=self.seq_font,
                                         cvalues=cvalues)
@@ -1005,7 +1005,7 @@ class Display(rlg2mpl.Drawable):
         if _policy is None:
             policy = policy(**kw).copy(
                 map=Map([(0, len(base))], parent_length=len(base)),
-                depth=0, 
+                depth=0,
                 rowlen=len(base))
         else:
             policy = _policy
@@ -1053,7 +1053,7 @@ class Display(rlg2mpl.Drawable):
             for s in p.getShapes(
                     span=(smap.Start, smap.End),
                     rotated=vertical,
-                    height=float(p.height), 
+                    height=float(p.height),
                     yrange=self.yrange[p.tag]):
                 trans = matplotlib.transforms.Affine2D()
                 trans.translate(0, y)
@@ -1074,7 +1074,7 @@ class Display(rlg2mpl.Drawable):
     def applyScaleToAxes(self, ax, labeled=True, vertical=False):
         (seqaxis, trackaxis) = [ax.xaxis, ax.yaxis]
         if vertical:
-            (seqaxis, trackaxis) = (trackaxis, seqaxis) 
+            (seqaxis, trackaxis) = (trackaxis, seqaxis)
 
         if not labeled:
             trackaxis.set_ticks([])
@@ -1104,7 +1104,7 @@ class Display(rlg2mpl.Drawable):
             ax.set_xlim(*seq_lim)
             ax.set_ylim(0, self.height or 0.1)
 
-    def figureLayout(self, labeled=True, vertical=False, width=None, 
+    def figureLayout(self, labeled=True, vertical=False, width=None,
                      height=None, left=None, **kw):
 
         if left is None:
@@ -1118,8 +1118,8 @@ class Display(rlg2mpl.Drawable):
 
         useful_width = len(self) * 16 / 72  # ie bigish font, wide chars
 
-        fkw = dict(leftovers=True, width=width, height=height, left=left, 
-                   useful_width=useful_width, **kw)  
+        fkw = dict(leftovers=True, width=width, height=height, left=left,
+                   useful_width=useful_width, **kw)
         (w, h), posn, kw = rlg2mpl.figureLayout(**fkw)
 
         #points_per_base = w * posn[3] / len(self)
@@ -1148,6 +1148,3 @@ class Display(rlg2mpl.Drawable):
                         len(row) / rowlen, h / vzoom]
             row.asAxes(fig, posn, **kw)
         return fig
-
-
-

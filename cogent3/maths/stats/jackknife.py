@@ -176,5 +176,3 @@ class JackknifeStats(object):
                           self._jackknifed_stat, self._standard_error))
         rows = rows.transpose()
         return LoadTable(header=header, rows=rows, title=title)
-
-

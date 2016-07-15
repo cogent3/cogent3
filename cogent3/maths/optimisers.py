@@ -156,7 +156,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     f = bounds_exception_catching_function(f)
 
     try:
-        # Global optimisation 
+        # Global optimisation
         if do_global:
             if 0 and not do_local:
                 warnings.warn(
@@ -172,7 +172,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
                 ui.display, 'Global', 0.0, gend)
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)
-            x = opt.maximise(f, x, tolerance=gtol, 
+            x = opt.maximise(f, x, tolerance=gtol,
                              show_remaining=callback, **kw)
         else:
             gend = 0.0
@@ -185,14 +185,14 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
                 ui.display, 'Local', gend, 1.0)
             #ui.display('local opt', 1.0-per_opt, per_opt)
             opt = LocalOptimiser()
-            x = opt.maximise(f, x, tolerance=tolerance, 
+            x = opt.maximise(f, x, tolerance=tolerance,
                              max_restarts=max_restarts, show_remaining=callback)
     finally:
         # ensure state of calculator reflects optimised result, or
         # partialy optimised result if exiting on an exception.
         (f, x, evals) = get_best()
 
-    # ... and returning this info the obvious way keeps this function 
+    # ... and returning this info the obvious way keeps this function
     # potentially applicable optimising non-caching pure functions too.
     if not multidimensional_input:
         x = numpy.squeeze(x)
@@ -201,4 +201,3 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         return x, evals
 
     return x
-

@@ -432,7 +432,7 @@ class SelectFromDimension(_Defn):
     def makeCells(self, input_soup, variable=None):
         arg = input_soup[id(self.arg)]
         outputs = [arg[input_num] for (input_num,) in self.uniq]
-        return ([], outputs)     
+        return ([], outputs)
 
 
 class _NonLeafDefn(_Defn):
@@ -524,7 +524,7 @@ class _LeafDefn(_Defn):
                 independent=independent, **(scope_spec or {})):
             if value is None:
                 s_value = self.getMeanCurrentValue(scope)
-            else:       
+            else:
                 s_value = self.unwrapValue(value)
 
             if const:
@@ -546,11 +546,11 @@ class _LeafDefn(_Defn):
                     raise ValueError("Bounds: upper < lower")
                 elif (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
-                    warnings.warn("Value of %s increased to keep within bounds" 
+                    warnings.warn("Value of %s increased to keep within bounds"
                                   % self.name, stacklevel=3)
                 elif (s_upper is not None) and s_value > s_upper:
                     s_value = s_upper
-                    warnings.warn("Value of %s decreased to keep within bounds" 
+                    warnings.warn("Value of %s decreased to keep within bounds"
                                   % self.name, stacklevel=3)
                 setting = Var((s_lower, s_value, s_upper))
             self.checkSettingIsValid(setting)
@@ -569,7 +569,7 @@ class _LeafDefn(_Defn):
             s_value = sum(values) / len(values)
             for value in values:
                 if not numpy.all(value == s_value):
-                    warnings.warn("Used mean of %s %s values" % 
+                    warnings.warn("Used mean of %s %s values" %
                                   (len(values), self.name), stacklevel=4)
                     break
         return s_value
@@ -809,9 +809,9 @@ class ParameterController(object):
     def getNumFreeParams(self):
         return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
 
-    def optimise(self, local=None, 
+    def optimise(self, local=None,
                  filename=None, interval=None,
-                 limit_action='warn', max_evaluations=None, 
+                 limit_action='warn', max_evaluations=None,
                  tolerance=1e-6, global_tolerance=1e-1, **kw):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run
@@ -820,7 +820,7 @@ class ParameterController(object):
         the optimiser(s)."""
         return_calculator = kw.pop(
             'return_calculator', False)  # only for debug
-        for n in ['local', 'filename', 'interval', 'max_evaluations', 
+        for n in ['local', 'filename', 'interval', 'max_evaluations',
                   'tolerance', 'global_tolerance']:
             kw[n] = locals()[n]
         lc = self.makeCalculator()
@@ -834,7 +834,7 @@ class ParameterController(object):
             elif limit_action == 'warn':
                 warnings.warn(err_msg, stacklevel=2)
             else:
-                raise ArithmeticError(err_msg)    
+                raise ArithmeticError(err_msg)
         finally:
             self.updateFromCalculator(lc)
         if return_calculator:
@@ -843,6 +843,3 @@ class ParameterController(object):
     def graphviz(self, **kw):
         lc = self.makeCalculator()
         return lc.graphviz(**kw)
-
-
-

@@ -72,5 +72,3 @@ new_lf.optimise(tolerance=1.0)
 new_lf.optimise(local=True)
 new_lf.setName('Estimated Kappa model')
 print(new_lf)
-
-

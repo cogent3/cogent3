@@ -166,7 +166,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
             data[k] = v / max_val * sf
 
     def draw_arrow(pair, alpha=alpha, ec=ec, labelcolor=labelcolor):
-        # set the length of the arrow 
+        # set the length of the arrow
         if display == 'length':
             length = max_head_length + (max_arrow_length - max_head_length) *\
                 data[pair] / sf

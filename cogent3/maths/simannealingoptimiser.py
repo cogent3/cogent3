@@ -161,7 +161,7 @@ class AnnealingRun(object):
             est_anneal_remaining += -1
 
             for i in range(self.schedule.dwell):
-                show_remaining(remaining + 1 - i / self.schedule.dwell, 
+                show_remaining(remaining + 1 - i / self.schedule.dwell,
                                state.FOPT, schedule.T, state.NFCNEV)
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
@@ -199,8 +199,8 @@ class SimulatedAnnealing(object):
         self.checkpointer = checkpointing.Checkpointer(filename, interval)
         self.restore = restore
 
-    def maximise(self, function, xopt, show_remaining, 
-                 random_series=None, seed=None, 
+    def maximise(self, function, xopt, show_remaining,
+                 random_series=None, seed=None,
                  tolerance=None, temp_reduction=0.5, init_temp=5.0,
                  temp_iterations=5, step_cycles=20):
         """Optimise function(xopt).
@@ -246,4 +246,3 @@ class SimulatedAnnealing(object):
             show_remaining=show_remaining)
 
         return result.XOPT
-

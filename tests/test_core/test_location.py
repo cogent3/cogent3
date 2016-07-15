@@ -308,7 +308,7 @@ class RangeTests(TestCase):
     def test_str(self):
         """Range str should print nested with parens"""
         self.assertEqual(str(self.one), '((0,100,False))')
-        self.assertEqual(str(self.twothree), 
+        self.assertEqual(str(self.twothree),
                          '((3,5,False),(8,11,False),(6,7,False),(15,17,False),(30,35,False))')
         self.assertEqual(str(self.single), '((0,1,False))')
 
@@ -508,5 +508,3 @@ class MapTests(TestCase):
 # run the following if invoked from command-line
 if __name__ == "__main__":
     main()
-
-

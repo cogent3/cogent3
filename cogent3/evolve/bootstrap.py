@@ -78,8 +78,8 @@ class ParametricBootstrapCore(object):
                 pc.setAlignment(alignment)
                 return pc.optimise(return_calculator=True, **opt_args)
             # This is not done in parallel because we depend on the side-
-            # effect of changing the parameter_controller current values 
-            memos = ui.eager_map(one_model, self.parameter_controllers, 
+            # effect of changing the parameter_controller current values
+            memos = ui.eager_map(one_model, self.parameter_controllers,
                                  labels=model_label, pure=False)
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
@@ -188,4 +188,3 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
 
     def getObservedlnL(self):
         return self.observed[0]
-

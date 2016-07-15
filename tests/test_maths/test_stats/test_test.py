@@ -203,7 +203,7 @@ class TestsTests(TestCase):
 
     def test_fisher(self):
         """fisher results should match p 795 Sokal and Rohlf"""
-        self.assertFloatEqual(fisher([0.073, 0.086, 0.10, 0.080, 0.060]), 
+        self.assertFloatEqual(fisher([0.073, 0.086, 0.10, 0.080, 0.060]),
                               0.0045957946540917905)
 
     def test_regress(self):
@@ -537,13 +537,13 @@ class StatTests(TestsHelper):
     def setUp(self):
         super(StatTests, self).setUp()
 
-        self.x = [   
+        self.x = [
             7.33, 7.49, 7.27, 7.93, 7.56,
             7.81, 7.46, 6.94, 7.49, 7.44,
             7.95, 7.47, 7.04, 7.10, 7.64,
         ]
 
-        self.y = [   
+        self.y = [
             7.53, 7.70, 7.46, 8.21, 7.81,
             8.01, 7.72, 7.13, 7.68, 7.66,
             8.11, 7.66, 7.20, 7.25, 7.79,
@@ -1319,7 +1319,7 @@ class Ftest(TestCase):
         self.assertRaises(ValueError, f_value, too_short, b)
 
     def test_f_two_sample(self):
-        """f_two_sample should match values from R""" 
+        """f_two_sample should match values from R"""
 
         # The expected values in this test are obtained through R.
         # In R the F test is var.test(x,y) different alternative hypotheses
@@ -1363,7 +1363,7 @@ class Ftest(TestCase):
            8.122084, 6.330007, 4.767943, 5.194029, 3.503136, 6.039079,
            4.485647, 6.116235, 6.302268, 3.596693, 5.743316, 6.860152]
 
-        # d: 30 elem, mean=0, sd =0.05 
+        # d: 30 elem, mean=0, sd =0.05
         d = [0.104517366, 0.023039678, 0.005579091, 0.052928250, 0.020724823,
             -0.060823243, -0.019000890, -0.064133996, -0.016321594, -0.008898334,
             -0.027626992, -0.051946186, 0.085269587, -0.031190678, 0.065172938,
@@ -1374,9 +1374,9 @@ class Ftest(TestCase):
         a, b, c, d = list(map(array, [a, b, c, d]))
         self.assertEqual(list(map(len, [a, b, c, d])), [50, 50, 60, 30])
 
-        # allowed error. This big, because results from R 
+        # allowed error. This big, because results from R
         # are rounded at 4 decimals
-        error = 1e-4 
+        error = 1e-4
 
         self.assertFloatEqual(f_two_sample(a, a), (49, 49, 1, 1), eps=error)
         self.assertFloatEqual(f_two_sample(a, b), (49, 49, 0.8575, 0.5925),
@@ -1617,7 +1617,7 @@ class TestDistMatrixPermutationTest(TestCase):
             return [distance_matrix_permutation_test(*args)[2] for i in range(10)]
 
         m = array([[0, 1, 3], [1, 2, 4], [3, 4, 5]])
-        # looks at each possible permutation n times -- 
+        # looks at each possible permutation n times --
         # compare first row to rest
         n = 100
 
@@ -1630,8 +1630,8 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, tails='low')
         self.assertSimilarMeans(r, 2. / 6.)
 
-        # The following lines are not part of the test code, but are useful in 
-        # figuring out what t-scores all of the permutations will yield. 
+        # The following lines are not part of the test code, but are useful in
+        # figuring out what t-scores all of the permutations will yield.
         # permutes = [[0, 1, 2], [0, 2, 1], [1, 0, 2],\
         # [1, 2, 0], [2, 0, 1], [2, 1, 0]]
         #results = []
@@ -1679,5 +1679,3 @@ class TestDistMatrixPermutationTest(TestCase):
 # execute tests if called from command line
 if __name__ == '__main__':
     main()
-
-

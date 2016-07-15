@@ -770,4 +770,3 @@ class CharAlphabet(Alphabet):
             return val
         else:
             return delimiter.join([i.tostring().decode('utf-8') for i in self.toChars(data)])
-

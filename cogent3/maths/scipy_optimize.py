@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # We don't want to depend on the monolithic, fortranish,
 # Num-overlapping, mac-unfriendly SciPy.  But this
-# module is too good to pass up. It has been lightly customised for 
-# use in Cogent.  Changes made to fmin_powell and brent: allow custom 
-# line search function (to allow bound_brent to be passed in), cope with 
+# module is too good to pass up. It has been lightly customised for
+# use in Cogent.  Changes made to fmin_powell and brent: allow custom
+# line search function (to allow bound_brent to be passed in), cope with
 # infinity, tol specified as an absolute value, not a proportion of f,
 # and more info passed out via callback.
 
@@ -1856,7 +1856,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
         for i in ilist:
             direc1 = direc[i]
             fx2 = fval
-            fval, x, direc1 = _linesearch_powell(linesearch, 
+            fval, x, direc1 = _linesearch_powell(linesearch,
                                                  func, x, direc1, xtol * 100)
             if (fx2 - fval) > delta:
                 delta = fx2 - fval
@@ -1886,7 +1886,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             temp = fx - fx2
             t -= delta * temp * temp
             if t < 0.0:
-                fval, x, direc1 = _linesearch_powell(linesearch, 
+                fval, x, direc1 = _linesearch_powell(linesearch,
                                                      func, x, direc1, xtol * 100)
                 direc[bigind] = direc[-1]
                 direc[-1] = direc1

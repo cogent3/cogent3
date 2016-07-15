@@ -77,7 +77,7 @@ class test_parameter_controller(unittest.TestCase):
         """Mprobs supplied to the parameter controller"""
         model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
-        lf = model.makeLikelihoodFunction(self.tree, 
+        lf = model.makeLikelihoodFunction(self.tree,
                                           motif_probs_from_align=False)
 
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
@@ -103,7 +103,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
-        lf = model.makeLikelihoodFunction(self.tree, 
+        lf = model.makeLikelihoodFunction(self.tree,
                                           motif_probs_from_align=False, loci=["a", "b"])
 
         mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
@@ -162,7 +162,7 @@ class test_parameter_controller(unittest.TestCase):
         lf = self.model.makeLikelihoodFunction(self.tree)
         lf.setLocalClock('c', 'd')
         lf.setAlignment(self.al)
-        lf.optimise(local=True, 
+        lf.optimise(local=True,
                     tolerance=1e-8, max_restarts=2)
         rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.getLogLikelihood(), -27.84254174)
@@ -203,13 +203,9 @@ class test_parameter_controller(unittest.TestCase):
         self.assertEqual(lf.getParamValue('length', edge='a'), 2)
 
         # upper < lower bounds should fail
-        self.assertRaises(ValueError, lf.setParamRule, 
+        self.assertRaises(ValueError, lf.setParamRule,
                           'length', lower=2, upper=0)
 
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_distribution', 'test_histogram', 'test_special', 
+__all__ = ['test_distribution', 'test_histogram', 'test_special',
            'test_ks', 'test_test']
 
 __author__ = ""
