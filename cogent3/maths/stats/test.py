@@ -114,7 +114,7 @@ def std(x, axis=None):
 def median(m, axis=None):
     """Returns medians by axis (similiar to numpy.mean)
 
-    numpy.median does not except an axis parameter. Is safe for substition for 
+    numpy.median does not except an axis parameter. Is safe for substition for
     numpy.median
     """
     median_vals = []
@@ -166,7 +166,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     as a separate procedure. Find the probability for the
     observed G, and then either halve or halve and subtract from
     one depending on whether the directional prediction was
-    upheld. 
+    upheld.
 
     The default test is now one-tailed (Rob Knight 4/21/03).
 
@@ -261,7 +261,7 @@ def calc_contingency_expected(matrix):
     The expected value is calculated with the following equation:
         Expected = row_total x column_total / overall_total
 
-    The returned matrix (dict2D) has lists of the observed and the 
+    The returned matrix (dict2D) has lists of the observed and the
     expected frequency as values
     """
     # transpose matrix for calculating column totals
@@ -442,7 +442,7 @@ def bayes_updates(ds_given_h, priors=None):
 
 
 def t_paired(a, b, tails=None, exp_diff=0):
-    """Returns t and prob for TWO RELATED samples of scores a and b.  
+    """Returns t and prob for TWO RELATED samples of scores a and b.
 
     From Sokal and Rohlf (1995), p. 354.
     Calculates the vector of differences and compares it to exp_diff
@@ -490,9 +490,9 @@ def t_one_sample(a, popmean=0, tails=None):
 
 
 def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
-    """Returns t, prob for two INDEPENDENT samples of scores a, and b.  
+    """Returns t, prob for two INDEPENDENT samples of scores a, and b.
 
-    From Sokal and Rohlf, p 223.  
+    From Sokal and Rohlf, p 223.
 
     Usage:   t, prob = t_two_sample(a,b, tails, exp_diff)
 
@@ -705,7 +705,7 @@ def t_one_observation(x, sample, tails=None, exp_diff=0,
     """Returns t-test for significance of single observation versus a sample.
 
     Equation for 1-observation t (Sokal and Rohlf 1995 p 228):
-    t = obs - mean - exp_diff / (var * sqrt((n+1)/n)) 
+    t = obs - mean - exp_diff / (var * sqrt((n+1)/n))
     df = n - 1
 
     none_on_zero_variance: see t_two_sample for details. If sample has no
@@ -1006,12 +1006,12 @@ def correlation_matrix(series, as_rows=True):
 
 
 def regress(x, y):
-    """Returns coefficients to the regression line "y=ax+b" from x[] and y[].  
+    """Returns coefficients to the regression line "y=ax+b" from x[] and y[].
 
-    Specifically, returns (slope, intercept) as a tuple from the regression of 
+    Specifically, returns (slope, intercept) as a tuple from the regression of
     y on x, minimizing the error in y assuming that x is precisely known.
 
-    Basically, it solves 
+    Basically, it solves
         Sxx a + Sx b = Sxy
          Sx a +  N b = Sy
     where Sxy = \sum_i x_i y_i, Sx = \sum_i x_i, and Sy = \sum_i y_i.  The
@@ -1119,7 +1119,7 @@ def regress_major(x, y):
 def z_test(a, popmean=0, popstdev=1, tails=None):
     """Returns z and probability score for a single sample of items.
 
-Calculates the z-score on ONE sample of items with mean x, given a population 
+Calculates the z-score on ONE sample of items with mean x, given a population
 mean and standard deviation (parametric).
 
 Usage:   z, prob = z_test(a, popmean, popstdev, tails)
@@ -1231,10 +1231,10 @@ def f_value(a, b):
     a, b: lists of values, must have Variance attribute (recommended to
     make them Numbers objects.
 
-    The F value is always calculated by dividing the variance of a by the 
-    variance of b, because R uses the same approach. In f_two_value it's 
+    The F value is always calculated by dividing the variance of a by the
+    variance of b, because R uses the same approach. In f_two_value it's
     decided what p-value is returned, based on the relative sizes of the
-    variances. 
+    variances.
     """
     if not any(a) or not any(b) or len(a) <= 1 or len(b) <= 1:
         raise ValueError("Vectors should contain more than 1 element")
@@ -1737,12 +1737,12 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 def distance_matrix_permutation_test(matrix, cells, cells2=None,
                                      f=t_two_sample, tails=None, n=1000, return_scores=False,
                                      is_symmetric=True):
-    """performs a monte carlo permutation test to determine if the 
+    """performs a monte carlo permutation test to determine if the
     values denoted in cells are significantly different than the rest
     of the values in the matrix
 
     matrix: a numpy array
-    cells: a list of indices of special cells to compare to the rest of the 
+    cells: a list of indices of special cells to compare to the rest of the
         matrix
     cells2: an optional list of indices to compare cells to. If set to None
         (default), compares cells to the rest of the matrix
@@ -1802,7 +1802,7 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
         cells: indices of first set of requested values
         cells2: indices of second set of requested values or None
          if they should be randomly selected
-        is_symmetric: True if matrix is symmetric 
+        is_symmetric: True if matrix is symmetric
 
     """
 

@@ -158,7 +158,7 @@ class Drawable(object):
         return fig
 
     def drawFigure(self, title=None, **kw):
-        """Draw the figure.  
+        """Draw the figure.
         Extra arguments are forwarded to self.makeFigure()"""
         import matplotlib.pyplot as plt
         fig = self.makeFigure(**kw)
@@ -167,7 +167,7 @@ class Drawable(object):
         plt.draw_if_interactive()
 
     def showFigure(self, title=None, **kw):
-        """Make the figure and immediately pyplot.show() it.  
+        """Make the figure and immediately pyplot.show() it.
         Extra arguments are forwarded to self.makeFigure()"""
         self.drawFigure(title, **kw)
         import matplotlib.pyplot as plt
@@ -175,7 +175,7 @@ class Drawable(object):
 
     def drawToFile(self, fname, **kw):
         """Save in a file named 'fname'
-        Extra arguments are forwarded to self.makeFigure() unless 
+        Extra arguments are forwarded to self.makeFigure() unless
         they are valid for savefig()"""
         makefig_kw = {}
         savefig_kw = {}

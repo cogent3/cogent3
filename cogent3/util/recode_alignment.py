@@ -6,34 +6,34 @@
  reduced-state alphabets, and also defines some reduced-state alphabets.
 
 Example alphabet definitions:
-charge_his_3: Three states for +/-/no charge, with histidine counted as 
- a charged residue. 
-size_2: Two states for large/small. Splits were manually derived by 
-    ordering the Mr of the residues and finding a natural split in the 
-    middle of the data set (residues with Mr <= 133 -> small; 
+charge_his_3: Three states for +/-/no charge, with histidine counted as
+ a charged residue.
+size_2: Two states for large/small. Splits were manually derived by
+    ordering the Mr of the residues and finding a natural split in the
+    middle of the data set (residues with Mr <= 133 -> small;
     Mr >= 146 -> large).
     Ordered Mr: [75,89,105,115,117,119,121,131,131,132,133,146,146,147,
                  149,155,165,174,181,204]
     Differences between neighboring Mr values: [14,16,10,2,2,2,10,0,1,1,13,
-                                                0,1,2,6,10,9,7,23] 
-    The difference between 133 and 146 (or D and K/Q) seems like the most 
+                                                0,1,2,6,10,9,7,23]
+    The difference between 133 and 146 (or D and K/Q) seems like the most
         natural split.
 
 Alphabet naming convention: standard alphabets (those defined in this file)
  are named based on an identifier (e.g., charge_his) followed by an underscore,
- followed by the number of states in the reduced alphabet (e.g., 3). 
+ followed by the number of states in the reduced alphabet (e.g., 3).
 
-Alphabet definition convention: When defining reduced alphabets, a reduced 
- state should be represented by the first char listed in that state. This 
- allows for alignments to not have to support new characeters (by changing 
- the MolType of the alignment) and it allows for easier interpretation of the 
+Alphabet definition convention: When defining reduced alphabets, a reduced
+ state should be represented by the first char listed in that state. This
+ allows for alignments to not have to support new characeters (by changing
+ the MolType of the alignment) and it allows for easier interpretation of the
  alignment states.
  
 Many of the alphabets presented here are discussed in:
-Detecting Coevolution by Disregarding Evolution? Tree-Ignorant Metrics of 
-Coevolution Perform As Well As Tree-Aware Metrics; J. Gregory Caporaso, 
-Sandra Smit, Brett C. Easton, Lawrence Hunter, Gavin A. Huttley, and 
-Rob Knight. BMC Evolutionary Biology, 2008. 
+Detecting Coevolution by Disregarding Evolution? Tree-Ignorant Metrics of
+Coevolution Perform As Well As Tree-Aware Metrics; J. Gregory Caporaso,
+Sandra Smit, Brett C. Easton, Lawrence Hunter, Gavin A. Huttley, and
+Rob Knight. BMC Evolutionary Biology, 2008.
 
 
 """
@@ -157,17 +157,17 @@ alphabets = {\
 def build_alphabet_map(alphabet_id=None, alphabet_def=None):
     """ return dict mapping old alphabet chars to new alphabet chars
 
-        alphabet_id: string identifying an alphabet in 
-            cogent3.util.recode_alignment.alphabets. 
+        alphabet_id: string identifying an alphabet in
+            cogent3.util.recode_alignment.alphabets.
             (See cogent3.util.recode_alignment.alphabets.keys()
             for valid alphabet_ids.)
-        alphabet_def: list of two-element tuples where first element is 
-            the new alphabet character and the second elements is an iterable 
+        alphabet_def: list of two-element tuples where first element is
+            the new alphabet character and the second elements is an iterable
             object containing the old alphabet chars which should be mapped to
-            the new char. 
-            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')] 
-            (See cogent3.util.recode_alignment.alphabets.values() 
-            for more examples.)  
+            the new char.
+            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
+            (See cogent3.util.recode_alignment.alphabets.values()
+            for more examples.)
 
         NOTE: Only one of the two parameters should be provided -- you either
             provide the alphabet, or it is looked up. If you do provide both,
@@ -194,17 +194,17 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     """Return new DenseAlignment recoded in the provided reduced-state alphabet
 
         aln: the DenseAlignment object to be recoded
-        alphabet_id: string identifying an alphabet in 
-            cogent3.util.recode_alignment.alphabets. 
+        alphabet_id: string identifying an alphabet in
+            cogent3.util.recode_alignment.alphabets.
             (See cogent3.util.recode_alignment.alphabets.keys()
             for valid alphabet_ids.)
-        alphabet_def: list of two-element tuples where first element is 
-            the new alphabet character and the second elements is an iterable 
+        alphabet_def: list of two-element tuples where first element is
+            the new alphabet character and the second elements is an iterable
             object containing the old alphabet chars which should be mapped to
-            the new char. 
-            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')] 
-            (See cogent3.util.recode_alignment.alphabets.values() 
-            for more examples.)  
+            the new char.
+            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
+            (See cogent3.util.recode_alignment.alphabets.values()
+            for more examples.)
 
         Note: either alphabet_id OR alphabet_def must be passed. Either
             provide the alphabet, or have it is looked up. If both are provided
@@ -275,13 +275,13 @@ def square_matrix_to_dict(matrix, key_order='ACDEFGHIKLMNPQRSTVWY'):
 
 
 def recode_count_matrix(alphabet, count_matrix, aa_order):
-    """Recodes a subsitution count matrix 
+    """Recodes a subsitution count matrix
 
         alphabet: the alphabet to be used for recoding the matrix
          (see cogent3.util.recode_alignment.alphabets.values()) for
          examples
-        count_matrix: matrix to be recoded (e.g., 
-         cogent3.evolve.models.DSO78_matrix) 
+        count_matrix: matrix to be recoded (e.g.,
+         cogent3.evolve.models.DSO78_matrix)
         aa_order: the order of the rows/cols in the matrix as a string
          (for cogent3.evolve.models.DSO78_matrix this would be
          'ACDEFGHIKLMNPQRSTVWY')

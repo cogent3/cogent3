@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """Parsers for the cigar format
 
-Cigar stands for Compact Idiosyncratic Gapped Alignment Report and defines the sequence 
-of matches/mismatches and deletions (or gaps). Cigar line is used in Ensembl database 
+Cigar stands for Compact Idiosyncratic Gapped Alignment Report and defines the sequence
+of matches/mismatches and deletions (or gaps). Cigar line is used in Ensembl database
 for both multiple and pairwise genomic alignment.
 
 for example, this cigar line 2MD3M2D2M will mean that the alignment contains 2 matches/
 mismatches, 1 deletion (number 1 is omitted in order to save some spaces), 3 matches/
-mismatches, 2 deletion and 2 matches/mismatches. 
+mismatches, 2 deletion and 2 matches/mismatches.
 
 if the original sequence is: AACGCTT
    the cigar line is: 2MD3M2D2M

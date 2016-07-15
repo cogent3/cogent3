@@ -34,9 +34,9 @@ def chi_square(x, p, df=1):
 def g_statistic(X, p=None, idx=None):
     """
     return g statistic and p value
-    arguments: 
+    arguments:
         X - the periodicity profile (e.g. DFT magnitudes, autocorrelation etc)
-            X needs to contain only those period values being considered, 
+            X needs to contain only those period values being considered,
             i.e. only periods in the range [llim, ulim]
     """
     # X should be real
@@ -65,7 +65,7 @@ def g_statistic(X, p=None, idx=None):
 
 def _seq_to_symbols(seq, motifs, motif_length, result=None):
     """return symbolic represetation of the sequence
-    Arguments: 
+    Arguments:
         - seq: a sequence
         - motifs: a list of sequence motifs
         - motif_length: length of first motif

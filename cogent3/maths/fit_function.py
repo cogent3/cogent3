@@ -26,8 +26,8 @@ def fit_function(x_vals, y_vals, func, n_params, iterations=2):
         y_vals : array
             Values for y to fit the function func.
         func : callable ``f(x, a)``
-            Objective function (model) to be fitted to the data. This function 
-            should return either an array for models that are not a constant, 
+            Objective function (model) to be fitted to the data. This function
+            should return either an array for models that are not a constant,
             i.e. f(x)=exp(a[0]+x*a[1]), or a single value for models that are a
             cosntant, i.e. f(x)=a[0]
         n_params : int

@@ -3,7 +3,7 @@
 
 Currently used to support amino acid distance matrices and similar.
 
-NOTE: This is _much_ slower than using a numpy array. It is primarily 
+NOTE: This is _much_ slower than using a numpy array. It is primarily
 convenient when you want to index into a matrix by keys (e.g. by amino acid
 labels) and when you expect to have a lot of missing values. You will probably
 want to use this for prototyping, then move to numpy arrays if and when
@@ -42,9 +42,9 @@ class DistanceMatrix(Dict2D, Delegator):
                 ColOrder = list of 'interesting keys', default is the set of
                     all amino acids
                 Default = value to set padded elements to
-                Pad = boolean describing whether to fill object to hold all 
+                Pad = boolean describing whether to fill object to hold all
                     possible elements based on RowOrder and ColOrder
-                RowConstructor = constructor to use when building inner 
+                RowConstructor = constructor to use when building inner
                     objects, default dict
                 info = the AAIndexRecord object
 
@@ -73,7 +73,7 @@ class DistanceMatrix(Dict2D, Delegator):
 
             power: the power to raise all elements in the matrix to,
                 must be a floatable value or a TypeError is raise
-            ignore_invalid: leaves invalid (not floatable) 
+            ignore_invalid: leaves invalid (not floatable)
                 matrix data untouched
 
         """

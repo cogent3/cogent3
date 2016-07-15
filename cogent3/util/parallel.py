@@ -109,7 +109,7 @@ class UnFlattened(list):
 
 
 class MPIParallelContext(ParallelContext):
-    """This parallel context divides the available CPUs into groups of equal 
+    """This parallel context divides the available CPUs into groups of equal
     size.  Inner levels of potential parallelism can then further subdivide
     those groups.  It helps to have a CPU count which is divisible by the
     task count."""
@@ -180,10 +180,10 @@ class PicklableAndCallable(object):
 
 class MultiprocessingParallelContext(ParallelContext):
     """At the outermost opportunity, this parallel context delegates all
-    work to a multiprocessing.Pool.  
+    work to a multiprocessing.Pool.
     Subprocesses may also make pools if the outer pool is more than half idle.
 
-    Ideally the pool would be reused for later tasks, but cogent code mostly 
+    Ideally the pool would be reused for later tasks, but cogent code mostly
     uses map() with functions defined in local scopes, which are unpicklable,
     so that is hacked around and pools are only ever used for one map() call"""
 
@@ -254,7 +254,7 @@ class ContextStack(threading.local):
     def split(self, jobs=None):
         """Divide the available CPUs up into groups to handle 'jobs' independent
         tasks.  If jobs << CPUs so that there are multiple CPUS per job, leave
-        that reduced number of CPUs available to any nested parallelism 
+        that reduced number of CPUs available to any nested parallelism
         opportunities within each job"""
         if jobs is None:
             jobs = self.top.size

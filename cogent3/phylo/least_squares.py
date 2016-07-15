@@ -22,9 +22,9 @@ __status__ = "Production"
 
 
 def _ancestry2paths(A):
-    """Convert edge x edge ancestry matrix to tip-to-tip path x edge 
-    split metric matrix.  The paths will be in the same triangular matrix order 
-    as produced by distanceDictAndNamesTo1D, provided that the tips appear in 
+    """Convert edge x edge ancestry matrix to tip-to-tip path x edge
+    split metric matrix.  The paths will be in the same triangular matrix order
+    as produced by distanceDictAndNamesTo1D, provided that the tips appear in
     the correct order in A"""
     tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []

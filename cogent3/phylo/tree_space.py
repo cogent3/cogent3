@@ -20,7 +20,7 @@ def ismallest(data, size):
     """There are many ways to get the k smallest items from an N sequence, and
     which one performs best depends on k, N and k/N.  This algorithm appears to
     beat anything heapq can do, and stays with a factor of 2 of sort() and
-    min().  Is uses memory O(2*k) and so is particularly suitable for lazy 
+    min().  Is uses memory O(2*k) and so is particularly suitable for lazy
     application to large N.  It returns the smallest k sorted too."""
     limit = 2 * size
     data = iter(data)
@@ -100,9 +100,9 @@ def ancestry2tree(A, lengths, tip_names):
 
 def grown(B, split_edge):
     """Ancestry matrix 'B' with one extra leaf added at 'split_edge'.
-    Row/column order within the matrix is independent of the topology it 
-    represents. The added leaf will be the last one in the matrix, which keeps 
-    the leaf node order the same as the order in which they are added, which is 
+    Row/column order within the matrix is independent of the topology it
+    represents. The added leaf will be the last one in the matrix, which keeps
+    the leaf node order the same as the order in which they are added, which is
     what is assumed by ancestry2tree and ancestry2paths"""
     n = len(B)
     A = numpy.zeros([n + 2, n + 2], int)
@@ -159,7 +159,7 @@ class TreeEvaluator(object):
              filename=None, interval=None, ui=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
-        'order' is an optional list of tip names.  
+        'order' is an optional list of tip names.
         'start' is an optional list of initial trees.  Each of the trees must
         contain the same tips.
         'filename' and 'interval' control checkpointing.

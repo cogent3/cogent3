@@ -2,9 +2,9 @@
 """Dict2D: holds two-dimensional dict, acting as matrix with labeled rows/cols.
 
 The Dict2D is useful for storing arbitrary, sparse data in a way that is easy
-to access by labeled rows and columns. It is much slower than a numpy 
+to access by labeled rows and columns. It is much slower than a numpy
 array, so only use when the convenience outweighs the performance penalty.
-It is especially useful for storing distance matrices between arbitrarily 
+It is especially useful for storing distance matrices between arbitrarily
 labeled objects.
 """
 
@@ -138,7 +138,7 @@ class Dict2D(dict):
             will not be printed or used in most calculations, if they exist.
             Default is None (calculates on the fly from self.keys().
 
-            ColOrder: list of 'interesting' column keys. If passed in 
+            ColOrder: list of 'interesting' column keys. If passed in
             during init, all columns in ColOrder will be created in all rows.
             Columns not in ColOrder will not be printed or used in most
             calculations, if they exist. Default is None (calculates on the
@@ -146,7 +146,7 @@ class Dict2D(dict):
 
             Default: value returned when m[r][c] doesn't exist.
 
-            Pad: whether or not to pad Cols and Items with the default value 
+            Pad: whether or not to pad Cols and Items with the default value
             instead of raising an exception. Default False.
 
             RowConstructor: constructor for inner rows. Defaults to class
@@ -155,13 +155,13 @@ class Dict2D(dict):
             parameters to initialize, RowConstructor should be a function
             that supplies all the appropriate defaults.)
 
-            Note that all operations that alter the Dict2D act in place. If 
-            you want to operate on a different object you should call the 
+            Note that all operations that alter the Dict2D act in place. If
+            you want to operate on a different object you should call the
             Dict2D copy() to create an identical deep copy of your Dict2D
             and then work on that one, leaving the original untouched.
             See doc string for Dict2D.copy() for usage information.
 
-            usage: 
+            usage:
                 d = {'a':{'x':1,'y':2}, 'b':{'x':0, 'z':5}}
                 m = Dict2D(d)
                 m = Dict2D(d,Rows=['a','b'])
@@ -322,7 +322,7 @@ class Dict2D(dict):
     def square(self, default=None, reset_order=False):
         """Checks RowOrder and ColOrder share keys, and that self[r][c] exists.
 
-        If reset_order is True (default is False), appends additional Cols to 
+        If reset_order is True (default is False), appends additional Cols to
         RowOrder and sets ColOrder to RowOrder.
         """
         row_order = self.RowOrder or self.rowKeys()
@@ -358,7 +358,7 @@ class Dict2D(dict):
         want self.values() or [self[i] for i in self.RowOrder] instead of
         this method.
 
-        If self.Pad is True, will pad rows with self.Default instead of 
+        If self.Pad is True, will pad rows with self.Default instead of
         raising an exception.
         """
         row_order = self.RowOrder or self.rowKeys()
@@ -392,7 +392,7 @@ class Dict2D(dict):
         """Iterates over the columns, using RowOrder/ColOrder.
 
         Returns each column as a list of the values in that column, so that
-        c[i] = m[m.RowOrder.index(r)][c] (assuming the items in RowOrder are 
+        c[i] = m[m.RowOrder.index(r)][c] (assuming the items in RowOrder are
         unique).
 
         zip(self.RowOrder, col) will associate the row label with each item
@@ -445,7 +445,7 @@ class Dict2D(dict):
         Note that the rows in the new Dict2D will be references to the
         same objects as the rows in the old Dict2D.
 
-        If self.Pad is True, will create new rows rather than raising 
+        If self.Pad is True, will create new rows rather than raising
         KeyError.
         """
         result = {}
@@ -547,7 +547,7 @@ class Dict2D(dict):
         getItems will fail with KeyError if items that don't exist are
         requested, unless self.Pad is True.
 
-        Items will be returned in order (according to self.ColOrder and 
+        Items will be returned in order (according to self.ColOrder and
         self.RowOrder) when negate is True; when negate is False, they'll
         be returned in the order in which they were passed in.
         """
@@ -687,9 +687,9 @@ class Dict2D(dict):
 
         set_orders: if True, sets self.RowOrder to rows and self.ColOrder
         to cols (default False). Otherwise, RowOrder and ColOrder are
-        unaffected. 
+        unaffected.
 
-        NOTE: RowOrder and ColOrder are _not_ used as defaults for rows and 
+        NOTE: RowOrder and ColOrder are _not_ used as defaults for rows and
         cols, in order to make it convenient to fill only the elements that
         actually exist.
         """
@@ -789,7 +789,7 @@ class Dict2D(dict):
 
         delimiter: inserted between fields (default tab).
 
-        formatter: applied to each element (default str). Note that the 
+        formatter: applied to each element (default str). Note that the
         formatter is also applied to the headers, so should be a function that
         can handle strings as well as whatever the elements of the matrix are
         (i.e. if it's a number formatter, it should detect strings and return

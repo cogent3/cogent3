@@ -4,18 +4,18 @@
 Specific Extensions:
 
 assertFloatEqual, assertFloatEqualAbs, and assertFloatEqualRel give fine-
-grained control over how floating point numbers (or lists thereof) are tested 
-for equality. 
+grained control over how floating point numbers (or lists thereof) are tested
+for equality.
 
-assertContains and assertNotContains give more helpful error 
-messages when testing whether an observed item is present or absent in a set 
+assertContains and assertNotContains give more helpful error
+messages when testing whether an observed item is present or absent in a set
 of possiblities. Ditto assertGreaterThan, assertLessThan, assertBetween, and
 assertIsProb (which is a special case of assertBetween requiring the result
 to between 0 and 1).
 
-assertSameItems and assertEqualItems test the items in a list 
-for pairwise identity and equality respectively (i.e. the observed and 
-expected values must have the same number of each item, though the order can 
+assertSameItems and assertEqualItems test the items in a list
+for pairwise identity and equality respectively (i.e. the observed and
+expected values must have the same number of each item, though the order can
 differ); assertNotEqualItems verifies that two lists do not contain equal sets
 of items.
 

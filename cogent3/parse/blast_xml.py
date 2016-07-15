@@ -16,7 +16,7 @@ import xml.dom.minidom
 
 """
 CAUTION:
-This XML BLAST PARSER uses minidom. This means a bad performance for 
+This XML BLAST PARSER uses minidom. This means a bad performance for
 big files (>5MB), and huge XML files will for sure crash the program!
 (06/2009 Kristian)
 
@@ -59,7 +59,7 @@ HSP_XML_TAGNAMES = [x[1] for x in HSP_XML_FIELDS]
 
 def get_tag(record, name, default=None):
     """
-    Loks in the XML tag 'record' for 
+    Loks in the XML tag 'record' for
     other tags named 'name', and returns the value of the first one.
     If none is found, it returns 'default'.
     """
@@ -194,7 +194,7 @@ class BlastXMLResult(BlastResult):
         Init using blast 7 or blast 9 results
 
         data: blast output from the m = 9 output option
-        psiblast: if True, will expect psiblast output, else expects 
+        psiblast: if True, will expect psiblast output, else expects
             blast output
 
         """

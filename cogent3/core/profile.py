@@ -147,13 +147,13 @@ class Profile(object):
         """Normalizes the data by position (the rows!) to one
 
         It does not make sense to normalize anything with negative
-        numbers in there. However, the method does NOT check for that, 
-        because it would slow down the calculations too much. It will work, 
+        numbers in there. However, the method does NOT check for that,
+        because it would slow down the calculations too much. It will work,
         but you might get very unexpected results.
 
         The method will raise an error when one or more rows add up to
-        one. It checks explicitly for that to avoid OverflowErrors, 
-        ZeroDivisionErrors, and infinities in the results. 
+        one. It checks explicitly for that to avoid OverflowErrors,
+        ZeroDivisionErrors, and infinities in the results.
 
         WARNING: this method works in place with respect to the Profile
         object, not with respect to the Data attribute. Normalization
@@ -171,13 +171,13 @@ class Profile(object):
         """Normalized the data by sequences (the columns) to one
 
         It does not make sense to normalize anything with negative
-        numbers in there. However, the method does NOT check for that, 
-        because it would slow down the calculations too much. It will work, 
+        numbers in there. However, the method does NOT check for that,
+        because it would slow down the calculations too much. It will work,
         but you might get very unexpected results.
 
         The method will raise an error when one or more columns add up to
-        one. It checks explicitly for that to avoid OverflowErrors, 
-        ZeroDivisionErrors, and infinities in the results. 
+        one. It checks explicitly for that to avoid OverflowErrors,
+        ZeroDivisionErrors, and infinities in the results.
 
         WARNING: this method works in place with respect to the Profile
         object, not with respect to the Data attribute. Normalization
@@ -238,11 +238,11 @@ class Profile(object):
 
         This function is intented for use on normalized profiles. For
         safety it'll try to normalize the data before collapsing them.
-        If you do not normalize your data and set normalize_input to 
-        False, you might get unexpected results. 
+        If you do not normalize your data and set normalize_input to
+        False, you might get unexpected results.
 
         It does check whether self.Data and other.Data have the same shape
-        It does not check whether self and other have the same 
+        It does not check whether self and other have the same
         CharOrder. The resulting Profile gets the alphabet and
         char order from self.
 
@@ -323,9 +323,9 @@ class Profile(object):
         method: function used to calculated the distance between two
         arrays.
 
-        WARNING: In principle works only on profiles of the same size. 
-        However, when one of the two profiles is 1D (which shouldn't 
-        happen) and can be aligned with the other profile the distance 
+        WARNING: In principle works only on profiles of the same size.
+        However, when one of the two profiles is 1D (which shouldn't
+        happen) and can be aligned with the other profile the distance
         is still calculated and may give unexpected results.
         """
         try:
@@ -338,14 +338,14 @@ class Profile(object):
         """Returns the OddsMatrix of a profile as a new Profile.
 
         symbol_freqs: per character array of background frequencies
-        e.g. [.25,.25,.25,.25] for equal frequencies for each of the 
+        e.g. [.25,.25,.25,.25] for equal frequencies for each of the
         four bases.
 
-        If no symbol frequencies are provided, all symbols will get equal 
-        freqs. The length of symbol freqs should match the number of 
+        If no symbol frequencies are provided, all symbols will get equal
+        freqs. The length of symbol freqs should match the number of
         columns in the profile! If symbol freqs contains a zero entry,
         a ProfileError is raised. This is done to prevent either a
-        ZeroDivisionError (raised when zero is an int) or 'inf' in the 
+        ZeroDivisionError (raised when zero is an int) or 'inf' in the
         resulting matrix (which happens when zero is a float).
         """
         pl = self.Data.shape[1]  # profile length
@@ -374,7 +374,7 @@ class Profile(object):
         """Returns the LogOddsMatrix of a profile as a new Profile/
 
         symbol_freqs: per character array of background frequencies
-        e.g. [.25,.25,.25,.25] for equal frequencies for each of the 
+        e.g. [.25,.25,.25,.25] for equal frequencies for each of the
         four bases.
 
         See toOddsMatrix for more information.
@@ -386,7 +386,7 @@ class Profile(object):
     def _score_indices(self, seq_indices, offset=0):
         """Returns score of the profile for each slice of the seq_indices
 
-        seq_indices: translation of sequence into indices that match the 
+        seq_indices: translation of sequence into indices that match the
         characters in the CharOrder of the profile
         offset: where to start the matching procedure
 
@@ -430,12 +430,12 @@ class Profile(object):
         offset: starting index for searching in seq/profile
 
         Returns the score of the profile against all possible subsequences/
-        subprofiles of the input_data. 
+        subprofiles of the input_data.
 
         This method determines how well a profile fits at different places
-        in the sequence. This is very useful when the profile is a motif and 
+        in the sequence. This is very useful when the profile is a motif and
         you want to find the position in the sequence that best matches the
-        profile/motif. 
+        profile/motif.
 
         Sequence Example:
         =================
@@ -451,7 +451,7 @@ class Profile(object):
         pos 2: AAG -> 1.7
         pos 3: AGT -> 0.5
 
-        So the subsequence starting at index 2 in the sequence has the 
+        So the subsequence starting at index 2 in the sequence has the
         best match with the motif
 
         Profile Example:
@@ -460,9 +460,9 @@ class Profile(object):
         Profile to score:
             T   C   A   G
         0   1   0   0   0
-        1   0   1   0   0   
+        1   0   1   0   0
         2   0   0   .5  .5
-        3   0   0   0   1   
+        3   0   0   0   1
         4   .25 .25 .25 .25
 
         pos 0: rows 0,1,2 -> 0.55
@@ -548,7 +548,7 @@ class Profile(object):
         cutoff: value that should be covered in each row
 
         For example:
-        pos 0: [.1,.2,.3,.4] char order=TCAG. 
+        pos 0: [.1,.2,.3,.4] char order=TCAG.
         If cutoff=0.75 -> degeneracy = 3 (degenearate char for CAG)
         If cutoff=0.25 -> degeneracy = 1 (G alone covers this cutoff)
         If cutoff=0.5  -> degeneracy = 2 (degenerate char for AG)
@@ -591,16 +591,16 @@ class Profile(object):
         is returned at a position. For the example above an 'N' would
         be returned.
 
-        inlcude_all: all possibilities are included in the degenerate 
-        character. Example: row = UCAG = [.1,.3,.3,.3] cutoff = .4, 
-        consensus = 'V' (even though only 2 chars would be enough to 
+        inlcude_all: all possibilities are included in the degenerate
+        character. Example: row = UCAG = [.1,.3,.3,.3] cutoff = .4,
+        consensus = 'V' (even though only 2 chars would be enough to
         reach the cutoff value).
 
         The Alphabet of the Profile should implement degenerateFromSequence.
 
         Note that cutoff has priority over fully_degenerate. In other words,
-        if you specify a cutoff value and set fully_degenerate to true, 
-        the calculation will be done with the cutoff value. If nothing 
+        if you specify a cutoff value and set fully_degenerate to true,
+        the calculation will be done with the cutoff value. If nothing
         gets passed in, the maximum argument is chosen. In the first example
         above G will be returned.
         """
@@ -651,8 +651,8 @@ class Profile(object):
     def randomIndices(self, force_accumulate=False, random_f=random):
         """Returns random indices matching current probability matrix.
 
-        Stores cumulative sum (sort of) of probability matrix in 
-        self._accumulated; Use force_accumulate to reset if you change 
+        Stores cumulative sum (sort of) of probability matrix in
+        self._accumulated; Use force_accumulate to reset if you change
         the matrix in place (which you shouldn't do anyway).
 
         The returned indices correspond to the characters in the
@@ -667,8 +667,8 @@ class Profile(object):
     def randomSequence(self, force_accumulate=False, random_f=random):
         """Returns random sequence matching current probability matrix.
 
-        Stores cumulative sum (sort of) of probability matrix in 
-        self._accumulated; Use force_accumulate to reset if you change 
+        Stores cumulative sum (sort of) of probability matrix in
+        self._accumulated; Use force_accumulate to reset if you change
         the matrix in place (which you shouldn't do anyway).
         """
         co = self.CharOrder
@@ -687,7 +687,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     alphabet: Alphabet object (should have 'Degenerates'if split_degenerates
     is set to True)
     char_order: string indicating the order of the characters in the profile
-    split_degenerates: whether the meaning of degenerate symbols in the 
+    split_degenerates: whether the meaning of degenerate symbols in the
     alphabet should be split up among the characters in the char order,
     or ignored.
 
@@ -696,12 +696,12 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     specifies the meaning of each character in the alphabet. Chars in the
     character order will count as a full character by themselves, degenerate
     characters might split their 'value' over several other charcters in the
-    character order. 
+    character order.
 
-    Splitting up degenerates: only degenerate characters of which the full 
-    set of symbols it maps onto are in the character order are split up, 
-    others are ignored. E.g. in the DnaAlphabet, if the char order is 
-    TACG, ? (which maps to TCAG-) wouldn't be split up, 'R' (which maps 
+    Splitting up degenerates: only degenerate characters of which the full
+    set of symbols it maps onto are in the character order are split up,
+    others are ignored. E.g. in the DnaAlphabet, if the char order is
+    TACG, ? (which maps to TCAG-) wouldn't be split up, 'R' (which maps
     to 'AG') would.
 
     Any degenerate characters IN the character order will NOT be split up.

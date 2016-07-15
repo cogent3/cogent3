@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """EnergyParams class and instances of entropy and enthalpy params.
 
-The enthalpy and entropy params for the 10 Watson-Crick nearest-neighbor 
+The enthalpy and entropy params for the 10 Watson-Crick nearest-neighbor
 interactions, initiation corrections, and symmetry corrections
 are taken from SantaLucia, PNAS vol 95 1460-1465
 
-GC_INIT is the initiation parameter for duplexes that contain AT LEAST ONE 
-GC base pair, while AT_INIT is the initiation parameter for duplexes that 
-contain ONLY AT base pairs. (quoted from SantaLucia, Allawi, and Seneviratne, 
+GC_INIT is the initiation parameter for duplexes that contain AT LEAST ONE
+GC base pair, while AT_INIT is the initiation parameter for duplexes that
+contain ONLY AT base pairs. (quoted from SantaLucia, Allawi, and Seneviratne,
 Biochemistry, 1996, 3555-3562.)
 
-The SYM term is added into the entropy or enthalpy calculation IFF the 
+The SYM term is added into the entropy or enthalpy calculation IFF the
 sequence is self-complementary (seq = revComp of seq)
 """
 
@@ -30,11 +30,11 @@ class EnergyParams(object):
     def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct):
         """Store the input params for later reference
 
-        nearest_neighbor_vals: a dictionary or dictionary-castable object 
+        nearest_neighbor_vals: a dictionary or dictionary-castable object
             keyed by each nearest-neighbor pair and holding a value for each.
-        gc_init: a floating-point castable value holding the initiation 
+        gc_init: a floating-point castable value holding the initiation
             parameter for duplexes that contain AT LEAST ONE GC base pair
-        at_init: a floating-point castable value holding the initiation 
+        at_init: a floating-point castable value holding the initiation
             parameter for duplexes that contain ONLY AT base pairs
         sym_correct: a floating-point castable value that is added into the
             calculation if a sequence is self-complementary

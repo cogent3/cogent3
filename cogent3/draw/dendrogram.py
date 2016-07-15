@@ -618,7 +618,7 @@ class StraightDendrogram(_RootedDendrogram):
 
 
 class _ContemporaneousMixin(object):
-    """A dendrogram with all of the tips lined up.  
+    """A dendrogram with all of the tips lined up.
     Tidy but not suitable for displaying evolutionary distances accurately"""
 
     # Overrides init to change default for use_lengths

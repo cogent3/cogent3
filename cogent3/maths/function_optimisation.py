@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Algorthims for function optimisation
 
-   great_deluge() is a hillclimbing algorithm based on:    
+   great_deluge() is a hillclimbing algorithm based on:
       Gunter Dueck: New Optimization Heuristics, The Great Deluge Algorithm
       and the Record-to-Record Travel. Journal of Computational Physics, Vol.
       104, 1993, pp. 86 - 92
@@ -112,15 +112,15 @@ def ga_evolve(parent, target, num, mutation_rate=0.01, score_f=_simple_score,
          max_generations: Kills while loop if max_generations is reached
 
        Overload default functions:
-         score_f:   Must take an object and a target score. Returns objects 
+         score_f:   Must take an object and a target score. Returns objects
                     score.
-         breed_f:   Must take a tuple containing (scores, objects), the size of 
-                    population, a mutation rate and random function to use. 
-                    Returns a list containing the initial population. Default 
-                    function takes only the best object, but this may not be 
+         breed_f:   Must take a tuple containing (scores, objects), the size of
+                    population, a mutation rate and random function to use.
+                    Returns a list containing the initial population. Default
+                    function takes only the best object, but this may not be
                     desired behavior.
-         select_f:  Must take a population and scores. Returns a tuple 
-                    containing the best scores and objects in the population. 
+         select_f:  Must take a population and scores. Returns a tuple
+                    containing the best scores and objects in the population.
                     Default function returns only the best score and object.
          init_f:    Must take an object and the size of the population. Returns
                     a list containing the starting population

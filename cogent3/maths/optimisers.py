@@ -72,8 +72,8 @@ def limited_use(f, max_evaluations=None):
 
 
 def bounded_function(f, lower_bounds, upper_bounds):
-    """Returns a function that raises an exception on out-of-bounds input 
-    rather than bothering the real function with invalid input.  
+    """Returns a function that raises an exception on out-of-bounds input
+    rather than bothering the real function with invalid input.
     This is enough to get some unbounded optimisers working on bounded problems"""
 
     def _wrapper(x, **kw):
@@ -86,8 +86,8 @@ def bounded_function(f, lower_bounds, upper_bounds):
 
 
 def bounds_exception_catching_function(f):
-    """Returns a function that return -inf on out-of-bounds or otherwise 
-    impossible to evaluate input.  This only helps if the function is to be 
+    """Returns a function that return -inf on out-of-bounds or otherwise
+    impossible to evaluate input.  This only helps if the function is to be
     MAXIMISED."""
     out_of_bounds_value = -numpy.inf
     acceptable_inf = numpy.isneginf

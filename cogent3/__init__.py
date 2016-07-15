@@ -84,8 +84,8 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
       (e.g. can pass in DenseAlignment or CodonAlignment).
     - label_to_name: function for converting original name into another
       name. Default behavior is to preserve the original FASTA label and
-      comment. 
-      To remove all FASTA label comments, and pass in only the label, pass in: 
+      comment.
+      To remove all FASTA label comments, and pass in only the label, pass in:
             label_to_name=lambda x: x.split()[0]
       To look up names in a dict, pass in:
             label_to_name = lambda x: d.get(x, default_name)

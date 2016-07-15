@@ -345,8 +345,8 @@ class _Defn(object):
         return result
 
     def fillParValueDict(self, result, dimensions, cell_value_lookup):
-        """Low level method for extracting values.  Pushes values of this 
-        particular parameter/defn into the dict tree 'result', 
+        """Low level method for extracting values.  Pushes values of this
+        particular parameter/defn into the dict tree 'result',
         eg: length_defn.fillParValueDict(['edge']) populates 'result' like
         {'length':{'human':1.0, 'mouse':1.0}}"""
 
@@ -686,7 +686,7 @@ class ParameterController(object):
         return callback(defn, posn)
 
     def getParamInterval(self, par_name, *args, **kw):
-        """Confidence interval for 'par_name' found by adjusting the 
+        """Confidence interval for 'par_name' found by adjusting the
         single parameter until the final result falls by 'dropoff', which
         can be specified directly or via 'p' as chdtri(1, p).  Additional
         arguments are taken to specify the scope."""

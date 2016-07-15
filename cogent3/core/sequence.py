@@ -1152,7 +1152,7 @@ class ModelSequenceBase(object):
         number. To turn a 2D matrix into a function, use
         cogent3.util.miscs.DistanceFromMatrix(matrix).
 
-        use_indices: if False, maps the indices onto items (e.g. assumes 
+        use_indices: if False, maps the indices onto items (e.g. assumes
         function relates the characters). If True, uses the indices directly.
 
         NOTE: Truncates at the length of the shorter sequence.

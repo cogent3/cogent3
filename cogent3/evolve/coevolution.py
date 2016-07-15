@@ -5,38 +5,38 @@
 """ Description
 File created on 03 May 2007.
 
-Functions to perform coevolutionary analyses on 
-pre-aligned biological sequences. Coevolutionary analyses detect 
-correlated substitutions between alignment positions. Analyses 
-can be performed to look for covariation between a pair of 
+Functions to perform coevolutionary analyses on
+pre-aligned biological sequences. Coevolutionary analyses detect
+correlated substitutions between alignment positions. Analyses
+can be performed to look for covariation between a pair of
 alignment positions, in which case a single 'coevolve score' is
-returned. (The nature of this coevolve score is determined by the 
+returned. (The nature of this coevolve score is determined by the
 method used to detect coevolution.) Alternatively, coevolution can
 be calculated between one position and all other positions in an
 alignment, in which case a vector of coevolve scores is returned.
 Finally, coevolution can be calculated over all pairs of positions
 in an alignment, in which case a matrix (usually, but not necessarily,
-symmetric) is returned.   
+symmetric) is returned.
 
 The functions providing the core functionality here are:
 
 coevolve_pair: coevolution between a pair of positions (float returned)
-coevolve_position: coevolution between a position and all other 
+coevolve_position: coevolution between a position and all other
     positions in the alignment (vector returned)
 coevolve_alignment: coevolution between all pairs of positions in an
     alignment (matrix returned)
 
-Each of these functions takes a coevolution calculator, an alignment, and 
+Each of these functions takes a coevolution calculator, an alignment, and
  any additional keyword arguments that should be passed to the coevolution
  calculator. More information on these functions and how they should be used
  is available as executable documentation in coevolution.rst.
 
-The methods provided for calculating coevolution are: 
-Mutual Information (Shannon 19xx) 
-Normalized Mutual Information (Martin 2005) 
+The methods provided for calculating coevolution are:
+Mutual Information (Shannon 19xx)
+Normalized Mutual Information (Martin 2005)
 Statistical Coupling Analysis (Suel 2003)
 *Ancestral states (Tuffery 2000 -- might not be the best ref,
- a better might be Shindyalov, Kolchannow, and Sander 1994, but so far I 
+ a better might be Shindyalov, Kolchannow, and Sander 1994, but so far I
  haven't been able to get my hands on that one).
 * These methods require a phylogenetic tree, in addition to an alignment.
  Trees are calculated on-the-fly, by neighbor-joining, if not provided.
@@ -150,20 +150,20 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
     """ Calculate mutual information of a pair of alignment positions
 
         alignment: the full alignment object
-        pos1: index of 1st position in alignment to be compared 
+        pos1: index of 1st position in alignment to be compared
          (zero-based, not one-based)
-        pos2: index of 2nd position in alignment to be compared 
+        pos2: index of 2nd position in alignment to be compared
          (zero-based, not one-based)
         h1: entropy of pos1, if already calculated (to avoid time to recalc)
         h2: entropy of pos2, if already calculated (to avoid time to recalc)
-        mi_calculator: a function which calculated MI from two entropies and 
+        mi_calculator: a function which calculated MI from two entropies and
          their joint entropy -- see mi and normalized_mi for examples
         null_value: the value to be returned if mi cannot be calculated (e.g.,
          if mi_calculator == normalized_mi and joint_h = 0.0)
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes position data and returns it 
+        exclude_handler: a function which takes position data and returns it
          with exclude characters processed in someway. Position data should be
          an iterable object containing the characters present at each position.
          f(position_data,excludes=gDefaultExcludes) -> position_data
@@ -212,22 +212,22 @@ def mi_position(alignment, position,
     """ Calc mi b/w position and all other positions in an alignment
 
         alignment: the full alignment object
-        position: the position number of interest -- NOTE: this is the 
+        position: the position number of interest -- NOTE: this is the
          position index, not the sequenece position (so zero-indexed, not
         one-indexed)
         positional_entropies: a list containing the entropy of each position in
          the alignment -- these can be passed in to avoid recalculating if
-         calling this function over more than one position (e.g., in 
+         calling this function over more than one position (e.g., in
          mi_alignment)
-        mi_calculator: a function which calculated MI from two entropies and 
+        mi_calculator: a function which calculated MI from two entropies and
          their joint entropy -- see mi and normalized_mi for examples
         null_value: the value to be returned if mi cannot be calculated (e.g.,
          if mi_calculator == normalized_mi and joint_h = 0.0)
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes a position and returns it 
-         with exclude characters processed in someway. 
+        exclude_handler: a function which takes a position and returns it
+         with exclude characters processed in someway.
 
     """
     aln_length = len(alignment)
@@ -255,15 +255,15 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
     """ Calc mi over all position pairs in an alignment
 
         alignment: the full alignment object
-        mi_calculator: a function which calculated MI from two entropies and 
+        mi_calculator: a function which calculated MI from two entropies and
          their joint entropy -- see mi and normalized_mi for examples
         null_value: the value to be returned if mi cannot be calculated (e.g.,
          if mi_calculator == normalized_mi and joint_h = 0.0)
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes a position and returns it 
-         with exclude characters processed in someway. 
+        exclude_handler: a function which takes a position and returns it
+         with exclude characters processed in someway.
 
     """
     aln_length = len(alignment)
@@ -300,9 +300,9 @@ def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,
     """Calc normalized mutual information of a pair of alignment positions
 
         alignment: the full alignment object
-        pos1: index of 1st position in alignment to be compared 
+        pos1: index of 1st position in alignment to be compared
          (zero-based, not one-based)
-        pos2: index of 2nd position in alignment to be compared 
+        pos2: index of 2nd position in alignment to be compared
          (zero-based, not one-based)
         h1: entropy of pos1, if already calculated (to avoid time to recalc)
         h2: entropy of pos2, if already calculated (to avoid time to recalc)
@@ -311,8 +311,8 @@ def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes a position and returns it 
-         with exclude characters processed in someway. 
+        exclude_handler: a function which takes a position and returns it
+         with exclude characters processed in someway.
 
     """
     return mi_pair(alignment, pos1, pos2, h1=h1, h2=h2, mi_calculator=nmi,
@@ -327,20 +327,20 @@ def normalized_mi_position(alignment, position, positional_entropies=None,
     """ Calc normalized mi b/w position and all other positions in an alignment
 
         alignment: the full alignment object
-        position: the position number of interest -- NOTE: this is the 
+        position: the position number of interest -- NOTE: this is the
          position index, not the sequenece position (so zero-indexed, not
         one-indexed)
         positional_entropies: a list containing the entropy of each position in
          the alignment -- these can be passed in to avoid recalculating if
-         calling this function over more than one position (e.g., in 
+         calling this function over more than one position (e.g., in
          mi_alignment)
         null_value: the value to be returned if mi cannot be calculated (e.g.,
          if mi_calculator == normalized_mi and joint_h = 0.0)
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes a position and returns it 
-         with exclude characters processed in someway. 
+        exclude_handler: a function which takes a position and returns it
+         with exclude characters processed in someway.
 
     """
     return mi_position(alignment, position,
@@ -360,8 +360,8 @@ def normalized_mi_alignment(alignment, null_value=gDefaultNullValue,
         excludes: iterable objects containing characters that require special
          handling -- by default, if a position contains an exclude, null_value
          will be returned. For non-default handling, pass an exclude_handler
-        exclude_handler: a function which takes a position and returns it 
-         with exclude characters processed in someway. 
+        exclude_handler: a function which takes a position and returns it
+         with exclude characters processed in someway.
     """
     return mi_alignment(alignment=alignment, mi_calculator=normalized_mi,
                         null_value=null_value, excludes=excludes,
@@ -423,11 +423,11 @@ def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
 
     count: Profile object of raw character counts at each position
     num_seqs: number of sequences in the alignment
-    cutoff: minimum number of sequences in the subalignment (as fraction 
+    cutoff: minimum number of sequences in the subalignment (as fraction
     of the total number of seqs in the alignment.
 
-    A perturbation is allowed if the subalignment of sequences that 
-    contain the specified char at the specified position is larger 
+    A perturbation is allowed if the subalignment of sequences that
+    contain the specified char at the specified position is larger
     that the cutoff value * the total number of sequences in the alignment.
 
     """
@@ -445,7 +445,7 @@ def probs_from_dict(d, alphabet):
 
         d: probabilities of observing each character in alphabet (dict indexed
          by char)
-        alphabet: the characters in the alphabet -- provided for list order. 
+        alphabet: the characters in the alphabet -- provided for list order.
          Must iterate over the ordered characters in the alphabet (e.g., a list
          of characters or an Alphabet object)
 
@@ -457,10 +457,10 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
     """Return the frequencies in aln of chars in alphabet's order
 
         aln: the alignment object
-        alphabet: the characters in the alphabet -- provided for list order. 
+        alphabet: the characters in the alphabet -- provided for list order.
          Must iterate over the ordered characters in the alphabet (e.g., a list
          of characters or an Alphabet object)
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
@@ -483,12 +483,12 @@ def get_positional_frequencies(aln, position_number, alphabet,
     """Return the freqs in aln[position_number] of chars in alphabet's order
 
         aln: the alignment object
-        position_number: the index of the position of interest in aln 
+        position_number: the index of the position of interest in aln
          (note: zero-based alignment indexing)
-        alphabet: the characters in the alphabet -- provided for list order. 
+        alphabet: the characters in the alphabet -- provided for list order.
          Must iterate over the ordered characters in the alphabet (e.g., a list
          of characters or an Alphabet object)
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
@@ -504,10 +504,10 @@ def get_positional_frequencies(aln, position_number, alphabet,
 
 
 def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
-    """Get probs of observering the freq of each char given it's natural freq 
+    """Get probs of observering the freq of each char given it's natural freq
         In Suel 2003 supplementary material, this step is defined as:
-         "... each element is the binomial probability of observing each 
-          amino acid residue at position j given its mean frequency in 
+         "... each element is the binomial probability of observing each
+          amino acid residue at position j given its mean frequency in
           all natural proteins."
         This function performs the calculate for a single position.
 
@@ -516,7 +516,7 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
          output of get_positional_frequencies)
         natural_probs: the natural probabilities of observing each char
          in the alphabet (list of floats: typically output of probs_from_dict)
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
@@ -542,19 +542,19 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
 
 
 def get_subalignments(aln, position, selections):
-    """ returns subalns w/ seq[pos] == selection for each in selections 
+    """ returns subalns w/ seq[pos] == selection for each in selections
         aln: an alignment object
         position: int in alignment to be checked for each perturbation
-        selections: characters which must be present at seq[pos] for 
+        selections: characters which must be present at seq[pos] for
             seq to be in subalignment
 
         Note: This method returns a list of subalignments corresponding
-            to the list of selections. So, if you specify selections as 
-            ['A','G'], you would get two subalignments back -- the first 
+            to the list of selections. So, if you specify selections as
+            ['A','G'], you would get two subalignments back -- the first
             containing sequences with 'A' at position, and the second
             containing sequences with 'G' at position. If you want all
-            sequences containing either 'A' or 'G', merge the resulting 
-            subalignments.  
+            sequences containing either 'A' or 'G', merge the resulting
+            subalignments.
 
     """
     result = []
@@ -568,8 +568,8 @@ def get_dg(position_probs, aln_probs):
     """ Return delta_g vector
 
         position_probs: the prob of observing each alphabet chars frequency in
-         the alignment position-of-interest, given it's background frequency 
-         in all proteins (list of floats, typically the output of 
+         the alignment position-of-interest, given it's background frequency
+         in all proteins (list of floats, typically the output of
          get_positional_probabilities)
         aln_probs: the prob of observing each alphabet chars frequency in the
          full alignment, given it's background frequency (list of floats)
@@ -589,21 +589,21 @@ def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
         subaln_dgs: the dg vector for a sub-alignment of the position-of-
          interest in the alignment (list of floats, typically the output
          of get_dg applied to a sub-alignment)
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
 
-        * There are two weird issues in this function with respect to the 
-        desciption of the algorithm in the Suel 2003 supplementary material. 
+        * There are two weird issues in this function with respect to the
+        desciption of the algorithm in the Suel 2003 supplementary material.
         In order to get the values presented in their GPCR paper, we need to
         (1) divide the euclidian norm by the scaled_aln_size, and then (2)
-        multiply the result by e. 
+        multiply the result by e.
         ** IT IS CRITICAL TO UNDERSTAND WHY
         WE NEED TO APPLY THESE STEPS BEFORE PUBLISHING ANYTHING THAT USES
-        THIS CODE.**    
+        THIS CODE.**
 
-        * A possible reason for the mysterious e scaling is that we are 
+        * A possible reason for the mysterious e scaling is that we are
         misinterpreting what they mean when they say ddg is 'the magnitude of
         this difference vector.' We are assuming they are referring to the
         Euclidian norm, but until I see their code, I can't be sure about
@@ -616,56 +616,56 @@ def sca_pair(alignment, pos1, pos2, cutoff,
              position_freqs=None, position_probs=None, dgs=None, perturbations=None,
              scaled_aln_size=100, null_value=gDefaultNullValue, return_all=False,
              alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
-    """ Calculate statistical coupling b/w a pair of alignment columns 
+    """ Calculate statistical coupling b/w a pair of alignment columns
 
         alignment: full alignment object
-        pos1: the first position used to probe for statistical coupling 
-         (subalignments will be generated based on allowed perturbations 
+        pos1: the first position used to probe for statistical coupling
+         (subalignments will be generated based on allowed perturbations
          at this position) -- int, zero-based indexing into alignment
-        pos2: the second position used to probe for statistical coupling 
+        pos2: the second position used to probe for statistical coupling
          -- int, zero-based indexing into alignment
-        cutoff: the percentage of sequences that must contain a specific 
-         char at a specific pos1 to result in an allowed sub-alignment. 
-         (According to the Ranganathan papers, this should be the value 
+        cutoff: the percentage of sequences that must contain a specific
+         char at a specific pos1 to result in an allowed sub-alignment.
+         (According to the Ranganathan papers, this should be the value
          determined by their 3rd criteria.)
-        position_freqs: if precalculated, a matrix containing the output 
+        position_freqs: if precalculated, a matrix containing the output
          of get_positional_frequencies for each position in the alignment.
-         This will typically be used only when sca_pair is called from 
+         This will typically be used only when sca_pair is called from
          sca_position, and these values are therefore pre-calculated.
-        position_probs: if precalculated, a matrix containing the output 
+        position_probs: if precalculated, a matrix containing the output
          of get_positional_probabilities for each position in the alignment.
-         This will typically be used only when sca_pair is called from 
+         This will typically be used only when sca_pair is called from
          sca_position, and these values are therefore pre-calculated.
-        dgs: if precalculated, a matrix containing the output 
+        dgs: if precalculated, a matrix containing the output
          of get_dg for each position in the alignment.
-         This will typically be used only when sca_pair is called from 
+         This will typically be used only when sca_pair is called from
          sca_position, and these values are therefore pre-calculated.
-        perturbations: if precalculated, a matrix containing the output 
+        perturbations: if precalculated, a matrix containing the output
          of get_allowed_perturbations for each position in the alignment.
-         This will typically be used only when sca_pair is called from 
+         This will typically be used only when sca_pair is called from
          sca_position, and these values are therefore pre-calculated.
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
-        null_value: the value which should be returned if SCA cannot or 
-         should not be calculated (e.g., no allowed perturbations or 
+        null_value: the value which should be returned if SCA cannot or
+         should not be calculated (e.g., no allowed perturbations or
          pos1==pos2, respectively).
         return_all: if cutoff <= 0.50, it is possible that there will be more
          than one allowed_perturbation per position. In these cases, either all
          of the values could be returned (return_all=True) or the max of the
          values can be returned (return_all=False, default). If you'd like one
-         value, but not the max, wrap this function with return_all=True, and 
+         value, but not the max, wrap this function with return_all=True, and
          handle the return value as desired.
-        alphabet: an ordered iterable object containing the characters in the 
+        alphabet: an ordered iterable object containing the characters in the
          alphabet. For example, this can be a CharAlphabet object, a list,
          or a string.
 
-        **IMPORTANT NOTE: SCA, unlike (all?) other methods implemented here, 
+        **IMPORTANT NOTE: SCA, unlike (all?) other methods implemented here,
          requires the full alignment, even to calculate coupling between just
-         a pair of positions. Because frequencies of characters in the full 
+         a pair of positions. Because frequencies of characters in the full
          alignment are compared with frequencies at each position, you cannot
-         simply pull out two columns of the alignment, and pass them to this 
+         simply pull out two columns of the alignment, and pass them to this
          function as a subalignment. Your results would differ from calculating
          coupling of the same positions with the full alignment. For example:
             sca_pair(aln,10,20,0.85) != \
@@ -745,46 +745,46 @@ def sca_position(alignment, position, cutoff,
                  perturbations=None, scaled_aln_size=100,
                  null_value=gDefaultNullValue, return_all=False,
                  alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
-    """ Calculate statistical coupling b/w a column and all other columns 
+    """ Calculate statistical coupling b/w a column and all other columns
 
         alignment: full alignment object
-        position: the position of interest to probe for statistical coupling 
-         (subalignments will be generated based on allowed perturbations 
+        position: the position of interest to probe for statistical coupling
+         (subalignments will be generated based on allowed perturbations
          at this position) -- int, zero-based indexing into alignment
-        cutoff: the percentage of sequences that must contain a specific 
-         char at a specific pos1 to result in an allowed sub-alignment. 
-         (According to the Ranganathan papers, this should be the value 
+        cutoff: the percentage of sequences that must contain a specific
+         char at a specific pos1 to result in an allowed sub-alignment.
+         (According to the Ranganathan papers, this should be the value
          determined by their 3rd criteria.)
-        position_freqs: if precalculated, a matrix containing the output 
+        position_freqs: if precalculated, a matrix containing the output
          of get_positional_frequencies for each position in the alignment.
-         This will typically be used only when sca_position is called from 
+         This will typically be used only when sca_position is called from
          sca_alignment, and these values are therefore pre-calculated.
-        position_probs: if precalculated, a matrix containing the output 
+        position_probs: if precalculated, a matrix containing the output
          of get_positional_probabilities for each position in the alignment.
-         This will typically be used only when sca_position is called from 
+         This will typically be used only when sca_position is called from
          sca_alignment, and these values are therefore pre-calculated.
-        dgs: if precalculated, a matrix containing the output 
+        dgs: if precalculated, a matrix containing the output
          of get_dg for each position in the alignment.
-         This will typically be used only when sca_position is called from 
+         This will typically be used only when sca_position is called from
          sca_alignment, and these values are therefore pre-calculated.
-        perturbations: if precalculated, a matrix containing the output 
+        perturbations: if precalculated, a matrix containing the output
          of get_allowed_perturbations for each position in the alignment.
-         This will typically be used only when sca_position is called from 
+         This will typically be used only when sca_position is called from
          sca_alignment, and these values are therefore pre-calculated.
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
-        null_value: the value which should be returned if SCA cannot or 
-         should not be calculated (e.g., no allowed perturbations or 
+        null_value: the value which should be returned if SCA cannot or
+         should not be calculated (e.g., no allowed perturbations or
         pos1==pos2, respectively).
         return_all: if cutoff <= 0.50, it is possible that there will be more
          than one allowed_perturbation per position. In these cases, either all
          of the values could be returned (return_all=True) or the max of the
          values can be returned (return_all=False, default). If you'd like one
-         value, but not the max, wrap this function with return_all=True, and 
+         value, but not the max, wrap this function with return_all=True, and
          handle the return value as desired.
-        alphabet: an ordered iterable object containing the characters in the 
+        alphabet: an ordered iterable object containing the characters in the
          alphabet. For example, this can be a CharAlphabet object, a list,
          or a string.
 
@@ -834,24 +834,24 @@ def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,
     """ Calculate statistical coupling b/w all columns in alignment
 
         alignment: full alignment object
-        cutoff: the percentage of sequences that must contain a specific 
-         char at a specific pos1 to result in an allowed sub-alignment. 
-         (According to the Ranganathan papers, this should be the value 
+        cutoff: the percentage of sequences that must contain a specific
+         char at a specific pos1 to result in an allowed sub-alignment.
+         (According to the Ranganathan papers, this should be the value
          determined by their 3rd criteria.)
-        scaled_aln_size: the scaled number of sequences in the alignment. The 
+        scaled_aln_size: the scaled number of sequences in the alignment. The
          original SCA implementation treats all alignments as if they contained
          100 sequences when calculating frequencies and probabilities. 100 is
          therefore the default value.
-        null_value: the value which should be returned if SCA cannot or 
-         should not be calculated (e.g., no allowed perturbations or 
+        null_value: the value which should be returned if SCA cannot or
+         should not be calculated (e.g., no allowed perturbations or
         pos1==pos2, respectively).
         return_all: if cutoff <= 0.50, it is possible that there will be more
          than one allowed_perturbation per position. In these cases, either all
          of the values could be returned (return_all=True) or the max of the
          values can be returned (return_all=False, default). If you'd like one
-         value, but not the max, wrap this function with return_all=True, and 
+         value, but not the max, wrap this function with return_all=True, and
          handle the return value as desired.
-        alphabet: an ordered iterable object containing the characters in the 
+        alphabet: an ordered iterable object containing the characters in the
          alphabet. For example, this can be a CharAlphabet object, a list,
          or a string.
 
@@ -1060,9 +1060,9 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
           is assigned to sequence states not observed in the alignment.
         - optimise: whether to optimise the likelihood function.
 
-        Note: for the sake of reduced alphabets, we calculate the 
+        Note: for the sake of reduced alphabets, we calculate the
          substitution model from the alignment. This also appears
-         to be what what described in Tuffery 2000, although they're 
+         to be what what described in Tuffery 2000, although they're
          not perfectly clear about it.
     """
     sm = sm or SubstitutionModel(aln.Alphabet, recode_gaps=True)
@@ -1228,7 +1228,7 @@ def sca_input_validation(alignment, **kwargs):
 
 
 def validate_alphabet(alphabet, freqs):
-    """SCA validation: ValueError if set(alphabet) != set(freqs.keys()) 
+    """SCA validation: ValueError if set(alphabet) != set(freqs.keys())
     """
     alphabet_chars = set(alphabet)
     freq_chars = set(freqs.keys())
@@ -1261,7 +1261,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
         Incompatibility between the alignment and the ancestral_seqs is
             different sequence lengths. Incompatbility between the tree and
             the ancestral seqs is imperfect overlap between the names of the
-            ancestors in the tree and the ancestral sequence names. 
+            ancestors in the tree and the ancestral sequence names.
     """
     if len(alignment) != len(ancestral_seqs):
         raise ValueError("Alignment and ancestral seqs are different lengths.")
@@ -1275,7 +1275,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
 
 
 def validate_tree(alignment, tree):
-    """AS validation: ValueError if tip and seq names aren't same 
+    """AS validation: ValueError if tip and seq names aren't same
     """
     if set(tree.getTipNames()) != set(alignment.getSeqNames()):
         raise ValueError(
@@ -1433,15 +1433,15 @@ def coevolve_alignments(method, alignment1, alignment2,
         method: the *_alignment function to be applied
         alignment1: alignment of first molecule (DenseAlignment)
         alignment2: alignment of second molecule (DenseAlignment)
-        return_full: if True, returns intra- and inter-molecular 
+        return_full: if True, returns intra- and inter-molecular
          coevolution data in a square matrix (default: False)
-        merged_aln_filepath: if provided, will write the merged 
+        merged_aln_filepath: if provided, will write the merged
          alignment to file (useful for running post-processing filters)
         min_num_seqs: the minimum number of sequences that should be
-         present in the merged alignment to perform the analysis 
+         present in the merged alignment to perform the analysis
          (default: 2)
         max_num_seqs: the maximum number of sequences to include
-         in an analysis - if the number of sequences exceeds 
+         in an analysis - if the number of sequences exceeds
          max_num_seqs, a random selection of max_num_seqs will be
          used. This is a time-saving step as too many sequences can
          slow things down a lot. (default: None, any number of
@@ -1453,32 +1453,32 @@ def coevolve_alignments(method, alignment1, alignment2,
          max_num_seqs
 
         This function allows for calculation of coevolve scores between
-         pairs of alignments. The results are returned in a rectangular 
+         pairs of alignments. The results are returned in a rectangular
          len(alignment1) x len(alignment2) matrix.
 
         There are some complications involved in preparing alignments for
          this function, because it needs to be obvious how to associate the
-         putative interacting sequences. For example, if looking for 
-         interactions between mammalian proteins A and B, sequences are 
-         required from the same sets of species, and it must be apparant how 
-         to match the sequences that are most likely to be involved in 
-         biologically meaningful interactions. This typically means matching 
-         the sequences of proteins A&B that come from the same species. In 
+         putative interacting sequences. For example, if looking for
+         interactions between mammalian proteins A and B, sequences are
+         required from the same sets of species, and it must be apparant how
+         to match the sequences that are most likely to be involved in
+         biologically meaningful interactions. This typically means matching
+         the sequences of proteins A&B that come from the same species. In
          other words, interaction of T. aculeatus proteinA and
-         H. sapien proteinB likely don't form a biologically relevant 
-         interaction, because the species are so diverged. 
+         H. sapien proteinB likely don't form a biologically relevant
+         interaction, because the species are so diverged.
 
-         Matching of sequences is performed via the identifiers, but it is 
-         the responsibility of the user to correctly construct the sequence 
-         identifiers before passing the alignments (and tree, if applicable) 
+         Matching of sequences is performed via the identifiers, but it is
+         the responsibility of the user to correctly construct the sequence
+         identifiers before passing the alignments (and tree, if applicable)
          to this function. To faciliate matching sequence identifiers, but not
-         having to discard the important information already present in a 
+         having to discard the important information already present in a
          sequence identifier obtained from a database such as KEGG or RefSeq,
-         sequence identifiers may contain a plus symbol (+). The characters 
-         before the + are used to match sequences between the alignments and 
-         tree. The characters after the + are ignored by this function. So, a 
-         good strategy is to make the text before the '+' a taxonomic 
-         identifier and leave the text after the '+' as the original sequence 
+         sequence identifiers may contain a plus symbol (+). The characters
+         before the + are used to match sequences between the alignments and
+         tree. The characters after the + are ignored by this function. So, a
+         good strategy is to make the text before the '+' a taxonomic
+         identifier and leave the text after the '+' as the original sequence
          identifier. For example, your sequence/tip names could look like:
 
          alignment1: 'H. sapien+gi|123', 'T. aculeatus+gi|456'
@@ -1486,18 +1486,18 @@ def coevolve_alignments(method, alignment1, alignment2,
          tree: 'T. aculeatus+gi|456', 'H. sapien'
 
          If there is no plus, the full sequence identifier will be used for the
-         matching (see H. sapien in tree).  The order of sequences in the 
-         alignments is not important. Also note that we can't split on a colon, 
-         as would be convenient for pulling sequences from KEGG, because colons 
-         are special characters in newick. 
+         matching (see H. sapien in tree).  The order of sequences in the
+         alignments is not important. Also note that we can't split on a colon,
+         as would be convenient for pulling sequences from KEGG, because colons
+         are special characters in newick.
 
          A WORD OF WARNING ON SEQUENCE IDENTIFIER CONSTRUCTION:
-         A further complication is that in some cases, an organism will have 
+         A further complication is that in some cases, an organism will have
          multiple copies of proteins involved in a complex, but proteinA from
          locus 1 will not form a functional comples with proteinB from locus 2.
-         An example of this is the three T6SSs in P. aeuroginosa. Make sure 
+         An example of this is the three T6SSs in P. aeuroginosa. Make sure
          this is handled correctly when building your sequence identifiers!
-         Sequence identifiers are used to match the sequences which are 
+         Sequence identifiers are used to match the sequences which are
          suspected to form a functional complex, which may not simply mean
          sequences from the same species.
 
@@ -1599,7 +1599,7 @@ coevolve_position_functions = \
 
 
 def coevolve_position(method, alignment, position, **kwargs):
-    """ Apply provided coevolution method to a column in alignment 
+    """ Apply provided coevolution method to a column in alignment
 
         method: f(alignment,position,**kwargs) -> array of coevolution scores
         alignment: alignment object for which coevolve scores should be
@@ -1629,12 +1629,12 @@ coevolve_pair_functions = \
 
 
 def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
-    """ Apply provided coevolution method to columns pos1 & pos2 of alignment 
+    """ Apply provided coevolution method to columns pos1 & pos2 of alignment
 
         method: f(alignment,pos1,pos2,**kwargs) -> coevolution score
         alignment: alignment object for which coevolve score should be
-            calculated (DenseAlignment) 
-        pos1, pos2: positions to evaluate coevolution between (int) 
+            calculated (DenseAlignment)
+        pos1, pos2: positions to evaluate coevolution between (int)
         **kwargs: parameters to be passed to method()
 
     """
@@ -1673,8 +1673,8 @@ def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
          works in their paper, and I plan to test it with my alpha-helix-based
          analysis. Note that you can change cmp_function to change whether
          you're looking for high values to indicate covarying positions
-         (cmp_function=greater_equal, used for most coevolution algorithms) or 
-         low values to indicate covarying positions (cmp_function=less_equal, 
+         (cmp_function=greater_equal, used for most coevolution algorithms) or
+         low values to indicate covarying positions (cmp_function=less_equal,
          used, e.g., for p-value matrices).
 
         aln: alignment used to generate the coevolution matrix -- this
@@ -1682,23 +1682,23 @@ def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
          as other post-processing filters. Pass None if that's more convenient.
         coevolution_matrix: the 2D numpy array to be filtered. This should
          be a rectangular matrix for intermoelcular coevolution data (in which
-         case intermolecular_data_only must be set to True) or a symmetric 
+         case intermolecular_data_only must be set to True) or a symmetric
          square matrix (when intermolecular_data_only=False)
-        threshold: the threshold coevolution score that other scores should be 
+        threshold: the threshold coevolution score that other scores should be
          compared to
-        max_cmp_threshold: the max number of scores that are allowed to be 
+        max_cmp_threshold: the max number of scores that are allowed to be
          True with respect to cmp_function and threshold (e.g., the max number
          of positions that may be greater than the threhsold) before setting
          all values associated that position to gDefaultNullValue (default: 1)
-        cmp_function: the function that compares each score in 
-         coevolution_matrix to threshold (default: ge (greater than)) - 
-         function should return True if the score is one that your looking 
+        cmp_function: the function that compares each score in
+         coevolution_matrix to threshold (default: ge (greater than)) -
+         function should return True if the score is one that your looking
          (e.g. score >= threshold) or False otherwise
         intermolecular_data_only: True if coevolution_matrix is a rectangular
-         matrix representing an intermolecular coevolution study, and False 
+         matrix representing an intermolecular coevolution study, and False
          if the matrix is a symmetric square matrix
 
-        NOTE: IF intermolecular_data_only == True, coevolution_matrix MUST BE 
+        NOTE: IF intermolecular_data_only == True, coevolution_matrix MUST BE
          SYMMETRIC, NOT LOWER TRIANGULAR OR OTHERWISE NON-SYMMETRIC!!
     """
     # Determine which rows need to be filtered (but don't filter them
@@ -1749,38 +1749,38 @@ def is_parsimony_informative(column_freqs, minimum_count=2,
          for it to be acceptable (default: 2)
         minimum_differences: the minimum number of different characters
          that must show up at the alignment position (default: 2)
-        ignored: characters that should not be counted toward 
-         minimum_differences (default are exclude characters) 
+        ignored: characters that should not be counted toward
+         minimum_differences (default are exclude characters)
         strict: if True, requires that all amino acids showing up at least
-         once at the alignment position show up at least minimum_counts 
-         times, rather than only requiring that minimum_differences 
+         once at the alignment position show up at least minimum_counts
+         times, rather than only requiring that minimum_differences
          amino acids show up minimum_counts times. (default: False)
 
-        The term parsimony informative comes from Codoner, O'Dea, 
+        The term parsimony informative comes from Codoner, O'Dea,
          and Fares 2008, Reducing the false positive rate in the non-
          parametric analysis of molecular coevolution. In the paper
          they find that if positions which don't contain at least two
          different amino acids, and where each different amino acid doesnt
-         show up at least twice each are ignored (i.e., treated as though 
-         there is not enough information) the positive predictive value 
-         (PPV) and sensitivity (SN) increase on simulated alignments. They 
+         show up at least twice each are ignored (i.e., treated as though
+         there is not enough information) the positive predictive value
+         (PPV) and sensitivity (SN) increase on simulated alignments. They
          term this quality parsimony informative.
-         I implemented this as a filter, but include some generalization. 
+         I implemented this as a filter, but include some generalization.
          To determine if a column in an alignment is parsimony informative
-         in the exact manner described in Codoner et al., the following 
-         parameter settings are required: 
+         in the exact manner described in Codoner et al., the following
+         parameter settings are required:
           minimum_count = 2 (default)
           minimum_differences = 2 (default)
           strict = True (default is False)
          To generalize this function, minimum_count and minimum_differences
-         can be passed in so at least minimum_differences different amino 
-         acids must show up, and each amino acid must show up at least 
+         can be passed in so at least minimum_differences different amino
+         acids must show up, and each amino acid must show up at least
          minimum_count times.
-         In additional variation, strict=False can be passed requiring 
-         that only minimum_differences number of amino acids show up at least 
+         In additional variation, strict=False can be passed requiring
+         that only minimum_differences number of amino acids show up at least
          minimum_counts times (opposed to requiring that ALL amino acids show
          up minimum_counts times). This is the default behavior.
-         By default, the default exclude characters (- and ?) don't count. 
+         By default, the default exclude characters (- and ?) don't count.
 
     """
     if ignored:
@@ -1812,10 +1812,10 @@ def filter_non_parsimony_informative(aln, coevolution_matrix,
                                      null_value=gDefaultNullValue, minimum_count=2, minimum_differences=2,
                                      ignored=gDefaultExcludes, intermolecular_data_only=False, strict=False):
     """ Replaces scores in coevolution_matrix with null_value for positions
-         which are not parsimony informative. 
+         which are not parsimony informative.
 
-         See is_parsimony_informative doc string for definition of 
-          parsimony informative. 
+         See is_parsimony_informative doc string for definition of
+          parsimony informative.
 
          aln: the input alignment used to generate the coevolution matrix;
           if the alignment was recoded, this should be the recoded alignment.
@@ -1840,7 +1840,7 @@ def filter_non_parsimony_informative(aln, coevolution_matrix,
 
 
 def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
-    """ return function to identify aln positions with > max_exclude_percent 
+    """ return function to identify aln positions with > max_exclude_percent
     """
     excludes = {}.fromkeys(excludes)
 
@@ -1861,9 +1861,9 @@ def filter_exclude_positions(aln, coevolution_matrix,
         aln: the DenseAlignment object
         coevolution_matrix: the 2D numpy array -- this will be modified
         max_exclude_percent: the maximimu percent of characters that
-         may be exclude characters in any alignment position (column). 
+         may be exclude characters in any alignment position (column).
          if the percent of exclude characters is greater than this value,
-         values in this position will be replaced with null_value 
+         values in this position will be replaced with null_value
          (default = 0.10)
         null_value: the value to be used as null (default: gDefaultNullValue)
         excludes: the exclude characters (default: gDefaultExcludes)
@@ -1899,7 +1899,7 @@ def filter_exclude_positions(aln, coevolution_matrix,
 
 
 def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
-    """ Pickle coevolve_result and store it at output_filepath 
+    """ Pickle coevolve_result and store it at output_filepath
 
         coevolve_result: result from a coevolve_* function (above); this can
          be a float, an array, or a 2D array (most likely it will be one of the
@@ -1919,7 +1919,7 @@ def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
 
 
 def unpickle_coevolution_result(in_filepath):
-    """ Read in coevolve_result from a pickled file 
+    """ Read in coevolve_result from a pickled file
 
         in_filepath: filepath to unpickle
     """
@@ -1937,7 +1937,7 @@ def unpickle_coevolution_result(in_filepath):
 
 
 def coevolution_matrix_to_csv(coevolve_matrix, out_filepath='output.csv'):
-    """ Write coevolve_matrix as csv file at output_filepath 
+    """ Write coevolve_matrix as csv file at output_filepath
 
         coevolve_result: result from a coevolve_alignment function (above);
          this should be a 2D numpy array
@@ -1955,7 +1955,7 @@ def coevolution_matrix_to_csv(coevolve_matrix, out_filepath='output.csv'):
 
 
 def csv_to_coevolution_matrix(in_filepath):
-    """ Read a coevolution matrix from a csv file 
+    """ Read a coevolution matrix from a csv file
 
         in_filepath: input filepath
     """
@@ -1980,8 +1980,8 @@ def csv_to_coevolution_matrix(in_filepath):
 
 def identify_aln_positions_above_threshold(coevolution_matrix, threshold,
                                            aln_position, null_value=gDefaultNullValue):
-    """ Returns the list of alignment positions which achieve a 
-        score >= threshold with aln_position. 
+    """ Returns the list of alignment positions which achieve a
+        score >= threshold with aln_position.
         Coevolution matrix should be symmetrical or you
         may get weird results -- scores are pulled from the row describing
         aln_position.
@@ -1998,13 +1998,13 @@ def identify_aln_positions_above_threshold(coevolution_matrix, threshold,
 def aln_position_pairs_cmp_threshold(coevolution_matrix,
                                      threshold, cmp_function, null_value=gDefaultNullValue,
                                      intermolecular_data_only=False):
-    """ Returns list of position pairs with score >= threshold 
+    """ Returns list of position pairs with score >= threshold
 
         coevolution_matrix: 2D numpy array
         threshold: value to compare matrix positions against
         cmp_function: function which takes a value and theshold
          and returns a boolean (e.g., ge(), le())
-        null_value: value representing null scores -- these are 
+        null_value: value representing null scores -- these are
          ignored
         intermolecular_data_only: True if the coevolution result
          matrix contains only intermolecular data (default: False)
@@ -2049,9 +2049,9 @@ def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue
                         symmetric=False, ignore_diagonal=False):
     """ Returns a count of the values in m >= threshold, ignoring nulls.
 
-        m: coevolution matrix (numpy array) 
+        m: coevolution matrix (numpy array)
         thresold: value to compare against scores in matrix (float)
-        cmp_function: function used to compare value to threshold 
+        cmp_function: function used to compare value to threshold
          (e.g., greater_equal, less_equal)
     """
 
@@ -2129,9 +2129,9 @@ def build_coevolution_matrix_filepath(input_filepath,
             get the 'base' filename.
         output_dir: the path to append to the beginning of the base filename
         method: string indicating method that should be appended to filename
-        alphabet: string indicating an alphabet recoding which should be 
+        alphabet: string indicating an alphabet recoding which should be
             appended to filename, or None
-        parameter: parameter that should be appended to the filename, 
+        parameter: parameter that should be appended to the filename,
             or None (ignored if method doesn't require parameter)
 
         Examples:
@@ -2182,17 +2182,17 @@ def parse_coevolution_matrix_filepath(filepath):
     """ Parses a coevolution matrix filepath into constituent parts.
 
         Format is very specific. Will only work on filenames such as:
-         path/alignment_identifier.alphabet_id.method.pkl 
+         path/alignment_identifier.alphabet_id.method.pkl
          path/alignment_identifier.alphabet_id.method.csv
 
-        This format is the recommended naming convention for coevolution 
+        This format is the recommended naming convention for coevolution
          matrices. To ensure filepaths compatible with this function, use
-         cogent3.evolve.coevolution.build_coevolution_matrix_filepath to build 
+         cogent3.evolve.coevolution.build_coevolution_matrix_filepath to build
          the filepaths for your coevolution matrices.
 
 
          Examples:
-         parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.pkl') 
+         parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.pkl')
             => ('myosin_995', 'a1_4', 'nmi')
          parse_coevolution_matrix_filepath('p53.orig.mi.csv')
             => ('p53','orig','mi')

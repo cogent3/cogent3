@@ -18,7 +18,7 @@ __status__ = "Production"
 
 """
 CAUTION:
-This XML PARSER uses minidom. This means a bad performance for 
+This XML PARSER uses minidom. This means a bad performance for
 big files (>5MB), and huge XML files will for sure crash the program!
 """
 
@@ -32,7 +32,7 @@ def TinyseqParser(doc):
         - name, cogent sequence
 
     CAUTION:
-    This XML PARSER uses minidom. This means a bad performance for 
+    This XML PARSER uses minidom. This means a bad performance for
     big files (>5MB), and huge XML files will for sure crash the program!
     """
     if isinstance(doc, xml.dom.minidom.Document):

@@ -1,7 +1,7 @@
-"""P matrices for some DNA models can be calculated without going via the 
-intermediate rate matrix Q.  A Cython implementation of this calculation can 
+"""P matrices for some DNA models can be calculated without going via the
+intermediate rate matrix Q.  A Cython implementation of this calculation can
 be used when Q is not required, for example during likelihood tree optimisation.
-Equivalent pure python code is NOT provided because it is typically slower 
+Equivalent pure python code is NOT provided because it is typically slower
 than the rate-matrix based alternative and provides no extra functionality.
 """
 

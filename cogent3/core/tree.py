@@ -1066,8 +1066,8 @@ class TreeNode(object):
         """Propagate tip distance information up the tree
 
         This method was originally implemented by Julia Goodrich with the intent
-        of being able to determine max tip to tip distances between nodes on 
-        large trees efficiently. The code has been modified to track the 
+        of being able to determine max tip to tip distances between nodes on
+        large trees efficiently. The code has been modified to track the
         specific tips the distance is between
         """
         for n in self.postorder():
@@ -1164,7 +1164,7 @@ class TreeNode(object):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
-        ignore_missing: if False, getSubTree will raise a ValueError if 
+        ignore_missing: if False, getSubTree will raise a ValueError if
         name_list contains names that aren't nodes in the tree
 
         keep_root: if False, the root of the subtree will be the last common
@@ -1535,7 +1535,7 @@ class TreeNode(object):
 
         Other is expected to be a tree object compatible with PhyloNode.
 
-        Note: names present in only one of the two trees will count as 
+        Note: names present in only one of the two trees will count as
         mismatches: if you don't want this behavior, strip out the non-matching
         tips first.
         """
@@ -1609,9 +1609,9 @@ class TreeNode(object):
         as identical (0 distance).
 
         Note: automatically strips out the names that don't match (this is
-        necessary for this method because the distance between non-matching 
-        names and matching names is undefined in the tree where they don't 
-        match, and because we need to reorder the names in the two trees to 
+        necessary for this method because the distance between non-matching
+        names and matching names is undefined in the tree where they don't
+        match, and because we need to reorder the names in the two trees to
         match up the distance matrices).
         """
         self_names = [i.Name for i in self.tips()]
@@ -1737,7 +1737,7 @@ class PhyloNode(TreeNode):
         """Reconstructs correct tree after nodes have been removed.
 
         Internal nodes with only one child will be removed and new connections
-        and Branch lengths will be made to reflect change. 
+        and Branch lengths will be made to reflect change.
         """
         # traverse tree to decide nodes to be removed.
         nodes_to_remove = []
@@ -1914,7 +1914,7 @@ class PhyloNode(TreeNode):
             return new_root.unrootedDeepcopy()
 
     def _find_midpoint_nodes(self, max_dist, tip_pair):
-        """returns the nodes surrounding the maxTipTipDistance midpoint 
+        """returns the nodes surrounding the maxTipTipDistance midpoint
 
         WAS used for midpoint rooting.  ORPHANED NOW
         max_dist: The maximum distance between any 2 tips
@@ -2121,9 +2121,9 @@ class PhyloNode(TreeNode):
         as identical (0 distance).
 
         Note: automatically strips out the names that don't match (this is
-        necessary for this method because the distance between non-matching 
-        names and matching names is undefined in the tree where they don't 
-        match, and because we need to reorder the names in the two trees to 
+        necessary for this method because the distance between non-matching
+        names and matching names is undefined in the tree where they don't
+        match, and because we need to reorder the names in the two trees to
         match up the distance matrices).
         """
         self_names = dict([(i.Name, i) for i in self.tips()])

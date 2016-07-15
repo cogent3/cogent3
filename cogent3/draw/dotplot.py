@@ -46,9 +46,9 @@ def _reinchify(figsize, posn, *args):
 def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     """'Fat' annotated X and Y axes for a dotplot
 
-    Returns a matplotlib axes object placed and scaled ready for plotting 
-    a sequence vs sequence comparison between the sequences (or alignments) 
-    seq1 and seq2, which are also displayed. The aspect ratio will depend on 
+    Returns a matplotlib axes object placed and scaled ready for plotting
+    a sequence vs sequence comparison between the sequences (or alignments)
+    seq1 and seq2, which are also displayed. The aspect ratio will depend on
     the sequence lengths as the sequences are drawn to the same scale"""
 
     import matplotlib.pyplot as plt

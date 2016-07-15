@@ -111,7 +111,7 @@ class POGBuilder(object):
 class POG(object):
     """A representation of the indel positions in a pairwise alignment, ie:
     those segments of the consensus sequence which may be inserts and so absent
-    from the common ancestor.  Nearly equivalent to a generic Partial Order 
+    from the common ancestor.  Nearly equivalent to a generic Partial Order
     Graph.
 
     Indels are represented as tuples of
@@ -121,7 +121,7 @@ class POG(object):
     for indels in its two children in case they are also alignments.
 
     This data structure largely inspired by:
-    Loytynoja A, Goldman N. 2005. An algorithm for progressive multiple 
+    Loytynoja A, Goldman N. 2005. An algorithm for progressive multiple
     alignment of sequences with insertions. PNAS 102:10557-10562
     """
 

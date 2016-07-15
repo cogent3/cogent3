@@ -66,7 +66,7 @@ class GeneticCode(object):
     def __init__(self, CodeSequence, ID=None, Name=None, StartCodonSequence=None):
         """Returns new GeneticCode object.
 
-        CodeSequence : 64-character string containing NCBI representation 
+        CodeSequence : 64-character string containing NCBI representation
         of the genetic code. Raises GeneticCodeInitError if length != 64.
         """
         if (len(CodeSequence) != 64):
@@ -122,7 +122,7 @@ class GeneticCode(object):
 
         Note: codon blocks like Ile in the standard code (AUU, AUC, AUA) will
         be split when they cross the R/Y boundary, so [[AUU, AUC], [AUA]]. This
-        would also apply to a block like AUC AUA AUG -> [[AUC],[AUA,AUG]], 
+        would also apply to a block like AUC AUA AUG -> [[AUC],[AUA,AUG]],
         although this latter pattern is not observed in the standard code.
         """
         if aa[0] == aa[1]:
@@ -158,7 +158,7 @@ class GeneticCode(object):
         Returns a list of the quartets, doublets, and singlets in the order
         UUU -> GGG.
 
-        Note that a doublet cannot span the purine/pyrimidine boundary, and 
+        Note that a doublet cannot span the purine/pyrimidine boundary, and
         a quartet cannot span the boundary between two codon blocks whose first
         two bases differ.
         """
