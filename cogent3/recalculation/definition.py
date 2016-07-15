@@ -121,7 +121,7 @@ class CalculationDefn(_NonLeafDefn):
         return cell
 
     def makeCells(self, input_soup, variable=None):
-        # input soups contains all necessary values for calc on self. 
+        # input soups contains all necessary values for calc on self.
         # Going from defns to cells.
         cells = []
         for input_nums in self.uniq:
@@ -153,7 +153,7 @@ class CalcDefn(object):
             name = self.calc.__name__
         else:
             assert isinstance(name, str), name
-        kw['name'] = name        
+        kw['name'] = name
         self.kw = kw
 
     def __call__(self, *args):
@@ -237,7 +237,7 @@ class _InputDefn(_LeafDefn):
 
     def getNumFreeParams(self):
         (cells, outputs) = self.makeCells({}, None)
-        return len([c for c in cells if isinstance(c, OptPar)])    
+        return len([c for c in cells if isinstance(c, OptPar)])
 
 
 class ParamDefn(_InputDefn):
@@ -400,28 +400,28 @@ class PartitionDefn(_InputDefn):
 
     def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size,):
-            raise ValueError("Wrong array shape %s for %s, expected (%s,)" % 
+            raise ValueError("Wrong array shape %s for %s, expected (%s,)" %
                              (value.shape, self.name, self.size))
         for part in value:
             if part < 0:
-                raise ValueError("Negative probability in %s" % self.name)                
+                raise ValueError("Negative probability in %s" % self.name)
             if part > 1:
-                raise ValueError("Probability > 1 in %s" % self.name)                
+                raise ValueError("Probability > 1 in %s" % self.name)
             if not is_constant:
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
-                    raise ValueError("Zeros allowed in %s only when constant" % 
-                                     self.name)                
+                    raise ValueError("Zeros allowed in %s only when constant" %
+                                     self.name)
                 if part == 1:
-                    raise ValueError("Ones allowed in %s only when constant" % 
+                    raise ValueError("Ones allowed in %s only when constant" %
                                      self.name)
         if abs(sum(value) - 1.0) > .00001:
             raise ValueError("Elements of %s must sum to 1.0, not %s" %
                              (self.name, sum(value)))
 
     def _makePartitionCell(self, name, scope, value):
-        # This was originally put in its own function so as to provide a 
-        # closure containing the value of sum(value), which is no longer 
+        # This was originally put in its own function so as to provide a
+        # closure containing the value of sum(value), which is no longer
         # required since it is now always 1.0.
         N = len(value)
         assert abs(sum(value) - 1.0) < .00001
@@ -584,4 +584,3 @@ __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
     n for (n, c) in list(vars().items())
     if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
     or isinstance(c, CalcDefn)]
-

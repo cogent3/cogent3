@@ -169,4 +169,3 @@ def CheckedExponentiator(Q):
 
 def RobustExponentiator(Q):
     return PadeExponentiator(Q)
-

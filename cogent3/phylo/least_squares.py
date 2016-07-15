@@ -84,4 +84,3 @@ class WLS(TreeEvaluator):
 def wls(*args, **kw):
     (err, tree) = WLS(*args).trex(**kw)
     return tree
-

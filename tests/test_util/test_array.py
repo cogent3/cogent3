@@ -437,7 +437,7 @@ class ArrayMathTests(TestCase):
         try:
             numpy.seterr(invalid='raise')
             self.assertRaises((ZeroDivisionError, FloatingPointError),
-                              scale_row_sum, array([[1, 0], [0, 0]], float))            
+                              scale_row_sum, array([[1, 0], [0, 0]], float))
         finally:
             numpy.seterr(**ori_err)
 
@@ -504,7 +504,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(abs_diff(m2, m), 29.0)
 
     def test_sq_diff(self):
-        """sq_diff should calculate element-wise sum square of abs(first-second)"""     
+        """sq_diff should calculate element-wise sum square of abs(first-second)"""
         m = array([[1.0, 2, 3], [4, 5, 6], [7, 8, 9]])
         m2 = array([[1.0, 1, 4], [2, 6, -1], [8, 6, -5]])
         # matrix should not be different from itself
@@ -515,7 +515,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(sq_diff(m2, m), 257.0)
 
     def test_norm_diff(self):
-        """norm_diff should calculate per-element rms difference"""     
+        """norm_diff should calculate per-element rms difference"""
         m = array([[1.0, 2, 3], [4, 5, 6], [7, 8, 9]])
         m2 = array([[1.0, 1, 4], [2, 6, -1], [8, 6, -5]])
         # matrix should not be different from itself

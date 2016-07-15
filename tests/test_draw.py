@@ -128,7 +128,7 @@ class CheckOutput(object):
                 html.append('<h2>%s</h2>' % msg)
                 html.append('<img src="%s"/>' % fn1)
             else:
-                html.append('<p>%s</p>' % msg)                
+                html.append('<p>%s</p>' % msg)
             html.append('<hr/>')
         html.append('</body></html>')
         html = '\n'.join(html)
@@ -209,27 +209,27 @@ class DrawingTests(unittest.TestCase):
 
     def test_seqs(self):
         seqd = Display(seq)
-        do('sequence wrapped at 50', 
+        do('sequence wrapped at 50',
             seqd, rowlen=50)
         small = FontProperties(size=7, stretch='extra-condensed')
-        do('squashed sequence', 
+        do('squashed sequence',
             seqd.copy(seq_font=small, colour_sequences=True))
-        do('seq display slice from 5 to 45 starts %s' % seq[5:8], 
+        do('seq display slice from 5 to 45 starts %s' % seq[5:8],
             seqd[5:45])
 
     def test_alns(self):
         alignd = Display(align, colour_sequences=True, min_feature_height=10)
-        do('coloured text alignment', 
+        do('coloured text alignment',
             alignd)
-        do('coloured alignment no text', 
+        do('coloured alignment no text',
             alignd.copy(show_text=False))
-        do('no text and no colour', 
+        do('no text and no colour',
             alignd.copy(show_text=False, colour_sequences=False))
-        do('no shapes', 
+        do('no shapes',
             alignd.copy(show_text=False, draw_bases=False))
-        do('no text or colour or shapes', 
+        do('no text or colour or shapes',
             alignd.copy(show_text=False, colour_sequences=False, draw_bases=False))
-        do('green seqs', 
+        do('green seqs',
             alignd.copy(seq_color_callback=green_cg))
 
     def test_legend(self):
@@ -246,17 +246,17 @@ class DrawingTests(unittest.TestCase):
             treestring = treestring.replace(edge, edge + edge.lower() * 10)
         t = LoadTree(treestring=treestring)
         for klass in [
-                UnrootedDendrogram, 
-                SquareDendrogram, 
-                ContemporaneousDendrogram, 
-                ShelvedDendrogram, 
-            #        StraightDendrogram, 
+                UnrootedDendrogram,
+                SquareDendrogram,
+                ContemporaneousDendrogram,
+                ShelvedDendrogram,
+            #        StraightDendrogram,
             #        ContemporaneousStraightDendrogram
         ]:
             dendro = klass(t)
             dendro.getConnectingNode('Ccccccccccc', 'Eeeeeeeeeee').setCollapsed(
                 color="green", label="C, D and E")
-            do(klass.__name__, dendro, shade_param="length", 
+            do(klass.__name__, dendro, shade_param="length",
                 show_params=["length"])
 
         def callback(edge):
@@ -305,5 +305,3 @@ else:
     finally:
         if hasattr(test_figure, 'report'):
             test_figure.report()
-
-

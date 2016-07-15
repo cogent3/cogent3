@@ -279,7 +279,7 @@ def curry(f, *a, **kw):
 
     try:
         f_name = f.__name__
-    except:  # e.g.  itertools.groupby failed .func_name 
+    except:  # e.g.  itertools.groupby failed .func_name
         f_name = '?'
 
     curried.__doc__ = ' curry(%s,%s)\n'\
@@ -1287,8 +1287,8 @@ def reverse_complement(seq, use_DNA=True):
 
     # join the reverse-complemented list and return
     return "".join(comp_list)
-# The reverse_complement function was previously called revComp, but that 
-# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but 
+# The reverse_complement function was previously called revComp, but that
+# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but
 # keeping the old name around to not break existing code.
 revComp = reverse_complement
 # end revComp
@@ -1475,9 +1475,9 @@ def handle_error_codes(dir_name, supress_errors=False,
     error_strings = \
         {error_code_lookup['DIR_EXISTS']:
          "Directory already exists: %s" % dir_name,
-         error_code_lookup['FILE_EXISTS']: 
+         error_code_lookup['FILE_EXISTS']:
          "File with same name exists: %s" % dir_name,
-         error_code_lookup['OTHER_OS_ERROR']: 
+         error_code_lookup['OTHER_OS_ERROR']:
          "Could not create output directory: %s. " % dir_name +
          "Check the permissions."}
 

@@ -47,4 +47,3 @@ class Checkpointer(object):
             with open(self.filename, 'wb') as f:
                 pickle.dump(obj, f)
             self.last_time = now
-

@@ -79,4 +79,3 @@ def DialignParser(lines, seq_maker=None, get_scores=False):
 
     if get_scores:
         yield "QualityScores", "".join(quality_scores)
-

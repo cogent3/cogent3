@@ -39,7 +39,7 @@ class EUtilsTests(TestCase):
         loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
-        # EUtils access of a slice should work, while limiting 
+        # EUtils access of a slice should work, while limiting
         # the esearch term length
         g = EUtils(db='protein', rettype='gp', retmax=1, url_limit=2)
         result = g['NP_003320':'NP_003322'].read()
@@ -141,11 +141,11 @@ class ELinkTests(TestCase):
 
     def test_multiple_elink(self):
         """ELink should find unique links in a set of ids"""
-        l = ELink(db='taxonomy', dbfrom='protein', 
+        l = ELink(db='taxonomy', dbfrom='protein',
                   id='83304912 115496169 119586556 111309484')
         result = l.read()
         parsed = ELinkResultParser(result)
-        self.assertEqual(sorted(parsed), ['10090', '9606'])  
+        self.assertEqual(sorted(parsed), ['10090', '9606'])
         # human and mouse sequences
 
 
@@ -154,7 +154,7 @@ class EFetchTests(TestCase):
 
     def test_simple_efetch(self):
         """EFetch should return records from list of ids"""
-        f = EFetch(db='protein', rettype='fasta', retmode='text', 
+        f = EFetch(db='protein', rettype='fasta', retmode='text',
                    id='111309484')
         result = f.read().splitlines()
         assert result[0].startswith('>')

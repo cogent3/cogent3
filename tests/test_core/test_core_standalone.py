@@ -152,35 +152,35 @@ class AlignmentTestMethods(unittest.TestCase):
         """test slicing of sequences"""
         alignment = LoadSeqs(
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
-        sub_align = alignment[2: 5]          
-        self.assertEqual(len(sub_align), 3)  
+        sub_align = alignment[2: 5]
+        self.assertEqual(len(sub_align), 3)
         self.assertEqual(len(sub_align.getSeqNames()), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'GTA', 'seq2': 'GTA', 'seq3': 'GTA'})
 
-        sub_align = alignment[5: 20]         
-        self.assertEqual(len(sub_align), 3)  
+        sub_align = alignment[5: 20]
+        self.assertEqual(len(sub_align), 3)
         self.assertEqual(len(sub_align.getSeqNames()), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'CGT', 'seq2': 'CGT', 'seq3': 'CGT'})
 
-        sub_align = alignment[2]             
-        self.assertEqual(len(sub_align), 1)  
+        sub_align = alignment[2]
+        self.assertEqual(len(sub_align), 1)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'G', 'seq2': 'G', 'seq3': 'G'})
 
-        sub_align = alignment[0]             
-        self.assertEqual(len(sub_align), 1)  
+        sub_align = alignment[0]
+        self.assertEqual(len(sub_align), 1)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'A', 'seq2': 'A', 'seq3': 'A'})
 
-        sub_align = alignment[7]             
-        self.assertEqual(len(sub_align), 1)  
+        sub_align = alignment[7]
+        self.assertEqual(len(sub_align), 1)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'T', 'seq2': 'T', 'seq3': 'T'})
 
-    def test_slidingWindows(self):          
-        """test slicing of sequences"""      
+    def test_slidingWindows(self):
+        """test slicing of sequences"""
         alignment = LoadSeqs(
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
@@ -218,7 +218,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         result = []
         for bit in alignment.slidingWindows(5, 1):
-            result += [bit]                    
+            result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {
@@ -391,7 +391,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_translate(self):
         for seqs in [
-                {'seq1': 'GATTTT', 'seq2': 'GATC??'}, 
+                {'seq1': 'GATTTT', 'seq2': 'GATC??'},
                 {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = LoadSeqs(data=seqs, moltype=DNA)
             self.assertEqual(len(alignment.getTranslation()), 2)
@@ -616,4 +616,3 @@ class SequenceTestMethods(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

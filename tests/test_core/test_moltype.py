@@ -272,9 +272,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(RnaMolType.complement(''), '')
         self.assertRaises(TypeError, ProteinMolType.complement, 'ACD')
         # if it wasn't a string, result should be a list
-        self.assertEqual(RnaMolType.complement(list('UauCG-NR')), 
+        self.assertEqual(RnaMolType.complement(list('UauCG-NR')),
                          list('AuaGC-NY'))
-        self.assertEqual(RnaMolType.complement(('a', 'c')), ('u', 'g')) 
+        self.assertEqual(RnaMolType.complement(('a', 'c')), ('u', 'g'))
         # constructor should fail for a dict
         self.assertRaises(ValueError, RnaMolType.complement, {'a': 'c'})
 
@@ -474,11 +474,11 @@ class MolTypeTests(TestCase):
         g = RnaMolType.gapVector
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHFSDKJCUICDNINS'), [False] * 27)
-        self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'), 
+        self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'),
                          list(map(bool, list(map(int, '000000000000001000000000')))))
-        self.assertEqual(g('-DSHFUHDSF'), 
+        self.assertEqual(g('-DSHFUHDSF'),
                          list(map(bool, list(map(int, '1000000000')))))
-        self.assertEqual(g('UACHASJAIDS-'), 
+        self.assertEqual(g('UACHASJAIDS-'),
                          list(map(bool, list(map(int, '000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
@@ -487,7 +487,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), list(map(bool, [1, 1, 1])))
         self.assertEqual(g('!@#$!@#$!@#$'), [True] * 12)
-        self.assertEqual(g('cguua!cgcuagua@cguasguadc#'), 
+        self.assertEqual(g('cguua!cgcuagua@cguasguadc#'),
                          list(map(bool, list(map(int, '00000100000000100000000001')))))
 
     def test_gapMaps(self):

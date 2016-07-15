@@ -27,4 +27,3 @@ class arrow_rates_tests(TestCase):
 
 if __name__ == '__main__':
     main()
-

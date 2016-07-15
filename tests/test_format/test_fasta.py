@@ -58,7 +58,7 @@ class FastaTests(TestCase):
         make_seqlabel = lambda seq: "%s:%s" % (seq.Name, seq.Info.species)
         seqs = [self.alignment_object.NamedSeqs[label]
             for label in self.labels]
-        self.assertEqual(fasta_from_sequences(seqs, 
+        self.assertEqual(fasta_from_sequences(seqs,
                                               make_seqlabel=make_seqlabel), self.fasta_with_label_species)
 
     def test_fasta_from_alignment(self):

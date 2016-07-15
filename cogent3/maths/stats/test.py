@@ -201,7 +201,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         G -= i * log(i)
     # Add x ln x for table
     G += n * log(n)
-    # Result needs to be multiplied by 2 
+    # Result needs to be multiplied by 2
     G *= 2
 
     # apply Williams correction
@@ -1129,7 +1129,7 @@ a is a sample with Mean and Count.
 popmean should be the parametric population mean; 0 by default.
 popstdev should be the parametric population standard deviation, 1 by default.
 tails should be None (default), 'high', or 'low'.
-""" 
+"""
     try:
         z = (mean(a) - popmean) / popstdev * sqrt(len(a))
         return z, z_tailed_prob(z, tails)
@@ -1222,7 +1222,7 @@ def fisher(probs):
     try:
         return chi_high(-2 * sum(list(map(log, probs))), 2 * len(probs))
     except OverflowError as e:
-        return 0.0 
+        return 0.0
 
 
 def f_value(a, b):
@@ -1772,7 +1772,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,
         special_values, other_values = \
             get_values_from_matrix(permuted_matrix, cells,
                                    cells2, is_symmetric)
-        # calc the stat and p for a random subset (we don't do anything 
+        # calc the stat and p for a random subset (we don't do anything
         # with these p-values, we only use the current_stat value)
         current_stat, current_p = f(special_values, other_values, tails)
         stats.append(current_stat)

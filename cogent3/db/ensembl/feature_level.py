@@ -53,7 +53,7 @@ class FeatureCoordLevelsCache(object):
             query = sql.select([meta_coord]).where(meta_coord.c.table_name.
                                                    in_(['gene', 'simple_feature', 'repeat_feature']))
             query = query.order_by(meta_coord.c.table_name)
-        elif 'variation' in str(db.db_name): 
+        elif 'variation' in str(db.db_name):
             query = sql.select([meta_coord]).where(
                 meta_coord.c.table_name == 'variation_feature')
         else:
@@ -135,5 +135,3 @@ class FeatureCoordLevels(FeatureCoordLevelsCache):
                 collate.append([feature, ', '.join(record.levels)])
             result = str(Table(header, collate, title=self.Species))
         return result
-
-

@@ -140,7 +140,7 @@ class Profile(object):
         object in the original and the copy. This means you can rebind the
         attributes, but modifying them will change them in both the original
         and the copy.
-        """ 
+        """
         return self.__class__(self.Data, self.Alphabet, self.CharOrder)
 
     def normalizePositions(self):
@@ -330,7 +330,7 @@ class Profile(object):
         """
         try:
             return method(self.Data, other.Data)
-        except ValueError:  # frames not aligned 
+        except ValueError:  # frames not aligned
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"
                                % (self.Data.shape, other.Data.shape))
 
@@ -360,7 +360,7 @@ class Profile(object):
             raise ProfileError("Length of symbol freqs should be %s, but is %s"
                                % (pl, len(symbol_freqs)))
 
-        # raise error when symbol freqs contains zero (to prevent 
+        # raise error when symbol freqs contains zero (to prevent
         # ZeroDivisionError or 'inf' in the resulting matrix)
         if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
             raise ProfileError("Symbol frequency is not allowed to be zero: %s"
@@ -513,7 +513,7 @@ class Profile(object):
             if (seq_indices > len(self.CharOrder)).any():
                 raise ProfileError("Sequence contains characters that are not in the " +
                                    "CharOrder")
-            # now the profile is scored against the list of indices   
+            # now the profile is scored against the list of indices
             return self._score_indices(seq_indices, offset)
 
     def rowUncertainty(self):
@@ -615,7 +615,7 @@ class Profile(object):
             degen = self.rowDegeneracy(cutoff)
             sorted = argsort(data)
             if include_all:
-                # if include_all include all possiblilities in the degen char 
+                # if include_all include all possiblilities in the degen char
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen, sorted)):
                     to_take = [item for item in row[-num_to_keep:]
                                if item in nonzero(data[row_idx])[0]] +\
@@ -631,7 +631,7 @@ class Profile(object):
                                  take(co, [item for item in row[-num_to_keep:]
                                            if item in nonzero(data[row_idx])[0]])))))
 
-        elif not fully_degenerate: 
+        elif not fully_degenerate:
             result = take(co, argmax(self.Data, axis=-1), axis=0)
         else:
             result = []
@@ -758,13 +758,12 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
                 contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
                 array(contains, float) / len(curr_degens)
-    # for each character in the character order, make an entry of ones and 
+    # for each character in the character order, make an entry of ones and
     # zeros, matching the character order
     for c in char_order:
         c = c.decode('utf8')
         if c not in alphabet:
             raise ValueError("Found character in the character order " +
-                             "that is not in the specified alphabet: %s" % (c)) 
-        result[ord(c)] = array(c * lc, 'c') == char_order           
+                             "that is not in the specified alphabet: %s" % (c))
+        result[ord(c)] = array(c * lc, 'c') == char_order
     return Profile(Data=result, Alphabet=alphabet, CharOrder=char_order)
-

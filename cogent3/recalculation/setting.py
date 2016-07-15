@@ -72,4 +72,3 @@ class ConstVal(Setting):
 
     def getBounds(self):
         return (None, self.value, None)
-

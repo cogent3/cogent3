@@ -98,10 +98,10 @@ class DbRefs(MappedRecord, ConstrainedDict):
     ValueMask = FunctionWrapper(_make_list)
     DefaultValue = []
 
-KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept', 
+KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept',
                                 'GI', 'SwissProt', 'PIR', 'EMBL', 'DDBJ',
-                                'NDB', 'PDB', 'Taxon', 'LocusLink', 'UniGene', 'OMIM', 'PubMed', 'COGS', 
-                                'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene', 
+                                'NDB', 'PDB', 'Taxon', 'LocusLink', 'UniGene', 'OMIM', 'PubMed', 'COGS',
+                                'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene',
                                 'KEGG', 'BRENDA', 'EcoCyc', 'HumanCyc', 'BLOCKS'])
 
 
@@ -121,7 +121,7 @@ class Info(MappedRecord, Delegator):
                 refs = DbRefs(refs)
         else:
             refs = DbRefs()
-        # move keys into refs if they belong there: allows init from flat dict 
+        # move keys into refs if they belong there: allows init from flat dict
         for key, val in list(temp.items()):
             if key in KnownDatabases:
                 refs[key] = val
@@ -165,4 +165,3 @@ class Info(MappedRecord, Delegator):
             return item in self.Refs
         else:
             return super(Info, self).__contains__(item)
-

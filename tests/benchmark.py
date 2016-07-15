@@ -166,4 +166,3 @@ else:
         benchmarks(test)
     except KeyboardInterrupt:
         print(' OK')
-

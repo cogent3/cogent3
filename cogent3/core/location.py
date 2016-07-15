@@ -925,4 +925,3 @@ def RangeFromString(string, delimiter=','):
         else:
             result.Spans.append(Span(int(p)))
     return result
-

@@ -402,7 +402,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(r.iterItems(seq_order=['c', 'b'],
                                           pos_order=[5, 1, 3])), list('-AA-A-'))
         # should not interfere with superclass iteritems()
-        i = list(r.NamedSeqs.items()) 
+        i = list(r.NamedSeqs.items())
         i.sort()
         self.assertEqual(
             i, [('a', 'AAAAAA'), ('b', 'AAA---'), ('c', 'AAAA--')])
@@ -473,7 +473,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection getItemIndices should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])    
+        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])
         self.assertEqual(self.mixed.getItemIndices(is_vowel),
                          [('b', 3), ('a', 0), ('a', 4)])
         is_lower = lambda x: x.islower()
@@ -486,7 +486,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection getItemsIf should return matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])    
+        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])
         self.assertEqual(self.mixed.getItemsIf(is_vowel), ['O', 'A', 'E'])
         self.assertEqual(self.one_seq.getItemsIf(is_vowel), list('AAAAA'))
         # should be able to negate
@@ -579,7 +579,7 @@ class SequenceCollectionBaseTests(object):
             self.assertContains(result.NamedSeqs, seq)
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 1)
-        # then, verify that the transform changes the results         
+        # then, verify that the transform changes the results
         result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5,
                                 metric=metric, transform=transform)
         for seq in [0, 1, 2]:
@@ -598,7 +598,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection distanceMatrix should produce correct scores"""
         self.assertEqual(self.one_seq.distanceMatrix(
             frac_same), {'a': {'a': 1}})
-        self.assertEqual(self.gaps.distanceMatrix(frac_same), 
+        self.assertEqual(self.gaps.distanceMatrix(frac_same),
                          {'a': {'a': 7 / 7.0, 'b': 4 / 7.0, 'c': 2 / 7.0},
                              'b': {'a': 4 / 7.0, 'b': 7 / 7.0, 'c': 3 / 7.0},
                              'c': {'a': 2 / 7.0, 'b': 3 / 7.0, 'c': 7 / 7.0},
@@ -614,7 +614,7 @@ class SequenceCollectionBaseTests(object):
         align_norm = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                   'ACDEFGHIKLMNPQRSUUVWF-',
                                   'ACDEFGHIKLMNPERSKUVWC-',
-                                  'ACNEFGHIKLMNPQRS-UVWP-',                                     
+                                  'ACNEFGHIKLMNPQRS-UVWP-',
                                   ])
 
         phylip_str, id_map = align_norm.toPhylip()
@@ -729,7 +729,7 @@ class SequenceCollectionBaseTests(object):
                          {'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
 
         # should fail when not same length if aa_to_codon is False
-        new = SequenceCollection([(n, s.replace('-', '')) 
+        new = SequenceCollection([(n, s.replace('-', ''))
                                   for n, s in list(a[:3].todict().items())])
         self.assertRaises(ValueError,
                           a.replaceSeqs, new, aa_to_codon=False)
@@ -770,7 +770,7 @@ class SequenceCollectionBaseTests(object):
         # test append at the end
         self.assertEqual(str(out_aln), str(self.Class(data + data3)))
 
-        out_aln = aln.addSeqs(aln3, before_name='name3') 
+        out_aln = aln.addSeqs(aln3, before_name='name3')
         self.assertEqual(str(out_aln), str(self.Class(
             data1 + data3 + data2)))  # test insert before
 
@@ -778,11 +778,11 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(str(out_aln), str(self.Class(
             data1 + data3 + data2)))  # test insert after
 
-        out_aln = aln.addSeqs(aln3, before_name='name1') 
+        out_aln = aln.addSeqs(aln3, before_name='name1')
         # test if insert before first seq works
         self.assertEqual(str(out_aln), str(self.Class(data3 + data)))
 
-        out_aln = aln.addSeqs(aln3, after_name='name4') 
+        out_aln = aln.addSeqs(aln3, after_name='name4')
         # test if insert after last seq works
         self.assertEqual(str(out_aln), str(self.Class(data + data3)))
 
@@ -815,7 +815,7 @@ class SequenceCollectionBaseTests(object):
     def test_len(self):
         """len(SequenceCollection) returns length of longest sequence"""
         aln = self.Class([('a', 'AAAA'), ('b', 'TTTT'), ('c', 'CCCC')])
-        self.assertEqual(len(aln), 4) 
+        self.assertEqual(len(aln), 4)
 
     def test_getTranslation(self):
         """SequenceCollection.getTranslation translates each seq"""
@@ -922,7 +922,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps.omitGapSeqs(0.99), self.gaps)
         # check new object creation
         self.assertNotSameObj(self.gaps.omitGapSeqs(0.99), self.gaps)
-        self.assertTrue(isinstance(self.gaps.omitGapSeqs(3.0 / 7), 
+        self.assertTrue(isinstance(self.gaps.omitGapSeqs(3.0 / 7),
                                    SequenceCollection))
         # repeat tests for object that supplies its own gaps
         self.assertEqual(self.gaps_rna.omitGapSeqs(-1), {})
@@ -940,7 +940,7 @@ class SequenceCollectionBaseTests(object):
             5.0 / 7 + 0.01), self.gaps_rna)
         self.assertEqual(self.gaps_rna.omitGapSeqs(0.99), self.gaps_rna)
         self.assertNotSameObj(self.gaps_rna.omitGapSeqs(0.99), self.gaps_rna)
-        self.assertTrue(isinstance(self.gaps_rna.omitGapSeqs(3.0 / 7), 
+        self.assertTrue(isinstance(self.gaps_rna.omitGapSeqs(3.0 / 7),
                                    SequenceCollection))
 
     def test_omitGapRuns(self):
@@ -961,7 +961,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps.omitGapRuns(1000), self.gaps)
         # test new object creation
         self.assertNotSameObj(self.gaps.omitGapRuns(6), self.gaps)
-        self.assertTrue(isinstance(self.gaps.omitGapRuns(6), 
+        self.assertTrue(isinstance(self.gaps.omitGapRuns(6),
                                    SequenceCollection))
 
     def test_consistent_gap_degen_handling(self):
@@ -1037,7 +1037,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         align_rag = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                  'ACDEFGHIKLMNPQRSUUVWF-',
                                  'ACDEFGHIKLMNPERSKUVWC-',
-                                 'ACNEFGHIKLMNUVWP-',                                     
+                                 'ACNEFGHIKLMNUVWP-',
                                  ])
 
         self.assertRaises(ValueError, align_rag.toPhylip)
@@ -1090,7 +1090,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.takePositions([5, 4, 0],
                                                  seq_constructor=coerce_to_string),
                          {'a': 'AAA', 'b': 'A-A', 'c': '--A'})
-        self.assertTrue(isinstance(self.gaps.takePositions([0]), 
+        self.assertTrue(isinstance(self.gaps.takePositions([0]),
                                    SequenceCollection))
         # should be able to negate
         self.assertEqual(self.gaps.takePositions([5, 4, 0], negate=True,
@@ -1136,7 +1136,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.takePositionsIf(is_list, seq_constructor=coerce_to_string),
                          self.gaps)
 
-        self.assertTrue(isinstance(self.gaps.takePositionsIf(gap_1st), 
+        self.assertTrue(isinstance(self.gaps.takePositionsIf(gap_1st),
                                    SequenceCollection))
         # should be able to negate
         self.assertEqual(self.gaps.takePositionsIf(gap_1st, seq_constructor=coerce_to_string,
@@ -1255,7 +1255,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         alignmentUpper = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                       'ACDEFGHIKLMNPQRSUUVWF-',
                                       'ACDEFGHIKLMNPERSKUVWC-',
-                                      'ACNEFGHIKLMNPQRS-UVWP-',                                     
+                                      'ACNEFGHIKLMNPQRS-UVWP-',
                                       ])
         # following IUPAC consensus calculated by hand
         # Test all uppper
@@ -1273,7 +1273,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         align = self.Class(["AAA", "ACA", "GGG", "GUC"])
         cp = align.columnProbs()
         # check that the column probs match the counts we expect
-        self.assertEqual(cp, list(map(Freqs, [   
+        self.assertEqual(cp, list(map(Freqs, [
             {'A': 0.5, 'G': 0.5},
             {'A': 0.25, 'C': 0.25, 'G': 0.25, 'U': 0.25},
             {'A': 0.5, 'G': 0.25, 'C': 0.25},
@@ -1302,11 +1302,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """Alignment.columnFreqs should count symbols in each column"""
         # calculate by hand what the first and last positions should look like in
         # each case
-        firstvalues = [ 
+        firstvalues = [
             [self.sequences, Freqs('UUU')],
             ]
 
-        lastvalues = [ 
+        lastvalues = [
             [self.sequences, Freqs('GGG')]
             ]
         # check that the first positions are what we expected
@@ -1592,18 +1592,18 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         template = self.Class({'seq1': 'A-?', 'seq2': 'ACG'})
         r1 = gapless.withGapsFrom(template).todict()
         r2 = pregapped.withGapsFrom(template).todict()
-        self.assertEqual(r1, {'seq1': 'T-G', 'seq2': 'TCG'}) 
-        self.assertEqual(r2, {'seq1': '--G', 'seq2': 'TCG'}) 
+        self.assertEqual(r1, {'seq1': 'T-G', 'seq2': 'TCG'})
+        self.assertEqual(r2, {'seq1': '--G', 'seq2': 'TCG'})
 
     def test_getDegappedRelativeTo(self):
         """should remove all columns with a gap in sequence with given name"""
-        aln = self.Class([ 
+        aln = self.Class([
             ['name1', '-AC-DEFGHI---'],
             ['name2', 'XXXXXX--XXXXX'],
             ['name3', 'YYYY-YYYYYYYY'],
             ['name4', '-KL---MNPR---'],
             ])
-        out_aln = self.Class([ 
+        out_aln = self.Class([
             ['name1', 'ACDEFGHI'],
             ['name2', 'XXXX--XX'],
             ['name3', 'YY-YYYYY'],
@@ -1628,7 +1628,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ['name6', 'KL--MNPR'],
             ])
 
-        aligned_to_ref_out_aln_inserted = self.Class([ 
+        aligned_to_ref_out_aln_inserted = self.Class([
             ['name1', '-AC-DEFGHI---'],
             ['name4', '-KL---MNPR---'],
             ['name5', '-KL-ACMNPR---'],
@@ -1657,18 +1657,18 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ['name4', 'KL--MNPR'],
             ]
 
-        aligned_to_ref_out_aln = self.Class([ 
+        aligned_to_ref_out_aln = self.Class([
             ['name1', '-AC-DEFGHI---'],
             ['name2', 'XXXXXX--XXXXX'],
             ['name3', 'YYYY-YYYYYYYY'],
             ['name4', '-KL---MNPR---'],
-            ])     
+            ])
 
         out_aln = aln1.addFromReferenceAln(aln2, after_name='name1')
         self.assertEqual(str(aligned_to_ref_out_aln_inserted),
-                         str(out_aln))  # test insert_after 
+                         str(out_aln))  # test insert_after
 
-        out_aln = aln1.addFromReferenceAln(aln2, before_name='name2') 
+        out_aln = aln1.addFromReferenceAln(aln2, before_name='name2')
         self.assertEqual(aligned_to_ref_out_aln_inserted,
                          out_aln)  # test insert_before
 

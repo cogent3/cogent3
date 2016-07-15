@@ -64,6 +64,4 @@ def clustal_from_alignment(aln, interleave_len=None):
                              for x, y in zip(order, ordered_seqs)])
         clustal_list.append("")
 
-    return '\n'.join(clustal_list)    
-
-
+    return '\n'.join(clustal_list)

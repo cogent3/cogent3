@@ -41,7 +41,7 @@ def g_statistic(X, p=None, idx=None):
     """
     # X should be real
     X = abs(numpy.array(X))
-    if p is None: 
+    if p is None:
         power = X.max(0)
         idx = X.argmax(0)
     else:
@@ -235,4 +235,4 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
 #     """Return SNR and CRB for periodicity estimates from symbolic signals"""
 #     # TODO: complete the function according to Julien's percrb4.m
 #     pass
-# 
+#

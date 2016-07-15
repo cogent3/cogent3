@@ -26,7 +26,7 @@ class AlignmentAdaptDefn(CalculationDefn):
     name = 'leaf_likelihoods'
 
     def calc(self, model, alignment):
-        return model.convertAlignment(alignment)       
+        return model.convertAlignment(alignment)
 
 
 class LengthDefn(PositiveParamDefn):
@@ -79,5 +79,3 @@ class ExpDefn(CalculationDefn):
                     return PadeExponentiator(Q)
             _both.given_expm_warning = False
             return _both
-
-

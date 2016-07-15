@@ -29,7 +29,7 @@ class ScaleRuleTests(unittest.TestCase):
 
     def _makeModel(self, do_scaling, predicates, scale_rules=[]):
         return substitution_model.Nucleotide(
-            do_scaling=do_scaling, equal_motif_probs=True, 
+            do_scaling=do_scaling, equal_motif_probs=True,
             model_gaps=False, predicates=predicates, scales=scale_rules)
 
     def _getScaledLengths(self, model, params):
@@ -138,6 +138,3 @@ class ScaleRuleTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-

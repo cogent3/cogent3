@@ -180,7 +180,7 @@ def ln_binomial(successes, trials, prob):
     """
     prob = fix_rounding_error(prob)
     return ln_combinations(trials, successes) + successes * log(prob) + \
-        (trials - successes) * log(1.0 - prob) 
+        (trials - successes) * log(1.0 - prob)
 
 
 # Translations of functions from Cephes Math Library, by Stephen L. Moshier
@@ -1326,4 +1326,3 @@ def _incbi_newt(
     dithresh = 256.0 * MACHEP
     return _incbi_ihalve(
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
-

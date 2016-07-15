@@ -1496,7 +1496,7 @@ class FreqsTestsI(object):
         self.assertEqual(self.NumericUnique.Sum, 5)
         self.assertEqual(self.NumericDuplicated.Sum, 4)
         self.assertEqual(self.Empty.Sum, 0)
-        # WARNING: For numeric keys, the value of the key is not taken into 
+        # WARNING: For numeric keys, the value of the key is not taken into
         # account (i.e. each key counts as a separate category)
         self.assertEqual(self.PosNeg.Sum, 4)
         self.assertEqual(self.Constant.Sum, 5)
@@ -1952,6 +1952,3 @@ class UnsafeNumberFreqsTests(NumberFreqsTestsI, TestCase):
 # execute tests if called from command line
 if __name__ == '__main__':
     main()
-
-
-

@@ -175,7 +175,7 @@ class SpecialTests(TestCase):
             (1032, 2050, 0.5): math.log(0.01679804),
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(ln_binomial(*key), value, 1e-4) 
+            self.assertFloatEqualRel(ln_binomial(*key), value, 1e-4)
 
     def test_ln_binomial_floats(self):
         """Binomial exact should match values from R for integer successes"""
@@ -201,7 +201,7 @@ class SpecialTests(TestCase):
         end = 1
         step = 0.1
         lower_lim = -1.783375 - 1e-4
-        upper_lim = -1.021235 + 1e-4 
+        upper_lim = -1.021235 + 1e-4
         previous_value = -1.784
         while start <= end:
             obs = ln_binomial(start, 5, .3)

@@ -41,7 +41,7 @@ class SequenceTests(TestCase):
         assert s.MolType in (ASCII, BYTES)
 
         r = self.RNA()
-        assert r.MolType is RNA 
+        assert r.MolType is RNA
 
     def test_init_data(self):
         """Sequence init with data should set data in correct location"""
@@ -123,7 +123,7 @@ class SequenceTests(TestCase):
                                   ).stripBad(), 'UCAGWSNYRHBND-D')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False
                                   ).stripBad(), '')
-        self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(), 
+        self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(),
                          'AAAGGG---CCC')
 
     def test_stripBadAndGaps(self):
@@ -265,7 +265,7 @@ class SequenceTests(TestCase):
         """Sequence degap should remove all gaps from sequence"""
         # doesn't preserve case
         self.assertEqual(self.RNA('').degap(), '')
-        self.assertEqual(self.RNA('GUCAGUCgcaugcnvuncdks').degap(), 
+        self.assertEqual(self.RNA('GUCAGUCgcaugcnvuncdks').degap(),
                          'GUCAGUCGCAUGCNVUNCDKS')
         self.assertEqual(self.RNA('----------------').degap(), '')
         self.assertEqual(self.RNA('gcuauacg-').degap(), 'GCUAUACG')
@@ -288,11 +288,11 @@ class SequenceTests(TestCase):
         g = lambda x: self.RNA(x).gapVector()
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False] * 27)
-        self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'), 
+        self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'),
                          list(map(bool, list(map(int, '000000000000001000000000')))))
-        self.assertEqual(g('-DSHSUHDSS'), 
+        self.assertEqual(g('-DSHSUHDSS'),
                          list(map(bool, list(map(int, '1000000000')))))
-        self.assertEqual(g('UACHASCAGDS-'), 
+        self.assertEqual(g('UACHASCAGDS-'),
                          list(map(bool, list(map(int, '000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
@@ -486,7 +486,7 @@ class SequenceTests(TestCase):
 
     def test_matrixDistance(self):
         """Sequence matrixDistance should look up distances from a matrix"""
-        # note that the score matrix must contain 'diagonal' elements m[i][i] 
+        # note that the score matrix must contain 'diagonal' elements m[i][i]
         # to avoid failure when the sequences match.
         m = {'U': {'U': 0, 'C': 1, 'A': 5}, 'C': {'C': 0, 'A': 2, 'G': 4}}
         self.assertEqual(self.RNA('UUUCCC').matrixDistance('UCACGG', m), 14)

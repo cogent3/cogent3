@@ -152,7 +152,7 @@ class VersionUpdater(object):
             lines[lineno] = '%s/PyCogent-%s.tgz\n' % (http_base, self.Version)
         else:
             print("No version string found in %s" % filename)
-        return (lines, found_version_line) 
+        return (lines, found_version_line)
 
     def _update_doc_conf_file(self, lines, filename):
         """Updates doc/conf.py file"""
@@ -240,7 +240,7 @@ class VersionUpdater(object):
                 print('Reading %s' % filename)
 
             if filetype is 'Python':
-                lines, write_out = self._update_python_file(lines, filename) 
+                lines, write_out = self._update_python_file(lines, filename)
             elif filetype is 'Properties':
                 lines, write_out = self._update_properties_file(
                     lines, filename)
@@ -248,7 +248,7 @@ class VersionUpdater(object):
                 raise TypeError("Unknown base file type %s" % filetype)
 
             if write_out:
-                self._file_writer(lines, filename) 
+                self._file_writer(lines, filename)
 
     def updateDocFiles(self):
         """Updates version strings in documentation files
@@ -267,7 +267,7 @@ class VersionUpdater(object):
                 raise TypeError("Unknown doc file type: %s" % filetype)
 
             if write_out:
-                self._file_writer(lines, filename) 
+                self._file_writer(lines, filename)
 
     def updateIncludeFiles(self):
         """Updates version strings in include files"""
@@ -286,7 +286,7 @@ class VersionUpdater(object):
                 raise TypeError("Unknown include file type %s" % filetype)
 
             if write_out:
-                self._file_writer(lines, filename) 
+                self._file_writer(lines, filename)
 
     def updateTestFiles(self):
         """Updates version strings in test files"""
@@ -303,7 +303,7 @@ class VersionUpdater(object):
                 raise TypeError("Unknown test file type %s" % filetype)
 
             if write_out:
-                self._file_writer(lines, filename) 
+                self._file_writer(lines, filename)
 
     def updateCodeFiles(self):
         """Updates version strings in code files"""
@@ -326,7 +326,7 @@ class VersionUpdater(object):
                 raise TypeError("Unknown code file type %s" % filetype)
 
             if write_out:
-                self._file_writer(lines, filename) 
+                self._file_writer(lines, filename)
 
 
 def main(arg_list=argv):

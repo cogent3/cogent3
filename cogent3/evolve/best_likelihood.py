@@ -137,4 +137,3 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
         return log_likelihood, num_cols
 
     return log_likelihood
-

@@ -64,7 +64,7 @@ def get_lower_coord_conversion(coord, species, core_db):
 
         assemblies = get_coord_conversion(coord, coord_type, core_db)
 
-        if assemblies: 
+        if assemblies:
             break
 
     return assemblies
@@ -146,7 +146,7 @@ def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None,
 
     strand = coord.Strand
 
-    try: 
+    try:
         sequence = _get_sequence_from_direct_assembly(coord, DEBUG)
     except NoItemError:
         # means there is no assembly, so we do a thorough assembly by
@@ -156,4 +156,3 @@ def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None,
     if strand == -1:
         sequence = sequence.rc()
     return sequence
-

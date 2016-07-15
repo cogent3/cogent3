@@ -36,7 +36,7 @@ class TestIntegratingExponentiator(TestCase):
         self.assertFloatEqual(dot(p0, I), result)
 
         self.assertRaises(ArithmeticError,
-                          expm.VanLoanIntegratingExponentiator, 
+                          expm.VanLoanIntegratingExponentiator,
                           q, -diag(q), cmme.CheckedExponentiator)
 
         Q = array([[1., 1.], [0., 1.]])
@@ -82,7 +82,7 @@ class TestIntegratingExponentiator(TestCase):
                               expm.VanLoanIntegratingExponentiator(p,
                                                                    exponentiator=cmme.FastExponentiator)(1.))
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(2.),
-                              expm.VanLoanIntegratingExponentiator(p, 
+                              expm.VanLoanIntegratingExponentiator(p,
                                                                    exponentiator=cmme.FastExponentiator)(2.))
 
 

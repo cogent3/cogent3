@@ -13,7 +13,7 @@ import numpy
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 try:
     from . import _solved_models
-    #_solved_models = importVersionedModule('_solved_models', globals(), 
+    #_solved_models = importVersionedModule('_solved_models', globals(),
             #(1, 0), "only matrix exponentiating DNA models")
 except ImportError:
     _solved_models = None
@@ -80,5 +80,3 @@ def HKY85(**kw):
 def F81(**kw):
     """Felsenstein's 1981 model"""
     return _solvedNucleotide('F81', [], recode_gaps=True, **kw)
-
-

@@ -11,7 +11,7 @@ from cogent3.util.unit_test import TestCase, main
 #        raise NotImplementedError
 #    def constructor(children, name, attribs):
 #        return NodeClass(Children = list(children or []), Name=name, Params=attribs)
-#    return parse_string(data, constructor)    
+#    return parse_string(data, constructor)
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

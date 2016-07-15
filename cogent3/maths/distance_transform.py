@@ -55,7 +55,7 @@ EXAMPLE USAGE:
 
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
-                   mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
+                   mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs,
                    sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
                    nonzero, nan_to_num, geterr, seterr, isnan)
 
@@ -65,7 +65,7 @@ except ImportError:
     from numpy import rank
 
 # any, all from numpy override built in any, all, preventing:
-# ValueError: The truth value of an array with more than one element is 
+# ValueError: The truth value of an array with more than one element is
 # ambiguous. Use a.any() or a.all()
 
 from numpy.linalg import norm
@@ -73,7 +73,7 @@ from numpy.linalg import norm
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
-               "Zongzhi Liu", "Catherine Lozupone", 
+               "Zongzhi Liu", "Catherine Lozupone",
                "Antonio Gonzalez Pena", "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -214,7 +214,7 @@ def dist_bray_curtis(datamtx, strict=True):
             r2 = datamtx[j, :]
             abs_v = float(sum(abs(r1 - r2)))
             v = sum(r1 + r2)
-            cur_d = 0.0 
+            cur_d = 0.0
             if v > 0:
                 cur_d = abs_v / v
 
@@ -1451,4 +1451,3 @@ if __name__ == "__main__":
     res = dist_euclidean(matrix1)
     print("euclidean distance result: \n")
     print(res)
-

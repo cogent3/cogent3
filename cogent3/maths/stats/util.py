@@ -793,13 +793,13 @@ class FreqsI(object):
         except (TypeError, ValueError):
             # if that didn't work, data is either a sequence or a sequence of
             # sequences.
-            # if first is iterable and not a string, treat as seq of seqs; 
+            # if first is iterable and not a string, treat as seq of seqs;
             # otherwise, treat as seq.
             # Note that this means that lists of strings will always be treated
             # as though each string is a key that's being counted (e.g. if you
             # pass in a list of words, you'll get word frequencies rather than
             # character frequencies). If you want the character frequencies,
-            # call fromSeqs explicitly -- there's no way to detect what's 
+            # call fromSeqs explicitly -- there's no way to detect what's
             # desired automatically.
             if isinstance(first, str):
                 return self.fromSeq
@@ -976,7 +976,7 @@ class FreqsI(object):
             for i in self:
                 try:  # fails if i is not a string but items is
                     delete = i not in items
-                except TypeError:  # i was wrong type, so can't be in items... 
+                except TypeError:  # i was wrong type, so can't be in items...
                     to_delete.append(i)
                 else:
                     if delete:
@@ -1376,4 +1376,3 @@ class NumberFreqs(NumberFreqsI, MappedDict):
             for key in r:
                 if key not in self:
                     self[key] = 0.0
-

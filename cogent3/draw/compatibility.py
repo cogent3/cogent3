@@ -43,7 +43,7 @@ def order_to_cluster_similar(S, elts=None, start=None):
                 unavailable.add(x)
     if start is not None:
         position[start] = (False, [start])
-    similarity = [numpy.unravel_index(p, S.shape) 
+    similarity = [numpy.unravel_index(p, S.shape)
                   for p in numpy.argsort(S, axis=None)]
     for (x, y) in similarity[::-1]:
         if x == y or x in unavailable or y in unavailable:
@@ -87,7 +87,7 @@ def order_tied_to_cluster_similar(S, scores):
     defined by the list of scores"""
     assert S.shape == (len(scores), len(scores))
     new_order = []
-    start = None    
+    start = None
     for (a, b) in tied_segments(scores):
         useful = list(range(a, b))
         if start is not None:
@@ -99,7 +99,7 @@ def order_tied_to_cluster_similar(S, scores):
         sub_order = order_to_cluster_similar(S2, list(range(b - a)), start)
         new_order.extend([useful[i] for i in sub_order])
         start = new_order[-1]
-    assert set(new_order) == set(range(len(scores))) 
+    assert set(new_order) == set(range(len(scores)))
     return new_order
 
 
@@ -148,7 +148,7 @@ def binary_partitions(alignment):
                     partitions.append(partition)
                 sites.append(site)
                 columns.append(partition_index[partition])
-                break  # if R/Y split OK no need to consider W/S split. 
+                break  # if R/Y split OK no need to consider W/S split.
     return (sites, columns, partitions)
 
 
@@ -160,7 +160,7 @@ def min_edges(columns):
     N-1 tree edges on which mutations occured
     As a special case, the diagonal values are set to 0 rather than, 
     as theory suggests, 1.  This is simply a convenience for later 
-    drawing code"""  
+    drawing code"""
     N = len(columns)
     result = numpy.zeros([N, N], int)
     for i in range(0, N - 1):
@@ -217,7 +217,7 @@ def integer_tick_label(sites):
             return str(_sites[int(x)])
         else:
             return ""
-    return _formatfunc    
+    return _formatfunc
 
 
 def boolean_similarity(matrix):
@@ -319,7 +319,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             p_size *= numpy.sqrt(extra)
             s_size *= extra
 
-        genemap = Display(alignment, recursive=s_size > 0, 
+        genemap = Display(alignment, recursive=s_size > 0,
                           colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
         figwidth = max(figwidth, figwidth / 2 + annot_width)
@@ -350,18 +350,18 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         fig = plt.figure(figsize=(figwidth, figheight))
         kw = dict(axisbg=fig.get_facecolor())
         axC = fig.add_axes([x_margin, y_margin, c_width, c_height], **kw)
-        axP = fig.add_axes([vert, y_margin, p_width, c_height], 
+        axP = fig.add_axes([vert, y_margin, p_width, c_height],
                            sharey=axC, **kw)
-        axS = fig.add_axes([vert, top, p_width, s_height or .001], 
+        axS = fig.add_axes([vert, top, p_width, s_height or .001],
                            sharex=axP, **kw)
-        axB = fig.add_axes([vert, top + ypad + s_height, p_width, bar_height], 
+        axB = fig.add_axes([vert, top + ypad + s_height, p_width, bar_height],
                            sharex=axP, **kw)
-        axZ = fig.add_axes([vert + p_width, y_margin, link_width, c_height], 
+        axZ = fig.add_axes([vert + p_width, y_margin, link_width, c_height],
                            frameon=False)
 
         axA = genemap.asAxes(
             fig, [vert + p_width + link_width,
-                y_margin, annot_width, c_height], 
+                y_margin, annot_width, c_height],
             vertical=True, labeled=True)
 
         axP.yaxis.set_visible(False)
@@ -395,7 +395,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 axis.set_visible(False)
         else:
             isl = integer_tick_label(sites)
-            for axis in [axC.yaxis, axC.xaxis]:            
+            for axis in [axC.yaxis, axC.xaxis]:
                 axis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
                 axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
                 axis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
@@ -403,7 +403,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
         # Species dimension
         if s_size:
-            seq_names = [name.split('  ')[0] 
+            seq_names = [name.split('  ')[0]
                          for name in alignment.getSeqNames()]
             axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
@@ -450,10 +450,10 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         # Bar chart of partition support and conflict scores
         # axB.set_autoscalex_on(False)
         if conflict.sum():
-            axB.bar(numpy.arange(len(partitions)), -conflict / conflict.sum(), 
+            axB.bar(numpy.arange(len(partitions)), -conflict / conflict.sum(),
                     1.0, color='black', align='edge')
         if support.sum():
-            axB.bar(numpy.arange(len(partitions)), +support / support.sum(), 
+            axB.bar(numpy.arange(len(partitions)), +support / support.sum(),
                     1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
 
@@ -468,7 +468,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axA.xaxis.set_label_position('top')
         # axA.xaxis.set_visible(False)
 
-        # "Zoom lines" linking informative-site coords to alignment coords 
+        # "Zoom lines" linking informative-site coords to alignment coords
         from matplotlib.patches import PathPatch
         from matplotlib.path import Path
         axZ.set_xlim(0.0, 1.0)
@@ -497,17 +497,17 @@ if __name__ == '__main__':
     from cogent3 import LoadSeqs, DNA
     import sys, optparse, os.path
     parser = optparse.OptionParser("usage: %prog [options] alignment")
-    parser.add_option("-p", "--print", action="store_true", 
-                      default=True, dest="print_stats", 
+    parser.add_option("-p", "--print", action="store_true",
+                      default=True, dest="print_stats",
                       help="print neighbour similarity score etc.")
-    parser.add_option("-d", "--display", action="store_true", 
-                      default=False, dest="display", 
+    parser.add_option("-d", "--display", action="store_true",
+                      default=False, dest="display",
                       help="show matrices via matplotlib")
-    parser.add_option("-i", "--incomplete", action="store_true", 
-                      default=False, dest="include_incomplete", 
+    parser.add_option("-i", "--incomplete", action="store_true",
+                      default=False, dest="include_incomplete",
                       help="include partitions containing ambiguities")
-    parser.add_option("-t", "--taxalimit", 
-                      dest="s_limit", default=20, type="int", 
+    parser.add_option("-t", "--taxalimit",
+                      dest="s_limit", default=20, type="int",
                       help="maximum number of species that can be displayed")
     parser.add_option("-s", "--samples",
                       dest="samples", default=10000, type="int",
@@ -515,11 +515,10 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
-        sys.exit(1)        
+        sys.exit(1)
     alignment = LoadSeqs(args[0], moltype=DNA)
     kw = vars(options)
     kw['title'] = os.path.splitext(os.path.basename(args[0]))[0]
     fig = partimatrix(alignment, **kw)
     if fig:
         plt.show()
-

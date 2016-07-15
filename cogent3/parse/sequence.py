@@ -90,4 +90,3 @@ XML_PARSERS = {
     'tseq': tinyseq.TinyseqParser,
     'macsim': macsim.MacsimParser,
     }
-

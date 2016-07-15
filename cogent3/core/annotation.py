@@ -349,4 +349,3 @@ def SimpleVariable(parent, type, Name, data):
     assert len(data) == len(parent), (len(data), len(parent))
     map = Map([(0, len(data))], parent_length=len(parent))
     return _SimpleVariable(parent, map, type=type, Name=Name, data=data)
-

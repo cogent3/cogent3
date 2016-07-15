@@ -42,7 +42,7 @@ class LightweightTreeNode(frozenset):
     def convert(self, constructor=None, length=None):
         if constructor is None:
             constructor = TreeBuilder().createEdge
-        children = [child.convert(constructor, clength) 
+        children = [child.convert(constructor, clength)
                     for (clength, child) in self]
         node = constructor(children, None, {})
         if length is not None:
@@ -188,7 +188,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         keep = len(names) * 5
     all_keep = keep + dkeep
 
-    # For recognising duplicate topologies, encode partitions (ie: edges) as 
+    # For recognising duplicate topologies, encode partitions (ie: edges) as
     # frozensets of tip names, which should be quickly comparable.
     arbitrary_anchor = names[0]
     all_tips = frozenset(names)
@@ -198,7 +198,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         if arbitrary_anchor not in included:
             included = all_tips - included
         return included
-        # could also convert to long int, or cache, would be faster?    
+        # could also convert to long int, or cache, would be faster?
 
     tips = [frozenset([n]) for n in names]
     nodes = [LightweightTreeTip(name) for name in names]
@@ -233,22 +233,22 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         for pair in candidates:
             next_trees.append(pair)
             if len(next_trees) == keep:
-                break 
+                break
         _show_progress()
 
-        # The very best one is used as an anchor for measuring the 
+        # The very best one is used as an anchor for measuring the
         # topological distance to others
         best_topology = next_trees[0].topology
         prior_td = [len(best_topology ^ tree.topology) for tree in trees]
 
-        # Maintain a separate queue of joins for each possible 
-        # topological distance 
+        # Maintain a separate queue of joins for each possible
+        # topological distance
         max_td = (max(prior_td) + 1) // 2
         queue = [deque() for g in range(max_td + 1)]
         queued = 0
 
-        # Now take up to dkeep joins, an equal number of the best at each 
-        # topological distance, while not calculating any more TDs than 
+        # Now take up to dkeep joins, an equal number of the best at each
+        # topological distance, while not calculating any more TDs than
         # necessary.
         prior_td = dict(list(zip(list(map(id, trees)), prior_td)))
         target_td = 1
@@ -287,4 +287,3 @@ def nj(dists, no_negatives=True):
     (result,) = gnj(dists, keep=1)
     (score, tree) = result
     return tree
-

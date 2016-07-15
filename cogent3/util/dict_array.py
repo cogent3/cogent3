@@ -197,4 +197,3 @@ class DictArray(object):
             return self.asdict() == other
         else:
             return False
-

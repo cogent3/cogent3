@@ -147,4 +147,3 @@ def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
         return None
 
     return brent(func, x1, x2, xtol=xtol)
-

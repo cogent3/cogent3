@@ -14,7 +14,7 @@ from cogent3.util.warning import discontinued, deprecated
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
-               "Matthew Wakefield", "Rob Knight", "Brett Easton", 
+               "Matthew Wakefield", "Rob Knight", "Brett Easton",
                "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -312,7 +312,7 @@ class LikelihoodFunction(ParameterController):
         """
 
         discontinued('method', "'getStatisticsAsDict' "
-                     "use 'getParamValueDict(['edge'])' is nearly equivalent", 
+                     "use 'getParamValueDict(['edge'])' is nearly equivalent",
                      '1.6')
 
         stats_dict = self.getParamValueDict(['edge'])

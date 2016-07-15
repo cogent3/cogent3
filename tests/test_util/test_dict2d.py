@@ -112,7 +112,7 @@ class Dict2DTests(TestCase):
 
     def test_guess_input_type_fromDict(self):
         """Dict2D init can correctly guess input type: Dict """
-        # Will fail if error is raised 
+        # Will fail if error is raised
         d = Dict2D({})
 
     def test_guess_input_type_fromIndices(self):
@@ -443,7 +443,7 @@ class Dict2DTests(TestCase):
                           ['b', 2, 4, 6],
                           ['c', 3, 6, 9],
             ])
-        # should raise error if called on sparse matrix...	
+        # should raise error if called on sparse matrix...
         self.assertRaises(Dict2DSparseError, Dict2D(self.sparse).toLists)
         #...unless self.Pad is True
         d = Dict2D(self.sparse)

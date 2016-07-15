@@ -231,8 +231,6 @@ class BlastXMLResult(BlastResult):
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
 
-            if query_id not in self: 
-                self[query_id] = [] 
+            if query_id not in self:
+                self[query_id] = []
             self[query_id].append(hits)
-
-

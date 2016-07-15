@@ -96,7 +96,7 @@ class AlignmentTestCase(unittest.TestCase):
     def test_local_tiebreak(self):
         """Should pick the first best-equal hit rather than the last one"""
         # so that the Pyrex and Python versions give the same result.
-        score_matrix = make_dna_scoring_dict(match=1, transition=-1, 
+        score_matrix = make_dna_scoring_dict(match=1, transition=-1,
                                              transversion=-1)
         pattern = DNA.makeSequence('cwc', Name='pattern')
         two_hit = DNA.makeSequence('cactc', Name='target')
@@ -109,7 +109,7 @@ class UnalignedPairTestCase(unittest.TestCase):
 
     def test_forward(self):
         tree = cogent3.LoadTree(tip_names='AB')
-        pc = dna_model.makeLikelihoodFunction(tree, aligned=False)  
+        pc = dna_model.makeLikelihoodFunction(tree, aligned=False)
         pc.setSequences({'A': seq1, 'B': seq2})
         LnL = pc.getLogLikelihood()
         assert isinstance(LnL, float)
@@ -117,11 +117,11 @@ class UnalignedPairTestCase(unittest.TestCase):
 
 class MultipleAlignmentTestCase(unittest.TestCase):
 
-    def _make_aln(self, orig, model=dna_model, param_vals=None, 
+    def _make_aln(self, orig, model=dna_model, param_vals=None,
                   indel_rate=0.1, indel_length=0.5, **kw):
         kw['indel_rate'] = indel_rate
         kw['indel_length'] = indel_length
-        seqs = dict((key, DNA.makeSequence(value)) 
+        seqs = dict((key, DNA.makeSequence(value))
                     for (key, value) in list(orig.items()))
         if len(seqs) == 2:
             tree = cogent3.LoadTree(tip_names=list(seqs.keys()))
@@ -148,9 +148,9 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
         self._test_aln({
-            'A': 'tacagta', 
+            'A': 'tacagta',
             'B': 'tac-gtc',
-            'C': 'ta---ta', 
+            'C': 'ta---ta',
             'D': 'tac-gtc',
             })
 
@@ -170,68 +170,68 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
         self._test_aln({
-            'A': 'tacagta', 
+            'A': 'tacagta',
             'B': 'tac-gtc',
-            'C': 'ta---ta', 
+            'C': 'ta---ta',
             'D': 'cac-cta',
             }, model=HKY85(), param_vals=[('kappa', 2.0)])
 
     def test_TreeAlign_does_pairs(self):
         """test TreeAlign handles pairs of sequences"""
         self._test_aln({
-            'A': 'acttgtac', 
+            'A': 'acttgtac',
             'B': 'ac--gtac',
             })
 
     def test_gap_at_start(self):
         """test progressive alignment, gaps at start"""
         self._test_aln({
-            'A': '-ac', 
+            'A': '-ac',
             'B': '-ac',
-            'C': '-ac', 
+            'C': '-ac',
             'D': 'gac',
             })
 
     def test_gap_at_end(self):
         """test progressive alignment, gaps at end"""
         self._test_aln({
-            'A': 'gt-', 
+            'A': 'gt-',
             'B': 'gt-',
-            'C': 'gt-', 
+            'C': 'gt-',
             'D': 'gta',
             })
 
     def test_gaps2(self):
         """Gaps have real costs, even end gaps"""
         self._test_aln({
-            'A': 'g-', 
+            'A': 'g-',
             'B': 'g-',
-            'C': 'ga', 
+            'C': 'ga',
             'D': 'a-',
             })
 
         self._test_aln({
-            'A': '-g', 
+            'A': '-g',
             'B': '-g',
-            'C': 'ag', 
+            'C': 'ag',
             'D': '-a',
             })
 
     def test_difficult_end_gaps(self):
         self._test_aln({
-            'A': '--cctc', 
+            'A': '--cctc',
             'B': '--cctc',
-            'C': 'gacctc', 
+            'C': 'gacctc',
             'D': 'ga----',
-            })  
-        return  
+            })
+        return
 
         self._test_aln({
-            'A': 'gcctcgg------', 
+            'A': 'gcctcgg------',
             'B': 'gcctcgg------',
-            'C': 'gcctcggaaacgt', 
+            'C': 'gcctcggaaacgt',
             'D': '-------aaacgt',
-            })    
+            })
 
 
 class HirschbergTestCase(MultipleAlignmentTestCase):
@@ -249,4 +249,3 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

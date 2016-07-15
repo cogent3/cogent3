@@ -69,7 +69,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
         if not set(kwargs) <= set(bedgraph_fields):
             not_allowed = set(kwargs) - set(bedgraph_fields)
             raise RuntimeError(
-                "incorrect arguments provided to bedgraph %s" % 
+                "incorrect arguments provided to bedgraph %s" %
                 str(list(not_allowed)))
 
         if 'altColor' in kwargs:

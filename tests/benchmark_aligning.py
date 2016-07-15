@@ -19,7 +19,7 @@ def _s2i(s):
     return numpy.array(['ATCG'.index(c) for c in s])
 
 
-def test(r=1, **kw):   
+def test(r=1, **kw):
     S = make_dna_scoring_dict(10, -1, -8)
 
     seq2 = DNA.makeSequence('AAAATGCTTA' * r)

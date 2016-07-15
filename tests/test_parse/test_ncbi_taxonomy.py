@@ -62,7 +62,7 @@ class NcbiTaxonTests(TestCase):
         node_4 = NcbiTaxon(good_4)
         self.assertEqual(node_1.Rank, 'no rank')  # confirm object holds
         self.assertEqual(node_1.RankId, 28)  # right data
-        self.assertEqual(node_1.ParentId, 1)   
+        self.assertEqual(node_1.ParentId, 1)
         self.assertEqual(node_2.Rank, 'superkingdom')
         self.assertEqual(node_2.RankId, 27)
         self.assertEqual(node_2.ParentId, 1)
@@ -123,7 +123,7 @@ class NcbiNameTests(TestCase):
 
     def test_str(self):
         """NcbiName str should return line in original format"""
-        line = '''1\t|\troot\t|\t\t|\tscientific name|\n''' 
+        line = '''1\t|\troot\t|\t\t|\tscientific name|\n'''
         name = NcbiName(line)
         self.assertEqual(str(name), line)
 
@@ -146,7 +146,7 @@ class NcbiNameLookupTest(TestCase):
         caulinodans = names[8]
         assert (sci_names[1] is root)  # gets NcbiName object from the
         assert (sci_names[2] is bacteria)  # NcbiNameLookup object and
-        assert (sci_names[6] is azorhizobium)  # asks if it is the original 
+        assert (sci_names[6] is azorhizobium)  # asks if it is the original
         assert (sci_names[7] is caulinodans)  # NcbiName object
         self.assertEqual(sci_names[1].Name, 'root')
         self.assertEqual(sci_names[2].Name, 'Bacteria')
@@ -166,7 +166,7 @@ class NcbiTaxonLookupTest(TestCase):
 
     def test_init(self):
         """NcbiTaxonLookup should have correct fields for input NcbiTaxon"""
-        line1_obj = self.nodes[0]  # NcbiTaxon objects made from lines of 
+        line1_obj = self.nodes[0]  # NcbiTaxon objects made from lines of
         line2_obj = self.nodes[1]  # good_node_file
         line3_obj = self.nodes[2]
         line4_obj = self.nodes[3]
@@ -183,7 +183,7 @@ class NcbiTaxonLookupTest(TestCase):
         self.assertEqual(self.taxID_to_obj[6].ParentId, 2)  # fields of the
         self.assertEqual(self.taxID_to_obj[7].ParentId, 6)  # NcbiTaxon objs
         self.assertEqual(self.taxID_to_obj[9].ParentId, 7)
-        self.assertEqual(self.taxID_to_obj[1].Rank, 'no rank') 
+        self.assertEqual(self.taxID_to_obj[1].Rank, 'no rank')
         self.assertEqual(self.taxID_to_obj[2].Rank, 'superkingdom')
         self.assertEqual(self.taxID_to_obj[6].Rank, 'genus')
         self.assertEqual(self.taxID_to_obj[7].Rank, 'species')

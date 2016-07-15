@@ -229,7 +229,7 @@ class ContextStack(threading.local):
     """This singleton object holds the current and enclosing parallel contexts."""
 
     def __init__(self):
-        # Because this is a thread.local, any secondary threads will see this 
+        # Because this is a thread.local, any secondary threads will see this
         # default and so not attempt to use MPI/multiprocessing:
         self.stack = []
         self.top = NONE
@@ -315,6 +315,3 @@ def sync_random(r):
     comm = getCommunicator()
     state = comm.bcast(r.getstate(), 0)
     r.setstate(state)
-
-
-

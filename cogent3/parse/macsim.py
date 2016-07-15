@@ -39,4 +39,3 @@ def MacsimParser(doc):
         seq = alphabet.makeSequence(raw_string, Name=name)
 
         yield (name, seq)
-

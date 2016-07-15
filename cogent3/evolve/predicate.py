@@ -321,4 +321,3 @@ def parse(rule):
     if label:
         pred = pred.aliased(label)
     return pred
-

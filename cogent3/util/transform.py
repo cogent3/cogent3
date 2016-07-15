@@ -421,7 +421,7 @@ def exclude_if_more_other(items, x, case_sens=False):
     """Returns True if #items other than in items in s < x.
 
     This filter is case INsensitive by default.
-    """ 
+    """
     f = keep_if_more_other(items, x, case_sens)
 
     def apply_to(s):

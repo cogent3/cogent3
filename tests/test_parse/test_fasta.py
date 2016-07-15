@@ -55,10 +55,10 @@ class MinimalFastaParserTests(GenericFastaTest):
     def test_no_labels(self):
         """MinimalFastaParser should return empty list from file w/o seqs"""
         # should fail if strict (the default)
-        self.assertRaises(RecordError, list, 
+        self.assertRaises(RecordError, list,
                           MinimalFastaParser(self.labels, strict=True))
         # if not strict, should skip the records
-        self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)), 
+        self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)),
                          [])
 
     def test_single(self):
@@ -128,7 +128,7 @@ class FastaParserTests(GenericFastaTest):
     def test_no_labels(self):
         """FastaParser should return empty list from file w/o seqs"""
         # should fail if strict (the default)
-        self.assertRaises(RecordError, list, 
+        self.assertRaises(RecordError, list,
                           FastaParser(self.labels, strict=True))
         # if not strict, should skip the records
         self.assertEqual(list(FastaParser(self.labels, strict=False)), [])
@@ -250,10 +250,10 @@ class NcbiFastaParserTests(TestCase):
             '  \t   ',  # 4  ignore blank line between records
             '>gi|xyz|gb|qwe|  \tdescr   \t\t',  # 5  desciption has whitespace
             'UUUU',  # 6  two lines of sequence
-            'CCCC',  # 7  
+            'CCCC',  # 7
             '>gi|bad|ref|nonsense',  # 8  missing last pipe -- error
-            'ACU',  # 9  
-            '>gi|bad|description',  # 10 not enough fields -- error       
+            'ACU',  # 9
+            '>gi|bad|description',  # 10 not enough fields -- error
             'AAA',  # 11
             '>gi|bad|ref|stuff|label',  # 12
             'XYZ',  # 13 bad sequence -- error
@@ -286,7 +286,7 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(a.Info.GI, ['10047090'])
         self.assertEqual(a.Info.RefSeq, ['NP_055147.1'])
         self.assertEqual(a.Info.DDBJ, [])
-        self.assertEqual(a.Info.Description, 
+        self.assertEqual(a.Info.Description,
                          'small muscle protein, X-linked [Homo sapiens]')
 
         self.assertEqual(
@@ -310,7 +310,7 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(len(r), 4)
         a, b, c, d = r
         self.assertEqual((a[1], a[1].Info.GI, a[1].Info.RefSeq,
-                          a[1].Info.Description), 
+                          a[1].Info.Description),
                          ('UCAG', ['abc'], ['def'], ''))
         self.assertEqual((b[1], b[1].Info.GI, b[1].Info.GenBank,
                           b[1].Info.Description),
@@ -326,7 +326,7 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(len(r), 3)
         a, b, c = r
         a, b, c = a[1], b[1], c[1]
-        self.assertEqual((a, a.Info.GI, a.Info.RefSeq, a.Info.Description), 
+        self.assertEqual((a, a.Info.GI, a.Info.RefSeq, a.Info.Description),
                          ('TCAG', ['abc'], ['def'], ''))
         self.assertEqual((b, b.Info.GI, b.Info.GenBank, b.Info.Description),
                          ('TTTTCCCC', ['xyz'], ['qwe'], 'descr'))

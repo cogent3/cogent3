@@ -693,4 +693,3 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
 
 def parse(*args):
     return RichGenbankParser(*args).next()[1]
-

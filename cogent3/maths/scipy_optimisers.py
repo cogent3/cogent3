@@ -58,7 +58,7 @@ class _SciPyOptimiser(object):
             return -1 * function(x)
         return self.minimise(nf, *args, **kw)
 
-    def minimise(self, function, xopt, show_remaining, 
+    def minimise(self, function, xopt, show_remaining,
                  max_restarts=None, tolerance=None):
         if max_restarts is None:
             max_restarts = 0
@@ -78,7 +78,7 @@ class _SciPyOptimiser(object):
 
         for i in range((max_restarts + 1)):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
-                function, xopt, disp=False, callback=_callback, 
+                function, xopt, disp=False, callback=_callback,
                 ftol=tolerance, full_output=True)
 
             xopt = numpy.atleast_1d(xopt)  # unsqueeze incase only one param

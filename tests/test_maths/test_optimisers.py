@@ -81,7 +81,7 @@ class OptimiserTestCase(TestCase):
         self._test_optimisation(local=True, target=2)
 
     def test_limited(self):
-        self.assertRaises(MaximumEvaluationsReached, 
+        self.assertRaises(MaximumEvaluationsReached,
                           self._test_optimisation, max_evaluations=5)
 
     # def test_limited_warning(self):
@@ -101,7 +101,7 @@ class OptimiserTestCase(TestCase):
             os.remove(filename)
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
-        self.assertRaises(Exception, self._test_optimisation, 
+        self.assertRaises(Exception, self._test_optimisation,
                           filename=filename, seed=1, init_temp=3.21)
         if os.path.exists(filename):
             os.remove(filename)

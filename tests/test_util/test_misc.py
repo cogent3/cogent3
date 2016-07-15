@@ -21,7 +21,7 @@ from cogent3.util.misc import (iterable, max_index, min_index,
                                makeNonnegInt,
                                NonnegIntError, reverse_complement, not_none, get_items_except,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
-                               revComp, safe_md5, 
+                               revComp, safe_md5,
                                create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
                                combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, toString,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
@@ -243,7 +243,7 @@ class UtilsTests(TestCase):
                                     fail_on_exist=True,
                                     handle_errors_externally=True), 1)
 
-        # return should be 1 if dir exist and fail_on_exist=False 
+        # return should be 1 if dir exist and fail_on_exist=False
         self.assertEqual(create_dir(tmp_dir_path, fail_on_exist=False), 1)
 
         # if dir not there make it and return always 0
@@ -408,7 +408,7 @@ class UtilsTests(TestCase):
         self.assertEqual(cfu('ABCDE  abcde!$'), 'Abcde  Abcde!$')
         self.assertEqual(cfu('abc_def'), 'AbcDef')
         # should read through multiple underscores
-        self.assertEqual(cfu('_caps__from_underscores___'), 
+        self.assertEqual(cfu('_caps__from_underscores___'),
                          'CapsFromUnderscores')
 
     def test_add_lowercase(self):
@@ -484,7 +484,7 @@ class UtilsTests(TestCase):
         d3_items = d['3'][:]
         self.assertEqual(len(d3_items), 2)
         d3_items.sort()
-        self.assertEqual(''.join(d3_items), 'de') 
+        self.assertEqual(''.join(d3_items), 'de')
 
     def test_DictFromPos(self):
         """DictFromPos should return correct lists of positions"""
@@ -565,7 +565,7 @@ class UtilsTests(TestCase):
         test_filepaths = \
         [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
 
-        # try to remove them with remove_files and verify that an IOError is 
+        # try to remove them with remove_files and verify that an IOError is
         # raises
         self.assertRaises(OSError, remove_files, test_filepaths)
         # now get no error when error_on_missing=False
@@ -580,7 +580,7 @@ class UtilsTests(TestCase):
 
         # touch one of the filepaths so it exists
         open(test_filepaths[2], 'w').close()
-        # no error is raised on trying to remove the files 
+        # no error is raised on trying to remove the files
         # (although 4 don't exist)...
         remove_files(test_filepaths, error_on_missing=False)
         # ... and the existing file was removed
@@ -631,7 +631,7 @@ class UtilsTests(TestCase):
                                             timestamp_pattern='')
         self.assertTrue(len(actual2) > len(actual3))
 
-        # creating the directory works as expected 
+        # creating the directory works as expected
         actual = get_random_directory_name(output_dir='/tmp/',
                                            prefix='get_random_directory_test')
         self.assertTrue(exists(actual))
@@ -1458,7 +1458,7 @@ class reverse_complementTests(TestCase):
     def test_reverse_complement_DNA(self):
         """reverse_complement should correctly return reverse complement of DNA"""
 
-        # input and correct output taken from example at 
+        # input and correct output taken from example at
         # http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/
         # Reverse_Comp/reverse_comp.html
         user_input = "ATGCAGGGGAAACATGATTCAGGAC"
@@ -1466,7 +1466,7 @@ class reverse_complementTests(TestCase):
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output)
 
-        # revComp is a pointer to reverse_complement (for backward 
+        # revComp is a pointer to reverse_complement (for backward
         # compatibility)
         real_output = revComp(user_input)
         self.assertEqual(real_output, correct_output)
@@ -1482,7 +1482,7 @@ class reverse_complementTests(TestCase):
 
         # remember to use False toggle to get RNA instead of DNA
         real_output = reverse_complement(user_input, False)
-        self.assertEqual(real_output, correct_output)        
+        self.assertEqual(real_output, correct_output)
     # end test_reverse_complement_RNA
 
     def test_reverse_complement_caseSensitive(self):
@@ -1491,7 +1491,7 @@ class reverse_complementTests(TestCase):
         user_input = "aCGtAcgT"
         correct_output = "AcgTaCGt"
         real_output = reverse_complement(user_input)
-        self.assertEqual(real_output, correct_output) 
+        self.assertEqual(real_output, correct_output)
     # end test_reverse_complement_caseSensitive
 
     def test_reverse_complement_nonNucleicSeq(self):
@@ -1506,7 +1506,7 @@ class reverse_complementTests(TestCase):
 
         # shouldn't matter whether in DNA or RNA mode
         real_output = reverse_complement("")
-        self.assertEqual(real_output, "") 
+        self.assertEqual(real_output, "")
     # end test_reverse_complement_emptySeq
 
     def test_reverse_complement_noSeq(self):
@@ -1532,7 +1532,7 @@ class reverse_complementTests(TestCase):
             (0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
         self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
                          ('a', 'b', 'c', 'd'))
-    # end test_get_items_except    
+    # end test_get_items_except
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
@@ -1546,7 +1546,7 @@ class reverse_complementTests(TestCase):
             "NestedSplitter([(';',1), '=', ','])(line)",
             "NestedSplitter([(';',-1), '=', ','])(line)"
         ]
-        results = [    
+        results = [
             [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
             [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
             [['ii', '0'], [' oo', [' 9', ' 6 5']], '  ', [' xx', '  8'], '  '],

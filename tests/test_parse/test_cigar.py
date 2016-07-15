@@ -77,7 +77,7 @@ class TestCigar(unittest.TestCase):
 
             cmp_aln = CigarParser(self.seqs, self.cigars, sliced=True,
                                   ref_seqname="FAKE01", start=start, end=end)
-            assert cmp_aln == slice_aln 
+            assert cmp_aln == slice_aln
 
 
 if __name__ == '__main__':

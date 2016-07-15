@@ -9,7 +9,7 @@ __all__ = ["best_likelihood", "bootstrap", "likelihood_calculation",
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Andrew Butterfield",
-               "Rob Knight", "Matthrew Wakefield", "Brett Easton", 
+               "Rob Knight", "Matthrew Wakefield", "Brett Easton",
                "Edward Lang", "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"

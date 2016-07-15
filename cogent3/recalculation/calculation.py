@@ -646,5 +646,3 @@ class Calculator(object):
                 x = opt_par.transformFromOptimiser(x)
             triple.append(x)
         return tuple(triple)
-
-

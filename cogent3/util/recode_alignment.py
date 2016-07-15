@@ -59,7 +59,7 @@ class RecodeError(Exception):
     pass
 
 alphabets = {\
-    # Note: 3-STATE CHARGE ALPHAS ASSIGN B/Z TO UNCHARGED -- I FIGURE THAT'S 
+    # Note: 3-STATE CHARGE ALPHAS ASSIGN B/Z TO UNCHARGED -- I FIGURE THAT'S
     # SAFER THAT ASSIGNING THEM TO EITHER +/-, BUT MAYBE THAT'S NOT ACCURATE.
     # AN ALTERNATIVE WOULD BE TO ASSIGN THEM TO WHATEVER THEIR MORE COMMON
     # VALUE WAS IN (e.g.) ALL PROTEINS
@@ -69,7 +69,7 @@ alphabets = {\
     'charge_his_3': [('K', 'KRH'), ('D', 'DE'), ('A', 'ACFGILMNPQSTVWYBXZ')],\
     'size_2': [('G', 'GAVLISPTCNDXB'), ('M', 'MFYWQKHREZ')],\
     'hydropathy_3': [('R', 'RKDENQHBZ'), ('Y', 'YWSTG'), ('P', 'PAMCFLVIX')],\
-    # B/Z are assigned to the acidic residues, since D/E are more common -- 
+    # B/Z are assigned to the acidic residues, since D/E are more common --
     # need to figure out if this is the best way to handle them
     'polarity_his_4': [('D', 'DEBZ'), ('R', 'RHK'),\
                       ('A', 'AILMFPWV'), ('G', 'GSTCYNQ')],
@@ -148,10 +148,10 @@ alphabets = {\
             ('F', 'FI'), ('N', 'NMT'), ('Y', 'YK'), ('G', 'GR')],
     'a5_10': [('D', 'DS'), ('Q', 'QP'), ('V', 'VL'), ('E', 'EC'), ('W', 'WA'),\
              ('H', 'HF'), ('I', 'IN'), ('M', 'MT'), ('Y', 'YK'), ('G', 'GR')],
-    # orig does no recoding, but is provided for convenience so if you want to 
+    # orig does no recoding, but is provided for convenience so if you want to
     # iterate over all reduced alphabets and the full alphabet, you can do that
     # without having specify the original alphabet differently.
-    'orig': list(zip('ACDEFGHIKLMNPQRSTVWY', 'ACDEFGHIKLMNPQRSTVWY'))} 
+    'orig': list(zip('ACDEFGHIKLMNPQRSTVWY', 'ACDEFGHIKLMNPQRSTVWY'))}
 
 
 def build_alphabet_map(alphabet_id=None, alphabet_def=None):
@@ -212,7 +212,7 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
 
     """
 
-    # Construct a dict mapping from UInt8s in alignment to their 
+    # Construct a dict mapping from UInt8s in alignment to their
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
     byte_map = dict(list(zip(aln.Alphabet, list(range(len(aln.Alphabet))))))
@@ -221,10 +221,10 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,
                                       alphabet_def=alphabet_def)
 
-    # Create the recoded version of seqs.Alphabet 
+    # Create the recoded version of seqs.Alphabet
     new_indices = list(range(len(aln.Alphabet)))
     for old, new in list(alphabet_map.items()):
-        new_indices[byte_map[old]] = byte_map[new]    
+        new_indices[byte_map[old]] = byte_map[new]
 
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new DenseAlignment.
@@ -264,7 +264,7 @@ def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
                 result[new] = freqs[old]
     return result
 
-# The following code is for recoding substitution matrices 
+# The following code is for recoding substitution matrices
 
 
 def square_matrix_to_dict(matrix, key_order='ACDEFGHIKLMNPQRSTVWY'):
@@ -305,7 +305,7 @@ def recode_count_matrix(alphabet, count_matrix, aa_order):
                 result[row_new][col_new] = new_count
     cm = []
     for row_c in aa_order:
-        r = [] 
+        r = []
         for col_c in aa_order:
             r.append(result[row_c][col_c])
         cm.append(r)
@@ -323,7 +323,3 @@ def recode_counts_and_freqs(alphabet, count_matrix=DSO78_matrix,
             recoded_freqs[aa] = 0.0
     recoded_counts = recode_count_matrix(alphabet, count_matrix, aa_order)
     return recoded_counts, recoded_freqs
-
-
-
-

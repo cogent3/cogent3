@@ -463,7 +463,7 @@ class LineOrientedConstructorTests(TestCase):
 
     def test_full_LOC(self):
         """LOC should behave as expected when initialized with rich data"""
-        data = ["abc\t def", " 3 \t n", "  abc   \txyz\n\n", "x\t5", "fgh   ", 
+        data = ["abc\t def", " 3 \t n", "  abc   \txyz\n\n", "x\t5", "fgh   ",
                 "x\t3    "]
 
         class rec(MappedRecord):

@@ -199,5 +199,3 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
         if curr:
             raise RecordError("Non-blank lines not even multiple of %s" % num)
     return parser
-
-

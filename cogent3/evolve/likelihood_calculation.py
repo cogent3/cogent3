@@ -307,4 +307,3 @@ class SiteHmm(object):
             data *= pprobs[patch] / binsum[patch]
 
         return blhs
-

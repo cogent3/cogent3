@@ -43,14 +43,14 @@ class UPGMATests(TestCase):
                              [4, 5, 9999999, 10, 12],
                              [20, 21, 10, 9999999, 2],
                              [22, 23, 12, 2, 9999999]), Float)
-        # create a numpy matrix with zero diagonals to test diagonal mask 
+        # create a numpy matrix with zero diagonals to test diagonal mask
         self.matrix_zeros = array(([0, 1, 4, 20, 22],
                                    [1, 0, 5, 21, 23],
                                    [4, 5, 0, 10, 12],
                                    [20, 21, 10, 0, 2],
                                    [22, 23, 12, 2, 0]), Float)
 
-        # create a numpy matrix with zero diagonals to test diagonal mask 
+        # create a numpy matrix with zero diagonals to test diagonal mask
         self.matrix_five = array(([5, 1, 4, 20, 22],
                                   [1, 5, 5, 21, 23],
                                   [4, 5, 5, 10, 12],

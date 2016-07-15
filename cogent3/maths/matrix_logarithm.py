@@ -63,7 +63,7 @@ def is_generator_unique(Q):
             raise NotImplementedError('non-primary root detected:\n' + repr(Q))
 
     # If the real parts of the eigenvalues are distinct, we're ok
-    # For each candidate complex conjugate pair, check for equivalent Qs 
+    # For each candidate complex conjugate pair, check for equivalent Qs
     for i, j in real_close:
         s = zeros(n)
         s[i] = 1.

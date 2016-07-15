@@ -876,9 +876,9 @@ class SequenceCollection(object):
         for (name, source, feature, start, end, score,
                 strand, frame, attributes, comments) in GffParser(f):
             if name in self.NamedSeqs:
-                self.NamedSeqs[name].addFeature(feature, 
+                self.NamedSeqs[name].addFeature(feature,
                                                     parse_attributes(
-                                                        attributes), 
+                                                        attributes),
                                                     [(start, end)])
 
             '''
@@ -886,7 +886,7 @@ class SequenceCollection(object):
                                 feature,
                                 parse_attributes(attributes),
                                 [(start, end)])
-   ''' 
+   '''
 
     def replaceSeqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
@@ -998,7 +998,7 @@ class SequenceCollection(object):
                 or \
                 (after_name and after_name not in self.Names):
             name = before_name or after_name
-            raise ValueError("The alignment doesn't have a sequence named '{0}'" 
+            raise ValueError("The alignment doesn't have a sequence named '{0}'"
                              .format(name))
 
         if before_name is not None:  # someone might have seqname of int(0)
@@ -1015,7 +1015,7 @@ class SequenceCollection(object):
             aln_before = self.takeSeqs(names_before)
             combined_aln = aln_before
             combined_aln = combined_aln.addSeqs(aln_new)
-        else:                
+        else:
             combined_aln = aln_new
 
         if len(names_after) > 0:
@@ -2696,7 +2696,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         for name in self.Names:
             seq = self.getGappedSeq(name)
             if name not in template.Names:
-                raise ValueError("Template alignment doesn't have a '%s'" 
+                raise ValueError("Template alignment doesn't have a '%s'"
                                  % name)
             gsq = template.getGappedSeq(name)
             assert len(gsq) == len(seq)
@@ -2723,7 +2723,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                              .format(name))
 
         gap = self.Alphabet.Gap
-        non_gap_cols = [i for i, col in enumerate(self.getGappedSeq(name)) 
+        non_gap_cols = [i for i, col in enumerate(self.getGappedSeq(name))
                         if col != gap]
 
         return self.takePositions(non_gap_cols)

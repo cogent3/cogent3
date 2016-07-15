@@ -878,7 +878,7 @@ class Table(DictArray):
             if col_sum:
                 vals = self.array
             else:
-                vals = self.array.transpose() 
+                vals = self.array.transpose()
 
             if strict:
                 result = vals.sum(axis=0).tolist()
@@ -954,4 +954,3 @@ class Table(DictArray):
         header = [new_column_name] + header[1:]  # [1:] slice excludes old name
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
-

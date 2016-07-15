@@ -90,5 +90,5 @@ def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
         if isinstance(seq, str):
             seq = _fake_seq(label, seq)
         ordered_seqs.append(seq)
-    return fasta_from_sequences(ordered_seqs, make_seqlabel=make_seqlabel, 
+    return fasta_from_sequences(ordered_seqs, make_seqlabel=make_seqlabel,
                                 line_wrap=line_wrap)

@@ -62,7 +62,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
     seq_cache = {}
     interleaved_id_map = {}
     id_offset = 10
-    curr_ct = -1 
+    curr_ct = -1
 
     for line in data:
         if curr_ct == -1:
@@ -70,7 +70,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
             num_seqs, seq_len, interleaved = _get_header_info(line)
 
             if not num_seqs or not seq_len:
-                return 
+                return
             curr_ct += 1
             continue
 

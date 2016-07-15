@@ -76,11 +76,11 @@ class NcbiTaxon(object):
                     so much, NCBI...
                     Expect a string: '' by default.
     """
-    Fields = ['TaxonId', 'ParentId', 'Rank', 'EmblCode', 
-              'DivisionId', 'DivisionInherited', 'TranslTable', 
+    Fields = ['TaxonId', 'ParentId', 'Rank', 'EmblCode',
+              'DivisionId', 'DivisionInherited', 'TranslTable',
               'TranslTableInherited',
-              'TranslTableMt', 'TranslTableMtInherited', 'Hidden', 
-              'HiddenSubtreeRoot', 'Comments'] 
+              'TranslTableMt', 'TranslTableMtInherited', 'Hidden',
+              'HiddenSubtreeRoot', 'Comments']
 
     def __init__(self, line):
         """Returns new NcbiTaxon from line containing taxonomy data."""
@@ -259,15 +259,15 @@ class NcbiTaxonNode(TreeNode):
             result.extend(i.getRankedDescendants(rank))
         return result
 
-    def _get_parent_id(self): 
+    def _get_parent_id(self):
         return self.Data.ParentId
     ParentId = property(_get_parent_id)
 
-    def _get_taxon_id(self): 
+    def _get_taxon_id(self):
         return self.Data.TaxonId
     TaxonId = property(_get_taxon_id)
 
-    def _get_rank(self): 
+    def _get_rank(self):
         return self.Data.Rank
     Rank = property(_get_rank)
 

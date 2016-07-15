@@ -46,7 +46,7 @@ class TestDatabase(TestCase):
         db = Database(account=account, release=Release,
                       species='human', db_type='core')
         tn, tc = 'gene', 'biotype'
-        expected = set(['protein_coding', 'pseudogene', 'processed_transcript', 
+        expected = set(['protein_coding', 'pseudogene', 'processed_transcript',
                         'Mt_tRNA', 'Mt_rRNA', 'IG_V_gene', 'IG_J_gene',
                         'IG_C_gene', 'IG_D_gene', 'miRNA', 'misc_RNA', 'snoRNA', 'snRNA', 'rRNA'])
         got = set(db.getDistinct(tn, tc))

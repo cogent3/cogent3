@@ -47,7 +47,7 @@ def Polygon(vertices, **kw):
     return mpatches.Polygon(vertices, **line_options(**kw))
 
 
-def String(x, y, text, textAnchor='start', fontName=None, fontSize=10, 
+def String(x, y, text, textAnchor='start', fontName=None, fontSize=10,
            fillColor='black', rotation=None):
     """Acts like the RLG shape class of the same name"""
     fontname = fontName
@@ -113,10 +113,10 @@ class Group(matplotlib.artist.Artist):
 
     def draw(self, renderer, *args, **kw):
         for c in self.contents:
-            c.draw(renderer, *args, **kw)         
+            c.draw(renderer, *args, **kw)
 
 
-def figureLayout(width=None, height=None, margin=0.25, aspect=None, 
+def figureLayout(width=None, height=None, margin=0.25, aspect=None,
                  default_aspect=0.75, useful_width=None, leftovers=False, **margins):
     """Width and height of a figure, plus a bounding box that nearly fills it, derived
     from defaults or provided margins.  All input figures are in inches."""
@@ -134,22 +134,22 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
     else:
         height = height or default_aspect * width
     total_height = height + top + bottom
-    total_width = width + left + right 
+    total_width = width + left + right
     posn = [left / total_width, bottom / total_height,
         width / total_width, height / total_height]
     if leftovers:
         return (total_width, total_height), posn, margins
-    else:   
+    else:
         assert not margins, list(margins.keys())
         return (total_width, total_height), posn
 
 
 class Drawable(object):
-    # Superclass for objects which can generate a matplotlib figure, in order 
-    # to supply consistent and convenient showFigure() and drawToFile() 
+    # Superclass for objects which can generate a matplotlib figure, in order
+    # to supply consistent and convenient showFigure() and drawToFile()
     # methods.
-    # Subclasses must provide .makeFigure() which will make use of 
-    # _makeFigure() matplotlib.pyplot import done at runtime to give the 
+    # Subclasses must provide .makeFigure() which will make use of
+    # _makeFigure() matplotlib.pyplot import done at runtime to give the
     # user every chance to change the matplotlib backend first
 
     def _makeFigure(self, width, height, **kw):
@@ -184,7 +184,7 @@ class Drawable(object):
                      'papertype', 'format', 'transparent']:
                 savefig_kw[k] = v
             else:
-                makefig_kw[k] = v    
+                makefig_kw[k] = v
         fig = self.makeFigure(**makefig_kw)
         fig.savefig(fname, **savefig_kw)
 
@@ -206,8 +206,8 @@ class Drawable(object):
 
 
 # For sequence feature styles:
-# Matplotlib has fancy_box and fancy_arrow.  The code below is 
-# similar, except that the two ends of the box have independent 
+# Matplotlib has fancy_box and fancy_arrow.  The code below is
+# similar, except that the two ends of the box have independent
 # styles: open, square, rounded, pointy, or blunt
 
 class PathBuilder(object):
@@ -267,7 +267,7 @@ class _End(object):
         oppo.drawToStart(p)
         oppo.drawEnd(p)
         self.finish(p)
-        return p.asPath()        
+        return p.asPath()
 
 
 class Open(_End):
@@ -295,7 +295,7 @@ class Rounded(_End):
                      self.x_near, self.y_first + self.dy)
         path.lineTo(self.x_near, self.y_second - self.dy)
         path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
-                     self.x_near + self.dx, self.y_second)    
+                     self.x_near + self.dx, self.y_second)
 
 
 class Pointy(_End):
@@ -330,7 +330,7 @@ def _sign(x):
     return x and x / abs(x)
 
 
-def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False, 
+def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False,
         min_width=0.5, proportion_of_track=0.6):
     inwards = _sign(x2 - x1)
     span = max(abs(x2 - x1), min_width)
@@ -352,5 +352,3 @@ def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False,
     else:
         end = Square(x1, x2, y1, y2)
     return end
-
-

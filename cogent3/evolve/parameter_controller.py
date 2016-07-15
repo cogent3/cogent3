@@ -96,7 +96,7 @@ class _LikelihoodParameterController(_LF):
         free to be optimised independently.
         Other parameters are scoped based on the unique values found in the
         tree (if any) or default to having one value shared across the whole
-        tree""" 
+        tree"""
         with self.updatesPostponed():
             edges = self.tree.getEdgeVector()
             for par_name in self.model.getParamList():
@@ -121,7 +121,7 @@ class _LikelihoodParameterController(_LF):
                                       stacklevel=4)
                         break
 
-    def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
+    def setMotifProbsFromData(self, align, locus=None, is_constant=None,
                               include_ambiguity=False, is_independent=None, auto=False,
                               pseudocount=None, **kwargs):
         if 'is_const' in kwargs:
@@ -139,10 +139,10 @@ class _LikelihoodParameterController(_LF):
                 pseudocount = 0.5
         counts += pseudocount
         mprobs = counts / (1.0 * sum(counts))
-        self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant, 
+        self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant,
                            is_independent=is_independent, auto=auto, **kwargs)
 
-    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None, 
+    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None,
                       is_independent=None, auto=False, **kwargs):
         if 'is_const' in kwargs:
             is_constant = kwargs.pop('is_const')
@@ -151,8 +151,8 @@ class _LikelihoodParameterController(_LF):
         motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
-        self.model.setParamControllerMotifProbs(self, motif_probs, 
-                                                is_constant=is_constant, bin=bin, locus=locus, 
+        self.model.setParamControllerMotifProbs(self, motif_probs,
+                                                is_constant=is_constant, bin=bin, locus=locus,
                                                 is_independent=is_independent, **kwargs)
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
@@ -263,7 +263,7 @@ class _LikelihoodParameterController(_LF):
         elif init is not None:
             assert not value
             value = init
-        self.assignAll(par_name, scopes, value, lower, upper, is_constant, 
+        self.assignAll(par_name, scopes, value, lower, upper, is_constant,
                        is_independent)
 
     def setLocalClock(self, tip1name, tip2name):
@@ -404,4 +404,3 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 mprobs = counts / (1.0 * sum(counts))
                 self.setMotifProbs(mprobs, locus=locus,
                                    is_constant=True, auto=True)
-

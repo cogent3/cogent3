@@ -513,5 +513,3 @@ def fdtri(a, b, y):
         w = incbi(0.5 * a, 0.5 * b, 1.0 - y)
         x = b * w / (a * (1.0 - w))
     return x
-
-

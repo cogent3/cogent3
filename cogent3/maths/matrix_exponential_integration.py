@@ -70,7 +70,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         self.evI = inv(self.evT.T)
         # Remove following check if performance is a concern
         reQ = inner(self.evT * self.roots, self.evI).real
-        if not allclose(Q, reQ): 
+        if not allclose(Q, reQ):
             raise ArithmeticError("eigendecomposition failed")
 
     def __call__(self, t=1.0):
@@ -81,4 +81,3 @@ class VonBingIntegratingExponentiator(_Exponentiator):
             result = asarray(result.real)
         result = maximum(result, 0.0)
         return result
-

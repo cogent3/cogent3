@@ -167,7 +167,7 @@ class EstimateDistances(object):
         lf.optimise(**dist_opt_args)
 
         # get the statistics
-        stats_dict = lf.getParamValueDict(['edge'], 
+        stats_dict = lf.getParamValueDict(['edge'],
                                           params=['length'] + self._est_params)
 
         # if two-way, grab first distance only
@@ -334,4 +334,3 @@ class EstimateDistances(object):
             # only write output from 0th node
             table = self.getTable(summary_function=summary_function, **kwargs)
             table.writeToFile(filename, format=format)
-

@@ -61,12 +61,12 @@ class NucleotideModelTestMethods(TestCase):
 class MultiLetterMotifSubstModelTests(TestCase):
 
     def setUp(self):
-        self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
+        self.submodel = substitution_model.Dinucleotide(do_scaling=True,
                                                         model_gaps=True, mprob_model='tuple')
 
     def test_asciiArt(self):
-        model = substitution_model.Dinucleotide(mprob_model='tuple', 
-                                                predicates=['k:transition'])    
+        model = substitution_model.Dinucleotide(mprob_model='tuple',
+                                                predicates=['k:transition'])
         model.asciiArt()
         model = substitution_model.Dinucleotide(mprob_model='tuple')
         model.asciiArt()
@@ -152,13 +152,13 @@ class CodonSubstModelTests(TestCase):
         # first position
         assert isTransition('TGC', 'CGC')
         assert isTransition('GGC', 'AGC')
-        # second position   
+        # second position
         assert isTransition('CTT', 'CCT')
         assert isTransition('CAT', 'CGT')
-        # thirs position    
+        # thirs position
         assert isTransition('CTT', 'CTC')
         assert isTransition('CTA', 'CTG')
-        # mito code         
+        # mito code
         assert isTransition('CTT', 'CTC')
         assert isTransition('CTA', 'CTG')
 
@@ -230,4 +230,3 @@ class ModelDataInteractionTestMethods(TestCase):
 
 if __name__ == '__main__':
     main()
-

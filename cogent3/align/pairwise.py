@@ -10,7 +10,7 @@ HIRSCHBERG_LIMIT = 10**8
 import numpy
 
 # setting global state on module load is bad practice and can be ineffective,
-# and this setting matches the defaults anyway, but left here as reference 
+# and this setting matches the defaults anyway, but left here as reference
 # in case it needs to be put back in a more runtime way.
 # numpy.seterr(all='ignore')
 
@@ -29,7 +29,7 @@ from cogent3.util.warning import discontinued, deprecated
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 
 
-def _importedPyrexAligningModule(name):  
+def _importedPyrexAligningModule(name):
     try:
         return importVersionedModule(name, globals(), (3, 1),
                                      "slow Python alignment implementation")
@@ -106,7 +106,7 @@ DEBUG = False
 
 def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                  preds, state_directions, T,
-                 xgap_scores, ygap_scores, match_scores, rows, track, track_enc, 
+                 xgap_scores, ygap_scores, match_scores, rows, track, track_enc,
                  viterbi, local=False, use_scaling=False, use_logs=False):
     """Pure python version of the dynamic programming algorithms
     Forward and Viterbi.  Works on sequences and POGs.  Unli"""
@@ -196,7 +196,7 @@ class TrackBack(object):
         self.tlist = tlist
 
     def __str__(self):
-        return ''.join('(%s,%s)%s' % 
+        return ''.join('(%s,%s)%s' %
                        (x, y, '.xym'[dx + 2 * dy]) for (state, (x, y), (dx, dy))
                        in self.tlist)
 
@@ -307,7 +307,7 @@ class Pair(object):
         result = []
         started = False
         while 1:
-            (nposn, (a, b), nstate) = self._decode_state(track, encoding, 
+            (nposn, (a, b), nstate) = self._decode_state(track, encoding,
                                                          posn, state)
             if state:
                 result.append((state, posn, (a > 0, b > 0)))
@@ -358,7 +358,7 @@ class Pair(object):
         # print T
         return self.aligner(self.plan, self.x_index, self.y_index,
                             i_low, i_high, j_low, j_high, self.children, state_directions,
-                            T, xscores, yscores, match_scores, rows, track, 
+                            T, xscores, yscores, match_scores, rows, track,
                             track_enc, viterbi, **kw)
 
 
@@ -579,7 +579,7 @@ class PairEmissionProbs(object):
         self.scores = {}
 
     def makePartialLikelihoods(self, use_cost_function):
-        # use_cost_function specifies whether eqn 2 of Loytynoja & Goldman 
+        # use_cost_function specifies whether eqn 2 of Loytynoja & Goldman
         # is applied.  Without it insertions may be favored over deletions
         # because the emission probs of the insert aren't counted.
         plhs = [[], []]
@@ -669,11 +669,11 @@ class PairEmissionProbs(object):
         """
         (states, T) = TM
 
-        # This implementation is slightly complicated by the need to handle 
+        # This implementation is slightly complicated by the need to handle
         # alignments of alignments, because a subalignment may have an indel
         # spanning the midpoint where we want to divide the problem in half.
         # That must be the sense in which the fatter and slower method used
-        # in "Prank" (Loytynoja A, Goldman N. 2005) is "computationally more 
+        # in "Prank" (Loytynoja A, Goldman N. 2005) is "computationally more
         # attractive": for them there is only one link in the list:
         links = self.pair.children[0].midlinks()
 
@@ -684,7 +684,7 @@ class PairEmissionProbs(object):
             else:
                 T2[1:-1:, -1] = 1.0  # don't count the end state transition twice
             return self.scores_at_rows(
-                (states, T2), dp_options, 
+                (states, T2), dp_options,
                 last_row=[link[backward] for link in links],
                 backward=not not backward)
 
@@ -755,7 +755,7 @@ class PairEmissionProbs(object):
             elif cells is not None:
                 msg = 'Posterior probs'
             elif self.pair.size[0] - 2 >= 3 and not backward and (
-                    problem_size > HIRSCHBERG_LIMIT or 
+                    problem_size > HIRSCHBERG_LIMIT or
                     parallel.getCommunicator().Get_size() > 1):
                 return self.hirschberg(TM, dp_options)
             else:
@@ -898,7 +898,7 @@ class DPFlags(object):
         if use_scaling is None:
             use_scaling = not use_logs
         if use_logs:
-            assert viterbi, "logs only usable for viterbi" 
+            assert viterbi, "logs only usable for viterbi"
             assert not use_scaling, "use logs or scaling but not both"
         self.use_cost_function = bool(use_cost_function)
         self.local = bool(local)
@@ -906,7 +906,7 @@ class DPFlags(object):
         self.use_scaling = bool(use_scaling)
         self.viterbi = bool(viterbi)
         self.backward = bool(backward)
-        self.as_tuple = tuple(n for n in 
+        self.as_tuple = tuple(n for n in
                               ['viterbi', 'local', 'use_logs',
                                   'use_cost_function', 'use_scaling', 'backward']
                               if getattr(self, n))
@@ -959,7 +959,7 @@ class PairHMM(object):
         return VP(self, result)
 
     def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
-        # deprecated('method', 'getViterbiScoreAndAlignment', 
+        # deprecated('method', 'getViterbiScoreAndAlignment',
         #        'getViterbiPath().getAlignment()', '1.8', stack_level=3)
         assert ratio in [None, 0.5], ratio
         vpath = self.getViterbiPath(**kw)
@@ -969,7 +969,7 @@ class PairHMM(object):
         return result_tuple
 
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
-        deprecated('method', 'getLocalViterbiScoreAndAlignment', 
+        deprecated('method', 'getLocalViterbiScoreAndAlignment',
                    'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
         kw['posterior_probs'] = posterior_probs
         return self.getViterbiScoreAndAlignment(local=True, **kw)
@@ -1024,5 +1024,3 @@ class LocalViterbiPath(_ViterbiPath):
     def getPosteriorProbs(self):
         pp = self.pair_hmm._getPosteriorProbs(self.tb, use_cost_function=False)
         return numpy.exp(pp)
-
-

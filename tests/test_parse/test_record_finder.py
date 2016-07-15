@@ -75,12 +75,12 @@ class TailedRecordFinderTests(TestCase):
             return (not line) or line.isspace() or line.startswith('#')
 
         lines = ['abc', '\n', '1.', 'def', '#ignore', '2.']
-        self.assertEqual(list(TailedRecordFinder(self.endswith_period)(lines)), 
+        self.assertEqual(list(TailedRecordFinder(self.endswith_period)(lines)),
                          [['abc', '1.'], ['def', '#ignore', '2.']])
-        self.assertEqual(list(TailedRecordFinder(self.endswith_period, 
+        self.assertEqual(list(TailedRecordFinder(self.endswith_period,
                                                  ignore=never)(lines)),
                          [['abc', '', '1.'], ['def', '#ignore', '2.']])
-        self.assertEqual(list(TailedRecordFinder(self.endswith_period, 
+        self.assertEqual(list(TailedRecordFinder(self.endswith_period,
                                                  ignore=ignore_labels)(lines)),
                          [['abc', '1.'], ['def', '2.']])
 
@@ -144,12 +144,12 @@ class DelimitedRecordFinderTests(TestCase):
             return (not line) or line.isspace() or line.startswith('#')
 
         lines = ['>abc', '\n', '1', '$$', '>def', '#ignore', '2', '$$']
-        self.assertEqual(list(DelimitedRecordFinder('$$')(lines)), 
+        self.assertEqual(list(DelimitedRecordFinder('$$')(lines)),
                          [['>abc', '1', '$$'], ['>def', '#ignore', '2', '$$']])
-        self.assertEqual(list(DelimitedRecordFinder('$$', 
+        self.assertEqual(list(DelimitedRecordFinder('$$',
                                                     ignore=never)(lines)),
                          [['>abc', '', '1', '$$'], ['>def', '#ignore', '2', '$$']])
-        self.assertEqual(list(DelimitedRecordFinder('$$', 
+        self.assertEqual(list(DelimitedRecordFinder('$$',
                                                     ignore=ignore_labels)(lines)),
                          [['>abc', '1', '$$'], ['>def', '2', '$$']])
 
@@ -211,12 +211,12 @@ class LabeledRecordFinderTests(TestCase):
             return line.startswith('>')
 
         lines = ['>abc', '\n', '1', '>def', '#ignore', '2']
-        self.assertEqual(list(LabeledRecordFinder(is_start)(lines)), 
+        self.assertEqual(list(LabeledRecordFinder(is_start)(lines)),
                          [['>abc', '1'], ['>def', '#ignore', '2']])
-        self.assertEqual(list(LabeledRecordFinder(is_start, 
+        self.assertEqual(list(LabeledRecordFinder(is_start,
                                                   ignore=never)(lines)),
                          [['>abc', '', '1'], ['>def', '#ignore', '2']])
-        self.assertEqual(list(LabeledRecordFinder(is_start, 
+        self.assertEqual(list(LabeledRecordFinder(is_start,
                                                   ignore=ignore_labels)(lines)),
                          [['>abc', '1'], ['>def', '2']])
 
@@ -251,7 +251,7 @@ class LineGrouperTests(TestCase):
             return (not line) or line.isspace() or line.startswith('#')
 
         lines = ['abc', '\n', '1', 'def', '#ignore', '2']
-        self.assertEqual(list(LineGrouper(1)(lines)), 
+        self.assertEqual(list(LineGrouper(1)(lines)),
                          [['abc'], ['1'], ['def'], ['#ignore'], ['2']])
         self.assertEqual(list(LineGrouper(1, ignore=never)(lines)),
                          [[i.strip()] for i in lines])

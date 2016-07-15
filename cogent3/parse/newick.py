@@ -130,7 +130,7 @@ class _Tokeniser(object):
 
             if not token_consumed:
                 self.token = token
-                yield token  
+                yield token
 
 
 def parse_string(text, constructor, **kw):
@@ -157,7 +157,7 @@ def parse_string(text, constructor, **kw):
             try:
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
-                raise tokeniser.error("Can't convert %s '%s'" % 
+                raise tokeniser.error("Can't convert %s '%s'" %
                                       (attr_name, token))
             expected_attribute = None
         elif token == '(':
@@ -186,7 +186,7 @@ def parse_string(text, constructor, **kw):
             elif token == ',' and ')' in sentinals:
                 pass
             else:
-                raise tokeniser.error("Was expecting to end with %s" % 
+                raise tokeniser.error("Was expecting to end with %s" %
                                       ' or '.join([repr(s) for s in sentinals]))
         else:
             if name is not None:

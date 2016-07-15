@@ -53,7 +53,7 @@ class test_aaindex1_parser(TestCase):
                          'Membrane-buried preference parameters (Argos et al., 1982)')
 
     def test_multi_line_Description_entries(self):
-        """ AAI1: Test Multi Line Description Entries """        
+        """ AAI1: Test Multi Line Description Entries """
         self.assertEqual(self.AAIndexObjects['JURD980101'].Description,
                          'Modified Kyte-Doolittle hydrophobicity scale (Juretic et al., 1998)')
 
@@ -73,7 +73,7 @@ class test_aaindex1_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Authors,
                          'Argos, P., Rao, J.K.M. and Hargrave, P.A.')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Authors,
-                         'Juretic, D., Lucic, B., Zucic, D. and Trinajstic, N.')                
+                         'Juretic, D., Lucic, B., Zucic, D. and Trinajstic, N.')
 
     def test_mult_line_Title_entries(self):
         """ AAI1: Test Multi Line Title Entries """
@@ -87,7 +87,7 @@ class test_aaindex1_parser(TestCase):
     def test_sing_line_Title_entries(self):
         """ AAI1: Test Single Line Title Entries """
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Title,
-                         'Structural prediction of membrane-bound proteins')     
+                         'Structural prediction of membrane-bound proteins')
 
     def test_Citation_entries(self):
         """ AAI1: Test Citation Entries """
@@ -115,7 +115,7 @@ class test_aaindex1_parser(TestCase):
                          Correlating['BUNA790102'], 0.949)
 
     def test_empty_Correlating_entries(self):
-        """ AAI1: Test empty Correlating Entries """       
+        """ AAI1: Test empty Correlating Entries """
         self.assertEqual(self.AAIndexObjects['WILM950104'].Correlating, {})
 
     def test_multi_line_Correlating_entries(self):
@@ -153,7 +153,7 @@ class test_aaindex1_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['Q'],
                          -3.68)
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['V'],
-                         4.2)                  
+                         4.2)
 
 
 class test_aaindex2_parser(TestCase):
@@ -215,7 +215,7 @@ class test_aaindex2_parser(TestCase):
         """ AAI2: Test Title Entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Title,
                          'Amino acid substitution matrices from an information theoretic ' +
-                         'perspective')         
+                         'perspective')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Title,
                          'Amino acid substitution during functionally constrained divergent ' +
                          'evolution of protein sequences')
@@ -878,7 +878,3 @@ M rows = ACDEFGHIKLMNPQRSTVWYJ-, cols = ACDEFGHIKLMNPQRSTVWYJ
 # Run tests if called from the command line
 if __name__ == '__main__':
     main()
-
-
-
-

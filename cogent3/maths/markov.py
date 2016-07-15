@@ -190,4 +190,3 @@ def SiteClassTransitionMatrix(switch, probs):
     tags = [i + 1 for i in range(len(switch_probs))]
     return TransitionMatrix(
         switch_probs, tags, stationary_probs=probs.copy())
-

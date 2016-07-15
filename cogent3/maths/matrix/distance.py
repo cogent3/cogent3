@@ -100,4 +100,3 @@ class DistanceMatrix(Dict2D, Delegator):
         # Is there a better way to do this? It's tricky to keep the delegator
         # part functioning
         return deepcopy(self)
-

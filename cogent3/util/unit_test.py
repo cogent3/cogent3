@@ -435,7 +435,7 @@ class TestCase(orig_TestCase):
             if min_value >= max_value:
                 raise ValueError
 
-            if logical_and(asarray(observed) < max_value, 
+            if logical_and(asarray(observed) < max_value,
                            asarray(observed) > min_value).all():
                 return
         except:
@@ -555,4 +555,3 @@ class TestCase(orig_TestCase):
             pass
         raise self.failureException(msg or 'Observed %s is the same as expected %s' %
                                     (repr(observed), repr(expected)))
-

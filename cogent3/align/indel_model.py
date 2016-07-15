@@ -53,7 +53,7 @@ class SimpleIndelModel(_SimpleIndelParams):
         e = self.indel_length
         g = 0.0
         T = numpy.array([
-            [0, d, d, 1 - 2 * d], 
+            [0, d, d, 1 - 2 * d],
             [1 - e, e, 0, 0],
             [1 - e, 0, e, 0],
             [1 - g, 0, 0, g],
@@ -93,7 +93,7 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
 
         eXM =  extend * secondary_deletion * same_len + \
         close * (deletion / 4 + (1.0 - indel))
-        eXX = extend * (secondary_insert * extend / close + 
+        eXX = extend * (secondary_insert * extend / close +
                          secondary_deletion * shorted) + \
         close * insert + extend
         #eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
@@ -121,6 +121,3 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
             raise ValueError
 
         return PairTransitionMatrix('MXY', tm)
-
-
-

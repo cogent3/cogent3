@@ -173,9 +173,9 @@ class LikelihoodCalcs(TestCase):
         """rate is gamma distributed omega follows"""
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='rate', partitioned_params='omega', 
+            ordered_param='rate', partitioned_params='omega',
             distribution='gamma', mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, bins=3) 
+        lf = self._makeLikelihoodFunction(submod, bins=3)
         values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
@@ -184,7 +184,7 @@ class LikelihoodCalcs(TestCase):
     def test_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='rate', partitioned_params='omega', 
+            ordered_param='rate', partitioned_params='omega',
             distribution='free', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
         values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
@@ -194,9 +194,9 @@ class LikelihoodCalcs(TestCase):
     def test_complex_binned_partition(self):
         submod = substitution_model.Codon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
-            ordered_param='kappa', partitioned_params=['omega'], 
+            ordered_param='kappa', partitioned_params=['omega'],
             mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod, 
+        lf = self._makeLikelihoodFunction(submod,
                                           bins=['slow', 'fast'])
         lf.setParamRule('kappa', value=1.0, is_constant=True)
         lf.setParamRule('kappa', edge="Human", init=1.0, is_constant=False)
@@ -263,7 +263,7 @@ class LikelihoodCalcs(TestCase):
         submod = substitution_model.Protein(
             do_scaling=False, equal_motif_probs=True)
 
-        likelihood_function = self._makeLikelihoodFunction(submod, 
+        likelihood_function = self._makeLikelihoodFunction(submod,
                                                            translate=True)
 
         evolve_lnL = likelihood_function.getLogLikelihood()
@@ -300,13 +300,13 @@ class LikelihoodFunctionTests(TestCase):
                 ("Human", 0.3),
                 ("HowlerMon", 0.4),
                 ("Mouse", 0.5)]:
-            likelihood_function.setParamRule("length", value=length, 
+            likelihood_function.setParamRule("length", value=length,
                                              edge=species, is_constant=True)
         for (species1, species2, length) in [
                 ("Human", "HowlerMon", 0.7),
                 ("Human", "Mouse", 0.6)]:
             LCA = self.tree.getConnectingNode(species1, species2).Name
-            likelihood_function.setParamRule("length", value=length, 
+            likelihood_function.setParamRule("length", value=length,
                                              edge=LCA, is_constant=True)
 
         likelihood_function.setParamRule("beta", value=4.0, is_constant=True)
@@ -616,7 +616,7 @@ motif    mprobs
         # checks by just trying to make the calculator
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
-        lf.setParamRule('beta', is_constant=True, value=2.0, 
+        lf.setParamRule('beta', is_constant=True, value=2.0,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
         lf.setParamRule('beta', init=2.0, is_constant=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)

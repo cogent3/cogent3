@@ -122,7 +122,7 @@ class TestPeriod(TestCase):
         auto_x, auto_periods = auto_corr(self.sig, llim=2, ulim=50)
         max_idx = list(auto_x).index(max(auto_x))
         auto_p = auto_periods[max_idx]
-        self.assertEqual(auto_p, self.p) 
+        self.assertEqual(auto_p, self.p)
 
     def test_dft(self):
         """correctly compute discrete fourier transform"""

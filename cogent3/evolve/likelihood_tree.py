@@ -24,7 +24,7 @@ __status__ = "Production"
 
 try:
     from . import _likelihood_tree as pyrex
-    # pyrex = importVersionedModule('_likelihood_tree', globals(), 
+    # pyrex = importVersionedModule('_likelihood_tree', globals(),
             #(2, 1), "pure Python/NumPy likelihoodihood tree")
 except ImportError:
     pyrex = None
@@ -35,7 +35,7 @@ class _LikelihoodTreeEdge(object):
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
-        self.comm = None  # for MPI 
+        self.comm = None  # for MPI
 
         M = children[0].shape[-1]
         for child in children:
@@ -114,7 +114,7 @@ class _LikelihoodTreeEdge(object):
         share_sizes = [share + 1] * remainder + [share] * (size - remainder)
         assert sum(share_sizes) == U
         (lo, hi) = [sum(share_sizes[:i]) for i in (rank, rank + 1)]
-        local_cols = [i for (i, u) in enumerate(self.index) 
+        local_cols = [i for (i, u) in enumerate(self.index)
                       if lo <= u < hi]
         local = self.selectColumns(local_cols)
 
@@ -189,7 +189,7 @@ class _LikelihoodTreeEdge(object):
     def asLeaf(self, likelihoods):
         (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
         assert len(likelihoods) == len(self.counts)
-        return LikelihoodTreeLeaf(likelihoods, likelihoods, 
+        return LikelihoodTreeLeaf(likelihoods, likelihoods,
                                   self.counts, self.index, self.edge_name, self.alphabet, None)
 
 
@@ -245,7 +245,7 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return pyrex.logDotReduce(self.index, patch_probs, switch_probs, plhs)
 
     def getTotalLogLikelihood(self, input_likelihoods, mprobs):
-        return pyrex.getTotalLogLikelihood(self.counts, input_likelihoods, 
+        return pyrex.getTotalLogLikelihood(self.counts, input_likelihoods,
                                            mprobs)
 
     def getLogSumAcrossSites(self, lhs):
@@ -280,7 +280,7 @@ def _indexed(values):
     return unique, counts, index
 
 
-def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):    
+def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
     if alphabet is None:
         alphabet = sequence.MolType.Alphabet
     if seq_name is None:
@@ -308,16 +308,16 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
         raise ValueError('%s at %s:%s not in alphabet' % (
             repr(motif), seq_name, posn))
 
-    return LikelihoodTreeLeaf(uniq_motifs, likelihoods, 
+    return LikelihoodTreeLeaf(uniq_motifs, likelihoods,
                               counts, index, seq_name, alphabet, sequence)
 
 
 class LikelihoodTreeLeaf(object):
 
-    def __init__(self, uniq, likelihoods, counts, index, edge_name, 
+    def __init__(self, uniq, likelihoods, counts, index, edge_name,
                  alphabet, sequence):
         if sequence is not None:
-            self.sequence = sequence 
+            self.sequence = sequence
         self.alphabet = alphabet
         self.name = self.edge_name = edge_name
         self.uniq = uniq
@@ -330,7 +330,7 @@ class LikelihoodTreeLeaf(object):
 
     def backward(self):
         index = numpy.array(self.index[::-1, ...])
-        result = self.__class__(self.uniq, self.input_likelihoods, self.counts, 
+        result = self.__class__(self.uniq, self.input_likelihoods, self.counts,
                                 index, self.edge_name, self.alphabet, None)
         return result
 
@@ -365,7 +365,7 @@ class LikelihoodTreeLeaf(object):
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(
-            uniq, likelihoods, counts, index, self.edge_name, 
+            uniq, likelihoods, counts, index, self.edge_name,
             self.alphabet, None)
 
     def getEdge(self, name):
@@ -376,4 +376,3 @@ class LikelihoodTreeLeaf(object):
 
     def getSitePatterns(self, cols):
         return numpy.asarray(self.uniq)[cols]
-
