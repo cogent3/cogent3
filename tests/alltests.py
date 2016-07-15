@@ -122,7 +122,7 @@ def suite():
         'test_dictarray.rst',
         'test_core.test_features.rst',
         'test_util.test_table.rst',
-        ]
+    ]
 
     try:
         import matplotlib

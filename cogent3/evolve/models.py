@@ -141,7 +141,7 @@ def Y98(**kw):
             predicates = {
                 'kappa' : 'transition',
                 'omega' : 'replacement',
-                },
+            },
             mprob_model = 'tuple',
             **kw)
 

@@ -39,7 +39,7 @@ RnaMolType = MolType(
     add_lower=True,
     preserve_existing_moltypes=True,
     make_alphabet_group=True,
-    )
+)
 DnaMolType = MolType(
     Sequence = sequence.DnaSequence,
     motifset = IUPAC_DNA_chars,
@@ -51,7 +51,7 @@ DnaMolType = MolType(
     add_lower=True,
     preserve_existing_moltypes=True,
     make_alphabet_group=True,
-    )
+)
 ProteinMolType = PROTEIN
 
 class make_matches_tests(TestCase):
@@ -116,7 +116,7 @@ class make_matches_tests(TestCase):
             ('N','X'):False,
             ('Y','N'):False,
             ('N','Y'):False,
-            }
+        }
         self.assertEqual(m, exp)
 
 class make_pairs_tests(TestCase):

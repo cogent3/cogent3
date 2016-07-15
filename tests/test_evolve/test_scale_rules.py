@@ -120,7 +120,7 @@ class ScaleRuleTests(unittest.TestCase):
                 'CCC': 0.0069782194967223515},
             scales = {'dN': replacement, 'dS': ~replacement},
             mprob_model = 'tuple',
-            )
+        )
         length = 0.1115
 
         a = self._getScaledLengths(model,

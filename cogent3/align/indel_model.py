@@ -54,7 +54,7 @@ class SimpleIndelModel(_SimpleIndelParams):
             [1-e, e, 0, 0],
             [1-e, 0, e, 0],
             [1-g, 0, 0, g],
-            ])
+        ])
         return PairTransitionMatrix('WXYM', T).withoutSilentStates()
 
 class KnudsenMiyamotoIndelModel(_SimpleIndelParams):

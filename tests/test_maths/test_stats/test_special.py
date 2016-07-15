@@ -280,7 +280,7 @@ class SpecialTests(TestCase):
 203.267574402,
 196.108740945,
 188.010915412,
-]
+             ]
         for o, e in zip(obs, exp):
             self.assertFloatEqual(o,e)
 
@@ -386,7 +386,7 @@ class SpecialTests(TestCase):
 1.88079360815,
 2.05374891063,
 2.32634787404,
-]
+             ]
         obs = [ndtri(i/100.0) for i in range(100)]
         self.assertFloatEqual(obs, exp)
 
@@ -540,7 +540,7 @@ class SpecialTests(TestCase):
             0.366086516536,
             0.5,
             0.699031236407,
-            ]
+        ]
         i = 0
         for a in aa_range:
             for b in bb_range:

@@ -85,7 +85,7 @@ class TestAnnotations(unittest.TestCase):
                      "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
                      "LTR" : {"FAKE01": "CCCAAAATTTTTT",
                               "FAKE02": "CCC-----TTTTT"}
-                    }
+                         }
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
                                 "FAKE02": "GGGGGGGGGG"},
                         "5'UTR": {"FAKE01": "TTT",
@@ -149,7 +149,7 @@ class TestAnnotations(unittest.TestCase):
                      "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
                      "LTR" : {"FAKE01": "CCCAAAATTTTTT",
                               "FAKE02": "CCC-----TTTTT"}
-                    }
+                         }
 
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
                                 "FAKE02": "GGGGGGGGGG"},

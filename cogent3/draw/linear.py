@@ -479,7 +479,7 @@ class _FeatureStyle(object):
                     ha="center", va="center", 
                     rotation=[0,90][rotated],
                     #font_properties=self.label_font,
-                    )
+                )
                 g.add(label_shape)
             else:
                 pass #warnings.warn("couldn't fit feature label '%s'" % label)
@@ -666,7 +666,7 @@ class DisplayPolicy(object):
                 'polyA_site',
                 'gene',
                 'operon',
-                ]),
+            ]),
             ('Regulation',[
                 'attenuator',
                 'enhancer',
@@ -682,7 +682,7 @@ class DisplayPolicy(object):
                 'misc_signal',
                 'rep_origin',
                 'RBS',
-                ]),
+            ]),
             ('Repeats',[
                 'repeat_region',
                 'repeat_unit',
@@ -690,14 +690,14 @@ class DisplayPolicy(object):
                 'satellite',
                 'stem_loop',
                 'misc_structure',
-                ]),
+            ]),
             ('Rna Genes',[
                 'rRNA',
                 'scRNA',
                 'snRNA',
                 'snoRNA',
                 'tRNA',
-                ]),
+            ]),
             ('Sequence',[
                 'source',
                 'misc_recomb',
@@ -714,11 +714,11 @@ class DisplayPolicy(object):
                 'primer_bind',
                 'STS',
                 'gap',
-                ]),
+            ]),
             ('Graphs',[
                 'blueline',
                 'redline',
-                ]),
+            ]),
         ]]
 
     _default_ignored_features =    ['C_region','N_region','S_region','V_region',

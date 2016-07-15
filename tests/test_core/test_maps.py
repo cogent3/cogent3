@@ -46,7 +46,7 @@ class MapTest(unittest.TestCase):
                 ((5, 11), "[5:10, -1-]"),
                 ((0, 10), "[0:5, 5:10]"),
                 ((10, 0), "[10:5, 5:0]"),
-                ]:
+        ]:
             r = repr(Span(start, end, Reverse=start>end).remapWith(map))
             #print (start, end), r,
             if r != expected:
@@ -63,11 +63,11 @@ class MapTest(unittest.TestCase):
             [('fake', '[10:20]/50',
                 [('fake2', '[3:5]/10')]),
             ('left', '[1:3]/50')])
-            )
+        )
         self.assertEqual(structure(seq2), ('seq', 45,
             [('fake', '[5:15]/45',
                 [('fake2', '[3:5]/10')])])
-            )
+        )
 
 
     def test_getByAnnotation(self):

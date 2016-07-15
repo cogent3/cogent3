@@ -317,7 +317,7 @@ class NcbiTaxonNodeTests(TestCase):
             '7777|t||scientific name|',
             '6666|u||scientific name|',
             '5555|z||scientific name|',
-            ]
+        ]
         tx = NcbiTaxonomyFromFiles(nested_species, nested_names)
         dec = tx[3].getRankedDescendants('superclass')
         self.assertEqual(len(dec), 1)

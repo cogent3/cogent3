@@ -80,15 +80,15 @@ IUPAC_DNA_ambiguities_complements = {
     'X':'X', # not technically an IUPAC ambiguity, but used by repeatmasker
     'V':'B', 'B':'V',
     'H':'D', 'D':'H'
-    }
+}
 
 IUPAC_DNA_complements = {
     'A':'T','C':'G','G':'C','T':'A', '-':'-',
-    }
+}
 
 IUPAC_DNA_complements = {
     'A':'T','C':'G','G':'C','T':'A', '-':'-',
-    }
+}
 
 
 IUPAC_RNA_chars = ['U','C','A','G']     #note change in standard order from DNA
@@ -116,11 +116,11 @@ IUPAC_RNA_ambiguities_complements = {
     'X':'X', # not technically an IUPAC ambiguity, but used by repeatmasker
     'V':'B', 'B':'V',
     'H':'D', 'D':'H'
-    }
+}
 
 IUPAC_RNA_complements = {
     'A':'U','C':'G','G':'C','U':'A', '-':'-',
-    }
+}
 
 
 #Standard RNA pairing: GU pairs count as 'weak' pairs
@@ -190,13 +190,13 @@ IUPAC_PROTEIN_ambiguities = {
     'B': ['N', 'D'],
     'X': IUPAC_PROTEIN_chars,
     'Z': ['Q', 'E'],
-    }
+}
 
 PROTEIN_WITH_STOP_ambiguities = {
     'B': ['N', 'D'],
     'X': PROTEIN_WITH_STOP_chars,
     'Z': ['Q', 'E'],
-    }
+}
 
 class FoundMatch(Exception):
     """Raised when a match is found in a deep loop to skip many levels"""
@@ -1020,7 +1020,7 @@ ASCII = MolType(
     Ambiguities = {},
     label = 'text',
     ModelSeq = ModelSequence,
-    )
+)
 
 DNA = MolType(
     Sequence = DnaSequence,
@@ -1032,7 +1032,7 @@ DNA = MolType(
     Pairs = DnaStandardPairs,
     make_alphabet_group=True,
     ModelSeq = ModelDnaSequence,
-    )
+)
 
 RNA = MolType(
     Sequence = RnaSequence,
@@ -1044,7 +1044,7 @@ RNA = MolType(
     Pairs = RnaStandardPairs,
     make_alphabet_group=True,
     ModelSeq = ModelRnaSequence,
-    )
+)
 
 PROTEIN = MolType(
     Sequence = ProteinSequence,

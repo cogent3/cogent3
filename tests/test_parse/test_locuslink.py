@@ -238,7 +238,7 @@ PMID: 14499652"""
             'Start':'na', 'End':'na'},
             {'Accession':'none','Gi':'na','Strain':'na',\
             'Start':'na', 'End':'na'},
-            ])
+        ])
         self.assertEqual(first.TYPE, ['g','m','m','m','m','p'])
         self.assertEqual(first.PROT, [ \
             {'Accession':'AAL07469', 'Gi':'15778556'},

@@ -51,7 +51,7 @@ class TailedRecordFinderTests(TestCase):
                     '.\n',
                     'ghi \n',
                     'j.',
-                ]
+                    ]
         blank = ['', '   ', '\t    \t\n\n']
         bad = ['abc']
 
@@ -112,7 +112,7 @@ class DelimitedRecordFinderTests(TestCase):
                     '\t\n',
                     '\t efg \n',
                     '\t\t//\n',
-                ]
+                    ]
         blank = ['', '   ', '\t    \t\n\n']
         bad = ['abc']
 
@@ -183,7 +183,7 @@ class LabeledRecordFinderTests(TestCase):
                     '\t\n',
                     '\t >efg \n',
                     'ghi',
-                ]
+                    ]
         blank = ['', '   ', '\t    \t\n\n']
         bad = ['>abc']
 
@@ -223,7 +223,7 @@ class LineGrouperTests(TestCase):
                     '\t\n',
                     '\t >efg \n',
                     'ghi',
-                ]
+                    ]
         c = LineGrouper(2)
         self.assertEqual(list(c(good)), [['>abc', 'def'],['>efg','ghi']])
         c = LineGrouper(1)

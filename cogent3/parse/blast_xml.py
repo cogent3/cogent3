@@ -51,7 +51,7 @@ HSP_XML_FIELDS = (
     ('QUERY_ALIGN','Hsp_qseq'),
     ('SUBJECT_ALIGN','Hsp_hseq'),
     ('MIDLINE_ALIGN','Hsp_midline'),
-    )
+)
 
 HSP_XML_FIELDNAMES = [x[0] for x in HSP_XML_FIELDS]
 HSP_XML_TAGNAMES = [x[1] for x in HSP_XML_FIELDS]

@@ -229,7 +229,7 @@ class NcbiFastaParserTests(TestCase):
             '>gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]',
             'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY',
             'PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD'
-            ]
+        ]
         self.nasty = [
             '  ',                               #0  ignore leading blank line
             '>gi|abc|ref|def|',                 #1  no description -- ok
@@ -254,7 +254,7 @@ class NcbiFastaParserTests(TestCase):
             '# comment',                        #20 comment -- skip
             'NNNN',                             #21 degenerates should be OK
             '   ',                              #22 ignore trailing blank line
-            ]
+        ]
         self.empty = []
         self.no_label = ['ucag']
 

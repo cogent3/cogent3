@@ -79,7 +79,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'TC':(0,-1),
         'GC':(1,0),
         'CG':(-1,0)
-        }
+    }
 
     colors = {\
         'AT':'r',
@@ -94,7 +94,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'TC':'k',
         'GC':'g',
         'CG':'b'
-        }
+    }
 
     label_positions = {\
         'AT':'center',
@@ -109,7 +109,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'TC':'center',
         'GC':'center',
         'CG':'center'
-        }
+    }
 
     def do_fontsize(k):
         return float(clip(max_text_size*sqrt(data[k]),\
@@ -148,7 +148,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'TC': (1+arrow_sep, 1-arrow_h_offset),
         'GC': (arrow_h_offset, arrow_sep),
         'CG': (1-arrow_h_offset, -arrow_sep),
-        }
+    }
 
     if normalize_data:
         #find maximum value for rates, i.e. where keys are 2 chars long
@@ -252,7 +252,7 @@ realistic_data = {
         'GA':0.1,
         'GT':0.4,
         'GC':0.1,
-    }
+}
 
 extreme_data = {
         'A':0.75,
@@ -271,7 +271,7 @@ extreme_data = {
         'GA':0.1,
         'GT':0.4,
         'GC':0.2,
-    }
+}
 
 sample_data = {
         'A':0.2137,
@@ -290,7 +290,7 @@ sample_data = {
         'GA':0.1824,
         'GT':0.0387,
         'GC':0.1106,
-    }
+}
 
 
 if __name__ == '__main__':
