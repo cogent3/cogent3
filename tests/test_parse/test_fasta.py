@@ -43,17 +43,17 @@ class MinimalFastaParserTests(GenericFastaTest):
         """MinimalFastaParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(MinimalFastaParser(self.empty)), [])
         self.assertEqual(list(MinimalFastaParser(self.nolabels, strict=False)),
-            [])
+                         [])
         self.assertRaises(RecordError, list, MinimalFastaParser(self.nolabels))
 
     def test_no_labels(self):
         """MinimalFastaParser should return empty list from file w/o seqs"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list, 
-            MinimalFastaParser(self.labels,strict=True))
+                          MinimalFastaParser(self.labels,strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)), 
-            [])
+                         [])
 
     def test_single(self):
         """MinimalFastaParser should read single record as (label, seq) tuple"""
@@ -114,14 +114,14 @@ class FastaParserTests(GenericFastaTest):
         """FastaParser should return empty list from 'file' w/o labels"""
         self.assertEqual(list(FastaParser(self.empty)), [])
         self.assertEqual(list(FastaParser(self.nolabels, strict=False)),
-            [])
+                         [])
         self.assertRaises(RecordError, list, FastaParser(self.nolabels))
 
     def test_no_labels(self):
         """FastaParser should return empty list from file w/o seqs"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list, 
-            FastaParser(self.labels,strict=True))
+                          FastaParser(self.labels,strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(FastaParser(self.labels, strict=False)), [])
 
@@ -274,7 +274,7 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(a.Info.RefSeq, ['NP_055147.1'])
         self.assertEqual(a.Info.DDBJ, [])
         self.assertEqual(a.Info.Description, 
-            'small muscle protein, X-linked [Homo sapiens]')
+                         'small muscle protein, X-linked [Homo sapiens]')
 
         self.assertEqual(b, 'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLYPPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD')
         self.assertEqual(b.Info.GI, ['10047092'])
@@ -294,28 +294,28 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(len(r), 4)
         a, b, c, d = r
         self.assertEqual((a[1], a[1].Info.GI, a[1].Info.RefSeq, \
-            a[1].Info.Description), 
-            ('UCAG', ['abc'], ['def'], ''))
+                          a[1].Info.Description), 
+                         ('UCAG', ['abc'], ['def'], ''))
         self.assertEqual((b[1], b[1].Info.GI, b[1].Info.GenBank, \
-                b[1].Info.Description),
-            ('UUUUCCCC', ['xyz'], ['qwe'], 'descr'))
+                          b[1].Info.Description),
+                         ('UUUUCCCC', ['xyz'], ['qwe'], 'descr'))
         self.assertEqual((c[1], c[1].Info.GI, c[1].Info.RefSeq, \
-            c[1].Info.Description),
-            ('XYZ', ['bad'], ['stuff'], 'label'))
+                          c[1].Info.Description),
+                         ('XYZ', ['bad'], ['stuff'], 'label'))
         self.assertEqual((d[1], d[1].Info.GI, d[1].Info.DDBJ, \
-            d[1].Info.Description),
-            ('ucagUCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
+                          d[1].Info.Description),
+                         ('ucagUCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
         #...and when we explicitly supply a constructor
         r = list(NcbiFastaParser(self.nasty, Dna, strict=False))
         self.assertEqual(len(r), 3)
         a, b, c = r
         a, b, c = a[1], b[1], c[1]
         self.assertEqual((a, a.Info.GI, a.Info.RefSeq, a.Info.Description), 
-            ('TCAG', ['abc'], ['def'], ''))
+                         ('TCAG', ['abc'], ['def'], ''))
         self.assertEqual((b, b.Info.GI, b.Info.GenBank, b.Info.Description),
-            ('TTTTCCCC', ['xyz'], ['qwe'], 'descr'))
+                         ('TTTTCCCC', ['xyz'], ['qwe'], 'descr'))
         self.assertEqual((c, c.Info.GI, c.Info.DDBJ, c.Info.Description),
-            ('tcagTCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
+                         ('tcagTCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
 
 
 class LabelParsingTest(TestCase):
@@ -352,9 +352,9 @@ class LabelParsingTest(TestCase):
         # the label parser factory function should correctly handle label lines
         # with mixed separators
         make = LabelParser("%(species)s:%(accession)s",
-                                [[0,"accession", str],
-                                [2, "species", str]],
-                                split_with=": ")
+                           [[0,"accession", str],
+                            [2, "species", str]],
+                           split_with=": ")
         for label, expect in [(">abcd:human:misc", "misc:abcd"),
                               ("abcd:human:misc", "misc:abcd"),
                               (">abcd:Human misc", "misc:abcd"),
@@ -364,9 +364,9 @@ class LabelParsingTest(TestCase):
 
         # should raise an assertion error if template doesn't match at least one field name
         self.assertRaises(AssertionError, LabelParser, "%s:%s",
-                                    [[0,"accession", str],
-                                    [2, "species", str]],
-                                    split_with=": ")
+                          [[0,"accession", str],
+                           [2, "species", str]],
+                          split_with=": ")
 
 
 class GroupFastaParsingTest(TestCase):
@@ -384,7 +384,7 @@ class GroupFastaParsingTest(TestCase):
         expected = [{"species1": "ACTG", "species2":"ACTG"},
                     {"species1":"ACGT", "species2":"ACGT"}]
         label_to_name = LabelParser("%(species)s", [(0,"Group",str),
-                            (1,"seq_id",str),(2,"species",str)], split_with=":")
+                                                    (1,"seq_id",str),(2,"species",str)], split_with=":")
         parser = GroupFastaParser(data, label_to_name, aligned=True)
         count = 0
         for group in parser:
@@ -397,7 +397,7 @@ class GroupFastaParsingTest(TestCase):
         # check we don't return a done group
         done_groups = ["group1"]
         parser = GroupFastaParser(data, label_to_name, done_groups=done_groups,
-                    aligned=True)
+                                  aligned=True)
         for group in parser:
             got = group.todict()
             want = expected[1]

@@ -6,7 +6,7 @@ from cogent3.core.location import Map
 from cogent3.db.ensembl.species import Species
 from cogent3.db.ensembl.util import NoItemError, asserted_one
 from cogent3.db.ensembl.assembly import CoordSystem, Coordinate, \
-                                    get_coord_conversion
+    get_coord_conversion
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -24,12 +24,12 @@ def _assemble_seq(frags, start, end, frag_positions):
     """returns a single string in which missing sequence is replaced by 'N'"""
     prev_end = start
     assert len(frag_positions) == len(frags), "Mismatched number of "\
-                                                    "fragments and positions"
+    "fragments and positions"
     assembled = []
     for index, (frag_start, frag_end) in enumerate(frag_positions):
         diff = frag_start - prev_end
         assert diff >= 0, 'fragment position start < previous end: %s, %s' %\
-                                                (frag_start, prev_end)
+        (frag_start, prev_end)
         assembled += ['N'*diff, frags[index]]
         prev_end = frag_end
     diff = end - frag_end
@@ -40,13 +40,13 @@ def _assemble_seq(frags, start, end, frag_positions):
 def _make_coord(genome, coord_name, start, end, strand):
     """returns a Coordinate"""
     return Coordinate(CoordName=coord_name, Start=start, End=end,
-                Strand=strand, genome=genome)
+                      Strand=strand, genome=genome)
 
 
 def get_lower_coord_conversion(coord, species, core_db):
     coord_system = CoordSystem(species=species, core_db=core_db)
     seq_level_coord_type = CoordSystem(species=species,core_db=core_db,
-                             seq_level=True)
+                                       seq_level=True)
     query_rank = coord_system[coord.CoordType].rank
     seq_level_rank = coord_system[seq_level_coord_type].rank
     assemblies = None
@@ -93,9 +93,9 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
         length = len(t_loc)
         # get MySQL to do the string slicing via substr function
         query = sql.select([substr(dna.c.sequence,
-                                  t_loc.EnsemblStart,
-                                  length).label('sequence')],
-                            dna.c.seq_region_id == t_loc.seq_region_id)
+                                   t_loc.EnsemblStart,
+                                   length).label('sequence')],
+                           dna.c.seq_region_id == t_loc.seq_region_id)
         record = asserted_one(query.execute().fetchall())
         seq = record['sequence']
         seq = DNA.makeSequence(seq)

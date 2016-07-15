@@ -62,7 +62,7 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     # Figure with correct aspect
     # Indent enough for labels and/or vertical display
     (w,h), posn = figureLayout(width=w1, height=w2,
-        left=max(x1,y2+h2), bottom=y1+h1, **kw)
+                               left=max(x1,y2+h2), bottom=y1+h1, **kw)
     fig = plt.figure(figsize=(w,h), facecolor='white')
 
     fw = fig.get_figwidth()
@@ -70,7 +70,7 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     # 2 sequence display axes
     x = seq1.asAxes(fig, [posn[0], posn[1]-h1/fh, posn[2], h1/fh])
     y = seq2.asAxes(fig, [posn[0]-h2/fw, posn[1], h2/fw, posn[3]], 
-        vertical=True, labeled=False)
+                    vertical=True, labeled=False)
 
     # and 1 dotplot axes
     d = fig.add_axes(posn, sharex=x, sharey=y)
@@ -107,10 +107,10 @@ class Display2D(Drawable):
         key = (min_gap, window, threshold)
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
-                    window, threshold, min_gap, None)
+                          window, threshold, min_gap, None)
             if hasattr(self.seq1, "reversecomplement"):
                 rev = dotplot(str(self.seq1.reversecomplement()), 
-                        str(self.seq2), window, threshold, min_gap, None)
+                              str(self.seq2), window, threshold, min_gap, None)
                 rev = [((len1-x1,y1),(len1-x2,y2)) for ((x1,y1),(x2,y2)) in rev]
             else:
                 rev = []

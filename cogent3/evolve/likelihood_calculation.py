@@ -13,8 +13,8 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 from cogent3.recalculation.definition import CalculationDefn, _FuncDefn, \
-        CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn, \
-        ParallelSumDefn
+    CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn, \
+    ParallelSumDefn
 
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.evolve.simulate import argpick
@@ -56,7 +56,7 @@ class PartialLikelihoodProductDefnFixedMotif(PartialLikelihoodProductDefn):
         if recycled_result is None:
             recycled_result = lh_edge.makePartialLikelihoodsArray()
         result = lh_edge.sumInputLikelihoodsR(
-                recycled_result, *child_likelihoods)
+            recycled_result, *child_likelihoods)
         if fixed_motif not in [None, -1]:
             for motif in range(result.shape[-1]):
                 if motif != fixed_motif:
@@ -87,7 +87,7 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
         children = []
         for child in edge.Children:
             child_plh = makePartialLikelihoodDefns(child, lht, psubs,
-                    fixed_motifs)
+                                                   fixed_motifs)
             psub = psubs.selectFromDimension('edge', child.Name)
             child_plh = CalcDefn(numpy.inner)(child_plh, psub)
             children.append(child_plh)
@@ -95,7 +95,7 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
         if fixed_motifs:
             fixed_motif = fixed_motifs.selectFromDimension('edge', edge.Name)
             plh = PartialLikelihoodProductDefnFixedMotif(
-                    fixed_motif, lht_edge, *children, **kw)
+                fixed_motif, lht_edge, *children, **kw)
         else:
             plh = PartialLikelihoodProductDefn(lht, *children, **kw)
 
@@ -128,7 +128,7 @@ class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):
 
 
 def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
-        locus_names, sites_independent):
+                               locus_names, sites_independent):
 
     fixed_motifs = NonParamDefn('fixed_motif', ['edge'])
 
@@ -152,15 +152,15 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
     if len(bin_names) > 1:
         if sites_independent:
             site_pattern = CalcDefn(BinnedSiteDistribution, name='bdist')(
-                    bprobs)
+                bprobs)
         else:
             parallel_context = None   # hmm does the gathering over CPUs
             switch = ProbabilityParamDefn('bin_switch', dimensions=['locus'])
             site_pattern = CalcDefn(PatchSiteDistribution, name='bdist')(
-                    switch, bprobs)
+                switch, bprobs)
         blh = CallDefn(site_pattern, lht, name='bindex')
         tll = CallDefn(blh, *lh.acrossDimension('bin', bin_names),
-                **dict(name='tll'))
+                       **dict(name='tll'))
     else:
         lh = lh.selectFromDimension('bin', bin_names[0])
         tll = CalcDefn(log_sum_across_sites, name='logsum')(lht, lh)
@@ -229,7 +229,7 @@ class PatchSiteDistribution(object):
 
     def emit(self, length, random_series):
         bprobs = [[p for (patch,p) in zip(self.alloc, self.bprobs) if patch==a]
-            for a in [0,1]]
+                  for a in [0,1]]
         source = self.transition_matrix.emit(random_series)
         result = numpy.zeros([length], int)
         for i in range(length):
@@ -252,7 +252,7 @@ class BinnedLikelihood(object):
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
             [b*self.root.getFullLengthLikelihoods(p)
-            for (b,p) in zip(self.distrib.bprobs, lhs)])
+             for (b,p) in zip(self.distrib.bprobs, lhs)])
         result /= result.sum(axis=0)
         return result
 
@@ -282,7 +282,7 @@ class SiteHmm(object):
         blhs = lhs / numpy.sum(lhs, axis=0)
         blhs = numpy.array(
             [b * self.root.getFullLengthLikelihoods(p)
-            for (b,p) in zip(self.distrib.bprobs, blhs)])
+             for (b,p) in zip(self.distrib.bprobs, blhs)])
 
         binsum = numpy.zeros(pprobs.shape, Float)
         for (patch, data) in zip(self.distrib.alloc, blhs):

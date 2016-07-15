@@ -14,8 +14,8 @@ from cogent3.util.warning import discontinued, deprecated
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
-                    "Matthew Wakefield", "Rob Knight", "Brett Easton", 
-                    "Ben Kaehler"]
+               "Matthew Wakefield", "Rob Knight", "Brett Easton", 
+               "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -65,7 +65,7 @@ class LikelihoodFunction(ParameterController):
     def _getLikelihoodValuesSummedAcrossAnyBins(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:
             root_lhs = [self.getParamValue('lh', locus=locus, bin=bin) for
-                bin in self.bin_names]
+                        bin in self.bin_names]
             bprobs = self.getParamValue('bprobs')
             root_lh = bprobs.dot(root_lhs)
         else:
@@ -99,20 +99,20 @@ class LikelihoodFunction(ParameterController):
                 r = []
                 for motif in range(len(self._motifs)):
                     self.setParamRule('fixed_motif', value=motif,
-                            edge=restricted_edge.Name, locus=locus,
-                            is_constant=True)
+                                      edge=restricted_edge.Name, locus=locus,
+                                      is_constant=True)
                     likelihoods = self.getFullLengthLikelihoods(locus=locus)
                     r.append(likelihoods)
                     if array_template is None:
                         array_template = DictArrayTemplate(
-                                likelihoods.shape[0], self._motifs)
+                            likelihoods.shape[0], self._motifs)
             finally:
                 self.setParamRule('fixed_motif', value=-1,
-                        edge=restricted_edge.Name, locus=locus,
-                        is_constant=True)
+                                  edge=restricted_edge.Name, locus=locus,
+                                  is_constant=True)
             # dict of site x motif arrays
             result[restricted_edge.Name] = array_template.wrap(
-                    numpy.transpose(numpy.asarray(r)))
+                numpy.transpose(numpy.asarray(r)))
         return result
 
     def likelyAncestralSeqs(self, locus=None):
@@ -134,7 +134,7 @@ class LikelihoodFunction(ParameterController):
     def getBinProbs(self, locus=None):
         hmm = self.getParamValue('bindex', locus=locus)
         lhs = [self.getParamValue('lh', locus=locus, bin=bin)
-                for bin in self.bin_names]
+               for bin in self.bin_names]
         array = hmm.getPosteriorProbs(*lhs)
         return DictArrayTemplate(self.bin_names, array.shape[1]).wrap(array)
 
@@ -186,7 +186,7 @@ class LikelihoodFunction(ParameterController):
 
     def getMotifProbs(self, edge=None, bin=None, locus=None):
         motif_probs_array = self.getParamValue(
-                'mprobs', edge=edge, bin=bin, locus=locus)
+            'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
         #return dict(zip(self._motifs, motif_probs_array))
 
@@ -221,7 +221,7 @@ class LikelihoodFunction(ParameterController):
             Qs = [valueOf('Qd', bin=b, edge=edge.Name).Q for b in bin_names]
             length = valueOf('length', edge=edge.Name)
             scaled_lengths[edge.Name] = length * self._model.getScaleFromQs(
-                    Qs, bprobs, mprobs, predicate)
+                Qs, bprobs, mprobs, predicate)
         return scaled_lengths
 
     def getStatistics(self, with_motif_probs=True, with_titles=True):
@@ -261,8 +261,8 @@ class LikelihoodFunction(ParameterController):
                     param_names.remove('length')
                     param_names.insert(0, 'length')
                 raw_table['parent'] = dict([(e.Name, e.Parent.Name)
-                        for e in self._tree.getEdgeVector()
-                        if not e.isroot()])
+                                            for e in self._tree.getEdgeVector()
+                                            if not e.isroot()])
                 param_names.insert(0, 'parent')
             list_table = []
             heading_names = list(table_dims) + param_names
@@ -291,13 +291,13 @@ class LikelihoodFunction(ParameterController):
                 row_ids = False
                 title = ['', 'global params'][with_titles]
             result.append(table.Table(
-                        heading_names, list_table,
-                        max_width = 80, row_ids = row_ids,
-                        title=title, **self._format))
+                heading_names, list_table,
+                max_width = 80, row_ids = row_ids,
+                title=title, **self._format))
         return result
 
     def getStatisticsAsDict(self, with_parent_names=True,
-                with_edge_names=False):
+                            with_edge_names=False):
         """Returns a dictionary containing the statistics for each edge of the
         tree, and any other information provided by the substitution model. The
         dictionary is keyed at the top-level by parameter name, and then by
@@ -310,8 +310,8 @@ class LikelihoodFunction(ParameterController):
         """
 
         discontinued('method', "'getStatisticsAsDict' "
-                "use 'getParamValueDict(['edge'])' is nearly equivalent", 
-                '1.6')
+                     "use 'getParamValueDict(['edge'])' is nearly equivalent", 
+                     '1.6')
 
         stats_dict = self.getParamValueDict(['edge'])
 
@@ -333,8 +333,8 @@ class LikelihoodFunction(ParameterController):
 
         if with_edge_names:
             stats_dict['edge.name'] = (
-                    [e.Name for e in edge_vector if e.istip()] +
-                    [e.Name for e in edge_vector if not e.istip()])
+                [e.Name for e in edge_vector if e.istip()] +
+                [e.Name for e in edge_vector if not e.istip()])
 
         return stats_dict
 
@@ -372,7 +372,7 @@ class LikelihoodFunction(ParameterController):
         return result
 
     def simulateAlignment(self, sequence_length=None, random_series=None,
-            exclude_internal=True, locus=None, seed=None, root_sequence=None):
+                          exclude_internal=True, locus=None, seed=None, root_sequence=None):
         """
         Returns an alignment of simulated sequences with key's corresponding to
         names from the current attached alignment.
@@ -410,7 +410,7 @@ class LikelihoodFunction(ParameterController):
             site_bins = numpy.zeros([sequence_length], int)
 
         evolver = AlignmentEvolver(random_series, orig_ambig, exclude_internal,
-                self.bin_names, site_bins, psub_for, self._motifs)
+                                   self.bin_names, site_bins, psub_for, self._motifs)
 
         if root_sequence is not None: # we convert to a vector of motifs
             if isinstance(root_sequence, str):
@@ -427,8 +427,8 @@ class LikelihoodFunction(ParameterController):
         simulated_sequences = evolver(self._tree, root_sequence)
 
         return Alignment(
-                data = simulated_sequences,
-                MolType = self._model.MolType)
+            data = simulated_sequences,
+            MolType = self._model.MolType)
 
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""

@@ -42,7 +42,7 @@ def Polygon(vertices, **kw):
     return mpatches.Polygon(vertices, **line_options(**kw))
 
 def String(x, y, text, textAnchor='start', fontName=None, fontSize=10, 
-        fillColor='black', rotation=None):
+           fillColor='black', rotation=None):
     """Acts like the RLG shape class of the same name"""
     fontname = fontName
     fontsize = fontSize
@@ -110,7 +110,7 @@ class Group(matplotlib.artist.Artist):
 
 
 def figureLayout(width=None, height=None, margin=0.25, aspect=None, 
-        default_aspect=0.75, useful_width=None, leftovers=False, **margins):
+                 default_aspect=0.75, useful_width=None, leftovers=False, **margins):
     """Width and height of a figure, plus a bounding box that nearly fills it, derived
     from defaults or provided margins.  All input figures are in inches."""
     left = margins.pop('left', 0) + margin
@@ -171,7 +171,7 @@ class Drawable(object):
         savefig_kw = {}
         for (k,v) in list(kw.items()):
             if k in ['dpi', 'facecolor', 'edgecolor', 'orientation',
-                    'papertype', 'format', 'transparent']:
+                     'papertype', 'format', 'transparent']:
                 savefig_kw[k] = v
             else:
                 makefig_kw[k] = v    
@@ -275,10 +275,10 @@ class Rounded(_End):
 
     def drawEnd(self, path):
         path.curveTo(self.x_near, self.y_first, self.x_near, self.y_first,
-                self.x_near, self.y_first + self.dy)
+                     self.x_near, self.y_first + self.dy)
         path.lineTo(self.x_near, self.y_second - self.dy)
         path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
-                self.x_near + self.dx, self.y_second)    
+                     self.x_near + self.dx, self.y_second)    
 
 class Pointy(_End):
     def _effective_dx(self):
@@ -320,8 +320,8 @@ def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False,
         height = thickness / proportion_of_track
         spare = (height - thickness) / 2
         end = Pointy(x1, x2, y1, y2,
-                dx=inwards*head_size/2, dy=_sign(y1-y2)*spare,
-                blunt=blunt)
+                     dx=inwards*head_size/2, dy=_sign(y1-y2)*spare,
+                     blunt=blunt)
     elif rounded:
         ry = thickness/4
         rx = min(span, ry)

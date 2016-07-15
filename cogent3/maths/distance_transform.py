@@ -55,9 +55,9 @@ EXAMPLE USAGE:
 
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
-    mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
-    sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
-    nonzero, nan_to_num, geterr, seterr, isnan)
+                   mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
+                   sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
+                   nonzero, nan_to_num, geterr, seterr, isnan)
 
 try:
     from numpy import ndim as rank
@@ -73,8 +73,8 @@ from numpy.linalg import norm
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
-                    "Zongzhi Liu", "Catherine Lozupone", 
-                    "Antonio Gonzalez Pena", "Greg Caporaso"]
+               "Zongzhi Liu", "Catherine Lozupone", 
+               "Antonio Gonzalez Pena", "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Justin Kuczynski"
@@ -386,7 +386,7 @@ def dist_chisq(datamtx, strict=True):
             else:
                 dist = sqrt_grand_sum *\
                     sqrt(sum( multiply((1./colsums) ,
-                    square(r1/r1sum - r2/r2sum)) ))
+                                       square(r1/r1sum - r2/r2sum)) ))
             dists[i,j] = dists[j,i] = dist
     return dists
 

@@ -43,8 +43,8 @@ def is_blank(x):
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 def MinimalFastaParser(infile, strict=True, \
-    label_to_name=str, finder=FastaFinder, \
-    is_label=None, label_characters='>'):
+                       label_to_name=str, finder=FastaFinder, \
+                       is_label=None, label_characters='>'):
     """Yields successive sequences from infile as (label, seq) tuples.
 
     If strict is True (default), raises RecordError when label or seq missing.
@@ -55,14 +55,14 @@ def MinimalFastaParser(infile, strict=True, \
         if not rec[0][0] in label_characters:
             if strict:
                 raise RecordError("Found Fasta record without label line: %s"%\
-                    rec)
+                                  rec)
             else:
                 continue
         #record must have at least one sequence
         if len(rec) < 2:
             if strict:
                 raise RecordError("Found label line without sequences: %s" % \
-                    rec)
+                                  rec)
             else:
                 continue
 
@@ -76,7 +76,7 @@ GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,\
-        label_characters='%#')
+                              label_characters='%#')
 
 def xmfa_label_to_name(line):
     (loc, strand, contig) = line.split()
@@ -94,12 +94,12 @@ def is_xmfa_blank_or_comment(x):
     return (not x) or x.startswith('=') or x.isspace()
 
 XmfaFinder = LabeledRecordFinder(is_fasta_label, \
-    ignore=is_xmfa_blank_or_comment)
+                                 ignore=is_xmfa_blank_or_comment)
 
 def MinimalXmfaParser(infile, strict=True):
     # Fasta-like but with header info like ">1:10-1000 + chr1"
     return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name,
-        finder=XmfaFinder)
+                              finder=XmfaFinder)
 
 def MinimalInfo(label):
     """Minimal info data maker: returns Name, and empty dict for info{}."""
@@ -167,7 +167,7 @@ def NcbiFastaLabelParser(line):
 
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
     return FastaParser(infile, seq_maker=seq_maker, 
-        info_maker=NcbiFastaLabelParser, strict=strict)
+                       info_maker=NcbiFastaLabelParser, strict=strict)
 
 class RichLabel(str):
     """Object for overloaded Fasta labels. Holds an Info object storing keyed
@@ -225,7 +225,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     return call
 
 def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
-        moltype=ASCII, done_groups=None, DEBUG=False):
+                     moltype=ASCII, done_groups=None, DEBUG=False):
     """yields related sequences as a separate seq collection
 
     Arguments:
@@ -256,14 +256,14 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
                 if DEBUG:
                     print("GroupParser collection keys", list(current_collection.keys()))
                 seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
-                                aligned=aligned)
+                                        aligned=aligned)
                 seqs.Info = info
                 yield seqs
             current_collection = {label: seq}
             group_ids.append(label.Info[group_key])
     info = Info(Group=group_ids[-1])
     seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
-                    aligned=aligned)
+                            aligned=aligned)
     seqs.Info = info
     yield seqs
 

@@ -23,7 +23,7 @@ from functools import reduce
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight"
-                    "Peter Maxwell"]
+               "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
@@ -100,7 +100,7 @@ class Profile(object):
     def hasValidAttributes(self):
         """Checks Alphabet, CharOrder, and size of self.Data"""
         if not reduce(logical_and, [c in self.Alphabet\
-            for c in self.CharOrder]):
+                                    for c in self.CharOrder]):
             return False
         elif self.Data.shape[1] != len(self.CharOrder):
             return False
@@ -162,7 +162,7 @@ class Profile(object):
         if (row_sums == 0).any():
             zero_indices = nonzero(row_sums==0)[0].tolist()
             raise ProfileError("Can't normalize profile, rows at indices %s add up to zero"\
-            %(zero_indices))
+                               %(zero_indices))
         else:
             self.Data = self.Data/row_sums[:,newaxis]
 
@@ -186,12 +186,12 @@ class Profile(object):
         if (col_sums == 0).any():
             zero_indices = nonzero(col_sums==0)[0].tolist()
             raise ProfileError("Can't normalize profile, columns at indices %s add up to zero"\
-            %(zero_indices))
+                               %(zero_indices))
         else:
             self.Data = self.Data/col_sums
 
     def prettyPrint(self, include_header=False, transpose_data=False,\
-        column_limit=None, col_sep='\t'):
+                    column_limit=None, col_sep='\t'):
         """Returns a string method of the data and character order.
 
         include_header: include charcter order or not
@@ -247,7 +247,7 @@ class Profile(object):
         """
         if self.Data.shape != other.Data.shape:
             raise ProfileError("Cannot collapse profiles of different size: %s, %s"\
-                %(self.Data.shape,other.Data.shape))
+                               %(self.Data.shape,other.Data.shape))
         if normalize_input:
             self.normalizePositions()
             other.normalizePositions()
@@ -274,7 +274,7 @@ class Profile(object):
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=add, normalize_input=False,\
-            normalize_output=False)
+                           normalize_output=False)
 
     def __sub__(self,other):
         """Binary - operator: subtracts two profiles element-wise
@@ -282,7 +282,7 @@ class Profile(object):
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=subtract, normalize_input=False,\
-            normalize_output=False)
+                           normalize_output=False)
 
     def __mul__(self,other):
         """* operator: multiplies two profiles element-wise
@@ -290,7 +290,7 @@ class Profile(object):
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=multiply, normalize_input=False,\
-            normalize_output=False)
+                           normalize_output=False)
 
     def __div__(self,other):
         """/ operator for old-style division: divides 2 profiles element-wise.
@@ -300,7 +300,7 @@ class Profile(object):
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=divide, normalize_input=False,\
-            normalize_output=False)
+                           normalize_output=False)
 
     def __truediv__(self,other):
         """/ operator for new-style division: divides 2 profiles element-wise.
@@ -310,7 +310,7 @@ class Profile(object):
         Input and output are NOT normalized.
         """
         return self.reduce(other, op=divide, normalize_input=False,\
-            normalize_output=False)
+                           normalize_output=False)
 
     def distance(self, other, method=euclidean_distance):
         """Returns the distance between two profiles
@@ -328,7 +328,7 @@ class Profile(object):
             return method(self.Data, other.Data)
         except ValueError: #frames not aligned 
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"\
-            %(self.Data.shape,other.Data.shape))
+                               %(self.Data.shape,other.Data.shape))
 
     def toOddsMatrix(self, symbol_freqs=None):
         """Returns the OddsMatrix of a profile as a new Profile.
@@ -354,13 +354,13 @@ class Profile(object):
         #raise error when symbol_freqs has wrong length
         if len(symbol_freqs) != pl:
             raise ProfileError("Length of symbol freqs should be %s, but is %s"\
-            %(pl,len(symbol_freqs)))
+                               %(pl,len(symbol_freqs)))
 
         #raise error when symbol freqs contains zero (to prevent 
         #ZeroDivisionError or 'inf' in the resulting matrix)
         if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
             raise ProfileError("Symbol frequency is not allowed to be zero: %s"\
-            %(symbol_freqs))
+                               %(symbol_freqs))
 
         #calculate the OddsMatrix
         log_odds = self.Data/symbol_freqs
@@ -488,11 +488,11 @@ class Profile(object):
         #Profile should fit at least once in the sequence/profile_to_score
         if to_score_length < pl:
             raise ProfileError("Sequence or Profile to score should be at least %s "%(pl)+\
-            "characters long, but is %s."%(to_score_length))
+                               "characters long, but is %s."%(to_score_length))
         #offset should be valid
         if not offset <= (to_score_length - pl):
             raise ProfileError("Offset must be <= %s, but is %s"\
-            %((to_score_length-pl), offset))
+                               %((to_score_length-pl), offset))
 
         #call the apropriate scoring function
         if is_profile:
@@ -501,14 +501,14 @@ class Profile(object):
             #translate seq to indices
             if hasattr(self, '_translation_table'):
                 seq_indices = array(list(map(ord,translate(str(input_data),\
-                    self._translation_table))))
+                                                           self._translation_table))))
             else:   #need to figure out where each item is in the charorder
                 idx = self.CharOrder.index
                 seq_indices = array(list(map(idx, input_data)))
             #raise error if some sequence characters are not in the CharOrder
             if (seq_indices > len(self.CharOrder)).any():
                 raise ProfileError("Sequence contains characters that are not in the "+\
-                "CharOrder")
+                                   "CharOrder")
             #now the profile is scored against the list of indices   
             return self._score_indices(seq_indices,offset)
 
@@ -571,7 +571,7 @@ class Profile(object):
         return max(self.Data, 1)
 
     def toConsensus(self, cutoff=None, fully_degenerate=False,\
-        include_all=False):
+                    include_all=False):
         """Returns the consensus sequence from a profile.
 
         cutoff: cutoff value, determines how much should be covered in a
@@ -610,10 +610,10 @@ class Profile(object):
                 #if include_all include all possiblilities in the degen char 
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen,sorted)):
                     to_take = [item for item in row[-num_to_keep:]\
-                    if item in nonzero(data[row_idx])[0]] +\
+                               if item in nonzero(data[row_idx])[0]] +\
                         [item for item in nonzero(data[row_idx] ==\
-                        data[row_idx,row[-num_to_keep]])[0] if item in\
-                        nonzero(data[row_idx])[0]]
+                                                  data[row_idx,row[-num_to_keep]])[0] if item in\
+                         nonzero(data[row_idx])[0]]
                     result.append(alpha.degenerateFromSequence(\
                         list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
             else:
@@ -621,7 +621,7 @@ class Profile(object):
                     result.append(alpha.degenerateFromSequence(\
                         list(map(lambda x: x.decode('utf8'),
                                  take(co, [item for item in row[-num_to_keep:]\
-                        if item in nonzero(data[row_idx])[0]])))))
+                                           if item in nonzero(data[row_idx])[0]])))))
 
         elif not fully_degenerate: 
             result = take(co, argmax(self.Data, axis=-1), axis=0)
@@ -654,7 +654,7 @@ class Profile(object):
             self._accumulated = cumsum(self.Data, 1)
         choices = random_f(len(self.Data))
         return array([searchsorted(v, c) for v, c in\
-            zip(self._accumulated, choices)])
+                      zip(self._accumulated, choices)])
 
     def randomSequence(self, force_accumulate=False, random_f = random):
         """Returns random sequence matching current probability matrix.
@@ -749,14 +749,14 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             if all(list(map(char_order.__contains__, curr_degens))):
                 contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
-                        array(contains, float)/len(curr_degens)
+                array(contains, float)/len(curr_degens)
     #for each character in the character order, make an entry of ones and 
     #zeros, matching the character order
     for c in char_order:
         c = c.decode('utf8')
         if c not in alphabet:
             raise ValueError("Found character in the character order "+\
-            "that is not in the specified alphabet: %s"%(c)) 
+                             "that is not in the specified alphabet: %s"%(c)) 
         result[ord(c)] = array(c*lc, 'c') == char_order           
     return Profile(Data=result,Alphabet=alphabet,CharOrder=char_order)
 

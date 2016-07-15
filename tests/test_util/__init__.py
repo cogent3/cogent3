@@ -5,8 +5,8 @@ __all__ = ['test_unit_test', 'test_misc', 'test_array', 'test_dict2d',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Sandra Smit", "Gavin Huttley",
-                    "Rob Knight", "Zongzhi Liu", "Amanda Birmingham",
-                    "Greg Caporaso"]
+               "Rob Knight", "Zongzhi Liu", "Amanda Birmingham",
+               "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"

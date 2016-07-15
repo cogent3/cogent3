@@ -19,7 +19,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, **kw):
     #warnings.warn("cogent3.align.align.dotplot moved to cogent3.align.compare.dotplot",
     #    DeprecationWarning)
     return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length, 
-            band, **kw)
+                             band, **kw)
 
 def make_dna_scoring_dict(match, transition, transversion):
     DNA = {}

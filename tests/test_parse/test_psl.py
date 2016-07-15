@@ -23,9 +23,9 @@ class Test(TestCase):
     def test_header(self):
         """should return correct header"""
         expect = ['match', 'mis-match', 'rep. match', "N's", 'Q gap count',
-            'Q gap bases', 'T gap count', 'T gap bases', 'strand', 'Q name',
-            'Q size', 'Q start', 'Q end', 'T name', 'T size', 'T start',
-            'T end', 'block count', 'blockSizes', 'qStarts', 'tStarts']
+                  'Q gap bases', 'T gap count', 'T gap bases', 'strand', 'Q name',
+                  'Q size', 'Q start', 'Q end', 'T name', 'T size', 'T start',
+                  'T end', 'block count', 'blockSizes', 'qStarts', 'tStarts']
         infile = open(fname)
         parser = MinimalPslParser(infile)
         version = next(parser)

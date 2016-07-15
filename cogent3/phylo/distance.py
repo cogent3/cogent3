@@ -56,8 +56,8 @@ class EstimateDistances(object):
     Can also estimate other parameters from pairs."""
 
     def __init__(self, seqs, submodel, threeway=False, motif_probs = None,
-                do_pair_align=False, rigorous_align=False, est_params=None,
-                modify_lf=None):
+                 do_pair_align=False, rigorous_align=False, est_params=None,
+                 modify_lf=None):
         """Arguments:
             - seqs: an Alignment or SeqCollection instance with > 1 sequence
             - submodel: substitution model object Predefined models can
@@ -117,8 +117,8 @@ class EstimateDistances(object):
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.makeLikelihoodFunction(\
-                    LoadTree(tip_names=seqs.getSeqNames()),
-                    aligned=False)
+            LoadTree(tip_names=seqs.getSeqNames()),
+            aligned=False)
         lf.setSequences(seqs.NamedSeqs)
 
         # allow user to modify the lf config
@@ -165,7 +165,7 @@ class EstimateDistances(object):
 
         # get the statistics
         stats_dict = lf.getParamValueDict(['edge'], 
-                params=['length'] + self._est_params)
+                                          params=['length'] + self._est_params)
 
         # if two-way, grab first distance only
         if not self._threeway:
@@ -194,7 +194,7 @@ class EstimateDistances(object):
 
         if 'local' in kwargs:
             warn("local argument ignored, provide it to dist_opt_args or"\
-            " aln_opt_args", DeprecationWarning, stacklevel=2)
+                 " aln_opt_args", DeprecationWarning, stacklevel=2)
 
         ui.display("Distances")
         dist_opt_args = dist_opt_args or {}
@@ -217,7 +217,7 @@ class EstimateDistances(object):
             return (comp, result)
 
         for (comp, value) in ui.imap(_one_alignment, combination_aligns,
-                labels=labels):
+                                     labels=labels):
             self._param_ests[comp] = value
 
     def getPairwiseParam(self, param, summary_function="mean"):
@@ -231,10 +231,10 @@ class EstimateDistances(object):
               (default) and 'median'."""
         pairwise_stats = {}
         assert param in self._est_params + ['length'], \
-                "unrecognised param %s" % param
+        "unrecognised param %s" % param
         if self._threeway and param == 'length':
             pairwise_stats = get_pairwise_distance_from_triad(self._param_ests,
-                                summary_function=summary_function)
+                                                              summary_function=summary_function)
         else:
             # no additional processing of the distances is required
             for comp_names, param_vals in list(self._param_ests.items()):
@@ -252,7 +252,7 @@ class EstimateDistances(object):
               (default) and 'median'.
         """
         return self.getPairwiseParam('length',summary_function=summary_function,
-                                    **kwargs)
+                                     **kwargs)
 
     def getParamValues(self, param, **kwargs):
         """Returns a Numbers object with all estimated values of param.
@@ -275,7 +275,7 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
         d = \
-         self.getPairwiseDistances(summary_function=summary_function,**kwargs)
+        self.getPairwiseDistances(summary_function=summary_function,**kwargs)
         if not d:
             d = {}
             for s1 in self._seqnames:
@@ -312,7 +312,7 @@ class EstimateDistances(object):
         return trees
 
     def writeToFile(self, filename, summary_function="mean", format='phylip',
-            **kwargs):
+                    **kwargs):
         """Save the pairwise distances to a file using phylip format. Other
         formats can be obtained by getting to a Table.  If running in parallel,
         the master CPU writes out.

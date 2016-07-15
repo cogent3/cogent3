@@ -101,7 +101,7 @@ def get_G93_lnL_from_array(columns_list):
     return log_likelihood
 
 def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
-    allowed_chars='ACGT', motif_length=None, return_length=False):
+                      allowed_chars='ACGT', motif_length=None, return_length=False):
     """returns the best log-likelihood according to Goldman 1993.
 
     Arguments:
@@ -123,7 +123,7 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
 
     aln = LoadSeqs(data=aln.todict(), **kwargs)
     columns = aligned_columns_to_rows(aln, motif_length, exclude_chars,
-                                        allowed_chars)
+                                      allowed_chars)
     num_cols = len(columns)
     log_likelihood = get_G93_lnL_from_array(columns)
     if return_length:

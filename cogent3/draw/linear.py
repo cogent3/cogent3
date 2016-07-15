@@ -9,9 +9,9 @@ from matplotlib.text import Text
 from matplotlib.patches import PathPatch
 from matplotlib.font_manager import FontProperties
 from matplotlib.collections import (CircleCollection, PolyCollection, 
-    LineCollection, RegularPolyCollection)
+                                    LineCollection, RegularPolyCollection)
 from matplotlib.transforms import (IdentityTransform, 
-    blended_transform_factory, Affine2DBase)
+                                   blended_transform_factory, Affine2DBase)
 import numpy
 
 import copy
@@ -121,7 +121,7 @@ class TrackDefn(object):
 
 class Track(object):
     def __init__(self, tag, features, level=0, label=None,
-            needs_border=False, max_y=None, height=None):
+                 needs_border=False, max_y=None, height=None):
         assert tag
         if label is None:
             label = tag
@@ -137,16 +137,16 @@ class Track(object):
         self.needs_border = needs_border
 
     def getShapes(self, span, rotated, height, 
-            yrange=None, done_border=False):
+                  yrange=None, done_border=False):
         shape_list = [feature.shape(height,
-                yrange or self.range, rotated) for feature in self.features]
+                                    yrange or self.range, rotated) for feature in self.features]
         if self.needs_border and not done_border:
             border = rlg2mpl.Group(
-                    rlg2mpl.Line(span[0], 0, span[1], 0,
-                            strokeWidth=.5, strokeColor=colors.black),
-                    rlg2mpl.Line(span[0], height, span[1], height,
-                            strokeWidth=.5, strokeColor=colors.black)
-                    )
+                rlg2mpl.Line(span[0], 0, span[1], 0,
+                             strokeWidth=.5, strokeColor=colors.black),
+                rlg2mpl.Line(span[0], height, span[1], height,
+                             strokeWidth=.5, strokeColor=colors.black)
+                )
             shape_list = [border] + shape_list
         return shape_list
 
@@ -159,7 +159,7 @@ class CompositeTrack(Track):
     def __init__(self, tag, tracks, label=None):
         if label is None:
             labels = list(dict([(track.label, True)
-                    for track in tracks]).keys())
+                                for track in tracks]).keys())
             if len(labels) == 1:
                 label = labels[0]
             else:
@@ -172,22 +172,22 @@ class CompositeTrack(Track):
         self.range = max([track.range for track in tracks])
 
     def getShapes(self, span, rotated, height, 
-            yrange=None, done_border=False):
+                  yrange=None, done_border=False):
         if yrange is None:
             yrange = self.range
         shape_list = []
         for track in self.tracks:
             if track.needs_border and not done_border:
                 border = rlg2mpl.Group(
-                        rlg2mpl.Line(span[0], 0, span[1], 0,
-                                strokeWidth=.5, strokeColor=colors.black),
-                        rlg2mpl.Line(span[0], height, span[1], height,
-                                strokeWidth=.5, strokeColor=colors.black)
-                        )
+                    rlg2mpl.Line(span[0], 0, span[1], 0,
+                                 strokeWidth=.5, strokeColor=colors.black),
+                    rlg2mpl.Line(span[0], height, span[1], height,
+                                 strokeWidth=.5, strokeColor=colors.black)
+                    )
                 shape_list.append(border)
                 done_border = True
             shape_list.extend(track.getShapes(span, rotated, height,
-                    yrange=yrange, done_border=True))
+                                              yrange=yrange, done_border=True))
         return shape_list
 
 
@@ -212,8 +212,8 @@ class Annotation(object):
         for span in self.map.spans:
             if not span.lost:
                 g.add(self._item_shape(
-                        span, self.values[posn:posn+span.length],
-                        height, yrange, rotated))
+                    span, self.values[posn:posn+span.length],
+                    height, yrange, rotated))
             posn += span.length
         return g
 
@@ -223,7 +223,7 @@ class _SeqRepresentation(object):
     x_offset = 0
 
     def __init__(self, map, sequence, cvalues=None, colour_sequences=True, 
-            font_properties=None):
+                 font_properties=None):
         self.font_properties = font_properties
 
         alphabet = self.alphabet = sequence.MolType.Alphabets.Degen
@@ -309,7 +309,7 @@ class SeqText(_MultiShapeSeqRepresentation):
         #if span.Reverse: rot+= 180
         g = rlg2mpl.Group()
         kw = dict(ha='center', va='baseline', rotation=rot,
-                font_properties=self.font_properties)
+                  font_properties=self.font_properties)
         for (motif, cvalues, offsets) in self.per_shape_values:
             letter = self.alphabet[motif]
             c = len(cvalues)
@@ -338,8 +338,8 @@ class SeqShapes(_MultiShapeSeqRepresentation):
         for (motif, cvalues, offsets) in self.per_shape_values:
             shape = shapes[motif]
             a = PolyCollection([shape], closed=True,
-                facecolors=cvalues, edgecolors=cvalues, offsets=offsets, 
-                transOffset=g.combined_transform)
+                               facecolors=cvalues, edgecolors=cvalues, offsets=offsets, 
+                               transOffset=g.combined_transform)
             g.add(a)
             a.set_transform(trans)
         return g
@@ -358,8 +358,8 @@ class SeqDots(_SingleShapeSeqRepresentation):
         scaled_axes = [[X, Y], [X, Y]][rotated]
         trans = TransformScalePart(g.combined_transform, scaled_axes)
         a = CircleCollection([.5], edgecolors=self.cvalues,
-                facecolors=self.cvalues, offsets=self.offsets,
-                transOffset=g.combined_transform)
+                             facecolors=self.cvalues, offsets=self.offsets,
+                             transOffset=g.combined_transform)
         g.add(a)
         a.set_transform(trans)
         return g
@@ -376,7 +376,7 @@ class SeqLineSegments(_SingleShapeSeqRepresentation):
         if rotated:
             segment = [(y,x) for (x,y) in segment]
         a = LineCollection([segment], colors=self.cvalues, 
-                offsets=self.offsets, transOffset=g.combined_transform)
+                           offsets=self.offsets, transOffset=g.combined_transform)
         a.set_linewidth(3)
         g.add(a)
         a.set_transform(trans)
@@ -389,7 +389,7 @@ class SeqLine(object):
     def __init__(self, map, *args, **kw):
         x_offset = 0.0
         self.segments = [(span.Start+x_offset, span.End+x_offset)
-            for span in map.spans if not span.lost]
+                         for span in map.spans if not span.lost]
 
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
@@ -415,14 +415,14 @@ class Feature(Annotation):
 
     def shape(self, height, yrange, rotated):
         return self.style(height, self.label, self.map, self.value, yrange, 
-                rotated)
+                          rotated)
 
 
 class _FeatureStyle(object):
     range_required = False
     def __init__(self, fill=True, color=colors.black, min_width=0.5,
-            showLabel=False, height=1, thickness=0.6, closed=True,
-            one_span=False, **kw):
+                 showLabel=False, height=1, thickness=0.6, closed=True,
+                 one_span=False, **kw):
         opts = {}
         if fill:
             opts['fillColor'] = color
@@ -487,23 +487,23 @@ class _FeatureStyle(object):
 
 class _VariableThicknessFeatureStyle(_FeatureStyle):
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, rotated, last=False):
+                    yrange, rotated, last=False):
         if yrange:
             thickness = 1.0*value/yrange*height
         else:
             thickness = height*self.proportion_of_track
         return self._item_shape_scaled(start, end, tidy_start, tidy_end,
-                height/2, max(2, thickness), rotated, last)
+                                       height/2, max(2, thickness), rotated, last)
 
 class Box(_VariableThicknessFeatureStyle):
     arrow = False
     blunt = False
 
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
-            thickness, rotated, last):
+                           thickness, rotated, last):
         (top, bottom) = (middle+thickness/2, middle-thickness/2)
         kw = dict(min_width=self.min_width, pointy=False, closed=self.closed, 
-            blunt=self.blunt, proportion_of_track=self.proportion_of_track)
+                  blunt=self.blunt, proportion_of_track=self.proportion_of_track)
         kw['rounded'] = tidy_start
         #kw['closed'] = self.closed or tidy_start
         end1 = rlg2mpl.End(start, end, bottom, top, **kw)
@@ -525,19 +525,19 @@ class BluntArrow(Box):
 class Diamond(_VariableThicknessFeatureStyle):
     """diamond"""
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
-            thickness, rotated, last):
+                           thickness, rotated, last):
         x = (start+end)/2
         spread = max(abs(start-end), self.min_width) / 2
         return rlg2mpl.Polygon(
             [(x-spread, middle), (x, middle+thickness/2), (x+spread, middle), 
-            (x, middle-thickness/2)], **self.opts)
+             (x, middle-thickness/2)], **self.opts)
 
 
 class Line(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, rotated, last=False):
+                    yrange, rotated, last=False):
         altitude = value * (height-1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
@@ -548,7 +548,7 @@ class Area(_FeatureStyle):
     """For a line segment graph"""
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
-            yrange, rotated, last=False):
+                    yrange, rotated, last=False):
         altitude = value * (height-1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
@@ -579,9 +579,9 @@ class DisplayPolicy(object):
             'polyA_signal': Box(True, colors.lightgreen),
             'polyA_site': Diamond(True, colors.lightgreen),
             'gene': BluntArrow(False, colors.blue,
-                    showLabel=True, closed = False),
+                               showLabel=True, closed = False),
             'operon': BluntArrow(False, colors.royalblue,
-                    showLabel=True, closed = False),
+                                 showLabel=True, closed = False),
             #regulation
             'attenuator': Box(False, colors.red),
             'enhancer': Box(True, colors.green),
@@ -722,7 +722,7 @@ class DisplayPolicy(object):
         ]]
 
     _default_ignored_features =    ['C_region','N_region','S_region','V_region',
-        'D_segment','J_segment','V_segment','iDNA','D-loop','oriT',]
+                                    'D_segment','J_segment','V_segment','iDNA','D-loop','oriT',]
     _default_keep_unexpected_tracks = True
 
     dont_merge = []
@@ -736,11 +736,11 @@ class DisplayPolicy(object):
     recursive = True
 
     def __init__(self,
-            min_feature_height = 20,
-            min_graph_height = None,
-            ignored_features=None,
-            keep_unexpected_tracks=None,
-            **kw):
+                 min_feature_height = 20,
+                 min_graph_height = None,
+                 ignored_features=None,
+                 keep_unexpected_tracks=None,
+                 **kw):
 
         self.seq_font = FontProperties(size=10)
         #self.label_font = FontProperties()
@@ -771,7 +771,7 @@ class DisplayPolicy(object):
                 for (level, feature_tag) in enumerate(track_defn):
                     feature_style = feature_styles[feature_tag]
                     self._track_map[feature_tag] = (
-                            track_defn, level, feature_style)
+                        track_defn, level, feature_style)
             for ft in self._ignored_features:
                 self._track_map[ft] = (None, 0, None)
             for ft in feature_styles:
@@ -818,7 +818,7 @@ class DisplayPolicy(object):
             tracks[track.tag][track.level].append(track)
 
         track_order = [track.tag for track in self._track_defns
-                if track.tag in tracks]
+                       if track.tag in tracks]
         unexpected = [tag for tag in orig_track_tags if tag not in track_order]
         if keep_unexpected is None:
             keep_unexpected = self.keep_unexpected_tracks
@@ -874,7 +874,7 @@ class DisplayPolicy(object):
             elif draw_bases:
                 seqrepr_class = SeqShapes
             elif self.rowlen <= 1000 and (self.colour_sequences 
-                    or cvalues is not None):
+                                          or cvalues is not None):
                 seqrepr_class = SeqLineSegments
             elif self.show_gaps:
                 seqrepr_class = SeqLine
@@ -885,9 +885,9 @@ class DisplayPolicy(object):
                 if colour_sequences is None:
                     colour_sequences = seqrepr_class != SeqText
                 feature = seqrepr_class(self.map, sequence, 
-                        colour_sequences = colour_sequences,
-                        font_properties = self.seq_font,
-                        cvalues = cvalues)
+                                        colour_sequences = colour_sequences,
+                                        font_properties = self.seq_font,
+                                        cvalues = cvalues)
                 label = getattr(self, 'seqname', '')
                 seq_tracks = [Track('seq', [feature], level=2, label=label)]
 
@@ -918,7 +918,7 @@ class DisplayPolicy(object):
             return []
         annot_tracks = feature.getAnnotationTracks(self)
         return annot_tracks + [Track(track_tag,
-                [Feature(self.map, style, feature.Name)], level=level)]
+                                     [Feature(self.map, style, feature.Name)], level=level)]
 
     def tracksForVariable(self, variable):
         (track_tag, style, level) = self.getStyleDefnForFeature(variable)
@@ -932,7 +932,7 @@ class DisplayPolicy(object):
             if type(y) is tuple: y = max(y)
             if y > max_y: max_y = y
         return [Track(track_tag, segments, max_y=max_y, needs_border=True,
-                label=variable.Name, level=level)]
+                      label=variable.Name, level=level)]
 
 
 class Display(rlg2mpl.Drawable):
@@ -963,7 +963,7 @@ class Display(rlg2mpl.Drawable):
     """
 
     def __init__(self, base, policy=DisplayPolicy, _policy=None, pad=1,
-            yrange=None, **kw):
+                 yrange=None, **kw):
         self.pad = pad
         self.base = base
         self.yrange = yrange
@@ -1072,7 +1072,7 @@ class Display(rlg2mpl.Drawable):
             ax.set_ylim(0, self.height or 0.1)
 
     def figureLayout(self, labeled=True, vertical=False, width=None, 
-            height=None, left=None, **kw):
+                     height=None, left=None, **kw):
 
         if left is None:
             if labeled and self._tracks:
@@ -1086,7 +1086,7 @@ class Display(rlg2mpl.Drawable):
         useful_width = len(self)*16/72 # ie bigish font, wide chars
 
         fkw = dict(leftovers=True, width=width, height=height, left=left, 
-                useful_width=useful_width, **kw)  
+                   useful_width=useful_width, **kw)  
         (w,h),posn,kw = rlg2mpl.figureLayout(**fkw)
 
         #points_per_base = w * posn[3] / len(self)

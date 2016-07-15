@@ -13,7 +13,7 @@ for sub_module in sub_modules:
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Matthew Wakefield", "Andrew Butterfield", "Edward Lang"]
+               "Matthew Wakefield", "Andrew Butterfield", "Edward Lang"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"

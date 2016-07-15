@@ -4,7 +4,7 @@ import sys
 import unittest
 
 from cogent3.evolve import likelihood_function, \
-     parameter_controller, substitution_model, bootstrap
+    parameter_controller, substitution_model, bootstrap
 
 from cogent3 import LoadSeqs, LoadTree
 
@@ -13,7 +13,7 @@ import os
 __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
-                    "Helen Lindsay", "Andrew Butterfield"]
+               "Helen Lindsay", "Andrew Butterfield"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -49,14 +49,14 @@ class BootstrapTests(unittest.TestCase):
             return substitution_model.Nucleotide(model_gaps=True)
         else:
             return substitution_model.Nucleotide(
-                    model_gaps=True,
-                    predicates = {'kappa':'transition'})
+                model_gaps=True,
+                predicates = {'kappa':'transition'})
 
     def getalignmentobj(self):
         moltype = self.getsubmod().MolType
         alignmentobj = LoadSeqs(
-                filename = os.path.join(data_path, "brca1.fasta"),
-                moltype = moltype)
+            filename = os.path.join(data_path, "brca1.fasta"),
+            moltype = moltype)
         return alignmentobj.takeSeqs(seqnames)[:1000]
 
     def getcontroller(self,treeobj, submodobj):
@@ -92,7 +92,7 @@ class BootstrapTests(unittest.TestCase):
         alignobj = self.getalignmentobj()
 
         bstrap = bootstrap.EstimateConfidenceIntervals(
-                self.create_null_controller(alignobj), self.calclength, alignobj)
+            self.create_null_controller(alignobj), self.calclength, alignobj)
         bstrap.setNumReplicates(REPLICATES)
         bstrap.setSeed(1984)
         bstrap.run(local=True)
@@ -116,9 +116,9 @@ class BootstrapTests(unittest.TestCase):
         import sys
         alignobj = self.getalignmentobj()
         prob_bstrap = bootstrap.EstimateProbability(
-                self.create_null_controller(alignobj),
-                self.create_alt_controller(alignobj),
-                alignobj)
+            self.create_null_controller(alignobj),
+            self.create_alt_controller(alignobj),
+            alignobj)
         prob_bstrap.setNumReplicates(REPLICATES)
         prob_bstrap.setSeed(1984)
         prob_bstrap.run(local=True)

@@ -41,7 +41,7 @@ class Grouper(object):
             assert num >= 1
         except:
             raise ValueError("Grouper.NumItems must be positive int, not %s" \
-                % (self.NumItems))
+                             % (self.NumItems))
         curr = []
         for i, item in enumerate(seq):
             if (i % num == 0) and curr:
@@ -192,8 +192,8 @@ class MappedRecord(GenericRecord):
         elif isinstance(prototype, list):
             return prototype[:]
         elif isinstance(prototype,str) or isinstance(prototype,int) or\
-            isinstance(prototype,int) or isinstance(prototype,tuple)\
-            or isinstance(prototype,complex) or prototype is None: 
+                isinstance(prototype,int) or isinstance(prototype,tuple)\
+                or isinstance(prototype,complex) or prototype is None: 
             return prototype     #immutable type: use directly
         else:
             return deepcopy(prototype)
@@ -346,7 +346,7 @@ def dict_adder(obj, field, val):
 class LineOrientedConstructor(object):
     """Constructs a MappedRecord from a sequence of lines."""
     def __init__(self, Lines=None, LabelSplitter=space_pairs, FieldMap=None,
-        Constructor=MappedRecord, Strict=False):
+                 Constructor=MappedRecord, Strict=False):
         """Returns new LineOrientedConstructor.
 
         Fields:
@@ -466,14 +466,14 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError("Expected %s items but got %s: %s" % \
-                    (len(fields), len(items), items))
+                                 (len(fields), len(items), items))
             return constructor(dict(list(zip(fields, items))))
     else:
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError("Expected %s items but got %s: %s" % \
-                    (len(fields), len(items), items))
+                                 (len(fields), len(items), items))
             return dict(list(zip(fields, items)))
     return parser
 

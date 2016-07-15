@@ -51,7 +51,7 @@ def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
             if remainder:
                 numlines += 1
             body = ["%s" % seq_str[j*line_wrap:(j+1)*line_wrap] \
-                                        for j in range(numlines)]
+                    for j in range(numlines)]
         else:
             body = ["%s" % seq_str]
 

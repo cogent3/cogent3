@@ -12,7 +12,7 @@ from cogent3.util.warning import discontinued
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
-                    "Jeremy Widmann"]
+               "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -26,7 +26,7 @@ def _merged_cell_text_wrap(text, max_line_length, space):
         return [text]
     buffer = ' ' * space
     wrapped = textwrap.wrap(text, width=max_line_width,
-                    initial_indent = buffer, subsequent_indent = buffer)
+                            initial_indent = buffer, subsequent_indent = buffer)
     wrapped = ["%s" % line.ljust(max_line_width + 2*space) for line in wrapped]
     return wrapped
 
@@ -55,7 +55,7 @@ def _merge_cells(row):
     return new_row
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
-    element_formatters={}, merge_identical=True, compact=True):
+              element_formatters={}, merge_identical=True, compact=True):
     """returns just the html Table string
 
     Arguments:
@@ -177,7 +177,7 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
         col_widths = [len(head) for head in header]
         sep = len(space)
         min_length = sep * (identifiers - 1) + \
-                     sum(col_widths[: identifiers])
+        sum(col_widths[: identifiers])
 
         if min_length > max_width:
             raise RuntimeError("Maximum width too small for identifiers")
@@ -201,14 +201,14 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
                 table.append("continued: %s" % title)
 
             subhead = space.join([space.join(header[:identifiers]),
-                    space.join(header[start: end])])
+                                  space.join(header[start: end])])
             width = len(subhead)
             table.append("=" * width)
             table.append(subhead)
             table.append("-" * width)
             for row in formatted_table:
                 row = [space.join(row[:identifiers]),
-                        space.join(row[start: end])]
+                       space.join(row[start: end])]
                 table.append(space.join(row))
 
             table.append("-" * width + "\n")
@@ -266,8 +266,8 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
         table.append(contiguous_delineator)
         if len(title) > len(row_delineate) - 2:
             wrapped = _merged_cell_text_wrap(title,
-                                            len(contiguous_delineator) - 2,
-                                            space)
+                                             len(contiguous_delineator) - 2,
+                                             space)
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = '|' + line + '|'
 
@@ -289,8 +289,8 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
     if legend:
         if len(legend) > len(row_delineate) - 2:
             wrapped = _merged_cell_text_wrap(legend,
-                                            len(contiguous_delineator) - 2,
-                                            space)
+                                             len(contiguous_delineator) - 2,
+                                             space)
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = '|' + line + '|'
 

@@ -15,7 +15,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
-        diagonal):
+                              diagonal):
     d_segments = []
     was_high = False
     scores = [0] * window
@@ -60,7 +60,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     """
     def one_diagonal(dia):
         segs = segments_from_diagonal(seq1, seq2, window, threshold, 
-                min_gap_length, dia)
+                                      min_gap_length, dia)
         return [((start, start+dia), (end, end+dia)) for (start, end) in segs]
 
     if band is None:

@@ -23,7 +23,7 @@ from cogent3.parse.record import RecordError, DelimitedSplitter
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley",
-                    "Peter Maxwell"]
+               "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -89,7 +89,7 @@ def MinimalClustalParser(record, strict=True):
     Data is dict of label -> sequence (pieces not joined).
     """
     return LabelLineParser(list(map(delete_trailing_number, \
-        list(filter(is_clustal_seq_line, record)))), last_space, strict)
+                                    list(filter(is_clustal_seq_line, record)))), last_space, strict)
 
 def ClustalParser(record, strict=True):
     seqs, labels = MinimalClustalParser(record, strict)

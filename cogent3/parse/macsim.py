@@ -5,7 +5,7 @@ from cogent3.core import annotation, moltype
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Raymond Sammut", "Peter Maxwell", "Gavin Huttley",
-                    "Rob Knight"]
+               "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Peter Maxwell"
@@ -22,9 +22,9 @@ def MacsimParser(doc):
     align = doc.getElementsByTagName('alignment')[0]
     for record in align.getElementsByTagName('sequence'):
         name = record.getElementsByTagName(
-                        'seq-name')[0].childNodes[0].nodeValue
+            'seq-name')[0].childNodes[0].nodeValue
         raw_seq = record.getElementsByTagName(
-                        'seq-data')[0].childNodes[0].nodeValue
+            'seq-data')[0].childNodes[0].nodeValue
 
         #cast as string to de-unicode
         raw_string = ''.join(str(raw_seq).upper().split())

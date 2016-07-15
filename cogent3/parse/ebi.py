@@ -8,7 +8,7 @@ from cogent3.parse.record_finder import DelimitedRecordFinder,\
     LabeledRecordFinder, is_empty, TailedRecordFinder
 from cogent3.parse.record import RecordError, FieldError
 from cogent3.util.misc import identity, curry,\
-        NestedSplitter, list_flatten
+    NestedSplitter, list_flatten
 from cogent3.core.sequence import Sequence
 
 __author__ = "Zongzhi Liu and Sandra Smit"
@@ -42,7 +42,7 @@ def rstrip_(chars=None):
     return curry(rstrip, chars=chars) 
 
 EbiFinder = DelimitedRecordFinder('//', 
-        constructor=rstrip)
+                                  constructor=rstrip)
 
 no_indent = lambda s: not s.startswith(' ')
 hanging_paragraph_finder = LabeledRecordFinder(no_indent, constructor=None) 
@@ -54,7 +54,7 @@ period_tail_finder = TailedRecordFinder(endswith_period)
 #################################
 # pairs_to_dict 
 def pairs_to_dict(key_values, dict_mode=None, 
-        all_keys=None, handlers={}, default_handler=None):
+                  all_keys=None, handlers={}, default_handler=None):
     """generate a function which return a dict from a sequence of key_value
     pairs. 
 
@@ -121,8 +121,8 @@ def pairs_to_dict(key_values, dict_mode=None,
             dictionary[key] = value
     else: # unknown dict_mode
         raise ValueError('Unknown dict_mode:%s. \ndict_mode must be one of '
-                'overwrite_value, no_duplicated_key, allow_multi_value and '
-                'always_multi_value.' % dict_mode)
+                         'overwrite_value, no_duplicated_key, allow_multi_value and '
+                         'always_multi_value.' % dict_mode)
 
     #generate the handle_value function. 
     if not handlers and not default_handler:
@@ -142,7 +142,7 @@ def pairs_to_dict(key_values, dict_mode=None,
     for key, raw_value in key_values:
         if all_keys and key not in all_keys:
             raise ValueError('key: %s not in all_keys: %s' 
-                    % (repr(key), all_keys))
+                             % (repr(key), all_keys))
         key, value = handle_value(key, raw_value)
         add_item(result, key, value)
     return result
@@ -177,7 +177,7 @@ def join_parser(lines, join_str=' ', chars_to_strip=' ;.'):
     return result.strip(chars_to_strip)
 
 def join_split_parser(lines, delimiters=';', item_modifier=strip, 
-        same_level=False, **kwargs):
+                      same_level=False, **kwargs):
     """return a nested list from lines, join lines before using NestedSplitter.
 
     delimiters: delimiters used by NestedSplitter
@@ -194,10 +194,10 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
     result = join_parser(lines, **kwargs)
 
     return NestedSplitter(delimiters, 
-        constructor=item_modifier, same_level=same_level)(result)
+                          constructor=item_modifier, same_level=same_level)(result)
 
 def join_split_dict_parser(lines, delimiters=[';', ('=',1), ','], 
-        dict_mode=None, strict=True, **kwargs):
+                           dict_mode=None, strict=True, **kwargs):
     """return a dict from lines, using the splited pairs from
     join_split_parser and pairs_to_dict.
 
@@ -214,7 +214,7 @@ def join_split_dict_parser(lines, delimiters=[';', ('=',1), ','],
     """
     primary_delimiters, value_delimiters = delimiters[:2], delimiters[2:]
     pairs = join_split_parser(lines, delimiters=primary_delimiters, 
-            same_level=True, **kwargs)
+                              same_level=True, **kwargs)
 
     try:
         dict(pairs) #catch error for any not splitted pair. 
@@ -239,7 +239,7 @@ def join_split_dict_parser(lines, delimiters=[';', ('=',1), ','],
 
 
 def mapping_parser(line, fields, delimiters=[';', None],
-        flatten=list_flatten):
+                   flatten=list_flatten):
     """return a dict of zip(fields, splitted line), None key will be deleted
     from the result dict.
 
@@ -284,7 +284,7 @@ def id_parser(lines):
     """
     lines = labeloff(lines)
     return mapping_parser(lines[0], delimiters=[';',None],
-        fields=('EntryName','DataClass','MolType',('Length',int)))
+                          fields=('EntryName','DataClass','MolType',('Length',int)))
 
 def sq_parser(lines):
     """return a mapping dict from SQ lines (only one line).
@@ -301,7 +301,7 @@ def sq_parser(lines):
     """
     lines = labeloff(lines)
     return mapping_parser(lines[0], delimiters=[';',None],
-        fields=(None, ('Length', int), None, ('MolWeight',int), None, 'Crc64'))
+                          fields=(None, ('Length', int), None, ('MolWeight',int), None, 'Crc64'))
 
 def kw_parser(lines):
     """return a list of keywords from KW lines.
@@ -384,7 +384,7 @@ def gn_parser(lines):
 gn_itemparser = join_split_dict_parser 
 
 gn_itemfinder = DelimitedRecordFinder('and', constructor=None, strict=False,
-        keep_delimiter=False)
+                                      keep_delimiter=False)
 
 def oc_parser(lines):
     """return a list from OC lines.
@@ -416,7 +416,7 @@ def os_parser(lines):
     """
     lines = labeloff(lines)
     return join_split_parser(lines, 
-        delimiters='(', item_modifier=rstrip_(') ')) 
+                             delimiters='(', item_modifier=rstrip_(') ')) 
 
 def ox_parser(lines):
     """return a dict from OX lines.
@@ -660,7 +660,7 @@ def ft_parser(lines):
         #result['SecondaryStructure']
         if keyname in secondary_structure_keynames:
             result.setdefault('SecondaryStructure', []).\
-                    append((keyname, start, end))
+                append((keyname, start, end))
             continue
 
         #further parser the description for certain keynames
@@ -687,15 +687,15 @@ def ft_basic_itemparser(item_lines):
     #unpack the first line to fields
     first_line = item_lines[0]
     keyname, from_point, to_point, description = \
-            [first_line[i:j].strip() for i,j in
-            zip([0]+cut_positions,cut_positions+[None])]
+    [first_line[i:j].strip() for i,j in
+     zip([0]+cut_positions,cut_positions+[None])]
 
     #extend the description if provided following lines
     if len(item_lines) > 1:
         following_lines = item_lines[1:]
         desc_start = cut_positions[-1]
         following_description = ' '.join(
-                [e[desc_start:].strip() for e in following_lines])
+            [e[desc_start:].strip() for e in following_lines])
         description = ' '.join((description, following_description))
 
     #convert start and end points to int, is possible
@@ -877,7 +877,7 @@ def cc_parser(lines, strict=False):
     #topic name.  result is grouped into a dict.
     try:
         result = pairs_to_dict(topic_contents, 'always_multi_value', 
-            handlers=cc_content_parsers, default_handler=join_parser)
+                               handlers=cc_content_parsers, default_handler=join_parser)
     except Exception as e:
         pprint( lines)
         raise e
@@ -965,9 +965,9 @@ def cc_interaction_parser(content_list):
     return result
 
 cc_alternative_products_event_finder = LabeledRecordFinder(
-        lambda x: x.startswith('Event='))
+    lambda x: x.startswith('Event='))
 cc_alternative_products_name_finder = LabeledRecordFinder(
-        lambda x: x.startswith('Name='))
+    lambda x: x.startswith('Name='))
 def cc_alternative_products_parser(content_list):
     """return a list from AlternativeProucts lines.
 
@@ -1036,14 +1036,14 @@ def cc_biophysicochemical_properties_parser(content):
         if sub_key in ['Kinetic parameters',  'Absorption']:
             #group into a dict which allow multiple values.
             subkey_values = join_split_parser(sub_content,
-                    delimiters=[';',('=',1)])
+                                              delimiters=[';',('=',1)])
             sub_content = pairs_to_dict(subkey_values, 'allow_multi_value')
         else:
             sub_content = join_parser(sub_content, chars_to_strip='; ')
         return sub_key, sub_content
 
     sub_key_contents = list(map(get_sub_key_content,
-            hanging_paragraph_finder(content)))
+                                hanging_paragraph_finder(content)))
     return pairs_to_dict(sub_key_contents, 'no_duplicated_key')
 
 cc_content_parsers = {
@@ -1096,7 +1096,7 @@ def single_ref_parser(lines, strict=False):
         for rlabel in required_ref_labels:
             if rlabel not in labels:
                 raise RecordError('The reference block lacks required label: '\
-                    '%s' % rlabel)
+                                  '%s' % rlabel)
 
     #parse each field with relevant parser
     parsed_dict = pairs_to_dict(list(raw_dict.items()), handlers=ref_parsers)
@@ -1321,13 +1321,13 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
 
         keyvalues = list(map(linecode_merging_maker, record))
         raw_dict = pairs_to_dict(keyvalues, 'always_multi_value',
-                all_keys=_parsers)
+                                 all_keys=_parsers)
 
         if strict:
             for rlabel in required_labels:
                 if rlabel not in raw_dict:
                     raise RecordError('The record lacks required label: '\
-                        '%s' % rlabel)
+                                      '%s' % rlabel)
 
         # no sequence found
         if '' not in raw_dict:
@@ -1360,7 +1360,7 @@ def linecode_merging_maker(line):
 def parse_header(header_dict, strict=True):
     """Parses a dictionary of header lines"""
     return pairs_to_dict(list(header_dict.items()), 'no_duplicated_key',
-            handlers = _parsers)
+                         handlers = _parsers)
 
 _parsers = {
     'ID': id_parser,
@@ -1390,7 +1390,7 @@ _parsers = {
 }
 
 def EbiParser(lines, seq_constructor=Sequence, 
-        header_constructor= parse_header, strict=True, selected_labels=[]):
+              header_constructor= parse_header, strict=True, selected_labels=[]):
     """Parser for the EBI data format.
 
     lines: input data (list of lines or file stream)
@@ -1406,7 +1406,7 @@ def EbiParser(lines, seq_constructor=Sequence,
         REFERENCES, which is 'REF'.
     """
     for sequence, header_dict in MinimalEbiParser(lines, strict=strict,\
-        selected_labels=selected_labels):
+                                                  selected_labels=selected_labels):
         if seq_constructor:
             sequence = seq_constructor(sequence)
         try:

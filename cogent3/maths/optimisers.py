@@ -106,10 +106,10 @@ def minimise(f, *args, **kw):
 
 @UI.display_wrap
 def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
-        max_restarts=None, max_evaluations=None, limit_action='warn',
-        tolerance=1e-6, global_tolerance=1e-1, ui=None,
-        return_eval_count=False,
-        **kw):
+             max_restarts=None, max_evaluations=None, limit_action='warn',
+             tolerance=1e-6, global_tolerance=1e-1, ui=None,
+             return_eval_count=False,
+             **kw):
     """Find input values that optimise this function.
     'local' controls the choice of optimiser, the default being to run
     both the global and local optimisers. 'filename' and 'interval'
@@ -159,7 +159,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)
             x = opt.maximise(f, x, tolerance=gtol, 
-                    show_remaining=callback, **kw)
+                             show_remaining=callback, **kw)
         else:
             gend = 0.0
             for k in kw:
@@ -171,7 +171,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
             #ui.display('local opt', 1.0-per_opt, per_opt)
             opt = LocalOptimiser()
             x = opt.maximise(f, x, tolerance=tolerance, 
-                    max_restarts=max_restarts, show_remaining=callback)
+                             max_restarts=max_restarts, show_remaining=callback)
     finally:
         # ensure state of calculator reflects optimised result, or
         # partialy optimised result if exiting on an exception.

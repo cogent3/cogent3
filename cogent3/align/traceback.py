@@ -65,7 +65,7 @@ def gap_traceback(aligned_positions):
 def map_traceback(aligned_positions):
     # using Map's to keep track of gaps for indel alignment
     (starts, ends, gap_vectors, alignment_len) = gap_traceback(
-            aligned_positions)
+        aligned_positions)
     #print 'gv', gap_vectors
     maps = [Map(gv, parent_length=alignment_len).inverse()
             for gv in gap_vectors]
@@ -75,7 +75,7 @@ def alignment_traceback(seqs, aligned_positions, word_length):
     """Alignment object from state matrix and ending point.
     """
     (starts, ends, maps) = map_traceback(
-            aligned_positions)
+        aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):
         gs = Aligned(amap*word_length, seq[start*word_length:end*word_length])

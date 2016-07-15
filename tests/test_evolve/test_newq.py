@@ -9,7 +9,7 @@ from numpy import ones, dot, array
 
 from cogent3 import LoadSeqs, DNA, LoadTree, LoadTable
 from cogent3.evolve.substitution_model import Nucleotide, General, \
-                                                GeneralStationary
+    GeneralStationary
 from cogent3.evolve.discrete_markov import DiscreteSubstitutionModel
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
@@ -28,12 +28,12 @@ def _dinuc_root_probs(x,y=None):
     if y is None:
         y = x
     return dict([(n1+n2, p1*p2) 
-            for n1,p1 in list(x.items()) for n2,p2 in list(y.items())])
+                 for n1,p1 in list(x.items()) for n2,p2 in list(y.items())])
 
 def _trinuc_root_probs(x,y,z):
     return dict([(n1+n2+n3, p1*p2*p3) 
-            for n1,p1 in list(x.items()) for n2,p2 in list(y.items())
-            for n3,p3 in list(z.items())])
+                 for n1,p1 in list(x.items()) for n2,p2 in list(y.items())
+                 for n3,p3 in list(z.items())])
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
@@ -62,29 +62,29 @@ class NewQ(TestCase):
     asymm_root_probs = _dinuc_root_probs(asymm_nuc_probs)
     posn_root_probs = _dinuc_root_probs(symm_nuc_probs, asymm_nuc_probs)
     cond_root_probs = dict([(n1+n2, p1*[.1, .7][n1==n2]) 
-            for n1,p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
+                            for n1,p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
 
     # Each of these (data, model) pairs should give a result different 
     # from any of the simpler models applied to the same data.  
     ordered_by_complexity = [
-            # P(AA) == P(GG) == P(AG)
-            [symm_root_probs, 'tuple'],
+        # P(AA) == P(GG) == P(AG)
+        [symm_root_probs, 'tuple'],
 
-            # P(GA) == P(AG) but P(AA) != P(GG)
-            [asymm_root_probs, 'monomer'],
+        # P(GA) == P(AG) but P(AA) != P(GG)
+        [asymm_root_probs, 'monomer'],
 
-            # P(AG) == P(A?)*P(?G) but P(A?) != P(?A)
-            [posn_root_probs, 'monomers'],
+        # P(AG) == P(A?)*P(?G) but P(A?) != P(?A)
+        [posn_root_probs, 'monomers'],
 
-            # P(AG) != P(A?)*P(?G)
-            [cond_root_probs, 'conditional'],
-            ]
+        # P(AG) != P(A?)*P(?G)
+        [cond_root_probs, 'conditional'],
+        ]
 
     def test_newQ_is_nuc_process(self):
         """newQ is an extension of an independent nucleotide process"""
         nuc = Nucleotide(motif_probs = self.asymm_nuc_probs)
         new_di = Nucleotide(motif_length=2, mprob_model='monomer',
-            motif_probs = self.asymm_root_probs)
+                            motif_probs = self.asymm_root_probs)
 
         nuc_lf = nuc.makeLikelihoodFunction(self.tree)
         new_di_lf = new_di.makeLikelihoodFunction(self.tree)
@@ -95,7 +95,7 @@ class NewQ(TestCase):
         nuc_lf.setAlignment(self.aln)
         new_di_lf.setAlignment(self.aln)
         self.assertFloatEqual(nuc_lf.getLogLikelihood(),
-                                new_di_lf.getLogLikelihood())
+                              new_di_lf.getLogLikelihood())
 
     def test_lf_display(self):
         """str of likelihood functions should not fail"""
@@ -109,7 +109,7 @@ class NewQ(TestCase):
         """get statistics should correctly apply arguments"""
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, motif_probs=mprobs, 
-                    mprob_model=model)
+                            mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
                            (False, False)]:
@@ -119,7 +119,7 @@ class NewQ(TestCase):
         """should be able to simulate an alignment under all models"""
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, motif_probs=mprobs, 
-                    mprob_model=model)
+                            mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
@@ -141,7 +141,7 @@ class NewQ(TestCase):
             results = []
             for (dummy, model) in self.ordered_by_complexity:
                 di = Nucleotide(motif_length=2, motif_probs=mprobs, 
-                        mprob_model=model)
+                                mprob_model=model)
                 lf = di.makeLikelihoodFunction(self.tree)
                 lf.setParamRule('length', is_independent=False, init=0.4)
                 lf.setAlignment(self.aln)
@@ -199,7 +199,7 @@ class NewQ(TestCase):
             # if the 1st and 2nd position motifs are independent of each other
             # then conditional is the same as positional
             ps = Nucleotide(motif_length=motif_length, motif_probs=motif_probs,
-                mprob_model='monomers')
+                            mprob_model='monomers')
             cd = Nucleotide(motif_length=motif_length,motif_probs=motif_probs,
                             mprob_model='conditional')
 
@@ -211,24 +211,24 @@ class NewQ(TestCase):
             cd_lf.setParamRule('length', is_independent=False, init=0.4)
             cd_lf.setAlignment(self.aln)
             self.assertFloatEqual(cd_lf.getLogLikelihood(),
-                    ps_lf.getLogLikelihood())
+                                  ps_lf.getLogLikelihood())
 
         compare_models(self.posn_root_probs, 2)
         # trinucleotide
         trinuc_mprobs = _trinuc_root_probs(self.asymm_nuc_probs,
-                            self.asymm_nuc_probs, self.asymm_nuc_probs)
+                                           self.asymm_nuc_probs, self.asymm_nuc_probs)
         compare_models(trinuc_mprobs, 3)
 
     def test_cond_pos_differ(self):
         """lnL should differ when motif probs are not multiplicative"""
         dinuc_probs = {'AA': 0.088506666666666664, 'AC': 0.044746666666666664,
-            'GT': 0.056693333333333332, 'AG': 0.070199999999999999,
-            'CC': 0.048653333333333333, 'TT': 0.10678666666666667,
-            'CG': 0.0093600000000000003, 'GG': 0.049853333333333333,
-            'GC': 0.040253333333333335, 'AT': 0.078880000000000006,
-            'GA': 0.058639999999999998, 'TG': 0.081626666666666667,
-            'TA': 0.068573333333333333, 'CA': 0.06661333333333333,
-            'TC': 0.060866666666666666, 'CT': 0.069746666666666665}
+                       'GT': 0.056693333333333332, 'AG': 0.070199999999999999,
+                       'CC': 0.048653333333333333, 'TT': 0.10678666666666667,
+                       'CG': 0.0093600000000000003, 'GG': 0.049853333333333333,
+                       'GC': 0.040253333333333335, 'AT': 0.078880000000000006,
+                       'GA': 0.058639999999999998, 'TG': 0.081626666666666667,
+                       'TA': 0.068573333333333333, 'CA': 0.06661333333333333,
+                       'TC': 0.060866666666666666, 'CT': 0.069746666666666665}
 
         mg = Nucleotide(motif_length=2, motif_probs=dinuc_probs,
                         mprob_model='monomer')
@@ -243,7 +243,7 @@ class NewQ(TestCase):
         cd_lf.setParamRule('length', is_independent=False, init=0.4)
         cd_lf.setAlignment(self.aln)
         self.assertNotAlmostEqual(mg_lf.getLogLikelihood(),
-                                    cd_lf.getLogLikelihood())
+                                  cd_lf.getLogLikelihood())
 
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
@@ -305,7 +305,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
         kwargs=dict(expm='pade')
 
     lf = model.makeLikelihoodFunction(tree,
-            optimise_motif_probs=True, **kwargs)
+                                      optimise_motif_probs=True, **kwargs)
 
     if not is_discrete:
         for param in lf.getParamNames():
@@ -345,9 +345,9 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
         if 'constructed_gen' in results:
             return
         preds = [MotifChange(a,b, forward_only=True) for a,b in [['A', 'C'],
-                        ['A', 'G'], ['A', 'T'], ['C', 'A'], ['C', 'G'],
-                        ['C', 'T'], ['G', 'C'], ['G', 'T'], ['T', 'A'],
-                        ['T', 'C'], ['T', 'G']]]
+                                                                 ['A', 'G'], ['A', 'T'], ['C', 'A'], ['C', 'G'],
+                                                                 ['C', 'T'], ['G', 'C'], ['G', 'T'], ['T', 'A'],
+                                                                 ['T', 'C'], ['T', 'G']]]
         nuc = Nucleotide(predicates=preds)
         nuc_lf = _make_likelihood(nuc, tree, results)
         nuc_lf.optimise(**opt_args)
@@ -357,7 +357,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
         if 'discrete' in results:
             return
         dis_lf = _make_likelihood(DiscreteSubstitutionModel(DNA.Alphabet),
-                            discrete_tree, results, is_discrete=True)
+                                  discrete_tree, results, is_discrete=True)
         dis_lf.optimise(**opt_args)
         results['discrete'] = dis_lf
 

@@ -21,7 +21,7 @@ class _FeatureLevelRecord(object):
 
     def __str__(self):
         return 'feature = %s; Levels = %s' % (self.feature_type,
-                ', '.join(self.levels))
+                                              ', '.join(self.levels))
 
 
 class FeatureCoordLevelsCache(object):
@@ -48,7 +48,7 @@ class FeatureCoordLevelsCache(object):
         meta_coord = db.getTable('meta_coord')
         if 'core' in str(db.db_name):
             query = sql.select([meta_coord]).where(meta_coord.c.table_name.\
-                        in_(['gene', 'simple_feature', 'repeat_feature']))
+                                                   in_(['gene', 'simple_feature', 'repeat_feature']))
             query = query.order_by(meta_coord.c.table_name)
         elif 'variation' in str(db.db_name): 
             query = sql.select([meta_coord]).where(meta_coord.c.table_name == 'variation_feature')

@@ -57,15 +57,15 @@ class TestAnnotations(unittest.TestCase):
 
         seq = DNA.makeSequence('ACGTACGTACGT')
         f = seq.addAnnotation(NewFeat, as_map([(1,3), (5,7)], len(seq)),
-                                type='gene', Name='abcd')
+                              type='gene', Name='abcd')
         self.assertEqual(type(f.asOneSpan()), NewFeat)
         self.assertEqual(type(f.getShadow()), NewFeat)
         f2 = seq.addAnnotation(NewFeat, as_map([(3,5)], len(seq)),
-                                type='gene', Name='def')
+                               type='gene', Name='def')
 
         self.assertEqual(type(seq.getRegionCoveringAll([f, f2],
-                                                feature_class=NewFeat)),
-                        NewFeat)
+                                                       feature_class=NewFeat)),
+                         NewFeat)
         # now use the new method
         f.newMethod()
 
@@ -80,16 +80,16 @@ class TestAnnotations(unittest.TestCase):
     def test_aln_annotations(self):
         """test that annotations to alignment and its' sequences"""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
-                                     'FAKE02': 'TTTGGGGGGGGGG'},
-                     "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                     "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                     "LTR" : {"FAKE01": "CCCAAAATTTTTT",
-                              "FAKE02": "CCC-----TTTTT"}
+                                         'FAKE02': 'TTTGGGGGGGGGG'},
+                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
+                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
+                         "LTR" : {"FAKE01": "CCCAAAATTTTTT",
+                                  "FAKE02": "CCC-----TTTTT"}
                          }
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
-                                "FAKE02": "GGGGGGGGGG"},
-                        "5'UTR": {"FAKE01": "TTT",
-                                "FAKE02": "TTT"}}
+                                 "FAKE02": "GGGGGGGGGG"},
+                         "5'UTR": {"FAKE01": "TTT",
+                                   "FAKE02": "TTT"}}
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
             observed = list(self.aln.getByAnnotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
@@ -98,21 +98,21 @@ class TestAnnotations(unittest.TestCase):
                 continue # because seqs haven't been annotated with it
             for name in self.aln.Names:
                 observed = list(self.aln.NamedSeqs[name].data.\
-                                        getByAnnotation(annot_type))[0]
+                                getByAnnotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, (annot_type, name, expected,
-                                                    observed)
+                                                   observed)
 
     def test_slice_aln_with_annotations(self):
         """test that annotations of sequences and alignments survive alignment
         slicing."""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
                                          'FAKE02': 'TTTGGGGGGGGGG'},
-                     "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                     "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                     "LTR" : {"FAKE01": "CCCTTTTT",
-                              "FAKE02": "CCCTTTTT"}}
+                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
+                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
+                         "LTR" : {"FAKE01": "CCCTTTTT",
+                                  "FAKE02": "CCCTTTTT"}}
         newaln = self.aln[:5]+self.aln[10:]
         feature_list = newaln.getAnnotationsMatching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
@@ -124,9 +124,9 @@ class TestAnnotations(unittest.TestCase):
                 continue # because seqs haven't been annotated with it
             for name in self.aln.Names:
                 orig = str(list(self.aln.getAnnotationsFromSequence(name,
-                                                    annot_type))[0].getSlice())
+                                                                    annot_type))[0].getSlice())
                 new = str(list(newaln.getAnnotationsFromSequence(name,
-                                                    annot_type))[0].getSlice())
+                                                                 annot_type))[0].getSlice())
                 assert orig == new, (name, annot_type, orig, new)
 
     def test_feature_projection(self):
@@ -144,17 +144,17 @@ class TestAnnotations(unittest.TestCase):
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""
         aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
-                                     'FAKE02': 'TTTGGGGGGGGGG'},
-                     "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                     "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                     "LTR" : {"FAKE01": "CCCAAAATTTTTT",
-                              "FAKE02": "CCC-----TTTTT"}
+                                         'FAKE02': 'TTTGGGGGGGGGG'},
+                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
+                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
+                         "LTR" : {"FAKE01": "CCCAAAATTTTTT",
+                                  "FAKE02": "CCC-----TTTTT"}
                          }
 
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
-                                "FAKE02": "GGGGGGGGGG"},
-                        "5'UTR": {"FAKE01": "TTT",
-                                "FAKE02": "TTT"}}
+                                 "FAKE02": "GGGGGGGGGG"},
+                         "5'UTR": {"FAKE01": "TTT",
+                                   "FAKE02": "TTT"}}
 
         rc = self.aln.rc()
         # rc'ing an Alignment or Sequence rc's their annotations too. This means
@@ -171,17 +171,17 @@ class TestAnnotations(unittest.TestCase):
                 continue # because seqs haven't been annotated with it
             for name in self.aln.Names:
                 observed = list(self.aln.NamedSeqs[name].data.\
-                                        getByAnnotation(annot_type))[0]
+                                getByAnnotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, ("+", annot_type, name, expected,
-                                                    observed)
+                                                   observed)
                 observed = list(rc.NamedSeqs[name].data.\
-                                        getByAnnotation(annot_type))[0]
+                                getByAnnotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, ("-", annot_type, name, expected,
-                                                    observed)
+                                                   observed)
 
 class TestMapSpans(unittest.TestCase):
     """Test attributes of Map & Spans classes critical to annotation

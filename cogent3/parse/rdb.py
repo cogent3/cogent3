@@ -82,7 +82,7 @@ def MinimalRdbParser(infile,strict=True):
         if not index:
             if strict:
                 raise RecordError("Found Rdb record without seq label "\
-                    + "line: %s"%rec[0])
+                                  + "line: %s"%rec[0])
             else:
                 continue
 
@@ -95,7 +95,7 @@ def MinimalRdbParser(infile,strict=True):
         if not sequence:
             if strict:
                 raise RecordError("Found Rdb record without sequences: %s"\
-                    %rec[0])
+                                  %rec[0])
             else:
                 continue
 
@@ -117,7 +117,7 @@ def create_acceptable_sequence(sequence):
 
 
 def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
-    strict=True):
+              strict=True):
     """Yield sequences from the Rdb record.
 
     lines: a stream of Rdb records.

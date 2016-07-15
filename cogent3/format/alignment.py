@@ -146,7 +146,7 @@ class PhylipWriter(_AlignmentWriter):
                     # write the otu name
                     if len(seqname) > 9:
                         warnings.warn('Name "%s" too long, truncated to "%s"'
-                            % (seqname, seqname[:9]))
+                                      % (seqname, seqname[:9]))
                         prefix = '%-10s' % seqname[:9]
                     else: prefix = '%-10s' % seqname
                 else: prefix = ' ' * 10
@@ -207,8 +207,8 @@ class FastaWriter(_AlignmentWriter):
         #sequences
         for seq in self.align_order:
             self.file.writelines('>%s\n%s' % (seq,
-                        self.wrapstringtoblocksize(alignmentdict[seq],
-                                                   altblocksize = block_size)))
+                                              self.wrapstringtoblocksize(alignmentdict[seq],
+                                                                         altblocksize = block_size)))
 
 
 class GDEWriter(_AlignmentWriter):
@@ -233,17 +233,17 @@ class GDEWriter(_AlignmentWriter):
 
         for seq in self.align_order:
             self.file.writelines('%s%s\n%s' % ("%", seq,
-                self.wrapstringtoblocksize(alignmentdict[seq],
-                                           altblocksize = block_size)))
+                                               self.wrapstringtoblocksize(alignmentdict[seq],
+                                                                          altblocksize = block_size)))
 
 
 # to add a new file format add it's suffix and class name here
 WRITERS  = {
-        'phylip': PhylipWriter,
-        'paml': PamlWriter,
-        'fasta': FastaWriter,
-        'mfa': FastaWriter,
-        'fa': FastaWriter,
-        'gde': GDEWriter,
-        }
+    'phylip': PhylipWriter,
+    'paml': PamlWriter,
+    'fasta': FastaWriter,
+    'mfa': FastaWriter,
+    'fa': FastaWriter,
+    'gde': GDEWriter,
+    }
 

@@ -40,7 +40,7 @@ class RecodeAlignmentTests(TestCase):
         self.ambiguous_abbrevs = 'BXZ'
 
         self.all_to_a = [('A',self.canonical_abbrevs+\
-            self.ambiguous_abbrevs)]
+                          self.ambiguous_abbrevs)]
         self.charge_2 = alphabets['charge_2']
         self.hydropathy_3 = alphabets['hydropathy_3']
         self.orig = alphabets['orig']
@@ -55,7 +55,7 @@ class RecodeAlignmentTests(TestCase):
         self.assertRaises(ValueError,build_alphabet_map)
         self.assertRaises(ValueError,build_alphabet_map,'not_a_valid_id')
         self.assertRaises(ValueError,build_alphabet_map,\
-            alphabet_def=['A','BCD','B','EFG'])
+                          alphabet_def=['A','BCD','B','EFG'])
 
     def test_build_alphabet_map_w_alphabet_id(self):
         """build_alphabet_map: returns correct dict when given alphabet_id
@@ -79,7 +79,7 @@ class RecodeAlignmentTests(TestCase):
             ('X','S'), ('B','S'), ('M','L'), ('F','L'), ('Y','L'), ('W','L'),\
             ('Q','L'), ('K','L'), ('H','L'), ('R','L'), ('E','L'), ('Z','L')])
         self.assertEqual(build_alphabet_map(alphabet_def=\
-           [('S','GAVLISPTCNDXB'),('L','MFYWQKHREZ')]),expected)
+                                            [('S','GAVLISPTCNDXB'),('L','MFYWQKHREZ')]),expected)
 
     def test_build_alphabet_map_handles_all_ids_and_defs_wo_error(self):
         """build_alphabet_map: handles all pre-defined alphabets w/o error"""
@@ -119,11 +119,11 @@ class RecodeAlignmentTests(TestCase):
         """recode_dense_alignment: recode alignment to charge_2 alpha works
         """
         expected_c2 = DenseAlignment(data=\
-            {'1':'AKKAKAK','2':'AKK-KAK','3':'AAAAAA-'})
+                                     {'1':'AKKAKAK','2':'AKK-KAK','3':'AAAAAA-'})
         expected_h3 = DenseAlignment(data=\
-            {'1':'PRRPRPR','2':'PRR-RPR','3':'PPPPYY-'})
+                                     {'1':'PRRPRPR','2':'PRR-RPR','3':'PPPPYY-'})
         expected_aa = DenseAlignment(data=\
-            {'1':'AAAAAAA','2':'AAA-AAA','3':'AAAAAA-'})
+                                     {'1':'AAAAAAA','2':'AAA-AAA','3':'AAAAAA-'})
 
         # provided with alphabet_id
         actual = recode_dense_alignment(self.aln, alphabet_id='charge_2')
@@ -136,7 +136,7 @@ class RecodeAlignmentTests(TestCase):
         actual = recode_dense_alignment(self.aln, alphabet_id='hydropathy_3')
         self.assertEqual(actual,expected_h3)
         actual = recode_dense_alignment(self.aln,\
-          alphabet_def=self.hydropathy_3)
+                                        alphabet_def=self.hydropathy_3)
         self.assertEqual(actual,expected_h3)
 
         # different alphabet
@@ -232,25 +232,25 @@ class RecodeAlignmentTests(TestCase):
         a_def = [('A','AEC'),('E','D')]
         expected = {'A':0.55, 'E':0.45}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            expected)
+                              expected)
         # reversal of alphabet 
         freqs = {'A':0.21, 'E':0.29, 'C':0.05, 'D':0.45}
         a_def = [('A','D'),('E','C'),('C','E'),('D','A')]
         expected = {'A':0.45,'E':0.05,'C':0.29,'D':0.21}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            expected)
+                              expected)
 
         # no change in freqs (old alphabet = new alphabet)
         freqs = {'A':0.21, 'E':0.29, 'C':0.05, 'D':0.45}
         a_def = [('A','A'),('E','E'),('C','C'),('D','D')]
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            freqs)
+                              freqs)
 
         freqs = {'A':0.21, 'E':0.29, 'C':0.05, 'D':0.45}
         a_def = [('X','AEC'),('Y','D')]
         expected = {'X':0.55, 'Y':0.45}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            expected)
+                              expected)
 
     def test_recode_freq_vector_ignores(self):
         """recode_freq_vector: ignored chars are ignored
@@ -259,14 +259,14 @@ class RecodeAlignmentTests(TestCase):
         a_def = [('A','A'),('B','B'),('C','C'),('D','D'),('X','X'),('Z','Z')]
         expected = {'A':0.21,'C':0.05, 'D':0.45}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            expected)
+                              expected)
 
         freqs = {'D':0.21, 'E':0.29, 'N':0.05,\
-          'Q':0.45,'B':0.26,'Z':0.74,'X':1.0}
+                 'Q':0.45,'B':0.26,'Z':0.74,'X':1.0}
         a_def = [('D','DEN'),('Q','Q')]
         expected = {'D':0.55, 'Q':0.45}
         self.assertFloatEqual(recode_freq_vector(a_def,freqs),\
-            expected)
+                              expected)
 
 
 
@@ -299,7 +299,7 @@ class RecodeMatrixTests(TestCase):
         aa_order = 'ACDEFGHIKLMNPQRSTVWY'
         actual = recode_counts_and_freqs(alphabet)
         expected_matrix = recode_count_matrix(alphabet,\
-                             count_matrix=DSO78_matrix,aa_order=aa_order)
+                                              count_matrix=DSO78_matrix,aa_order=aa_order)
         expected_freqs = {}.fromkeys(aa_order,0.0)
         expected_freqs.update(recode_freq_vector(alphabet,DSO78_freqs))
         expected = (expected_matrix,expected_freqs)
@@ -323,7 +323,7 @@ class RecodeMatrixTests(TestCase):
         """recode_count_matrix: correct result w 3-state alphabet w ambig chars 
         """
         actual =\
-         recode_count_matrix(self.alphabet2_w_ambig,self.m2,self.aa_order2)
+        recode_count_matrix(self.alphabet2_w_ambig,self.m2,self.aa_order2)
         expected = self.recoded_m2       
         self.assertEqual(actual,expected)
 
@@ -332,12 +332,12 @@ class RecodeMatrixTests(TestCase):
         """
         # recoding recoded matrices
         actual =\
-         recode_count_matrix(self.alphabet1,self.recoded_m1,self.aa_order1)
+        recode_count_matrix(self.alphabet1,self.recoded_m1,self.aa_order1)
         expected = self.recoded_m1        
         self.assertEqual(actual,expected) 
 
         actual =\
-         recode_count_matrix(self.alphabet2,self.recoded_m2,self.aa_order2)
+        recode_count_matrix(self.alphabet2,self.recoded_m2,self.aa_order2)
         expected = self.recoded_m2       
         self.assertEqual(actual,expected)
 

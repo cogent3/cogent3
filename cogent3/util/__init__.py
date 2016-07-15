@@ -6,9 +6,9 @@ __all__ = ['array', 'checkpointing', 'datatypes', 'dict2d', 'misc', 'modules',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
-                    "Peter Maxwell", "Amanda Birmingham", "Zongzhi Liu",
-                    "Andrew Butterfield", "Daniel McDonald",
-                    "Greg Caporaso"]
+               "Peter Maxwell", "Amanda Birmingham", "Zongzhi Liu",
+               "Andrew Butterfield", "Daniel McDonald",
+               "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"

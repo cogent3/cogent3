@@ -2,11 +2,11 @@
 
 from cogent3 import DNA, LoadSeqs
 from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict,\
-        local_pairwise, global_pairwise
+    local_pairwise, global_pairwise
 from cogent3.evolve.models import HKY85
 import cogent3.evolve.substitution_model
 dna_model = cogent3.evolve.substitution_model.Nucleotide(
-        model_gaps=False, equal_motif_probs=True)
+    model_gaps=False, equal_motif_probs=True)
 
 import cogent3.align.progressive
 
@@ -81,8 +81,8 @@ class AlignmentTestCase(unittest.TestCase):
         s1 = DNA.makeSequence('tacgccgta', Name="A")
         s2 = DNA.makeSequence('tacgta', Name="B")
         codon_model = cogent3.evolve.substitution_model.Codon(
-                                 model_gaps=False, equal_motif_probs=True,
-                                 mprob_model='conditional')
+            model_gaps=False, equal_motif_probs=True,
+            mprob_model='conditional')
         tree = cogent3.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.makeLikelihoodFunction(tree, aligned=False)
         lf.setSequences(dict(A=s1, B=s2))
@@ -94,7 +94,7 @@ class AlignmentTestCase(unittest.TestCase):
         """Should pick the first best-equal hit rather than the last one"""
         # so that the Pyrex and Python versions give the same result.
         score_matrix = make_dna_scoring_dict(match=1, transition=-1, 
-                transversion=-1)
+                                             transversion=-1)
         pattern = DNA.makeSequence('cwc', Name='pattern')
         two_hit = DNA.makeSequence( 'cactc', Name= 'target')
         aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
@@ -113,18 +113,18 @@ class UnalignedPairTestCase(unittest.TestCase):
 
 class MultipleAlignmentTestCase(unittest.TestCase):
     def _make_aln(self, orig, model=dna_model, param_vals=None, 
-            indel_rate=0.1, indel_length=0.5, **kw):
+                  indel_rate=0.1, indel_length=0.5, **kw):
         kw['indel_rate'] = indel_rate
         kw['indel_length'] = indel_length
         seqs = dict((key, DNA.makeSequence(value)) 
-                for (key, value) in list(orig.items()))
+                    for (key, value) in list(orig.items()))
         if len(seqs) == 2:
             tree = cogent3.LoadTree(tip_names=list(seqs.keys()))
             tree = cogent3.LoadTree(treestring="(A:.1,B:.1)")
         else:
             tree = cogent3.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent3.align.progressive.TreeAlign(model, seqs,
-                tree=tree, param_vals=param_vals, show_progress=False, **kw)
+                                                        tree=tree, param_vals=param_vals, show_progress=False, **kw)
         return aln
 
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
@@ -142,19 +142,19 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
         self._test_aln({
-                'A': 'tacagta', 
-                'B': 'tac-gtc',
-                'C': 'ta---ta', 
-                'D': 'tac-gtc',
-                })
+            'A': 'tacagta', 
+            'B': 'tac-gtc',
+            'C': 'ta---ta', 
+            'D': 'tac-gtc',
+            })
 
     def test_progressive_est_tree(self):
         """excercise progressive alignment without a guide tree"""
         seqs = LoadSeqs(data={'A': "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
-                            'B': "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
-                            'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
+                              'B': "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
+                              'C': "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT"}, aligned=False)
         aln, tree = cogent3.align.progressive.TreeAlign(HKY85(), seqs, show_progress=False,
-                        param_vals={'kappa': 4.0})
+                                                        param_vals={'kappa': 4.0})
 
         expect = {'A': 'TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------',
                   'C': 'TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT',
@@ -164,68 +164,68 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
         self._test_aln({
-                'A': 'tacagta', 
-                'B': 'tac-gtc',
-                'C': 'ta---ta', 
-                'D': 'cac-cta',
-                }, model=HKY85(), param_vals=[('kappa',2.0)])
+            'A': 'tacagta', 
+            'B': 'tac-gtc',
+            'C': 'ta---ta', 
+            'D': 'cac-cta',
+            }, model=HKY85(), param_vals=[('kappa',2.0)])
 
     def test_TreeAlign_does_pairs(self):
         """test TreeAlign handles pairs of sequences"""
         self._test_aln({
-                'A': 'acttgtac', 
-                'B': 'ac--gtac',
-                })
+            'A': 'acttgtac', 
+            'B': 'ac--gtac',
+            })
 
     def test_gap_at_start(self):
         """test progressive alignment, gaps at start"""
         self._test_aln({
-                'A': '-ac', 
-                'B': '-ac',
-                'C': '-ac', 
-                'D': 'gac',
-                })
+            'A': '-ac', 
+            'B': '-ac',
+            'C': '-ac', 
+            'D': 'gac',
+            })
 
     def test_gap_at_end(self):
         """test progressive alignment, gaps at end"""
         self._test_aln({
-                'A': 'gt-', 
-                'B': 'gt-',
-                'C': 'gt-', 
-                'D': 'gta',
-                })
+            'A': 'gt-', 
+            'B': 'gt-',
+            'C': 'gt-', 
+            'D': 'gta',
+            })
 
     def test_gaps2(self):
         """Gaps have real costs, even end gaps"""
         self._test_aln({
-                'A': 'g-', 
-                'B': 'g-',
-                'C': 'ga', 
-                'D': 'a-',
-                })
+            'A': 'g-', 
+            'B': 'g-',
+            'C': 'ga', 
+            'D': 'a-',
+            })
 
         self._test_aln({
-                'A': '-g', 
-                'B': '-g',
-                'C': 'ag', 
-                'D': '-a',
-                })
+            'A': '-g', 
+            'B': '-g',
+            'C': 'ag', 
+            'D': '-a',
+            })
 
     def test_difficult_end_gaps(self):
         self._test_aln({
-                'A': '--cctc', 
-                'B': '--cctc',
-                'C': 'gacctc', 
-                'D': 'ga----',
-                })  
+            'A': '--cctc', 
+            'B': '--cctc',
+            'C': 'gacctc', 
+            'D': 'ga----',
+            })  
         return  
 
         self._test_aln({
-                'A': 'gcctcgg------', 
-                'B': 'gcctcgg------',
-                'C': 'gcctcggaaacgt', 
-                'D': '-------aaacgt',
-                })    
+            'A': 'gcctcgg------', 
+            'B': 'gcctcgg------',
+            'C': 'gcctcggaaacgt', 
+            'D': '-------aaacgt',
+            })    
 
 
 

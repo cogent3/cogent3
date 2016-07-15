@@ -34,7 +34,7 @@ class PredefinedNucleotide(Nucleotide):
         # Should produce the same P as an ordinary Q based model would:
         self.checkPsubCalculationsMatch()
         return CalcDefn(self.calcPsubMatrix, name='psubs')(
-                    word_probs, distance, *rate_params)
+            word_probs, distance, *rate_params)
 
     def calcPsubMatrix(self, pi, time, kappa_y=1.0, kappa_r=None):
         """Is F81, HKY83 or TN93 when passed 0, 1 or 2 parameters"""

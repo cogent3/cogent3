@@ -68,16 +68,16 @@ def make_label(line):
     return key, value
 
 BlatFinder = LabeledRecordFinder(query_finder, constructor=strip, \
-    ignore=is_blat_junk)
+                                 ignore=is_blat_junk)
 
 BlastFinder = LabeledRecordFinder(query_finder, constructor=strip, \
-    ignore=is_blast_junk)
+                                  ignore=is_blast_junk)
 
 PsiBlastFinder = LabeledRecordFinder(iter_finder, constructor=strip, \
-    ignore=is_blast_junk)
+                                     ignore=is_blast_junk)
 
 PsiBlastQueryFinder = LabeledRecordFinder(iteration_set_finder, \
-    constructor=strip, ignore=is_blast_junk)
+                                          constructor=strip, ignore=is_blast_junk)
 
 def GenericBlastParser9(lines, finder, make_col_headers=False):
     """Yields successive records from lines (props, data list) 
@@ -122,8 +122,8 @@ def TableToValues(table, constructors=None, header=None):
     return [[c(val) for c, val in zip(c_list, row)] for row in table], header
 
 psiblast_constructors={'% identity':float, 'alignment length':int, \
-    'mismatches':int, 'gap openings':int, 'q. start':int, 'q. end':int, \
-    's. start':int, 's. end':int, 'e-value':float, 'bit score':float}
+                       'mismatches':int, 'gap openings':int, 'q. start':int, 'q. end':int, \
+                       's. start':int, 's. end':int, 'e-value':float, 'bit score':float}
 #make case-insensitive
 for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
@@ -209,8 +209,8 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
 
 
 def AllProteinIds9(lines, filter_identity=True, threshold=None, \
-        keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
-        keep_values=False):
+                   keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
+                   keep_values=False):
     """Helper to extract just protein ids from each blast search 
 
     lines: output file in output format #9. 
@@ -242,8 +242,8 @@ def AllProteinIds9(lines, filter_identity=True, threshold=None, \
     return out_ids 
 
 def LastProteinIds9(lines, filter_identity=True, threshold=None, \
-        keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
-        keep_values=False):
+                    keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
+                    keep_values=False):
     """Helper to extract just protein ids from last psi-blast iteration.
 
     lines: output file in output format #9. 
@@ -346,27 +346,27 @@ class BlastResult(dict):
     _eq = lambda x, y: cmp(x, y) == 0 
 
     FieldComparisonOperators = {
-               PERCENT_IDENTITY:(_gt, float),
-               ALIGNMENT_LENGTH:(_gt, int),
-               MISMATCHES:(_lt, int),
-               E_VALUE:(_lt, float),
-               BIT_SCORE:(_gt, float)
-                }   
+        PERCENT_IDENTITY:(_gt, float),
+        ALIGNMENT_LENGTH:(_gt, int),
+        MISMATCHES:(_lt, int),
+        E_VALUE:(_lt, float),
+        BIT_SCORE:(_gt, float)
+        }   
 
     # set up valid blast keys
     HitKeys = set([ ITERATION,
-                        QUERY_ID,
-                        SUBJECT_ID,
-                        PERCENT_IDENTITY,
-                        ALIGNMENT_LENGTH,
-                        MISMATCHES,
-                        GAP_OPENINGS,
-                        QUERY_START,
-                        QUERY_END,
-                        SUBJECT_START,
-                        SUBJECT_END,
-                        E_VALUE,
-                        BIT_SCORE ])
+                    QUERY_ID,
+                    SUBJECT_ID,
+                    PERCENT_IDENTITY,
+                    ALIGNMENT_LENGTH,
+                    MISMATCHES,
+                    GAP_OPENINGS,
+                    QUERY_START,
+                    QUERY_END,
+                    SUBJECT_START,
+                    SUBJECT_END,
+                    E_VALUE,
+                    BIT_SCORE ])
 
 
     def __init__(self, data, psiblast=False):
@@ -440,7 +440,7 @@ class BlastResult(dict):
         # check that given valid comparison field
         if field not in self.FieldComparisonOperators:
             raise ValueError("Invalid field: %s. You must specify one of: %s" \
-                              % (field, str(self.FieldComparisonOperators)))
+                             % (field, str(self.FieldComparisonOperators)))
         cmp_fun, cast_fun = self.FieldComparisonOperators[field]
 
         # enumerate hits
@@ -471,11 +471,11 @@ class BlastResult(dict):
     #raise error if both field and f passed, uses same dict as filterByField
 
 fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='', \
-    ignore=never_ignore)
+                                                   ignore=never_ignore)
 fasta_field_map = { 'NCBI sequence id':'seq_id',
-        'NCBI taxonomy id':'tax_id',
-        'Common name':'common_name',
-        'Scientific name':'scientific_name'}
+                    'NCBI taxonomy id':'tax_id',
+                    'Common name':'common_name',
+                    'Scientific name':'scientific_name'}
 
 def FastacmdTaxonomyParser(lines):
     """Yields successive records from the results of fastacmd -T.

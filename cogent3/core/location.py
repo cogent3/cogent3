@@ -48,7 +48,7 @@ import copy
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
-                    "Gavin Huttley"]
+               "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -203,10 +203,10 @@ class Span(SpanI):
     lost = False
 
     __slots__ = ( 'tidy_start', 'tidy_end', 'length', 'value',
-            'Start', 'End', 'Reverse')
+                  'Start', 'End', 'Reverse')
 
     def __init__(self, Start, End=None, tidy_start=False, tidy_end=False,
-            value=None, Reverse=False):
+                 value=None, Reverse=False):
         self._new_init(Start, End, Reverse)
         self.tidy_start = tidy_start
         self.tidy_end = tidy_end
@@ -245,7 +245,7 @@ class Span(SpanI):
 
     def __getstate__(self):
         return (self.Start, self.End, self.tidy_start, self.tidy_end, \
-        self.value, self.Reverse)
+                self.value, self.Reverse)
 
     def __repr__(self):
         (start, end) = (self.Start, self.End)
@@ -270,12 +270,12 @@ class Span(SpanI):
 
     def __mul__(self, scale):
         return Span(self.Start * scale, self.End * scale,
-                self.tidy_start, self.tidy_end, self.value, self.Reverse)
+                    self.tidy_start, self.tidy_end, self.value, self.Reverse)
 
     def __div__(self, scale):
         assert not self.Start % scale or self.End % scale
         return Span(self.Start // scale, self.End // scale,
-                self.tidy_start, self.tidy_end, self.value, self.Reverse)
+                    self.tidy_start, self.tidy_end, self.value, self.Reverse)
 
     def remapWith(self, map):
         """The list of spans corresponding to this span on its grandparent, ie:
@@ -366,7 +366,7 @@ class Span(SpanI):
         assert start >= 0
         end = start + self.length
         return self.__class__(start, end, value = self.value,
-                Reverse = not self.Reverse)
+                              Reverse = not self.Reverse)
 
     def __iter__(self):
         """Iterates over indices contained in self.
@@ -475,7 +475,7 @@ class Map(object):
     """A map holds a list of spans.  """
 
     def __init__(self, locations=None, spans=None, tidy=False,
-            parent_length=None, termini_unknown=False):
+                 parent_length=None, termini_unknown=False):
         assert parent_length is not None
         if spans is None:
             spans = []
@@ -484,7 +484,7 @@ class Map(object):
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
                     raise RuntimeError("located outside sequence: %s" % \
-                                    str((start, end, parent_length)))
+                                       str((start, end, parent_length)))
                 elif max(start, end) < 0:
                     diff = min(start, end)
                     start = [start, 0][start < 0]
@@ -568,8 +568,8 @@ class Map(object):
 
     def withTerminiUnknown(self):
         return Map(self, spans=self.spans[:],
-                parent_length=self.parent_length,
-                termini_unknown = True)
+                   parent_length=self.parent_length,
+                   termini_unknown = True)
 
     def getCoveringSpan(self):
         if self.Reverse:
@@ -644,8 +644,8 @@ class Map(object):
 
     def withoutGaps(self):
         return Map(
-                spans = [s for s in self.spans if not s.lost],
-                parent_length = self.parent_length)
+            spans = [s for s in self.spans if not s.lost],
+            parent_length = self.parent_length)
 
     def inverse(self):
         if self.__inverse is None:
@@ -693,7 +693,7 @@ class Map(object):
             order_func = lambda x: x
 
         coords = list(map(order_func,
-                    [(s.Start, s.End) for s in self.spans if not s.lost]))
+                          [(s.Start, s.End) for s in self.spans if not s.lost]))
 
         return coords
 
@@ -741,7 +741,7 @@ class Range(SpanI):
         if hasattr(other, 'Spans'):
             return self.Spans < other.Spans
         elif len(self.Spans) == 1 and hasattr(other, 'Start') and \
-            hasattr(other, 'End'):
+                hasattr(other, 'End'):
             return self.Spans[0].Start < other.Start or \
                 self.Spans[0].End < other.End
         else:
@@ -752,7 +752,7 @@ class Range(SpanI):
         if hasattr(other, 'Spans'):
             return self.Spans == other.Spans
         elif len(self.Spans) == 1 and hasattr(other, 'Start') and \
-            hasattr(other, 'End'):
+                hasattr(other, 'End'):
             return self.Spans[0].Start == other.Start and \
                 self.Spans[0].End == other.End
         else:
@@ -855,7 +855,7 @@ class Range(SpanI):
             found_overlap = False
             for other in direction:
                 if span.overlaps(other) or (span.Start == other.End) or \
-                    (other.Start == span.End):  #handle adjacent spans also
+                        (other.Start == span.End):  #handle adjacent spans also
                     other.Start = min(span.Start, other.Start)
                     other.End = max(span.End, other.End)
                     found_overlap = True

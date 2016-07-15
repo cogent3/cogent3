@@ -34,12 +34,12 @@ def _read_expression(line):
 
 class UniGeneSeqRecord(MappedRecord):
     Aliases = {'ACC':'Accession', 'CLONE':'CloneId', 'END':'End',\
-        'LID':'LibraryId', 'SEQTYPE':'SequenceType', 'TRACE':'Trace', \
-        'EST':'EstId', 'NID':'NucleotideId', 'PID':'ProteinId'}
+               'LID':'LibraryId', 'SEQTYPE':'SequenceType', 'TRACE':'Trace', \
+               'EST':'EstId', 'NID':'NucleotideId', 'PID':'ProteinId'}
 
 class UniGeneProtSimRecord(MappedRecord):
     Aliases = {'ORG':'Species', 'PROTGI':'ProteinGi', 'ProtId':'ProteinId',\
-        'PCT':'PercentSimilarity', 'ALN':'AlignmentScore'}
+               'PCT':'PercentSimilarity', 'ALN':'AlignmentScore'}
 
 def _read_seq(line):
     """Turns a sequence line into a UniGeneSeqRecord.
@@ -65,9 +65,9 @@ class UniGene(MappedRecord):
     """Holds data for a UniGene record."""
     Required = {    'STS':[], 'PROTSIM':[], 'SEQUENCE':[], 'EXPRESS': []}
     Aliases = {'STS':'Sts', 'PROTSIM':'ProteinSimilarities',\
-    'SEQUENCE':'SequenceIds','SCOUNT':'SequenceCount','CTYOBAND':'CytoBand',\
-    'EXPRESS':'ExpressedIn', 'CHROMOSOME':'Chromosome','ID':'UniGeneId', \
-    'TITLE':'UniGeneTitle','LOCUSLINK':'LocusLinkId'}
+               'SEQUENCE':'SequenceIds','SCOUNT':'SequenceCount','CTYOBAND':'CytoBand',\
+               'EXPRESS':'ExpressedIn', 'CHROMOSOME':'Chromosome','ID':'UniGeneId', \
+               'TITLE':'UniGeneTitle','LOCUSLINK':'LocusLinkId'}
 
 def _expressions_setter(obj, field, val):
     """Sets specified field to a list of expressions"""

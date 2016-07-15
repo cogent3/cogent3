@@ -106,14 +106,14 @@ class EUtilsTests(TestCase):
     def test_query_max_recs(self):
         """EUtils should stop query at max_recs when max_recs < retmax"""
         g = EUtils(db='protein', rettype='gi', max_recs=5, DEBUG=False,
-            retmax=100)
+                   retmax=100)
         result = g['homo[organism] AND myh7'].read().splitlines()
         self.assertEqual(len(result), 5)
 
     def test_query_max_recs_gt_retmax(self):
         """EUtils should stop query at max_recs when max_recs > retmax"""
         g = EUtils(db='protein', rettype='gi', max_recs=5, DEBUG=False,
-            retmax=3)
+                   retmax=3)
         result = g['homo[organism] AND myh7'].read().splitlines()
         self.assertEqual(len(result), 5)
 
@@ -123,7 +123,7 @@ class ESearchTests(TestCase):
     def test_simple_search(self):
         """ESearch Access via a query should return accessions"""
         s = ESearch(db='protein', rettype='gi', retmax=1000,
-            term='homo[organism] AND myh7')
+                    term='homo[organism] AND myh7')
         result = s.read()
         parsed = ESearchResultParser(result)
         assert '83304912' in parsed.IdList  #gi of human cardiac beta myh7
@@ -140,7 +140,7 @@ class ELinkTests(TestCase):
     def test_multiple_elink(self):
         """ELink should find unique links in a set of ids"""
         l = ELink(db='taxonomy', dbfrom='protein', 
-            id='83304912 115496169 119586556 111309484')
+                  id='83304912 115496169 119586556 111309484')
         result = l.read()
         parsed = ELinkResultParser(result)
         self.assertEqual(sorted(parsed), ['10090', '9606'])  
@@ -151,7 +151,7 @@ class EFetchTests(TestCase):
     def test_simple_efetch(self):
         """EFetch should return records from list of ids"""
         f = EFetch(db='protein', rettype='fasta', retmode='text', 
-            id='111309484')
+                   id='111309484')
         result = f.read().splitlines()
         assert result[0].startswith('>')
         assert result[1].startswith('madaemaafg'.upper())
@@ -187,7 +187,7 @@ class NcbiTests(TestCase):
         <Lineage>aaa;bbb</Lineage>
         """
         self.assertEqual(list(taxon_lineage_extractor(lines.splitlines())),
-            [['xxx','yyy'],['aaa','bbb']])
+                         [['xxx','yyy'],['aaa','bbb']])
 
     def test_parse_taxonomy_using_elementtree_xml_parse(self):
         """parse_taxonomy_using_elementtree_xml_parse should return taxonomy associated information"""
@@ -200,7 +200,7 @@ class NcbiTests(TestCase):
         obs = (data['Lineage'],data['TaxId'],data['ScientificName'],\
                data['Rank'])
         exp = ('cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella',\
-              '28901','Salmonella enterica','species')
+               '28901','Salmonella enterica','species')
         self.assertEqual(obs,exp)
 
 
@@ -227,7 +227,7 @@ class NcbiTests(TestCase):
         """taxon_ids_to_names should return names/lineages from taxon ids"""
         taxon_ids = ['10090', '9606']
         exp = [('10090', 'Mus musculus', '; '.join(self.mouse_taxonomy)),
-                  ('9606', 'Homo sapiens', '; '.join(self.human_taxonomy))]
+               ('9606', 'Homo sapiens', '; '.join(self.human_taxonomy))]
         obs = list(taxon_ids_to_names_and_lineages(taxon_ids))
         self.assertEqualItems(obs, exp)
 

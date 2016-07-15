@@ -45,8 +45,8 @@ class ScaleRuleTests(unittest.TestCase):
             'ts':trans, 'tv': ~trans})
 
         self.assertEqual(
-                self._getScaledLengths(model, {'k':6.0, 'length':4.0}),
-                {'ts': 3.0, 'tv':1.0})
+            self._getScaledLengths(model, {'k':6.0, 'length':4.0}),
+            {'ts': 3.0, 'tv':1.0})
 
     def test_binned(self):
         model = self._makeModel(True, {'k':trans}, {
@@ -64,20 +64,20 @@ class ScaleRuleTests(unittest.TestCase):
         """Scale rule on a model which has scaling performed after calculation
         rather than during it"""
         model = self._makeModel(False, {'k':trans}, {
-                'ts':trans, 'tv': ~trans})
+            'ts':trans, 'tv': ~trans})
 
         self.assertEqual(
-                self._getScaledLengths(model, {'k':6.0, 'length':2.0}),
-                {'ts': 3.0, 'tv':1.0})
+            self._getScaledLengths(model, {'k':6.0, 'length':2.0}),
+            {'ts': 3.0, 'tv':1.0})
 
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
         model = self._makeModel(True, {'k':trans, 'ac':a_c}, {
-                'or': (trans | a_c), 'not': ~(trans | a_c)})
+            'or': (trans | a_c), 'not': ~(trans | a_c)})
 
         self.assertEqual(
-                self._getScaledLengths(model, {'k':6.0,'length':6.0, 'ac': 3.0}),
-                {'or': 5.0, 'not': 1.0})
+            self._getScaledLengths(model, {'k':6.0,'length':6.0, 'ac': 3.0}),
+            {'or': 5.0, 'not': 1.0})
 
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
@@ -124,9 +124,9 @@ class ScaleRuleTests(unittest.TestCase):
         length = 0.1115
 
         a = self._getScaledLengths(model,
-                {'k': 3.6491, 'r': 0.6317, 'length': length})
+                                   {'k': 3.6491, 'r': 0.6317, 'length': length})
         b = self._getScaledLengths(model,
-                {'k': 3.6491, 'r': 1.0, 'length': length})
+                                   {'k': 3.6491, 'r': 1.0, 'length': length})
         dN = length * a['dN'] / (3.0 * b['dN'])
         dS = length * a['dS'] / (3.0 * b['dS'])
         # following are results from PAML

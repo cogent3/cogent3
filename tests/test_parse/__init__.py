@@ -21,10 +21,10 @@ __all__ = ['test_aaindex',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Catherine Lozuopone", "Gavin Huttley",
-                    "Rob Knight", "Sandra Smit", "Micah Hamady",
-                    "Jeremy Widmann", "Hua Ying", "Greg Caporaso",
-                    "Zongzhi Liu", "Jason Carnes", "Peter Maxwell",
-                    "Marcin Cieslik"]
+               "Rob Knight", "Sandra Smit", "Micah Hamady",
+               "Jeremy Widmann", "Hua Ying", "Greg Caporaso",
+               "Zongzhi Liu", "Jason Carnes", "Peter Maxwell",
+               "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"

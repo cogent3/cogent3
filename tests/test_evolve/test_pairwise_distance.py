@@ -29,13 +29,13 @@ class TestPair(TestCase):
     dna_char_indices = get_moltype_index_array(DNA)
     rna_char_indices = get_moltype_index_array(RNA)
     alignment = LoadSeqs(data=[('s1', 'ACGTACGTAC'),
-                             ('s2', 'GTGTACGTAC')], moltype=DNA)
+                               ('s2', 'GTGTACGTAC')], moltype=DNA)
 
     ambig_alignment = LoadSeqs(data=[('s1', 'RACGTACGTACN'),
-                             ('s2', 'AGTGTACGTACA')], moltype=DNA)
+                                     ('s2', 'AGTGTACGTACA')], moltype=DNA)
 
     diff_alignment = LoadSeqs(data=[('s1', 'ACGTACGTTT'),
-                             ('s2', 'GTGTACGTAC')], moltype=DNA)
+                                    ('s2', 'GTGTACGTAC')], moltype=DNA)
 
     def test_char_to_index(self):
         """should correctly recode a DNA & RNA seqs into indices"""
@@ -56,19 +56,19 @@ class TestPair(TestCase):
         _fill_diversity_matrix(matrix, s1, s1)
         self.assertEqual(matrix.sum(), len(s1))
         self.assertEqual(matrix,
-            numpy.array([[2,0,0,0],
-                         [0,3,0,0],
-                         [0,0,3,0],
-                         [0,0,0,2]], float))
+                         numpy.array([[2,0,0,0],
+                                      [0,3,0,0],
+                                      [0,0,3,0],
+                                      [0,0,0,2]], float))
 
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
         self.assertEqual(matrix,
-            numpy.array([[2,0,0,0],
-                         [1,2,0,0],
-                         [0,0,2,1],
-                         [0,0,0,2]], float))
+                         numpy.array([[2,0,0,0],
+                                      [1,2,0,0],
+                                      [0,0,2,1],
+                                      [0,0,0,2]], float))
 
     def test_fill_diversity_matrix_some(self):
         """make correct diversity matrix when not all chars valid"""
@@ -79,10 +79,10 @@ class TestPair(TestCase):
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
         self.assertEqual(matrix,
-            numpy.array([[2,0,0,0],
-                         [1,2,0,0],
-                         [0,0,2,1],
-                         [0,0,0,2]], float))
+                         numpy.array([[2,0,0,0],
+                                      [1,2,0,0],
+                                      [0,0,2,1],
+                                      [0,0,0,2]], float))
 
     def test_python_vs_cython_fill_matrix(self):
         """python & cython fill_diversity_matrix give same answer"""
@@ -114,7 +114,7 @@ class TestPair(TestCase):
         self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2326161962)
         # value**2 from OSX MEGA 5
         self.assertFloatEqual(calc.Variances['s1', 's2'],
-                                0.029752066125078681)
+                              0.029752066125078681)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.StdErr['s1', 's2'], 0.1724878724)
 
@@ -164,25 +164,25 @@ class TestPair(TestCase):
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
         all_expected = {('Human', 'NineBande'): 0.075336929999999996,
-                    ('NineBande', 'DogFaced'): 0.0898575452,
-                    ('DogFaced', 'Human'): 0.1061747919,
-                    ('HowlerMon', 'DogFaced'): 0.0934480008,
-                    ('Mouse', 'HowlerMon'): 0.26422862920000001,
-                    ('NineBande', 'Human'): 0.075336929999999996,
-                    ('HowlerMon', 'NineBande'): 0.062202897899999998,
-                    ('DogFaced', 'NineBande'): 0.0898575452,
-                    ('DogFaced', 'HowlerMon'): 0.0934480008,
-                    ('Human', 'DogFaced'): 0.1061747919,
-                    ('Mouse', 'Human'): 0.26539976700000001,
-                    ('NineBande', 'HowlerMon'): 0.062202897899999998,
-                    ('HowlerMon', 'Human'): 0.036571181899999999,
-                    ('DogFaced', 'Mouse'): 0.2652555144,
-                    ('HowlerMon', 'Mouse'): 0.26422862920000001,
-                    ('Mouse', 'DogFaced'): 0.2652555144,
-                    ('NineBande', 'Mouse'): 0.22754789210000001,
-                    ('Mouse', 'NineBande'): 0.22754789210000001,
-                    ('Human', 'Mouse'): 0.26539976700000001,
-                    ('Human', 'HowlerMon'): 0.036571181899999999}
+                        ('NineBande', 'DogFaced'): 0.0898575452,
+                        ('DogFaced', 'Human'): 0.1061747919,
+                        ('HowlerMon', 'DogFaced'): 0.0934480008,
+                        ('Mouse', 'HowlerMon'): 0.26422862920000001,
+                        ('NineBande', 'Human'): 0.075336929999999996,
+                        ('HowlerMon', 'NineBande'): 0.062202897899999998,
+                        ('DogFaced', 'NineBande'): 0.0898575452,
+                        ('DogFaced', 'HowlerMon'): 0.0934480008,
+                        ('Human', 'DogFaced'): 0.1061747919,
+                        ('Mouse', 'Human'): 0.26539976700000001,
+                        ('NineBande', 'HowlerMon'): 0.062202897899999998,
+                        ('HowlerMon', 'Human'): 0.036571181899999999,
+                        ('DogFaced', 'Mouse'): 0.2652555144,
+                        ('HowlerMon', 'Mouse'): 0.26422862920000001,
+                        ('Mouse', 'DogFaced'): 0.2652555144,
+                        ('NineBande', 'Mouse'): 0.22754789210000001,
+                        ('Mouse', 'NineBande'): 0.22754789210000001,
+                        ('Human', 'Mouse'): 0.26539976700000001,
+                        ('Human', 'HowlerMon'): 0.036571181899999999}
         for pair in dists:
             got = dists[pair]
             expected = all_expected[pair]
@@ -291,7 +291,7 @@ class TestPair(TestCase):
         M = numpy.linalg.inv(J)
         f = J.sum(1), J.sum(0)
         dist = -0.25 * numpy.log( numpy.linalg.det(J) / \
-                numpy.sqrt(f[0].prod() * f[1].prod()) )
+                                  numpy.sqrt(f[0].prod() * f[1].prod()) )
 
         self.assertFloatEqual(paralinear_calc.Dists[1,1], dist, eps=1e-3)
 
@@ -347,9 +347,9 @@ class TestPair(TestCase):
         logdet_calc.run(show_progress=False)
 
         self.assertFloatEqual(logdet_calc.Dists[1,1],
-                paralinear_calc.Dists[1,1], eps=1e-3)
+                              paralinear_calc.Dists[1,1], eps=1e-3)
         self.assertFloatEqual(paralinear_calc.Variances[1,1], 
-                logdet_calc.Variances[1,1], eps=1e-3)
+                              logdet_calc.Variances[1,1], eps=1e-3)
 
 if __name__ == '__main__':
     main()

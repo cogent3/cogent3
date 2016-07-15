@@ -73,9 +73,9 @@ class DndTokenizerTests(TestCase):
         """DndTokenizer should work as expected on real data"""
         exp = \
             ['(', '(', 'xyz', ':', '0.28124',',', '(', 'def', ':', '0.24498',\
-        ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
-        ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
-        'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
+             ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
+             ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
+             'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
         #split it up for debugging on an item-by-item basis
         obs = list(DndTokenizer(sample))
         self.assertEqual(len(obs), len(exp))

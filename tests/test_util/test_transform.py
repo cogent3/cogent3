@@ -108,16 +108,16 @@ class metafunctionsTests(TestCase):
     def test_bool_each(self):
         """bool_each should return boolean version of applying each f to args"""
         self.assertEqual(bool_each([self.double, self.minusone], \
-            self.SmallNumbers[0]), [False, True])
+                                   self.SmallNumbers[0]), [False, True])
 
         self.assertEqual(bool_each([self.double, self.minusone], \
-            self.SmallNumbers[1]), [True, False])
+                                   self.SmallNumbers[1]), [True, False])
 
     def test_conjoin(self):
         """conjoin should return True if all components True"""
         self.assertEqual(conjoin([self.is_odd_letter,self.is_vowel],'a'), True)
         self.assertEqual(conjoin([self.is_odd_letter,self.is_vowel], x='b'), 
-            False)
+                         False)
         self.assertEqual(conjoin([self.is_odd_letter,self.is_vowel],'c'), False)
         self.assertEqual(conjoin([self.is_odd_letter,self.is_vowel],'e'), True)
         #technically, this one should be true as well, but I left it off to 
@@ -126,20 +126,20 @@ class metafunctionsTests(TestCase):
         #should short-circuit, i.e. not evaluate later cases after False
         self.assertEqual(conjoin([self.is_odd_letter, self.fail], 'b'), False)
         self.assertRaises(AssertionError, conjoin, \
-            [self.is_odd_letter, self.fail], 'a')
+                          [self.is_odd_letter, self.fail], 'a')
 
     def test_all(self):
         """all should return a function returning True if all components True"""
         odd_vowel = all([self.is_odd_letter, self.is_vowel, self.is_char])
         self.assertEqual(odd_vowel('a'), True)
         self.assertEqual(list(map(odd_vowel, 'abceu')), 
-            [True,False,False,True,False])
+                         [True,False,False,True,False])
         odd_number = all([self.is_odd_number, self.is_number])
         self.assertEqual(list(map(odd_number, list(range(5)))), [False,True]*2+[False])
         #should short-circuit, i.e. not evaluate later cases after False
         self.assertEqual(all([self.is_odd_letter, self.fail])('b'), False)
         self.assertRaises(AssertionError, all([self.is_odd_letter,self.fail]),\
-            'a')
+                          'a')
 
     def test_both(self):
         """both should return True if both components True"""
@@ -148,7 +148,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit
         self.assertEqual(both(self.is_odd_letter, self.fail)('b'), False)
         self.assertRaises(AssertionError, both(self.is_odd_letter, self.fail),\
-            'a')
+                          'a')
 
     def test_disjoin(self):
         """disjoin should return True if any component True"""
@@ -156,11 +156,11 @@ class metafunctionsTests(TestCase):
         self.assertEqual(disjoin([self.is_odd_letter,self.is_vowel], 'b'),False)
         self.assertEqual(disjoin([self.is_odd_letter,self.is_vowel], 'c'), True)
         self.assertEqual(disjoin([self.is_odd_letter,self.is_vowel], x='u'),
-            True)
+                         True)
         #should short-circuit after first True
         self.assertEqual(disjoin([self.is_odd_letter, self.fail], 'a'), True)
         self.assertRaises(AssertionError, \
-            disjoin, [self.is_odd_letter, self.fail], 'b')
+                          disjoin, [self.is_odd_letter, self.fail], 'b')
 
     def test_any(self):
         """any should return a function returning True if any component True"""
@@ -172,7 +172,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit after first True
         self.assertEqual(any([self.is_odd_letter, self.fail])(x='a'), True)
         self.assertRaises(AssertionError, any([self.is_odd_letter,self.fail]),\
-            'b')
+                          'b')
 
     def test_either(self):
         """either should return function returning True if either component True"""
@@ -181,7 +181,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit
         self.assertEqual(either(self.is_odd_letter, self.fail)(x='a'), True)
         self.assertRaises(AssertionError, \
-            either(self.is_odd_letter, self.fail), 'b')
+                          either(self.is_odd_letter, self.fail), 'b')
 
     def test_negate(self):
         """negate should return True if no component True"""
@@ -192,7 +192,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit after first True
         self.assertEqual(negate([self.is_odd_letter, self.fail], x='a'), False)
         self.assertRaises(AssertionError, \
-            negate, [self.is_odd_letter, self.fail], 'b')
+                          negate, [self.is_odd_letter, self.fail], 'b')
 
     def test_none(self):
         """none should return a function returning True if no component True"""
@@ -204,7 +204,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit after first True
         self.assertEqual(none([self.is_odd_letter, self.fail])(x='a'), False)
         self.assertRaises(AssertionError, none([self.is_odd_letter,self.fail]),\
-            'b')
+                          'b')
 
     def test_neither(self):
         """neither should return function returning True if each component False"""
@@ -213,7 +213,7 @@ class metafunctionsTests(TestCase):
         #should short-circuit
         self.assertEqual(neither(self.is_odd_letter, self.fail)(x='a'), False)
         self.assertRaises(AssertionError, \
-            neither(self.is_odd_letter, self.fail), 'b')
+                          neither(self.is_odd_letter, self.fail), 'b')
 
     def test_compose(self):
         """compose should return function returning f(g(x))"""
@@ -240,7 +240,7 @@ class metafunctionsTests(TestCase):
         self.assertEqual(printable_range(5), '01234')
 
         self.assertEqual(printable_arange(stop=51, start=10, step=10),
-            '1020304050')
+                         '1020304050')
 
     def test_identity(self):
         """identity should return x"""
@@ -314,7 +314,7 @@ class metafunctionsTests(TestCase):
         #test duplicates
         d = basic_indexer(duplicates)
         self.assertEqual(d, {num:[num]*3, let:[let]*3, zer:[zer]*3, \
-            non:[non]*3, y:[y]*3})
+                             non:[non]*3, y:[y]*3})
         #test with constructor
         str_indexer = index(str)
         i = str_indexer(items)
@@ -322,7 +322,7 @@ class metafunctionsTests(TestCase):
         #test order correct in duplicates
         i = str_indexer(duplicates)
         self.assertEqual(i, {'5':[num,let,num,let,num,let], '0':[zer,zer,zer],
-            'None':[non,non,non], '3':[y,y,y]})
+                             'None':[non,non,non], '3':[y,y,y]})
         #test with squashing
         overwriter = index(str, overwrite=True)
         i = overwriter(duplicates)
@@ -478,7 +478,7 @@ class Filter_Criteria_Tests(TestCase):
 
         self.assertEqual(''.translate(none), '')
         self.assertEqual('abcdeEFGHI12345&*(!@'.translate(none), \
-            'abcdeEFGHI12345&*(!@')
+                         'abcdeEFGHI12345&*(!@')
 
         self.assertEqual('qazwsxedcrfv'.translate(some),'qaVwsVedVrfV') 
 
@@ -912,19 +912,19 @@ class Filter_Criteria_Tests(TestCase):
     def test_comb(self):
         """comb should return correct combinations"""
         self.assertEqual(list(comb(list(range(5)), 0)),
-                [])
+                         [])
         self.assertEqual(list(comb(list(range(5)), 1)),
-                [[0], [1], [2], [3], [4]])
+                         [[0], [1], [2], [3], [4]])
         self.assertEqual(list(comb(list(range(5)), 2)),
-                [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3],
-                [2, 4], [3, 4]])
+                         [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3],
+                          [2, 4], [3, 4]])
         self.assertEqual(list(comb(list(range(5)), 3)),
-               [[0, 1, 2], [0, 1, 3], [0, 1, 4], [0, 2, 3], [0, 2, 4], [0, 3, 4],
-                [1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
+                         [[0, 1, 2], [0, 1, 3], [0, 1, 4], [0, 2, 3], [0, 2, 4], [0, 3, 4],
+                          [1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
         self.assertEqual(list(comb(list(range(5)), 4)),
-                [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 3, 4], [0, 2, 3, 4], [1, 2, 3, 4]])
+                         [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 3, 4], [0, 2, 3, 4], [1, 2, 3, 4]])
         self.assertEqual(list(comb(list(range(5)), 5)),
-                [[0, 1, 2, 3, 4]])
+                         [[0, 1, 2, 3, 4]])
 
 
     def test_cross_comb(self):

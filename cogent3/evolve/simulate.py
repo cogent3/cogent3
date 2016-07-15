@@ -31,7 +31,7 @@ def _randomMotifGenerator(random_series, motif_probs):
         yield motifs[i]
 
 def evolveSequence(random_series, motifs, parent_seq, site_cats,
-        psubs, preserved_sites=()):
+                   psubs, preserved_sites=()):
     """Evolve a new sequence derived from parent_seq.  Uses psubs[site_cats[i]]
     to pick a new motif derived from parent_seq[i]"""
     seq = []
@@ -49,7 +49,7 @@ def evolveSequence(random_series, motifs, parent_seq, site_cats,
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = \
-                        _randomMotifGenerator(random_series, mprobs)
+                _randomMotifGenerator(random_series, mprobs)
             edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
     return seq
@@ -62,7 +62,7 @@ class AlignmentEvolver(object):
     # Encapsulates settings that are constant throughout the recursive generation
     # of a synthetic alignment.
     def __init__(self, random_series, orig_ambig, exclude_internal,
-            bin_names, site_bins, psub_for, motifs):
+                 bin_names, site_bins, psub_for, motifs):
         self.random_series = random_series
         self.orig_ambig = orig_ambig
         self.exclude_internal = exclude_internal
@@ -112,11 +112,11 @@ class AlignmentEvolver(object):
 
             # Make the semi-random sequence for this edge.
             edge_seq = evolveSequence(self.random_series, self.motifs,
-                    parent_seq, self.site_bins, psubs, orig_seq_ambig)
+                                      parent_seq, self.site_bins, psubs, orig_seq_ambig)
 
             # Pass this new edge sequence on down the tree
             descendant_sequences = self.generateSimulatedSeqs(
-                    edge, edge_seq)
+                edge, edge_seq)
             simulated_sequences.update(descendant_sequences)
 
         return simulated_sequences

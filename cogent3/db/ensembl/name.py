@@ -88,7 +88,7 @@ class EnsemblDbName(object):
     def __repr__(self):
         build = ['', "; Build='%s'" % self.Build][self.Build != None]
         s = "db(Prefix='%s'; Type='%s'; Release='%s'%s)" % (self.Prefix, self.Type,
-                    self.Release, build)
+                                                            self.Release, build)
         return s
 
     def __str__(self):

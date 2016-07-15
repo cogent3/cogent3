@@ -17,7 +17,7 @@ from numpy import array
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell",
-                    "Matthew Wakefield"]
+               "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -123,7 +123,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
                                   ).stripBad(), '')
         self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(), 
-            'AAAGGG---CCC')
+                         'AAAGGG---CCC')
 
     def test_stripBadAndGaps(self):
         """Sequence stripBadAndGaps should remove gaps and bad chars"""
@@ -246,7 +246,7 @@ class SequenceTests(TestCase):
         """Sequence disambiguate should remove degenerate bases"""
         self.assertEqual(self.RNA('').disambiguate(), '')
         self.assertEqual(self.RNA('AGCUGAUGUA--CAGU').disambiguate(),
-            'AGCUGAUGUA--CAGU')
+                         'AGCUGAUGUA--CAGU')
         self.assertEqual(self.RNA('AUn-yrs-wkmCGwmrNMWRKY').disambiguate(
             'strip'), 'AU--CG')
         s = self.RNA('AUn-yrs-wkmCGwmrNMWRKY')
@@ -265,7 +265,7 @@ class SequenceTests(TestCase):
         #doesn't preserve case
         self.assertEqual(self.RNA('').degap(), '')
         self.assertEqual(self.RNA('GUCAGUCgcaugcnvuncdks').degap(), 
-            'GUCAGUCGCAUGCNVUNCDKS')
+                         'GUCAGUCGCAUGCNVUNCDKS')
         self.assertEqual(self.RNA('----------------').degap(), '')
         self.assertEqual(self.RNA('gcuauacg-').degap(), 'GCUAUACG')
         self.assertEqual(self.RNA('-CUAGUCA').degap(), 'CUAGUCA')
@@ -288,13 +288,13 @@ class SequenceTests(TestCase):
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False]*27)
         self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'), 
-         list(map(bool, list(map(int,'000000000000001000000000')))))
+                         list(map(bool, list(map(int,'000000000000001000000000')))))
         self.assertEqual(g('-DSHSUHDSS'), 
-         list(map(bool, list(map(int,'1000000000')))))
+                         list(map(bool, list(map(int,'1000000000')))))
         self.assertEqual(g('UACHASCAGDS-'), 
-         list(map(bool, list(map(int,'000000000001')))))
+                         list(map(bool, list(map(int,'000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'), \
-         list(map(bool, list(map(int,'111000000001110000011100000000111')))))
+                         list(map(bool, list(map(int,'111000000001110000011100000000111')))))
 
     def test_gapMaps(self):
         """Sequence gapMaps should return dicts mapping gapped/ungapped pos"""
@@ -316,7 +316,7 @@ class SequenceTests(TestCase):
         """Sequence countGaps should return correct gap count"""
         self.assertEqual(self.RNA('').countGaps(), 0)
         self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').countGaps(),
-            0)
+                         0)
         self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').countGaps(), 1)
         self.assertEqual(self.RNA('-DSHUHDS').countGaps(), 1)
         self.assertEqual(self.RNA('UACHASADS-').countGaps(), 1)

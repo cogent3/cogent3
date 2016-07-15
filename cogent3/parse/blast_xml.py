@@ -29,7 +29,7 @@ Possible improvements:
 """
 
 from cogent3.parse.blast import BlastResult, MinimalPsiBlastParser9,\
-                     MinimalBlastParser9
+    MinimalBlastParser9
 
 # field names used to parse tags and create dict.
 HIT_XML_FIELDNAMES = ['QUERY ID','SUBJECT_ID','HIT_DEF','HIT_ACCESSION',\
@@ -175,14 +175,14 @@ class BlastXMLResult(BlastResult):
 
     # .. extend HitKeys
     HitKeys = BlastResult.HitKeys.union(
-                                  set([ HIT_DEF,
-                                        HIT_ACCESSION,
-                                        HIT_LENGTH,
-                                        SCORE,
-                                        POSITIVE,
-                                        QUERY_ALIGN,
-                                        SUBJECT_ALIGN,
-                                        MIDLINE_ALIGN ]))
+        set([ HIT_DEF,
+              HIT_ACCESSION,
+              HIT_LENGTH,
+              SCORE,
+              POSITIVE,
+              QUERY_ALIGN,
+              SUBJECT_ALIGN,
+              MIDLINE_ALIGN ]))
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure

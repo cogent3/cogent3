@@ -212,7 +212,7 @@ class NcbiTaxonomyTests(TestCase):
         """NcbiTaxonomyFromFiles should fail if strict and deadbeats exist"""
         tx = NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
         self.assertRaises(MissingParentError, NcbiTaxonomyFromFiles, \
-            bad_nodes, good_names, strict=True)
+                          bad_nodes, good_names, strict=True)
 
 
     def test_Ancestors(self):

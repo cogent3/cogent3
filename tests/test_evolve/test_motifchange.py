@@ -7,7 +7,7 @@ from cogent3.core.moltype import CodonAlphabet
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Matthew Wakefield", "Brett Easton"]
+               "Matthew Wakefield", "Brett Easton"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -42,7 +42,7 @@ class TestPredicates(unittest.TestCase):
 
     def test_impossible_change(self):
         self.assertRaises(Exception,
-            self._makeMotifChange, '----', 'NNNN')
+                          self._makeMotifChange, '----', 'NNNN')
 
     def test_isfromcpg(self):
         isFromCpG = self._makeMotifChange('CG', forward_only = True)

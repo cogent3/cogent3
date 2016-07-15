@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .align import make_dna_scoring_dict, _align_pairwise, \
-                  classic_align_pairwise, local_pairwise, global_pairwise
+    classic_align_pairwise, local_pairwise, global_pairwise
 
 __all__ = ['align', 'dp_calculation', 'indel_model',
            'indel_positions', 'pairwise', 'partial_order_graph', 'progressive',
@@ -10,7 +10,7 @@ __all__ = ['align', 'dp_calculation', 'indel_model',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Jeremy Widmann", "Gavin Huttley",
-                    "Rob Knight"]
+               "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"

@@ -225,7 +225,7 @@ class _Feature(_Annotatable):
 
     def getShadow(self):
         return self.__class__(self.parent, self.map.shadow(), type='region',
-                Name='not '+ self.Name)
+                              Name='not '+ self.Name)
 
     def __len__(self):
         return len(self.map)

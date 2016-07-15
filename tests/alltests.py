@@ -9,9 +9,9 @@ from cogent3.util.misc import app_path
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Hau Ying", "Helen Lindsay", "Jeremy Widmann",
-                    "Sandra Smit", "Greg Caporaso", "Matthew Wakefield",
-                "Ben Kaehler"]
+               "Hau Ying", "Helen Lindsay", "Jeremy Widmann",
+               "Sandra Smit", "Greg Caporaso", "Matthew Wakefield",
+               "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -152,16 +152,16 @@ def suite():
 
             if test_ensembl:
                 db_tests += ['test_db.test_ensembl.test_assembly',
-                     'test_db.test_ensembl.test_database',
-                     'test_db.test_ensembl.test_compara',
-                     'test_db.test_ensembl.test_genome',
-                     'test_db.test_ensembl.test_host',
-                     'test_db.test_ensembl.test_metazoa',
-                     'test_db.test_ensembl.test_species',
-                     'test_db.test_ensembl.test_feature_level']
+                             'test_db.test_ensembl.test_database',
+                             'test_db.test_ensembl.test_compara',
+                             'test_db.test_ensembl.test_genome',
+                             'test_db.test_ensembl.test_host',
+                             'test_db.test_ensembl.test_metazoa',
+                             'test_db.test_ensembl.test_species',
+                             'test_db.test_ensembl.test_feature_level']
         else:
             print("Environment variable ENSEMBL_ACCOUNT not "\
-            "set: skipping db.ensembl tests", file=sys.stderr)
+                  "set: skipping db.ensembl tests", file=sys.stderr)
 
         for db_test in db_tests:
             modules_to_test.append(db_test)
@@ -176,8 +176,8 @@ def suite():
         if module.endswith('.rst'):
             module = os.path.join(*module.split(".")[:-1]) + ".rst"
             test = doctest.DocFileSuite(module, optionflags=
-                doctest.REPORT_ONLY_FIRST_FAILURE |
-                doctest.ELLIPSIS)
+                                        doctest.REPORT_ONLY_FIRST_FAILURE |
+                                        doctest.ELLIPSIS)
         else:
             test = unittest.findTestCases(my_import(module))
         alltests.addTest(test)

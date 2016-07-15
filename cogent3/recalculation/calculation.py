@@ -38,7 +38,7 @@ class OptPar(object):
     args = ()
     # Use of __slots__ here and in Cell gives 8% speedup on small calculators.
     __slots__ = ['clients', 'client_ranks', 'name', 'lower', 'default_value',
-            'upper', 'scope', 'order', 'label', 'consequences', 'rank']
+                 'upper', 'scope', 'order', 'label', 'consequences', 'rank']
 
     def __init__(self, name, scope, bounds):
         self.clients = []
@@ -99,8 +99,8 @@ class LogOptPar(OptPar):
 
 class EvaluatedCell(object):
     __slots__ = ['client_ranks', 'rank', 'calc', 'args', 'is_constant',
-        'clients', 'failure_count', 'name', 'arg_ranks',
-        'consequences', 'recycled', 'default']
+                 'clients', 'failure_count', 'name', 'arg_ranks',
+                 'consequences', 'recycled', 'default']
 
     def __init__(self, name, calc, args, recycling=None, default=None):
         self.name = name
@@ -128,7 +128,7 @@ class EvaluatedCell(object):
 
     def update(self, data):
         data[self.rank] = self.calc(
-                *[data[arg_rank] for arg_rank in self.arg_ranks])
+            *[data[arg_rank] for arg_rank in self.arg_ranks])
 
     def prime(self, data_sets):
         if self.is_constant:
@@ -144,7 +144,7 @@ class EvaluatedCell(object):
         self.failure_count += 1
         if self.failure_count <= 5:
             print(("%s in calculating %s:",
-                    detail.__class__.__name__, self.name))
+                   detail.__class__.__name__, self.name))
         if self.failure_count == 5:
             print("Additional failures of this type will not be reported.")
         if self.failure_count < 2:
@@ -174,7 +174,7 @@ class Calculator(object):
     for each change of inputs.  Made by a ParameterController."""
 
     def __init__(self, cells, defns, remaining_parallel_context=None,
-                overall_parallel_context=None, trace=None, with_undo=True):
+                 overall_parallel_context=None, trace=None, with_undo=True):
         if trace is None:
             trace = TRACE_DEFAULT
         self.overall_parallel_context = overall_parallel_context
@@ -216,14 +216,14 @@ class Calculator(object):
                         raise
                     except Exception as detail:
                         print(("Failed initial calculation of %s"
-                                % cell.name))
+                               % cell.name))
                         raise
             else:
                 raise RuntimeError('Unexpected Cell type %s' % type(cell))
 
         self._switch = 0
         self.recycled_cells = [
-                cell.rank for cell in self._cells if cell.recycled]
+            cell.rank for cell in self._cells if cell.recycled]
         self.spare = [None] * len (self._cells)
 
         for cell in self._cells[::-1]:
@@ -260,7 +260,7 @@ class Calculator(object):
                 for arg in cell.args:
                     if arg is not cell:
                         edges.append('"%s":%s -> "%s":%s' %
-                                (arg.name, arg.rank, cell.name, cell.rank))
+                                     (arg.name, arg.rank, cell.name, cell.rank))
         for name in evs:
             all_const = True
             some_const = False
@@ -279,7 +279,7 @@ class Calculator(object):
             colour = ['', ' fillcolor=gray90, style=filled,'][some_const]
             colour = [colour, ' fillcolor=gray, style=filled,'][all_const]
             lines.append('"%s" [shape = "record",%s label="%s"];' %
-                    (name, colour, enodes))
+                         (name, colour, enodes))
         lines.extend(edges)
         lines.append('}')
         return '\n'.join(lines).replace('edge', 'egde').replace('QQQ', 'edge')
@@ -359,7 +359,7 @@ class Calculator(object):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
         values = [p.transformToOptimiser(self._getCurrentCellValue(p))
-                for p in self.opt_pars]
+                  for p in self.opt_pars]
         return values
 
     # getBoundsVectors and testoptparvector make up the old LikelihoodFunction
@@ -398,8 +398,8 @@ class Calculator(object):
 
         assert len(values) == len(self.opt_pars)
         changes = [(i, new) for (i, (old, new))
-                in enumerate(zip(self.last_values, values))
-                if old != new]
+                   in enumerate(zip(self.last_values, values))
+                   if old != new]
         return self.change(changes)
 
     __call__ = testoptparvector
@@ -617,7 +617,7 @@ class Calculator(object):
 
     def __getBoundedRoot(self, func, origX, direction, bound, xtol):
         return find_root(func, origX, direction, bound, xtol=xtol,
-                expected_exception = (
+                         expected_exception = (
                     ParameterOutOfBoundsError, ArithmeticError))
 
     def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):

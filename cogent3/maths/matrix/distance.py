@@ -32,7 +32,7 @@ class DistanceMatrix(Dict2D, Delegator):
     Pad = True
 
     def __init__(self, data=None, RowOrder=None, ColOrder=None, Default=None,
-        Pad=None, RowConstructor=None, info=None):
+                 Pad=None, RowConstructor=None, info=None):
         """ Init dict with pre-exisitng data: dict of dicts
             Usage:
                 data = distance matrix in form acceptable by Dict2D class
@@ -58,8 +58,8 @@ class DistanceMatrix(Dict2D, Delegator):
             self.Pad = Pad
         # Initialize super class attributes
         Dict2D.__init__(self, data=data, RowOrder=self.RowOrder,\
-                ColOrder=self.ColOrder, Default=Default, Pad=self.Pad,\
-                RowConstructor=RowConstructor)
+                        ColOrder=self.ColOrder, Default=Default, Pad=self.Pad,\
+                        RowConstructor=RowConstructor)
         Delegator.__init__(self, info)
 
         # The power to which the original data has been raised to give

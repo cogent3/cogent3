@@ -29,11 +29,11 @@ class Legend(Drawable):
     def _makeSampleSequence(self, feature_type):
         seq = moltype.DNA.makeSequence('aaaccggttt' * 7)
         v = seq.addAnnotation(annotation.Feature,
-                feature_type, feature_type, [(2,3)])
+                              feature_type, feature_type, [(2,3)])
         v = seq.addAnnotation(annotation.Feature,
-                feature_type, feature_type, [(7,18)])
+                              feature_type, feature_type, [(7,18)])
         v = seq.addAnnotation(annotation.Feature,
-                feature_type, feature_type, [(20,70)])
+                              feature_type, feature_type, [(20,70)])
         return seq
 
     def populateAxes(self, ax, columns = 3):
@@ -54,10 +54,10 @@ class Legend(Drawable):
             for feature in track:
                 seq = self._makeSampleSequence(feature)
                 display = Display(seq,
-                        policy = self.policy,
-                        min_feature_height = 10,
-                        show_code = False,
-                        pad = 0,)
+                                  policy = self.policy,
+                                  min_feature_height = 10,
+                                  show_code = False,
+                                  pad = 0,)
                 sample = display.makeArtist()
                 #trans = sample.get_transform()
                 #offset = Affine2D()
@@ -80,7 +80,7 @@ class Legend(Drawable):
         (width, height), posn, kw = figureLayout(leftovers=True, **kw)
         fig = self._makeFigure(width, height)
         ax = fig.add_axes(posn, adjustable="datalim",
-            frame_on=False, xticks=[], yticks=[])
+                          frame_on=False, xticks=[], yticks=[])
         g = self.populateAxes(ax, **kw)
         return fig
 

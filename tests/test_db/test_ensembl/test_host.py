@@ -3,7 +3,7 @@ import os
 from cogent3.util.unit_test import TestCase, main
 from cogent3.db.ensembl.name import EnsemblDbName
 from cogent3.db.ensembl.host import get_db_name, get_latest_release,\
-                        DbConnection, HostAccount, get_ensembl_account
+    DbConnection, HostAccount, get_ensembl_account
 from cogent3.db.ensembl.species import Species
 
 __author__ = "Gavin Huttley, Hua Ying"
@@ -91,9 +91,9 @@ class TestDBconnects(TestCase):
     def test_getdb(self):
         """should discover human entries correctly"""
         for name, db_name in [("human", "homo_sapiens_core_49_36k"),
-                      ("mouse", "mus_musculus_core_49_37b"),
-                      ("rat", "rattus_norvegicus_core_49_34s"),
-                      ("platypus", "ornithorhynchus_anatinus_core_49_1f")]:
+                              ("mouse", "mus_musculus_core_49_37b"),
+                              ("rat", "rattus_norvegicus_core_49_34s"),
+                              ("platypus", "ornithorhynchus_anatinus_core_49_1f")]:
             result = get_db_name(species=name, db_type="core", release='49')
             self.assertEqual(len(result), 1)
             result = result[0]
@@ -127,16 +127,16 @@ class TestDBconnects(TestCase):
         only, but same database on a different server should be done"""
         ensembl_acct = get_ensembl_account(release='46')
         engine1 = DbConnection(account=ensembl_acct,
-                    db_name="homo_sapiens_core_46_36h")
+                               db_name="homo_sapiens_core_46_36h")
         engine2 = DbConnection(account=ensembl_acct,
-                    db_name="homo_sapiens_core_46_36h")
+                               db_name="homo_sapiens_core_46_36h")
         self.assertEqual(engine1, engine2)
 
     def test_pool_recycle_option(self):
         """excercising ability to specify a pool recycle option"""
         ensembl_acct = get_ensembl_account(release='56')
         engine1 = DbConnection(account=ensembl_acct,
-                    db_name="homo_sapiens_core_46_36h", pool_recycle=1000)
+                               db_name="homo_sapiens_core_46_36h", pool_recycle=1000)
 
 
 if __name__ == "__main__":

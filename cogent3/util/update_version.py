@@ -40,7 +40,7 @@ options = [make_option('--pycogent_dir',dest='pycogent_dir',type='string',
 class VersionUpdater(object):
     """Handles version update of files contained within the PyCogent tree"""
     def __init__(self, PyCogentDirectory=None, Version=None, \
-            IsRelease=False, Verbose=False, MockRun=False, VersionShort=None):
+                 IsRelease=False, Verbose=False, MockRun=False, VersionShort=None):
         self.PyCogentDirectory = PyCogentDirectory
         self.Version = Version
         self.VersionShort = VersionShort
@@ -61,7 +61,7 @@ class VersionUpdater(object):
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
             raise IOError("Could not locate doc/conf.py")
         if not os.access(path.join(self.IncludesDirectory, \
-                'array_interface.h'), os.R_OK):
+                                   'array_interface.h'), os.R_OK):
             raise IOError("Cound not locate include/array_interface.h")
 
     def _get_base_files(self):
@@ -207,7 +207,7 @@ class VersionUpdater(object):
             if self.Verbose:
                 print('Version string found on line %d' % lineno)
             lines[lineno] = '#define PYCOGENT_VERSION "%s"\n' \
-                    % self.Version
+            % self.Version
         else:
             print("No version string found in %s" % filename)
         return (lines, found_version_line)

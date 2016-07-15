@@ -26,7 +26,7 @@ __docformat__ = "restructuredtext en"
 
 import numpy
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
-     squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
+    squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
 import collections
 
 try:
@@ -520,9 +520,9 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
         if (phi_a1 > phi0 + c1*alpha1*derphi0) or \
            ((phi_a1 >= phi_a0) and (i > 1)):
             alpha_star, fval_star, fprime_star = \
-                        zoom(alpha0, alpha1, phi_a0,
-                             phi_a1, derphi_a0, phi, phiprime,
-                             phi0, derphi0, c1, c2)
+                zoom(alpha0, alpha1, phi_a0,
+                     phi_a1, derphi_a0, phi, phiprime,
+                     phi0, derphi0, c1, c2)
             break
 
         derphi_a1 = phiprime(alpha1)
@@ -534,9 +534,9 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
 
         if (derphi_a1 >= 0):
             alpha_star, fval_star, fprime_star = \
-                        zoom(alpha1, alpha0, phi_a1,
-                             phi_a0, derphi_a1, phi, phiprime,
-                             phi0, derphi0, c1, c2)
+                zoom(alpha1, alpha0, phi_a1,
+                     phi_a0, derphi_a1, phi, phiprime,
+                     phi0, derphi0, c1, c2)
             break
 
         alpha2 = 2 * alpha1   # increase by factor of two on each iteration
@@ -740,11 +740,11 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         alpha_k = None
         if linesearch is not None:
             alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-                    linesearch.line_search(f,myfprime,xk,pk,gfk,
-                            old_fval,old_old_fval)
+                linesearch.line_search(f,myfprime,xk,pk,gfk,
+                                       old_fval,old_old_fval)
         if alpha_k is None:  # line search failed try different one.
             alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-                     line_search(f,myfprime,xk,pk,gfk,
+                line_search(f,myfprime,xk,pk,gfk,
                             old_fval,old_old_fval)
         if alpha_k is None:
             # line search(es) failed to find a better solution.
@@ -778,7 +778,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         A1 = I - sk[:,numpy.newaxis] * yk[numpy.newaxis,:] * rhok
         A2 = I - yk[:,numpy.newaxis] * sk[numpy.newaxis,:] * rhok
         Hk = numpy.dot(A1,numpy.dot(Hk,A2)) + rhok * sk[:,numpy.newaxis] \
-                 * sk[numpy.newaxis,:]
+        * sk[numpy.newaxis,:]
 
     if disp or full_output:
         fval = old_fval
@@ -820,7 +820,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
 
 
 def fmin_cg(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf, epsilon=_epsilon,
-              maxiter=None, full_output=0, disp=1, retall=0, callback=None):
+            maxiter=None, full_output=0, disp=1, retall=0, callback=None):
     """Minimize a function using a nonlinear conjugate gradient algorithm.
 
     :Parameters:
@@ -910,12 +910,12 @@ def fmin_cg(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf, epsilon=_epsilon,
         alpha_k = None
         if linesearch is not None:
             alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-                    linesearch.line_search(f,myfprime,xk,pk,gfk,old_fval,
-                                  old_old_fval,c2=0.4)
+                linesearch.line_search(f,myfprime,xk,pk,gfk,old_fval,
+                                       old_old_fval,c2=0.4)
         if alpha_k is None:  # line search failed -- use different one.
             alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-                     line_search(f,myfprime,xk,pk,gfk,
-                                 old_fval_backup,old_old_fval_backup)
+                line_search(f,myfprime,xk,pk,gfk,
+                            old_fval_backup,old_old_fval_backup)
         if alpha_k is None or alpha_k == 0:
             # line search(es) failed to find a better solution.
             warnflag = 2
@@ -1774,7 +1774,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             direc1 = direc[i]
             fx2 = fval
             fval, x, direc1 = _linesearch_powell(linesearch, 
-                    func, x, direc1, xtol*100)
+                                                 func, x, direc1, xtol*100)
             if (fx2 - fval) > delta:
                 delta = fx2 - fval
                 bigind = i
@@ -1801,7 +1801,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             t -= delta*temp*temp
             if t < 0.0:
                 fval, x, direc1 = _linesearch_powell(linesearch, 
-                        func, x, direc1, xtol*100)
+                                                     func, x, direc1, xtol*100)
                 direc[bigind] = direc[-1]
                 direc[-1] = direc1
 
@@ -1888,7 +1888,7 @@ def brute(func, ranges, args=(), Ns=20, full_output=0, finish=fmin):
     N = len(ranges)
     if N > 40:
         raise ValueError("Brute Force not possible with more " \
-              "than 40 variables.")
+                         "than 40 variables.")
     lrange = list(ranges)
     for k in range(N):
         if type(lrange[k]) is not type(slice(None)):

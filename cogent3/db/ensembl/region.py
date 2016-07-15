@@ -6,9 +6,9 @@ from cogent3.core.annotation import Feature
 from cogent3.core.location import Map
 from cogent3.util.table import Table
 from cogent3.db.ensembl.util import LazyRecord, asserted_one, DisplayString, \
-     NoItemError
+    NoItemError
 from cogent3.db.ensembl.assembly import Coordinate, CoordSystem, \
-     location_query, assembly_exception_coordinate
+    location_query, assembly_exception_coordinate
 from cogent3.db.ensembl.sequence import get_sequence
 
 __author__ = "Gavin Huttley"
@@ -183,7 +183,7 @@ class GenericRegion(_Region):
             self._get_seq_region_record(str(CoordName))
             if End is not None:
                 assert self._table_rows['seq_region']['length'] > End, \
-                       'Requested End[%s] too large' % End
+                    'Requested End[%s] too large' % End
             seq_region_id = self._table_rows['seq_region']['seq_region_id']
             Location = Coordinate(genome=genome, CoordName=str(CoordName),
                                   Start=Start, End=End, Strand=Strand,
@@ -374,7 +374,7 @@ class Gene(_StableRegion):
                            transcript_table.c.transcript_id==canonical_id)
         records = query.execute().fetchall()
         assert len(records) == 1,\
-               "wrong number of records from CanonicalTranscript"
+        "wrong number of records from CanonicalTranscript"
         record = records[0]
         transcript = Transcript(self.genome, self.db, canonical_id,
                                 data=record)
@@ -483,7 +483,7 @@ class Transcript(_StableRegion):
         gene_id = self.gene_id
         gene_table = self.db.getTable('gene')
         query = sql.select([gene_table.c.stable_id],
-                            gene_table.c.gene_id == gene_id)
+                           gene_table.c.gene_id == gene_id)
         record = asserted_one(query.execute())
         gene = self.genome.getGeneByStableId(record[0])
         return gene
@@ -591,7 +591,7 @@ class Transcript(_StableRegion):
             if exon.exon_id == end_exon_id:
                 end_index = index
         assert None not in (start_index, end_index), \
-               'Error in matching transcript and exons'
+        'Error in matching transcript and exons'
 
         start_exon = self.Exons[start_index]
 

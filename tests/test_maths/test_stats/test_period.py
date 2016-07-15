@@ -2,10 +2,10 @@ import numpy
 from cogent3.util.unit_test import TestCase, main
 
 from cogent3.maths.stats.period import chi_square, factorial, g_statistic, \
-        circular_indices, _seq_to_symbols, seq_to_symbols, blockwise_bootstrap, \
-        SeqToSymbols
+    circular_indices, _seq_to_symbols, seq_to_symbols, blockwise_bootstrap, \
+    SeqToSymbols
 from cogent3.maths.period import ipdft, hybrid, auto_corr, Hybrid, Ipdft, \
-        AutoCorrelation
+    AutoCorrelation
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -20,13 +20,13 @@ __status__ = "Production"
 class TestPeriodStat(TestCase):
     def setUp(self):
         x = [1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 
-            0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 
-            1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 
-            1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 
-            1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 
-            0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 
-            0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 
-            0, 0, 0, 0, 1, 1, 1, 0, 0, 0]
+             0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 
+             1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 
+             1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 
+             1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 
+             0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 
+             0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 
+             0, 0, 0, 0, 1, 1, 1, 0, 0, 0]
         self.x = numpy.array(x)
         self.sig = numpy.array(self.x, numpy.float64)
         self.motifs = ['AA', 'TT', 'TA']
@@ -68,10 +68,10 @@ class TestPeriodStat(TestCase):
         seq_to_symbols = SeqToSymbols(motifs)
         got = seq_to_symbols('AATGGTTA')
         self.assertEqual(got,
-                        numpy.array([1,1,0,0,0,1,0,0]))
+                         numpy.array([1,1,0,0,0,1,0,0]))
         got = seq_to_symbols('AAGATT')
         self.assertEqual(seq_to_symbols('AAGATT'),
-                        numpy.array([1,0, 0, 1, 1, 0], numpy.uint8))
+                         numpy.array([1,0, 0, 1, 1, 0], numpy.uint8))
 
     def test_permutation(self):
         s = 'ATCGTTGGGACCGGTTCAAGTTTTGGAACTCGCAAGGGGTGAATGGTCTTCGTCTAACGCTGG'\
@@ -81,9 +81,9 @@ class TestPeriodStat(TestCase):
         hybrid_calc = Hybrid(len(s), llim=2, period = 4)
         ipdft_calc = Ipdft(len(s), llim=2, period = 4)
         stat, p = blockwise_bootstrap(s, hybrid_calc, block_size=10,
-                    num_reps=1000, seq_to_symbols=seq_to_symbol)
+                                      num_reps=1000, seq_to_symbols=seq_to_symbol)
         stat, p = blockwise_bootstrap(s, ipdft_calc, block_size=10,
-                    num_reps=1000, seq_to_symbols=seq_to_symbol)
+                                      num_reps=1000, seq_to_symbols=seq_to_symbol)
 
     def test_permutation_all(self):
         """performs permutation test of Hybrid, but considers all stats"""
@@ -93,7 +93,7 @@ class TestPeriodStat(TestCase):
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         hybrid_calc = Hybrid(len(s), period = 4, return_all=True)
         stat, p = blockwise_bootstrap(s, hybrid_calc, block_size=10,
-                    num_reps=1000, seq_to_symbols=seq_to_symbol)
+                                      num_reps=1000, seq_to_symbols=seq_to_symbol)
         # print 's=%s; p=%s' % (stat, p)
 
     def test_get_num_stats(self):
@@ -113,7 +113,7 @@ class TestPeriodStat(TestCase):
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         ipdft_calc = Ipdft(len(s), llim=2, period = 4)
         stat, p = blockwise_bootstrap(s, ipdft_calc, block_size=10,
-                    num_reps=1000, seq_to_symbols=seq_to_symbol, num_stats=1)
+                                      num_reps=1000, seq_to_symbols=seq_to_symbol, num_stats=1)
         self.assertEqual(stat, 0.0)
         self.assertEqual(p, 1.0)
 

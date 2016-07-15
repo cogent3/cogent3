@@ -16,7 +16,7 @@ from cogent3.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     ANOVA_one_way, mw_test, mw_boot, is_symmetric_and_hollow
 
 from numpy import array, concatenate, fill_diagonal, reshape, arange, matrix, \
-        ones, testing, tril, cov, sqrt
+    ones, testing, tril, cov, sqrt
 from cogent3.util.dict2d import Dict2D
 import math
 from cogent3.maths.stats.util import Numbers
@@ -108,19 +108,19 @@ class TestsTests(TestCase):
     def test_std_3d(self):
         """Should produce from 3darray the same std devs as scipy.stats.std"""
         inp3d = array(#2,2,3
-                   [[[ 0,  2,  2],
-                     [ 3,  4,  5]],
+            [[[ 0,  2,  2],
+              [ 3,  4,  5]],
 
-                    [[ 1,  9,  0],
-                     [ 9, 10, 1]]])
+             [[ 1,  9,  0],
+              [ 9, 10, 1]]])
         exp3d = (#for axis None, 0, 1, 2: calc from scipy.stats.std
             3.63901418552,
             array([[ 0.70710678,  4.94974747,  1.41421356],
-                [ 4.24264069,  4.24264069,  2.82842712]]),
+                   [ 4.24264069,  4.24264069,  2.82842712]]),
             array([[ 2.12132034,  1.41421356,  2.12132034],
-                [ 5.65685425,  0.70710678,  0.70710678]]),
+                   [ 5.65685425,  0.70710678,  0.70710678]]),
             array([[ 1.15470054,  1.        ],
-                [ 4.93288286,  4.93288286]]))
+                   [ 4.93288286,  4.93288286]]))
         res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
         for obs, exp in zip(res, exp3d):
             testing.assert_almost_equal(obs, exp)
@@ -197,7 +197,7 @@ class TestsTests(TestCase):
     def test_fisher(self):
         """fisher results should match p 795 Sokal and Rohlf"""
         self.assertFloatEqual(fisher([0.073,0.086,0.10,0.080,0.060]), 
-            0.0045957946540917905)
+                              0.0045957946540917905)
 
     def test_regress(self):
         """regression slope, intercept should match p 459 Sokal and Rohlf"""
@@ -275,9 +275,9 @@ class TestsTests(TestCase):
         a = reshape(arange(9), (3,3))
         self.assertEqual(permute_2d(a, [0,1,2]), a)
         self.assertEqual(permute_2d(a, [2,1,0]), \
-            array([[8,7,6],[5,4,3],[2,1,0]]))
+                         array([[8,7,6],[5,4,3],[2,1,0]]))
         self.assertEqual(permute_2d(a, [1,2,0]), \
-            array([[4,5,3],[7,8,6],[1,2,0]]))
+                         array([[4,5,3],[7,8,6],[1,2,0]]))
 
 
 class GTests(TestCase):
@@ -297,32 +297,32 @@ class GTests(TestCase):
         #example from p 731, Sokal and Rohlf (1995)
         #without correction
         self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, False, False)[0],
-            1.33249, 0.0001)
+                              1.33249, 0.0001)
         self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, False, False)[1],
-            0.24836, 0.0001)
+                              0.24836, 0.0001)
         #with correction
         self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, True, False)[0],
-            1.30277, 0.0001)
+                              1.30277, 0.0001)
         self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, True, False)[1],
-            0.25371, 0.0001)
+                              0.25371, 0.0001)
 
     def test_G_2_by_2_1tailed_examples(self):
         """G_2_by_2 values should match values from codon_binding program"""
         #first up...the famous arginine case
         self.assertFloatEqualAbs(G_2_by_2(36, 16, 38, 106), (29.111609, 0),
-            0.00001)
+                                 0.00001)
         #then some other miscellaneous positive and negative values
         self.assertFloatEqualAbs(G_2_by_2(0,52,12,132), (-7.259930, 0.996474),
-            0.00001)
+                                 0.00001)
         self.assertFloatEqualAbs(G_2_by_2(5,47,14,130), (-0.000481, 0.508751),
-            0.00001)
+                                 0.00001)
         self.assertFloatEqualAbs(G_2_by_2(5,47,36,108), (-6.065167, 0.993106),
-            0.00001)
+                                 0.00001)
 
     def test_calc_contingency_expected(self):
         """calcContingencyExpected returns new matrix with expected freqs"""
         matrix = Dict2D({'rest_of_tree': {'env1': 2, 'env3': 1, 'env2': 0},
-                  'b': {'env1': 1, 'env3': 1, 'env2': 3}})
+                         'b': {'env1': 1, 'env3': 1, 'env2': 3}})
         result = calc_contingency_expected(matrix)
         self.assertFloatEqual(result['rest_of_tree']['env1'], [2, 1.125])
         self.assertFloatEqual(result['rest_of_tree']['env3'], [1, 0.75])
@@ -383,10 +383,10 @@ class GTests(TestCase):
         """G_fit_from_Dict2D runs G-fit on data in a Dict2D
         """
         matrix = Dict2D({'Marl': {'val':[2, 5.2]},
-                        'Chalk': {'val':[10, 5.2]},
-                        'Sandstone':{'val':[8, 5.2]},
-                        'Clay':{'val':[2, 5.2]},
-                        'Limestone':{'val':[4, 5.2]}
+                         'Chalk': {'val':[10, 5.2]},
+                         'Sandstone':{'val':[8, 5.2]},
+                         'Clay':{'val':[2, 5.2]},
+                         'Limestone':{'val':[4, 5.2]}
                          })
         g_val, prob = G_fit_from_Dict2D(matrix)
         self.assertFloatEqual(g_val, 9.84923)
@@ -396,7 +396,7 @@ class GTests(TestCase):
         """chi_square_from_Dict2D calcs a Chi-Square and p value from Dict2D"""
         #test1
         obs_matrix = Dict2D({'rest_of_tree': {'env1': 2, 'env3': 1, 'env2': 0},
-                  'b': {'env1': 1, 'env3': 1, 'env2': 3}})
+                             'b': {'env1': 1, 'env3': 1, 'env2': 3}})
         input_matrix = calc_contingency_expected(obs_matrix)
         test, csp = chi_square_from_Dict2D(input_matrix)
         self.assertFloatEqual(test, 3.0222222222222221)
@@ -412,7 +412,7 @@ class GTests(TestCase):
         self.assertFloatEqual(csp2, 0.0379143890013)
         #test3
         matrix3_obs = Dict2D({'AIDS':{'Males':4, 'Females':2, 'Both':3},
-                        'No_AIDS':{'Males':3, 'Females':16, 'Both':2}
+                              'No_AIDS':{'Males':3, 'Females':16, 'Both':2}
                               })
         matrix3 = calc_contingency_expected(matrix3_obs)
         test3, csp3 = chi_square_from_Dict2D(matrix3)
@@ -528,15 +528,15 @@ class StatTests(TestsHelper):
         super(StatTests, self).setUp()
 
         self.x = [   
-                7.33, 7.49, 7.27, 7.93, 7.56,
-                7.81, 7.46, 6.94, 7.49, 7.44,
-                7.95, 7.47, 7.04, 7.10, 7.64,
+            7.33, 7.49, 7.27, 7.93, 7.56,
+            7.81, 7.46, 6.94, 7.49, 7.44,
+            7.95, 7.47, 7.04, 7.10, 7.64,
         ]
 
         self.y = [   
-                7.53, 7.70, 7.46, 8.21, 7.81,
-                8.01, 7.72, 7.13, 7.68, 7.66,
-                8.11, 7.66, 7.20, 7.25, 7.79,
+            7.53, 7.70, 7.46, 8.21, 7.81,
+            8.01, 7.72, 7.13, 7.68, 7.66,
+            8.11, 7.66, 7.20, 7.25, 7.79,
         ]
 
     def test_t_paired_2tailed(self):
@@ -586,7 +586,7 @@ class StatTests(TestsHelper):
         I =  array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2, 7.5])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
         self.assertFloatEqual(t_two_sample(I, II), (-0.1184, 0.45385 * 2),
-            0.001)
+                              0.001)
 
     def test_t_two_sample_no_variance(self):
         """t_two_sample should properly handle lists that are invariant"""
@@ -602,31 +602,31 @@ class StatTests(TestsHelper):
 
         # Two tailed: a < b
         self.assertEqual(t_two_sample(y, x, none_on_zero_variance=False),
-                              (float('-inf'), 0.0))
+                         (float('-inf'), 0.0))
 
         # Two tailed: a > b
         self.assertEqual(t_two_sample(x, y, none_on_zero_variance=False),
-                              (float('inf'), 0.0))
+                         (float('inf'), 0.0))
 
         # One-tailed 'high': a < b
         self.assertEqual(t_two_sample(y, x, tails='high',
-                              none_on_zero_variance=False),
-                              (float('-inf'), 1.0))
+                                      none_on_zero_variance=False),
+                         (float('-inf'), 1.0))
 
         # One-tailed 'high': a > b
         self.assertEqual(t_two_sample(x, y, tails='high',
-                              none_on_zero_variance=False),
-                              (float('inf'), 0.0))
+                                      none_on_zero_variance=False),
+                         (float('inf'), 0.0))
 
         # One-tailed 'low': a < b
         self.assertEqual(t_two_sample(y, x, tails='low',
-                              none_on_zero_variance=False),
-                              (float('-inf'), 0.0))
+                                      none_on_zero_variance=False),
+                         (float('-inf'), 0.0))
 
         # One-tailed 'low': a > b
         self.assertEqual(t_two_sample(x, y, tails='low',
-                              none_on_zero_variance=False),
-                              (float('inf'), 1.0))
+                                      none_on_zero_variance=False),
+                         (float('inf'), 1.0))
 
         # Should still receive (None, None) if the lists have no variance and
         # have the same single value.
@@ -671,7 +671,7 @@ class StatTests(TestsHelper):
         #note that this differs after the 3rd decimal place from what's in the
         #book, because Sokal and Rohlf round their intermediate steps...
         self.assertFloatEqual(t_one_observation(x,sample),\
-            (-1.5637254,0.1929248))
+                              (-1.5637254,0.1929248))
 
     def test_t_one_observation_no_variance(self):
         """t_one_observation should correctly handle an invariant list."""
@@ -681,14 +681,14 @@ class StatTests(TestsHelper):
         # regardless of none_on_zero_variance.
         self.assertEqual(t_one_observation(1, sample), (None, None))
         self.assertEqual(t_one_observation(1, sample,
-                none_on_zero_variance=False), (None, None))
+                                           none_on_zero_variance=False), (None, None))
 
         # Test correct handling of none_on_zero_variance.
         self.assertEqual(t_one_observation(2, sample), (None, None))
         self.assertEqual(t_one_observation(2, sample,
-                none_on_zero_variance=False), (float('inf'), 0.0))
+                                           none_on_zero_variance=False), (float('inf'), 0.0))
         self.assertEqual(t_one_observation(2, sample,
-                none_on_zero_variance=False, tails='low'), (float('inf'), 1.0))
+                                           none_on_zero_variance=False, tails='low'), (float('inf'), 1.0))
 
     def test_mc_t_two_sample(self):
         """Test gives correct results with valid input data."""
@@ -719,21 +719,21 @@ class StatTests(TestsHelper):
         self.assertFloatEqual(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(0.4, 0.47, mc_t_two_sample, [I, II],
-                {'tails':'low'}, p_val_idx=3)
+                                 {'tails':'low'}, p_val_idx=3)
 
         exp = (-0.11858541225631833, 0.54621710341066287)
         obs = mc_t_two_sample(I, II, tails='high', permutations=99)
         self.assertFloatEqual(obs[:2], exp)
         self.assertEqual(len(obs[2]), 99)
         self.assertCorrectPValue(0.4, 0.62, mc_t_two_sample, [I, II],
-                {'tails':'high', 'permutations':99}, p_val_idx=3)
+                                 {'tails':'high', 'permutations':99}, p_val_idx=3)
 
         exp = (-2.8855783649036986, 0.99315596652421401)
         obs = mc_t_two_sample(I, II, tails='high', permutations=99, exp_diff=1)
         self.assertFloatEqual(obs[:2], exp)
         self.assertEqual(len(obs[2]), 99)
         self.assertCorrectPValue(0.55, 0.99, mc_t_two_sample, [I, II],
-                {'tails':'high', 'permutations':99, 'exp_diff':1}, p_val_idx=3)
+                                 {'tails':'high', 'permutations':99, 'exp_diff':1}, p_val_idx=3)
 
     def test_mc_t_two_sample_unbalanced_obs(self):
         """Test gives correct results with unequal number of obs per sample."""
@@ -884,13 +884,13 @@ class StatTests(TestsHelper):
         self.assertFloatEqual(z_test(sample, 3, 2, 'low'), (0,0.5))
         #check that population mean and variance, and tails, can be set OK.
         self.assertFloatEqual(z_test(sample, 0, 1), (6.7082039324993694, \
-            1.9703444711798951e-11))
+                                                     1.9703444711798951e-11))
         self.assertFloatEqual(z_test(sample, 1, 10), (0.44721359549995793, \
-            0.65472084601857694))
+                                                      0.65472084601857694))
         self.assertFloatEqual(z_test(sample, 1, 10, 'high'), \
-            (0.44721359549995793, 0.65472084601857694/2))
+                              (0.44721359549995793, 0.65472084601857694/2))
         self.assertFloatEqual(z_test(sample, 1, 10, 'low'), \
-            (0.44721359549995793, 1-(0.65472084601857694/2)))
+                              (0.44721359549995793, 1-(0.65472084601857694/2)))
 
 
 class CorrelationTests(TestsHelper):
@@ -1016,11 +1016,11 @@ class CorrelationTests(TestsHelper):
         self.assertRaises(ValueError, mantel_test, array([[1]]), array([[1]]),
                           999, alt='foo')
         self.assertRaises(ValueError, mantel_test, array([[1]]),
-            array([[1, 2], [3, 4]]), 999)
+                          array([[1, 2], [3, 4]]), 999)
         self.assertRaises(ValueError, mantel_test, array([[1]]),
-            array([[1]]), 0)
+                          array([[1]]), 0)
         self.assertRaises(ValueError, mantel_test, array([[1]]),
-            array([[1]]), -1)
+                          array([[1]]), -1)
 
     def test_is_symmetric_and_hollow(self):
         """Should correctly test for symmetry and hollowness of dist mats."""
@@ -1039,7 +1039,7 @@ class CorrelationTests(TestsHelper):
         self.assertEqual(_flatten_lower_triangle(array([[8]])), [])
         self.assertEqual(_flatten_lower_triangle(array([[1, 2], [3, 4]])), [3])
         self.assertEqual(_flatten_lower_triangle(array([[1, 2, 3], [4, 5, 6],
-            [7, 8, 9]])), [4, 7, 8])
+                                                        [7, 8, 9]])), [4, 7, 8])
 
     def test_pearson(self):
         """Test pearson correlation method on valid data."""
@@ -1164,9 +1164,9 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(0.9, 0.93, correlation_test,
-                (self.data1, self.data2),
-                {'method':'pearson', 'confidence_level':0.90,
-                 'permutations':990}, p_val_idx=3)
+                                 (self.data1, self.data2),
+                                 {'method':'pearson', 'confidence_level':0.90,
+                                  'permutations':990}, p_val_idx=3)
         self.assertFloatEqual(obs[4], (-0.5779077, 0.5256224))
 
         # Test with non-default tail type.
@@ -1178,9 +1178,9 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(0.41, 0.46, correlation_test,
-                (self.data1, self.data2),
-                {'method':'pearson', 'confidence_level':0.90,
-                    'permutations':990, 'tails':'low'}, p_val_idx=3)
+                                 (self.data1, self.data2),
+                                 {'method':'pearson', 'confidence_level':0.90,
+                                  'permutations':990, 'tails':'low'}, p_val_idx=3)
         self.assertFloatEqual(obs[4], (-0.5779077, 0.5256224))
 
     def test_correlation_test_spearman(self):
@@ -1194,8 +1194,8 @@ class CorrelationTests(TestsHelper):
         for rho in obs[2]:
             self.assertTrue(rho >= -1.0 and rho <= 1.0)
         self.assertCorrectPValue(0.67, 0.7, correlation_test,
-                (self.data1, self.data2),
-                {'method':'spearman', 'tails':'high'}, p_val_idx=3)
+                                 (self.data1, self.data2),
+                                 {'method':'spearman', 'tails':'high'}, p_val_idx=3)
         self.assertFloatEqual(obs[4],
                               (-0.7251388558041697, 0.51034422964834503))
 
@@ -1207,13 +1207,13 @@ class CorrelationTests(TestsHelper):
         obs = correlation_test(self.data1, self.data2, method='spearman',
                                tails=None)
         self.assertFloatEqual(obs[:2],
-                (-0.17575757575757578, 0.62718834477648433))
+                              (-0.17575757575757578, 0.62718834477648433))
         self.assertEqual(len(obs[2]), 999)
         for rho in obs[2]:
             self.assertTrue(rho >= -1.0 and rho <= 1.0)
         self.assertCorrectPValue(0.60, 0.64, correlation_test,
-                (self.data1, self.data2),
-                {'method':'spearman', 'tails':None}, p_val_idx=3)
+                                 (self.data1, self.data2),
+                                 {'method':'spearman', 'tails':None}, p_val_idx=3)
         self.assertFloatEqual(obs[4],
                               (-0.7251388558041697, 0.51034422964834503))
 
@@ -1251,12 +1251,12 @@ class CorrelationTests(TestsHelper):
         # These results were verified with R.
         obs = correlation_test([1, 2, 3, 4], [1, 2, 3, 4])
         self.assertFloatEqual(obs[:2],
-                (0.99999999999999978, 2.2204460492503131e-16))
+                              (0.99999999999999978, 2.2204460492503131e-16))
         self.assertEqual(len(obs[2]), 999)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(0.06, 0.09, correlation_test,
-                ([1, 2, 3, 4], [1, 2, 3, 4]), p_val_idx=3)
+                                 ([1, 2, 3, 4], [1, 2, 3, 4]), p_val_idx=3)
         self.assertFloatEqual(obs[4], (0.99999999999998879, 1.0))
 
     def test_correlation_test_small_obs(self):
@@ -1268,7 +1268,7 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(0.3, 0.4, correlation_test,
-                ([1, 2, 3], [1, 2, 3]), p_val_idx=3)
+                                 ([1, 2, 3], [1, 2, 3]), p_val_idx=3)
         self.assertFloatEqual(obs[4], (None, None))
 
         obs = correlation_test([1, 2, 3], [1, 2, 3], method='spearman')
@@ -1277,7 +1277,7 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(0.3, 0.4, correlation_test,
-                ([1, 2, 3], [1, 2, 3]), {'method':'spearman'}, p_val_idx=3)
+                                 ([1, 2, 3], [1, 2, 3]), {'method':'spearman'}, p_val_idx=3)
         self.assertFloatEqual(obs[4], (None, None))
 
     def test_correlation_matrix(self):
@@ -1289,7 +1289,7 @@ class CorrelationTests(TestsHelper):
         self.assertFloatEqual(m[0,0], [1.0])
         self.assertFloatEqual([m[1,0], m[1,1]], [correlation(b,a)[0], 1.0])
         self.assertFloatEqual(m[2], [correlation(c,a)[0], correlation(c,b)[0], \
-            1.0])
+                                     1.0])
 
 
 class Ftest(TestCase):
@@ -1315,47 +1315,47 @@ class Ftest(TestCase):
 
         #a: 50 elem, mean=0 sd=1
         a = [-0.70701689, -1.24788845, -1.65516470,  0.10443876, -0.48526915,
-        -0.71820656, -1.02603596,  0.03975982, -2.23404324, -0.21509363,
-        0.08438468, -0.01970062, -0.67907971, -0.89853667,  1.11137131,
-        0.05960496, -1.51172084, -0.79733957, -1.60040659,  0.80530639,
-        -0.81715836, -0.69233474,  0.95750665,  0.99576429, -1.61340216,
-        -0.43572590, -1.50862327,  0.92847551, -0.68382338, -1.12523522,
-        -0.09147488,  0.66756023, -0.87277588, -1.36539039, -0.11748707,
-        -1.63632578, -0.31343078, -0.28176086,  0.33854483, -0.51785630,
-        2.25360559, -0.80761191, 1.18983499,  0.57080342, -1.44601700,
-        -0.53906955, -0.01975266, -1.37147915, -0.31537616,  0.26877544]
+             -0.71820656, -1.02603596,  0.03975982, -2.23404324, -0.21509363,
+             0.08438468, -0.01970062, -0.67907971, -0.89853667,  1.11137131,
+             0.05960496, -1.51172084, -0.79733957, -1.60040659,  0.80530639,
+             -0.81715836, -0.69233474,  0.95750665,  0.99576429, -1.61340216,
+             -0.43572590, -1.50862327,  0.92847551, -0.68382338, -1.12523522,
+             -0.09147488,  0.66756023, -0.87277588, -1.36539039, -0.11748707,
+             -1.63632578, -0.31343078, -0.28176086,  0.33854483, -0.51785630,
+             2.25360559, -0.80761191, 1.18983499,  0.57080342, -1.44601700,
+             -0.53906955, -0.01975266, -1.37147915, -0.31537616,  0.26877544]
 
         #b: 50 elem, mean=0, sd=1.2
         b=[0.081418743,  0.276571612, -1.864316504,  0.675213612, -0.769202643,
-         0.140372825, -1.426250184,  0.058617884, -0.819287409, -0.007701916,
-        -0.782722020, -0.285891593,  0.661980419,  0.383225191,  0.622444946,
-        -0.192446150,  0.297150571,  0.408896059, -0.167359383, -0.552381362,
-         0.982168338,  1.439730446,  1.967616101, -0.579607307,  1.095590943,
-         0.240591302, -1.566937143, -0.199091349, -1.232983905,  0.362378169,
-         1.166061081, -0.604676222, -0.536560206, -0.303117595,  1.519222792,
-        -0.319146503,  2.206220810, -0.566351124, -0.720397392, -0.452001377,
-         0.250890097,  0.320685395, -1.014632725, -3.010346273, -1.703955054,
-         0.592587381, -1.237451255,  0.172243366, -0.452641122, -0.982148581]
+           0.140372825, -1.426250184,  0.058617884, -0.819287409, -0.007701916,
+           -0.782722020, -0.285891593,  0.661980419,  0.383225191,  0.622444946,
+           -0.192446150,  0.297150571,  0.408896059, -0.167359383, -0.552381362,
+           0.982168338,  1.439730446,  1.967616101, -0.579607307,  1.095590943,
+           0.240591302, -1.566937143, -0.199091349, -1.232983905,  0.362378169,
+           1.166061081, -0.604676222, -0.536560206, -0.303117595,  1.519222792,
+           -0.319146503,  2.206220810, -0.566351124, -0.720397392, -0.452001377,
+           0.250890097,  0.320685395, -1.014632725, -3.010346273, -1.703955054,
+           0.592587381, -1.237451255,  0.172243366, -0.452641122, -0.982148581]
 
         #c: 60 elem, mean=5, sd=1
         c=[4.654329, 5.242129, 6.272640, 5.781779, 4.391241, 3.800752,
-        4.559463, 4.318922, 3.243020, 5.121280, 4.126385, 5.541131,
-        4.777480, 5.646913, 6.972584, 3.817172, 6.128700, 4.731467,
-        6.762068, 5.082983, 5.298511, 5.491125, 4.532369, 4.265552,
-        5.697317, 5.509730, 2.935704, 4.507456, 3.786794, 5.548383,
-        3.674487, 5.536556, 5.297847, 2.439642, 4.759836, 5.114649,
-        5.986774, 4.517485, 4.579208, 4.579374, 2.502890, 5.190955,
-        5.983194, 6.766645, 4.905079, 4.214273, 3.950364, 6.262393,
-        8.122084, 6.330007, 4.767943, 5.194029, 3.503136, 6.039079,
-        4.485647, 6.116235, 6.302268, 3.596693, 5.743316, 6.860152]
+           4.559463, 4.318922, 3.243020, 5.121280, 4.126385, 5.541131,
+           4.777480, 5.646913, 6.972584, 3.817172, 6.128700, 4.731467,
+           6.762068, 5.082983, 5.298511, 5.491125, 4.532369, 4.265552,
+           5.697317, 5.509730, 2.935704, 4.507456, 3.786794, 5.548383,
+           3.674487, 5.536556, 5.297847, 2.439642, 4.759836, 5.114649,
+           5.986774, 4.517485, 4.579208, 4.579374, 2.502890, 5.190955,
+           5.983194, 6.766645, 4.905079, 4.214273, 3.950364, 6.262393,
+           8.122084, 6.330007, 4.767943, 5.194029, 3.503136, 6.039079,
+           4.485647, 6.116235, 6.302268, 3.596693, 5.743316, 6.860152]
 
         #d: 30 elem, mean=0, sd =0.05 
         d=[ 0.104517366,  0.023039678,  0.005579091,  0.052928250,  0.020724823,
-        -0.060823243, -0.019000890, -0.064133996, -0.016321594, -0.008898334,
-        -0.027626992, -0.051946186,  0.085269587, -0.031190678,  0.065172938,
-        -0.054628573,  0.019257306, -0.032427056, -0.058767356,  0.030927400,
-         0.052247357, -0.042954937,  0.031842104,  0.094130522, -0.024828465,
-         0.011320453, -0.016195062,  0.015631245, -0.050335598, -0.031658335]
+            -0.060823243, -0.019000890, -0.064133996, -0.016321594, -0.008898334,
+            -0.027626992, -0.051946186,  0.085269587, -0.031190678,  0.065172938,
+            -0.054628573,  0.019257306, -0.032427056, -0.058767356,  0.030927400,
+            0.052247357, -0.042954937,  0.031842104,  0.094130522, -0.024828465,
+            0.011320453, -0.016195062,  0.015631245, -0.050335598, -0.031658335]
 
         a,b,c,d = list(map(array,[a,b,c,d]))
         self.assertEqual(list(map(len,[a,b,c,d])), [50, 50, 60, 30])
@@ -1366,18 +1366,18 @@ class Ftest(TestCase):
 
         self.assertFloatEqual(f_two_sample(a,a), (49, 49, 1, 1), eps=error)
         self.assertFloatEqual(f_two_sample(a,b), (49, 49, 0.8575, 0.5925),
-            eps=error)
+                              eps=error)
         self.assertFloatEqual(f_two_sample(b,a), (49, 49, 1.1662, 0.5925),
-            eps=error)
+                              eps=error)
         self.assertFloatEqual(f_two_sample(a,b, tails='low'),
-            (49, 49, 0.8575, 0.2963), eps=error)
+                              (49, 49, 0.8575, 0.2963), eps=error)
         self.assertFloatEqual(f_two_sample(a,b, tails='high'),
-            (49, 49, 0.8575, 0.7037), eps=error)
+                              (49, 49, 0.8575, 0.7037), eps=error)
         self.assertFloatEqual(f_two_sample(a,c),
-            (49, 59, 0.6587, 0.1345), eps=error)
+                              (49, 59, 0.6587, 0.1345), eps=error)
         #p value very small, so first check df's and F value
         self.assertFloatEqualAbs(f_two_sample(d,a, tails='low')[0:3],
-            (29, 49, 0.0028), eps=error)
+                                 (29, 49, 0.0028), eps=error)
         assert f_two_sample(d,a, tails='low')[3] < 2.2e-16 #p value
 
 
@@ -1398,7 +1398,7 @@ class Ftest(TestCase):
 class MannWhitneyTests(TestCase):
     """check accuracy of Mann-Whitney implementation"""
     x = list(map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
-            " 126 128 128 128".split()))
+                 " 126 128 128 128".split()))
     y = list(map(int, "100 105 107 107 108 111 116 120 121 123".split()))
 
     def test_mw_test(self):
@@ -1512,7 +1512,7 @@ class TestDistMatrixPermutationTest(TestCase):
         #test that works for a symmetric matrix
         cells_sym = get_ltm_cells(cells)
         special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
-         cells2=None, is_symmetric=True)
+                                                          cells2=None, is_symmetric=True)
         special_vals.sort()
         other_vals.sort()
         self.assertEqual(special_vals, [5,9,10])
@@ -1520,7 +1520,7 @@ class TestDistMatrixPermutationTest(TestCase):
 
         #test that work for a non symmetric matrix
         special_vals, other_vals = get_values_from_matrix(matrix, cells,\
-         cells2=None, is_symmetric=False)
+                                                          cells2=None, is_symmetric=False)
         special_vals.sort()
         other_vals.sort()
         self.assertEqual(special_vals, [2,5,9,10])
@@ -1530,7 +1530,7 @@ class TestDistMatrixPermutationTest(TestCase):
         cells2 = [(3,0),(3,2),(0,3)]
         cells2_sym = get_ltm_cells(cells2)
         special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
-         cells2=cells2_sym, is_symmetric=True)
+                                                          cells2=cells2_sym, is_symmetric=True)
         special_vals.sort()
         other_vals.sort()
         self.assertEqual(special_vals, [5,9,10])
@@ -1538,7 +1538,7 @@ class TestDistMatrixPermutationTest(TestCase):
 
         #test that works when cells2 is defined and not symmetric
         special_vals, other_vals = get_values_from_matrix(matrix, cells, cells2=cells2,\
-         is_symmetric=False)
+                                                          is_symmetric=False)
         special_vals.sort()
         other_vals.sort()
         self.assertEqual(special_vals, [2,5,9,10])
@@ -1561,7 +1561,7 @@ class TestDistMatrixPermutationTest(TestCase):
         """
         def make_result_list(*args, **kwargs):
             return [distance_matrix_permutation_test(*args,**kwargs)[2] \
-                for i in range(10)]
+                    for i in range(10)]
 
         m = arange(9).reshape((3,3))
         n = 100
@@ -1570,10 +1570,10 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False)
         self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
-            tails='high')
+                             tails='high')
         self.assertSimilarMeans(r, 4./6.)
         r = make_result_list(m, [(0,0),(0,1),(0,2)],n=n,is_symmetric=False,\
-            tails='low')
+                             tails='low')
         self.assertSimilarMeans(r, 0./6.)
 
         # looks at each possible permutation n times --
@@ -1581,10 +1581,10 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False)
         self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
-            tails='high')
+                             tails='high')
         self.assertSimilarMeans(r, 0./6.)
         r = make_result_list(m, [(2,0),(2,1),(2,2)],n=n,is_symmetric=False,\
-            tails='low')
+                             tails='low')
         self.assertSimilarMeans(r, 4./6.)
 
     def test_distance_matrix_permutation_test_symmetric(self):
@@ -1627,7 +1627,7 @@ class TestDistMatrixPermutationTest(TestCase):
             return 42.,42.
         m = array([[0,1,3],[1,2,4],[3,4,5]])
         self.assertEqual(distance_matrix_permutation_test(m,\
-            [(0,0),(0,1),(0,2)],n=5,f=fake_stat_test),(42.,42.,0.))
+                                                          [(0,0),(0,1),(0,2)],n=5,f=fake_stat_test),(42.,42.,0.))
 
     def test_distance_matrix_permutation_test_return_scores(self):
         """ return_scores=True functions as expected """

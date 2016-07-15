@@ -27,7 +27,7 @@ _CONTROLS = {
     'CLEAR_EOS':'ed', 'BOLD':'bold', 'BLINK':'blink', 'DIM':'dim',
     'REVERSE':'rev', 'UNDERLINE':'smul', 'NORMAL':'sgr0',
     'HIDE_CURSOR':'cinvis', 'SHOW_CURSOR':'cnorm'
-        }
+    }
 
 class TerminalUnavailableError(RuntimeError):
     pass

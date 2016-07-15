@@ -10,7 +10,7 @@ from cogent3 import LoadTree
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", 
-    "Ben Kaehler"]
+               "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Matthew Wakefield"
@@ -36,7 +36,7 @@ def majorityRule(trees, strict=False):
     return weightedMajorityRule(trees, strict, "count", method='rooted')
 
 def weightedMajorityRule(weighted_trees, strict=False, attr='support',
-        method='unrooted'):
+                         method='unrooted'):
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
     weights are taken as counts. Branch lengths calculated as per Holland
     (2006).
@@ -138,7 +138,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
         children = [nodes.pop(c) for c in clade]
         assert len([children])
         nodes[clade] = tree_build(children, None, 
-            {attr:counts[clade], 'length':edgelengths[clade]})
+                                  {attr:counts[clade], 'length':edgelengths[clade]})
         queue = new_queue
 
     for root in list(nodes.values()):
@@ -188,7 +188,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
                 break
         else:
             accepted_splits[split] = \
-                    {attr : weight, 'length' : split_lengths[split]}
+                {attr : weight, 'length' : split_lengths[split]}
 
     return [getTree(accepted_splits)]
 

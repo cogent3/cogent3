@@ -16,7 +16,7 @@ account = HostAccount('mysql-eg-publicsql.ebi.ac.uk','anonymous', '', port=4157)
 
 class MZ_ComparaTestBase(TestCase):
     comp = Compara(['D.grimshawi', 'D.melanogaster'], Release=Release,
-                    account=account, division='metazoa')
+                   account=account, division='metazoa')
 
 class MZ_TestCompara(MZ_ComparaTestBase):
     def test_query_genome(self):
@@ -29,22 +29,22 @@ class MZ_TestCompara(MZ_ComparaTestBase):
         # using sc35, a splicing factor
         sc35 = self.comp.Dmelanogaster.getGeneByStableId("FBgn0040286")
         Orthologs = self.comp.getRelatedGenes(gene_region=sc35,
-                Relationship="ortholog_one2one")
+                                              Relationship="ortholog_one2one")
         self.assertEqual("ortholog_one2one", Orthologs.Relationships[0])
 
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
         # here, it is brca2
         brca2 = self.comp.Dmelanogaster.getGeneByStableId(
-                                        StableId='FBgn0050169')
+            StableId='FBgn0050169')
         orthologs = self.comp.getRelatedGenes(gene_region=brca2,
-                        Relationship='ortholog_one2one')
+                                              Relationship='ortholog_one2one')
         self.assertEqual(len(orthologs.Members),2)
 
     def test_get_collection(self):
         sc35 = self.comp.Dmelanogaster.getGeneByStableId(StableId="FBgn0040286")
         Orthologs = self.comp.getRelatedGenes(gene_region=sc35,
-                        Relationship="ortholog_one2one")
+                                              Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
         self.assertTrue(len(collection.Seqs[0])> 1000)
 

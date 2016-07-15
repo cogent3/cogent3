@@ -6,8 +6,8 @@ __all__ = ['alignment', 'alphabet', 'annotation', 'genetic_code', 'info',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight",
-                    "Sandra Smit", "Peter Maxwell", "Matthew Wakefield",
-                    "Greg Caporaso"]
+               "Sandra Smit", "Peter Maxwell", "Matthew Wakefield",
+               "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"

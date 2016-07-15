@@ -47,9 +47,9 @@ class DistanceMatrixTests(TestCase):
         aar_data = dict(list(zip(self.default_keys, [i*.15 for i in range(20)])))
         # Setup a AAIndex1Record for testing purposes
         self.aar = AAIndex1Record("5", "Some Info",\
-                "25", "Greg", "A test",\
-                "something", "This is a test, this is only a test",\
-                [0.987, 0.783, 1., 0], aar_data)
+                                  "25", "Greg", "A test",\
+                                  "something", "This is a test, this is only a test",\
+                                  [0.987, 0.783, 1., 0], aar_data)
 
         # From test_Dict2D, used in tests at end of this file for 
         # inheritance testing
@@ -103,7 +103,7 @@ class DistanceMatrixTests(TestCase):
 
         # differ from defaults
         d = DistanceMatrix(data={'a':{'b':1}},RowOrder=['a'],\
-                ColOrder=['b'],Pad=False,Default=42,RowConstructor=Freqs)
+                           ColOrder=['b'],Pad=False,Default=42,RowConstructor=Freqs)
         self.assertEqual(d.RowOrder, ['a'])
         self.assertEqual(d.ColOrder, ['b'])
         self.assertEqual(d.Pad, False)
@@ -112,7 +112,7 @@ class DistanceMatrixTests(TestCase):
 
         # differ from defaults and no data
         d = DistanceMatrix(RowOrder=['a'],\
-                ColOrder=['b'],Pad=False,Default=42,RowConstructor=Freqs)
+                           ColOrder=['b'],Pad=False,Default=42,RowConstructor=Freqs)
         self.assertEqual(d.RowOrder, ['a'])
         self.assertEqual(d.ColOrder, ['b'])
         self.assertEqual(d.Pad, False)
@@ -161,15 +161,15 @@ class DistanceMatrixTests(TestCase):
 
         # shared should be only self.default_keys b/c 'b' not in ColOrder
         dm = DistanceMatrix(data={'a':{'b':1}},\
-                RowOrder=self.default_keys + ['a'])
+                            RowOrder=self.default_keys + ['a'])
         actual = dm.sharedColKeys()
         actual.sort()
         self.assertEqual(actual, self.default_keys)
 
         # shared should be self.default_keys + 'b'
         dm = DistanceMatrix(data={'a':{'b':1}},\
-                RowOrder=self.default_keys + ['a'],\
-                ColOrder=self.default_keys + ['b'])
+                            RowOrder=self.default_keys + ['a'],\
+                            ColOrder=self.default_keys + ['b'])
         actual = dm.sharedColKeys()
         actual.sort()
         self.assertEqual(actual, self.default_keys + ['b'])
@@ -312,7 +312,7 @@ class DistanceMatrixTests(TestCase):
             # explicit tests
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             dm.elementPow(2)
             self.assertEqual(dm.Power, 2)
             self.assertEqual(dm['A']['A'],m['A']['A']**2)
@@ -323,7 +323,7 @@ class DistanceMatrixTests(TestCase):
             # explicit tests
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             dm.elementPow(3)
             dm.elementPow(1./2.)
             self.assertEqual(dm.Power, 3./2.)
@@ -339,7 +339,7 @@ class DistanceMatrixTests(TestCase):
             # explicit tests
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             dm['A']['A'] = 'p'
             dm.elementPow(2)
             self.assertEqual(dm.Power, 2.)
@@ -347,7 +347,7 @@ class DistanceMatrixTests(TestCase):
 
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             dm['A']['A'] = None
             dm.elementPow(2)
             self.assertEqual(dm.Power, 2.)
@@ -361,7 +361,7 @@ class DistanceMatrixTests(TestCase):
             # explicit tests
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             dm['A']['A'] = 'p'
             self.assertRaises(TypeError,dm.elementPow,2,ignore_invalid=False)
 
@@ -374,7 +374,7 @@ class DistanceMatrixTests(TestCase):
 
             n = deepcopy(m)
             dm = DistanceMatrix(data=n, RowOrder=list(n.keys()),ColOrder=list(n.keys()),\
-                    Pad=False)
+                                Pad=False)
             self.assertRaises(TypeError,dm.elementPow,None,ignore_invalid=False)
             self.assertRaises(TypeError,dm.elementPow,'a',ignore_invalid=False)
 
@@ -421,9 +421,9 @@ class DistanceMatrixTests(TestCase):
         d = DistanceMatrix(self.square,Pad=False)
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.toDelimited(), \
-        '-\ta\tb\tc\na\t1\t2\t3\nb\t2\t4\t6\nc\t3\t6\t9')
+                         '-\ta\tb\tc\na\t1\t2\t3\nb\t2\t4\t6\nc\t3\t6\t9')
         self.assertEqual(d.toDelimited(headers=False), \
-            '1\t2\t3\n2\t4\t6\n3\t6\t9')
+                         '1\t2\t3\n2\t4\t6\n3\t6\t9')
         #set up a custom formatter...
         def my_formatter(x):
             try:
@@ -432,8 +432,8 @@ class DistanceMatrixTests(TestCase):
                 return str(x)
         #...and use it
         self.assertEqual(d.toDelimited(headers=True, item_delimiter='x', \
-            row_delimiter='y', formatter=my_formatter), \
-            '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
+                                       row_delimiter='y', formatter=my_formatter), \
+                         '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
 
 if __name__ == '__main__':
     main()

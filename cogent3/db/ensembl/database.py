@@ -16,13 +16,13 @@ __status__ = "alpha"
 class Database(object):
     """holds the data-base connection and table attributes"""
     def __init__(self, account, species=None, db_type=None, release=None,
-            pool_recycle=None, division=None):
+                 pool_recycle=None, division=None):
         self._tables = {}
         self.db_name = get_db_name(account=account, species=species,
-                          release=release, db_type=db_type, division=division)
+                                   release=release, db_type=db_type, division=division)
         if not self.db_name:
             raise RuntimeError("%s db doesn't exist for '%s' on '%s'" % \
-                                        (db_type, species, account.host))
+                               (db_type, species, account.host))
         else:
             self.db_name = self.db_name[0]
         self._db = DbConnection(account=account, db_name=self.db_name,
@@ -52,11 +52,11 @@ class Database(object):
                     custom_columns.append(sql.Column(Field, sql.Integer))
             try:
                 table = sql.Table(name, self._meta, autoload=True,
-                                    extend_existing=True, *custom_columns)
+                                  extend_existing=True, *custom_columns)
             except TypeError:
                 # new arg name not supported, try old
                 table = sql.Table(name, self._meta, autoload=True,
-                                    useexisting=True, *custom_columns)
+                                  useexisting=True, *custom_columns)
 
             self._tables[name] = table
         return table
@@ -74,7 +74,7 @@ class Database(object):
         string_types = str, str
         for record in query.execute():
             if type(record) not in string_types and \
-                type(record[0]) not in string_types:
+                    type(record[0]) not in string_types:
                 # multi-dimensioned list/tuple
                 record = flatten(record)
             elif type(record) not in string_types:

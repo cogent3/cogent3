@@ -65,7 +65,7 @@ class GeneticCode(object):
         """
         if (len(CodeSequence) != 64):
             raise GeneticCodeInitError("CodeSequence: %s has length %d, but expected 64"\
-                  % (CodeSequence, len(CodeSequence)))
+                                       % (CodeSequence, len(CodeSequence)))
 
         self.CodeSequence = CodeSequence
         self.ID = ID

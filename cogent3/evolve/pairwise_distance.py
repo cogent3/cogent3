@@ -123,8 +123,8 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     coeff1 = 2 * prod_purs / freq_purs
     coeff2 = 2 * prod_pyrs / freq_pyrs
     coeff3 = 2 * (freq_purs * freq_pyrs - \
-            (prod_purs * freq_pyrs / freq_purs) -\
-            (prod_pyrs * freq_purs / freq_pyrs))
+                  (prod_purs * freq_pyrs / freq_purs) -\
+                  (prod_pyrs * freq_purs / freq_pyrs))
 
 
     term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2*freq_purs)
@@ -142,7 +142,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
          (coeff2 * v2 / (2 * freq_pyrs)) + \
          (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
     var = v1**2 * pur_ts_diffs + v2**2 * pyr_ts_diffs + v4**2 * tv_diffs - \
-          (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
+    (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
     var /= total
 
     return total, p, dist, var
@@ -325,7 +325,7 @@ class _PairwiseDistance(object):
             rows.append(row)
         header = [r'Seq1 \ Seq2'] + self.Names
         table = LoadTable(header=header, rows=rows, row_ids = True,
-                missing_data='*', **kwargs)
+                          missing_data='*', **kwargs)
         return table
 
     @property
@@ -366,7 +366,7 @@ class _NucleicSeqPair(_PairwiseDistance):
     def __init__(self, *args, **kwargs):
         super(_NucleicSeqPair, self).__init__(*args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and \
-            not _same_moltype(RNA, self.moltype):
+                not _same_moltype(RNA, self.moltype):
             raise RuntimeError('Invalid MolType for this metric')
 
 
@@ -402,8 +402,8 @@ class TN93Pair(_NucleicSeqPair):
 
         self.func = _tn93_from_matrix
         self._func_args = [self._freqs, self.pur_indices,
-            self.pyr_indices, self.pur_coords,
-            self.pyr_coords, self.tv_coords]
+                           self.pyr_indices, self.pur_coords,
+                           self.pyr_coords, self.tv_coords]
 
 
 

@@ -4,7 +4,7 @@ from numpy import array, take, newaxis
 from math import sqrt
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.geometry import center_of_mass_one_array, \
-        center_of_mass_two_array, center_of_mass, distance, sphere_points
+    center_of_mass_two_array, center_of_mass, distance, sphere_points
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

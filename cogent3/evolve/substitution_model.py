@@ -85,8 +85,8 @@ def _maxWidthIfTruncated(pars, delim, each):
     # list representation be if the strings were truncated at 'each'
     # characters and joined together with 'delim'.
     return max([
-            sum([min(len(par), each) for par in par_list])
-            + len(delim) * (len(par_list)-1)
+        sum([min(len(par), each) for par in par_list])
+        + len(delim) * (len(par_list)-1)
         for par_list in pars.flat])
 
 def _isSymmetrical(matrix):
@@ -105,11 +105,11 @@ class _SubstitutionModel(object):
     #  .makeParamControllerDefns()
 
     def __init__(self, alphabet, 
-            motif_probs=None, optimise_motif_probs=False,
-            equal_motif_probs=False, motif_probs_from_data=None,
-            motif_probs_alignment=None, mprob_model=None,  
-            model_gaps=False, recode_gaps=False, motif_length=1,
-            name="", motifs=None):
+                 motif_probs=None, optimise_motif_probs=False,
+                 equal_motif_probs=False, motif_probs_from_data=None,
+                 motif_probs_alignment=None, mprob_model=None,  
+                 model_gaps=False, recode_gaps=False, motif_length=1,
+                 name="", motifs=None):
         # subclasses can extend this incomplete docstring
         """
 
@@ -179,16 +179,16 @@ class _SubstitutionModel(object):
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
         self.mprob_model = motif_prob_model.makeModel(mprob_model, alphabet, 
-                self._instantaneous_mask_f)
+                                                      self._instantaneous_mask_f)
 
         # MOTIF PROBS        
         if equal_motif_probs:
             assert not (motif_probs or motif_probs_alignment), \
-                    "Motif probs equal or provided but not both"
+                "Motif probs equal or provided but not both"
             motif_probs = self.mprob_model.makeEqualMotifProbs()
         elif motif_probs_alignment is not None:
             assert not motif_probs, \
-                    "Motif probs from alignment or provided but not both"
+                "Motif probs from alignment or provided but not both"
             motif_probs = self.countMotifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)
@@ -210,7 +210,7 @@ class _SubstitutionModel(object):
     def __str__(self):
         s = ["\n%s (" % self.__class__.__name__ ]
         s.append("name = '%s'; type = '%s';" %
-                (getattr(self, "name", None), getattr(self, "type", None)))
+                 (getattr(self, "name", None), getattr(self, "type", None)))
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
             s.append("params = %s;" % parlist)
@@ -239,8 +239,8 @@ class _SubstitutionModel(object):
         return self.mprob_model.setParamControllerMotifProbs(pc, mprobs, **kw)
 
     def makeLikelihoodFunction(self, tree, motif_probs_from_align=None,
-            optimise_motif_probs=None, aligned=True, expm=None, digits=None,
-            space=None, **kw):
+                               optimise_motif_probs=None, aligned=True, expm=None, digits=None,
+                               space=None, **kw):
 
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
@@ -262,7 +262,7 @@ class _SubstitutionModel(object):
 
         if self.motif_probs is not None:
             result.setMotifProbs(self.motif_probs, is_constant=
-                not optimise_motif_probs, auto=True)
+                                 not optimise_motif_probs, auto=True)
 
         if expm is None:
             expm = self._default_expm_setting
@@ -275,12 +275,12 @@ class _SubstitutionModel(object):
         return result
 
     def makeParamController(self, tree, motif_probs_from_align=None,
-            optimise_motif_probs=None, **kw):
+                            optimise_motif_probs=None, **kw):
         # deprecate
         return self.makeLikelihoodFunction(tree,
-                motif_probs_from_align = motif_probs_from_align,
-                optimise_motif_probs = optimise_motif_probs,
-                **kw)
+                                           motif_probs_from_align = motif_probs_from_align,
+                                           optimise_motif_probs = optimise_motif_probs,
+                                           **kw)
 
     def convertAlignment(self, alignment):
         # this is to support for everything but HMM
@@ -297,7 +297,7 @@ class _SubstitutionModel(object):
 
     def countMotifs(self, alignment, include_ambiguity=False):
         return self.mprob_model.countMotifs(alignment, 
-                include_ambiguity, self.recode_gaps)
+                                            include_ambiguity, self.recode_gaps)
 
     def makeAlignmentDefn(self, model):
         align = NonParamDefn('alignment', ('locus',))
@@ -320,7 +320,7 @@ class _SubstitutionModel(object):
 
     def makeParamControllerDefns(self, bin_names, endAtQd=False):
         (input_probs, word_probs, mprobs_matrix) = \
-                self.mprob_model.makeMotifWordProbDefns()
+            self.mprob_model.makeMotifWordProbDefns()
 
         if len(bin_names) > 1:
             bprobs = PartitionDefn(
@@ -333,14 +333,14 @@ class _SubstitutionModel(object):
             'align': self.makeAlignmentDefn(ConstDefn(self, 'model')),
             'bprobs': bprobs,
             'word_probs': word_probs,
-             }
+            }
 
         rate_params = self.makeRateParams(bprobs)
         if endAtQd:
             defns['Qd'] = self.makeQdDefn(word_probs, mprobs_matrix, rate_params)
         else:
             defns['psubs'] = self.makePsubsDefn(
-                    bprobs, word_probs, mprobs_matrix, rate_params)
+                bprobs, word_probs, mprobs_matrix, rate_params)
         return defns
 
 
@@ -389,7 +389,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     @extend_docstring_from(_SubstitutionModel)
     def __init__(self, alphabet, with_rate=False, ordered_param=None, 
-            distribution=None, partitioned_params=None, do_scaling=None, **kw):
+                 distribution=None, partitioned_params=None, do_scaling=None, **kw):
 
         """
          - with_rate: Add a 'rate' parameter which varies by bin. 
@@ -465,7 +465,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     def _isInstantaneous(self, x, y):
         diffs = sum([X!=Y for (X,Y) in zip(x,y)])
         return diffs == 1 or (diffs > 1 and
-                self.long_indels_are_instantaneous and self._isAnyIndel(x, y))
+                              self.long_indels_are_instantaneous and self._isAnyIndel(x, y))
 
     def _isAnyIndel(self, x, y):
         """An indel of any length"""
@@ -530,7 +530,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 e_defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
                 # should be weighted by bprobs*rates not bprobs
                 b_defn = self._makeBinParamDefn(
-                        param_name, param_name+'_factor', bprobs)
+                    param_name, param_name+'_factor', bprobs)
                 defn = ProductDefn(b_defn, e_defn, name=param_name+'_BE')
             params.append(defn)
         return params
@@ -695,13 +695,13 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
                 raise ValueError("Redundancy in predicates.")
             if redundancyInPredicateMasks(predicates_plus_scale):
                 raise ValueError("Some combination of predicates is"
-                        " equivalent to the overall rate parameter.")
+                                 " equivalent to the overall rate parameter.")
         else:
             if redundancyInPredicateMasks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
             if redundancyInPredicateMasks(predicates_plus_scale):
                 warnings.warn("do_scaling=True would be more efficient than"
-                        " these overly general predicates")
+                              " these overly general predicates")
 
         self.predicate_masks = predicate_masks
         self.parameter_order = []
@@ -822,7 +822,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         lengths = {}
         for rule in self.scale_masks:
             lengths[rule] = length * self.getScaleFromQs(
-                    [Q], [1.0], motif_probs, rule)
+                [Q], [1.0], motif_probs, rule)
         return lengths
 
     def getScaleFromQs(self, Qs, bin_probs, motif_probss, rule):
@@ -915,11 +915,11 @@ class Protein(SubstitutionModel):
 
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
-        recode_gaps=True, do_scaling=True, **kw):
+                           recode_gaps=True, do_scaling=True, **kw):
     alph = moltype.PROTEIN.Alphabet.getSubset('U', excluded=True)
     return Empirical(alph, rate_matrix=matrix, motif_probs=motif_probs,
-            model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
-            optimise_motif_probs=optimise_motif_probs, **kw)
+                     model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
+                     optimise_motif_probs=optimise_motif_probs, **kw)
 
 
 class Codon(_Nucleotide):

@@ -84,7 +84,7 @@ def _fmtrow(width, values, maxwidth):
     else:
         template = '%%%ss' % width
         s = ''.join([(template % (v,)).replace('\n', ' ')[:width]
-                for v in values])
+                     for v in values])
     return s
 
 
@@ -209,7 +209,7 @@ class _Defn(object):
             raise InvalidScopeError("no value for %s at %s" % (self.name, scope))
         if len(posns) > 1:
             raise IncompleteScopeError("%s distinct values of %s within %s" %
-                    (len(posns), self.name, scope))
+                                       (len(posns), self.name, scope))
         return theOneItemIn(posns)
 
     def wrapValue(self, value):
@@ -341,9 +341,9 @@ class _Defn(object):
         assert self.name not in result, self.name
 
         posns = [
-                list(self.valid_dimensions).index(d)
-                for d in dimensions
-                if d in self.valid_dimensions]
+            list(self.valid_dimensions).index(d)
+            for d in dimensions
+            if d in self.valid_dimensions]
         for (scope_t, i) in list(self.index.items()):
             value = cell_value_lookup(self, i)
             value = self.wrapValue(value)
@@ -381,12 +381,12 @@ class _Defn(object):
 
         return '\n'.join(
             ['%-10s%-10s%s' % (label1[:9], label2[:9],
-                    _fmtrow(col_width+1, settings, max_width))
-            for (label1, label2, settings) in body])
+                               _fmtrow(col_width+1, settings, max_width))
+             for (label1, label2, settings) in body])
 
     def __repr__(self):
         return '%s(%s x %s)' % (self.__class__.__name__, self.name,
-                len(getattr(self, 'cells', [])))
+                                len(getattr(self, 'cells', [])))
 
 
 class SelectFromDimension(_Defn):
@@ -474,7 +474,7 @@ class _LeafDefn(_Defn):
     internal_dimensions = ()
 
     def __init__(self, name=None, extra_label=None,
-            dimensions=None, independent_by_default=None):
+                 dimensions=None, independent_by_default=None):
         _Defn.__init__(self)
         if dimensions is not None:
             assert type(dimensions) in [list, tuple], type(dimensions)
@@ -500,7 +500,7 @@ class _LeafDefn(_Defn):
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
     def assignAll(self, scope_spec=None, value=None,
-            lower=None, upper=None, const=None, independent=None):
+                  lower=None, upper=None, const=None, independent=None):
         settings = []
         if const is None:
             const = self.const_by_default
@@ -517,8 +517,8 @@ class _LeafDefn(_Defn):
             elif not self.numeric:
                 if lower is not None or upper is not None:
                     raise ValueError(
-                            "Non-scalar input '%s' doesn't support bounds"
-                            % self.name)
+                        "Non-scalar input '%s' doesn't support bounds"
+                        % self.name)
                 setting = Var((None, s_value, None))
             else:
                 (s_lower, s_upper) = self.getCurrentBounds(scope)
@@ -532,11 +532,11 @@ class _LeafDefn(_Defn):
                 elif (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
                     warnings.warn("Value of %s increased to keep within bounds" 
-                                % self.name, stacklevel=3)
+                                  % self.name, stacklevel=3)
                 elif (s_upper is not None) and s_value > s_upper:
                     s_value = s_upper
                     warnings.warn("Value of %s decreased to keep within bounds" 
-                                % self.name, stacklevel=3)
+                                  % self.name, stacklevel=3)
                 setting = Var((s_lower, s_value, s_upper))
             self.checkSettingIsValid(setting)
             settings.append((scope, setting))
@@ -555,7 +555,7 @@ class _LeafDefn(_Defn):
             for value in values:
                 if not numpy.all(value==s_value):
                     warnings.warn("Used mean of %s %s values" % 
-                            (len(values), self.name), stacklevel=4)
+                                  (len(values), self.name), stacklevel=4)
                     break
         return s_value
 
@@ -574,7 +574,7 @@ class _LeafDefn(_Defn):
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__,
-                self._local_repr(col_width=6, max_width=60))
+                           self._local_repr(col_width=6, max_width=60))
 
     def _local_repr(self, col_width, max_width):
         template = "%%%s.%sf" % (col_width, (col_width-1)//2)
@@ -590,7 +590,7 @@ class _LeafDefn(_Defn):
             else:
                 assignments.append('Var') # %s' % str(i))
         return '%-20s%s' % (self.name[:19],
-                _fmtrow(col_width+1, assignments, max_width))
+                            _fmtrow(col_width+1, assignments, max_width))
 
 
 class ParameterController(object):
@@ -653,7 +653,7 @@ class ParameterController(object):
     def getParamNames(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
         return [defn.name for defn in self.defns if defn.user_param and
-            (defn.numeric or not scalar_only)]
+                (defn.numeric or not scalar_only)]
 
     def getUsedDimensions(self, par_name):
         return self.defn_for[par_name].usedDimensions()
@@ -684,7 +684,7 @@ class ParameterController(object):
         return self.defns[-1].getCurrentValueForScope()
 
     def getParamValueDict(self, dimensions, p=None, dropoff=None,
-            params=None, xtol=None):
+                          params=None, xtol=None):
         """A dict tree of parameter values, with parameter names as the
         top level keys, and the various dimensions ('edge', 'bin', etc.)
         supplying lower level keys: edge names, bin names etc.
@@ -747,7 +747,7 @@ class ParameterController(object):
         if not isinstance(defn, _LeafDefn):
             args = ' and '.join(['"%s"' % a.name for a in defn.args])
             msg = '"%s" is not settable as it is derived from %s.' % (
-                    par_name, args)
+                par_name, args)
             raise ValueError(msg)
         defn.assignAll(*args, **kw)
         self.updateIntermediateValues([defn])
@@ -790,9 +790,9 @@ class ParameterController(object):
         return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
 
     def optimise(self, local=None, 
-            filename=None, interval=None,
-            limit_action='warn',  max_evaluations=None, 
-            tolerance=1e-6, global_tolerance=1e-1, **kw):
+                 filename=None, interval=None,
+                 limit_action='warn',  max_evaluations=None, 
+                 tolerance=1e-6, global_tolerance=1e-1, **kw):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run
         both the global and local optimisers. 'filename' and 'interval'
@@ -800,7 +800,7 @@ class ParameterController(object):
         the optimiser(s)."""
         return_calculator = kw.pop('return_calculator', False) # only for debug
         for n in ['local', 'filename', 'interval', 'max_evaluations', 
-                'tolerance', 'global_tolerance']:
+                  'tolerance', 'global_tolerance']:
             kw[n] = locals()[n]
         lc = self.makeCalculator()
         try:

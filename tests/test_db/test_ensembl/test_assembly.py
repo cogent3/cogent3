@@ -3,7 +3,7 @@ from cogent3.util.unit_test import TestCase, main
 
 from cogent3.db.ensembl.host import HostAccount, get_ensembl_account
 from cogent3.db.ensembl.assembly import Coordinate, CoordSystem, \
-                                    get_coord_conversion
+    get_coord_conversion
 from cogent3.db.ensembl.genome import Genome
 
 __author__ = "Gavin Huttley, Hua Ying"
@@ -33,7 +33,7 @@ platypus = Genome(Species = 'platypus', Release=Release, account=account)
 class TestLocation(TestCase):
     def test_init(self):
         human_loc = Coordinate(CoordName='x', Start=1000, End=10000, Strand=-1,
-                        genome = human)
+                               genome = human)
         # TODO: complete test for platpus
         self.assertEqual(human_loc.CoordType, 'chromosome')
         self.assertEqual(human_loc.CoordName, 'x')
@@ -48,7 +48,7 @@ class TestLocation(TestCase):
         # not really testing the contig coordinates are correct
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
         human_loc = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                        Strand = Strand, genome = human)
+                               Strand = Strand, genome = human)
         results = get_coord_conversion(human_loc, 'contig', human.CoreDb)
         for result in results:
             self.assertTrue(result[0].CoordName == CoordName)
@@ -60,7 +60,7 @@ class TestLocation(TestCase):
         """adding coordinates should produce correct results"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
         loc1 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                        Strand = Strand, genome = human)
+                          Strand = Strand, genome = human)
         for shift in [100, -100]:
             loc2 = loc1.shifted(shift)
             self.assertEqual(loc2.Start, loc1.Start+shift)
@@ -72,7 +72,7 @@ class TestLocation(TestCase):
         """resizing should work"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
         loc1 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                        Strand = Strand, genome = human)
+                          Strand = Strand, genome = human)
         front_shift = -100
         back_shift = 100
         loc2 = loc1.resized(front_shift, back_shift)
@@ -105,7 +105,7 @@ class TestLocation(TestCase):
 class TestCoordSystem(TestCase):
     def test_call(self):
         human_chrom = CoordSystem('chromosome', core_db = human.CoreDb,
-                        species = 'human')
+                                  species = 'human')
         human_contig = CoordSystem(1, species = 'human')
         self.assertEqual(human_chrom.coord_system_id, 4)
         self.assertEqual(human_contig.name, 'contig')

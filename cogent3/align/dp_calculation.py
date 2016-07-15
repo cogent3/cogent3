@@ -123,7 +123,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
             args.append(leaf.selectFromDimension('edge', child.Name))
         else:
             (child_defn, scores2) = _recursive_defns(
-                    child, subst, leaf, edge_defn_constructor, bin_args)
+                child, subst, leaf, edge_defn_constructor, bin_args)
             child_defn = ViterbiPogDefn(child_defn)
             scores.extend(scores2)
             args.append(child_defn)
@@ -138,7 +138,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     return (edge_defn, scores)
 
 def makeForwardTreeDefn(subst_model, tree, bin_names,
-        with_indel_params=True, kn=True):
+                        with_indel_params=True, kn=True):
     """Pairwise Fwd"""
     indel = makeIndelModelDefn(with_indel_params, kn)
     subst = subst_model.makeFundamentalParamControllerDefns(bin_names)
@@ -161,7 +161,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     edge_args.extend(bin_data)
 
     (top, scores) = _recursive_defns(tree, subst, leaf, edge_defn_constructor,
-        edge_args)
+                                     edge_args)
     defn = FwdDefn(top)
     #defn = SumDefn(*scores)
     return AnnotateFloatDefn(defn, top)

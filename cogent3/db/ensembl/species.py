@@ -151,11 +151,11 @@ class SpeciesNameMap(dict):
             ensembl = self._species_ensembl[species]
             rows += [[common, species, ensembl]]
         return str(Table(['Common Name', 'Species Name', 'Ensembl Db Prefix'],
-                    rows=rows, space=2).sorted())
+                         rows=rows, space=2).sorted())
 
     def __repr__(self):
         return 'Available species: %s' % ("'"+\
-                "'; '".join(list(self._common_species.keys()))+"'")
+                                          "'; '".join(list(self._common_species.keys()))+"'")
 
     def getCommonName(self, name, level='raise'):
         """returns the common name for the given name (which can be either a
@@ -247,7 +247,7 @@ class SpeciesNameMap(dict):
         species_name = CaseInsensitiveString(species_name)
         common_name = CaseInsensitiveString(common_name)
         assert "_" not in species_name,\
-                        "'_' in species_name, not a Latin name?"
+        "'_' in species_name, not a Latin name?"
         self._purge_species(species_name) # remove if existing
         self._species_common[species_name] = common_name
         self._common_species[common_name] = species_name

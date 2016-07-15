@@ -7,7 +7,7 @@ from cogent3.maths.matrix_exponentiation import FastExponentiator as expm
 from cogent3.maths.matrix_logarithm import logm
 #note: corrcoef and cov assume rows are observations, cols are variables
 from numpy import log, newaxis as NewAxis, array, zeros, product, sqrt, ravel,\
-                  sum, sort, reshape, corrcoef, cov, mean
+    sum, sort, reshape, corrcoef, cov, mean
 from numpy.random import random
 from numpy.linalg import svd, eigvals
 

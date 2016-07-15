@@ -76,9 +76,9 @@ class _Header(list):
 
 class Table(DictArray):
     def __init__(self, header = None, rows = None, row_order = None, digits = 4,
-                space = 4, title = '', missing_data = '', max_width = 1e100,
-                row_ids = False, legend = '', column_templates = None,
-                dtype = None):
+                 space = 4, title = '', missing_data = '', max_width = 1e100,
+                 row_ids = False, legend = '', column_templates = None,
+                 dtype = None):
         """
         Arguments:
         - header: column headings
@@ -113,7 +113,7 @@ class Table(DictArray):
         header = [str(head) for head in header]
         if isinstance(rows, dict):
             rows = convert2DDict(rows, header = header,
-                                row_order = row_order)
+                                 row_order = row_order)
 
         # if row_ids, we select that column as the row identifiers
         if row_ids:
@@ -268,7 +268,7 @@ class Table(DictArray):
               will handle the formatting.
         """
         assert column_head in self.Header, \
-               "Unknown column heading %s" % column_head
+        "Unknown column heading %s" % column_head
 
         self._column_templates[column_head] = format_template
 
@@ -293,10 +293,10 @@ class Table(DictArray):
         formatted_table = self.array.tolist()
         if format != 'bedgraph':
             header, formatted_table = table_format.formattedCells(formatted_table,
-                                    self.Header,
-                                    digits = self._digits,
-                                    column_templates = self._column_templates,
-                                    missing_data = missing_data)
+                                                                  self.Header,
+                                                                  digits = self._digits,
+                                                                  column_templates = self._column_templates,
+                                                                  missing_data = missing_data)
             args = (header, formatted_table, self.Title, self.Legend)
         if sep and format != 'bedgraph':
             return table_format.separatorFormat(*args + (sep,))
@@ -307,7 +307,7 @@ class Table(DictArray):
             if self.Title or self.Legend:
                 caption = " ".join([self.Title or "", self.Legend or ""])
             return table_format.latex(formatted_table, header,
-                                caption = caption, **kwargs)
+                                      caption = caption, **kwargs)
         elif format == 'html':
             rest = table_format.gridTableFormat(*args)
             return table_format.html(rest)
@@ -320,14 +320,14 @@ class Table(DictArray):
             assert self.Shape[1] == 4, 'bedgraph format is for 4 column tables'
             # assuming that header order is chrom, start, end, val
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(),
-                **kwargs)
+                                                **kwargs)
             return formatted_table
         else:
             return table_format.simpleFormat(*args + (self._max_width,
-                                self._row_ids, borders, self.Space))
+                                                      self._row_ids, borders, self.Space))
 
     def toRichHtmlTable(self, row_cell_func=None, header_cell_func=None,
-                element_formatters={}, merge_identical=True, compact=True):
+                        element_formatters={}, merge_identical=True, compact=True):
         """returns just the table html code.
         Arguments:
             - row_cell_func: callback function that formats the row values. Must
@@ -341,10 +341,10 @@ class Table(DictArray):
         """
         formatted_table = self.array.tolist()
         header, formatted_table = table_format.formattedCells(formatted_table,
-                                    self.Header,
-                                    digits = self._digits,
-                                    column_templates = self._column_templates,
-                                    missing_data = self._missing_data)
+                                                              self.Header,
+                                                              digits = self._digits,
+                                                              column_templates = self._column_templates,
+                                                              missing_data = self._missing_data)
         # but we strip the cell spacing
         header = [v.strip() for v in header]
         rows = [[c.strip() for c in r] for r in formatted_table]
@@ -355,7 +355,7 @@ class Table(DictArray):
                                       compact=compact)
 
     def writeToFile(self, filename, mode='w', writer=None, format=None,
-                 sep=None, compress=None, **kwargs):
+                    sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
         is provided, unformatted values are written to file in order to preserve
@@ -443,7 +443,7 @@ class Table(DictArray):
         for table in table_series:
             # check compatible tables
             assert self.Header == table.Header, \
-                   "Inconsistent tables -- column headings are not the same."
+                "Inconsistent tables -- column headings are not the same."
             new_twoD = []
             for row in table:
                 if new_column:
@@ -663,7 +663,7 @@ class Table(DictArray):
             indexes = list(range(self._row_ids)) + indexes
 
         columns = numpy.take(numpy.asarray(self.Header, dtype="O"),
-                               indexes)
+                             indexes)
         new = numpy.take(self.array, indexes, axis=1)
 
         kw = self._get_persistent_attrs()
@@ -714,7 +714,7 @@ class Table(DictArray):
             cols = list(map(self.Header.index, columns))
 
         twoD = [list(row) + [self._callback(callback, row, cols,
-                num_columns)] for row in data]
+                                            num_columns)] for row in data]
 
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
@@ -731,7 +731,7 @@ class Table(DictArray):
         return set(data)
 
     def joined(self, other_table, columns_self=None, columns_other=None,
-                inner_join=True, **kwargs):
+               inner_join=True, **kwargs):
         """returns a new table containing the join of this table and
         other_table. Default behaviour is the natural inner join. Checks for
         equality in the specified columns (if provided) or all columns; a
@@ -764,10 +764,10 @@ class Table(DictArray):
 
         columns_self = [columns_self,[columns_self]][type(columns_self)==str]
         columns_other = [columns_other,
-                            [columns_other]][type(columns_other)==str]
+                         [columns_other]][type(columns_other)==str]
         if not inner_join:
             assert columns_self is None and columns_other is None, "Cannot "\
-                                "specify column indices for an outer join"
+                "specify column indices for an outer join"
             columns_self = []
             columns_other = []
 
@@ -785,7 +785,7 @@ class Table(DictArray):
             columns_other = columns_self or columns_other
         elif len(columns_self)!=len(columns_other):
             raise RuntimeError("Error during table join: key columns have "\
-                  "different dimensions!")
+                               "different dimensions!")
 
         # create new 2d list for the output
         joined_table=[]
@@ -831,7 +831,7 @@ class Table(DictArray):
             if key in key_lookup:
                 for output_row_index in key_lookup[key]:
                     other_row=[other_table[output_row_index,c] \
-                                                  for c in output_mask_other]
+                               for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
 
         new_header=self.Header+[other_table.Title+"_"+other_table.Header[c] \
@@ -934,7 +934,7 @@ class Table(DictArray):
         """
         select_as_header = select_as_header or self.Header[0]
         assert select_as_header in self.Header, \
-                    '"%s" not in table Header' % select_as_header
+        '"%s" not in table Header' % select_as_header
 
         raw_data = self.getRawData()
         raw_data.insert(0, self.Header)
@@ -945,7 +945,7 @@ class Table(DictArray):
         header_index = self.Header.index(select_as_header)
 
         data_indices = list(range(0, header_index))+list(range(header_index+1,
-                                                    len(transposed)))
+                                                               len(transposed)))
 
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
         header = [new_column_name]+header[1:] # [1:] slice excludes old name

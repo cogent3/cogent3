@@ -27,15 +27,15 @@ __status__ = "alpha"
 # columns of data:
 
 bedgraph_fields = ('name', 'description', 'visibility', 'color', 'altColor',
-    'priority', 'autoScale', 'alwaysZero', 'gridDefault', 'maxHeightPixels',
-    'graphType', 'viewLimits', 'yLineMark', 'yLineOnOff', 'windowingFunction',
-    'smoothingWindow')
+                   'priority', 'autoScale', 'alwaysZero', 'gridDefault', 'maxHeightPixels',
+                   'graphType', 'viewLimits', 'yLineMark', 'yLineOnOff', 'windowingFunction',
+                   'smoothingWindow')
 
 _booleans = ('autoScale', 'alwaysZero', 'gridDefault', 'yLineOnOff')
 
 valid_values = dict(autoScale=['on', 'off'], graphType=['bar', 'points'],
-                windowingFunction=['maximum', 'mean', 'minimum'],
-                smoothingWindow=['off']+list(map(str,list(range(2,17)))))
+                    windowingFunction=['maximum', 'mean', 'minimum'],
+                    smoothingWindow=['off']+list(map(str,list(range(2,17)))))
 
 def raise_invalid_vals(key, val):
     """raises RuntimeError on invalid values for keys """
@@ -43,7 +43,7 @@ def raise_invalid_vals(key, val):
         return True
     if not str(val) in valid_values[key]:
         raise AssertionError('Invalid bedgraph key/val pair: '\
-          + 'got %s=%s; valid values are %s' % (key, val, valid_values[key]))
+                             + 'got %s=%s; valid values are %s' % (key, val, valid_values[key]))
 
 def booleans(key, val):
     """returns ucsc formatted boolean"""
@@ -60,7 +60,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
 
     assert None not in (name, description, color)
     header = [min_header % {'name': name, 'description': description,
-                           'color': ','.join(map(str,color))}]
+                            'color': ','.join(map(str,color))}]
 
     if kwargs:
         if not set(kwargs) <= set(bedgraph_fields):
@@ -85,7 +85,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
     return ' '.join(header)
 
 def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
-    color=None, **kwargs):
+             color=None, **kwargs):
     """returns a bed formatted string. Input data must be provided as
     [(chrom, start, end, val), ...]. These will be merged such that adjacent
     records with the same value will be combined.
@@ -100,7 +100,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     """
 
     header = get_header(name=name, description=description,
-                color=color, **kwargs)
+                        color=color, **kwargs)
 
     make_data_row = lambda x: '\t'.join(list(map(str, x[:3])) + ['{0:.2f}'.format(x[-1])])
     # get independent spans for each chromosome
@@ -114,7 +114,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
         if curr_chrom != chrom:
             data = get_merged_by_value_coords(data, digits=digits)
             bedgraph_data += [make_data_row([curr_chrom, s, e, v])
-                                for s, e, v in data]
+                              for s, e, v in data]
             data = []
             curr_chrom = chrom
         else:
@@ -123,7 +123,7 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     if data != []:
         data = get_merged_by_value_coords(data, digits=digits)
         bedgraph_data += [make_data_row([curr_chrom, s, e, v])
-                            for s, e, v in data]
+                          for s, e, v in data]
 
     bedgraph_data = [header] + bedgraph_data
     return '\n'.join(bedgraph_data)

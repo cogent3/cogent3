@@ -2,7 +2,7 @@
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
-        DefaultDelimitedSplitter, SpecificGreengenesParser
+    DefaultDelimitedSplitter, SpecificGreengenesParser
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2012, The Cogent Project" #consider project name
@@ -20,7 +20,7 @@ class ParseGreengenesRecordsTests(TestCase):
     def test_MinimalGreengenesParser_mock(self):
         """Test MinimalGreengenesParser against mock data"""
         res = MinimalGreengenesParser(mock_data.splitlines(), RecStart="my_starting", \
-                RecEnd="my_ending")
+                                      RecEnd="my_ending")
 
         records = list(res)
 

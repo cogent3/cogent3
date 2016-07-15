@@ -6,7 +6,7 @@ from numpy import array
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 from cogent3.cluster.UPGMA import find_smallest_index, condense_matrix, \
-        condense_node_order, UPGMA_cluster, inputs_from_dict2D, upgma
+    condense_node_order, UPGMA_cluster, inputs_from_dict2D, upgma
 from cogent3.util.dict2d import Dict2D
 
 __author__ = "Rob Knight"
@@ -24,37 +24,37 @@ class UPGMATests(TestCase):
     def setUp(self):
         """creates inputs"""
         self.pairwise_distances = {('a', 'b'): 1.0,
-        ('a', 'c'):4.0,
-            ('a', 'd'):20.0,
-            ('a', 'e'):22.0,
-            ('b', 'c'):5.0,
-            ('b', 'd'):21.0,
-            ('b', 'e'):23.0,
-            ('c', 'd'):10.0,
-            ('c', 'e'):12.0,
-            ('d', 'e'):2.0}
+                                   ('a', 'c'):4.0,
+                                   ('a', 'd'):20.0,
+                                   ('a', 'e'):22.0,
+                                   ('b', 'c'):5.0,
+                                   ('b', 'd'):21.0,
+                                   ('b', 'e'):23.0,
+                                   ('c', 'd'):10.0,
+                                   ('c', 'e'):12.0,
+                                   ('d', 'e'):2.0}
         #create a list of PhyloNode objects
         a, b, c, d, e = list(map(PhyloNode, 'abcde'))
         self.node_order = [a, b, c, d, e]
         #create a numpy matrix object to cluster
         self.matrix = array(([9999999, 1, 4, 20, 22], \
-                        [1, 9999999, 5, 21, 23], \
-                        [4, 5, 9999999, 10, 12], \
-                        [20, 21, 10, 9999999, 2], \
-                        [22, 23, 12, 2, 9999999]), Float)
+                             [1, 9999999, 5, 21, 23], \
+                             [4, 5, 9999999, 10, 12], \
+                             [20, 21, 10, 9999999, 2], \
+                             [22, 23, 12, 2, 9999999]), Float)
         #create a numpy matrix with zero diagonals to test diagonal mask 
         self.matrix_zeros = array(([0, 1, 4, 20, 22], \
-                        [1, 0, 5, 21, 23], \
-                        [4, 5, 0, 10, 12], \
-                        [20, 21, 10, 0, 2], \
-                        [22, 23, 12, 2, 0]), Float)
+                                   [1, 0, 5, 21, 23], \
+                                   [4, 5, 0, 10, 12], \
+                                   [20, 21, 10, 0, 2], \
+                                   [22, 23, 12, 2, 0]), Float)
 
         #create a numpy matrix with zero diagonals to test diagonal mask 
         self.matrix_five = array(([5, 1, 4, 20, 22], \
-                        [1, 5, 5, 21, 23], \
-                        [4, 5, 5, 10, 12], \
-                        [20, 21, 10, 5, 2], \
-                        [22, 23, 12, 2, 5]), Float)
+                                  [1, 5, 5, 21, 23], \
+                                  [4, 5, 5, 10, 12], \
+                                  [20, 21, 10, 5, 2], \
+                                  [22, 23, 12, 2, 5]), Float)
 
     def test_UPGMA_cluster(self):
         """upgma works on pairwise distance dict
@@ -107,7 +107,7 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(str(tree), \
-                '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
+                         '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
 
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has lowest values
@@ -118,7 +118,7 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(str(tree), \
-                '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
+                         '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
 
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has intermediate values
@@ -129,16 +129,16 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(str(tree), \
-                '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
+                         '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
 
     def test_inputs_from_dict2D(self):
         """inputs_from_dict2D makes an array object and PhyloNode list"""
         matrix = [('1', '2', 0.86), ('2', '1', 0.86), \
-                ('1', '3', 0.92), ('3', '1', 0.92), ('2', '3', 0.67), \
-                ('3', '2', 0.67)]
+                  ('1', '3', 0.92), ('3', '1', 0.92), ('2', '3', 0.67), \
+                  ('3', '2', 0.67)]
         row_order = ['3', '2', '1']
         matrix_d2d = Dict2D(matrix, RowOrder=row_order, \
-                ColOrder=row_order, Pad=True, Default = 999999999999999)
+                            ColOrder=row_order, Pad=True, Default = 999999999999999)
         matrix_array, PhyloNode_order = inputs_from_dict2D(matrix_d2d)
         self.assertFloatEqual(matrix_array[0][2], 0.92)
         self.assertFloatEqual(matrix_array[1][0], 0.67)

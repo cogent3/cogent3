@@ -70,7 +70,7 @@ class AnnealingHistory(object):
     def minRemainingRounds(self, tolerance):
         last = self.values[-1]
         return max([0]+[i+1 for (i,v) in enumerate(self.values)
-                if v is None or abs(v-last)>tolerance])
+                        if v is None or abs(v-last)>tolerance])
 
 
 class AnnealingState(object):
@@ -158,7 +158,7 @@ class AnnealingRun(object):
 
             for i in range(self.schedule.dwell):
                 show_remaining(remaining + 1 - i/self.schedule.dwell, 
-                        state.FOPT, schedule.T, state.NFCNEV)
+                               state.FOPT, schedule.T, state.NFCNEV)
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
                 if self.test_count % schedule.step_cycles == 0:
@@ -174,7 +174,7 @@ class AnnealingRun(object):
 
     def save(self, checkpointer, final=False):
         msg = "Number of function evaluations = %d; current F = %s" % \
-                (self.state.NFCNEV, self.state.FOPT)
+            (self.state.NFCNEV, self.state.FOPT)
         checkpointer.record(self, msg, final)
 
 
@@ -196,9 +196,9 @@ class SimulatedAnnealing(object):
         self.restore = restore
 
     def maximise(self, function, xopt, show_remaining, 
-            random_series = None, seed = None, 
-            tolerance = None, temp_reduction = 0.5, init_temp=5.0,
-            temp_iterations = 5, step_cycles = 20):
+                 random_series = None, seed = None, 
+                 tolerance = None, temp_reduction = 0.5, init_temp=5.0,
+                 temp_iterations = 5, step_cycles = 20):
 
         """Optimise function(xopt).
 

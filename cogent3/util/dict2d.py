@@ -44,7 +44,7 @@ def average(upper, lower):
         return val, val
     except TypeError:
         raise TypeError("%s or %s invalid types for averaging."\
-                % (str(upper), str(lower)))
+                        % (str(upper), str(lower)))
 
 def largest(upper, lower):
     """Returns largest of the two values."""
@@ -114,10 +114,10 @@ class Dict2D(dict):
 
     #list of attributes that is copied by the copy() method
     _copied_attributes = ['RowOrder', 'ColOrder', 'Default', 'Pad', \
-        'RowConstructor']
+                          'RowConstructor']
 
     def __init__(self, data=None, RowOrder=None, ColOrder=None, Default=None,
-        Pad=None, RowConstructor=None):
+                 Pad=None, RowConstructor=None):
         """Returns new Dict2D with specified parameters.
 
             data : can either be a dict of dicts, or a sequence of 3-item
@@ -401,7 +401,7 @@ class Dict2D(dict):
             constructor = self.RowConstructor
             for c in col_order:
                 yield [self.get(r, constructor()).get(c, default) for \
-                    r in row_order]
+                       r in row_order]
         else:
             try:
                 for c in col_order:
@@ -467,7 +467,7 @@ class Dict2D(dict):
         #get all the rows where the function is True
         row_order = self.RowOrder or self 
         return [key for key, row in zip(row_order,self.Rows) \
-            if new_f(row)]
+                if new_f(row)]
 
     def getRowsIf(self, f, negate=False):
         """Returns new Dict2D containing rows where f(row) is True.
@@ -496,12 +496,12 @@ class Dict2D(dict):
             col_lookup = dict.fromkeys(cols)
             for key, row in list(self.items()):
                 result[key] = row_constructor([(i, row[i]) for i in row \
-                if (i in row) and (i not in col_lookup)])
+                                               if (i in row) and (i not in col_lookup)])
         #otherwise, just get the requested indices
         else:
             for key, row in list(self.items()):
                 result[key] = row_constructor([(i, row[i]) for i in cols \
-                if i in row])
+                                               if i in row])
         return self.__class__(result)
 
     def getColIndices(self, f, negate=False):
@@ -512,7 +512,7 @@ class Dict2D(dict):
         else:
             new_f = f
         return [i for i, col in zip(self.ColOrder or self.colKeys(), self.Cols)\
-            if new_f(col)]
+                if new_f(col)]
 
     def getColsIf(self, f, negate=False, row_constructor=None):
         """Returns new Dict2D containing cols where f(col) is True.
@@ -523,7 +523,7 @@ class Dict2D(dict):
         if row_constructor is None:
             row_constructor = self.RowConstructor
         return self.getCols(self.getColIndices(f, negate), \
-            row_constructor=row_constructor)
+                            row_constructor=row_constructor)
 
     def getItems(self, items, negate=False):
         """Returns list containing only specified items.
@@ -563,7 +563,7 @@ class Dict2D(dict):
                 row_constructor = self.RowConstructor
                 default = self.Default
                 return [self.get(row, row_constructor()).get(col, default) \
-                    for row, col in items]
+                        for row, col in items]
             else:
                 return [self[row][col] for row, col in items]
 
@@ -764,7 +764,7 @@ class Dict2D(dict):
                     method(curr_col.get(r, default), curr_row.get(c, default))
 
     def toDelimited(self, headers=True, item_delimiter='\t', \
-        row_delimiter = '\n', formatter=str):
+                    row_delimiter = '\n', formatter=str):
         """Printable string of items in self, optionally including headers.
 
         headers: whether or not to print headers (default True).
@@ -782,4 +782,4 @@ class Dict2D(dict):
         """
         lists = self.toLists(headers)
         return row_delimiter.join([item_delimiter.join(map(formatter, r)) \
-            for r in lists])
+                                   for r in lists])

@@ -37,10 +37,10 @@ default_email_address = 'Michael.Robeson@colorado.edu'
 
 #databases last updated 7/22/05
 valid_databases=dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",\
-    "genome", "books", "cancerchromosomes", "cdd", "domains", "gene", \
-    "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",\
-    "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",\
-    "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
+                               "genome", "books", "cancerchromosomes", "cdd", "domains", "gene", \
+                               "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",\
+                               "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",\
+                               "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
 
 #rettypes last updated 7/22/05
 #somehow, I don't think we'll be writing parsers for all these...
@@ -122,9 +122,9 @@ for key, val in list(rettypes.items()):
 class ESearch(UrlGetter):
     """Performs an ESearch, getting a list of ids from an arbitrary query."""
     PrintedFields = dict.fromkeys(['db', 'usehistory', 'term', 'retmax', 
-        'retstart', 'tool', 'email'])
+                                   'retstart', 'tool', 'email'])
     Defaults = {'db':'nucleotide','usehistory':'y', 'retmax':1000, 
-        'tool':default_tool_string, 'email':default_email_address}
+                'tool':default_tool_string, 'email':default_email_address}
     BaseUrl = eutils_base+'/esearch.fcgi?'
 
 class EFetch(UrlGetter):
@@ -135,17 +135,17 @@ class EFetch(UrlGetter):
     want to increase for real searches.
     """
     PrintedFields = dict.fromkeys(['db', 'rettype', 'retmode', 'query_key',\
-        'WebEnv', 'retmax', 'retstart', 'id', 'tool', 'email'])
+                                   'WebEnv', 'retmax', 'retstart', 'id', 'tool', 'email'])
     Defaults = {'retmode':'text','rettype':'fasta','db':'nucleotide',\
-            'retstart':0, 'retmax':100, 'tool':default_tool_string, \
-            'email':default_email_address}
+                'retstart':0, 'retmax':100, 'tool':default_tool_string, \
+                'email':default_email_address}
     BaseUrl = eutils_base+'/efetch.fcgi?'
 
 class ELink(UrlGetter):
     """Retrieves a list of ids from one db that link to another db."""
     PrintedFields = dict.fromkeys(['db', 'id', 'reldate', 'mindate', 'maxdate',
-        'datetype', 'term', 'retmode', 'db', 'dbfrom', 'WebEnv', 'query_key',
-        'holding', 'cmd', 'tool', 'email'])
+                                   'datetype', 'term', 'retmode', 'db', 'dbfrom', 'WebEnv', 'query_key',
+                                   'holding', 'cmd', 'tool', 'email'])
     Defaults = {'tool':default_tool_string, 'email':default_email_address}
     BaseUrl = eutils_base + '/elink.fcgi?'
 
@@ -158,7 +158,7 @@ class ESearchResult(object):
 def id_list_constructor(id_list_node):
     """Takes an id_list xml node and converts it into list of ids as strings"""
     return [str_constructor(n) for n in id_list_node.childNodes \
-        if n.nodeType != n.TEXT_NODE]
+            if n.nodeType != n.TEXT_NODE]
 
 def int_constructor(node):
     """Makes an int out of node's first textnode child."""
@@ -171,8 +171,8 @@ def str_constructor(node):
 #the following are the only keys we explicitly handle now:
 #(note difference in capitalization from parameters passed in)
 esearch_constructors = {'Count':int_constructor, 'RetMax':int_constructor,\
-    'RetStart':int_constructor, 'QueryKey':int_constructor, \
-    'WebEnv':str_constructor, 'IdList':id_list_constructor}
+                        'RetStart':int_constructor, 'QueryKey':int_constructor, \
+                        'WebEnv':str_constructor, 'IdList':id_list_constructor}
 
 def ESearchResultParser(result_as_string):
     """Parses an ESearch result. Returns ESearchResult object."""
@@ -302,7 +302,7 @@ class EUtils(object):
                     self.id = ','.join(search_result.IdList)
                 except AttributeError:
                     raise QueryNotFoundError("WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
-                    (repr(query),str(search_query)))
+                                             (repr(query),str(search_query)))
 
             count = search_result.Count
 
@@ -392,7 +392,7 @@ def taxon_lineage_extractor(lines):
             yield list(map(strip, between_tags.split(';')))
 
 taxon_record_finder = DelimitedRecordFinder('</Taxon>', constructor=None, 
-    strict=False)
+                                            strict=False)
 
 def get_taxid_name_lineage(rec):
     """Returns taxon id, name, and lineage from single xml taxon record."""
@@ -467,7 +467,7 @@ def parse_taxonomy_using_elementtree_xml_parse(search_result):
 def taxon_ids_to_names_and_lineages(ids, retmax=1000):
     """Yields taxon id, name and lineage for a set of taxon ids."""
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
-        DEBUG=False)
+               DEBUG=False)
     fids = fix_taxon_ids(ids)
     #print '\nids: ',fids
     result = StringIO()
@@ -485,7 +485,7 @@ def taxon_ids_to_lineages(ids, retmax=1000):
     """
     ids = fix_taxon_ids(ids)
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
-        DEBUG=False)
+               DEBUG=False)
     result = e[ids].read().splitlines()
     #print result
     return taxon_lineage_extractor(result)
@@ -510,7 +510,7 @@ def taxon_ids_to_names(ids, retmax=1000):
     associated with the specific ids.
     """
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
-        DEBUG=False)
+               DEBUG=False)
     transformed_ids = fix_taxon_ids(ids)
     h = StringIO()
     h.write(e[transformed_ids].read())

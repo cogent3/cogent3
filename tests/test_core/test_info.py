@@ -18,7 +18,7 @@ class DbRefTests(TestCase):
     def setUp(self):
         """Define a standard DbRef object"""
         self.data = dict(Accession='xyz',Db='abc',Name='qwe',Description='blah',
-            Data = list(range(20)))
+                         Data = list(range(20)))
         self.db = DbRef(**self.data)
 
     def test_init_minimal(self):

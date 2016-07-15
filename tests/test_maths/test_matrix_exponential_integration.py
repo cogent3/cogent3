@@ -34,21 +34,21 @@ class TestIntegratingExponentiator(TestCase):
         self.assertFloatEqual(dot(p0, I), result)
 
         self.assertRaises(ArithmeticError,
-                expm.VanLoanIntegratingExponentiator, 
-                q, -diag(q), cmme.CheckedExponentiator)
+                          expm.VanLoanIntegratingExponentiator, 
+                          q, -diag(q), cmme.CheckedExponentiator)
 
         Q = array([[1., 1.], [0., 1.]])
         def integral(t):
             return array([[exp(t)-1., exp(t)*(t-1.)+1.], [0., exp(t)-1.]])
 
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(1.),
-            integral(1.))
+                              integral(1.))
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(2.),
-            integral(2.))
+                              integral(2.))
 
         R = array([[1.],[1.]])
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q, R,
-            cmme.TaylorExponentiator)(1.), dot(integral(1.), R))
+                                                                   cmme.TaylorExponentiator)(1.), dot(integral(1.), R))
 
     def test_von_bing_integrating_exponentiator(self):
         """VonBingIntegratingExponentiator should reproduce Felsenstein 
@@ -67,20 +67,20 @@ class TestIntegratingExponentiator(TestCase):
         self.assertFloatEqual(dot(dot(p0, I), -diag(q)), result)
 
         self.assertRaises(ArithmeticError,
-                expm.VonBingIntegratingExponentiator,
-                array([[1., 1.], [0., 1.]]))
+                          expm.VonBingIntegratingExponentiator,
+                          array([[1., 1.], [0., 1.]]))
 
         p = array([[ 0.86758487,  0.05575623,  0.0196798 ,  0.0569791 ],
-        [ 0.01827347,  0.93312148,  0.02109664,  0.02750842],
-            [ 0.04782582,  0.1375742 ,  0.80046869,  0.01413129],
-            [ 0.23022035,  0.22306947,  0.06995306,  0.47675713]])
+                   [ 0.01827347,  0.93312148,  0.02109664,  0.02750842],
+                   [ 0.04782582,  0.1375742 ,  0.80046869,  0.01413129],
+                   [ 0.23022035,  0.22306947,  0.06995306,  0.47675713]])
 
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(1.),
-                expm.VanLoanIntegratingExponentiator(p,
-                    exponentiator=cmme.FastExponentiator)(1.))
+                              expm.VanLoanIntegratingExponentiator(p,
+                                                                   exponentiator=cmme.FastExponentiator)(1.))
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(2.),
-                expm.VanLoanIntegratingExponentiator(p, 
-                    exponentiator=cmme.FastExponentiator)(2.))
+                              expm.VanLoanIntegratingExponentiator(p, 
+                                                                   exponentiator=cmme.FastExponentiator)(2.))
 
 
 

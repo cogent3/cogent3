@@ -3,8 +3,8 @@
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.svd import ratio_two_best, ratio_best_to_sum, \
-     euclidean_distance, euclidean_norm, _dists_from_mean_slow, \
-     dists_from_v, weiss, three_item_combos, two_item_combos
+    euclidean_distance, euclidean_norm, _dists_from_mean_slow, \
+    dists_from_v, weiss, three_item_combos, two_item_combos
 from numpy import array, sqrt
 
 __author__ = "Rob Knight"
@@ -77,7 +77,7 @@ class functionTests(TestCase):
         """three_item_combos should return items in correct order"""
         items = list(three_item_combos('abcde'))
         self.assertEqual(items, list(map(tuple, \
-            ['abc','abd','abe','acd','ace','ade','bcd','bce','bde','cde'])))
+                                         ['abc','abd','abe','acd','ace','ade','bcd','bce','bde','cde'])))
 
     def test_two_item_combos(self):
         """two_item_combos should return items in correct order"""

@@ -28,7 +28,7 @@ class TailedRecordFinderTests(TestCase):
         lines = '>abc\ndef\nz.\n>efg\nz.'.split()
         fl = self.period_tail_finder
         self.assertEqual(list(fl(lines)), \
-            [['>abc', 'def', 'z.'], ['>efg','z.']])
+                         [['>abc', 'def', 'z.'], ['>efg','z.']])
 
     def test_parsers_empty(self):
         """TailedRecordFinder should return empty list on empty lines"""
@@ -41,7 +41,7 @@ class TailedRecordFinderTests(TestCase):
         fl = self.period_tail_finder
         lines = '>abc  \n \t def\n  z. \t\n>efg \nz.'.split('\n')
         self.assertEqual(list(fl(lines)), \
-            [['>abc', ' \t def', '  z.'], ['>efg','z.']])
+                         [['>abc', ' \t def', '  z.'], ['>efg','z.']])
 
     def test_parsers_leftover(self):
         """TailedRecordFinder should raise error or yield leftover"""
@@ -74,13 +74,13 @@ class TailedRecordFinderTests(TestCase):
 
         lines = ['abc','\n','1.','def','#ignore','2.']
         self.assertEqual(list(TailedRecordFinder(self.endswith_period)(lines)), 
-            [['abc', '1.'],['def','#ignore','2.']])
+                         [['abc', '1.'],['def','#ignore','2.']])
         self.assertEqual(list(TailedRecordFinder(self.endswith_period, 
-            ignore=never)(lines)),
-            [['abc', '', '1.'],['def','#ignore','2.']])
+                                                 ignore=never)(lines)),
+                         [['abc', '', '1.'],['def','#ignore','2.']])
         self.assertEqual(list(TailedRecordFinder(self.endswith_period, 
-            ignore=ignore_labels)(lines)),
-            [['abc','1.'],['def','2.']])
+                                                 ignore=ignore_labels)(lines)),
+                         [['abc','1.'],['def','2.']])
 
 class DelimitedRecordFinderTests(TestCase):
     """Tests of the DelimitedRecordFinder factory function."""
@@ -88,10 +88,10 @@ class DelimitedRecordFinderTests(TestCase):
         """DelimitedRecordFinder should split records into lines correctly"""
         lines = 'abc\ndef\n//\nefg\n//'.split()
         self.assertEqual(list(DelimitedRecordFinder('//')(lines)), \
-            [['abc', 'def', '//'], ['efg','//']])
+                         [['abc', 'def', '//'], ['efg','//']])
         self.assertEqual(list(DelimitedRecordFinder('//', keep_delimiter=False)
-            (lines)), \
-            [['abc', 'def'], ['efg']])
+                              (lines)), \
+                         [['abc', 'def'], ['efg']])
 
     def test_parsers_empty(self):
         """DelimitedRecordFinder should return empty list on empty lines"""
@@ -102,7 +102,7 @@ class DelimitedRecordFinderTests(TestCase):
         """DelimitedRecordFinder should trim each line correctly"""
         lines = '  \t   abc  \n \t   def\n  // \t\n\t\t efg \n//'.split('\n')
         self.assertEqual(list(DelimitedRecordFinder('//')(lines)), \
-            [['abc', 'def', '//'], ['efg','//']])
+                         [['abc', 'def', '//'], ['efg','//']])
 
     def test_parsers_error(self):
         """DelimitedRecordFinder should raise RecordError if trailing data"""
@@ -141,13 +141,13 @@ class DelimitedRecordFinderTests(TestCase):
 
         lines = ['>abc','\n','1', '$$', '>def','#ignore','2', '$$']
         self.assertEqual(list(DelimitedRecordFinder('$$')(lines)), 
-            [['>abc', '1', '$$'],['>def','#ignore','2', '$$']])
+                         [['>abc', '1', '$$'],['>def','#ignore','2', '$$']])
         self.assertEqual(list(DelimitedRecordFinder('$$', 
-            ignore=never)(lines)),
-            [['>abc', '', '1', '$$'],['>def','#ignore','2','$$']])
+                                                    ignore=never)(lines)),
+                         [['>abc', '', '1', '$$'],['>def','#ignore','2','$$']])
         self.assertEqual(list(DelimitedRecordFinder('$$', 
-            ignore=ignore_labels)(lines)),
-            [['>abc','1','$$'],['>def','2','$$']])
+                                                    ignore=ignore_labels)(lines)),
+                         [['>abc','1','$$'],['>def','2','$$']])
 
 class LabeledRecordFinderTests(TestCase):
     """Tests of the LabeledRecordFinder factory function."""
@@ -160,7 +160,7 @@ class LabeledRecordFinderTests(TestCase):
         lines = '>abc\ndef\n//\n>efg\n//'.split()
         fl = self.FastaLike
         self.assertEqual(list(fl(lines)), \
-            [['>abc', 'def', '//'], ['>efg','//']])
+                         [['>abc', 'def', '//'], ['>efg','//']])
 
     def test_parsers_empty(self):
         """LabeledRecordFinder should return empty list on empty lines"""
@@ -173,7 +173,7 @@ class LabeledRecordFinderTests(TestCase):
         fl = self.FastaLike
         lines = '  \t   >abc  \n \t   def\n  // \t\n\t\t >efg \n//'.split('\n')
         self.assertEqual(list(fl(lines)), \
-            [['>abc', 'def', '//'], ['>efg','//']])
+                         [['>abc', 'def', '//'], ['>efg','//']])
 
     def test_parsers_leftover(self):
         """LabeledRecordFinder should not raise RecordError if last line label"""
@@ -206,13 +206,13 @@ class LabeledRecordFinderTests(TestCase):
 
         lines = ['>abc','\n','1','>def','#ignore','2']
         self.assertEqual(list(LabeledRecordFinder(is_start)(lines)), 
-            [['>abc', '1'],['>def','#ignore','2']])
+                         [['>abc', '1'],['>def','#ignore','2']])
         self.assertEqual(list(LabeledRecordFinder(is_start, 
-            ignore=never)(lines)),
-            [['>abc', '', '1'],['>def','#ignore','2']])
+                                                  ignore=never)(lines)),
+                         [['>abc', '', '1'],['>def','#ignore','2']])
         self.assertEqual(list(LabeledRecordFinder(is_start, 
-            ignore=ignore_labels)(lines)),
-            [['>abc','1'],['>def','2']])
+                                                  ignore=ignore_labels)(lines)),
+                         [['>abc','1'],['>def','2']])
 
 class LineGrouperTests(TestCase):
     """Tests of the LineGrouper class."""
@@ -244,11 +244,11 @@ class LineGrouperTests(TestCase):
 
         lines = ['abc','\n','1','def','#ignore','2']
         self.assertEqual(list(LineGrouper(1)(lines)), 
-            [['abc'], ['1'],['def'],['#ignore'],['2']])
+                         [['abc'], ['1'],['def'],['#ignore'],['2']])
         self.assertEqual(list(LineGrouper(1, ignore=never)(lines)),
-            [[i.strip()] for i in lines])
+                         [[i.strip()] for i in lines])
         self.assertEqual(list(LineGrouper(2, ignore=ignore_labels)(lines)),
-            [['abc','1'],['def','2']])
+                         [['abc','1'],['def','2']])
 
 
 if __name__ == '__main__':

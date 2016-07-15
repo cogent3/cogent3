@@ -163,7 +163,7 @@ class EnumerationTests(TestCase):
         self.assertEqual(x.GapIndex, 5)
         self.assertEqual(len(x), 6)
         self.assertEqual(x, (('a','x'),('a','z'),('b','x'),('b','z'),('-','x'),\
-            ('-','z')))
+                             ('-','z')))
         #check that it doesn't work when only one seq has gaps
         c = Enumeration('c')
         x = a*c
@@ -231,7 +231,7 @@ class CharAlphabetTests(TestCase):
         r = CharAlphabet('UCAG')
         c = r.toChars(array([[0,0,1],[0,3,2]], 'B'))
         self.assertEqual(c, \
-            array(['UUC','UGA'], 'c'))
+                         array(['UUC','UGA'], 'c'))
 
     def test_toString(self):
         """CharAlphabet toString should convert an input array to string"""
@@ -287,7 +287,7 @@ class JointEnumerationTests(TestCase):
         self.assertEqual(a[0], ('T','U'))
         self.assertEqual(a[-1], ('A','G'))
         self.assertEqual(a._sub_enum_factors, \
-            array([[4],[1]])) #note: _not_ [3,1]
+                         array([[4],[1]])) #note: _not_ [3,1]
 
     def test_toIndices(self):
         """JointEnumeration toIndices should convert tuples correctly"""

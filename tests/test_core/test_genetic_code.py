@@ -3,7 +3,7 @@
 """
 from cogent3 import RNA, DNA
 from cogent3.core.genetic_code import GeneticCode, GeneticCodeInitError,\
-        InvalidCodonError, GeneticCodes
+    InvalidCodonError, GeneticCodes
 from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
@@ -54,9 +54,9 @@ class GeneticCodeTests(TestCase):
         """Standard genetic code from NCBI should have correct properties"""
         sgc = GeneticCode(*self.NcbiStandard)
         self.assertEqual(sgc.CodeSequence,
-        'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
+                         'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
         self.assertEqual(sgc.StartCodonSequence,
-        '---M---------------M---------------M----------------------------')
+                         '---M---------------M---------------M----------------------------')
         self.assertEqual(sgc.StartCodons, {'TTG':'M', 'CTG':'M', 'ATG':'M'})
         self.assertEqual(sgc.ID, 1)
         self.assertEqual(sgc.Name, 'Standard Nuclear')
@@ -76,9 +76,9 @@ class GeneticCodeTests(TestCase):
         sgc_string = GeneticCodes['1']
         for sgc in sgc_new, sgc_number, sgc_string:
             self.assertEqual(sgc.CodeSequence,
-            'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
+                             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
             self.assertEqual(sgc.StartCodonSequence,
-            '---M---------------M---------------M----------------------------')
+                             '---M---------------M---------------M----------------------------')
             self.assertEqual(sgc.StartCodons, {'TTG':'M', 'CTG':'M', 'ATG':'M'})
             self.assertEqual(sgc.ID, 1)
             self.assertEqual(sgc.Name, 'Standard Nuclear')
@@ -94,9 +94,9 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(mtgc.isStop('UGA'), False)
 
         self.assertEqual(sgc_new.changes(mtgc), {'AGA':'R*', 'AGG':'R*',
-            'ATA':'IM', 'TGA':'*W'})
+                                                 'ATA':'IM', 'TGA':'*W'})
         self.assertEqual(mtgc.changes(sgc_new), {'AGA':'*R', 'AGG':'*R',
-            'ATA':'MI', 'TGA':'W*'})
+                                                 'ATA':'MI', 'TGA':'W*'})
         self.assertEqual(mtgc.changes(mtgc), {})
         self.assertEqual(mtgc.changes(
             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'),
@@ -110,7 +110,7 @@ class GeneticCodeTests(TestCase):
             self.assertEqual(str(code), string)
         #check an example directly in case strings are bad
         self.assertEqual(str(self.SGC), \
-            "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG")
+                         "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG")
 
     def test_cmp(self):
         """GeneticCode cmp() should act on code strings"""

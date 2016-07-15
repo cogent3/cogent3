@@ -156,7 +156,7 @@ def parse_string(text, constructor, **kw):
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
                 raise tokeniser.error("Can't convert %s '%s'" % 
-                        (attr_name, token))
+                                      (attr_name, token))
             expected_attribute = None
         elif token == '(':
             if children is not None:
@@ -185,7 +185,7 @@ def parse_string(text, constructor, **kw):
                 pass
             else:
                 raise tokeniser.error("Was expecting to end with %s" % 
-                    ' or '.join([repr(s) for s in sentinals]))
+                                      ' or '.join([repr(s) for s in sentinals]))
         else:
             if name is not None:
                 raise tokeniser.error("Already have a name '%s' for this node." % name)
