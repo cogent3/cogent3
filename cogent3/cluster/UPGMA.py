@@ -1,4 +1,4 @@
-#usr/bin/env python
+# usr/bin/env python
 """Functions to cluster using UPGMA
 
 upgma takes an dictionary of pair tuples mapped to distances as input. 
@@ -63,13 +63,13 @@ def find_smallest_index(matrix):
     for UPGMA clustering elements on the diagonal should first be
     substituted with a very large number so that they are always 
     larger than the rest if the values in the array."""
-    #get the shape of the array as a tuple (e.g. (3,3))
+    # get the shape of the array as a tuple (e.g. (3,3))
     shape = matrix.shape
-    #turn into a 1 by x array and get the index of the lowest number
+    # turn into a 1 by x array and get the index of the lowest number
     matrix1D = ravel(matrix)
     lowest_index = argmin(matrix1D)
-    #convert the lowest_index derived from matrix1D to one for the original
-    #square matrix and return
+    # convert the lowest_index derived from matrix1D to one for the original
+    # square matrix and return
     row_len = shape[0]
     return divmod(lowest_index, row_len)
 
@@ -83,14 +83,14 @@ def condense_matrix(matrix, smallest_index, large_value):
     it is never chosen again with find_smallest_index.
     """
     first_index, second_index = smallest_index
-    #get the rows and make a new vector that has their average
+    # get the rows and make a new vector that has their average
     rows = take(matrix, smallest_index, 0)
     new_vector = average(rows, 0)
-    #replace info in the row and column for first index with new_vector
+    # replace info in the row and column for first index with new_vector
     matrix[first_index] = new_vector
     matrix[:, first_index] = new_vector
-    #replace the info in the row and column for the second index with 
-    #high numbers so that it is ignored
+    # replace the info in the row and column for the second index with 
+    # high numbers so that it is ignored
     matrix[second_index] = large_value
     matrix[:, second_index] = large_value
     return matrix
@@ -108,8 +108,8 @@ def condense_node_order(matrix, smallest_index, node_order):
     index1, index2 = smallest_index
     node1 = node_order[index1]
     node2 = node_order[index2]
-    #get the distance between the nodes and assign 1/2 the distance to the
-    #Length property of each node
+    # get the distance between the nodes and assign 1/2 the distance to the
+    # Length property of each node
     distance = matrix[index1, index2]
     nodes = [node1, node2]
     d = distance / 2.0
@@ -119,15 +119,15 @@ def condense_node_order(matrix, smallest_index, node_order):
         else:
             n.Length = d
         n.TipLength = d
-    #combine the two nodes into a new PhyloNode object
+    # combine the two nodes into a new PhyloNode object
     new_node = PhyloNode()
     new_node.Children.append(node1)
     new_node.Children.append(node2)
     node1.Parent = new_node
     node2.Parent = new_node
-    #replace the object at index1 with the combined node
+    # replace the object at index1 with the combined node
     node_order[index1] = new_node
-    #replace the object at index2 with None
+    # replace the object at index2 with None
     node_order[index2] = None
     return node_order
 
@@ -148,7 +148,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
     for i in range(num_entries - 1):
         smallest_index = find_smallest_index(matrix)
         index1, index2 = smallest_index
-        #if smallest_index is on the diagonal set the diagonal to large_number
+        # if smallest_index is on the diagonal set the diagonal to large_number
         if index1 == index2:
             matrix[diag([True] * len(matrix))] = large_number
             smallest_index = find_smallest_index(matrix)

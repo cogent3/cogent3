@@ -62,7 +62,7 @@ class ConstVal(Setting):
         return "ConstVal(%s)" % repr(self.value)
 
     # indep useful sometimes!
-    #def __eq__(self, other):
+    # def __eq__(self, other):
     #    return type(self) is type(other) and other.value == self.value
 
     def getDefaultValue(self):

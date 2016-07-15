@@ -44,24 +44,24 @@ class FancyArrow(Polygon):
         else:
             length = distance + head_length
         if not length:
-            verts = [] #display nothing if empty
+            verts = []  # display nothing if empty
         else:
-            #start by drawing horizontal arrow, point at (0,0)
+            # start by drawing horizontal arrow, point at (0,0)
             hw, hl, hs, lw = head_width, head_length, overhang, width
             left_half_arrow = array([
-                [0.0, 0.0],                  #tip
-                [-hl, -hw / 2.0],             #leftmost
-                [-hl * (1 - hs), -lw / 2.0], #meets stem
-                [-length, -lw / 2.0],          #bottom left
+                [0.0, 0.0],  # tip
+                [-hl, -hw / 2.0],  # leftmost
+                [-hl * (1 - hs), -lw / 2.0],  # meets stem
+                [-length, -lw / 2.0],  # bottom left
                 [-length, 0],
             ])
-            #if we're not including the head, shift up by head length
+            # if we're not including the head, shift up by head length
             if not length_includes_head:
                 left_half_arrow += [head_length, 0]
-            #if the head starts at 0, shift up by another head length
+            # if the head starts at 0, shift up by another head length
             if head_starts_at_zero:
                 left_half_arrow += [head_length / 2.0, 0]
-            #figure out the shape, and complete accordingly
+            # figure out the shape, and complete accordingly
             if shape == 'left':
                 coords = left_half_arrow
             else:

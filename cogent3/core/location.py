@@ -102,7 +102,7 @@ class SpanI(object):
 
     Required properties: Start, End (must both be numbers)
     """
-    __slots__ = []      #override in subclass
+    __slots__ = []  # override in subclass
 
     def __contains__(self, other):
         """Returns True if other entirely contained in self."""
@@ -157,7 +157,7 @@ class SpanI(object):
         """Returns True if self's start in other or equal to other."""
         try:
             return self.Start in other
-        except (AttributeError, TypeError):  #count other as empty span
+        except (AttributeError, TypeError):  # count other as empty span
             return False
 
     def endsBefore(self, other):
@@ -185,7 +185,7 @@ class SpanI(object):
         """Returns True if self's end in other or equal to other."""
         try:
             return self.End in other
-        except (AttributeError, TypeError):  #count other as empty span
+        except (AttributeError, TypeError):  # count other as empty span
             return False
 
 @total_ordering
@@ -224,13 +224,13 @@ class Span(SpanI):
         This should replace the current __init__ method when deprecated vars
         are removed.
         """
-        #special handling in case we were passed another Span
+        # special handling in case we were passed another Span
         if isinstance(Start, Span):
             assert End is None
             self.Start, self.End, self.Reverse = Start.Start, Start.End, \
                 Start.Reverse
         else:
-            #reverse start and end so that start is always first
+            # reverse start and end so that start is always first
             if End is None:
                 End = Start + 1
             elif Start > End:
@@ -339,17 +339,17 @@ class Span(SpanI):
         try:
             return other.Start >= self.Start and other.End <= self.End
         except AttributeError:
-            #other is scalar: must be _less_ than self.End,
-            #for the same reason that 3 is not in range(3).
+            # other is scalar: must be _less_ than self.End,
+            # for the same reason that 3 is not in range(3).
             return other >= self.Start and other < self.End
 
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
-        #remember to subtract 1 from the Ends, since self.End isn't really
-        #in self...
+        # remember to subtract 1 from the Ends, since self.End isn't really
+        # in self...
         try:
             return (self.Start in other) or (other.Start in self)
-        except AttributeError:  #other was probably a number?
+        except AttributeError:  # other was probably a number?
             return other in self
 
     def reverse(self):
@@ -711,10 +711,10 @@ class Range(SpanI):
         """Returns a new Range object with data in Spans.
         """
         result = SpansOnly()
-        #need to check if we got a single Span, since they define __iter__.
+        # need to check if we got a single Span, since they define __iter__.
         if isinstance(Spans, Span):
             result.append(Spans)
-        elif hasattr(Spans, 'Spans'):   #probably a single range object?
+        elif hasattr(Spans, 'Spans'):  # probably a single range object?
             result.extend(Spans.Spans)
         else:
             for s in iterable(Spans):
@@ -855,7 +855,7 @@ class Range(SpanI):
             found_overlap = False
             for other in direction:
                 if span.overlaps(other) or (span.Start == other.End) or \
-                        (other.Start == span.End):  #handle adjacent spans also
+                        (other.Start == span.End):  # handle adjacent spans also
                     other.Start = min(span.Start, other.Start)
                     other.End = max(span.End, other.End)
                     found_overlap = True
@@ -890,7 +890,7 @@ class Point(Span):
         self._start = Start
 
     Start = property(_get_start, _set_start)
-    End = Start     #start and end are synonyms for the same property
+    End = Start  # start and end are synonyms for the same property
 
 def RangeFromString(string, delimiter=','):
     """Returns Range object from string of the form 1-5,11,20,30-50.
@@ -900,9 +900,9 @@ def RangeFromString(string, delimiter=','):
     result = Range()
     pairs = list(map(strip, string.split(delimiter)))
     for p in pairs:
-        if not p:   #adjacent delimiters?
+        if not p:  # adjacent delimiters?
             continue
-        if '-' in p:    #treat as pair
+        if '-' in p:  # treat as pair
             first, second = p.split('-')
             result.Spans.append(Span(int(first), int(second)))
         else:

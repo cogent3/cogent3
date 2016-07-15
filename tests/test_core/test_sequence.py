@@ -32,8 +32,8 @@ class SequenceTests(TestCase):
     PROT = ProteinSequence
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
-        #NOTE: ModelSequences can't be initialized empty because it screws up
-        #the dimensions of the array, and not worth special-casing.
+        # NOTE: ModelSequences can't be initialized empty because it screws up
+        # the dimensions of the array, and not worth special-casing.
         s = self.SEQ()
         self.assertEqual(s, '')
         assert s.MolType in (ASCII, BYTES)
@@ -44,7 +44,7 @@ class SequenceTests(TestCase):
     def test_init_data(self):
         """Sequence init with data should set data in correct location"""
         r = self.RNA('ucagg')
-        #no longer preserves case
+        # no longer preserves case
         self.assertEqual(r, 'UCAGG')
 
     def test_init_other_seq(self):
@@ -95,12 +95,12 @@ class SequenceTests(TestCase):
         even_dna = self.SEQ(even, Name='even')
         odd_dna = self.SEQ(odd, Name='odd')
         self.assertEqual(even_dna.toFasta(), '>even\nTCAGAT')
-        #set line wrap to small number so we can test that it works
+        # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
         self.assertEqual(even_dna.toFasta(), '>even\nTC\nAG\nAT')
         odd_dna.LineWrap = 2
         self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
-        #check that changing the linewrap again works
+        # check that changing the linewrap again works
         even_dna.LineWrap = 4
         self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
 
@@ -117,7 +117,7 @@ class SequenceTests(TestCase):
 
     def test_stripBad(self):
         """Sequence stripBad should remove any non-base, non-gap chars"""
-        #have to turn off check to get bad data in; no longer preserves case
+        # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UCxxxAGwsnyrHBNzzzD-D', check=False\
                                   ).stripBad(), 'UCAGWSNYRHBND-D')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
@@ -127,7 +127,7 @@ class SequenceTests(TestCase):
 
     def test_stripBadAndGaps(self):
         """Sequence stripBadAndGaps should remove gaps and bad chars"""
-        #have to turn off check to get bad data in; no longer preserves case
+        # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UxxCAGwsnyrHBNz#!D-D', check=False \
                                   ).stripBadAndGaps(), 'UCAGWSNYRHBNDD')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
@@ -151,7 +151,7 @@ class SequenceTests(TestCase):
 
     def test_rc(self):
         """Sequence rc should correctly reverse-complement sequence"""
-        #no longer preserves case!
+        # no longer preserves case!
         self.assertEqual(self.RNA('UauCG-NR').rc(), 'YN-CGAUA')
         self.assertEqual(self.DNA('TatCG-NR').rc(), 'YN-CGATA')
         self.assertEqual(self.RNA('').rc(), '')
@@ -187,10 +187,10 @@ class SequenceTests(TestCase):
         for char in 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOASDFGHJKLZXCVBNM':
             assert not r.isGap(char)
         assert r.isGap('-')
-        #only works on a single literal that's a gap, not on a sequence.
-        #possibly, this behavior should change?
+        # only works on a single literal that's a gap, not on a sequence.
+        # possibly, this behavior should change?
         assert not r.isGap('---')
-        #check behaviour on self
+        # check behaviour on self
         assert not self.RNA('CGAUACGUACGACU').isGap()
         assert not self.RNA('---CGAUA----CGUACG---ACU---').isGap()
         assert self.RNA('').isGap()
@@ -262,7 +262,7 @@ class SequenceTests(TestCase):
 
     def test_degap(self):
         """Sequence degap should remove all gaps from sequence"""
-        #doesn't preserve case
+        # doesn't preserve case
         self.assertEqual(self.RNA('').degap(), '')
         self.assertEqual(self.RNA('GUCAGUCgcaugcnvuncdks').degap(), 
                          'GUCAGUCGCAUGCNVUNCDKS')
@@ -452,9 +452,9 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UGCUGCUC').diff(''), 0)
         self.assertEqual(self.RNA('UGCUGCUC').diff('U'), 0)
         self.assertEqual(self.RNA('UGCUGCUC').diff('UCCCCCUC'), 3)
-        #case-sensitive!
+        # case-sensitive!
         self.assertEqual(self.RNA('AAAAA').diff('CCCCC'), 5)
-        #raises TypeError if other not iterable
+        # raises TypeError if other not iterable
         self.assertRaises(TypeError, self.RNA('AAAAA').diff, 5)
 
     def test_distance(self):
@@ -466,25 +466,25 @@ class SequenceTests(TestCase):
                 return 1
             else:
                 return 10
-        #uses identity function by default
+        # uses identity function by default
         self.assertEqual(self.RNA('UGCUGCUC').distance(''), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('U'), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('UCCCCCUC'), 3)
-        #case-sensitive!
+        # case-sensitive!
         self.assertEqual(self.RNA('AAAAA').distance('CCCCC'), 5)
-        #should use function if supplied
+        # should use function if supplied
         self.assertEqual(self.RNA('UGCUGCUC').distance('', f), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('U', f), 0)
         self.assertEqual(self.RNA('UGCUGCUC').distance('C', f), 1)
         self.assertEqual(self.RNA('UGCUGCUC').distance('G', f), 10)
         self.assertEqual(self.RNA('UGCUGCUC').distance('UCCCCCUC', f), 21)
-        #case-sensitive!
+        # case-sensitive!
         self.assertEqual(self.RNA('AAAAA').distance('CCCCC', f), 50)
 
     def test_matrixDistance(self):
         """Sequence matrixDistance should look up distances from a matrix"""
-        #note that the score matrix must contain 'diagonal' elements m[i][i] 
-        #to avoid failure when the sequences match.
+        # note that the score matrix must contain 'diagonal' elements m[i][i] 
+        # to avoid failure when the sequences match.
         m = {'U': {'U': 0, 'C': 1, 'A': 5}, 'C': {'C': 0, 'A': 2, 'G': 4}}
         self.assertEqual(self.RNA('UUUCCC').matrixDistance('UCACGG', m), 14)
         self.assertEqual(self.RNA('UUUCCC').matrixDistance('', m), 0)
@@ -501,7 +501,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.fracSame(e), 0)
         self.assertEqual(s1.fracSame(s2), 0.25)
         self.assertEqual(s1.fracSame(s3), 0)
-        self.assertEqual(s1.fracSame(s4), 1.0)  #note truncation
+        self.assertEqual(s1.fracSame(s4), 1.0)  # note truncation
 
     def test_fracDiff(self):
         """Sequence fracDiff should return difference between sequences"""
@@ -513,7 +513,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.fracDiff(e), 0)
         self.assertEqual(s1.fracDiff(s2), 0.75)
         self.assertEqual(s1.fracDiff(s3), 1)
-        self.assertEqual(s1.fracDiff(s4), 0)  #note truncation
+        self.assertEqual(s1.fracDiff(s4), 0)  # note truncation
 
     def test_fracSameGaps(self):
         """Sequence fracSameGaps should return similarity in gap positions"""
@@ -665,11 +665,11 @@ class SequenceSubclassTests(TestCase):
     def test_DnaSequence(self):
         """DnaSequence should behave as expected"""
         x = DnaSequence('tcag')
-        #note: no longer preserves case
+        # note: no longer preserves case
         self.assertEqual(x, 'TCAG')
 
         x = DnaSequence('aaa') + DnaSequence('ccc')
-        #note: doesn't preserve case
+        # note: doesn't preserve case
         self.assertEqual(x, 'AAACCC')
         assert x.MolType is DNA
         self.assertRaises(AlphabetError, x.__add__, 'z')
@@ -678,7 +678,7 @@ class SequenceSubclassTests(TestCase):
 
 class ModelSequenceTests(object):
     """Base class for tests of specific ModelSequence objects."""
-    SequenceClass = None   #override in derived classes
+    SequenceClass = None  # override in derived classes
 
     def test_toFasta(self):
         """Sequence toFasta() should return Fasta-format string"""
@@ -687,12 +687,12 @@ class ModelSequenceTests(object):
         even_dna = self.SequenceClass(even, Name='even')
         odd_dna = self.SequenceClass(odd, Name='odd')
         self.assertEqual(even_dna.toFasta(), '>even\nTCAGAT')
-        #set line wrap to small number so we can test that it works
+        # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
         self.assertEqual(even_dna.toFasta(), '>even\nTC\nAG\nAT')
         odd_dna.LineWrap = 2
         self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
-        #check that changing the linewrap again works
+        # check that changing the linewrap again works
         even_dna.LineWrap = 4
         self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
 
@@ -722,17 +722,17 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
         """Sequence toKwords should give expected counts"""
         orig = 'ATCCCTAGC'
         r = self.SequenceClass(orig)
-        #if we use k = 1, should just get the characters
+        # if we use k = 1, should just get the characters
         w = r.toKwords(1)
         self.assertEqual(w, r._data)
         w = r.toKwords(1, overlapping=False)
         self.assertEqual(w, r._data)
-        #if we use k = 2, should get overlapping or nonoverlapping k-words
+        # if we use k = 2, should get overlapping or nonoverlapping k-words
         w = r.toKwords(2)
         self.assertEqual(w, array([8, 1, 5, 5, 4, 2, 11, 13]))
         w = r.toKwords(2, overlapping=False)
         self.assertEqual(w, array([8, 5, 4, 11]))
-        #check a case with k = 3, i.e. codons
+        # check a case with k = 3, i.e. codons
         w = r.toKwords(3, overlapping=False)
         self.assertEqual(w, array([33, 20, 45]))
 
@@ -755,12 +755,12 @@ class CodonSequenceTests(SequenceTests, TestCase):
         """Sequence toKwords should give expected counts"""
         orig = 'ATCCCTAGC'
         r = self.SequenceClass(orig)
-        #if we use k = 1, should just get the characters
+        # if we use k = 1, should just get the characters
         w = r.toKwords(1)
         self.assertEqual(w, r._data)
         w = r.toKwords(1, overlapping=False)
         self.assertEqual(w, r._data)
-        #if we use k = 2, should get overlapping or nonoverlapping k-words
+        # if we use k = 2, should get overlapping or nonoverlapping k-words
         w = r.toKwords(2)
         self.assertEqual(w, array([2132, 1325]))
         w = r.toKwords(2, overlapping=False)
@@ -869,7 +869,7 @@ class ModelSequenceTests(SequenceTests):
 
     def test_stripBad(self):
         """Sequence stripBad should remove any non-base, non-gap chars"""
-        #have to turn off check to get bad data in; no longer preserves case
+        # have to turn off check to get bad data in; no longer preserves case
         r = self.RNA('UCAGRYU')
         r._data[0] = 31
         r._data[2] = 55
@@ -877,7 +877,7 @@ class ModelSequenceTests(SequenceTests):
 
     def test_stripBadAndGaps(self):
         """Sequence stripBadAndGaps should remove gaps and bad chars"""
-        #have to turn off check to get bad data in; no longer preserves case
+        # have to turn off check to get bad data in; no longer preserves case
         r = self.RNA('ACG--GRN?')
         self.assertEqual(r.stripBadAndGaps(), 'ACGGRN')
         r._data[0] = 99
@@ -902,12 +902,12 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(v, array([0, 1, 3, 4, 8]))
         r = self.RNA('AC')
         v = r.gapIndices()
-        self.assertEqual(v, array([])) #note: always returns array
+        self.assertEqual(v, array([]))  # note: always returns array
         r = self.RNA('-?')
         v = r.gapIndices()
         self.assertEqual(v, array([0, 1]))
 
 
-#run if called from command-line
+# run if called from command-line
 if __name__ == "__main__":
     main()

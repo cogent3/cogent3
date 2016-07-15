@@ -97,7 +97,7 @@ def build_rate_matrix(count_matrix, freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
 
     return epm.calcQ(word_probs, mprobs_matrix)
 
-## Mutual Information Analysis
+# Mutual Information Analysis
 # Mutual Information Calculators
 def mi(h1, h2, joint_h):
     """ Calc Mutual Information given two entropies and their joint entropy
@@ -273,9 +273,9 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,\
     # the matrix symmetric
     ltm_to_symmetric(result)
     return result
-## End Mutual Information Analysis
+# End Mutual Information Analysis
 
-## Start Normalized Mutual Information Analysis (Martin 2005)
+# Start Normalized Mutual Information Analysis (Martin 2005)
 def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,\
                        null_value=gDefaultNullValue, excludes=gDefaultExcludes,\
                        exclude_handler=None):
@@ -347,10 +347,10 @@ def normalized_mi_alignment(alignment, null_value=gDefaultNullValue,\
                         null_value=null_value, excludes=excludes,\
                         exclude_handler=exclude_handler)
 nmi_alignment = normalized_mi_alignment
-## End Normalized Mutual Information Analysis
+# End Normalized Mutual Information Analysis
 
 
-## Start Statistical coupling analysis (SCA) (Suel 2003)
+# Start Statistical coupling analysis (SCA) (Suel 2003)
 class SCAError(Exception):
     pass
 
@@ -360,9 +360,9 @@ AAGapless = CharAlphabet('ACDEFGHIKLMNPQRSTVWY')
 default_sca_alphabet = AAGapless
 #AAGapless = PROTEIN.Alphabet
 
-#Dictionary of mean AA-frequencies in all natural proteins
-#Compiled by Rama Ranganathan from 36,498 unique eukaryotic proteins 
-#from the Swiss-Prot database
+# Dictionary of mean AA-frequencies in all natural proteins
+# Compiled by Rama Ranganathan from 36,498 unique eukaryotic proteins 
+# from the Swiss-Prot database
 protein_dict = {
     'A': 0.072658,
     'C': 0.024692,
@@ -862,9 +862,9 @@ def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,\
                                    return_all=return_all, alphabet=alphabet,\
                                    background_freqs=background_freqs))
     return array(result)     
-## End statistical coupling analysis
+# End statistical coupling analysis
 
-## Start Resampled Mutual Information Analysis 
+# Start Resampled Mutual Information Analysis 
 # (developed by Hutley and Easton, and first published in 
 # Caporaso et al., 2008)
 def make_weights(freqs, n):
@@ -1009,9 +1009,9 @@ def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
                                           excludes=excludes, exclude_handler=exclude_handler,
                                           null_value=null_value)
     return result
-## End Resampled Mutual Information Analysis
+# End Resampled Mutual Information Analysis
 
-## Begin ancestral_states analysis        
+# Begin ancestral_states analysis        
 def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
 
@@ -1128,16 +1128,16 @@ def ancestral_state_pair(aln, tree, pos1, pos2,\
                     # Another one to try might involve discounting the score 
                     # for a pair when one changes and the other doesn't.
     return result      
-## End ancestral_states analysis        
+# End ancestral_states analysis        
 
-### Methods for running coevolutionary analyses on sequence data.
+# Methods for running coevolutionary analyses on sequence data.
 method_abbrevs_to_names = {'mi': 'Mutual Information',\
                            'nmi': 'Normalized Mutual Information',\
                            'sca': 'Statistical Coupling Analysis',\
                            'an': 'Ancestral States',\
                            'rmi': 'Resampled Mutual Information'}
 
-## Method-specific error checking functions
+# Method-specific error checking functions
 # Some of the coevolution algorithms require method-specific input validation, 
 # but that code isn't included in the alrogithm-specific functions (e.g. 
 # sca_alignment, 
@@ -1231,9 +1231,9 @@ def validate_tree(alignment, tree):
     if set(tree.getTipNames()) != set(alignment.getSeqNames()):
         raise ValueError("Tree tips and seqs must have perfectly overlapping names.")
 
-## End method-specific error checking functions
+# End method-specific error checking functions
 
-## General (opposed to algorithm-specific) validation functions
+# General (opposed to algorithm-specific) validation functions
 def validate_position(alignment, position):
     """ValueError if position is outside the range of the alignment """
     if not 0 <= position < len(alignment):
@@ -1286,9 +1286,9 @@ def coevolve_alignments_validation(method, alignment1, alignment2,\
         raise ValueError("min_num_seqs (%d) cannot be greater than max_num_seqs (%d)." \
                          % (min_num_seqs, max_num_seqs))
 
-## End general validation functions
+# End general validation functions
 
-## Start alignment-wide intramolecular coevolution analysis
+# Start alignment-wide intramolecular coevolution analysis
 
 # coevolve alignment functions: f(alignment,**kwargs) -> 2D array
 coevolve_alignment_functions = \
@@ -1311,9 +1311,9 @@ def coevolve_alignment(method, alignment, **kwargs):
     validate_alignment(alignment)
     return method(alignment, **kwargs)
 
-## End alignment-wide intramolecular coevolution analysis
+# End alignment-wide intramolecular coevolution analysis
 
-## Start intermolecular coevolution analysis
+# Start intermolecular coevolution analysis
 
 # Mapping between coevolve_alignment functions and coevolve_pair functions.
 # These are used in coevolve_alignments, b/c under some circumstance the
@@ -1344,7 +1344,7 @@ def merge_alignments(alignment1, alignment2):
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] = alignment1.getGappedSeq(orig_name) +\
                 alignment2.getGappedSeq(aln2_name_map[merged_name])
-    except ValueError: # Differing MolTypes
+    except ValueError:  # Differing MolTypes
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] =\
                 Sequence(alignment1.getGappedSeq(orig_name)) +\
@@ -1471,9 +1471,9 @@ def coevolve_alignments(method, alignment1, alignment2,\
         result = coevolve_alignment(method, merged_alignment, **kwargs)
         return result
 
-    ## Note: we only get here if the above if statement comes back False, 
-    ## i.e., if we only want the intermolecular coevolution and don't care 
-    ## about the intramolecular coevolution.
+    # Note: we only get here if the above if statement comes back False, 
+    # i.e., if we only want the intermolecular coevolution and don't care 
+    # about the intramolecular coevolution.
 
     # Get the appropriate method (need the pair method, 
     # not the alignment method)
@@ -1527,9 +1527,9 @@ def coevolve_alignments(method, alignment1, alignment2,\
     return result
 
 
-## End intermolecular coevolution analysis
+# End intermolecular coevolution analysis
 
-## Start positional coevolution analysis
+# Start positional coevolution analysis
 # coevolve position functions: f(alignment,position,**kwargs) -> 1D array
 coevolve_position_functions = \
     {'mi': mi_position, 'nmi': normalized_mi_position,\
@@ -1555,9 +1555,9 @@ def coevolve_position(method, alignment, position, **kwargs):
     # Perform the analysis and return the result vector
     return method(alignment, position=position, **kwargs)
 
-## End positional coevolution analysis
+# End positional coevolution analysis
 
-## Start pairwise coevolution analysis
+# Start pairwise coevolution analysis
 # coevolve pair functions: f(alignment,pos1,pos2,**kwargs) -> float
 coevolve_pair_functions = \
     {'mi': mi_pair, 'nmi': normalized_mi_pair,\
@@ -1585,12 +1585,12 @@ def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
     # Perform the analysis and return the result score
     return method(alignment, pos1=pos1, pos2=pos2, **kwargs)
 
-## End pairwise coevolution analysis    
-### End methods for running coevolutionary analyses on sequence data
+# End pairwise coevolution analysis    
+# End methods for running coevolutionary analyses on sequence data
 
 
-## Coevolution matrix filters: the following functions are used as 
-## post-processing filters for coevolution result matrices.
+# Coevolution matrix filters: the following functions are used as 
+# post-processing filters for coevolution result matrices.
 
 def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
                                                     threshold=0.95, max_cmp_threshold=1, cmp_function=greater_equal,\
@@ -1822,9 +1822,9 @@ def filter_exclude_positions(aln, coevolution_matrix,\
             except IndexError:
                 coevolution_matrix[p - len_aln1, :] = null_value
 
-## Functions for archiving/retrieiving coevolve results
-#### These functions are extremely general -- should they go 
-#### somewhere else, or should I be using pre-existing code?
+# Functions for archiving/retrieiving coevolve results
+# These functions are extremely general -- should they go 
+# somewhere else, or should I be using pre-existing code?
 def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
     """ Pickle coevolve_result and store it at output_filepath 
 
@@ -1900,9 +1900,9 @@ def csv_to_coevolution_matrix(in_filepath):
 
 
 
-## End functions for archiving/retrieiving coevolve results
+# End functions for archiving/retrieiving coevolve results
 
-## Start functions for analyzing the results of a coevolution run.
+# Start functions for analyzing the results of a coevolution run.
 
 def identify_aln_positions_above_threshold(coevolution_matrix, threshold,\
                                            aln_position, null_value=gDefaultNullValue):
@@ -1916,7 +1916,7 @@ def identify_aln_positions_above_threshold(coevolution_matrix, threshold,\
     results = []
     for i in range(len(coevolution_scores)):
         s = coevolution_scores[i]
-        if  s != null_value and s >= threshold: 
+        if s != null_value and s >= threshold: 
             results.append(i)
     return results
 
@@ -2035,11 +2035,11 @@ def ltm_to_symmetric(m):
     return m
 
 
-## End functions for analyzing the results of a coevolution run
+# End functions for analyzing the results of a coevolution run
 
 
 
-## Script functionality
+# Script functionality
 def build_coevolution_matrix_filepath(input_filepath,\
                                       output_dir='./', method=None, alphabet=None, parameter=None):
     """ Build filepath from input filename, output dir, and list of suffixes

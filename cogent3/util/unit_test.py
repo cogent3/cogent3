@@ -47,9 +47,9 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-## SUPPORT2425
+# SUPPORT2425
 #@contextmanager
-#def numpy_err(**kw):
+# def numpy_err(**kw):
 #    """a numpy err context manager.
 
 #    **kw: pass to numpy.seterr(all=None, divide=None, over=None, under=None,
@@ -85,7 +85,7 @@ class FakeRandom(object):
         Raises IndexError when we run out of data.
         """
         self._ptr += 1
-        #wrap around if circular
+        # wrap around if circular
         if self._circular:
             if self._ptr >= len(self._data):
                 self._ptr = 0
@@ -100,13 +100,13 @@ class TestCase(orig_TestCase):
     BEWARE: Do not start any method with 'test' unless you want it to actually
     run as a test suite in every instance!
     """
-    _suite_pvalue = None # see TestCase._set_suite_pvalue()
+    _suite_pvalue = None  # see TestCase._set_suite_pvalue()
 
     def _get_values_from_matching_dicts(self, d1, d2):
         """Gets corresponding values from matching dicts"""
         if set(d1) != set(d2):
             return None
-        return list(d1.values()), [d2[k] for k in d1] #might not be in same order
+        return list(d1.values()), [d2[k] for k in d1]  # might not be in same order
 
 
     def errorCheck(self, call, known_errors):
@@ -138,15 +138,15 @@ class TestCase(orig_TestCase):
         Note: for arbitrary objects, need to compare the specific attribute
         that's numeric, not the whole object, using this method.
         """
-        #do array check first
-        #note that we can't use array ops to combine, because we need to check
-        #at each element whether the expected is zero to do the test to avoid
-        #floating point error.
-        #WARNING: numpy iterates over objects that are not regular Python
-        #floats/ints, so need to explicitly catch scalar values and prevent
-        #cast to array if we want the exact object to print out correctly.
+        # do array check first
+        # note that we can't use array ops to combine, because we need to check
+        # at each element whether the expected is zero to do the test to avoid
+        # floating point error.
+        # WARNING: numpy iterates over objects that are not regular Python
+        # floats/ints, so need to explicitly catch scalar values and prevent
+        # cast to array if we want the exact object to print out correctly.
         is_array = False
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):   #both dicts?
+        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -178,7 +178,7 @@ class TestCase(orig_TestCase):
             self.fail("Wrong shape: Got %s, but expected %s" % (obs, exp))
 
         for observed, expected in zip(obs, exp):
-            #try the cheap comparison first
+            # try the cheap comparison first
             if observed == expected:
                 continue
             try:
@@ -215,11 +215,11 @@ class TestCase(orig_TestCase):
         this method when you expect that one of the values should be very
         small, and the other should be zero.
         """
-        #do array check first
-        #note that we can't use array ops to combine, because we need to check
-        #at each element whether the expected is zero to do the test to avoid
-        #floating point error.
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):   #both dicts?
+        # do array check first
+        # note that we can't use array ops to combine, because we need to check
+        # at each element whether the expected is zero to do the test to avoid
+        # floating point error.
+        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -244,9 +244,9 @@ class TestCase(orig_TestCase):
                     return
                 except (TypeError, ValueError):
                     pass
-        #only get here if array comparison failed
+        # only get here if array comparison failed
         for observed, expected in zip(obs, exp):
-            #cheap comparison first
+            # cheap comparison first
             if observed == expected:
                 continue
             try:
@@ -291,7 +291,7 @@ class TestCase(orig_TestCase):
 
     def _is_equal(self, observed, expected):
         """Returns True if observed and expected are equal, False otherwise."""
-        #errors to catch: TypeError when obs is None
+        # errors to catch: TypeError when obs is None
         tolist_errors = (AttributeError, ValueError, TypeError)
 
         try:
@@ -314,9 +314,9 @@ class TestCase(orig_TestCase):
             if not self._is_equal(observed, expected):
                 raise self.failureException(msg or 'Got %s, but expected %s' % (repr(observed), repr(expected)))
         except (ValueError, TypeError) as e:
-            #The truth value of an array with more than one element is
-            #ambiguous. Use a.any() or a.all()
-            #descriptor 'tolist' of 'numpy.generic' object needs an argument
+            # The truth value of an array with more than one element is
+            # ambiguous. Use a.any() or a.all()
+            # descriptor 'tolist' of 'numpy.generic' object needs an argument
             testing.assert_equal(observed, expected)
 
     def failIfEqual(self, observed, expected, msg=None):
@@ -329,7 +329,7 @@ class TestCase(orig_TestCase):
             raise self.failureException(msg or 'Observed %s and expected %s: shouldn\'t test equal'\
                                         % (repr(observed), repr(expected)))
 
-        #following needed to get our version instead of unittest's
+        # following needed to get our version instead of unittest's
     assertEqual = assertEquals = failUnlessEqual
 
     assertNotEqual = assertNotEquals = failIfEqual
@@ -364,7 +364,7 @@ class TestCase(orig_TestCase):
         for index, (obs, exp) in enumerate(zip(obs_ids, exp_ids)):
             o_id, o = obs
             e_id, e = exp
-            if o_id != e_id:    #i.e. the ids are different
+            if o_id != e_id:  # i.e. the ids are different
                 raise self.failureException(msg or \
                                             'Observed %s <%s> and expected %s <%s> at sorted index %s' \
                                             % (o, o_id, e, e_id, index))
@@ -482,7 +482,7 @@ class TestCase(orig_TestCase):
 
         t, p = t_two_sample(observed, expected)
 
-        if p is None or not isfinite(p): #handle case where all elements were the same
+        if p is None or not isfinite(p):  # handle case where all elements were the same
             if not observed.shape:
                 observed = observed.reshape((1,))
             if not expected.shape:

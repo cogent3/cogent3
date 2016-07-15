@@ -28,31 +28,31 @@ strip = str.strip
 
 class QueryNotFoundError(Exception): pass
 
-#eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
+# eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
 eutils_base = 'http://www.ncbi.nlm.nih.gov/entrez/eutils'
 
-#EUtils requires a tool and and email address
+# EUtils requires a tool and and email address
 default_tool_string = 'PyCogent'
 default_email_address = 'Michael.Robeson@colorado.edu'
 
-#databases last updated 7/22/05
+# databases last updated 7/22/05
 valid_databases = dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",\
                                "genome", "books", "cancerchromosomes", "cdd", "domains", "gene", \
                                "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",\
                                "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",\
                                "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
 
-#rettypes last updated 7/22/05
-#somehow, I don't think we'll be writing parsers for all these...
-#WARNING BY RK 4/13/09: THESE RETTYPES ARE HIGHLY MISLEADING AND NO LONGER 
-#WORK. See this URL for the list of "official" rettypes, which is highly
-#incomplete and has some important omissions (e.g. rettype 'gi' is missing
-#but is the "official" replacement for 'GiList'):
+# rettypes last updated 7/22/05
+# somehow, I don't think we'll be writing parsers for all these...
+# WARNING BY RK 4/13/09: THESE RETTYPES ARE HIGHLY MISLEADING AND NO LONGER 
+# WORK. See this URL for the list of "official" rettypes, which is highly
+# incomplete and has some important omissions (e.g. rettype 'gi' is missing
+# but is the "official" replacement for 'GiList'):
 # http://eutils.ncbi.nlm.nih.gov/entrez/query/static/efetchseq_help.html
-#In particular, use gb or gp for GenBank or GenPept, use gi for GiList,
-#use fasta for FASTA, and several other changes.
-#Until we get a complete accounting of what all the changes are, treat the
-#rettypes below with extreme caution and experiment in the interpreter.
+# In particular, use gb or gp for GenBank or GenPept, use gi for GiList,
+# use fasta for FASTA, and several other changes.
+# Until we get a complete accounting of what all the changes are, treat the
+# rettypes below with extreme caution and experiment in the interpreter.
 rettypes = {}
 rettypes['pubmed'] = 'DocSum Brief Abstract Citation MEDLINE XML uilist ExternalLink ASN1 pubmed_pubmed pubmed_pubmed_refs pubmed_books_refs pubmed_cancerchromosomes pubmed_cdd pubmed_domains pubmed_gds pubmed_gene pubmed_gene_rif pubmed_genome pubmed_genomeprj pubmed_gensat pubmed_geo pubmed_homologene pubmed_nucleotide pubmed_omim pubmed_pcassay pubmed_pccompound pubmed_pccompound_mesh pubmed_pcsubstance pubmed_pcsubstance_mesh pubmed_pmc pubmed_pmc_refs pubmed_popset pubmed_probe pubmed_protein pubmed_snp pubmed_structure pubmed_unigene pubmed_unists'
 
@@ -114,8 +114,8 @@ rettypes['unigene'] = 'DocSum Brief ExternalLink unigene_unigene unigene_unigene
 
 rettypes['unists'] = 'DocSum Brief ExternalLink unists_gene unists_nucleotide unists_omim unists_pmc unists_pubmed unists_snp unists_taxonomy unists_unigene'
 
-#convert into dict of known rettypes for efficient lookups -- don't want to
-#scan list every time.
+# convert into dict of known rettypes for efficient lookups -- don't want to
+# scan list every time.
 for key, val in list(rettypes.items()):
     rettypes[key] = dict.fromkeys(val.split())
 
@@ -168,7 +168,7 @@ def str_constructor(node):
     """Makes an str out of node's first textnode child."""
     return str(node.firstChild.data)
 
-#the following are the only keys we explicitly handle now:
+# the following are the only keys we explicitly handle now:
 #(note difference in capitalization from parameters passed in)
 esearch_constructors = {'Count': int_constructor, 'RetMax': int_constructor,\
                         'RetStart': int_constructor, 'QueryKey': int_constructor, \
@@ -179,17 +179,17 @@ def ESearchResultParser(result_as_string):
     if '414 Request-URI Too Large' in result_as_string:
         raise ValueError("Tried to pass too large an URI:\n" + result_as_string)
     doc = parseString(result_as_string)
-    #assume one query result -- may need to fix
+    # assume one query result -- may need to fix
     query = doc.childNodes[-1]
     result = {}
     for n in query.childNodes:
-        #skip top-level text nodes
+        # skip top-level text nodes
         if n.nodeType == n.TEXT_NODE:
             continue
-        name = str(n.tagName)   #who cares about unicode anyway...
+        name = str(n.tagName)  # who cares about unicode anyway...
         if name in esearch_constructors:
             result[name] = esearch_constructors[name](n)
-        else:   #just keep the data if we don't know what it is
+        else:  # just keep the data if we don't know what it is
             result[name] = n.toxml()
     return ESearchResult(**result)
 
@@ -207,11 +207,11 @@ def ELinkResultParser(text):
             in_links = True
         elif in_links and ('<Id>' in line):
             try:
-                #expect line of form <Id>xxxx</Id>: want xxxx
+                # expect line of form <Id>xxxx</Id>: want xxxx
                 result.append(line.split('>', 1)[1].rsplit('<', 1)[0])
             except (IndexError, TypeError):
                 pass
-        elif '</LinkSetDb>' in line:    #end of block
+        elif '</LinkSetDb>' in line:  # end of block
             break
     return result
 
@@ -225,9 +225,9 @@ class EUtils(object):
         self.retstart = 0  # was originally set to 1
         self.DEBUG = DEBUG
         self.retmax = retmax
-        self.url_limit = url_limit # limits url esearch term size
+        self.url_limit = url_limit  # limits url esearch term size
         self.max_recs = max_recs
-        #adjust retmax if max_recs is set: no point getting more records
+        # adjust retmax if max_recs is set: no point getting more records
         if max_recs is not None and max_recs < retmax:
             self.retmax = max_recs
 
@@ -237,20 +237,20 @@ class EUtils(object):
         Returns a handle to the result (either in memory or file on disk).
         WARNING: result is not guaranteed to contain any data.
         """
-        #check if it's a slice
+        # check if it's a slice
         if isinstance(query, slice):
             #query = expand_slice(query)
             queries = make_lists_of_expanded_slices_of_set_size(query)
             return self.grab_data(queries)
 
-        #check if it's a list -- if so, delimit with ' '
+        # check if it's a list -- if so, delimit with ' '
         if isinstance(query, list) or isinstance(query, tuple):
             #query = ' '.join(map(str, query))
             queries = make_lists_of_accessions_of_set_size(query)
             return self.grab_data(queries)
 
         # most likey a general set of search terms 
-        #e.g. '9606[taxid] OR 28901[taxid]' . So just return.
+        # e.g. '9606[taxid] OR 28901[taxid]' . So just return.
         return self.grab_data([query])
 
     def grab_data(self, queries):
@@ -269,7 +269,7 @@ class EUtils(object):
             returning sets of results from the broken up word based search 
             terms.
         """
-        #figure out where to put the data
+        # figure out where to put the data
         if self.filename:
             result = open(self.filename, 'w')
         else:
@@ -278,7 +278,7 @@ class EUtils(object):
         for query in queries:
             self.term = query
             search_query = ESearch(**self.__dict__)
-            search_query.retmax = 0 #don't want the ids, just want to post search
+            search_query.retmax = 0  # don't want the ids, just want to post search
             if self.DEBUG:
                 print('SEARCH QUERY:')
                 print(str(search_query))
@@ -294,10 +294,10 @@ class EUtils(object):
                 self.query_key = search_result.QueryKey
                 self.WebEnv = search_result.WebEnv
             except AttributeError:
-                #The query_key and/or WebEnv not Found!
-                #GenBank occiasionally does not return these when user attempts
+                # The query_key and/or WebEnv not Found!
+                # GenBank occiasionally does not return these when user attempts
                 # to only fetch data by Accession or UID. So we just
-                #move on to extract UID list directly from the search result
+                # move on to extract UID list directly from the search result
                 try:
                     self.id = ','.join(search_result.IdList)
                 except AttributeError:
@@ -306,19 +306,19 @@ class EUtils(object):
 
             count = search_result.Count
 
-            #wrap the fetch in a loop so we get all the results
+            # wrap the fetch in a loop so we get all the results
             fetch_query = EFetch(**self.__dict__)
             curr_rec = 0
-            #check if we need to get additional ids
+            # check if we need to get additional ids
 
-            if self.max_recs:    #cut off at max_recs if set
+            if self.max_recs:  # cut off at max_recs if set
                 count = min(count, self.max_recs)
                 retmax = min(self.retmax, self.max_recs)
             else:
                 retmax = self.retmax
 
             while curr_rec < count:
-                #do the fetch
+                # do the fetch
                 if count - curr_rec < self.retmax:
                     fetch_query.retmax = count - curr_rec
                 fetch_query.retstart = curr_rec
@@ -326,14 +326,14 @@ class EUtils(object):
                     print('FETCH QUERY')
                     print('CURR REC:', curr_rec, 'COUNT:', count)
                     print(str(fetch_query))
-                #return the result of the fetch
+                # return the result of the fetch
                 curr = fetch_query.read()
                 result.write(curr)
                 if not curr.endswith('\n'):
                     result.write('\n')
                 curr_rec += retmax
                 sleep(self.wait)
-            #clean up after retrieval
+            # clean up after retrieval
         if self.filename:
             result.close()
             return open(self.filename, 'r')
@@ -341,7 +341,7 @@ class EUtils(object):
             result.seek(0)
             return result
 
-#The following are convenience wrappers for some of the above functionality
+# The following are convenience wrappers for some of the above functionality
 
 def get_primary_ids(term, retmax=100, max_recs=None, **kwargs):
     """Gets primary ids from query."""
@@ -356,11 +356,11 @@ def get_primary_ids(term, retmax=100, max_recs=None, **kwargs):
             search_result = ESearchResultParser(cookie)
         else:
             search_result.IdList.extend(ESearchResultParser(cookie).IdList)
-        #set the query key and WebEnv
+        # set the query key and WebEnv
         search_query.query_key = search_result.QueryKey
         search_query.WebEnv = search_result.WebEnv
 
-        #if more results than retmax, keep adding results
+        # if more results than retmax, keep adding results
         if max_recs:
             recs_to_get = min(max_recs, search_result.Count)
         else:
@@ -386,8 +386,8 @@ def taxon_lineage_extractor(lines):
     """Extracts lineage from taxonomy record lines, not incl. species."""
     for line in lines:
         if '<Lineage>' in line:
-            #expect line of form <Lineage>xxxx</Lineage> where xxxx semicolon-
-            #delimited
+            # expect line of form <Lineage>xxxx</Lineage> where xxxx semicolon-
+            # delimited
             between_tags = line.split('>', 1)[1].rsplit('<', 1)[0]
             yield list(map(strip, between_tags.split(';')))
 
@@ -418,7 +418,7 @@ def get_taxa_names_lineages(lines):
             yield curr
 
 
-#def taxon_ids_to_names_and_lineages(ids, retmax=1000):
+# def taxon_ids_to_names_and_lineages(ids, retmax=1000):
 #    """Yields taxon id, name and lineage for a set of taxon ids."""
 #    e = EUtils(db='taxonomy', rettype='TxInfo', retmode='xml', retmax=retmax,
 #        DEBUG=False)
@@ -456,7 +456,7 @@ def parse_taxonomy_using_elementtree_xml_parse(search_result):
             # 'GeneticCode', 'GCId', 'GCName', etc... <-- These values at this 
             # level have whitespace, so we just ignore. Must traverse deeper to
             # obtain this information. Again, may implement in the future if 
-            #needed
+            # needed
             if value == '':
                 continue
             else:
@@ -469,7 +469,7 @@ def taxon_ids_to_names_and_lineages(ids, retmax=1000):
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
                DEBUG=False)
     fids = fix_taxon_ids(ids)
-    #print '\nids: ',fids
+    # print '\nids: ',fids
     result = StringIO()
     result.write(e[fids].read())
     result.seek(0)
@@ -487,10 +487,10 @@ def taxon_ids_to_lineages(ids, retmax=1000):
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,
                DEBUG=False)
     result = e[ids].read().splitlines()
-    #print result
+    # print result
     return taxon_lineage_extractor(result)
 
-#def taxon_ids_to_names(ids, retmax=1000):
+# def taxon_ids_to_names(ids, retmax=1000):
 #    """Returns names (e.g. species) from set of taxon ids.
 #
 #    WARNING: Resulting lineages aren't in the same order as input. Use

@@ -23,10 +23,10 @@ class functionTests(TestCase):
         """ratio_two_best should return ratio of two biggest items in list"""
         v = array([3, 2, 5, 2, 4, 10, 3])
         self.assertEqual(ratio_two_best(v), 2)
-        #should return 1 if items the same
+        # should return 1 if items the same
         v = array([2, 2, 2, 2, 2])
         self.assertEqual(ratio_two_best(v), 1)
-        #check that it works on floating-point
+        # check that it works on floating-point
         v = array([3, 2, 1])
         self.assertEqual(ratio_two_best(v), 1.5)
 
@@ -36,7 +36,7 @@ class functionTests(TestCase):
         self.assertFloatEqual(ratio_best_to_sum(v), 10 / 29.0)
         v = [2, 2, 2, 2, 2]
         self.assertEqual(ratio_best_to_sum(v), 2 / 10.0)
-        #check that it works on floating-point
+        # check that it works on floating-point
         v = [3, 2, 1]
         self.assertEqual(ratio_best_to_sum(v), 0.5)
 
@@ -62,9 +62,9 @@ class functionTests(TestCase):
     def test_dists_from_v(self):
         """dists_from_v should return distance of each item from v, or mean"""
         m = [[1, 2, 3, 4], [2, 3, 4, 5], [0, 1, 2, 3]]
-        #should calculate distances from mean by default
+        # should calculate distances from mean by default
         self.assertEqual(dists_from_v(m), array([0.0, 2.0, 2.0]))
-        #should caculate distances from vector if supplied
+        # should caculate distances from vector if supplied
         v = array([2, 2, 2, 3])
         self.assertEqual(dists_from_v(m, v), sqrt(array([3, 9, 5])))
 

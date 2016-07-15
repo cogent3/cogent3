@@ -46,7 +46,7 @@ def convert2DDict(twoDdict, header=None, row_order=None):
         header = list(twoDdict.keys())
         header.sort()
 
-    if not row_order: # we assume rows consistent across dict
+    if not row_order:  # we assume rows consistent across dict
         row_order = list(twoDdict[header[0]].keys())
         row_order.sort()
 
@@ -790,7 +790,7 @@ class Table(DictArray):
         # create new 2d list for the output
         joined_table = []
 
-        #resolve column indices from Header, if necessary
+        # resolve column indices from Header, if necessary
         columns_self_indices = []
         columns_other_indices = []
         for col in columns_self:
@@ -817,7 +817,7 @@ class Table(DictArray):
         key_lookup = {}
         row_index = 0
         for row in other_table:
-            #insert new entry for each row
+            # insert new entry for each row
             key = tuple([row[col] for col in columns_other_indices])
             if key in key_lookup:
                 key_lookup[key].append(row_index)
@@ -858,7 +858,7 @@ class Table(DictArray):
         if type(indices) == str:
             assert col_sum, "Must use row integer indices"
             indices = self.Header.index(indices)
-        elif type(indices) == int: # a single index
+        elif type(indices) == int:  # a single index
             indices = [indices]
         elif not all:
             raise RuntimeError("unknown indices type: %s" % indices)
@@ -948,7 +948,7 @@ class Table(DictArray):
                                                                len(transposed)))
 
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
-        header = [new_column_name] + header[1:] # [1:] slice excludes old name
+        header = [new_column_name] + header[1:]  # [1:] slice excludes old name
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
 

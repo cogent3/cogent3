@@ -14,9 +14,9 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 class UrlGetter(object):
-    Defaults = {}       #override in derived classes -- default values
-    PrintedFields = {}  #override in derived classes -- fields to print
-    BaseUrl = ''        #override in derived classes
+    Defaults = {}  # override in derived classes -- default values
+    PrintedFields = {}  # override in derived classes -- fields to print
+    BaseUrl = ''  # override in derived classes
     KeyValDelimiter = '='
     FieldDelimiter = '&'
 
@@ -64,7 +64,7 @@ def expand_slice(s):
     Both accessions must have the same non-numeric prefix.
     """
     start, step, end = s.start, s.step, s.stop
-    #find where the number is
+    # find where the number is
     start_index = last_nondigit_index(start)
     end_index = last_nondigit_index(end)
     prefix = start[:start_index]
@@ -120,5 +120,5 @@ def last_nondigit_index(s):
     for i in range(len(s)):
         if s[i:].isdigit():
             return i
-    #if we get here, there weren't any trailing digits
+    # if we get here, there weren't any trailing digits
     return None

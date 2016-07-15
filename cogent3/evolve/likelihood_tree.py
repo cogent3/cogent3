@@ -24,7 +24,7 @@ __status__ = "Production"
 
 try:
     from . import _likelihood_tree as pyrex
-    #pyrex = importVersionedModule('_likelihood_tree', globals(), 
+    # pyrex = importVersionedModule('_likelihood_tree', globals(), 
             #(2, 1), "pure Python/NumPy likelihoodihood tree")
 except ImportError:
     pyrex = None
@@ -44,7 +44,7 @@ class _LikelihoodTreeEdge(object):
             # The children are pre-aligned gapped sequences
             assignments = [c.index for c in children]
         else:
-            self.alignment = alignment  #XXX preserve through MPI split?
+            self.alignment = alignment  # XXX preserve through MPI split?
             # The children are ungapped sequences, 'alignment'
             # indicates where gaps need to go.
             assignments = []
@@ -53,7 +53,7 @@ class _LikelihoodTreeEdge(object):
                 for align_index in alignment:
                     col = align_index[i]
                     if col is None:
-                        u = len(c.uniq) - 1 # gap
+                        u = len(c.uniq) - 1  # gap
                     else:
                         u = c.index[col]
                         assert 0 <= u < len(c.uniq) - 1, (
@@ -103,11 +103,11 @@ class _LikelihoodTreeEdge(object):
         if comm is None or comm.Get_size() == 1:
             return self
         assert self.comm is None
-        U = len(self.uniq) - 1 # Gap column
+        U = len(self.uniq) - 1  # Gap column
         (size, rank) = (comm.Get_size(), comm.Get_rank())
         (share, remainder) = divmod(U, size)
         if share == 0:
-            return self # not enough to share
+            return self  # not enough to share
         share_sizes = [share + 1] * remainder + [share] * (size - remainder)
         assert sum(share_sizes) == U
         (lo, hi) = [sum(share_sizes[:i]) for i in (rank, rank + 1)]

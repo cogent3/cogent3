@@ -26,36 +26,36 @@ class GenBankTests(TestCase):
         result = parse_locus(line)
         self.assertEqual(len(result), 6)
         self.assertEqual(result['locus'], 'AF108830')
-        self.assertEqual(result['length'], 5313)    #note: int, not str
+        self.assertEqual(result['length'], 5313)  # note: int, not str
         self.assertEqual(result['mol_type'], 'mRNA')
         self.assertEqual(result['topology'], 'linear')
         self.assertEqual(result['db'], 'PRI')
         self.assertEqual(result['date'], '19-MAY-1999')
-        #should work if some of the fields are missing
+        # should work if some of the fields are missing
         line = 'LOCUS       AF108830                5313'
         result = parse_locus(line)
         self.assertEqual(len(result), 2)
         self.assertEqual(result['locus'], 'AF108830')
-        self.assertEqual(result['length'], 5313)    #note: int, not str
+        self.assertEqual(result['length'], 5313)  # note: int, not str
 
     def test_parse_single_line(self):
         """parse_single_line should split off the label and return the rest"""
         line_1 = 'VERSION     AF108830.1  GI:4868112\n'
         self.assertEqual(parse_single_line(line_1), 'AF108830.1  GI:4868112')
-        #should work if leading spaces
+        # should work if leading spaces
         line_2 = '      VERSION     AF108830.1  GI:4868112\n'
         self.assertEqual(parse_single_line(line_2), 'AF108830.1  GI:4868112')
 
     def test_indent_splitter(self):
         """indent_splitter should split lines at correct locations"""
-        #if lines have same indent, should not group together
+        # if lines have same indent, should not group together
         lines = [
             'abc    xxx',
             'def    yyy'
         ]
         self.assertEqual(list(indent_splitter(lines)),\
                          [[lines[0]], [lines[1]]])
-        #if second line is indented, should group with first
+        # if second line is indented, should group with first
         lines = [
             'abc    xxx',
             ' def    yyy'
@@ -63,7 +63,7 @@ class GenBankTests(TestCase):
         self.assertEqual(list(indent_splitter(lines)),\
                          [[lines[0], lines[1]]])
 
-        #if both lines indented but second is more, should group with first
+        # if both lines indented but second is more, should group with first
         lines = [
             ' abc    xxx',
             '  def    yyy'
@@ -71,7 +71,7 @@ class GenBankTests(TestCase):
         self.assertEqual(list(indent_splitter(lines)),\
                          [[lines[0], lines[1]]])
 
-        #if both lines indented equally, should not group
+        # if both lines indented equally, should not group
         lines = [
             '   abc    xxx',
             '   def    yyy'
@@ -79,25 +79,25 @@ class GenBankTests(TestCase):
         self.assertEqual(list(indent_splitter(lines)), \
                          [[lines[0]], [lines[1]]])
 
-        #for more complex situation, should produce correct grouping
+        # for more complex situation, should produce correct grouping
         lines = [
-            '  xyz',    #0 -
-            '  xxx',    #1 -
-            '   yyy',   #2
-            '   uuu',   #3
-            '   iii',   #4
-            '  qaz',    #5 -
-            '  wsx',    #6 -
-            '   az',    #7
-            '   sx',    #8
-            '        gb',#9
-            '   bg',    #10
-            '  aaa',    #11 -
+            '  xyz',  # 0 -
+            '  xxx',  # 1 -
+            '   yyy',  # 2
+            '   uuu',  # 3
+            '   iii',  # 4
+            '  qaz',  # 5 -
+            '  wsx',  # 6 -
+            '   az',  # 7
+            '   sx',  # 8
+            '        gb',  # 9
+            '   bg',  # 10
+            '  aaa',  # 11 -
         ]
         self.assertEqual(list(indent_splitter(lines)), \
                          [[lines[0]], lines[1:5], [lines[5]], lines[6:11], [lines[11]]])
 
-        #real example from genbank file
+        # real example from genbank file
         lines = \
         """LOCUS       NT_016354           92123751 bp    DNA     linear   CON 29-AUG-2006
 DEFINITION  Homo sapiens chromosome 4 genomic contig, reference assembly.
@@ -155,7 +155,7 @@ ORIGIN
 
     def test_parse_organism(self):
         """parse_organism should return species, taxonomy (up to genus)"""
-        #note: lines modified to include the following:
+        # note: lines modified to include the following:
         # - multiword names
         # - multiword names split over a line break
         # - periods and other punctuation in names
@@ -211,8 +211,8 @@ ORIGIN
         result = parse_feature(short_feature)
         self.assertEqual(result['type'], 'D-loop')
         self.assertEqual(result['raw_location'], ['15418..16866'])
-        #can get more than one = in a line
-        #from AF260826  
+        # can get more than one = in a line
+        # from AF260826  
         bad_feature = \
         """     tRNA            1173..1238
                      /note="codon recognized: AUC; Cove score = 16.56"
@@ -221,8 +221,8 @@ ORIGIN
         result = parse_feature(bad_feature.split('\n'))
         self.assertEqual(result['note'], \
                          ['codon recognized: AUC; Cove score = 16.56'])
-        #need not always have an = in a line
-        #from NC_001807
+        # need not always have an = in a line
+        # from NC_001807
         bad_feature = \
         '''     mRNA            556
      /partial
@@ -258,7 +258,7 @@ ORIGIN
         self.assertEqual(second._data, 50)
         self.assertEqual(str(l), '40..50')
         self.assertEqual(l.Strand, 1)
-        #should handle ambiguous starts and ends
+        # should handle ambiguous starts and ends
         l = lsp('>37')
         self.assertEqual(l._data, 37)
         self.assertEqual(str(l), '>37')
@@ -290,7 +290,7 @@ ORIGIN
             llt(['join(complement(123..456), complement(345..678))']))
         self.assertEqual(str(r), \
                          'join(complement(123..456),complement(345..678))')
-        #try some nested joins and complements
+        # try some nested joins and complements
         r = parse_location_line(llt(\
             ['complement(join(1..2,3..4,complement(5..6),',
              'join(7..8,complement(9..10))))']))
@@ -415,7 +415,7 @@ class LocationListTests(TestCase):
         s = ll.extract('ACGTGCAGTCAGTAGCAT')
         #               123456789012345678
         self.assertEqual(s, 'G' + 'TGC' + 'CAG')
-        #check a case where it wraps around
+        # check a case where it wraps around
         l5_a = Location(16)
         l5_b = Location(4)
         l5 = Location([l5_a, l5_b])

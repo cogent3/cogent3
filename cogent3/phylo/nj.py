@@ -111,7 +111,7 @@ class PartialTree(object):
         return type(self)(d, nodes, tips, score)
 
     def asScoreTreeTuple(self):
-        assert len(self.nodes) == 3 # otherwise next line needs generalizing
+        assert len(self.nodes) == 3  # otherwise next line needs generalizing
         lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d) / 4
         root = LightweightTreeNode(list(zip(lengths, self.nodes)))
         tree = root.convert()

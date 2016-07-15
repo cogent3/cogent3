@@ -39,15 +39,15 @@ def clustal_from_alignment(aln, interleave_len=None):
                          "Cannot generate Clustal format.")
 
     aln_len = seqs.SeqLen
-    #Get all labels
+    # Get all labels
     labels = copy(seqs.Names)
 
-    #Find all label lengths in order to get padding.
+    # Find all label lengths in order to get padding.
     label_lengths = [len(l) for l in labels]
     label_max = max(label_lengths)
     max_spaces = label_max + 4
 
-    #Get ordered seqs
+    # Get ordered seqs
     ordered_seqs = [seqs.NamedSeqs[label] for label in order]
 
     if interleave_len is not None:

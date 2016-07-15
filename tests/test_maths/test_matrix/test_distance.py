@@ -424,7 +424,7 @@ class DistanceMatrixTests(TestCase):
                          '-\ta\tb\tc\na\t1\t2\t3\nb\t2\t4\t6\nc\t3\t6\t9')
         self.assertEqual(d.toDelimited(headers=False), \
                          '1\t2\t3\n2\t4\t6\n3\t6\t9')
-        #set up a custom formatter...
+        # set up a custom formatter...
         def my_formatter(x):
             try:
                 return '%1.1f' % x

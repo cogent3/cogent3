@@ -54,12 +54,12 @@ class NcbiTaxonTests(TestCase):
         good_2 = '''2\t|\t1\t|\tsuperkingdom\t|\t\t|\t0\t|\t0\t|\t11\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|\n'''
         good_3 = '''6\t|\t2\t|\tgenus\t|\t\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t|\n'''
         good_4 = '''7\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n'''
-        node_1 = NcbiTaxon(good_1) #make a NcbiTaxon object
-        node_2 = NcbiTaxon(good_2) #from the corresponding
-        node_3 = NcbiTaxon(good_3) #line.
+        node_1 = NcbiTaxon(good_1)  # make a NcbiTaxon object
+        node_2 = NcbiTaxon(good_2)  # from the corresponding
+        node_3 = NcbiTaxon(good_3)  # line.
         node_4 = NcbiTaxon(good_4)
-        self.assertEqual(node_1.Rank, 'no rank') #confirm object holds
-        self.assertEqual(node_1.RankId, 28)      #right data
+        self.assertEqual(node_1.Rank, 'no rank')  # confirm object holds
+        self.assertEqual(node_1.RankId, 28)  # right data
         self.assertEqual(node_1.ParentId, 1)   
         self.assertEqual(node_2.Rank, 'superkingdom')
         self.assertEqual(node_2.RankId, 27)
@@ -70,7 +70,7 @@ class NcbiTaxonTests(TestCase):
         self.assertEqual(node_4.Rank, 'species')
         self.assertEqual(node_4.RankId, 4)
         self.assertEqual(node_4.ParentId, 6)
-        #test some comparisons
+        # test some comparisons
         assert node_1 > node_2
         assert node_1 > node_3
         assert node_1 > node_4
@@ -91,8 +91,8 @@ class NcbiTaxonTests(TestCase):
 
     def test_bad_input(self):
         """NcbiTaxon init should raise ValueError if nodes missing"""
-        bad_node_taxid = '''\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n''' #contains no taxon_id; not valid
-        bad_node_parentid = '''7\t|\t\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n''' #contains no parent_id; not valid
+        bad_node_taxid = '''\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n'''  # contains no taxon_id; not valid
+        bad_node_parentid = '''7\t|\t\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|\n'''  # contains no parent_id; not valid
         self.assertRaises(ValueError, NcbiTaxon, bad_node_taxid)
         self.assertRaises(ValueError, NcbiTaxon, bad_node_parentid)
 
@@ -104,13 +104,13 @@ class NcbiNameTests(TestCase):
         line_2 = '''1\t|\troot\t|\t\t|\tscientific name\t|\n'''
         line_3 = '''2\t|\tBacteria\t|\tBacteria <bacteria>\t|\tscientific name\t|\n'''
         line_4 = '''7\t|\tAzorhizobium caulinodans\t|\t\t|\tscientific name\t|\n'''
-        name_1 = NcbiName(line_1) #make an NcbiName object
-        name_2 = NcbiName(line_2) #from the corresponding line
+        name_1 = NcbiName(line_1)  # make an NcbiName object
+        name_2 = NcbiName(line_2)  # from the corresponding line
         name_3 = NcbiName(line_3)
         name_4 = NcbiName(line_4)
-        self.assertEqual(name_1.TaxonId, 1)             #test that the data
-        self.assertEqual(name_1.NameClass, 'synonym')   #fields in the object
-        self.assertEqual(name_2.TaxonId, 1)             #hold right data
+        self.assertEqual(name_1.TaxonId, 1)  # test that the data
+        self.assertEqual(name_1.NameClass, 'synonym')  # fields in the object
+        self.assertEqual(name_2.TaxonId, 1)  # hold right data
         self.assertEqual(name_2.NameClass, 'scientific name')
         self.assertEqual(name_3.TaxonId, 2)
         self.assertEqual(name_3.NameClass, 'scientific name')
@@ -125,7 +125,7 @@ class NcbiNameTests(TestCase):
 
     def test_bad_input(self):
         """NcbiName init should raise correct errors on bad data"""
-        bad_name_taxid = '''\t|\troot\t|\t\t|\tscientific name\t|\n'''#no tax_id
+        bad_name_taxid = '''\t|\troot\t|\t\t|\tscientific name\t|\n'''  # no tax_id
         self.assertRaises(ValueError, NcbiName, bad_name_taxid)
 
 class NcbiNameLookupTest(TestCase):
@@ -133,16 +133,16 @@ class NcbiNameLookupTest(TestCase):
 
     def test_init(self):
         """NcbiNameLookup should map taxon ids to scientific names"""
-        names = list(NcbiNameParser(good_names)) #list of objects
-        sci_names = NcbiNameLookup(names) #NcbiNameLookup object
-        root = names[1] #NcbiName object made from 2nd line of good_name_file
-        bacteria = names[2] #from 3rd line of good_name_file
+        names = list(NcbiNameParser(good_names))  # list of objects
+        sci_names = NcbiNameLookup(names)  # NcbiNameLookup object
+        root = names[1]  # NcbiName object made from 2nd line of good_name_file
+        bacteria = names[2]  # from 3rd line of good_name_file
         azorhizobium = names[7]
         caulinodans = names[8]
-        assert (sci_names[1] is root)         #gets NcbiName object from the
-        assert (sci_names[2] is bacteria)     #NcbiNameLookup object and
-        assert (sci_names[6] is azorhizobium) #asks if it is the original 
-        assert (sci_names[7] is caulinodans)  #NcbiName object
+        assert (sci_names[1] is root)  # gets NcbiName object from the
+        assert (sci_names[2] is bacteria)  # NcbiNameLookup object and
+        assert (sci_names[6] is azorhizobium)  # asks if it is the original 
+        assert (sci_names[7] is caulinodans)  # NcbiName object
         self.assertEqual(sci_names[1].Name, 'root')
         self.assertEqual(sci_names[2].Name, 'Bacteria')
         self.assertEqual(sci_names[7].Name, 'Azorhizobium caulinodans')
@@ -159,20 +159,20 @@ class NcbiTaxonLookupTest(TestCase):
 
     def test_init(self):
         """NcbiTaxonLookup should have correct fields for input NcbiTaxon"""
-        line1_obj = self.nodes[0] #NcbiTaxon objects made from lines of 
-        line2_obj = self.nodes[1] #good_node_file
+        line1_obj = self.nodes[0]  # NcbiTaxon objects made from lines of 
+        line2_obj = self.nodes[1]  # good_node_file
         line3_obj = self.nodes[2]
         line4_obj = self.nodes[3]
         line5_obj = self.nodes[4]
-        assert (self.taxID_to_obj[1] is line1_obj) #gets NcbiTaxon object from
-        assert (self.taxID_to_obj[2] is line2_obj) #NcbiTaxonLookup object &
-        assert (self.taxID_to_obj[6] is line3_obj) #asks if it is the original
-        assert (self.taxID_to_obj[7] is line4_obj) #NcbiTaxon object
+        assert (self.taxID_to_obj[1] is line1_obj)  # gets NcbiTaxon object from
+        assert (self.taxID_to_obj[2] is line2_obj)  # NcbiTaxonLookup object &
+        assert (self.taxID_to_obj[6] is line3_obj)  # asks if it is the original
+        assert (self.taxID_to_obj[7] is line4_obj)  # NcbiTaxon object
         assert (self.taxID_to_obj[9] is line5_obj)
-        self.assertEqual(self.taxID_to_obj[1].ParentId, 1) #checking a few
-        self.assertEqual(self.taxID_to_obj[2].ParentId, 1) #individual
-        self.assertEqual(self.taxID_to_obj[6].ParentId, 2) #fields of the
-        self.assertEqual(self.taxID_to_obj[7].ParentId, 6) #NcbiTaxon objs
+        self.assertEqual(self.taxID_to_obj[1].ParentId, 1)  # checking a few
+        self.assertEqual(self.taxID_to_obj[2].ParentId, 1)  # individual
+        self.assertEqual(self.taxID_to_obj[6].ParentId, 2)  # fields of the
+        self.assertEqual(self.taxID_to_obj[7].ParentId, 6)  # NcbiTaxon objs
         self.assertEqual(self.taxID_to_obj[9].ParentId, 7)
         self.assertEqual(self.taxID_to_obj[1].Rank, 'no rank') 
         self.assertEqual(self.taxID_to_obj[2].Rank, 'superkingdom')

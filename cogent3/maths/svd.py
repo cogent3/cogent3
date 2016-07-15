@@ -2,10 +2,10 @@
 """Performs singular-value decomposition on a set of Q-matrices."""
 
 
-from cogent3.maths.stats.test import std # numpy.std is biased
+from cogent3.maths.stats.test import std  # numpy.std is biased
 from cogent3.maths.matrix_exponentiation import FastExponentiator as expm
 from cogent3.maths.matrix_logarithm import logm
-#note: corrcoef and cov assume rows are observations, cols are variables
+# note: corrcoef and cov assume rows are observations, cols are variables
 from numpy import log, newaxis as NewAxis, array, zeros, product, sqrt, ravel,\
     sum, sort, reshape, corrcoef, cov, mean
 from numpy.random import random
@@ -30,7 +30,7 @@ def ratio_two_best(eigenvalues):
     try:
         sorted = sort(eigenvalues)
         return sorted[-1] / sorted[-2]
-    except TypeError:   #probably complex-valued
+    except TypeError:  # probably complex-valued
         eigs = abs(eigenvalues)
         sorted = sort(eigs)
         return sorted[-1] / sorted[-2]
@@ -42,7 +42,7 @@ def ratio_best_to_sum(eigenvalues):
     try:
         sorted = sort(eigenvalues)
         return sorted[-1] / sum(eigenvalues, axis=0)
-    except TypeError:   #probably complex-valued
+    except TypeError:  # probably complex-valued
         eigs = abs(eigenvalues)
         sorted = sort(eigs)
         return sorted[-1] / sum(eigenvalues, axis=0)

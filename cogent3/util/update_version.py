@@ -68,7 +68,7 @@ class VersionUpdater(object):
         """Support method, provides relative locations for files in base dir"""
         setup_file = path.join(self.PyCogentDirectory, 'setup.py')
         #reqs_file = path.join(self.PyCogentDirectory, 'cogent-requirements.txt')
-        #return [(setup_file, 'Python'), (reqs_file, 'Properties')]
+        # return [(setup_file, 'Python'), (reqs_file, 'Properties')]
         return [(setup_file, 'Python')]
 
     def _get_test_files(self):

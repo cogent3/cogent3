@@ -129,7 +129,7 @@ class BootstrapTests(unittest.TestCase):
 
         # check the returned sample LR's for being > 0.0
         for sample_LR in prob_bstrap.getSampleLRList():
-            #print sample_LR
+            # print sample_LR
             assert float_ge_zero(sample_LR), sample_LR
 
         # check the returned observed lnL fulfill this assertion too, really
@@ -139,7 +139,7 @@ class BootstrapTests(unittest.TestCase):
 
         # now check the structure of the returned sample
         for snull, salt in prob_bstrap.getSamplelnL():
-            #print salt, snull, 2*(salt-snull)
+            # print salt, snull, 2*(salt-snull)
             assert float_ge_zero(2 * (salt - snull))
 
         # be sure we get something back from getprob if proc rank is 0

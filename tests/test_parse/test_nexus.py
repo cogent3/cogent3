@@ -203,11 +203,11 @@ class NexusParserTests(TestCase):
         """parse_nexus_tree returns a dnd string and a translation table list"""
         Trans_table, dnd = parse_nexus_tree(Nexus_tree)
 
-        #check the full dendrogram string is returned
+        # check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
                          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
-        #check that all taxa are returned in the Trans_table
+        # check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
         self.assertEqual(Trans_table['2'], 'AF078391l')
         self.assertEqual(Trans_table['3'], 'AF078211af')
@@ -218,7 +218,7 @@ class NexusParserTests(TestCase):
         self.assertEqual(Trans_table['20'], 'AF078179af')
         self.assertEqual(Trans_table['19'], 'AF078251af')
 
-        #check that Nexus files without translation table work
+        # check that Nexus files without translation table work
         Trans_table, dnd = parse_nexus_tree(Nexus_tree_2)
         self.assertEqual(Trans_table, None)
         self.assertEqual(dnd['tree nj'], '((((((((((YA10260L1:0.01855,SARAG06_Y:0.00367):0.01965,(((YA270L1G0:0.01095,SARAD10_Y:0.00699):0.01744,YA270L1A0:0.04329):0.00028,((YA165L1C1:0.01241,SARAA02_Y:0.02584):0.00213,((YA165L1H0:0.00092,SARAF10_Y:-0.00092):0.00250,(YA165L1A0:0.00177,SARAH10_Y:0.01226):0.00198):0.00131):0.00700):0.01111):0.11201,(YA160L1F0:0.00348,SARAG01_Y:-0.00122):0.13620):0.01202,((((YRM60L1D0:0.00357,(YRM60L1C0:0.00477,SARAE10_Y:-0.00035):0.00086):0.00092,SARAE03_Y:0.00126):0.00125,SARAC11_Y:0.00318):0.00160,YRM60L1H0:0.00593):0.09975):0.07088,SARAA01_Y:0.02880):0.00190,SARAB04_Y:0.05219):0.00563,YRM60L1E0:0.06099):0.00165,(YRM60L1H0:0.00450,SARAF11_Y:0.01839):0.00288):0.00129,YRM60L1B1:0.00713):0.00194,(YRM60L1G0:0.00990,(YA165L1G0:0.00576,(YA160L1G0:0.01226,SARAA11_Y:0.00389):0.00088):0.00300):0.00614,SARAC06_Y:0.00381);')
@@ -228,11 +228,11 @@ class NexusParserTests(TestCase):
         """remove single quotes from tree and translate tables"""
         Trans_table, dnd = parse_nexus_tree(Nexus_tree_3)
 
-        #check the full dendrogram string is returned
+        # check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
                          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
-        #check that all taxa are returned in the Trans_table
+        # check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
         self.assertEqual(Trans_table['2'], 'AF078391l')
         self.assertEqual(Trans_table['3'], 'AF078211af')
@@ -282,7 +282,7 @@ class NexusParserTests(TestCase):
 
         self.assertEqual(len(Trans_table), 21)
 
-        #check that taxa are returned in the Trans_table
+        # check that taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
         self.assertEqual(Trans_table['2'], 'AF078391l')
         self.assertEqual(Trans_table['3'], 'AF078211af')
@@ -343,6 +343,6 @@ class NexusParserTests(TestCase):
 
 
 
-#run if called from command line
+# run if called from command line
 if __name__ == '__main__':
     main()

@@ -219,7 +219,7 @@ class CoordSystemCache(object):
     # this attribute is a very _public_ attribute, and serves as a cache to
     # reduce unecessary lookups
     _species_coord_systems = {}
-    columns = ['coord_system_id', 'name', 'rank', 'attrib'] # columns needed from coord_system table
+    columns = ['coord_system_id', 'name', 'rank', 'attrib']  # columns needed from coord_system table
     # the attrib property has sequence_level, which means this the coordinate system employed for sequence
     def _set_species_system(self, core_db, species):
         if species in self._species_coord_systems:
@@ -235,7 +235,7 @@ class CoordSystemCache(object):
                 vals = {}
                 for column in self.columns:
                     val = record[column]
-                    if isinstance(val, set): # join items in set to one string
+                    if isinstance(val, set):  # join items in set to one string
                         try:
                             val = ", ".join(sorted(val))
                         except TypeError:

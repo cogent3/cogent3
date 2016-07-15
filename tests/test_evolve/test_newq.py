@@ -38,7 +38,7 @@ def _trinuc_root_probs(x, y, z):
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
     instantaneous rate matrix"""
-    Q = ones((4, 4), float) * 0.25 # assumes equi-frequent mprobs at root
+    Q = ones((4, 4), float) * 0.25  # assumes equi-frequent mprobs at root
     for i in range(4):
         Q[i, i] = 0.0
     Q[coord] *= val

@@ -19,7 +19,7 @@ class SpanTests(TestCase):
     def setUp(self):
         """Define some standard Spans"""
         self.empty = Span(0, 0)
-        self.full = Span(35, 30)    #will convert to (30, 35) internally
+        self.full = Span(35, 30)  # will convert to (30, 35) internally
         self.overlapping = Span(32, 36)
         self.inside = Span(31, 32)
         self.before = Span(25, 30)
@@ -33,17 +33,17 @@ class SpanTests(TestCase):
         self.assertEqual(s.Start, 0)
         self.assertEqual(s.End, 1)
         self.assertEqual(s.Reverse, False)
-        #to get an empty interval, must specify start and end explicitly
+        # to get an empty interval, must specify start and end explicitly
         t = Span(0, 0)
         self.assertEqual(t.Start, 0)
         self.assertEqual(t.End, 0)
         self.assertEqual(t.Reverse, False)
-        #should be able to specify direction also
+        # should be able to specify direction also
         u = Span(5, 15, Reverse=True)
         self.assertEqual(u.Start, 5)
         self.assertEqual(u.End, 15)
         self.assertEqual(u.Reverse, True)
-        #should be able to init from another span
+        # should be able to init from another span
         v = Span(u)
         self.assertEqual(v.Start, 5)
         self.assertEqual(v.End, 15)
@@ -246,7 +246,7 @@ class SpanTests(TestCase):
         self.assertTrue(e.endsInside(Span(0, 1)))
         self.assertFalse(e.endsInside(Span(-1, 0)))
 
-class RangeInterfaceTests(object): #SpanTests):
+class RangeInterfaceTests(object):  # SpanTests):
     """A single-element Range should behave like the corresponding Span."""
     def setUp(self):
         """Define some standard Spans"""
@@ -261,8 +261,8 @@ class RangeInterfaceTests(object): #SpanTests):
 
     def test_str(self):
         """Range str should print start, stop, reverse for each Span"""
-        #note that the Range adds an extra level of parens, since it can
-        #contain more than one Span.
+        # note that the Range adds an extra level of parens, since it can
+        # contain more than one Span.
         self.assertEqual(str(self.empty), '((0,0,False))')
         self.assertEqual(str(self.full), '((30,35,False))')
         self.assertEqual(str(self.reverse), '((30,35,True))')
@@ -284,20 +284,20 @@ class RangeTests(TestCase):
 
     def test_init(self):
         """Range init from Spans, numbers, or Ranges should work OK."""
-        #single span
+        # single span
         self.assertEqual(self.one, Span(0, 100))
-        #list of spans
+        # list of spans
         self.assertEqual(self.two.Spans, [Span(3, 5), Span(8, 11)])
-        #another range
+        # another range
         self.assertEqual(self.two, self.twocopy)
-        #list of ranges
+        # list of ranges
         self.assertEqual(self.twothree.Spans, [Span(3, 5), Span(8, 11),
                                                Span(6, 7), Span(15, 17), Span(30, 35)])
-        #list of numbers
+        # list of numbers
         self.assertEqual(self.singles.Spans, [Span(3, 4), Span(11, 12)])
-        #single number
+        # single number
         self.assertEqual(self.single.Spans, [Span(0, 1)])
-        #nothing
+        # nothing
         self.assertEqual(Range().Spans, [])
 
     def test_str(self):
@@ -369,17 +369,17 @@ class RangeTests(TestCase):
         self.assertContains(self.three, 34)
         self.assertNotContains(self.three, 35)
         self.assertNotContains(self.three, 40)
-        #should work if a span is added
+        # should work if a span is added
         self.three.Spans.append(40)
         self.assertContains(self.three, 40)
-        #should work for spans
+        # should work for spans
         self.assertContains(self.three, Span(31, 33))
         self.assertNotContains(self.three, Span(31, 37))
-        #span contains itself
+        # span contains itself
         self.assertContains(self.two, self.twocopy)
-        #should work for ranges
+        # should work for ranges
         self.assertContains(self.three, Range([6, Span(15, 16), Span(30, 33)]))
-        #should work for copy, except when extra piece added
+        # should work for copy, except when extra piece added
         threecopy = Range(self.three)
         self.assertContains(self.three, threecopy)
         threecopy.Spans.append(1000)
@@ -393,7 +393,7 @@ class RangeTests(TestCase):
         self.assertTrue(self.two.overlaps(self.one))
         self.assertTrue(self.one.overlaps(self.two))
         self.assertTrue(self.three.overlaps(self.one))
-        #two and three are interleaved but not overlapping
+        # two and three are interleaved but not overlapping
         self.assertFalse(self.two.overlaps(self.three))
         self.assertFalse(self.three.overlaps(self.two))
         self.assertTrue(self.one.overlaps(self.empty))
@@ -443,29 +443,29 @@ class RangeTests(TestCase):
 
     def test_simplify(self):
         """Range reduce should group overlapping ranges"""
-        #consolidate should have no effect when no overlap
+        # consolidate should have no effect when no overlap
         r = self.two
         r.simplify()
         self.assertEqual(r.Spans, [Span(3, 5), Span(8, 11)])
-        #should consolidate an overlap of the same direction
+        # should consolidate an overlap of the same direction
         r.Spans.append(Span(-1, 4))
         r.simplify()
         self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 11)])
-        #should also consolidate _adjacent_ spans of the same direction
+        # should also consolidate _adjacent_ spans of the same direction
         r.Spans.append(Span(11, 14))
         r.simplify()
         self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 14)])
-        #bridge should cause consolidations
+        # bridge should cause consolidations
         s = Range(r)
         s.Spans.append(Span(5, 8))
         s.simplify()
         self.assertEqual(s.Spans, [Span(-1, 14)])
-        #ditto for bridge that overlaps everything
+        # ditto for bridge that overlaps everything
         s = Range(r)
         s.Spans.append(Span(-100, 100))
         s.simplify()
         self.assertEqual(s.Spans, [Span(-100, 100)])
-        #however, can't consolidate span in other orientation
+        # however, can't consolidate span in other orientation
         s = Range(r)
         s.Spans.append(Span(-100, 100, Reverse=True))
         self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14), \
@@ -496,7 +496,7 @@ class MapTests(TestCase):
         self.assertEqual(coords, spans)
 
 
-#run the following if invoked from command-line
+# run the following if invoked from command-line
 if __name__ == "__main__":
     main()
 

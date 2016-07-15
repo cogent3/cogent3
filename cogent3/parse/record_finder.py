@@ -59,12 +59,12 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
         for line in lines:
             if constructor:
                 line = constructor(line)
-            #else:
+            # else:
             #    line = l
-            #ignore blank lines
+            # ignore blank lines
             if ignore(line):
                 continue
-            #if we find the delimiter, return the line; otherwise, keep it
+            # if we find the delimiter, return the line; otherwise, keep it
             if line == delimiter:
                 if keep_delimiter:
                     curr.append(line)
@@ -80,7 +80,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
                 yield curr
     return parser
 
-#The following is an example of the sorts of iterators RecordFinder returns.
+# The following is an example of the sorts of iterators RecordFinder returns.
 GbFinder = DelimitedRecordFinder('//')
 
 def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
@@ -107,12 +107,12 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
                 continue
 
             curr.append(line)
-            #if we find the label, return the previous record
+            # if we find the label, return the previous record
             if is_tail_line(line):
                 yield curr
                 curr = []
 
-        #don't forget to return the last record in the file
+        # don't forget to return the last record in the file
         if curr:
             if strict:
                 raise RecordError('lines exist after the last tail_line '
@@ -148,13 +148,13 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
                 line = l
             if ignore(line):
                 continue
-            #if we find the label, return the previous record
+            # if we find the label, return the previous record
             if is_label_line(line):
                 if curr:
                     yield curr
                     curr = []
             curr.append(line)
-        #don't forget to return the last record in the file
+        # don't forget to return the last record in the file
         if curr:
             yield curr
     return parser
@@ -162,7 +162,7 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
 def is_fasta_label(x):
     """Checks if x looks like a FASTA label line."""
     return x.startswith('>')
-#The following is an example of the sorts of iterators RecordFinder returns.
+# The following is an example of the sorts of iterators RecordFinder returns.
 FastaFinder = LabeledRecordFinder(is_fasta_label)
 
 def LineGrouper(num, constructor=strip, ignore=is_empty):

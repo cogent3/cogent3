@@ -6,7 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from cogent3.maths.stats.special import erf, erfc, igamc, igam, betai, log1p, \
     expm1, SQRTH, MACHEP, MAXNUM, PI, ndtri, incbi, igami, fix_rounding_error,\
     ln_binomial
-    #ndtri import b/c it should be available via this module
+    # ndtri import b/c it should be available via this module
 
 from numpy import sqrt, exp, arctan as atan
 
@@ -19,9 +19,9 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-incbet = betai  #shouldn't have renamed it...
+incbet = betai  # shouldn't have renamed it...
 
-#Probability integrals: low gives left-hand tail, high gives right-hand tail.
+# Probability integrals: low gives left-hand tail, high gives right-hand tail.
 def z_low(x):
     """Returns left-hand tail of z distribution (0 to x). 
 
@@ -29,7 +29,7 @@ def z_low(x):
 
     See Cephes docs for details."""
     y = x * SQRTH
-    z = abs(y) #distribution is symmetric
+    z = abs(y)  # distribution is symmetric
     if z < SQRTH:
         return 0.5 + 0.5 * erf(y)
     else:
@@ -121,7 +121,7 @@ def t_high(t, df):
     """
     if df < 1:
         raise ValueError("t_high: df must be >= 1 (got %s)." % df)
-    return stdtr(df, -t) #distribution is symmetric
+    return stdtr(df, -t)  # distribution is symmetric
 
 def tprob(t, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
@@ -148,9 +148,9 @@ def poisson_exact(successes, mean):
     """
     if successes == 0:
         return pdtr(0, mean)
-    elif successes < mean:  #use left tail
+    elif successes < mean:  # use left tail
         return pdtr(successes, mean) - pdtr(successes - 1, mean)
-    else: #successes > mean: use right tail
+    else:  # successes > mean: use right tail
         return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
 
 def binomial_high(successes, trials, prob):
@@ -232,17 +232,17 @@ def stdtr(k, t):
         rk = k
         z = rk / (rk + t * t)
         return 0.5 * betai(0.5 * rk, 0.5, z)
-    #compute integral from -t to + t
+    # compute integral from -t to + t
     if t < 0:
         x = -t
     else:
         x = t
 
-    rk = k  #degrees of freedom
+    rk = k  # degrees of freedom
     z = 1 + (x * x) / rk
-    #test if k is odd or even
+    # test if k is odd or even
     if (k & 1) != 0:
-        #odd k
+        # odd k
         xsqk = x / sqrt(rk)
         p = atan(xsqk)
         if k > 1:
@@ -256,7 +256,7 @@ def stdtr(k, t):
             p += f * xsqk / z
         p *= 2 / PI
     else:
-        #even k
+        # even k
         f = 1
         tz = 1
         j = 2
@@ -265,9 +265,9 @@ def stdtr(k, t):
             f += tz
             j += 2
         p = f * x / sqrt(z * rk)
-    #common exit
+    # common exit
     if t < 0:
-        p = -p  #note destruction of relative accuracy
+        p = -p  # note destruction of relative accuracy
     p = 0.5 + 0.5 * p
     return p
 
@@ -287,9 +287,9 @@ def bdtr(k, n, p):
         return 1
     dn = n - k
     if k == 0:
-        return  pow(1 - p, dn)
+        return pow(1 - p, dn)
     else:
-        return  betai(dn, k + 1, 1 - p)
+        return betai(dn, k + 1, 1 - p)
 
 def bdtrc(k, n, p):
     """Complement of binomial distribution, k+1 through n.
@@ -378,7 +378,7 @@ def gdtrc(a, b, x):
         raise ZeroDivisionError("x must be at least 0.")
     return igamc(b, a * x)
 
-#note: ndtri for the normal distribution is already imported
+# note: ndtri for the normal distribution is already imported
 
 def chdtri(df, y):
     """Returns inverse of chi-squared distribution."""
@@ -394,7 +394,7 @@ def stdtri(k, p):
     if k <= 0 or p < 0.0 or p > 1.0:
         raise ZeroDivisionError("k must be >= 1, p between 1 and 0.")
     rk = k
-    #handle intermediate values
+    # handle intermediate values
     if p > 0.25 and p < 0.75:
         if p == 0.5:
             return 0.0
@@ -404,7 +404,7 @@ def stdtri(k, p):
         if p < 0.5:
             t = -t
         return t
-    #handle extreme values
+    # handle extreme values
     rflg = -1
     if p >= 0.5:
         p = 1.0 - p;

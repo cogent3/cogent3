@@ -99,20 +99,20 @@ def pairs_to_array(pairs, num_items=None, transform=None):
     list (+ 1, because the indices start with 0), you'll get an exception
     when trying to place the object. Don't do it.
     """
-    #handle easy case
+    # handle easy case
     if not pairs:
         return array([])
     data = array(pairs)
-    #figure out if we're mapping the indices to gapped coordinates
+    # figure out if we're mapping the indices to gapped coordinates
     if transform is not None:
-        #pairs of indices
+        # pairs of indices
         idx_pairs = take(transform, data[:, 0:2].astype(Int), axis=0)
     else:
         idx_pairs = data[:, 0:2].astype(Int)
-    #figure out biggest item if not supplied
+    # figure out biggest item if not supplied
     if num_items is None:
         num_items = int(max(ravel(idx_pairs))) + 1
-    #make result array
+    # make result array
     result = zeros((num_items, num_items), Float)
     if len(data[0]) == 2:
         values = 1
@@ -243,8 +243,8 @@ def row_degeneracy(a, cutoff=.5):
     except IndexError:
         raise ValueError("Array has to be two dimensional")
     degen = [searchsorted(aln_pos, cutoff) for aln_pos in b]
-    #degen contains now the indices at which the cutoff was hit
-    #to change to the number of characters, add 1
+    # degen contains now the indices at which the cutoff was hit
+    # to change to the number of characters, add 1
     return clip(array(degen) + 1, 0, a.shape[1])
 
 
@@ -278,8 +278,8 @@ def column_degeneracy(a, cutoff=.5):
         degen = [searchsorted(b[:, idx], cutoff) for idx in range(len(b[0]))]
     except TypeError:
         raise ValueError("Array has to be two dimensional")
-    #degen contains now the indices at which the cutoff was hit
-    #to change to the number of characters, add 1
+    # degen contains now the indices at which the cutoff was hit
+    # to change to the number of characters, add 1
     return clip(array(degen) + 1, 0, a.shape[0])
 
 def hamming_distance(x, y):
@@ -326,7 +326,7 @@ def count_simple(a, alphabet_len):
 
 def count_alphabet(a, alphabet_len):
     """Counts items in a, using =="""
-    #ensure behavior is polymorphic with count_simple
+    # ensure behavior is polymorphic with count_simple
     if not alphabet_len:
         raise IndexError("alphabet_len must be > 0")
     result = zeros(alphabet_len, Int)
@@ -467,14 +467,14 @@ def combine_dimensions(m, dim):
 
     WARNING: Result shares data with m.
     """
-    #if we're not combining more than one dimension, return the array unchanged
+    # if we're not combining more than one dimension, return the array unchanged
     if abs(dim) <= 1:
         return m
-    #otherwise, figure out the new shape and reshape the array
+    # otherwise, figure out the new shape and reshape the array
     shape = m.shape
-    if dim < 0:     #counting from end
+    if dim < 0:  # counting from end
         return reshape(m, shape[:dim] + (product(shape[dim:]),))
-    else:           #counting from start
+    else:  # counting from start
         return reshape(m, (product(shape[:dim]),) + shape[dim:])
 
 def split_dimension(m, dim, shape=None):
@@ -487,15 +487,15 @@ def split_dimension(m, dim, shape=None):
     """
     curr_dims = m.shape
     num_dims = len(curr_dims)
-    #if shape not specified, assume it was square
+    # if shape not specified, assume it was square
     if shape is None:
         shape = (sqrt(curr_dims[dim]),) * 2
-    #raise IndexError if index out of bounds
+    # raise IndexError if index out of bounds
     curr_dims[dim]
-    #fix negative indices
+    # fix negative indices
     if dim < 0:
         dim = num_dims + dim
-    #extract the relevant region and reshape it
+    # extract the relevant region and reshape it
     new_dim = curr_dims[:dim] + shape + curr_dims[dim + 1:]
     new_dim = tuple(map(int, new_dim))
     return reshape(m, new_dim)
@@ -527,14 +527,14 @@ def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     flat array _without_ the diagonal, _not_ relative to the original array!
     e.g. for a 4x4 array, element 8 refers to a[2][3], _not_ a[2][0].
     """
-    #get the elements that are allowed to change
+    # get the elements that are allowed to change
     elements = without_diag(m)
     flat = ravel(elements)
-    #pick an element to change if it wasn't specified
+    # pick an element to change if it wasn't specified
     if element_to_change is None:
         element_to_change = randint(0, len(flat))
-    #change the element, pack the elements back into the array, and return
-    #the result.
+    # change the element, pack the elements back into the array, and return
+    # the result.
     flat[element_to_change] += normal(mean, sd)
     return with_diag(elements, -sum(elements, 1))
 
@@ -567,7 +567,7 @@ def perturb_off_diag_frac(m, size):
     """
     elements = without_diag(m)
     random = normal(0, size_to_stdev(size), elements.shape)
-    result = elements * abs((1.0 + random))   #ensure always positive
+    result = elements * abs((1.0 + random))  # ensure always positive
     return with_diag(result, -sum(result, 1))
 
 
@@ -607,11 +607,11 @@ def classifiers(*samples):
     n = len(vals)
     num_positives = len(samples[0])
     num_negatives = n - num_positives
-    #only want to check indices where the next value is different
+    # only want to check indices where the next value is different
     to_check = numpy.ravel(nonzero(vals[:-1] - vals[1:]))
     result = []
     for index in to_check:
-        i = index + 1 #because it changes at the value _after_ the specified index
+        i = index + 1  # because it changes at the value _after_ the specified index
         fp = sum(labels[:i] != 0)
         fn = sum(labels[i:] == 0)
         tp = num_positives - fn

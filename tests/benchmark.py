@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys #,hotshot
+import sys  # ,hotshot
 
 from cogent3.evolve.substitution_model import Nucleotide, Dinucleotide, Codon
 from cogent3 import LoadSeqs, LoadTree
@@ -22,13 +22,13 @@ TREE = LoadTree(filename="data/murphy.tree")
 def subtree(size):
     names = ALIGNMENT.getSeqNames()[:size]
     assert len(names) == size
-    tree = TREE.getSubTree(names)  #.balanced()
+    tree = TREE.getSubTree(names)  # .balanced()
     return names, tree
 
 def brca_test(subMod, names, tree, length, par_rules, **kw):
     #names = ALIGNMENT.getSeqNames()[:taxa]
     #assert len(names) == taxa
-    tree = TREE.getSubTree(names)  #.balanced()
+    tree = TREE.getSubTree(names)  # .balanced()
     aln = ALIGNMENT.takeSeqs(names).omitGapPositions()[:length]
     assert len(aln) == length, (len(aln), length)
     #the_tree_analysis = LikelihoodFunction(treeobj = tree, submodelobj = subMod, alignobj = aln)
@@ -63,12 +63,12 @@ def quiet(f, *args, **kw):
         sys.stdout = temp
         result = f(*args, **kw)
     finally:
-        #pass
+        # pass
         sys.stdout = _stdout
     return result
 
 def evals_per_sec(*args):
-    pc, aln = makePC(*args) #quiet(makeLF, *args)
+    pc, aln = makePC(*args)  # quiet(makeLF, *args)
     speed1 = measure_evals_per_sec(pc, aln)
     speed = str(int(speed1))
     return speed
@@ -128,7 +128,7 @@ def benchmarks(test):
 def silly_predicate(a, b):
     return a.count('A') > a.count('T') or b.count('A') > b.count('T')
 
-#def asym_predicate((a,b)):
+# def asym_predicate((a,b)):
 #    print a, b, 'a' in a
 #    return 'a' in a
 #mA = Codon()
@@ -147,7 +147,7 @@ else:
 parallel.inefficiency_forgiven = True
 
 if parallel.getCommunicator().Get_rank() > 0:
-    #benchmarks(test)
+    # benchmarks(test)
     quiet(benchmarks, test)
 else:
     try:

@@ -204,7 +204,7 @@ class GammaDefn(MonotonicDefn):
         percentiles = (numpy.add.accumulate(weights) - weights * 0.5)
         medians = numpy.array([gdtri(a, a, p) for p in percentiles])
         scale = numpy.sum(medians * weights)
-        #assert 0.5 < scale < 2.0, scale # medians as approx. to means.
+        # assert 0.5 < scale < 2.0, scale # medians as approx. to means.
         return medians / scale
 
 
@@ -318,7 +318,7 @@ class NonScalarDefn(_InputDefn):
         return 0
 
     def updateFromCalculator(self, calc):
-        pass # don't reset parallel_context etc.
+        pass  # don't reset parallel_context etc.
 
 
 
@@ -330,7 +330,7 @@ def _proportions(total, params):
     if len(params) == 0:
         return [total]
     half = (len(params) + 1) // 2
-    part = 1.0 / (params[0] + 1.0) # ratio -> proportion
+    part = 1.0 / (params[0] + 1.0)  # ratio -> proportion
     return _proportions(total * part, params[1:half]) + \
         _proportions(total * (1.0 - part), params[half:])
 
@@ -349,7 +349,7 @@ class PartitionDefn(_InputDefn):
     """A partition such as mprobs can be const or optimised.  Optimised is
     a bit tricky since it isn't just a scalar."""
 
-    numeric = False # well, not scalar anyway
+    numeric = False  # well, not scalar anyway
     const_by_default = False
     independent_by_default = False
 
@@ -383,7 +383,7 @@ class PartitionDefn(_InputDefn):
         return numpy.array([1.0 / self.size] * self.size)
 
     def makeDefaultSetting(self):
-        #return ConstVal(self.default)
+        # return ConstVal(self.default)
         return Var((None, self.default.copy(), None))
 
     def checkSettingIsValid(self, setting):
@@ -471,7 +471,7 @@ class SelectForDimension(_Defn):
 
     name = 'select'
     user_param = True
-    numeric = True # not guarenteed!
+    numeric = True  # not guarenteed!
     internal_dimensions = ()
 
     def __init__(self, arg, dimension, name=None):

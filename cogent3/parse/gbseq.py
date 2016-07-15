@@ -48,7 +48,7 @@ def GbSeqXmlParser(doc):
         name = record.getElementsByTagName(
             'GBSeq_accession-version')[0].childNodes[0].nodeValue
 
-        #cast as string to de-unicode
+        # cast as string to de-unicode
         raw_string = str(raw_seq).upper()
         name = str(name)
 

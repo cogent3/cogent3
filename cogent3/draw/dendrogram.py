@@ -122,7 +122,7 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
     Alternatively, set the Color attribute of the dendrogram edges.
     """
     if callback_returns_name is not None:
-        pass # give deprecation warning?, no longer needed
+        pass  # give deprecation warning?, no longer needed
 
     edge_color = to_rgb(edge_color)
     highlight_color = to_rgb(highlight_color)
@@ -331,7 +331,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if use_lengths is None:
             use_lengths = self.use_lengths_default
         else:
-            pass # deprecate setting use_lengths here?
+            pass  # deprecate setting use_lengths here?
         if use_lengths and self.aspect_distorts_lengths:
             ax.set_aspect('equal')
         g = self.asArtist(width, height, use_lengths=use_lengths, 
@@ -358,7 +358,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         height -= 2 * margin
 
         label_length = len(self.longest_label)
-        label_width = label_length * 0.8 * (font_size or 10) # not very accurate
+        label_width = label_length * 0.8 * (font_size or 10)  # not very accurate
         (left_labels, right_labels) = self.labelMargins(label_width)
         total_label_width = left_labels + right_labels
         if width < total_label_width:
@@ -668,7 +668,7 @@ class UnrootedDendrogram(_Dendrogram):
             xs = [x for (x, y) in points]
             ys = [y for (x, y) in points]
             scale = min(float(width) / (max(xs) - min(xs)), float(height) / (max(ys) - min(ys)))
-            scale *= 0.95 # extra margin for labels
+            scale *= 0.95  # extra margin for labels
             if scale > best_scale:
                 best_scale = scale
                 mid_x = width / 2 - ((max(xs) + min(xs)) / 2) * scale

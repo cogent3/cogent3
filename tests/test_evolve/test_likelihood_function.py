@@ -92,7 +92,7 @@ _root_probs = lambda x: dict([(n1 + n2, p1 * p2) \
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
     instantaneous rate matrix"""
-    Q = ones((4, 4), float) * 0.25 # assumes equi-frequent mprobs at root
+    Q = ones((4, 4), float) * 0.25  # assumes equi-frequent mprobs at root
     for i in range(4):
         Q[i, i] = 0.0
     Q[coord] *= val
@@ -445,9 +445,9 @@ motif  mprobs
             'd': '-a-c-ctat-'})
         sm = Nucleotide(recode_gaps=True)
         lf = sm.makeParamController(t)
-        #pc.setConstantLengths()
+        # pc.setConstantLengths()
         lf.setAlignment(al)
-        #print lf.simulateAlignment(sequence_length=10)
+        # print lf.simulateAlignment(sequence_length=10)
         simulated = lf.simulateAlignment()
         self.assertEqual(len(simulated.getSeqNames()), 4)
         import re
@@ -470,8 +470,8 @@ motif  mprobs
             self.assertEqual(str(root), str(root_sequence))
 
         root_sequence = DNA.makeSequence('GTAATT')
-        use_root_seq(root_sequence) # as a sequence instance
-        use_root_seq('GTAATC') # as a string
+        use_root_seq(root_sequence)  # as a sequence instance
+        use_root_seq('GTAATC')  # as a string
 
     def test_pc_initial_parameters(self):
         """Default parameter values from original annotated tree"""
@@ -514,7 +514,7 @@ motif    mprobs
     G    0.2500
 ---------------""")
 
-        #self.submodel.setScaleRule("ts",['beta'])
+        # self.submodel.setScaleRule("ts",['beta'])
         #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
         self.assertEqual(str(likelihood_function),\
                          """Likelihood Function Table

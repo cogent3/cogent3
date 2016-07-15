@@ -1,5 +1,5 @@
 #!/bin/env python
-#file cogent/parse/test_phylip.py
+# file cogent/parse/test_phylip.py
 """Unit tests for the phylip parser
 """
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip

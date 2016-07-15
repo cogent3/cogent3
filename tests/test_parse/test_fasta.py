@@ -48,10 +48,10 @@ class MinimalFastaParserTests(GenericFastaTest):
 
     def test_no_labels(self):
         """MinimalFastaParser should return empty list from file w/o seqs"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list, 
                           MinimalFastaParser(self.labels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)), 
                          [])
 
@@ -119,10 +119,10 @@ class FastaParserTests(GenericFastaTest):
 
     def test_no_labels(self):
         """FastaParser should return empty list from file w/o seqs"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list, 
                           FastaParser(self.labels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(FastaParser(self.labels, strict=False)), [])
 
     def test_single(self):
@@ -174,7 +174,7 @@ class FastaParserTests(GenericFastaTest):
         f = list(FastaParser(self.twogood, strict=False))
         self.assertEqual(len(f), 2)
         a, b = f
-        a, b = a[1], b[1]   #field 0 is name
+        a, b = a[1], b[1]  # field 0 is name
         self.assertEqual((a.Name, a), ('abc', 'caggac'))
         self.assertEqual((b.Name, b), ('456', 'cg'))
 
@@ -231,29 +231,29 @@ class NcbiFastaParserTests(TestCase):
             'PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD'
         ]
         self.nasty = [
-            '  ',                               #0  ignore leading blank line
-            '>gi|abc|ref|def|',                 #1  no description -- ok
-            'UCAG',                             #2  single line of sequence
-            '#comment',                         #3  comment -- skip
-            '  \t   ',                          #4  ignore blank line between records
-            '>gi|xyz|gb|qwe|  \tdescr   \t\t',  #5  desciption has whitespace
-            'UUUU',                             #6  two lines of sequence
-            'CCCC',                             #7  
-            '>gi|bad|ref|nonsense',             #8  missing last pipe -- error
-            'ACU',                              #9  
-            '>gi|bad|description',              #10 not enough fields -- error       
-            'AAA',                              #11
-            '>gi|bad|ref|stuff|label',          #12
-            'XYZ',                              #13 bad sequence -- error
-            '>gi|bad|gb|ignore| description',   #14 label without sequence -- error
-            '>  gi  |  123  | dbj  | 456 | desc|with|pipes| ',#15 label w/ whitespace -- OK
-            'ucag',                             #16
-            '  \t  ',                           #17 ignore blank line inside record
-            'UCAG',                             #18
-            'tgac',                             #19 lowercase should be OK
-            '# comment',                        #20 comment -- skip
-            'NNNN',                             #21 degenerates should be OK
-            '   ',                              #22 ignore trailing blank line
+            '  ',  # 0  ignore leading blank line
+            '>gi|abc|ref|def|',  # 1  no description -- ok
+            'UCAG',  # 2  single line of sequence
+            '#comment',  # 3  comment -- skip
+            '  \t   ',  # 4  ignore blank line between records
+            '>gi|xyz|gb|qwe|  \tdescr   \t\t',  # 5  desciption has whitespace
+            'UUUU',  # 6  two lines of sequence
+            'CCCC',  # 7  
+            '>gi|bad|ref|nonsense',  # 8  missing last pipe -- error
+            'ACU',  # 9  
+            '>gi|bad|description',  # 10 not enough fields -- error       
+            'AAA',  # 11
+            '>gi|bad|ref|stuff|label',  # 12
+            'XYZ',  # 13 bad sequence -- error
+            '>gi|bad|gb|ignore| description',  # 14 label without sequence -- error
+            '>  gi  |  123  | dbj  | 456 | desc|with|pipes| ',  # 15 label w/ whitespace -- OK
+            'ucag',  # 16
+            '  \t  ',  # 17 ignore blank line inside record
+            'UCAG',  # 18
+            'tgac',  # 19 lowercase should be OK
+            '# comment',  # 20 comment -- skip
+            'NNNN',  # 21 degenerates should be OK
+            '   ',  # 22 ignore trailing blank line
         ]
         self.empty = []
         self.no_label = ['ucag']
@@ -268,7 +268,7 @@ class NcbiFastaParserTests(TestCase):
         f = list(NcbiFastaParser(self.peptide, Protein))
         self.assertEqual(len(f), 2)
         a, b = f
-        a, b = a[1], b[1]   #field 0 is the name
+        a, b = a[1], b[1]  # field 0 is the name
         self.assertEqual(a, 'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNLSEIQNIKSELKYVPKAEQ')
         self.assertEqual(a.Info.GI, ['10047090'])
         self.assertEqual(a.Info.RefSeq, ['NP_055147.1'])
@@ -283,13 +283,13 @@ class NcbiFastaParserTests(TestCase):
 
     def test_bad(self):
         """NcbiFastaParser should raise error on bad records if strict"""
-        #if strict, starting anywhere in the first 15 lines should cause errors
+        # if strict, starting anywhere in the first 15 lines should cause errors
         for i in range(15):
             self.assertRaises(RecordError, list, NcbiFastaParser(self.nasty[i:]))
         #...but the 16th is OK.
         r = list(NcbiFastaParser(self.nasty[15:]))[0]
         self.assertEqual(r, ('123', 'ucagUCAGtgacNNNN'))
-        #test that we get what we expect if not strict
+        # test that we get what we expect if not strict
         r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
         self.assertEqual(len(r), 4)
         a, b, c, d = r

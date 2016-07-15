@@ -201,7 +201,7 @@ def gzip_dump(object, filename, bin=2):
     """Saves a compressed object to file."""
     file = GzipFile(filename, 'wb')
     file.write(dumps(object, bin))
-    try: # do not leave unlinked structures
+    try:  # do not leave unlinked structures
         object.link()
     except AttributeError:
         pass
@@ -231,7 +231,7 @@ def recursive_flatten_old(items, max_depth=None, curr_depth=0):
     is 0, will not remove any nesting (note difference from setting max_depth
     to None).
     """
-    #bail out if greater than max_depth
+    # bail out if greater than max_depth
     if max_depth is not None:
         if curr_depth > max_depth:
             raise DepthExceededError
@@ -250,18 +250,18 @@ def curry(f, *a, **kw):
     def curried(*more_a, **more_kw):
         return f(*(a + more_a), **dict(kw, **more_kw))
 
-    ## make docstring for curried funtion
+    # make docstring for curried funtion
     curry_params = []
     if a:
         curry_params.extend([e for e in a])
     if kw:
         curry_params.extend(['%s=%s' % (k, v) for k, v in list(kw.items())])
-    #str it to prevent error in join()
+    # str it to prevent error in join()
     curry_params = list(map(str, curry_params))
 
     try:
         f_name = f.__name__
-    except:  #e.g.  itertools.groupby failed .func_name 
+    except:  # e.g.  itertools.groupby failed .func_name 
         f_name = '?'
 
     curried.__doc__ = ' curry(%s,%s)\n'\
@@ -269,7 +269,7 @@ def curry(f, *a, **kw):
         % (f_name, ', '.join(curry_params), f_name, f.__doc__)
 
     return curried
-#end curry
+# end curry
 
 def is_iterable(obj):
     """return True if obj is iterable"""
@@ -316,7 +316,7 @@ def recursive_flatten(items, max_depth=None, curr_depth=1,
             result.extend(recursive_flatten(i,
                                             max_depth, curr_depth + 1, is_leaf))
     return result
-#end recursive_flatten
+# end recursive_flatten
 
 def not_list_tuple(obj):
     """return False if obj is a list or a tuple"""
@@ -403,7 +403,7 @@ def find_all(text, pat):
             curr = text.index(pat, last)
             result.append(curr)
             last = curr + 1
-    except ValueError:  #raised when no more matches
+    except ValueError:  # raised when no more matches
         return result
 
 def find_many(text, pats):
@@ -443,17 +443,17 @@ def add_lowercase(d):
 
     Now also works on strings and sets.
     """
-    if hasattr(d, 'lower'):     #behaves like a string
+    if hasattr(d, 'lower'):  # behaves like a string
         return d + d.lower()
-    elif not hasattr(d, 'items'):   #not a dict
+    elif not hasattr(d, 'items'):  # not a dict
         items = list(d)
         return d.__class__(items + [i.lower() for i in items])
 
-    #otherwise, assume dict-like behavior
+    # otherwise, assume dict-like behavior
     for key, val in list(d.items()):
         try:
             new_key = key.lower()
-        except:   #try to make tuple out of arbitrary sequence
+        except:  # try to make tuple out of arbitrary sequence
             try:
                 new_key = []
                 for k in key:
@@ -467,8 +467,8 @@ def add_lowercase(d):
         try:
             new_val = val.lower()
         except:
-            new_val = val   #don't care if we couldn't convert it
-        if new_key not in d:    #don't overwrite existing lcase keys
+            new_val = val  # don't care if we couldn't convert it
+        if new_key not in d:  # don't overwrite existing lcase keys
             d[new_key] = new_val
     return d
 
@@ -484,15 +484,15 @@ def extract_delimited(line, left, right, start_index=0):
         raise TypeError("extract_delimited is for fields w/ different left and right delimiters")
     try:
         field_start = line.index(left, start_index)
-    except ValueError:  #no such field
+    except ValueError:  # no such field
         return None
     else:
         try:
             field_end = line.index(right, field_start)
-        except ValueError:  #left but no right delimiter: raise error
+        except ValueError:  # left but no right delimiter: raise error
             raise ValueError("Found '%s' but not '%s' in line %s, starting at %s." \
                              % (left, right, line, start_index))
-    #if we got here, we found the start and end of the field
+    # if we got here, we found the start and end of the field
     return line[field_start + 1:field_end]
 
 def caps_from_underscores(string):
@@ -669,25 +669,25 @@ class Delegator(object):
             3. Does self lack the attr? If so, try to set it in handler.
             4. Did setting attr in the handler fail? If so, set it in self.
         """
-        #if we're setting _handler, set it in dict directly (but complain if
-        #it's self).
+        # if we're setting _handler, set it in dict directly (but complain if
+        # it's self).
         if attr == '_handler':
             if value is self:
                 raise ValueError("Can't set object to be its own handler.")
             self.__dict__['_handler'] = value
             return
-        #check if the attribute is in this object's dict
+        # check if the attribute is in this object's dict
         elif attr in self.__dict__:
             return object.__setattr__(self, attr, value)
-        #then check if the class knows about it
+        # then check if the class knows about it
         elif hasattr(self.__class__, attr):
             return object.__setattr__(self, attr, value)
-        #then try to set it in the handler
+        # then try to set it in the handler
         if hasattr(self._handler, attr) or not hasattr(self, attr):
             try:
                 return setattr(self._handler, attr, value)
             except AttributeError:
-                pass #will try to create the attribute on self
+                pass  # will try to create the attribute on self
         return object.__setattr__(self, attr, value)
 
 class FunctionWrapper(object):
@@ -737,13 +737,13 @@ class ConstrainedContainer(object):
 
     def matchesConstraint(self, constraint):
         """Returns True if all items in self are allowed."""
-        #First checks if constraints are compatible. If not, or if the current
-        #sequence has no constraint, does item by item search.
+        # First checks if constraints are compatible. If not, or if the current
+        # sequence has no constraint, does item by item search.
 
-        #bail out if self or constraint is empty
+        # bail out if self or constraint is empty
         if not constraint or not self:
             return True
-        #try checking constraints for compatibility
+        # try checking constraints for compatibility
         if self.Constraint:
             try:
                 constraint_ok = True
@@ -754,30 +754,30 @@ class ConstrainedContainer(object):
                 if constraint_ok:
                     return True
             except TypeError:
-                pass #e.g. tried to check wrong type item in string alphabet
+                pass  # e.g. tried to check wrong type item in string alphabet
 
-        #get here if either self.Constraint is empty, or if we found an item
-        #in self.Constraint that wasn't in the other constraint. In either case,
-        #we need to check self item by item.
+        # get here if either self.Constraint is empty, or if we found an item
+        # in self.Constraint that wasn't in the other constraint. In either case,
+        # we need to check self item by item.
         if self:
             try:
                 for i in self:
                     if i not in constraint:
                         return False
-            except TypeError:   #e.g. tried to check int in string alphabet
+            except TypeError:  # e.g. tried to check int in string alphabet
                 return False
         return True
 
     def otherIsValid(self, other):
         """Returns True if other has only items allowed in self.Constraint."""
-        #First, checks other.Constrant for compatibility.
-        #If other.Constraint is incompatible, checks items in other.
+        # First, checks other.Constrant for compatibility.
+        # If other.Constraint is incompatible, checks items in other.
         mask = self.Mask
         constraint = self.Constraint
         if not constraint or not other:
-            return True     #bail out if empty
+            return True  # bail out if empty
         try:
-            #if other has a constraint, check whether it's compatible
+            # if other has a constraint, check whether it's compatible
             other_constraint = other.Constraint
             if other_constraint:
                 for c in map(mask, other_constraint):
@@ -786,14 +786,14 @@ class ConstrainedContainer(object):
                 return True
         except (ConstraintError, AttributeError, TypeError):
             pass
-        #get here if other doesn't have a constraint or if other's constraint
-        #isn't valid on self's constraint.
+        # get here if other doesn't have a constraint or if other's constraint
+        # isn't valid on self's constraint.
         try:
             for item in map(mask, other):
                 if item not in constraint:
                     return False
         except TypeError:
-            return False    #e.g. tried to check int in str alphabet
+            return False  # e.g. tried to check int in str alphabet
         return True
 
     def itemIsValid(self, item):
@@ -803,7 +803,7 @@ class ConstrainedContainer(object):
                 return True
             else:
                 return False
-        except (TypeError, ConstraintError):  #wrong type or not allowed
+        except (TypeError, ConstraintError):  # wrong type or not allowed
             return False
 
     def sequenceIsValid(self, sequence):
@@ -834,7 +834,7 @@ class ConstrainedString(str, ConstrainedContainer):
         """Constructor class method for validated ConstrainedString."""
         mask = Mask or cls.Mask
         if data == '':
-            pass    #map can't handle an empty sequence, sadly...
+            pass  # map can't handle an empty sequence, sadly...
         elif isinstance(data, str):
             data = ''.join(map(mask, data))
         else:
@@ -1142,7 +1142,7 @@ def getNewId(rand_f=randrange):
 
     NUM_DIGITS = 12
     return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
-#end function getNewId
+# end function getNewId
 
 def toString(obj):
     """Public function to write a string of object's properties & their vals.
@@ -1164,29 +1164,29 @@ def toString(obj):
             attr = getattr(obj, slot)
             for ignored_type in ignored_types:
                 if isinstance(attr, ignored_type): ignore_attr = True
-            #next ignored type
+            # next ignored type
 
             if not ignore_attr:
                 attr_value = str(attr)
                 if attr_value.startswith("<") and attr_value.endswith(">"):
                     attr_value = "object"
-                #end if
+                # end if
                 result.append(slot + ": " + attr_value)
-            #end if
-        #end if
-    #next property
+            # end if
+        # end if
+    # next property
 
     return "; ".join(result)
-#end toString
+# end toString
 
-#A class for exceptions caused when param cannot be cast to nonneg int
+# A class for exceptions caused when param cannot be cast to nonneg int
 class NonnegIntError(ValueError):
     """for exceptions caused when param cannot be cast to nonneg int"""
 
     def __init__(self, args=None):
         self.args = args
-    #end __init__
-#end NonnegIntError
+    # end __init__
+# end NonnegIntError
 
 def makeNonnegInt(n):
     """Public function to cast input to nonneg int and return, or raise err"""
@@ -1195,10 +1195,10 @@ def makeNonnegInt(n):
         n = abs(int(n))
     except:
         raise NonnegIntError(n + " must be castable to a nonnegative int")
-    #end try/except
+    # end try/except
 
     return n
-#end makeNonnegInt
+# end makeNonnegInt
 
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
@@ -1214,25 +1214,25 @@ def reverse_complement(seq, use_DNA=True):
         raise ValueError("Only ACGTU characters may be passed to reverse_complement. Other "
                          "characters were identified: %s. Use cogent3.DNA.rc if you need to "
                          "reverse complement ambiguous bases." % ''.join(bad_chars))
-    #decide which translation to use for complementation
+    # decide which translation to use for complementation
     if use_DNA:
         trans_table = str.maketrans("ACGTacgt", "TGCAtgca")
     else:
         trans_table = str.maketrans("ACGUacgu", "UGCAugca")
-    #end if
+    # end if
 
-    #complement the input sequence, then reverse
+    # complement the input sequence, then reverse
     complemented = seq.translate(trans_table)
     comp_list = list(complemented)
     comp_list.reverse()
 
-    #join the reverse-complemented list and return
+    # join the reverse-complemented list and return
     return "".join(comp_list)
 # The reverse_complement function was previously called revComp, but that 
 # naming doesn't adhere to the PyCogent coding guidelines. Renamed, but 
 # keeping the old name around to not break existing code.
 revComp = reverse_complement
-#end revComp
+# end revComp
 
 def timeLimitReached(start_time, time_limit):
     """Return true if more that time_limit has elapsed since start_time"""
@@ -1242,7 +1242,7 @@ def timeLimitReached(start_time, time_limit):
     elapsed = curr_time - start_time
     if elapsed > time_limit: result = True
     return result
-#end _time_limit_reached
+# end _time_limit_reached
 
 def not_none(seq):
     """Returns True if no item in seq is None."""
@@ -1250,7 +1250,7 @@ def not_none(seq):
         if i is None:
             return False
     return True
-#end not_none
+# end not_none
 
 def get_items_except(seq, indices, seq_constructor=None):
     """Returns all items in seq that are not in indices
@@ -1267,7 +1267,7 @@ def get_items_except(seq, indices, seq_constructor=None):
         else:
             seq_constructor = seq.__class__
     return seq_constructor(result)
-#end get_items_except
+# end get_items_except
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
@@ -1283,7 +1283,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
     Note: the line input in parser is expected to be a str, but without check
     """
     def parser(line, index=0):
-        #split line with curr delimiter
+        # split line with curr delimiter
         curr = delimiters[index]
         if isinstance(curr, (list, tuple)):
             try:
@@ -1298,18 +1298,18 @@ def NestedSplitter(delimiters=[None], same_level=False,
         else:
             result = line.split(curr)
 
-        #modify splits if required
+        # modify splits if required
         if constructor:
             result = list(map(constructor, result))
-        if filter_ != False: #allow filter(None,..) to rip off the empty items
+        if filter_ != False:  # allow filter(None,..) to rip off the empty items
             result = list(filter(filter_, result))
 
-        #repeat recursively for next delimiter
-        if index != len(delimiters) - 1: #not last delimiter
+        # repeat recursively for next delimiter
+        if index != len(delimiters) - 1:  # not last delimiter
             result = [parser(f, index + 1) for f in result]
 
-        #undo split if curr not in line and same_level==False
-        #ignore the first delimiter
+        # undo split if curr not in line and same_level==False
+        # ignore the first delimiter
         if not same_level and index > 0 \
                 and len(result) == 1 and isinstance(result[0], str):
             result = result[0]
@@ -1317,7 +1317,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
         return result
     #parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
-#end NestedSplitter
+# end NestedSplitter
 
 def app_path(app, env_variable='PATH'):
     """Returns path to an app, or False if app does not exist in env_variable
@@ -1335,7 +1335,7 @@ def app_path(app, env_variable='PATH'):
             return p
     return False
 
-#some error codes for creating a dir
+# some error codes for creating a dir
 def get_create_dir_error_codes():
     return {'NO_ERROR': 0,
             'DIR_EXISTS': 1,
@@ -1367,7 +1367,7 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
           e.g. for testing actual write permission in an existing dir.
     """
     error_code_lookup = get_create_dir_error_codes()
-    #pre-instanciate function with
+    # pre-instanciate function with
     ror = curry(handle_error_codes, dir_name, handle_errors_externally)
 
     if exists(dir_name):
@@ -1378,10 +1378,10 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
             else:
                 return error_code_lookup['DIR_EXISTS']
         else:
-            #must be file with same name
+            # must be file with same name
             return ror(error_code_lookup['FILE_EXISTS'])
     else:
-        #no dir there, try making it
+        # no dir there, try making it
         try:
             makedirs(dir_name)
         except OSError:
@@ -1521,7 +1521,7 @@ def get_merged_overlapping_coords(start_end):
             prev_end = curr_end
             result[-1][-1] = prev_end
         else:
-            pass # we lie completely within previous span
+            pass  # we lie completely within previous span
 
     return result
 

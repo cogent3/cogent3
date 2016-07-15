@@ -81,10 +81,10 @@ class TestCompara(ComparaTestBase):
         start = aln.todict()[mouse_name].find('AAGTCAAACTCTACCACTGG')
         sub_aln = aln[start: start + 20]
         seqs = list(sub_aln.todict().values())
-        expect = set(['AGGGCTGACTCTGCCGCTGT', # human
-                      'AAGTCAAACTCTACCACTGG', # mouse
-                      'AAGTCAAACTCTACCACTAG', #rat
-                      'AAATGTGACTCTACCAGCCG' #platypus
+        expect = set(['AGGGCTGACTCTGCCGCTGT',  # human
+                      'AAGTCAAACTCTACCACTGG',  # mouse
+                      'AAGTCAAACTCTACCACTAG',  # rat
+                      'AAATGTGACTCTACCAGCCG'  # platypus
                       ])
         self.assertEqual(set(seqs), expect)
         self.assertTrue(len(aln) > 1000)

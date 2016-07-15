@@ -1,7 +1,7 @@
 """ReportLab Graphics -> Matplotlib helpers"""
 
-#linear, dotplot and dendrogram were originally written to target ReportLab Graphics rather
-#than Matplotlib.  This module can be slowly boiled away as they become more matplotlib native.
+# linear, dotplot and dendrogram were originally written to target ReportLab Graphics rather
+# than Matplotlib.  This module can be slowly boiled away as they become more matplotlib native.
 
 
 from matplotlib.path import Path
@@ -224,7 +224,7 @@ class PathBuilder(object):
         self.operators.extend([Path.CURVE4] * 3)
 
     def closePath(self):
-        self.points.append((0.0, 0.0)) # ignored
+        self.points.append((0.0, 0.0))  # ignored
         self.operators.append(Path.CLOSEPOLY)
 
 class _End(object):

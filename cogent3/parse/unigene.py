@@ -100,7 +100,7 @@ def UniGeneParser(lines):
     """Treats lines as a stream of unigene records"""
     for record in GbFinder(lines):
         curr = LinesToUniGene(record)
-        del curr['//']  #clean up delimiter
+        del curr['//']  # clean up delimiter
         yield curr
 
 if __name__ == '__main__':

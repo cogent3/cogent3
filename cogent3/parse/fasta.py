@@ -51,14 +51,14 @@ def MinimalFastaParser(infile, strict=True, \
     """
 
     for rec in finder(infile):
-        #first line must be a label line
+        # first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
                 raise RecordError("Found Fasta record without label line: %s" %\
                                   rec)
             else:
                 continue
-        #record must have at least one sequence
+        # record must have at least one sequence
         if len(rec) < 2:
             if strict:
                 raise RecordError("Found label line without sequences: %s" % \
@@ -127,21 +127,21 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
         seq_maker = Sequence
     for label, seq in MinimalFastaParser(infile, strict=strict):
         if strict:
-            #need to do error checking when constructing info and sequence
+            # need to do error checking when constructing info and sequence
             try:
-                name, info = info_maker(label) #will raise exception if bad
+                name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, Name=name, Info=info)
             except Exception as e:
                 raise RecordError("Sequence construction failed on record with label %s" % label)
         else:
-            #not strict: just skip any record that raises an exception
+            # not strict: just skip any record that raises an exception
             try:
                 name, info = info_maker(label)
                 yield(name, seq_maker(seq, Name=name, Info=info))
             except Exception as e:
                 continue
 
-#labeled fields in the NCBI FASTA records
+# labeled fields in the NCBI FASTA records
 NcbiLabels = {
     'dbj': 'DDBJ',
     'emb': 'EMBL',
@@ -158,7 +158,7 @@ def NcbiFastaLabelParser(line):
     info = Info()
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split('|', 4)))
-    except ValueError:  #probably got wrong value
+    except ValueError:  # probably got wrong value
         raise RecordError("Unable to parse label line %s" % line)
     info.GI = gi
     info[NcbiLabels[db]] = db_ref

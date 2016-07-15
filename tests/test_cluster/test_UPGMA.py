@@ -33,23 +33,23 @@ class UPGMATests(TestCase):
                                    ('c', 'd'): 10.0,
                                    ('c', 'e'): 12.0,
                                    ('d', 'e'): 2.0}
-        #create a list of PhyloNode objects
+        # create a list of PhyloNode objects
         a, b, c, d, e = list(map(PhyloNode, 'abcde'))
         self.node_order = [a, b, c, d, e]
-        #create a numpy matrix object to cluster
+        # create a numpy matrix object to cluster
         self.matrix = array(([9999999, 1, 4, 20, 22], \
                              [1, 9999999, 5, 21, 23], \
                              [4, 5, 9999999, 10, 12], \
                              [20, 21, 10, 9999999, 2], \
                              [22, 23, 12, 2, 9999999]), Float)
-        #create a numpy matrix with zero diagonals to test diagonal mask 
+        # create a numpy matrix with zero diagonals to test diagonal mask 
         self.matrix_zeros = array(([0, 1, 4, 20, 22], \
                                    [1, 0, 5, 21, 23], \
                                    [4, 5, 0, 10, 12], \
                                    [20, 21, 10, 0, 2], \
                                    [22, 23, 12, 2, 0]), Float)
 
-        #create a numpy matrix with zero diagonals to test diagonal mask 
+        # create a numpy matrix with zero diagonals to test diagonal mask 
         self.matrix_five = array(([5, 1, 4, 20, 22], \
                                   [1, 5, 5, 21, 23], \
                                   [4, 5, 5, 10, 12], \
@@ -61,7 +61,7 @@ class UPGMATests(TestCase):
         """
         pairwise_dist = self.pairwise_distances
         cluster = upgma(pairwise_dist)
-        cluster = cluster.sorted() # so we can make a stable comparison
+        cluster = cluster.sorted()  # so we can make a stable comparison
         self.assertEqual(str(cluster), '(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
 
     def test_find_smallest_index(self):
@@ -112,7 +112,7 @@ class UPGMATests(TestCase):
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has lowest values
         """
-        #test that checking the diagonal works
+        # test that checking the diagonal works
         matrix = self.matrix_zeros
         node_order = self.node_order
         large_number = 9999999999
@@ -123,7 +123,7 @@ class UPGMATests(TestCase):
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has intermediate values
         """
-        #test that checking the diagonal works
+        # test that checking the diagonal works
         matrix = self.matrix_five
         node_order = self.node_order
         large_number = 9999999999
@@ -145,6 +145,6 @@ class UPGMATests(TestCase):
         self.assertEqual(PhyloNode_order[0].Name, '3')
         self.assertEqual(PhyloNode_order[2].Name, '1')
 
-#run if called from command line
+# run if called from command line
 if __name__ == '__main__':
     main()

@@ -21,9 +21,9 @@ class _Annotatable(object):
         result = []
         if self.annotations:
             slicemap = self._as_map(slice)
-            #try:
+            # try:
             newmap = slicemap.inverse()
-            #except ValueError, detail:
+            # except ValueError, detail:
             #    print "Annotations dropped because %s" % detail
             #    return []
             if slicemap.useful:
@@ -131,7 +131,7 @@ class _Annotatable(object):
             if annot.type not in annotation_types:
                 annotation_types.append(annot.type)
         map = Map(spans=spans, parent_length=len(self))
-        map = map.covered() # No overlaps
+        map = map.covered()  # No overlaps
         Name = ','.join(annotation_types)
 
         if feature_class is None:

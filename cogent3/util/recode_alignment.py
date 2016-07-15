@@ -257,7 +257,7 @@ def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
                 result[new] = freqs[old]
     return result
 
-## The following code is for recoding substitution matrices 
+# The following code is for recoding substitution matrices 
 def square_matrix_to_dict(matrix, key_order='ACDEFGHIKLMNPQRSTVWY'):
     result = {}
     for c, row in zip(key_order, matrix):

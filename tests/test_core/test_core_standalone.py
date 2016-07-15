@@ -339,7 +339,7 @@ class AlignmentTestMethods(unittest.TestCase):
             self.assertEqual(seqs[0].count(char), 1)
 
     def test_sample_with_replacement(self):
-        #test with replacement
+        # test with replacement
         alignment = LoadSeqs(data={'seq1': 'gatc', 'seq2': 'gatc'})
         sample = alignment.sample(1000, with_replacement=True)
 
@@ -549,7 +549,7 @@ class SequenceTestMethods(unittest.TestCase):
         seq = Sequence(DNA, seq='ACTG-TAA')
         rev = seq.reversecomplement()
         self.assertEqual(str(rev), 'TTA-CAGT')
-        #try amigbuities
+        # try amigbuities
         seq = Sequence(DNA, seq='ACHNRTAA')
         rev = seq.reversecomplement()
         self.assertEqual(str(rev), 'TTAYNDGT')

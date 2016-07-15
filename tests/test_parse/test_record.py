@@ -162,13 +162,13 @@ class MappedRecordTests(TestCase):
 
         r = rec()
         self.assertEqual(r, {'a': {}, 'b': 'xyz', 'c': 3})
-        #test that subclassing is correct
+        # test that subclassing is correct
         s = r.copy()
         assert isinstance(s, rec)
-        #test Aliases
+        # test Aliases
         s.B = 0
         self.assertEqual(s, {'a': {}, 'b': 0, 'c': 3})
-        #test Required
+        # test Required
         try:
             del s.B
         except AttributeError:
@@ -193,7 +193,7 @@ class MappedRecordTests(TestCase):
     def test_setattr(self):
         """MappedRecord setattr should add to dict"""
         s = self.single
-        #check that we haven't screwed up normal attribute setting
+        # check that we haven't screwed up normal attribute setting
         assert 'Aliases' not in s
         s.Aliases = {'x': 'y'}
         assert 'Aliases' not in s
@@ -215,7 +215,7 @@ class MappedRecordTests(TestCase):
         del s.x
         self.assertEqual(s.x, None)
         self.assertEqual(s, {'a': 3})
-        #try it for an internal attribute: check it doesn't delete anything else
+        # try it for an internal attribute: check it doesn't delete anything else
         s.b = 4
         self.assertEqual(s, {'a': 3, 'b': 4})
         del s.a
@@ -254,7 +254,7 @@ class MappedRecordTests(TestCase):
         self.assertNotEqual(s.Required, None)
         s['c'] = 5
         self.assertEqual(s, {'a': 3, 'c': 5, 'Required': None})
-        #still not allowed unhashable objects as keys
+        # still not allowed unhashable objects as keys
         self.assertRaises(TypeError, s.__setitem__, list(range(3)))
         s.Aliases = {'C': 'c'}
         s['C'] = 3
@@ -545,9 +545,9 @@ class FieldMorpherTests(TestCase):
         """FieldMorpher with default set should apply it"""
         func = lambda x, y: (str(x), float(y) - 0.5)
         fm = FieldMorpher({'3': str, 4: int}, func)
-        #check that recognized values aren't tampered with
+        # check that recognized values aren't tampered with
         self.assertEqual(fm({3: 3, 4: '4'}), {'3': '3', 4: 4})
-        #check that unrecognized values get the appropriate conversion
+        # check that unrecognized values get the appropriate conversion
         self.assertEqual(fm({3: 3, 5: '5'}), {'3': '3', '5': 4.5})
 
 if __name__ == '__main__':

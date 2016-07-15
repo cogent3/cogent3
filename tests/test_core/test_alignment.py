@@ -35,9 +35,9 @@ class alignment_tests(TestCase):
 
     def test_seqs_from_array(self):
         """seqs_from_array should return chars, and successive indices."""
-        a = array([[0, 1, 2], [2, 1, 0]])    #three 2-char seqs
+        a = array([[0, 1, 2], [2, 1, 0]])  # three 2-char seqs
         obs_a, obs_labels = seqs_from_array(a)
-        #note transposition
+        # note transposition
         self.assertEqual(obs_a, [array([0, 2]), array([1, 1]), array([2, 0])])
         self.assertEqual(obs_labels, None)
 
@@ -46,7 +46,7 @@ class alignment_tests(TestCase):
         s1 = ModelSequence('ABC', Name='a')
         s2 = ModelSequence('DEF', Name='b')
         obs_a, obs_labels = seqs_from_model_seqs([s1, s2])
-        self.assertEqual(obs_a, [s1, s2]) #seq -> numbers
+        self.assertEqual(obs_a, [s1, s2])  # seq -> numbers
         self.assertEqual(obs_labels, ['a', 'b'])
 
     def test_seqs_from_generic(self):
@@ -84,7 +84,7 @@ class alignment_tests(TestCase):
 
     def test_aln_from_array(self):
         """aln_from_array should return same array, and successive indices."""
-        a = array([[0, 1, 2], [3, 4, 5]])    #three 2-char seqs
+        a = array([[0, 1, 2], [3, 4, 5]])  # three 2-char seqs
         obs_a, obs_labels = aln_from_array(a)
         self.assertEqual(obs_a, transpose(a))
         self.assertEqual(obs_labels, None)
@@ -96,7 +96,7 @@ class alignment_tests(TestCase):
         obs_a, obs_labels = aln_from_model_seqs([s1, s2], \
                                                 Alphabet=BYTES.Alphabet)
         self.assertEqual(obs_a, array([[2, 1, 1], [3, 3, 0]], 'b'))
-        #seq -> numbers
+        # seq -> numbers
         self.assertEqual(obs_labels, ['a', 'b'])
 
     def test_aln_from_generic(self):
@@ -104,15 +104,15 @@ class alignment_tests(TestCase):
         s1 = 'AAA'
         s2 = 'GGG'
         obs_a, obs_labels = aln_from_generic([s1, s2], 'b', \
-                                             Alphabet=RNA.Alphabet) #specify array type
-        self.assertEqual(obs_a, array([[2, 2, 2], [3, 3, 3]], 'b')) #str -> chars
+                                             Alphabet=RNA.Alphabet)  # specify array type
+        self.assertEqual(obs_a, array([[2, 2, 2], [3, 3, 3]], 'b'))  # str -> chars
         self.assertEqual(obs_labels, [None, None])
 
     def test_aln_from_fasta(self):
         """aln_from_fasta should initialize aln from fasta-format string"""
         s = '>aa\nAB\nC\n>bb\nDE\nF\n'
         obs_a, obs_labels = aln_from_fasta(s.splitlines())
-        self.assertEqual(obs_a, array(['ABC', 'DEF'], 'c').view('B')) #seq -> numbers
+        self.assertEqual(obs_a, array(['ABC', 'DEF'], 'c').view('B'))  # seq -> numbers
         self.assertEqual(obs_labels, ['aa', 'bb'])
 
     def test_aln_from_dense_aln(self):
@@ -180,9 +180,9 @@ class SequenceCollectionBaseTests(object):
             'f': RnaSequence('CCGGGCGGCC'),
             'g': RnaSequence('UCAACCGGAA'),
         })
-        #Additional SequenceCollections for tests added 6/4/04 by Jeremy Widmann
+        # Additional SequenceCollections for tests added 6/4/04 by Jeremy Widmann
         self.sequences = self.Class(list(map(RnaSequence, ['UCAG', 'UCAG', 'UCAG'])))
-        #Additional SequenceCollection for tests added 1/30/06 by Cathy Lozupone
+        # Additional SequenceCollection for tests added 1/30/06 by Cathy Lozupone
         self.omitSeqsTemplate_aln = self.Class({
             's1': RnaSequence('UC-----CU---C'),
             's2': RnaSequence('UC------U---C'),
@@ -204,7 +204,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(git('>ab\nabc'), 'fasta')
         self.assertEqual(git(['>ab', 'abc']), 'fasta')
         self.assertEqual(git(['abc', 'def']), 'generic')
-        self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs') #precedence over generic
+        self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs')  # precedence over generic
         self.assertEqual(git([[1, 2, 3], [4, 5, 6]]), 'generic')
         self.assertEqual(git([ModelSequence('abc')]), 'model_seqs')
         self.assertEqual(git(array([[1, 2, 3], [4, 5, 6]])), 'array')
@@ -261,14 +261,14 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(a.Names), ['c', 'b', 'a'])
         self.assertEqual(list(map(str, a.Seqs)), ['GGG', 'CCC', 'AAA'])
         if self.Class is not DenseAlignment:
-            #DenseAlignment is allowed to strip Info objects
+            # DenseAlignment is allowed to strip Info objects
             self.assertEqual([i.Info.x for i in a.Seqs], [5, 4, 3])
-        #check it still works if constructed from same class
+        # check it still works if constructed from same class
         b = self.Class(a)
         self.assertEqual(list(b.Names), ['c', 'b', 'a'])
         self.assertEqual(list(map(str, b.Seqs)), ['GGG', 'CCC', 'AAA'])
         if self.Class is not DenseAlignment:
-            #DenseAlignment is allowed to strip Info objects
+            # DenseAlignment is allowed to strip Info objects
             self.assertEqual([i.Info.x for i in b.Seqs], [5, 4, 3])
 
 
@@ -308,7 +308,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(first_list, ['AAAAA', 'BBBBB'])
         self.assertEqual(sec_list, ['BBBBB', 'AAAAA'])
 
-        #check that the unordered seq matches one of the lists
+        # check that the unordered seq matches one of the lists
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
@@ -357,7 +357,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(first_list, ['AAAAA', 'BBBBB'])
         self.assertEqual(sec_list, ['BBBBB', 'AAAAA'])
 
-        #check that the unordered seq matches one of the lists
+        # check that the unordered seq matches one of the lists
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
@@ -375,24 +375,24 @@ class SequenceCollectionBaseTests(object):
 
     def test_Items(self):
         """SequenceCollection Items should iterate over items in specified order."""
-        #should work if one row
+        # should work if one row
         self.assertEqual(list(self.one_seq.Items), ['A'] * 5)
-        #should take order into account
+        # should take order into account
         self.assertEqual(list(self.ordered1.Items), ['A'] * 5 + ['B'] * 5)
         self.assertEqual(list(self.ordered2.Items), ['B'] * 5 + ['A'] * 5)
 
     def test_iterItems(self):
         """SequenceCollection iterItems() should iterate over items in correct order"""
-        #should work if one row
+        # should work if one row
         self.assertEqual(list(self.one_seq.iterItems()), ['A'] * 5)
-        #should take order into account
+        # should take order into account
         self.assertEqual(list(self.ordered1.iterItems()), ['A'] * 5 + ['B'] * 5)
         self.assertEqual(list(self.ordered2.iterItems()), ['B'] * 5 + ['A'] * 5)
-        #should allow row and/or col specification
+        # should allow row and/or col specification
         r = self.ragged_padded
         self.assertEqual(list(r.iterItems(seq_order=['c', 'b'], \
                                           pos_order=[5, 1, 3])), list('-AA-A-'))
-        #should not interfere with superclass iteritems()
+        # should not interfere with superclass iteritems()
         i = list(r.NamedSeqs.items()) 
         i.sort()
         self.assertEqual(i, [('a', 'AAAAAA'), ('b', 'AAA---'), ('c', 'AAAA--')])
@@ -402,7 +402,7 @@ class SequenceCollectionBaseTests(object):
         a = self.ragged_padded.takeSeqs('bc')
         self.assertTrue(isinstance(a, SequenceCollection))
         self.assertEqual(a, {'b': 'AAA---', 'c': 'AAAA--'})
-        #should be able to negate
+        # should be able to negate
         a = self.ragged_padded.takeSeqs('bc', negate=True)
         self.assertEqual(a, {'a': 'AAAAAA'})
 
@@ -416,7 +416,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection getSeqIndices should return names of seqs where f(row) is True"""
         srp = self.ragged_padded
         is_long = lambda x: len(x) > 10
-        is_med = lambda x: len(str(x).replace('-', '')) > 3 #strips gaps
+        is_med = lambda x: len(str(x).replace('-', '')) > 3  # strips gaps
         is_any = lambda x: len(x) > 0
         self.assertEqual(srp.getSeqIndices(is_long), [])
         srp.Names = 'cba'
@@ -424,7 +424,7 @@ class SequenceCollectionBaseTests(object):
         srp.Names = 'bac'
         self.assertEqual(srp.getSeqIndices(is_med), ['a', 'c'])
         self.assertEqual(srp.getSeqIndices(is_any), ['b', 'a', 'c'])
-        #should be able to negate
+        # should be able to negate
         self.assertEqual(srp.getSeqIndices(is_med, negate=True), ['b'])
         self.assertEqual(srp.getSeqIndices(is_any, negate=True), [])
 
@@ -443,7 +443,7 @@ class SequenceCollectionBaseTests(object):
                          {'c': 'AAAA--', 'a': 'AAAAAA'})
         self.assertEqual(srp.takeSeqsIf(is_any), srp)
         self.assertTrue(isinstance(srp.takeSeqsIf(is_med), SequenceCollection))
-        #should be able to negate
+        # should be able to negate
         self.assertEqual(srp.takeSeqsIf(is_med, negate=True), \
                          {'b': 'AAA---'})
 
@@ -453,32 +453,32 @@ class SequenceCollectionBaseTests(object):
                          ['D', 'P', 'A'])
         self.assertRaises(KeyError, self.mixed.getItems, [('x', 'y')])
         self.assertRaises(IndexError, self.mixed.getItems, [('a', 1000)])
-        #should be able to negate -- note that results will have seqs in
-        #arbitrary order
+        # should be able to negate -- note that results will have seqs in
+        # arbitrary order
         self.assertEqualItems(self.mixed.getItems([('a', 3), ('b', 4), ('a', 0)], \
                                                   negate=True), ['B', 'C', 'E', 'L', 'M', 'N', 'O'])
 
     def test_getItemIndices(self):
         """SequenceCollection getItemIndices should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'
-        #reverse name order to test that it's not alphabetical
+        # reverse name order to test that it's not alphabetical
         self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])    
         self.assertEqual(self.mixed.getItemIndices(is_vowel), \
                          [('b', 3), ('a', 0), ('a', 4)])
         is_lower = lambda x: x.islower()
         self.assertEqual(self.ragged_padded.getItemIndices(is_lower), [])
-        #should be able to negate
+        # should be able to negate
         self.assertEqualItems(self.mixed.getItemIndices(is_vowel, negate=True),\
                               [('a', 1), ('a', 2), ('a', 3), ('b', 0), ('b', 1), ('b', 2), ('b', 4)])
 
     def test_getItemsIf(self):
         """SequenceCollection getItemsIf should return matching items"""
         is_vowel = lambda x: x in 'AEIOU'
-        #reverse name order to test that it's not alphabetical
+        # reverse name order to test that it's not alphabetical
         self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])    
         self.assertEqual(self.mixed.getItemsIf(is_vowel), ['O', 'A', 'E'])
         self.assertEqual(self.one_seq.getItemsIf(is_vowel), list('AAAAA'))
-        #should be able to negate
+        # should be able to negate
         self.assertEqualItems(self.mixed.getItemsIf(is_vowel, negate=True), \
                               list('BCDLMNP'))
 
@@ -487,7 +487,7 @@ class SequenceCollectionBaseTests(object):
         aln = self.many
         x = RnaSequence('GGGGGGGGGG')
         y = RnaSequence('----------')
-        #test min and max similarity ranges
+        # test min and max similarity ranges
         result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.4,\
                                 max_similarity=0.7)
         for seq in 'cefg':
@@ -513,7 +513,7 @@ class SequenceCollectionBaseTests(object):
                                 max_similarity=0.2)
         self.assertEqual(result, {})
 
-        #test some sequence transformations
+        # test some sequence transformations
         transform = lambda s: s[1:4]
         result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.5, \
                                 transform=transform)
@@ -530,7 +530,7 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 5)
 
-        #test a different distance metric
+        # test a different distance metric
         metric = lambda x, y: str(x).count('G') + str(y).count('G')
         result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=5, \
                                 max_similarity=10, metric=metric)
@@ -539,36 +539,36 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 2)
 
-        #test the combination of a transform and a distance metric
+        # test the combination of a transform and a distance metric
         aln = self.Class(dict(enumerate(map(RnaSequence, \
                                             ['GA-GU', 'A-GAC', 'GG-GG']))), MolType=RNA)
         transform = lambda s: RnaSequence(str(s).replace('G', 'A'\
                                                          ).replace('U', 'C'))
         metric = RnaSequence.fracSameNonGaps
         null_transform = lambda s: RnaSequence(str(s))
-        #first, do it without the transformation
+        # first, do it without the transformation
         try:
             result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5, \
                                     metric=metric)
-        except TypeError:   #need to coerce to RNA seq w/ null_transform
+        except TypeError:  # need to coerce to RNA seq w/ null_transform
             result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5, \
                                     metric=metric, transform=null_transform)
         for seq in [0, 2]:
             self.assertContains(result.NamedSeqs, seq)
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 2)
-        #repeat with higher similarity
+        # repeat with higher similarity
         try:
             result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.8, \
                                     metric=metric)
-        except TypeError:   #need to coerce to RNA
+        except TypeError:  # need to coerce to RNA
             result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.8, \
                                     metric=metric, transform=null_transform)
         for seq in [0]:
             self.assertContains(result.NamedSeqs, seq)
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 1)
-        #then, verify that the transform changes the results         
+        # then, verify that the transform changes the results         
         result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5, \
                                 metric=metric, transform=transform)
         for seq in [0, 1, 2]:
@@ -618,8 +618,8 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class(['AAA', 'CCC'])
         self.assertEqual(aln.toFasta(), '>seq_0\nAAA\n>seq_1\nCCC')
 
-        #NOTE THE FOLLOWING SURPRISING BEHAVIOR BECAUSE OF THE TWO-ITEM
-        #SEQUENCE RULE:
+        # NOTE THE FOLLOWING SURPRISING BEHAVIOR BECAUSE OF THE TWO-ITEM
+        # SEQUENCE RULE:
         aln = self.Class(['AA', 'CC'])
         self.assertEqual(aln.toFasta(), '>A\nA\n>C\nC')
 
@@ -648,7 +648,7 @@ class SequenceCollectionBaseTests(object):
         im, ik = aln.getIntMap()
         self.assertEqual(ik, int_keys)
         self.assertEqual(im, int_map)
-        #test change prefix from default 'seq_'
+        # test change prefix from default 'seq_'
         prefix = 'seqn_'
         int_keys = {'seqn_0': 'seq1', 'seqn_1': 'seq2', 'seqn_2': 'seq3'}
         int_map = {'seqn_0': 'ACGU', 'seqn_1': 'CGUA', 'seqn_2': 'CCGU'}
@@ -703,16 +703,16 @@ class SequenceCollectionBaseTests(object):
         """replaceSeqs should replace 1-letter w/ 3-letter seqs"""
         a = Alignment({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
         seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
-        result = a.replaceSeqs(seqs) # default behaviour
+        result = a.replaceSeqs(seqs)  # default behaviour
         self.assertEqual(result.toFasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
-        result = a.replaceSeqs(seqs, aa_to_codon=True) # default behaviour
+        result = a.replaceSeqs(seqs, aa_to_codon=True)  # default behaviour
         self.assertEqual(result.toFasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
         # should correctly gap the same sequences with same length
-        result = a.replaceSeqs(a[:3].degap(), aa_to_codon=False) # default behaviour
+        result = a.replaceSeqs(a[:3].degap(), aa_to_codon=False)  # default behaviour
         self.assertEqual(result.todict(),
                          {'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
 
@@ -753,22 +753,22 @@ class SequenceCollectionBaseTests(object):
         aln3 = self.Class(data3)
 
         out_aln = aln.addSeqs(aln3)
-        self.assertEqual(str(out_aln), str(self.Class(data + data3))) #test append at the end
+        self.assertEqual(str(out_aln), str(self.Class(data + data3)))  # test append at the end
 
         out_aln = aln.addSeqs(aln3, before_name='name3') 
-        self.assertEqual(str(out_aln), str(self.Class(data1 + data3 + data2))) # test insert before
+        self.assertEqual(str(out_aln), str(self.Class(data1 + data3 + data2)))  # test insert before
 
         out_aln = aln.addSeqs(aln3, after_name='name2')
-        self.assertEqual(str(out_aln), str(self.Class(data1 + data3 + data2))) # test insert after
+        self.assertEqual(str(out_aln), str(self.Class(data1 + data3 + data2)))  # test insert after
 
         out_aln = aln.addSeqs(aln3, before_name='name1') 
-        self.assertEqual(str(out_aln), str(self.Class(data3 + data))) #test if insert before first seq works
+        self.assertEqual(str(out_aln), str(self.Class(data3 + data)))  # test if insert before first seq works
 
         out_aln = aln.addSeqs(aln3, after_name='name4') 
-        self.assertEqual(str(out_aln), str(self.Class(data + data3))) #test if insert after last seq works
+        self.assertEqual(str(out_aln), str(self.Class(data + data3)))  # test if insert after last seq works
 
-        self.assertRaises(ValueError, aln.addSeqs, aln3, before_name='name5') #wrong after/before name
-        self.assertRaises(ValueError, aln.addSeqs, aln3, after_name='name5') #wrong after/before name
+        self.assertRaises(ValueError, aln.addSeqs, aln3, before_name='name5')  # wrong after/before name
+        self.assertRaises(ValueError, aln.addSeqs, aln3, after_name='name5')  # wrong after/before name
 
         if isinstance(aln, Alignment) or isinstance(aln, DenseAlignment):
             self.assertRaises((DataError, ValueError), aln.addSeqs, aln3 + aln3)
@@ -863,31 +863,31 @@ class SequenceCollectionBaseTests(object):
         s1 = RnaSequence('UC-----CU---C')
         s3 = RnaSequence('UUCCUUCUU-UUC')
         s4 = RnaSequence('UU-UUUU-UUUUC')
-        #check that the behavior is ok for gap runs
+        # check that the behavior is ok for gap runs
         f1 = make_gap_filter(s1, 0.9, 5)
         f3 = make_gap_filter(s3, 0.9, 5)
-        #Should return False since s1 has gap run >= 5 with respect to s3
+        # Should return False since s1 has gap run >= 5 with respect to s3
         self.assertEqual(f3(s1), False)
-        #Should return False since s3 has an insertion run >= 5 to s1
+        # Should return False since s3 has an insertion run >= 5 to s1
         self.assertEqual(f1(s3), False)
-        #Should retun True since s4 does not have a long enough gap or ins run
+        # Should retun True since s4 does not have a long enough gap or ins run
         self.assertEqual(f3(s4), True)
         f3 = make_gap_filter(s3, 0.9, 6)
         self.assertEqual(f3(s1), True)
 
-        #Check that behavior is ok for gap_fractions
+        # Check that behavior is ok for gap_fractions
         f1 = make_gap_filter(s1, 0.5, 6)
         f3 = make_gap_filter(s3, 0.5, 6)
-        #Should return False since 0.53% of positions are diff for gaps
+        # Should return False since 0.53% of positions are diff for gaps
         self.assertEqual(f3(s1), False)
         self.assertEqual(f1(s3), False)
         self.assertEqual(f3(s4), True)
 
     def test_omitGapSeqs(self):
         """SequenceCollection omitGapSeqs should return alignment w/o seqs with gaps"""
-        #check default params
+        # check default params
         self.assertEqual(self.gaps.omitGapSeqs(), self.gaps.omitGapSeqs(0))
-        #check for boundary effects
+        # check for boundary effects
         self.assertEqual(self.gaps.omitGapSeqs(-1), {})
         self.assertEqual(self.gaps.omitGapSeqs(0), {'a': 'AAAAAAA'})
         self.assertEqual(self.gaps.omitGapSeqs(0.1), {'a': 'AAAAAAA'})
@@ -900,11 +900,11 @@ class SequenceCollectionBaseTests(object):
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
         self.assertEqual(self.gaps.omitGapSeqs(5.0 / 7 + 0.01), self.gaps)
         self.assertEqual(self.gaps.omitGapSeqs(0.99), self.gaps)
-        #check new object creation
+        # check new object creation
         self.assertNotSameObj(self.gaps.omitGapSeqs(0.99), self.gaps)
         self.assertTrue(isinstance(self.gaps.omitGapSeqs(3.0 / 7), 
                                    SequenceCollection))
-        #repeat tests for object that supplies its own gaps
+        # repeat tests for object that supplies its own gaps
         self.assertEqual(self.gaps_rna.omitGapSeqs(-1), {})
         self.assertEqual(self.gaps_rna.omitGapSeqs(0), {'a': 'AAAAAAA'})
         self.assertEqual(self.gaps_rna.omitGapSeqs(0.1), {'a': 'AAAAAAA'})
@@ -924,9 +924,9 @@ class SequenceCollectionBaseTests(object):
 
     def test_omitGapRuns(self):
         """SequenceCollection omitGapRuns should return alignment w/o runs of gaps"""
-        #negative value will still let through ungapped sequences
+        # negative value will still let through ungapped sequences
         self.assertEqual(self.gaps.omitGapRuns(-5), {'a': 'AAAAAAA'})
-        #test edge effects
+        # test edge effects
         self.assertEqual(self.gaps.omitGapRuns(0), {'a': 'AAAAAAA'})
         self.assertEqual(self.gaps.omitGapRuns(1), {'a': 'AAAAAAA'})
         self.assertEqual(self.gaps.omitGapRuns(2), {'a': 'AAAAAAA', 'b': 'A--A-AA'})
@@ -935,7 +935,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps.omitGapRuns(5), self.gaps)
         self.assertEqual(self.gaps.omitGapRuns(6), self.gaps)
         self.assertEqual(self.gaps.omitGapRuns(1000), self.gaps)
-        #test new object creation
+        # test new object creation
         self.assertNotSameObj(self.gaps.omitGapRuns(6), self.gaps)
         self.assertTrue(isinstance(self.gaps.omitGapRuns(6), 
                                    SequenceCollection))
@@ -957,18 +957,18 @@ class SequenceCollectionBaseTests(object):
 
     def test_padSeqs(self):
         """SequenceCollection padSeqs should work on alignment."""
-        #pad to max length
+        # pad to max length
         padded1 = self.ragged_padded.padSeqs()
         seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
-        #pad to alternate length
+        # pad to alternate length
         padded1 = self.ragged_padded.padSeqs(pad_length=10)
         seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',\
                                                'AAAA------'])
 
-        #assertRaises error when pad_length is less than max seq length
+        # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged_padded.padSeqs, 5)
 
 
@@ -1019,18 +1019,18 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
     def test_padSeqs_ragged(self):
         """SequenceCollection padSeqs should work on ragged alignment."""
-        #pad to max length
+        # pad to max length
         padded1 = self.ragged.padSeqs()
         seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
-        #pad to alternate length
+        # pad to alternate length
         padded1 = self.ragged.padSeqs(pad_length=10)
         seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',\
                                                'AAAA------'])
 
-        #assertRaises error when pad_length is less than max seq length
+        # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.padSeqs, 5)
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
@@ -1052,7 +1052,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         r = self.Class(self.ragged_padded.NamedSeqs, Names=['c', 'b'])
         self.assertEqual(list(r.iterPositions(pos_order=[5, 1, 3])),\
                          list(map(list, ['--', 'AA', 'A-'])))
-        #reorder names
+        # reorder names
         r = self.Class(self.ragged_padded.NamedSeqs, Names=['a', 'b', 'c'])
         cols = list(r.iterPositions())
         self.assertEqual(cols, list(map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
@@ -1064,7 +1064,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                          {'a': 'AAA', 'b': 'A-A', 'c': '--A'})
         self.assertTrue(isinstance(self.gaps.takePositions([0]), 
                                    SequenceCollection))
-        #should be able to negate
+        # should be able to negate
         self.assertEqual(self.gaps.takePositions([5, 4, 0], negate=True, \
                                                  seq_constructor=coerce_to_string),
                          {'a': 'AAAA', 'b': '--AA', 'c': 'A---'})
@@ -1081,7 +1081,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.getPositionIndices(gap_2nd), [1, 2, 4])
         self.assertEqual(self.gaps.getPositionIndices(gap_3rd), [2, 3, 4, 5, 6])
         self.assertEqual(self.gaps.getPositionIndices(is_list), [0, 1, 2, 3, 4, 5, 6])
-        #should be able to negate
+        # should be able to negate
         self.assertEqual(self.gaps.getPositionIndices(gap_2nd, negate=True), \
                          [0, 3, 5, 6])
         self.assertEqual(self.gaps.getPositionIndices(gap_1st, negate=True), \
@@ -1107,7 +1107,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         self.assertTrue(isinstance(self.gaps.takePositionsIf(gap_1st), 
                                    SequenceCollection))
-        #should be able to negate
+        # should be able to negate
         self.assertEqual(self.gaps.takePositionsIf(gap_1st, seq_constructor=coerce_to_string,\
                                                    negate=True), self.gaps)
         self.assertEqual(self.gaps.takePositionsIf(gap_2nd, seq_constructor=coerce_to_string,\
@@ -1119,72 +1119,72 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """SequenceCollection omitGapPositions should return alignment w/o positions of gaps"""
         aln = self.end_gaps
 
-        #first, check behavior when we're just acting on the cols (and not
-        #trying to delete the naughty seqs).
+        # first, check behavior when we're just acting on the cols (and not
+        # trying to delete the naughty seqs).
 
-        #default should strip out cols that are 100% gaps
+        # default should strip out cols that are 100% gaps
         self.assertEqual(aln.omitGapPositions(seq_constructor=coerce_to_string), \
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
-        #if allowed_gap_frac is 1, shouldn't delete anything
+        # if allowed_gap_frac is 1, shouldn't delete anything
         self.assertEqual(aln.omitGapPositions(1, seq_constructor=coerce_to_string), \
                          {'a': '--A-BC-', 'b': '-CB-A--', 'c': '--D-EF-'})
-        #if allowed_gap_frac is 0, should strip out any cols containing gaps
+        # if allowed_gap_frac is 0, should strip out any cols containing gaps
         self.assertEqual(aln.omitGapPositions(0, seq_constructor=coerce_to_string), \
                          {'a': 'AB', 'b': 'BA', 'c': 'DE'})
-        #intermediate numbers should work as expected
+        # intermediate numbers should work as expected
         self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string), \
                          {'a': 'ABC', 'b': 'BA-', 'c': 'DEF'})
         self.assertEqual(aln.omitGapPositions(0.7, seq_constructor=coerce_to_string), \
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
 
-        #second, need to check behavior when the naughty seqs should be
-        #deleted as well.
+        # second, need to check behavior when the naughty seqs should be
+        # deleted as well.
 
-        #default should strip out cols that are 100% gaps
+        # default should strip out cols that are 100% gaps
         self.assertEqual(aln.omitGapPositions(seq_constructor=coerce_to_string, \
                                               del_seqs=True), {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
-        #if allowed_gap_frac is 1, shouldn't delete anything
+        # if allowed_gap_frac is 1, shouldn't delete anything
         self.assertEqual(aln.omitGapPositions(1, seq_constructor=coerce_to_string, \
                                               del_seqs=True), {'a': '--A-BC-', 'b': '-CB-A--', 'c': '--D-EF-'})
-        #if allowed_gap_frac is 0, should strip out any cols containing gaps
+        # if allowed_gap_frac is 0, should strip out any cols containing gaps
         self.assertEqual(aln.omitGapPositions(0, seq_constructor=coerce_to_string, \
-                                              del_seqs=True), {}) #everything has at least one naughty non-gap
-        #intermediate numbers should work as expected
+                                              del_seqs=True), {})  # everything has at least one naughty non-gap
+        # intermediate numbers should work as expected
         self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'}) #b has a naughty non-gap
-        #check that does not delete b if allowed_frac_bad_calls higher than 0.14
+                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'})  # b has a naughty non-gap
+        # check that does not delete b if allowed_frac_bad_calls higher than 0.14
         self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
                                               del_seqs=True, allowed_frac_bad_cols=0.2), \
                          {'a': 'ABC', 'b': 'BA-', 'c': 'DEF'})
         self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'}) #b has a naughty non-gap
+                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'})  # b has a naughty non-gap
 
         self.assertEqual(aln.omitGapPositions(0.7, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'}) #all ok
+                                              del_seqs=True), {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})  # all ok
 
-        #when we increase the number of sequences to 6, more differences
-        #start to appear.
+        # when we increase the number of sequences to 6, more differences
+        # start to appear.
         new_aln_data = aln.NamedSeqs.copy()
         new_aln_data['d'] = '-------'
         new_aln_data['e'] = 'XYZXYZX'
         new_aln_data['f'] = 'AB-CDEF'
         aln = self.Class(new_aln_data)
 
-        #if no gaps are allowed, everything is deleted...
+        # if no gaps are allowed, everything is deleted...
         result = aln.omitGapPositions(seq_constructor=coerce_to_string)
         self.assertEqual(aln.omitGapPositions(0, del_seqs=False), \
                          {'a': '', 'b': '', 'c': '', 'd': '', 'e': '', 'f': ''})
         #...though not a sequence that's all gaps, since it has no positions
-        #that are not gaps. This 'feature' should possibly be considered a bug.
+        # that are not gaps. This 'feature' should possibly be considered a bug.
         self.assertEqual(aln.omitGapPositions(0, del_seqs=True), {'d': ''})
-        #if we're deleting only full positions of gaps, del_seqs does nothing.
+        # if we're deleting only full positions of gaps, del_seqs does nothing.
         self.assertEqual(aln.omitGapPositions(del_seqs=True, \
                                               seq_constructor=coerce_to_string), aln)
-        #at 50%, should delete a bunch of minority sequences
+        # at 50%, should delete a bunch of minority sequences
         self.assertEqual(aln.omitGapPositions(0.5, del_seqs=True, \
                                               seq_constructor=coerce_to_string), \
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
-        #shouldn't depend on order of seqs
+        # shouldn't depend on order of seqs
         aln.Names = 'fadbec'
         self.assertEqual(aln.omitGapPositions(0.5, del_seqs=True, \
                                               seq_constructor=coerce_to_string), \
@@ -1200,8 +1200,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                       'UUUUCCCCAAAAGGGGNNNN--AGCUA--',
                                       ], MolType=RNA)
 
-        #following IUPAC consensus calculated by hand
-        #Test all uppper
+        # following IUPAC consensus calculated by hand
+        # Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(),
                          'UYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
@@ -1213,8 +1213,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                       'TTTTCCCCAAAAGGGGNNNN--AGCTA--',
                                       'TTTTCCCCAAAAGGGGNNNN--AGCTA--',
                                       ])
-        #following IUPAC consensus calculated by hand
-        #Test all uppper
+        # following IUPAC consensus calculated by hand
+        # Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(DNA),
                          'TYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
@@ -1225,8 +1225,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                       'ACDEFGHIKLMNPERSKUVWC-',
                                       'ACNEFGHIKLMNPQRS-UVWP-',                                     
                                       ])
-        #following IUPAC consensus calculated by hand
-        #Test all uppper
+        # following IUPAC consensus calculated by hand
+        # Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(PROTEIN),
                          'ACBEFGHIKLMNPZRS?UVWX-')
     def test_isRagged(self):
@@ -1236,10 +1236,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_columnProbs(self):
         """SequenceCollection.columnProbs should find Pr(symbol) in each column"""
-        #make an alignment with 4 seqs (easy to calculate probabilities)
+        # make an alignment with 4 seqs (easy to calculate probabilities)
         align = self.Class(["AAA", "ACA", "GGG", "GUC"])
         cp = align.columnProbs()
-        #check that the column probs match the counts we expect
+        # check that the column probs match the counts we expect
         self.assertEqual(cp, list(map(Freqs, [   
             {'A': 0.5, 'G': 0.5},
             {'A': 0.25, 'C': 0.25, 'G': 0.25, 'U': 0.25},
@@ -1248,7 +1248,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_majorityConsensus(self):
         """SequenceCollection.majorityConsensus should return commonest symbol per column"""
-        #Check the exact strings expected from string transform
+        # Check the exact strings expected from string transform
         self.assertEqual(self.sequences.majorityConsensus(str), 'UCAG')
 
 
@@ -1257,19 +1257,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(['ABC', 'AXC'])
         obs = aln.uncertainties()
         self.assertFloatEqual(obs, [0, 1, 0])
-        #check what happens with only one input sequence
+        # check what happens with only one input sequence
         aln = self.Class(['ABC'])
         obs = aln.uncertainties()
         self.assertFloatEqual(obs, [0, 0, 0])
-        #check that we can screen out bad items OK
+        # check that we can screen out bad items OK
         aln = self.Class(['ABC', 'DEF', 'GHI', 'JKL', '333'], MolType=BYTES)
         obs = aln.uncertainties('ABCDEFGHIJKLMNOP')
         self.assertFloatEqual(obs, [2.0] * 3)
 
     def test_columnFreqs(self):
         """Alignment.columnFreqs should count symbols in each column"""
-        #calculate by hand what the first and last positions should look like in
-        #each case
+        # calculate by hand what the first and last positions should look like in
+        # each case
         firstvalues = [ 
             [self.sequences, Freqs('UUU')],
             ]
@@ -1277,11 +1277,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         lastvalues = [ 
             [self.sequences, Freqs('GGG')]
             ]
-        #check that the first positions are what we expected
+        # check that the first positions are what we expected
         for obj, result in firstvalues:
             freqs = obj.columnFreqs()
             self.assertEqual(str(freqs[0]), str(result))
-        #check that the last positions are what we expected
+        # check that the last positions are what we expected
         for obj, result in lastvalues:
             freqs = obj.columnFreqs()
             self.assertEqual(str(freqs[-1]), str(result))
@@ -1320,7 +1320,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             self.assertEqual(seqs[0].count(char), 1)
 
     def test_sample_with_replacement(self):
-        #test with replacement -- just verify that it rnus
+        # test with replacement -- just verify that it rnus
         alignment = self.Class({'seq1': 'gatc', 'seq2': 'gatc'})
         sample = alignment.sample(1000, with_replacement=True)
         self.assertEqual(len(sample), 1000)
@@ -1624,25 +1624,25 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
         out_aln = aln1.addFromReferenceAln(aln2, after_name='name1')
         self.assertEqual(str(aligned_to_ref_out_aln_inserted),
-                         str(out_aln)) #test insert_after 
+                         str(out_aln))  # test insert_after 
 
         out_aln = aln1.addFromReferenceAln(aln2, before_name='name2') 
         self.assertEqual(aligned_to_ref_out_aln_inserted,
-                         out_aln) #test insert_before
+                         out_aln)  # test insert_before
 
         self.assertRaises(ValueError, aln1.addFromReferenceAln,
-                          aln2_wrong_refseq_name) #test wrong_refseq_name
+                          aln2_wrong_refseq_name)  # test wrong_refseq_name
 
         aln = aln1.addFromReferenceAln(aln2_different_aln_class)
         self.assertEqual(aligned_to_ref_out_aln,
-                         aln) #test_align_to_refseq_different_aln_class
+                         aln)  # test_align_to_refseq_different_aln_class
 
         aln = aln1.addFromReferenceAln(aln2_list)
         self.assertEqual(aligned_to_ref_out_aln,
-                         aln) #test from_list
+                         aln)  # test from_list
 
         self.assertRaises(ValueError, aln1.addFromReferenceAln,
-                          aln2_wrong_refseq) #test wrong_refseq
+                          aln2_wrong_refseq)  # test wrong_refseq
 
 
 
@@ -1678,7 +1678,7 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(git('>ab\nabc'), 'fasta')
         self.assertEqual(git(['>ab', 'abc']), 'fasta')
         self.assertEqual(git(['abc', 'def']), 'generic')
-        self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs') #precedence over generic
+        self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs')  # precedence over generic
         self.assertEqual(git([[1, 2, 3], [4, 5, 6]]), 'generic')
         self.assertEqual(git([ModelSequence('abc')]), 'model_seqs')
         self.assertEqual(git(array([[1, 2, 3], [4, 5, 6]])), 'array')
@@ -1741,7 +1741,7 @@ class DenseAlignmentSpecificTests(TestCase):
         d = DenseAlignment(s2, MolType=DNA)
         self.assertSameObj(d.MolType, DNA)
         self.assertSameObj(d.Alphabet, DNA.Alphabets.DegenGapped)
-        #checks for containers
+        # checks for containers
         d = DenseAlignment([s2])
         self.assertSameObj(d.MolType, RNA)
         d = DenseAlignment({'x': s2})
@@ -1764,7 +1764,7 @@ class DenseAlignmentSpecificTests(TestCase):
     def test_getSubAlignment(self):
         """DenseAlignment getSubAlignment should get requested part of alignment."""
         a = DenseAlignment('>x ABCE >y FGHI >z JKLM'.split())
-        #passing in positions should keep all seqs, but just selected positions
+        # passing in positions should keep all seqs, but just selected positions
         b = DenseAlignment('>x BC >y GH >z KL'.split())
         a_1 = a.getSubAlignment(pos=[1, 2])
         self.assertEqual(a_1.Names, b.Names)
@@ -1774,17 +1774,17 @@ class DenseAlignmentSpecificTests(TestCase):
         a_2 = a.getSubAlignment(pos=[0, 3], invert_pos=True)
         self.assertEqual(a_2.Seqs, b.Seqs)
         self.assertEqual(a_2.Names, b.Names)
-        #passing in seqs should keep all positions, but just selected seqs
+        # passing in seqs should keep all positions, but just selected seqs
         c = DenseAlignment('>x ABCE >z JKLM'.split())
         a_3 = a.getSubAlignment(seqs=[0, 2])
         self.assertEqual(a_3.Seqs, c.Seqs)
-        #check that labels were updates as well...
+        # check that labels were updates as well...
         self.assertEqual(a_3.Names, c.Names)
         #...and should work with invert_seqs to exclude just selected seqs
         a_4 = a.getSubAlignment(seqs=[1], invert_seqs=True)
         self.assertEqual(a_4.Seqs, c.Seqs)
         self.assertEqual(a_4.Names, c.Names)
-        #should be able to do both seqs and positions simultaneously
+        # should be able to do both seqs and positions simultaneously
         d = DenseAlignment('>x BC >z KL'.split())
         a_5 = a.getSubAlignment(seqs=[0, 2], pos=[1, 2])
         self.assertEqual(a_5.Seqs, d.Seqs)
@@ -1793,7 +1793,7 @@ class DenseAlignmentSpecificTests(TestCase):
     def test_str(self):
         """DenseAlignment str should return FASTA representation of aln"""
         self.assertEqual(str(self.a2), '>x\nABC\n>y\nDEF\n')
-        #should work if labels diff length
+        # should work if labels diff length
         self.a2.Names[-1] = 'yyy'
         self.assertEqual(str(self.a2), '>x\nABC\n>yyy\nDEF\n')
 
@@ -1824,7 +1824,7 @@ class DenseAlignmentSpecificTests(TestCase):
         a = DenseAlignment(list(map(ABModelSequence, ['abab', 'bbbb', 'abbb'])), \
                            Alphabet=AB.Alphabet)
         f = a.getSeqEntropy()
-        e = 0.81127812445913283 #sum(p log_2 p) for p = 0.25, 0.75
+        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(f, array([1, 0, e]))
 
     def test_getPosEntropy(self):
@@ -1913,6 +1913,6 @@ class IntegrationTests(TestCase):
         self.assertEqual(self.r1.Name, 'x')
 
 
-#run tests if invoked from command line
+# run tests if invoked from command line
 if __name__ == '__main__':
     main()

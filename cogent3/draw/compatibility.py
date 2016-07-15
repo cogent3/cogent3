@@ -348,7 +348,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             vertical=True, labeled=True)
 
         axP.yaxis.set_visible(False)
-        #for ax in [axC, axP, axS]:
+        # for ax in [axC, axP, axS]:
             #ax.set_aspect(adjustable='box', aspect='equal')
 
         fig.text(x_margin + c_width / 2, .995, title, ha='center', va='top')
@@ -392,7 +392,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
             axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
             axS.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(seq_names))
-            #axS.yaxis.grid(False) #, 'minor')
+            # axS.yaxis.grid(False) #, 'minor')
 
         # Display the main matrices: compatibility and partimatrix
         axC.pcolorfast(compatiblity, cmap=plt.cm.gray)
@@ -426,11 +426,11 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 (sx, sy) = numpy.nonzero(halfpart)
                 axS.scatter(sx + 0.5, sy + 0.5, color=color, marker='o')
             axS.grid(False)
-            #axS.yaxis.tick_right()
-            #axS.yaxis.set_label_position('right')
+            # axS.yaxis.tick_right()
+            # axS.yaxis.set_label_position('right')
 
         # Bar chart of partition support and conflict scores
-        #axB.set_autoscalex_on(False)
+        # axB.set_autoscalex_on(False)
         if conflict.sum():
             axB.bar(numpy.arange(len(partitions)), -conflict / conflict.sum(), 
                     1.0, color='black', align='edge')
@@ -448,7 +448,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axA.yaxis.set_label_position('right')
         axA.xaxis.tick_top()
         axA.xaxis.set_label_position('top')
-        #axA.xaxis.set_visible(False)
+        # axA.xaxis.set_visible(False)
 
         # "Zoom lines" linking informative-site coords to alignment coords 
         from matplotlib.patches import PathPatch
