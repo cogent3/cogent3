@@ -224,7 +224,7 @@ def mi_position(alignment,position,\
     # compile positional entropies if not passed in
     if positional_entropies == None:
         positional_entropies = \
-         [Freqs(p).Uncertainty for p in alignment.Positions]
+            [Freqs(p).Uncertainty for p in alignment.Positions]
 
     # Will want to make a change here so that we don't need to recalculate
     # all values when calling from mi_alignment
@@ -504,7 +504,7 @@ def get_positional_probabilities(pos_freqs,natural_probs,scaled_aln_size=100):
     for pos_freq,natural_prob in zip(pos_freqs,natural_probs):
         try:
             results.append(\
-             binomial_exact(pos_freq,scaled_aln_size,natural_prob))
+                binomial_exact(pos_freq,scaled_aln_size,natural_prob))
         # Because of the scaling of alignments to scaled_aln_size, pos_freq is
         # a float rather than an int. So, if a position is perfectly conserved,
         # pos_freq as a float could be greater than scaled_aln_size. 
@@ -683,7 +683,7 @@ def sca_pair(alignment,pos1,pos2,cutoff,\
         allowed_perturbations = perturbations[pos1]
     else:
         allowed_perturbations = \
-         get_allowed_perturbations(pos1_freqs,cutoff,alphabet,scaled_aln_size)
+            get_allowed_perturbations(pos1_freqs,cutoff,alphabet,scaled_aln_size)
     # should we do something different here on return_all == True?
     if not allowed_perturbations: return null_value
 
@@ -1043,7 +1043,7 @@ def ancestral_state_alignment(aln,tree,ancestral_seqs=None,\
         row = [null_value] * len(aln)
         for j in range(i+1):
             row[j] = ancestral_state_pair(\
-             aln,tree,i,j,ancestral_seqs,null_value)
+                aln,tree,i,j,ancestral_seqs,null_value)
         result.append(row)
     return ltm_to_symmetric(array(result))
 
@@ -1087,7 +1087,7 @@ def ancestral_state_pair(aln,tree,pos1,pos2,\
                 # we're looking for correlated change along a 
                 # single branch
                 ancestral_seq = ancestral_names_to_seqs[\
-                 nodes[org1].ancestors()[0].Name] 
+                    nodes[org1].ancestors()[0].Name] 
             else:
                 # we're looking for correlated change along different
                 # branches (most cases)
@@ -1254,7 +1254,7 @@ def coevolve_alignments_validation(method,alignment1,alignment2,\
     """ Validation steps required for intermolecular coevolution analyses
     """
     valid_methods_for_different_moltypes = {}.fromkeys(\
-     [mi_alignment,nmi_alignment,resampled_mi_alignment])
+        [mi_alignment,nmi_alignment,resampled_mi_alignment])
     if (alignment1.MolType != alignment2.MolType) and \
      method not in valid_methods_for_different_moltypes:
         raise AssertionError("Different MolTypes only supported for %s" %\
@@ -1292,7 +1292,7 @@ def coevolve_alignments_validation(method,alignment1,alignment2,\
 
 # coevolve alignment functions: f(alignment,**kwargs) -> 2D array
 coevolve_alignment_functions = \
-   {'mi': mi_alignment,'nmi': normalized_mi_alignment,\
+    {'mi': mi_alignment,'nmi': normalized_mi_alignment,\
     'rmi': resampled_mi_alignment,'sca': sca_alignment,\
     'an':ancestral_state_alignment}
 
@@ -1321,7 +1321,7 @@ def coevolve_alignment(method,alignment,**kwargs):
 # function is used, but the user shouldn't have to know anything about 
 # that.
 coevolve_alignment_to_coevolve_pair = \
-   {mi_alignment: mi_pair,normalized_mi_alignment: normalized_mi_pair,\
+    {mi_alignment: mi_pair,normalized_mi_alignment: normalized_mi_pair,\
     resampled_mi_alignment: resampled_mi_pair, sca_alignment: sca_pair,\
     ancestral_state_alignment:ancestral_state_pair}
 
@@ -1343,12 +1343,12 @@ def merge_alignments(alignment1,alignment2):
     try:
         for merged_name,orig_name in list(aln1_name_map.items()):
             result[merged_name] = alignment1.getGappedSeq(orig_name) +\
-             alignment2.getGappedSeq(aln2_name_map[merged_name])
+                alignment2.getGappedSeq(aln2_name_map[merged_name])
     except ValueError: # Differing MolTypes
         for merged_name,orig_name in list(aln1_name_map.items()):
             result[merged_name] =\
-             Sequence(alignment1.getGappedSeq(orig_name)) +\
-             Sequence(alignment2.getGappedSeq(aln2_name_map[merged_name]))
+                Sequence(alignment1.getGappedSeq(orig_name)) +\
+                Sequence(alignment2.getGappedSeq(aln2_name_map[merged_name]))
     except KeyError as e:
         raise KeyError('A sequence identifier is in alignment2 ' +\
          'but not alignment1 -- did you filter out sequences identifiers' +\
@@ -1496,11 +1496,11 @@ def coevolve_alignments(method,alignment1,alignment2,\
     # compact (e.g., can I be making better use of kwargs?).
     if method == mi_pair or method == nmi_pair or method == normalized_mi_pair:
         positional_entropies = \
-         [Freqs(p).Uncertainty for p in merged_alignment.Positions]
+            [Freqs(p).Uncertainty for p in merged_alignment.Positions]
         for i in range(len_alignment1):
             for j in range(len_alignment2):
                 result[j,i] = \
-                 method(merged_alignment,j+len_alignment1,i,\
+                    method(merged_alignment,j+len_alignment1,i,\
                   h1=positional_entropies[j+len_alignment1],\
                   h2=positional_entropies[i],**kwargs)
     elif method == ancestral_state_pair:    
@@ -1512,7 +1512,7 @@ def coevolve_alignments(method,alignment1,alignment2,\
         for i in range(len_alignment1):
             for j in range(len_alignment2):
                 result[j,i] = \
-                 method(aln=merged_alignment,\
+                    method(aln=merged_alignment,\
                   pos1=j+len_alignment1,pos2=i,\
                   ancestral_seqs=ancestral_seqs,**kwargs)
     else:
@@ -1523,7 +1523,7 @@ def coevolve_alignments(method,alignment1,alignment2,\
         for i in range(len_alignment1):
             for j in range(len_alignment2):
                 result[j,i] = \
-                 method(merged_alignment,j+len_alignment1,i,**kwargs)
+                    method(merged_alignment,j+len_alignment1,i,**kwargs)
     return result
 
 
@@ -1532,7 +1532,7 @@ def coevolve_alignments(method,alignment1,alignment2,\
 ## Start positional coevolution analysis
 # coevolve position functions: f(alignment,position,**kwargs) -> 1D array
 coevolve_position_functions = \
-   {'mi': mi_position,'nmi': normalized_mi_position,\
+    {'mi': mi_position,'nmi': normalized_mi_position,\
     'rmi': resampled_mi_position,'sca': sca_position,\
     'an':ancestral_state_position}
 
@@ -1560,7 +1560,7 @@ def coevolve_position(method,alignment,position,**kwargs):
 ## Start pairwise coevolution analysis
 # coevolve pair functions: f(alignment,pos1,pos2,**kwargs) -> float
 coevolve_pair_functions = \
-   {'mi': mi_pair,'nmi': normalized_mi_pair,\
+    {'mi': mi_pair,'nmi': normalized_mi_pair,\
     'rmi': resampled_mi_pair,'sca': sca_pair,\
     'an':ancestral_state_pair}
 
@@ -1668,7 +1668,7 @@ def filter_threshold_based_multiple_interdependency(aln,coevolution_matrix,
         # filter the rows and cols in a symmetric matrix
         for row_n in filtered_rows:
             coevolution_matrix[row_n,:] =\
-             coevolution_matrix[:,row_n] = gDefaultNullValue
+                coevolution_matrix[:,row_n] = gDefaultNullValue
 
     # return the result
     return coevolution_matrix
@@ -1802,7 +1802,7 @@ def filter_exclude_positions(aln,coevolution_matrix,\
     """
     # construct the function to be passed to aln.getPositionIndices
     f = make_positional_exclude_percentage_function(\
-     excludes,max_exclude_percent)
+        excludes,max_exclude_percent)
     # identify the positions containing too many exclude characters
     exclude_positions = aln.getPositionIndices(f)
 
@@ -1854,8 +1854,8 @@ def unpickle_coevolution_result(in_filepath):
         u = Unpickler(infile)
     except IOError:
         err = \
-         "Can't access filepath. Does it exist? Do you have read access? "+\
-         in_filepath
+            "Can't access filepath. Does it exist? Do you have read access? "+\
+            in_filepath
         raise IOError(err)
     r = u.load()
     infile.close()
@@ -1888,8 +1888,8 @@ def csv_to_coevolution_matrix(in_filepath):
         f = open(in_filepath)
     except IOError:
         err = \
-         "Can't access filepath. Does it exist? Do you have read access? "+\
-         in_filepath
+            "Can't access filepath. Does it exist? Do you have read access? "+\
+            in_filepath
         raise IOError(err)
     result = []
     for line in f:
@@ -1936,7 +1936,7 @@ def aln_position_pairs_cmp_threshold(coevolution_matrix,\
     """
     if not intermolecular_data_only:
         assert coevolution_matrix.shape[0] == coevolution_matrix.shape[1],\
-         "Non-square matrices only supported for intermolecular-only data."
+            "Non-square matrices only supported for intermolecular-only data."
     results = []
     # compile the matrix positions with cmp(value,threshold) == True
     for i,row in enumerate(coevolution_matrix):
@@ -1957,15 +1957,15 @@ def aln_position_pairs_ge_threshold(coevolution_matrix,\
     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(\
-     coevolution_matrix,threshold,greater_equal,null_value,intermolecular_data_only)
+        coevolution_matrix,threshold,greater_equal,null_value,intermolecular_data_only)
 
 def aln_position_pairs_le_threshold(coevolution_matrix,\
     threshold,null_value=gDefaultNullValue,\
     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(\
-     coevolution_matrix,threshold,less_equal,\
-     null_value,intermolecular_data_only)
+        coevolution_matrix,threshold,less_equal,\
+        null_value,intermolecular_data_only)
 
 def count_cmp_threshold(m,threshold,cmp_function,null_value=gDefaultNullValue,\
     symmetric=False,ignore_diagonal=False):

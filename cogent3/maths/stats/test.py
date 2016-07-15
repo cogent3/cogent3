@@ -739,7 +739,7 @@ def pearson(x_items, y_items):
 
     try:
         r = 1.0 * ((n * sum_xy) - (sum_x * sum_y)) / \
-           (sqrt((n * sum_x_sq)-(sum_x*sum_x))*sqrt((n*sum_y_sq)-(sum_y*sum_y)))
+            (sqrt((n * sum_x_sq)-(sum_x*sum_x))*sqrt((n*sum_y_sq)-(sum_y*sum_y)))
     except (ZeroDivisionError, ValueError, FloatingPointError): #no variation
         r = 0.0
     #check we didn't get a naughty value for r due to rounding error
