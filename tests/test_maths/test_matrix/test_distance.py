@@ -60,7 +60,7 @@ class DistanceMatrixTests(TestCase):
             'a':{'a':1,'b':2,'c':3},
             'b':{'a':2,'b':4,'c':6},
             'c':{'a':3,'b':6,'c':9},
-            }
+        }
         self.top_triangle = {
             'a':{'a':1, 'b':2, 'c':3},
             'b':{'b':4, 'c':6},
@@ -77,7 +77,7 @@ class DistanceMatrixTests(TestCase):
         self.dense = {
             'a':{'a':1,'b':2,'c':3},
             'b':{'a':2,'b':4,'c':6},
-            }
+        }
 
     def test_all_init_parameters(self):
         """ All parameters to init are handled correctly """

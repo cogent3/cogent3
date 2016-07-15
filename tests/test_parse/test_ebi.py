@@ -657,7 +657,7 @@ class CC_Tests(TestCase):
             'Defects in ABCD1 are the cause of recessive X-linked '
                 'adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare '
                 'phenotype'
-            ])
+        ])
 
         #test License (default_handler)
         #pprint(cc['LICENSE'])

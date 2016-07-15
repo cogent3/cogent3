@@ -510,7 +510,7 @@ class functionTests(TestCase):
             numpy.array([[0,0,0],
                         [0,0,0],
                         [1,1,1],
-                        ]))
+                         ]))
         self.assertFloatEqual(res,numpy.array([
                         [0,0,1],
                         [0,0,1],
@@ -524,7 +524,7 @@ class functionTests(TestCase):
             numpy.array([[1,4,3],
                         [1,3,5],
                         [0,2,0],
-                        ]))
+                         ]))
         self.assertFloatEqual(res,numpy.array([
                         [0,1-14/17,1-(.4)],
                         [1-14/17,0,1-4/11],

@@ -85,7 +85,7 @@ class TestCompara(ComparaTestBase):
                       'AAGTCAAACTCTACCACTGG', # mouse
                       'AAGTCAAACTCTACCACTAG', #rat
                       'AAATGTGACTCTACCAGCCG' #platypus
-                  ])
+                      ])
         self.assertEqual(set(seqs), expect)
         self.assertTrue(len(aln) > 1000)
 
@@ -180,7 +180,7 @@ class TestSyntenicRegions(TestCase):
                  'AAGAAGCAAACAGGTTTATTTTATACAGTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGCATTTGGACCTAGGGAGAGGTCAGTCTCAGGCCAAGTA',
                  'Pan troglodytes:chromosome:16:48943-49032:-1':
                  'AAGAAGCAAACAGGTTTATTTTATACACTGGGCCAGGCCGTGGGTCTGCCATGTGACTAGGGAATTTGGACC-----------CAGTCTCAGGCCAAGTA'}]
-            ]
+        ]
         # print self.comp.method_species_links
         for coord, expect in coords_expected[1:]:
             syntenic = list(

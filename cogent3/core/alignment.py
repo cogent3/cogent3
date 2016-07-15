@@ -203,7 +203,7 @@ class SequenceCollection(object):
                         'dict': seqs_from_dict,
                         'empty': seqs_from_empty,
                         'kv_pairs':seqs_from_kv_pairs,
-                    }
+                        }
 
     IsArray = set(['array', 'model_seqs'])
 
@@ -2109,7 +2109,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                         'dict':aln_from_dict,
                         'kv_pairs':aln_from_kv_pairs,
                         'empty':aln_from_empty,
-                    }
+                        }
 
     def __init__(self, *args, **kwargs):
         """Returns new DenseAlignment object. Inherits from SequenceCollection.
@@ -2389,7 +2389,7 @@ class CodonDenseAlignment(DenseAlignment):
                         'collection':aln_from_collection,
                         'dict':aln_from_dict,
                         'empty':aln_from_empty,
-                    }
+                        }
 
 def make_gap_filter(template, gap_fraction, gap_run):
     """Returns f(seq) -> True if no gap runs and acceptable gap fraction.

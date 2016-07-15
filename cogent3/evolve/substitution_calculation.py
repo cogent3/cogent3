@@ -51,7 +51,7 @@ class ExpDefn(CalculationDefn):
             'checked': (True, True, False),
             'pade': (False, False, True),
             'either': (True, True, True),
-            }[str(expm)]
+        }[str(expm)]
 
         if not allow_eigen:
             return PadeExponentiator

@@ -27,7 +27,7 @@ class Dict2DTests(TestCase):
             'a':{'a':1,'b':2,'c':3},
             'b':{'a':2,'b':4,'c':6},
             'c':{'a':3,'b':6,'c':9},
-            }
+        }
         self.top_triangle = {
             'a':{'a':1, 'b':2, 'c':3},
             'b':{'b':4, 'c':6},
@@ -44,7 +44,7 @@ class Dict2DTests(TestCase):
         self.dense = {
             'a':{'a':1,'b':2,'c':3},
             'b':{'a':2,'b':4,'c':6},
-            }
+        }
 
     def test_init(self):
         """Dict2D init should work as expected"""
@@ -211,7 +211,7 @@ class Dict2DTests(TestCase):
             'b':{'a':None, 'b':None, 'c':None, 'd':None},
             'c':{'a':None, 'b':None, 'c':None, 'd':None},
             'd':{'a':None, 'b':2, 'c':None, 'd':None},
-            }))
+        }))
         #Check that passing in a default works too
         d = Dict2D(self.sparse)
         d.square(reset_order=True, default='x')
@@ -220,7 +220,7 @@ class Dict2DTests(TestCase):
             'b':{'a':'x', 'b':'x', 'c':'x', 'd':'x'},
             'c':{'a':'x', 'b':'x', 'c':'x', 'd':'x'},
             'd':{'a':'x', 'b':2, 'c':'x', 'd':'x'},
-            }))
+        }))
 
     def test_rows(self):
         """Dict2D Rows property should return list in correct order"""
@@ -358,7 +358,7 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.square)
         self.assertEqual(d.getCols('bc', negate=True), {
             'a':{'a':1}, 'b':{'a':2}, 'c':{'a':3},
-            })
+        })
 
     def test_getColIndices(self):
         """Dict2D getColIndices should return list of indices of matching cols"""
@@ -437,7 +437,7 @@ class Dict2DTests(TestCase):
              ['a', 1, 2, 3],
              ['b', 2, 4, 6],
              ['c', 3, 6, 9],
-            ])
+             ])
         #should raise error if called on sparse matrix...	
         self.assertRaises(Dict2DSparseError, Dict2D(self.sparse).toLists)
         #...unless self.Pad is True
@@ -499,7 +499,7 @@ class Dict2DTests(TestCase):
         #note that d[a][a] should not be affected by the fill
         self.assertEqual(d, {'a':{'a':1,'b':'x','c':'x'},\
                              'd':{'b':'x','c':'x'}
-        })
+                             })
         #if rows but not cols is set, should create but not fill rows
         d = Dict2D(self.sparse)
         d.fill('y', rows='ab')
@@ -514,7 +514,7 @@ class Dict2DTests(TestCase):
                              'b':{'a':'z','b':'z','c':'z'},
                              'c':{'a':'z','b':'z','c':'z'},
                              'd':{'b':2}    #unaffected since col skipped
-                            })
+                             })
         #if set_orders is True, should reset RowOrder and ColOrder
         d = Dict2D(self.sparse)
         d.fill('z', rows='abc', cols='xyz', set_orders=True)
@@ -545,7 +545,7 @@ class Dict2DTests(TestCase):
             'a':{'a':9,'b':2,'c':3},
             'b':{'a':2,'b':9,'c':6},
             'c':{'a':3,'b':6,'c':9},
-            })
+        })
         #should work on sparse dict, creating cols for rows but not vice versa
         d = Dict2D(self.sparse)
         d.setDiag(-1)
@@ -569,7 +569,7 @@ class Dict2DTests(TestCase):
             'a':{'a':2,'b':4,'c':6},
             'b':{'a':4,'b':8,'c':12},
             'c':{'a':6,'b':12,'c':18},
-            })
+        })
         #should work on sparse dict, not creating any new elements
         d = Dict2D(self.sparse)
         d.scale(doubler)

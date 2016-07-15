@@ -387,7 +387,7 @@ class GTests(TestCase):
                         'Sandstone':{'val':[8, 5.2]},
                         'Clay':{'val':[2, 5.2]},
                         'Limestone':{'val':[4, 5.2]}
-                        })
+                         })
         g_val, prob = G_fit_from_Dict2D(matrix)
         self.assertFloatEqual(g_val, 9.84923)
         self.assertFloatEqual(prob, 0.04304536)
@@ -413,7 +413,7 @@ class GTests(TestCase):
         #test3
         matrix3_obs = Dict2D({'AIDS':{'Males':4, 'Females':2, 'Both':3},
                         'No_AIDS':{'Males':3, 'Females':16, 'Both':2}
-                       })
+                              })
         matrix3 = calc_contingency_expected(matrix3_obs)
         test3, csp3 = chi_square_from_Dict2D(matrix3)
         self.assertFloatEqual(test3, 7.6568405139833722)
@@ -531,13 +531,13 @@ class StatTests(TestsHelper):
                 7.33, 7.49, 7.27, 7.93, 7.56,
                 7.81, 7.46, 6.94, 7.49, 7.44,
                 7.95, 7.47, 7.04, 7.10, 7.64,
-            ]
+        ]
 
         self.y = [   
                 7.53, 7.70, 7.46, 8.21, 7.81,
                 8.01, 7.72, 7.13, 7.68, 7.66,
                 8.11, 7.66, 7.20, 7.25, 7.79,
-            ]
+        ]
 
     def test_t_paired_2tailed(self):
         """t_paired should match values from Sokal & Rohlf p 353"""

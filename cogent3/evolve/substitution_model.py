@@ -890,7 +890,7 @@ class _Nucleotide(SubstitutionModel):
             'transition' : predicate.parse('R/R') | predicate.parse('Y/Y'),
             'transversion' : predicate.parse('R/Y'),
             'indel': predicate.parse('-/?'),
-            }
+        }
 
 
 class Nucleotide(_Nucleotide):
@@ -951,6 +951,6 @@ class Codon(_Nucleotide):
             'indel' : predicate.parse('???/---'),
             'silent' : predicate.UserPredicate(silent),
             'replacement' : predicate.UserPredicate(replacement),
-            })
+        })
         return preds
 

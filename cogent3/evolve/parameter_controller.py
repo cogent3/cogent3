@@ -239,7 +239,7 @@ class _LikelihoodParameterController(_LF):
                 ('locus', 'loci'),
                 ('position', 'positions'),
                 ('motif', 'motifs'),
-                ]:
+        ]:
             if single in scope_info:
                 v = scope_info.pop(single)
                 if v:

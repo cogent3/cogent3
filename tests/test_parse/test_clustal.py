@@ -101,18 +101,18 @@ class MinimalClustalParserTests(TestCase):
             [   'GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA', 
                 'GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC',
                 'UGACUAGUCAGCUAGCAUCGAUCAGU'
-            ],
+                ],
             'def':
             [   '------------------------------------------------------------',
                 '-----------------------------------------CGCGAUGCAUGCAU-CGAU',
                 'CGAUCAGUCAGUCGAU----------'
-            ],
+                ],
             'xyz':
             [   '------------------------------------------------------------',
                 '-------------------------------------CAUGCAUCGUACGUACGCAUGAC',
                 'UGCUGCAUCA----------------'
-            ]
-            })
+                ]
+        })
 
     def test_bad(self):
         """MinimalClustalParser should reject bad data if strict"""

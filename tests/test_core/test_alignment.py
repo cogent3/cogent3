@@ -179,7 +179,7 @@ class SequenceCollectionBaseTests(object):
             'e': RnaSequence('UUGGUUGGGU'),
             'f': RnaSequence('CCGGGCGGCC'),
             'g': RnaSequence('UCAACCGGAA'),
-            })
+        })
         #Additional SequenceCollections for tests added 6/4/04 by Jeremy Widmann
         self.sequences = self.Class(list(map(RnaSequence, ['UCAG', 'UCAG', 'UCAG'])))
         #Additional SequenceCollection for tests added 1/30/06 by Cathy Lozupone
@@ -189,7 +189,7 @@ class SequenceCollectionBaseTests(object):
             's3':RnaSequence('UUCCUUCUU-UUC'),
             's4':RnaSequence('UU-UUUU-UUUUC'),
             's5':RnaSequence('-------------')
-            })
+        })
 
         self.a = DenseAlignment(['AAA','AAA'])
         self.b = Alignment(['AAA','AAA'])
@@ -543,7 +543,7 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class(dict(enumerate(map(RnaSequence, \
             ['GA-GU','A-GAC','GG-GG']))), MolType=RNA)
         transform = lambda s: RnaSequence(str(s).replace('G','A'\
-            ).replace('U','C'))
+                                                         ).replace('U','C'))
         metric = RnaSequence.fracSameNonGaps
         null_transform = lambda s: RnaSequence(str(s))
         #first, do it without the transformation
@@ -590,7 +590,7 @@ class SequenceCollectionBaseTests(object):
             {   'a':{'a':7/7.0,'b':4/7.0,'c':2/7.0},
                 'b':{'a':4/7.0,'b':7/7.0,'c':3/7.0},
                 'c':{'a':2/7.0,'b':3/7.0,'c':7/7.0},
-            })
+                })
 
 
     def test_isRagged(self):
@@ -605,7 +605,7 @@ class SequenceCollectionBaseTests(object):
                                      'ACDEFGHIKLMNPQRSUUVWF-',
                                      'ACDEFGHIKLMNPERSKUVWC-',
                                      'ACNEFGHIKLMNPQRS-UVWP-',                                     
-                                     ])
+                                  ])
 
         phylip_str, id_map =  align_norm.toPhylip()
 
@@ -686,7 +686,7 @@ class SequenceCollectionBaseTests(object):
         gff = [
             ['seq1', 'prog1', 'snp', '1', '2', '1.0', '+', '1','"abc"'],
             ['seq5', 'prog2', 'snp', '2', '3', '1.0', '+', '1','"yyy"'],
-            ]
+        ]
         gff = list(map('\t'.join, gff))
         aln.annotateFromGff(gff)
         aln_seq_1 = aln.NamedSeqs['seq1']
@@ -1012,7 +1012,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
                                      'ACDEFGHIKLMNPQRSUUVWF-',
                                      'ACDEFGHIKLMNPERSKUVWC-',
                                      'ACNEFGHIKLMNUVWP-',                                     
-                                     ])
+                                 ])
 
 
         self.assertRaises(ValueError,  align_rag.toPhylip)
@@ -1198,7 +1198,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                      'UUCCAAGGNN--UUCCAAGGNNAGCUA--',
                                      'UUUUCCCCAAAAGGGGNNNN--AGCUA--',
                                      'UUUUCCCCAAAAGGGGNNNN--AGCUA--',
-                                     ], MolType=RNA)
+                                      ], MolType=RNA)
 
         #following IUPAC consensus calculated by hand
         #Test all uppper
@@ -1212,7 +1212,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                      'TTCCAAGGNN--TTCCAAGGNNAGCTA--',
                                      'TTTTCCCCAAAAGGGGNNNN--AGCTA--',
                                      'TTTTCCCCAAAAGGGGNNNN--AGCTA--',
-                                     ])
+                                      ])
         #following IUPAC consensus calculated by hand
         #Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(DNA),
@@ -1224,7 +1224,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                      'ACDEFGHIKLMNPQRSUUVWF-',
                                      'ACDEFGHIKLMNPERSKUVWC-',
                                      'ACNEFGHIKLMNPQRS-UVWP-',                                     
-                                     ])
+                                      ])
         #following IUPAC consensus calculated by hand
         #Test all uppper
         self.assertEqual(alignmentUpper.IUPACConsensus(PROTEIN),
@@ -1244,7 +1244,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             {'A':0.5, 'G':0.5},
             {'A':0.25, 'C':0.25, 'G':0.25, 'U':0.25},
             {'A':0.5, 'G':0.25, 'C':0.25},
-            ])))
+        ])))
 
     def test_majorityConsensus(self):
         """SequenceCollection.majorityConsensus should return commonest symbol per column"""
@@ -1299,7 +1299,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             7:{'A':1.0,'G':6.0},
             8:{'A':1.0,'C':1.0,'G':1.0,'U':4.0},
             9:{'A':1.0,'C':2.0,'U':4.0},
-            }
+        }
         self.assertEqual(self.many.scoreMatrix(), scoreMatrix)
 
 

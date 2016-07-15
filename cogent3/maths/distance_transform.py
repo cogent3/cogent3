@@ -1411,7 +1411,7 @@ if __name__ == "__main__":
                             [1,0,8,10],
                             [0,0,0,0],
                             [8,6,2,1],
-                                    ])
+                            ])
 
     res = dist_euclidean(matrix1)
     print("euclidean distance result: \n")

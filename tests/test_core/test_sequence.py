@@ -119,9 +119,9 @@ class SequenceTests(TestCase):
         """Sequence stripBad should remove any non-base, non-gap chars"""
         #have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UCxxxAGwsnyrHBNzzzD-D', check=False\
-            ).stripBad(), 'UCAGWSNYRHBND-D')
+                                  ).stripBad(), 'UCAGWSNYRHBND-D')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
-            ).stripBad(), '')
+                                  ).stripBad(), '')
         self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(), 
             'AAAGGG---CCC')
 
@@ -129,11 +129,11 @@ class SequenceTests(TestCase):
         """Sequence stripBadAndGaps should remove gaps and bad chars"""
         #have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UxxCAGwsnyrHBNz#!D-D', check=False \
-            ).stripBadAndGaps(), 'UCAGWSNYRHBNDD')
+                                  ).stripBadAndGaps(), 'UCAGWSNYRHBNDD')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
-            ).stripBadAndGaps(), '')
+                                  ).stripBadAndGaps(), '')
         self.assertEqual(self.RNA('aaa ggg ---!ccc', check=False \
-            ).stripBadAndGaps(), 'AAAGGGCCC')
+                                  ).stripBadAndGaps(), 'AAAGGGCCC')
 
     def test_shuffle(self):
         """Sequence shuffle should return new random sequence w/ same monomers"""
@@ -228,7 +228,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('').firstDegenerate(), None)
         self.assertEqual(self.RNA('a').firstDegenerate(), None)
         self.assertEqual(self.RNA('UCGACA--CU-gacucaguacgua'
-            ).firstDegenerate(), None)
+                                  ).firstDegenerate(), None)
         self.assertEqual(self.RNA('nCAGU').firstDegenerate(), 0)
         self.assertEqual(self.RNA('CUGguagvAUG').firstDegenerate(), 7)
         self.assertEqual(self.RNA('ACUGCUAacgud').firstDegenerate(), 11)
@@ -280,7 +280,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('-DSHUHDS').gapList(), [0])
         self.assertEqual(self.RNA('UACHASADS-').gapList(), [9])
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
-            ).gapList(), [0,1,2,11,12,13,19,20,21,30,31,32])
+                                  ).gapList(), [0,1,2,11,12,13,19,20,21,30,31,32])
 
     def test_gapVector(self):
         """Sequence gapVector should return correct gap positions"""
@@ -321,18 +321,18 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('-DSHUHDS').countGaps(), 1)
         self.assertEqual(self.RNA('UACHASADS-').countGaps(), 1)
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
-            ).countGaps(), 12)
+                                  ).countGaps(), 12)
 
     def test_countDegenerate(self):
         """Sequence countDegenerate should return correct degen base count"""
         self.assertEqual(self.RNA('').countDegenerate(), 0)
         self.assertEqual(self.RNA('GACUGCAUGCAUCGUACGUCAGUACCGA'
-            ).countDegenerate(), 0)
+                                  ).countDegenerate(), 0)
         self.assertEqual(self.RNA('N').countDegenerate(), 1)
         self.assertEqual(self.PROT('N').countDegenerate(), 0)
         self.assertEqual(self.RNA('NRY').countDegenerate(), 3)
         self.assertEqual(self.RNA('ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS'
-            ).countDegenerate(), 4)
+                                  ).countDegenerate(), 4)
 
     def test_possibilites(self):
         """Sequence possibilities should return correct # possible sequences"""
@@ -343,7 +343,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('H').possibilities(), 3)
         self.assertEqual(self.RNA('nRh').possibilities(), 24)
         self.assertEqual(self.RNA('AUGCnGUCAg-aurGauc--gauhcgauacgws'
-            ).possibilities(), 96)
+                                  ).possibilities(), 96)
 
     def test_MW(self):
         """Sequence MW should return correct molecular weight"""

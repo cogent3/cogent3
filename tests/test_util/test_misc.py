@@ -326,7 +326,7 @@ class UtilsTests(TestCase):
                     (9,8,7,6,5,4,3,2,1,0):list('jihgfedcba'),
                     (-8, 8): ['c', 'i'],
                     ():[],
-                }
+                    }
         for test, result in list(tests.items()):
             self.assertEqual(select(test, chars), result)
             self.assertEqual(select(test, strings), result)
@@ -449,7 +449,7 @@ class UtilsTests(TestCase):
             ('D','e'):'F',
             ('d','e'):'f',
             ('b','c'):'H',
-            })
+        })
 
     def test_InverseDict(self):
         """InverseDict should invert dict's keys and values"""
@@ -535,7 +535,7 @@ class UtilsTests(TestCase):
             ('a','a'), ('a','b'), ('a','c'), \
             ('b','a'), ('b','b'), ('b','c'), \
             ('c','a'), ('c','b'), ('c','c'), \
-            ]))
+        ]))
 
         two = ['xy', 'abc']
         self.assertEqual(PairsFromGroups(two), dict.fromkeys([ \
@@ -543,7 +543,7 @@ class UtilsTests(TestCase):
             ('b','a'), ('b','b'), ('b','c'), \
             ('c','a'), ('c','b'), ('c','c'), \
             ('x','x'), ('x','y'), ('y','x'), ('y','y'), \
-            ]))
+        ]))
         #if there's overlap, note that the groups should _not_ be expanded
         #(e.g. in the following case, 'x' is _not_ similar to 'c', even though
         #both 'x' and 'c' are similar to 'a'.
@@ -553,7 +553,7 @@ class UtilsTests(TestCase):
             ('b','a'), ('b','b'), ('b','c'), \
             ('c','a'), ('c','b'), ('c','c'), \
             ('x','x'), ('x','a'), ('a','x'), \
-            ]))
+        ]))
 
     def test_remove_files(self):
         """Remove files functions as expected """
