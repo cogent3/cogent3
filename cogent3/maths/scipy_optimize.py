@@ -1277,7 +1277,7 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
             e = rat
 
             # Check for acceptability of parabola
-            if ( (abs(p) < abs(0.5 * q * r)) and (p > q * (a - xf)) and
+            if ((abs(p) < abs(0.5 * q * r)) and (p > q * (a - xf)) and
                  (p < q * (b - xf))):
                 rat = (p + 0.0) / q
                 x = xf + rat

@@ -32,7 +32,7 @@ before giving up and assuming that the result is always the same.
 """
 #from contextlib import contextmanager
 import numpy
-from numpy import testing, array, asarray, ravel, zeros,logical_and, logical_or, isfinite
+from numpy import testing, array, asarray, ravel, zeros, logical_and, logical_or, isfinite
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
 from cogent3.util.misc import recursive_flatten
 from cogent3.maths.stats.test import t_two_sample, G_ind
