@@ -119,9 +119,9 @@ class SequenceTests(TestCase):
     def test_stripBad(self):
         """Sequence stripBad should remove any non-base, non-gap chars"""
         # have to turn off check to get bad data in; no longer preserves case
-        self.assertEqual(self.RNA('UCxxxAGwsnyrHBNzzzD-D', check=False\
+        self.assertEqual(self.RNA('UCxxxAGwsnyrHBNzzzD-D', check=False
                                   ).stripBad(), 'UCAGWSNYRHBND-D')
-        self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
+        self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False
                                   ).stripBad(), '')
         self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(), 
                          'AAAGGG---CCC')
@@ -129,11 +129,11 @@ class SequenceTests(TestCase):
     def test_stripBadAndGaps(self):
         """Sequence stripBadAndGaps should remove gaps and bad chars"""
         # have to turn off check to get bad data in; no longer preserves case
-        self.assertEqual(self.RNA('UxxCAGwsnyrHBNz#!D-D', check=False \
+        self.assertEqual(self.RNA('UxxCAGwsnyrHBNz#!D-D', check=False
                                   ).stripBadAndGaps(), 'UCAGWSNYRHBNDD')
-        self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False \
+        self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False
                                   ).stripBadAndGaps(), '')
-        self.assertEqual(self.RNA('aaa ggg ---!ccc', check=False \
+        self.assertEqual(self.RNA('aaa ggg ---!ccc', check=False
                                   ).stripBadAndGaps(), 'AAAGGGCCC')
 
     def test_shuffle(self):
@@ -200,7 +200,8 @@ class SequenceTests(TestCase):
     def test_isDegenerate(self):
         """Sequence isDegenerate should return True if degen symbol in seq"""
         assert not self.RNA('').isDegenerate()
-        assert not self.RNA('UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG').isDegenerate()
+        assert not self.RNA(
+            'UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG').isDegenerate()
         assert self.RNA('N').isDegenerate()
         assert self.RNA('R').isDegenerate()
         assert self.RNA('y').isDegenerate()
@@ -293,7 +294,7 @@ class SequenceTests(TestCase):
                          list(map(bool, list(map(int, '1000000000')))))
         self.assertEqual(g('UACHASCAGDS-'), 
                          list(map(bool, list(map(int, '000000000001')))))
-        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'), \
+        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
 
     def test_gapMaps(self):
@@ -308,9 +309,11 @@ class SequenceTests(TestCase):
         self.assertEqual(gm(empty), ({}, {}))
         self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
         self.assertEqual(gm(all_gaps), ({}, {}))
-        self.assertEqual(gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
+        self.assertEqual(
+            gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
         self.assertEqual(gm(end_gaps), ({0: 0, 1: 1}, {0: 0, 1: 1}))
-        self.assertEqual(gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
+        self.assertEqual(
+            gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
 
     def test_countGaps(self):
         """Sequence countGaps should return correct gap count"""
@@ -621,7 +624,7 @@ class SequenceTests(TestCase):
 
     def test_fracSimilar(self):
         """Sequence fracSimilar should return the fraction similarity"""
-        transitions = dict.fromkeys([ \
+        transitions = dict.fromkeys([
             ('A', 'A'), ('A', 'G'), ('G', 'A'), ('G', 'G'),
             ('U', 'U'), ('U', 'C'), ('C', 'U'), ('C', 'C')])
 
@@ -630,7 +633,7 @@ class SequenceTests(TestCase):
         s3 = self.RNA('GGGGGGGG')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual( \
+        test = lambda x, y, z: self.assertFloatEqual(
             x.fracSimilar(y, transitions), z)
 
         test(e, e, 0)

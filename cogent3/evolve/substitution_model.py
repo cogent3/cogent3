@@ -76,7 +76,8 @@ def redundancyInPredicateMasks(preds):
     # there is some redundancy and the model will be overparameterised.
     if len(preds) <= 1:
         return 0
-    eqns = 1.0 * numpy.array([list(mask.flat) for mask in list(preds.values())])
+    eqns = 1.0 * numpy.array([list(mask.flat)
+                             for mask in list(preds.values())])
     svs = svd(eqns)[1]
     # count non-duplicate non-zeros singular values
     matrix_rank = len([sv for sv in svs if abs(sv) > 1e-8])
@@ -100,7 +101,8 @@ def _isSymmetrical(matrix):
 def extend_docstring_from(cls, pre=False): 
     def docstring_inheriting_decorator(fn):
         parts = [getattr(cls, fn.__name__).__doc__, fn.__doc__ or '']
-        if pre: parts.reverse()
+        if pre:
+            parts.reverse()
         fn.__doc__ = ''.join(parts) 
         return fn 
     return docstring_inheriting_decorator
@@ -267,7 +269,8 @@ class _SubstitutionModel(object):
         result = klass(self, tree, **kw)
 
         if self.motif_probs is not None:
-            result.setMotifProbs(self.motif_probs, is_constant=not optimise_motif_probs, auto=True)
+            result.setMotifProbs(
+                self.motif_probs, is_constant=not optimise_motif_probs, auto=True)
 
         if expm is None:
             expm = self._default_expm_setting
@@ -342,7 +345,8 @@ class _SubstitutionModel(object):
 
         rate_params = self.makeRateParams(bprobs)
         if endAtQd:
-            defns['Qd'] = self.makeQdDefn(word_probs, mprobs_matrix, rate_params)
+            defns['Qd'] = self.makeQdDefn(
+                word_probs, mprobs_matrix, rate_params)
         else:
             defns['psubs'] = self.makePsubsDefn(
                 bprobs, word_probs, mprobs_matrix, rate_params)
@@ -411,7 +415,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if do_scaling is None:
             do_scaling = self._scalableQ
         if do_scaling and not self._scalableQ:
-            raise ValueError("Can't autoscale a %s model" % type(self).__name__)
+            raise ValueError("Can't autoscale a %s model" %
+                             type(self).__name__)
         self._do_scaling = do_scaling
 
         # BINS
@@ -423,7 +428,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 if with_rate:
                     ordered_param = 'rate'
                 else:
-                    raise ValueError('distribution provided without ordered_param')      
+                    raise ValueError(
+                        'distribution provided without ordered_param')      
         elif not isinstance(ordered_param, str):
             warnings.warn('ordered_param should be a string or None')
             assert len(ordered_param) == 1, 'More than one ordered_param'
@@ -504,14 +510,16 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     def makeQdDefn(self, word_probs, mprobs_matrix, rate_params):
         """Diagonalized Q, ie: rate matrix prepared for exponentiation"""
-        Q = CalcDefn(self.calcQ, name='Q')(word_probs, mprobs_matrix, *rate_params)
+        Q = CalcDefn(self.calcQ, name='Q')(
+            word_probs, mprobs_matrix, *rate_params)
         expm = NonParamDefn('expm')
         exp = ExpDefn(expm)
         Qd = CallDefn(exp, Q, name='Qd')
         return Qd
 
     def _makeBinParamDefn(self, edge_par_name, bin_par_name, bprob_defn):
-        # if no ordered param defined, behaves as old, everything indexed by and edge
+        # if no ordered param defined, behaves as old, everything indexed by
+        # and edge
         if edge_par_name not in self.partitioned_params:
             return ParamDefn(dimensions=['bin'], name=bin_par_name)
 
@@ -549,7 +557,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         distance = self.makeDistanceDefn(bprobs)
-        P = self.makeContinuousPsubDefn(word_probs, mprobs_matrix, distance, rate_params)
+        P = self.makeContinuousPsubDefn(
+            word_probs, mprobs_matrix, distance, rate_params)
         return P
 
     def makeDistanceDefn(self, bprobs):
@@ -911,7 +920,8 @@ class Dinucleotide(_Nucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, **kw):
-        SubstitutionModel.__init__(self, moltype.DNA.Alphabet, motif_length=2, **kw)
+        SubstitutionModel.__init__(
+            self, moltype.DNA.Alphabet, motif_length=2, **kw)
 
 
 class Protein(SubstitutionModel):

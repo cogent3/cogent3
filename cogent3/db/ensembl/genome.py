@@ -79,7 +79,8 @@ class Genome(object):
         self._account = account
         self._pool_recycle = pool_recycle
 
-        # TODO: check Release may not be necessary because: assert Release above
+        # TODO: check Release may not be necessary because: assert Release
+        # above
         if Release is None:
             Release = get_latest_release(account=account)
 
@@ -183,13 +184,16 @@ class Genome(object):
             join_obj = gene_table
             select_obj = [gene_table]
         else:
-            join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id == gene_table.c.gene_id)
+            join_obj = gene_id_table.join(
+                gene_table, gene_id_table.c.gene_id == gene_table.c.gene_id)
             select_obj = [gene_id_table.c.stable_id, gene_table]
 
         if db.Type == 'core':
-            join_obj = join_obj.outerjoin(xref_table, gene_table.c.display_xref_id == xref_table.c.xref_id)
+            join_obj = join_obj.outerjoin(
+                xref_table, gene_table.c.display_xref_id == xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
-        query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
+        query = sql.select(select_obj, from_obj=[
+                           join_obj], whereclause=condition)
         return query
 
     def _get_symbol_from_synonym(self, db, synonym):
@@ -232,9 +236,11 @@ class Genome(object):
         elif StableId:
             condition = gene_id_table.c.stable_id == StableId
         else:
-            condition = self._get_biotype_description_condition(gene_table, Description, BioType, like)
+            condition = self._get_biotype_description_condition(
+                gene_table, Description, BioType, like)
 
-        query = self._build_gene_query(db, condition, gene_table, gene_id_table, xref_table)
+        query = self._build_gene_query(
+            db, condition, gene_table, gene_id_table, xref_table)
 
         return query
 
@@ -298,7 +304,8 @@ class Genome(object):
         try:
             record = list(query.execute())[0]
             transcript_id = record[0]
-            transcript = Transcript(self, self.CoreDb, transcript_id, data=record)
+            transcript = Transcript(
+                self, self.CoreDb, transcript_id, data=record)
         except IndexError:
             transcript = None
         return transcript
@@ -324,9 +331,11 @@ class Genome(object):
         elif StableId:
             condition = transcript_id_table.c.stable_id == StableId
         else:
-            condition = self._get_biotype_description_condition(transcript_table, Description, BioType, like)
+            condition = self._get_biotype_description_condition(
+                transcript_table, Description, BioType, like)
 
-        query = self._build_transcript_query(db, condition, transcript_table, transcript_id_table, xref_table)
+        query = self._build_transcript_query(
+            db, condition, transcript_table, transcript_id_table, xref_table)
 
         return query
 
@@ -335,13 +344,16 @@ class Genome(object):
             join_obj = transcript_table
             select_obj = [transcript_table]
         else:
-            join_obj = transcript_id_table.join(transcript_table, transcript_id_table.c.gene_id == transcript_table.c.transcript_id)
+            join_obj = transcript_id_table.join(
+                transcript_table, transcript_id_table.c.gene_id == transcript_table.c.transcript_id)
             select_obj = [transcript_id_table.c.stable_id, transcript_table]
 
         if db.Type == 'core':
-            join_obj = join_obj.outerjoin(xref_table, transcript_table.c.display_xref_id == xref_table.c.xref_id)
+            join_obj = join_obj.outerjoin(
+                xref_table, transcript_table.c.display_xref_id == xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
-        query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
+        query = sql.select(select_obj, from_obj=[
+                           join_obj], whereclause=condition)
         return query
 
     def getEstMatching(self, StableId):
@@ -355,7 +367,8 @@ class Genome(object):
         """returns the seq_region_id for the provided CoordName"""
         seq_region_table = self.CoreDb.getTable('seq_region')
         coord_systems = CoordSystem(core_db=self.CoreDb)
-        coord_system_ids = [k for k in coord_systems if type(k) not in (str, str)]
+        coord_system_ids = [
+            k for k in coord_systems if type(k) not in (str, str)]
         record = sql.select([seq_region_table.c.seq_region_id],
                             sql.and_(seq_region_table.c.name == CoordName,
                                      seq_region_table.c.coord_system_id.in_(coord_system_ids)))
@@ -369,7 +382,8 @@ class Genome(object):
         target_coord. At present, only CpG islands being queried."""
         simple_feature_table = db.getTable('simple_feature')
         feature_types = ['CpGisland']
-        feature_type_ids = [str(self._feature_type_ids.get(f)) for f in feature_types]
+        feature_type_ids = [str(self._feature_type_ids.get(f))
+                                for f in feature_types]
         # fix the following
         query = sql.select([simple_feature_table],
                            sql.and_(simple_feature_table.c.analysis_id.in_(feature_type_ids),
@@ -386,7 +400,8 @@ class Genome(object):
                                Strand=record['seq_region_strand'],
                                ensembl_coord=True)
             if query_coord.CoordName != target_coord.CoordName:
-                coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
+                coord = asserted_one(get_coord_conversion(
+                    coord, target_coord.CoordType, self.CoreDb))[1]
 
             # coord = coord.makeRelativeTo(query_coord) #TODO: fix here if query_coord and target_coord have different coordName
             # coord = coord.makeRelativeTo(target_coord, False)
@@ -411,7 +426,8 @@ class Genome(object):
                                Strand=record['seq_region_strand'],
                                ensembl_coord=True)
             if query_coord.CoordName != target_coord.CoordName:
-                coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
+                coord = asserted_one(get_coord_conversion(
+                    coord, target_coord.CoordType, self.CoreDb))[1]
             # coord = coord.makeRelativeTo(query_coord) #TODO: fix here if query_coord and target_coord have different coordName
             # coord = coord.makeRelativeTo(target_coord, False)
             yield klass(self, db, Location=coord, Score=record['score'],
@@ -432,7 +448,8 @@ class Genome(object):
 
         # note gene records are at chromosome, not contig, level
         condition = gene_table.c.seq_region_id == query_coord.seq_region_id
-        query = self._build_gene_query(db, condition, gene_table, gene_id_table, xref_table)
+        query = self._build_gene_query(
+            db, condition, gene_table, gene_id_table, xref_table)
         query = location_query(gene_table, query_coord.EnsemblStart,
                                query_coord.EnsemblEnd, query=query, where=where_feature)
 
@@ -556,7 +573,8 @@ class Genome(object):
         if Effect is not None:
             if like:
                 query = \
-                    var_feature_table.columns[consequence_type].like('%' + Effect + '%')
+                    var_feature_table.columns[
+                        consequence_type].like('%' + Effect + '%')
             else:
                 query = var_feature_table.columns[consequence_type] == Effect
         else:
@@ -569,7 +587,8 @@ class Genome(object):
             if int(self.Release) >= 65:
                 null = ''
 
-            query = sql.and_(query, var_feature_table.c.validation_status != null)
+            query = sql.and_(
+                query, var_feature_table.c.validation_status != null)
 
         if not somatic:
             query = sql.and_(query, var_feature_table.c.somatic != 1)
@@ -629,7 +648,8 @@ class Genome(object):
                         'status': ('gene', 'status')}
 
         if property_type not in property_map:
-            raise RuntimeError("ERROR: Unknown property type: %s" % property_type)
+            raise RuntimeError(
+                "ERROR: Unknown property type: %s" % property_type)
 
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))

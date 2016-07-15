@@ -170,7 +170,8 @@ class Coordinate(object):
         new.Start += from_start
         new.End += from_end
         try:
-            assert len(new) >= 0, 'resized generated a negative length: %s' % new
+            assert len(
+                new) >= 0, 'resized generated a negative length: %s' % new
         except (ValueError, AssertionError):
             raise ValueError
         return new
@@ -224,8 +225,10 @@ class CoordSystemCache(object):
     # this attribute is a very _public_ attribute, and serves as a cache to
     # reduce unecessary lookups
     _species_coord_systems = {}
-    columns = ['coord_system_id', 'name', 'rank', 'attrib']  # columns needed from coord_system table
-    # the attrib property has sequence_level, which means this the coordinate system employed for sequence
+    # columns needed from coord_system table
+    columns = ['coord_system_id', 'name', 'rank', 'attrib']
+    # the attrib property has sequence_level, which means this the coordinate
+    # system employed for sequence
 
     def _set_species_system(self, core_db, species):
         if species in self._species_coord_systems:
@@ -359,9 +362,9 @@ def assembly_exception_coordinate(loc):
 
     query = sql.select([assemb_except_table, seq_region_table.c.name],
                        sql.and_(
-        assemb_except_table.c.seq_region_id == \
+        assemb_except_table.c.seq_region_id ==
         loc.seq_region_id,
-        assemb_except_table.c.exc_seq_region_id == \
+        assemb_except_table.c.exc_seq_region_id ==
         seq_region_table.c.seq_region_id))
     query = location_query(assemb_except_table,
                            loc.Start, loc.End, query=query)
@@ -388,10 +391,11 @@ def get_coord_conversion(query_location, target_coord_type, core_db, where=None)
         return [[query_location, query_location]]
     # TODO: deal with query_prefix == target_prefix == '' --> could happen
     # when query features.
-    query = sql.select([assembly, seq_region.c.name], sql.and_(assembly.c\
-                                                               ['%s_seq_region_id' % target_prefix] == seq_region.c.seq_region_id,
+    query = sql.select([assembly, seq_region.c.name], sql.and_(assembly.c
+                                                               ['%s_seq_region_id' %
+                                                                   target_prefix] == seq_region.c.seq_region_id,
                                                                seq_region.c.coord_system_id == target_coord_system_id,
-                                                               assembly.c['%s_seq_region_id' % query_prefix] ==\
+                                                               assembly.c['%s_seq_region_id' % query_prefix] ==
                                                                query_location.seq_region_id))
     query = location_query(assembly, query_location.EnsemblStart,
                            query_location.EnsemblEnd,

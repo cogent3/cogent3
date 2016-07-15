@@ -55,7 +55,8 @@ class ReadingWritingFileFormats(unittest.TestCase):
         self._loadfromfile('formattest.aln', test_write=False)
 
     def test_phylip_interleaved(self):
-        self._loadfromfile('interleaved.phylip', test_write=False, interleaved=True)
+        self._loadfromfile('interleaved.phylip',
+                           test_write=False, interleaved=True)
 
     def test_paml(self):
         self._loadfromfile('formattest.paml')
@@ -71,7 +72,8 @@ class AlignmentTestMethods(unittest.TestCase):
     """Testing Alignment methods"""
 
     def setUp(self):
-        self.alignment = LoadSeqs(filename=os.path.join(data_path, 'brca1_5.paml'))
+        self.alignment = LoadSeqs(
+            filename=os.path.join(data_path, 'brca1_5.paml'))
 
     def test_picklability(self):
         """Pickle an alignment containing an annotated sequence"""
@@ -125,14 +127,16 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.takeSeqs(subset)
         new = sub_align.getSeqNames()
         new.sort()
-        assert new == subset, "included subset didn't work %s, %s" % (new, subset)
+        assert new == subset, "included subset didn't work %s, %s" % (
+            new, subset)
 
         # testing exclusion of one
         to_exclude = ['NineBande']
         sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
         new = sub_align.getSeqNames()
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, "excluded subset didn't work %s, %s" % (
+            new, subset)
 
         # testing exclusion of two
         subset = ['DogFaced', 'HowlerMon', 'NineBande']
@@ -141,55 +145,69 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
         new = sub_align.getSeqNames()
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, "excluded subset didn't work %s, %s" % (
+            new, subset)
 
     def test_slice_align(self):
         """test slicing of sequences"""
-        alignment = LoadSeqs(data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
+        alignment = LoadSeqs(
+            data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         sub_align = alignment[2: 5]          
         self.assertEqual(len(sub_align), 3)  
         self.assertEqual(len(sub_align.getSeqNames()), 3)
-        self.assertEqual(sub_align.todict(), {'seq1': 'GTA', 'seq2': 'GTA', 'seq3': 'GTA'})
+        self.assertEqual(sub_align.todict(), {
+                         'seq1': 'GTA', 'seq2': 'GTA', 'seq3': 'GTA'})
 
         sub_align = alignment[5: 20]         
         self.assertEqual(len(sub_align), 3)  
         self.assertEqual(len(sub_align.getSeqNames()), 3)
-        self.assertEqual(sub_align.todict(), {'seq1': 'CGT', 'seq2': 'CGT', 'seq3': 'CGT'})
+        self.assertEqual(sub_align.todict(), {
+                         'seq1': 'CGT', 'seq2': 'CGT', 'seq3': 'CGT'})
 
         sub_align = alignment[2]             
         self.assertEqual(len(sub_align), 1)  
-        self.assertEqual(sub_align.todict(), {'seq1': 'G', 'seq2': 'G', 'seq3': 'G'})
+        self.assertEqual(sub_align.todict(), {
+                         'seq1': 'G', 'seq2': 'G', 'seq3': 'G'})
 
         sub_align = alignment[0]             
         self.assertEqual(len(sub_align), 1)  
-        self.assertEqual(sub_align.todict(), {'seq1': 'A', 'seq2': 'A', 'seq3': 'A'})
+        self.assertEqual(sub_align.todict(), {
+                         'seq1': 'A', 'seq2': 'A', 'seq3': 'A'})
 
         sub_align = alignment[7]             
         self.assertEqual(len(sub_align), 1)  
-        self.assertEqual(sub_align.todict(), {'seq1': 'T', 'seq2': 'T', 'seq3': 'T'})
+        self.assertEqual(sub_align.todict(), {
+                         'seq1': 'T', 'seq2': 'T', 'seq3': 'T'})
 
     def test_slidingWindows(self):          
         """test slicing of sequences"""      
-        alignment = LoadSeqs(data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
+        alignment = LoadSeqs(
+            data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
         for bit in alignment.slidingWindows(5, 2):
             result += [bit]
-        self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
-        self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+        self.assertEqual(result[0].todict(), {
+                         'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
+        self.assertEqual(result[1].todict(), {
+                         'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
         # specify a starting window position
         result = []
         for bit in alignment.slidingWindows(5, 2, start=1):
             result += [bit]
-        self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
-        self.assertEqual(result[1].todict(), {'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
+        self.assertEqual(result[0].todict(), {
+                         'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+        self.assertEqual(result[1].todict(), {
+                         'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
 
         # specify a ending window position
         result = []
         for bit in alignment.slidingWindows(5, 1, start=1, end=3):
             result += [bit]
-        self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
-        self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+        self.assertEqual(result[0].todict(), {
+                         'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+        self.assertEqual(result[1].todict(), {
+                         'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
         # start conditions < window-size from end don't return a window
         # specify a ending window position
@@ -201,24 +219,33 @@ class AlignmentTestMethods(unittest.TestCase):
         result = []
         for bit in alignment.slidingWindows(5, 1):
             result += [bit]                    
-        self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
-        self.assertEqual(result[1].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
-        self.assertEqual(result[2].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
-        self.assertEqual(result[3].todict(), {'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
+        self.assertEqual(result[0].todict(), {
+                         'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
+        self.assertEqual(result[1].todict(), {
+                         'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+        self.assertEqual(result[2].todict(), {
+                         'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+        self.assertEqual(result[3].todict(), {
+                         'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
 
     def test_withoutRedundantGaps(self):
         """test removal of redundant gaps (all entries in alignment column are gaps)"""
-        alignment = LoadSeqs(data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
+        alignment = LoadSeqs(
+            data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omitGapPositions().todict()
-        self.assertEqual(align_dict, {'seq1': 'ACGT-GT', 'seq2': 'ACGTAGT', 'seq3': 'ACGTAGT'})
+        self.assertEqual(
+            align_dict, {'seq1': 'ACGT-GT', 'seq2': 'ACGTAGT', 'seq3': 'ACGTAGT'})
 
     def test_withoutAnyGaps(self):
         """test removal of all gaps (any entries in alignment column are gaps)"""
-        alignment = LoadSeqs(data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
+        alignment = LoadSeqs(
+            data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omitGapPositions(allowed_gap_frac=0).todict()
-        self.assertEqual(align_dict, {'seq1': 'ACGTGT', 'seq2': 'ACGTGT', 'seq3': 'ACGTGT'})
+        self.assertEqual(
+            align_dict, {'seq1': 'ACGTGT', 'seq2': 'ACGTGT', 'seq3': 'ACGTGT'})
 
-        alignment = LoadSeqs(data={'seq1': 'ACGT', 'seq2': '----', 'seq3': '----'})
+        alignment = LoadSeqs(
+            data={'seq1': 'ACGT', 'seq2': '----', 'seq3': '----'})
         align_dict = alignment.omitGapPositions(allowed_gap_frac=0).todict()
         self.assertEqual(align_dict, {'seq1': '', 'seq2': '', 'seq3': ''})
 
@@ -297,7 +324,8 @@ class AlignmentTestMethods(unittest.TestCase):
         align2 = LoadSeqs(data={'a': 'GGGG', 'b': '----', 'c': 'NNNN'})
         align = align1 + align2
         concatdict = align.todict()
-        self.assertEqual(concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
+        self.assertEqual(
+            concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
 
     def test_replaceSeqs(self):
         """synchronize gaps between protein seqs and codon seqs"""
@@ -469,10 +497,12 @@ class AlignmentTestMethods(unittest.TestCase):
         expected = {'A': 5 / 22, 'T': 6 / 22, 'C': 5 / 22, 'G': 6 / 22}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=True)
-        expected = {'A': 5 / 23, 'T': 6 / 23, 'C': 5 / 23, 'G': 6 / 23, '-': 1 / 23}
+        expected = {'A': 5 / 23, 'T': 6 / 23,
+            'C': 5 / 23, 'G': 6 / 23, '-': 1 / 23}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=False, include_ambiguity=True)
-        expected = {'A': 5.25 / 23, 'T': 6.25 / 23, 'C': 5.25 / 23, 'G': 6.25 / 23}
+        expected = {'A': 5.25 / 23, 'T': 6.25 /
+            23, 'C': 5.25 / 23, 'G': 6.25 / 23}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=True, include_ambiguity=True)
         expected = {'A': 5.25 / 24, 'T': 6.25 / 24, 'C': 5.25 / 24, 'G': 6.25 / 24, '-':

@@ -83,29 +83,29 @@ class metafunctionsTests(TestCase):
 
     def test_apply_each(self):
         """apply_each should apply each function to args, kwargs"""
-        self.assertEqual(apply_each( \
-            [self.is_char, self.is_vowel, self.is_consonant, self.is_number], \
+        self.assertEqual(apply_each(
+            [self.is_char, self.is_vowel, self.is_consonant, self.is_number],
             self.Letters[0]), [True, True, False, False])
 
-        self.assertEqual(apply_each( \
-            [self.is_char, self.is_vowel, self.is_consonant, self.is_number], \
+        self.assertEqual(apply_each(
+            [self.is_char, self.is_vowel, self.is_consonant, self.is_number],
             self.Letters[1]), [True, False, True, False])
 
-        self.assertEqual(apply_each( \
+        self.assertEqual(apply_each(
             [self.double, self.minusone], self.SmallNumbers[0]), [0, -1])
 
-        self.assertEqual(apply_each( \
+        self.assertEqual(apply_each(
             [self.double, self.minusone], self.SmallNumbers[1]), [2, 0])
 
         expects = [[True, False], [False, False], [False, True]]
         for i in range(len(expects)):
-            self.assertEqual(apply_each( \
+            self.assertEqual(apply_each(
                 [self.is_alpha_digit, self.is_digit_alpha], 
                 self.firsts[i], self.seconds[i]), expects[i])
-            self.assertEqual(apply_each( \
+            self.assertEqual(apply_each(
                 [self.is_alpha_digit, self.is_digit_alpha], 
                 self.firsts[i], second=self.seconds[i]), expects[i])
-            self.assertEqual(apply_each( \
+            self.assertEqual(apply_each(
                 [self.is_alpha_digit, self.is_digit_alpha], 
                 second=self.seconds[i], first=self.firsts[i]), expects[i])
 
@@ -116,25 +116,29 @@ class metafunctionsTests(TestCase):
 
     def test_bool_each(self):
         """bool_each should return boolean version of applying each f to args"""
-        self.assertEqual(bool_each([self.double, self.minusone], \
+        self.assertEqual(bool_each([self.double, self.minusone],
                                    self.SmallNumbers[0]), [False, True])
 
-        self.assertEqual(bool_each([self.double, self.minusone], \
+        self.assertEqual(bool_each([self.double, self.minusone],
                                    self.SmallNumbers[1]), [True, False])
 
     def test_conjoin(self):
         """conjoin should return True if all components True"""
-        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], 'a'), True)
+        self.assertEqual(
+            conjoin([self.is_odd_letter, self.is_vowel], 'a'), True)
         self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], x='b'), 
                          False)
-        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], 'c'), False)
-        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], 'e'), True)
+        self.assertEqual(
+            conjoin([self.is_odd_letter, self.is_vowel], 'c'), False)
+        self.assertEqual(
+            conjoin([self.is_odd_letter, self.is_vowel], 'e'), True)
         # technically, this one should be true as well, but I left it off to 
         # have an even vowel test case...
-        self.assertEqual(conjoin([self.is_odd_letter, self.is_vowel], 'u'), False)
+        self.assertEqual(
+            conjoin([self.is_odd_letter, self.is_vowel], 'u'), False)
         # should short-circuit, i.e. not evaluate later cases after False
         self.assertEqual(conjoin([self.is_odd_letter, self.fail], 'b'), False)
-        self.assertRaises(AssertionError, conjoin, \
+        self.assertRaises(AssertionError, conjoin,
                           [self.is_odd_letter, self.fail], 'a')
 
     def test_all(self):
@@ -144,84 +148,97 @@ class metafunctionsTests(TestCase):
         self.assertEqual(list(map(odd_vowel, 'abceu')), 
                          [True, False, False, True, False])
         odd_number = all([self.is_odd_number, self.is_number])
-        self.assertEqual(list(map(odd_number, list(range(5)))), [False, True] * 2 + [False])
+        self.assertEqual(list(map(odd_number, list(range(5)))), [
+                         False, True] * 2 + [False])
         # should short-circuit, i.e. not evaluate later cases after False
         self.assertEqual(all([self.is_odd_letter, self.fail])('b'), False)
-        self.assertRaises(AssertionError, all([self.is_odd_letter, self.fail]),\
+        self.assertRaises(AssertionError, all([self.is_odd_letter, self.fail]),
                           'a')
 
     def test_both(self):
         """both should return True if both components True"""
         odd_vowel = both(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(list(map(odd_vowel, 'abcu')), [True, False, False, False])
+        self.assertEqual(list(map(odd_vowel, 'abcu')),
+                         [True, False, False, False])
         # should short-circuit
         self.assertEqual(both(self.is_odd_letter, self.fail)('b'), False)
-        self.assertRaises(AssertionError, both(self.is_odd_letter, self.fail),\
+        self.assertRaises(AssertionError, both(self.is_odd_letter, self.fail),
                           'a')
 
     def test_disjoin(self):
         """disjoin should return True if any component True"""
-        self.assertEqual(disjoin([self.is_odd_letter, self.is_vowel], 'a'), True)
-        self.assertEqual(disjoin([self.is_odd_letter, self.is_vowel], 'b'), False)
-        self.assertEqual(disjoin([self.is_odd_letter, self.is_vowel], 'c'), True)
+        self.assertEqual(
+            disjoin([self.is_odd_letter, self.is_vowel], 'a'), True)
+        self.assertEqual(
+            disjoin([self.is_odd_letter, self.is_vowel], 'b'), False)
+        self.assertEqual(
+            disjoin([self.is_odd_letter, self.is_vowel], 'c'), True)
         self.assertEqual(disjoin([self.is_odd_letter, self.is_vowel], x='u'),
                          True)
         # should short-circuit after first True
         self.assertEqual(disjoin([self.is_odd_letter, self.fail], 'a'), True)
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           disjoin, [self.is_odd_letter, self.fail], 'b')
 
     def test_any(self):
         """any should return a function returning True if any component True"""
         odd_vowel = any([self.is_odd_letter, self.is_vowel])
         self.assertEqual(odd_vowel('a'), True)
-        self.assertEqual(list(map(odd_vowel, 'abceu')), [True, False, True, True, True])
+        self.assertEqual(list(map(odd_vowel, 'abceu')), [
+                         True, False, True, True, True])
         odd = any([self.is_odd_number, self.is_small])
         self.assertEqual(list(map(odd, list(range(5)))), [True] * 4 + [False])
         # should short-circuit after first True
         self.assertEqual(any([self.is_odd_letter, self.fail])(x='a'), True)
-        self.assertRaises(AssertionError, any([self.is_odd_letter, self.fail]),\
+        self.assertRaises(AssertionError, any([self.is_odd_letter, self.fail]),
                           'b')
 
     def test_either(self):
         """either should return function returning True if either component True"""
         odd_vowel = either(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(list(map(odd_vowel, 'abcu')), [True, False, True, True])
+        self.assertEqual(list(map(odd_vowel, 'abcu')),
+                         [True, False, True, True])
         # should short-circuit
         self.assertEqual(either(self.is_odd_letter, self.fail)(x='a'), True)
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           either(self.is_odd_letter, self.fail), 'b')
 
     def test_negate(self):
         """negate should return True if no component True"""
-        self.assertEqual(negate([self.is_odd_letter, self.is_vowel], 'a'), False)
-        self.assertEqual(negate([self.is_odd_letter, self.is_vowel], 'b'), True)
-        self.assertEqual(negate([self.is_odd_letter, self.is_vowel], 'c'), False)
-        self.assertEqual(negate([self.is_odd_letter, self.is_vowel], 'u'), False)
+        self.assertEqual(
+            negate([self.is_odd_letter, self.is_vowel], 'a'), False)
+        self.assertEqual(
+            negate([self.is_odd_letter, self.is_vowel], 'b'), True)
+        self.assertEqual(
+            negate([self.is_odd_letter, self.is_vowel], 'c'), False)
+        self.assertEqual(
+            negate([self.is_odd_letter, self.is_vowel], 'u'), False)
         # should short-circuit after first True
         self.assertEqual(negate([self.is_odd_letter, self.fail], x='a'), False)
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           negate, [self.is_odd_letter, self.fail], 'b')
 
     def test_none(self):
         """none should return a function returning True if no component True"""
         odd_vowel = none([self.is_odd_letter, self.is_vowel])
         self.assertEqual(odd_vowel('a'), False)
-        self.assertEqual(list(map(odd_vowel, 'abceu')), [False, True] + [False] * 3)
+        self.assertEqual(list(map(odd_vowel, 'abceu')),
+                         [False, True] + [False] * 3)
         odd = none([self.is_odd_number, self.is_small])
         self.assertEqual(list(map(odd, list(range(5)))), [False] * 4 + [True])
         # should short-circuit after first True
         self.assertEqual(none([self.is_odd_letter, self.fail])(x='a'), False)
-        self.assertRaises(AssertionError, none([self.is_odd_letter, self.fail]),\
+        self.assertRaises(AssertionError, none([self.is_odd_letter, self.fail]),
                           'b')
 
     def test_neither(self):
         """neither should return function returning True if each component False"""
         odd_vowel = neither(self.is_odd_letter, self.is_vowel)
-        self.assertEqual(list(map(odd_vowel, 'abcu')), [False, True, False, False])
+        self.assertEqual(list(map(odd_vowel, 'abcu')),
+                         [False, True, False, False])
         # should short-circuit
         self.assertEqual(neither(self.is_odd_letter, self.fail)(x='a'), False)
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           neither(self.is_odd_letter, self.fail), 'b')
 
     def test_compose(self):
@@ -317,18 +334,20 @@ class metafunctionsTests(TestCase):
 
         basic_indexer = index()
         i = basic_indexer(items)
-        self.assertEqual(i, {num: [num], let: [let], zer: [zer], non: [non], y: [y]})
+        self.assertEqual(i, {num: [num], let: [let],
+                         zer: [zer], non: [non], y: [y]})
         # test reusability
         i = basic_indexer([3, 3, 4])
         self.assertEqual(i, {3: [3, 3], 4: [4]})
         # test duplicates
         d = basic_indexer(duplicates)
-        self.assertEqual(d, {num: [num] * 3, let: [let] * 3, zer: [zer] * 3, \
+        self.assertEqual(d, {num: [num] * 3, let: [let] * 3, zer: [zer] * 3,
                              non: [non] * 3, y: [y] * 3})
         # test with constructor
         str_indexer = index(str)
         i = str_indexer(items)
-        self.assertEqual(i, {'5': [num, let], '0': [zer], 'None': [non], '3': [y]})
+        self.assertEqual(i, {'5': [num, let], '0': [
+                         zer], 'None': [non], '3': [y]})
         # test order correct in duplicates
         i = str_indexer(duplicates)
         self.assertEqual(i, {'5': [num, let, num, let, num, let], '0': [zer, zer, zer],
@@ -488,7 +507,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual('12345678'.translate(a), '12345678')
 
         self.assertEqual(''.translate(none), '')
-        self.assertEqual('abcdeEFGHI12345&*(!@'.translate(none), \
+        self.assertEqual('abcdeEFGHI12345&*(!@'.translate(none),
                          'abcdeEFGHI12345&*(!@')
 
         self.assertEqual('qazwsxedcrfv'.translate(some), 'qaVwsVedVrfV') 
@@ -585,7 +604,8 @@ class Filter_Criteria_Tests(TestCase):
     def test_exclude_if_more(self):
         """exclude_if_more should be True if #items in s <= x"""
 
-        self.assertRaises(ValueError, exclude_if_more, 'lksfj', 'ksfd')  # not int
+        self.assertRaises(ValueError, exclude_if_more,
+                          'lksfj', 'ksfd')  # not int
         self.assertRaises(IndexError, exclude_if_more, 'ACGU', -3)  # negative
 
         f = exclude_if_more('a', 0)  # zero
@@ -614,8 +634,10 @@ class Filter_Criteria_Tests(TestCase):
     def test_keep_if_more_other(self):
         """keep_if_more_other should be True if #other items > x"""
 
-        self.assertRaises(ValueError, keep_if_more_other, 'lksfj', 'ks')  # not int
-        self.assertRaises(IndexError, keep_if_more_other, 'ACGU', -3)  # negative
+        self.assertRaises(ValueError, keep_if_more_other,
+                          'lksfj', 'ks')  # not int
+        self.assertRaises(IndexError, keep_if_more_other,
+                          'ACGU', -3)  # negative
 
         f = keep_if_more_other('a', 0)  # zero
         self.assertEqual(f(''), 0)
@@ -643,8 +665,10 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_exclude_if_more_other(self):
         """exclude_if_more_other should be True if #other items <= x"""
-        self.assertRaises(ValueError, exclude_if_more_other, 'lks', 'ks')  # not int
-        self.assertRaises(IndexError, exclude_if_more_other, 'ACGU', -3)  # negative
+        self.assertRaises(ValueError, exclude_if_more_other,
+                          'lks', 'ks')  # not int
+        self.assertRaises(IndexError, exclude_if_more_other,
+                          'ACGU', -3)  # negative
 
         f = exclude_if_more_other('a', 0)  # zero
         self.assertEqual(f(''), 1)
@@ -917,7 +941,8 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_perm(self):
         """perm should return correct permutations"""
-        self.assertEqual(list(perm('abc')), ['abc', 'acb', 'bac', 'bca', 'cab', 'cba']) 
+        self.assertEqual(list(perm('abc')), [
+                         'abc', 'acb', 'bac', 'bca', 'cab', 'cba']) 
 
     def test_comb(self):
         """comb should return correct combinations"""

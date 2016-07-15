@@ -60,7 +60,7 @@ class InfoMakerTests(TestCase):
 
     def test_full(self):
         """InfoMaker should return Info object with name, value pairs"""
-        test_header = ['acc: X3402', 'abc:1', 'mty: ssu', 'seq: Mit. X3402',\
+        test_header = ['acc: X3402', 'abc:1', 'mty: ssu', 'seq: Mit. X3402',
                        '', 'nonsense', ':no_name']
         obs = InfoMaker(test_header)
         exp = Info()
@@ -188,32 +188,33 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUCUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',\
+        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',
                                            'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         res = list(RdbParser(self.multiline))
         self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',\
+        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',
                                            'OriginalSeq': 'AGUCAUUAGAUHCAUHC'}))
 
     def test_single_constructor(self):
         """RdbParser should use constructors if supplied"""
-        to_dna = lambda x, Info: DnaSequence(str(x).replace('U', 'T'), \
+        to_dna = lambda x, Info: DnaSequence(str(x).replace('U', 'T'),
                                              Info=Info)
         f = list(RdbParser(self.oneseq, to_dna))
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
-        self.assertEqual(a.Info, Info({'Species': 'H.Sapiens',\
+        self.assertEqual(a.Info, Info({'Species': 'H.Sapiens',
                                        'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         def alternativeConstr(header_lines):
             info = Info()
             for line in header_lines:
                 all = line.strip().split(':', 1)
-                # strip out empty lines, lines without name, lines without colon
+                # strip out empty lines, lines without name, lines without
+                # colon
                 if not all[0] or len(all) != 2: 
                     continue
                 name = all[0].upper()
@@ -225,9 +226,9 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
-        exp_info = Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',\
+        exp_info = Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',
                          'Refs': {}, 'SEQ': 'H.SAPIENS'})
-        self.assertEqual(a.Info, Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',\
+        self.assertEqual(a.Info, Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',
                                        'Refs': {}, 'SEQ': 'H.SAPIENS'}))
 
     def test_multiple_constructor_bad(self):
@@ -245,20 +246,22 @@ class RdbParserTests(GenericRdbTest):
         a, b = f
 
         self.assertEqual(a, 'ACT')
-        self.assertEqual(a.Info, Info({'Species': 'mit', 'OriginalSeq': 'ACT'}))
+        self.assertEqual(a.Info, Info(
+            {'Species': 'mit', 'OriginalSeq': 'ACT'}))
         self.assertEqual(b, 'AAA')
-        self.assertEqual(b.Info, Info({'Species': 'pla', 'OriginalSeq': 'AAA'}))
+        self.assertEqual(b.Info, Info(
+            {'Species': 'pla', 'OriginalSeq': 'AAA'}))
 
     def test_full(self):
         """RdbParser: full data, valid and invalid"""
         # when only good record, should work independent of strict
-        r1 = RnaSequence("-??GG-UGAA--CGCU---ACGU-N???---",\
-                         Info=Info({'Species': "unidentified Thermus OPB AF027020",\
-                                    'Refs': {'rRNA': ['AF027020']},\
+        r1 = RnaSequence("-??GG-UGAA--CGCU---ACGU-N???---",
+                         Info=Info({'Species': "unidentified Thermus OPB AF027020",
+                                    'Refs': {'rRNA': ['AF027020']},
                                     'OriginalSeq': '-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
-        r2 = RnaSequence("---CGAUCG--UAUACG-N???-",\
-                         Info=Info({'Species': 'Thermus silvanus X84211',\
-                                    'Refs': {'rRNA': ['X84211']},\
+        r2 = RnaSequence("---CGAUCG--UAUACG-N???-",
+                         Info=Info({'Species': 'Thermus silvanus X84211',
+                                    'Refs': {'rRNA': ['X84211']},
                                     'OriginalSeq': '---CGAU[C(G){--UA}U]ACG-Nooo-'}))
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split('\n'), strict=True))
         self.assertEqual(len(obs), 2)

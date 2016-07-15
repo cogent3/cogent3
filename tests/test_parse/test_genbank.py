@@ -54,14 +54,14 @@ class GenBankTests(TestCase):
             'abc    xxx',
             'def    yyy'
         ]
-        self.assertEqual(list(indent_splitter(lines)),\
+        self.assertEqual(list(indent_splitter(lines)),
                          [[lines[0]], [lines[1]]])
         # if second line is indented, should group with first
         lines = [
             'abc    xxx',
             ' def    yyy'
         ]
-        self.assertEqual(list(indent_splitter(lines)),\
+        self.assertEqual(list(indent_splitter(lines)),
                          [[lines[0], lines[1]]])
 
         # if both lines indented but second is more, should group with first
@@ -69,7 +69,7 @@ class GenBankTests(TestCase):
             ' abc    xxx',
             '  def    yyy'
         ]
-        self.assertEqual(list(indent_splitter(lines)),\
+        self.assertEqual(list(indent_splitter(lines)),
                          [[lines[0], lines[1]]])
 
         # if both lines indented equally, should not group
@@ -77,7 +77,7 @@ class GenBankTests(TestCase):
             '   abc    xxx',
             '   def    yyy'
         ]
-        self.assertEqual(list(indent_splitter(lines)), \
+        self.assertEqual(list(indent_splitter(lines)),
                          [[lines[0]], [lines[1]]])
 
         # for more complex situation, should produce correct grouping
@@ -95,7 +95,7 @@ class GenBankTests(TestCase):
             '   bg',  # 10
             '  aaa',  # 11 -
         ]
-        self.assertEqual(list(indent_splitter(lines)), \
+        self.assertEqual(list(indent_splitter(lines)),
                          [[lines[0]], lines[1:5], [lines[5]], lines[6:11], [lines[11]]])
 
         # real example from genbank file
@@ -119,8 +119,8 @@ SOURCE      Homo sapiens (human)
 REFERENCE   2  (bases 1 to 92123751)
   AUTHORS   International Human Genome Sequencing Consortium.
   TITLE     Finishing the euchromatic sequence of the human genome""".split('\n')
-        self.assertEqual(list(indent_splitter(lines)), \
-                         [[lines[0]], [lines[1]], lines[2:8], [lines[8]], [lines[9]], lines[10:15],\
+        self.assertEqual(list(indent_splitter(lines)),
+                         [[lines[0]], [lines[1]], lines[2:8], [lines[8]], [lines[9]], lines[10:15],
                           [lines[15]], lines[16:]])
 
     def test_parse_sequence(self):
@@ -132,7 +132,8 @@ ORIGIN
       121 cctgggctta agcagtcttc45ccacctcagc 
 //\n\n\n""".split('\n')
         result = parse_sequence(lines)
-        self.assertEqual(result, 'gggagcgcggcgcgggagcccgaggctgagactcaccggaggaagcggcgcgagcgccccgccatcgtcccggctgaagtgcagtgcctgggcttaagcagtcttcccacctcagc')
+        self.assertEqual(
+            result, 'gggagcgcggcgcgggagcccgaggctgagactcaccggaggaagcggcgcgagcgccccgccatcgtcccggctgaagtgcagtgcctgggcttaagcagtcttcccacctcagc')
 
     def test_block_consolidator(self):
         """block_consolidator should join the block together."""
@@ -166,9 +167,9 @@ ORIGIN
         Hominidae; Homo.""".split('\n')
         species, taxonomy = parse_organism(lines)
         self.assertEqual(species, 'Homo sapiens')
-        self.assertEqual(taxonomy, ['Eukaryota', 'Metazoa', \
-                                    'Chordata Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia', \
-                                    'Eutheria', 'Euarchontoglires', 'Primates abc. 2.', \
+        self.assertEqual(taxonomy, ['Eukaryota', 'Metazoa',
+                                    'Chordata Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',
+                                    'Eutheria', 'Euarchontoglires', 'Primates abc. 2.',
                                     'Catarrhini Hominidae', 'Homo'])
 
     def test_parse_feature(self):
@@ -195,11 +196,12 @@ ORIGIN
                      LFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP"""
         result = parse_feature(example_feature.split('\n'))
         self.assertEqual(result['type'], 'CDS')
-        self.assertEqual(result['raw_location'], \
-                         ['complement(join(102262..102647,105026..105217,', \
+        self.assertEqual(result['raw_location'],
+                         ['complement(join(102262..102647,105026..105217,',
                           '                     106638..106719,152424..152682,243209..243267))'])
         self.assertEqual(result['gene'], ['nad1'])
-        self.assertEqual(result['note'], ['Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing'])
+        self.assertEqual(result['note'], [
+                         'Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing'])
         self.assertEqual(result['codon_start'], ['1'])
         self.assertEqual(result['exception'], ['RNA editing'])
         self.assertEqual(result['product'], ['NADH dehydrogenase subunit 1'])
@@ -220,7 +222,7 @@ ORIGIN
                      /product="tRNA-Ile"
                      /anticodon=(pos:1203..1205,aa:Ile)"""
         result = parse_feature(bad_feature.split('\n'))
-        self.assertEqual(result['note'], \
+        self.assertEqual(result['note'],
                          ['codon recognized: AUC; Cove score = 16.56'])
         # need not always have an = in a line
         # from NC_001807
@@ -236,14 +238,14 @@ ORIGIN
         """location_line_tokenizer should tokenize location lines"""
         llt = location_line_tokenizer
         self.assertEqual(list(llt(['123..456'])), ['123..456'])
-        self.assertEqual(list(llt(['complement(123..456)'])), \
+        self.assertEqual(list(llt(['complement(123..456)'])),
                          ['complement(', '123..456', ')'])
-        self.assertEqual(list(llt(['join(1..2,3..4)'])), \
+        self.assertEqual(list(llt(['join(1..2,3..4)'])),
                          ['join(', '1..2', ',', '3..4', ')'])
-        self.assertEqual(list(llt([\
-            'join(complement(1..2, join(complement( 3..4),',\
-            '\n5..6), 7..8\t))'])),\
-            ['join(', 'complement(', '1..2', ',', 'join(', 'complement(', '3..4',\
+        self.assertEqual(list(llt([
+            'join(complement(1..2, join(complement( 3..4),',
+            '\n5..6), 7..8\t))'])),
+            ['join(', 'complement(', '1..2', ',', 'join(', 'complement(', '3..4',
              ')', ',', '5..6', ')', ',', '7..8', ')', ')'])
 
     def test_parse_simple_location_segment(self):
@@ -282,20 +284,20 @@ ORIGIN
         r = parse_location_line(llt(['complement(123..456)']))
         self.assertEqual(str(r), 'complement(123..456)')
         r = parse_location_line(llt(['complement(123..456, 345..678)']))
-        self.assertEqual(str(r), \
+        self.assertEqual(str(r),
                          'join(complement(345..678),complement(123..456))')
         r = parse_location_line(llt(['complement(join(123..456, 345..678))']))
-        self.assertEqual(str(r), \
+        self.assertEqual(str(r),
                          'join(complement(345..678),complement(123..456))')
-        r = parse_location_line(\
+        r = parse_location_line(
             llt(['join(complement(123..456), complement(345..678))']))
-        self.assertEqual(str(r), \
+        self.assertEqual(str(r),
                          'join(complement(123..456),complement(345..678))')
         # try some nested joins and complements
-        r = parse_location_line(llt(\
+        r = parse_location_line(llt(
             ['complement(join(1..2,3..4,complement(5..6),',
              'join(7..8,complement(9..10))))']))
-        self.assertEqual(str(r), \
+        self.assertEqual(str(r),
                          'join(9..10,complement(7..8),5..6,complement(3..4),complement(1..2))')
 
     def test_parse_reference(self):
@@ -311,10 +313,10 @@ ORIGIN
         self.assertEqual(len(result), 5)
         self.assertEqual(result['reference'], '2  (bases 1 to 2587)')
         self.assertEqual(result['authors'], 'Janzen,D.M. and Geballe,A.P.')
-        self.assertEqual(result['title'], \
-                         'The effect of eukaryotic release factor depletion ' + \
+        self.assertEqual(result['title'],
+                         'The effect of eukaryotic release factor depletion ' +
                          'on translation termination in human cell lines')
-        self.assertEqual(result['journal'], \
+        self.assertEqual(result['journal'],
                          '(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)')
         self.assertEqual(result['pubmed'], '15326224')
 
@@ -329,8 +331,8 @@ ORIGIN
         self.assertEqual(len(r), 3)
         self.assertEqual(r['source'], 'African elephant.')
         self.assertEqual(r['species'], 'Mitochondrion Loxodonta africana')
-        self.assertEqual(r['taxonomy'], ['Eukaryota', 'Metazoa', 'Chordata',\
-                                         'Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',\
+        self.assertEqual(r['taxonomy'], ['Eukaryota', 'Metazoa', 'Chordata',
+                                         'Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',
                                          'Eutheria', 'Proboscidea', 'Elephantidae', 'Loxodonta'])
 
     def test_rich_parser(self):
@@ -339,7 +341,8 @@ ORIGIN
         from cogent3.core.annotation import Feature
 
         def add_annotation(seq, feature, spans):
-            if feature['type'] != "CDS": return
+            if feature['type'] != "CDS":
+                return
             name = feature['locus_tag'][0]
             seq.addAnnotation(Feature, "CDS", name, spans)
 
@@ -350,21 +353,21 @@ ORIGIN
         seq = [s for l, s in parser][0]
         cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
         expects = {
-            'CNA00110': 'MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD'\
-            'SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL'\
-            'SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL'\
-            'PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP'\
-            'SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA'\
-            'DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD'\
-            'LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT'\
-            'IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG'\
-            'LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ'\
-            'ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE'\
-            'GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL'\
-            'VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG'\
+            'CNA00110': 'MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD'
+            'SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL'
+            'SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL'
+            'PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP'
+            'SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA'
+            'DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD'
+            'LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT'
+            'IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG'
+            'LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ'
+            'ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE'
+            'GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL'
+            'VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG'
             'ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV',
-            'CNA00120': 'MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD'\
-            'FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP'\
+            'CNA00120': 'MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD'
+            'FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP'
             'DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF'}
 
         for locus in cds:

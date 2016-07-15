@@ -171,9 +171,11 @@ class NcbiTaxonLookupTest(TestCase):
         line3_obj = self.nodes[2]
         line4_obj = self.nodes[3]
         line5_obj = self.nodes[4]
-        assert (self.taxID_to_obj[1] is line1_obj)  # gets NcbiTaxon object from
+        # gets NcbiTaxon object from
+        assert (self.taxID_to_obj[1] is line1_obj)
         assert (self.taxID_to_obj[2] is line2_obj)  # NcbiTaxonLookup object &
-        assert (self.taxID_to_obj[6] is line3_obj)  # asks if it is the original
+        # asks if it is the original
+        assert (self.taxID_to_obj[6] is line3_obj)
         assert (self.taxID_to_obj[7] is line4_obj)  # NcbiTaxon object
         assert (self.taxID_to_obj[9] is line5_obj)
         self.assertEqual(self.taxID_to_obj[1].ParentId, 1)  # checking a few
@@ -220,7 +222,7 @@ class NcbiTaxonomyTests(TestCase):
     def test_init_strict(self):
         """NcbiTaxonomyFromFiles should fail if strict and deadbeats exist"""
         tx = NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
-        self.assertRaises(MissingParentError, NcbiTaxonomyFromFiles, \
+        self.assertRaises(MissingParentError, NcbiTaxonomyFromFiles,
                           bad_nodes, good_names, strict=True)
 
     def test_Ancestors(self):

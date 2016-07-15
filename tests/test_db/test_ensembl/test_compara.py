@@ -190,14 +190,18 @@ class TestSyntenicRegions(TestCase):
                 self.comp.getSyntenicRegions(method_clade_id=742, **coord))[0]
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
-            got_names = dict([(n.split(':')[0], n.split(':')) for n in syntenic.getAlignment().Names])
-            exp_names = dict([(n.split(':')[0], n.split(':')) for n in list(expect.keys())])
+            got_names = dict([(n.split(':')[0], n.split(':'))
+                             for n in syntenic.getAlignment().Names])
+            exp_names = dict([(n.split(':')[0], n.split(':'))
+                             for n in list(expect.keys())])
             for species in exp_names:
                 exp_chrom = exp_names[species][2]
                 got_chrom = got_names[species][2]
                 self.assertEqual(exp_chrom.lower(), got_chrom.lower())
-                exp_start, exp_end = list(map(int, exp_names[species][3].split('-')))
-                got_start, got_end = list(map(int, got_names[species][3].split('-')))
+                exp_start, exp_end = list(
+                    map(int, exp_names[species][3].split('-')))
+                got_start, got_end = list(
+                    map(int, got_names[species][3].split('-')))
                 slope = calc_slope(exp_start, exp_end, got_start, got_end)
                 self.assertFloatEqual(abs(slope), 1.0, eps=1e-3)
 

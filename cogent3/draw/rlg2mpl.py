@@ -1,7 +1,8 @@
 """ReportLab Graphics -> Matplotlib helpers"""
 
 # linear, dotplot and dendrogram were originally written to target ReportLab Graphics rather
-# than Matplotlib.  This module can be slowly boiled away as they become more matplotlib native.
+# than Matplotlib.  This module can be slowly boiled away as they become
+# more matplotlib native.
 
 
 from matplotlib.path import Path
@@ -134,7 +135,8 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
         height = height or default_aspect * width
     total_height = height + top + bottom
     total_width = width + left + right 
-    posn = [left / total_width, bottom / total_height, width / total_width, height / total_height]
+    posn = [left / total_width, bottom / total_height,
+        width / total_width, height / total_height]
     if leftovers:
         return (total_width, total_height), posn, margins
     else:   

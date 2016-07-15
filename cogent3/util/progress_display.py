@@ -158,7 +158,8 @@ class ProgressContext(object):
             self.render()
 
     def render(self):
-        self.progress_bar.set(self.base + self.progress * self.segment, self.message[0])
+        self.progress_bar.set(self.base + self.progress *
+                              self.segment, self.message[0])
         self.t_last = time.time()
 
     def done(self):
@@ -195,7 +196,8 @@ class ProgressContext(object):
             template = '%s%%%sd/%s' % (noun, len(str(count)), count)
             labels = [template % i for i in range(0, count)]
         for (i, item) in enumerate(items):
-            self.display(msg=labels[i], progress=start + step * i, current=step)
+            self.display(msg=labels[i], progress=start +
+                         step * i, current=step)
             yield item
         self.display(progress=end, current=0)
 

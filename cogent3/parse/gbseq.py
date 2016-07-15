@@ -67,7 +67,8 @@ def GbSeqXmlParser(doc):
         organism = str(record.getElementsByTagName(
             'GBSeq_organism')[0].childNodes[0].nodeValue)
 
-        seq.addAnnotation(annotation.Feature, "organism", organism, [(0, len(seq))])
+        seq.addAnnotation(annotation.Feature, "organism",
+                          organism, [(0, len(seq))])
 
         features = record.getElementsByTagName('GBFeature')
         for feature in features:

@@ -28,7 +28,7 @@ class DbRef(object):
     str(DbRef) always returns the accession.
     """
 
-    def __init__(self, Accession, Db='', Name='', Description='', \
+    def __init__(self, Accession, Db='', Name='', Description='',
                  Data=None):
         """Returns new DbRef.
 

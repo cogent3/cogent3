@@ -49,7 +49,8 @@ def LabelLineParser(record, splitter, strict=True):
             key, val = splitter(line.rstrip())
         except:
             if strict:
-                raise RecordError("Failed to extract key and value from line %s" % line)
+                raise RecordError(
+                    "Failed to extract key and value from line %s" % line)
             else:
                 continue  # just skip the line if not strict
 
@@ -92,7 +93,7 @@ def MinimalClustalParser(record, strict=True):
 
     Data is dict of label -> sequence (pieces not joined).
     """
-    return LabelLineParser(list(map(delete_trailing_number, \
+    return LabelLineParser(list(map(delete_trailing_number,
                                     list(filter(is_clustal_seq_line, record)))), last_space, strict)
 
 

@@ -193,7 +193,7 @@ class for_seq(object):
         if self.normalizer is None:
             return self.aggregator([f(i, j) for i, j in zip(first, second)])
         else:
-            return self.normalizer(self.aggregator(\
+            return self.normalizer(self.aggregator(
                 [f(i, j) for i, j in zip(first, second)]), first, second)
 
 # convenience functions for modifying objects
@@ -445,7 +445,8 @@ class keep_chars(object):
             keep = low + up
 
         keep = keep.encode('utf-8')
-        self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
+        self._strip_table = dict([(c, None)
+                                 for c in self.allchars if c not in keep])
 
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""

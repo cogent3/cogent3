@@ -96,7 +96,8 @@ class arrayTests(TestCase):
         g2u = gapped_to_ungapped
         gap_state = self.gap_state
         self.assertEqual(g2u(self.s1, gap_state), array([0, 1, 2, 2, 3]))
-        self.assertEqual(g2u(self.s1, gap_state, True), array([0, 1, 2, -1, 3]))
+        self.assertEqual(g2u(self.s1, gap_state, True),
+                         array([0, 1, 2, -1, 3]))
         self.assertEqual(g2u(self.s2, gap_state), array([-1, -1, 0, 1]))
         self.assertEqual(g2u(self.s2, gap_state, True), array([-1, -1, 0, 1]))
         self.assertEqual(g2u(self.s3, gap_state), array([0, 1, 1, 1]))
@@ -113,15 +114,15 @@ class arrayTests(TestCase):
         p2 = [2, 3, 0.9]
         p3 = [1, 2, 0.6]
         pairs = [p1, p2, p3]
-        self.assertEqual(p2a(pairs), \
+        self.assertEqual(p2a(pairs),
                          array([[0, .5, 0, 0], [0, 0, .6, 0], [0, 0, 0, .9], [0, 0, 0, 0]]))
         # try it without weights -- should assign 1
         new_pairs = [[0, 1], [2, 3], [1, 2]]
-        self.assertEqual(p2a(new_pairs), \
+        self.assertEqual(p2a(new_pairs),
                          array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]]))
         # try it with explicit array size
-        self.assertEqual(p2a(pairs, 5), \
-                         array([[0, .5, 0, 0, 0], [0, 0, .6, 0, 0], [0, 0, 0, .9, 0], [0, 0, 0, 0, 0],\
+        self.assertEqual(p2a(pairs, 5),
+                         array([[0, .5, 0, 0, 0], [0, 0, .6, 0, 0], [0, 0, 0, .9, 0], [0, 0, 0, 0, 0],
                                 [0, 0, 0, 0, 0]]))
         # try it when we want to map the indices into gapped coords
         # we're effectively doing ABCD -> -A--BC-D-
@@ -205,18 +206,19 @@ class ArrayMathTests(TestCase):
         a = array([[4, 0, 8], [2, 16, 4]])
         self.assertEqual(safe_log(a), array([[2, 0, 3], [1, 4, 2]]))
         # input integers, output floats
-        self.assertFloatEqual(safe_log(array([1, 2, 3])), array([0, 1, 1.5849625]))
+        self.assertFloatEqual(
+            safe_log(array([1, 2, 3])), array([0, 1, 1.5849625]))
         # just zeros
         a = array([[0, 0], [0, 0]])
         self.assertEqual(safe_log(a), array([[0, 0], [0, 0]]))
         # negative number
         try:
-            self.assertFloatEqual(safe_log(array([0, 3, -4]))[0:2], \
+            self.assertFloatEqual(safe_log(array([0, 3, -4]))[0:2],
                                   array([0, 1.5849625007]))
         except ValueError:  # platform-dependent
             pass
         try:
-            self.assertNotEqual(safe_log(array([0, 3, -4]))[2],\
+            self.assertNotEqual(safe_log(array([0, 3, -4]))[2],
                                 safe_log(array([0, 3, -4]))[2])
         except ValueError:  # platform-dependent
             pass
@@ -229,11 +231,12 @@ class ArrayMathTests(TestCase):
         """row_uncertainty: should handle pos/neg/zero/empty arrays as expected
         """
         # normal valid array
-        b = transpose(array([[.25, .2, .45, .25, 1], [.25, .2, .45, 0, 0],\
+        b = transpose(array([[.25, .2, .45, .25, 1], [.25, .2, .45, 0, 0],
                              [.25, .3, .05, .75, 0], [.25, .3, .05, 0, 0]]))
-        self.assertFloatEqual(row_uncertainty(b), [2, 1.97, 1.47, 0.81, 0], 1e-3)
+        self.assertFloatEqual(row_uncertainty(
+            b), [2, 1.97, 1.47, 0.81, 0], 1e-3)
         # one-dimensional array
-        self.assertRaises(ValueError, row_uncertainty,\
+        self.assertRaises(ValueError, row_uncertainty,
                           array([.25, .25, .25, .25]))
         # zeros
         self.assertEqual(row_uncertainty(array([[0, 0]])), array([0]))
@@ -246,11 +249,12 @@ class ArrayMathTests(TestCase):
     def test_col_uncertainty(self):
         """column_uncertainty: should handle pos/neg/zero/empty arrays
         """
-        b = array([[.25, .2, .45, .25, 1], [.25, .2, .45, 0, 0], [.25, .3, .05, .75, 0],\
+        b = array([[.25, .2, .45, .25, 1], [.25, .2, .45, 0, 0], [.25, .3, .05, .75, 0],
                    [.25, .3, .05, 0, 0]])
-        self.assertFloatEqual(column_uncertainty(b), [2, 1.97, 1.47, 0.81, 0], 1e-3)
+        self.assertFloatEqual(column_uncertainty(
+            b), [2, 1.97, 1.47, 0.81, 0], 1e-3)
         # one-dimensional array
-        self.assertRaises(ValueError, column_uncertainty,\
+        self.assertRaises(ValueError, column_uncertainty,
                           array([.25, .25, .25, .25]))
         # zeros
         self.assertEqual(column_uncertainty(array([[0, 0]])), array([0, 0]))
@@ -267,7 +271,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(row_degeneracy(a, cutoff=.75), [3, 2, 1])
         self.assertEqual(row_degeneracy(a, cutoff=.95), [4, 3, 3])
         # one-dimensional array
-        self.assertRaises(ValueError, row_degeneracy,\
+        self.assertRaises(ValueError, row_degeneracy,
                           array([.25, .25, .25, .25]))
         # if cutoff value is not found, results are clipped to the
         # number of columns in the array
@@ -282,7 +286,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(column_degeneracy(a, cutoff=.75), [2, 1, 3])
         self.assertEqual(column_degeneracy(a, cutoff=.45), [1, 1, 2])
         # one-dimensional array
-        self.assertRaises(ValueError, column_degeneracy,\
+        self.assertRaises(ValueError, column_degeneracy,
                           array([.25, .25, .25, .25]))
         # if cutoff value is not found, results are clipped to the
         # number of rows in the array
@@ -294,14 +298,19 @@ class ArrayMathTests(TestCase):
         """hamming_distance: should return # of chars different"""
         hd = hamming_distance(array('ABC', 'c'), array('ABB', 'c'))
         self.assertEqual(hd, 1)
-        self.assertEqual(hamming_distance(array('ABC', 'c'), array('ABC', 'c')), 0)
-        self.assertEqual(hamming_distance(array('ABC', 'c'), array('DDD', 'c')), 3)
+        self.assertEqual(hamming_distance(
+            array('ABC', 'c'), array('ABC', 'c')), 0)
+        self.assertEqual(hamming_distance(
+            array('ABC', 'c'), array('DDD', 'c')), 3)
 
     def test_hamming_distance_diff_length(self):
         """hamming_distance: truncates at shortest sequence"""
-        self.assertEqual(hamming_distance(array('ABC', 'c'), array('ABBDDD', 'c')), 1)
-        self.assertEqual(hamming_distance(array('ABC', 'c'), array('ABCDDD', 'c')), 0)
-        self.assertEqual(hamming_distance(array('ABC', 'c'), array('DDDDDD', 'c')), 3)
+        self.assertEqual(hamming_distance(
+            array('ABC', 'c'), array('ABBDDD', 'c')), 1)
+        self.assertEqual(hamming_distance(
+            array('ABC', 'c'), array('ABCDDD', 'c')), 0)
+        self.assertEqual(hamming_distance(
+            array('ABC', 'c'), array('DDDDDD', 'c')), 3)
 
     def test_norm(self):
         """norm: should return vector or matrix norm"""
@@ -340,18 +349,24 @@ class ArrayMathTests(TestCase):
     def test_count_simple(self):
         """count_simple should return correct counts"""
         self.assertEqual(count_simple(array([]), 3), array([0, 0, 0]))
-        self.assertEqual(count_simple(array([1, 2, 2, 1, 0]), 3), array([1, 2, 2]))
-        self.assertEqual(count_simple(array([1, 1, 1, 1, 1]), 3), array([0, 5, 0]))
-        self.assertEqual(count_simple(array([1, 1, 1, 1, 1]), 2), array([0, 5]))
+        self.assertEqual(count_simple(
+            array([1, 2, 2, 1, 0]), 3), array([1, 2, 2]))
+        self.assertEqual(count_simple(
+            array([1, 1, 1, 1, 1]), 3), array([0, 5, 0]))
+        self.assertEqual(count_simple(
+            array([1, 1, 1, 1, 1]), 2), array([0, 5]))
         # raises index error if alphabet length is 0
         self.assertRaises(IndexError, count_simple, array([1]), 0)
 
     def test_count_alphabet(self):
         """count_alphabet should return correct counts"""
         self.assertEqual(count_alphabet(array([]), 3), array([0, 0, 0]))
-        self.assertEqual(count_alphabet(array([1, 2, 2, 1, 0]), 3), array([1, 2, 2]))
-        self.assertEqual(count_alphabet(array([1, 1, 1, 1, 1]), 3), array([0, 5, 0]))
-        self.assertEqual(count_alphabet(array([1, 1, 1, 1, 1]), 2), array([0, 5]))
+        self.assertEqual(count_alphabet(
+            array([1, 2, 2, 1, 0]), 3), array([1, 2, 2]))
+        self.assertEqual(count_alphabet(
+            array([1, 1, 1, 1, 1]), 3), array([0, 5, 0]))
+        self.assertEqual(count_alphabet(
+            array([1, 1, 1, 1, 1]), 2), array([0, 5]))
         # raises index error if alphabet length is 0
         self.assertRaises(IndexError, count_alphabet, array([1]), 0)
 
@@ -410,10 +425,10 @@ class ArrayMathTests(TestCase):
         """scale_row_sum should give same result as scale_row_sum_naive"""
         m = array([[1.0, 2, 3, 4], [2, 4, 4, 0], [1, 1, 1, 1], [0, 0, 0, 100]])
         scale_row_sum(m)
-        self.assertFloatEqual(m, [[0.1, 0.2, 0.3, 0.4], [0.2, 0.4, 0.4, 0],\
+        self.assertFloatEqual(m, [[0.1, 0.2, 0.3, 0.4], [0.2, 0.4, 0.4, 0],
                                   [0.25, 0.25, 0.25, 0.25], [0, 0, 0, 1.0]])
         scale_row_sum(m, 4)
-        self.assertFloatEqual(m, [[0.4, 0.8, 1.2, 1.6], [0.8, 1.6, 1.6, 0],\
+        self.assertFloatEqual(m, [[0.4, 0.8, 1.2, 1.6], [0.8, 1.6, 1.6, 0],
                                   [1, 1, 1, 1], [0, 0, 0, 4.0]])
         # if any of the rows sums to zero, an exception will be raised.
 
@@ -421,7 +436,7 @@ class ArrayMathTests(TestCase):
         ori_err = numpy.geterr()
         try:
             numpy.seterr(invalid='raise')
-            self.assertRaises((ZeroDivisionError, FloatingPointError), \
+            self.assertRaises((ZeroDivisionError, FloatingPointError),
                               scale_row_sum, array([[1, 0], [0, 0]], float))            
         finally:
             numpy.seterr(**ori_err)
@@ -430,10 +445,10 @@ class ArrayMathTests(TestCase):
         """scale_row_sum_naive should scale rows to correct values"""
         m = array([[1.0, 2, 3, 4], [2, 4, 4, 0], [1, 1, 1, 1], [0, 0, 0, 100]])
         scale_row_sum_naive(m)
-        self.assertFloatEqual(m, [[0.1, 0.2, 0.3, 0.4], [0.2, 0.4, 0.4, 0],\
+        self.assertFloatEqual(m, [[0.1, 0.2, 0.3, 0.4], [0.2, 0.4, 0.4, 0],
                                   [0.25, 0.25, 0.25, 0.25], [0, 0, 0, 1.0]])
         scale_row_sum_naive(m, 4)
-        self.assertFloatEqual(m, [[0.4, 0.8, 1.2, 1.6], [0.8, 1.6, 1.6, 0],\
+        self.assertFloatEqual(m, [[0.4, 0.8, 1.2, 1.6], [0.8, 1.6, 1.6, 0],
                                   [1, 1, 1, 1], [0, 0, 0, 4.0]])
         # if any of the rows sums to zero, an exception will be raised.
 
@@ -442,7 +457,7 @@ class ArrayMathTests(TestCase):
         ori_err = numpy.geterr()
         try:
             numpy.seterr(invalid='raise')
-            self.assertRaises((ZeroDivisionError, FloatingPointError), \
+            self.assertRaises((ZeroDivisionError, FloatingPointError),
                               scale_row_sum_naive, array([[1, 0], [0, 0]]))
         finally:
             numpy.seterr(**ori_err)
@@ -472,7 +487,7 @@ class ArrayMathTests(TestCase):
         numpy.seterr(divide='raise')
         try:
         # with numpy_err(divide='raise'):
-            self.assertRaises((ZeroDivisionError, FloatingPointError), \
+            self.assertRaises((ZeroDivisionError, FloatingPointError),
                               scale_trace, m)
         finally:
             numpy.seterr(**ori_err)
@@ -520,13 +535,13 @@ class ArrayMathTests(TestCase):
         self.assertEqual(cartesian_product([c]), [(1.0,)])
         self.assertEqual(cartesian_product([a]), [('a',), ('b',), ('c',)])
         # should combine two lists correctly
-        self.assertEqual(cartesian_product([a, b]), \
-                         [('a', 1), ('a', 2), ('a', 3), ('b', 1), ('b', 2),\
+        self.assertEqual(cartesian_product([a, b]),
+                         [('a', 1), ('a', 2), ('a', 3), ('b', 1), ('b', 2),
                           ('b', 3), ('c', 1), ('c', 2), ('c', 3)])
         # should combine three lists correctly
-        self.assertEqual(cartesian_product([d, d, d]), \
+        self.assertEqual(cartesian_product([d, d, d]),
                          [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)])
-        self.assertEqual(cartesian_product([c, d, d]), \
+        self.assertEqual(cartesian_product([c, d, d]),
                          [(1.0, 0, 0), (1.0, 0, 1), (1.0, 1, 0), (1.0, 1, 1)])
 
     def test_without_diag(self):
@@ -549,7 +564,7 @@ class ArrayMathTests(TestCase):
         # expect result to be rows 0, 2 and 3 of a
         result = only_nonzero(a)
         self.assertEqual(result,
-                         array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]],\
+                         array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
                                 [[19, 20, 21], [22, 23, 24], [25, 26, 27]],
                                 [[37, 38, 39], [40, 41, 42], [43, 44, 45]]]))
 
@@ -610,7 +625,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(m, array([[1, 2], [5, 6], [9, 10], [13, 14]]))
         a = reshape(arange(27), (3, 9))
         m = non_diag(a)
-        self.assertEqual(m, array([[1, 2, 3, 5, 6, 7], [10, 11, 12, 14, 15, 16],\
+        self.assertEqual(m, array([[1, 2, 3, 5, 6, 7], [10, 11, 12, 14, 15, 16],
                                    [19, 20, 21, 23, 24, 25]]))
 
     def test_perturb_one_off_diag(self):
@@ -660,7 +675,8 @@ class ArrayMathTests(TestCase):
         """sort_merged_samples_by_value should keep label associations"""
         s = merge_samples(array([3, 4]), array([5, 6]), array([1, 2]))
         result = sort_merged_samples_by_value(s)
-        self.assertEqual(result, array([[1, 2, 3, 4, 5, 6], [2, 2, 0, 0, 1, 1]]))
+        self.assertEqual(result, array(
+            [[1, 2, 3, 4, 5, 6], [2, 2, 0, 0, 1, 1]]))
 
     def test_classifiers(self):
         """classifiers should return all the 1D classifiers of samples"""
@@ -668,12 +684,12 @@ class ArrayMathTests(TestCase):
         second = array([2, 5, 5, 4, 6, 7])
         result = classifiers(first, second)
         self.assertEqual(len(result), 6)
-        exp = [(1, False, 0, 4, 1, 6), (3, False, 1, 3, 2, 5), (4, False, 1, 2, 3, 5),\
+        exp = [(1, False, 0, 4, 1, 6), (3, False, 1, 3, 2, 5), (4, False, 1, 2, 3, 5),
                (5, False, 2, 2, 3, 4), (9, False, 4, 0, 5, 2), (10, False, 5, 0, 5, 1)]
         self.assertEqual(result, exp)
         # should work in reverse
         result = classifiers(second, first)
-        exp = [(1, True, 0, 4, 1, 6), (3, True, 1, 3, 2, 5), (4, True, 1, 2, 3, 5),\
+        exp = [(1, True, 0, 4, 1, 6), (3, True, 1, 3, 2, 5), (4, True, 1, 2, 3, 5),
                (5, True, 2, 2, 3, 4), (9, True, 4, 0, 5, 2), (10, True, 5, 0, 5, 1)]
 
     def test_minimize_error_count(self):

@@ -425,7 +425,7 @@ def stdtri(k, p):
     if p > 0.25 and p < 0.75:
         if p == 0.5:
             return 0.0
-        z = 1.0 - 2.0 * p;
+        z = 1.0 - 2.0 * p
         z = incbi(0.5, 0.5 * rk, abs(z))
         t = sqrt(rk * z / (1.0 - z))
         if p < 0.5:
@@ -434,7 +434,7 @@ def stdtri(k, p):
     # handle extreme values
     rflg = -1
     if p >= 0.5:
-        p = 1.0 - p;
+        p = 1.0 - p
         rflg = 1
     z = incbi(0.5 * rk, 0.5, 2.0 * p)
 
@@ -452,7 +452,7 @@ def pdtri(k, p):
     p = fix_rounding_error(p)
     if k < 0 or p < 0.0 or p >= 1.0:
         raise ZeroDivisionError("k must be >=0, p between 1 and 0.")
-    v = k + 1;
+    v = k + 1
     return igami(v, p)
 
 
@@ -473,7 +473,7 @@ def bdtri(k, n, y):
         else:
             p = 1.0 - y**(1.0 / dn)
     else:
-        dk = k + 1;
+        dk = k + 1
         p = incbet(dn, dk, 0.5)
         if p > 0.5:
             p = incbi(dk, dn, 1.0 - y)

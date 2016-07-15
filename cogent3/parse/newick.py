@@ -190,7 +190,8 @@ def parse_string(text, constructor, **kw):
                                       ' or '.join([repr(s) for s in sentinals]))
         else:
             if name is not None:
-                raise tokeniser.error("Already have a name '%s' for this node." % name)
+                raise tokeniser.error(
+                    "Already have a name '%s' for this node." % name)
             elif attributes:
                 raise tokeniser.error("Name should come before length.")
             name = token

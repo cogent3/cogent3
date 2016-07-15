@@ -17,7 +17,7 @@ from cogent3.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",\
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
                "Daniel McDonald", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -42,7 +42,8 @@ class ConsensusTests(unittest.TestCase):
             Tree("((a,c),b,d);"),
             Tree("((a,b),c,d);")]
 
-        weights = list(map(log, [0.4, 0.4, 0.05, 0.15]))  # emphasizing the a,b clade
+        # emphasizing the a,b clade
+        weights = list(map(log, [0.4, 0.4, 0.05, 0.15]))
         self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
 
@@ -154,12 +155,14 @@ class ConsensusTests(unittest.TestCase):
         ct = ct.rootedWithTip('d')
         ct = ct.sorted(tip_names)
 
-        self.assertTrue(abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
+        self.assertTrue(
+            abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
         ct = sct.getConsensusTree(method='rooted')
         maj_tree = self.rooted_trees_lengths[0][1]
-        self.assertTrue(abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
+        self.assertTrue(
+            abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""
@@ -170,11 +173,13 @@ class ConsensusTests(unittest.TestCase):
 
     def test_consensus_from_scored_trees_collection_ii(self):
         """strict consensus should handle conflicting trees"""
-        sct = ScoredTreeCollection(list(zip([1] * 3, self.unrooted_conflicting_trees)))
+        sct = ScoredTreeCollection(
+            list(zip([1] * 3, self.unrooted_conflicting_trees)))
         ct = sct.getConsensusTrees()[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
 
-        sct = ScoredTreeCollection(list(zip([1] * 3, self.rooted_conflicting_trees)))
+        sct = ScoredTreeCollection(
+            list(zip([1] * 3, self.rooted_conflicting_trees)))
         #cts = sct.getConsensusTrees(method='rooted')
         ct = sct.getConsensusTrees(method='rooted')[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
@@ -224,7 +229,8 @@ class ConsensusTests(unittest.TestCase):
 class TreeReconstructionTests(unittest.TestCase):
 
     def setUp(self):
-        self.tree = LoadTree(treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
+        self.tree = LoadTree(
+            treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
         self.dists = self.tree.getDistances()
 
     def assertTreeDistancesEqual(self, t1, t2):
@@ -303,8 +309,10 @@ class DistancesTests(unittest.TestCase):
                                            'e': 'GTACGTACTGGT'}, aligned=False)
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
-        observed = dict([(frozenset(k), v) for (k, v) in list(observed.items())])
-        expected = dict([(frozenset(k), v) for (k, v) in list(expected.items())])
+        observed = dict([(frozenset(k), v)
+                        for (k, v) in list(observed.items())])
+        expected = dict([(frozenset(k), v)
+                        for (k, v) in list(expected.items())])
         for key in expected:
             self.assertAlmostEqual(expected[key], observed[key], precision)
 
@@ -420,7 +428,8 @@ class DistancesTests(unittest.TestCase):
         got = d.getAllParamValues()
         for pair in expect:
             for param in expect[pair]:
-                self.assertAlmostEqual(got[pair][param], expect[pair][param], places=6)
+                self.assertAlmostEqual(got[pair][param], expect[
+                                       pair][param], places=6)
 
 if __name__ == '__main__':
     unittest.main()

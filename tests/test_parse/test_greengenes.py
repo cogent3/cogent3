@@ -6,7 +6,8 @@ from cogent3.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"  # consider project name
-__credits__ = ["Daniel McDonald"]  # remember to add yourself if you make changes
+# remember to add yourself if you make changes
+__credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Daniel McDonald"
@@ -21,7 +22,7 @@ class ParseGreengenesRecordsTests(TestCase):
 
     def test_MinimalGreengenesParser_mock(self):
         """Test MinimalGreengenesParser against mock data"""
-        res = MinimalGreengenesParser(mock_data.splitlines(), RecStart="my_starting", \
+        res = MinimalGreengenesParser(mock_data.splitlines(), RecStart="my_starting",
                                       RecEnd="my_ending")
 
         records = list(res)
@@ -37,13 +38,15 @@ class ParseGreengenesRecordsTests(TestCase):
         record1, record2 = list(res)
 
         self.assertEqual(record1['G2_chip_tax_string'], 'Unclassified')
-        self.assertEqual(record1['authors'], 'Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.')
+        self.assertEqual(
+            record1['authors'], 'Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.')
         self.assertEqual(record1['bel3_div_ratio'], '')
         self.assertEqual(len(record1), 72)
 
         self.assertEqual(record2['ncbi_acc_w_ver'], 'FJ832719.1')
         self.assertEqual(record2['timestamp'], '2010-03-23 14:08:27')
-        self.assertEqual(record2['title'], 'Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin')
+        self.assertEqual(record2[
+                         'title'], 'Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin')
 
     def test_SpecificGreengenesParser_real(self):
         """Test SpecificGreengenesParser against real data"""

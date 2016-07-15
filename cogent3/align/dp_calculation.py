@@ -35,7 +35,8 @@ def makeIndelModelDefn(with_indel_params=True, kn=True):
         r = IndelParameterDefn('indel_rate')    # indels per substitution
         return CalcDefn(klass, name='indels')(r, a)
     else:
-        # not optimisable parameter, a constant. Another example is the alignment in an LikFunc
+        # not optimisable parameter, a constant. Another example is the
+        # alignment in an LikFunc
         return NonParamDefn('indel_model')
 
 
@@ -54,7 +55,8 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
     # one sequence pair in, potentialy, a tree
     bins = len(bin_data)
     pair = pairwise.Pair(seq1, seq2)
-    EP = pair.makeReversibleEmissionProbs([(bin.mprobs, bin.Qd) for bin in bin_data], length)
+    EP = pair.makeReversibleEmissionProbs(
+        [(bin.mprobs, bin.Qd) for bin in bin_data], length)
     tms = [bin.indel.calcTransitionMatrix(length) for bin in bin_data]
     if bins == 1:
         TM = tms[0]

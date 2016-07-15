@@ -91,7 +91,8 @@ class TestsTests(TestCase):
         self.assertFloatEqual(std(array([1, 2, 3, 4, 5])), expected)
 
         expected_a = array([expected, expected, expected, expected, expected])
-        a = array([[1, 2, 3, 4, 5], [5, 1, 2, 3, 4], [4, 5, 1, 2, 3], [3, 4, 5, 1, 2], [2, 3, 4, 5, 1]])
+        a = array([[1, 2, 3, 4, 5], [5, 1, 2, 3, 4], [
+                  4, 5, 1, 2, 3], [3, 4, 5, 1, 2], [2, 3, 4, 5, 1]])
         self.assertFloatEqual(std(a, axis=0), expected_a)
         self.assertFloatEqual(std(a, axis=1), expected_a)
         self.assertRaises(ValueError, std, a, 5)
@@ -159,7 +160,8 @@ class TestsTests(TestCase):
         # n ways to pick one item
         self.assertFloatEqual(combinations(123456789, 1), 123456789)
         # n(n-1)/2 ways to pick 2 items
-        self.assertFloatEqual(combinations(123456789, 2), 123456789 * 123456788 / 2)
+        self.assertFloatEqual(combinations(123456789, 2),
+                              123456789 * 123456788 / 2)
         # check an arbitrary value in R
         self.assertFloatEqual(combinations(1234567, 12), 2.617073e64)
 
@@ -169,10 +171,13 @@ class TestsTests(TestCase):
         self.assertFloatEqual(multiple_comparisons(0.05, 10), 0.4012631)
         self.assertFloatEqual(multiple_comparisons(1e-20, 1), 1e-20)
         self.assertFloatEqual(multiple_comparisons(1e-300, 1), 1e-300)
-        self.assertFloatEqual(multiple_comparisons(0.95, 3), 0.99987499999999996)
-        self.assertFloatEqual(multiple_comparisons(0.75, 100), 0.999999999999679)
+        self.assertFloatEqual(multiple_comparisons(
+            0.95, 3), 0.99987499999999996)
+        self.assertFloatEqual(multiple_comparisons(
+            0.75, 100), 0.999999999999679)
         self.assertFloatEqual(multiple_comparisons(0.5, 1000), 1)
-        self.assertFloatEqual(multiple_comparisons(0.01, 1000), 0.99995682875259)
+        self.assertFloatEqual(multiple_comparisons(
+            0.01, 1000), 0.99995682875259)
         self.assertFloatEqual(multiple_comparisons(0.5, 5), 0.96875)
         self.assertFloatEqual(multiple_comparisons(1e-20, 10), 1e-19)
 
@@ -245,7 +250,8 @@ class TestsTests(TestCase):
         """stdev_from_mean returns num std devs from mean for each val in x"""
         x = [2.1, 4.2, 5.9, 8.4, 9.6]
         result = stdev_from_mean(x)
-        self.assertFloatEqual(result, [-1.292463399014413, -0.60358696806764478, -0.045925095396451399, 0.77416589382589174, 1.1678095686526162])
+        self.assertFloatEqual(result, [-1.292463399014413, -0.60358696806764478, -
+                              0.045925095396451399, 0.77416589382589174, 1.1678095686526162])
 
     def test_regress_major(self):
         """major axis regression should match p 589 Sokal and Rohlf"""
@@ -276,9 +282,9 @@ class TestsTests(TestCase):
         """permute_2d permutes rows and cols of a matrix."""
         a = reshape(arange(9), (3, 3))
         self.assertEqual(permute_2d(a, [0, 1, 2]), a)
-        self.assertEqual(permute_2d(a, [2, 1, 0]), \
+        self.assertEqual(permute_2d(a, [2, 1, 0]),
                          array([[8, 7, 6], [5, 4, 3], [2, 1, 0]]))
-        self.assertEqual(permute_2d(a, [1, 2, 0]), \
+        self.assertEqual(permute_2d(a, [1, 2, 0]),
                          array([[4, 5, 3], [7, 8, 6], [1, 2, 0]]))
 
 
@@ -651,8 +657,10 @@ class StatTests(TestsHelper):
         self.assertFloatEqualAbs(t_one_sample(x), (-0.5222, 0.6141), 1e-4)
         self.assertFloatEqualAbs(t_one_sample(y), (4, 0.002518), 1e-4)
         # do some one-tailed tests as well
-        self.assertFloatEqualAbs(t_one_sample(y, tails='low'), (4, 0.9987), 1e-4)
-        self.assertFloatEqualAbs(t_one_sample(y, tails='high'), (4, 0.001259), 1e-4)
+        self.assertFloatEqualAbs(t_one_sample(
+            y, tails='low'), (4, 0.9987), 1e-4)
+        self.assertFloatEqualAbs(t_one_sample(
+            y, tails='high'), (4, 0.001259), 1e-4)
 
     def test_t_two_sample_switch(self):
         """t_two_sample should call t_one_observation if 1 item in sample."""
@@ -674,7 +682,7 @@ class StatTests(TestsHelper):
         x = 3.02
         # note that this differs after the 3rd decimal place from what's in the
         # book, because Sokal and Rohlf round their intermediate steps...
-        self.assertFloatEqual(t_one_observation(x, sample),\
+        self.assertFloatEqual(t_one_observation(x, sample),
                               (-1.5637254, 0.1929248))
 
     def test_t_one_observation_no_variance(self):
@@ -887,13 +895,13 @@ class StatTests(TestsHelper):
         self.assertFloatEqual(z_test(sample, 3, 2, 'high'), (0, 0.5))
         self.assertFloatEqual(z_test(sample, 3, 2, 'low'), (0, 0.5))
         # check that population mean and variance, and tails, can be set OK.
-        self.assertFloatEqual(z_test(sample, 0, 1), (6.7082039324993694, \
+        self.assertFloatEqual(z_test(sample, 0, 1), (6.7082039324993694,
                                                      1.9703444711798951e-11))
-        self.assertFloatEqual(z_test(sample, 1, 10), (0.44721359549995793, \
+        self.assertFloatEqual(z_test(sample, 1, 10), (0.44721359549995793,
                                                       0.65472084601857694))
-        self.assertFloatEqual(z_test(sample, 1, 10, 'high'), \
+        self.assertFloatEqual(z_test(sample, 1, 10, 'high'),
                               (0.44721359549995793, 0.65472084601857694 / 2))
-        self.assertFloatEqual(z_test(sample, 1, 10, 'low'), \
+        self.assertFloatEqual(z_test(sample, 1, 10, 'low'),
                               (0.44721359549995793, 1 - (0.65472084601857694 / 2)))
 
 
@@ -1153,7 +1161,8 @@ class CorrelationTests(TestsHelper):
         self.assertFloatEqual(correlation(x, y), (0, 1))
         self.assertFloatEqual(correlation(y, z), (0, 1))
         self.assertFloatEqualAbs(correlation(x, a), (0.9827076, 0.01729), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, b), (-0.9621405, 0.03786), 1e-5)
+        self.assertFloatEqualAbs(correlation(
+            x, b), (-0.9621405, 0.03786), 1e-5)
         self.assertFloatEqualAbs(correlation(x, c), (0.3779645, 0.622), 1e-3)
         self.assertEqual(correlation(bad, bad), (1, 0))
 
@@ -1293,7 +1302,7 @@ class CorrelationTests(TestsHelper):
         m = correlation_matrix([a, b, c])
         self.assertFloatEqual(m[0, 0], [1.0])
         self.assertFloatEqual([m[1, 0], m[1, 1]], [correlation(b, a)[0], 1.0])
-        self.assertFloatEqual(m[2], [correlation(c, a)[0], correlation(c, b)[0], \
+        self.assertFloatEqual(m[2], [correlation(c, a)[0], correlation(c, b)[0],
                                      1.0])
 
 
@@ -1401,7 +1410,7 @@ class Ftest(TestCase):
 
 class MannWhitneyTests(TestCase):
     """check accuracy of Mann-Whitney implementation"""
-    x = list(map(int, "104 109 112 114 116 118 118 119 121 123 125 126"\
+    x = list(map(int, "104 109 112 114 116 118 118 119 121 123 125 126"
                  " 126 128 128 128".split()))
     y = list(map(int, "100 105 107 107 108 111 116 120 121 123".split()))
 
@@ -1497,13 +1506,15 @@ class TestDistMatrixPermutationTest(TestCase):
 
     def setUp(self):
         """sets up variables for testing"""
-        self.matrix = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
+        self.matrix = array([[1, 2, 3, 4], [5, 6, 7, 8], [
+                            9, 10, 11, 12], [13, 14, 15, 16]])
         self.cells = [(0, 1), (1, 3)]
         self.cells2 = [(0, 2), (2, 3)]
 
     def test_get_ltm_cells(self):
         "get_ltm_cells converts indices to be below the diagonal"
-        cells = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+        cells = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1),
+                  (1, 2), (2, 0), (2, 1), (2, 2)]
         result = get_ltm_cells(cells)
         self.assertEqual(result, [(2, 0), (1, 0), (2, 1)])
         cells = [(0, 1), (0, 2)]
@@ -1516,7 +1527,7 @@ class TestDistMatrixPermutationTest(TestCase):
         cells = [(1, 0), (0, 1), (2, 0), (2, 1)]
         # test that works for a symmetric matrix
         cells_sym = get_ltm_cells(cells)
-        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
+        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,
                                                           cells2=None, is_symmetric=True)
         special_vals.sort()
         other_vals.sort()
@@ -1524,17 +1535,18 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(other_vals, [13, 14, 15])
 
         # test that work for a non symmetric matrix
-        special_vals, other_vals = get_values_from_matrix(matrix, cells,\
+        special_vals, other_vals = get_values_from_matrix(matrix, cells,
                                                           cells2=None, is_symmetric=False)
         special_vals.sort()
         other_vals.sort()
         self.assertEqual(special_vals, [2, 5, 9, 10])
-        self.assertEqual(other_vals, [1, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16])
+        self.assertEqual(
+            other_vals, [1, 3, 4, 6, 7, 8, 11, 12, 13, 14, 15, 16])
 
         # test that works on a symmetric matrix when cells2 is defined
         cells2 = [(3, 0), (3, 2), (0, 3)]
         cells2_sym = get_ltm_cells(cells2)
-        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
+        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,
                                                           cells2=cells2_sym, is_symmetric=True)
         special_vals.sort()
         other_vals.sort()
@@ -1542,7 +1554,7 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(other_vals, [13, 15])
 
         # test that works when cells2 is defined and not symmetric
-        special_vals, other_vals = get_values_from_matrix(matrix, cells, cells2=cells2,\
+        special_vals, other_vals = get_values_from_matrix(matrix, cells, cells2=cells2,
                                                           is_symmetric=False)
         special_vals.sort()
         other_vals.sort()
@@ -1565,30 +1577,32 @@ class TestDistMatrixPermutationTest(TestCase):
 
         """
         def make_result_list(*args, **kwargs):
-            return [distance_matrix_permutation_test(*args, **kwargs)[2] \
+            return [distance_matrix_permutation_test(*args, **kwargs)[2]
                     for i in range(10)]
 
         m = arange(9).reshape((3, 3))
         n = 100
         # looks at each possible permutation n times --
         # compare first row to rest
-        r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False)
+        r = make_result_list(
+            m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False)
         self.assertSimilarMeans(r, 0. / 6.)
-        r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False,\
+        r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False,
                              tails='high')
         self.assertSimilarMeans(r, 4. / 6.)
-        r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False,\
+        r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False,
                              tails='low')
         self.assertSimilarMeans(r, 0. / 6.)
 
         # looks at each possible permutation n times --
         # compare last row to rest
-        r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False)
+        r = make_result_list(
+            m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False)
         self.assertSimilarMeans(r, 0. / 6.)
-        r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False,\
+        r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False,
                              tails='high')
         self.assertSimilarMeans(r, 0. / 6.)
-        r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False,\
+        r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False,
                              tails='low')
         self.assertSimilarMeans(r, 4. / 6.)
 
@@ -1631,7 +1645,7 @@ class TestDistMatrixPermutationTest(TestCase):
         def fake_stat_test(a, b, tails=None):
             return 42., 42.
         m = array([[0, 1, 3], [1, 2, 4], [3, 4, 5]])
-        self.assertEqual(distance_matrix_permutation_test(m,\
+        self.assertEqual(distance_matrix_permutation_test(m,
                                                           [(0, 0), (0, 1), (0, 2)], n=5, f=fake_stat_test), (42., 42., 0.))
 
     def test_distance_matrix_permutation_test_return_scores(self):
@@ -1640,8 +1654,8 @@ class TestDistMatrixPermutationTest(TestCase):
         def fake_stat_test(a, b, tails=None):
             return 42., 42.
         m = array([[0, 1, 3], [1, 2, 4], [3, 4, 5]])
-        self.assertEqual(distance_matrix_permutation_test(\
-            m, [(0, 0), (0, 1), (0, 2)],\
+        self.assertEqual(distance_matrix_permutation_test(
+            m, [(0, 0), (0, 1), (0, 2)],
             n=5, f=fake_stat_test, return_scores=True), (42., 42., 0., [42.] * 5))
 
     def test_ANOVA_one_way(self):
@@ -1651,13 +1665,15 @@ class TestDistMatrixPermutationTest(TestCase):
         g2 = Numbers([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
         g3 = Numbers([6.0, 7.0, 5.0, 6.0, 7.0])
         i = [g1, g2, g3]
-        dfn, dfd, F, between_MS, within_MS, group_means, prob = ANOVA_one_way(i)
+        dfn, dfd, F, between_MS, within_MS, group_means, prob = ANOVA_one_way(
+            i)
         self.assertEqual(dfn, 2)
         self.assertEqual(dfd, 13)
         self.assertFloatEqual(F, 18.565450643776831)
         self.assertFloatEqual(between_MS, 55.458333333333343)
         self.assertFloatEqual(within_MS, 2.9871794871794868)
-        self.assertFloatEqual(group_means, [8.4000000000000004, 2.1666666666666665, 6.2000000000000002])
+        self.assertFloatEqual(
+            group_means, [8.4000000000000004, 2.1666666666666665, 6.2000000000000002])
         self.assertFloatEqual(prob, 0.00015486238993089464)
 
 # execute tests if called from command line

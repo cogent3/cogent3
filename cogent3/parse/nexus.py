@@ -142,7 +142,7 @@ def get_BL_table(branch_lengths):
     return result
 
 
-def find_fields(line, field_order=["taxa", "parent", "bl"], \
+def find_fields(line, field_order=["taxa", "parent", "bl"],
                 field_delims=[0, 21, 36, 49]):
     """takes line from BL table and returns dict with field names mapped to info
 

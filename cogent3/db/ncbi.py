@@ -27,7 +27,8 @@ __status__ = "Production"
 strip = str.strip
 
 
-class QueryNotFoundError(Exception): pass
+class QueryNotFoundError(Exception):
+    pass
 
 # eutils_base='http://eutils.ncbi.nlm.nih.gov/entrez/eutils'
 eutils_base = 'http://www.ncbi.nlm.nih.gov/entrez/eutils'
@@ -37,10 +38,10 @@ default_tool_string = 'PyCogent'
 default_email_address = 'Michael.Robeson@colorado.edu'
 
 # databases last updated 7/22/05
-valid_databases = dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",\
-                               "genome", "books", "cancerchromosomes", "cdd", "domains", "gene", \
-                               "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",\
-                               "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",\
+valid_databases = dict.fromkeys(["pubmed", "protein", "nucleotide", "structure",
+                               "genome", "books", "cancerchromosomes", "cdd", "domains", "gene",
+                               "genomeprj", "gensat", "geo", "gds", "homologene", "journals", "mesh",
+                               "ncbisearch", "nlmcatalog", "omim", "pmc", "popset", "probe", "pcassay",
                                "pccompound", "pcsubstance", "snp", "taxonomy", "unigene", "unists"])
 
 # rettypes last updated 7/22/05
@@ -137,10 +138,10 @@ class EFetch(UrlGetter):
     will only get 3 records (this is for testing purposes). You will probably
     want to increase for real searches.
     """
-    PrintedFields = dict.fromkeys(['db', 'rettype', 'retmode', 'query_key',\
+    PrintedFields = dict.fromkeys(['db', 'rettype', 'retmode', 'query_key',
                                    'WebEnv', 'retmax', 'retstart', 'id', 'tool', 'email'])
-    Defaults = {'retmode': 'text', 'rettype': 'fasta', 'db': 'nucleotide',\
-                'retstart': 0, 'retmax': 100, 'tool': default_tool_string, \
+    Defaults = {'retmode': 'text', 'rettype': 'fasta', 'db': 'nucleotide',
+                'retstart': 0, 'retmax': 100, 'tool': default_tool_string,
                 'email': default_email_address}
     BaseUrl = eutils_base + '/efetch.fcgi?'
 
@@ -165,7 +166,7 @@ class ESearchResult(object):
 
 def id_list_constructor(id_list_node):
     """Takes an id_list xml node and converts it into list of ids as strings"""
-    return [str_constructor(n) for n in id_list_node.childNodes \
+    return [str_constructor(n) for n in id_list_node.childNodes
             if n.nodeType != n.TEXT_NODE]
 
 
@@ -180,15 +181,16 @@ def str_constructor(node):
 
 # the following are the only keys we explicitly handle now:
 #(note difference in capitalization from parameters passed in)
-esearch_constructors = {'Count': int_constructor, 'RetMax': int_constructor,\
-                        'RetStart': int_constructor, 'QueryKey': int_constructor, \
+esearch_constructors = {'Count': int_constructor, 'RetMax': int_constructor,
+                        'RetStart': int_constructor, 'QueryKey': int_constructor,
                         'WebEnv': str_constructor, 'IdList': id_list_constructor}
 
 
 def ESearchResultParser(result_as_string):
     """Parses an ESearch result. Returns ESearchResult object."""
     if '414 Request-URI Too Large' in result_as_string:
-        raise ValueError("Tried to pass too large an URI:\n" + result_as_string)
+        raise ValueError(
+            "Tried to pass too large an URI:\n" + result_as_string)
     doc = parseString(result_as_string)
     # assume one query result -- may need to fix
     query = doc.childNodes[-1]
@@ -314,7 +316,7 @@ class EUtils(object):
                 try:
                     self.id = ','.join(search_result.IdList)
                 except AttributeError:
-                    raise QueryNotFoundError("WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" % \
+                    raise QueryNotFoundError("WebEnv or query_key not Found! Query %s returned no results.\nURL was:\n%s" %
                                              (repr(query), str(search_query)))
 
             count = search_result.Count

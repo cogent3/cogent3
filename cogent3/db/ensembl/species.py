@@ -156,7 +156,7 @@ class SpeciesNameMap(dict):
                          rows=rows, space=2).sorted())
 
     def __repr__(self):
-        return 'Available species: %s' % ("'" +\
+        return 'Available species: %s' % ("'" +
                                           "'; '".join(list(self._common_species.keys())) + "'")
 
     def getCommonName(self, name, level='raise'):

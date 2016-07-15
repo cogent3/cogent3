@@ -21,7 +21,8 @@ def SimpleAnnotation(parent, locations, Name):
 
 
 def annotate(parent, start, end, Name):
-    annot = parent.addAnnotation(SimpleAnnotation, locations=[(start, end)], Name=Name)
+    annot = parent.addAnnotation(SimpleAnnotation, locations=[
+                                 (start, end)], Name=Name)
     return annot
 
 
@@ -90,7 +91,8 @@ class MapTest(unittest.TestCase):
 
         # test ignoring of a partial annotation
         sliced_seq = seq[:17]
-        answer = list(sliced_seq.getByAnnotation('test_type', ignore_partial=True))
+        answer = list(sliced_seq.getByAnnotation(
+            'test_type', ignore_partial=True))
         self.assertEqual(len(answer), 1)
         self.assertEqual(str(answer[0]), 'TCGAT')
 
@@ -116,8 +118,10 @@ if 0:  # old, needs fixes
         ('1r', a[5:].relative_to(b), "Map([15:20] on base)"),
         ('2 ', a[:5], "Map([0:5] on Map([10:20] on base))"),
         ('2r', a[:5].relative_to(b), "Map([10:15] on base)"),
-        ('r ', a.relative_to(a[5:]), "Map([-5-, 0:5] on Map([5:10] on Map([10:20] on base)))"),
-        ('r ', a[2:4].relative_to(a[2:6]), "Map([0:2] on Map([2:6] on Map([10:20] on base)))"),
+        ('r ', a.relative_to(
+            a[5:]), "Map([-5-, 0:5] on Map([5:10] on Map([10:20] on base)))"),
+        ('r ', a[2:4].relative_to(a[2:6]),
+         "Map([0:2] on Map([2:6] on Map([10:20] on base)))"),
         ('r ', a[2:4].relative_to(a[2:6][0:3]), "Map([0:2] on Map([0:3] on Map([2:6] on Map([10:20] on base))))")]:
         print(desc, repr(map), end=' ')
         if repr(map) == expected:

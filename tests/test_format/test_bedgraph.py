@@ -21,13 +21,13 @@ class FormatBedgraph(TestCase):
     def test_only_required_columns(self):
         """generate bedgraph from minimal data"""
         table = Table(header=['chrom', 'start', 'end', 'value'],
-                      rows=[['1', 100, i, 0] for i in range(101, 111)] + \
+                      rows=[['1', 100, i, 0] for i in range(101, 111)] +
                       [['1', 150, i, 10] for i in range(151, 161)])
 
         bgraph = table.tostring(format='bedgraph', name='test track',
                                 description='test of bedgraph', color=(255, 0, 0))
         self.assertTrue(bgraph,
-                        '\n'.join(['track type=bedGraph name="test track" '\
+                        '\n'.join(['track type=bedGraph name="test track" '
                                    + 'description="test of bedgraph" color=255,0,0',
                                    '1\t100\t110\t0', '1\t150\t160\t10']))
 
@@ -40,7 +40,7 @@ class FormatBedgraph(TestCase):
         bgraph = table.tostring(format='bedgraph', name='test track',
                                 description='test of bedgraph', color=(255, 0, 0))
         self.assertTrue(bgraph,
-                        '\n'.join(['track type=bedGraph name="test track" '\
+                        '\n'.join(['track type=bedGraph name="test track" '
                                    + 'description="test of bedgraph" color=255,0,0',
                                    '1\t100\t120\t0', '1\t150\t160\t10']))
 
@@ -54,7 +54,7 @@ class FormatBedgraph(TestCase):
                                 description='test of bedgraph', color=(255, 0, 0))
 
         self.assertTrue(bgraph,
-                        '\n'.join(['track type=bedGraph name="test track" '\
+                        '\n'.join(['track type=bedGraph name="test track" '
                                    + 'description="test of bedgraph" color=255,0,0',
                                    '1\t100\t120\t1', '1\t150\t160\t10', '2\t105\t120\t1', ]))
 
@@ -89,7 +89,7 @@ class FormatBedgraph(TestCase):
                                 description='test of bedgraph', color=(255, 0, 0), autoScale=True)
 
         self.assertTrue(bgraph,
-                        '\n'.join(['track type=bedGraph name="test track" '\
+                        '\n'.join(['track type=bedGraph name="test track" '
                                    + 'description="test of bedgraph" color=255,0,0 autoScale=on',
                                    '1\t100\t110\t1', '1\t150\t160\t10']))
 
@@ -103,7 +103,7 @@ class FormatBedgraph(TestCase):
                                 description='test of bedgraph', color=(255, 0, 0), smoothingWindow=10)
 
         self.assertTrue(bgraph,
-                        '\n'.join(['track type=bedGraph name="test track" '\
+                        '\n'.join(['track type=bedGraph name="test track" '
                                    + 'description="test of bedgraph" color=255,0,0 smoothingWindow=10',
                                    '1\t100\t110\t1', '1\t150\t160\t10']))
 

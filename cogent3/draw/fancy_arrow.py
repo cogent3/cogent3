@@ -19,8 +19,8 @@ __status__ = "Production"
 class FancyArrow(Polygon):
     """Like Arrow, but lets you set head width and head height independently."""
 
-    def __init__(self, x, y, dx, dy, width=0.001, length_includes_head=False, \
-                 head_width=None, head_length=None, shape='full', overhang=0, \
+    def __init__(self, x, y, dx, dy, width=0.001, length_includes_head=False,
+                 head_width=None, head_length=None, shape='full', overhang=0,
                  head_starts_at_zero=False, **kwargs):
         """Returns a new Arrow.
 
@@ -70,7 +70,8 @@ class FancyArrow(Polygon):
                 if shape == 'right':
                     coords = right_half_arrow
                 elif shape == 'full':
-                    coords = concatenate([left_half_arrow, right_half_arrow[::-1]])
+                    coords = concatenate(
+                        [left_half_arrow, right_half_arrow[::-1]])
                 else:
                     raise ValueError("Got unknown shape: %s" % shape)
             cx = float(dx) / distance

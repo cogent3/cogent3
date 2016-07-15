@@ -120,7 +120,8 @@ def benchmarks(test):
                 print("%4s" % sequence_length, end=' ')
             print('  ', end=' ')
         print()
-        print(' ' * 12 + (' | '.join([''] + ['-' * (len(sequence_lengths) * 5) for alphabet in alphabets] + [''])))
+        print(' ' * 12 + (' | '.join([''] + ['-' * (len(sequence_lengths) * 5)
+              for alphabet in alphabets] + [''])))
         for treesize in treesizes:
             print(("%4s taxa    | " % treesize), end=' ')
             (taxa, tree) = subtree(treesize)

@@ -28,7 +28,7 @@ options = [make_option('--pycogent_dir', dest='pycogent_dir', type='string',
                        default=''),
            make_option('--new_version', dest='version', type='string',
                        default=''),
-           make_option('--is_release', dest='is_release',\
+           make_option('--is_release', dest='is_release',
                        action='store_true', default=False),
            make_option('--verbose', dest='verbose', action='store_true',
                        default=False),
@@ -41,7 +41,7 @@ options = [make_option('--pycogent_dir', dest='pycogent_dir', type='string',
 class VersionUpdater(object):
     """Handles version update of files contained within the PyCogent tree"""
 
-    def __init__(self, PyCogentDirectory=None, Version=None, \
+    def __init__(self, PyCogentDirectory=None, Version=None,
                  IsRelease=False, Verbose=False, MockRun=False, VersionShort=None):
         self.PyCogentDirectory = PyCogentDirectory
         self.Version = Version
@@ -62,7 +62,7 @@ class VersionUpdater(object):
             raise IOError("Could not locate tests/__init__.py")
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
             raise IOError("Could not locate doc/conf.py")
-        if not os.access(path.join(self.IncludesDirectory, \
+        if not os.access(path.join(self.IncludesDirectory,
                                    'array_interface.h'), os.R_OK):
             raise IOError("Cound not locate include/array_interface.h")
 
@@ -242,7 +242,8 @@ class VersionUpdater(object):
             if filetype is 'Python':
                 lines, write_out = self._update_python_file(lines, filename) 
             elif filetype is 'Properties':
-                lines, write_out = self._update_properties_file(lines, filename)
+                lines, write_out = self._update_properties_file(
+                    lines, filename)
             else:
                 raise TypeError("Unknown base file type %s" % filetype)
 

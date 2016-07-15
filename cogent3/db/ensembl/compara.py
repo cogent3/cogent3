@@ -211,7 +211,8 @@ class Compara(object):
         if not member_ids:
             return None
 
-        if DEBUG: print("member_ids", member_ids)
+        if DEBUG:
+            print("member_ids", member_ids)
 
         homology_ids = sql.select([homology_member_table.c.homology_id,
                                    homology_member_table.c[mem_id]],
@@ -220,7 +221,8 @@ class Compara(object):
         if not homology_ids:
             return None
 
-        if DEBUG: print("1 - homology_ids", homology_ids)
+        if DEBUG:
+            print("1 - homology_ids", homology_ids)
 
         homology_records = \
         sql.select([homology_table.c.homology_id,
@@ -235,7 +237,8 @@ class Compara(object):
                                  (r["description"], r["method_link_species_set_id"])))
         homology_ids = dict(homology_ids)
 
-        if DEBUG: print("2 - homology_ids", homology_ids)
+        if DEBUG:
+            print("2 - homology_ids", homology_ids)
         if not homology_ids:
             return None
 
@@ -243,10 +246,11 @@ class Compara(object):
                                    homology_member_table.c.homology_id],
                                   homology_member_table.c.homology_id.in_(list(homology_ids.keys())))
 
-        ortholog_ids = dict([(r[mem_id], r['homology_id']) \
+        ortholog_ids = dict([(r[mem_id], r['homology_id'])
                              for r in ortholog_ids.execute()])
 
-        if DEBUG: print("ortholog_ids", ortholog_ids)
+        if DEBUG:
+            print("ortholog_ids", ortholog_ids)
         if not ortholog_ids:
             return None
 
@@ -285,7 +289,7 @@ class Compara(object):
 
         query = sql.select([dnafrag_table.c.dnafrag_id,
                             dnafrag_table.c.coord_system_name],
-                           sql.and_(dnafrag_table.c.genome_db_id ==\
+                           sql.and_(dnafrag_table.c.genome_db_id ==
                                     genome_db_table.c.genome_db_id,
                                     genome_db_table.c.name == prefix,
                                     dnafrag_table.c.name == str(coord.CoordName)))
@@ -301,7 +305,7 @@ class Compara(object):
         genomic_align_table = self.ComparaDb.getTable('genomic_align')
         query = sql.select([genomic_align_table.c.genomic_align_id,
                             genomic_align_table.c.genomic_align_block_id],
-                           sql.and_(genomic_align_table.c.method_link_species_set_id ==\
+                           sql.and_(genomic_align_table.c.method_link_species_set_id ==
                                     method_clade_id,
                                     genomic_align_table.c.dnafrag_id == dnafrag_id))
         query = location_query(genomic_align_table,
@@ -322,7 +326,7 @@ class Compara(object):
                             genomic_align_table.c.dnafrag_end,
                             genomic_align_table.c.dnafrag_strand,
                             dnafrag_table],
-                           sql.and_(genomic_align_table.c.genomic_align_block_id == \
+                           sql.and_(genomic_align_table.c.genomic_align_block_id ==
                                     genomic_align_block_id,
                                     genomic_align_table.c.dnafrag_id == dnafrag_table.c.dnafrag_id,
                                     dnafrag_table.c.genome_db_id.in_(list(self.genome_taxon.keys()))))
@@ -354,7 +358,7 @@ class Compara(object):
                     method_clade_id = row['method_link_species_set_id']
 
         if method_clade_id is None:
-            raise RuntimeError("Invalid align_method[%s] or align_clade "\
+            raise RuntimeError("Invalid align_method[%s] or align_clade "
                                "specified[%s]" % (align_method, align_clade))
 
         if region is None:
@@ -422,7 +426,8 @@ class Compara(object):
         property_map = {'relationship': ('homology', 'description'),
                         'clade': ('method_link_species_set', 'name')}
         if property_type not in property_map:
-            raise RuntimeError("ERROR: Unknown property type: %s" % property_type)
+            raise RuntimeError(
+                "ERROR: Unknown property type: %s" % property_type)
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))
 

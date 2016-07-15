@@ -12,7 +12,8 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
 Release = 23
-account = HostAccount('mysql-eg-publicsql.ebi.ac.uk', 'anonymous', '', port=4157)
+account = HostAccount('mysql-eg-publicsql.ebi.ac.uk',
+                      'anonymous', '', port=4157)
 
 
 class MZ_ComparaTestBase(TestCase):
@@ -45,7 +46,8 @@ class MZ_TestCompara(MZ_ComparaTestBase):
         self.assertEqual(len(orthologs.Members), 2)
 
     def test_get_collection(self):
-        sc35 = self.comp.Dmelanogaster.getGeneByStableId(StableId="FBgn0040286")
+        sc35 = self.comp.Dmelanogaster.getGeneByStableId(
+            StableId="FBgn0040286")
         Orthologs = self.comp.getRelatedGenes(gene_region=sc35,
                                               Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
@@ -58,11 +60,13 @@ class MZ_Genome(TestCase):
         """should correctly infer the general release"""
         rel_lt_65 = Genome('D.melanogaster', Release=22, account=account)
         self.assertEqual(rel_lt_65.GeneralRelease, 75)
-        self.assertEqual(rel_lt_65.CoreDb.db_name, 'drosophila_melanogaster_core_22_75_546')
+        self.assertEqual(rel_lt_65.CoreDb.db_name,
+                         'drosophila_melanogaster_core_22_75_546')
 
         rel_gt_65 = Genome('D.melanogaster', Release=23, account=account)
         self.assertEqual(rel_gt_65.GeneralRelease, 76)
-        self.assertEqual(rel_gt_65.CoreDb.db_name, 'drosophila_melanogaster_core_23_76_546')
+        self.assertEqual(rel_gt_65.CoreDb.db_name,
+                         'drosophila_melanogaster_core_23_76_546')
 
 
 if __name__ == "__main__":

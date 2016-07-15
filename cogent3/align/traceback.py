@@ -82,6 +82,7 @@ def alignment_traceback(seqs, aligned_positions, word_length):
         aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):
-        gs = Aligned(amap * word_length, seq[start * word_length:end * word_length])
+        gs = Aligned(amap * word_length,
+                     seq[start * word_length:end * word_length])
         aligneds.append((name, gs))
     return Alignment(MolType=None, data=aligneds)

@@ -117,7 +117,8 @@ def main():
         print("")
         print("CORRECTED RESULTS")
         print("Fastest time   : %.3f" % corrected_times[0])
-        print("Slowest time   : %.3f" % corrected_times[len(corrected_times) - 1])
+        print("Slowest time   : %.3f" %
+              corrected_times[len(corrected_times) - 1])
         print("Mean           : %.3f" % corrected_mean)
         print("Standard dev   : %.3f" % corrected_sd)
 

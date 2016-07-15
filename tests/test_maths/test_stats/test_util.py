@@ -343,7 +343,8 @@ class NumbersTestsI(object):
             (10, 4),
             ]
         for test, result in known_values:
-            self.assertFloatEqual(nl.firstIndexGreaterThan(test, inclusive=True, stop_at_ends=True), result)
+            self.assertFloatEqual(nl.firstIndexGreaterThan(
+                test, inclusive=True, stop_at_ends=True), result)
 
     def test_lastIndexGreaterThan(self):
         """Numbers lastIndexGreaterThan should return last index > val"""
@@ -379,7 +380,8 @@ class NumbersTestsI(object):
 
     def test_SumSquares(self):
         """Numbers SumSquares should be sum of squares"""
-        self.assertEqual(self.ints.SumSquares, (1 * 1 + 2 * 2 + 3 * 3 + 4 * 4 + 5 * 5))
+        self.assertEqual(self.ints.SumSquares,
+                         (1 * 1 + 2 * 2 + 3 * 3 + 4 * 4 + 5 * 5))
         self.assertEqual(self.empty.SumSquares, 0)
 
     def test_Variance(self):
@@ -412,7 +414,7 @@ class NumbersTestsI(object):
 
     def test_summarize(self):
         """Numbers summarize should return SummaryStatistics object"""
-        self.assertEqual(self.ints.summarize(), SummaryStatistics(Mean=3,\
+        self.assertEqual(self.ints.summarize(), SummaryStatistics(Mean=3,
                                                                   Variance=2.5, Count=5))
 
     def test_choice(self):
@@ -465,7 +467,7 @@ class NumbersTestsI(object):
 
     def test_Uncertainty(self):
         """Numbers Uncertainty should act via Freqs"""
-        self.assertEqual(self.floats.Uncertainty, \
+        self.assertEqual(self.floats.Uncertainty,
                          Freqs(self.floats).Uncertainty)
         self.assertNotEqual(self.floats.Uncertainty, None)
 
@@ -570,7 +572,8 @@ class StaticFreqsTestsI(object):
 
     def setUp(self):
         """Standard cases to test."""
-        self.Alphabetic = self.ClassToTest({'a': 3, 'b': 2, 'c': 1, 'd': 1, 'e': 1})
+        self.Alphabetic = self.ClassToTest(
+            {'a': 3, 'b': 2, 'c': 1, 'd': 1, 'e': 1})
         self.Empty = self.ClassToTest({})
         self.Constant = self.ClassToTest({'a': 5})
 
@@ -580,7 +583,7 @@ class StaticFreqsTestsI(object):
         """Freqs fromTuples should add from key, count pairs w/ repeated keys"""
         ct = self.ClassToTest
         f = ct()
-        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2)]), \
+        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2)]),
                          ct({'a': 6, 'b': 3}))
         # note: should be allowed to subtract, as long as freq doesn't go
         # negative.
@@ -597,13 +600,13 @@ class StaticFreqsTestsI(object):
             else:
                 return max(second, first * second)
         f = ct()
-        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2), ('b', 4)], \
+        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2), ('b', 4)],
                                       func, uses_key=True), ct({'a': 6, 'b': 12}))
 
     def test_newFromTuples(self):
         """Freqs newFromTuples should work as expected."""
         ct = self.ClassToTest
-        self.assertEqual(ct.newFromTuples([('a', 4), ('b', 3), ('a', 2)]), \
+        self.assertEqual(ct.newFromTuples([('a', 4), ('b', 3), ('a', 2)]),
                          ct({'a': 6, 'b': 3}))
 
     def test_fromDict(self):
@@ -622,13 +625,15 @@ class StaticFreqsTestsI(object):
     def test_newFromDict(self):
         """Freqs newFromDict should work as expected."""
         ct = self.ClassToTest
-        self.assertEqual(ct.newFromDict({'a': 6, 'b': 3}), ct({'a': 6, 'b': 3}))
+        self.assertEqual(ct.newFromDict(
+            {'a': 6, 'b': 3}), ct({'a': 6, 'b': 3}))
 
     def test_fromDicts(self):
         """Freqs fromDicts should add from list of dicts of {key:count}"""
         ct = self.ClassToTest
         f = ct()
-        self.assertEqual(f.fromDicts([{'a': 6}, {'b': 3}]), ct({'a': 6, 'b': 3}))
+        self.assertEqual(f.fromDicts(
+            [{'a': 6}, {'b': 3}]), ct({'a': 6, 'b': 3}))
         # note: should be allowed to subtract, as long as freq doesn't go
         # negative. Also tests add of 1-item dict (note: must be in list)
         f.fromDicts([{'b': -1, 'c': 4.5}])
@@ -640,7 +645,8 @@ class StaticFreqsTestsI(object):
     def test_newFromDicts(self):
         """Freqs newFromDicts should work as expected."""
         ct = self.ClassToTest
-        self.assertEqual(ct.newFromDicts([{'a': 6}, {'b': 3}]), ct({'a': 6, 'b': 3}))
+        self.assertEqual(ct.newFromDicts(
+            [{'a': 6}, {'b': 3}]), ct({'a': 6, 'b': 3}))
 
     def test_fromSeq(self):
         """Freqs fromSeq should add items from sequence, according to weight"""
@@ -650,7 +656,7 @@ class StaticFreqsTestsI(object):
         # should be able to change the operator...
         self.assertEqual(f.fromSeq('aab', sub), ct({'a': 4, 'b': 2}))
         #...or change the weight
-        self.assertEqual(f.fromSeq('acc', weight=3.5),\
+        self.assertEqual(f.fromSeq('acc', weight=3.5),
                          ct({'a': 7.5, 'b': 2, 'c': 7}))
 
     def test_newFromSeq(self):
@@ -666,13 +672,14 @@ class StaticFreqsTestsI(object):
         # should be able to change the operator...
         self.assertEqual(f.fromSeqs(list('aab'), sub), ct({'a': 4, 'b': 2}))
         #...or change the weight. Note that a string counts as a seq of seqs.
-        self.assertEqual(f.fromSeqs('acc', weight=3.5), \
+        self.assertEqual(f.fromSeqs('acc', weight=3.5),
                          ct({'a': 7.5, 'b': 2, 'c': 7}))
 
     def test_newFromSeqs(self):
         """Freqs newFromSeqs should work as expected."""
         ct = self.ClassToTest
-        self.assertEqual(ct.newFromSeqs(['aaa', 'bbbaaa']), ct({'a': 6, 'b': 3}))
+        self.assertEqual(ct.newFromSeqs(
+            ['aaa', 'bbbaaa']), ct({'a': 6, 'b': 3}))
 
     def test_isValid(self):
         """Freqs isValid should return True if valid"""
@@ -840,7 +847,8 @@ class StaticFreqsTestsI(object):
 
         # check with explicit constructor and default
         d = self.ClassToTest({'a': 3, 'b': 5, 'c': 6, 'd': 7, 'e': 1})
-        f = d.rekey({'a': '+', 'b': '-', 'c': '+'}, default='x', constructor=dict)
+        f = d.rekey({'a': '+', 'b': '-', 'c': '+'},
+                    default='x', constructor=dict)
         self.assertEqual(f, {'+': 9, '-': 5, 'x': 8})
         self.assertEqual(f.__class__, dict)
 
@@ -881,7 +889,8 @@ class StaticFreqsTestsI(object):
         # test remaining items
         for index, value in enumerate(vals):
             self.assertEqual(self.Alphabetic.choice(value - 0.01), keys[index])
-            self.assertEqual(self.Alphabetic.choice(value + 0.01), keys[index + 1])
+            self.assertEqual(self.Alphabetic.choice(
+                value + 0.01), keys[index + 1])
 
     def test_randomSequence_good(self):
         """Freqs randomSequence should give correct counts"""
@@ -949,7 +958,8 @@ class StaticFreqsTestsI(object):
         f = ct({'a': 3, 'c': 5, 'b': 2})
         self.assertEqual(f.expand(order='acb'), list('aaacccccbb'))
         self.assertEqual(f.expand(order='dba'), list('bbaaa'))
-        self.assertEqual(f.expand(order='cba', convert_to=''.join), 'cccccbbaaa')
+        self.assertEqual(
+            f.expand(order='cba', convert_to=''.join), 'cccccbbaaa')
         f['c'] = 0
         self.assertEqual(f.expand(order='acb'), list('aaabb'))
         f.normalize()
@@ -960,7 +970,8 @@ class StaticFreqsTestsI(object):
         # test expand with scaling
         g = ct({'c': 0.51, 'd': 0.51})
         self.assertEqual(g.expand(order='cd'), ['c', 'd'])
-        self.assertEqual(g.expand(order='cd', scale=10), list(5 * 'c' + 5 * 'd'))
+        self.assertEqual(g.expand(order='cd', scale=10),
+                         list(5 * 'c' + 5 * 'd'))
         self.assertRaises(ValueError, g.expand, scale=33)
 
     def test_Count(self):
@@ -1003,7 +1014,8 @@ class StaticFreqsTestsI(object):
         """Freqs Shannon uncertainty values should match spreadsheet"""
         self.assertEqual(self.Empty.Uncertainty, 0)
         self.assertFloatEqual(self.Alphabetic.Uncertainty, 2.1556, eps=1e-4)
-        # WARNING: Uncertainty with empty categories is implementation-dependent
+        # WARNING: Uncertainty with empty categories is
+        # implementation-dependent
 
     def test_mode(self):
         """Freqs mode should return most frequent item"""
@@ -1026,15 +1038,15 @@ class StaticFreqsTestsI(object):
         # behavior is implementation-defined with empty list, so skip tests.
         a = self.Alphabetic
         a['b'] = 5
-        self.assertEqual(a.getSortedList(), \
+        self.assertEqual(a.getSortedList(),
                          [('b', 5), ('a', 3), ('e', 1), ('d', 1), ('c', 1)])
-        self.assertEqual(a.getSortedList(descending=True), \
+        self.assertEqual(a.getSortedList(descending=True),
                          [('b', 5), ('a', 3), ('e', 1), ('d', 1), ('c', 1)])
-        self.assertEqual(a.getSortedList(descending=False), \
+        self.assertEqual(a.getSortedList(descending=False),
                          [('c', 1), ('d', 1), ('e', 1), ('a', 3), ('b', 5)])
-        self.assertEqual(a.getSortedList(by_val=False), \
+        self.assertEqual(a.getSortedList(by_val=False),
                          [('e', 1), ('d', 1), ('c', 1), ('b', 5), ('a', 3)])
-        self.assertEqual(a.getSortedList(by_val=False, descending=False), \
+        self.assertEqual(a.getSortedList(by_val=False, descending=False),
                          [('a', 3), ('b', 5), ('c', 1), ('d', 1), ('e', 1)])
 
 
@@ -1055,7 +1067,8 @@ class FreqsTestsI(object):
     def test_fromTuples(self):
         """Freqs fromTuples should add from key, count pairs w/ repeated keys"""
         f = self.ClassToTest()
-        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2)]), {'a': 6, 'b': 3})
+        self.assertEqual(f.fromTuples(
+            [('a', 4), ('b', 3), ('a', 2)]), {'a': 6, 'b': 3})
         # note: should be allowed to subtract, as long as freq doesn't go
         # negative.
         f.fromTuples([('b', -1), ('c', 4.5)])
@@ -1071,7 +1084,7 @@ class FreqsTestsI(object):
             else:
                 return max(second, first * second)
         f = self.ClassToTest()
-        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2), ('b', 4)], \
+        self.assertEqual(f.fromTuples([('a', 4), ('b', 3), ('a', 2), ('b', 4)],
                                       func, uses_key=True), {'a': 6, 'b': 12})
 
     def test_fromDict(self):
@@ -1105,7 +1118,8 @@ class FreqsTestsI(object):
         # should be able to change the operator...
         self.assertEqual(f.fromSeq('aab', sub), {'a': 4, 'b': 2})
         #...or change the weight
-        self.assertEqual(f.fromSeq('acc', weight=3.5), {'a': 7.5, 'b': 2, 'c': 7})
+        self.assertEqual(f.fromSeq('acc', weight=3.5),
+                         {'a': 7.5, 'b': 2, 'c': 7})
 
     def test_fromSeqs(self):
         """Freqs fromSeqs should add items from sequences, according to weight"""
@@ -1114,7 +1128,8 @@ class FreqsTestsI(object):
         # should be able to change the operator...
         self.assertEqual(f.fromSeqs(list('aab'), sub), {'a': 4, 'b': 2})
         #...or change the weight. Note that a string counts as a seq of seqs.
-        self.assertEqual(f.fromSeqs('acc', weight=3.5), {'a': 7.5, 'b': 2, 'c': 7})
+        self.assertEqual(f.fromSeqs('acc', weight=3.5),
+                         {'a': 7.5, 'b': 2, 'c': 7})
 
     def test_isValid(self):
         """Freqs isValid should return True if valid"""
@@ -1279,16 +1294,16 @@ class FreqsTestsI(object):
     def test_str(self):
         """Freqs should print as tab-delimited table, or 'Empty'"""
         # should work with empty freq distribution
-        self.assertEqual(str(self.ClassToTest([])), \
+        self.assertEqual(str(self.ClassToTest([])),
                          "Empty frequency distribution")
         # should work with single element
-        self.assertEqual(str(self.ClassToTest({'X': 1.0})), \
+        self.assertEqual(str(self.ClassToTest({'X': 1.0})),
                          "Value\tCount\nX\t1.0")
         # should work with multiples of same key
-        self.assertEqual(str(self.ClassToTest({1.0: 5.0})), \
+        self.assertEqual(str(self.ClassToTest({1.0: 5.0})),
                          "Value\tCount\n1.0\t5.0")
         # should work with different keys
-        self.assertEqual(str(self.ClassToTest({0: 3.0, 1: 2.0})), \
+        self.assertEqual(str(self.ClassToTest({0: 3.0, 1: 2.0})),
                          "Value\tCount\n0\t3.0\n1\t2.0")
 
     def test_delitem(self):
@@ -1317,7 +1332,8 @@ class FreqsTestsI(object):
         self.assertEqual(f.__class__, d.__class__)
         # check with explicit constructor and default
         d = self.ClassToTest({'a': 3, 'b': 5, 'c': 6, 'd': 7, 'e': 1})
-        f = d.rekey({'a': '+', 'b': '-', 'c': '+'}, default='x', constructor=dict)
+        f = d.rekey({'a': '+', 'b': '-', 'c': '+'},
+                    default='x', constructor=dict)
         self.assertEqual(f, {'+': 9, '-': 5, 'x': 8})
         self.assertEqual(f.__class__, dict)
 
@@ -1361,7 +1377,7 @@ class FreqsTestsI(object):
         a = self.Alphabetic.copy()
         a.RequiredKeys = 'ac'
         a.normalize(purge=False)
-        self.assertEqual(a, \
+        self.assertEqual(a,
                          {'a': 0.375, 'b': 0.25, 'c': 0.125, 'd': 0.125, 'e': 0.125})
         # normalize should also create keys when necessary
         a.RequiredKeys = 'bdex'
@@ -1386,7 +1402,8 @@ class FreqsTestsI(object):
         # test remaining items
         for index, value in enumerate(vals):
             self.assertEqual(self.Alphabetic.choice(value - 0.01), keys[index])
-            self.assertEqual(self.Alphabetic.choice(value + 0.01), keys[index + 1])
+            self.assertEqual(self.Alphabetic.choice(
+                value + 0.01), keys[index + 1])
 
     def test_randomSequence_good(self):
         """Freqs randomSequence should give correct counts"""
@@ -1449,7 +1466,8 @@ class FreqsTestsI(object):
         f = self.ClassToTest({'U': 3, 'A': 5, 'C': 2})
         self.assertEqual(f.expand(order='UAC'), list('UUUAAAAACC'))
         self.assertEqual(f.expand(order='GCU'), list('CCUUU'))
-        self.assertEqual(f.expand(order='ACU', convert_to=''.join), 'AAAAACCUUU')
+        self.assertEqual(
+            f.expand(order='ACU', convert_to=''.join), 'AAAAACCUUU')
         del f['A']
         self.assertEqual(f.expand(order='UAC'), list('UUUCC'))
         f.normalize()
@@ -1461,7 +1479,8 @@ class FreqsTestsI(object):
         g = self.ClassToTest({'A': 0.51, 'G': 0.51})
         got = g.expand(order='AG')
         self.assertEqual(got, ['A', 'G'])
-        self.assertEqual(g.expand(order='AG', scale=10), list(5 * 'A' + 5 * 'G'))
+        self.assertEqual(g.expand(order='AG', scale=10),
+                         list(5 * 'A' + 5 * 'G'))
         self.assertRaises(ValueError, g.expand, scale=33)
 
     def test_Count(self):
@@ -1504,7 +1523,7 @@ class FreqsTestsI(object):
         """Freqs StandardDeviation should return stdev of counts in categories"""
         self.assertFloatEqual(self.Alphabetic.StandardDeviation, sqrt(0.8))
         self.assertFloatEqual(self.NumericUnique.StandardDeviation, 0)
-        self.assertFloatEqual(self.NumericDuplicated.StandardDeviation, \
+        self.assertFloatEqual(self.NumericDuplicated.StandardDeviation,
                               sqrt(1.0 / 3))
         self.assertFloatEqual(self.Empty.StandardDeviation, None)
         self.assertFloatEqual(self.PosNeg.StandardDeviation, 0)
@@ -1558,15 +1577,15 @@ class FreqsTestsI(object):
         self.assertEqual(e.getSortedList(by_val=False), [])
         a = self.Alphabetic
         a['b'] = 5
-        self.assertEqual(a.getSortedList(), \
+        self.assertEqual(a.getSortedList(),
                          [('b', 5), ('a', 3), ('e', 1), ('d', 1), ('c', 1)])
-        self.assertEqual(a.getSortedList(descending=True), \
+        self.assertEqual(a.getSortedList(descending=True),
                          [('b', 5), ('a', 3), ('e', 1), ('d', 1), ('c', 1)])
-        self.assertEqual(a.getSortedList(descending=False), \
+        self.assertEqual(a.getSortedList(descending=False),
                          [('c', 1), ('d', 1), ('e', 1), ('a', 3), ('b', 5)])
-        self.assertEqual(a.getSortedList(by_val=False), \
+        self.assertEqual(a.getSortedList(by_val=False),
                          [('e', 1), ('d', 1), ('c', 1), ('b', 5), ('a', 3)])
-        self.assertEqual(a.getSortedList(by_val=False, descending=False), \
+        self.assertEqual(a.getSortedList(by_val=False, descending=False),
                          [('a', 3), ('b', 5), ('c', 1), ('d', 1), ('e', 1)])
 
 
@@ -1585,7 +1604,8 @@ class FreqsTests(FreqsTestsI, TestCase):
 
     def test_isValid_bad(self):
         """Freqs should reject invalid data, so isValid() always True"""
-        self.assertRaises(ConstraintError, self.ClassToTest, {'a': 3, 'b': -10})
+        self.assertRaises(ConstraintError, self.ClassToTest,
+                          {'a': 3, 'b': -10})
 
     def test_init_empty(self):
         """Freqs should initialize OK with empty list"""
@@ -1605,7 +1625,8 @@ class FreqsTests(FreqsTestsI, TestCase):
 
     def test_init_strings(self):
         """Freqs should initialize OK with characters in string"""
-        self.assertEqual(self.ClassToTest('zabcz'), {'z': 2, 'a': 1, 'b': 1, 'c': 1})
+        self.assertEqual(self.ClassToTest('zabcz'), {
+                         'z': 2, 'a': 1, 'b': 1, 'c': 1})
 
     def test_init_fails_negative(self):
         """Freqs init should fail on negative frequencies"""
@@ -1617,17 +1638,17 @@ class FreqsTests(FreqsTestsI, TestCase):
 
     def test_init_from_dicts(self):
         """Freqs should init OK from list of dicts"""
-        self.assertEqual(self.ClassToTest([{'a': 1, 'b': 1}, {'a': 2, 'b': 1}]), \
+        self.assertEqual(self.ClassToTest([{'a': 1, 'b': 1}, {'a': 2, 'b': 1}]),
                          {'a': 3, 'b': 2})
 
     def test_init_from_strings(self):
         """Freqs should init OK from list of strings"""
-        self.assertEqual(self.ClassToTest(['abc', 'def', 'abc']), \
+        self.assertEqual(self.ClassToTest(['abc', 'def', 'abc']),
                          {'abc': 2, 'def': 1})
 
     def test_init_from_tuples(self):
         """Freqs should init OK from list of key-value pairs"""
-        self.assertEqual(self.ClassToTest([('a', 3), ('b', 10), ('a', 2)]), \
+        self.assertEqual(self.ClassToTest([('a', 3), ('b', 10), ('a', 2)]),
                          {'a': 5, 'b': 10})
 
     def test_init_alphabet_success(self):
@@ -1648,12 +1669,14 @@ class FreqsTests(FreqsTestsI, TestCase):
 
     def test_setitem_bad(self):
         """Freqs should not allow negative values"""
-        self.assertRaises(ConstraintError, self.Empty.__setitem__, 'xyz', -0.01)
+        self.assertRaises(
+            ConstraintError, self.Empty.__setitem__, 'xyz', -0.01)
 
     def test_setdefault_bad(self):
         """Freqs setdefault should fail if default < 0"""
         self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', -1)
-        self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', -0.00001)
+        self.assertRaises(
+            ConstraintError, self.Empty.setdefault, 'a', -0.00001)
         self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', "-1")
         self.assertRaises(ConstraintError, self.Empty.setdefault, 'a', "xxxx")
 
@@ -1664,8 +1687,10 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
 
     def setUp(self):
         """defines some standard frequency distributions to check"""
-        self.Alphabetic = self.ClassToTest({'a': 3, 'b': 2, 'c': 1, 'd': 1, 'e': 1})
-        self.NumericUnique = self.ClassToTest({'1': 1, '2': 1, '3': 1, '4': 1, '5': 1})
+        self.Alphabetic = self.ClassToTest(
+            {'a': 3, 'b': 2, 'c': 1, 'd': 1, 'e': 1})
+        self.NumericUnique = self.ClassToTest(
+            {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1})
         self.NumericDuplicated = self.ClassToTest({1: 1, 1.5: 2, 3.5: 1})
         self.Empty = self.ClassToTest({})
         self.PosNeg = self.ClassToTest({-2: 1, -1: 1, 1: 1, 2: 1})
@@ -1694,7 +1719,8 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
 
     def test_init_negative(self):
         """UnsafeFreqs init should SUCCEED on negative frequencies"""
-        self.assertEqual(self.ClassToTest({'a': 3, 'b': -3}), {'a': 3, 'b': -3})
+        self.assertEqual(self.ClassToTest(
+            {'a': 3, 'b': -3}), {'a': 3, 'b': -3})
 
     def test_init_from_dict(self):
         """UnsafeFreqs should init OK from dictionary"""
@@ -1717,7 +1743,7 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
     def test_init_from_tuples(self):
         """UnsafeFreqs should init LIKE A DICT from list of key-value pairs"""
         # WARNING: Note the difference between this and Freqs init!
-        self.assertEqual(self.ClassToTest([('a', 3), ('b', 10), ('a', 2)]), \
+        self.assertEqual(self.ClassToTest([('a', 3), ('b', 10), ('a', 2)]),
                          {'a': 2, 'b': 10})
 
 
@@ -1730,7 +1756,7 @@ class FreqsSubclassTests(TestCase):
         """Freqs subclass init should add RequiredKeys"""
         b = self.BaseFreqs()
         self.assertEqual(b, {'U': 0.0, 'C': 0.0, 'A': 0.0, 'G': 0.0})
-        self.assertEqual(self.BaseFreqs('UUCCCCAAAabc'), \
+        self.assertEqual(self.BaseFreqs('UUCCCCAAAabc'),
                          {'U': 2, 'C': 4, 'A': 3, 'a': 1, 'b': 1, 'c': 1, 'G': 0})
 
     def test_delitem(self):
@@ -1743,7 +1769,8 @@ class FreqsSubclassTests(TestCase):
 
     def test_purge(self):
         """Freqs subclass purge should eliminate anything not in RequiredKeys"""
-        b = self.BaseFreqs('AjaknadjkAjnjndfjndCnjdjsfnfdsjkC32478737&#^&@GGGG')
+        b = self.BaseFreqs(
+            'AjaknadjkAjnjndfjndCnjdjsfnfdsjkC32478737&#^&@GGGG')
         b.purge()
         self.assertEqual(b, {'A': 2, 'C': 2, 'G': 4, 'U': 0})
         b.purge()
@@ -1827,7 +1854,8 @@ class NumberFreqsTestsI(object):
         """NumberFreqs stdev should match spreadsheet"""
         self.assertEqual(self.Empty.StandardDeviation, None)
         self.assertFloatEqual(self.NumericUnique.StandardDeviation, 1.581139)
-        self.assertFloatEqual(self.NumericDuplicated.StandardDeviation, 1.108678)
+        self.assertFloatEqual(
+            self.NumericDuplicated.StandardDeviation, 1.108678)
         self.assertFloatEqual(self.PosNeg.StandardDeviation, 1.825742)
         self.assertFloatEqual(self.Constant.StandardDeviation, 0.0)
 

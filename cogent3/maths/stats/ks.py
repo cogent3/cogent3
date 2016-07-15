@@ -43,7 +43,7 @@ def pkolmogorov1x(statistic, n):
     to = floor(n * (1 - statistic)) + 1
     j = arange(0, to)
     coeffs = asarray([log(combinations(n, i)) for i in j])
-    p = sum(exp(coeffs + (n - j) * log(1 - statistic - j / n) + \
+    p = sum(exp(coeffs + (n - j) * log(1 - statistic - j / n) +
                 (j - 1) * (log(statistic + j / n))))
     return 1 - statistic * p
 

@@ -74,7 +74,7 @@ class _Region(LazyRecord):
             # we use a bit of magic to figure out what method will be required
             # this magic assumes the method for obtaining a record from a table
             # are named _get_tablename_record
-            dep_record_func = getattr(self, '_get_%s_record' % \
+            dep_record_func = getattr(self, '_get_%s_record' %
                                       self._attr_ensembl_table_map['Location'])
             dep_record_func()
         self._make_location()
@@ -118,7 +118,8 @@ class _Region(LazyRecord):
     def _get_variants(self):
         """constructs the variants attribute"""
         if 'Variants' not in self._cached:
-            variants = self.genome.getFeatures(feature_types='variation', region=self)
+            variants = self.genome.getFeatures(
+                feature_types='variation', region=self)
             self._cached['Variants'] = tuple(variants)
 
         return self._cached['Variants']
@@ -265,7 +266,8 @@ class _StableRegion(GenericRegion):
         for member_type in member_types:
             member = getattr(self, member_type, None)
             if member is None:
-                raise AttributeError("%s doesn't have property %s" % (self.Type, member_type))
+                raise AttributeError(
+                    "%s doesn't have property %s" % (self.Type, member_type))
             for element in member:
                 if element.StableId == StableId:
                     return element
@@ -290,9 +292,11 @@ class Gene(_StableRegion):
                                             Exons='transcript')
 
         if data is None:
-            args = [dict(StableId=StableId), dict(Symbol=Symbol)][StableId is None]
+            args = [dict(StableId=StableId), dict(
+                Symbol=Symbol)][StableId is None]
             assert args
-            data = asserted_one(list(self.genome._get_gene_query(db, **args).execute()))
+            data = asserted_one(
+                list(self.genome._get_gene_query(db, **args).execute()))
 
         for name, func in \
             [('StableId', self._get_gene_stable_id_record),
@@ -300,14 +304,15 @@ class Gene(_StableRegion):
              ('Description', self._get_gene_record),
              ('Symbol', self._get_xref_record),
              ('Location', self._get_gene_record)]:
-            if name == 'Symbol' and 'display_label' not in list(data.keys()):  # For EST
+            # For EST
+            if name == 'Symbol' and 'display_label' not in list(data.keys()):
                 continue
             self._table_rows[self._attr_ensembl_table_map[name]] = data
             func()  # this populates the attributes
 
     def __str__(self):
         my_type = self.__class__.__name__
-        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items()) \
+        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items())
                 if val is not None]
         vals.sort()
         vals.insert(0, "Species='%s'" % self.genome.Species)
@@ -315,7 +320,7 @@ class Gene(_StableRegion):
 
     def __repr__(self):
         my_type = self.__class__.__name__
-        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items()) \
+        vals = ['%s=%r' % (key, val) for key, val in list(self._cached.items())
                 if val is not None]
         vals.sort()
         vals.insert(0, 'Species=%r' % self.genome.Species)
@@ -467,7 +472,8 @@ class Transcript(_StableRegion):
         attr_column_map = [('BioType', 'biotype', _quoted),
                            ('Status', 'status', _quoted)]
         self._populate_cache_from_record(attr_column_map, 'transcript')
-        self._am_prot_coding = self._cached['BioType'].lower() == 'protein_coding'
+        self._am_prot_coding = self._cached[
+            'BioType'].lower() == 'protein_coding'
 
     def _get_status(self):
         return self._cached['Status']
@@ -597,7 +603,8 @@ class Transcript(_StableRegion):
 
         if start_index == end_index:
             shift_start = [seq_start, len(start_exon) - seq_end][flip_coords]
-            shift_end = [seq_end - len(start_exon), -1 * seq_start][flip_coords]
+            shift_end = [seq_end - len(start_exon), -
+                                       1 * seq_start][flip_coords]
         else:
             shift_start = [seq_start, 0][flip_coords]
             shift_end = [0, -1 * seq_start][flip_coords]
@@ -645,7 +652,8 @@ class Transcript(_StableRegion):
         for exon in exons[0:start_exon.Rank]:   # get 5'UTR
             coord = exon.Location.copy()
             if exon.StableId == start_exon.StableId:
-                coord.Start = [coord.Start, start_exon.Location.End][flip_coords]
+                coord.Start = [coord.Start,
+                    start_exon.Location.End][flip_coords]
                 coord.End = [start_exon.Location.Start, coord.End][flip_coords]
             if len(coord) != 0:
                 untranslated_5exons.append(Exon(self.genome, self.db,
@@ -712,11 +720,13 @@ class Transcript(_StableRegion):
 
         # check first exon PhaseStart is 0 and last exon PhaseEnd
         if exons[0].PhaseStart > 0:
-            fill = DNA.makeSequence('N' * exons[0].PhaseStart, Name=full_seq.Name)
+            fill = DNA.makeSequence(
+                'N' * exons[0].PhaseStart, Name=full_seq.Name)
             full_seq = fill + full_seq
 
         if exons[-1].PhaseEnd > 0:
-            fill = DNA.makeSequence('N' * exons[-1].PhaseEnd, Name=full_seq.Name)
+            fill = DNA.makeSequence(
+                'N' * exons[-1].PhaseEnd, Name=full_seq.Name)
             full_seq += fill
 
         self._cached['Cds'] = full_seq
@@ -801,7 +811,8 @@ class Transcript(_StableRegion):
             cds_spans.extend(feature_data[-1].spans)
         if cds_spans:
             # TODO: check strand
-            cds_map = Map(spans=cds_spans, parent_length=parent_map.parent_length)
+            cds_map = Map(spans=cds_spans,
+                          parent_length=parent_map.parent_length)
             features.append(('CDS', str(self.StableId), cds_map))
         return features
 
@@ -1062,7 +1073,8 @@ class Variation(_Region):
         """return the flanking sequence data if Release >= 70"""
         # variation_feature.alignment_quality == 1, means flanks match reference
         # genome, 0 means they don't
-        aligned_ref = self._table_rows['variation_feature']['alignment_quality'] == 1
+        aligned_ref = self._table_rows[
+            'variation_feature']['alignment_quality'] == 1
         if not aligned_ref:
             self._cached['FlankingSeq'] = self.NULL_VALUE
             return
@@ -1249,7 +1261,8 @@ class Variation(_Region):
         var_feature_record = self._table_rows['variation_feature']
         var_feature_id = var_feature_record['variation_feature_id']
         table = self.genome.VarDb.getTable(table_name)
-        self_effect = set([self.Effect, [self.Effect]][type(self.Effect) == str])
+        self_effect = set([self.Effect, [self.Effect]]
+                          [type(self.Effect) == str])
         query = sql.select([table.c.variation_feature_id,
                             table.columns[pep_allele_string],
                             table.c.translation_start,
@@ -1346,12 +1359,14 @@ class Repeat(GenericRegion):
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
                " Strand='%s', Score=%.1f)" % (my_type,
                                                self.Location.CoordName,
-                                               self.Location.Start, self.Location.End, len(self),
+                                               self.Location.Start, self.Location.End, len(
+                                                   self),
                                                '-+'[self.Location.Strand > 0], self.Score)
 
     def _get_repeat_consensus_record(self):
         repeat_consensus_table = self.db.getTable('repeat_consensus')
-        repeat_consensus_id = self._table_rows['repeat_feature']['repeat_consensus_id']
+        repeat_consensus_id = self._table_rows[
+            'repeat_feature']['repeat_consensus_id']
         record = sql.select([repeat_consensus_table],
                             repeat_consensus_table.c.repeat_consensus_id == repeat_consensus_id)
         record = asserted_one(record.execute().fetchall())

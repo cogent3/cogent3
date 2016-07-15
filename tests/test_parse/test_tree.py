@@ -73,9 +73,9 @@ class DndTokenizerTests(TestCase):
     def test_gdata(self):
         """DndTokenizer should work as expected on real data"""
         exp = \
-            ['(', '(', 'xyz', ':', '0.28124', ',', '(', 'def', ':', '0.24498',\
-             ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
-             ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
+            ['(', '(', 'xyz', ':', '0.28124', ',', '(', 'def', ':', '0.24498',
+             ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870',
+             ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',',
              'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
         # split it up for debugging on an item-by-item basis
         obs = list(DndTokenizer(sample))
@@ -179,9 +179,11 @@ class DndParserTests(TestCase):
     def test_data(self):
         """DndParser should work as expected on real data"""
         t = DndParser(sample)
-        self.assertEqual(str(t), '((xyz:0.28124,(def:0.24498,mno:0.03627):0.1771):0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776):0.09853);')
+        self.assertEqual(str(
+            t), '((xyz:0.28124,(def:0.24498,mno:0.03627):0.1771):0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776):0.09853);')
         tdata = DndParser(node_data_sample, unescape_name=True)
-        self.assertEqual(str(tdata), "((xyz:0.28124,(def:0.24498,mno:0.03627)A:0.1771)B:0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776)C:0.09853);")
+        self.assertEqual(str(
+            tdata), "((xyz:0.28124,(def:0.24498,mno:0.03627)A:0.1771)B:0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776)C:0.09853);")
 
     def test_gbad(self):
         """DndParser should fail if parens unbalanced"""
@@ -212,15 +214,15 @@ class DndParserTests(TestCase):
         self.assertEqual(tree_esc.Children[2].Name, "'D_e'")
         self.assertEqual(tree_esc.Children[2].Length, 0.5)
 
-        reload_test = tree_esc.getNewick(with_distances=True, \
+        reload_test = tree_esc.getNewick(with_distances=True,
                                          escape_name=False)
         obs = DndParser(reload_test, unescape_name=False)
-        self.assertEqual(obs.getNewick(with_distances=True), \
+        self.assertEqual(obs.getNewick(with_distances=True),
                          tree_esc.getNewick(with_distances=True))
-        reload_test = tree_unesc.getNewick(with_distances=True, \
+        reload_test = tree_unesc.getNewick(with_distances=True,
                                            escape_name=False)
         obs = DndParser(reload_test, unescape_name=False)
-        self.assertEqual(obs.getNewick(with_distances=True), \
+        self.assertEqual(obs.getNewick(with_distances=True),
                          tree_unesc.getNewick(with_distances=True))
 
 

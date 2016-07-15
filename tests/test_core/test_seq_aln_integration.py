@@ -33,7 +33,7 @@ class AllTests(TestCase):
                                     Alphabet=RNA.Alphabets.DegenGapped)
 
         self.aln = Alignment([self.rna1, self.rna2, self.rna3], MolType=RNA)
-        self.da = DenseAlignment([self.model1, self.model2, self.model3],\
+        self.da = DenseAlignment([self.model1, self.model2, self.model3],
                                  MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         # seqs no name
@@ -41,39 +41,41 @@ class AllTests(TestCase):
         self.nn_rna2 = RnaSequence('YCU-RG')
         self.nn_rna3 = RnaSequence('CAA-NR')
 
-        self.nn_model1 = ModelSequence('UCAGGG',\
+        self.nn_model1 = ModelSequence('UCAGGG',
                                        Alphabet=RNA.Alphabets.DegenGapped)
-        self.nn_model2 = ModelSequence('YCU-RG',\
+        self.nn_model2 = ModelSequence('YCU-RG',
                                        Alphabet=RNA.Alphabets.DegenGapped)
-        self.nn_model3 = ModelSequence('CAA-NR',\
+        self.nn_model3 = ModelSequence('CAA-NR',
                                        Alphabet=RNA.Alphabets.DegenGapped)
 
-        self.nn_aln = Alignment([self.nn_rna1, self.nn_rna2, self.nn_rna3],\
+        self.nn_aln = Alignment([self.nn_rna1, self.nn_rna2, self.nn_rna3],
                                 MolType=RNA)
-        self.nn_da = DenseAlignment([self.nn_model1, self.nn_model2,\
+        self.nn_da = DenseAlignment([self.nn_model1, self.nn_model2,
                                      self.nn_model3], MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
     def test_printing_named_seqs(self):
         """Printing named seqs should work the same on Aln and DenseAln"""
         # Note: the newline trailing each sequence is intentional, because
         # we want each FASTA-format record to be separated.
-        exp_lines_general = ['>rna1', 'UCAGGG', '>rna2', 'YCU-RG', '>rna3', 'CAA-NR']
+        exp_lines_general = ['>rna1', 'UCAGGG',
+            '>rna2', 'YCU-RG', '>rna3', 'CAA-NR']
         self.assertEqual(str(self.aln), '\n'.join(exp_lines_general) + '\n')
         self.assertEqual(str(self.da), '\n'.join(exp_lines_general) + '\n')
 
     def test_printing_unnamed_seqs(self):
         """Printing unnamed sequences should work the same on Aln and DenseAln
         """
-        exp_lines_gen = ['>seq_0', 'UCAGGG', '>seq_1', 'YCU-RG', '>seq_2', 'CAA-NR\n']
+        exp_lines_gen = ['>seq_0', 'UCAGGG',
+            '>seq_1', 'YCU-RG', '>seq_2', 'CAA-NR\n']
         self.assertEqual(str(self.nn_aln), '\n'.join(exp_lines_gen))
         self.assertEqual(str(self.nn_da), '\n'.join(exp_lines_gen))
 
     def test_DenseAlignment_without_moltype(self):
         """Expect MolType to be picked up from the sequences."""
 
-        m1 = ModelSequence('UCAG', Alphabet=RNA.Alphabets.DegenGapped,\
+        m1 = ModelSequence('UCAG', Alphabet=RNA.Alphabets.DegenGapped,
                            Name='rna1')
-        m2 = ModelSequence('CCCR', Alphabet=RNA.Alphabets.DegenGapped,\
+        m2 = ModelSequence('CCCR', Alphabet=RNA.Alphabets.DegenGapped,
                            Name='rna2')
         da = DenseAlignment([m1, m2])
         exp_lines = ['>rna1', 'UCAG', '>rna2', 'CCCR']
@@ -100,7 +102,8 @@ class AllTests(TestCase):
         exp = [[0] * 17, [0] * 17, [0] * 17]
         for seq_index in expected_counts:
             for char in expected_counts[seq_index]:
-                exp[seq_index][get_index(char)] = expected_counts[seq_index][char]
+                exp[seq_index][get_index(char)] = expected_counts[
+                                         seq_index][char]
         exp = array(exp)
         self.assertEqual(self.da.getSeqFreqs().Data, exp)
         # This used to raise an error, but now works
@@ -118,7 +121,8 @@ class AllTests(TestCase):
         N = get_index('N')
         R = get_index('R')
         Y = get_index('Y')
-        full_data = array([[0, 1, 2, 3, 3, 3], [Y, 1, 0, G, R, 3], [1, 2, 2, G, N, R]])
+        full_data = array(
+            [[0, 1, 2, 3, 3, 3], [Y, 1, 0, G, R, 3], [1, 2, 2, G, N, R]])
 
         model1 = ModelSequence('UCG', Name='rna1',
                                Alphabet=RNA.Alphabets.DegenGapped)
@@ -197,13 +201,13 @@ class AllTests(TestCase):
         self.assertNotEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
 
     def test_subset_seqs_DenseAlignment(self):
-        model1 = ModelSequence('UCG', Name='rna1',\
+        model1 = ModelSequence('UCG', Name='rna1',
                                Alphabet=RNA.Alphabets.DegenGapped)
-        model2 = ModelSequence('YCG', Name='rna2',\
+        model2 = ModelSequence('YCG', Name='rna2',
                                Alphabet=RNA.Alphabets.DegenGapped)
-        model3 = ModelSequence('CAR', Name='rna3',\
+        model3 = ModelSequence('CAR', Name='rna3',
                                Alphabet=RNA.Alphabets.DegenGapped)
-        sub_da = DenseAlignment([model1, model2, model3],\
+        sub_da = DenseAlignment([model1, model2, model3],
                                 MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         # takeSeqs by name should have the same effect as
@@ -219,11 +223,11 @@ class AllTests(TestCase):
         # When does something compare equal?
         self.assertEqual(self.da == self.da, True)
         # one sequence less
-        other_da1 = DenseAlignment([self.model1, self.model2],\
+        other_da1 = DenseAlignment([self.model1, self.model2],
                                    MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
         self.assertEqual(self.da == other_da1, False)
         # seqs in different order -- doesn't matter
-        other_da2 = DenseAlignment([self.model1, self.model3, self.model2],\
+        other_da2 = DenseAlignment([self.model1, self.model3, self.model2],
                                    MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
         self.assertEqual(self.da == other_da2, True)
         # seqs in different encoding -- doesn't matter, only looks at data
@@ -231,12 +235,13 @@ class AllTests(TestCase):
         # Should this compare False even though the data is exactly the same?
         # The MolType is different...
         self.assertEqual(self.da == other_da3, True) 
-        assert alltrue(list(map(alltrue, self.da.ArraySeqs == other_da3.ArraySeqs)))
+        assert alltrue(
+            list(map(alltrue, self.da.ArraySeqs == other_da3.ArraySeqs)))
 
     def test_seq_equality(self):
-        model1 = ModelSequence('UCG', Name='rna1',\
+        model1 = ModelSequence('UCG', Name='rna1',
                                Alphabet=RNA.Alphabets.DegenGapped)
-        model2 = ModelSequence('UCG', Name='rna1',\
+        model2 = ModelSequence('UCG', Name='rna1',
                                Alphabet=RNA.Alphabets.DegenGapped)
         # Shouldn't the above two sequences be equal?
         self.assertEqual(model1, model2)
@@ -245,7 +250,7 @@ class AllTests(TestCase):
 
     def test_seq_ungapping(self):
         rna1 = RnaSequence('U-C-A-G-', Name='rna1')
-        model1 = ModelSequence('U-C-A-G-', Name='rna1',\
+        model1 = ModelSequence('U-C-A-G-', Name='rna1',
                                Alphabet=RNA.Alphabets.DegenGapped)
 
         self.assertEqual(rna1, 'U-C-A-G-')

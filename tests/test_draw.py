@@ -155,8 +155,10 @@ def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
     seq = DNA.makeSequence(seq)
     v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20, 35)])
-    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'repeat_unit', [(39, 49)])
-    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'rep2', [(49, 60)])
+    v = seq.addAnnotation(annotation.Feature, 'repeat_unit',
+                          'repeat_unit', [(39, 49)])
+    v = seq.addAnnotation(annotation.Feature,
+                          'repeat_unit', 'rep2', [(49, 60)])
     return seq
 
 
@@ -171,14 +173,19 @@ def makeSampleAlignment():
     seq2.Name = 'FAKE02'
     names = (seq1.getName(), seq2.getName())
     align = global_pairwise(seq1, seq2, DNA, 2, 1)
-    align.addAnnotation(annotation.Variable, 'redline', 'align', [((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
-    align.addAnnotation(annotation.Variable, 'blueline', 'align', [((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
+    align.addAnnotation(annotation.Variable, 'redline', 'align', [
+                        ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
+    align.addAnnotation(annotation.Variable, 'blueline', 'align', [
+                        ((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
     return align
 
 seq = makeSampleSequence()
-a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
-v = seq.addAnnotation(annotation.Feature, 'gene', 'gene', [(0, 15), (20, 35), (40, 55)])
-b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
+a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [
+                      ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
+v = seq.addAnnotation(annotation.Feature, 'gene', 'gene',
+                      [(0, 15), (20, 35), (40, 55)])
+b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [
+                    ((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
 
 align = makeSampleAlignment()
 
@@ -190,7 +197,8 @@ def green_cg(seq):
     while True:
         last = posn
         posn = seq.find('CG', posn)
-        if posn < 0: break
+        if posn < 0:
+            break
         result.append('k' * (posn - last) + 'gg')
         posn += 2
     result.append('k' * (len(seq) - last))
@@ -253,7 +261,8 @@ class DrawingTests(unittest.TestCase):
 
         def callback(edge):
             return ["blue", "red"][edge.Name.startswith("A")]
-        do("Highlight edge A", UnrootedDendrogram(t), edge_color_callback=callback)
+        do("Highlight edge A", UnrootedDendrogram(
+            t), edge_color_callback=callback)
 
     def test_partimatrix(self):
         aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA)

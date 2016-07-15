@@ -32,7 +32,7 @@ from cogent3.parse.blast import BlastResult, MinimalPsiBlastParser9,\
     MinimalBlastParser9
 
 # field names used to parse tags and create dict.
-HIT_XML_FIELDNAMES = ['QUERY ID', 'SUBJECT_ID', 'HIT_DEF', 'HIT_ACCESSION',\
+HIT_XML_FIELDNAMES = ['QUERY ID', 'SUBJECT_ID', 'HIT_DEF', 'HIT_ACCESSION',
                       'HIT_LENGTH']
 
 HSP_XML_FIELDS = (
@@ -225,7 +225,8 @@ class BlastXMLResult(BlastResult):
                 for h in rec_data[1:]:
                     hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
+                hits.append(
+                    dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
 
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]

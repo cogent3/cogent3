@@ -80,7 +80,8 @@ class GeneticCodeTests(TestCase):
                              'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
             self.assertEqual(sgc.StartCodonSequence,
                              '---M---------------M---------------M----------------------------')
-            self.assertEqual(sgc.StartCodons, {'TTG': 'M', 'CTG': 'M', 'ATG': 'M'})
+            self.assertEqual(sgc.StartCodons, {
+                             'TTG': 'M', 'CTG': 'M', 'ATG': 'M'})
             self.assertEqual(sgc.ID, 1)
             self.assertEqual(sgc.Name, 'Standard Nuclear')
             self.assertEqual(sgc['TTT'], 'F')
@@ -110,7 +111,7 @@ class GeneticCodeTests(TestCase):
         for code, string in zip(codes, code_strings):
             self.assertEqual(str(code), string)
         # check an example directly in case strings are bad
-        self.assertEqual(str(self.SGC), \
+        self.assertEqual(str(self.SGC),
                          "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG")
 
     def test_cmp(self):

@@ -46,7 +46,7 @@ def average(upper, lower):
         val = (upper + lower) / 2.0
         return val, val
     except TypeError:
-        raise TypeError("%s or %s invalid types for averaging."\
+        raise TypeError("%s or %s invalid types for averaging."
                         % (str(upper), str(lower)))
 
 
@@ -123,7 +123,7 @@ class Dict2D(dict):
     Pad = False  # default state for automatic col and item padding
 
     # list of attributes that is copied by the copy() method
-    _copied_attributes = ['RowOrder', 'ColOrder', 'Default', 'Pad', \
+    _copied_attributes = ['RowOrder', 'ColOrder', 'Default', 'Pad',
                           'RowConstructor']
 
     def __init__(self, data=None, RowOrder=None, ColOrder=None, Default=None,
@@ -186,7 +186,8 @@ class Dict2D(dict):
 
         init_method = self._guess_input_type(data)
         if not init_method:
-            raise Dict2DInitError("Dict2D init failed (data unknown type, or Row/Col order needed).")
+            raise Dict2DInitError(
+                "Dict2D init failed (data unknown type, or Row/Col order needed).")
         # if we get here, we got an init method that it's safe to call
         init_method(data)
         # fill in any missing m[r][c] from RowOrder and ColOrder if self.Pad.
@@ -248,7 +249,8 @@ class Dict2D(dict):
         Note that dimensions of list of lists must match RowOrder x ColOrder."""
         constructor = self.RowConstructor
         if (self.RowOrder is None) or (self.ColOrder is None):
-            raise Dict2DInitError("Must have RowOrder and ColOrder to init Dict2D from list of lists.")
+            raise Dict2DInitError(
+                "Must have RowOrder and ColOrder to init Dict2D from list of lists.")
         try:
             for key, row in zip(self.RowOrder, data):
                 self[key] = dict(list(zip(self.ColOrder, row)))
@@ -340,7 +342,8 @@ class Dict2D(dict):
                 self.ColOrder = row_order
         else:
             if rows != cols:
-                raise Dict2DError("Rows and Cols must be the same to square a Dict2D.")
+                raise Dict2DError(
+                    "Rows and Cols must be the same to square a Dict2D.")
         self.pad(default)
 
     def _get_rows(self):
@@ -376,7 +379,8 @@ class Dict2D(dict):
                         curr_row = self[r]
                         yield [curr_row[c] for c in col_order]
                 except KeyError:
-                    raise Dict2DSparseError("Can't iterate over rows of sparse Dict2D.")
+                    raise Dict2DSparseError(
+                        "Can't iterate over rows of sparse Dict2D.")
             else:  # if there's no ColOrder, just return what's there
                 for r in row_order:
                     curr_row = self[r]
@@ -409,14 +413,15 @@ class Dict2D(dict):
             default = self.Default
             constructor = self.RowConstructor
             for c in col_order:
-                yield [self.get(r, constructor()).get(c, default) for \
+                yield [self.get(r, constructor()).get(c, default) for
                        r in row_order]
         else:
             try:
                 for c in col_order:
                     yield [self[r][c] for r in row_order]
             except KeyError:
-                raise Dict2DSparseError("Can't iterate over cols of sparse Dict2D.")
+                raise Dict2DSparseError(
+                    "Can't iterate over cols of sparse Dict2D.")
 
     Cols = property(_get_cols)
 
@@ -475,7 +480,7 @@ class Dict2D(dict):
             new_f = f
         # get all the rows where the function is True
         row_order = self.RowOrder or self 
-        return [key for key, row in zip(row_order, self.Rows) \
+        return [key for key, row in zip(row_order, self.Rows)
                 if new_f(row)]
 
     def getRowsIf(self, f, negate=False):
@@ -504,12 +509,12 @@ class Dict2D(dict):
         if negate:
             col_lookup = dict.fromkeys(cols)
             for key, row in list(self.items()):
-                result[key] = row_constructor([(i, row[i]) for i in row \
+                result[key] = row_constructor([(i, row[i]) for i in row
                                                if (i in row) and (i not in col_lookup)])
         # otherwise, just get the requested indices
         else:
             for key, row in list(self.items()):
-                result[key] = row_constructor([(i, row[i]) for i in cols \
+                result[key] = row_constructor([(i, row[i]) for i in cols
                                                if i in row])
         return self.__class__(result)
 
@@ -520,7 +525,7 @@ class Dict2D(dict):
             new_f = lambda x: not f(x)
         else:
             new_f = f
-        return [i for i, col in zip(self.ColOrder or self.colKeys(), self.Cols)\
+        return [i for i, col in zip(self.ColOrder or self.colKeys(), self.Cols)
                 if new_f(col)]
 
     def getColsIf(self, f, negate=False, row_constructor=None):
@@ -531,7 +536,7 @@ class Dict2D(dict):
         """
         if row_constructor is None:
             row_constructor = self.RowConstructor
-        return self.getCols(self.getColIndices(f, negate), \
+        return self.getCols(self.getColIndices(f, negate),
                             row_constructor=row_constructor)
 
     def getItems(self, items, negate=False):
@@ -571,7 +576,7 @@ class Dict2D(dict):
             if self.Pad:
                 row_constructor = self.RowConstructor
                 default = self.Default
-                return [self.get(row, row_constructor()).get(col, default) \
+                return [self.get(row, row_constructor()).get(col, default)
                         for row, col in items]
             else:
                 return [self[row][col] for row, col in items]
@@ -624,7 +629,8 @@ class Dict2D(dict):
                 for r in row_order:
                     result.append([self[r][c] for c in col_order])
             except KeyError:
-                raise Dict2DSparseError("Unpadded Dict2D can't convert to list of lists if sparse.")
+                raise Dict2DSparseError(
+                    "Unpadded Dict2D can't convert to list of lists if sparse.")
 
         if headers:
             for header, row in zip(row_order, result):
@@ -656,7 +662,8 @@ class Dict2D(dict):
         # convert the result to the same class as self
         result = self.__class__(data)
 
-        # copy any of self's attributes that aren't the same as the class values
+        # copy any of self's attributes that aren't the same as the class
+        # values
         for attr in self._copied_attributes:
             curr_value = getattr(self, attr)
             if curr_value is not getattr(self.__class__, attr):
@@ -747,10 +754,12 @@ class Dict2D(dict):
         row_order = self.RowOrder
         col_order = self.ColOrder
         if (row_order is None) or (col_order is None):
-            raise Dict2DError("Can't reflect a Dict2D without both RowOrder and ColOrder.")
+            raise Dict2DError(
+                "Can't reflect a Dict2D without both RowOrder and ColOrder.")
 
         if row_order != col_order:
-            raise Dict2DError("Can only reflect Dict2D if RowOrder and ColOrder are the same.")
+            raise Dict2DError(
+                "Can only reflect Dict2D if RowOrder and ColOrder are the same.")
 
         constructor = self.RowConstructor
         default = self.Default
@@ -772,7 +781,7 @@ class Dict2D(dict):
                 curr_row[c], curr_col[r] = \
                     method(curr_col.get(r, default), curr_row.get(c, default))
 
-    def toDelimited(self, headers=True, item_delimiter='\t', \
+    def toDelimited(self, headers=True, item_delimiter='\t',
                     row_delimiter='\n', formatter=str):
         """Printable string of items in self, optionally including headers.
 
@@ -790,5 +799,5 @@ class Dict2D(dict):
         cols. Always pads missing values with str(self.Default).
         """
         lists = self.toLists(headers)
-        return row_delimiter.join([item_delimiter.join(map(formatter, r)) \
+        return row_delimiter.join([item_delimiter.join(map(formatter, r))
                                    for r in lists])

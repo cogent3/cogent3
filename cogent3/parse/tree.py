@@ -36,7 +36,7 @@ _dnd_token_str = '(:),;'
 _dnd_tokens = dict.fromkeys(_dnd_token_str)
 _dnd_tokens_and_spaces = _dnd_token_str + ' \t\v\n'
 
-remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces, \
+remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces,
                               '-' * len(_dnd_tokens_and_spaces))
 
 
@@ -104,7 +104,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     left_count = data.count('(')
     right_count = data.count(')')
     if left_count != right_count:
-        raise RecordError("Found %s left parens but %s right parens." % \
+        raise RecordError("Found %s left parens but %s right parens." %
                           (left_count, right_count))
 
     tokens = DndTokenizer(data)

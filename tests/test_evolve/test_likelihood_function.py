@@ -76,7 +76,7 @@ def numdiffs_position(motif1, motif2):
 
 
 def isinstantaneous(motif1, motif2):
-    if motif1 != motif2 and (motif1 == '-' * len(motif1) or \
+    if motif1 != motif2 and (motif1 == '-' * len(motif1) or
                              motif2 == '-' * len(motif1)):
         return True
     ndiffs, position = numdiffs_position(motif1, motif2)
@@ -89,7 +89,7 @@ def getposition(motif1, motif2):
 
 ##############################################################
 # funcs for testing the monomer weighted substitution matrices
-_root_probs = lambda x: dict([(n1 + n2, p1 * p2) \
+_root_probs = lambda x: dict([(n1 + n2, p1 * p2)
                               for n1, p1 in list(x.items()) for n2, p2 in list(x.items())])
 
 
@@ -158,7 +158,8 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
         try:
-            values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
+            values = list(lf.getParamValueDict(
+                ['bin'])['omega_factor'].values())
         except KeyError:
             # there shouldn't be an omega factor
             pass
@@ -326,7 +327,7 @@ class LikelihoodFunctionTests(TestCase):
         # actualy more a test of self._setLengthsAndBetas()
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        self.assertEqual(str(likelihood_function), \
+        self.assertEqual(str(likelihood_function),
                          """Likelihood Function Table\n\
 ======
   beta
@@ -354,7 +355,7 @@ motif    mprobs
 ---------------""")
 
         likelihood_function = self._makeLikelihoodFunction(digits=2, space=2)
-        self.assertEqual(str(likelihood_function), \
+        self.assertEqual(str(likelihood_function),
                          """Likelihood Function Table\n\
 ===============================
      edge  parent  length  beta
@@ -396,7 +397,8 @@ motif  mprobs
         motif_G = 2
         self.assertAlmostEqual(2.28460181711e-05,
                                result[a_column_with_mostly_Ts][motif_G], places=8)
-        lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'])
+        lf = self.submodel.makeLikelihoodFunction(
+            self.tree, bins=['low', 'high'])
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         lf.setAlignment(self.data)
@@ -412,20 +414,23 @@ motif  mprobs
         "Simulate DNA alignment"
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        simulated_alignment = likelihood_function.simulateAlignment(20, exclude_internal=False)
+        simulated_alignment = likelihood_function.simulateAlignment(
+            20, exclude_internal=False)
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.getSeqNames()), 8)
 
     def test_simulateHetergeneousAlignment(self):
         "Simulate substitution-heterogeneous DNA alignment"
-        lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'])
+        lf = self.submodel.makeLikelihoodFunction(
+            self.tree, bins=['low', 'high'])
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulateAlignment(100)
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
-        lf = self.submodel.makeLikelihoodFunction(self.tree, bins=['low', 'high'], sites_independent=False)
+        lf = self.submodel.makeLikelihoodFunction(
+            self.tree, bins=['low', 'high'], sites_independent=False)
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulateAlignment(100)
@@ -492,7 +497,7 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setParamRule("length", value=4.0, is_constant=True)
         likelihood_function.setParamRule("beta", value=6.0, is_constant=True)
-        self.assertEqual(str(likelihood_function), \
+        self.assertEqual(str(likelihood_function),
                          """Likelihood Function Table
 ======
   beta
@@ -521,7 +526,7 @@ motif    mprobs
 
         # self.submodel.setScaleRule("ts",['beta'])
         #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
-        self.assertEqual(str(likelihood_function),\
+        self.assertEqual(str(likelihood_function),
                          """Likelihood Function Table
 ======
   beta
@@ -560,15 +565,17 @@ motif    mprobs
 
     def test_getAnnotatedTree(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setParamRule("length", value=4.0, edge="Human", is_constant=True)
+        likelihood_function.setParamRule(
+            "length", value=4.0, edge="Human", is_constant=True)
         result = likelihood_function.getAnnotatedTree()
-        self.assertEqual(result.getNodeMatchingName('Human').params['length'], 4.0)
+        self.assertEqual(result.getNodeMatchingName(
+            'Human').params['length'], 4.0)
         self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
 
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setName("TEST")
-        self.assertEqual(str(likelihood_function),\
+        self.assertEqual(str(likelihood_function),
                          """TEST
 =======================================
      edge    parent    length      beta

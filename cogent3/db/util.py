@@ -30,8 +30,8 @@ class UrlGetter(object):
     def __str__(self):
         to_get = self.__dict__.copy()
         to_get.update(self._temp_args)
-        return self.BaseUrl + self.FieldDelimiter.join(\
-            [quote_plus(k) + self.KeyValDelimiter + quote_plus(str(v)) for k, v in list(to_get.items())\
+        return self.BaseUrl + self.FieldDelimiter.join(
+            [quote_plus(k) + self.KeyValDelimiter + quote_plus(str(v)) for k, v in list(to_get.items())
              if k in self.PrintedFields])
 
     def open(self, **kwargs):
@@ -78,7 +78,7 @@ def expand_slice(s):
     range_end = int(end[end_index:])
     field_width = str(len(start) - start_index)
     format_string = '%' + field_width + '.' + field_width + 'd'
-    return [prefix + format_string % i \
+    return [prefix + format_string % i
             for i in range(range_start, range_end + 1, step)]
 
 

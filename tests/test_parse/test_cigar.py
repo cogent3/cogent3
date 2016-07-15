@@ -23,8 +23,10 @@ class TestCigar(unittest.TestCase):
         self.map, self.seq = self.aln_seq.parseOutGaps()
         self.map1, self.seq1 = self.aln_seq1.parseOutGaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
-        self.aln = LoadSeqs(data={"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1})
-        self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
+        self.aln = LoadSeqs(
+            data={"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1})
+        self.cigars = {"FAKE01": self.cigar_text,
+            "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}
 
     def test_map_to_cigar(self):
@@ -54,7 +56,8 @@ class TestCigar(unittest.TestCase):
                 assert map1.length == len(ori1)
 
             # test by_align = False
-            map2, loc2 = slice_cigar(self.cigar_text, start, end, by_align=False)
+            map2, loc2 = slice_cigar(
+                self.cigar_text, start, end, by_align=False)
             slicealn2 = self.seq[start:end].gappedByMap(map2)
             ori2 = self.aln_seq[loc2[0]:loc2[1]]
             assert slicealn2 == ori2
@@ -66,7 +69,8 @@ class TestCigar(unittest.TestCase):
         # test slice
         i = 1
         for start, end in self.slices:
-            self.aln.getSeq("FAKE01").addFeature("annot%d" % i, "annot", [(start, end)])
+            self.aln.getSeq("FAKE01").addFeature("annot%d" %
+                            i, "annot", [(start, end)])
             annot = self.aln.getAnnotationsFromAnySequence("annot%d" % i)
             slice_aln = aln.getRegionCoveringAll(annot).asOneSpan().getSlice()
             i += 1

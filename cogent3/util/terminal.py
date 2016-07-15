@@ -62,7 +62,8 @@ class CursesOutput(object):
         for color in COLORS:
             # Get the color index from curses
             colorIndex = getattr(curses, 'COLOR_%s' % color)
-            # Set the color escape sequence after filling the template with index
+            # Set the color escape sequence after filling the template with
+            # index
             for (prefix, termseq) in [('', fgColorSeq), ('BG_', bgColorSeq)]:
                 key = prefix + color
                 try:

@@ -139,15 +139,19 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     if bounds is not None:
         (upper, lower) = bounds
         if upper is not None or lower is not None:
-            if upper is None: upper = numpy.inf
-            if lower is None: lower = -numpy.inf
+            if upper is None:
+                upper = numpy.inf
+            if lower is None:
+                lower = -numpy.inf
             f = bounded_function(f, upper, lower)
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
-        raise ValueError("Initial parameter values must be valid %s" % repr(detail.args))
+        raise ValueError(
+            "Initial parameter values must be valid %s" % repr(detail.args))
     if not numpy.isfinite(fval):
-        raise ValueError("Initial parameter values must evaluate to a finite value, not %s. %s" % (fval, x))
+        raise ValueError(
+            "Initial parameter values must evaluate to a finite value, not %s. %s" % (fval, x))
 
     f = bounds_exception_catching_function(f)
 
@@ -164,7 +168,8 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
                 gend = 1.0
             else:
                 gend = 0.9
-            callback = unsteadyProgressIndicator(ui.display, 'Global', 0.0, gend)
+            callback = unsteadyProgressIndicator(
+                ui.display, 'Global', 0.0, gend)
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)
             x = opt.maximise(f, x, tolerance=gtol, 
@@ -176,7 +181,8 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
 
         # Local optimisation
         if do_local:
-            callback = unsteadyProgressIndicator(ui.display, 'Local', gend, 1.0)
+            callback = unsteadyProgressIndicator(
+                ui.display, 'Local', gend, 1.0)
             #ui.display('local opt', 1.0-per_opt, per_opt)
             opt = LocalOptimiser()
             x = opt.maximise(f, x, tolerance=tolerance, 

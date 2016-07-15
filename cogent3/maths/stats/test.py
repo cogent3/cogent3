@@ -34,7 +34,8 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 
-class IndexOrValueError(IndexError, ValueError): pass
+class IndexOrValueError(IndexError, ValueError):
+    pass
 
 var = cov  # cov will calculate variance if called on a vector
 
@@ -178,7 +179,8 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         return (0, 1)
     # raise error if any counts were negative
     if min(cells) < 0:
-        raise ValueError("G_2_by_2 got negative cell counts(s): must all be >= 0.")
+        raise ValueError(
+            "G_2_by_2 got negative cell counts(s): must all be >= 0.")
 
     G = 0
     # Add x ln x for items, adding zero for items whose counts are zero
@@ -204,7 +206,8 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
 
     # apply Williams correction
     if williams:
-        q = 1 + ((((n / ab) + (n / cd)) - 1) * (((n / ac) + (n / bd)) - 1)) / (6 * n)
+        q = 1 + ((((n / ab) + (n / cd)) - 1) *
+                 (((n / ac) + (n / bd)) - 1)) / (6 * n)
         G /= q
 
     p = chi_high(max(G, 0), 1)
@@ -242,7 +245,7 @@ def G_ind(m, williams=False):
     df = (len(m) - 1) * (len(m[0]) - 1)
     G = 2 * (f_ln_f_elements - f_ln_f_rows - f_ln_f_cols + f_ln_f_table)
     if williams:
-        q = 1 + ((tot * sum(1.0 / sum(m, 1)) - 1) * (tot * sum(1.0 / sum(m, 0)) - 1) / \
+        q = 1 + ((tot * sum(1.0 / sum(m, 1)) - 1) * (tot * sum(1.0 / sum(m, 0)) - 1) /
                (6 * tot * df))
         G = G / q
     return G, chi_high(max(G, 0), df)
@@ -301,9 +304,11 @@ def G_fit(obs, exp, williams=1):
 
     for o, e in zip(obs, exp):
         if o < 0:
-            raise ValueError("G_fit requires all observed values to be positive.")
+            raise ValueError(
+                "G_fit requires all observed values to be positive.")
         if e <= 0:
-            raise ZeroExpectedError("G_fit requires all expected values to be positive.")
+            raise ZeroExpectedError(
+                "G_fit requires all expected values to be positive.")
         if o:  # if o is zero, o * log(o/e) must be zero as well.
             G += o * log(o / e)
             n += o
@@ -346,7 +351,7 @@ def chi_square_from_Dict2D(data):
     (whichever is greater than 1)
 
     """
-    test =  sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1] \
+    test =  sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
                  for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])
@@ -424,7 +429,8 @@ def bayes_updates(ds_given_h, priors=None):
                     break
             if not all_the_same:  # probabilities won't change
                 if len(d) != length:
-                    raise ValueError("bayes_updates requires equal-length lists.")
+                    raise ValueError(
+                        "bayes_updates requires equal-length lists.")
                 liks = likelihoods(d, priors)
                 pr = posteriors(liks, priors)
                 priors = pr
@@ -455,7 +461,7 @@ def t_paired(a, b, tails=None, exp_diff=0):
     try:
         diffs = array(a) - array(b)
         return t_one_sample(diffs, popmean=exp_diff, tails=tails)
-    except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
+    except (ZeroDivisionError, ValueError, AttributeError, TypeError,
             FloatingPointError):
         return (None, None)
 
@@ -473,7 +479,7 @@ def t_one_sample(a, popmean=0, tails=None):
     try:
         n = len(a)
         t = (mean(a) - popmean) / (std(a) / sqrt(n))
-    except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
+    except (ZeroDivisionError, ValueError, AttributeError, TypeError,
             FloatingPointError):
         return None, None
     if isnan(t) or isinf(t):
@@ -760,7 +766,8 @@ def pearson(x_items, y_items):
 
     try:
         r = 1.0 * ((n * sum_xy) - (sum_x * sum_y)) / \
-            (sqrt((n * sum_x_sq) - (sum_x * sum_x)) * sqrt((n * sum_y_sq) - (sum_y * sum_y)))
+            (sqrt((n * sum_x_sq) - (sum_x * sum_x))
+             * sqrt((n * sum_y_sq) - (sum_y * sum_y)))
     except (ZeroDivisionError, ValueError, FloatingPointError):  # no variation
         r = 0.0
     # check we didn't get a naughty value for r due to rounding error
@@ -806,7 +813,8 @@ def spearman(x_items, y_items):
         x_bar = avg(rank1)
         y_bar = avg(rank2)
 
-        numerator = sum([(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2)])
+        numerator = sum([(x - x_bar) * (y - y_bar)
+                        for x, y in zip(rank1, rank2)])
         denominator = sqrt(sum([(x - x_bar)**2 for x in rank1]) *
                            sum([(y - y_bar)**2 for y in rank2]))
 
@@ -1100,7 +1108,8 @@ def regress_major(x, y):
     cov = (Sxy - ((Sy * Sx) / N)) / (N - 1)
     mean_y = Sy / N
     mean_x = Sx / N
-    D = sqrt((var_y + var_x) * (var_y + var_x) - 4 * (var_y * var_x - (cov * cov)))
+    D = sqrt((var_y + var_x) * (var_y + var_x) -
+             4 * (var_y * var_x - (cov * cov)))
     eigen_1 = (var_y + var_x + D) / 2
     slope = cov / (eigen_1 - var_y)
     intercept = mean_y - (mean_x * slope)
@@ -1124,7 +1133,7 @@ tails should be None (default), 'high', or 'low'.
     try:
         z = (mean(a) - popmean) / popstdev * sqrt(len(a))
         return z, z_tailed_prob(z, tails)
-    except (ValueError, TypeError, ZeroDivisionError, AttributeError, \
+    except (ValueError, TypeError, ZeroDivisionError, AttributeError,
             FloatingPointError):
         return None
 
@@ -1463,7 +1472,8 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
 
 
 def _average_rank(start_rank, end_rank):
-    ave_rank = sum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
+    ave_rank = sum(range(start_rank, end_rank + 1)) / \
+                   (1 + end_rank - start_rank)
     return ave_rank
 
 
@@ -1512,13 +1522,15 @@ def mw_test(x, y):
             combined['rank'][i] = ave_rank
 
     total = combined.shape[0]
-    x_ranks_sum = sum(combined['rank'][i] for i in range(total) if combined['sample'][i] == 0)
+    x_ranks_sum = sum(combined['rank'][i]
+                      for i in range(total) if combined['sample'][i] == 0)
     prod = num_x * num_y
     U1 = prod + (num_x * (num_x + 1) / 2) - x_ranks_sum
     U2 = prod - U1
     U = max([U1, U2])
     numerator = U - prod / 2
-    denominator = sqrt((prod / (total * (total - 1))) * ((total**3 - total - T) / 12))
+    denominator = sqrt((prod / (total * (total - 1)))
+                       * ((total**3 - total - T) / 12))
     z = (numerator / denominator)
     p = zprob(z)
     return U, p
@@ -1722,8 +1734,8 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 # Start functions for distance_matrix_permutation_test
 
 
-def distance_matrix_permutation_test(matrix, cells, cells2=None,\
-                                     f=t_two_sample, tails=None, n=1000, return_scores=False,\
+def distance_matrix_permutation_test(matrix, cells, cells2=None,
+                                     f=t_two_sample, tails=None, n=1000, return_scores=False,
                                      is_symmetric=True):
     """performs a monte carlo permutation test to determine if the 
     values denoted in cells are significantly different than the rest
@@ -1758,24 +1770,28 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
         # shuffle the order of indices, and use those to permute the matrix
         permuted_matrix = permute_2d(matrix, permutation(indices))
         special_values, other_values = \
-            get_values_from_matrix(permuted_matrix, cells,\
+            get_values_from_matrix(permuted_matrix, cells,
                                    cells2, is_symmetric)
         # calc the stat and p for a random subset (we don't do anything 
         # with these p-values, we only use the current_stat value)
         current_stat, current_p = f(special_values, other_values, tails)
         stats.append(current_stat)
         if tails == None:
-            if abs(current_stat) > abs(stat): count_more_extreme += 1
+            if abs(current_stat) > abs(stat):
+                count_more_extreme += 1
         elif tails == 'low':
-            if current_stat < stat: count_more_extreme += 1
+            if current_stat < stat:
+                count_more_extreme += 1
         elif tails == 'high':
-            if current_stat > stat: count_more_extreme += 1
+            if current_stat > stat:
+                count_more_extreme += 1
 
     # pack up the parametric stat, parametric p, and empirical p; calc the
     # the latter in the process
     result = [stat, p, count_more_extreme / n]
     # append the scores of the n tests if requested
-    if return_scores: result.append(stats)
+    if return_scores:
+        result.append(stats)
     return tuple(result)
 
 

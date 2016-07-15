@@ -119,7 +119,7 @@ class EstimateDistances(object):
         return str(self.getTable())
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
-        lf = self._sm.makeLikelihoodFunction(\
+        lf = self._sm.makeLikelihoodFunction(
             LoadTree(tip_names=seqs.getSeqNames()),
             aligned=False)
         lf.setSequences(seqs.NamedSeqs)
@@ -196,7 +196,7 @@ class EstimateDistances(object):
               the distance estimation and alignment estimation respectively."""
 
         if 'local' in kwargs:
-            warn("local argument ignored, provide it to dist_opt_args or"\
+            warn("local argument ignored, provide it to dist_opt_args or"
                  " aln_opt_args", DeprecationWarning, stacklevel=2)
 
         ui.display("Distances")
@@ -208,10 +208,12 @@ class EstimateDistances(object):
         # generate the list of unique sequence sets (pairs or triples) to be
         # analysed
         if self._threeway:
-            combination_aligns = get_name_combinations(self._seq_collection.Names, 3)
+            combination_aligns = get_name_combinations(
+                self._seq_collection.Names, 3)
             desc = "triplet "
         else:
-            combination_aligns = get_name_combinations(self._seq_collection.Names, 2)
+            combination_aligns = get_name_combinations(
+                self._seq_collection.Names, 2)
             desc = "pair "
         labels = [desc + ','.join(names) for names in combination_aligns]
 

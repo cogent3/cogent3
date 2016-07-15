@@ -173,7 +173,8 @@ class NewQ(TestCase):
         posn2 = LoadSeqs(data=posn2)
 
         # a newQ dinucleotide model
-        sm = Nucleotide(motif_length=2, mprob_model='monomer', do_scaling=False)
+        sm = Nucleotide(motif_length=2, mprob_model='monomer',
+                        do_scaling=False)
         lf = sm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(posn1)
         posn1_lnL = lf.getLogLikelihood()
@@ -262,7 +263,8 @@ class NewQ(TestCase):
         motifs = ['T', 'C', 'A', 'G']
         aX = MotifChange(motifs[0], motifs[3], forward_only=True).aliased('aX')
         bX = MotifChange(motifs[3], motifs[0], forward_only=True).aliased('bX')
-        edX = MotifChange(motifs[1], motifs[2], forward_only=True).aliased('edX')
+        edX = MotifChange(motifs[1], motifs[2],
+                          forward_only=True).aliased('edX')
         cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased('cX')
         sm = Nucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
 
@@ -350,8 +352,10 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
         if 'constructed_gen' in results:
             return
         preds = [MotifChange(a, b, forward_only=True) for a, b in [['A', 'C'],
-                                                                 ['A', 'G'], ['A', 'T'], ['C', 'A'], ['C', 'G'],
-                                                                 ['C', 'T'], ['G', 'C'], ['G', 'T'], ['T', 'A'],
+                                                                 ['A', 'G'], ['A', 'T'], [
+                                                                     'C', 'A'], ['C', 'G'],
+                                                                 ['C', 'T'], ['G', 'C'], [
+                                                                     'G', 'T'], ['T', 'A'],
                                                                  ['T', 'C'], ['T', 'G']]]
         nuc = Nucleotide(predicates=preds)
         nuc_lf = _make_likelihood(nuc, tree, results)

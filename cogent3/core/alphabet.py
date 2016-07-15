@@ -179,7 +179,7 @@ class Enumeration(tuple):
         self._quick_motifset = frozenset(self)
         if len(self._quick_motifset) != len(self):
             # got duplicates: show user what they sent in
-            raise TypeError('Alphabet initialized with duplicate values:\n' +\
+            raise TypeError('Alphabet initialized with duplicate values:\n' +
                             str(self))
         self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
         # handle gaps
@@ -352,7 +352,7 @@ class JointEnumeration(Enumeration):
     def __new__(cls, data=[], Gap=None, MolType=None):
         """Fills in the tuple with tuples from the enumerations in data."""
         sub_enums = cls._coerce_enumerations(data)
-        return Enumeration.__new__(cls, cartesian_product(sub_enums), \
+        return Enumeration.__new__(cls, cartesian_product(sub_enums),
                                    MolType=MolType)
 
     def __init__(self, data=[], Gap=None, MolType=None):
@@ -508,12 +508,12 @@ class Alphabet(Enumeration):
 
     def __new__(cls, motifset, Gap='-', MolType=None):
         """Returns a new Alphabet object."""
-        return Enumeration.__new__(cls, data=motifset, Gap=Gap, \
+        return Enumeration.__new__(cls, data=motifset, Gap=Gap,
                                    MolType=MolType)
 
     def __init__(self, motifset, Gap='-', MolType=None):
         """Returns a new Alphabet object."""
-        super(Alphabet, self).__init__(data=motifset, Gap=Gap, \
+        super(Alphabet, self).__init__(data=motifset, Gap=Gap,
                                        MolType=MolType)
 
     def getWordAlphabet(self, length):
@@ -653,7 +653,8 @@ class Alphabet(Enumeration):
             motif_set = new_motifs
 
         # delete sub motifs that are not to be included
-        motif_set = [motif for motif in motif_set if motif in self._quick_motifset]
+        motif_set = [
+            motif for motif in motif_set if motif in self._quick_motifset]
 
         if not motif_set:
             raise AlphabetError(ambig_motif)

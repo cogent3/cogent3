@@ -18,7 +18,8 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-# Custom subclasses of Defn (see cogent3.recalulation) for use by substitution models.
+# Custom subclasses of Defn (see cogent3.recalulation) for use by
+# substitution models.
 
 
 class AlignmentAdaptDefn(CalculationDefn):

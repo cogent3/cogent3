@@ -48,13 +48,15 @@ except ImportError:
 # Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
 # rather than forcing everyone to recompile immediately.
 # After 1.6 release this can be replaced by (3, 2) requirement above.
-versions = [m.version_info for m in [pyrex_seq_align_module, pyrex_align_module] if m is not None]
+versions = [m.version_info for m in [
+    pyrex_seq_align_module, pyrex_align_module] if m is not None]
 if len(versions) == 0 or min(versions) >= (3, 2):
     TRACK_INT_TYPE = numpy.uint8
 elif max(versions) < (3, 2):
     TRACK_INT_TYPE = numpy.int8
 else:
-    raise ImportError('Incompatible _pairwise_*.pyx module versions. Recompile them')
+    raise ImportError(
+        'Incompatible _pairwise_*.pyx module versions. Recompile them')
 
 
 __author__ = "Peter Maxwell"
@@ -174,10 +176,12 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                 else:
                     current_row[j, state] = cumulative_score * d_score
                 if track is not None:
-                    track[i, j, state] = (numpy.array(pointer) << track_enc).sum()
+                    track[i, j, state] = (
+                        numpy.array(pointer) << track_enc).sum()
                 if (i == i_high - 1 and j == j_high - 1 and not local) or (
                         local and dx and dy and current_row[j, state] > best_score):
-                    (best, best_score) = (((i, j), state), current_row[j, state])
+                    (best, best_score) = (
+                        ((i, j), state), current_row[j, state])
     # if DEBUG:
     #    print i_low, i_high, j_low, j_high
     #    print 'best_score %5.1f  at  %s' % (numpy.log(best_score), best)
@@ -197,7 +201,8 @@ class TrackBack(object):
                        in self.tlist)
 
     def offset(self, X, Y):
-        tlist = [(state, (x + X, y + Y), dxy) for (state, (x, y), dxy) in self.tlist]
+        tlist = [(state, (x + X, y + Y), dxy)
+                  for (state, (x, y), dxy) in self.tlist]
         return TrackBack(tlist)
 
     def __add__(self, other):
@@ -291,8 +296,10 @@ class Pair(object):
         if state == -1:
             next = (x, y)
         else:
-            if a: x = self.children[0][x][a - 1]
-            if b: y = self.children[1][y][b - 1]
+            if a:
+                x = self.children[0][x][a - 1]
+            if b:
+                y = self.children[1][y][b - 1]
             next = numpy.array([x, y], int)
         return (next, (a, b), state)
 
@@ -425,12 +432,14 @@ class AlignablePOG(_Alignable):
 
     def _calcAligneds(self, children):
         word_length = self.alphabet.getMotifLen()
-        (starts, ends, maps) = map_traceback(self.pog.getFullAlignedPositions())
+        (starts, ends, maps) = map_traceback(
+            self.pog.getFullAlignedPositions())
         aligneds = []
         for (dim, child) in enumerate(children):
             for (seq_name, aligned) in child.aligneds:
                 #aligned = aligned[(starts[dim]-1)*word_length:(ends[dim]-1)*word_length]
-                aligned = aligned.remappedTo((maps[dim] * word_length).inverse())
+                aligned = aligned.remappedTo(
+                    (maps[dim] * word_length).inverse())
                 aligneds.append((seq_name, aligned))
         return aligneds
 
@@ -547,7 +556,8 @@ def adaptPairTM(pairTM, finite=False):
         T = full_matrix
         state_directions_list = list(enumerate(pairTM.Tags))
 
-    this_row_last = lambda state_dx_dy: (not (state_dx_dy[1][0] or state_dx_dy[1][1]), not state_dx_dy[1][0])
+    this_row_last = lambda state_dx_dy: (
+        not (state_dx_dy[1][0] or state_dx_dy[1][1]), not state_dx_dy[1][0])
     state_directions_list.sort(key=this_row_last)
     # sorting into desirable order (sort may not be necessary)
 
@@ -692,7 +702,8 @@ class PairEmissionProbs(object):
                 T2[anchor_state, -1] = 1.0  # Must end with the anchor's state
                 part = self[:join1, :anchor]
             else:
-                T2[0, :] = T[anchor_state, :]  # Starting from the anchor's state
+                # Starting from the anchor's state
+                T2[0, :] = T[anchor_state, :]
                 part = self[join2:, anchor:]
             return part.dp((states, T2), dp_options)
 
@@ -896,7 +907,8 @@ class DPFlags(object):
         self.viterbi = bool(viterbi)
         self.backward = bool(backward)
         self.as_tuple = tuple(n for n in 
-                              ['viterbi', 'local', 'use_logs', 'use_cost_function', 'use_scaling', 'backward']
+                              ['viterbi', 'local', 'use_logs',
+                                  'use_cost_function', 'use_scaling', 'backward']
                               if getattr(self, n))
 
     def __repr__(self):
@@ -932,7 +944,8 @@ class PairHMM(object):
         cells = tb.asStatePosTuples()
         score = self.getForwardScore(**kw)
         dp_options = DPFlags(viterbi=False, **kw)
-        fwd = self.emission_probs.dp(self._transition_matrix, dp_options, cells)
+        fwd = self.emission_probs.dp(
+            self._transition_matrix, dp_options, cells)
         (N, M) = self.emission_probs.pair.size
         cells = [(state, (N - x - 2, M - y - 2)) for (state, (x, y)) in cells]
         tb.reverse()

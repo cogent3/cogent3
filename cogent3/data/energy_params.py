@@ -49,9 +49,9 @@ class EnergyParams(object):
 
 #--------------------------
 # Enthalpies are in kcal/mol, assumed to be salt concentration independent
-_NN_ENTHALPIES = {  "AA": -7.9, "TT": -7.9, "AT": -7.2, "TA": -7.2, \
-                    "CA": -8.5, "TG": -8.5, "GT": -8.4, "AC": -8.4, \
-                    "CT": -7.8, "AG": -7.8, "GA": -8.2, "TC": -8.2, \
+_NN_ENTHALPIES = {  "AA": -7.9, "TT": -7.9, "AT": -7.2, "TA": -7.2,
+                    "CA": -8.5, "TG": -8.5, "GT": -8.4, "AC": -8.4,
+                    "CT": -7.8, "AG": -7.8, "GA": -8.2, "TC": -8.2,
                     "CG": -10.6, "GC": -9.8, "GG": -8.0, "CC": -8.0}
 
 _ENTHALPY_GC_INIT = 0.1
@@ -61,9 +61,9 @@ _ENTHALPY_SYM = 0
 
 #--------------------------
 # Entropies are in cal/Kelvin*mol, at 1 M NaCl
-_NN_ENTROPIES = {   "AA": -22.2, "TT": -22.2, "AT": -20.4, "TA": -21.3, \
-                    "CA": -22.7, "TG": -22.7, "GT": -22.4, "AC": -22.4, \
-                    "CT": -21.0, "AG": -21.0, "GA": -22.2, "TC": -22.2, \
+_NN_ENTROPIES = {   "AA": -22.2, "TT": -22.2, "AT": -20.4, "TA": -21.3,
+                    "CA": -22.7, "TG": -22.7, "GT": -22.4, "AC": -22.4,
+                    "CT": -21.0, "AG": -21.0, "GA": -22.2, "TC": -22.2,
                     "CG": -27.2, "GC": -24.4, "GG": -19.9, "CC": -19.9}
 _ENTROPY_GC_INIT = -2.8
 _ENTROPY_AT_INIT = 4.1
@@ -72,8 +72,8 @@ _ENTROPY_SYM = -1.4
 
 #--------------------------
 # Module level public EnergyParams instances (one for entropy, one for energy)
-ENTHALPY_PARAMS = EnergyParams(_NN_ENTHALPIES, _ENTHALPY_GC_INIT, \
+ENTHALPY_PARAMS = EnergyParams(_NN_ENTHALPIES, _ENTHALPY_GC_INIT,
                                _ENTHALPY_AT_INIT, _ENTHALPY_SYM)
-ENTROPY_PARAMS = EnergyParams(_NN_ENTROPIES, _ENTROPY_GC_INIT, \
+ENTROPY_PARAMS = EnergyParams(_NN_ENTROPIES, _ENTROPY_GC_INIT,
                               _ENTROPY_AT_INIT, _ENTROPY_SYM)
 #--------------------------

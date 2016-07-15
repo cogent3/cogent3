@@ -4,7 +4,8 @@
 # SUPPORT2425
 #from __future__ import with_statement
 from cogent3.util.unit_test import TestCase, main, FakeRandom  # ,numpy_err
-import numpy; from numpy import array, zeros, log, inf
+import numpy
+from numpy import array, zeros, log, inf
 from sys import exc_info
 
 __author__ = "Rob Knight"
@@ -146,7 +147,7 @@ class TestCaseTests(TestCase):
         (-1, -1 + -1 * small),
         (-1, -1 - -1 * small),
         (array([1, 2]), array([1 + small, 2])),
-        (array([[1000, 1000], [1000, 1000]]), \
+        (array([[1000, 1000], [1000, 1000]]),
          array([[1000 + 1000 * small, 1000], [1000, 1000]])),
         ]
 
@@ -190,7 +191,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message, 
                              'Observed None and expected None: shouldn\'t test equal')
         else:
-            raise AssertionError("unit_test.assertNotEqual failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotEqual failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
     def test_assertNotEqual_numbers(self):
@@ -202,7 +203,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message,
                              'Observed 0 and expected 0.0: shouldn\'t test equal')
         else:
-            raise AssertionError("unit_test.assertNotEqual failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotEqual failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
     def test_assertNotEqual_unequal(self):
@@ -211,7 +212,7 @@ class TestCaseTests(TestCase):
             try:
                 self.assertNotEqual(first, second)
             except:
-                raise AssertionError("unit_test.assertNotEqual failed on input %s and %s" \
+                raise AssertionError("unit_test.assertNotEqual failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertNotEqual_equal(self):
@@ -222,10 +223,10 @@ class TestCaseTests(TestCase):
             except:
                 message = str(exc_info()[1])
                 self.assertEqual(message,
-                                 'Observed %s and expected %s: shouldn\'t test equal' \
+                                 'Observed %s and expected %s: shouldn\'t test equal'
                                  % (repr(first), repr(second)))
             else:
-                raise AssertionError("unit_test.assertNotEqual failed on input %s and %s" \
+                raise AssertionError("unit_test.assertNotEqual failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertEqual_None(self):
@@ -233,7 +234,7 @@ class TestCaseTests(TestCase):
         try:
             self.assertEqual(None, None)
         except:
-            raise AssertionError("unit_test.assertEqual failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqual failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
     def test_assertEqual_numbers(self):
@@ -241,7 +242,7 @@ class TestCaseTests(TestCase):
         try:
             self.assertEqual(0, 0.0)
         except:
-            raise AssertionError("unit_test.assertEqual failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqual failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
     def test_assertEqual_unequal(self):
@@ -252,10 +253,10 @@ class TestCaseTests(TestCase):
             except:
                 message = str(exc_info()[1])
                 self.assertEqual(message,
-                                 'Got %s, but expected %s' \
+                                 'Got %s, but expected %s'
                                  % (repr(first), repr(second)))
             else:
-                raise AssertionError("unit_test.assertEqual failed on input %s and %s" \
+                raise AssertionError("unit_test.assertEqual failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertEqual_equal(self):
@@ -264,7 +265,7 @@ class TestCaseTests(TestCase):
             try:
                 self.assertEqual(first, second)
             except:
-                raise AssertionError("unit_test.assertEqual failed on input %s and %s" \
+                raise AssertionError("unit_test.assertEqual failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertEqual_nested_array(self):
@@ -283,7 +284,7 @@ class TestCaseTests(TestCase):
             try:
                 self.assertFloatEqualAbs(first, second, eps=1e-6)
             except:
-                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualAbs_threshold(self):
@@ -298,7 +299,7 @@ class TestCaseTests(TestCase):
                     % (repr(first), repr(second), repr(diff))
                 self.assertEqual(message, exp)
             else:
-                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualAbs_unequal(self):
@@ -310,10 +311,10 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                                 'True is not false : Got %s, but expected %s (diff was %s)' \
+                                 'True is not false : Got %s, but expected %s (diff was %s)'
                                  % (repr(first), repr(second), repr(diff)))
             else:
-                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualAbs failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualAbs_shape_mismatch(self):
@@ -328,7 +329,7 @@ class TestCaseTests(TestCase):
             try:
                 self.assertFloatEqualRel(first, second)
             except:
-                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualRel_unequal(self):
@@ -340,10 +341,10 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                                 'True is not false : Got %s, but expected %s (diff was %s)' \
+                                 'True is not false : Got %s, but expected %s (diff was %s)'
                                  % (repr(first), repr(second), repr(diff)))
             else:
-                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualRel_unequal(self):
@@ -355,10 +356,10 @@ class TestCaseTests(TestCase):
                 message = str(exc_info()[1])
                 diff = first - second
                 self.assertEqual(message,
-                                 'True is not false : Got %s, but expected %s (diff was %s)' \
+                                 'True is not false : Got %s, but expected %s (diff was %s)'
                                  % (repr(first), repr(second), repr(diff)))
             else:
-                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s" \
+                raise AssertionError("unit_test.assertFloatEqualRel failed on input %s and %s"
                                      % (repr(first), repr(second)))
 
     def test_assertFloatEqualRel_shape_mismatch(self):
@@ -375,7 +376,8 @@ class TestCaseTests(TestCase):
             self.assertFloatEqual(originals, modified)
             self.assertFloatEqual([], [])  # test empty lists as well
         except:
-            raise AssertionError("unit_test.assertFloatEqual failed on lists of similar values")
+            raise AssertionError(
+                "unit_test.assertFloatEqual failed on lists of similar values")
 
     def test_assertFloatEqual_shape_mismatch(self):
         """assertFloatEqual should raise when obs and exp shapes mismatch"""
@@ -392,7 +394,8 @@ class TestCaseTests(TestCase):
         except:
             pass            
         else:
-            raise AssertionError("unit_test.assertFloatEqual failed on lists of dissimilar values")
+            raise AssertionError(
+                "unit_test.assertFloatEqual failed on lists of dissimilar values")
 
     def test_assertFloatEqual_mixed(self):
         """assertFloatEqual should work on equal lists of mixed types."""
@@ -416,21 +419,21 @@ class TestCaseTests(TestCase):
         """assertFloatEqual should work on unequal lists of mixed types."""
         first = [i[0] for i in self.unequal_pairs]
         second = [i[1] for i in self.unequal_pairs]
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           self.assertFloatEqual, first, second)
 
     def test_assertFloatEqualAbs_mixed(self):
         """assertFloatEqualAbs should work on lists of mixed types."""
         first = [i[0] for i in self.unequal_pairs]
         second = [i[1] for i in self.unequal_pairs]
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           self.assertFloatEqualAbs, first, second)
 
     def test_assertFloatEqualRel_mixed(self):
         """assertFloatEqualRel should work on lists of mixed types."""
         first = [i[0] for i in self.unequal_pairs]
         second = [i[1] for i in self.unequal_pairs]
-        self.assertRaises(AssertionError, \
+        self.assertRaises(AssertionError,
                           self.assertFloatEqualRel, first, second)
 
     def test_assertEqualItems(self):
@@ -448,7 +451,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message, 
                              'Observed and expected are different lengths: 3 and 4')
         else:
-            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
         try:
@@ -458,7 +461,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message, 
                              'Observed b and expected c at sorted index 1')
         else:
-            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
                                  % (repr(first), repr(second)))
         try:
             self.assertEqualItems('cba', 'yzx')
@@ -467,7 +470,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message,
                              'Observed a and expected x at sorted index 0')
         else:
-            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
                                  % (repr(first), repr(second)))
 
     def test_assertSameItems(self):
@@ -495,7 +498,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message,
                              'Observed and expected are different lengths: 3 and 4')
         else:
-            raise AssertionError("unit_test.assertSameItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertSameItems failed on input %s and %s"
                                  % (repr([x, y, z]), repr([x, y, z, y])))
 
         try:
@@ -505,7 +508,7 @@ class TestCaseTests(TestCase):
         except self.failureException:
             pass
         else:
-            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertEqualItems failed on input %s and %s"
                                  % (repr([x, y, z]), repr([y, x, z1])))
 
         # assert y is not y1
@@ -531,7 +534,7 @@ class TestCaseTests(TestCase):
             self.assertEqual(message, 
                              "Observed 'abc' has same items as 'abc'")
         else:
-            raise AssertionError("unit_test.assertNotEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotEqualItems failed on input %s and %s"
                                  % (repr('abc'), repr('abc')))
 
         try:
@@ -540,7 +543,7 @@ class TestCaseTests(TestCase):
             message = str(exc_info()[1])
             self.assertEqual(message, "Observed '' has same items as []")
         else:
-            raise AssertionError("unit_test.assertNotEqualItems failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotEqualItems failed on input %s and %s"
                                  % (repr(''), repr([])))
 
     def test_assertContains(self):
@@ -567,7 +570,7 @@ class TestCaseTests(TestCase):
             message = str(exc_info()[1])
             self.assertEqual(message, "Item [] not found in ''")
         else:
-            raise AssertionError("unit_test.assertContains failed on input %s and %s" \
+            raise AssertionError("unit_test.assertContains failed on input %s and %s"
                                  % (repr(''), repr([])))
 
         try:
@@ -576,7 +579,7 @@ class TestCaseTests(TestCase):
             message = str(exc_info()[1])
             self.assertEqual(message, "Item 'x' not found in 'abcd'")
         else:
-            raise AssertionError("unit_test.assertContains failed on input %s and %s" \
+            raise AssertionError("unit_test.assertContains failed on input %s and %s"
                                  % (repr('abcd'), repr('x')))
 
     def test_assertNotContains(self):
@@ -603,16 +606,17 @@ class TestCaseTests(TestCase):
             message = str(exc_info()[1])
             self.assertEqual(message, "Item '' should not have been in ''")
         else:
-            raise AssertionError("unit_test.assertNotContains failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotContains failed on input %s and %s"
                                  % (repr(''), repr('')))
 
         try:
             self.assertNotContains('abcd', 'a')
         except:
             message = str(exc_info()[1])
-            self.assertEqual(message, "Item 'a' should not have been in 'abcd'")
+            self.assertEqual(
+                message, "Item 'a' should not have been in 'abcd'")
         else:
-            raise AssertionError("unit_test.assertNotContains failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotContains failed on input %s and %s"
                                  % (repr('abcd'), repr('a')))
 
         try:
@@ -621,7 +625,7 @@ class TestCaseTests(TestCase):
             message = str(exc_info()[1])
             self.assertTrue("Item 'a' should not have been in" in message)
         else:
-            raise AssertionError("unit_test.assertNotContains failed on input %s and %s" \
+            raise AssertionError("unit_test.assertNotContains failed on input %s and %s"
                                  % (repr({'a': 1, 'b': 2}), repr('a')))
 
     def test_assertGreaterThan_equal(self):
@@ -672,7 +676,8 @@ class TestCaseTests(TestCase):
     def test_assertGreaterThan_floats_list_false(self):
         """assertGreaterThan should raise when any elements are <= value"""
         observed = [2.0, 3.0, 4.0, 1.0, 3.0, 3.0]
-        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1.0)
+        self.assertRaises(
+            AssertionError, self.assertGreaterThan, observed, 1.0)
 
     def test_assertGreaterThan_mixed_true(self):
         """assertGreaterThan should pass when observed > value"""
@@ -693,7 +698,8 @@ class TestCaseTests(TestCase):
     def test_assertGreaterThan_mixed_list_false(self):
         """assertGreaterThan should raise when a single element is <= value"""
         observed = [2.0, 3, 4, 1.0, 3.0, 3.0]
-        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1.0)
+        self.assertRaises(
+            AssertionError, self.assertGreaterThan, observed, 1.0)
         self.assertRaises(AssertionError, self.assertGreaterThan, observed, 1)
 
     def test_assertGreaterThan_numpy_array_true(self):
@@ -706,7 +712,8 @@ class TestCaseTests(TestCase):
         """assertGreaterThan should pass when any element is  <= value"""
         observed = array([1, 2, 3, 4])
         self.assertRaises(AssertionError, self.assertGreaterThan, observed, 3)
-        self.assertRaises(AssertionError, self.assertGreaterThan, observed, 3.0)
+        self.assertRaises(
+            AssertionError, self.assertGreaterThan, observed, 3.0)
 
     def test_assertLessThan_equal(self):
         """assertLessThan should raise exception if equal"""
@@ -842,7 +849,8 @@ class TestCaseTests(TestCase):
     def test_assertIsBetween_floats_list_false(self):
         """assertIsBetween should raise when any elements are out of bounds"""
         observed = [3.0, 4.0, -5.0, 5.0, 6.0]
-        self.assertRaises(AssertionError, self.assertIsBetween, observed, 1.0, 5.0)
+        self.assertRaises(
+            AssertionError, self.assertIsBetween, observed, 1.0, 5.0)
 
     def test_assertIsBetween_mixed_true(self):
         """assertIsBetween should pass when in bounds"""
@@ -873,9 +881,12 @@ class TestCaseTests(TestCase):
     def test_assertIsBetween_mixed_list_false(self):
         """assertIsBetween should raise when any elements are out of bounds"""
         observed = [3.0, 4, 5.0, 4, 3, 4.0, 5, 6]
-        self.assertRaises(AssertionError, self.assertIsBetween, observed, 1.0, 5)
-        self.assertRaises(AssertionError, self.assertIsBetween, observed, 1, 5.0)
-        self.assertRaises(AssertionError, self.assertIsBetween, observed, 1.0, 5.0)
+        self.assertRaises(
+            AssertionError, self.assertIsBetween, observed, 1.0, 5)
+        self.assertRaises(
+            AssertionError, self.assertIsBetween, observed, 1, 5.0)
+        self.assertRaises(
+            AssertionError, self.assertIsBetween, observed, 1.0, 5.0)
         self.assertRaises(AssertionError, self.assertIsBetween, observed, 1, 5)
 
     def test_assertIsBetween_numpy_array_true(self):
@@ -965,12 +976,12 @@ class TestCaseTests(TestCase):
         """assertSimilarMeans should raise when p < pvalue"""
         obs = [5]
         expected = [.001, .009, .00012]
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected)
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected, 0.1)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected)
 
     def test_assertSimilarMeans_twosample_true(self):
@@ -986,12 +997,12 @@ class TestCaseTests(TestCase):
         """assertSimilarMeans should raise when p < pvalue"""
         obs = [1, 2, 3]
         expected = [6, 7, 8, 9, 10, 11, 12, 13, 14]
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected)
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected, 0.1)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimilarMeans, \
+        self.assertRaises(AssertionError, self.assertSimilarMeans,
                           obs, expected)
 
     def test_assertSimilarFreqs_true(self):
@@ -1007,12 +1018,12 @@ class TestCaseTests(TestCase):
         """assertSimilarFreqs should raise when p < pvalue"""
         observed = [10, 15, 20, 10, 12, 12, 13]
         expected = [100, 50, 10, 20, 700, 2, 100]
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected)
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected, 0.2)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected)
 
     def test_assertSimilarFreqs_numpy_array_true(self):
@@ -1028,12 +1039,12 @@ class TestCaseTests(TestCase):
         """assertSimilarFreqs should raise when p < pvalue"""
         observed = array([10, 15, 20, 10, 12, 12, 13])
         expected = array([100, 50, 10, 20, 700, 2, 100])
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected)
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected, 0.2)
         self._set_suite_pvalue(0.001)
-        self.assertRaises(AssertionError, self.assertSimilarFreqs, \
+        self.assertRaises(AssertionError, self.assertSimilarFreqs,
                           observed, expected)
 
     def test_set_suite_pvalue(self):
@@ -1057,8 +1068,10 @@ class TestCaseTests(TestCase):
     def test_assertIsPermutation_false(self):
         """assertIsPermutation should raise when a is not a permutation of b"""
         items = [1, 2, 3, 4, 5]
-        self.assertRaises(AssertionError, self.assertIsPermutation, items, items)
-        self.assertRaises(AssertionError, self.assertIsPermutation, [1, 2], [3, 4])
+        self.assertRaises(
+            AssertionError, self.assertIsPermutation, items, items)
+        self.assertRaises(
+            AssertionError, self.assertIsPermutation, [1, 2], [3, 4])
 
     def test_assertSameObj_true(self):
         """assertSameObj should pass when 'a is b'"""
@@ -1071,7 +1084,7 @@ class TestCaseTests(TestCase):
         """assertSameObj should raise when 'a is not b'"""
         self.assertRaises(AssertionError, self.assertSameObj, "foo", "bar")
         self.assertRaises(AssertionError, self.assertSameObj, None, "bar")
-        self.assertRaises(AssertionError, self.assertSameObj, lambda x: 5, \
+        self.assertRaises(AssertionError, self.assertSameObj, lambda x: 5,
                           lambda y: 6)
 
     def test_assertNotSameObj_true(self):
@@ -1146,9 +1159,12 @@ class TestCaseTests(TestCase):
 
     def test_assertIsNotBetween_float_false(self):
         """assertIsNotBetween should raise when a number is in bounds"""
-        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0, 1.0, 3.0)
-        self.assertRaises(AssertionError, self.assertIsNotBetween, 0.0, -1.0, 1.0)
-        self.assertRaises(AssertionError, self.assertIsNotBetween, -2.0, -3.0, -1.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, 2.0, 1.0, 3.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, 0.0, -1.0, 1.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, -2.0, -3.0, -1.0)
 
     def test_assertIsNotBetween_float_list_true(self):
         """assertIsNotBetween should pass when all elements are out of bounds"""
@@ -1159,9 +1175,12 @@ class TestCaseTests(TestCase):
     def test_assertIsNotBetween_float_list_false(self):
         """assertIsNotBetween should raise when any element is in bounds"""
         obs = [1.0, 2.0, 3.0, 4.0, 5.0]
-        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3.0, 7.0)
-        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, -3.0, 3.0)
-        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 2.0, 4.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, obs, -3.0, 3.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, obs, 2.0, 4.0)
 
     def test_assertIsNotBetween_mixed_true(self):
         """assertIsNotBetween should pass when a number is not in bounds"""
@@ -1185,7 +1204,8 @@ class TestCaseTests(TestCase):
     def test_assertIsNotBetween_mixed_list_false(self):
         """assertIsNotBetween should raise when any element is in bounds"""
         obs = [1, 2.0, 3, 4.0, 5.0]
-        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(
+            AssertionError, self.assertIsNotBetween, obs, 3.0, 7.0)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3, 7.0)
         self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3.0, 7)
 

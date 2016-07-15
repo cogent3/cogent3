@@ -172,7 +172,8 @@ class POG(object):
     def midlinks(self):
         # for the hirchberg algorithm.
         half = self.length // 2
-        jumps = [(i, j) for (i, j) in self.all_jumps if i <= half and j >= half]
+        jumps = [(i, j)
+                  for (i, j) in self.all_jumps if i <= half and j >= half]
         return [(half, half)] + jumps
 
     def __getitem__(self, index):
@@ -192,7 +193,8 @@ class POG(object):
             j2 = max(min(j, end), start) - start
             return (i2, j2)
         jumps = [moved(i, j) for (i, j) in self.jumps if i < end or j > start]
-        cjumps = [moved(i, j) for (i, j) in self.child_jumps if i < end or j > start]
+        cjumps = [moved(i, j)
+                        for (i, j) in self.child_jumps if i < end or j > start]
         return POG(end - start, jumps, cjumps)
 
     def backward(self):

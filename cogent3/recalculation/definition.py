@@ -501,7 +501,8 @@ class SelectForDimension(_Defn):
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
-            scope2 = dict((n, v) for (n, v) in list(scope.items()) if n != self.dimension)
+            scope2 = dict((n, v) for (n, v) in list(
+                scope.items()) if n != self.dimension)
             input_num = self.arg.outputOrdinalFor(scope2)
             pos = self.arg.bin_names.index(scope[self.dimension])
             self.assignments[scope_t] = (input_num, pos)

@@ -289,7 +289,7 @@ class TestPair(TestCase):
         J /= J.sum()
         M = numpy.linalg.inv(J)
         f = J.sum(1), J.sum(0)
-        dist = -0.25 * numpy.log( numpy.linalg.det(J) / \
+        dist = -0.25 * numpy.log( numpy.linalg.det(J) /
                                   numpy.sqrt(f[0].prod() * f[1].prod()))
 
         self.assertFloatEqual(paralinear_calc.Dists[1, 1], dist, eps=1e-3)

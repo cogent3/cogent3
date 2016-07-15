@@ -61,12 +61,14 @@ def TinyseqParser(doc):
 
         seq = alphabet.makeSequence(raw_string, Name=name)
 
-        seq.addAnnotation(annotation.Feature, "genbank_id", name, [(0, len(seq))])
+        seq.addAnnotation(annotation.Feature, "genbank_id",
+                          name, [(0, len(seq))])
 
         organism = str(record.getElementsByTagName(
             'TSeq_orgname')[0].childNodes[0].nodeValue)
 
-        seq.addAnnotation(annotation.Feature, "organism", organism, [(0, len(seq))])
+        seq.addAnnotation(annotation.Feature, "organism",
+                          organism, [(0, len(seq))])
 
         yield (name, seq)
 

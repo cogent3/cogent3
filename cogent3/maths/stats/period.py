@@ -54,7 +54,8 @@ def g_statistic(X, p=None, idx=None):
     result = numpy.zeros((int(M + 1),), float)
     pmax_fact = factorial(pmax)
     for index in range(1, min(pmax, int(M)) + 1):
-        v = (-1)**(index - 1) * pmax_fact / factorial(pmax - index) / factorial(index)
+        v = (-1)**(index - 1) * pmax_fact / \
+             factorial(pmax - index) / factorial(index)
         v *= (1 - index * g_obs)**(pmax - 1)
         result[index] = v
 

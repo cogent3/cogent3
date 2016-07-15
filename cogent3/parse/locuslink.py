@@ -75,14 +75,16 @@ def _read_accession(line):
     """Reads accession lines: format is Accession | Gi | Strain."""
     return MappedRecord(accession_wrapper(line))
 
-rell_wrapper = FieldWrapper(['Description', 'Id', 'IdType', 'Printable'], pipes)
+rell_wrapper = FieldWrapper(
+    ['Description', 'Id', 'IdType', 'Printable'], pipes)
 
 
 def _read_rell(line):
     """Reads RELL lines: format is Description|Id|IdType|Printable"""
     return MappedRecord(rell_wrapper(line))
 
-accnum_wrapper = FieldWrapper(['Accession', 'Gi', 'Strain', 'Start', 'End'], pipes)
+accnum_wrapper = FieldWrapper(
+    ['Accession', 'Gi', 'Strain', 'Start', 'End'], pipes)
 
 
 def _read_accnum(line):
@@ -96,7 +98,7 @@ def _read_map(line):
     """Reads MAP lines: format is Location|Source|Type."""
     return MappedRecord(map_wrapper(line))
 
-sts_wrapper = FieldWrapper(['Name', 'Chromosome', 'StsId', 'Segment',\
+sts_wrapper = FieldWrapper(['Name', 'Chromosome', 'StsId', 'Segment',
                             'SequenceKnown', 'Evidence'], pipes)
 
 
@@ -108,14 +110,15 @@ def _read_sts(line):
     """
     return MappedRecord(sts_wrapper(line))
 
-cdd_wrapper = FieldWrapper(['Name', 'Key', 'Score', 'EValue', 'BitScore'], pipes)
+cdd_wrapper = FieldWrapper(
+    ['Name', 'Key', 'Score', 'EValue', 'BitScore'], pipes)
 
 
 def _read_cdd(line):
     """Reads CDD lines: format is Name|Key|Score|EValue|BitScore."""
     return MappedRecord(cdd_wrapper(line))
 
-comp_wrapper = FieldWrapper(['TaxonId', 'Symbol', 'Chromosome', 'Position',\
+comp_wrapper = FieldWrapper(['TaxonId', 'Symbol', 'Chromosome', 'Position',
                              'LocusId', 'ChromosomeSelf', 'SymbolSelf', 'MapName'], pipes)
 
 
@@ -138,7 +141,7 @@ def _read_pmid(line):
     """Reads PMID lines: format is comma-delimited list of pubmed IDs."""
     return commas(line)
 
-go_wrapper = FieldWrapper(['Category', 'Term', 'EvidenceCode', 'GoId', 'Source',\
+go_wrapper = FieldWrapper(['Category', 'Term', 'EvidenceCode', 'GoId', 'Source',
                            'PubMedId'], pipes)
 
 
@@ -146,7 +149,7 @@ def _read_go(line):
     """Reads GO lines. Format: Category|Term|EvidenceCode|GoId|Source|PubMedId"""
     return MappedRecord(go_wrapper(line))
 
-extannot_wrapper = FieldWrapper(['Category', 'Term', 'EvidenceCode', 'Source',\
+extannot_wrapper = FieldWrapper(['Category', 'Term', 'EvidenceCode', 'Source',
                                  'PubMedId'], pipes)
 
 
@@ -154,7 +157,7 @@ def _read_extannot(line):
     """Reads EXTANNOT lines. format: Category|Term|EvidenceCode|Source|PubMedId"""
     return MappedRecord(extannot_wrapper(line))
 
-contig_wrapper = FieldWrapper(['Accession', 'Gi', 'Strain', 'From', 'To', \
+contig_wrapper = FieldWrapper(['Accession', 'Gi', 'Strain', 'From', 'To',
                                'Orientation', 'Chromosome', 'Assembly'], pipes)
 
 

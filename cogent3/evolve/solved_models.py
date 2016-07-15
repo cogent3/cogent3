@@ -42,7 +42,8 @@ class PredefinedNucleotide(Nucleotide):
         if kappa_r is None:
             kappa_r = kappa_y
         result = numpy.empty([4, 4], float)
-        _solved_models.calc_TN93_P(self._do_scaling, pi, time, kappa_y, kappa_r, result)
+        _solved_models.calc_TN93_P(
+            self._do_scaling, pi, time, kappa_y, kappa_r, result)
         return result
 
     def checkPsubCalculationsMatch(self):

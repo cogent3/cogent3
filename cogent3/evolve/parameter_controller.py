@@ -107,7 +107,8 @@ class _LikelihoodParameterController(_LF):
                 except KeyError:
                     continue  # new parameter
                 for (u, value) in enumerate(uniq):
-                    group = [edge for (edge, i) in list(index.items()) if i == u]
+                    group = [edge for (edge, i) in list(
+                        index.items()) if i == u]
                     self.setParamRule(par_name, edges=group, init=value)
             for edge in edges:
                 if edge.Length is not None:
@@ -166,7 +167,8 @@ class _LikelihoodParameterController(_LF):
             # and shadowing a quite different superclass method.
             self.setAlignment(*args)
             if getattr(self, 'used_as_calculator', False):
-                warnings.warn('PC used as two different calculators', stacklevel=2)
+                warnings.warn(
+                    'PC used as two different calculators', stacklevel=2)
             self.used_as_calculator = True
             return self
         else:
@@ -382,7 +384,8 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         for (name, seq) in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already
             if hasattr(seq, 'uniq'):
-                leaf = seq  # XXX more checks - same alphabet as model, name etc ...
+                # XXX more checks - same alphabet as model, name etc ...
+                leaf = seq
             else:
                 leaf = self.model.convertSequence(seq, name)
             leaf = AlignableSeq(leaf)
@@ -393,10 +396,12 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def setPogs(self, leaves, locus=None):
         with self.updatesPostponed():
             for (name, pog) in list(leaves.items()):
-                self.setParamRule('leaf', edge=name, value=pog, is_constant=True)
+                self.setParamRule('leaf', edge=name,
+                                  value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum([pog.leaf.getMotifCounts()
                                     for pog in list(leaves.values())], 0)
                 mprobs = counts / (1.0 * sum(counts))
-                self.setMotifProbs(mprobs, locus=locus, is_constant=True, auto=True)
+                self.setMotifProbs(mprobs, locus=locus,
+                                   is_constant=True, auto=True)
 

@@ -63,7 +63,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         ests_from_pairwise = False
     else:
         if ests_from_pairwise:
-            est_params = [param for param in model.getParamList() \
+            est_params = [param for param in model.getParamList()
                           if param not in _exclude_params]
         else:
             est_params = None
@@ -74,7 +74,8 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         dists = dcalc.getPairwiseDistances()
         tree = NJ.nj(dists)
 
-    LF = model.makeLikelihoodFunction(tree.bifurcating(name_unnamed=True), aligned=False)
+    LF = model.makeLikelihoodFunction(
+        tree.bifurcating(name_unnamed=True), aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the Median to avoid the influence of outlier pairs
         param_vals = {}
@@ -95,6 +96,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     align = edge.getViterbiPath().getAlignment()
     info = Info()
     info["AlignParams"] = param_vals
-    info["AlignParams"].update(dict(indel_length=indel_length, indel_rate=indel_rate))
+    info["AlignParams"].update(
+        dict(indel_length=indel_length, indel_rate=indel_rate))
     align.Info = info
     return align, tree

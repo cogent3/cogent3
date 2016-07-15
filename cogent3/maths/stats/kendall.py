@@ -32,7 +32,8 @@ def as_paired_ranks(x, y):
     rank_val_map_y = dict(list(zip(y, list(range(n)))))
     ranked = []
     for i in range(n):
-        ranked += [[rank_val_map_x[paired[i][0]], rank_val_map_y[paired[i][1]]]]
+        ranked += [[rank_val_map_x[paired[i][0]],
+            rank_val_map_y[paired[i][1]]]]
     return ranked
 
 
@@ -120,7 +121,7 @@ def kendalls_tau(x, y, return_p=True):
         v1 = sum(x_tied * (x_tied - 1)) * sum(y_tied * (y_tied - 1))
         v2 = sum(x_tied * (x_tied - 1) * (x_tied - 2)) * \
         sum(y_tied * (y_tied - 1) * (y_tied - 2))
-        variance = (v0 - vt - vu) / 18 + v1 / (2 * n * (n - 1)) + v2 / (9 * n * \
+        variance = (v0 - vt - vu) / 18 + v1 / (2 * n * (n - 1)) + v2 / (9 * n *
                                                                         (n - 1) * (n - 2))
     if return_p:
         return tau, zprob(stat / variance**0.5)

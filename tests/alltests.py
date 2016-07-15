@@ -147,11 +147,13 @@ def suite():
             mysqls = ['MySQLdb', 'mysql', 'pymysql']
             if not any(map(module_present, mysqls)):
                 test_ensembl = False
-                print("None of %s modules present: skipping test" % ", ".join(mysqls), file=sys.stderr)
+                print("None of %s modules present: skipping test" %
+                      ", ".join(mysqls), file=sys.stderr)
 
             if not module_present('sqlalchemy'):
                 test_ensembl = False
-                print("Module 'sqlalchemy' not present: skipping test", file=sys.stderr)
+                print("Module 'sqlalchemy' not present: skipping test",
+                      file=sys.stderr)
 
             if test_ensembl:
                 db_tests += ['test_db.test_ensembl.test_assembly',
@@ -163,13 +165,14 @@ def suite():
                              'test_db.test_ensembl.test_species',
                              'test_db.test_ensembl.test_feature_level']
         else:
-            print("Environment variable ENSEMBL_ACCOUNT not "\
+            print("Environment variable ENSEMBL_ACCOUNT not "
                   "set: skipping db.ensembl tests", file=sys.stderr)
 
         for db_test in db_tests:
             modules_to_test.append(db_test)
     else:
-        print("Environment variable TEST_DB=1 not set: skipping db tests", file=sys.stderr)
+        print("Environment variable TEST_DB=1 not set: skipping db tests",
+              file=sys.stderr)
 
     assert sys.version_info >= (2, 6)
 

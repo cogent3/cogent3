@@ -178,7 +178,8 @@ def build_alphabet_map(alphabet_id=None, alphabet_def=None):
         alphabet_def = alphabet_def or alphabets[alphabet_id]
     except KeyError:
         if not alphabet_id:
-            raise ValueError("Must provide an alphabet_id or alphabet definiton.")
+            raise ValueError(
+                "Must provide an alphabet_id or alphabet definiton.")
         raise ValueError("Invalid alphabet id.")
 
     result = {}
@@ -217,7 +218,7 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     byte_map = dict(list(zip(aln.Alphabet, list(range(len(aln.Alphabet))))))
 
     # Construct a dict mapping old characters to new characters.
-    alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,\
+    alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,
                                       alphabet_def=alphabet_def)
 
     # Create the recoded version of seqs.Alphabet 
@@ -227,7 +228,7 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
 
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new DenseAlignment.
-    return DenseAlignment(take(new_indices, aln.ArraySeqs).transpose(),\
+    return DenseAlignment(take(new_indices, aln.ArraySeqs).transpose(),
                           aln.Names[:], MolType=aln.MolType)
 
 
@@ -255,7 +256,8 @@ def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
     result = {}
     for new, olds in alphabet_def:
         for old in olds:
-            if old in ignores: continue
+            if old in ignores:
+                continue
             try:
                 result[new] += freqs[old]
             except KeyError:
@@ -310,7 +312,7 @@ def recode_count_matrix(alphabet, count_matrix, aa_order):
     return array(cm)
 
 
-def recode_counts_and_freqs(alphabet, count_matrix=DSO78_matrix,\
+def recode_counts_and_freqs(alphabet, count_matrix=DSO78_matrix,
                             freqs=DSO78_freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
     """ recode a substituion count matrix and a vector of character freqs
     """

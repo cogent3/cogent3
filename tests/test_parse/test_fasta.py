@@ -33,8 +33,10 @@ class GenericFastaTest(TestCase):
         self.labels = '>abc\n>def\n>ghi\n'.split('\n')
         self.oneseq = '>abc\nUCAG\n'.split('\n')
         self.multiline = '>xyz\nUUUU\nCC\nAAAAA\nG'.split('\n')
-        self.threeseq = '>123\na\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
-        self.twogood = '>123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
+        self.threeseq = '>123\na\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split(
+            '\n')
+        self.twogood = '>123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split(
+            '\n')
         self.oneX = '>123\nX\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
         self.nolabels = 'GJ>DSJGSJDF\nSFHKLDFS>jkfs\n'.split('\n')
         self.empty = []
@@ -279,23 +281,27 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(len(f), 2)
         a, b = f
         a, b = a[1], b[1]  # field 0 is the name
-        self.assertEqual(a, 'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNLSEIQNIKSELKYVPKAEQ')
+        self.assertEqual(
+            a, 'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNLSEIQNIKSELKYVPKAEQ')
         self.assertEqual(a.Info.GI, ['10047090'])
         self.assertEqual(a.Info.RefSeq, ['NP_055147.1'])
         self.assertEqual(a.Info.DDBJ, [])
         self.assertEqual(a.Info.Description, 
                          'small muscle protein, X-linked [Homo sapiens]')
 
-        self.assertEqual(b, 'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLYPPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD')
+        self.assertEqual(
+            b, 'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLYPPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD')
         self.assertEqual(b.Info.GI, ['10047092'])
         self.assertEqual(b.Info.RefSeq, ['NP_037391.1'])
         self.assertEqual(b.Info.Description, 'neuronal protein [Homo sapiens]')
 
     def test_bad(self):
         """NcbiFastaParser should raise error on bad records if strict"""
-        # if strict, starting anywhere in the first 15 lines should cause errors
+        # if strict, starting anywhere in the first 15 lines should cause
+        # errors
         for i in range(15):
-            self.assertRaises(RecordError, list, NcbiFastaParser(self.nasty[i:]))
+            self.assertRaises(RecordError, list,
+                              NcbiFastaParser(self.nasty[i:]))
         #...but the 16th is OK.
         r = list(NcbiFastaParser(self.nasty[15:]))[0]
         self.assertEqual(r, ('123', 'ucagUCAGtgacNNNN'))
@@ -303,16 +309,16 @@ class NcbiFastaParserTests(TestCase):
         r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
         self.assertEqual(len(r), 4)
         a, b, c, d = r
-        self.assertEqual((a[1], a[1].Info.GI, a[1].Info.RefSeq, \
+        self.assertEqual((a[1], a[1].Info.GI, a[1].Info.RefSeq,
                           a[1].Info.Description), 
                          ('UCAG', ['abc'], ['def'], ''))
-        self.assertEqual((b[1], b[1].Info.GI, b[1].Info.GenBank, \
+        self.assertEqual((b[1], b[1].Info.GI, b[1].Info.GenBank,
                           b[1].Info.Description),
                          ('UUUUCCCC', ['xyz'], ['qwe'], 'descr'))
-        self.assertEqual((c[1], c[1].Info.GI, c[1].Info.RefSeq, \
+        self.assertEqual((c[1], c[1].Info.GI, c[1].Info.RefSeq,
                           c[1].Info.Description),
                          ('XYZ', ['bad'], ['stuff'], 'label'))
-        self.assertEqual((d[1], d[1].Info.GI, d[1].Info.DDBJ, \
+        self.assertEqual((d[1], d[1].Info.GI, d[1].Info.DDBJ,
                           d[1].Info.Description),
                          ('ucagUCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
         #...and when we explicitly supply a constructor
@@ -373,7 +379,8 @@ class LabelParsingTest(TestCase):
                               (">abcd:Human misc", "misc:abcd")]:
             self.assertEqual(make(label), expect)
 
-        # should raise an assertion error if template doesn't match at least one field name
+        # should raise an assertion error if template doesn't match at least
+        # one field name
         self.assertRaises(AssertionError, LabelParser, "%s:%s",
                           [[0, "accession", str],
                            [2, "species", str]],

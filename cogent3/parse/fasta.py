@@ -47,8 +47,8 @@ def is_blank(x):
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 
-def MinimalFastaParser(infile, strict=True, \
-                       label_to_name=str, finder=FastaFinder, \
+def MinimalFastaParser(infile, strict=True,
+                       label_to_name=str, finder=FastaFinder,
                        is_label=None, label_characters='>'):
     """Yields successive sequences from infile as (label, seq) tuples.
 
@@ -59,14 +59,14 @@ def MinimalFastaParser(infile, strict=True, \
         # first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
-                raise RecordError("Found Fasta record without label line: %s" %\
+                raise RecordError("Found Fasta record without label line: %s" %
                                   rec)
             else:
                 continue
         # record must have at least one sequence
         if len(rec) < 2:
             if strict:
-                raise RecordError("Found label line without sequences: %s" % \
+                raise RecordError("Found label line without sequences: %s" %
                                   rec)
             else:
                 continue
@@ -81,7 +81,7 @@ GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
-    return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,\
+    return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,
                               label_characters='%#')
 
 
@@ -101,7 +101,7 @@ def is_xmfa_blank_or_comment(x):
     """Checks if x is blank or an XMFA comment line."""
     return (not x) or x.startswith('=') or x.isspace()
 
-XmfaFinder = LabeledRecordFinder(is_fasta_label, \
+XmfaFinder = LabeledRecordFinder(is_fasta_label,
                                  ignore=is_xmfa_blank_or_comment)
 
 
@@ -144,7 +144,8 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, Name=name, Info=info)
             except Exception as e:
-                raise RecordError("Sequence construction failed on record with label %s" % label)
+                raise RecordError(
+                    "Sequence construction failed on record with label %s" % label)
         else:
             # not strict: just skip any record that raises an exception
             try:
@@ -170,7 +171,8 @@ def NcbiFastaLabelParser(line):
     """
     info = Info()
     try:
-        ignore, gi, db, db_ref, description = list(map(strip, line.split('|', 4)))
+        ignore, gi, db, db_ref, description = list(
+            map(strip, line.split('|', 4)))
     except ValueError:  # probably got wrong value
         raise RecordError("Unable to parse label line %s" % line)
     info.GI = gi
@@ -234,7 +236,8 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                 try:
                     info[name] = converter(label[index])
                 except IndexError:
-                    raise IndexError('parsing label %s failed for property %s at index %s' % (label, name, index))
+                    raise IndexError(
+                        'parsing label %s failed for property %s at index %s' % (label, name, index))
             else:
                 info[name] = label[index]
         return RichLabel(info, display_template)
@@ -255,7 +258,8 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
         """
 
     done_groups = [[], done_groups][done_groups is not None]
-    parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)
+    parser = MinimalFastaParser(
+        data, label_to_name=label_to_name, finder=XmfaFinder)
     group_ids = []
     current_collection = {}
     for label, seq in parser:
@@ -271,7 +275,8 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
             if group_ids[-1] not in done_groups:
                 info = Info(Group=group_ids[-1])
                 if DEBUG:
-                    print("GroupParser collection keys", list(current_collection.keys()))
+                    print("GroupParser collection keys",
+                          list(current_collection.keys()))
                 seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
                                         aligned=aligned)
                 seqs.Info = info

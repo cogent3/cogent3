@@ -80,7 +80,8 @@ class KSTests(TestCase):
         D, Pval = ks_test(self.x1, self.x2, alt="g")
         self.assertFloatEqual((D, Pval), (0.46, 2.542e-05), eps=1e-4)
         D, Pval = ks_test(self.x1, self.x2, alt="less")
-        self.assertFloatEqual((D, Pval), (6.9388939039072284e-18, 1.), eps=1e-4)
+        self.assertFloatEqual(
+            (D, Pval), (6.9388939039072284e-18, 1.), eps=1e-4)
         D, Pval = ks_test(self.x2, self.x1, alt="l")
         self.assertFloatEqual((D, Pval), (0.46, 2.542e-05), eps=1e-4)
 

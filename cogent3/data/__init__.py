@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['energy_params', 'molecular_weight', 'protein_properties', \
+__all__ = ['energy_params', 'molecular_weight', 'protein_properties',
            'ligand_properties']
 
 __author__ = ""

@@ -17,7 +17,8 @@ AA_PROPERTIES = {
     'ARG': (-4.5, 1.0, -1.37, -1.88, 248.0, 'C', 'P', 'E', 'K', 'K', 'K', 15, 'R'),
     'ASN': (-3.5, 0.0, -0.82, -1.03, 157.0, 'D', 'P', 'E', 'E', 'E', 'N', 16, 'N'),
     'ASP': (-3.5, -1.0, -1.05, -0.78, 163.0, 'C', 'P', 'E', 'E', 'E', 'D', 19, 'D'),
-    'ASX': (-3.5, -0.5, -1.05, -0.78, 160.0, None, 'P', 'E', 'E', 'E', None, None, 'B'),  # 1kp0.pdb 
+    # 1kp0.pdb
+    'ASX': (-3.5, -0.5, -1.05, -0.78, 160.0, None, 'P', 'E', 'E', 'E', None, None, 'B'),
     'CYS': (2.5, 0.0, 1.34, -0.85, 135.0, 'T', 'H', 'L', 'L', 'C', 'C', 7, 'C'),
     'GLN': (-3.5, 0.0, -0.30, -1.73, 198.0, 'D', 'P', 'E', 'E', 'E', 'Q', 17, 'Q'),
     'GLU': (-3.5, -1.0, -0.87, -1.46, 194.0, 'C', 'P', 'E', 'E', 'E', 'E', 18, 'E'),
@@ -31,7 +32,8 @@ AA_PROPERTIES = {
     'MSE': (0.0, 0.0, 0.00, 0.00, 000.0, 'D', 'H', 'L', 'L', 'L', 'L', 5, 'M'),  # SeMet  
     'PHE': (2.8, 0.0, 2.44, -0.62, 197.0, 'R', 'H', 'F', 'F', 'F', 'F', 2, 'F'),
     'PRO': (-1.6, 0.0, 0.98, -0.06, 136.0, 'D', 'P', 'A', 'P', 'P', 'P', 13, 'P'),
-    'SEC': (2.5, 0.0, 1.34, -0.85, 135.0, 'T', 'H', 'L', 'L', 'C', 'C', 7, 'U'),  # SeCys  
+    # SeCys
+    'SEC': (2.5, 0.0, 1.34, -0.85, 135.0, 'T', 'H', 'L', 'L', 'C', 'C', 7, 'U'),
     'SER': (-0.8, 0.0, -0.05, -1.11, 130.0, 'T', 'P', 'A', 'S', 'S', 'S', 14, 'S'),
     'THR': (-0.7, 0.0, 0.35, -1.08, 142.0, 'D', 'P', 'A', 'S', 'S', 'T', 12, 'T'),
     'TRP': (-0.9, 0.0, 3.07, -0.99, 227.0, 'R', 'H', 'F', 'F', 'F', 'W', 6, 'W'),
@@ -42,19 +44,31 @@ AA_PROPERTIES = {
 
 AA_NAMES_1 = [value_[-1] for value_ in AA_PROPERTIES.values()]
 AA_NAMES_3 = [key_ for key_ in AA_PROPERTIES.keys()]
-AA_NAMES_3to1 = dict([(key_, value_[-1]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_GRAVY = dict([(key_, value_[0]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_CHARGE = dict([(key_, value_[1]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_SOLVATATION = dict([(key_, value_[2]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_ENTROPY = dict([(key_, value_[3]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_NAMES_3to1 = dict([(key_, value_[-1])
+                     for (key_, value_) in AA_PROPERTIES.items()])
+AA_GRAVY = dict([(key_, value_[0])
+                for (key_, value_) in AA_PROPERTIES.items()])
+AA_CHARGE = dict([(key_, value_[1])
+                 for (key_, value_) in AA_PROPERTIES.items()])
+AA_SOLVATATION = dict([(key_, value_[2])
+                      for (key_, value_) in AA_PROPERTIES.items()])
+AA_ENTROPY = dict([(key_, value_[3])
+                  for (key_, value_) in AA_PROPERTIES.items()])
 AA_ASA = dict([(key_, value_[4]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_5 = dict([(key_, value_[5]) for (key_, value_) in AA_PROPERTIES.items()])  # (Aliphatic, aRomatic, Charged, Tiny, Diverse)
-AA_2 = dict([(key_, value_[6]) for (key_, value_) in AA_PROPERTIES.items()])  # (Hydrphobic, hydroPhylic) 
-AA_4MURPHY = dict([(key_, value_[7]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_8MURPHY = dict([(key_, value_[8]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_10MURPHY = dict([(key_, value_[9]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_15MURPHY = dict([(key_, value_[10]) for (key_, value_) in AA_PROPERTIES.items()])
-AA_POLARITY = dict([(key_, value_[11]) for (key_, value_) in AA_PROPERTIES.items()])
+# (Aliphatic, aRomatic, Charged, Tiny, Diverse)
+AA_5 = dict([(key_, value_[5]) for (key_, value_) in AA_PROPERTIES.items()])
+# (Hydrphobic, hydroPhylic)
+AA_2 = dict([(key_, value_[6]) for (key_, value_) in AA_PROPERTIES.items()])
+AA_4MURPHY = dict([(key_, value_[7])
+                  for (key_, value_) in AA_PROPERTIES.items()])
+AA_8MURPHY = dict([(key_, value_[8])
+                  for (key_, value_) in AA_PROPERTIES.items()])
+AA_10MURPHY = dict([(key_, value_[9])
+                   for (key_, value_) in AA_PROPERTIES.items()])
+AA_15MURPHY = dict([(key_, value_[10])
+                   for (key_, value_) in AA_PROPERTIES.items()])
+AA_POLARITY = dict([(key_, value_[11])
+                   for (key_, value_) in AA_PROPERTIES.items()])
 
 # short alternative
 AA_NAMES = AA_NAMES_3
@@ -89,7 +103,7 @@ AA_ATOMS = {
 
 # sort atoms in residue according to PDBv3 specification
 AA_ATOM_BACKBONE_ORDER = {'N': 3, 'CA': 2, 'C': 1, 'O': 0}
-AA_ATOM_REMOTE_ORDER = {'A': 0, 'B': 1, 'G': 2, 'D': 3, 'E': 4, 'Z': 5, \
+AA_ATOM_REMOTE_ORDER = {'A': 0, 'B': 1, 'G': 2, 'D': 3, 'E': 4, 'Z': 5,
                         'H': 6, 'X': 7, '1': 8, '2': 9, 'N': 9, '3': 10}
 # H1, H2, H3 and NH2 in PDV v2.3AA_
 
