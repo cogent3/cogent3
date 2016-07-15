@@ -72,7 +72,7 @@ class AnnealingHistory(object):
     def minRemainingRounds(self, tolerance):
         last = self.values[-1]
         return max([0] + [i + 1 for (i, v) in enumerate(self.values)
-                        if v is None or abs(v - last) > tolerance])
+                          if v is None or abs(v - last) > tolerance])
 
 
 class AnnealingState(object):

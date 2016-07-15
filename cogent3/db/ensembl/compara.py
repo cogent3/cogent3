@@ -54,8 +54,8 @@ class Compara(object):
     def __str__(self):
         my_type = self.__class__.__name__
         return "%s(Species=%s; Release=%s; connected=%s)" % \
-        (my_type, self.Species, self.Release,
-         self.ComparaDb is not None)
+            (my_type, self.Species, self.Release,
+             self.ComparaDb is not None)
 
     def _connect_db(self):
         # TODO can the connection be all done in init?
@@ -102,7 +102,7 @@ class Compara(object):
                            genome_db_table.c.taxon_id.in_(list(self.taxon_id_species.keys())))
         records = query.execute()
         self._species_db_map = \
-        dict([(r['genome_db_id'], r['taxon_id']) for r in records])
+            dict([(r['genome_db_id'], r['taxon_id']) for r in records])
         return self._species_db_map
 
     genome_taxon = property(_get_genome_db_ids)
@@ -143,7 +143,7 @@ class Compara(object):
         methods = query.execute().fetchall()
         method_link_ids = dict([(r['method_link_id'], r) for r in methods])
         method_link_species_table = \
-        self.ComparaDb.getTable('method_link_species_set')
+            self.ComparaDb.getTable('method_link_species_set')
         query = sql.select([method_link_species_table],
                            sql.and_(
             method_link_species_table.c.species_set_id.in_(self.species_set),
@@ -225,11 +225,11 @@ class Compara(object):
             print("1 - homology_ids", homology_ids)
 
         homology_records = \
-        sql.select([homology_table.c.homology_id,
-                    homology_table.c.description,
-                    homology_table.c.method_link_species_set_id],
-                   sql.and_(homology_table.c.homology_id.in_(homology_ids),
-                            homology_table.c.description == Relationship))
+            sql.select([homology_table.c.homology_id,
+                        homology_table.c.description,
+                        homology_table.c.method_link_species_set_id],
+                       sql.and_(homology_table.c.homology_id.in_(homology_ids),
+                                homology_table.c.description == Relationship))
 
         homology_ids = []
         for r in homology_records.execute():
@@ -350,7 +350,7 @@ class Compara(object):
               in method_species_links under method_link_species_set_id
               """
         assert (align_method and align_clade) or method_clade_id, \
-        'Must specify (align_method & align_clade) or method_clade_id'
+            'Must specify (align_method & align_clade) or method_clade_id'
         if method_clade_id is None:
             for row in self.method_species_links:
                 if align_method.lower() in row['align_method'].lower() and\
@@ -379,7 +379,7 @@ class Compara(object):
 
         ref_dnafrag_id = self._get_dnafrag_id_for_coord(region)
         blocks = self._get_genomic_align_blocks_for_dna_frag_id(method_clade_id,
-                                                              ref_dnafrag_id, region)
+                                                                ref_dnafrag_id, region)
         for block in blocks:
             genomic_align_block_id = block['genomic_align_block_id']
             # we get joint records for these identifiers from
@@ -412,7 +412,7 @@ class Compara(object):
                     continue
                 members += [(genome, record)]
             assert ref_location is not None, "Failed to make the reference"\
-            " location"
+                " location"
             yield SyntenicRegions(self, members, ref_location=ref_location)
 
     def getDistinct(self, property_type):

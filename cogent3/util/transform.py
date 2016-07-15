@@ -446,7 +446,7 @@ class keep_chars(object):
 
         keep = keep.encode('utf-8')
         self._strip_table = dict([(c, None)
-                                 for c in self.allchars if c not in keep])
+                                  for c in self.allchars if c not in keep])
 
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""

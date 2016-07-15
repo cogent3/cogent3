@@ -72,7 +72,7 @@ alphabets = {\
     # B/Z are assigned to the acidic residues, since D/E are more common --
     # need to figure out if this is the best way to handle them
     'polarity_his_4': [('D', 'DEBZ'), ('R', 'RHK'),\
-                      ('A', 'AILMFPWV'), ('G', 'GSTCYNQ')],
+                       ('A', 'AILMFPWV'), ('G', 'GSTCYNQ')],
     # This is a modified A1_4 alphabet to capture natural breaks in the metric
     'a1_4m': [('C', 'CVILF'), ('M', 'MWA'), ('T', 'GSTPYH'), ('N', 'QNDERK')],
 
@@ -81,73 +81,73 @@ alphabets = {\
     'a1_4': [('C', 'CVILF'), ('M', 'MWAGS'), ('T', 'TPYHQ'), ('N', 'NDERK')],
     'a1_5': [('C', 'CVIL'), ('F', 'FMWA'), ('G', 'GSTP'), ('Y', 'YHQN'), ('D', 'DERK')],
     'a1_6': [('C', 'CVI'), ('L', 'LFMW'), ('A', 'AGS'), ('T', 'TPY'), ('H', 'HQND'),\
-            ('E', 'ERK')],
+             ('E', 'ERK')],
     'a1_7': [('C', 'CVI'), ('L', 'LFM'), ('W', 'WAG'), ('S', 'ST'), ('P', 'PYH'),\
-            ('Q', 'QND'), ('E', 'ERK')],
+             ('Q', 'QND'), ('E', 'ERK')],
     'a1_8': [('C', 'CVI'), ('L', 'LF'), ('M', 'MWA'), ('G', 'GS'), ('T', 'TPY'),\
-            ('H', 'HQ'), ('N', 'NDE'), ('R', 'RK')],
+             ('H', 'HQ'), ('N', 'NDE'), ('R', 'RK')],
     'a1_9': [('C', 'CV'), ('I', 'IL'), ('F', 'FMW'), ('A', 'AG'),\
-            ('S', 'ST'), ('P', 'PY'),\
-            ('H', 'HQN'), ('D', 'DE'), ('R', 'RK')],
+             ('S', 'ST'), ('P', 'PY'),\
+             ('H', 'HQN'), ('D', 'DE'), ('R', 'RK')],
     'a1_10': [('C', 'CV'), ('I', 'IL'), ('F', 'FM'),\
-             ('W', 'WA'), ('G', 'GS'), ('T', 'TP'),\
-             ('Y', 'YH'), ('Q', 'QN'), ('D', 'DE'), ('R', 'RK')],
+              ('W', 'WA'), ('G', 'GS'), ('T', 'TP'),\
+              ('Y', 'YH'), ('Q', 'QN'), ('D', 'DE'), ('R', 'RK')],
     'a2_2': [('M', 'MEALFKIHVQ'), ('R', 'RWDTCNYSGP')],
     'a2_3': [('M', 'MEALFKI'), ('H', 'HVQRWD'), ('T', 'TCNYSGP')],
     'a2_4': [('M', 'MEALF'), ('K', 'KIHVQ'), ('R', 'RWDTC'), ('N', 'NYSGP')],
     'a2_5': [('M', 'MEAL'), ('F', 'FKIH'), ('V', 'VQRW'), ('D', 'DTCN'), ('Y', 'YSGP')],
     'a2_6': [('M', 'MEA'), ('L', 'LFKI'), ('H', 'HVQ'), ('R', 'RWD'), ('T', 'TCNY'),\
-            ('S', 'SGP')],
+             ('S', 'SGP')],
     'a2_7': [('M', 'MEA'), ('L', 'LFK'), ('I', 'IHV'), ('Q', 'QR'), ('W', 'WDT'),\
-            ('C', 'CNY'), ('S', 'SGP')],
+             ('C', 'CNY'), ('S', 'SGP')],
     'a2_8': [('M', 'MEA'), ('L', 'LF'), ('K', 'KIH'), ('V', 'VQ'), ('R', 'RWD'),\
-            ('T', 'TC'), ('N', 'NYS'), ('G', 'GP')],
+             ('T', 'TC'), ('N', 'NYS'), ('G', 'GP')],
     'a2_9': [('M', 'ME'), ('A', 'AL'), ('F', 'FKI'), ('H', 'HV'), ('Q', 'QR'),\
-            ('W', 'WD'), ('T', 'TCN'), ('Y', 'YS'), ('G', 'GP')],
+             ('W', 'WD'), ('T', 'TCN'), ('Y', 'YS'), ('G', 'GP')],
     'a2_10': [('M', 'ME'), ('A', 'AL'), ('F', 'FK'), ('I', 'IH'), ('V', 'VQ'),\
-             ('R', 'RW'), ('D', 'DT'), ('C', 'CN'), ('Y', 'YS'), ('G', 'GP')],
+              ('R', 'RW'), ('D', 'DT'), ('C', 'CN'), ('Y', 'YS'), ('G', 'GP')],
     'a3_2': [('S', 'SDQHPLCAVK'), ('W', 'WNGERFITMY')],
     'a3_3': [('S', 'SDQHPLC'), ('A', 'AVKWNG'), ('E', 'ERFITMY')],
     'a3_4': [('S', 'SDQHP'), ('L', 'LCAVK'), ('W', 'WNGER'), ('F', 'FITMY')],
     'a3_5': [('S', 'SDQH'), ('P', 'PLCA'), ('V', 'VKWN'), ('G', 'GERF'), ('I', 'ITMY')],
     'a3_6': [('S', 'SDQ'), ('H', 'HPLC'), ('A', 'AVK'), ('W', 'WNG'), ('E', 'ERFI'),\
-            ('T', 'TMY')],
+             ('T', 'TMY')],
     'a3_7': [('S', 'SDQ'), ('H', 'HPL'), ('C', 'CAV'), ('K', 'KW'), ('N', 'NGE'),\
-            ('R', 'RFI'), ('T', 'TMY')],
+             ('R', 'RFI'), ('T', 'TMY')],
     'a3_8': [('S', 'SDQ'), ('H', 'HP'), ('L', 'LCA'), ('V', 'VK'), ('W', 'WNG'),\
-            ('E', 'ER'), ('F', 'FIT'), ('M', 'MY')],
+             ('E', 'ER'), ('F', 'FIT'), ('M', 'MY')],
     'a3_9': [('S', 'SD'), ('Q', 'QH'), ('P', 'PLC'), ('A', 'AV'), ('K', 'KW'),\
-            ('N', 'NG'), ('E', 'ERF'), ('I', 'IT'), ('M', 'MY')],
+             ('N', 'NG'), ('E', 'ERF'), ('I', 'IT'), ('M', 'MY')],
     'a3_10': [('S', 'SD'), ('Q', 'QH'), ('P', 'PL'), ('C', 'CA'), ('V', 'VK'),\
-             ('W', 'WN'), ('G', 'GE'), ('R', 'RF'), ('I', 'IT'), ('M', 'MY')],
+              ('W', 'WN'), ('G', 'GE'), ('R', 'RF'), ('I', 'IT'), ('M', 'MY')],
     'a4_2': [('W', 'WHCMYQFKDN'), ('E', 'EIPRSTGVLA')],
     'a4_3': [('W', 'WHCMYQF'), ('K', 'KDNEIP'), ('R', 'RSTGVLA')],
     'a4_4': [('W', 'WHCMY'), ('Q', 'QFKDN'), ('E', 'EIPRS'), ('T', 'TGVLA')],
     'a4_5': [('W', 'WHCM'), ('Y', 'YQFK'), ('D', 'DNEI'), ('P', 'PRST'), ('G', 'GVLA')],
     'a4_6': [('W', 'WHC'), ('M', 'MYQF'), ('K', 'KDN'), ('E', 'EIP'), ('R', 'RSTG'),\
-            ('V', 'VLA')],
+             ('V', 'VLA')],
     'a4_7': [('W', 'WHC'), ('M', 'MYQ'), ('F', 'FKD'), ('N', 'NE'), ('I', 'IPR'),\
-            ('S', 'STG'), ('V', 'VLA')],
+             ('S', 'STG'), ('V', 'VLA')],
     'a4_8': [('W', 'WHC'), ('M', 'MY'), ('Q', 'QFK'), ('D', 'DN'), ('E', 'EIP'),\
-            ('R', 'RS'), ('T', 'TGV'), ('L', 'LA')],
+             ('R', 'RS'), ('T', 'TGV'), ('L', 'LA')],
     'a4_9': [('W', 'WH'), ('C', 'CM'), ('Y', 'YQF'), ('K', 'KD'), ('N', 'NE'),\
-            ('I', 'IP'), ('R', 'RST'), ('G', 'GV'), ('L', 'LA')],
+             ('I', 'IP'), ('R', 'RST'), ('G', 'GV'), ('L', 'LA')],
     'a4_10': [('W', 'WH'), ('C', 'CM'), ('Y', 'YQ'), ('F', 'FK'), ('D', 'DN'),\
-             ('E', 'EI'), ('P', 'PR'), ('S', 'ST'), ('G', 'GV'), ('L', 'LA')],
+              ('E', 'EI'), ('P', 'PR'), ('S', 'ST'), ('G', 'GV'), ('L', 'LA')],
     'a5_2': [('D', 'DSQPVLECWA'), ('H', 'HFINMTYKGR')],
     'a5_3': [('D', 'DSQPVLE'), ('C', 'CWAHFI'), ('N', 'NMTYKGR')],
     'a5_4': [('D', 'DSQPV'), ('L', 'LECWA'), ('H', 'HFINM'), ('T', 'TYKGR')],
     'a5_5': [('D', 'DSQP'), ('V', 'VLEC'), ('W', 'WAHF'), ('I', 'INMT'), ('Y', 'YKGR')],
     'a5_6': [('D', 'DSQ'), ('P', 'PVLE'), ('C', 'CWA'), ('H', 'HFI'), ('N', 'NMTY'),\
-            ('K', 'KGR')],
+             ('K', 'KGR')],
     'a5_7': [('D', 'DSQ'), ('P', 'PVL'), ('E', 'ECW'), ('A', 'AH'), ('F', 'FIN'),\
-            ('M', 'MTY'), ('K', 'KGR')],
+             ('M', 'MTY'), ('K', 'KGR')],
     'a5_8': [('D', 'DSQ'), ('P', 'PV'), ('L', 'LEC'), ('W', 'WA'), ('H', 'HFI'),\
-            ('N', 'NM'), ('T', 'TYK'), ('G', 'GR')],
+             ('N', 'NM'), ('T', 'TYK'), ('G', 'GR')],
     'a5_9': [('D', 'DS'), ('Q', 'QP'), ('V', 'VLE'), ('C', 'CW'), ('A', 'AH'),\
-            ('F', 'FI'), ('N', 'NMT'), ('Y', 'YK'), ('G', 'GR')],
+             ('F', 'FI'), ('N', 'NMT'), ('Y', 'YK'), ('G', 'GR')],
     'a5_10': [('D', 'DS'), ('Q', 'QP'), ('V', 'VL'), ('E', 'EC'), ('W', 'WA'),\
-             ('H', 'HF'), ('I', 'IN'), ('M', 'MT'), ('Y', 'YK'), ('G', 'GR')],
+              ('H', 'HF'), ('I', 'IN'), ('M', 'MT'), ('Y', 'YK'), ('G', 'GR')],
     # orig does no recoding, but is provided for convenience so if you want to
     # iterate over all reduced alphabets and the full alphabet, you can do that
     # without having specify the original alphabet differently.

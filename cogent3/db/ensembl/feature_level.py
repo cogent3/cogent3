@@ -75,9 +75,9 @@ class FeatureCoordLevelsCache(object):
 
         for feature, table_name in zip(features, tables):
             feature_coord_ids = [r['coord_system_id']
-                for r in records if r['table_name'] == table_name]
+                                 for r in records if r['table_name'] == table_name]
             feature_coord_systems = [coord_system[coord_id]
-                for coord_id in feature_coord_ids]
+                                     for coord_id in feature_coord_ids]
             levels = [s.name for s in feature_coord_systems]
             self._species_feature_levels[species][
                 feature] = _FeatureLevelRecord(feature, levels)

@@ -186,7 +186,7 @@ def SiteClassTransitionMatrix(switch, probs):
     assert numpy.allclose(sum(probs), 1.0), probs
     I = numpy.identity(len(probs), Float)
     switch_probs =  (1.0 - I) * (probs * switch) + \
-    I * (1.0 - (1.0 - probs) * switch)
+        I * (1.0 - (1.0 - probs) * switch)
     tags = [i + 1 for i in range(len(switch_probs))]
     return TransitionMatrix(
         switch_probs, tags, stationary_probs=probs.copy())

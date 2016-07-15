@@ -85,7 +85,7 @@ class _LikelihoodTreeEdge(object):
 
         # Derive per-column degree of ambiguity from children's
         ambigs = [child.ambig[index]
-            for (index, child) in self._indexed_children]
+                  for (index, child) in self._indexed_children]
         self.ambig = numpy.product(ambigs, axis=0)
 
     def getSitePatterns(self, cols):

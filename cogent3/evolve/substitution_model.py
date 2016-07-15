@@ -77,7 +77,7 @@ def redundancyInPredicateMasks(preds):
     if len(preds) <= 1:
         return 0
     eqns = 1.0 * numpy.array([list(mask.flat)
-                             for mask in list(preds.values())])
+                              for mask in list(preds.values())])
     svs = svd(eqns)[1]
     # count non-duplicate non-zeros singular values
     matrix_rank = len([sv for sv in svs if abs(sv) > 1e-8])
@@ -341,7 +341,7 @@ class _SubstitutionModel(object):
             'align': self.makeAlignmentDefn(ConstDefn(self, 'model')),
             'bprobs': bprobs,
             'word_probs': word_probs,
-            }
+        }
 
         rate_params = self.makeRateParams(bprobs)
         if endAtQd:

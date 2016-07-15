@@ -236,7 +236,7 @@ class EstimateDistances(object):
               (default) and 'median'."""
         pairwise_stats = {}
         assert param in self._est_params + ['length'], \
-        "unrecognised param %s" % param
+            "unrecognised param %s" % param
         if self._threeway and param == 'length':
             pairwise_stats = get_pairwise_distance_from_triad(self._param_ests,
                                                               summary_function=summary_function)
@@ -280,7 +280,7 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
         d = \
-        self.getPairwiseDistances(summary_function=summary_function, **kwargs)
+            self.getPairwiseDistances(summary_function=summary_function, **kwargs)
         if not d:
             d = {}
             for s1 in self._seqnames:

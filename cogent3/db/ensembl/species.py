@@ -249,7 +249,7 @@ class SpeciesNameMap(dict):
         species_name = CaseInsensitiveString(species_name)
         common_name = CaseInsensitiveString(common_name)
         assert "_" not in species_name,\
-        "'_' in species_name, not a Latin name?"
+            "'_' in species_name, not a Latin name?"
         self._purge_species(species_name)  # remove if existing
         self._species_common[species_name] = common_name
         self._common_species[common_name] = species_name

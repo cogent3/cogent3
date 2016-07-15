@@ -7,7 +7,7 @@ try:
     connect_template = 'mysql+mysqlconnector://%(account)s/%(db_name)s?raise_on_warnings=False'
     password_arg = 'password'
     sql_version = tuple([int(v)
-                        for v in sql.__version__.split(".") if v.isdigit()])
+                         for v in sql.__version__.split(".") if v.isdigit()])
     if sql_version < (0, 9, 7):
         warnings.warn('mysql.connector requires sqlalchemy >= 0.9.7\n')
         raise ImportError
@@ -144,7 +144,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
                 continue
             name = EnsemblDbName(row[0])
             if (release is None or name.Release == str(release)) and\
-            (db_type is None or name.Type == db_type):
+                    (db_type is None or name.Type == db_type):
                 dbs.append(name)
         except (IndexError, RuntimeError):
             if DEBUG:

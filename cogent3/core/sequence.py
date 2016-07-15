@@ -585,7 +585,7 @@ class Sequence(_Annotatable, SequenceI):
               the annotated regions"""
         if mask_char is None:
             ambigs = [(len(v), c)
-                       for c, v in list(self.MolType.Ambiguities.items())]
+                      for c, v in list(self.MolType.Ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
         assert mask_char in self.MolType, 'Invalid mask_char %s' % mask_char
@@ -753,7 +753,7 @@ class Sequence(_Annotatable, SequenceI):
             Name=self.getName(), Info=self.Info)
         if self.annotations:
             seq.annotations = [a.remappedTo(seq, map)
-                                            for a in self.annotations]
+                               for a in self.annotations]
         return (map, seq)
 
 
@@ -899,7 +899,7 @@ class DnaSequence(NucleicAcidSequence):
             'T': colours.red,
             'C': colours.blue,
             'G': colours.green,
-            }
+        }
 
     def _seq_filter(self, seq):
         """Converts U to T."""
@@ -914,7 +914,7 @@ class RnaSequence(NucleicAcidSequence):
             'U': colours.red,
             'C': colours.blue,
             'G': colours.green,
-            }
+        }
 
     def _seq_filter(self, seq):
         """Converts T to U."""

@@ -1535,7 +1535,7 @@ def get_random_directory_name(suppress_mkdir=False,
     # Construct the directory name
     dirname = '%s%s%s%s' % (prefix, timestamp,
                             ''.join([choice(picks)
-                                    for i in range(rand_length)]),
+                                     for i in range(rand_length)]),
                             suffix)
     dirpath = join(output_dir, dirname)
     abs_dirpath = abspath(dirpath)

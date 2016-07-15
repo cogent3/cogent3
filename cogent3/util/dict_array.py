@@ -77,7 +77,7 @@ class DictArrayTemplate(object):
         array = numpy.asarray(array, dtype=dtype)
         for (dim, categories) in enumerate(self.names):
             assert len(categories) == numpy.shape(array)[
-                       dim], "cats=%s; dim=%s" % (categories, dim)
+                dim], "cats=%s; dim=%s" % (categories, dim)
         return DictArray(array, self)
 
     def interpretIndex(self, names):
@@ -112,7 +112,7 @@ class DictArrayTemplate(object):
         elif len(a.shape) == 2:
             heading = [''] + [str(n) for n in self.names[1]]
             a = [[str(name)] + list(row)
-                      for (name, row) in zip(self.names[0], a)]
+                 for (name, row) in zip(self.names[0], a)]
         else:
             return '%s dimensional %s' % (
                 len(self.names), type(self).__name__)

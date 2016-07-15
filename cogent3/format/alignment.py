@@ -258,4 +258,4 @@ WRITERS = {
     'mfa': FastaWriter,
     'fa': FastaWriter,
     'gde': GDEWriter,
-    }
+}

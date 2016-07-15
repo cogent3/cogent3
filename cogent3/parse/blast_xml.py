@@ -180,13 +180,13 @@ class BlastXMLResult(BlastResult):
     # .. extend HitKeys
     HitKeys = BlastResult.HitKeys.union(
         set([HIT_DEF,
-              HIT_ACCESSION,
-              HIT_LENGTH,
-              SCORE,
-              POSITIVE,
-              QUERY_ALIGN,
-              SUBJECT_ALIGN,
-              MIDLINE_ALIGN]))
+             HIT_ACCESSION,
+             HIT_LENGTH,
+             SCORE,
+             POSITIVE,
+             QUERY_ALIGN,
+             SUBJECT_ALIGN,
+             MIDLINE_ALIGN]))
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure

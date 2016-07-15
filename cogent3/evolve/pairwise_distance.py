@@ -149,7 +149,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
          (coeff2 * v2 / (2 * freq_pyrs)) + \
          (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
     var = v1**2 * pur_ts_diffs + v2**2 * pyr_ts_diffs + v4**2 * tv_diffs - \
-    (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
+        (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
     var /= total
 
     return total, p, dist, var

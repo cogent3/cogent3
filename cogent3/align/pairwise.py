@@ -202,7 +202,7 @@ class TrackBack(object):
 
     def offset(self, X, Y):
         tlist = [(state, (x + X, y + Y), dxy)
-                  for (state, (x, y), dxy) in self.tlist]
+                 for (state, (x, y), dxy) in self.tlist]
         return TrackBack(tlist)
 
     def __add__(self, other):
@@ -802,7 +802,7 @@ class PairEmissionProbs(object):
             (M, N) = pair.size
             if dp_options.local:
                 (maxpos, state, score) = pair.calcRows(1, M - 1, 1, N - 1,
-                                                        state_directions, T, scores, rows, track, encoder, **kw)
+                                                       state_directions, T, scores, rows, track, encoder, **kw)
             else:
                 pair.calcRows(0, M - 1, 0, N - 1,
                               state_directions, T, scores, rows, track, encoder, **kw)

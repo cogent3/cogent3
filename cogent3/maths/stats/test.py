@@ -246,7 +246,7 @@ def G_ind(m, williams=False):
     G = 2 * (f_ln_f_elements - f_ln_f_rows - f_ln_f_cols + f_ln_f_table)
     if williams:
         q = 1 + ((tot * sum(1.0 / sum(m, 1)) - 1) * (tot * sum(1.0 / sum(m, 0)) - 1) /
-               (6 * tot * df))
+                 (6 * tot * df))
         G = G / q
     return G, chi_high(max(G, 0), df)
 
@@ -814,7 +814,7 @@ def spearman(x_items, y_items):
         y_bar = avg(rank2)
 
         numerator = sum([(x - x_bar) * (y - y_bar)
-                        for x, y in zip(rank1, rank2)])
+                         for x, y in zip(rank1, rank2)])
         denominator = sqrt(sum([(x - x_bar)**2 for x in rank1]) *
                            sum([(y - y_bar)**2 for y in rank2]))
 
@@ -1473,7 +1473,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
 
 def _average_rank(start_rank, end_rank):
     ave_rank = sum(range(start_rank, end_rank + 1)) / \
-                   (1 + end_rank - start_rank)
+        (1 + end_rank - start_rank)
     return ave_rank
 
 

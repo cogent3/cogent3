@@ -55,8 +55,8 @@ def clustal_from_alignment(aln, interleave_len=None):
         curr_ix = 0
         while curr_ix < aln_len:
             clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)),
-                                           y[curr_ix:curr_ix +
-                                             interleave_len]) for x, y in zip(order, ordered_seqs)])
+                                             y[curr_ix:curr_ix +
+                                               interleave_len]) for x, y in zip(order, ordered_seqs)])
             clustal_list.append("")
             curr_ix += interleave_len
     else:

@@ -394,7 +394,7 @@ def dist_chisq(datamtx, strict=True):
             else:
                 dist = sqrt_grand_sum *\
                     sqrt(sum(multiply((1. / colsums),
-                                       square(r1 / r1sum - r2 / r2sum))))
+                                      square(r1 / r1sum - r2 / r2sum))))
             dists[i, j] = dists[j, i] = dist
     return dists
 
@@ -650,7 +650,7 @@ def dist_kulczynski(datamtx, strict=True):
                 cur_d = 1.0  # one row zeros, one not all zeros
             else:
                 cur_d = 1.0 - (((rowminsum / irowsum) +
-                               (rowminsum / jrowsum)) / 2.0)
+                                (rowminsum / jrowsum)) / 2.0)
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -1439,14 +1439,14 @@ def binary_dist_pearson(datamtx, strict=True):
 if __name__ == "__main__":
     """ just a test run"""
     matrix1 = array([[10, 8, 4, 1],
-                            [8, 6, 2, 1],
-                            [0, 0, 0, 0],
-                            [0, 0, 1, 0],
-                            [1, 1, 0, 1],
-                            [1, 0, 8, 10],
-                            [0, 0, 0, 0],
-                            [8, 6, 2, 1],
-                            ])
+                     [8, 6, 2, 1],
+                     [0, 0, 0, 0],
+                     [0, 0, 1, 0],
+                     [1, 1, 0, 1],
+                     [1, 0, 8, 10],
+                     [0, 0, 0, 0],
+                     [8, 6, 2, 1],
+                     ])
 
     res = dist_euclidean(matrix1)
     print("euclidean distance result: \n")

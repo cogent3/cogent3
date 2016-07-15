@@ -271,7 +271,7 @@ class Table(DictArray):
               will handle the formatting.
         """
         assert column_head in self.Header, \
-        "Unknown column heading %s" % column_head
+            "Unknown column heading %s" % column_head
 
         self._column_templates[column_head] = format_template
 
@@ -835,11 +835,11 @@ class Table(DictArray):
             if key in key_lookup:
                 for output_row_index in key_lookup[key]:
                     other_row = [other_table[output_row_index, c]
-                               for c in output_mask_other]
+                                 for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
 
         new_header = self.Header + [other_table.Title + "_" + other_table.Header[c]
-                                                  for c in output_mask_other]
+                                    for c in output_mask_other]
         if not joined_table:
             # YUK, this is to stop dimension check in DictArray causing
             # failures
@@ -937,7 +937,7 @@ class Table(DictArray):
         """
         select_as_header = select_as_header or self.Header[0]
         assert select_as_header in self.Header, \
-        '"%s" not in table Header' % select_as_header
+            '"%s" not in table Header' % select_as_header
 
         raw_data = self.getRawData()
         raw_data.insert(0, self.Header)
@@ -948,7 +948,7 @@ class Table(DictArray):
         header_index = self.Header.index(select_as_header)
 
         data_indices = list(range(0, header_index)) + list(range(header_index + 1,
-                                                               len(transposed)))
+                                                                 len(transposed)))
 
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
         header = [new_column_name] + header[1:]  # [1:] slice excludes old name

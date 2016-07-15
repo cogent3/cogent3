@@ -715,8 +715,8 @@ def ft_basic_itemparser(item_lines):
     # unpack the first line to fields
     first_line = item_lines[0]
     keyname, from_point, to_point, description = \
-    [first_line[i:j].strip() for i, j in
-     zip([0] + cut_positions, cut_positions + [None])]
+        [first_line[i:j].strip() for i, j in
+         zip([0] + cut_positions, cut_positions + [None])]
 
     # extend the description if provided following lines
     if len(item_lines) > 1:

@@ -209,16 +209,16 @@ class SequenceCollection(object):
     - MolType: specifies what kind of sequences are in the collection
     """
     InputHandlers = {'array': seqs_from_array,
-                        'model_seqs': seqs_from_model_seqs,
-                        'generic': seqs_from_generic,
-                        'fasta': seqs_from_fasta,
-                        'collection': seqs_from_aln,
-                        'aln': seqs_from_aln,
-                        'dense_aln': seqs_from_aln,
-                        'dict': seqs_from_dict,
-                        'empty': seqs_from_empty,
-                        'kv_pairs': seqs_from_kv_pairs,
-                        }
+                     'model_seqs': seqs_from_model_seqs,
+                     'generic': seqs_from_generic,
+                     'fasta': seqs_from_fasta,
+                     'collection': seqs_from_aln,
+                     'aln': seqs_from_aln,
+                     'dense_aln': seqs_from_aln,
+                     'dict': seqs_from_dict,
+                     'empty': seqs_from_empty,
+                     'kv_pairs': seqs_from_kv_pairs,
+                     }
 
     IsArray = set(['array', 'model_seqs'])
 
@@ -877,9 +877,9 @@ class SequenceCollection(object):
                 strand, frame, attributes, comments) in GffParser(f):
             if name in self.NamedSeqs:
                 self.NamedSeqs[name].addFeature(feature,
-                                                    parse_attributes(
-                                                        attributes),
-                                                    [(start, end)])
+                                                parse_attributes(
+                                                    attributes),
+                                                [(start, end)])
 
             '''
             self.NamedSeqs[seqname].data.addFeature(
@@ -977,7 +977,7 @@ class SequenceCollection(object):
         inserted using before_name.
         """
         assert not isinstance(other, str), "Must provide a series of seqs " +\
-        "or an alignment"
+            "or an alignment"
         self_seq_class = self.Seqs[0].__class__
         try:
             combined = self.Seqs + other.Seqs
@@ -1177,7 +1177,7 @@ class SequenceCollection(object):
 
             # calc lengths of gaps up to last span, add to raw seq length
             seq_length = sum([len(s)
-                             for s in old_seq.map.spans[:-1] if s.lost])
+                              for s in old_seq.map.spans[:-1] if s.lost])
             seq_length += len(new_seq._seq)
 
             new_length = max(new_length, seq_length)
@@ -1261,7 +1261,7 @@ class SequenceCollection(object):
             motif_len = alphabet.getMotifLen()
             if motif_len > 1:
                 posns = list(range(0, len(sequence) +
-                             1 - motif_len, motif_len))
+                                   1 - motif_len, motif_len))
                 sequence = [sequence[i:i + motif_len] for i in posns]
             for motif in sequence:
                 if not allow_gap:
@@ -1928,7 +1928,7 @@ class AlignmentI(object):
         make_line = lambda label, seq: "%s    %s" % (label, seq)
         if interleave_len is None:
             result = [make_line(display_names[n], ''.join(output[n]))
-                                for n in names]
+                      for n in names]
             return '\n'.join(result)
 
         align_length = len(self)
@@ -2141,16 +2141,16 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     Alphabet = None  # will be set to BYTES.Alphabet on moltype import
 
     InputHandlers = {'array': aln_from_array,
-                        'model_seqs': aln_from_model_seqs,
-                        'generic': aln_from_generic,
-                        'fasta': aln_from_fasta,
-                        'dense_aln': aln_from_dense_aln,
-                        'aln': aln_from_collection,
-                        'collection': aln_from_collection,
-                        'dict': aln_from_dict,
-                        'kv_pairs': aln_from_kv_pairs,
-                        'empty': aln_from_empty,
-                        }
+                     'model_seqs': aln_from_model_seqs,
+                     'generic': aln_from_generic,
+                     'fasta': aln_from_fasta,
+                     'dense_aln': aln_from_dense_aln,
+                     'aln': aln_from_collection,
+                     'collection': aln_from_collection,
+                     'dict': aln_from_dict,
+                     'kv_pairs': aln_from_kv_pairs,
+                     'empty': aln_from_empty,
+                     }
 
     def __init__(self, *args, **kwargs):
         """Returns new DenseAlignment object. Inherits from SequenceCollection.
@@ -2423,14 +2423,14 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 class CodonDenseAlignment(DenseAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
     InputHandlers = {'array': aln_from_array,
-                        'seqs': aln_from_model_seqs,
-                        'generic': aln_from_generic,
-                        'dense_aln': aln_from_dense_aln,
-                        'aln': aln_from_collection,
-                        'collection': aln_from_collection,
-                        'dict': aln_from_dict,
-                        'empty': aln_from_empty,
-                        }
+                     'seqs': aln_from_model_seqs,
+                     'generic': aln_from_generic,
+                     'dense_aln': aln_from_dense_aln,
+                     'aln': aln_from_collection,
+                     'collection': aln_from_collection,
+                     'dict': aln_from_dict,
+                     'empty': aln_from_empty,
+                     }
 
 
 def make_gap_filter(template, gap_fraction, gap_run):
@@ -2452,11 +2452,11 @@ def make_gap_filter(template, gap_fraction, gap_run):
             return False
         # check if gap runs bad
         if b'\x01' * gap_run in logical_and(seq_gaps,
-                                          logical_not(template_gaps)).astype(uint8).tostring():
+                                            logical_not(template_gaps)).astype(uint8).tostring():
             return False
         # check if insertion runs bad
         elif b'\x01' * gap_run in logical_and(template_gaps,
-                                            logical_not(seq_gaps)).astype(uint8).tostring():
+                                              logical_not(seq_gaps)).astype(uint8).tostring():
             return False
         return True
 

@@ -136,7 +136,7 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
     total_height = height + top + bottom
     total_width = width + left + right
     posn = [left / total_width, bottom / total_height,
-        width / total_width, height / total_height]
+            width / total_width, height / total_height]
     if leftovers:
         return (total_width, total_height), posn, margins
     else:

@@ -155,7 +155,7 @@ class Track(object):
                              strokeWidth=.5, strokeColor=colors.black),
                 rlg2mpl.Line(span[0], height, span[1], height,
                              strokeWidth=.5, strokeColor=colors.black)
-                )
+            )
             shape_list = [border] + shape_list
         return shape_list
 
@@ -193,7 +193,7 @@ class CompositeTrack(Track):
                                  strokeWidth=.5, strokeColor=colors.black),
                     rlg2mpl.Line(span[0], height, span[1], height,
                                  strokeWidth=.5, strokeColor=colors.black)
-                    )
+                )
                 shape_list.append(border)
                 done_border = True
             shape_list.extend(track.getShapes(span, rotated, height,
@@ -752,7 +752,7 @@ class DisplayPolicy(object):
         ]]
 
     _default_ignored_features = ['C_region', 'N_region', 'S_region', 'V_region',
-                                    'D_segment', 'J_segment', 'V_segment', 'iDNA', 'D-loop', 'oriT', ]
+                                 'D_segment', 'J_segment', 'V_segment', 'iDNA', 'D-loop', 'oriT', ]
     _default_keep_unexpected_tracks = True
 
     dont_merge = []
@@ -1145,6 +1145,6 @@ class Display(rlg2mpl.Drawable):
         for (i, row) in enumerate(rows):
             i = len(rows) - i - 1
             posn = [x, (y + i * (y + h)) / vzoom, w *
-                        len(row) / rowlen, h / vzoom]
+                    len(row) / rowlen, h / vzoom]
             row.asAxes(fig, posn, **kw)
         return fig

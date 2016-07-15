@@ -95,7 +95,7 @@ class ScalarColormapShading(object):
         else:
             value_to_show = max(min(value, self.max_val), self.min_val)
             normed = (value_to_show - self.min_val) / \
-                      (self.max_val - self.min_val)
+                (self.max_val - self.min_val)
             color = self.cmap(normed)
             return color
 
@@ -330,12 +330,12 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         result = []
         for node in self.postorder(include_self=True):
             result.append([node.Name, id(node), node.x2,
-                          node.y2] + [list(map(id, node.Children))])
+                           node.y2] + [list(map(id, node.Children))])
         return result
 
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
         (width, height), posn, kw = rlg2mpl.figureLayout(width, height, margin=0,
-                                                       default_aspect=0.5, leftovers=True, **kw)
+                                                         default_aspect=0.5, leftovers=True, **kw)
         fig = self._makeFigure(width, height)
         ax = fig.add_axes(posn, frameon=False)
         width = 72 * posn[2] * fig.get_figwidth()
@@ -413,7 +413,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             if scale_bar:
                 ss.append(renderer.line(x1, 0.0, x2, 0.0))
                 ss.append(renderer.string((x1 + x2) / 2, 5,
-                          str(unit), va='bottom', ha='center'))
+                                          str(unit), va='bottom', ha='center'))
 
         g = rlg2mpl.Group(*ss)
         g.translate(margin + left_labels, margin)
@@ -676,7 +676,7 @@ class UnrootedDendrogram(_Dendrogram):
 
     def wedgeVertices(self):
         tip_dists = [(c.depth - self.depth) *
-                      self.scale for c in self.iterTips()]
+                     self.scale for c in self.iterTips()]
         (near, far) = (min(tip_dists), max(tip_dists))
         a = self.angle - 0.25 * self.wedge
         (x1, y1) = (self.x2 + near * numpy.sin(a), self.y2 + near * numpy.cos(a))
@@ -710,7 +710,7 @@ class UnrootedDendrogram(_Dendrogram):
     def _update_coordinates(self, s, x1, y1, a, da):
         # Constant angle algorithm.  Should add maximim daylight step.
         (x2, y2) = (x1 + self.length * s * numpy.sin(a),
-         y1 + self.length * s * numpy.cos(a))
+                    y1 + self.length * s * numpy.cos(a))
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         if self.Collapsed:
             self.wedge = self.leafcount * da
