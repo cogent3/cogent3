@@ -280,7 +280,8 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
         d = \
-            self.getPairwiseDistances(summary_function=summary_function, **kwargs)
+            self.getPairwiseDistances(
+                summary_function=summary_function, **kwargs)
         if not d:
             d = {}
             for s1 in self._seqnames:

@@ -19,8 +19,14 @@ def long_running_function(..., ui)
 """
 
 
-import sys, time, contextlib, functools, warnings
-import os, atexit, io
+import sys
+import time
+import contextlib
+import functools
+import warnings
+import os
+import atexit
+import io
 import threading
 import itertools
 from cogent3.util import parallel, terminal

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import pickle, csv
+import pickle
+import csv
 from .record_finder import is_empty
 from gzip import open as open_
 import collections

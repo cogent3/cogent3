@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 
-import numpy, math, warnings
+import numpy
+import math
+import warnings
 from cogent3.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
 
 __author__ = "Peter Maxwell and Gavin Huttley"

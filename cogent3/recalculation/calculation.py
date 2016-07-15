@@ -2,7 +2,8 @@
 
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
-import time, warnings
+import time
+import warnings
 from cogent3.maths.solve import find_root
 from cogent3.util import parallel
 from cogent3.maths.optimisers import maximise, ParameterOutOfBoundsError
@@ -291,7 +292,9 @@ class Calculator(object):
         the calculator.  Leaves behind a temporary file (so that Graphviz can
         redraw it with different settings) unless 'keep' is False"""
 
-        import tempfile, os, sys
+        import tempfile
+        import os
+        import sys
 
         if sys.platform != 'darwin':
             raise NotImplementedError("Graphviz support Mac only at present")

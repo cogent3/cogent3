@@ -495,7 +495,9 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
 if __name__ == '__main__':
     from cogent3 import LoadSeqs, DNA
-    import sys, optparse, os.path
+    import sys
+    import optparse
+    import os.path
     parser = optparse.OptionParser("usage: %prog [options] alignment")
     parser.add_option("-p", "--print", action="store_true",
                       default=True, dest="print_stats",

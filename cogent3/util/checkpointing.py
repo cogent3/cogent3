@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import os, time, pickle
+import os
+import time
+import pickle
 from cogent3.util import parallel
 
 __author__ = "Peter Maxwell"
