@@ -1,7 +1,9 @@
 """The most commonly used constructors are available from this toplevel module.
 The rest are in the subpackages: phylo, evolve, maths, draw, parse and format."""
 
-import sys, re, pickle
+import sys
+import re
+import pickle
 import numpy
 
 __author__ = ""

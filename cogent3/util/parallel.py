@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os, sys
+import os
+import sys
 from contextlib import contextmanager
 import warnings
 import threading

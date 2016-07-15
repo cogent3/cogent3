@@ -6,7 +6,8 @@ parameters involved in a maximum-likelihood based tree analysis.
 
 
 import numpy
-import pickle, warnings
+import pickle
+import warnings
 
 from cogent3.core.tree import TreeError
 from cogent3.evolve import likelihood_calculation

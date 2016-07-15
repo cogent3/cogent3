@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Compiled modules may be out of date or missing"""
 
-import os, sys
+import os
+import sys
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

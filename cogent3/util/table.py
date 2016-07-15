@@ -8,7 +8,8 @@ Table can read pickled and delimited formats.
 
 """
 
-import pickle, csv
+import pickle
+import csv
 from gzip import open as open_
 
 import numpy

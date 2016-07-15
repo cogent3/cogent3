@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import random, numpy
+import random
+import numpy
 
 from cogent3.core.alignment import Alignment
 from cogent3.util.dict_array import DictArrayTemplate
