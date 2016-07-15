@@ -126,7 +126,7 @@ class _SubstitutionModel(object):
          - motif_length: Use a tuple alphabet based on 'alphabet'.
          - motifs: Use a subalphabet that only contains those motifs.
          - model_gaps: Whether the gap motif should be included as a state.
-         - recode_gaps: Whether gaps in an alignment should be treated as an 
+         - recode_gaps: Whether gaps in an alignment should be treated as an
            ambiguous state instead.
 
         Motif Probability:
@@ -134,7 +134,7 @@ class _SubstitutionModel(object):
          - equal_motif_probs: Flag to set alignment motif probs equal.
          - motif_probs_alignment: An alignment from which motif probs are set.
 
-         If none of these options are set then motif probs will be derived 
+         If none of these options are set then motif probs will be derived
          from the data: ie the particular alignment provided later.
 
          - optimise_motif_probs: Treat like other free parameters.  Any values
@@ -383,9 +383,9 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     # - calcExchangeabilityMatrix(*params)
     #   convert len(self.parameter_order) params to a matrix
 
-    """A substitution model for which the rate matrix (P) is derived from an 
-    instantaneous rate matrix (Q).  The nature of the parameters used to define 
-    Q is up to the subclasses.  
+    """A substitution model for which the rate matrix (P) is derived from an
+    instantaneous rate matrix (Q).  The nature of the parameters used to define
+    Q is up to the subclasses.
     """
 
     # At some point this can be made variable, and probably
@@ -400,12 +400,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     def __init__(self, alphabet, with_rate=False, ordered_param=None,
                  distribution=None, partitioned_params=None, do_scaling=None, **kw):
         """
-         - with_rate: Add a 'rate' parameter which varies by bin. 
+         - with_rate: Add a 'rate' parameter which varies by bin.
          - ordered_param: name of a single parameter which distinguishes any bins.
          - distribution: choices of 'free' or 'gamma' or an instance of some
            distribution. Could probably just deprecate free
          - partitioned_params: names of params to be partitioned across bins
-         - do_scaling: Scale branch lengths as the expected number of 
+         - do_scaling: Scale branch lengths as the expected number of
            substitutions.  Reduces the maximum substitution df by 1.
         """
 
@@ -577,7 +577,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
 
 class General(_ContinuousSubstitutionModel):
-    """A continuous substitution model with one free parameter for each and 
+    """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution."""
 
     # k = self.param_pick[i,j], 0<=k<=N+1
@@ -609,7 +609,7 @@ class General(_ContinuousSubstitutionModel):
 
 
 class GeneralStationary(_ContinuousSubstitutionModel):
-    """A continuous substitution model with one free parameter for each and 
+    """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
@@ -655,7 +655,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
 
 
 class Empirical(_ContinuousSubstitutionModel):
-    """A continuous substitution model with a predefined instantaneous rate 
+    """A continuous substitution model with a predefined instantaneous rate
     matrix."""
 
     @extend_docstring_from(_ContinuousSubstitutionModel)

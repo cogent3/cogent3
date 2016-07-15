@@ -72,7 +72,7 @@ dna_shapes = dna_shapes()
 
 class TransformScalePart(Affine2DBase):
     """Just the translation factors of the child transform, no
-    rotation or translation. 
+    rotation or translation.
 
     a: Child transform from which scale is extracted
     source_dims: the dimensions (0:X, 1:Y, 2:I) from which the
@@ -975,7 +975,7 @@ class Display(rlg2mpl.Drawable):
     policy: A DisplayPolicy subclass.
     pad: Gap between tracks in points.
 
-    Other keyword arguments are used to modify the DisplayPolicy: 
+    Other keyword arguments are used to modify the DisplayPolicy:
 
     Sequence display:
     show_text: Represent bases as characters.  Slow.

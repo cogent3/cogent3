@@ -88,7 +88,7 @@ PsiBlastQueryFinder = LabeledRecordFinder(iteration_set_finder,
 
 
 def GenericBlastParser9(lines, finder, make_col_headers=False):
-    """Yields successive records from lines (props, data list) 
+    """Yields successive records from lines (props, data list)
 
     Infile must in blast9 format
 
@@ -121,7 +121,7 @@ def GenericBlastParser9(lines, finder, make_col_headers=False):
 def TableToValues(table, constructors=None, header=None):
     """Converts table to values according to constructors.
 
-    Returns (table, header). 
+    Returns (table, header).
     Use dict([(val, i) for i, val in enumerate(header)]) to get back
     a dict mapping the fields to indices in each row.
     """
@@ -152,7 +152,7 @@ def MinimalBlastParser9(lines, include_column_names=False):
 
 
 def MinimalPsiBlastParser9(lines, include_column_names=False):
-    """Yields successive records from lines (props, data list) 
+    """Yields successive records from lines (props, data list)
 
         lines must be of psi-blast output format
     """
@@ -160,9 +160,9 @@ def MinimalPsiBlastParser9(lines, include_column_names=False):
 
 
 def MinimalBlatParser9(lines, include_column_names=True):
-    """Yields successive records from lines (props, data list) 
+    """Yields successive records from lines (props, data list)
 
-       lines must be of blat output (blast9) format 
+       lines must be of blat output (blast9) format
     """
     return GenericBlastParser9(lines, BlatFinder, include_column_names)
 
@@ -227,11 +227,11 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
 def AllProteinIds9(lines, filter_identity=True, threshold=None,
                    keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
                    keep_values=False):
-    """Helper to extract just protein ids from each blast search 
+    """Helper to extract just protein ids from each blast search
 
-    lines: output file in output format #9. 
+    lines: output file in output format #9.
     filter_identity: when True, use % identity to filter, else use e-value
-    threshold: when None, all results are returned. When not None, used 
+    threshold: when None, all results are returned. When not None, used
         as a threshold to filter results.
     keep_below_threshold: when True, keeps any rows below given threshold, else
         keep any rows above threshold
@@ -263,9 +263,9 @@ def LastProteinIds9(lines, filter_identity=True, threshold=None,
                     keep_values=False):
     """Helper to extract just protein ids from last psi-blast iteration.
 
-    lines: output file in output format #9. 
+    lines: output file in output format #9.
     filter_identity: when True, use % identity to filter, else use e-value
-    threshold: when None, all results are returned. When not None, used 
+    threshold: when None, all results are returned. When not None, used
         as a threshold to filter results.
     keep_below_threshold: when True, keeps any rows below given threshold, else
         keep any rows above threshold
@@ -393,7 +393,7 @@ class BlastResult(dict):
         Init using blast results
 
         data: blast output from the m = 9 output option
-        psiblast: if True, will expect psiblast output, else expects 
+        psiblast: if True, will expect psiblast output, else expects
             blast output
 
         """
@@ -449,7 +449,7 @@ class BlastResult(dict):
         raise NotImplementedError
 
     def bestHitsByQuery(self, iteration=-1, n=1, field='BIT SCORE', return_self=False):
-        """Iterates over all queries and returns best hit for each 
+        """Iterates over all queries and returns best hit for each
 
         return_self: if False, will not return best hit as itself.
 

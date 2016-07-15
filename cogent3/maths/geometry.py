@@ -36,7 +36,7 @@ def center_of_mass(coordinates, weights=-1):
 def center_of_mass_one_array(data, weight_idx=-1):
     """Calculates the center of mass for a dataset
 
-    data should be an array of x1,...,xn,r coordinates, where r is the 
+    data should be an array of x1,...,xn,r coordinates, where r is the
         weight of the point
     """
     data = array(data)
@@ -72,7 +72,7 @@ def distance(first, second):
 
 
 def sphere_points(n):
-    """Calculates uniformly distributed points on a unit sphere using the 
+    """Calculates uniformly distributed points on a unit sphere using the
     Golden Section Spiral algorithm.
 
     Arguments:
@@ -92,8 +92,8 @@ def sphere_points(n):
 
 def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     """Applies symmetry transformation matrices on coordinates. This is used to
-    create a crystallographic unit cell or a biological molecule, requires 
-    orthogonal coordinates, a fractionalization matrix (fmx), 
+    create a crystallographic unit cell or a biological molecule, requires
+    orthogonal coordinates, a fractionalization matrix (fmx),
     an orthogonalization matrix (omx) and rotation matrices (mxs).
 
     Returns all coordinates with included identity, which should be the first
@@ -104,8 +104,8 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
         - coords: an array of orthogonal coordinates
         - fmx: fractionalization matrix
         - omx: orthogonalization matrix
-        - mxs: a sequence of 4x4 rotation matrices 
-        - mode: if mode 'table' assumes rotation matrices operate on 
+        - mxs: a sequence of 4x4 rotation matrices
+        - mode: if mode 'table' assumes rotation matrices operate on
           fractional coordinates (like in crystallographic tables).
     """
     all_coords = [coords]  # the first matrix is identity
@@ -127,7 +127,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
 
 
 def coords_to_crystal(coords, fmx, omx, n=1):
-    """Applies primitive lattice translations to produce a crystal from the 
+    """Applies primitive lattice translations to produce a crystal from the
     contents of a unit cell.
 
     Returns all coordinates with included zero translation (0, 0, 0).

@@ -2,7 +2,7 @@
 
 """To automate batch functions provided by EUtils
 
-    (http://www.ncbi..nih.gov/entrez/eutils) 
+    (http://www.ncbi..nih.gov/entrez/eutils)
     search and fetch for sets of sequence information
 """
 from urllib.request import urlopen, urlretrieve
@@ -272,16 +272,16 @@ class EUtils(object):
         """Iterates through list of search terms and combines results.
             -queries : list of lists of accession lists / query items
 
-        This will mostly only apply whe the user wants to download 1000s of 
+        This will mostly only apply whe the user wants to download 1000s of
         sequences via accessions. This will superced the GenBank url
-        length limit. So, we break up the accession list into sets of 400 
+        length limit. So, we break up the accession list into sets of 400
         terms per list.
 
-        WARNING: if you _really_ have more than 300-400 terms similar to: 
+        WARNING: if you _really_ have more than 300-400 terms similar to:
             'angiotensin[ti] AND rodents[orgn]'
-            The results will not be what you want anyway due do the 
+            The results will not be what you want anyway due do the
             limitations of the esearch url length at GenBank. You'll just end up
-            returning sets of results from the broken up word based search 
+            returning sets of results from the broken up word based search
             terms.
         """
         # figure out where to put the data
@@ -503,7 +503,7 @@ def taxon_ids_to_lineages(ids, retmax=1000):
     """Returns full taxonomy (excluding species) from set of taxon ids.
 
     WARNING: Resulting lineages aren't in the same order as input. Use
-    taxon_ids_to_name_and_lineage if you need the names and/or lineages 
+    taxon_ids_to_name_and_lineage if you need the names and/or lineages
     associated with the specific ids.
     """
     ids = fix_taxon_ids(ids)
@@ -530,7 +530,7 @@ def taxon_ids_to_names(ids, retmax=1000):
     """Returns names (e.g. species) from set of taxon ids.
 
     WARNING: Resulting lineages aren't in the same order as input. Use
-    taxon_ids_to_name_and_lineage if you need the names and/or lineages 
+    taxon_ids_to_name_and_lineage if you need the names and/or lineages
     associated with the specific ids.
     """
     e = EUtils(db='taxonomy', rettype='xml', retmode='xml', retmax=retmax,

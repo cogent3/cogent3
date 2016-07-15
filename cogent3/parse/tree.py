@@ -91,7 +91,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     """Returns tree from the Clustal .dnd file format, and anything equivalent.
 
     Tree is made up of cogent3.base.tree.PhyloNode objects, with branch lengths
-    (by default, although you can pass in an alternative constructor 
+    (by default, although you can pass in an alternative constructor
     explicitly).
     """
     if isinstance(lines, str):

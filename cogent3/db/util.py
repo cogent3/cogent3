@@ -49,7 +49,7 @@ class UrlGetter(object):
         return data
 
     def retrieve(self, fname, **kwargs):
-        """Gets URL and writes to file fname, temporarily overriding kwargs. 
+        """Gets URL and writes to file fname, temporarily overriding kwargs.
 
         Note: produces no return value."""
         self._temp_args = kwargs
@@ -104,7 +104,7 @@ def make_lists_of_expanded_slices_of_set_size(s, size_limit=200):
 def make_lists_of_accessions_of_set_size(s, size_limit=200):
     """Returns list of search terms  that contain accessions up to the size
     'size_limit'
-    This is to help make friendly GenBank urls for fetching large lists 
+    This is to help make friendly GenBank urls for fetching large lists
     of accessions (1000s).
         -s : list of accessions
         -size_limit : max items each list should contain

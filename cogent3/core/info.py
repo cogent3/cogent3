@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Provides Info, DbRef, DbRefs
 
-Info is a dictionary and is the annotation object of a Sequence object. 
+Info is a dictionary and is the annotation object of a Sequence object.
 """
 from cogent3.parse.record import MappedRecord
 from cogent3.util.misc import Delegator, FunctionWrapper, ConstrainedDict

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Properties of proteins are data from 'tables' about residues and their 
+"""Properties of proteins are data from 'tables' about residues and their
 atoms."""
 
 __author__ = "Marcin Cieslik"

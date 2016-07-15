@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Properties of ligands are data from 'tables' about ligands and their 
+"""Properties of ligands are data from 'tables' about ligands and their
 atoms."""
 
 __author__ = "Marcin Cieslik"

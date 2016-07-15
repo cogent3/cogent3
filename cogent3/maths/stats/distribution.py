@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Translations of functions from Release 2.3 of the Cephes Math Library, 
+"""Translations of functions from Release 2.3 of the Cephes Math Library,
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
@@ -25,7 +25,7 @@ incbet = betai  # shouldn't have renamed it...
 
 
 def z_low(x):
-    """Returns left-hand tail of z distribution (0 to x). 
+    """Returns left-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
@@ -42,7 +42,7 @@ def z_low(x):
 
 
 def z_high(x):
-    """Returns right-hand tail of z distribution (0 to x). 
+    """Returns right-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
@@ -183,8 +183,8 @@ def binomial_exact(successes, trials, prob):
 
     Works for integer and floating point values.
 
-    Note: this function is only a probability mass function for integer 
-    values of 'trials' and 'successes', i.e. if you sum up non-integer 
+    Note: this function is only a probability mass function for integer
+    values of 'trials' and 'successes', i.e. if you sum up non-integer
     values you probably won't get a sum of 1.
     """
     if (prob < 0) or (prob > 1):

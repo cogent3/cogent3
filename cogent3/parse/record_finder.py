@@ -51,10 +51,10 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
     Skips any lines for which ignore(line) evaluates True (default is to skip
     whitespace).
 
-    keep_delimiter: keep delimiter line at the end of last block if True 
+    keep_delimiter: keep delimiter line at the end of last block if True
     (default), otherwise discard delimiter line.
 
-    strict: when lines found after the last delimiter -- raise error if True 
+    strict: when lines found after the last delimiter -- raise error if True
     (default), otherwise yield the lines silently
     """
     def parser(lines):
@@ -99,7 +99,7 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
     Skips over any lines for which ignore(line) evaluates True (default is
     to skip empty lines).  note that the line maybe modified by constructor.
 
-    strict: if True(default), raise error if the last line is not a tail. 
+    strict: if True(default), raise error if the last line is not a tail.
     otherwise, yield the last lines.
     """
     def parser(lines):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Returns the likelihood resulting from a model in which motif probabilities 
-are assumed to be equal to the observed motif frequencies, as described by 
-Goldman (1993).  This model is not informative for inferring the evolutionary 
-process, but its likelihood indicates the maximum possible likelihood value 
+Returns the likelihood resulting from a model in which motif probabilities
+are assumed to be equal to the observed motif frequencies, as described by
+Goldman (1993).  This model is not informative for inferring the evolutionary
+process, but its likelihood indicates the maximum possible likelihood value
 for a site-independent evolutionary process.
 """
 

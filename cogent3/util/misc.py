@@ -31,7 +31,7 @@ __status__ = "Production"
 class FilePath(str):
     """ Hold paths for proper handling
 
-        Paths in this sense are filenames, directory paths, or filepaths. 
+        Paths in this sense are filenames, directory paths, or filepaths.
         Some examples include:
          file.txt
          ./path/to/file.txt
@@ -41,7 +41,7 @@ class FilePath(str):
          /
 
         The purpose of this class is to allow all paths to be handled the
-         same since they sometimes need to be treated differently than 
+         same since they sometimes need to be treated differently than
          simple strings. For example, if a path has a space in it, and it
          is being passed to system, it needs to be wrapped in quotes. But,
          you wouldn't want it as a string wrapped in quotes b/c, e.g.,
@@ -77,14 +77,14 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
         tmp_dir: the directory to house the tmp_filename (default: '/tmp')
         prefix: string to append to beginning of filename (default: 'tmp')
             Note: It is very useful to have prefix be descriptive of the
-            process which is creating the temporary file. For example, if 
-            your temp file will be used to build a temporary blast database, 
+            process which is creating the temporary file. For example, if
+            your temp file will be used to build a temporary blast database,
             you might pass prefix=TempBlastDB
         suffix: the suffix to be appended to the temp filename (default '.txt')
         result_constructor: the constructor used to build the result filename
-            (default: cogent3.app.parameters.FilePath). Note that joining 
+            (default: cogent3.app.parameters.FilePath). Note that joining
             FilePath objects with one another or with strings, you must use
-            the + operator. If this causes trouble, you can pass str as the 
+            the + operator. If this causes trouble, you can pass str as the
             the result_constructor.
     """
     # check not none
@@ -128,7 +128,7 @@ def if_(test, true_result, false_result):
     Note that both true_result and false_result are evaluated, which is not the
     case for the normal if/then/else, so don't use if one branch might fail.
 
-    Additionally, true_result and false_result must be expressions, not 
+    Additionally, true_result and false_result must be expressions, not
     statements (so print and raise will not work, for example).
     """
     if test:
@@ -671,8 +671,8 @@ class Delegator(object):
     attribute (e.g. a MappedRecord), you _must_ bypass normal attribute access
     in __init__ of your subclasses to ensure that the properties are set in
     the object itself, not in the object to which it delegates. Alternatively,
-    you can initialize with None so that unhandled attributes are set in self, 
-    and then replace self._handler with your object right at the end of 
+    you can initialize with None so that unhandled attributes are set in self,
+    and then replace self._handler with your object right at the end of
     __init__. The first option is probably safer and more general.
 
     Warning: will not work on classes that use __slots__ instead of __dict__.
@@ -682,7 +682,7 @@ class Delegator(object):
         """Returns a new Delegator that uses methods of obj.
 
         NOTE: It's important that this bypasses the normal attribute setting
-        mechanism, or there's an infinite loop between __init__ and 
+        mechanism, or there's an infinite loop between __init__ and
         __setattr__. However, subclasses should be able to use the normal
         mechanism with impunity.
         """
@@ -753,10 +753,10 @@ class ConstrainedContainer(object):
     Container should have a Constraint property that __contains__ the items
     that will be allowed in the container. Can also have a Mask property that
     contains a function that will be applied to each item (a) on checking the
-    item for validity, and (b) on inserting the item in the container. 
+    item for validity, and (b) on inserting the item in the container.
 
-    WARNING: Because the Mask is evaluated both when the item is checked and 
-    when it is inserted, any side-effects it has are applied _twice_. This 
+    WARNING: Because the Mask is evaluated both when the item is checked and
+    when it is inserted, any side-effects it has are applied _twice_. This
     means that any Mask that mutates the object or changes global variables
     is unlikely to do what you want!
     """
@@ -773,7 +773,7 @@ class ConstrainedContainer(object):
     def __init__(self, Constraint=None, Mask=None):
         """Returns new ConstrainedContainer, incorporating constraint.
 
-        WARNING: Does not perform validation. It is the subclass's 
+        WARNING: Does not perform validation. It is the subclass's
         responsibility to perform validation during __init__ or __new__!
         """
         if Constraint is not None:
@@ -1204,8 +1204,8 @@ def toString(obj):
     This function looks only at the local properties/methods/etc of the
     object it is sent, and only examines public and first-level private
     (starts with _ but not __) entries.  It ignores anything that is a
-    method, function, or class.  Any attribute whose value looks like a 
-    printout of a memory address (starts with < and ends with >) has its 
+    method, function, or class.  Any attribute whose value looks like a
+    printout of a memory address (starts with < and ends with >) has its
     value replaced with the word "object".
     """
 
@@ -1263,7 +1263,7 @@ def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
 
     seq: a string
-    use_DNA: a boolean indicating (if true) that A should translate to T.  
+    use_DNA: a boolean indicating (if true) that A should translate to T.
         If false, RNA is assumed (A translates to U).  Default is True.
 
     Returns a reverse complemented string.
@@ -1335,10 +1335,10 @@ def get_items_except(seq, indices, seq_constructor=None):
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
-    """return a splitter which return a list (maybe nested) from a str using 
+    """return a splitter which return a list (maybe nested) from a str using
     delimiters nestedly
 
-    same_level -- if true, all the leaf items will be split whether there is 
+    same_level -- if true, all the leaf items will be split whether there is
     delimiters in it or not
 
     constructor: modify each splited fields.
@@ -1426,7 +1426,7 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
 
          0:  dir could be safely made
          1:  directory already existed
-         2:  a file with the same name exists          
+         2:  a file with the same name exists
          3:  any other unspecified OSError
 
 
@@ -1511,14 +1511,14 @@ def get_random_directory_name(suppress_mkdir=False,
                               prefix='',
                               suffix='',
                               return_absolute_path=True):
-    """Build a random directory name and create the directory 
+    """Build a random directory name and create the directory
 
         suppress_mkdir: only build the directory name, don't
          create the directory (default: False)
         timestamp_pattern: string passed to strftime() to generate
          the timestamp (pass '' to suppress the timestamp)
         rand_length: length of random string of characters
-        output_dir: the directory which should contain the 
+        output_dir: the directory which should contain the
          random directory
         prefix: prefix for directory name
         suffix: suffix for directory name

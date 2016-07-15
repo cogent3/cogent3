@@ -129,7 +129,7 @@ class GenericRecord(dict):
 
     This class explicitly does _not_ override __getitem__ or __setitem__ for
     performance reasons: if you need to transform keys on get/set or if you
-    need to access items as attributes and vice versa, use MappedRecord 
+    need to access items as attributes and vice versa, use MappedRecord
     instead.
     """
     Required = {}
@@ -146,7 +146,7 @@ class GenericRecord(dict):
                 self[name] = deepcopy(prototype)
 
     def __delitem__(self, item):
-        """Deletes item or raises exception if item required. 
+        """Deletes item or raises exception if item required.
 
         Note: Fails silently if item absent.
         """
@@ -186,7 +186,7 @@ class MappedRecord(GenericRecord):
     cause surprising interactions when a Delegator is delegating its
     attributes to a MappedRecord, since any attributes defined in __init__ will
     be set in the MappedRecord and not in the object itself. The solution is
-    to use the self.__dict__['AttributeName'] = foo syntax to force the 
+    to use the self.__dict__['AttributeName'] = foo syntax to force the
     attributes to be set in the object and not the MappedRecord to which it
     forwards.
     """
@@ -512,8 +512,8 @@ class FieldMorpher(object):
 
         If a field is unknown, will try to set key and value to the results
         of Default(key, value): in other words, the signature of Default should
-        take a key and a value and should return a key and a value. The 
-        built-in value of Default raises a FieldError instead, but it will 
+        take a key and a value and should return a key and a value. The
+        built-in value of Default raises a FieldError instead, but it will
         often be useful to do things like return the key/value pair unchanged,
         or to strip the key and the value and then add them.
         """

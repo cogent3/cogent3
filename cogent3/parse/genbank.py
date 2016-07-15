@@ -44,7 +44,7 @@ class PartialRecordError(Exception):
 def parse_locus(line):
     """Parses a locus line, including conversion of Length to an int.
 
-    WARNING: Gives incorrect results on legacy records that omit the topology. 
+    WARNING: Gives incorrect results on legacy records that omit the topology.
     All records spot-checked on 8/30/05 had been updated to include the topology
     even when prior versions omitted it.
     """
@@ -164,7 +164,7 @@ def parse_feature(lines):
     Returns dict containing:
     'type': source, gene, CDS, etc.
     'location': unparsed location string
-    ...then, key-value pairs for each annotation, 
+    ...then, key-value pairs for each annotation,
         e.g. '/gene="MNBH"' -> {'gene':['MNBH']} (i.e. quotes stripped)
     All relations are assumed 'to many', and order will be preserved.
     """
@@ -297,7 +297,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
 class Location(object):
     """GenBank location object. Integer, or low, high, or 2-base bound.
 
-    data must either be a long, an object that can be coerced to a long, or a 
+    data must either be a long, an object that can be coerced to a long, or a
         sequence of two BasePosition objects. It can _not_ be two numbers.
     Ambiguity should be None (the default), '>', or '<'.
     IsBetween should be False (the default), or True.

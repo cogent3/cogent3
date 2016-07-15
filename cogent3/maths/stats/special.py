@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Translations of functions from Release 2.3 of the Cephes Math Library, 
+"""Translations of functions from Release 2.3 of the Cephes Math Library,
 (c) Stephen L. Moshier 1984, 1995.
 """
 

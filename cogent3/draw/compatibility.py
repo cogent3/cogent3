@@ -2,7 +2,7 @@
 
 """Visualisation of phylogenetic compatibility within an alignment.
 Jakobsen & Easteal, CABIOS 12(4), 1996
-Jakobsen, Wilson & Easteal, Mol. Biol. Evol. 14(5), 1997 
+Jakobsen, Wilson & Easteal, Mol. Biol. Evol. 14(5), 1997
 """
 
 
@@ -30,7 +30,7 @@ __status__ = "Production"
 
 def order_to_cluster_similar(S, elts=None, start=None):
     """Order so as to keep the most similar parts adjacent to each other
-    S is expected to be a square matrix, and the returned list of 
+    S is expected to be a square matrix, and the returned list of
     ordinals is len(S) long."""
     position = {}
     unavailable = set()
@@ -119,7 +119,7 @@ def bit_decode(x, numseqs):
 
 
 def binary_partitions(alignment):
-    """Returns (sites, columns, partitions) 
+    """Returns (sites, columns, partitions)
     sites[informative column number] = alignment position number
     columns[informative column number] = distinct partition number
     partitions[distinct partition number] = (partition, mask) as ints
@@ -153,13 +153,13 @@ def binary_partitions(alignment):
 
 
 def min_edges(columns):
-    """Given two boolean arrays each representing an informative alignment 
-    position, there are 4 possible combinations for each sequence: 
+    """Given two boolean arrays each representing an informative alignment
+    position, there are 4 possible combinations for each sequence:
     TT, TF, FT and FF.
-    If N of these 4 possibilities are found then there must be at least 
+    If N of these 4 possibilities are found then there must be at least
     N-1 tree edges on which mutations occured
-    As a special case, the diagonal values are set to 0 rather than, 
-    as theory suggests, 1.  This is simply a convenience for later 
+    As a special case, the diagonal values are set to 0 rather than,
+    as theory suggests, 1.  This is simply a convenience for later
     drawing code"""
     N = len(columns)
     result = numpy.zeros([N, N], int)

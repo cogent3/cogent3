@@ -62,7 +62,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
     using the method of Von Bing."""
 
     def __init__(self, Q):
-        """ 
+        """
         Q -- a diagonisable matrix.
         """
         self.Q = Q

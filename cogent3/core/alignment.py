@@ -11,7 +11,7 @@
 
     WARNING: The various alignment objects try to guess the input type from the
     input, but this behavior has a few quirks. In particular, if the input is
-    a sequence of two-item sequences (e.g. a list of two-character strings), 
+    a sequence of two-item sequences (e.g. a list of two-character strings),
     each sequence will be unpacked and the first item will be used as the
     label, the second as the sequence. For example, Alignment(['AA','CC','AA'])
     produces an alignment of three 1-character strings labeled A, C and A
@@ -850,11 +850,11 @@ class SequenceCollection(object):
         return len(self.NamedSeqs)
 
     def copyAnnotations(self, unaligned):
-        """Copies annotations from seqs in unaligned to self, matching by name. 
+        """Copies annotations from seqs in unaligned to self, matching by name.
 
         Alignment programs like ClustalW don't preserve annotations,
         so this method is available to copy annotations off the unaligned
-        sequences.  
+        sequences.
 
         unaligned should be a dictionary of Sequence instances.
 
@@ -892,7 +892,7 @@ class SequenceCollection(object):
         """Returns new alignment with same shape but with data taken from seqs.
 
         Arguments:
-            - aa_to_codon: If True (default) aligns codons from protein 
+            - aa_to_codon: If True (default) aligns codons from protein
               alignment, or, more generally, substituting in codons from a set
               of protein sequences (not necessarily aligned). For this reason,
               it takes characters from seqs three at a time rather than one at
@@ -1541,7 +1541,7 @@ class Aligned(object):
         as such, the data member variable of the copied object will maintain
         reference to the original object.
 
-        WARNING: cogent3.core.location.Map does NOT implement a copy method, as 
+        WARNING: cogent3.core.location.Map does NOT implement a copy method, as
         such, the data member variable of the copied object will maintain
         reference to the original object.
         """
@@ -1859,12 +1859,12 @@ class AlignmentI(object):
               .randint(min,max) .random() methods
 
 
-        Notes: 
+        Notes:
             By default (resampling all positions without replacement), generates
             a permutation of the positions of the alignment.
 
             Setting with_replacement to True and otherwise leaving parameters
-            as defaults generates a standard bootstrap resampling of the 
+            as defaults generates a standard bootstrap resampling of the
             alignment.
             """
         population_size = len(self) // motif_length
@@ -2393,12 +2393,12 @@ class DenseAlignment(AlignmentI, SequenceCollection):
               specified range, and permutation, respectively.
 
 
-        Notes: 
+        Notes:
             By default (resampling all positions without replacement), generates
             a permutation of the positions of the alignment.
 
             Setting with_replacement to True and otherwise leaving parameters
-            as defaults generates a standard bootstrap resampling of the 
+            as defaults generates a standard bootstrap resampling of the
             alignment.
             """
         population_size = len(self) // motif_length
@@ -2754,18 +2754,18 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         Example:
         Aln1:
-        -AC-DEFGHI (name: seq1) 
+        -AC-DEFGHI (name: seq1)
         XXXXXX--XX (name: seq2)
-        YYYY-YYYYY (name: seq3) 
+        YYYY-YYYYY (name: seq3)
 
         Aln2:
-        ACDEFGHI   (name: seq1) 
+        ACDEFGHI   (name: seq1)
         KL--MNPR   (name: seqX)
         KLACMNPR   (name: seqY)
         KL--MNPR   (name: seqZ)
 
         Out:
-        -AC-DEFGHI (name: seq1) 
+        -AC-DEFGHI (name: seq1)
         XXXXXX--XX (name: seq2)
         YYYY-YYYYY (name: seq3)
         -KL---MNPR (name: seqX)

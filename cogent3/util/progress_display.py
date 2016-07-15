@@ -6,7 +6,7 @@ the same methods as the _Context class defined here.
 
 Long-running functions can be decorated with @display_wrap, and will then be
 given the extra argument 'ui'.  'ui' is a ProgressContext instance with methods
-.series(), .map() and .display(), any one of which will cause a 
+.series(), .map() and .display(), any one of which will cause a
 progress-bar to be displayed.
 
 @display_wrap
@@ -60,7 +60,7 @@ else:
 
 
 class TextBuffer(object):
-    """A file-like object which accumulates written text.  Specialised for 
+    """A file-like object which accumulates written text.  Specialised for
     output to a curses terminal in that it uses CLEAR and re-writing to extend
     incomplete lines instead of just outputting or buffering them.  That
     allows the output to always end at a newline, ready for a progress bar
@@ -139,7 +139,7 @@ class ProgressContext(object):
             rate=self.rate)
 
     def display(self, msg=None, progress=None, current=0.0):
-        """Inform the UI that we are are at 'progress' of the way through and 
+        """Inform the UI that we are are at 'progress' of the way through and
         will be doing 'msg' until we reach and report at progress+current.
         """
         if self.depth > 0:
@@ -227,7 +227,7 @@ class ProgressContext(object):
 
 
 class NullContext(ProgressContext):
-    """A UI context which discards all output.  Useful on secondary MPI cpus, 
+    """A UI context which discards all output.  Useful on secondary MPI cpus,
     and other situations where all output is suppressed"""
 
     def subcontext(self, *args, **kw):
@@ -261,7 +261,7 @@ class LogFileOutput(object):
 
 
 class CursesTerminalProgressBar(object):
-    """Wraps stdout and stderr, displaying a progress bar via simple 
+    """Wraps stdout and stderr, displaying a progress bar via simple
     ascii/curses art and scheduling other output around its redraws."""
 
     def __init__(self):
@@ -358,7 +358,7 @@ def setupRootUiContext(progressBarConstructor=None, rate=None):
 
 def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
-    The function will receive an extra argument, 'ui', 
+    The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
     @functools.wraps(slow_function)
     def f(*args, **kw):

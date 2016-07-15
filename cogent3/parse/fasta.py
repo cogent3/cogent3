@@ -212,7 +212,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
 
     Arguments;
         - display_template: string format template
-        - field_formatters: series of 
+        - field_formatters: series of
                 (field index, field name, coverter function)
         - split_with: characters separating fields in the label.
           The display_template must use at least one of the assigned field

@@ -169,7 +169,7 @@ def safe_log(a):
 
     WARNING: log2 is only defined on positive numbers, so make sure
     there are no negative numbers in the array. Will either return an
-    array containing floating point exceptions or will raise an 
+    array containing floating point exceptions or will raise an
     exception, depending on platform.
 
     Always returns an array with floats in there to avoid unexpected
@@ -237,7 +237,7 @@ def row_degeneracy(a, cutoff=.5):
     if cutoff = .75: row_degeneracy -> [3,2,1]
     if cutoff = .95: row_degeneracy -> [4,3,3]
 
-    WARNING: watch out with floating point numbers. 
+    WARNING: watch out with floating point numbers.
     if the cutoff= 0.9 and in the array is also 0.9, it might not be found
     >>> searchsorted(cumsum(array([.6,.3,.1])),.9)
     2
@@ -272,7 +272,7 @@ def column_degeneracy(a, cutoff=.5):
     if cutoff = .75: column_degeneracy -> [2,1,3]
     if cutoff = .45: column_degeneracy -> [1,1,2]
 
-    WARNING: watch out with floating point numbers. 
+    WARNING: watch out with floating point numbers.
     if the cutoff= 0.9 and in the array is also 0.9, it might not be found
     >>> searchsorted(cumsum(array([.6,.3,.1])),.9)
     2
@@ -280,7 +280,7 @@ def column_degeneracy(a, cutoff=.5):
     1
 
     If the cutoff value is not found, the result is clipped to the
-    number of rows in the array. 
+    number of rows in the array.
     """
     if not a.any():
         return []
@@ -300,7 +300,7 @@ def hamming_distance(x, y):
     The Hamming distance is the number of characters which differ between
     two sequences (arrays).
 
-    WARNING: This function truncates the longest array to the length of 
+    WARNING: This function truncates the longest array to the length of
     the shortest one.
 
     Example:
@@ -315,7 +315,7 @@ def norm(a):
     """Returns the norm of a matrix or vector
 
     Calculates the Euclidean norm of a vector.
-    Applies the Frobenius norm function to a matrix 
+    Applies the Frobenius norm function to a matrix
     (a.k.a. Euclidian matrix norm)
 
     a = numpy array
@@ -328,7 +328,7 @@ def euclidean_distance(a, b):
     a,b: numpy vectors or arrays
 
     WARNING: this method is NOT intended for use on arrays of different
-    sizes, but no check for this has been built in. 
+    sizes, but no check for this has been built in.
     """
     return norm(a - b)
 

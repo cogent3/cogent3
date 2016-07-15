@@ -19,7 +19,7 @@ __status__ = "Production"
 
 
 def majorityRule(trees, strict=False):
-    """Determines the consensus tree from a list of rooted trees using the 
+    """Determines the consensus tree from a list of rooted trees using the
      majority rules method of Margush and McMorris 1981
     Arguments:
         - trees: A list of cogent3.evolve.tree objects
@@ -53,13 +53,13 @@ def weightedMajorityRule(weighted_trees, strict=False, attr='support',
         'unrooted'.
 
     Bryant, D. (2003). A classification of consensus methods for phylogenetics.
-    DIMACS series in discrete mathematics and theoretical computer science, 
+    DIMACS series in discrete mathematics and theoretical computer science,
     61:163-184.
 
-    Holland, B. R., Jermiin, L. S., Moulton, V., and Investigators, 
-    S. T.-N. Y. (2006). Proceedings of the SMBE Tri-National Young 
-    Investigators' Workshop 2005. Improved consensus network techniques for 
-    genome-scale phylogeny. Mol Biol Evol, 23(5), 848-855. 
+    Holland, B. R., Jermiin, L. S., Moulton, V., and Investigators,
+    S. T.-N. Y. (2006). Proceedings of the SMBE Tri-National Young
+    Investigators' Workshop 2005. Improved consensus network techniques for
+    genome-scale phylogeny. Mol Biol Evol, 23(5), 848-855.
     doi:10.1093/molbev/msj061
     """
     if method == 'rooted':
@@ -232,7 +232,7 @@ def getSplits(tree):
 
 def getTree(splits):
     """Convert a dict keyed by splits into the equivalent tree.
-    The dict values should be dicts appropriate for the params input to 
+    The dict values should be dicts appropriate for the params input to
     TreeBuilder.createEdge.
     """
     Edge = TreeBuilder().createEdge

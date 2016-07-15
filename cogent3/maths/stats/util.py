@@ -21,7 +21,7 @@ guide to usage.
 
 The core classes are Numbers, Freqs, NumberFreqs, and SummaryStatistics. For
 each of the first three, there is also an Unsafe version (e.g. UnsafeFreqs),
-which has the same interface but avoids overriding built-in methods for 
+which has the same interface but avoids overriding built-in methods for
 performance reasons. The performance differences can be very large (the unsafe
 version can be an order of magnitude faster). However, the unsafe versions do
 not validate their input, so methods will fail if the data are invalid.
@@ -37,8 +37,8 @@ also work fine on the equivalent SummaryStatistics object.
 
 Numbers holds a list of values that are all numbers (i.e. can be converted to
 float -- it does not try to do anything with complex values). Numbers supports
-the full list interface, and also supports methods like items (returns key, 
-value pairs), toFixedWidth (for formatting), normalize, accumulate, 
+the full list interface, and also supports methods like items (returns key,
+value pairs), toFixedWidth (for formatting), normalize, accumulate,
 firstIndexLessThan (and its relatives), randomSequence, round, and so forth.
 
 UnsafeNumbers behaves like Numbers, except that it does not complain if you
@@ -46,7 +46,7 @@ initialize it with non-numeric values or insert such values later (with insert,
 __setitem__, extend, and so forth). Also, UnsafeNumbers does not automatically
 map strings to numbers during __init__.
 
-Freqs holds a dict of key, value pairs where the keys are assumed to be 
+Freqs holds a dict of key, value pairs where the keys are assumed to be
 separate categories. Statistics functions act on the categories: in other
 words, Count returns the number of categories, Sum returns the number of
 observations in all categories, Mean returns the mean number of observations
@@ -63,16 +63,16 @@ descending). Freqs refused to hold anything except non-negative floats (performs
 conversion on addition), and checks this constraint on all methods that mutate
 the object.
 
-UnsafeFreqs is like Freqs except that it is non-validating. One important 
+UnsafeFreqs is like Freqs except that it is non-validating. One important
 consequence is that __init__ behaves differently: UnsafeFreqs inherits the raw
 dict __init__. This means that Freqs([('a',2),('b',3),('a',1)]) gives you an
 object that compares equal to Freqs({'a':3,'b':3}) because it sums the repeated
-keys, but UnsafeFreqs([('a',2),('b',3),('a',1)]) gives you an object that 
+keys, but UnsafeFreqs([('a',2),('b',3),('a',1)]) gives you an object that
 compares equal to Freqs({'a':1,'b':3}) because the last key encounted overwrites
-the previous value for that key. Additionally, the UnsafeFreqs constructor 
+the previous value for that key. Additionally, the UnsafeFreqs constructor
 can't accept all the things the Freqs constructor can -- the easiest workaround
 is to create an empty UnsafeFreqs and use += to fill it with data, although
-if you know the form in the data in advance it's much faster to use the 
+if you know the form in the data in advance it's much faster to use the
 appropriate method (e.g. fromTuples, fromDict) than to let += guess what you
 gave it. UnsafeFreqs does not check that operations that mutate the dictionary
 preserve validity.
@@ -319,7 +319,7 @@ class NumbersI(object):
         """Returns list of (item, 1) tuples for each item in self.
 
         This is necessary because we want to delegate attribute accesses
-        (specifically, method calls for stats functions) to a 
+        (specifically, method calls for stats functions) to a
         Freqs object. Freqs tests whether an
         object is dictionary-like by calling items() on it, expecting an error
         if it doesn't have the method. However, NumericList delegates items()
@@ -375,7 +375,7 @@ class NumbersI(object):
 
         inclusive: whether to use i > value or i >= value for the test.
 
-        stop_at_ends: whether to return None or the last index in self if none 
+        stop_at_ends: whether to return None or the last index in self if none
         of the items in self are greater than the value.
         """
         if inclusive:
@@ -608,7 +608,7 @@ class Numbers(NumbersI, MappedList):
     is a number and, if so, adds it to the Numbers.
 
     Note: this means we have to override _all_ the list methods that might
-    potentially add new data to the list. This makes it much slower than 
+    potentially add new data to the list. This makes it much slower than
     UnsafeNumbers, but impossible for it to hold invalid data.
     """
     Mask = FunctionWrapper(float)
@@ -855,7 +855,7 @@ class FreqsI(object):
     def __str__(self):
         """Prints the items of self out as tab-delimited text.
 
-        Value, Frequency pairs are printed one pair to a line. Headers are 
+        Value, Frequency pairs are printed one pair to a line. Headers are
         'Value' and 'Count'.
         """
         if self:
@@ -1026,7 +1026,7 @@ class FreqsI(object):
         ''.join is also popular.
 
         scale should be the number you want your frequencies multiplied with.
-        Scaling only makes sense if your original freqs are fractions (and 
+        Scaling only makes sense if your original freqs are fractions (and
         otherwise it won't work anyway). The scaling and rounding are done
         on a copy of the original, so the original data is not changed.
 
@@ -1034,7 +1034,7 @@ class FreqsI(object):
         need to renormalize them (e.g. self.normalize(); self.normalize(1.0/100)
         to get percentages) or the counts will be zero for anything that's less
         frequent than 0.5. You _can_ use this to check whether any one symbol
-        constitutes a majority, but it's probably more efficient to use 
+        constitutes a majority, but it's probably more efficient to use
         mode()...
         """
         if scale:
@@ -1207,7 +1207,7 @@ class Freqs(FreqsI, MappedDict):
         RequiredKeys: keys that are automatically added with frequency 0 before
         frequencies are added.
 
-    Performs (expensive) validation on many operations that change the 
+    Performs (expensive) validation on many operations that change the
     dictionary. Use UnsafeFreqs if speed is more important than validation.
     """
     ValueMask = FunctionWrapper(freqwatcher)

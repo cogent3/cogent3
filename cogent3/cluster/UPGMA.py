@@ -1,9 +1,9 @@
 # usr/bin/env python
 """Functions to cluster using UPGMA
 
-upgma takes an dictionary of pair tuples mapped to distances as input. 
+upgma takes an dictionary of pair tuples mapped to distances as input.
 
-UPGMA_cluster takes an array and a list of PhyloNode objects corresponding 
+UPGMA_cluster takes an array and a list of PhyloNode objects corresponding
 to the array as input. Can also generate this type of input from a Dict2D using
 inputs_from_dict2D function.
 
@@ -63,7 +63,7 @@ def find_smallest_index(matrix):
     """returns the index of the smallest element in a numpy array
 
     for UPGMA clustering elements on the diagonal should first be
-    substituted with a very large number so that they are always 
+    substituted with a very large number so that they are always
     larger than the rest if the values in the array."""
     # get the shape of the array as a tuple (e.g. (3,3))
     shape = matrix.shape

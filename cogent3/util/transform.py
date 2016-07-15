@@ -144,7 +144,7 @@ def per_shortest(total, x, y):
     """Divides total by min(len(x), len(y)).
 
     Useful for normalizing per-item results from sequences that are zipped
-    together. Always returns 0 if one of the sequences is empty (to 
+    together. Always returns 0 if one of the sequences is empty (to
     avoid divide by zero error).
     """
     shortest = min(len(x), len(y))
@@ -158,7 +158,7 @@ def per_longest(total, x, y):
     """Divides total by max(len(x), len(y)).
 
     Useful for normalizing per-item results from sequences that are zipped
-    together. Always returns 0 if one of the sequences is empty (to 
+    together. Always returns 0 if one of the sequences is empty (to
     avoid divide by zero error).
     """
     longest = max(len(x), len(y))
@@ -389,7 +389,7 @@ def exclude_if_more(items, x, case_sens=False):
 
 
 def keep_if_more_other(items, x, case_sens=False):
-    """Returns True if #items in s other than those in items > x. 
+    """Returns True if #items in s other than those in items > x.
 
     This filter is case INsensitive by default.
     """

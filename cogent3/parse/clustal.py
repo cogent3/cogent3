@@ -38,7 +38,7 @@ def LabelLineParser(record, splitter, strict=True):
 
     Field order contains labels in order encountered in file.
 
-    NOTE: doesn't care if lines are out of order in different blocks. This 
+    NOTE: doesn't care if lines are out of order in different blocks. This
     should never happen anyway, but it's possible that this behavior should
     be changed to tighten up validation.
     """
@@ -76,7 +76,7 @@ last_space = DelimitedSplitter(None, -1)
 def delete_trailing_number(line):
     """Deletes trailing number from a line.
 
-    WARNING: does not preserve internal whitespace when a number is removed! 
+    WARNING: does not preserve internal whitespace when a number is removed!
     (converts each whitespace run to a single space). Returns the original
     line if it didn't end in a number.
     """

@@ -59,31 +59,31 @@ period_tail_finder = TailedRecordFinder(endswith_period)
 def pairs_to_dict(key_values, dict_mode=None,
                   all_keys=None, handlers={}, default_handler=None):
     """generate a function which return a dict from a sequence of key_value
-    pairs. 
+    pairs.
 
     key_values: (key, value) pairs, from any sequence type. Example:
     [('a', 1), ('b', 2), ('b', 3)]
 
     dict_mode: one of four modes to build a dict from pairs.
-    'overwrite_value': default, same as dict(key_values) 
+    'overwrite_value': default, same as dict(key_values)
     the key_values example get {'a': 1, 'b': 3}
     'no_duplicated_key': raise error when there is duplicated key;
     or a dict with a list of values when there is duplicated key
-    'allow_muti_value': a duplicated key will have a list of values, 
+    'allow_muti_value': a duplicated key will have a list of values,
     the example get {'a': 1, 'b': [2, 3]}
-    'always_multi_value': always group value(s) into a list for each key; 
+    'always_multi_value': always group value(s) into a list for each key;
     the example get {'a': [1], 'b': [2, 3]}
 
     all_keys: if a key not found in all_keys, raise error; recommend to use a
     dict for all_keys for efficiency.
 
     Each value will be converted, if a valid handler can be found in handlers
-    or a default_handler is provided. 
+    or a default_handler is provided.
     handler = handlers.get(key, default_handler)
 
     When handlers provided but no valid handler is found for a key: raise
     ValueError.
-    Always use original value, if no handlers provided, for example, 
+    Always use original value, if no handlers provided, for example,
     pairs_to_dict(adict.items()) will return adict.
 
     Note: use default_handler=identity is often useful if you want to return
@@ -195,9 +195,9 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
 
     Examples:
     join_split_parser(['aa; bb;', 'cc.']) -> ['aa', 'bb', 'cc']
-    join_split_parser(['aa; bb, bbb;', 'cc.'], delimiters=';,') 
+    join_split_parser(['aa; bb, bbb;', 'cc.'], delimiters=';,')
     -> ['aa', ['bb','bbb'], 'cc']
-    join_split_parser('aa (bb) (cc).', delimiters='(', 
+    join_split_parser('aa (bb) (cc).', delimiters='(',
     item_modifer=rstrip_(')) -> ['aa','bb','cc']
     """
     result = join_parser(lines, **kwargs)
@@ -255,7 +255,7 @@ def mapping_parser(line, fields, delimiters=[';', None],
 
     line: should be a str,  to be splitted.
     fields: field name and optional type constructor for mapping.  example:
-        ['EntryName', ('Length', int), 'MolType'] 
+        ['EntryName', ('Length', int), 'MolType']
     delimiters: separators used to split the line.
     flatten: a function used to flatten the list from nested splitting.
     """
@@ -300,14 +300,14 @@ def id_parser(lines):
 def sq_parser(lines):
     """return a mapping dict from SQ lines (only one line).
 
-    The SQ (SeQuence header) line marks the beginning of the sequence data and 
+    The SQ (SeQuence header) line marks the beginning of the sequence data and
     gives a quick summary of its content.  The format of the SQ line is:
 
     SQ   SEQUENCE XXXX AA; XXXXX MW; XXXXXXXXXXXXXXXX CRC64;
 
     The line contains the length of the sequence in amino acids ('AA')
     followed by the molecular weight ('MW') rounded to the nearest mass unit
-    (Dalton) and the sequence 64-bit CRC (Cyclic Redundancy Check) value 
+    (Dalton) and the sequence 64-bit CRC (Cyclic Redundancy Check) value
     ('CRC64').
     """
     lines = labeloff(lines)
@@ -318,7 +318,7 @@ def sq_parser(lines):
 def kw_parser(lines):
     """return a list of keywords from KW lines.
 
-    The format of the KW line is: 
+    The format of the KW line is:
     KW   Keyword[; Keyword...].
     """
     lines = labeloff(lines)
@@ -328,7 +328,7 @@ def kw_parser(lines):
 def ac_parser(lines):
     """return a list of accession numbers from AC lines.
 
-    The AC (ACcession number) line lists the accession number(s) associated 
+    The AC (ACcession number) line lists the accession number(s) associated
     with an entry. The format of the AC line is:
     AC   AC_number_1;[ AC_number_2;]...[ AC_number_N;]
 
@@ -387,7 +387,7 @@ def gn_parser(lines):
     None of the above four tokens are mandatory. But a "Synonyms" token can
     only be present if there is a "Name" token.
 
-    If there is more than one gene, GN line blocks for the different genes are 
+    If there is more than one gene, GN line blocks for the different genes are
     separated by the following line:
     GN   and
     Example:
@@ -440,12 +440,12 @@ def os_parser(lines):
 def ox_parser(lines):
     """return a dict from OX lines.
 
-    The OX (Organism taxonomy cross-reference) line is used to indicate the 
+    The OX (Organism taxonomy cross-reference) line is used to indicate the
     identifier of a specific organism in a taxonomic database. The format:
     OX   Taxonomy_database_Qualifier=Taxonomic code;
 
-    Currently the cross-references are made to the taxonomy database of NCBI, 
-    which is associated with the qualifier 'TaxID' and a one- to six-digit 
+    Currently the cross-references are made to the taxonomy database of NCBI,
+    which is associated with the qualifier 'TaxID' and a one- to six-digit
     taxonomic code."""
     lines = labeloff(lines)
     return join_split_dict_parser(lines)
@@ -488,7 +488,7 @@ def dr_parser(lines):
     """return a dict of items from DR lines.
 
     The DR (Database cross-Reference) lines are used as pointers to information
-    related to entries and found in data collections other than Swiss-Prot. 
+    related to entries and found in data collections other than Swiss-Prot.
     The format of one of many DR line is:
 
     DR   DATABASE_IDENTIFIER; PRIMARY_IDENTIFIER; SECONDARY_IDENTIFIER[;
@@ -532,7 +532,7 @@ def de_parser(lines):
     the overall protein, followed by a section delimited by '[Includes: ]'. All
     the domains are listed in that section and are separated by semi-colons
     (';'). Synonyms are allowed at the level of the protein and for each
-    individual domain. 
+    individual domain.
 
     In rare cases, the functional domains of an enzyme are cleaved, but the
     catalytic activity can only be observed, when the individual chains
@@ -635,9 +635,9 @@ def ft_parser(lines):
         35-75   Description
 
     The key name and the endpoints are always on a single line, but the
-    description may require one or more additional lines. The following 
+    description may require one or more additional lines. The following
     description lines continues from column 35 onwards.  For more information
-    about individual ft keys, see 
+    about individual ft keys, see
     http://us.expasy.org/sprot/userman.html#FT_keys
 
     'FROM' and 'TO' endpoints: Numbering start from 1; When a feature is known
@@ -652,7 +652,7 @@ def ft_parser(lines):
     associated with a unique and stable feature identifier (FTId), which allows
     to construct links directly from position-specific annotation in the
     feature table to specialized protein-related databases.  The FTId is always
-    the last component of a feature in the description field. 
+    the last component of a feature in the description field.
 
     Examples:
         FT   SIGNAL       <1     10       By similarity.
@@ -674,7 +674,7 @@ def ft_parser(lines):
     entries of proteins whose tertiary structure is known experimentally
     contains the secondary structure information extracted from the coordinate
     data sets of the Protein Data Bank (PDB).  Residues not specified in one of
-    these classes are in a 'loop' or 'random-coil' structure. 
+    these classes are in a 'loop' or 'random-coil' structure.
     """
     lines = labeloff(lines)
     fieldnames = 'Start End Description'.split()
@@ -766,8 +766,8 @@ def ft_id_parser(description):
 
 
 def ft_mutation_parser(description, mutation_comment_delimiter='('):
-    """return a  dict of {'MutateFrom': , 'MutateTo':,'Comment':} from 
-    description str 
+    """return a  dict of {'MutateFrom': , 'MutateTo':,'Comment':} from
+    description str
 
     Warning: if both id and mutation should be parsed, always parse id first.
 
@@ -927,9 +927,9 @@ def cc_parser(lines, strict=False):
 
 
 def cc_basic_itemparser(topic):
-    """return (topic_name, topic_content as a list) from a cc topic block. 
+    """return (topic_name, topic_content as a list) from a cc topic block.
 
-    Format of a topic as input of this function: [ 
+    Format of a topic as input of this function: [
     '-!- TOPIC: First line of a comment block;',
     '    second and subsequent lines of a comment block.']
     """
@@ -1211,7 +1211,7 @@ def ra_parser(lines):
     All of the authors are included, and are listed in the order given in the
     paper. The names are listed surname first followed by a blank, followed by
     initial(s) with periods. The authors' names are separated by commas and
-    terminated by a semicolon. Author names are not split between lines. eg: 
+    terminated by a semicolon. Author names are not split between lines. eg:
     RA   Galinier A., Bleicher F., Negre D., Perriere G., Duclos B.;
 
     All initials of the author names are indicated and hyphens between initials
@@ -1226,7 +1226,7 @@ def ra_parser(lines):
 def rp_parser(lines):
     """return joined str stripped of '.'.
 
-    The RP (Reference Position) lines describe the extent of the work relevant 
+    The RP (Reference Position) lines describe the extent of the work relevant
     to the entry carried out by the authors. format:
     RP   COMMENT.
     """
@@ -1239,8 +1239,8 @@ def rl_parser(lines):
 
     Note: not complete parsing.
 
-    The RL (Reference Location) lines contain the conventional citation 
-    information for the reference. In general, the RL lines alone are 
+    The RL (Reference Location) lines contain the conventional citation
+    information for the reference. In general, the RL lines alone are
     sufficient to find the paper in question.
 
     a) Journal citations
@@ -1287,7 +1287,7 @@ def rt_parser(lines):
     """return joined line stripped of .";
 
     The RT (Reference Title) lines give the title of the paper (or other work)
-    cited as exactly as possible given the limitations of the computer 
+    cited as exactly as possible given the limitations of the computer
     character set. The format of the RT line is:
     RT   "Title.";"""
     lines = labeloff(lines)
@@ -1298,7 +1298,7 @@ def rn_parser(lines):
     """return a integer from RN lines (only one line).
 
     The RN (Reference Number) line gives a sequential number to each reference
-    citation in an entry. This number is used to indicate the reference in 
+    citation in an entry. This number is used to indicate the reference in
     comments and feature table notes. The format of the RN line is:
     RN   [##]
     """
@@ -1450,15 +1450,15 @@ def EbiParser(lines, seq_constructor=Sequence,
     """Parser for the EBI data format.
 
     lines: input data (list of lines or file stream)
-    seq_constructor: constructor function to construct sequence, 'Sequence' by 
+    seq_constructor: constructor function to construct sequence, 'Sequence' by
         default.
     header_constructor: function to process the header information. Default
         is 'parse_header'
     strict: whether an exception should be raised in case of a problem
         (strict=True) or whether the bad record should be skipped
         (strict=False).
-    selected_labels: Labels from the original data format that you want 
-        returned. All the original header labels are used, except for 
+    selected_labels: Labels from the original data format that you want
+        returned. All the original header labels are used, except for
         REFERENCES, which is 'REF'.
     """
     for sequence, header_dict in MinimalEbiParser(lines, strict=strict,
@@ -1503,13 +1503,13 @@ Examples:
             print('\r %s: %s' % (i, rec[1]['ID']['EntryName']), end=' ')
     else:
         lines = """\
-ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA. 
+ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA.
 AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
 DT   01-MAY-2000 (TrEMBLrel. 13, Created)
 DT   01-MAY-2000 (TrEMBLrel. 13, Last sequence update)
 DT   13-SEP-2005 (TrEMBLrel. 31, Last annotation update)
-DE   Basic salivary proline-rich protein 4 allele L (Salivary proline-rich 
-DE   protein Po) (Parotid o protein) [Contains: Peptide P-D (aa); BB (bb) 
+DE   Basic salivary proline-rich protein 4 allele L (Salivary proline-rich
+DE   protein Po) (Parotid o protein) [Contains: Peptide P-D (aa); BB (bb)
 DE   (bbb)] (Fragment).
 GN   Name=nob-1; ORFNames=Y75B8A.2, Y75B8A.2B;
 GN   and
@@ -1588,7 +1588,7 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
      TTPNAAMHLP WAISHDGKKK RQPYKKDQIS RLEYEYSVNQ YLTNKRRSEL SAQLMLDEKQ
      VKVWFQNRRM KDKKLRQRHS GPFPHGAPVT PCIERLIN
 //
-ID   Q9U9C5_TEST   PRELIMINARY;      PRT;   218 AA. 
+ID   Q9U9C5_TEST   PRELIMINARY;      PRT;   218 AA.
 DT   ddd.
 AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
 SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;

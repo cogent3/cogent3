@@ -55,7 +55,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
     arrow_sep: separation between arrows in a pair, data coordinates.
     alpha: maximum opacity of arrows, default 0.8.
 
-    **kwargs can be anything allowed by a Arrow object, e.g. 
+    **kwargs can be anything allowed by a Arrow object, e.g.
     linewidth and edgecolor.
     """
 

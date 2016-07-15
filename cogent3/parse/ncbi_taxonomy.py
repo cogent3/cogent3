@@ -61,7 +61,7 @@ class NcbiTaxon(object):
         ParentId    ID of this node's parent
         Rank        Rank of this node: genus, species, etc.
         EmblCode    Locus name prefix; not unique
-        DivisionId  From division.dmp           
+        DivisionId  From division.dmp
         DivisionInherited  1 or 0; 1 if node inherits division from parent
         TranslTable  ID of this node's genetic code from gencode.dmp
         GCInherit   1 or 0; 1 if node inherits genetic code from parent
@@ -146,7 +146,7 @@ class NcbiName(object):
     Properties:
         TaxonId     TaxonId of this node
         Name        Text representation of the name, e.g. Homo sapiens
-        UniqueName  The unique variant of this name if Name not unique 
+        UniqueName  The unique variant of this name if Name not unique
         NameClass   Kind of name, e.g. scientific name, synonym, etc.
     """
     Fields = ['TaxonId', 'Name', 'UniqueName', 'NameClass']

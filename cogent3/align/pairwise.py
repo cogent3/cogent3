@@ -71,7 +71,7 @@ __status__ = "Production"
 
 class PointerEncoding(object):
     """Pack very small ints into a byte.  The last field, state, is assigned
-    whatever bits are left over after the x and y pointers have claimed what 
+    whatever bits are left over after the x and y pointers have claimed what
     they need, which is expected to be only 2 bits each at most"""
 
     dtype = TRACK_INT_TYPE
@@ -976,7 +976,7 @@ class PairHMM(object):
 
 
 class _ViterbiPath(object):
-    """Heavyweight object representing the Viterbi path (ie: best alignment) 
+    """Heavyweight object representing the Viterbi path (ie: best alignment)
     and all of the inputs used to generate it."""
 
     def __init__(self, pair_hmm, result):

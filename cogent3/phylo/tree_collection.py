@@ -74,7 +74,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     def getConsensusTrees(self, cutoff=None, strict=False, alpha=0.05):
         """Returns a weighted consensus tree as described in Holland (2006).
         Weights transformed according to the class IV transformation in Jermiin
-        (1997). 
+        (1997).
 
         Args:
             cutoff: Discard trees with weights that sum to cutoff.
@@ -84,15 +84,15 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         Returns:
             Single consensus tree, in a list for backward compatibility.
 
-        Holland, B. R., Jermiin, L. S., Moulton, V., and 
-        Investigators, S. T.-N. Y. (2006). Proceedings of the SMBE 
-        Tri-National Young Investigators' Workshop 2005. Improved consensus 
-        network techniques for genome-scale phylogeny. Mol Biol Evol, 
+        Holland, B. R., Jermiin, L. S., Moulton, V., and
+        Investigators, S. T.-N. Y. (2006). Proceedings of the SMBE
+        Tri-National Young Investigators' Workshop 2005. Improved consensus
+        network techniques for genome-scale phylogeny. Mol Biol Evol,
         23(5), 848-855. doi:10.1093/molbev/msj061
 
-        Jermiin, L. S., Olsen, G. J., Mengerson, K., and Easteal, S. (1997). 
-        Majority-rule consensus of phylogenetic trees obtained by 
-        maximum-likelihood analysis. Molecular Biology and Evolution, 
+        Jermiin, L. S., Olsen, G. J., Mengerson, K., and Easteal, S. (1997).
+        Majority-rule consensus of phylogenetic trees obtained by
+        maximum-likelihood analysis. Molecular Biology and Evolution,
         14(12):1296.
         """
         return self.getWeightedTrees(cutoff, alpha).getConsensusTrees(strict)

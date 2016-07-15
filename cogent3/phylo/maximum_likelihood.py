@@ -18,7 +18,7 @@ __status__ = "Production"
 class ML(TreeEvaluator):
     """(err, best_tree) = ML(model, alignment, [dists]).trex()
 
-    'model' can be a substitution model or a likelihood function factory 
+    'model' can be a substitution model or a likelihood function factory
     equivalent to SubstitutionModel.makeLikelihoodFunction(tree).
     If 'dists' is provided uses WLS to get initial values for lengths"""
 

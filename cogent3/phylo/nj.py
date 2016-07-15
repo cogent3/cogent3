@@ -56,8 +56,8 @@ class LightweightTreeNode(frozenset):
 class PartialTree(object):
     """A candidate tree stored as
       (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
-      At each iteration (ie: call of the join method) the number of subtrees 
-      is reduced as 2 of them are joined, while the number of partitions is 
+      At each iteration (ie: call of the join method) the number of subtrees
+      is reduced as 2 of them are joined, while the number of partitions is
       increased as a new edge is introduced.
       """
 
@@ -127,7 +127,7 @@ class PartialTree(object):
 
 class Pair(object):
     """A candidate neighbour join, not turned into an actual PartialTree until
-    and unless we decide to use it, because calculating just the topology is 
+    and unless we decide to use it, because calculating just the topology is
     faster than calculating the whole new distance matrix etc. as well."""
 
     __slots__ = ['tree', 'i', 'j', 'topology', 'new_partition']
@@ -146,7 +146,7 @@ class Pair(object):
 
 
 def uniq_neighbour_joins(trees, encode_partition):
-    """Generate all joinable pairs from all trees, best first, 
+    """Generate all joinable pairs from all trees, best first,
     filtering out any duplicates"""
     L = len(trees[0].nodes)
     scores = numpy.zeros([len(trees), L, L])
@@ -174,9 +174,9 @@ def uniq_neighbour_joins(trees, encode_partition):
 def gnj(dists, keep=None, dkeep=0, ui=None):
     """Arguments:
         - dists: dict of (name1, name2): distance
-        - keep: number of best partial trees to keep at each iteration,  
+        - keep: number of best partial trees to keep at each iteration,
           and therefore to return.  Same as Q parameter in original GNJ paper.
-        - dkeep: number of diverse partial trees to keep at each iteration, 
+        - dkeep: number of diverse partial trees to keep at each iteration,
           and therefore to return.  Same as D parameter in original GNJ paper.
     Result:
         - a sorted list of (tree length, tree) tuples

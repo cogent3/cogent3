@@ -15,7 +15,7 @@ __status__ = "Production"
 
 
 def PairTransitionMatrix(order, a):
-    """A matrix for Pair HMMs with gap states X and Y, match state M, 
+    """A matrix for Pair HMMs with gap states X and Y, match state M,
     and optionally a silent wait state W"""
     size = len(order)
     assert a.shape == (size, size)
@@ -62,8 +62,8 @@ class SimpleIndelModel(_SimpleIndelParams):
 
 
 class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
-    """Sequence Alignments and Pair HMMs Using Evolutionary History 
-    Bjarne Knudsen and Michael M. Miyamoto 
+    """Sequence Alignments and Pair HMMs Using Evolutionary History
+    Bjarne Knudsen and Michael M. Miyamoto
     Journal of Molecular Biology
     Volume 333, Issue 2 , 17 October 2003, Pages 453-460"""
 
