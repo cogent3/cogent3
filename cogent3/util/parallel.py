@@ -146,7 +146,8 @@ class MPIParallelContext(ParallelContext):
         # ensure same number of allgather calls in every process
         for start in ordinals:
             start += rank
-            local_results = UnFlattened([f(x) for x in s[start:start + chunksize]])
+            local_results = UnFlattened(
+                [f(x) for x in s[start:start + chunksize]])
             for results in comm.allgather(local_results):
                 # mpi4py allgather has a nasty inconsistancy about flattening
                 # lists of simple values

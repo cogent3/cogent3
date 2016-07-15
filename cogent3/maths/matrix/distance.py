@@ -58,8 +58,8 @@ class DistanceMatrix(Dict2D, Delegator):
         if Pad is not None:
             self.Pad = Pad
         # Initialize super class attributes
-        Dict2D.__init__(self, data=data, RowOrder=self.RowOrder,\
-                        ColOrder=self.ColOrder, Default=Default, Pad=self.Pad,\
+        Dict2D.__init__(self, data=data, RowOrder=self.RowOrder,
+                        ColOrder=self.ColOrder, Default=Default, Pad=self.Pad,
                         RowConstructor=RowConstructor)
         Delegator.__init__(self, info)
 

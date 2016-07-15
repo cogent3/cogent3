@@ -765,7 +765,8 @@ class Table(DictArray):
         elif self.Title == other_table.Title:
             raise RuntimeError("Cannot join if a table.Title's are equal")
 
-        columns_self = [columns_self, [columns_self]][type(columns_self) == str]
+        columns_self = [columns_self, [columns_self]][
+            type(columns_self) == str]
         columns_other = [columns_other,
                          [columns_other]][type(columns_other) == str]
         if not inner_join:
@@ -787,7 +788,7 @@ class Table(DictArray):
             columns_self = columns_self or columns_other
             columns_other = columns_self or columns_other
         elif len(columns_self) != len(columns_other):
-            raise RuntimeError("Error during table join: key columns have "\
+            raise RuntimeError("Error during table join: key columns have "
                                "different dimensions!")
 
         # create new 2d list for the output
@@ -833,11 +834,11 @@ class Table(DictArray):
             key = tuple([this_row[col] for col in columns_self_indices])
             if key in key_lookup:
                 for output_row_index in key_lookup[key]:
-                    other_row = [other_table[output_row_index, c] \
+                    other_row = [other_table[output_row_index, c]
                                for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
 
-        new_header = self.Header + [other_table.Title + "_" + other_table.Header[c] \
+        new_header = self.Header + [other_table.Title + "_" + other_table.Header[c]
                                                   for c in output_mask_other]
         if not joined_table:
             # YUK, this is to stop dimension check in DictArray causing

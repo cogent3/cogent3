@@ -40,7 +40,8 @@ class AnnealingSchedule(object):
     def checkSameConditions(self, other):
         for attr in ['temp_reduction', 'initial_temp', 'temp_iterations', 'step_cycles']:
             if getattr(self, attr) != getattr(other, attr):
-                raise ValueError('Checkpoint file ignored - %s different' % attr)
+                raise ValueError(
+                    'Checkpoint file ignored - %s different' % attr)
 
     def roundsToReach(self, T):
         from math import log
@@ -133,7 +134,7 @@ class AnnealingRun(object):
     def checkFunction(self, function, xopt, checkpointing_filename):
         if len(xopt) != len(self.state.XOPT):
             raise ValueError(
-                "Number of parameters in checkpoint file '%s' (%s) " \
+                "Number of parameters in checkpoint file '%s' (%s) "
                 "don't match current function (%s)" % (
                     checkpointing_filename, len(self.state.XOPT), len(xopt)))
         # if f(x) != g(x) then f isn't g.
@@ -141,7 +142,7 @@ class AnnealingRun(object):
         now = function(self.state.XOPT)
         if not numpy.allclose(now, then, 1e-8):
             raise ValueError(
-                "Function to optimise doesn't match checkpoint file " \
+                "Function to optimise doesn't match checkpoint file "
                 "'%s': F=%s now, %s in file." % (
                     checkpointing_filename, now, then))
 

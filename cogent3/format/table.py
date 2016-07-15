@@ -28,7 +28,8 @@ def _merged_cell_text_wrap(text, max_line_length, space):
     buffer = ' ' * space
     wrapped = textwrap.wrap(text, width=max_line_width,
                             initial_indent=buffer, subsequent_indent=buffer)
-    wrapped = ["%s" % line.ljust(max_line_width + 2 * space) for line in wrapped]
+    wrapped = ["%s" % line.ljust(max_line_width + 2 * space)
+                                 for line in wrapped]
     return wrapped
 
 
@@ -129,7 +130,8 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
 
     justify = "{ %s }" % " ".join(list(justify))
     if header:
-        header = "%s \\\\" % " & ".join([r"\bf{%s}" % head.strip() for head in header])
+        header = "%s \\\\" % " & ".join(
+            [r"\bf{%s}" % head.strip() for head in header])
     rows = ["%s \\\\" % " & ".join(row) for row in rows]
 
     table_format = [r"\begin{longtable}[%s]%s" % (position or "htp!", justify)]
@@ -504,7 +506,8 @@ def phylipMatrix(rows, names):
             except IndexError:
                 end = len(formatted_dists)
             prefix = ['', '  '][i > 0]
-            rows.append("%s%s" % (prefix, "  ".join(formatted_dists[start: end])))
+            rows.append("%s%s" %
+                        (prefix, "  ".join(formatted_dists[start: end])))
         # mod first row of formatted_dists
         rows[0] = "%s%s" % (name.ljust(12), rows[0])
         return rows

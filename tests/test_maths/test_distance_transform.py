@@ -157,7 +157,8 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand"""
 
-        self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4, 4) * 1, 'd'))
+        self.assertFloatEqual(dist_manhattan(
+            self.zeromtx), zeros((4, 4) * 1, 'd'))
 
         mtx1expected = array([[0, 21.1 / 27.1],
                               [21.1 / 27.1, 0]], 'd')
@@ -169,7 +170,8 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and mtx1 compared with calcs done
         by hand"""
 
-        self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4, 4) * 1, 'd'))
+        self.assertFloatEqual(dist_manhattan(
+            self.zeromtx), zeros((4, 4) * 1, 'd'))
 
         mtx1expected = array([[0, 21.1 / 27.1],
                               [21.1 / 27.1, 0]], 'd')
@@ -181,7 +183,8 @@ class functionTests(TestCase):
         tests inputs of empty mtx, zeros, and dense1 compared with calcs done
         by hand/manhattan dist"""
 
-        self.assertFloatEqual(dist_soergel(self.zeromtx), zeros((4, 4) * 1, 'd'))
+        self.assertFloatEqual(dist_soergel(self.zeromtx),
+                              zeros((4, 4) * 1, 'd'))
 
         dense1expected = dist_manhattan(self.dense1)
         dense1norm = array([[1, 8, 23],

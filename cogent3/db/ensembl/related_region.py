@@ -132,7 +132,7 @@ class SyntenicRegion(LazyRecord):
         genomic_align_table = \
             self.parent.compara.ComparaDb.getTable('genomic_align')
         query = sql.select([genomic_align_table.c.cigar_line],
-                           genomic_align_table.c.genomic_align_id == \
+                           genomic_align_table.c.genomic_align_id ==
                            self._cached['genomic_align_id'])
         record = asserted_one(query.execute())
         self._cached['cigar_line'] = record['cigar_line']
@@ -192,7 +192,8 @@ class SyntenicRegion(LazyRecord):
             block_loc = self.genome.makeLocation(CoordName=record['name'],
                                                  Start=record['dnafrag_start'],
                                                  End=record['dnafrag_end'],
-                                                 Strand=record['dnafrag_strand'],
+                                                 Strand=record[
+                                                     'dnafrag_strand'],
                                                  ensembl_coord=True)
             relative_start = aln_loc[0]
             relative_end = aln_loc[1]
@@ -271,7 +272,7 @@ class SyntenicRegions(_RelatedRegions):
         my_type = self.__class__.__name__
 
         display = ['%s:' % my_type]
-        display += ['  %r' % m.Location for m in self.Members \
+        display += ['  %r' % m.Location for m in self.Members
                     if m.Region is not None]
         return '\n'.join(display)
 

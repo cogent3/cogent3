@@ -75,7 +75,8 @@ class TestPredicates(unittest.TestCase):
         self.assertNoMatch(isFromToCpA_C_only, 'TCA', 'TCT')
 
     def test_isFromCpA_C_only(self):
-        isFromCpA_C_only = self._makeMotifChange('CA', forward_only=True, diff_at=0)
+        isFromCpA_C_only = self._makeMotifChange(
+            'CA', forward_only=True, diff_at=0)
         self.assertMatch(isFromCpA_C_only, 'CA', 'TA')
         self.assertMatch(isFromCpA_C_only, 'TCA', 'TTA')
         self.assertNoMatch(isFromCpA_C_only, 'TAA', 'CAA')

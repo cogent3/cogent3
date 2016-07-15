@@ -324,7 +324,8 @@ class DistributionsTests(TestCase):
 
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
-        expected = list(map(float, "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split()))
+        expected = list(map(
+            float, "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split()))
 
         for i in range(len(expected)):
             self.assertFloatEqual(binomial_exact(i, 10, 0.3), expected[i])
@@ -383,8 +384,10 @@ class DistributionsTests(TestCase):
             (1, 10, 20): 0.001193467,
             (10, 1, 0): 1,
             (10, 10, 14.7): 0.0001062585,
-            (13.7, 11.9, 3.8): 0.01340347,  # test non-integer degrees of freedom
-            # used following series to track down a bug after a failed test case
+            # test non-integer degrees of freedom
+            (13.7, 11.9, 3.8): 0.01340347,
+            # used following series to track down a bug after a failed test
+            # case
             (28, 29, 2): 0.03424088,
             (28, 29, 10): 1.053019e-08,
             (28, 29, 20): 1.628245e-12,

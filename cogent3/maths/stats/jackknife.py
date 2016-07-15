@@ -71,7 +71,8 @@ class JackknifeStats(object):
 
         # Compute the approximate standard error of the jackknifed estimate
         # of the statistic
-        variance = np.square(self._pseudovalues - self._jackknifed_stat).sum(axis=0)
+        variance = np.square(self._pseudovalues -
+                             self._jackknifed_stat).sum(axis=0)
         variance_norm = np.divide(variance, n * n_minus_1)
         self._standard_error = np.sqrt(variance_norm)
 

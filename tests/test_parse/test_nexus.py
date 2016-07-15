@@ -203,7 +203,7 @@ class NexusParserTests(TestCase):
         Trans_table, dnd = parse_nexus_tree(Nexus_tree)
 
         # check the full dendrogram string is returned
-        self.assertEqual(dnd['tree PAUP_1'],\
+        self.assertEqual(dnd['tree PAUP_1'],
                          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
         # check that all taxa are returned in the Trans_table
@@ -227,7 +227,7 @@ class NexusParserTests(TestCase):
         Trans_table, dnd = parse_nexus_tree(Nexus_tree_3)
 
         # check the full dendrogram string is returned
-        self.assertEqual(dnd['tree PAUP_1'],\
+        self.assertEqual(dnd['tree PAUP_1'],
                          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
         # check that all taxa are returned in the Trans_table
@@ -245,9 +245,9 @@ class NexusParserTests(TestCase):
         """get_tree_info returns the Nexus file section that describes the tree"""
         result = get_tree_info(Nexus_tree)
         self.assertEqual(len(result), 33)
-        self.assertEqual(result[0],\
+        self.assertEqual(result[0],
                          "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
-        self.assertEqual(result[31], \
+        self.assertEqual(result[31],
                          "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
     def test_split_tree_info(self):
@@ -261,14 +261,14 @@ class NexusParserTests(TestCase):
 
         self.assertEqual(len(dnd), 2)
 
-        self.assertEqual(header[0],\
+        self.assertEqual(header[0],
                          "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
         self.assertEqual(header[8], "\tTranslate")
 
         self.assertEqual(trans_table[0], "\t\t1 outgroup25,")
         self.assertEqual(trans_table[21], "\t\t;")
 
-        self.assertEqual(dnd[0], \
+        self.assertEqual(dnd[0],
                          "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
     def test_parse_trans_table(self):
@@ -295,7 +295,7 @@ class NexusParserTests(TestCase):
         tree_info = get_tree_info(Nexus_tree)
         header, trans_table, dnd = split_tree_info(tree_info)
         dnd_dict = parse_dnd(dnd)
-        self.assertEqual(dnd_dict['tree PAUP_1'],\
+        self.assertEqual(dnd_dict['tree PAUP_1'],
                          "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 #------------------------------------------------------        
 
@@ -303,9 +303,9 @@ class NexusParserTests(TestCase):
         """get_BL_table returns the section of the log file w/ the BL table"""
         BL_table = get_BL_table(PAUP_log)
         self.assertEqual(len(BL_table), 40)
-        self.assertEqual(BL_table[0], \
+        self.assertEqual(BL_table[0],
                          "    40                root                  0             0             0")         
-        self.assertEqual(BL_table[39], \
+        self.assertEqual(BL_table[39],
                          "outgroup258 (21)*       40                 45            27            67")
 
     def test_find_fields(self):

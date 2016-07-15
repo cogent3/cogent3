@@ -96,7 +96,8 @@ class TaylorExponentiator(_Exponentiator):
             trm = numpy.dot(trm, A / float(k))
             eA += trm
         if k >= self.q:
-            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k + 1))
+            warnings.warn("Taylor series lengthened from %s to %s" %
+                          (self.q, k + 1))
             self.q = k + 1
         return eA
 
@@ -137,9 +138,9 @@ class PadeExponentiator(_Exponentiator):
             cX = c * X
             N = N + cX
             if not k % 2:
-                D = D + cX;
+                D = D + cX
             else:
-                D = D - cX;
+                D = D - cX
         F = solve(D, N)
         for k in range(1, j + 1):
             F = numpy.dot(F, F)

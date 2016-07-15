@@ -58,7 +58,8 @@ class GeneticCode(object):
     """
     # class data: need the bases, the list of codons in UUU -> GGG order, and
     # a mapping from positions in the list back to codons. These should be the
-    # same for all GeneticCode instances, and are immutable (therefore private).
+    # same for all GeneticCode instances, and are immutable (therefore
+    # private).
     _nt = _bases
     _codons = tuple(map("".join, product(_bases, _bases, _bases)))
 
@@ -69,7 +70,7 @@ class GeneticCode(object):
         of the genetic code. Raises GeneticCodeInitError if length != 64.
         """
         if (len(CodeSequence) != 64):
-            raise GeneticCodeInitError("CodeSequence: %s has length %d, but expected 64"\
+            raise GeneticCodeInitError("CodeSequence: %s has length %d, but expected 64"
                                        % (CodeSequence, len(CodeSequence)))
 
         self.CodeSequence = CodeSequence

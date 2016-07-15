@@ -22,7 +22,8 @@ __status__ = "Production"
 # SUPPORT2425
 if sys.version_info < (2, 6):
     py_version = ".".join([str(n) for n in sys.version_info])
-    raise RuntimeError("Python-2.6 or greater is required, Python-%s used." % py_version)
+    raise RuntimeError(
+        "Python-2.6 or greater is required, Python-%s used." % py_version)
 
 numpy_version = re.split("[^\d]", numpy.__version__)
 numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
@@ -179,7 +180,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     return table
 
 
-def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
+def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
              underscore_unmunge=False):
     """Constructor for tree.
 
@@ -210,7 +211,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
         tree_builder = TreeBuilder().createEdge
         # FIXME: More general strategy for underscore_unmunge
         if parser is newick_parse_string:
-            tree = parser(treestring, tree_builder, \
+            tree = parser(treestring, tree_builder,
                           underscore_unmunge=underscore_unmunge)
         else:
             tree = parser(treestring, tree_builder)

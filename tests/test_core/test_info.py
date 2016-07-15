@@ -83,7 +83,8 @@ class DbRefsTests(TestCase):
     def test_init_data(self):
         """DbRefs init with data should produce expected results"""
         d = DbRefs({'GenBank': 'ab', 'GO': (3, 44), 'PDB': ['asdf', 'ghjk']})
-        self.assertEqual(d, {'GenBank': ['ab'], 'GO': [3, 44], 'PDB': ['asdf', 'ghjk']})
+        self.assertEqual(d, {'GenBank': ['ab'], 'GO': [
+                         3, 44], 'PDB': ['asdf', 'ghjk']})
         d.GenBank = 'xyz'
         self.assertEqual(d['GenBank'], ['xyz'])
 
@@ -113,7 +114,8 @@ class InfoTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise Exception("Failed to prevent deletion of required key Refs""")
+            raise Exception(
+                "Failed to prevent deletion of required key Refs""")
         d.GenBank = ('qaz', 'wsx')
         self.assertEqual(d.GenBank, ['qaz', 'wsx'])
         self.assertContains(d.Refs, 'GenBank')

@@ -67,7 +67,8 @@ class make_matches_tests(TestCase):
         m = make_matches('')
         self.assertEqual(m, {})
         m = make_matches('qaz')
-        self.assertEqual(m, {('q', 'q'): True, ('a', 'a'): True, ('z', 'z'): True})
+        self.assertEqual(
+            m, {('q', 'q'): True, ('a', 'a'): True, ('z', 'z'): True})
 
     def test_init_gaps(self):
         """make_matches with only gaps should match all gaps to each other"""
@@ -77,7 +78,8 @@ class make_matches_tests(TestCase):
 
     def test_init_degen(self):
         """make_matches with only degen should work as expected"""
-        m = make_matches(None, None, {'x': 'ab', 'y': 'bc', 'z': 'cd', 'n': 'bcd'})
+        m = make_matches(
+            None, None, {'x': 'ab', 'y': 'bc', 'z': 'cd', 'n': 'bcd'})
         self.assertEqual(m, {('x', 'x'): False, ('x', 'y'): False, ('x', 'n'): False,
                              ('y', 'x'): False, ('y', 'y'): False, ('y', 'z'): False, ('y', 'n'): False,
                              ('z', 'y'): False, ('z', 'z'): False, ('z', 'n'): False, ('n', 'x'): False,
@@ -86,7 +88,8 @@ class make_matches_tests(TestCase):
 
     def test_init_all(self):
         """make_matches with everything should produce correct dict"""
-        m = make_matches('ABC', ('-', '~'), {'X': 'AB', 'Y': ('B', 'C'), 'N': list('ABC')})
+        m = make_matches('ABC', ('-', '~'),
+                         {'X': 'AB', 'Y': ('B', 'C'), 'N': list('ABC')})
         exp = {
             ('-', '-'): True,
             ('~', '~'): True,
@@ -153,7 +156,8 @@ class make_pairs_tests(TestCase):
 
     def test_init_degen(self):
         """make_pairs should add in degenerate combinations as weak pairs"""
-        p = make_pairs(self.pairs, 'AUG', '-', {'R': 'AG', 'Y': 'CU', 'W': 'AU'})
+        p = make_pairs(self.pairs, 'AUG', '-',
+                       {'R': 'AG', 'Y': 'CU', 'W': 'AU'})
         self.assertNotEqual(p, self.pairs)
         self.pairs.update({
             ('-', '-'): False,
@@ -193,7 +197,8 @@ class CoreObjectGroupTests(TestCase):
         self.assertSameObj(c.Degen, None)
         self.assertSameObj(c.Base.Degen, None)
 
-        base, degen, gap, degengap = list(map(o, ['base', 'degen', 'gap', 'degengap']))
+        base, degen, gap, degengap = list(
+            map(o, ['base', 'degen', 'gap', 'degengap']))
         c = CoreObjectGroup(base, degen, gap, degengap)
         self.assertSameObj(c.Base, base)
         self.assertSameObj(c.Base.Degen, degen)
@@ -229,7 +234,7 @@ class MolTypeTests(TestCase):
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
         k = dict.fromkeys
-        a = MolType(k('Abc'), Ambiguities={'d': 'bc'}, Gaps=k('~'), \
+        a = MolType(k('Abc'), Ambiguities={'d': 'bc'}, Gaps=k('~'),
                     Complements={'b': 'c', 'c': 'b'}, Pairs={}, add_lower=False)
         for i in 'Abcd~':
             self.assertContains(a, i)
@@ -307,7 +312,8 @@ class MolTypeTests(TestCase):
 
     def test_iter(self):
         """MolType iter should iterate over monomer order"""
-        self.assertEqual(list(RnaMolType), ['U', 'C', 'A', 'G', 'u', 'c', 'a', 'g'])
+        self.assertEqual(list(RnaMolType), [
+                         'U', 'C', 'A', 'G', 'u', 'c', 'a', 'g'])
         a = MolType('ZXCV')
         self.assertEqual(list(a), ['Z', 'X', 'C', 'V'])
 
@@ -418,7 +424,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(d(''), '')
         self.assertEqual(d('AGCUGAUGUA--CAGU'), 'AGCUGAUGUA--CAGU')
         self.assertEqual(d('AUn-yrs-wkmCGwmrNMWRKY', 'strip'), 'AU--CG')
-        self.assertEqual(d(tuple('AUn-yrs-wkmCGwmrNMWRKY'), 'strip'), \
+        self.assertEqual(d(tuple('AUn-yrs-wkmCGwmrNMWRKY'), 'strip'),
                          tuple('AU--CG'))
         s = 'AUn-yrs-wkmCGwmrNMWRKY'
         t = d(s, 'random')
@@ -454,7 +460,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'), [14])
         self.assertEqual(g('-DSHFUHDSF'), [0])
         self.assertEqual(g('UACHASJAIDS-'), [11])
-        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'), \
+        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
         a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
         g = a.gapList
@@ -474,7 +480,7 @@ class MolTypeTests(TestCase):
                          list(map(bool, list(map(int, '1000000000')))))
         self.assertEqual(g('UACHASJAIDS-'), 
                          list(map(bool, list(map(int, '000000000001')))))
-        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'), \
+        self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
         a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
         g = a.gapVector
@@ -496,9 +502,11 @@ class MolTypeTests(TestCase):
         self.assertEqual(gm(empty), ({}, {}))
         self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
         self.assertEqual(gm(all_gaps), ({}, {}))
-        self.assertEqual(gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
+        self.assertEqual(
+            gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
         self.assertEqual(gm(end_gaps), ({0: 0, 1: 1}, {0: 0, 1: 1}))
-        self.assertEqual(gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
+        self.assertEqual(
+            gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
 
     def test_countGaps(self):
         """MolType countGaps should return correct gap count"""
@@ -717,11 +725,13 @@ class DNAAlphabet(_AlphabetTestCase):
 
     def test_include(self):
         """Nucleotide alphabet testing including gap motif"""
-        self.assertEqualSets(self.alpha.withGapMotif(), ['A', 'C', 'G', 'T', '-'])
+        self.assertEqualSets(self.alpha.withGapMotif(),
+                             ['A', 'C', 'G', 'T', '-'])
 
     def test_usesubset(self):
         """testing using a subset of motifs."""
-        self.assertEqualSets(self.alpha.withGapMotif(), ['A', 'C', 'G', 'T', '-'])
+        self.assertEqualSets(self.alpha.withGapMotif(),
+                             ['A', 'C', 'G', 'T', '-'])
         alpha = self.alpha.getSubset(motif_subset=['A'])
         self.assertEqualSets(alpha, ['A'])
         #self.assertRaises(AlphabetError, self.alpha.getSubset, ['A','C'])
@@ -761,7 +771,8 @@ class DinucAlphabet(_AlphabetTestCase):
         alpha = self.alpha.getSubset(motif_subset=['AA', 'CA', 'GT'])
         self.assertEqualSeqs(alpha, ['AA', 'CA', 'GT'])
 
-        self.assertRaises(AlphabetError, alpha.getSubset, motif_subset=['AA', 'CA', 'GT', 'TT'])
+        self.assertRaises(AlphabetError, alpha.getSubset,
+                          motif_subset=['AA', 'CA', 'GT', 'TT'])
 
     def test_usesubsetbyfreq(self):
         """testing using a subset of motifs by using motif probs."""

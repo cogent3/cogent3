@@ -74,16 +74,16 @@ def make_label(line):
         value = label_constructors[key](value)
     return key, value
 
-BlatFinder = LabeledRecordFinder(query_finder, constructor=strip, \
+BlatFinder = LabeledRecordFinder(query_finder, constructor=strip,
                                  ignore=is_blat_junk)
 
-BlastFinder = LabeledRecordFinder(query_finder, constructor=strip, \
+BlastFinder = LabeledRecordFinder(query_finder, constructor=strip,
                                   ignore=is_blast_junk)
 
-PsiBlastFinder = LabeledRecordFinder(iter_finder, constructor=strip, \
+PsiBlastFinder = LabeledRecordFinder(iter_finder, constructor=strip,
                                      ignore=is_blast_junk)
 
-PsiBlastQueryFinder = LabeledRecordFinder(iteration_set_finder, \
+PsiBlastQueryFinder = LabeledRecordFinder(iteration_set_finder,
                                           constructor=strip, ignore=is_blast_junk)
 
 
@@ -110,7 +110,8 @@ def GenericBlastParser9(lines, finder, make_col_headers=False):
 
                 # check if need to insert column headers
                 if make_col_headers and label == "FIELDS":
-                    data.insert(0, list(map(upper, list(map(strip, value.split(","))))))
+                    data.insert(
+                        0, list(map(upper, list(map(strip, value.split(","))))))
 
             else:
                 data.append(list(map(strip, line.split("\t"))))
@@ -130,8 +131,8 @@ def TableToValues(table, constructors=None, header=None):
     c_list = [constructors.get(k, str) for k in header]
     return [[c(val) for c, val in zip(c_list, row)] for row in table], header
 
-psiblast_constructors = {'% identity': float, 'alignment length': int, \
-                       'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int, \
+psiblast_constructors = {'% identity': float, 'alignment length': int,
+                       'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int,
                        's. start': int, 's. end': int, 'e-value': float, 'bit score': float}
 # make case-insensitive
 for key, val in list(psiblast_constructors.items()):
@@ -184,7 +185,8 @@ def PsiBlastParser9(lines):
                 result[properties['QUERY'].split()[0]] = curr_resultset
                 first_query = False
             table, header = PsiBlastTableParser(record)
-            curr_resultset.append([dict(list(zip(header, row))) for row in table])
+            curr_resultset.append([dict(list(zip(header, row)))
+                                  for row in table])
     return result
 
 
@@ -222,7 +224,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
             return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
 
 
-def AllProteinIds9(lines, filter_identity=True, threshold=None, \
+def AllProteinIds9(lines, filter_identity=True, threshold=None,
                    keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
                    keep_values=False):
     """Helper to extract just protein ids from each blast search 
@@ -256,7 +258,7 @@ def AllProteinIds9(lines, filter_identity=True, threshold=None, \
     return out_ids 
 
 
-def LastProteinIds9(lines, filter_identity=True, threshold=None, \
+def LastProteinIds9(lines, filter_identity=True, threshold=None,
                     keep_below_threshold=True, output_parser=MinimalPsiBlastParser9,
                     keep_values=False):
     """Helper to extract just protein ids from last psi-blast iteration.
@@ -413,7 +415,8 @@ class BlastResult(dict):
                 for h in rec_data[1:]:
                     hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
+                hits.append(
+                    dict(list(zip(rec_data[0], ['' for x in rec_data[0]]))))
 
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
@@ -455,7 +458,7 @@ class BlastResult(dict):
 
         # check that given valid comparison field
         if field not in self.FieldComparisonOperators:
-            raise ValueError("Invalid field: %s. You must specify one of: %s" \
+            raise ValueError("Invalid field: %s. You must specify one of: %s"
                              % (field, str(self.FieldComparisonOperators)))
         cmp_fun, cast_fun = self.FieldComparisonOperators[field]
 
@@ -486,7 +489,7 @@ class BlastResult(dict):
 
     # raise error if both field and f passed, uses same dict as filterByField
 
-fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='', \
+fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='',
                                                    ignore=never_ignore)
 fasta_field_map = {'NCBI sequence id': 'seq_id',
                     'NCBI taxonomy id': 'tax_id',

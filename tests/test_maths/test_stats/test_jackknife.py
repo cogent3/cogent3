@@ -36,7 +36,7 @@ def pmcc(data, axis=1):
 
 # test data from Box 15.2; Biometry by Sokal/Rohlf
 data = np.array([[159, 179, 100, 45, 384, 230, 100, 320, 80, 220, 320, 210],
-                 [14.40, 15.20, 11.30, 2.50, 22.70, 14.90, 1.41, 15.81, 4.19, \
+                 [14.40, 15.20, 11.30, 2.50, 22.70, 14.90, 1.41, 15.81, 4.19,
                   15.39, 17.25, 9.52]])
 
 # factory function generator for the statistical function of interest
@@ -98,11 +98,11 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        expected_subsample_stats = [1.4151, 1.3946, 1.4314, 1.1889, 1.1323, \
-                                    1.3083, 1.3561, 1.3453, 1.2412, 1.3216, \
+        expected_subsample_stats = [1.4151, 1.3946, 1.4314, 1.1889, 1.1323,
+                                    1.3083, 1.3561, 1.3453, 1.2412, 1.3216,
                                     1.2871, 1.3664]
-        expected_pseudovalues = [0.1968, 0.4224, 0.0176, 2.6852, 3.3084, \
-                                 1.3718, 0.8461, 0.9650, 2.1103, 1.2253, \
+        expected_pseudovalues = [0.1968, 0.4224, 0.0176, 2.6852, 3.3084,
+                                 1.3718, 0.8461, 0.9650, 2.1103, 1.2253,
                                  1.6049, 0.7333]
         test_knife.jackknife()
         got_subsample_stats = test_knife._subset_statistics
@@ -137,7 +137,8 @@ class JackknifeTests(TestCase):
         for index1 in range(data.shape[1]):
             for index2 in range(data.shape[0]):
                 self.assertAlmostEqual(got_subsample_stats[index1][index2],
-                                       expected_subsample_stats[index1][index2],
+                                       expected_subsample_stats[
+                                           index1][index2],
                                        places=4)
                 self.assertAlmostEqual(got_pseudovalues[index1][index2],
                                        expected_pseudovalues[index1][index2],

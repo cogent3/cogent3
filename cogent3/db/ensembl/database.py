@@ -23,7 +23,7 @@ class Database(object):
         self.db_name = get_db_name(account=account, species=species,
                                    release=release, db_type=db_type, division=division)
         if not self.db_name:
-            raise RuntimeError("%s db doesn't exist for '%s' on '%s'" % \
+            raise RuntimeError("%s db doesn't exist for '%s' on '%s'" %
                                (db_type, species, account.host))
         else:
             self.db_name = self.db_name[0]

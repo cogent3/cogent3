@@ -63,7 +63,8 @@ class _Annotatable(object):
                 containers.append(base)
                 base = base.parent
             if base is not self:
-                raise ValueError("Can't map %s onto %s via %s" % (index, repr(self), containers))
+                raise ValueError("Can't map %s onto %s via %s" %
+                                 (index, repr(self), containers))
             for base in containers:
                 feature = feature.remappedTo(base, base.map)
             index = map
@@ -233,7 +234,8 @@ class _Feature(_Annotatable):
 
     def __repr__(self):
         Name = getattr(self, 'Name', '')
-        if Name: Name = ' "%s"' % Name
+        if Name:
+            Name = ' "%s"' % Name
         return '%s%s at %s' % (self.type, Name, self.map)
 
     def remappedTo(self, grandparent, gmap):
@@ -255,7 +257,8 @@ class AnnotatableFeature(_Feature):
 
     def remappedTo(self, grandparent, gmap):
         new = _Feature.remappedTo(self, grandparent, gmap)
-        new.annotations = [annot for annot in self.annotations if annot.map.useful]
+        new.annotations = [
+            annot for annot in self.annotations if annot.map.useful]
         return new
 
     def getTracks(self, policy):
@@ -315,7 +318,8 @@ def Variable(parent, type, Name, xxy_list):
     start = min([min(x1, x2) for ((x1, x2), y) in xxy_list])
     end = max([max(x1, x2) for ((x1, x2), y) in xxy_list])
     if start != 0:
-        xxy_list = [((x1 - start, x2 - start), y) for ((x1, x2), y) in xxy_list]
+        xxy_list = [((x1 - start, x2 - start), y)
+                     for ((x1, x2), y) in xxy_list]
         end -= start
     #values = [location.Span(x1-start, x2-start, True, True, y) for ((x1, x2), y) in xxy]
     map = Map([(start, end)], parent_length=len(parent))
@@ -334,7 +338,8 @@ class _SimpleVariable(_Feature):
         keep = self.map.nongap()
         indicies = numpy.concatenate([list(span) for span in keep.Spans])
         data = numpy.asarray(data)[indicies]
-        new = self.__class__(self.parent, self.map[keep], data=data, original=self)
+        new = self.__class__(self.parent, self.map[
+                             keep], data=data, original=self)
         return new
 
 

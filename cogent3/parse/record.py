@@ -45,7 +45,7 @@ class Grouper(object):
             num = int(self.NumItems)
             assert num >= 1
         except:
-            raise ValueError("Grouper.NumItems must be positive int, not %s" \
+            raise ValueError("Grouper.NumItems must be positive int, not %s"
                              % (self.NumItems))
         curr = []
         for i, item in enumerate(seq):
@@ -421,7 +421,8 @@ class LineOrientedConstructor(object):
                     field, mapper = new_field, fieldmap[new_field]
                 else:
                     if self.Strict:
-                        raise FieldError("Got unrecognized field %s" % (raw_field,))
+                        raise FieldError(
+                            "Got unrecognized field %s" % (raw_field,))
                     else:
                         identity_setter(result, raw_field, val)
                     continue
@@ -482,14 +483,14 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError("Expected %s items but got %s: %s" % \
+                raise FieldError("Expected %s items but got %s: %s" %
                                  (len(fields), len(items), items))
             return constructor(dict(list(zip(fields, items))))
     else:
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError("Expected %s items but got %s: %s" % \
+                raise FieldError("Expected %s items but got %s: %s" %
                                  (len(fields), len(items), items))
             return dict(list(zip(fields, items)))
     return parser
@@ -529,7 +530,8 @@ class FieldMorpher(object):
                 result[key] = cons[key](val)
             else:
                 new_key, new_val = default(key, val)
-                # if we now recognize the key, use its constructor on the old val
+                # if we now recognize the key, use its constructor on the old
+                # val
                 if new_key in cons:
                     result[new_key] = cons[new_key](val)
                 # otherwise, enter the new key and the new val

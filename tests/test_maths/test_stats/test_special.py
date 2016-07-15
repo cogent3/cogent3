@@ -74,7 +74,7 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(permutations_exact(4, 2), 12)
         self.assertFloatEqual(permutations_exact(4, 3), 24)
         self.assertFloatEqual(permutations_exact(4, 4), 24)
-        self.assertFloatEqual(permutations_exact(300, 100),\
+        self.assertFloatEqual(permutations_exact(300, 100),
                               3.8807387193009318e239)
 
     def test_ln_permutations(self):
@@ -86,7 +86,7 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(ln_permutations(4.0, 2), math.log(12))
         self.assertFloatEqual(ln_permutations(4, 3.0), math.log(24))
         self.assertFloatEqual(ln_permutations(4, 4), math.log(24))
-        self.assertFloatEqual(ln_permutations(300.0, 100),\
+        self.assertFloatEqual(ln_permutations(300.0, 100),
                               math.log(3.8807387193009318e239))
 
     def test_combinations(self):
@@ -144,7 +144,8 @@ class SpecialTests(TestCase):
         self.assertEqual(combinations_exact(4, 3), 4)
         self.assertEqual(combinations_exact(4, 4), 1)
         self.assertEqual(combinations_exact(20, 4), 19 * 17 * 15)
-        self.assertFloatEqual(combinations_exact(300, 100), 4.1582514632578812e81)
+        self.assertFloatEqual(combinations_exact(
+            300, 100), 4.1582514632578812e81)
 
     def test_ln_combinations(self):
         """ln_combinations should return expected results"""
@@ -156,7 +157,7 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(ln_combinations(4, 3), math.log(4))
         self.assertFloatEqual(ln_combinations(4, 4.0), math.log(1))
         self.assertFloatEqual(ln_combinations(20, 4), math.log(19 * 17 * 15))
-        self.assertFloatEqual(ln_combinations(300, 100),\
+        self.assertFloatEqual(ln_combinations(300, 100),
                               math.log(4.1582514632578812e+81))
 
     def test_ln_binomial_integer(self):
@@ -227,7 +228,7 @@ class SpecialTests(TestCase):
 
     def test_log1p(self):
         """log1p should give same results as cephes"""
-        p_s = [1e-10, 1e-5, 0.1, 0.8, 0.9, 0.95, 0.999, 0.9999999, 1, \
+        p_s = [1e-10, 1e-5, 0.1, 0.8, 0.9, 0.95, 0.999, 0.9999999, 1,
                1.000000001, 1.01, 2]
         exp = [
             9.9999999995e-11,

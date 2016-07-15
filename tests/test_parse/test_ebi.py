@@ -731,7 +731,7 @@ class ReferenceTests(TestCase):
         """rx_parser should return expected dict"""
         inputs = [
             ['RX   MEDLINE=22709107; PubMed=12788972; DOI=10.1073/pnas.113'],
-            ['RX   PubMed=14577811; '\
+            ['RX   PubMed=14577811; '
                 'DOI=10.1597/1545-1569(2003)040<0632:AMMITS>2.0.CO;2;']]
         expects = [
             {'DOI': '10.1073/pnas.113', 'MEDLINE': '22709107', 

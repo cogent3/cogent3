@@ -36,7 +36,7 @@ def clustal_from_alignment(aln, interleave_len=None):
     clustal_list = ["CLUSTAL\n"]
 
     if seqs.isRagged():
-        raise ValueError("Sequences in alignment are not all the same length." +\
+        raise ValueError("Sequences in alignment are not all the same length." +
                          "Cannot generate Clustal format.")
 
     aln_len = seqs.SeqLen
@@ -54,13 +54,13 @@ def clustal_from_alignment(aln, interleave_len=None):
     if interleave_len is not None:
         curr_ix = 0
         while curr_ix < aln_len:
-            clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)),\
-                                           y[curr_ix:curr_ix + \
+            clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)),
+                                           y[curr_ix:curr_ix +
                                              interleave_len]) for x, y in zip(order, ordered_seqs)])
             clustal_list.append("")
             curr_ix += interleave_len
     else:
-        clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)), y) \
+        clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)), y)
                              for x, y in zip(order, ordered_seqs)])
         clustal_list.append("")
 

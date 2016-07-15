@@ -220,7 +220,7 @@ class NcbiTaxonomy(object):
                     ids_to_nodes[t.ParentId].append(t)
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
-                        raise MissingParentError("Node %s has parent %s, which isn't in taxa." % \
+                        raise MissingParentError("Node %s has parent %s, which isn't in taxa." %
                                                  (t_id, t.ParentId))
                     else:
                         deadbeats[t.ParentId] = t

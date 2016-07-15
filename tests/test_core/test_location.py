@@ -89,7 +89,8 @@ class SpanTests(TestCase):
         """Span iter should loop through (integer) contents"""
         self.assertEqual(list(iter(self.empty)), [])
         self.assertEqual(list(iter(self.full)), [30, 31, 32, 33, 34])
-        self.assertEqual(list(iter(self.spans_zero)), [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
+        self.assertEqual(list(iter(self.spans_zero)),
+                         [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
         self.assertEqual(list(iter(self.inside)), [31])
         self.assertEqual(list(self.reverse), [34, 33, 32, 31, 30])
 
@@ -472,7 +473,7 @@ class RangeTests(TestCase):
         # however, can't consolidate span in other orientation
         s = Range(r)
         s.Spans.append(Span(-100, 100, Reverse=True))
-        self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14), \
+        self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14),
                                    Span(-100, 100, Reverse=True)])
 
 

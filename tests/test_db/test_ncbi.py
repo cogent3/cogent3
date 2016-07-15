@@ -203,9 +203,9 @@ class NcbiTests(TestCase):
         fh.write(g[ids].read())
         fh.seek(0)
         data = parse_taxonomy_using_elementtree_xml_parse(fh)[0]
-        obs = (data['Lineage'], data['TaxId'], data['ScientificName'],\
+        obs = (data['Lineage'], data['TaxId'], data['ScientificName'],
                data['Rank'])
-        exp = ('cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella',\
+        exp = ('cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella',
                '28901', 'Salmonella enterica', 'species')
         self.assertEqual(obs, exp)
 

@@ -26,9 +26,9 @@ class GetTagTests(TestCase):
     """Tests for the auxiliary function evaluating the tag objects."""
 
     def setUp(self):
-        self.single_tag = xml.dom.minidom.parseString(\
+        self.single_tag = xml.dom.minidom.parseString(
             "<outer>bla <inner>content</inner>bla</outer>")
-        self.double_tag = xml.dom.minidom.parseString(\
+        self.double_tag = xml.dom.minidom.parseString(
             "<outer><inner>first content</inner><inner>second content</inner></outer>")
         self.empty_tag = xml.dom.minidom.parseString("<outer></outer>")
 
@@ -36,17 +36,17 @@ class GetTagTests(TestCase):
         self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
         self.assertEqual(get_tag(self.double_tag, 'inner'), 'first content')
         self.assertEqual(get_tag(self.empty_tag, 'inner'), None)
-        self.assertEqual(get_tag(self.empty_tag, 'inner', 'blue elephant'),\
+        self.assertEqual(get_tag(self.empty_tag, 'inner', 'blue elephant'),
                          'blue elephant')
         self.assertEqual(get_tag(self.single_tag, 'non-existing tag'), None)
-        self.assertEqual(get_tag(self.single_tag, 'non-existing tag',\
+        self.assertEqual(get_tag(self.single_tag, 'non-existing tag',
                                  'pink elephant'), 'pink elephant')
         self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
 
     def test_get_tag_fail(self):
         """Make sure the tag and name parameters are in the proper types."""
         self.assertRaises(AttributeError, get_tag, None, "h1")
-        self.assertRaises(AttributeError, get_tag,\
+        self.assertRaises(AttributeError, get_tag,
                           "<h1>This is not a XML tag object</h1>", "h1")
 
 
@@ -178,9 +178,11 @@ class BlastXmlResultTests(TestCase):
             self.assertEqual(first_hsp['E_VALUE'], '0.333')
             self.assertEqual(first_hsp['QUERY_START'], '4')
             self.assertEqual(first_hsp['QUERY_END'], '18')
-            self.assertEqual(first_hsp['QUERY_ALIGN'], 'ELEPHANTTHISISAHITTIGER')
+            self.assertEqual(first_hsp['QUERY_ALIGN'],
+                             'ELEPHANTTHISISAHITTIGER')
             self.assertEqual(first_hsp['MIDLINE_ALIGN'], 'ORCA-WHALE')
-            self.assertEqual(first_hsp['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
+            self.assertEqual(
+                first_hsp['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
             self.assertEqual(first_hsp['SUBJECT_START'], '5')
             self.assertEqual(first_hsp['SUBJECT_END'], '19')
             self.assertEqual(first_hsp['PERCENT_IDENTITY'], '55')
@@ -289,7 +291,7 @@ HIT_SUFFIX = """
  </BlastOutput_iterations>
 """
 
-HEADER_COMPLETE = HEADER_XML % (PARAM_XML + HIT_PREFIX + HIT_WITH_ONE_HSP +\
+HEADER_COMPLETE = HEADER_XML % (PARAM_XML + HIT_PREFIX + HIT_WITH_ONE_HSP +
                             HIT_WITH_TWO_HSPS + HIT_SUFFIX)
 COMPLETE_XML = """<?xml version="1.0"?>
 <!DOCTYPE BlastOutput PUBLIC "-//NCBI//NCBI BlastOutput/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_BlastOutput.dtd">

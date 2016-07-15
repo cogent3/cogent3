@@ -29,7 +29,8 @@ rna_lc = 'utacgrywsmkbdhvn'
 rna_lc_cmp = 'aaugcyrwskmvhdbn'
 rna_trans = maketrans(rna_lc + rna_lc.upper(), rna_lc_cmp + rna_lc_cmp.upper())
 
-locus_fields = [None, 'locus', 'length', None, 'mol_type', 'topology', 'db', 'date']
+locus_fields = [None, 'locus', 'length', None,
+    'mol_type', 'topology', 'db', 'date']
 _locus_parser = FieldWrapper(locus_fields)
 
 # need to turn off line stripping, because whitespace is significant
@@ -138,7 +139,8 @@ def parse_organism(lines):
     # normalize whitespace, including deleting newlines
     taxonomy = ' '.join(taxonomy.split())
     # separate by semicolons
-    taxa = list(map(strip, taxonomy.split(';')))  # get rid of leading/trailing spaces
+    # get rid of leading/trailing spaces
+    taxa = list(map(strip, taxonomy.split(';')))
     # delete trailing period if present
     last = taxa[-1]
     if last.endswith('.'):
@@ -256,7 +258,7 @@ def parse_simple_location_segment(segment):
         else:
             second = int(second)
 
-        return Location([Location(first, Ambiguity=first_ambiguity), \
+        return Location([Location(first, Ambiguity=first_ambiguity),
                          Location(second, Ambiguity=second_ambiguity)])
     else:
         if not segment[0].isdigit():
@@ -312,7 +314,7 @@ class Location(object):
     WARNING: Coordinates are based on 1, not 0, as in GenBank format.
     """
 
-    def __init__(self, data, Ambiguity=None, IsBetween=False, IsBounds=False, \
+    def __init__(self, data, Ambiguity=None, IsBetween=False, IsBounds=False,
                  Accession=None, Db=None, Strand=1):
         """Returns new LocalLocation object."""
         try:
@@ -349,7 +351,8 @@ class Location(object):
                 else:
                     curr = str(data)
             except TypeError:
-                # if long conversion failed, should have two LocalLocation objects
+                # if long conversion failed, should have two LocalLocation
+                # objects
                 first, last = self._data
                 if self.IsBounds:
                     curr = '(%s%s%s)' % (first, '.', last)
@@ -463,7 +466,7 @@ def parse_feature_table(lines):
     return [parse_feature(f) for f in indent_splitter(lines)]
 
 reference_label_marker = ' ' * 11
-reference_field_finder = LabeledRecordFinder(lambda x: \
+reference_field_finder = LabeledRecordFinder(lambda x:
                                              not x.startswith(reference_label_marker), constructor=None)
 
 
@@ -531,7 +534,7 @@ handlers = {
 }
 
 
-def MinimalGenbankParser(lines, handlers=handlers,\
+def MinimalGenbankParser(lines, handlers=handlers,
                          default_handler=generic_adaptor):
     for rec in GbFinder(lines):
         curr = {}
@@ -575,7 +578,8 @@ def parse_location_segment(location_segment):
     elif '^' in s:
         first, second = s.split('^')
         return Location([lsp(first), lsp(second)], IsBetween=True)
-    # check if it's a single base reference -- but don't be fooled by accessions!
+    # check if it's a single base reference -- but don't be fooled by
+    # accessions!
     elif '.' in s and s.startswith('(') and s.endswith(')'):
         first, second = s.split('.')
         return Location([lsp(first[1:]), lsp(second[:-1])])
@@ -604,7 +608,8 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print(raw_seq)
         seq = raw_seq[int(f['codon_start'][0]) - 1:]
         print('dt:', translation)
-        print('ct:', GeneticCodes[f.get('transl_table', '1')[0]].translate(seq))
+        print('ct:', GeneticCodes[
+              f.get('transl_table', '1')[0]].translate(seq))
         print('s :', seq)
 
 
@@ -651,7 +656,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
         for feature in rec['features']:
             spans = []
             reversed = None
-            if feature['location'] == None or feature['type'] in ['source', \
+            if feature['location'] == None or feature['type'] in ['source',
                                                                   'organism']:
                 continue
             for location in feature['location']:

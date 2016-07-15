@@ -26,7 +26,8 @@ class CenterOfMassTests(TestCase):
         self.more_weight = array([[1, 1, 3], [3, 1, 3], [2, 3, 50]])
         self.square = array([[1, 1, 25], [3, 1, 25], [3, 3, 25], [1, 3, 25]])
         self.square_odd = array([[1, 1, 25], [3, 1, 4], [3, 3, 25], [1, 3, 4]])
-        self.sec_weight = array([[1, 25, 1], [3, 25, 1], [3, 25, 3], [1, 25, 3]])
+        self.sec_weight = array(
+            [[1, 25, 1], [3, 25, 1], [3, 25, 3], [1, 25, 3]])
 
     def test_center_of_mass_one_array(self):
         """center_of_mass_one_array should behave correctly"""
@@ -41,9 +42,12 @@ class CenterOfMassTests(TestCase):
     def test_CoM_one_array_wrong(self):
         """center_of_mass_one_array should fail on wrong input"""
         com1 = center_of_mass_one_array
-        self.assertRaises(TypeError, com1, self.simple, 'a')  # weight_idx wrong
-        self.assertRaises(IndexError, com1, self.simple, 100)  # w_idx out of range
-        self.assertRaises(IndexError, com1, [1, 2, 3], 2)  # shape[1] out of range
+        self.assertRaises(TypeError, com1, self.simple,
+                          'a')  # weight_idx wrong
+        self.assertRaises(IndexError, com1, self.simple,
+                          100)  # w_idx out of range
+        # shape[1] out of range
+        self.assertRaises(IndexError, com1, [1, 2, 3], 2)
 
     def test_center_of_mass_two_array(self):
         """center_of_mass_two_array should behave correctly"""
@@ -58,8 +62,10 @@ class CenterOfMassTests(TestCase):
         """center_of_mass_two_array should fail on wrong input"""
         com2 = center_of_mass_two_array
         weights = [1, 2]
-        self.assertRaises(TypeError, com2, self.simple, 'a')  # weight_idx wrong
-        self.assertRaises(ValueError, com2, self.simple, weights)  # not aligned
+        self.assertRaises(TypeError, com2, self.simple,
+                          'a')  # weight_idx wrong
+        self.assertRaises(ValueError, com2, self.simple,
+                          weights)  # not aligned
 
     def test_center_of_mass(self):
         """center_of_mass should make right choice between functional methods

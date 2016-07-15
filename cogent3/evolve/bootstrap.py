@@ -124,7 +124,8 @@ class EstimateProbability(ParametricBootstrapCore):
         self.alignment = alignment
         self.null_parameter_controller = null_parameter_controller
         self.alt_parameter_controller = alt_parameter_controller
-        self.parameter_controllers = [self.null_parameter_controller, self.alt_parameter_controller]
+        self.parameter_controllers = [
+            self.null_parameter_controller, self.alt_parameter_controller]
 
     def simplify(self, null_result, alt_result):
         return (null_result.getLogLikelihood(), alt_result.getLogLikelihood())
@@ -165,7 +166,8 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
     by parametric bootstrapping."""
 
     def __init__(self, parameter_controller, func_calcstats, alignment):
-        # func_calcstats takes a param dict and returns the statistic of interest
+        # func_calcstats takes a param dict and returns the statistic of
+        # interest
         ParametricBootstrapCore.__init__(self)
         self.alignment = alignment
         self.parameter_controller = parameter_controller

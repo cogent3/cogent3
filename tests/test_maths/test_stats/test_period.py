@@ -60,7 +60,8 @@ class TestPeriodStat(TestCase):
         motifs = [b'AA', b'AT', b'TT']
         symbols = _seq_to_symbols(b'AATGGTTA', motifs, 2)
         self.assertEqual(symbols, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
-        symbols = seq_to_symbols(b'AAGATT', motifs, 2, numpy.zeros(6, numpy.uint8))
+        symbols = seq_to_symbols(b'AAGATT', motifs, 2,
+                                 numpy.zeros(6, numpy.uint8))
         self.assertEqual(symbols, numpy.array([1, 0, 0, 1, 1, 0]))
 
     def test_seq_to_symbol_factory(self):

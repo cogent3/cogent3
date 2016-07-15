@@ -25,23 +25,23 @@ maketrans = str.maketrans
 
 RdbFinder = DelimitedRecordFinder('//')
 
-_field_names = {'acc': 'rRNA',\
-                'src': 'Source',\
-                'str': 'Strain',\
-                'ta1': 'Taxonomy1',\
-                'ta2': 'Taxonomy2',\
-                'ta3': 'Taxonomy3',\
-                'ta4': 'Taxonomy4',\
-                'chg': 'Changes',\
-                'rem': 'Remarks',\
-                'aut': 'Authors',\
-                'ttl': 'Title',\
-                'jou': 'Journal',\
-                'dat': 'JournalYear',\
-                'vol': 'JournalVolume',\
-                'pgs': 'JournalPages',\
-                'mty': 'Gene',\
-                'del': 'Deletions',\
+_field_names = {'acc': 'rRNA',
+                'src': 'Source',
+                'str': 'Strain',
+                'ta1': 'Taxonomy1',
+                'ta2': 'Taxonomy2',
+                'ta3': 'Taxonomy3',
+                'ta4': 'Taxonomy4',
+                'chg': 'Changes',
+                'rem': 'Remarks',
+                'aut': 'Authors',
+                'ttl': 'Title',
+                'jou': 'Journal',
+                'dat': 'JournalYear',
+                'vol': 'JournalVolume',
+                'pgs': 'JournalPages',
+                'mty': 'Gene',
+                'del': 'Deletions',
                 'seq': 'Species'}
 
 
@@ -83,7 +83,7 @@ def MinimalRdbParser(infile, strict=True):
         # if there is no line that starts with 'seq:' throw error or skip
         if not index:
             if strict:
-                raise RecordError("Found Rdb record without seq label "\
+                raise RecordError("Found Rdb record without seq label "
                                   + "line: %s" % rec[0])
             else:
                 continue
@@ -96,7 +96,7 @@ def MinimalRdbParser(infile, strict=True):
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError("Found Rdb record without sequences: %s"\
+                raise RecordError("Found Rdb record without sequences: %s"
                                   % rec[0])
             else:
                 continue
@@ -119,7 +119,7 @@ def create_acceptable_sequence(sequence):
     return sequence.translate(trans_table)  # should be accepted by RnaSequence
 
 
-def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
+def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker,
               strict=True):
     """Yield sequences from the Rdb record.
 
@@ -144,8 +144,8 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
             try:
                 yield SeqConstructor(clean_seq, Info=info)
             except AlphabetError:
-                raise RecordError(\
-                    "Sequence construction failed on record with reference %s."\
+                raise RecordError(
+                    "Sequence construction failed on record with reference %s."
                     % (info.Refs))
         else:
             # not strict: just skip any record that raises an exception

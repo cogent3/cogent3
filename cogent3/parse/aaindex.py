@@ -79,14 +79,15 @@ class AAIndexParser(object):
                 # that we are not interested in here.
                 if (field_identifier != 'I'):
                     result += lines[i]
-                    if field_identifier == 'M': result += 'BRK'
+                    if field_identifier == 'M':
+                        result += 'BRK'
                     # Get rid of the line identifier and leading white space
                     result = result[2:]
                 # Move to next line
                 i += 1
                 # and see if it's a continuation from the above line
-                while (i < len(lines) and\
-                       (lines[i].startswith(' ') or\
+                while (i < len(lines) and
+                       (lines[i].startswith(' ') or
                         lines[i].startswith(field_identifier))):
                     # if continuation combine the lines while treating the
                     # spaces nicely, ie, multiple spaces -> one space
@@ -128,7 +129,7 @@ class AAIndex1Parser(AAIndexParser):
         correlating = self._parse_correlating(self._get_field('C', lines))
         data = self._parse_data(self._get_field('I', lines))
 
-        return AAIndex1Record(id, description, LITDB, authors,\
+        return AAIndex1Record(id, description, LITDB, authors,
                               title, citations, comments, correlating, data)
 
     def _parse_correlating(self, raw):
@@ -208,12 +209,12 @@ class AAIndex2Parser(AAIndexParser):
 
         rowscols = self._parse_rowscols(raw_data[:raw_data.find('BRK')])
         try:
-            data = self._parse_data(raw_data[raw_data.find('BRK') + 3:],\
+            data = self._parse_data(raw_data[raw_data.find('BRK') + 3:],
                                     rowscols[0], rowscols[1])
         except IndexError:
             return None
 
-        return AAIndex2Record(id, description, LITDB, authors,\
+        return AAIndex2Record(id, description, LITDB, authors,
                               title, citations, comments, data)                       
 
     def _parse_data(self, raw, rows, cols):
@@ -332,7 +333,8 @@ class AAIndex1Record(AAIndexRecord):
 
         """
         keys = list(self.Data.keys())
-        if include_stops: keys += '*'
+        if include_stops:
+            keys += '*'
 
         # build result dict top layer, start empty
         result = {}

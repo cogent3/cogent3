@@ -130,8 +130,8 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
 
     coeff1 = 2 * prod_purs / freq_purs
     coeff2 = 2 * prod_pyrs / freq_pyrs
-    coeff3 = 2 * (freq_purs * freq_pyrs - \
-                  (prod_purs * freq_pyrs / freq_purs) -\
+    coeff3 = 2 * (freq_purs * freq_pyrs -
+                  (prod_purs * freq_pyrs / freq_purs) -
                   (prod_pyrs * freq_purs / freq_pyrs))
 
     term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2 * freq_purs)

@@ -78,7 +78,8 @@ class ScaleRuleTests(unittest.TestCase):
             'or': (trans | a_c), 'not': ~(trans | a_c)})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k': 6.0, 'length': 6.0, 'ac': 3.0}),
+            self._getScaledLengths(
+                model, {'k': 6.0, 'length': 6.0, 'ac': 3.0}),
             {'or': 5.0, 'not': 1.0})
 
     def test_scaling(self):

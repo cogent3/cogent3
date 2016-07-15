@@ -22,10 +22,12 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 rc('text', usetex=True)
-rates_to_bases = {'r1': 'AT', 'r2': 'TA', 'r3': 'GA', 'r4': 'AG', 'r5': 'CA', 'r6': 'AC', \
+rates_to_bases = {'r1': 'AT', 'r2': 'TA', 'r3': 'GA', 'r4': 'AG', 'r5': 'CA', 'r6': 'AC',
                 'r7': 'GT', 'r8': 'TG', 'r9': 'CT', 'r10': 'TC', 'r11': 'GC', 'r12': 'CG'}
-numbered_bases_to_rates = dict([(v, k) for k, v in list(rates_to_bases.items())])
-lettered_bases_to_rates = dict([(v, 'r' + v) for k, v in list(rates_to_bases.items())])
+numbered_bases_to_rates = dict(
+    [(v, k) for k, v in list(rates_to_bases.items())])
+lettered_bases_to_rates = dict([(v, 'r' + v)
+                               for k, v in list(rates_to_bases.items())])
 
 
 def add_dicts(d1, d2):
@@ -35,11 +37,11 @@ def add_dicts(d1, d2):
     return result
 
 
-def make_arrow_plot(data, size=4, display='length', shape='right', \
-                    max_arrow_width=0.03, arrow_sep=0.02, alpha=0.5, \
-                    normalize_data=False, ec=None, labelcolor=None, \
-                    head_starts_at_zero=True, rate_labels=lettered_bases_to_rates,\
-                    graph_name=None, \
+def make_arrow_plot(data, size=4, display='length', shape='right',
+                    max_arrow_width=0.03, arrow_sep=0.02, alpha=0.5,
+                    normalize_data=False, ec=None, labelcolor=None,
+                    head_starts_at_zero=True, rate_labels=lettered_bases_to_rates,
+                    graph_name=None,
                     **kwargs):
     """Makes an arrow plot.
 
@@ -65,11 +67,11 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     max_text_size = size * 12
     min_text_size = size
     label_text_size = size * 2.5
-    text_params = {'ha': 'center', 'va': 'center', 'family': 'sans-serif',\
+    text_params = {'ha': 'center', 'va': 'center', 'family': 'sans-serif',
                  'fontweight': 'bold'}
     r2 = sqrt(2)
 
-    deltas = {\
+    deltas = {
         'AT': (1, 0),
         'TA': (-1, 0),
         'GA': (0, 1),
@@ -84,7 +86,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'CG': (-1, 0)
     }
 
-    colors = {\
+    colors = {
         'AT': 'r',
         'TA': 'k',
         'GA': 'g',
@@ -99,7 +101,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         'CG': 'b'
     }
 
-    label_positions = {\
+    label_positions = {
         'AT': 'center',
         'TA': 'center',
         'GA': 'center',
@@ -115,7 +117,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     }
 
     def do_fontsize(k):
-        return float(clip(max_text_size * sqrt(data[k]),\
+        return float(clip(max_text_size * sqrt(data[k]),
                           min_text_size, max_text_size))
 
     A = text(0, 1, '$A_3$', color='r', size=do_fontsize('A'), **text_params)
@@ -129,7 +131,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     max_arrow_width = max_arrow_width
     max_head_width = 2.5 * max_arrow_width
     max_head_length = 2 * max_arrow_width
-    arrow_params = {'length_includes_head': True, 'shape': shape, \
+    arrow_params = {'length_includes_head': True, 'shape': shape,
                   'head_starts_at_zero': head_starts_at_zero}
     ax = gca()
     sf = 0.6  # max arrow size represents this in data coords
@@ -138,7 +140,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
     r2v = arrow_sep / r2  # offset for diags
 
     # tuple of x, y for start position
-    positions = {\
+    positions = {
         'AT': (arrow_h_offset, 1 + arrow_sep),
         'TA': (1 - arrow_h_offset, 1 - arrow_sep),
         'GA': (-arrow_sep, arrow_h_offset),
@@ -191,8 +193,8 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
 
         x_scale, y_scale = deltas[pair]
         x_pos, y_pos = positions[pair]
-        arrow(ax, x_pos, y_pos, x_scale * length, y_scale * length, \
-              fc=fc, ec=ec, alpha=alpha, width=width, head_width=head_width, \
+        arrow(ax, x_pos, y_pos, x_scale * length, y_scale * length,
+              fc=fc, ec=ec, alpha=alpha, width=width, head_width=head_width,
               head_length=head_length, **arrow_params)
 
         # figure out coordinates for text
@@ -222,7 +224,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         orig_label = rate_labels[pair]
         label = '$%s_{_{\mathrm{%s}}}$' % (orig_label[0], orig_label[1:])
 
-        text(x, y, label, size=label_text_size, ha='center', va='center', \
+        text(x, y, label, size=label_text_size, ha='center', va='center',
              color=labelcolor or fc)
 
     for p in list(positions.keys()):
@@ -232,7 +234,7 @@ def make_arrow_plot(data, size=4, display='length', shape='right', \
         savefig(graph_name)
 
     # test data
-all_on_max = dict([(i, 1) for i in 'TCAG'] + \
+all_on_max = dict([(i, 1) for i in 'TCAG'] +
                   [(i + j, 0.6) for i in 'TCAG' for j in 'TCAG'])
 
 realistic_data = {

@@ -140,7 +140,8 @@ class PhylipWriter(_AlignmentWriter):
         self.setblocksize(block_size)
 
         # header
-        self.file.write('%d  %d\n' % (self.number_sequences, self.align_length))
+        self.file.write('%d  %d\n' %
+                        (self.number_sequences, self.align_length))
         # sequences (pretty much as writ by Gavin)
 
         for seqname in self.align_order:
@@ -152,12 +153,15 @@ class PhylipWriter(_AlignmentWriter):
                         warnings.warn('Name "%s" too long, truncated to "%s"'
                                       % (seqname, seqname[:9]))
                         prefix = '%-10s' % seqname[:9]
-                    else: prefix = '%-10s' % seqname
-                else: prefix = ' ' * 10
+                    else:
+                        prefix = '%-10s' % seqname
+                else:
+                    prefix = ' ' * 10
 
                 if block + self.block_size > self.align_length:
                     to = self.align_length
-                else: to = block + self.block_size
+                else:
+                    to = block + self.block_size
 
                 self.file.write('%s%s\n' % (prefix, seq[block:to]))
 
@@ -183,11 +187,13 @@ class PamlWriter(_AlignmentWriter):
         self.setblocksize(block_size)
 
         # header
-        self.file.write('%d  %d\n' % (self.number_sequences, self.align_length))
+        self.file.write('%d  %d\n' %
+                        (self.number_sequences, self.align_length))
 
         # sequences
         for seq in self.align_order:
-            self.file.writelines('%s\n%s' % (seq, self.wrapstringtoblocksize(alignmentdict[seq], altblocksize=block_size)))
+            self.file.writelines('%s\n%s' % (seq, self.wrapstringtoblocksize(
+                alignmentdict[seq], altblocksize=block_size)))
 
 
 class FastaWriter(_AlignmentWriter):

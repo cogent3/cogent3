@@ -39,7 +39,8 @@ class ScoredTreeCollection(_UserList):
         return ctrees[0]
 
     def getConsensusTrees(self, strict=True, method='unrooted'):
-        if strict is None: strict = True
+        if strict is None:
+            strict = True
         return consensus.weightedMajorityRule(self, strict, method=method)
 
 
@@ -53,7 +54,8 @@ class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
 
     def getConsensusTrees(self, strict=False, method='unrooted'):
-        if strict is None: strict = False
+        if strict is None:
+            strict = False
         return consensus.weightedMajorityRule(self, strict, method=method)
 
 

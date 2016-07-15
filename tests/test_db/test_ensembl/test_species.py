@@ -17,7 +17,8 @@ class TestSpeciesNamemaps(TestCase):
         """should return the (latin|common) name given a latin, common or ensembl
         db prefix names"""
         self.assertEqual(Species.getSpeciesName("human"), "Homo sapiens")
-        self.assertEqual(Species.getSpeciesName("homo_sapiens"), "Homo sapiens")
+        self.assertEqual(Species.getSpeciesName(
+            "homo_sapiens"), "Homo sapiens")
         self.assertEqual(Species.getCommonName("Mus musculus"), "Mouse")
         self.assertEqual(Species.getCommonName("mus_musculus"), "Mouse")
 
@@ -39,9 +40,12 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getSpeciesName(common_name), species_name)
         self.assertEqual(Species.getCommonName(species_name), common_name)
         self.assertEqual(Species.getCommonName("Bushbaby"), common_name)
-        self.assertEqual(Species.getEnsemblDbPrefix("Bushbaby"), "otolemur_garnettii")
-        self.assertEqual(Species.getEnsemblDbPrefix(species_name), "otolemur_garnettii")
-        self.assertEqual(Species.getEnsemblDbPrefix(common_name), "otolemur_garnettii")
+        self.assertEqual(Species.getEnsemblDbPrefix(
+            "Bushbaby"), "otolemur_garnettii")
+        self.assertEqual(Species.getEnsemblDbPrefix(
+            species_name), "otolemur_garnettii")
+        self.assertEqual(Species.getEnsemblDbPrefix(
+            common_name), "otolemur_garnettii")
 
     def test_amend_existing(self):
         """should correctly amend an existing species"""

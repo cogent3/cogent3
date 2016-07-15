@@ -124,7 +124,8 @@ class TestGenome(GenomeTestBase):
 
     def test_gorilla(self):
         """should correctly return a gorilla gene"""
-        self.gorilla = Genome(Species="gorilla", Release=Release, account=account)
+        self.gorilla = Genome(
+            Species="gorilla", Release=Release, account=account)
         gene = self.gorilla.getGeneByStableId('ENSGGOG00000005730')
         self.assertEqual(str(gene.Seq[:10]), 'TGGGAGTCCA')
 
@@ -204,7 +205,7 @@ class TestGene(GenomeTestBase):
         trunc_cds = transcript.Cds[: l - (l % 3)]
         prot_seq = trunc_cds.getTranslation()
         self.assertEqual(str(prot_seq),
-                         'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
+                         'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'
                          'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
 
     def test_exon_phases(self):
@@ -311,7 +312,8 @@ class TestGene(GenomeTestBase):
         self.assertGreaterThan(len(exon), len(trans_exon))
 
     def test_get_by_biotype(self):
-        results = list(self.human.getGenesMatching(BioType='Mt_tRNA', like=False))
+        results = list(self.human.getGenesMatching(
+            BioType='Mt_tRNA', like=False))
         self.assertEqual(len(results), 22)
 
     def test_get_by_decsr_biotype(self):
@@ -348,18 +350,24 @@ class TestGene(GenomeTestBase):
         self.assertEqual(transcript.StableId, stable_id)
         gene = transcript.Gene
         brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
-        self.assertEqual(brca2.CanonicalTranscript.StableId, transcript.StableId)
-        self.assertEqual(brca2.CanonicalTranscript.getCdsLength(), len(transcript.Cds))
-        self.assertEqual(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
-        self.assertEqual(str(brca2.CanonicalTranscript.Cds), str(transcript.Cds))
-        self.assertEqual(str(brca2.CanonicalTranscript.Seq), str(transcript.Seq))
+        self.assertEqual(brca2.CanonicalTranscript.StableId,
+                         transcript.StableId)
+        self.assertEqual(
+            brca2.CanonicalTranscript.getCdsLength(), len(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Cds),
+                         str(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Cds),
+                         str(transcript.Cds))
+        self.assertEqual(str(brca2.CanonicalTranscript.Seq),
+                         str(transcript.Seq))
         self.assertEqual(brca2.StableId, gene.StableId)
         self.assertEqual(brca2.Seq, gene.Seq)
 
     def test_gene_on_transcript(self):
         """Transcript instances Gene attribute should be complete"""
         brca2 = self.human.getGeneByStableId(StableId='ENSG00000139618')
-        transcript = self.human.getTranscriptByStableId(StableId='ENST00000380152')
+        transcript = self.human.getTranscriptByStableId(
+            StableId='ENST00000380152')
         self.assertEqual(transcript.Gene.Symbol, brca2.Symbol)
 
     def test_intron_number(self):
@@ -430,7 +438,8 @@ class TestGene(GenomeTestBase):
 
 
 class TestVariation(GenomeTestBase):
-    snp_names = ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
+    snp_names = ['rs34213141', 'rs12791610',
+        'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'C/A', 'CAGCTCCAGCTC/-']
     snp_aa_alleles = ['G/R', 'P/L', 'Y/C', 'V/F', 'GAGAV/V']
     snp_effects = [['intron_variant', 'missense_variant'],
@@ -574,7 +583,7 @@ class TestFeatures(GenomeTestBase):
         CpGislands = self.human.getFeatures(region=self.igf2,
                                             feature_types='CpG')
         expected_stats = [(630, 757), (652, 537), (3254, 3533)]
-        obs_stats = [(int(island.Score), len(island)) \
+        obs_stats = [(int(island.Score), len(island))
                      for island in CpGislands]
         obs_stats.sort()
         self.assertTrue(set(expected_stats) & set(obs_stats) != set())
@@ -677,8 +686,8 @@ class TestFeatures(GenomeTestBase):
         ps_repeat = self.human.getRegion(Strand=1, **coord)
         ms_repeat = self.human.getRegion(Strand=-1, **coord)
         # note this MER3 repeat is annotated on the -1 strand
-        exp = DNA.makeSequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'\
-                               'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'\
+        exp = DNA.makeSequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'
+                               'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'
                                'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
 
         self.assertEqual(ms_repeat.Seq, ps_repeat.Seq.rc())

@@ -79,20 +79,20 @@ class ClustalTests(TestCase):
 
     def test_clustal_from_alignment_unaligned(self):
         """should raise error with unaligned seqs."""
-        self.assertRaises(ValueError,\
+        self.assertRaises(ValueError,
                           clustal_from_alignment, self.unaligned_dict)
 
     def test_clustal_from_alignment(self):
         """should return correct clustal string."""
         self.assertEqual(clustal_from_alignment({}), '')
-        self.assertEqual(clustal_from_alignment(self.alignment_dict),\
+        self.assertEqual(clustal_from_alignment(self.alignment_dict),
                          self.clustal_with_label)
         self.assertEqual(clustal_from_alignment(self.alignment_dict,
                                                 interleave_len=2), self.clustal_with_label_lw2)
 
     def test_clustal_from_alignment_reordered(self):
         """should return correct clustal string."""
-        self.assertEqual(clustal_from_alignment(self.alignment_object),\
+        self.assertEqual(clustal_from_alignment(self.alignment_object),
                          self.clustal_with_label_reordered)
         self.assertEqual(clustal_from_alignment(self.alignment_object,
                                                 interleave_len=2), self.clustal_with_label_lw2_reordered)

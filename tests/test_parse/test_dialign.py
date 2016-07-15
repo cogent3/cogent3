@@ -100,14 +100,19 @@ class TestDialign(unittest.TestCase):
 
     def test_line_split(self):
         """test splitting of sequence record lines"""
-        result = parse_data_line("HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg ")
-        self.assertEqual(result, ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg"))
-        result = parse_data_line("                       1111111111 1000001111 1111033333 3333333333 3000000000 ")
-        self.assertEqual(result, (None, "11111111111000001111111103333333333333333000000000"))
+        result = parse_data_line(
+            "HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg ")
+        self.assertEqual(
+            result, ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg"))
+        result = parse_data_line(
+            "                       1111111111 1000001111 1111033333 3333333333 3000000000 ")
+        self.assertEqual(
+            result, (None, "11111111111000001111111103333333333333333000000000"))
 
     def test_aligned_from_dialign(self):
         """test getting aligned seqs"""
-        aligned_seq = dict(list(DialignParser(data, seq_maker=PROTEIN.Sequence)))
+        aligned_seq = dict(
+            list(DialignParser(data, seq_maker=PROTEIN.Sequence)))
         assert aligned_seq == self.aln_seqs
 
     def test_quality_scores(self):

@@ -60,7 +60,8 @@ def evolveSequence(random_series, motifs, parent_seq, site_cats,
 
 
 def randomSequence(random_series, motif_probs, sequence_length):
-    getRootRandomMotif = _randomMotifGenerator(random_series, motif_probs).__next__
+    getRootRandomMotif = _randomMotifGenerator(
+        random_series, motif_probs).__next__
     return [getRootRandomMotif() for i in range(sequence_length)]
 
 

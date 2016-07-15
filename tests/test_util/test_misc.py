@@ -211,7 +211,8 @@ class UtilsTests(TestCase):
 
     def test_recursive_flatten(self):
         """recursive_flatten should remove all nesting from nested sequences"""
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
+        self.assertEqual(recursive_flatten(
+            [1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
 
         # test default behavior on str unpacking
         self.assertEqual(recursive_flatten(
@@ -271,16 +272,17 @@ class UtilsTests(TestCase):
 
     def test_recursive_flatten_max_depth(self):
         """recursive_flatten should not remover more than max_depth levels"""
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 0), \
+        self.assertEqual(recursive_flatten(
+            [1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
+        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 0),
                          [1, [2, 3], [[4, [5]]]])
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 1), \
+        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 1),
                          [1, 2, 3, [4, [5]]])
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 2), \
+        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 2),
                          [1, 2, 3, 4, [5]])
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 3), \
+        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 3),
                          [1, 2, 3, 4, 5])
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 5000), \
+        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 5000),
                          [1, 2, 3, 4, 5])
 
     def test_unflatten(self):
@@ -411,7 +413,7 @@ class UtilsTests(TestCase):
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
-        d = {'a': 1, 'b': 'test', 'A': 5, 'C': 123, 'D': [], 'AbC': 'XyZ', \
+        d = {'a': 1, 'b': 'test', 'A': 5, 'C': 123, 'D': [], 'AbC': 'XyZ',
              None: '3', '$': 'abc', 145: '5'}
         add_lowercase(d)
         assert d['d'] is d['D']
@@ -419,8 +421,8 @@ class UtilsTests(TestCase):
         self.assertEqual(d['D'], [3])
         self.assertEqual(d['d'], [3])
         self.assertNotEqual(d['a'], d['A'])
-        self.assertEqual(d, {'a': 1, 'b': 'test', 'A': 5, 'C': 123, 'c': 123, \
-                             'D': [3], 'd': [3], 'AbC': 'XyZ', 'abc': 'xyz', None: '3', '$': 'abc', \
+        self.assertEqual(d, {'a': 1, 'b': 'test', 'A': 5, 'C': 123, 'c': 123,
+                             'D': [3], 'd': [3], 'AbC': 'XyZ', 'abc': 'xyz', None: '3', '$': 'abc',
                              145: '5'})
 
         # should work with strings
@@ -455,7 +457,7 @@ class UtilsTests(TestCase):
         """InverseDict should invert dict's keys and values"""
         self.assertEqual(InverseDict({}), {})
         self.assertEqual(InverseDict({'3': 4}), {4: '3'})
-        self.assertEqual(InverseDict({'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}), \
+        self.assertEqual(InverseDict({'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}),
                          {'x': 'a', 1: 'b', None: 'c', ('a', 'b'): 'd'})
         self.assertRaises(TypeError, InverseDict, {'a': ['a', 'b', 'c']})
         d = InverseDict({'a': 3, 'b': 3, 'c': 3})
@@ -467,8 +469,8 @@ class UtilsTests(TestCase):
         """InverseDictMulti should invert keys and values, keeping all keys"""
         self.assertEqual(InverseDictMulti({}), {})
         self.assertEqual(InverseDictMulti({'3': 4}), {4: ['3']})
-        self.assertEqual(InverseDictMulti(\
-            {'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}), \
+        self.assertEqual(InverseDictMulti(
+            {'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}),
             {'x': ['a'], 1: ['b'], None: ['c'], ('a', 'b'): ['d']})
         self.assertRaises(TypeError, InverseDictMulti, {'a': ['a', 'b', 'c']})
         d = InverseDictMulti({'a': 3, 'b': 3, 'c': 3, 'd': '3', 'e': '3'})
@@ -490,7 +492,7 @@ class UtilsTests(TestCase):
         self.assertEqual(d(''), {})
         self.assertEqual(d('a'), {'a': [0]})
         self.assertEqual(d(['a', 'a', 'a']), {'a': [0, 1, 2]})
-        self.assertEqual(d('abacdeeee'), {'a': [0, 2], 'b': [1], 'c': [3], 'd': [4], \
+        self.assertEqual(d('abacdeeee'), {'a': [0, 2], 'b': [1], 'c': [3], 'd': [4],
                                           'e': [5, 6, 7, 8]})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': [0], None: [1, 3],
                                                            'xyz': [2], 3: [4]})
@@ -501,7 +503,8 @@ class UtilsTests(TestCase):
         self.assertEqual(d(''), {})
         self.assertEqual(d('a'), {'a': 0})
         self.assertEqual(d(['a', 'a', 'a']), {'a': 0})
-        self.assertEqual(d('abacdeeee'), {'a': 0, 'b': 1, 'c': 3, 'd': 4, 'e': 5})
+        self.assertEqual(d('abacdeeee'), {
+                         'a': 0, 'b': 1, 'c': 3, 'd': 4, 'e': 5})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 1,
                                                            'xyz': 2, 3: 4})
 
@@ -511,7 +514,8 @@ class UtilsTests(TestCase):
         self.assertEqual(d(''), {})
         self.assertEqual(d('a'), {'a': 0})
         self.assertEqual(d(['a', 'a', 'a']), {'a': 2})
-        self.assertEqual(d('abacdeeee'), {'a': 2, 'b': 1, 'c': 3, 'd': 4, 'e': 8})
+        self.assertEqual(d('abacdeeee'), {
+                         'a': 2, 'b': 1, 'c': 3, 'd': 4, 'e': 8})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 3,
                                                            'xyz': 2, 3: 4})
 
@@ -531,28 +535,28 @@ class UtilsTests(TestCase):
         empty = []
         self.assertEqual(PairsFromGroups(empty), {})
         one = ['abc']
-        self.assertEqual(PairsFromGroups(one), dict.fromkeys([ \
-            ('a', 'a'), ('a', 'b'), ('a', 'c'), \
-            ('b', 'a'), ('b', 'b'), ('b', 'c'), \
-            ('c', 'a'), ('c', 'b'), ('c', 'c'), \
+        self.assertEqual(PairsFromGroups(one), dict.fromkeys([
+            ('a', 'a'), ('a', 'b'), ('a', 'c'),
+            ('b', 'a'), ('b', 'b'), ('b', 'c'),
+            ('c', 'a'), ('c', 'b'), ('c', 'c'),
         ]))
 
         two = ['xy', 'abc']
-        self.assertEqual(PairsFromGroups(two), dict.fromkeys([ \
-            ('a', 'a'), ('a', 'b'), ('a', 'c'), \
-            ('b', 'a'), ('b', 'b'), ('b', 'c'), \
-            ('c', 'a'), ('c', 'b'), ('c', 'c'), \
-            ('x', 'x'), ('x', 'y'), ('y', 'x'), ('y', 'y'), \
+        self.assertEqual(PairsFromGroups(two), dict.fromkeys([
+            ('a', 'a'), ('a', 'b'), ('a', 'c'),
+            ('b', 'a'), ('b', 'b'), ('b', 'c'),
+            ('c', 'a'), ('c', 'b'), ('c', 'c'),
+            ('x', 'x'), ('x', 'y'), ('y', 'x'), ('y', 'y'),
         ]))
         # if there's overlap, note that the groups should _not_ be expanded
         #(e.g. in the following case, 'x' is _not_ similar to 'c', even though
         # both 'x' and 'c' are similar to 'a'.
         overlap = ['ax', 'abc']
-        self.assertEqual(PairsFromGroups(overlap), dict.fromkeys([ \
-            ('a', 'a'), ('a', 'b'), ('a', 'c'), \
-            ('b', 'a'), ('b', 'b'), ('b', 'c'), \
-            ('c', 'a'), ('c', 'b'), ('c', 'c'), \
-            ('x', 'x'), ('x', 'a'), ('a', 'x'), \
+        self.assertEqual(PairsFromGroups(overlap), dict.fromkeys([
+            ('a', 'a'), ('a', 'b'), ('a', 'c'),
+            ('b', 'a'), ('b', 'b'), ('b', 'c'),
+            ('c', 'a'), ('c', 'b'), ('c', 'c'),
+            ('x', 'x'), ('x', 'a'), ('a', 'x'),
         ]))
 
     def test_remove_files(self):
@@ -593,42 +597,42 @@ class UtilsTests(TestCase):
 
         actual = get_random_directory_name(suppress_mkdir=True)
         self.assertFalse(exists(actual), 'Random dir exists: %s' % actual)
-        self.assertTrue(actual.startswith('/'),\
+        self.assertTrue(actual.startswith('/'),
                         'Random dir is not a full path: %s' % actual)
 
         # prefix, suffix and output_dir are used as expected
-        actual = get_random_directory_name(suppress_mkdir=True, prefix='blah',\
+        actual = get_random_directory_name(suppress_mkdir=True, prefix='blah',
                                            output_dir='/tmp/', suffix='stuff')
-        self.assertTrue(actual.startswith('/tmp/blah2'),\
-                        'Random dir does not begin with output_dir + prefix ' +\
+        self.assertTrue(actual.startswith('/tmp/blah2'),
+                        'Random dir does not begin with output_dir + prefix ' +
                         '+ 2 (where 2 indicates the millenium in the timestamp): %s' % actual)
-        self.assertTrue(actual.endswith('stuff'),\
+        self.assertTrue(actual.endswith('stuff'),
                         'Random dir does not end with suffix: %s' % actual)
 
         # changing rand_length functions as expected
         actual1 = get_random_directory_name(suppress_mkdir=True)
-        actual2 = get_random_directory_name(suppress_mkdir=True,\
+        actual2 = get_random_directory_name(suppress_mkdir=True,
                                             rand_length=10)
-        actual3 = get_random_directory_name(suppress_mkdir=True,\
+        actual3 = get_random_directory_name(suppress_mkdir=True,
                                             rand_length=0)
-        self.assertTrue(len(actual1) > len(actual2) > len(actual3),\
-                        "rand_length does not affect directory name lengths " +\
+        self.assertTrue(len(actual1) > len(actual2) > len(actual3),
+                        "rand_length does not affect directory name lengths " +
                         "as expected:\n%s\n%s\n%s" % (actual1, actual2, actual3))
 
         # changing the timestamp pattern functions as expected
         actual1 = get_random_directory_name(suppress_mkdir=True)
-        actual2 = get_random_directory_name(suppress_mkdir=True,\
+        actual2 = get_random_directory_name(suppress_mkdir=True,
                                             timestamp_pattern='%Y')
         self.assertNotEqual(actual1, actual2)
-        self.assertTrue(len(actual1) > len(actual2),\
+        self.assertTrue(len(actual1) > len(actual2),
                         'Changing timestamp_pattern does not affect directory name')
         # empty string as timestamp works
-        actual3 = get_random_directory_name(suppress_mkdir=True,\
+        actual3 = get_random_directory_name(suppress_mkdir=True,
                                             timestamp_pattern='')
         self.assertTrue(len(actual2) > len(actual3))
 
         # creating the directory works as expected 
-        actual = get_random_directory_name(output_dir='/tmp/',\
+        actual = get_random_directory_name(output_dir='/tmp/',
                                            prefix='get_random_directory_test')
         self.assertTrue(exists(actual))
         rmdir(actual)
@@ -974,13 +978,13 @@ class ConstrainedContainerTests(TestCase):
 
     def test_matchesConstraint(self):
         """ConstrainedContainer matchesConstraint should return true if items ok"""
-        self.assertEqual(self.alphabet.matchesConstraint(self.alphacontainer), \
+        self.assertEqual(self.alphabet.matchesConstraint(self.alphacontainer),
                          True)
-        self.assertEqual(self.alphabet.matchesConstraint(self.numbercontainer),\
+        self.assertEqual(self.alphabet.matchesConstraint(self.numbercontainer),
                          False)
-        self.assertEqual(self.numbers.matchesConstraint(self.alphacontainer), \
+        self.assertEqual(self.numbers.matchesConstraint(self.alphacontainer),
                          False)
-        self.assertEqual(self.numbers.matchesConstraint(self.numbercontainer),\
+        self.assertEqual(self.numbers.matchesConstraint(self.numbercontainer),
                          True)
 
     def test_otherIsValid(self):
@@ -1015,14 +1019,15 @@ class ConstrainedContainerTests(TestCase):
         except ConstraintError:
             pass
         else:
-            raise AssertionError("Failed to raise ConstraintError with invalid constraint.")
+            raise AssertionError(
+                "Failed to raise ConstraintError with invalid constraint.")
         self.alphabet.Constraint = 'abcdefghi'
         self.alphabet.Constraint = ['a', 'b', 'c', 1, 2, 3]
         self.numbers.Constraint = list(range(20))
         self.numbers.Constraint = range(20)
         self.numbers.Constraint = [5, 1, 3, 7, 2]
         self.numbers.Constraint = {1: 'a', 2: 'b', 3: 'c'}
-        self.assertRaises(ConstraintError, setattr, self.numbers, \
+        self.assertRaises(ConstraintError, setattr, self.numbers,
                           'Constraint', '1')
 
 
@@ -1041,7 +1046,8 @@ class ConstrainedStringTests(TestCase):
         self.assertEqual(ConstrainedString(12345, '1234567890'), str(12345))
         # check that list is formatted correctly and chars are all there
         test_list = [1, 2, 3, 4, 5]
-        self.assertEqual(ConstrainedString(test_list, '][, 12345'), str(test_list))
+        self.assertEqual(ConstrainedString(
+            test_list, '][, 12345'), str(test_list))
 
     def test_init_bad_data(self):
         """ConstrainedString should fail init if unknown chars in string"""
@@ -1139,7 +1145,8 @@ class ConstrainedListTests(TestCase):
     def test_init_bad_data(self):
         """ConstrainedList should fail init with items not in constraint"""
         self.assertRaises(ConstraintError, ConstrainedList, '1234', '123')
-        self.assertRaises(ConstraintError, ConstrainedList, [1, 2, 3], ['1', '2', '3'])
+        self.assertRaises(ConstraintError, ConstrainedList,
+                          [1, 2, 3], ['1', '2', '3'])
 
     def test_add_prevents_bad_data(self):
         """ConstrainedList should allow addition only of compliant data"""
@@ -1196,7 +1203,8 @@ class ConstrainedListTests(TestCase):
         self.assertRaises(ConstraintError, a.__setitem__, 0, 3)
         a = ConstrainedList('1' * 20, '123')
         self.assertRaises(ConstraintError, a.__setitem__, slice(0, 1, 1), [3])
-        self.assertRaises(ConstraintError, a.__setitem__, slice(0, 1, 1), ['111'])
+        self.assertRaises(ConstraintError, a.__setitem__,
+                          slice(0, 1, 1), ['111'])
         a[2:9:2] = '3333'
         self.assertEqual(a, list('11313131311111111111'))
 
@@ -1270,16 +1278,16 @@ class ConstrainedDictTests(TestCase):
 
     def test_init_good_data(self):
         """ConstrainedDict should init OK if list matches constraint"""
-        self.assertEqual(ConstrainedDict(dict.fromkeys('abc'), 'abcd'), \
+        self.assertEqual(ConstrainedDict(dict.fromkeys('abc'), 'abcd'),
                          dict.fromkeys('abc'))
         self.assertEqual(ConstrainedDict('', 'abcd'), dict(''))
         items = [1, 2, 3.2234, tuple('xyz')]
         # should accept anything dict() does if no constraint is passed
-        self.assertEqual(ConstrainedDict(dict.fromkeys(items)), \
+        self.assertEqual(ConstrainedDict(dict.fromkeys(items)),
                          dict.fromkeys(items))
-        self.assertEqual(ConstrainedDict(dict.fromkeys(items), None), \
+        self.assertEqual(ConstrainedDict(dict.fromkeys(items), None),
                          dict.fromkeys(items))
-        self.assertEqual(ConstrainedDict([(x, 1) for x in '12345']), \
+        self.assertEqual(ConstrainedDict([(x, 1) for x in '12345']),
                          dict.fromkeys('12345', 1))
         # check that list is formatted correctly and chars are all there
         test_dict = dict.fromkeys('12345')
@@ -1287,13 +1295,14 @@ class ConstrainedDictTests(TestCase):
 
     def test_init_sequence(self):
         """ConstrainedDict should init from sequence, unlike normal dict"""
-        self.assertEqual(ConstrainedDict('abcda'), {'a': 2, 'b': 1, 'c': 1, 'd': 1})
+        self.assertEqual(ConstrainedDict('abcda'), {
+                         'a': 2, 'b': 1, 'c': 1, 'd': 1})
 
     def test_init_bad_data(self):
         """ConstrainedDict should fail init with items not in constraint"""
-        self.assertRaises(ConstraintError, ConstrainedDict, \
+        self.assertRaises(ConstraintError, ConstrainedDict,
                           dict.fromkeys('1234'), '123')
-        self.assertRaises(ConstraintError, ConstrainedDict, \
+        self.assertRaises(ConstraintError, ConstrainedDict,
                           dict.fromkeys([1, 2, 3]), ['1', '2', '3'])
 
     def test_setitem(self):
@@ -1517,8 +1526,10 @@ class reverse_complementTests(TestCase):
     def test_get_items_except(self):
         """get_items_except should return all items of seq not in indices"""
         self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5]), 'abcd')
-        self.assertEqual(get_items_except([0, 1, 2, 3, 4, 5, 6], [1, 3, 5]), [0, 2, 4, 6])
-        self.assertEqual(get_items_except((0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
+        self.assertEqual(get_items_except(
+            [0, 1, 2, 3, 4, 5, 6], [1, 3, 5]), [0, 2, 4, 6])
+        self.assertEqual(get_items_except(
+            (0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
         self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
                          ('a', 'b', 'c', 'd'))
     # end test_get_items_except    

@@ -389,7 +389,8 @@ def dist_chisq(datamtx, strict=True):
             if r1sum == 0.0 or r2sum == 0.0:
                 if r1sum == 0.0 and r2sum == 0.0:
                     dist = 0.0
-                else: dist = 1.0
+                else:
+                    dist = 1.0
             else:
                 dist = sqrt_grand_sum *\
                     sqrt(sum(multiply((1. / colsums),
@@ -441,7 +442,8 @@ def dist_chord(datamtx, strict=True):
             if r1norm == 0.0 or r2norm == 0.0:
                 if r1norm == 0.0 and r2norm == 0.0:
                     dist = 0.0
-                else: dist = 1.0
+                else:
+                    dist = 1.0
             else:
                 dist = norm(r1 / r1norm - r2 / r2norm)
             dists[i, j] = dists[j, i] = dist
@@ -484,7 +486,8 @@ def dist_euclidean(datamtx, strict=True):
         for c in range(r):
             dist = norm(datamtx[r] - datamtx[c])
             if isnan(dist):
-                raise RuntimeError('ERROR: overflow when computing euclidean distance')
+                raise RuntimeError(
+                    'ERROR: overflow when computing euclidean distance')
             dists[r, c] = dists[c, r] = dist
 
     return dists
@@ -585,7 +588,8 @@ def dist_hellinger(datamtx, strict=True):
             if r1sum == 0.0 or r2sum == 0.0:
                 if r1sum == 0.0 and r2sum == 0.0:
                     dist = 0.0
-                else: dist = 1.0
+                else:
+                    dist = 1.0
             else:
                 dist = norm(sqrt(r1 / r1sum) - sqrt(r2 / r2sum))
             dists[i, j] = dists[j, i] = dist
@@ -645,7 +649,8 @@ def dist_kulczynski(datamtx, strict=True):
             elif (irowsum == 0.0 or jrowsum == 0.0):
                 cur_d = 1.0  # one row zeros, one not all zeros
             else:
-                cur_d = 1.0 - (((rowminsum / irowsum) + (rowminsum / jrowsum)) / 2.0)
+                cur_d = 1.0 - (((rowminsum / irowsum) +
+                               (rowminsum / jrowsum)) / 2.0)
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -1050,7 +1055,8 @@ def dist_specprof(datamtx, strict=True):
             if r1sum == 0.0 or r2sum == 0.0:
                 if r1sum == 0.0 and r2sum == 0.0:
                     dist = 0.0
-                else: dist = 1.0
+                else:
+                    dist = 1.0
             else:
                 dist = norm((r1 / r1sum) - (r2 / r2sum))
             dists[i, j] = dists[j, i] = dist

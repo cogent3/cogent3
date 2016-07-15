@@ -147,7 +147,7 @@ class SummaryStatistics(object):
     def __str__(self):
         """Returns string representation of SummaryStatistics object."""
         result = []
-        for field in ["Count", "Sum", "Median", "Mean", "StandardDeviation", \
+        for field in ["Count", "Sum", "Median", "Mean", "StandardDeviation",
                       "Variance", "SumSquares"]:
             try:
                 val = getattr(self, field)
@@ -167,7 +167,8 @@ class SummaryStatistics(object):
             try:
                 self._count = self._sum / self._mean
             except (TypeError, ZeroDivisionError, FloatingPointError):
-                raise SummaryStatisticsError("Insufficient data to calculate count.")
+                raise SummaryStatisticsError(
+                    "Insufficient data to calculate count.")
         return self._count
     Count = property(_get_count)
 
@@ -177,7 +178,8 @@ class SummaryStatistics(object):
             try:
                 self._sum = self._count * self._mean
             except TypeError:
-                raise SummaryStatisticsError("Insufficient data to calculate sum.")
+                raise SummaryStatisticsError(
+                    "Insufficient data to calculate sum.")
         return self._sum
     Sum = property(_get_sum)
 
@@ -187,7 +189,8 @@ class SummaryStatistics(object):
             try:
                 self._mean = self._sum / self._count
             except (TypeError, ZeroDivisionError, FloatingPointError):
-                raise SummaryStatisticsError("Insufficient data to calculate mean.")
+                raise SummaryStatisticsError(
+                    "Insufficient data to calculate mean.")
         return self._mean
     Mean = property(_get_mean)
 
@@ -202,7 +205,8 @@ class SummaryStatistics(object):
             try:
                 self._standard_deviation = sqrt(abs(self._variance))
             except TypeError:
-                raise SummaryStatisticsError("Insufficient data to calculate standard deviation.")
+                raise SummaryStatisticsError(
+                    "Insufficient data to calculate standard deviation.")
         return self._standard_deviation
     StandardDeviation = property(_get_standard_deviation)
 
@@ -213,14 +217,16 @@ class SummaryStatistics(object):
                 self._variance = self._standard_deviation * \
                     self._standard_deviation
             except TypeError:
-                raise SummaryStatisticsError("Insufficient data to calculate variance.")
+                raise SummaryStatisticsError(
+                    "Insufficient data to calculate variance.")
         return self._variance
     Variance = property(_get_variance)
 
     def _get_sum_squares(self):
         """Returns SumSquares if possible."""
         if self._sum_squares is None:
-            raise SummaryStatisticsError("Insufficient data to calculate sum of squares.")
+            raise SummaryStatisticsError(
+                "Insufficient data to calculate sum of squares.")
         return self._sum_squares
     SumSquares = property(_get_sum_squares)
 
@@ -477,7 +483,8 @@ class NumbersI(object):
         if count <= 1:  # no variance for a single item
             variance = 0.0
         else:
-            variance = (self.SumSquares - (total * total) / count) / (count - 1)
+            variance = (self.SumSquares - (total * total) /
+                        count) / (count - 1)
         return variance
     Variance = property(_get_variance)
 
@@ -538,7 +545,7 @@ class NumbersI(object):
 
     def summarize(self):
         """Returns summary statistics for self."""
-        return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
+        return SummaryStatistics(Count=self.Count, Sum=self.Sum,
                                  Variance=self.Variance, Median=self.Median)
 
     def choice(self):
@@ -622,7 +629,8 @@ class Numbers(NumbersI, MappedList):
         is OK, but a single number by itself is not OK).
         """
         if data is not None:
-            data = list(map(float, data))  # fails if any items are not floatable
+            # fails if any items are not floatable
+            data = list(map(float, data))
         else:
             data = []
         MappedList.__init__(self, data, Constraint, Mask)
@@ -852,7 +860,8 @@ class FreqsI(object):
         """
         if self:
             lines = ["Value\tCount"]
-            items = list(self.items())  # make and sort list of (key, value) pairs
+            # make and sort list of (key, value) pairs
+            items = list(self.items())
             items.sort()
             for key, val in items:
                 lines.append("\t".join([str(key), str(val)]))  # add pair
@@ -938,7 +947,8 @@ class FreqsI(object):
             for item, freq in list(self.items()):
                 f = float(freq)
                 if f < 0:
-                    raise ValueError("Freqs.normalize(): found negative count!")
+                    raise ValueError(
+                        "Freqs.normalize(): found negative count!")
                 self[item] = f / total
 
     def choice(self, prob):
@@ -1029,7 +1039,8 @@ class FreqsI(object):
         """
         if scale:
             if sum([round(scale * v) for v in list(self.values())]) != scale:
-                raise ValueError("Can't round to the desired number (%d)" % (scale))
+                raise ValueError(
+                    "Can't round to the desired number (%d)" % (scale))
             else:
                 used_freq = self.copy()
                 used_freq.scale(factor=scale)
@@ -1081,7 +1092,8 @@ class FreqsI(object):
         if count <= 1:  # no variance for a single item
             variance = 0.0
         else:
-            variance = (self.SumSquares - (total * total) / count) / (count - 1)
+            variance = (self.SumSquares - (total * total) /
+                        count) / (count - 1)
         return variance
     Variance = property(_get_variance)
 
@@ -1138,7 +1150,7 @@ class FreqsI(object):
 
     def summarize(self):
         """Returns summary statistics for self."""
-        return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
+        return SummaryStatistics(Count=self.Count, Sum=self.Sum,
                                  SumSquares=self.SumSquares, Variance=self.Variance)
 
     def getSortedList(self, descending=True, by_val=True):
@@ -1210,7 +1222,7 @@ class Freqs(FreqsI, MappedDict):
         Mask:           function applied to keys before lookup
         ValueMask:      function applied to values before addition
         """
-        super(Freqs, self).__init__(Constraint=Constraint, Mask=Mask, \
+        super(Freqs, self).__init__(Constraint=Constraint, Mask=Mask,
                                     ValueMask=ValueMask)
         self += data
         for key in self.RequiredKeys:
@@ -1356,7 +1368,7 @@ class NumberFreqs(NumberFreqsI, MappedDict):
         Mask:           function applied to keys before lookup
         ValueMask:      function applied to values before addition
         """
-        super(NumberFreqs, self).__init__(Constraint=Constraint, Mask=Mask, \
+        super(NumberFreqs, self).__init__(Constraint=Constraint, Mask=Mask,
                                           ValueMask=ValueMask)
         self += data
         r = self.RequiredKeys

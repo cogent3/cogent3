@@ -73,7 +73,7 @@ class TreeNode(object):
     """
     _exclude_from_copy = dict.fromkeys(['_parent', 'Children'])
 
-    def __init__(self, Name=None, Children=None, Parent=None, Params=None, \
+    def __init__(self, Name=None, Children=None, Parent=None, Params=None,
                  NameLoaded=True, **kwargs):
         """Returns new TreeNode object."""
         self.Name = Name
@@ -258,7 +258,7 @@ class TreeNode(object):
                 old_child = old_top_node.Children[-unvisited_children]
                 new_child = __copy_node(old_child)
                 new_top_node.append(new_child)
-                nodes_stack.append([new_child, old_child, \
+                nodes_stack.append([new_child, old_child,
                                     len(old_child.Children)])
             else:  # no unvisited children
                 nodes_stack.pop()
@@ -279,7 +279,8 @@ class TreeNode(object):
         children = [c.copyTopology(constructor) for c in self.Children]
         return constructor(Name=self.Name[:], Children=children)
 
-    # support for basic tree operations -- finding objects and moving in the tree
+    # support for basic tree operations -- finding objects and moving in the
+    # tree
     def _get_parent(self):
         """Accessor for parent.
 
@@ -451,7 +452,7 @@ class TreeNode(object):
                 child_index_stack.pop()
                 child_index_stack[-1] += 1
 
-    def traverse_recursive(self, self_before=True, self_after=False, \
+    def traverse_recursive(self, self_before=True, self_after=False,
                            include_self=True):
         """Returns iterator over descendants. IMPORTANT: read notes below.
 
@@ -808,7 +809,7 @@ class TreeNode(object):
         else:
             return self.Name == other.Name
 
-    def getNewickRecursive(self, with_distances=False, semicolon=True, \
+    def getNewickRecursive(self, with_distances=False, semicolon=True,
                            escape_name=True):
         """Return the newick string for this edge.
 
@@ -830,7 +831,7 @@ class TreeNode(object):
                 name = ''
             else:
                 name = str(self.Name)
-                if escape_name and not (name.startswith("'") and \
+                if escape_name and not (name.startswith("'") and
                                         name.endswith("'")):
                     if re.search("""[]['"(),:;_]""", name):
                         name = "'%s'" % name.replace("'", "''")
@@ -871,7 +872,8 @@ class TreeNode(object):
             top_node, num_unvisited_children = top
             if num_unvisited_children:  # has any child unvisited
                 top[1] -= 1  # decrease the #of children unvisited
-                next_child = top_node.Children[-num_unvisited_children]  # - for order
+                # - for order
+                next_child = top_node.Children[-num_unvisited_children]
                 # pre-visit
                 if next_child.Children:
                     result.append('(')
@@ -887,7 +889,7 @@ class TreeNode(object):
                         name = ''
                     else:
                         name = str(top_node.Name)
-                        if escape_name and not (name.startswith("'") and \
+                        if escape_name and not (name.startswith("'") and
                                                 name.endswith("'")):
                             if re.search("""[]['"(),:;_]""", name):
                                 name = "'%s'" % name.replace("'", "''")
@@ -1011,7 +1013,8 @@ class TreeNode(object):
 
         num_tips = len(tip_order)
         result = {}
-        tipdistances = zeros((num_tips), float)  # distances from tip to curr node
+        # distances from tip to curr node
+        tipdistances = zeros((num_tips), float)
 
         def update_result():
         # set tip_tip distance between tips of different child
@@ -1036,7 +1039,8 @@ class TreeNode(object):
                 else:
                     child_len = 1  # default length
                 tipdistances[child.__start: child.__stop] += child_len
-                starts.append(child.__start); stops.append(child.__stop)
+                starts.append(child.__start)
+                stops.append(child.__stop)
             node.__start, node.__stop = min(starts), max(stops)
             # update result if nessessary
             if len(node.Children) > 1:  # not single child
@@ -1274,7 +1278,8 @@ class TreeNode(object):
             if not compact:
                 result.pop()
             (lo, hi, end) = (mids[0], mids[-1], len(result))
-            prefixes = [PAD] * (lo + 1) + [PA + '|'] * (hi - lo - 1) + [PAD] * (end - hi)
+            prefixes = [PAD] * (lo + 1) + [PA + '|'] * \
+                                (hi - lo - 1) + [PAD] * (end - hi)
             mid = (lo + hi) // 2
             prefixes[mid] = char1 + '-' * (LEN - 2) + prefixes[mid][-1]
             result = [p + l for (p, l) in zip(prefixes, result)]
@@ -1440,7 +1445,7 @@ class TreeNode(object):
             if n.Name in mapping:
                 n.Name = mapping[n.Name]
 
-    def multifurcating(self, num, eps=None, constructor=None, \
+    def multifurcating(self, num, eps=None, constructor=None,
                        name_unnamed=False):
         """Return a new tree with every node having num or few children
 
@@ -1514,7 +1519,7 @@ class TreeNode(object):
     def subsets(self):
         """Returns all sets of names that come from specified node and its kids"""
         sets = []
-        for i in self.traverse(self_before=False, self_after=True, \
+        for i in self.traverse(self_before=False, self_after=True,
                                include_self=False):
             if not i.Children:
                 i.__leaf_set = frozenset([i.Name])
@@ -1563,7 +1568,8 @@ class TreeNode(object):
 
         num_tips = len(tip_order)
         result = zeros((num_tips, num_tips), float)  # tip by tip matrix
-        tipdistances = zeros((num_tips), float)  # distances from tip to curr node
+        # distances from tip to curr node
+        tipdistances = zeros((num_tips), float)
 
         def update_result(): 
         # set tip_tip distance between tips of different child
@@ -1584,7 +1590,8 @@ class TreeNode(object):
                 else:
                     child_len = default_length
                 tipdistances[child.__start: child.__stop] += child_len
-                starts.append(child.__start); stops.append(child.__stop)
+                starts.append(child.__start)
+                stops.append(child.__stop)
             node.__start, node.__stop = min(starts), max(stops)
             # update result if nessessary
             if len(node.Children) > 1:  # not single child
@@ -1618,7 +1625,8 @@ class TreeNode(object):
         self_order = [self_names.index(i) for i in common_names]
         other_order = [other_names.index(i) for i in common_names]
         self_matrix = self.tipToTipDistances()[0][self_order][:, self_order]
-        other_matrix = other.tipToTipDistances()[0][other_order][:, other_order]
+        other_matrix = other.tipToTipDistances()[0][other_order][
+                                               :, other_order]
         return dist_f(self_matrix, other_matrix)
 
 
@@ -1678,7 +1686,7 @@ class PhyloNode(TreeNode):
 
     def totalDescendingBranchLength(self):
         """Returns total descending branch length from self"""
-        return sum([n.Length for n in self.traverse(include_self=False) \
+        return sum([n.Length for n in self.traverse(include_self=False)
                     if n.Length is not None])
 
     def tipsWithinDistance(self, distance):
@@ -1871,7 +1879,8 @@ class PhyloNode(TreeNode):
         # print tip_names
         tip1 = self.getNodeMatchingName(tip_names[0])
         tip2 = self.getNodeMatchingName(tip_names[1])
-        lca = self.getConnectingNode(tip_names[0], tip_names[1])  # last comm ancestor
+        lca = self.getConnectingNode(tip_names[0], tip_names[
+                                     1])  # last comm ancestor
         if tip1.distance(lca) > half_max_dist:
             climb_node = tip1
         else:
@@ -1924,7 +1933,7 @@ class PhyloNode(TreeNode):
         """Sets distance from each node to the most distant tip."""
         for node in self.traverse(self_before=False, self_after=True):
             if node.Children:
-                node.TipDistance = max([c.Length + c.TipDistance for \
+                node.TipDistance = max([c.Length + c.TipDistance for
                                         c in node.Children])
             else:
                 node.TipDistance = 0
@@ -1952,7 +1961,8 @@ class PhyloNode(TreeNode):
                     continue
                 # if we get here, we know the node has children
                 # figure out what distance we want to set for this node
-                ideal_distance = int(round(node.TipDistance / orig_max * max_length))
+                ideal_distance = int(
+                    round(node.TipDistance / orig_max * max_length))
                 min_distance = max([c.DistanceUsed for c in node.Children]) + 1
                 distance = max(min_distance, ideal_distance)
                 for c in node.Children:
@@ -1989,7 +1999,8 @@ class PhyloNode(TreeNode):
 
         num_tips = len(tip_order)
         result = {}
-        tipdistances = zeros((num_tips), float)  # distances from tip to curr node
+        # distances from tip to curr node
+        tipdistances = zeros((num_tips), float)
 
         def update_result():
         # set tip_tip distance between tips of different child
@@ -2014,7 +2025,8 @@ class PhyloNode(TreeNode):
                 else:
                     child_len = 1  # default length
                 tipdistances[child.__start: child.__stop] += child_len
-                starts.append(child.__start); stops.append(child.__stop)
+                starts.append(child.__start)
+                stops.append(child.__stop)
             node.__start, node.__stop = min(starts), max(stops)
             # update result if nessessary
             if len(node.Children) > 1:  # not single child
@@ -2062,7 +2074,8 @@ class PhyloNode(TreeNode):
         num_all_tips = len(all_tips)  # total number of tips
         num_tips = len(tip_order)  # total number of tips in result
         result = zeros((num_tips, num_tips), float)  # tip by tip matrix
-        tipdistances = zeros((num_all_tips), float)  # dist from tip to curr node
+        # dist from tip to curr node
+        tipdistances = zeros((num_all_tips), float)
 
         def update_result():
         # set tip_tip distance between tips of different child
@@ -2088,14 +2101,15 @@ class PhyloNode(TreeNode):
                 else:
                     child_len = default_length
                 tipdistances[child.__start: child.__stop] += child_len
-                starts.append(child.__start); stops.append(child.__stop)
+                starts.append(child.__start)
+                stops.append(child.__stop)
             node.__start, node.__stop = min(starts), max(stops)
             # update result if nessessary
             if len(node.Children) > 1:  # not single child
                 update_result()
         return result + result.T, tip_order
 
-    def compareByTipDistances(self, other, sample=None, dist_f=distance_from_r,\
+    def compareByTipDistances(self, other, sample=None, dist_f=distance_from_r,
                               shuffle_f=shuffle):
         """Compares self to other using tip-to-tip distance matrices.
 

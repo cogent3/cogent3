@@ -27,7 +27,7 @@ class recordsTests(TestCase):
         """string_and_strip should convert all items to strings and strip them"""
         self.assertEqual(string_and_strip(), [])
         self.assertEqual(string_and_strip('\t', ' ', '\n\t'), ['', '', ''])
-        self.assertEqual(string_and_strip('\ta\tb', 3, '   cde   e', None), \
+        self.assertEqual(string_and_strip('\ta\tb', 3, '   cde   e', None),
                          ['a\tb', '3', 'cde   e', 'None'])
 
     def test_raise_unknown_field(self):
@@ -53,7 +53,8 @@ class GrouperTests(TestCase):
         self.assertEqual(list(g2(s3)), [['a', 'b'], ['c']])
         self.assertEqual(list(g5(s3)), [['a', 'b', 'c']])
         self.assertEqual(list(g1(s10)), [[i] for i in range(10)])
-        self.assertEqual(list(g2(s10)), [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
+        self.assertEqual(
+            list(g2(s10)), [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
         self.assertEqual(list(g5(s10)), [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]])
 
     def test_call_bad(self):
@@ -87,11 +88,11 @@ class DelimitedSplitterTests(TestCase):
         self.assertEqual(empty('a  b  c'), space('a  b  c'))
         self.assertEqual(semicolon('  a  ; b   ;  c  d'), ['a', 'b   ;  c  d'])
         self.assertEqual(twosplits('  a  ; b   ;  c  d'), ['a', 'b', 'c  d'])
-        self.assertEqual(allsplits(' a ;  b  ; c;;d;e  ;'),\
+        self.assertEqual(allsplits(' a ;  b  ; c;;d;e  ;'),
                          ['a', 'b', 'c', '', 'd', 'e', ''])
-        self.assertEqual(lastone(' a ;  b  ; c;;d;e  ;'),\
+        self.assertEqual(lastone(' a ;  b  ; c;;d;e  ;'),
                          ['a ;  b  ; c;;d;e', ''])
-        self.assertEqual(lasttwo(' a ;  b  ; c;;d;e  ;'),\
+        self.assertEqual(lasttwo(' a ;  b  ; c;;d;e  ;'),
                          ['a ;  b  ; c;;d', 'e', ''])
         self.assertEqual(lasttwo(''), [])
         self.assertEqual(lasttwo('x'), ['x'])
@@ -221,7 +222,8 @@ class MappedRecordTests(TestCase):
         del s.x
         self.assertEqual(s.x, None)
         self.assertEqual(s, {'a': 3})
-        # try it for an internal attribute: check it doesn't delete anything else
+        # try it for an internal attribute: check it doesn't delete anything
+        # else
         s.b = 4
         self.assertEqual(s, {'a': 3, 'b': 4})
         del s.a
@@ -470,15 +472,15 @@ class LineOrientedConstructorTests(TestCase):
         label_splitter = DelimitedSplitter('\t')
         constructor = rec
         strict = True
-        loc_bad = LineOrientedConstructor(data, label_splitter, maps, \
+        loc_bad = LineOrientedConstructor(data, label_splitter, maps,
                                           constructor, strict)
         self.assertRaises(FieldError, loc_bad)
         strict = False
-        loc_good = LineOrientedConstructor(data, label_splitter, maps, \
+        loc_good = LineOrientedConstructor(data, label_splitter, maps,
                                            constructor, strict)
         result = loc_good()
         assert isinstance(result, rec)
-        self.assertEqual(result, \
+        self.assertEqual(result,
                          {'abc': ['def', 'xyz'], '3': 'n', 'fgh': False, 'x': 3})
 
 
@@ -496,7 +498,7 @@ class FieldWrapperTests(TestCase):
         f = FieldWrapper(fields)
         self.assertEqual(f(''), {})
         self.assertEqual(f('xy za '), {'a': 'xy', 'b': 'za'})
-        self.assertEqual(f('1   2\t\t 3  \n4 5 6'), \
+        self.assertEqual(f('1   2\t\t 3  \n4 5 6'),
                          {'a': '1', 'b': '2', 'c': '3', 'd': '4', 'e': '5'})
 
     def test_splitter(self):
@@ -506,7 +508,8 @@ class FieldWrapperTests(TestCase):
         f = FieldWrapper(fields, splitter)
         self.assertEqual(f(''), {})
         self.assertEqual(f('nknasd:'), {'label': 'nknasd', 'count': ''})
-        self.assertEqual(f('n:k:n:a:sd  '), {'label': 'n:k:n:a', 'count': 'sd'})
+        self.assertEqual(f('n:k:n:a:sd  '), {
+                         'label': 'n:k:n:a', 'count': 'sd'})
 
     def test_constructor(self):
         """FieldWrapper with constructor should use that constructor"""
@@ -523,7 +526,7 @@ class StrictFieldWrapperTests(TestCase):
         """Default StrictFieldWrapper should wrap fields if count correct"""
         fields = list('abcde')
         f = StrictFieldWrapper(fields)
-        self.assertEqual(f('1   2\t\t 3  \n4 5 '), \
+        self.assertEqual(f('1   2\t\t 3  \n4 5 '),
                          {'a': '1', 'b': '2', 'c': '3', 'd': '4', 'e': '5'})
         self.assertRaises(FieldError, f, '')
         self.assertRaises(FieldError, f, 'xy za ')
@@ -533,7 +536,8 @@ class StrictFieldWrapperTests(TestCase):
         fields = ['label', 'count']
         splitter = DelimitedSplitter(':', -1)
         f = StrictFieldWrapper(fields, splitter)
-        self.assertEqual(f('n:k:n:a:sd  '), {'label': 'n:k:n:a', 'count': 'sd'})
+        self.assertEqual(f('n:k:n:a:sd  '), {
+                         'label': 'n:k:n:a', 'count': 'sd'})
         self.assertEqual(f('nknasd:'), {'label': 'nknasd', 'count': ''})
         self.assertRaises(FieldError, f, '')
 

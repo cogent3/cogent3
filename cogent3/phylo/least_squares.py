@@ -53,7 +53,8 @@ class WLS(TreeEvaluator):
         dists = distanceDictAndNamesTo1D(self.dists, names)
         weights = distanceDictAndNamesTo1D(self.weights, names)
         # dists and weights are 1D forms of triangular tip x tip matrices
-        # The order of the tip-to-tip paths is the same for dists, weights and A  
+        # The order of the tip-to-tip paths is the same for dists, weights and
+        # A
         weights_dists = weights * dists
 
         def evaluate(ancestry,

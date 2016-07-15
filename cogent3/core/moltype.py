@@ -14,7 +14,7 @@ types and the MolType can be made after the objects are created.
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", \
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -91,7 +91,8 @@ IUPAC_DNA_complements = {
 }
 
 
-IUPAC_RNA_chars = ['U', 'C', 'A', 'G']  # note change in standard order from DNA
+# note change in standard order from DNA
+IUPAC_RNA_chars = ['U', 'C', 'A', 'G']
 IUPAC_RNA_ambiguities = {
     'N': ('A', 'C', 'U', 'G'),
     'R': ('A', 'G'),
@@ -367,7 +368,7 @@ class CoreObjectGroup(object):
 class AlphabetGroup(CoreObjectGroup):
     """Container relating gapped, ungapped, degen, and non-degen alphabets."""
 
-    def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing, \
+    def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing,
                  MolType=None, constructor=None):
         """Returns new AlphabetGroup."""
         if constructor is None:
@@ -380,7 +381,7 @@ class AlphabetGroup(CoreObjectGroup):
         self.Base = constructor(chars, MolType=MolType)
         self.Degen = constructor(chars + degens, MolType=MolType)
         self.Gapped = constructor(chars + gap, gap, MolType=MolType)
-        self.DegenGapped = constructor(chars + gap + degens + missing, gap, \
+        self.DegenGapped = constructor(chars + gap + degens + missing, gap,
                                        MolType=MolType)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
@@ -405,11 +406,11 @@ class MolType(object):
     don't want to reset the moltype.
     """
 
-    def __init__(self, motifset, Gap=IUPAC_gap, Missing=IUPAC_missing,\
+    def __init__(self, motifset, Gap=IUPAC_gap, Missing=IUPAC_missing,
                  Gaps=None,
                  Sequence=None, Ambiguities=None,
-                 label=None, Complements=None, Pairs=None, MWCalculator=None, \
-                 add_lower=False, preserve_existing_moltypes=False, \
+                 label=None, Complements=None, Pairs=None, MWCalculator=None,
+                 add_lower=False, preserve_existing_moltypes=False,
                  make_alphabet_group=False, ModelSeq=None):
         """Returns a new MolType object. Note that the parameters are in flux.
 
@@ -475,7 +476,8 @@ class MolType(object):
         self.Sequence = Sequence
 
         # set the ambiguities
-        ambigs = {self.Missing: tuple(motifset) + (self.Gap,), self.Gap: (self.Gap,)}
+        ambigs = {self.Missing: tuple(
+            motifset) + (self.Gap,), self.Gap: (self.Gap,)}
         if Ambiguities:
             ambigs.update(Ambiguities)
         for c in motifset:
@@ -486,7 +488,7 @@ class MolType(object):
         self.Complements = Complements or {}
 
         if make_alphabet_group:  # note: must use _original_ ambiguities here
-            self.Alphabets = AlphabetGroup(motifset, Ambiguities, \
+            self.Alphabets = AlphabetGroup(motifset, Ambiguities,
                                            MolType=self)
             self.Alphabet = self.Alphabets.Base
         else:
@@ -501,7 +503,7 @@ class MolType(object):
         self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
         self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
         self.Pairs = Pairs and Pairs.copy() or {}
-        self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, \
+        self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps,
                                      self.Degenerates))
         self.MWCalculator = MWCalculator
         # add lowercase characters, if we're doing that
@@ -665,7 +667,8 @@ class MolType(object):
         will return list of keys.
         """
         if not self.Complements:
-            raise TypeError("Tried to complement sequence using alphabet without complements.")
+            raise TypeError(
+                "Tried to complement sequence using alphabet without complements.")
         try:
             return item.translate(self.ComplementTable)
         except (AttributeError, TypeError):
@@ -1017,7 +1020,7 @@ class MolType(object):
             return inv_degens[lengths[sorted[0]]]
 
         # if we got here, nothing worked
-        raise TypeError("Cannot find degenerate char for symbols: %s" \
+        raise TypeError("Cannot find degenerate char for symbols: %s"
                         % symbols)
 
 ASCII = MolType(

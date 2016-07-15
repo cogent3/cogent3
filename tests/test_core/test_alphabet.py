@@ -39,7 +39,8 @@ class translation_table_tests(TestCase):
 
     def test_make_complement_array(self):
         """_make_complement_array should identify complements correctly"""
-        complement_array = _make_complement_array(RNA.Alphabet, RNA.Complements)
+        complement_array = _make_complement_array(
+            RNA.Alphabet, RNA.Complements)
         test = 'UCAG'
         test_array = [RNA.Alphabet.index(i) for i in test]
         complements = complement_array.take(test_array)
@@ -167,7 +168,7 @@ class EnumerationTests(TestCase):
         self.assertEqual(x.Gap, ('-', 'z'))
         self.assertEqual(x.GapIndex, 5)
         self.assertEqual(len(x), 6)
-        self.assertEqual(x, (('a', 'x'), ('a', 'z'), ('b', 'x'), ('b', 'z'), ('-', 'x'),\
+        self.assertEqual(x, (('a', 'x'), ('a', 'z'), ('b', 'x'), ('b', 'z'), ('-', 'x'),
                              ('-', 'z')))
         # check that it doesn't work when only one seq has gaps
         c = Enumeration('c')
@@ -213,7 +214,8 @@ class CharAlphabetTests(TestCase):
     def test_fromString(self):
         """CharAlphabet fromString should return correct array"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.fromString('UUCUGA'), array([0, 0, 1, 0, 3, 2], 'B'))
+        self.assertEqual(r.fromString('UUCUGA'),
+                         array([0, 0, 1, 0, 3, 2], 'B'))
 
     def test_isValid(self):
         """CharAlphabet isValid should return True for valid sequence"""
@@ -236,15 +238,17 @@ class CharAlphabetTests(TestCase):
         """CharAlphabet toChars should convert an input array to chars"""
         r = CharAlphabet('UCAG')
         c = r.toChars(array([[0, 0, 1], [0, 3, 2]], 'B'))
-        self.assertEqual(c, \
+        self.assertEqual(c,
                          array(['UUC', 'UGA'], 'c'))
 
     def test_toString(self):
         """CharAlphabet toString should convert an input array to string"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.toString(array([[0, 0, 1], [0, 3, 2]], 'B')), 'UUC\nUGA')
+        self.assertEqual(r.toString(
+            array([[0, 0, 1], [0, 3, 2]], 'B')), 'UUC\nUGA')
         # should work with single seq
-        self.assertEqual(r.toString(array([[0, 0, 1, 0, 3, 2]], 'B')), 'UUCUGA')
+        self.assertEqual(r.toString(
+            array([[0, 0, 1, 0, 3, 2]], 'B')), 'UUCUGA')
         # should work with single seq
         self.assertEqual(r.toString(array([0, 0, 1, 0, 3, 2], 'B')), 'UUCUGA')
         # should work with empty seq
@@ -293,7 +297,7 @@ class JointEnumerationTests(TestCase):
         self.assertEqual(len(a), 12)
         self.assertEqual(a[0], ('T', 'U'))
         self.assertEqual(a[-1], ('A', 'G'))
-        self.assertEqual(a._sub_enum_factors, \
+        self.assertEqual(a._sub_enum_factors,
                          array([[4], [1]]))  # note: _not_ [3,1]
 
     def test_toIndices(self):
@@ -320,7 +324,8 @@ class JointEnumerationTests(TestCase):
         a = JointEnumeration(['xyz', 'abcd', 'ef'])
         v = [7, 15, 18, 0]
         result = a.unpackArrays(v)
-        self.assertEqual(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
+        self.assertEqual(result, array(
+            [[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
 
 if __name__ == '__main__':
     main()

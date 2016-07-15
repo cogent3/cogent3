@@ -115,9 +115,11 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     coords4 = c_[coords, array([ones(len(coords))]).transpose()]
     for i in range(1, len(mxs)):  # skip identity
         rot_mx = mxs[i].transpose()
-        new_coords = dot(coords4, rot_mx)[:, :3]  # rotate and translate, remove
+        # rotate and translate, remove
+        new_coords = dot(coords4, rot_mx)[:, :3]
         if mode == 'fractional':                 # ones column
-            new_coords = dot(new_coords, omx.transpose())  # return to orthogonal
+            new_coords = dot(new_coords, omx.transpose()
+                             )  # return to orthogonal
         all_coords.append(new_coords)
     # a vstack(arrays) with a following reshape is faster then 
     # the equivalent creation of a new array via array(arrays).
@@ -146,7 +148,7 @@ def coords_to_crystal(coords, fmx, omx, n=1):
         all_coords.append(fcoords + primitive_vector)
     # a vstack(arrays) with a following reshape is faster then 
     # the equivalent creation of a new array via array(arrays) 
-    all_coords = vstack(all_coords).reshape((len(all_coords), \
+    all_coords = vstack(all_coords).reshape((len(all_coords),
                                              coords.shape[0], coords.shape[1], 3))
     all_coords = dot(all_coords, omx.transpose())  # orthogonalize
     return all_coords

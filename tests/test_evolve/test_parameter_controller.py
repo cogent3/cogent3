@@ -30,10 +30,12 @@ good_rule_sets = [
         {'par_name': 'length', 'is_independent': True},
     ],
     [
-        {'par_name': 'length', 'is_clade': True, 'is_independent': True, 'edges': ['a', 'b']},
+        {'par_name': 'length', 'is_clade': True,
+            'is_independent': True, 'edges': ['a', 'b']},
     ],
     [
-        {'par_name': 'length', 'is_independent': True, 'edges': ['a', 'c', 'e']},
+        {'par_name': 'length', 'is_independent': True,
+            'edges': ['a', 'c', 'e']},
     ],
     [
         {'par_name': 'length', 'is_independent': True, 'edge': 'a'},
@@ -50,7 +52,8 @@ class test_parameter_controller(unittest.TestCase):
     """Tesing Parameter Controller"""
 
     def setUp(self):
-        # length all edges 1 except c=2.  b&d transitions all other transverions
+        # length all edges 1 except c=2.  b&d transitions all other
+        # transverions
         self.al = LoadSeqs(
             data={'a': 'tata', 'b': 'tgtc', 'c': 'gcga', 'd': 'gaac', 'e': 'gagc', })
         self.tree = LoadTree(treestring='((a,b),(c,d),e);')

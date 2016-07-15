@@ -84,7 +84,8 @@ class _LikelihoodTreeEdge(object):
         self.shape = [len(self.uniq), M]
 
         # Derive per-column degree of ambiguity from children's
-        ambigs = [child.ambig[index] for (index, child) in self._indexed_children]
+        ambigs = [child.ambig[index]
+            for (index, child) in self._indexed_children]
         self.ambig = numpy.product(ambigs, axis=0)
 
     def getSitePatterns(self, cols):
@@ -161,7 +162,8 @@ class _LikelihoodTreeEdge(object):
             motifs = self.getSitePatterns(unambig)
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
-            table = LoadTable(header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
+            table = LoadTable(
+                header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
             return (G, table)
         else:
             return G

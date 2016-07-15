@@ -28,7 +28,7 @@ class FastaTests(TestCase):
         self.infos = ["Dog", "Cat", "Mouse", "Rat"]
         self.sequences_with_labels = list(map(Sequence, self.strings))
         self.sequences_with_names = list(map(Sequence, self.strings))
-        for l, sl, sn in zip(self.labels, self.sequences_with_labels,\
+        for l, sl, sn in zip(self.labels, self.sequences_with_labels,
                            self.sequences_with_names):
             sl.Label = l
             sn.Name = l
@@ -49,25 +49,26 @@ class FastaTests(TestCase):
     def test_fastaFromSequence(self):
         """should return correct fasta string."""
         self.assertEqual(fasta_from_sequences(''), '')
-        self.assertEqual(fasta_from_sequences(self.strings),\
+        self.assertEqual(fasta_from_sequences(self.strings),
                          self.fasta_no_label)
-        self.assertEqual(fasta_from_sequences(self.sequences_with_labels),\
+        self.assertEqual(fasta_from_sequences(self.sequences_with_labels),
                          self.fasta_with_label)
-        self.assertEqual(fasta_from_sequences(self.sequences_with_names),\
+        self.assertEqual(fasta_from_sequences(self.sequences_with_names),
                          self.fasta_with_label)
         make_seqlabel = lambda seq: "%s:%s" % (seq.Name, seq.Info.species)
-        seqs = [self.alignment_object.NamedSeqs[label] for label in self.labels]
+        seqs = [self.alignment_object.NamedSeqs[label]
+            for label in self.labels]
         self.assertEqual(fasta_from_sequences(seqs, 
                                               make_seqlabel=make_seqlabel), self.fasta_with_label_species)
 
     def test_fasta_from_alignment(self):
         """should return correct fasta string."""
         self.assertEqual(fasta_from_alignment({}), '')
-        self.assertEqual(fasta_from_alignment(self.alignment_dict),\
+        self.assertEqual(fasta_from_alignment(self.alignment_dict),
                          self.fasta_with_label)
         self.assertEqual(fasta_from_alignment(self.alignment_dict,
                                               line_wrap=2), self.fasta_with_label_lw2)
-        self.assertEqual(fasta_from_alignment(self.alignment_object),\
+        self.assertEqual(fasta_from_alignment(self.alignment_object),
                          self.fasta_with_label)
 
 if __name__ == "__main__":

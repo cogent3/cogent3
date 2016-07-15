@@ -43,7 +43,7 @@ def raise_invalid_vals(key, val):
     if key not in valid_values:
         return True
     if not str(val) in valid_values[key]:
-        raise AssertionError('Invalid bedgraph key/val pair: '\
+        raise AssertionError('Invalid bedgraph key/val pair: '
                              + 'got %s=%s; valid values are %s' % (key, val, valid_values[key]))
 
 
@@ -106,7 +106,8 @@ def bedgraph(chrom_start_end_val, digits=2, name=None, description=None,
     header = get_header(name=name, description=description,
                         color=color, **kwargs)
 
-    make_data_row = lambda x: '\t'.join(list(map(str, x[:3])) + ['{0:.2f}'.format(x[-1])])
+    make_data_row = lambda x: '\t'.join(
+        list(map(str, x[:3])) + ['{0:.2f}'.format(x[-1])])
     # get independent spans for each chromosome
     bedgraph_data = []
     data = []

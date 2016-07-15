@@ -75,8 +75,10 @@ def _norm_slice(index, length):
         return (start, end, index.step)
     else:
         start = index
-        if start < 0: start += length
-        if start >= length: raise IndexError(index)
+        if start < 0:
+            start += length
+        if start >= length:
+            raise IndexError(index)
         return (start, start + 1, 1)
 
 
@@ -249,7 +251,7 @@ class Span(SpanI):
         self.__init__(*args)
 
     def __getstate__(self):
-        return (self.Start, self.End, self.tidy_start, self.tidy_end, \
+        return (self.Start, self.End, self.tidy_start, self.tidy_end,
                 self.value, self.Reverse)
 
     def __repr__(self):
@@ -332,7 +334,8 @@ class Span(SpanI):
 
         if self.value is not None:
             result = [copy.copy(s) for s in result]
-            for s in result: s.value = self.value
+            for s in result:
+                s.value = self.value
 
         return result
 
@@ -492,7 +495,7 @@ class Map(object):
                 diff = 0
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
-                    raise RuntimeError("located outside sequence: %s" % \
+                    raise RuntimeError("located outside sequence: %s" %
                                        str((start, end, parent_length)))
                 elif max(start, end) < 0:
                     diff = min(start, end)
@@ -671,9 +674,11 @@ class Map(object):
         for span in self.spans:
             if not span.lost:
                 if span.Reverse:
-                    temp.append((span.Start, span.End, posn + span.length, posn))
+                    temp.append(
+                        (span.Start, span.End, posn + span.length, posn))
                 else:
-                    temp.append((span.Start, span.End, posn, posn + span.length))
+                    temp.append(
+                        (span.Start, span.End, posn, posn + span.length))
             posn += span.length
 
         temp.sort()
@@ -683,7 +688,8 @@ class Map(object):
             if lo > last_hi:
                 new_spans.append(LostSpan(lo - last_hi))
             elif lo < last_hi:
-                raise ValueError("Uninvertable. Overlap: %s < %s" % (lo, last_hi))
+                raise ValueError(
+                    "Uninvertable. Overlap: %s < %s" % (lo, last_hi))
             new_spans.append(Span(start, end, Reverse=start > end))
             last_hi = hi
         if self.parent_length > last_hi:

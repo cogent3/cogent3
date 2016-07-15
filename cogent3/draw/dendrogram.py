@@ -94,7 +94,8 @@ class ScalarColormapShading(object):
             return "grey"
         else:
             value_to_show = max(min(value, self.max_val), self.min_val)
-            normed = (value_to_show - self.min_val) / (self.max_val - self.min_val)
+            normed = (value_to_show - self.min_val) / \
+                      (self.max_val - self.min_val)
             color = self.cmap(normed)
             return color    
 
@@ -244,7 +245,8 @@ def ValidColorProperty(real_name, doc='A color name or other spec'):
         return getattr(obj, real_name, None)
 
     def setter(obj, value):
-        if value is not None: to_rgb(value)
+        if value is not None:
+            to_rgb(value)
         setattr(obj, real_name, value)
 
     def deleter(obj):
@@ -281,7 +283,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     # Colors are properties so that invalid color names are caught immediately
     Color = ValidColorProperty('_Color', 'Color of line segment')
     NameColor = ValidColorProperty('_NameColor', 'Color of node name')
-    CladeColor = ValidColorProperty('_CladeColor', 'Color of collapsed descendants')
+    CladeColor = ValidColorProperty(
+        '_CladeColor', 'Color of collapsed descendants')
 
     def __repr__(self):
         return '%s %s %s %s' % (
@@ -326,7 +329,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         self.asArtist(height, width)
         result = []
         for node in self.postorder(include_self=True):
-            result.append([node.Name, id(node), node.x2, node.y2] + [list(map(id, node.Children))])
+            result.append([node.Name, id(node), node.x2,
+                          node.y2] + [list(map(id, node.Children))])
         return result
 
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
@@ -370,7 +374,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         height -= 2 * margin
 
         label_length = len(self.longest_label)
-        label_width = label_length * 0.8 * (font_size or 10)  # not very accurate
+        label_width = label_length * 0.8 * \
+            (font_size or 10)  # not very accurate
         (left_labels, right_labels) = self.labelMargins(label_width)
         total_label_width = left_labels + right_labels
         if width < total_label_width:
@@ -407,7 +412,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
                 assert not scale_bar, scale_bar
             if scale_bar:
                 ss.append(renderer.line(x1, 0.0, x2, 0.0))
-                ss.append(renderer.string((x1 + x2) / 2, 5, str(unit), va='bottom', ha='center'))
+                ss.append(renderer.string((x1 + x2) / 2, 5,
+                          str(unit), va='bottom', ha='center'))
 
         g = rlg2mpl.Group(*ss)
         g.translate(margin + left_labels, margin)
@@ -431,7 +437,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if self.Children:
             cys = [c.y1 for c in self.Children] + [self.y2]
             if max(cys) > min(cys):
-                g.append(renderer.line(self.x2, min(cys), self.x2, max(cys), self))
+                g.append(renderer.line(self.x2, min(
+                    cys), self.x2, max(cys), self))
         return g
 
     def _draw_edge(self, renderer, label_style):
@@ -668,7 +675,8 @@ class UnrootedDendrogram(_Dendrogram):
         return (label_width, label_width)
 
     def wedgeVertices(self):
-        tip_dists = [(c.depth - self.depth) * self.scale for c in self.iterTips()]
+        tip_dists = [(c.depth - self.depth) *
+                      self.scale for c in self.iterTips()]
         (near, far) = (min(tip_dists), max(tip_dists))
         a = self.angle - 0.25 * self.wedge
         (x1, y1) = (self.x2 + near * numpy.sin(a), self.y2 + near * numpy.cos(a))
@@ -688,7 +696,8 @@ class UnrootedDendrogram(_Dendrogram):
             points = self._update_coordinates(1.0, 0, 0, direction, angle)
             xs = [x for (x, y) in points]
             ys = [y for (x, y) in points]
-            scale = min(float(width) / (max(xs) - min(xs)), float(height) / (max(ys) - min(ys)))
+            scale = min(float(width) / (max(xs) - min(xs)),
+                        float(height) / (max(ys) - min(ys)))
             scale *= 0.95  # extra margin for labels
             if scale > best_scale:
                 best_scale = scale
@@ -700,7 +709,8 @@ class UnrootedDendrogram(_Dendrogram):
 
     def _update_coordinates(self, s, x1, y1, a, da):
         # Constant angle algorithm.  Should add maximim daylight step.
-        (x2, y2) = (x1 + self.length * s * numpy.sin(a), y1 + self.length * s * numpy.cos(a))
+        (x2, y2) = (x1 + self.length * s * numpy.sin(a),
+         y1 + self.length * s * numpy.cos(a))
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         if self.Collapsed:
             self.wedge = self.leafcount * da

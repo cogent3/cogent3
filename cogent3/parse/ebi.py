@@ -89,7 +89,8 @@ def pairs_to_dict(key_values, dict_mode=None,
     Note: use default_handler=identity is often useful if you want to return
     the original value when no handler found.
     """
-    if not dict_mode: dict_mode = 'overwrite_value'
+    if not dict_mode:
+        dict_mode = 'overwrite_value'
 
     # generate add_item for different dict_mode.
     if dict_mode == 'always_multi_value':
@@ -791,11 +792,13 @@ def ft_mutation_parser(description, mutation_comment_delimiter='('):
     # if mut_from/to unknown, the mutation message will be in mut_from
     mutation_delimiter = '->'
     try:
-        mut_from, mut_to = list(map(strip, mutation.split(mutation_delimiter, 1)))
+        mut_from, mut_to = list(
+            map(strip, mutation.split(mutation_delimiter, 1)))
     except ValueError as e:  # too many values to unpack
         mut_from, mut_to = mutation, ''
 
-    # replace desc in fields with mut_from, mut_to and comment to get the result
+    # replace desc in fields with mut_from, mut_to and comment to get the
+    # result
     result = dict(list(zip(fieldnames, [mut_from, mut_to, comment])))
     return result
 
@@ -903,7 +906,8 @@ def cc_parser(lines, strict=False):
     """
     lines = labeloff(lines) 
     # cc_itemfinder yield each topic block
-    # cc_basic_itemparser split a topic block into (topic_name, content_as_list)
+    # cc_basic_itemparser split a topic block into (topic_name,
+    # content_as_list)
     topic_contents = list(map(cc_basic_itemparser, cc_itemfinder(lines)))
     # content of a topic further parsed using a content_parser decided by the
     # topic name.  result is grouped into a dict.
@@ -1067,7 +1071,8 @@ def cc_biophysicochemical_properties_parser(content):
     def get_sub_key_content(sub_topic):
         """return (sub_key, sub_content as parsed) from lines of a sub_topic"""
         sub_key = sub_topic[0].rstrip(': ')
-        sub_content = list(map(strip, sub_topic[1:]))  # strip the two leading spaces
+        # strip the two leading spaces
+        sub_content = list(map(strip, sub_topic[1:]))
 
         # further process the content here
         if sub_key in ['Kinetic parameters', 'Absorption']:
@@ -1134,7 +1139,7 @@ def single_ref_parser(lines, strict=False):
             labels['RA/RG'] = True
         for rlabel in required_ref_labels:
             if rlabel not in labels:
-                raise RecordError('The reference block lacks required label: '\
+                raise RecordError('The reference block lacks required label: '
                                   '%s' % rlabel)
 
     # parse each field with relevant parser
@@ -1373,7 +1378,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
         if strict:
             for rlabel in required_labels:
                 if rlabel not in raw_dict:
-                    raise RecordError('The record lacks required label: '\
+                    raise RecordError('The record lacks required label: '
                                       '%s' % rlabel)
 
         # no sequence found
@@ -1456,7 +1461,7 @@ def EbiParser(lines, seq_constructor=Sequence,
         returned. All the original header labels are used, except for 
         REFERENCES, which is 'REF'.
     """
-    for sequence, header_dict in MinimalEbiParser(lines, strict=strict,\
+    for sequence, header_dict in MinimalEbiParser(lines, strict=strict,
                                                   selected_labels=selected_labels):
         if seq_constructor:
             sequence = seq_constructor(sequence)
@@ -1485,10 +1490,12 @@ Examples:
     try:
         opts, args = getopt(sys.argv[1:], "hd", ["help"])
     except GetoptError:
-        print(usage); sys.exit(2)
+        print(usage)
+        sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            print(usage); sys.exit()
+            print(usage)
+            sys.exit()
     if args:
         lines = open(args[0])
         print('Parsing the file')

@@ -92,7 +92,8 @@ def rosen_der(x):
     xm_m1 = x[:-2]
     xm_p1 = x[2:]
     der = numpy.zeros_like(x)
-    der[1:-1] = 200 * (xm - xm_m1**2) - 400 * (xm_p1 - xm**2) * xm - 2 * (1 - xm)
+    der[1:-1] = 200 * (xm - xm_m1**2) - 400 * \
+                       (xm_p1 - xm**2) * xm - 2 * (1 - xm)
     der[0] = -400 * x[0] * (x[1] - x[0]**2) - 2 * (1 - x[0])
     der[-1] = 200 * (x[-1] - x[-2]**2)
     return der
@@ -194,7 +195,10 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
     if maxfun is None:
         maxfun = N * 200
 
-    rho = 1; chi = 2; psi = 0.5; sigma = 0.5;
+    rho = 1
+    chi = 2
+    psi = 0.5
+    sigma = 0.5
     one2np1 = list(range(1, N + 1))
 
     if rank == 0:
@@ -227,7 +231,7 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
     iterations = 1
 
     while (fcalls[0] < maxfun and iterations < maxiter):
-        if (max(numpy.ravel(abs(sim[1:] - sim[0]))) <= xtol \
+        if (max(numpy.ravel(abs(sim[1:] - sim[0]))) <= xtol
             and max(abs(fsim[0] - fsim[1:])) <= ftol):
             break
 
@@ -293,7 +297,7 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
     if fcalls[0] >= maxfun:
         warnflag = 1
         if disp:
-            print("Warning: Maximum number of function evaluations has "\
+            print("Warning: Maximum number of function evaluations has "
                   "been exceeded.")
     elif iterations >= maxiter:
         warnflag = 2
@@ -330,19 +334,23 @@ def _cubicmin(a, fa, fpa, b, fb, c, fc):
     D = fa
     db = b - a
     dc = c - a
-    if (db == 0) or (dc == 0) or (b == c): return None
+    if (db == 0) or (dc == 0) or (b == c):
+        return None
     denom = (db * dc)**2 * (db - dc)
     d1 = empty((2, 2))
     d1[0, 0] = dc**2
     d1[0, 1] = -db**2
     d1[1, 0] = -dc**3
     d1[1, 1] = db**3
-    [A, B] = numpy.dot(d1, asarray([fb - fa - C * db, fc - fa - C * dc]).flatten())
+    [A, B] = numpy.dot(d1, asarray(
+        [fb - fa - C * db, fc - fa - C * dc]).flatten())
     A /= denom
     B /= denom
     radical = B * B - 3 * A * C
-    if radical < 0: return None
-    if (A == 0): return None
+    if radical < 0:
+        return None
+    if (A == 0):
+        return None
     xmin = a + (-B + sqrt(radical)) / (3 * A)
     return xmin
 
@@ -354,9 +362,11 @@ def _quadmin(a, fa, fpa, b, fb):
     D = fa
     C = fpa
     db = b - a * 1.0
-    if (db == 0): return None
+    if (db == 0):
+        return None
     B = (fb - D - C * db) / (db * db)
-    if (B <= 0): return None
+    if (B <= 0):
+        return None
     xmin = a - C / (2.0 * B)
     return xmin
 
@@ -373,11 +383,14 @@ def zoom(a_lo, a_hi, phi_lo, phi_hi, derphi_lo,
         # interpolate to find a trial step length between a_lo and a_hi
         # Need to choose interpolation here.  Use cubic interpolation and then if the
         #  result is within delta * dalpha or outside of the interval bounded by a_lo or a_hi
-        #  then use quadratic interpolation, if the result is still too close, then use bisection
+        # then use quadratic interpolation, if the result is still too close,
+        # then use bisection
 
-        dalpha = a_hi - a_lo;
-        if dalpha < 0: a, b = a_hi, a_lo
-        else: a, b = a_lo, a_hi
+        dalpha = a_hi - a_lo
+        if dalpha < 0:
+            a, b = a_hi, a_lo
+        else:
+            a, b = a_lo, a_hi
 
         # minimizer of cubic interpolant
         #    (uses phi_lo, derphi_lo, phi_hi, and the most recent value of phi)
@@ -388,7 +401,8 @@ def zoom(a_lo, a_hi, phi_lo, phi_hi, derphi_lo,
 
         if (i > 0):
             cchk = delta1 * dalpha
-            a_j = _cubicmin(a_lo, phi_lo, derphi_lo, a_hi, phi_hi, a_rec, phi_rec)
+            a_j = _cubicmin(a_lo, phi_lo, derphi_lo,
+                            a_hi, phi_hi, a_rec, phi_rec)
         if (i == 0) or (a_j is None) or (a_j > b - cchk) or (a_j < a + cchk):
             qchk = delta2 * dalpha
             a_j = _quadmin(a_lo, phi_lo, derphi_lo, a_hi, phi_hi)
@@ -493,7 +507,8 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
             eps = myfprime[1]
             fprime = myfprime[0]
             newargs = (f, eps) + args
-            _ls_ingfk = fprime(xk + alpha * pk, *newargs)  # store for later use
+            # store for later use
+            _ls_ingfk = fprime(xk + alpha * pk, *newargs)
             return numpy.dot(_ls_ingfk, pk)
     else:
         fprime = myfprime
@@ -799,7 +814,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         fval = old_fval
     if warnflag == 2:
         if disp:
-            print("Warning: Desired error not necessarily achieved" \
+            print("Warning: Desired error not necessarily achieved"
                   "due to precision loss")
             print("         Current function value: %f" % fval)
             print("         Iterations: %d" % k)
@@ -1255,15 +1270,16 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
             q = (xf - fulc) * (fx - fnfc)
             p = (xf - fulc) * q - (xf - nfc) * r
             q = 2.0 * (q - r)
-            if q > 0.0: p = -p
+            if q > 0.0:
+                p = -p
             q = abs(q)
             r = e
             e = rat
 
             # Check for acceptability of parabola
-            if ( (abs(p) < abs(0.5 * q * r)) and (p > q * (a - xf)) and \
+            if ( (abs(p) < abs(0.5 * q * r)) and (p > q * (a - xf)) and
                  (p < q * (b - xf))):
-                rat = (p + 0.0) / q;
+                rat = (p + 0.0) / q
                 x = xf + rat
                 step = '       parabolic'
 
@@ -1362,11 +1378,14 @@ class Brent:
         if brack is None:
             xa, xb, xc, fa, fb, fc, funcalls = bracket(func)
         elif len(brack) == 2:
-            xa, xb, xc, fa, fb, fc, funcalls = bracket(func, xa=brack[0], xb=brack[1])
+            xa, xb, xc, fa, fb, fc, funcalls = bracket(
+                func, xa=brack[0], xb=brack[1])
         elif len(brack) == 3:
             xa, xb, xc = brack
             if (xa > xc):  # swap so xa < xc can be assumed
-                dum = xa; xa = xc; xc = dum
+                dum = xa
+                xa = xc
+                xc = dum
             assert ((xa < xb) and (xb < xc)), "Not a bracketing interval."
             fa = func(xa)
             fb = func(xb)
@@ -1374,7 +1393,8 @@ class Brent:
             assert ((fb < fa) and (fb < fc)), "Not a bracketing interval."
             funcalls = 3
         else:
-            raise ValueError("Bracketing interval must be length 2 or 3 sequence.")
+            raise ValueError(
+                "Bracketing interval must be length 2 or 3 sequence.")
         ### END core bracket_info code ###
 
         self.funcalls += funcalls
@@ -1395,9 +1415,11 @@ class Brent:
         x = w = v = xb
         fw = fv = fx = func(x)
         if (xa < xc):
-            a = xa; b = xc
+            a = xa
+            b = xc
         else:
-            a = xc; b = xa
+            a = xc
+            b = xa
         deltax = 0.0
         funcalls = 1
         iter = 0
@@ -1406,19 +1428,23 @@ class Brent:
             tol2 = 2.0 * tol1
             xmid = 0.5 * (a + b)
             if abs(x - xmid) < (tol2 - 0.5 * (b - a)):  # check for convergence
-                xmin = x; fval = fx
+                xmin = x
+                fval = fx
                 break
             infinities_present = [f for f in [fw, fv, fx] if numpy.isposinf(f)]
             if infinities_present or (abs(deltax) <= tol1):
-                if (x >= xmid): deltax = a - x       # do a golden section step
-                else: deltax = b - x
+                if (x >= xmid):
+                    deltax = a - x       # do a golden section step
+                else:
+                    deltax = b - x
                 rat = _cg * deltax
             else:                              # do a parabolic step
                 tmp1 = (x - w) * (fx - fv)
                 tmp2 = (x - v) * (fx - fw)
-                p = (x - v) * tmp2 - (x - w) * tmp1;
+                p = (x - v) * tmp2 - (x - w) * tmp1
                 tmp2 = 2.0 * (tmp2 - tmp1)
-                if (tmp2 > 0.0): p = -p
+                if (tmp2 > 0.0):
+                    p = -p
                 tmp2 = abs(tmp2)
                 dx_temp = deltax
                 deltax = rat
@@ -1427,33 +1453,51 @@ class Brent:
                     rat = p * 1.0 / tmp2        # if parabolic step is useful.
                     u = x + rat
                     if ((u - a) < tol2 or (b - u) < tol2):
-                        if xmid - x >= 0: rat = tol1
-                        else: rat = -tol1
+                        if xmid - x >= 0:
+                            rat = tol1
+                        else:
+                            rat = -tol1
                 else:
-                    if (x >= xmid): deltax = a - x  # if it's not do a golden section step
-                    else: deltax = b - x
+                    if (x >= xmid):
+                        deltax = a - x  # if it's not do a golden section step
+                    else:
+                        deltax = b - x
                     rat = _cg * deltax
 
             if (abs(rat) < tol1):            # update by at least tol1
-                if rat >= 0: u = x + tol1
-                else: u = x - tol1
+                if rat >= 0:
+                    u = x + tol1
+                else:
+                    u = x - tol1
             else:
                 u = x + rat
             fu = func(u)      # calculate new output value
             funcalls += 1
 
             if (fu > fx):                 # if it's bigger than current
-                if (u < x): a = u
-                else: b = u
+                if (u < x):
+                    a = u
+                else:
+                    b = u
                 if (fu <= fw) or (w == x):
-                    v = w; w = u; fv = fw; fw = fu
+                    v = w
+                    w = u
+                    fv = fw
+                    fw = fu
                 elif (fu <= fv) or (v == x) or (v == w):
-                    v = u; fv = fu
+                    v = u
+                    fv = fu
             else:
-                if (u >= x): a = x
-                else: b = x
-                v = w; w = x; x = u
-                fv = fw; fw = fx; fx = fu
+                if (u >= x):
+                    a = x
+                else:
+                    b = x
+                v = w
+                w = x
+                x = u
+                fv = fw
+                fw = fx
+                fx = fu
 
             iter += 1
         #################################
@@ -1546,11 +1590,14 @@ def golden(func, args=(), brack=None, tol=_epsilon, full_output=0):
     if brack is None:
         xa, xb, xc, fa, fb, fc, funcalls = bracket(func, args=args)
     elif len(brack) == 2:
-        xa, xb, xc, fa, fb, fc, funcalls = bracket(func, xa=brack[0], xb=brack[1], args=args)
+        xa, xb, xc, fa, fb, fc, funcalls = bracket(
+            func, xa=brack[0], xb=brack[1], args=args)
     elif len(brack) == 3:
         xa, xb, xc = brack
         if (xa > xc):  # swap so xa < xc can be assumed
-            dum = xa; xa = xc; xc = dum
+            dum = xa
+            xa = xc
+            xc = dum
         assert ((xa < xb) and (xb < xc)), "Not a bracketing interval."
         fa = func(*((xa,) + args))
         fb = func(*((xb,) + args))
@@ -1575,11 +1622,17 @@ def golden(func, args=(), brack=None, tol=_epsilon, full_output=0):
     funcalls += 2
     while (abs(x3 - x0) > tol * (abs(x1) + abs(x2))):
         if (f2 < f1):
-            x0 = x1; x1 = x2; x2 = _gR * x1 + _gC * x3
-            f1 = f2; f2 = func(*((x2,) + args))
+            x0 = x1
+            x1 = x2
+            x2 = _gR * x1 + _gC * x3
+            f1 = f2
+            f2 = func(*((x2,) + args))
         else:
-            x3 = x2; x2 = x1; x1 = _gR * x2 + _gC * x0
-            f2 = f1; f1 = func(*((x1,) + args))
+            x3 = x2
+            x2 = x1
+            x1 = _gR * x2 + _gC * x0
+            f2 = f1
+            f1 = func(*((x1,) + args))
         funcalls += 1
     if (f1 < f2):
         xmin = x1
@@ -1628,8 +1681,12 @@ def bracket(func, xa=0.0, xb=1.0, args=(), grow_limit=110.0, maxiter=1000):
     fa = func(*(xa,) + args)
     fb = func(*(xb,) + args)
     if (fa < fb):                      # Switch so fa > fb
-        dum = xa; xa = xb; xb = dum
-        dum = fa; fa = fb; fb = dum
+        dum = xa
+        xa = xb
+        xb = dum
+        dum = fa
+        fa = fb
+        fb = dum
     xc = xb + _gold * (xb - xa)
     fc = func(*((xc,) + args))
     funcalls = 3
@@ -1651,10 +1708,14 @@ def bracket(func, xa=0.0, xb=1.0, args=(), grow_limit=110.0, maxiter=1000):
             fw = func(*((w,) + args))
             funcalls += 1
             if (fw < fc):
-                xa = xb; xb = w; fa = fb; fb = fw
+                xa = xb
+                xb = w
+                fa = fb
+                fb = fw
                 return xa, xb, xc, fa, fb, fc, funcalls
             elif (fw > fb):
-                xc = w; fc = fw
+                xc = w
+                fc = fw
                 return xa, xb, xc, fa, fb, fc, funcalls
             w = xc + _gold * (xc - xb)
             fw = func(*((w,) + args))
@@ -1667,15 +1728,23 @@ def bracket(func, xa=0.0, xb=1.0, args=(), grow_limit=110.0, maxiter=1000):
             fw = func(*((w,) + args))
             funcalls += 1
             if (fw < fc):
-                xb = xc; xc = w; w = xc + _gold * (xc - xb)
-                fb = fc; fc = fw; fw = func(*((w,) + args))
+                xb = xc
+                xc = w
+                w = xc + _gold * (xc - xb)
+                fb = fc
+                fc = fw
+                fw = func(*((w,) + args))
                 funcalls += 1
         else:
             w = xc + _gold * (xc - xb)
             fw = func(*((w,) + args))
             funcalls += 1
-        xa = xb; xb = xc; xc = w
-        fa = fb; fb = fc; fc = fw
+        xa = xb
+        xb = xc
+        xc = w
+        fa = fb
+        fb = fc
+        fc = fw
     return xa, xb, xc, fa, fb, fc, funcalls
 
 
@@ -1778,7 +1847,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
 
     fval = squeeze(func(x))
     x1 = x.copy()
-    iter = 0;
+    iter = 0
     ilist = list(range(N))
     while True:
         fx = fval
@@ -1797,9 +1866,12 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
             callback(fcalls[0], x, fval, delta)
         if retall:
             allvecs.append(x)
-        if abs(fx - fval) < ftol: break
-        if fcalls[0] >= maxfun: break
-        if iter >= maxiter: break
+        if abs(fx - fval) < ftol:
+            break
+        if fcalls[0] >= maxfun:
+            break
+        if iter >= maxiter:
+            break
 
         # Construct the extrapolated point
         direc1 = x - x1
@@ -1823,7 +1895,7 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
     if fcalls[0] >= maxfun:
         warnflag = 1
         if disp:
-            print("Warning: Maximum number of function evaluations has "\
+            print("Warning: Maximum number of function evaluations has "
                   "been exceeded.")
     elif iter >= maxiter:
         warnflag = 2
@@ -1853,11 +1925,11 @@ def fmin_powell(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None,
 def _endprint(x, flag, fval, maxfun, xtol, disp):
     if flag == 0:
         if disp > 1:
-            print("\nOptimization terminated successfully;\n" \
-                  "The returned value satisfies the termination criteria\n" \
+            print("\nOptimization terminated successfully;\n"
+                  "The returned value satisfies the termination criteria\n"
                   "(using xtol = ", xtol, ")")
     if flag == 1:
-        print("\nMaximum number of function evaluations exceeded --- " \
+        print("\nMaximum number of function evaluations exceeded --- "
               "increase maxfun argument.\n")
     return
 
@@ -1899,7 +1971,7 @@ def brute(func, ranges, args=(), Ns=20, full_output=0, finish=fmin):
     """
     N = len(ranges)
     if N > 40:
-        raise ValueError("Brute Force not possible with more " \
+        raise ValueError("Brute Force not possible with more "
                          "than 40 variables.")
     lrange = list(ranges)
     for k in range(N):

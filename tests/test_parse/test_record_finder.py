@@ -29,7 +29,7 @@ class TailedRecordFinderTests(TestCase):
         """TailedRecordFinder should split records into lines correctly"""
         lines = '>abc\ndef\nz.\n>efg\nz.'.split()
         fl = self.period_tail_finder
-        self.assertEqual(list(fl(lines)), \
+        self.assertEqual(list(fl(lines)),
                          [['>abc', 'def', 'z.'], ['>efg', 'z.']])
 
     def test_parsers_empty(self):
@@ -42,7 +42,7 @@ class TailedRecordFinderTests(TestCase):
         """TailedRecordFinder should trim each line correctly"""
         fl = self.period_tail_finder
         lines = '>abc  \n \t def\n  z. \t\n>efg \nz.'.split('\n')
-        self.assertEqual(list(fl(lines)), \
+        self.assertEqual(list(fl(lines)),
                          [['>abc', ' \t def', '  z.'], ['>efg', 'z.']])
 
     def test_parsers_leftover(self):
@@ -91,10 +91,10 @@ class DelimitedRecordFinderTests(TestCase):
     def test_parsers(self):
         """DelimitedRecordFinder should split records into lines correctly"""
         lines = 'abc\ndef\n//\nefg\n//'.split()
-        self.assertEqual(list(DelimitedRecordFinder('//')(lines)), \
+        self.assertEqual(list(DelimitedRecordFinder('//')(lines)),
                          [['abc', 'def', '//'], ['efg', '//']])
         self.assertEqual(list(DelimitedRecordFinder('//', keep_delimiter=False)
-                              (lines)), \
+                              (lines)),
                          [['abc', 'def'], ['efg']])
 
     def test_parsers_empty(self):
@@ -105,7 +105,7 @@ class DelimitedRecordFinderTests(TestCase):
     def test_parsers_strip(self):
         """DelimitedRecordFinder should trim each line correctly"""
         lines = '  \t   abc  \n \t   def\n  // \t\n\t\t efg \n//'.split('\n')
-        self.assertEqual(list(DelimitedRecordFinder('//')(lines)), \
+        self.assertEqual(list(DelimitedRecordFinder('//')(lines)),
                          [['abc', 'def', '//'], ['efg', '//']])
 
     def test_parsers_error(self):
@@ -165,7 +165,7 @@ class LabeledRecordFinderTests(TestCase):
         """LabeledRecordFinder should split records into lines correctly"""
         lines = '>abc\ndef\n//\n>efg\n//'.split()
         fl = self.FastaLike
-        self.assertEqual(list(fl(lines)), \
+        self.assertEqual(list(fl(lines)),
                          [['>abc', 'def', '//'], ['>efg', '//']])
 
     def test_parsers_empty(self):
@@ -178,7 +178,7 @@ class LabeledRecordFinderTests(TestCase):
         """LabeledRecordFinder should trim each line correctly"""
         fl = self.FastaLike
         lines = '  \t   >abc  \n \t   def\n  // \t\n\t\t >efg \n//'.split('\n')
-        self.assertEqual(list(fl(lines)), \
+        self.assertEqual(list(fl(lines)),
                          [['>abc', 'def', '//'], ['>efg', '//']])
 
     def test_parsers_leftover(self):

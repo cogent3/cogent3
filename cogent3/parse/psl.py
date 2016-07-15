@@ -36,9 +36,9 @@ def make_header(lines):
 
 int_series = lambda x: list(map(int, x.replace(',', ' ').split()))
 
-row_converter = ConvertFields([(i, int) for i in range(8)] +\
-                              [(i, int) for i in range(10, 13)] +\
-                              [(i, int) for i in range(14, 18)] +\
+row_converter = ConvertFields([(i, int) for i in range(8)] +
+                              [(i, int) for i in range(10, 13)] +
+                              [(i, int) for i in range(14, 18)] +
                               [(i, int_series) for i in range(18, 21)])
 
 

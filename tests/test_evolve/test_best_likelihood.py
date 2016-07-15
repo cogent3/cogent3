@@ -49,11 +49,13 @@ class TestGoldman93(TestCase):
                    ['T', 'A', 'C'], ['T', 'A', 'C'], ['T', 'A', 'C'],
                    ['A', 'C', 'G']]
         self.assertEqual(obs, expect)
-        obs = aligned_columns_to_rows(self.gapped_aln[:-1], 3, allowed_chars='ACGT')
+        obs = aligned_columns_to_rows(
+            self.gapped_aln[:-1], 3, allowed_chars='ACGT')
         expect = [['TTT', 'TAT', 'TTT']]
         self.assertEqual(obs, expect)
 
-        obs = aligned_columns_to_rows(self.ambig_aln, 2, exclude_chars=IUPAC_DNA_ambiguities)
+        obs = aligned_columns_to_rows(
+            self.ambig_aln, 2, exclude_chars=IUPAC_DNA_ambiguities)
         expect = [['AA', 'CC', 'CA'], ['CC', 'CC', 'CC'], ['TT', 'TT', 'TG']]
         self.assertEqual(obs, expect)
 
@@ -85,7 +87,8 @@ class TestGoldman93(TestCase):
     def test_get_ML_probs(self):
         columns = aligned_columns_to_rows(self.aln, 1)
         obs = get_ML_probs(columns, with_patterns=True)
-        expect = {'A C G': 4 / 13.0, 'C G T': 3 / 13.0, 'G T A': 3 / 13.0, 'T A C': 3 / 13.0}
+        expect = {'A C G': 4 / 13.0, 'C G T': 3 /
+            13.0, 'G T A': 3 / 13.0, 'T A C': 3 / 13.0}
         sum = 0
         for pattern, lnL, freq in obs:
             self.assertFloatEqual(lnL, expect[pattern])
@@ -96,12 +99,14 @@ class TestGoldman93(TestCase):
     def test_get_G93_lnL_from_array(self):
         columns = aligned_columns_to_rows(self.aln, 1)
         obs = get_G93_lnL_from_array(columns)
-        expect = math.log(math.pow(4 / 13.0, 4)) + 3 * math.log(math.pow(3 / 13.0, 3))
+        expect = math.log(math.pow(4 / 13.0, 4)) + 3 * \
+                          math.log(math.pow(3 / 13.0, 3))
         self.assertFloatEqual(obs, expect)
 
     def test_BestLogLikelihood(self):
         obs = BestLogLikelihood(self.aln, DNA.Alphabet)
-        expect = math.log(math.pow(4 / 13.0, 4)) + 3 * math.log(math.pow(3 / 13.0, 3))
+        expect = math.log(math.pow(4 / 13.0, 4)) + 3 * \
+                          math.log(math.pow(3 / 13.0, 3))
         self.assertFloatEqual(obs, expect)
         lnL, l = BestLogLikelihood(self.aln, DNA.Alphabet, return_length=True)
         self.assertEqual(l, len(self.aln))

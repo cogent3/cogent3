@@ -77,7 +77,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError("Found additional data after records: %s" %\
+                raise RecordError("Found additional data after records: %s" %
                                   (curr))
             else:
                 yield curr

@@ -21,12 +21,12 @@ class unigeneTests(TestCase):
 
     def test_read_sts(self):
         """_read_sts should perform correct conversions"""
-        self.assertEqual(_read_sts('ACC=RH128467 UNISTS=211775\n'), \
+        self.assertEqual(_read_sts('ACC=RH128467 UNISTS=211775\n'),
                          {'ACC': 'RH128467', 'UNISTS': '211775'})
 
     def test_read_expression(self):
         """_read_expression should perform correct conversions"""
-        self.assertEqual(_read_expression(\
+        self.assertEqual(_read_expression(
             'embryo ; whole body ; mammary gland ; brain\n'),
             ['embryo', 'whole body', 'mammary gland', 'brain'])
 
@@ -35,10 +35,10 @@ class unigeneTests(TestCase):
         # reset the found fields, since we can't guarantee order of test
         # execution and it's persistent class data
         UniGeneSeqRecord.found_fields = {}
-        self.assertEqual(_read_seq('ACC=BC025044.1\n'), \
+        self.assertEqual(_read_seq('ACC=BC025044.1\n'),
                          UniGeneSeqRecord({'ACC': 'BC025044.1'}))
-        self.assertEqual(_read_seq(\
-            "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"), \
+        self.assertEqual(_read_seq(
+            "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"),
             UniGeneSeqRecord({'ACC': 'AI842963.1', 'NID': 'g5477176',
                                  'CLONE': 'UI-M-AO1-aem-f-10-0-UI', 'END': "3'", 
                                  'LID': '1944', 'SEQTYPE': 'EST',
@@ -87,7 +87,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(first.CYTOBAND, '3 41.7 cM')
         self.assertEqual(first.CHROMOSOME, '3')
         self.assertEqual(first.LOCUSLINK, 20194)
-        self.assertEqual(first.EXPRESS, ['embryo', 'whole body', \
+        self.assertEqual(first.EXPRESS, ['embryo', 'whole body',
                                          'mammary gland', 'brain'])
         self.assertEqual(first.STS, [{'ACC': 'RH128467', 'UNISTS': '211775'},
                                      {'ACC': 'M16465', 'UNISTS': '178878'}])

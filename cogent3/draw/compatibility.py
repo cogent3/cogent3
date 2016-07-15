@@ -247,12 +247,13 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
     compatiblity = sitematrix <= 2
     if print_stats:
-        print("Overall compatibility %.6f" % intra_region_average(compatiblity))
+        print("Overall compatibility %.6f" %
+              intra_region_average(compatiblity))
         if samples == 0:
-            print("Neighbour similarity score = %.6f" % \
+            print("Neighbour similarity score = %.6f" %
                   neighbour_similarity_score(compatiblity))
         else:
-            print("Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
+            print("Neighbour similarity = %.6f, avg random = %.6f, p < %s" %
                   nss_significance(compatiblity, samples=samples))
 
     # PARTIMATRIX, JWE 1997
@@ -330,7 +331,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         xpad = 0.05
         ypad = 0.2
         (x, y) = (c_size + p_size, c_size + s_size)
-        x_scale = y_scale = (figwidth - 2 * x_margin - xpad - link_width - annot_width) / x
+        x_scale = y_scale = (figwidth - 2 * x_margin -
+                             xpad - link_width - annot_width) / x
         figheight = y_scale * y + 2 * y_margin + 2 * ypad + bar_height
         x_scale /= figwidth
         y_scale /= figheight
@@ -358,7 +360,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                            frameon=False)
 
         axA = genemap.asAxes(
-            fig, [vert + p_width + link_width, y_margin, annot_width, c_height], 
+            fig, [vert + p_width + link_width,
+                y_margin, annot_width, c_height], 
             vertical=True, labeled=True)
 
         axP.yaxis.set_visible(False)
@@ -405,7 +408,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
             axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
-            axS.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(seq_names))
+            axS.yaxis.set_major_formatter(
+                matplotlib.ticker.FixedFormatter(seq_names))
             # axS.yaxis.grid(False) #, 'minor')
 
         # Display the main matrices: compatibility and partimatrix
@@ -475,7 +479,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         vertices = []
         for (i, p) in enumerate(sites):
             vertices.extend([(.1, (i + 0.5) * zoom), (.9, p + 0.5)])
-            axA.axhspan(p, p + 1, facecolor='green', edgecolor='green', alpha=0.3)
+            axA.axhspan(p, p + 1, facecolor='green',
+                        edgecolor='green', alpha=0.3)
         ops = [Path.MOVETO, Path.LINETO] * (len(vertices) // 2)
         path = Path(vertices, ops)
         axZ.add_patch(PathPatch(path, fill=False, linewidth=0.25))

@@ -137,7 +137,8 @@ class Track(object):
         self.label = label
         assert isinstance(label, str), (tag, label)
         self.features = features
-        self.height = max(0, max([f.height for f in self.features if f.height is not None]))
+        self.height = max(
+            0, max([f.height for f in self.features if f.height is not None]))
         self.range = max_y or max(
             # xxx this works for zero-based only
             [getattr(f, 'value', None) for f in self.features]) or 0
@@ -317,7 +318,8 @@ class SeqText(_MultiShapeSeqRepresentation):
 
     def shape(self, height, yrange, rotated):
         rot = 0
-        if rotated: rot += 90
+        if rotated:
+            rot += 90
         #if span.Reverse: rot+= 180
         g = rlg2mpl.Group()
         kw = dict(ha='center', va='baseline', rotation=rot,
@@ -499,7 +501,8 @@ class _FeatureStyle(object):
                 )
                 g.add(label_shape)
             else:
-                pass  # warnings.warn("couldn't fit feature label '%s'" % label)
+                # warnings.warn("couldn't fit feature label '%s'" % label)
+                pass
         return g
 
 
@@ -852,7 +855,8 @@ class DisplayPolicy(object):
         if keep_unexpected:
             track_order += unexpected
         elif unexpected:
-            warnings.warn('dropped tracks ' + ','.join(unexpected), stacklevel=2)
+            warnings.warn('dropped tracks ' +
+                          ','.join(unexpected), stacklevel=2)
 
         sorted_tracks = []
         for track_tag in track_order:
@@ -956,8 +960,10 @@ class DisplayPolicy(object):
         for ((x1, x2), y) in variable.xxy_list:
             map = self.map[x1:x2]
             segments.append(Feature(map, style, variable.Name, value=y))
-            if type(y) is tuple: y = max(y)
-            if y > max_y: max_y = y
+            if type(y) is tuple:
+                y = max(y)
+            if y > max_y:
+                max_y = y
         return [Track(track_tag, segments, max_y=max_y, needs_border=True,
                       label=variable.Name, level=level)]
 
@@ -1138,7 +1144,8 @@ class Display(rlg2mpl.Drawable):
         fig = self._makeFigure(width, height * vzoom)
         for (i, row) in enumerate(rows):
             i = len(rows) - i - 1
-            posn = [x, (y + i * (y + h)) / vzoom, w * len(row) / rowlen, h / vzoom]
+            posn = [x, (y + i * (y + h)) / vzoom, w *
+                        len(row) / rowlen, h / vzoom]
             row.asAxes(fig, posn, **kw)
         return fig
 

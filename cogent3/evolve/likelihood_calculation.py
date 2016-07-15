@@ -224,7 +224,8 @@ class PatchSiteDistribution(object):
         for (b, p) in zip(self.alloc, bprobs):
             pprobs[b] += p
 
-        self.bprobs = [p / pprobs[self.alloc[i]] for (i, p) in enumerate(bprobs)]
+        self.bprobs = [p / pprobs[self.alloc[i]]
+            for (i, p) in enumerate(bprobs)]
         self.transition_matrix = SiteClassTransitionMatrix(switch, pprobs)
 
     def getWeightedSumLhs(self, lhs):

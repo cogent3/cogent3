@@ -217,7 +217,8 @@ class _Defn(object):
         for scope_t in self.interpretScope(**scope):
             posns.add(self.index[scope_t])
         if len(posns) == 0:
-            raise InvalidScopeError("no value for %s at %s" % (self.name, scope))
+            raise InvalidScopeError(
+                "no value for %s at %s" % (self.name, scope))
         if len(posns) > 1:
             raise IncompleteScopeError("%s distinct values of %s within %s" %
                                        (len(posns), self.name, scope))
@@ -362,7 +363,8 @@ class _Defn(object):
 
             (d, key) = (result, self.name)
             for key2 in scope:
-                if key not in d: d[key] = {}
+                if key not in d:
+                    d[key] = {}
                 (d, key) = (d[key], key2)
 
             if key in d and value != d[key]:
@@ -463,7 +465,8 @@ class _NonLeafDefn(_Defn):
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
         calc = self.makeCalcFunction()
-        self.values = [nullor(self.name, calc, self.recycling)(*[a.values[i] for (i, a) in zip(u, self.args)]) for u in self.uniq]
+        self.values = [nullor(self.name, calc, self.recycling)(
+            *[a.values[i] for (i, a) in zip(u, self.args)]) for u in self.uniq]
 
 
 class _LeafDefn(_Defn):
@@ -575,9 +578,12 @@ class _LeafDefn(_Defn):
         lowest = highest = None
         for s in scope:
             (lower, init, upper) = self.assignments[s].getBounds()
-            if upper == lower: continue
-            if lowest is None or lower < lowest: lowest = lower
-            if highest is None or upper > highest: highest = upper
+            if upper == lower:
+                continue
+            if lowest is None or lower < lowest:
+                lowest = lower
+            if highest is None or upper > highest:
+                highest = upper
 
         if lowest is None or highest is None:
             # All current settings are consts so use the class defaults
@@ -639,7 +645,8 @@ class ParameterController(object):
             pd.assignments = {}
             for client in pd.clients:
                 scopes = client.getRequiredScopes(pd.valid_dimensions)
-                # print pd.valid_dimensions, pd.name, '<', scopes, '<', client.name, client.valid_dimensions
+                # print pd.valid_dimensions, pd.name, '<', scopes, '<',
+                # client.name, client.valid_dimensions
                 pd.addScopes(scopes)
             if not pd.assignments:
                 pd.addScopes([{}])
@@ -811,7 +818,8 @@ class ParameterController(object):
         both the global and local optimisers. 'filename' and 'interval'
         control checkpointing.  Unknown keyword arguments get passed on to
         the optimiser(s)."""
-        return_calculator = kw.pop('return_calculator', False)  # only for debug
+        return_calculator = kw.pop(
+            'return_calculator', False)  # only for debug
         for n in ['local', 'filename', 'interval', 'max_evaluations', 
                   'tolerance', 'global_tolerance']:
             kw[n] = locals()[n]

@@ -914,14 +914,14 @@ def igami(a, y0):
     y = (1.0 - d - ndtri(y0) * sqrt(d))
     x = a * y * y * y
 
-    lgm = lgam(a);
+    lgm = lgam(a)
 
     for i in range(10):
         # this loop is just to eliminate gotos
         while 1:
             if(x > x0 or x < x1):
                 break
-            y = igamc(a, x);
+            y = igamc(a, x)
             if(y < yl or y > yh):
                 break
             if(y < y0):
@@ -1078,8 +1078,8 @@ def ndtri(y0):
         return -MAXNUM
     elif y0 >= 1.0:
         return MAXNUM
-    code = 1;
-    y = y0;
+    code = 1
+    y = y0
     if y > (1.0 - exp_minus_2):
         y = 1.0 - y
         code = 0
@@ -1128,7 +1128,7 @@ def incbi(aa, bb, yy0):
         y0 = yy0
         x = a / (a + b)
         y = incbet(a, b, x)
-        return _incbi_ihalve(\
+        return _incbi_ihalve(
             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
     else:
         dithresh = 1.0e-4
@@ -1162,10 +1162,10 @@ def incbi(aa, bb, yy0):
     y = incbet(a, b, x)
     yp = (y - y0) / y0
     if abs(yp) < 0.2:
-        return _incbi_newt(\
+        return _incbi_newt(
             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
     else:
-        return _incbi_ihalve(\
+        return _incbi_ihalve(
             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
 
 
@@ -1185,12 +1185,13 @@ def _incbi_under(rflg, x):
     return _incbi_done(rflg, x)
 
 
-class IhalveRepeat(Exception): pass
+class IhalveRepeat(Exception):
+    pass
 
     # Resort to interval halving if not close enough.
 
 
-def _incbi_ihalve(\
+def _incbi_ihalve(
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):
     """Interval halving in incbi."""
     while 1:
@@ -1210,11 +1211,11 @@ def _incbi_ihalve(\
                     y = incbet(a, b, x)
                     yp = (x1 - x0) / (x1 + x0)
                     if abs(yp) < dithresh:
-                        return _incbi_newt(\
+                        return _incbi_newt(
                             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
                     yp = (y - y0) / y0
                     if abs(yp) < dithresh:
-                        return _incbi_newt(\
+                        return _incbi_newt(
                             dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
                 if y < y0:
                     x0 = x
@@ -1248,7 +1249,7 @@ def _incbi_ihalve(\
                         yh = 1.0
                         raise IhalveRepeat
                 else:
-                    x1 = x;
+                    x1 = x
                     if rflg == 1 and x1 < MACHEP:
                         x = 0.0
                         return _incbi_done(rflg, x)
@@ -1272,7 +1273,7 @@ def _incbi_ihalve(\
             continue
 
 
-def _incbi_newt(\
+def _incbi_newt(
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):
     """Newton's method for incbi."""
     if nflg:
@@ -1283,7 +1284,7 @@ def _incbi_newt(\
     for i in range(8):
         # Compute the function at this point.
         if i != 0:
-            y = incbet(a, b, x);
+            y = incbet(a, b, x)
         if y < yl:
             x = x0
             y = yl
@@ -1323,6 +1324,6 @@ def _incbi_newt(\
             return _incbi_done(rflg, x)
     # Did not converge.
     dithresh = 256.0 * MACHEP
-    return _incbi_ihalve(\
+    return _incbi_ihalve(
         dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0)
 

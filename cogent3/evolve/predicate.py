@@ -69,11 +69,13 @@ class predicate(object):
         return Not(self)
 
     def __bool__(self):
-        warnings.warn('alphabet predicate used as truth value. Use only binary operators: &, | and ~', stacklevel=2)
+        warnings.warn(
+            'alphabet predicate used as truth value. Use only binary operators: &, | and ~', stacklevel=2)
         return True
 
     def __eq__(self, other):
-        warnings.warn('Warning: alphabet pair predicate used as value. Use parentheses')
+        warnings.warn(
+            'Warning: alphabet pair predicate used as value. Use parentheses')
         return self is other
 
     def aliased(self, new_name):
@@ -309,7 +311,8 @@ def parse(rule):
         forward_only = '>' in rule
         rule = rule.replace('>', '/')
         (x, y) = rule.split('/')
-        if not y: y = None
+        if not y:
+            y = None
 
         pred = MotifChange(x, y, forward_only, diff_at)
     else:
