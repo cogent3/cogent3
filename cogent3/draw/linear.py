@@ -40,16 +40,16 @@ __status__ = "Production"
 #       broken ends, vscales, zero lines, sub-pixel features.
 #       fuzzy ends.  more ids/qualifiers.
 
-MAX_WIDTH = 72*8
+MAX_WIDTH = 72 * 8
 
 def dna_shapes():
     w = .5 / 2
     s = .75 / 2
-    m = (w+s) / 2
+    m = (w + s) / 2
     r = 8
     y = 5
-    n = (r+y) / 2
-    def rectangle(x,y):
+    n = (r + y) / 2
+    def rectangle(x, y):
         return [(-x, 0), (-x, y), (x, y), (x, 0)]
     shapes = {}
     for (motif, width, height) in [
@@ -75,14 +75,14 @@ class TransformScalePart(Affine2DBase):
     source_dims: the dimensions (0:X, 1:Y, 2:I) from which the
     resulting X and Y scales are taken."""
 
-    def __init__(self, a, source_dims=[0,1]):
+    def __init__(self, a, source_dims=[0, 1]):
         self.input_dims = a.input_dims
         self.output_dims = a.output_dims
         self._a = a
         self._scale_source_dims = source_dims
         self._mtx = a.get_affine().get_matrix().copy()
         self._mtx[:] = 0
-        self._mtx[2,2] = 1
+        self._mtx[2, 2] = 1
         self._invalid = True
         self.set_children(a)
         Affine2DBase.__init__(self)
@@ -90,9 +90,9 @@ class TransformScalePart(Affine2DBase):
     def get_matrix(self):
         if self._invalid:
             a = self._a.get_affine().get_matrix()
-            for dim in [0,1]:
+            for dim in [0, 1]:
                 sdim = self._scale_source_dims[dim]
-                self._mtx[dim,dim] = a[sdim,sdim]
+                self._mtx[dim, dim] = a[sdim, sdim]
             self._inverted = None
             self._invalid = 0
         return self._mtx
@@ -212,7 +212,7 @@ class Annotation(object):
         for span in self.map.spans:
             if not span.lost:
                 g.add(self._item_shape(
-                    span, self.values[posn:posn+span.length],
+                    span, self.values[posn:posn + span.length],
                     height, yrange, rotated))
             posn += span.length
         return g
@@ -234,7 +234,7 @@ class _SeqRepresentation(object):
             cvalues = numpy.asarray(cvalues)
         elif colour_sequences:
             colour_map = sequence.getColourScheme(colors)
-            color_specs = [colour_map.get(m,'grey') for m in self.alphabet]
+            color_specs = [colour_map.get(m, 'grey') for m in self.alphabet]
             alphabet_colours = numpy.array([
                 matplotlib.colors.colorConverter.to_rgba(c, alpha=.5)
                 for c in color_specs])
@@ -252,7 +252,7 @@ class _SeqRepresentation(object):
             if not (span.lost or span.Reverse):
                 offsets.append(x_offset + span.Start - used_count)
                 lengths.append(span.length)
-                used[posn:posn+span.length] = True
+                used[posn:posn + span.length] = True
                 used_count += span.length
             posn += span.length
         seq = sequence[used]
@@ -274,7 +274,7 @@ class _MultiShapeSeqRepresentation(_SeqRepresentation):
         motifs = list(range(len(self.alphabet)))
         values = []
         for motif in motifs:
-            positions = numpy.flatnonzero(sequence==motif)
+            positions = numpy.flatnonzero(sequence == motif)
             if len(positions) == 0:
                 continue
             if cvalues is not None:
@@ -313,8 +313,8 @@ class SeqText(_MultiShapeSeqRepresentation):
         for (motif, cvalues, offsets) in self.per_shape_values:
             letter = self.alphabet[motif]
             c = len(cvalues)
-            for (i, (x,y)) in enumerate(offsets):
-                s = Text(x, y, letter, color=cvalues[i%c], **kw)
+            for (i, (x, y)) in enumerate(offsets):
+                s = Text(x, y, letter, color=cvalues[i % c], **kw)
                 g.add(s)
         return g
 
@@ -327,7 +327,7 @@ class SeqShapes(_MultiShapeSeqRepresentation):
         super(SeqShapes, self).__init__(map, sequence, *args, **kw)
         default = dna_shapes['N']
         self.shapes = [dna_shapes.get(m, default) for m in self.alphabet]
-        self.rshapes = [[(y,x) for (x,y) in v] for v in self.shapes]
+        self.rshapes = [[(y, x) for (x, y) in v] for v in self.shapes]
 
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
@@ -372,9 +372,9 @@ class SeqLineSegments(_SingleShapeSeqRepresentation):
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
         trans = TransformScalePart(g.combined_transform)
-        segment = [(.1,0),(.9,0)]
+        segment = [(.1, 0), (.9, 0)]
         if rotated:
-            segment = [(y,x) for (x,y) in segment]
+            segment = [(y, x) for (x, y) in segment]
         a = LineCollection([segment], colors=self.cvalues, 
                            offsets=self.offsets, transOffset=g.combined_transform)
         a.set_linewidth(3)
@@ -388,14 +388,14 @@ class SeqLine(object):
 
     def __init__(self, map, *args, **kw):
         x_offset = 0.0
-        self.segments = [(span.Start+x_offset, span.End+x_offset)
+        self.segments = [(span.Start + x_offset, span.End + x_offset)
                          for span in map.spans if not span.lost]
 
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
         trans = TransformScalePart(g.combined_transform)
-        y = height/2.0
-        segments = [[(x1,y),(x2,y)] for (x1,x2) in self.segments]
+        y = height / 2.0
+        segments = [[(x1, y), (x2, y)] for (x1, x2) in self.segments]
         a = LineCollection(segments, edgecolor='k', facecolor='k')
         a.set_linewidth(2)
         g.add(a)
@@ -465,7 +465,7 @@ class _FeatureStyle(object):
             shape = self._item_shape(
                 start, end,
                 tidy_start, tidy_end, height, value, yrange, rotated, 
-                last=i==len(map.spans)-1)
+                last=i == len(map.spans) - 1)
             g.add(shape)
             last = end
             if first is None:
@@ -473,11 +473,11 @@ class _FeatureStyle(object):
         if self.showLabel and label and last is not None and height > 7:
             font_height = 12 #self.label_font.get_size_in_points()
             text_width = llen(label, font_height)
-            if (text_width < abs(first-last)):
+            if (text_width < abs(first - last)):
                 label_shape = Text(
-                    (first+last)/2, height/2, label,
+                    (first + last) / 2, height / 2, label,
                     ha="center", va="center", 
-                    rotation=[0,90][rotated],
+                    rotation=[0, 90][rotated],
                     #font_properties=self.label_font,
                 )
                 g.add(label_shape)
@@ -489,11 +489,11 @@ class _VariableThicknessFeatureStyle(_FeatureStyle):
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         if yrange:
-            thickness = 1.0*value/yrange*height
+            thickness = 1.0 * value / yrange * height
         else:
-            thickness = height*self.proportion_of_track
+            thickness = height * self.proportion_of_track
         return self._item_shape_scaled(start, end, tidy_start, tidy_end,
-                                       height/2, max(2, thickness), rotated, last)
+                                       height / 2, max(2, thickness), rotated, last)
 
 class Box(_VariableThicknessFeatureStyle):
     arrow = False
@@ -501,7 +501,7 @@ class Box(_VariableThicknessFeatureStyle):
 
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
                            thickness, rotated, last):
-        (top, bottom) = (middle+thickness/2, middle-thickness/2)
+        (top, bottom) = (middle + thickness / 2, middle - thickness / 2)
         kw = dict(min_width=self.min_width, pointy=False, closed=self.closed, 
                   blunt=self.blunt, proportion_of_track=self.proportion_of_track)
         kw['rounded'] = tidy_start
@@ -526,11 +526,11 @@ class Diamond(_VariableThicknessFeatureStyle):
     """diamond"""
     def _item_shape_scaled(self, start, end, tidy_start, tidy_end, middle,
                            thickness, rotated, last):
-        x = (start+end)/2
-        spread = max(abs(start-end), self.min_width) / 2
+        x = (start + end) / 2
+        spread = max(abs(start - end), self.min_width) / 2
         return rlg2mpl.Polygon(
-            [(x-spread, middle), (x, middle+thickness/2), (x+spread, middle), 
-             (x, middle-thickness/2)], **self.opts)
+            [(x - spread, middle), (x, middle + thickness / 2), (x + spread, middle), 
+             (x, middle - thickness / 2)], **self.opts)
 
 
 class Line(_FeatureStyle):
@@ -538,7 +538,7 @@ class Line(_FeatureStyle):
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
-        altitude = value * (height-1) / yrange
+        altitude = value * (height - 1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
         return rlg2mpl.Line(start, altitude, end, altitude, **self.opts)
@@ -549,13 +549,13 @@ class Area(_FeatureStyle):
     range_required = True
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
-        altitude = value * (height-1) / yrange
+        altitude = value * (height - 1) / yrange
         #if self.orientation < 0:
         #    altitude = height - altitude
         if end < start:
             start, end = end, start
             tidy_start, tidy_end = tidy_end, tidy_start
-        return rlg2mpl.Rect(start, 0, end-start, altitude, **self.opts)
+        return rlg2mpl.Rect(start, 0, end - start, altitude, **self.opts)
 
 
 class DisplayPolicy(object):
@@ -569,7 +569,7 @@ class DisplayPolicy(object):
             "5'clip": Box(True, colors.lightcyan),
             'mRNA': Box(True, colors.cyan),
             'exon': Box(True, colors.cyan),
-            'intron': Box(False, colors.cyan, closed = False),
+            'intron': Box(False, colors.cyan, closed=False),
             "3'UTR": Box(True, colors.cyan),
             "5'UTR": Box(True, colors.cyan),
             'CDS': Box(True, colors.blue),
@@ -579,9 +579,9 @@ class DisplayPolicy(object):
             'polyA_signal': Box(True, colors.lightgreen),
             'polyA_site': Diamond(True, colors.lightgreen),
             'gene': BluntArrow(False, colors.blue,
-                               showLabel=True, closed = False),
+                               showLabel=True, closed=False),
             'operon': BluntArrow(False, colors.royalblue,
-                                 showLabel=True, closed = False),
+                                 showLabel=True, closed=False),
             #regulation
             'attenuator': Box(False, colors.red),
             'enhancer': Box(True, colors.green),
@@ -647,7 +647,7 @@ class DisplayPolicy(object):
 
     def _makeTrackDefns(self):
         return [TrackDefn(*args) for args in [
-            ('Gene Structure',[
+            ('Gene Structure', [
                 'misc_RNA',
                 'precursor_RNA',
                 'prim_transcript',
@@ -667,7 +667,7 @@ class DisplayPolicy(object):
                 'gene',
                 'operon',
             ]),
-            ('Regulation',[
+            ('Regulation', [
                 'attenuator',
                 'enhancer',
                 'CAAT_signal',
@@ -683,7 +683,7 @@ class DisplayPolicy(object):
                 'rep_origin',
                 'RBS',
             ]),
-            ('Repeats',[
+            ('Repeats', [
                 'repeat_region',
                 'repeat_unit',
                 'LTR',
@@ -691,14 +691,14 @@ class DisplayPolicy(object):
                 'stem_loop',
                 'misc_structure',
             ]),
-            ('Rna Genes',[
+            ('Rna Genes', [
                 'rRNA',
                 'scRNA',
                 'snRNA',
                 'snoRNA',
                 'tRNA',
             ]),
-            ('Sequence',[
+            ('Sequence', [
                 'source',
                 'misc_recomb',
                 'domain',
@@ -715,14 +715,14 @@ class DisplayPolicy(object):
                 'STS',
                 'gap',
             ]),
-            ('Graphs',[
+            ('Graphs', [
                 'blueline',
                 'redline',
             ]),
         ]]
 
-    _default_ignored_features =    ['C_region','N_region','S_region','V_region',
-                                    'D_segment','J_segment','V_segment','iDNA','D-loop','oriT',]
+    _default_ignored_features = ['C_region', 'N_region', 'S_region', 'V_region',
+                                    'D_segment', 'J_segment', 'V_segment', 'iDNA', 'D-loop', 'oriT', ]
     _default_keep_unexpected_tracks = True
 
     dont_merge = []
@@ -736,8 +736,8 @@ class DisplayPolicy(object):
     recursive = True
 
     def __init__(self,
-                 min_feature_height = 20,
-                 min_graph_height = None,
+                 min_feature_height=20,
+                 min_graph_height=None,
                  ignored_features=None,
                  keep_unexpected_tracks=None,
                  **kw):
@@ -786,7 +786,7 @@ class DisplayPolicy(object):
         self._setattrs(**kw)
 
     def _setattrs(self, **kw):                 
-        for (n,v) in list(kw.items()):
+        for (n, v) in list(kw.items()):
             if not hasattr(self, n):
                 warnings.warn('surprising kwarg "%s"' % n, stacklevel=3)
             if n.endswith('font'):
@@ -802,7 +802,7 @@ class DisplayPolicy(object):
         if map is None:
             return self
         else:
-            return self.copy(map=self.map[map], depth=self.depth+1)
+            return self.copy(map=self.map[map], depth=self.depth + 1)
 
     def mergeTracks(self, orig_tracks, keep_unexpected=None):
         # merge tracks with same names
@@ -834,7 +834,7 @@ class DisplayPolicy(object):
             levels.sort()
             for level in levels:
                 annots.extend(tracks[track_tag][level])
-            if len(annots)> 1 and track_tag not in self.dont_merge:
+            if len(annots) > 1 and track_tag not in self.dont_merge:
                 sorted_tracks.append(CompositeTrack(track_tag, annots))
             else:
                 sorted_tracks.extend(annots)
@@ -885,9 +885,9 @@ class DisplayPolicy(object):
                 if colour_sequences is None:
                     colour_sequences = seqrepr_class != SeqText
                 feature = seqrepr_class(self.map, sequence, 
-                                        colour_sequences = colour_sequences,
-                                        font_properties = self.seq_font,
-                                        cvalues = cvalues)
+                                        colour_sequences=colour_sequences,
+                                        font_properties=self.seq_font,
+                                        cvalues=cvalues)
                 label = getattr(self, 'seqname', '')
                 seq_tracks = [Track('seq', [feature], level=2, label=label)]
 
@@ -977,7 +977,7 @@ class Display(rlg2mpl.Drawable):
         else:
             policy = _policy
         self.policy = policy
-        self.smap=Map([(0, len(base))], parent_length=len(base))
+        self.smap = Map([(0, len(base))], parent_length=len(base))
 
         self._calc_tracks()
 
@@ -993,7 +993,7 @@ class Display(rlg2mpl.Drawable):
                     p = [p]
                 p = Track('', p)
             y2 = y + p.height + self.pad
-            self._tracks.append((y+self.pad/2, (y+y2)/2, p))
+            self._tracks.append((y + self.pad / 2, (y + y2) / 2, p))
             y = y2
         self.height = y
 
@@ -1060,7 +1060,7 @@ class Display(rlg2mpl.Drawable):
                     tick.label2.set_rotation('vertical')
 
         seqaxis.set_major_formatter(
-            matplotlib.ticker.FuncFormatter(lambda x,pos:str(int(x))))
+            matplotlib.ticker.FuncFormatter(lambda x, pos: str(int(x))))
 
         smap = self.smap.inverse()
         seq_lim = (smap.Start, smap.End)
@@ -1077,17 +1077,17 @@ class Display(rlg2mpl.Drawable):
         if left is None:
             if labeled and self._tracks:
                 left = max(len(p.label) for (y, ym, p) in self._tracks)
-                left *= 12/72 * .5 # guess mixed chars, 12pt, inaccurate!
+                left *= 12 / 72 * .5 # guess mixed chars, 12pt, inaccurate!
             else:
                 left = 0
 
         height = height or (self.height or 0.1) / 72
 
-        useful_width = len(self)*16/72 # ie bigish font, wide chars
+        useful_width = len(self) * 16 / 72 # ie bigish font, wide chars
 
         fkw = dict(leftovers=True, width=width, height=height, left=left, 
                    useful_width=useful_width, **kw)  
-        (w,h),posn,kw = rlg2mpl.figureLayout(**fkw)
+        (w, h), posn, kw = rlg2mpl.figureLayout(**fkw)
 
         #points_per_base = w * posn[3] / len(self)
         if vertical:
@@ -1098,7 +1098,7 @@ class Display(rlg2mpl.Drawable):
 
     def makeFigure(self, width=None, height=None, rowlen=None, **kw):
         if rowlen:
-            rows = [self[i:i+rowlen] for i in range(0, len(self), rowlen)]
+            rows = [self[i:i + rowlen] for i in range(0, len(self), rowlen)]
         else:
             rows = [self]
             rowlen = len(self)
@@ -1107,11 +1107,11 @@ class Display(rlg2mpl.Drawable):
         N = len(rows)
         # since scales go below and titles go above, each row
         # gets the bottom margin, but not the top margin.
-        vzoom = 1 + (y+h) * (N-1)
+        vzoom = 1 + (y + h) * (N - 1)
         fig = self._makeFigure(width, height * vzoom)
         for (i, row) in enumerate(rows):
             i = len(rows) - i - 1
-            posn = [x, (y+i*(y+h))/vzoom, w*len(row)/rowlen, h/vzoom]
+            posn = [x, (y + i * (y + h)) / vzoom, w * len(row) / rowlen, h / vzoom]
             row.asAxes(fig, posn, **kw)
         return fig
 

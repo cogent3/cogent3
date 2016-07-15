@@ -36,7 +36,7 @@ sample_annotations = '[genbank_id "AY286018.1" at [0:99]/99, organism "Macropus 
 
 class ParseTinyseq(TestCase):
     def test_parse(self):
-        for name,seq in [next(TinyseqParser(data)),next(TinyseqParser(xml.dom.minidom.parseString(data)))]:
+        for name, seq in [next(TinyseqParser(data)), next(TinyseqParser(xml.dom.minidom.parseString(data)))]:
             self.assertEqual(name, 'AY286018.1')
             self.assertEqual(sample_seq, seq.toFasta())
             self.assertEqual(str(seq.annotations), sample_annotations)

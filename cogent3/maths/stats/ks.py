@@ -18,9 +18,9 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-PIO4 = pi/4
-PIO2 = pi/2
-INVSQRT2PI = 1/sqrt(2*pi)
+PIO4 = pi / 4
+PIO2 = pi / 2
+INVSQRT2PI = 1 / sqrt(2 * pi)
 
 def mpower(A, exponent):
     """matrix power"""
@@ -38,38 +38,38 @@ def pkolmogorov1x(statistic, n):
         return 0.
     if statistic >= 1:
         return 1.
-    to = floor(n * (1-statistic))+1
+    to = floor(n * (1 - statistic)) + 1
     j = arange(0, to)
     coeffs = asarray([log(combinations(n, i)) for i in j])
-    p = sum(exp(coeffs + (n-j)*log(1-statistic-j/n) + \
-                (j-1)*(log(statistic+j/n))))
+    p = sum(exp(coeffs + (n - j) * log(1 - statistic - j / n) + \
+                (j - 1) * (log(statistic + j / n))))
     return 1 - statistic * p
 
 def pkolmogorov2x(statistic, n):
     """Probability function for Kolmogorovs distribution."""
-    k=int(n*statistic)+1
-    m=2*k-1
-    h=k-n*statistic
+    k = int(n * statistic) + 1
+    m = 2 * k - 1
+    h = k - n * statistic
     H = ones(m**2, 'd')
     Q = zeros(m**2, 'd')
     for i in range(m):
         for j in range(m):
-            if(i-j+1<0):
-                H[i*m+j]=0
+            if(i - j + 1 < 0):
+                H[i * m + j] = 0
 
     for i in range(m):
-        H[i*m] -= h**(i+1)
-        H[(m-1) * m+i] -= h**(m-i)
-    H[(m-1)*m] += [0, (2*h-1)**m][2 * h - 1 > 0]
+        H[i * m] -= h**(i + 1)
+        H[(m - 1) * m + i] -= h**(m - i)
+    H[(m - 1) * m] += [0, (2 * h - 1)**m][2 * h - 1 > 0]
     for i in range(m):
         for j in range(m):
-            if(i-j+1>0):
-                for g in range(1, i-j+2):
-                    H[i*m+j] /= g
-    Q = ravel(mpower(reshape(H, (m,m)), n))
-    s = Q[(k-1)*m+k-1]
-    for i in range(1,n+1):
-        s *= i/n
+            if(i - j + 1 > 0):
+                for g in range(1, i - j + 2):
+                    H[i * m + j] /= g
+    Q = ravel(mpower(reshape(H, (m, m)), n))
+    s = Q[(k - 1) * m + k - 1]
+    for i in range(1, n + 1):
+        s *= i / n
     return s
 
 def pkstwo(x_vector, tolerance=1e-6):
@@ -78,7 +78,7 @@ def pkstwo(x_vector, tolerance=1e-6):
     #    x_vector = asarray(x_vector)
     x_vector = array(x_vector, ndmin=1)
     size = len(x_vector)
-    k_max = int(sqrt(2-log(tolerance)))
+    k_max = int(sqrt(2 - log(tolerance)))
     for i in range(size):
         if x_vector[i] < 1:
             z = -(PIO2 * PIO4) / x_vector[i]**2
@@ -106,20 +106,20 @@ def psmirnov2x(statistic, least, most):
     if least > most:
         least, most = most, least
     q = floor(statistic * most * least - 1e-7) / (least * most)
-    u_vector = zeros(most+1, 'd')
-    for j in range(most+1):
+    u_vector = zeros(most + 1, 'd')
+    for j in range(most + 1):
         #SUPPORT2425
-        u_vector[j] = [1,0][int(j / most > q)]
-    for i in range(1,least+1):
-        w = i / (i+most)
-        if i/least > q:
+        u_vector[j] = [1, 0][int(j / most > q)]
+    for i in range(1, least + 1):
+        w = i / (i + most)
+        if i / least > q:
             u_vector[0] = 0
         else:
             u_vector[0] = w * u_vector[0]
-        for j in range(1, most+1):
-            if fabs(i/least - j/most) > q:
+        for j in range(1, most + 1):
+            if fabs(i / least - j / most) > q:
                 u_vector[j] = 0
             else:
-                u_vector[j] = w * u_vector[j] + u_vector[j-1]
+                u_vector[j] = w * u_vector[j] + u_vector[j - 1]
 
     return u_vector[most]

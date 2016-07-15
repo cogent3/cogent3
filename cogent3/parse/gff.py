@@ -50,7 +50,7 @@ def GffParser(f):
 
 def parse_attributes(attribute_string):
     """Returns region of attribute string between first pair of double quotes"""
-    attribute_string = attribute_string[attribute_string.find('"')+1:]
+    attribute_string = attribute_string[attribute_string.find('"') + 1:]
     if '"' in attribute_string:
         attribute_string = attribute_string[:attribute_string.find('"')]
     return attribute_string

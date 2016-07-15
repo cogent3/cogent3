@@ -119,7 +119,7 @@ REFERENCE   2  (bases 1 to 92123751)
   AUTHORS   International Human Genome Sequencing Consortium.
   TITLE     Finishing the euchromatic sequence of the human genome""".split('\n')
         self.assertEqual(list(indent_splitter(lines)), \
-                         [[lines[0]],[lines[1]],lines[2:8],[lines[8]],[lines[9]],lines[10:15],\
+                         [[lines[0]], [lines[1]], lines[2:8], [lines[8]], [lines[9]], lines[10:15],\
                           [lines[15]], lines[16:]])
 
     def test_parse_sequence(self):
@@ -172,7 +172,7 @@ ORIGIN
 
     def test_parse_feature(self):
         """parse_feature should return dict containing annotations of feature"""
-        example_feature=\
+        example_feature =\
         """     CDS             complement(join(102262..102647,105026..105217,
                      106638..106719,152424..152682,243209..243267))
                      /gene="nad1"
@@ -202,9 +202,9 @@ ORIGIN
         self.assertEqual(result['codon_start'], ['1'])
         self.assertEqual(result['exception'], ['RNA editing'])
         self.assertEqual(result['product'], ['NADH dehydrogenase subunit 1'])
-        self.assertEqual(result['protein_id'],['NP_064011.1'])
-        self.assertEqual(result['db_xref'], ['GI:9838451','IPI:12345'])
-        self.assertEqual(result['translation'],['MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP'])
+        self.assertEqual(result['protein_id'], ['NP_064011.1'])
+        self.assertEqual(result['db_xref'], ['GI:9838451', 'IPI:12345'])
+        self.assertEqual(result['translation'], ['MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP'])
         self.assertEqual(len(result), 11)
 
         short_feature = ['D-loop          15418..16866']
@@ -233,7 +233,7 @@ ORIGIN
 
     def test_location_line_tokenizer(self):
         """location_line_tokenizer should tokenize location lines"""
-        llt =location_line_tokenizer
+        llt = location_line_tokenizer
         self.assertEqual(list(llt(['123..456'])), ['123..456'])
         self.assertEqual(list(llt(['complement(123..456)'])), \
                          ['complement(', '123..456', ')'])
@@ -242,8 +242,8 @@ ORIGIN
         self.assertEqual(list(llt([\
             'join(complement(1..2, join(complement( 3..4),',\
             '\n5..6), 7..8\t))'])),\
-            ['join(','complement(','1..2',',','join(','complement(','3..4',\
-             ')', ',', '5..6',')',',','7..8',')',')'])
+            ['join(', 'complement(', '1..2', ',', 'join(', 'complement(', '3..4',\
+             ')', ',', '5..6', ')', ',', '7..8', ')', ')'])
 
     def test_parse_simple_location_segment(self):
         """parse_simple_location_segment should parse simple segments"""
@@ -328,7 +328,7 @@ ORIGIN
         self.assertEqual(len(r), 3)
         self.assertEqual(r['source'], 'African elephant.')
         self.assertEqual(r['species'], 'Mitochondrion Loxodonta africana')
-        self.assertEqual(r['taxonomy'], ['Eukaryota','Metazoa', 'Chordata',\
+        self.assertEqual(r['taxonomy'], ['Eukaryota', 'Metazoa', 'Chordata',\
                                          'Craniata', 'Vertebrata', 'Euteleostomi', 'Mammalia',\
                                          'Eutheria', 'Proboscidea', 'Elephantidae', 'Loxodonta'])
 
@@ -378,7 +378,7 @@ class LocationTests(TestCase):
         """Location should init with 1 or 2 values, plus params."""
         l = Location(37)
         self.assertEqual(str(l), '37')
-        l = Location(37, Ambiguity = '>')
+        l = Location(37, Ambiguity='>')
         self.assertEqual(str(l), '>37')
         l = Location(37, Ambiguity='<')
         self.assertEqual(str(l), '<37')
@@ -389,15 +389,15 @@ class LocationTests(TestCase):
 
         l1 = Location(37)
         l2 = Location(42)
-        l = Location([l1,l2])
+        l = Location([l1, l2])
         self.assertEqual(str(l), '37..42')
-        l3 = Location([l1,l2], IsBounds=True)
+        l3 = Location([l1, l2], IsBounds=True)
         self.assertEqual(str(l3), '(37.42)')
-        l4 = Location([l1,l2], IsBetween=True)
+        l4 = Location([l1, l2], IsBetween=True)
         self.assertEqual(str(l4), '37^42')
-        l5 = Location([l4,l3])
+        l5 = Location([l4, l3])
         self.assertEqual(str(l5), '37^42..(37.42)')
-        l5 = Location([l4,l3], Strand=-1)
+        l5 = Location([l4, l3], Strand=-1)
         self.assertEqual(str(l5), 'complement(37^42..(37.42))')
 
 class LocationListTests(TestCase):
@@ -407,18 +407,18 @@ class LocationListTests(TestCase):
         l = Location(3)
         l2_a = Location(5)
         l2_b = Location(7)
-        l2 = Location([l2_a,l2_b], Strand=-1)
+        l2 = Location([l2_a, l2_b], Strand=-1)
         l3_a = Location(10)
         l3_b = Location(12)
         l3 = Location([l3_a, l3_b])
         ll = LocationList([l, l2, l3])
         s = ll.extract('ACGTGCAGTCAGTAGCAT')
         #               123456789012345678
-        self.assertEqual(s, 'G'+'TGC'+'CAG')
+        self.assertEqual(s, 'G' + 'TGC' + 'CAG')
         #check a case where it wraps around
         l5_a = Location(16)
         l5_b = Location(4)
-        l5 = Location([l5_a,l5_b])
+        l5 = Location([l5_a, l5_b])
         ll = LocationList([l5])
         s = ll.extract('ACGTGCAGTCAGTAGCAT')
         self.assertEqual(s, 'CATACGT')

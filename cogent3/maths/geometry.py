@@ -14,7 +14,7 @@ __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
 
-def center_of_mass(coordinates, weights= -1):
+def center_of_mass(coordinates, weights=-1):
     """Calculates the center of mass for a dataset.
 
     coordinates, weights can be two things:
@@ -31,7 +31,7 @@ def center_of_mass(coordinates, weights= -1):
     else:
         return center_of_mass_two_array(coordinates, weights)
 
-def center_of_mass_one_array(data, weight_idx= -1):
+def center_of_mass_one_array(data, weight_idx=-1):
     """Calculates the center of mass for a dataset
 
     data should be an array of x1,...,xn,r coordinates, where r is the 

@@ -8,7 +8,7 @@ from cogent3.parse.table import ConvertFields
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Rob Knight","Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -27,17 +27,17 @@ def make_header(lines):
     header = []
     for t, b in zip(*lines):
         if t.strip().endswith('-'):
-            c = t.strip()+b
+            c = t.strip() + b
         else:
             c = ' '.join([t.strip(), b.strip()])
         header += [c.strip()]
     return header
 
-int_series = lambda x: list(map(int, x.replace(',',' ').split()))
+int_series = lambda x: list(map(int, x.replace(',', ' ').split()))
 
-row_converter = ConvertFields([(i, int) for i in range(8)]+\
-                              [(i, int) for i in range(10, 13)]+\
-                              [(i, int) for i in range(14, 18)]+\
+row_converter = ConvertFields([(i, int) for i in range(8)] +\
+                              [(i, int) for i in range(10, 13)] +\
+                              [(i, int) for i in range(14, 18)] +\
                               [(i, int_series) for i in range(18, 21)])
 
 def MinimalPslParser(data, row_converter=row_converter):

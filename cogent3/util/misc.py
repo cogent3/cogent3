@@ -54,19 +54,19 @@ class FilePath(str):
             replace should take care of making the switch.
 
     """
-    def __new__(cls,path):
+    def __new__(cls, path):
         try:
             return str.__new__(cls, path.strip('"'))
         except AttributeError:
-            return str.__new__(cls,'')
+            return str.__new__(cls, '')
 
     def __str__(self):
         """ wrap self in quotes, or return the empty string if self == '' """
         if self == '': return ''
-        return ''.join(['"',self,'"'])
+        return ''.join(['"', self, '"'])
 
-    def __add__(self,other):
-        return FilePath(''.join([self,other]))
+    def __add__(self, other):
+        return FilePath(''.join([self, other]))
 
 def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
                      result_constructor=FilePath):
@@ -96,7 +96,7 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
     picks = chars + chars.upper() + "0123456790"
     return result_constructor(tmp_dir) + result_constructor(prefix) +\
         result_constructor("%s%s" % \
-                           (''.join([choice(picks) for i in range(20)]),suffix))
+                           (''.join([choice(picks) for i in range(20)]), suffix))
 
 
 def safe_md5(open_file, block_size=2**20):
@@ -1319,7 +1319,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
     return parser
 #end NestedSplitter
 
-def app_path(app,env_variable='PATH'):
+def app_path(app, env_variable='PATH'):
     """Returns path to an app, or False if app does not exist in env_variable
 
      This functions in the same way as which in that it returns
@@ -1330,17 +1330,17 @@ def app_path(app,env_variable='PATH'):
     app = app.strip('"')
     paths = getenv(env_variable).split(':')
     for path in paths:
-        p = join(path,app)
+        p = join(path, app)
         if exists(p):
             return p
     return False
 
 #some error codes for creating a dir
 def get_create_dir_error_codes():
-    return {'NO_ERROR':      0,
-            'DIR_EXISTS':    1,
-            'FILE_EXISTS':   2,
-            'OTHER_OS_ERROR':3}
+    return {'NO_ERROR': 0,
+            'DIR_EXISTS': 1,
+            'FILE_EXISTS': 2,
+            'OTHER_OS_ERROR': 3}
 
 def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
     """Create a dir safely and fail meaningful.
@@ -1403,9 +1403,9 @@ def handle_error_codes(dir_name, supress_errors=False,
         error_code = error_code_lookup['NO_ERROR']
 
     error_strings = \
-        {error_code_lookup['DIR_EXISTS'] :
+        {error_code_lookup['DIR_EXISTS']:
          "Directory already exists: %s" % dir_name,
-         error_code_lookup['FILE_EXISTS'] : 
+         error_code_lookup['FILE_EXISTS']: 
          "File with same name exists: %s" % dir_name,
          error_code_lookup['OTHER_OS_ERROR']: 
          "Could not create output directory: %s. " % dir_name +
@@ -1460,10 +1460,10 @@ def get_random_directory_name(suppress_mkdir=False,\
     timestamp = datetime.now().strftime(timestamp_pattern)
 
     # Construct the directory name
-    dirname = '%s%s%s%s' % (prefix,timestamp,\
+    dirname = '%s%s%s%s' % (prefix, timestamp,\
                             ''.join([choice(picks) for i in range(rand_length)]),\
                             suffix)
-    dirpath = join(output_dir,dirname)
+    dirpath = join(output_dir, dirname)
     abs_dirpath = abspath(dirpath)
 
     # Make the directory
@@ -1497,7 +1497,7 @@ def get_independent_coords(spans, random_tie_breaker=False):
         curr = spans[i]
         if curr[0] < last[1]:
             if random_tie_breaker:
-                result[-1] = [last, curr][randint(0,1)]
+                result[-1] = [last, curr][randint(0, 1)]
             else:
                 result[-1] = last
             continue
@@ -1563,7 +1563,7 @@ def get_merged_by_value_coords(spans_value, digits=None):
     for index, val in indices_distinct_vals:
         start = starts[index]
         end = ends[index]
-        prev_index = max(index-1, 0)
+        prev_index = max(index - 1, 0)
         try:
             data[-1][1] = ends[prev_index]
         except IndexError:

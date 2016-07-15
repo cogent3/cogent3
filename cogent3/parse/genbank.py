@@ -21,15 +21,15 @@ maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip
 
-all_chars = maketrans('','')
-dna_lc =     'utacgrywsmkbdhvn'
+all_chars = maketrans('', '')
+dna_lc = 'utacgrywsmkbdhvn'
 dna_lc_cmp = 'aatgcyrwskmvhdbn'
-dna_trans = maketrans(dna_lc+dna_lc.upper(),dna_lc_cmp+dna_lc_cmp.upper())
-rna_lc =     'utacgrywsmkbdhvn'
+dna_trans = maketrans(dna_lc + dna_lc.upper(), dna_lc_cmp + dna_lc_cmp.upper())
+rna_lc = 'utacgrywsmkbdhvn'
 rna_lc_cmp = 'aaugcyrwskmvhdbn'
-rna_trans = maketrans(rna_lc+rna_lc.upper(),rna_lc_cmp+rna_lc_cmp.upper())
+rna_trans = maketrans(rna_lc + rna_lc.upper(), rna_lc_cmp + rna_lc_cmp.upper())
 
-locus_fields = [None, 'locus','length', None, 'mol_type','topology','db','date']
+locus_fields = [None, 'locus', 'length', None, 'mol_type', 'topology', 'db', 'date']
 _locus_parser = FieldWrapper(locus_fields)
 
 #need to turn off line stripping, because whitespace is significant
@@ -325,7 +325,7 @@ class Location(object):
                 first, last = self._data
                 curr = '%s^%s' % (first, last)
             except TypeError:   #only one base? must be this or the next
-                curr = '%s^%s' % (first, first+1)
+                curr = '%s^%s' % (first, first + 1)
         else:   #not self.IsBetween
             try:
                 data = int(self._data)
@@ -428,9 +428,9 @@ class LocationList(list):
             first, last = i.first(), i.last() + 1   #inclusive, not exclusive
             #translate to 0-based indices and check if it wraps around
             if first < last:
-                curr = sequence[first-1:last-1]
+                curr = sequence[first - 1:last - 1]
             else:
-                curr = sequence[first-1:]+sequence[:last-1]
+                curr = sequence[first - 1:] + sequence[:last - 1]
             #reverse-complement if necessary
             if i.Strand == -1:
                 curr = curr.translate(trans_table)[::-1]
@@ -542,7 +542,7 @@ def parse_location_segment(location_segment):
     #check if it's between two adjacent bases
     elif '^' in s:
         first, second = s.split('^')
-        return Location([lsp(first), lsp(second)],IsBetween=True)
+        return Location([lsp(first), lsp(second)], IsBetween=True)
     #check if it's a single base reference -- but don't be fooled by accessions!
     elif '.' in s and s.startswith('(') and s.endswith(')'):
         first, second = s.split('.')
@@ -553,7 +553,7 @@ def parse_location_atom(location_atom):
     a = location_atom
     if a.startswith('<') or a.startswith('>'):   #fuzzy
         position = int(a[1:])
-        return Location(position, Ambiguity = a[0])
+        return Location(position, Ambiguity=a[0])
     #otherwise, should just be an integer
     return Location(int(a))
 
@@ -568,7 +568,7 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         translation = f['translation'][0]
         raw_seq = f['location'].extract(rec_seq)
         print(raw_seq)
-        seq = raw_seq[int(f['codon_start'][0])-1:]
+        seq = raw_seq[int(f['codon_start'][0]) - 1:]
         print('dt:', translation)
         print('ct:', GeneticCodes[f.get('transl_table', '1')[0]].translate(seq))
         print('s :', seq)

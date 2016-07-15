@@ -62,11 +62,11 @@ __status__ = "Production"
 def predicate2matrix(alphabet, pred, mask=None):
     """From a test like istransition() produce an MxM boolean matrix"""
     M = len(alphabet)
-    result = numpy.zeros([M,M], int)
+    result = numpy.zeros([M, M], int)
     for i in range(M):
         for j in range(M):
-            if mask is None or mask[i,j]:
-                result[i,j] = pred(alphabet[i], alphabet[j])
+            if mask is None or mask[i, j]:
+                result[i, j] = pred(alphabet[i], alphabet[j])
     return result
 
 def redundancyInPredicateMasks(preds):
@@ -86,7 +86,7 @@ def _maxWidthIfTruncated(pars, delim, each):
     # characters and joined together with 'delim'.
     return max([
         sum([min(len(par), each) for par in par_list])
-        + len(delim) * (len(par_list)-1)
+        + len(delim) * (len(par_list) - 1)
         for par_list in pars.flat])
 
 def _isSymmetrical(matrix):
@@ -94,7 +94,7 @@ def _isSymmetrical(matrix):
 
 def extend_docstring_from(cls, pre=False): 
     def docstring_inheriting_decorator(fn):
-        parts = [getattr(cls,fn.__name__).__doc__, fn.__doc__ or '']
+        parts = [getattr(cls, fn.__name__).__doc__, fn.__doc__ or '']
         if pre: parts.reverse()
         fn.__doc__ = ''.join(parts) 
         return fn 
@@ -168,7 +168,7 @@ class _SubstitutionModel(object):
 
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:
-            mprob_model = 'tuple' if self._word_length==1 else 'conditional'
+            mprob_model = 'tuple' if self._word_length == 1 else 'conditional'
         elif mprob_model == 'word':
             mprob_model = 'tuple'
 
@@ -208,7 +208,7 @@ class _SubstitutionModel(object):
         return []
 
     def __str__(self):
-        s = ["\n%s (" % self.__class__.__name__ ]
+        s = ["\n%s (" % self.__class__.__name__]
         s.append("name = '%s'; type = '%s';" %
                  (getattr(self, "name", None), getattr(self, "type", None)))
         if hasattr(self, "predicate_masks"):
@@ -261,8 +261,7 @@ class _SubstitutionModel(object):
         result = klass(self, tree, **kw)
 
         if self.motif_probs is not None:
-            result.setMotifProbs(self.motif_probs, is_constant=
-                                 not optimise_motif_probs, auto=True)
+            result.setMotifProbs(self.motif_probs, is_constant=not optimise_motif_probs, auto=True)
 
         if expm is None:
             expm = self._default_expm_setting
@@ -278,8 +277,8 @@ class _SubstitutionModel(object):
                             optimise_motif_probs=None, **kw):
         # deprecate
         return self.makeLikelihoodFunction(tree,
-                                           motif_probs_from_align = motif_probs_from_align,
-                                           optimise_motif_probs = optimise_motif_probs,
+                                           motif_probs_from_align=motif_probs_from_align,
+                                           optimise_motif_probs=optimise_motif_probs,
                                            **kw)
 
     def convertAlignment(self, alignment):
@@ -324,7 +323,7 @@ class _SubstitutionModel(object):
 
         if len(bin_names) > 1:
             bprobs = PartitionDefn(
-                [1.0/len(bin_names) for bin in bin_names], name = "bprobs",
+                [1.0 / len(bin_names) for bin in bin_names], name="bprobs",
                 dimensions=['locus'], dimension=('bin', bin_names))
         else:
             bprobs = None
@@ -361,7 +360,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         assert word_probs is mprobs_matrix, "Must use simple mprob model"
         motifs = tuple(self.getAlphabet())
         return PsubMatrixDefn(
-            name="psubs", dimension = ('motif', motifs), default=None, 
+            name="psubs", dimension=('motif', motifs), default=None, 
             dimensions=('locus', 'edge'))
 
 
@@ -459,11 +458,11 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         ordered don't actually exist."""
         for param in self.partitioned_params:
             if param not in self.parameter_order and param != 'rate':
-                desc = ['partitioned', 'ordered'][param==self.ordered_param]
+                desc = ['partitioned', 'ordered'][param == self.ordered_param]
                 raise ValueError('%s param "%s" unknown' % (desc, param))
 
     def _isInstantaneous(self, x, y):
-        diffs = sum([X!=Y for (X,Y) in zip(x,y)])
+        diffs = sum([X != Y for (X, Y) in zip(x, y)])
         return diffs == 1 or (diffs > 1 and
                               self.long_indels_are_instantaneous and self._isAnyIndel(x, y))
 
@@ -473,15 +472,15 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if x == y:
             return False
         gap_start = gap_end = gap_strand = None
-        for (i, (X,Y)) in enumerate(zip(x,y)):
+        for (i, (X, Y)) in enumerate(zip(x, y)):
             G = self.gapmotif[i]
             if X != Y:
                 if X != G and Y != G:
                     return False  # non-gap differences had their chance above
                 elif gap_start is None:
                     gap_start = i
-                    gap_strand = [X,Y].index(G)
-                elif gap_end is not None or [X,Y].index(G) != gap_strand:
+                    gap_strand = [X, Y].index(G)
+                elif gap_end is not None or [X, Y].index(G) != gap_strand:
                     return False # can't start a second gap
                 else:
                     pass # extend open gap
@@ -517,7 +516,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             # this forces them to average to one, but no forced order
             # this means you can't force a param value to be shared across bins
             # so 1st above approach has to be used
-            whole = WeightedPartitionDefn(bprob_defn, bin_par_name+'_partn')
+            whole = WeightedPartitionDefn(bprob_defn, bin_par_name + '_partn')
         whole.bin_names = bprob_defn.bin_names
         return SelectForDimension(whole, 'bin', name=bin_par_name)
 
@@ -530,8 +529,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 e_defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
                 # should be weighted by bprobs*rates not bprobs
                 b_defn = self._makeBinParamDefn(
-                    param_name, param_name+'_factor', bprobs)
-                defn = ProductDefn(b_defn, e_defn, name=param_name+'_BE')
+                    param_name, param_name + '_factor', bprobs)
+                defn = ProductDefn(b_defn, e_defn, name=param_name + '_BE')
             params.append(defn)
         return params
 
@@ -579,20 +578,20 @@ class General(_ContinuousSubstitutionModel):
         alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
-        self.param_pick = numpy.zeros([N,N], int)
+        self.param_pick = numpy.zeros([N, N], int)
         self.parameter_order = []
-        for (i,x) in enumerate(alphabet):
+        for (i, x) in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
-                self.parameter_order.append('%s/%s'%(x,y))
-                self.param_pick[i,j] = len(self.parameter_order)
+                self.parameter_order.append('%s/%s' % (x, y))
+                self.param_pick[i, j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
         self.symmetric = False
         self.checkParamsExist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
-        return numpy.array((0.0,)+params+(1.0,)).take(self.param_pick)
+        return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
 class GeneralStationary(_ContinuousSubstitutionModel):
     """A continuous substitution model with one free parameter for each and 
@@ -606,37 +605,37 @@ class GeneralStationary(_ContinuousSubstitutionModel):
         alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
-        self.param_pick = numpy.zeros([N,N], int)
+        self.param_pick = numpy.zeros([N, N], int)
         self.parameter_order = []
         self.last_in_column = []
         for (d, (row, col)) in enumerate(zip(mask, mask.T)):
-            row = list(numpy.flatnonzero(row[d:])+d)
-            col = list(numpy.flatnonzero(col[d:])+d)
+            row = list(numpy.flatnonzero(row[d:]) + d)
+            col = list(numpy.flatnonzero(col[d:]) + d)
             if col:
                 self.last_in_column.append((col.pop(), d))
             else:
                 assert not row
-            inst = [(d,j) for j in row] + [(i,d) for i in col]
+            inst = [(d, j) for j in row] + [(i, d) for i in col]
 
             for (i, j) in inst:
-                (x,y) = [alphabet[k] for k in [i,j]]
-                self.parameter_order.append('%s/%s'%(x,y))
-                self.param_pick[i,j] = len(self.parameter_order)
+                (x, y) = [alphabet[k] for k in [i, j]]
+                self.parameter_order.append('%s/%s' % (x, y))
+                self.param_pick[i, j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
         self.symmetric = False
         self.checkParamsExist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
-        R = numpy.array((0.0,)+params+(1.0,)).take(self.param_pick)
-        for (i,j) in self.last_in_column:
+        R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
+        for (i, j) in self.last_in_column:
             assert i > j
             row_total = numpy.dot(mprobs, R[j])
-            col_total = numpy.dot(mprobs, R[:,j])
+            col_total = numpy.dot(mprobs, R[:, j])
             required = row_total - col_total
             if required < 0.0:
                 raise ParameterOutOfBoundsError
-            R[i,j] = required / mprobs[i]
+            R[i, j] = required / mprobs[i]
         return R
 
 class Empirical(_ContinuousSubstitutionModel):
@@ -734,7 +733,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 
         pars = self.getMatrixParams()
         par_names = self.getParamList()
-        longest = max([len(name) for name in (par_names+[' '])])
+        longest = max([len(name) for name in (par_names + [' '])])
         if delim:
             all_names_len = _maxWidthIfTruncated(pars, delim, 100)
             min_names_len = _maxWidthIfTruncated(pars, delim, 1)
@@ -744,14 +743,14 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 
         # Find a width-per-motif that is as big as can be without being too big
         w = min_names_len
-        while (w+1) * len(self.alphabet) < max_width and w < all_names_len:
+        while (w + 1) * len(self.alphabet) < max_width and w < all_names_len:
             w += 1
 
         # If not enough width truncate parameter names
         if w < all_names_len:
             each = w / len(par_names)
             if delim:
-                while _maxWidthIfTruncated(pars, delim, each+1) <= w:
+                while _maxWidthIfTruncated(pars, delim, each + 1) <= w:
                     each += 1
                 w = _maxWidthIfTruncated(pars, delim, each)
             else:
@@ -766,7 +765,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             header = [' ' * self.alphabet.getMotifLen() + ' '] + header + ['']
             header = delim2.join(header)
             rows.append(header)
-            rows.append(''.join([['-',delim2][c == delim2] for c in header]))
+            rows.append(''.join([['-', delim2][c == delim2] for c in header]))
 
         # pars in sub-cols, should also offer pars in sub-rows?
         for (motif, row2) in zip(self.alphabet, pars):
@@ -783,7 +782,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
                         elt.append(par)
                 elt = delim.join(elt).ljust(w)
                 row.append(elt)
-            rows.append(delim2.join(([motif+' '] + row + [''])))
+            rows.append(delim2.join(([motif + ' '] + row + [''])))
         return '\n'.join(rows)
 
     def getMatrixParams(self):
@@ -816,7 +815,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         t = sum(inst_row_totals * motif_probs)
         pred_size = numpy.sum(pred_mask.flat)
         inst_size = sum(self._instantaneous_mask.flat)
-        return (r / pred_size) / ((t-r) / (inst_size-pred_size))
+        return (r / pred_size) / ((t - r) / (inst_size - pred_size))
 
     def getScaledLengthsFromQ(self, Q, motif_probs, length):
         lengths = {}
@@ -887,8 +886,8 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 class _Nucleotide(SubstitutionModel):
     def getPredefinedPredicates(self):
         return {
-            'transition' : predicate.parse('R/R') | predicate.parse('Y/Y'),
-            'transversion' : predicate.parse('R/Y'),
+            'transition': predicate.parse('R/R') | predicate.parse('Y/Y'),
+            'transversion': predicate.parse('R/Y'),
             'indel': predicate.parse('-/?'),
         }
 
@@ -928,7 +927,7 @@ class Codon(_Nucleotide):
 
     def __init__(self, alphabet=None, gc=None, **kw):
         if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc = gc)
+            alphabet = moltype.CodonAlphabet(gc=gc)
         alphabet = alphabet or moltype.STANDARD_CODON
         SubstitutionModel.__init__(self, alphabet, **kw)
 
@@ -936,7 +935,7 @@ class Codon(_Nucleotide):
         if x == self.gapmotif or y == self.gapmotif:
             return x != y
         else:
-            ndiffs = sum([X!=Y for (X,Y) in zip(x,y)])
+            ndiffs = sum([X != Y for (X, Y) in zip(x, y)])
             return ndiffs == 1
 
     def getPredefinedPredicates(self):
@@ -948,9 +947,9 @@ class Codon(_Nucleotide):
 
         preds = _Nucleotide.getPredefinedPredicates(self)
         preds.update({
-            'indel' : predicate.parse('???/---'),
-            'silent' : predicate.UserPredicate(silent),
-            'replacement' : predicate.UserPredicate(replacement),
+            'indel': predicate.parse('???/---'),
+            'silent': predicate.UserPredicate(silent),
+            'replacement': predicate.UserPredicate(replacement),
         })
         return preds
 

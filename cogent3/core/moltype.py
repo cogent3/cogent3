@@ -56,122 +56,122 @@ IUPAC_gap = '-'
 
 IUPAC_missing = '?'
 
-IUPAC_DNA_chars = ['T','C','A','G']
+IUPAC_DNA_chars = ['T', 'C', 'A', 'G']
 IUPAC_DNA_ambiguities = {
-    'N': ('A','C','T','G'),
-    'R': ('A','G'),
-    'Y': ('C','T'),
-    'W': ('A','T'),
-    'S': ('C','G'),
-    'K': ('T','G'),
-    'M': ('C','A'),
-    'B': ('C','T','G'),
-    'D': ('A','T','G'),
-    'H': ('A','C','T'),
-    'V': ('A','C','G')
+    'N': ('A', 'C', 'T', 'G'),
+    'R': ('A', 'G'),
+    'Y': ('C', 'T'),
+    'W': ('A', 'T'),
+    'S': ('C', 'G'),
+    'K': ('T', 'G'),
+    'M': ('C', 'A'),
+    'B': ('C', 'T', 'G'),
+    'D': ('A', 'T', 'G'),
+    'H': ('A', 'C', 'T'),
+    'V': ('A', 'C', 'G')
     }
 IUPAC_DNA_ambiguities_complements = {
-    'A':'T','C':'G','G':'C','T':'A', '-':'-',
-    'M':'K', 'K':'M',
-    'N':'N',
-    'R':'Y', 'Y':'R',
-    'W':'W',
-    'S':'S',
-    'X':'X', # not technically an IUPAC ambiguity, but used by repeatmasker
-    'V':'B', 'B':'V',
-    'H':'D', 'D':'H'
+    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
+    'M': 'K', 'K': 'M',
+    'N': 'N',
+    'R': 'Y', 'Y': 'R',
+    'W': 'W',
+    'S': 'S',
+    'X': 'X', # not technically an IUPAC ambiguity, but used by repeatmasker
+    'V': 'B', 'B': 'V',
+    'H': 'D', 'D': 'H'
 }
 
 IUPAC_DNA_complements = {
-    'A':'T','C':'G','G':'C','T':'A', '-':'-',
+    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
 }
 
 IUPAC_DNA_complements = {
-    'A':'T','C':'G','G':'C','T':'A', '-':'-',
+    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
 }
 
 
-IUPAC_RNA_chars = ['U','C','A','G']     #note change in standard order from DNA
+IUPAC_RNA_chars = ['U', 'C', 'A', 'G']     #note change in standard order from DNA
 IUPAC_RNA_ambiguities = {
-    'N': ('A','C','U','G'),
-    'R': ('A','G'),
-    'Y': ('C','U'),
-    'W': ('A','U'),
-    'S': ('C','G'),
-    'K': ('U','G'),
-    'M': ('C','A'),
-    'B': ('C','U','G'),
-    'D': ('A','U','G'),
-    'H': ('A','C','U'),
-    'V': ('A','C','G')
+    'N': ('A', 'C', 'U', 'G'),
+    'R': ('A', 'G'),
+    'Y': ('C', 'U'),
+    'W': ('A', 'U'),
+    'S': ('C', 'G'),
+    'K': ('U', 'G'),
+    'M': ('C', 'A'),
+    'B': ('C', 'U', 'G'),
+    'D': ('A', 'U', 'G'),
+    'H': ('A', 'C', 'U'),
+    'V': ('A', 'C', 'G')
     }
 
 IUPAC_RNA_ambiguities_complements = {
-    'A':'U','C':'G','G':'C','U':'A', '-':'-',
-    'M':'K', 'K':'M',
-    'N':'N',
-    'R':'Y', 'Y':'R',
-    'W':'W',
-    'S':'S',
-    'X':'X', # not technically an IUPAC ambiguity, but used by repeatmasker
-    'V':'B', 'B':'V',
-    'H':'D', 'D':'H'
+    'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', '-': '-',
+    'M': 'K', 'K': 'M',
+    'N': 'N',
+    'R': 'Y', 'Y': 'R',
+    'W': 'W',
+    'S': 'S',
+    'X': 'X', # not technically an IUPAC ambiguity, but used by repeatmasker
+    'V': 'B', 'B': 'V',
+    'H': 'D', 'D': 'H'
 }
 
 IUPAC_RNA_complements = {
-    'A':'U','C':'G','G':'C','U':'A', '-':'-',
+    'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', '-': '-',
 }
 
 
 #Standard RNA pairing: GU pairs count as 'weak' pairs
 RnaStandardPairs = {
-    ('A','U'): True,    #True vs False for 'always' vs 'sometimes' pairing
-    ('C','G'): True,
-    ('G','C'): True,
-    ('U','A'): True,
-    ('G','U'): False,
-    ('U','G'): False,
+    ('A', 'U'): True,    #True vs False for 'always' vs 'sometimes' pairing
+    ('C', 'G'): True,
+    ('G', 'C'): True,
+    ('U', 'A'): True,
+    ('G', 'U'): False,
+    ('U', 'G'): False,
 }
 
 #Watson-Crick RNA pairing only: GU pairs don't count as pairs
 RnaWCPairs = {
-    ('A','U'): True,
-    ('C','G'): True,
-    ('G','C'): True,
-    ('U','A'): True,
+    ('A', 'U'): True,
+    ('C', 'G'): True,
+    ('G', 'C'): True,
+    ('U', 'A'): True,
 }
 
 #RNA pairing with GU counted as standard pairs
 RnaGUPairs = {
-    ('A','U'): True,
-    ('C','G'): True,
-    ('G','C'): True,
-    ('U','A'): True,
-    ('G','U'): True,
-    ('U','G'): True,
+    ('A', 'U'): True,
+    ('C', 'G'): True,
+    ('G', 'C'): True,
+    ('U', 'A'): True,
+    ('G', 'U'): True,
+    ('U', 'G'): True,
 }
 
 #RNA pairing with GU, AA, GA, CA and UU mismatches allowed as weak pairs
 RnaExtendedPairs = {
-    ('A','U'): True,
-    ('C','G'): True,
-    ('G','C'): True,
-    ('U','A'): True,
-    ('G','U'): False,
-    ('U','G'): False,
-    ('A','A'): False,
-    ('G','A'): False,
-    ('A','G'): False,
-    ('C','A'): False,
-    ('A','C'): False,
-    ('U','U'): False,
+    ('A', 'U'): True,
+    ('C', 'G'): True,
+    ('G', 'C'): True,
+    ('U', 'A'): True,
+    ('G', 'U'): False,
+    ('U', 'G'): False,
+    ('A', 'A'): False,
+    ('G', 'A'): False,
+    ('A', 'G'): False,
+    ('C', 'A'): False,
+    ('A', 'C'): False,
+    ('U', 'U'): False,
 }
 #Standard DNA pairing: only Watson-Crick pairs count as pairs
 DnaStandardPairs = {
-    ('A','T'): True,
-    ('C','G'): True,
-    ('G','C'): True,
-    ('T','A'): True,
+    ('A', 'T'): True,
+    ('C', 'G'): True,
+    ('G', 'C'): True,
+    ('T', 'A'): True,
 }
 
 
@@ -215,17 +215,17 @@ def make_matches(monomers=None, gaps=None, degenerates=None):
     degenerates = degenerates or {}
     #all monomers always match themselves and no other monomers
     for i in monomers:
-        result[(i,i)] = True
+        result[(i, i)] = True
     #all gaps always match all other gaps
     for i in gaps:
         for j  in gaps:
-            result[(i,j)] = True
+            result[(i, j)] = True
     #monomers sometimes match degenerates that contain them
     for i in monomers:
         for j in degenerates:
             if i in degenerates[j]:
-                result[(i,j)] = False
-                result[(j,i)] = False
+                result[(i, j)] = False
+                result[(j, i)] = False
     #degenerates sometimes match degenerates that contain at least one of
     #the same monomers
     for i in degenerates:
@@ -233,7 +233,7 @@ def make_matches(monomers=None, gaps=None, degenerates=None):
             try:
                 for i_symbol in degenerates[i]:
                     if i_symbol in degenerates[j]:
-                        result[(i,j)] = False
+                        result[(i, j)] = False
                         raise FoundMatch
             except FoundMatch:
                 pass    #flow control: break out of doubly nested loop
@@ -260,7 +260,7 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
     #all gaps 'weakly' pair with each other
     for i in gaps:
         for j in gaps:
-            result[(i,j)] = False
+            result[(i, j)] = False
     #monomers sometimes pair with degenerates if the monomer's complement
     #is in the degenerate symbol
     for i in monomers:
@@ -271,10 +271,10 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
                     #check if (i,curr_j) and/or (curr_j,i) is a valid pair:
                     #not mutually required if pairs are not all commutative!
                     if (i, curr_j) in pairs:
-                        result[(i,j)] = False
+                        result[(i, j)] = False
                         found = True
                     if (curr_j, i) in pairs:
-                        result[(j,i)] = False
+                        result[(j, i)] = False
                         found = True
                     if found:
                         raise FoundMatch
@@ -288,7 +288,7 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
                 for curr_i in degenerates[i]:
                     for curr_j in degenerates[j]:
                         if (curr_i, curr_j) in pairs:
-                            result[(i,j)] = False
+                            result[(i, j)] = False
                             raise FoundMatch
             except FoundMatch:
                 pass    #just using for flow control
@@ -301,8 +301,8 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
 #NOTE: uses make_pairs to augment the initial dict after construction.
 RnaPairingRules = {
     'Standard': RnaStandardPairs,
-    'WC':       RnaWCPairs,
-    'GU':       RnaGUPairs,
+    'WC': RnaWCPairs,
+    'GU': RnaGUPairs,
     'Extended': RnaExtendedPairs,
 }
 
@@ -374,9 +374,9 @@ class AlphabetGroup(CoreObjectGroup):
             else:
                 constructor = Alphabet  #assume multi-char
         self.Base = constructor(chars, MolType=MolType)
-        self.Degen = constructor(chars+degens, MolType=MolType)
-        self.Gapped = constructor(chars+gap, gap, MolType=MolType)
-        self.DegenGapped = constructor(chars+gap+degens+missing, gap, \
+        self.Degen = constructor(chars + degens, MolType=MolType)
+        self.Gapped = constructor(chars + gap, gap, MolType=MolType)
+        self.DegenGapped = constructor(chars + gap + degens + missing, gap, \
                                        MolType=MolType)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
@@ -469,7 +469,7 @@ class MolType(object):
         self.Sequence = Sequence
 
         #set the ambiguities
-        ambigs = {self.Missing:tuple(motifset)+(self.Gap,),self.Gap:(self.Gap,)}
+        ambigs = {self.Missing: tuple(motifset) + (self.Gap,), self.Gap: (self.Gap,)}
         if Ambiguities:
             ambigs.update(Ambiguities)
         for c in motifset:
@@ -492,7 +492,7 @@ class MolType(object):
                 self.Alphabet = Alphabet(motifset, MolType=self)
         #set the other properties
         self.Degenerates = Ambiguities and Ambiguities.copy() or {}
-        self.Degenerates[self.Missing] = ''.join(motifset)+self.Gap
+        self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
         self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
         self.Pairs = Pairs and Pairs.copy() or {}
         self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, \
@@ -510,7 +510,7 @@ class MolType(object):
         self.GapString = ''.join(self.Gaps)
         strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
         self.stripDegenerate = FunctionWrapper(
-            keep_chars(strict_gap+''.join(self.Alphabet)))
+            keep_chars(strict_gap + ''.join(self.Alphabet)))
         self.stripBad = FunctionWrapper(keep_chars(''.join(self.All)))
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
         self.stripBadAndGaps = FunctionWrapper(keep_chars(''.join(to_keep)))
@@ -709,7 +709,7 @@ class MolType(object):
     def isStrict(self, sequence):
         """Returns True if sequence contains only items in self.Alphabet."""
         try:
-            return (len(sequence)==0) or (self.firstNonStrict(sequence) is None)
+            return (len(sequence) == 0) or (self.firstNonStrict(sequence) is None)
         except:
             return False
 
@@ -1015,70 +1015,70 @@ class MolType(object):
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
     # want to prematurely assume DNA or Protein.
-    Sequence = DefaultSequence,
-    motifset = letters,
-    Ambiguities = {},
-    label = 'text',
-    ModelSeq = ModelSequence,
+    Sequence=DefaultSequence,
+    motifset=letters,
+    Ambiguities={},
+    label='text',
+    ModelSeq=ModelSequence,
 )
 
 DNA = MolType(
-    Sequence = DnaSequence,
-    motifset = IUPAC_DNA_chars,
-    Ambiguities = IUPAC_DNA_ambiguities,
-    label = "dna",
-    MWCalculator = DnaMW,
-    Complements = IUPAC_DNA_ambiguities_complements,
-    Pairs = DnaStandardPairs,
+    Sequence=DnaSequence,
+    motifset=IUPAC_DNA_chars,
+    Ambiguities=IUPAC_DNA_ambiguities,
+    label="dna",
+    MWCalculator=DnaMW,
+    Complements=IUPAC_DNA_ambiguities_complements,
+    Pairs=DnaStandardPairs,
     make_alphabet_group=True,
-    ModelSeq = ModelDnaSequence,
+    ModelSeq=ModelDnaSequence,
 )
 
 RNA = MolType(
-    Sequence = RnaSequence,
-    motifset = IUPAC_RNA_chars,
-    Ambiguities = IUPAC_RNA_ambiguities,
-    label = "rna",
-    MWCalculator = RnaMW,
-    Complements = IUPAC_RNA_ambiguities_complements,
-    Pairs = RnaStandardPairs,
+    Sequence=RnaSequence,
+    motifset=IUPAC_RNA_chars,
+    Ambiguities=IUPAC_RNA_ambiguities,
+    label="rna",
+    MWCalculator=RnaMW,
+    Complements=IUPAC_RNA_ambiguities_complements,
+    Pairs=RnaStandardPairs,
     make_alphabet_group=True,
-    ModelSeq = ModelRnaSequence,
+    ModelSeq=ModelRnaSequence,
 )
 
 PROTEIN = MolType(
-    Sequence = ProteinSequence,
-    motifset = IUPAC_PROTEIN_chars,
-    Ambiguities = IUPAC_PROTEIN_ambiguities,
-    MWCalculator = ProteinMW,
+    Sequence=ProteinSequence,
+    motifset=IUPAC_PROTEIN_chars,
+    Ambiguities=IUPAC_PROTEIN_ambiguities,
+    MWCalculator=ProteinMW,
     make_alphabet_group=True,
-    ModelSeq = ModelProteinSequence,
-    label = "protein")
+    ModelSeq=ModelProteinSequence,
+    label="protein")
 
 PROTEIN_WITH_STOP = MolType(
-    Sequence = ProteinWithStopSequence,
-    motifset = PROTEIN_WITH_STOP_chars,
-    Ambiguities = PROTEIN_WITH_STOP_ambiguities,
-    MWCalculator = ProteinMW,
+    Sequence=ProteinWithStopSequence,
+    motifset=PROTEIN_WITH_STOP_chars,
+    Ambiguities=PROTEIN_WITH_STOP_ambiguities,
+    MWCalculator=ProteinMW,
     make_alphabet_group=True,
-    ModelSeq = ModelProteinWithStopSequence,
-    label = "protein_with_stop")
+    ModelSeq=ModelProteinWithStopSequence,
+    label="protein_with_stop")
 
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
     # want to prematurely assume _anything_ about the data.
-    Sequence = ByteSequence,
-    motifset = list(map(chr, list(range(256)))),
-    Ambiguities = {},
-    ModelSeq = ModelSequence,
-    label = 'bytes')
+    Sequence=ByteSequence,
+    motifset=list(map(chr, list(range(256)))),
+    Ambiguities={},
+    ModelSeq=ModelSequence,
+    label='bytes')
 
 #following is a two-state MolType useful for testing
 AB = MolType(
-    Sequence = ABSequence,
-    motifset = 'ab',
+    Sequence=ABSequence,
+    motifset='ab',
     Ambiguities={},
-    ModelSeq = ModelSequence,
+    ModelSeq=ModelSequence,
     label='ab')
 
 class _CodonAlphabet(Alphabet):

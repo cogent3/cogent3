@@ -46,16 +46,16 @@ class GffTest(TestCase):
     """Setup data for all the GFF parsers."""
     def testGffParserData(self):
         """Test GffParser with valid data lines"""
-        for (line,canned_result) in data_lines:
+        for (line, canned_result) in data_lines:
             result = next(GffParser(StringIO(line)))
-            self.assertEqual(result,canned_result)
+            self.assertEqual(result, canned_result)
 
     def testGffParserHeaders(self):
         """Test GffParser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
-            result = list(GffParser(StringIO(header+data)))
-            self.assertEqual(result,[x[1] for x in data_lines])
+            result = list(GffParser(StringIO(header + data)))
+            self.assertEqual(result, [x[1] for x in data_lines])
 
     def test_parse_attributes(self):
         """Test parse_attributes"""

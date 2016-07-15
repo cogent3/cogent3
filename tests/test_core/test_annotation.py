@@ -20,7 +20,7 @@ def makeSampleSequence(with_gaps=False):
     cds = (15, 25)
     utr = (12, 15)
     if with_gaps:
-        raw_seq = raw_seq[:5] + '-----' +raw_seq[10:-2] + '--'
+        raw_seq = raw_seq[:5] + '-----' + raw_seq[10:-2] + '--'
     seq = DNA.makeSequence(raw_seq)
     seq.addAnnotation(Feature, 'CDS', 'CDS', [cds])
     seq.addAnnotation(Feature, "5'UTR", "5' UTR", [utr])
@@ -30,11 +30,11 @@ def makeSampleAlignment():
     seq1 = makeSampleSequence()
     seq2 = makeSampleSequence(with_gaps=True)
     seqs = {'FAKE01': seq1, 'FAKE02': seq2}
-    aln = LoadSeqs(data = seqs)
-    aln.addAnnotation(Feature, 'misc_feature', 'misc', [(12,25)])
+    aln = LoadSeqs(data=seqs)
+    aln.addAnnotation(Feature, 'misc_feature', 'misc', [(12, 25)])
     aln.addAnnotation(Feature, 'CDS', 'blue', [(15, 25)])
     aln.addAnnotation(Feature, "5'UTR", 'red', [(2, 4)])
-    aln.addAnnotation(Feature, "LTR", "fake", [(2,15)])
+    aln.addAnnotation(Feature, "LTR", "fake", [(2, 15)])
     return aln
 
 class TestAnnotations(unittest.TestCase):
@@ -56,11 +56,11 @@ class TestAnnotations(unittest.TestCase):
 
 
         seq = DNA.makeSequence('ACGTACGTACGT')
-        f = seq.addAnnotation(NewFeat, as_map([(1,3), (5,7)], len(seq)),
+        f = seq.addAnnotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
                               type='gene', Name='abcd')
         self.assertEqual(type(f.asOneSpan()), NewFeat)
         self.assertEqual(type(f.getShadow()), NewFeat)
-        f2 = seq.addAnnotation(NewFeat, as_map([(3,5)], len(seq)),
+        f2 = seq.addAnnotation(NewFeat, as_map([(3, 5)], len(seq)),
                                type='gene', Name='def')
 
         self.assertEqual(type(seq.getRegionCoveringAll([f, f2],
@@ -79,11 +79,11 @@ class TestAnnotations(unittest.TestCase):
 
     def test_aln_annotations(self):
         """test that annotations to alignment and its' sequences"""
-        aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
+        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
                                          'FAKE02': 'TTTGGGGGGGGGG'},
                          "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
                          "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR" : {"FAKE01": "CCCAAAATTTTTT",
+                         "LTR": {"FAKE01": "CCCAAAATTTTTT",
                                   "FAKE02": "CCC-----TTTTT"}
                          }
         seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
@@ -107,13 +107,13 @@ class TestAnnotations(unittest.TestCase):
     def test_slice_aln_with_annotations(self):
         """test that annotations of sequences and alignments survive alignment
         slicing."""
-        aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
+        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
                                          'FAKE02': 'TTTGGGGGGGGGG'},
                          "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
                          "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR" : {"FAKE01": "CCCTTTTT",
+                         "LTR": {"FAKE01": "CCCTTTTT",
                                   "FAKE02": "CCCTTTTT"}}
-        newaln = self.aln[:5]+self.aln[10:]
+        newaln = self.aln[:5] + self.aln[10:]
         feature_list = newaln.getAnnotationsMatching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
             feature_list = newaln.getAnnotationsMatching(annot_type)
@@ -143,11 +143,11 @@ class TestAnnotations(unittest.TestCase):
 
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""
-        aln_expecteds = {"misc_feature":{'FAKE01': 'TTTGGGGGGGGGG',
+        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
                                          'FAKE02': 'TTTGGGGGGGGGG'},
                          "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
                          "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR" : {"FAKE01": "CCCAAAATTTTTT",
+                         "LTR": {"FAKE01": "CCCAAAATTTTTT",
                                   "FAKE02": "CCC-----TTTTT"}
                          }
 
@@ -196,10 +196,10 @@ class TestMapSpans(unittest.TestCase):
     def test_map(self):
         """reversing a map with multiple spans should preserve span relative
         order"""
-        forward = [Span(20,30), Span(40,50)]
+        forward = [Span(20, 30), Span(40, 50)]
         fmap = Map(spans=forward, parent_length=100)
         fmap_reversed = fmap.nucleicReversed()
-        reverse = [Span(70,80, Reverse=True), Span(50,60, Reverse=True)]
+        reverse = [Span(70, 80, Reverse=True), Span(50, 60, Reverse=True)]
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])

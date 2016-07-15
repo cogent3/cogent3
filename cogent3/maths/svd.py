@@ -29,11 +29,11 @@ def ratio_two_best(eigenvalues):
     """Returns ratio of best to second best eigenvalue (from vector)."""
     try:
         sorted = sort(eigenvalues)
-        return sorted[-1]/sorted[-2]
+        return sorted[-1] / sorted[-2]
     except TypeError:   #probably complex-valued
         eigs = abs(eigenvalues)
         sorted = sort(eigs)
-        return sorted[-1]/sorted[-2]
+        return sorted[-1] / sorted[-2]
 
 def ratio_best_to_sum(eigenvalues):
     """Returns ratio of best singular value to sum. Expects a vector.
@@ -41,21 +41,21 @@ def ratio_best_to_sum(eigenvalues):
     Corresponds to fraction of variance explained by best singular value."""
     try:
         sorted = sort(eigenvalues)
-        return sorted[-1]/sum(eigenvalues, axis=0)
+        return sorted[-1] / sum(eigenvalues, axis=0)
     except TypeError:   #probably complex-valued
         eigs = abs(eigenvalues)
         sorted = sort(eigs)
-        return sorted[-1]/sum(eigenvalues, axis=0)
+        return sorted[-1] / sum(eigenvalues, axis=0)
 
 def euclidean_distance(q1, q2):
     """Returns Euclidean distance between arrays q1 and q2."""
     diff = ravel(q1 - q2)
-    return sqrt(sum(diff*diff, axis=0))
+    return sqrt(sum(diff * diff, axis=0))
 
 def euclidean_norm(m):
     """Returns Euclidean norm of an array or matrix m."""
     flattened = ravel(m)
-    return sqrt(sum(flattened*flattened, axis=0))
+    return sqrt(sum(flattened * flattened, axis=0))
 
 def _dists_from_mean_slow(qs):
     """Returns distance of each item in qs from the mean.
@@ -77,11 +77,11 @@ def dists_from_v(a, v=None):
     if v is None:
         v = mean(a, axis=0)
     diff = a - v
-    return(sqrt(sum(diff*diff, axis=1)))
+    return(sqrt(sum(diff * diff, axis=1)))
 
 def weiss(eigens):
     """Returns Weiss(20003) statistic, sum(ln(1+i)) for i in vector of eigens."""
-    return sum(log(1+eigens), axis=0)
+    return sum(log(1 + eigens), axis=0)
 
 def three_item_combos(items):
     """Iterates over the 3-item sets from items.
@@ -89,11 +89,11 @@ def three_item_combos(items):
     Doesn't check that items are unique.
     """
     total = len(items)
-    for i in range(total-2):
+    for i in range(total - 2):
         curr_i = items[i]
-        for j in range(i+1, total-1):
+        for j in range(i + 1, total - 1):
             curr_j = items[j]
-            for k in range(j+1, total):
+            for k in range(j + 1, total):
                 yield curr_i, curr_j, items[k]
 
 def two_item_combos(items):
@@ -102,9 +102,9 @@ def two_item_combos(items):
     Doesn't check that items are unique.
     """
     total = len(items)
-    for i in range(total-1):
+    for i in range(total - 1):
         curr_i = items[i]
-        for j in range(i+1, total):
+        for j in range(i + 1, total):
             yield curr_i, items[j]
 
 def pca_qs(flat_qs):

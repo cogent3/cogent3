@@ -100,7 +100,7 @@ class Compara(object):
                            genome_db_table.c.taxon_id.in_(list(self.taxon_id_species.keys())))
         records = query.execute()
         self._species_db_map = \
-        dict([(r['genome_db_id'],r['taxon_id']) for r in records])
+        dict([(r['genome_db_id'], r['taxon_id']) for r in records])
         return self._species_db_map
 
     genome_taxon = property(_get_genome_db_ids)
@@ -137,7 +137,7 @@ class Compara(object):
 
         method_link_table = self.ComparaDb.getTable('method_link')
         query = sql.select([method_link_table],
-                           method_link_table.c['class'].like('%'+'alignment'+'%'))
+                           method_link_table.c['class'].like('%' + 'alignment' + '%'))
         methods = query.execute().fetchall()
         method_link_ids = dict([(r['method_link_id'], r) for r in methods])
         method_link_species_table = \
@@ -162,7 +162,7 @@ class Compara(object):
             rows += [[ml_sp_set_id, ml_id, sp_set_id, aln_name, clade_name]]
 
         if rows == []:
-            rows = empty((0,len(header)))
+            rows = empty((0, len(header)))
 
         t = Table(header=header, rows=rows, space=2, row_ids=True,
                   title='Align Methods/Clades')
@@ -305,9 +305,9 @@ class Compara(object):
         query = location_query(genomic_align_table,
                                coord.EnsemblStart,
                                coord.EnsemblEnd,
-                               start_col = 'dnafrag_start',
-                               end_col = 'dnafrag_end',
-                               query = query)
+                               start_col='dnafrag_start',
+                               end_col='dnafrag_end',
+                               query=query)
 
         return query.execute().fetchall()
 
@@ -372,7 +372,7 @@ class Compara(object):
                                              Strand=region.Strand)
 
         ref_dnafrag_id = self._get_dnafrag_id_for_coord(region)
-        blocks=self._get_genomic_align_blocks_for_dna_frag_id(method_clade_id,
+        blocks = self._get_genomic_align_blocks_for_dna_frag_id(method_clade_id,
                                                               ref_dnafrag_id, region)
         for block in blocks:
             genomic_align_block_id = block['genomic_align_block_id']
@@ -392,9 +392,9 @@ class Compara(object):
                         record.name == region.CoordName:
                     # this is the ref species and we adjust the ref_location
                     # for this block
-                    diff_start = record.dnafrag_start-region.EnsemblStart
+                    diff_start = record.dnafrag_start - region.EnsemblStart
                     shift_start = [0, diff_start][diff_start > 0]
-                    diff_end = record.dnafrag_end-region.EnsemblEnd
+                    diff_end = record.dnafrag_end - region.EnsemblEnd
                     shift_end = [diff_end, 0][diff_end > 0]
                     try:
                         ref_location = region.resized(shift_start, shift_end)
@@ -421,7 +421,7 @@ class Compara(object):
         property_map = {'relationship': ('homology', 'description'),
                         'clade': ('method_link_species_set', 'name')}
         if property_type not in property_map:
-            raise RuntimeError("ERROR: Unknown property type: %s"%property_type)
+            raise RuntimeError("ERROR: Unknown property type: %s" % property_type)
         table_name, column = property_map[property_type]
         return list(db.getDistinct(table_name, column))
 

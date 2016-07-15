@@ -62,97 +62,97 @@ alphabets = {\
     # SAFER THAT ASSIGNING THEM TO EITHER +/-, BUT MAYBE THAT'S NOT ACCURATE.
     # AN ALTERNATIVE WOULD BE TO ASSIGN THEM TO WHATEVER THEIR MORE COMMON
     # VALUE WAS IN (e.g.) ALL PROTEINS
-    'charge_2': [('K','KRDEBZ'), ('A','ACFGHILMNPQSTVWYX')],\
-    'charge_3': [('K','KR'), ('D','DE'), ('A','ACFGHILMNPQSTVWYBXZ')],\
-    'charge_his_2': [('K','KRDEHBZ'), ('A','ACFGILMNPQSTVWYX')],\
-    'charge_his_3': [('K','KRH'), ('D','DE'), ('A','ACFGILMNPQSTVWYBXZ')],\
-    'size_2': [('G','GAVLISPTCNDXB'),('M','MFYWQKHREZ')],\
-    'hydropathy_3':[('R','RKDENQHBZ'),('Y','YWSTG'), ('P','PAMCFLVIX')],\
+    'charge_2': [('K', 'KRDEBZ'), ('A', 'ACFGHILMNPQSTVWYX')],\
+    'charge_3': [('K', 'KR'), ('D', 'DE'), ('A', 'ACFGHILMNPQSTVWYBXZ')],\
+    'charge_his_2': [('K', 'KRDEHBZ'), ('A', 'ACFGILMNPQSTVWYX')],\
+    'charge_his_3': [('K', 'KRH'), ('D', 'DE'), ('A', 'ACFGILMNPQSTVWYBXZ')],\
+    'size_2': [('G', 'GAVLISPTCNDXB'), ('M', 'MFYWQKHREZ')],\
+    'hydropathy_3': [('R', 'RKDENQHBZ'), ('Y', 'YWSTG'), ('P', 'PAMCFLVIX')],\
     # B/Z are assigned to the acidic residues, since D/E are more common -- 
     # need to figure out if this is the best way to handle them
-    'polarity_his_4':[('D','DEBZ'),('R','RHK'),\
-                      ('A','AILMFPWV'),('G','GSTCYNQ')],
+    'polarity_his_4': [('D', 'DEBZ'), ('R', 'RHK'),\
+                      ('A', 'AILMFPWV'), ('G', 'GSTCYNQ')],
     # This is a modified A1_4 alphabet to capture natural breaks in the metric
-    'a1_4m':[('C','CVILF'),('M','MWA'),('T','GSTPYH'),('N','QNDERK')],
+    'a1_4m': [('C', 'CVILF'), ('M', 'MWA'), ('T', 'GSTPYH'), ('N', 'QNDERK')],
 
-    'a1_2':[('C','CVILFMWAGS'),('T','TPYHQNDERK')],
-    'a1_3':[('C','CVILFMW'),('A','AGSTPY'),('H','HQNDERK')],
-    'a1_4':[('C','CVILF'),('M','MWAGS'),('T','TPYHQ'),('N','NDERK')],
-    'a1_5':[('C','CVIL'),('F','FMWA'),('G','GSTP'),('Y','YHQN'),('D','DERK')],
-    'a1_6':[('C','CVI'),('L','LFMW'),('A','AGS'),('T','TPY'),('H','HQND'),\
-            ('E','ERK')],
-    'a1_7':[('C','CVI'),('L','LFM'),('W','WAG'),('S','ST'),('P','PYH'),\
-            ('Q','QND'),('E','ERK')],
-    'a1_8':[('C','CVI'),('L','LF'),('M','MWA'),('G','GS'),('T','TPY'),\
-            ('H','HQ'),('N','NDE'),('R','RK')],
-    'a1_9':[('C','CV'),('I','IL'),('F','FMW'),('A','AG'),\
-            ('S','ST'),('P','PY'),\
-            ('H','HQN'),('D','DE'),('R','RK')],
-    'a1_10':[('C','CV'),('I','IL'),('F','FM'),\
-             ('W','WA'),('G','GS'),('T','TP'),\
-             ('Y','YH'),('Q','QN'),('D','DE'),('R','RK')],
-    'a2_2':[('M','MEALFKIHVQ'),('R','RWDTCNYSGP')],
-    'a2_3':[('M','MEALFKI'),('H','HVQRWD'),('T','TCNYSGP')],
-    'a2_4':[('M','MEALF'),('K','KIHVQ'),('R','RWDTC'),('N','NYSGP')],
-    'a2_5':[('M','MEAL'),('F','FKIH'),('V','VQRW'),('D','DTCN'),('Y','YSGP')],
-    'a2_6':[('M','MEA'),('L','LFKI'),('H','HVQ'),('R','RWD'),('T','TCNY'),\
-            ('S','SGP')],
-    'a2_7':[('M','MEA'),('L','LFK'),('I','IHV'),('Q','QR'),('W','WDT'),\
-            ('C','CNY'),('S','SGP')],
-    'a2_8':[('M','MEA'),('L','LF'),('K','KIH'),('V','VQ'),('R','RWD'),\
-            ('T','TC'),('N','NYS'),('G','GP')],
-    'a2_9':[('M','ME'),('A','AL'),('F','FKI'),('H','HV'),('Q','QR'),\
-            ('W','WD'),('T','TCN'),('Y','YS'),('G','GP')],
-    'a2_10':[('M','ME'),('A','AL'),('F','FK'),('I','IH'),('V','VQ'),\
-             ('R','RW'),('D','DT'),('C','CN'),('Y','YS'),('G','GP')],
-    'a3_2':[('S','SDQHPLCAVK'),('W','WNGERFITMY')],
-    'a3_3':[('S','SDQHPLC'),('A','AVKWNG'),('E','ERFITMY')],
-    'a3_4':[('S','SDQHP'),('L','LCAVK'),('W','WNGER'),('F','FITMY')],
-    'a3_5':[('S','SDQH'),('P','PLCA'),('V','VKWN'),('G','GERF'),('I','ITMY')],
-    'a3_6':[('S','SDQ'),('H','HPLC'),('A','AVK'),('W','WNG'),('E','ERFI'),\
-            ('T','TMY')],
-    'a3_7':[('S','SDQ'),('H','HPL'),('C','CAV'),('K','KW'),('N','NGE'),\
-            ('R','RFI'),('T','TMY')],
-    'a3_8':[('S','SDQ'),('H','HP'),('L','LCA'),('V','VK'),('W','WNG'),\
-            ('E','ER'),('F','FIT'),('M','MY')],
-    'a3_9':[('S','SD'),('Q','QH'),('P','PLC'),('A','AV'),('K','KW'),\
-            ('N','NG'),('E','ERF'),('I','IT'),('M','MY')],
-    'a3_10':[('S','SD'),('Q','QH'),('P','PL'),('C','CA'),('V','VK'),\
-             ('W','WN'),('G','GE'),('R','RF'),('I','IT'),('M','MY')],
-    'a4_2':[('W','WHCMYQFKDN'),('E','EIPRSTGVLA')],
-    'a4_3':[('W','WHCMYQF'),('K','KDNEIP'),('R','RSTGVLA')],
-    'a4_4':[('W','WHCMY'),('Q','QFKDN'),('E','EIPRS'),('T','TGVLA')],
-    'a4_5':[('W','WHCM'),('Y','YQFK'),('D','DNEI'),('P','PRST'),('G','GVLA')],
-    'a4_6':[('W','WHC'),('M','MYQF'),('K','KDN'),('E','EIP'),('R','RSTG'),\
-            ('V','VLA')],
-    'a4_7':[('W','WHC'),('M','MYQ'),('F','FKD'),('N','NE'),('I','IPR'),\
-            ('S','STG'),('V','VLA')],
-    'a4_8':[('W','WHC'),('M','MY'),('Q','QFK'),('D','DN'),('E','EIP'),\
-            ('R','RS'),('T','TGV'),('L','LA')],
-    'a4_9':[('W','WH'),('C','CM'),('Y','YQF'),('K','KD'),('N','NE'),\
-            ('I','IP'),('R','RST'),('G','GV'),('L','LA')],
-    'a4_10':[('W','WH'),('C','CM'),('Y','YQ'),('F','FK'),('D','DN'),\
-             ('E','EI'),('P','PR'),('S','ST'),('G','GV'),('L','LA')],
-    'a5_2':[('D','DSQPVLECWA'),('H','HFINMTYKGR')],
-    'a5_3':[('D','DSQPVLE'),('C','CWAHFI'),('N','NMTYKGR')],
-    'a5_4':[('D','DSQPV'),('L','LECWA'),('H','HFINM'),('T','TYKGR')],
-    'a5_5':[('D','DSQP'),('V','VLEC'),('W','WAHF'),('I','INMT'),('Y','YKGR')],
-    'a5_6':[('D','DSQ'),('P','PVLE'),('C','CWA'),('H','HFI'),('N','NMTY'),\
-            ('K','KGR')],
-    'a5_7':[('D','DSQ'),('P','PVL'),('E','ECW'),('A','AH'),('F','FIN'),\
-            ('M','MTY'),('K','KGR')],
-    'a5_8':[('D','DSQ'),('P','PV'),('L','LEC'),('W','WA'),('H','HFI'),\
-            ('N','NM'),('T','TYK'),('G','GR')],
-    'a5_9':[('D','DS'),('Q','QP'),('V','VLE'),('C','CW'),('A','AH'),\
-            ('F','FI'),('N','NMT'),('Y','YK'),('G','GR')],
-    'a5_10':[('D','DS'),('Q','QP'),('V','VL'),('E','EC'),('W','WA'),\
-             ('H','HF'),('I','IN'),('M','MT'),('Y','YK'),('G','GR')],
+    'a1_2': [('C', 'CVILFMWAGS'), ('T', 'TPYHQNDERK')],
+    'a1_3': [('C', 'CVILFMW'), ('A', 'AGSTPY'), ('H', 'HQNDERK')],
+    'a1_4': [('C', 'CVILF'), ('M', 'MWAGS'), ('T', 'TPYHQ'), ('N', 'NDERK')],
+    'a1_5': [('C', 'CVIL'), ('F', 'FMWA'), ('G', 'GSTP'), ('Y', 'YHQN'), ('D', 'DERK')],
+    'a1_6': [('C', 'CVI'), ('L', 'LFMW'), ('A', 'AGS'), ('T', 'TPY'), ('H', 'HQND'),\
+            ('E', 'ERK')],
+    'a1_7': [('C', 'CVI'), ('L', 'LFM'), ('W', 'WAG'), ('S', 'ST'), ('P', 'PYH'),\
+            ('Q', 'QND'), ('E', 'ERK')],
+    'a1_8': [('C', 'CVI'), ('L', 'LF'), ('M', 'MWA'), ('G', 'GS'), ('T', 'TPY'),\
+            ('H', 'HQ'), ('N', 'NDE'), ('R', 'RK')],
+    'a1_9': [('C', 'CV'), ('I', 'IL'), ('F', 'FMW'), ('A', 'AG'),\
+            ('S', 'ST'), ('P', 'PY'),\
+            ('H', 'HQN'), ('D', 'DE'), ('R', 'RK')],
+    'a1_10': [('C', 'CV'), ('I', 'IL'), ('F', 'FM'),\
+             ('W', 'WA'), ('G', 'GS'), ('T', 'TP'),\
+             ('Y', 'YH'), ('Q', 'QN'), ('D', 'DE'), ('R', 'RK')],
+    'a2_2': [('M', 'MEALFKIHVQ'), ('R', 'RWDTCNYSGP')],
+    'a2_3': [('M', 'MEALFKI'), ('H', 'HVQRWD'), ('T', 'TCNYSGP')],
+    'a2_4': [('M', 'MEALF'), ('K', 'KIHVQ'), ('R', 'RWDTC'), ('N', 'NYSGP')],
+    'a2_5': [('M', 'MEAL'), ('F', 'FKIH'), ('V', 'VQRW'), ('D', 'DTCN'), ('Y', 'YSGP')],
+    'a2_6': [('M', 'MEA'), ('L', 'LFKI'), ('H', 'HVQ'), ('R', 'RWD'), ('T', 'TCNY'),\
+            ('S', 'SGP')],
+    'a2_7': [('M', 'MEA'), ('L', 'LFK'), ('I', 'IHV'), ('Q', 'QR'), ('W', 'WDT'),\
+            ('C', 'CNY'), ('S', 'SGP')],
+    'a2_8': [('M', 'MEA'), ('L', 'LF'), ('K', 'KIH'), ('V', 'VQ'), ('R', 'RWD'),\
+            ('T', 'TC'), ('N', 'NYS'), ('G', 'GP')],
+    'a2_9': [('M', 'ME'), ('A', 'AL'), ('F', 'FKI'), ('H', 'HV'), ('Q', 'QR'),\
+            ('W', 'WD'), ('T', 'TCN'), ('Y', 'YS'), ('G', 'GP')],
+    'a2_10': [('M', 'ME'), ('A', 'AL'), ('F', 'FK'), ('I', 'IH'), ('V', 'VQ'),\
+             ('R', 'RW'), ('D', 'DT'), ('C', 'CN'), ('Y', 'YS'), ('G', 'GP')],
+    'a3_2': [('S', 'SDQHPLCAVK'), ('W', 'WNGERFITMY')],
+    'a3_3': [('S', 'SDQHPLC'), ('A', 'AVKWNG'), ('E', 'ERFITMY')],
+    'a3_4': [('S', 'SDQHP'), ('L', 'LCAVK'), ('W', 'WNGER'), ('F', 'FITMY')],
+    'a3_5': [('S', 'SDQH'), ('P', 'PLCA'), ('V', 'VKWN'), ('G', 'GERF'), ('I', 'ITMY')],
+    'a3_6': [('S', 'SDQ'), ('H', 'HPLC'), ('A', 'AVK'), ('W', 'WNG'), ('E', 'ERFI'),\
+            ('T', 'TMY')],
+    'a3_7': [('S', 'SDQ'), ('H', 'HPL'), ('C', 'CAV'), ('K', 'KW'), ('N', 'NGE'),\
+            ('R', 'RFI'), ('T', 'TMY')],
+    'a3_8': [('S', 'SDQ'), ('H', 'HP'), ('L', 'LCA'), ('V', 'VK'), ('W', 'WNG'),\
+            ('E', 'ER'), ('F', 'FIT'), ('M', 'MY')],
+    'a3_9': [('S', 'SD'), ('Q', 'QH'), ('P', 'PLC'), ('A', 'AV'), ('K', 'KW'),\
+            ('N', 'NG'), ('E', 'ERF'), ('I', 'IT'), ('M', 'MY')],
+    'a3_10': [('S', 'SD'), ('Q', 'QH'), ('P', 'PL'), ('C', 'CA'), ('V', 'VK'),\
+             ('W', 'WN'), ('G', 'GE'), ('R', 'RF'), ('I', 'IT'), ('M', 'MY')],
+    'a4_2': [('W', 'WHCMYQFKDN'), ('E', 'EIPRSTGVLA')],
+    'a4_3': [('W', 'WHCMYQF'), ('K', 'KDNEIP'), ('R', 'RSTGVLA')],
+    'a4_4': [('W', 'WHCMY'), ('Q', 'QFKDN'), ('E', 'EIPRS'), ('T', 'TGVLA')],
+    'a4_5': [('W', 'WHCM'), ('Y', 'YQFK'), ('D', 'DNEI'), ('P', 'PRST'), ('G', 'GVLA')],
+    'a4_6': [('W', 'WHC'), ('M', 'MYQF'), ('K', 'KDN'), ('E', 'EIP'), ('R', 'RSTG'),\
+            ('V', 'VLA')],
+    'a4_7': [('W', 'WHC'), ('M', 'MYQ'), ('F', 'FKD'), ('N', 'NE'), ('I', 'IPR'),\
+            ('S', 'STG'), ('V', 'VLA')],
+    'a4_8': [('W', 'WHC'), ('M', 'MY'), ('Q', 'QFK'), ('D', 'DN'), ('E', 'EIP'),\
+            ('R', 'RS'), ('T', 'TGV'), ('L', 'LA')],
+    'a4_9': [('W', 'WH'), ('C', 'CM'), ('Y', 'YQF'), ('K', 'KD'), ('N', 'NE'),\
+            ('I', 'IP'), ('R', 'RST'), ('G', 'GV'), ('L', 'LA')],
+    'a4_10': [('W', 'WH'), ('C', 'CM'), ('Y', 'YQ'), ('F', 'FK'), ('D', 'DN'),\
+             ('E', 'EI'), ('P', 'PR'), ('S', 'ST'), ('G', 'GV'), ('L', 'LA')],
+    'a5_2': [('D', 'DSQPVLECWA'), ('H', 'HFINMTYKGR')],
+    'a5_3': [('D', 'DSQPVLE'), ('C', 'CWAHFI'), ('N', 'NMTYKGR')],
+    'a5_4': [('D', 'DSQPV'), ('L', 'LECWA'), ('H', 'HFINM'), ('T', 'TYKGR')],
+    'a5_5': [('D', 'DSQP'), ('V', 'VLEC'), ('W', 'WAHF'), ('I', 'INMT'), ('Y', 'YKGR')],
+    'a5_6': [('D', 'DSQ'), ('P', 'PVLE'), ('C', 'CWA'), ('H', 'HFI'), ('N', 'NMTY'),\
+            ('K', 'KGR')],
+    'a5_7': [('D', 'DSQ'), ('P', 'PVL'), ('E', 'ECW'), ('A', 'AH'), ('F', 'FIN'),\
+            ('M', 'MTY'), ('K', 'KGR')],
+    'a5_8': [('D', 'DSQ'), ('P', 'PV'), ('L', 'LEC'), ('W', 'WA'), ('H', 'HFI'),\
+            ('N', 'NM'), ('T', 'TYK'), ('G', 'GR')],
+    'a5_9': [('D', 'DS'), ('Q', 'QP'), ('V', 'VLE'), ('C', 'CW'), ('A', 'AH'),\
+            ('F', 'FI'), ('N', 'NMT'), ('Y', 'YK'), ('G', 'GR')],
+    'a5_10': [('D', 'DS'), ('Q', 'QP'), ('V', 'VL'), ('E', 'EC'), ('W', 'WA'),\
+             ('H', 'HF'), ('I', 'IN'), ('M', 'MT'), ('Y', 'YK'), ('G', 'GR')],
     # orig does no recoding, but is provided for convenience so if you want to 
     # iterate over all reduced alphabets and the full alphabet, you can do that
     # without having specify the original alphabet differently.
-    'orig':list(zip('ACDEFGHIKLMNPQRSTVWY','ACDEFGHIKLMNPQRSTVWY'))} 
+    'orig': list(zip('ACDEFGHIKLMNPQRSTVWY', 'ACDEFGHIKLMNPQRSTVWY'))} 
 
-def build_alphabet_map(alphabet_id=None,alphabet_def=None):
+def build_alphabet_map(alphabet_id=None, alphabet_def=None):
     """ return dict mapping old alphabet chars to new alphabet chars
 
         alphabet_id: string identifying an alphabet in 
@@ -186,7 +186,7 @@ def build_alphabet_map(alphabet_id=None,alphabet_def=None):
 
     return result
 
-def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
+def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     """Return new DenseAlignment recoded in the provided reduced-state alphabet
 
         aln: the DenseAlignment object to be recoded
@@ -211,7 +211,7 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
     # Construct a dict mapping from UInt8s in alignment to their 
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
-    byte_map = dict(list(zip(aln.Alphabet,list(range(len(aln.Alphabet))))))
+    byte_map = dict(list(zip(aln.Alphabet, list(range(len(aln.Alphabet))))))
 
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,\
@@ -224,13 +224,13 @@ def recode_dense_alignment(aln,alphabet_id=None,alphabet_def=None):
 
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new DenseAlignment.
-    return DenseAlignment(take(new_indices,aln.ArraySeqs).transpose(),\
-                          aln.Names[:],MolType=aln.MolType)
+    return DenseAlignment(take(new_indices, aln.ArraySeqs).transpose(),\
+                          aln.Names[:], MolType=aln.MolType)
 
-def recode_alignment(aln,alphabet_id=None,alphabet_def=None):
+def recode_alignment(aln, alphabet_id=None, alphabet_def=None):
     raise NotImplementedError
 
-def recode_freq_vector(alphabet_def,freqs,ignores='BXZ'):
+def recode_freq_vector(alphabet_def, freqs, ignores='BXZ'):
     """ recode the bg_freqs to reflect the recoding defined in alphabet_def
 
         alphabet_def: list of tuples where new char is first tuple element
@@ -248,7 +248,7 @@ def recode_freq_vector(alphabet_def,freqs,ignores='BXZ'):
          degenerate characters, which are ignored by default).
     """
     result = {}
-    for new,olds in alphabet_def:
+    for new, olds in alphabet_def:
         for old in olds:
             if old in ignores: continue
             try:
@@ -258,13 +258,13 @@ def recode_freq_vector(alphabet_def,freqs,ignores='BXZ'):
     return result
 
 ## The following code is for recoding substitution matrices 
-def square_matrix_to_dict(matrix,key_order='ACDEFGHIKLMNPQRSTVWY'):
+def square_matrix_to_dict(matrix, key_order='ACDEFGHIKLMNPQRSTVWY'):
     result = {}
-    for c,row in zip(key_order,matrix):
-        result[c] = dict(list(zip(key_order,row)))
+    for c, row in zip(key_order, matrix):
+        result[c] = dict(list(zip(key_order, row)))
     return result
 
-def recode_count_matrix(alphabet,count_matrix,aa_order):
+def recode_count_matrix(alphabet, count_matrix, aa_order):
     """Recodes a subsitution count matrix 
 
         alphabet: the alphabet to be used for recoding the matrix
@@ -277,11 +277,11 @@ def recode_count_matrix(alphabet,count_matrix,aa_order):
          'ACDEFGHIKLMNPQRSTVWY')
 
     """
-    m = square_matrix_to_dict(count_matrix,aa_order)
-    result = zeros(len(aa_order)**2).reshape(len(aa_order),len(aa_order))
-    result = square_matrix_to_dict(result,aa_order)
-    for row_new,row_olds in alphabet:
-        for col_new,col_olds in alphabet:
+    m = square_matrix_to_dict(count_matrix, aa_order)
+    result = zeros(len(aa_order)**2).reshape(len(aa_order), len(aa_order))
+    result = square_matrix_to_dict(result, aa_order)
+    for row_new, row_olds in alphabet:
+        for col_new, col_olds in alphabet:
             if row_new not in col_olds:
                 new_count = 0.
                 for row_old in row_olds:
@@ -301,17 +301,17 @@ def recode_count_matrix(alphabet,count_matrix,aa_order):
         cm.append(r)
     return array(cm)
 
-def recode_counts_and_freqs(alphabet,count_matrix=DSO78_matrix,\
-                            freqs=DSO78_freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
+def recode_counts_and_freqs(alphabet, count_matrix=DSO78_matrix,\
+                            freqs=DSO78_freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
     """ recode a substituion count matrix and a vector of character freqs
     """
 
-    recoded_freqs = recode_freq_vector(alphabet,freqs)
+    recoded_freqs = recode_freq_vector(alphabet, freqs)
     for aa in aa_order:
         if aa not in recoded_freqs:
             recoded_freqs[aa] = 0.0
-    recoded_counts = recode_count_matrix(alphabet,count_matrix,aa_order)
-    return recoded_counts,recoded_freqs
+    recoded_counts = recode_count_matrix(alphabet, count_matrix, aa_order)
+    return recoded_counts, recoded_freqs
 
 
 

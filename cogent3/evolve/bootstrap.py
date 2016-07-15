@@ -29,7 +29,7 @@ import random
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley","Andrew Butterfield", "Matthew Wakefield",
+__credits__ = ["Gavin Huttley", "Andrew Butterfield", "Matthew Wakefield",
                "Edward Lang", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
@@ -69,7 +69,7 @@ class ParametricBootstrapCore(object):
         elif pcs == 2:
             model_label = ['null', 'alt ']
         else:
-            model_label = ['null'] + ['alt%s'%i for i in range(1,pcs)]
+            model_label = ['null'] + ['alt%s' % i for i in range(1, pcs)]
 
         @UI.display_wrap
         def each_model(alignment, ui):
@@ -91,7 +91,7 @@ class ParametricBootstrapCore(object):
         ui.display('Randomness', init_work, 0.0)
         alignment_random_state = random.Random(self.seed).getstate()
         if self.seed is None:
-            comm  = parallel.getCommunicator()
+            comm = parallel.getCommunicator()
             alignment_random_state = comm.bcast(alignment_random_state, 0)
 
         def one_replicate(i):
@@ -123,7 +123,7 @@ class EstimateProbability(ParametricBootstrapCore):
         self.alignment = alignment
         self.null_parameter_controller = null_parameter_controller
         self.alt_parameter_controller = alt_parameter_controller
-        self.parameter_controllers =  [self.null_parameter_controller, self.alt_parameter_controller]
+        self.parameter_controllers = [self.null_parameter_controller, self.alt_parameter_controller]
 
     def simplify(self, null_result, alt_result):
         return (null_result.getLogLikelihood(), alt_result.getLogLikelihood())
@@ -168,7 +168,7 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
         ParametricBootstrapCore.__init__(self)
         self.alignment = alignment
         self.parameter_controller = parameter_controller
-        self.parameter_controllers =  [parameter_controller]
+        self.parameter_controllers = [parameter_controller]
         self.func_calcstats = func_calcstats
 
     def simplify(self, result):

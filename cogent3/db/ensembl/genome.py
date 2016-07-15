@@ -38,10 +38,10 @@ class FeatureTypeCache(LazyRecord):
                            analysis_description_table.c.display_label.like('%CpG%'))
         record = asserted_one(query.execute())
         self._table_rows['analysis_description'] = record
-        quoted_limited = lambda x : DisplayString(x, with_quotes=True, 
+        quoted_limited = lambda x: DisplayString(x, with_quotes=True, 
                                                   num_words=2)
         self._populate_cache_from_record(
-            [('CpGisland','analysis_id',quoted_limited)],
+            [('CpGisland', 'analysis_id', quoted_limited)],
             'analysis_description')
 
     def _get_cpg_island_id(self):
@@ -156,12 +156,12 @@ class Genome(object):
 
         if BioType:
             if like:
-                btype = gene_table.c.biotype.like('%'+BioType+'%')
+                btype = gene_table.c.biotype.like('%' + BioType + '%')
             else:
-                btype = gene_table.c.biotype==BioType
+                btype = gene_table.c.biotype == BioType
         if Description:
             if like:
-                descr = gene_table.c.description.like('%'+Description+'%')
+                descr = gene_table.c.description.like('%' + Description + '%')
             else:
                 descr = gene_table.c.description.op('regexp')(
                     '[[:<:]]%s[[:>:]]' % Description)
@@ -180,11 +180,11 @@ class Genome(object):
             join_obj = gene_table
             select_obj = [gene_table]
         else:
-            join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id==gene_table.c.gene_id)
+            join_obj = gene_id_table.join(gene_table, gene_id_table.c.gene_id == gene_table.c.gene_id)
             select_obj = [gene_id_table.c.stable_id, gene_table]
 
         if db.Type == 'core':
-            join_obj = join_obj.outerjoin(xref_table, gene_table.c.display_xref_id==xref_table.c.xref_id)
+            join_obj = join_obj.outerjoin(xref_table, gene_table.c.display_xref_id == xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
         query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
         return query
@@ -194,8 +194,8 @@ class Genome(object):
         synonym_table = db.getTable('external_synonym')
         xref_table = db.getTable('xref')
         joinclause = xref_table.join(synonym_table,
-                                     xref_table.c.xref_id==synonym_table.c.xref_id)
-        whereclause = synonym_table.c.synonym==synonym
+                                     xref_table.c.xref_id == synonym_table.c.xref_id)
+        whereclause = synonym_table.c.synonym == synonym
         query = sql.select([xref_table.c.display_label], from_obj=[joinclause],
                            whereclause=whereclause).distinct()
         result = query.execute().fetchall()
@@ -223,11 +223,11 @@ class Genome(object):
 
         assert Symbol or Description or StableId or BioType, "no valid argument provided"
         if Symbol:
-            condition = xref_table.c.display_label==Symbol
+            condition = xref_table.c.display_label == Symbol
         elif StableId and release_ge_65:
-            condition = gene_table.c.stable_id==StableId
+            condition = gene_table.c.stable_id == StableId
         elif StableId:
-            condition = gene_id_table.c.stable_id==StableId
+            condition = gene_id_table.c.stable_id == StableId
         else:
             condition = self._get_biotype_description_condition(gene_table, Description, BioType, like)
 
@@ -315,11 +315,11 @@ class Genome(object):
 
         assert Symbol or Description or StableId or BioType, "no valid argument provided"
         if Symbol:
-            condition = xref_table.c.display_label==Symbol
+            condition = xref_table.c.display_label == Symbol
         elif StableId and release_ge_65:
-            condition = transcript_table.c.stable_id==StableId
+            condition = transcript_table.c.stable_id == StableId
         elif StableId:
-            condition = transcript_id_table.c.stable_id==StableId
+            condition = transcript_id_table.c.stable_id == StableId
         else:
             condition = self._get_biotype_description_condition(transcript_table, Description, BioType, like)
 
@@ -332,11 +332,11 @@ class Genome(object):
             join_obj = transcript_table
             select_obj = [transcript_table]
         else:
-            join_obj = transcript_id_table.join(transcript_table, transcript_id_table.c.gene_id==transcript_table.c.transcript_id)
+            join_obj = transcript_id_table.join(transcript_table, transcript_id_table.c.gene_id == transcript_table.c.transcript_id)
             select_obj = [transcript_id_table.c.stable_id, transcript_table]
 
         if db.Type == 'core':
-            join_obj = join_obj.outerjoin(xref_table, transcript_table.c.display_xref_id==xref_table.c.xref_id)
+            join_obj = join_obj.outerjoin(xref_table, transcript_table.c.display_xref_id == xref_table.c.xref_id)
             select_obj.append(xref_table.c.display_label)
         query = sql.select(select_obj, from_obj=[join_obj], whereclause=condition)
         return query
@@ -346,7 +346,7 @@ class Genome(object):
         query = self._get_gene_query(self.OtherFeaturesDb, StableId=StableId)
         records = query.execute()
         for record in records:
-            yield Est(self,self.OtherFeaturesDb,StableId=StableId,data=record)
+            yield Est(self, self.OtherFeaturesDb, StableId=StableId, data=record)
 
     def _get_seq_region_id(self, CoordName):
         """returns the seq_region_id for the provided CoordName"""
@@ -366,21 +366,21 @@ class Genome(object):
         target_coord. At present, only CpG islands being queried."""
         simple_feature_table = db.getTable('simple_feature')
         feature_types = ['CpGisland']
-        feature_type_ids=[str(self._feature_type_ids.get(f)) for f in feature_types]
+        feature_type_ids = [str(self._feature_type_ids.get(f)) for f in feature_types]
         # fix the following
         query = sql.select([simple_feature_table],
                            sql.and_(simple_feature_table.c.analysis_id.in_(feature_type_ids),
                                     simple_feature_table.c.seq_region_id == query_coord.seq_region_id))
-        query = location_query(simple_feature_table,query_coord.EnsemblStart,
+        query = location_query(simple_feature_table, query_coord.EnsemblStart,
                                query_coord.EnsemblEnd, query=query,
                                where=where_feature)
         records = query.execute()
         for record in records:
             coord = Coordinate(self, CoordName=query_coord.CoordName,
                                Start=record['seq_region_start'],
-                               End = record['seq_region_end'],
+                               End=record['seq_region_end'],
                                seq_region_id=record['seq_region_id'],
-                               Strand = record['seq_region_strand'],
+                               Strand=record['seq_region_strand'],
                                ensembl_coord=True)
             if query_coord.CoordName != target_coord.CoordName:
                 coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
@@ -403,9 +403,9 @@ class Genome(object):
         for record in query.execute():
             coord = Coordinate(self, CoordName=query_coord.CoordName,
                                Start=record['seq_region_start'],
-                               End = record['seq_region_end'],
+                               End=record['seq_region_end'],
                                seq_region_id=record['seq_region_id'],
-                               Strand = record['seq_region_strand'],
+                               Strand=record['seq_region_strand'],
                                ensembl_coord=True)
             if query_coord.CoordName != target_coord.CoordName:
                 coord = asserted_one(get_coord_conversion(coord, target_coord.CoordType, self.CoreDb))[1]
@@ -436,8 +436,8 @@ class Genome(object):
         for record in query.execute():
             new = Coordinate(self, CoordName=query_coord.CoordName,
                              Start=record['seq_region_start'],
-                             End = record['seq_region_end'],
-                             Strand = record['seq_region_strand'], 
+                             End=record['seq_region_end'],
+                             Strand=record['seq_region_strand'], 
                              seq_region_id=record['seq_region_id'],
                              ensembl_coord=True)
 
@@ -460,13 +460,13 @@ class Genome(object):
                         data=record)
 
     def _get_feature_coord_levels(self, feature_types):
-        dbs = dict(core_db = self.CoreDb)
+        dbs = dict(core_db=self.CoreDb)
         if 'variation' in feature_types:
             dbs["var_db"] = self.VarDb
         if 'est' in feature_types:
             dbs["otherfeature_db"] = self.OtherFeaturesDb
         feature_coord_levels = self._feature_coord_levels(self.Species, 
-                                                          feature_types = feature_types,**dbs)
+                                                          feature_types=feature_types, **dbs)
         return feature_coord_levels
 
     def _feature_coord_levels(self):
@@ -489,9 +489,9 @@ class Genome(object):
 
         if region is None:
             seq_region_id = self._get_seq_region_id(CoordName)
-            region = Coordinate(self,CoordName=CoordName, Start=Start,
+            region = Coordinate(self, CoordName=CoordName, Start=Start,
                                 End=End,
-                                Strand = convert_strand(Strand),
+                                Strand=convert_strand(Strand),
                                 seq_region_id=seq_region_id,
                                 ensembl_coord=ensembl_coord)
         elif hasattr(region, 'Location'):
@@ -501,16 +501,16 @@ class Genome(object):
         # the coordinate system at which locations are to be referenced, and
         # the processing function
         target_coords_funcs = \
-            dict(cpg = (self._get_simple_features, CpGisland),
-                 repeat = (self._get_repeat_features, Repeat),
-                 gene = (self._get_gene_features, Gene),
-                 est = (self._get_gene_features, Est),
-                 variation = (self._get_variation_features, Variation))
+            dict(cpg=(self._get_simple_features, CpGisland),
+                 repeat=(self._get_repeat_features, Repeat),
+                 gene=(self._get_gene_features, Gene),
+                 est=(self._get_gene_features, Est),
+                 variation=(self._get_variation_features, Variation))
 
         known_types = set(target_coords_funcs.keys())
         if not set(feature_types) <= known_types:
             raise RuntimeError('Unknown feature[%s], valid feature_types \
-                are: %s' % (set(feature_types)^known_types, known_types))
+                are: %s' % (set(feature_types) ^ known_types, known_types))
 
         for feature_type in feature_types:
             target_func, target_class = target_coords_funcs[feature_type]
@@ -555,7 +555,7 @@ class Genome(object):
         if Effect is not None:
             if like:
                 query = \
-                    var_feature_table.columns[consequence_type].like('%'+Effect+'%')
+                    var_feature_table.columns[consequence_type].like('%' + Effect + '%')
             else:
                 query = var_feature_table.columns[consequence_type] == Effect
         else:
@@ -568,13 +568,13 @@ class Genome(object):
             if int(self.Release) >= 65:
                 null = ''
 
-            query = sql.and_(query,var_feature_table.c.validation_status!=null)
+            query = sql.and_(query, var_feature_table.c.validation_status != null)
 
         if not somatic:
-            query = sql.and_(query,var_feature_table.c.somatic!=1)
+            query = sql.and_(query, var_feature_table.c.somatic != 1)
 
         if flanks_match_ref:
-            query = sql.and_(query,var_feature_table.c.alignment_quality==1)
+            query = sql.and_(query, var_feature_table.c.alignment_quality == 1)
 
         query = sql.select([var_feature_table],
                            query).order_by(var_feature_table.c.seq_region_start)
@@ -583,7 +583,7 @@ class Genome(object):
             query = query.limit(limit)
 
         for record in query.execute():
-            yield Variation(self, self.CoreDb, Effect = Effect, Symbol=Symbol,
+            yield Variation(self, self.CoreDb, Effect=Effect, Symbol=Symbol,
                             data=record)
 
 
@@ -596,9 +596,9 @@ class Genome(object):
               where indexing starts at 1"""
         if region is None:
             seq_region_id = self._get_seq_region_id(CoordName)
-            region = Coordinate(self,CoordName=CoordName, Start=Start,
+            region = Coordinate(self, CoordName=CoordName, Start=Start,
                                 End=End,
-                                Strand = convert_strand(Strand),
+                                Strand=convert_strand(Strand),
                                 seq_region_id=seq_region_id,
                                 ensembl_coord=ensembl_coord)
         elif hasattr(region, 'Location'):

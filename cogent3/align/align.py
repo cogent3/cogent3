@@ -33,7 +33,7 @@ def make_dna_scoring_dict(match, transition, transversion):
                 score = transition
             else:
                 score = transversion
-            DNA[a,b] = score
+            DNA[a, b] = score
     return DNA
 
 def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw):
@@ -60,8 +60,8 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     a1 = s1.MolType.Alphabet
     a2 = s2.MolType.Alphabet
     S = numpy.zeros([len(a1), len(a2)], Float)
-    for (i,m1) in enumerate(a1):
-        for (j,m2) in enumerate(a2):
+    for (i, m1) in enumerate(a1):
+        for (j, m2) in enumerate(a2):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), Float) / len(psub)

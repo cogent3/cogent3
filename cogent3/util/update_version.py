@@ -24,17 +24,17 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Development"
 
-options = [make_option('--pycogent_dir',dest='pycogent_dir',type='string',
+options = [make_option('--pycogent_dir', dest='pycogent_dir', type='string',
                        default=''),
-           make_option('--new_version',dest='version',type='string',
+           make_option('--new_version', dest='version', type='string',
                        default=''),
-           make_option('--is_release',dest='is_release',\
+           make_option('--is_release', dest='is_release',\
                        action='store_true', default=False),
-           make_option('--verbose',dest='verbose',action='store_true',
+           make_option('--verbose', dest='verbose', action='store_true',
                        default=False),
-           make_option('--mock_run',dest='mockrun',action='store_true',
+           make_option('--mock_run', dest='mockrun', action='store_true',
                        default=False),
-           make_option('--new_version_short',dest='version_short',type='string',
+           make_option('--new_version_short', dest='version_short', type='string',
                        default=None)]
 
 class VersionUpdater(object):
@@ -54,9 +54,9 @@ class VersionUpdater(object):
         self.DocDirectory = path.join(self.PyCogentDirectory, 'doc')
         self.IncludesDirectory = path.join(self.PyCogentDirectory, 'include')
 
-        if not os.access(path.join(self.CodesDirectory, '__init__.py'),os.R_OK):
+        if not os.access(path.join(self.CodesDirectory, '__init__.py'), os.R_OK):
             raise IOError("Could not locate cogent/__init__.py")
-        if not os.access(path.join(self.TestsDirectory, '__init__.py'),os.R_OK):
+        if not os.access(path.join(self.TestsDirectory, '__init__.py'), os.R_OK):
             raise IOError("Could not locate tests/__init__.py")
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
             raise IOError("Could not locate doc/conf.py")
@@ -146,7 +146,7 @@ class VersionUpdater(object):
         if found_version_line:
             if self.Verbose:
                 print('Version string found on line %d' % lineno)
-            http_base = lines[lineno].rsplit('/',1)[0]
+            http_base = lines[lineno].rsplit('/', 1)[0]
             lines[lineno] = '%s/PyCogent-%s.tgz\n' % (http_base, self.Version)
         else:
             print("No version string found in %s" % filename)
@@ -240,7 +240,7 @@ class VersionUpdater(object):
             if filetype is 'Python':
                 lines, write_out = self._update_python_file(lines, filename) 
             elif filetype is 'Properties':
-                lines, write_out = self._update_properties_file(lines,filename)
+                lines, write_out = self._update_properties_file(lines, filename)
             else:
                 raise TypeError("Unknown base file type %s" % filetype)
 

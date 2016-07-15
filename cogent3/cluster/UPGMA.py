@@ -111,8 +111,8 @@ def condense_node_order(matrix, smallest_index, node_order):
     #get the distance between the nodes and assign 1/2 the distance to the
     #Length property of each node
     distance = matrix[index1, index2]
-    nodes = [node1,node2]
-    d = distance/2.0
+    nodes = [node1, node2]
+    d = distance / 2.0
     for n in nodes:
         if n.Children:
             n.Length = d - n.Children[0].TipLength
@@ -150,7 +150,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
         index1, index2 = smallest_index
         #if smallest_index is on the diagonal set the diagonal to large_number
         if index1 == index2:
-            matrix[diag([True]*len(matrix))] = large_number
+            matrix[diag([True] * len(matrix))] = large_number
             smallest_index = find_smallest_index(matrix)
         row_order = condense_node_order(matrix, smallest_index, \
                                         node_order)

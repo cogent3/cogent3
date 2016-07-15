@@ -118,11 +118,11 @@ class JackknifeStats(object):
         try:
             num_datasets = len(subset_stats)
             for i in range(num_datasets):
-                header.append('Stat_%s-i'%i)
+                header.append('Stat_%s-i' % i)
         except TypeError:
             header.append('Stat-i')
 
-        return LoadTable(rows=rows, header=header,title=title)
+        return LoadTable(rows=rows, header=header, title=title)
 
     @property
     def Pseudovalues(self):
@@ -151,11 +151,11 @@ class JackknifeStats(object):
         try:
             num_datasets = len(pseudovalues)
             for i in range(num_datasets):
-                header.append('Pseudovalue_%s-i'%i)
+                header.append('Pseudovalue_%s-i' % i)
         except TypeError:
             header.append('Pseudovalue-i')
 
-        return LoadTable(rows=rows, header=header,title=title)
+        return LoadTable(rows=rows, header=header, title=title)
 
     @property
     def SummaryStats(self):

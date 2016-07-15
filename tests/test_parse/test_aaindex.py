@@ -184,7 +184,7 @@ class test_aaindex2_parser(TestCase):
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Description,\
                          'The PAM-120 matrix (Altschul, 1991)')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Description,\
-                         'Log-odds scoring matrix collected in 74-100 PAM (Benner et al., '+\
+                         'Log-odds scoring matrix collected in 74-100 PAM (Benner et al., ' +\
                          '1994)')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Description,\
                          'STROMA score matrix for the alignment of known distant homologs ' +\
@@ -217,7 +217,7 @@ class test_aaindex2_parser(TestCase):
                          'Amino acid substitution during functionally constrained divergent ' +\
                          'evolution of protein sequences')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Title,\
-                         'Optimization of a new score function for the generation of '+\
+                         'Optimization of a new score function for the generation of ' +\
                          'accurate alignments')
 
     def test_Citation_entries(self):
@@ -332,7 +332,7 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         keys = 'ARNDCQEGHILKMFPSTWYV'
         for i in range(20):
             values += [float(i) + 0.15]
-        self.data = dict(list(zip(keys,values)))
+        self.data = dict(list(zip(keys, values)))
 
         self.aar = AAIndex1Record(self.id, self.description,\
                                   self.LITDB_entry_num, self.authors, self.title,\
@@ -357,7 +357,7 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         self.assertEqual(self.aar.Citation, str(self.citation))
         self.assertEqual(self.aar.Comments, str(self.comments))
         self.assertEqual(self.aar.Correlating, self.correlating)
-        self.assertEqual(self.aar.Data,self.data)
+        self.assertEqual(self.aar.Data, self.data)
 
     def test_toSquareDistanceMatrix(self):
         """ AAIR1: Tests that _toSquareDistanceMatrix runs without returning an error """
@@ -453,7 +453,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
             for c in keys:
                 if keys.find(c) <= keys.find(r):
                     new_row[c] = values[i]
-                    i +=1
+                    i += 1
             self.LTMdata[r] = new_row
 
 
@@ -472,7 +472,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
             new_row = dict.fromkeys(keys)
             for c in keys:
                 new_row[c] = values[i]
-                i +=1
+                i += 1
             self.SQUdata[r] = new_row
 
         self.aarSquare = AAIndex2Record(self.id, self.description,\

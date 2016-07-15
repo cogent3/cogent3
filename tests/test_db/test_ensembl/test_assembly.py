@@ -27,13 +27,13 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
 else:
     account = get_ensembl_account(release=Release)
 
-human = Genome(Species = 'human', Release=Release, account=account)
-platypus = Genome(Species = 'platypus', Release=Release, account=account)
+human = Genome(Species='human', Release=Release, account=account)
+platypus = Genome(Species='platypus', Release=Release, account=account)
 
 class TestLocation(TestCase):
     def test_init(self):
         human_loc = Coordinate(CoordName='x', Start=1000, End=10000, Strand=-1,
-                               genome = human)
+                               genome=human)
         # TODO: complete test for platpus
         self.assertEqual(human_loc.CoordType, 'chromosome')
         self.assertEqual(human_loc.CoordName, 'x')
@@ -47,8 +47,8 @@ class TestLocation(TestCase):
         """should correctly map between different coordinate levels"""
         # not really testing the contig coordinates are correct
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
-        human_loc = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                               Strand = Strand, genome = human)
+        human_loc = Coordinate(CoordName=CoordName, Start=Start, End=End,
+                               Strand=Strand, genome=human)
         results = get_coord_conversion(human_loc, 'contig', human.CoreDb)
         for result in results:
             self.assertTrue(result[0].CoordName == CoordName)
@@ -59,37 +59,37 @@ class TestLocation(TestCase):
     def test_coord_shift(self):
         """adding coordinates should produce correct results"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
-        loc1 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                          Strand = Strand, genome = human)
+        loc1 = Coordinate(CoordName=CoordName, Start=Start, End=End,
+                          Strand=Strand, genome=human)
         for shift in [100, -100]:
             loc2 = loc1.shifted(shift)
-            self.assertEqual(loc2.Start, loc1.Start+shift)
-            self.assertEqual(loc2.End, loc1.End+shift)
+            self.assertEqual(loc2.Start, loc1.Start + shift)
+            self.assertEqual(loc2.End, loc1.End + shift)
             self.assertEqual(id(loc1.genome), id(loc2.genome))
         self.assertNotEqual(id(loc1), id(loc2))
 
     def test_coord_resize(self):
         """resizing should work"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
-        loc1 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                          Strand = Strand, genome = human)
+        loc1 = Coordinate(CoordName=CoordName, Start=Start, End=End,
+                          Strand=Strand, genome=human)
         front_shift = -100
         back_shift = 100
         loc2 = loc1.resized(front_shift, back_shift)
-        self.assertEqual(len(loc2), len(loc1)+200)
-        self.assertEqual(loc2.Start, loc1.Start+front_shift)
-        self.assertEqual(loc2.End, loc1.End+back_shift)
+        self.assertEqual(len(loc2), len(loc1) + 200)
+        self.assertEqual(loc2.Start, loc1.Start + front_shift)
+        self.assertEqual(loc2.End, loc1.End + back_shift)
         self.assertEqual(loc1.Strand, loc2.Strand)
 
     def test_adopted(self):
         """coordinate should correctly adopt seq_region_id properties of 
         provided coordinate"""
         CoordName, Start, End, Strand = '1', 1000, 1000000, 1
-        c1 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                        Strand = Strand, genome = human)
+        c1 = Coordinate(CoordName=CoordName, Start=Start, End=End,
+                        Strand=Strand, genome=human)
         CoordName, Start, End, Strand = '2', 2000, 2000000, 1
-        c2 = Coordinate(CoordName = CoordName, Start = Start, End = End,
-                        Strand = Strand, genome = human)
+        c2 = Coordinate(CoordName=CoordName, Start=Start, End=End,
+                        Strand=Strand, genome=human)
         c3 = c1.adopted(c2)
         self.assertEqual(c3.CoordName, c2.CoordName)
         self.assertEqual(c3.CoordType, c2.CoordType)
@@ -97,16 +97,16 @@ class TestLocation(TestCase):
         self.assertEqual(c3.Start, c1.Start)
         self.assertEqual(c3.End, c1.End)
         self.assertEqual(c3.Strand, c1.Strand)
-        c3 = c1.adopted(c2, shift = 100)
-        self.assertEqual(c3.Start, c1.Start+100)
-        self.assertEqual(c3.End, c1.End+100)
+        c3 = c1.adopted(c2, shift=100)
+        self.assertEqual(c3.Start, c1.Start + 100)
+        self.assertEqual(c3.End, c1.End + 100)
 
 
 class TestCoordSystem(TestCase):
     def test_call(self):
-        human_chrom = CoordSystem('chromosome', core_db = human.CoreDb,
-                                  species = 'human')
-        human_contig = CoordSystem(1, species = 'human')
+        human_chrom = CoordSystem('chromosome', core_db=human.CoreDb,
+                                  species='human')
+        human_contig = CoordSystem(1, species='human')
         self.assertEqual(human_chrom.coord_system_id, 4)
         self.assertEqual(human_contig.name, 'contig')
         self.assertEqual(human_contig.attr, 'default_version, sequence_level')

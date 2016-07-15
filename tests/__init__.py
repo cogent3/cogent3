@@ -8,7 +8,7 @@ sub_modules = ['alltests',
                'timetrial']
 
 for sub_module in sub_modules:
-    exec ("from %s import %s" % (__name__, sub_module))
+    exec("from %s import %s" % (__name__, sub_module))
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

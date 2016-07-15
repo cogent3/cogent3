@@ -104,7 +104,7 @@ class TestCase(orig_TestCase):
 
     def _get_values_from_matching_dicts(self, d1, d2):
         """Gets corresponding values from matching dicts"""
-        if set(d1) != set (d2):
+        if set(d1) != set(d2):
             return None
         return list(d1.values()), [d2[k] for k in d1] #might not be in same order
 
@@ -167,7 +167,7 @@ class TestCase(orig_TestCase):
                                   (repr(obs), repr(exp)))
                     obs = arr_obs.ravel()
                     exp = arr_exp.ravel()
-                    is_array=True
+                    is_array = True
                 except (TypeError, ValueError):
                     pass
 
@@ -196,11 +196,11 @@ class TestCase(orig_TestCase):
 
                 else:
                     if is_array:
-                        self.assertFalse(abs(diff/sum) > abs(eps), \
+                        self.assertFalse(abs(diff / sum) > abs(eps), \
                                          "Got %s, but expected %s (diff was %s)" % \
                                          (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
                     else:
-                        self.assertFalse(abs(diff/sum) > abs(eps), \
+                        self.assertFalse(abs(diff / sum) > abs(eps), \
                                          "Got %s, but expected %s (diff was %s)" % \
                                          (repr(observed), repr(expected), repr(diff)))
             except (TypeError, ValueError, AttributeError, NotImplementedError):
@@ -376,7 +376,7 @@ class TestCase(orig_TestCase):
         except:
             pass
         else:
-            raise self.failureException(msg or 'Observed %s has same items as %s'%(repr(observed), repr(expected)))
+            raise self.failureException(msg or 'Observed %s has same items as %s' % (repr(observed), repr(expected)))
 
     def assertContains(self, observed, item, msg=None):
         """Fail if item not in observed"""
@@ -502,9 +502,9 @@ class TestCase(orig_TestCase):
         obs_ravel = ravel(asarray(observed))
         exp_ravel = ravel(asarray(expected))
 
-        m = zeros((2,len(obs_ravel)))
-        m[0,:] = obs_ravel
-        m[1,:] = exp_ravel
+        m = zeros((2, len(obs_ravel)))
+        m[0, :] = obs_ravel
+        m[1, :] = exp_ravel
 
         G, p = G_ind(m)
 

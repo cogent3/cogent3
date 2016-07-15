@@ -30,7 +30,7 @@ class UrlGetter(object):
         to_get = self.__dict__.copy()
         to_get.update(self._temp_args)
         return self.BaseUrl + self.FieldDelimiter.join(\
-            [quote_plus(k)+self.KeyValDelimiter+quote_plus(str(v)) for k, v in list(to_get.items())\
+            [quote_plus(k) + self.KeyValDelimiter + quote_plus(str(v)) for k, v in list(to_get.items())\
              if k in self.PrintedFields])
 
     def open(self, **kwargs):
@@ -75,11 +75,11 @@ def expand_slice(s):
     range_start = int(start[start_index:])
     range_end = int(end[end_index:])
     field_width = str(len(start) - start_index)
-    format_string = '%'+field_width+'.'+field_width+'d'
+    format_string = '%' + field_width + '.' + field_width + 'd'
     return [prefix + format_string % i \
-            for i in range(range_start, range_end+1, step)]
+            for i in range(range_start, range_end + 1, step)]
 
-def make_lists_of_expanded_slices_of_set_size(s,size_limit=200):
+def make_lists_of_expanded_slices_of_set_size(s, size_limit=200):
     """Returns a list of Accessions terms from 'expand_slice'.
     GenBank URLs are limited in size. This helps break up larger lists
     of Accessions (e.g. thousands) into GenBank friendly sizes for down
@@ -90,14 +90,14 @@ def make_lists_of_expanded_slices_of_set_size(s,size_limit=200):
     full_list = expand_slice(s)
     ls = len(full_list)
     l = []
-    for i in range(ls/size_limit+1):
+    for i in range(ls / size_limit + 1):
         start = i * size_limit
-        end = (i+1) * size_limit
+        end = (i + 1) * size_limit
         subset = full_list[start:end]
         l.append(' '.join(subset))
     return l
 
-def make_lists_of_accessions_of_set_size(s,size_limit=200):
+def make_lists_of_accessions_of_set_size(s, size_limit=200):
     """Returns list of search terms  that contain accessions up to the size
     'size_limit'
     This is to help make friendly GenBank urls for fetching large lists 
@@ -107,9 +107,9 @@ def make_lists_of_accessions_of_set_size(s,size_limit=200):
     """
     ls = len(s)
     l = []
-    for i in range(ls/size_limit+1):
+    for i in range(ls / size_limit + 1):
         start = i * size_limit
-        end = (i+1) * size_limit
+        end = (i + 1) * size_limit
         subset = s[start:end]
         l.append(' '.join(subset))
     return l

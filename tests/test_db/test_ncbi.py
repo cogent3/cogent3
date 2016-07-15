@@ -24,14 +24,14 @@ class EUtilsTests(TestCase):
     """Tests of the EUtils class."""
     def test_simple_get(self):
         """EUtils simple access of an item should work"""
-        g = EUtils(db='protein',rettype='gp')
+        g = EUtils(db='protein', rettype='gp')
         result = g['NP_003320'].read()
         assert result.startswith('LOCUS')
         assert 'NP_003320' in result
 
     def test_get_slice(self):
         """EUtils access of a slice should work"""
-        g = EUtils(db='protein',rettype='gp', retmax=1)
+        g = EUtils(db='protein', rettype='gp', retmax=1)
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
@@ -40,7 +40,7 @@ class EUtilsTests(TestCase):
 
         #EUtils access of a slice should work, while limiting 
         #the esearch term length
-        g = EUtils(db='protein',rettype='gp', retmax=1, url_limit=2)
+        g = EUtils(db='protein', rettype='gp', retmax=1, url_limit=2)
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
@@ -50,8 +50,8 @@ class EUtilsTests(TestCase):
 
     def test_get_list(self):
         """EUtils access of a list should work"""
-        g = EUtils(db='protein',rettype='gp')
-        result = g['NP_003320','NP_003321','NP_003322'].read()
+        g = EUtils(db='protein', rettype='gp')
+        result = g['NP_003320', 'NP_003321', 'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
         loci = list(filter(is_locus, lines))
@@ -59,8 +59,8 @@ class EUtilsTests(TestCase):
 
         #EUtils access of a slice should work, while limiting
         #the esearch term length
-        g = EUtils(db='protein',rettype='gp',url_limit=2)
-        result = g['NP_003320','NP_003321','NP_003322'].read()
+        g = EUtils(db='protein', rettype='gp', url_limit=2)
+        result = g['NP_003320', 'NP_003321', 'NP_003322'].read()
         lines = result.splitlines()
         is_locus = lambda x: x.startswith('LOCUS')
         loci = list(filter(is_locus, lines))
@@ -187,7 +187,7 @@ class NcbiTests(TestCase):
         <Lineage>aaa;bbb</Lineage>
         """
         self.assertEqual(list(taxon_lineage_extractor(lines.splitlines())),
-                         [['xxx','yyy'],['aaa','bbb']])
+                         [['xxx', 'yyy'], ['aaa', 'bbb']])
 
     def test_parse_taxonomy_using_elementtree_xml_parse(self):
         """parse_taxonomy_using_elementtree_xml_parse should return taxonomy associated information"""
@@ -197,11 +197,11 @@ class NcbiTests(TestCase):
         fh.write(g[ids].read())
         fh.seek(0)
         data = parse_taxonomy_using_elementtree_xml_parse(fh)[0]
-        obs = (data['Lineage'],data['TaxId'],data['ScientificName'],\
+        obs = (data['Lineage'], data['TaxId'], data['ScientificName'],\
                data['Rank'])
         exp = ('cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella',\
-               '28901','Salmonella enterica','species')
-        self.assertEqual(obs,exp)
+               '28901', 'Salmonella enterica', 'species')
+        self.assertEqual(obs, exp)
 
 
     def test_taxon_ids_to_lineages(self):

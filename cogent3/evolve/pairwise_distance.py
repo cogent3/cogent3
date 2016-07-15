@@ -38,7 +38,7 @@ def get_purine_indices(moltype):
 
 def get_matrix_diff_coords(indices):
     """returns coordinates for off diagonal elements"""
-    return [(i,j) for i in indices for j in indices if i != j]
+    return [(i, j) for i in indices for j in indices if i != j]
 
 def get_moltype_index_array(moltype, invalid=-9):
     """returns the index array for a molecular type"""
@@ -46,7 +46,7 @@ def get_moltype_index_array(moltype, invalid=-9):
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
     max_ord = max(list(map(ord, list(moltype.All.keys()))))
-    char_to_index = zeros(max_ord+1, int32)
+    char_to_index = zeros(max_ord + 1, int32)
     # all non canonical_chars are ``invalid''
     char_to_index.fill(invalid)
 
@@ -79,7 +79,7 @@ def _jc69_from_matrix(matrix):
     """computes JC69 stats from a diversity matrix"""
     invalid = None, None, None, None
     total = matrix.sum()
-    diffs = total - sum(matrix[i,i] for i in range(matrix.shape[0]))
+    diffs = total - sum(matrix[i, i] for i in range(matrix.shape[0]))
     if total == 0:
         return invalid
 
@@ -98,7 +98,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
 
     total = matrix.sum()
     freqs = matrix.sum(axis=0) + matrix.sum(axis=1)
-    freqs /= (2*total)
+    freqs /= (2 * total)
 
     if total == 0:
         return invalid
@@ -127,8 +127,8 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
                   (prod_pyrs * freq_purs / freq_pyrs))
 
 
-    term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2*freq_purs)
-    term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2*freq_pyrs)
+    term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2 * freq_purs)
+    term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2 * freq_pyrs)
     term3 = 1 - tv_diffs / (2 * freq_purs * freq_pyrs)
 
     if term1 <= 0 or term2 <= 0 or term3 <= 0: # log will fail
@@ -148,7 +148,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     return total, p, dist, var
 
 def _logdetcommon(matrix):
-    invalid = (None,)*5
+    invalid = (None,) * 5
 
     total = matrix.sum()
     diffs = total - matrix.diagonal().sum()
@@ -179,7 +179,7 @@ def _logdetcommon(matrix):
 def _paralinear(matrix):
     """the paralinear distance from a diversity matrix"""
 
-    invalid = (None,)*4
+    invalid = (None,) * 4
 
     total, p, frequency, freqs, var_term = _logdetcommon(matrix)
     if frequency is None:
@@ -187,7 +187,7 @@ def _paralinear(matrix):
 
     r = matrix.shape[0]
     d_xy = - log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (var_term - (1 / sqrt(freqs[0]*freqs[1])).sum()) / (r**2 * total)
+    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r**2 * total)
 
     return total, p, d_xy, var
 
@@ -198,7 +198,7 @@ def _logdet(matrix, use_tk_adjustment=True):
         - use_tk_adjustment: when True, unequal state frequencies are allowed
     """
 
-    invalid = (None,)*4
+    invalid = (None,) * 4
 
     total, p, frequency, freqs, var_term = _logdetcommon(matrix)
     if frequency is None:
@@ -206,12 +206,12 @@ def _logdet(matrix, use_tk_adjustment=True):
 
     r = matrix.shape[0]
     if use_tk_adjustment:
-        coeff = (sum(sum(freqs)**2)/4 - 1) / (r - 1)
-        d_xy = coeff * log(det(frequency)/sqrt((freqs[0] * freqs[1]).prod()))
+        coeff = (sum(sum(freqs)**2) / 4 - 1) / (r - 1)
+        d_xy = coeff * log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod()))
         var = None
     else:
         d_xy = - log(det(frequency)) / r - log(r)
-        var = ( var_term / r**2 - 1 ) / total
+        var = (var_term / r**2 - 1) / total
 
     return total, p, d_xy, var
 
@@ -277,12 +277,12 @@ class _PairwiseDistance(object):
         matrix = zeros((self._dim, self._dim), float64)
         done = 0.0
         to_do = (len(self.Names) * len(self.Names) - 1) / 2
-        for i in range(len(self.Names)-1):
+        for i in range(len(self.Names) - 1):
             name_1 = self.Names[i]
             s1 = self.IndexedSeqs[i]
-            for j in range(i+1, len(self.Names)):
+            for j in range(i + 1, len(self.Names)):
                 name_2 = self.Names[j]
-                ui.display('%s vs %s' % (name_1, name_2), done / to_do )
+                ui.display('%s vs %s' % (name_1, name_2), done / to_do)
                 done += 1
                 matrix.fill(0)
                 s2 = self.IndexedSeqs[j]
@@ -324,7 +324,7 @@ class _PairwiseDistance(object):
                 row.append(val)
             rows.append(row)
         header = [r'Seq1 \ Seq2'] + self.Names
-        table = LoadTable(header=header, rows=rows, row_ids = True,
+        table = LoadTable(header=header, rows=rows, row_ids=True,
                           missing_data='*', **kwargs)
         return table
 

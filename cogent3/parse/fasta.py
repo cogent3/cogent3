@@ -12,7 +12,7 @@ import collections
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Rob Knight","Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -54,7 +54,7 @@ def MinimalFastaParser(infile, strict=True, \
         #first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
-                raise RecordError("Found Fasta record without label line: %s"%\
+                raise RecordError("Found Fasta record without label line: %s" %\
                                   rec)
             else:
                 continue
@@ -107,9 +107,9 @@ def MinimalInfo(label):
 
 def NameLabelInfo(label):
     """Returns name as label split on whitespace, and Label in Info."""
-    return label.split()[0], {'Label':label}
+    return label.split()[0], {'Label': label}
 
-def FastaParser(infile,seq_maker=None,info_maker=MinimalInfo,strict=True):
+def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
     """Yields successive sequences from infile as (name, sequence) tuples.
 
     Constructs the sequence using seq_maker(seq, info=Info(info_maker(label))).
@@ -143,10 +143,10 @@ def FastaParser(infile,seq_maker=None,info_maker=MinimalInfo,strict=True):
 
 #labeled fields in the NCBI FASTA records
 NcbiLabels = {
-    'dbj':'DDBJ',
-    'emb':'EMBL',
-    'gb':'GenBank',
-    'ref':'RefSeq',
+    'dbj': 'DDBJ',
+    'emb': 'EMBL',
+    'gb': 'GenBank',
+    'ref': 'RefSeq',
 }
 
 def NcbiFastaLabelParser(line):
@@ -244,7 +244,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
     for label, seq in parser:
         seq = moltype.makeSequence(seq, Name=label, Info=label.Info)
         if DEBUG:
-            print("str(label) ",str(label), "repr(label)", repr(label))
+            print("str(label) ", str(label), "repr(label)", repr(label))
         if not group_ids or label.Info[group_key] in group_ids:
             current_collection[label] = seq
             if not group_ids:

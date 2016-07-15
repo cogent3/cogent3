@@ -45,7 +45,7 @@ class TreeHandler(xml.sax.ContentHandler):
 
     def startDocument(self):
         self.stack = [({}, None, None)]
-        self.data = {'clades':[], 'params':{}}
+        self.data = {'clades': [], 'params': {}}
         self.in_clade = False
         self.current = None
 
@@ -54,7 +54,7 @@ class TreeHandler(xml.sax.ContentHandler):
         self.stack.append((self.data, self.in_clade, self.current))
         self.current = ""
         if name == "clade":
-            self.data = {'params':self.data['params'].copy(), 'clades':[], 'name':None}
+            self.data = {'params': self.data['params'].copy(), 'clades': [], 'name': None}
             self.in_clade = True
         else:
             self.data = {}

@@ -6,7 +6,7 @@ Currently provides:
     file: general functions to read and write files
 """
 __all__ = ['alignment', 'clustal', 'fasta', 'motif', 'nexus', 
-           'phylip',  'table']
+           'phylip', 'table']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

@@ -64,7 +64,7 @@ def masked_to_unmasked(mask, remove_mask=False):
     If remove_mask is True (the default is False), sets the masked positions
     to -1 for easy detection.
     """
-    result = cumsum(logical_not(mask), axis=0) -1
+    result = cumsum(logical_not(mask), axis=0) - 1
     if remove_mask:
         result = where(mask, -1, result)
     return result
@@ -106,19 +106,19 @@ def pairs_to_array(pairs, num_items=None, transform=None):
     #figure out if we're mapping the indices to gapped coordinates
     if transform is not None:
         #pairs of indices
-        idx_pairs = take(transform, data[:,0:2].astype(Int), axis=0)
+        idx_pairs = take(transform, data[:, 0:2].astype(Int), axis=0)
     else:
-        idx_pairs = data[:,0:2].astype(Int)
+        idx_pairs = data[:, 0:2].astype(Int)
     #figure out biggest item if not supplied
     if num_items is None:
         num_items = int(max(ravel(idx_pairs))) + 1
     #make result array
-    result = zeros((num_items,num_items), Float)
+    result = zeros((num_items, num_items), Float)
     if len(data[0]) == 2:
         values = 1
     else:
-        values = data[:,2]
-    put(ravel(result), idx_pairs[:,0]*num_items+idx_pairs[:,1], values)
+        values = data[:, 2]
+    put(ravel(result), idx_pairs[:, 0] * num_items + idx_pairs[:, 1], values)
     return result
 
 ln_2 = log(2)
@@ -130,7 +130,7 @@ def log2(x):
     an error (Overflow or ZeroDivision on another platform. So don't rely
     on getting -inf in your downstream code.
     """
-    return log(x)/ln_2
+    return log(x) / ln_2
 
 def safe_p_log_p(a):
     """Returns -(p*log2(p)) for every non-negative, nonzero p in a.
@@ -143,14 +143,14 @@ def safe_p_log_p(a):
     Always returns an array with floats in there to avoid unexpected
     results when applying it to an array with just integers.
     """
-    c = array(a.copy(),Float)
+    c = array(a.copy(), Float)
     flat = ravel(c)
-    nz_i = numpy.ravel(nonzero(maximum(flat,0)))
-    nz_e = take(flat,nz_i, axis=0)
+    nz_i = numpy.ravel(nonzero(maximum(flat, 0)))
+    nz_e = take(flat, nz_i, axis=0)
     log_nz = log2(nz_e)
     flat *= 0
-    x = nz_e*-log_nz
-    put(flat,nz_i,x)
+    x = nz_e * -log_nz
+    put(flat, nz_i, x)
     return c
 
 def safe_log(a):
@@ -166,12 +166,12 @@ def safe_log(a):
     Always returns an array with floats in there to avoid unexpected
     results when applying it to an array with just integers.
     """
-    c = array(a.copy(),Float)
+    c = array(a.copy(), Float)
     flat = ravel(c)
     nz_i = numpy.ravel(nonzero(flat))
-    nz_e = take(flat,nz_i, axis=0)
+    nz_e = take(flat, nz_i, axis=0)
     log_nz = log2(nz_e)
-    put(flat,nz_i,log_nz)
+    put(flat, nz_i, log_nz)
     return c
 
 def row_uncertainty(a):
@@ -189,7 +189,7 @@ def row_uncertainty(a):
     zeros((0,), 'l')
     """
     try:
-        return sum(safe_p_log_p(a),1)
+        return sum(safe_p_log_p(a), 1)
     except ValueError:
         raise ValueError("Array has to be two-dimensional")
 
@@ -213,7 +213,7 @@ def column_uncertainty(a):
     return sum(safe_p_log_p(a), axis=0)
 
 
-def row_degeneracy(a,cutoff=.5):
+def row_degeneracy(a, cutoff=.5):
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array
@@ -239,16 +239,16 @@ def row_degeneracy(a,cutoff=.5):
     if not a.any():
         return []
     try:
-        b = cumsum(sort(a)[:,::-1],1)
+        b = cumsum(sort(a)[:, ::-1], 1)
     except IndexError:
         raise ValueError("Array has to be two dimensional")
-    degen = [searchsorted(aln_pos,cutoff) for aln_pos in b]
+    degen = [searchsorted(aln_pos, cutoff) for aln_pos in b]
     #degen contains now the indices at which the cutoff was hit
     #to change to the number of characters, add 1
-    return clip(array(degen)+1,0,a.shape[1])
+    return clip(array(degen) + 1, 0, a.shape[1])
 
 
-def column_degeneracy(a,cutoff=.5):
+def column_degeneracy(a, cutoff=.5):
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array
@@ -273,16 +273,16 @@ def column_degeneracy(a,cutoff=.5):
     """
     if not a.any():
         return []
-    b = cumsum(sort(a,0)[::-1],axis=0)
+    b = cumsum(sort(a, 0)[::-1], axis=0)
     try:
-        degen = [searchsorted(b[:,idx],cutoff) for idx in range(len(b[0]))]
+        degen = [searchsorted(b[:, idx], cutoff) for idx in range(len(b[0]))]
     except TypeError:
         raise ValueError("Array has to be two dimensional")
     #degen contains now the indices at which the cutoff was hit
     #to change to the number of characters, add 1
-    return clip(array(degen)+1,0,a.shape[0])
+    return clip(array(degen) + 1, 0, a.shape[0])
 
-def hamming_distance(x,y):
+def hamming_distance(x, y):
     """Returns the Hamming distance between two arrays.
 
     The Hamming distance is the number of characters which differ between
@@ -295,7 +295,7 @@ def hamming_distance(x,y):
     ABC, ABB -> 1
     ABCDEFG, ABCEFGH -> 4
     """
-    shortest = min(list(map(len,[x,y])))
+    shortest = min(list(map(len, [x, y])))
     return sum(x[:shortest] != y[:shortest], axis=0)
 
 def norm(a):
@@ -307,16 +307,16 @@ def norm(a):
 
     a = numpy array
     """
-    return sqrt(sum((a*a).flat))
+    return sqrt(sum((a * a).flat))
 
-def euclidean_distance(a,b):
+def euclidean_distance(a, b):
     """Returns the Euclidean distance between two vectors/arrays
     a,b: numpy vectors or arrays
 
     WARNING: this method is NOT intended for use on arrays of different
     sizes, but no check for this has been built in. 
     """
-    return norm(a-b)
+    return norm(a - b)
 def count_simple(a, alphabet_len):
     """Counts items in a. """
     result = zeros(alphabet_len, Int)
@@ -366,7 +366,7 @@ def has_neg_off_diags_naive(m):
 
 def sum_neg_off_diags(m):
     """Returns sum of negative off-diags in m."""
-    return sum(compress(ravel(less(m,0)), \
+    return sum(compress(ravel(less(m, 0)), \
                         ravel((m * logical_not(identity(len(m)))))))
 
 def sum_neg_off_diags_naive(m):
@@ -386,7 +386,7 @@ def scale_row_sum(m, val=1):
     """Scales matrix in place so that each row sums to val (default: 1).
 
     """
-    m /= (sum(m, axis=1)/val)[:,newaxis]
+    m /= (sum(m, axis=1) / val)[:, newaxis]
 
 def scale_row_sum_naive(m, val=1):
     """Scales matrix in place so that each row sums to val (default:1).
@@ -406,14 +406,14 @@ def scale_trace(m, val=-1):
     WARNING: will use 'integer division', not true division, if matrix is
     an integer data type.
     """
-    m *= val/trace(m)
+    m *= val / trace(m)
 
 def abs_diff(first, second):
     """Calculates element-wise sum of abs(first - second).
 
     Return value may be real or complex.
     """
-    return sum(ravel(abs(first-second)))
+    return sum(ravel(abs(first - second)))
 
 def sq_diff(first, second):
     """Calculates element-wise sum of (first - second)**2.
@@ -421,26 +421,26 @@ def sq_diff(first, second):
     Return value may be real or complex.
     """
     diff = first - second
-    return sum(ravel((diff*diff)))
+    return sum(ravel((diff * diff)))
 
 def norm_diff(first, second):
     """Returns square root of sq_diff, normalized to # elements."""
     size = len(ravel(first))
-    return sqrt(sq_diff(first, second))/size
+    return sqrt(sq_diff(first, second)) / size
 
 def without_diag(a):
     """Returns copy of square matrix a, omitting diagonal elements."""
-    return array([concatenate((r[:i], r[i+1:])) for i, r in enumerate(a)])
+    return array([concatenate((r[:i], r[i + 1:])) for i, r in enumerate(a)])
 
 def with_diag(a, d):
     """Returns copy of matrix a with d inserted as diagonal to yield square."""
     rows, cols = a.shape
-    result = zeros((rows, cols+1), a.dtype.char)
+    result = zeros((rows, cols + 1), a.dtype.char)
     for i, r in enumerate(a):
         result_row = result[i]
         result_row[:i] = r[:i]
         result_row[i] = d[i]
-        result_row[i+1:] = r[i:]
+        result_row[i + 1:] = r[i:]
     return result
 
 def only_nonzero(a):
@@ -456,7 +456,7 @@ def only_nonzero(a):
     further analyses.
     """
     first_element_selector = [0] * len(a.shape)
-    first_element_selector[0] = slice(None,None)
+    first_element_selector[0] = slice(None, None)
     return take(a, numpy.ravel(nonzero(a[first_element_selector])), axis=0)
 
 def combine_dimensions(m, dim):
@@ -489,14 +489,14 @@ def split_dimension(m, dim, shape=None):
     num_dims = len(curr_dims)
     #if shape not specified, assume it was square
     if shape is None:
-        shape = (sqrt(curr_dims[dim]),)*2
+        shape = (sqrt(curr_dims[dim]),) * 2
     #raise IndexError if index out of bounds
     curr_dims[dim]
     #fix negative indices
     if dim < 0:
         dim = num_dims + dim
     #extract the relevant region and reshape it
-    new_dim = curr_dims[:dim] + shape + curr_dims[dim+1:]
+    new_dim = curr_dims[:dim] + shape + curr_dims[dim + 1:]
     new_dim = tuple(map(int, new_dim))
     return reshape(m, new_dim)
 
@@ -509,10 +509,10 @@ def non_diag(m):
     num_rows, num_elements = m.shape
     side_length = int(sqrt(num_elements))
     wanted = numpy.ravel(nonzero(logical_not(identity(side_length).flat)))
-    all_wanted = repeat([wanted], num_rows,axis=0)
-    all_wanted += (arange(num_rows) * num_elements)[:,newaxis]
+    all_wanted = repeat([wanted], num_rows, axis=0)
+    all_wanted += (arange(num_rows) * num_elements)[:, newaxis]
     return reshape(take(ravel(m), ravel(all_wanted), axis=0), \
-                   (num_rows, num_elements-side_length))
+                   (num_rows, num_elements - side_length))
 
 def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     """Perturbs one off-diagonal element of rate matrix m by random number.
@@ -567,7 +567,7 @@ def perturb_off_diag_frac(m, size):
     """
     elements = without_diag(m)
     random = normal(0, size_to_stdev(size), elements.shape)
-    result = elements * abs((1.0+random))   #ensure always positive
+    result = elements * abs((1.0 + random))   #ensure always positive
     return with_diag(result, -sum(result, 1))
 
 
@@ -579,7 +579,7 @@ def size_to_stdev(size):
 
     ...where E(X) = sqrt(2*sigma/pi)
     """
-    return size*size*pi/2.0
+    return size * size * pi / 2.0
 
 def merge_samples(*samples):
     """Merges list of samples into array of [vals,dists].
@@ -589,8 +589,8 @@ def merge_samples(*samples):
     e.g. for [1,2,3] and [4,5,6], result will be:
     array([[1,2,3,4,5,6],[0,0,0,1,1,1]])
     """
-    return concatenate([array((a, zeros(a.shape)+i)) \
-                        for i,a in enumerate(samples)], 1)
+    return concatenate([array((a, zeros(a.shape) + i)) \
+                        for i, a in enumerate(samples)], 1)
 
 def sort_merged_samples_by_value(a):
     """Sorts result of merge_samples by value (i.e. first row)."""
@@ -611,7 +611,7 @@ def classifiers(*samples):
     to_check = numpy.ravel(nonzero(vals[:-1] - vals[1:]))
     result = []
     for index in to_check:
-        i = index+1 #because it changes at the value _after_ the specified index
+        i = index + 1 #because it changes at the value _after_ the specified index
         fp = sum(labels[:i] != 0)
         fn = sum(labels[i:] == 0)
         tp = num_positives - fn
@@ -630,7 +630,7 @@ def minimize_error_count(classifiers):
     If multiple classifiers have equal scores, returns an arbitrary one.
     """
     c = array(classifiers)
-    return classifiers[argmin(sum(c[:,2:4],1))]
+    return classifiers[argmin(sum(c[:, 2:4], 1))]
 
 def minimize_error_rate(classifiers):
     """Returns the classifier from a list of classifiers that minimizes errors.
@@ -641,7 +641,7 @@ def minimize_error_rate(classifiers):
     """
     c = array(classifiers)
     return classifiers[argmin(\
-        1.0*c[:,2]/(c[:,2]+c[:,5])+1.0*c[:,3]/(c[:,3]+c[:,4]))]
+        1.0 * c[:, 2] / (c[:, 2] + c[:, 5]) + 1.0 * c[:, 3] / (c[:, 3] + c[:, 4]))]
 
 def mutate_array(a, sd, mean=0):
     """Return mutated copy of the array (or vector), adding mean +/- sd."""

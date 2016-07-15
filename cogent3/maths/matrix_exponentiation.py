@@ -45,7 +45,7 @@ class EigenExponentiator(_Exponentiator):
         self.roots = roots
 
     def __call__(self, t):
-        exp_roots = numpy.exp(t*self.roots)
+        exp_roots = numpy.exp(t * self.roots)
         result = numpy.inner(self.evT * exp_roots, self.evI)
         if result.dtype.kind == "c":
             result = numpy.asarray(result.real)
@@ -63,9 +63,9 @@ def SemiSymmetricExponentiator(motif_probs, Q):
     H2 = numpy.divide.outer(H, H)
     #A = Q * H2
     #assert numpy.allclose(A, numpy.transpose(A)), A
-    (roots, R) = eig(Q*H2)
+    (roots, R) = eig(Q * H2)
     ev = R.T / H2
-    evI = (R*H2).T
+    evI = (R * H2).T
     #self.evT = numpy.transpose(self.ev)
     return EigenExponentiator(Q, roots, ev, ev.T, evI)
 
@@ -86,14 +86,14 @@ class TaylorExponentiator(_Exponentiator):
         eA = numpy.identity(M, float)
         trm = eA
         for k in range(1, self.q):
-            trm = numpy.dot(trm, A/float(k))
+            trm = numpy.dot(trm, A / float(k))
             eA += trm
-        while not numpy.allclose(eA, eA-trm):
+        while not numpy.allclose(eA, eA - trm):
             k += 1
-            trm = numpy.dot(trm, A/float(k))
+            trm = numpy.dot(trm, A / float(k))
             eA += trm
         if k >= self.q:
-            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k+1))
+            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k + 1))
             self.q = k + 1
         return eA
 
@@ -109,7 +109,7 @@ class PadeExponentiator(_Exponentiator):
         M = A.shape[0]
         # Scale A so that norm is < 1/2
         norm = numpy.maximum.reduce(numpy.sum(numpy.absolute(A), axis=1))
-        j = int(numpy.floor(numpy.log(max(norm, 0.5))/numpy.log(2.0))) + 1
+        j = int(numpy.floor(numpy.log(max(norm, 0.5)) / numpy.log(2.0))) + 1
         A = A / 2.0**j
 
         # How many iterations required
@@ -119,26 +119,26 @@ class PadeExponentiator(_Exponentiator):
         while e > 1e-12:
             q += 1
             q2 = 2.0 * q
-            qf *= q**2 / (q2 * (q2-1) * q2 * (q2+1))
-            e = 8 * (norm/(2**j))**(2*q) * qf
+            qf *= q**2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
+            e = 8 * (norm / (2**j))**(2 * q) * qf
 
         # Pade Approximation for exp(A)
         X = A
-        c = 1.0/2
-        N = numpy.identity(M) + c*A
-        D = numpy.identity(M) - c*A
-        for k in range(2,q+1):
-            c = c * (q-k+1) / (k*(2*q-k+1))
-            X = numpy.dot(A,X)
-            cX = c*X
+        c = 1.0 / 2
+        N = numpy.identity(M) + c * A
+        D = numpy.identity(M) - c * A
+        for k in range(2, q + 1):
+            c = c * (q - k + 1) / (k * (2 * q - k + 1))
+            X = numpy.dot(A, X)
+            cX = c * X
             N = N + cX
             if not k % 2:
                 D = D + cX;
             else:
                 D = D - cX;
-        F = solve(D,N)
-        for k in range(1,j+1):
-            F = numpy.dot(F,F)
+        F = solve(D, N)
+        for k in range(1, j + 1):
+            F = numpy.dot(F, F)
         return F
 
 def chooseFastExponentiators(Q):

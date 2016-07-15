@@ -162,7 +162,7 @@ class SummaryStatistics(object):
         """Returns Count if possible (tries to calculate as sum/mean)."""
         if self._count is None:
             try:
-                self._count = self._sum/self._mean
+                self._count = self._sum / self._mean
             except (TypeError, ZeroDivisionError, FloatingPointError):
                 raise SummaryStatisticsError("Insufficient data to calculate count.")
         return self._count
@@ -338,9 +338,9 @@ class NumbersI(object):
         if fieldwidth == 7:
             decimals = 0
         else:
-            decimals = fieldwidth-8
-        format = ''.join(["%+", str(fieldwidth), '.',str(decimals),'e'])
-        return ''.join( [format % i for i in self])
+            decimals = fieldwidth - 8
+        format = ''.join(["%+", str(fieldwidth), '.', str(decimals), 'e'])
+        return ''.join([format % i for i in self])
 
     def normalize(self, x=None):
         """Normalizes items in Numbers by dividing by x (sum by default)."""
@@ -352,7 +352,7 @@ class NumbersI(object):
             return
         x = float(x)
         for index, item in enumerate(self):
-            self[index] = item/x
+            self[index] = item / x
 
     def accumulate(self):
         """Converts self to cumulative sum, in place"""
@@ -460,7 +460,7 @@ class NumbersI(object):
 
     def _get_sum_squares(self):
         """Returns sum of squares of items in self."""
-        return sum([i*i for i in self])
+        return sum([i * i for i in self])
     SumSquares = property(_get_sum_squares)
 
     def _get_variance(self):
@@ -475,7 +475,7 @@ class NumbersI(object):
         if count <= 1:  #no variance for a single item
             variance = 0.0
         else:
-            variance = (self.SumSquares-(total*total)/count)/(count-1)
+            variance = (self.SumSquares - (total * total) / count) / (count - 1)
         return variance
     Variance = property(_get_variance)
 
@@ -491,7 +491,7 @@ class NumbersI(object):
         if not self:
             return None
         try:
-            mean = self.Sum/self.Count
+            mean = self.Sum / self.Count
         except (ZeroDivisionError, FloatingPointError):
             mean = 0.0
         return mean
@@ -521,11 +521,11 @@ class NumbersI(object):
         if not self._is_sorted:
             self.sort()
             self._is_sorted = True
-        index = quantile * (len(self)-1)
+        index = quantile * (len(self) - 1)
         lo = int(floor(index))
         hi = int(ceil(index))
         diff = index - lo
-        stat = (1-diff) * self[lo] + diff * self[hi]
+        stat = (1 - diff) * self[lo] + diff * self[hi]
         return stat
 
     def _get_median(self):
@@ -537,7 +537,7 @@ class NumbersI(object):
     def summarize(self):
         """Returns summary statistics for self."""
         return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
-                                 Variance=self.Variance, Median = self.Median)
+                                 Variance=self.Variance, Median=self.Median)
 
     def choice(self):
         """Returns random element from self."""
@@ -936,7 +936,7 @@ class FreqsI(object):
                 f = float(freq)
                 if f < 0:
                     raise ValueError("Freqs.normalize(): found negative count!")
-                self[item] = f/total
+                self[item] = f / total
 
     def choice(self, prob):
         """If self is normalized, returns item corresponding to Pr(prob)."""
@@ -954,7 +954,7 @@ class FreqsI(object):
         Will raise IndexError if there are no items in self.
         """
         num_items = self.Sum
-        return [self.choice(random()*num_items) for i in range(n)]
+        return [self.choice(random() * num_items) for i in range(n)]
 
     def subset(self, items, keep=True):
         """Deletes keys for all but items from self, in place."""
@@ -984,17 +984,17 @@ class FreqsI(object):
 
         Does the transformation in place.
         """
-        for k,v in list(self.items()):
+        for k, v in list(self.items()):
             self[k] = v * factor + offset
 
-    def round(self, ndigits=0 ):
+    def round(self, ndigits=0):
         """Rounds frequencies in Freqs to ndigits (default:0, i.e. integers).
 
         Usage: f.round()
 
         Does the transformation in place
         """
-        for k,v in list(self.items()):
+        for k, v in list(self.items()):
             self[k] = round(v, ndigits)
 
     def expand(self, order=None, convert_to=None, scale=None):
@@ -1025,8 +1025,8 @@ class FreqsI(object):
         mode()...
         """
         if scale:
-            if sum([round(scale*v) for v in list(self.values())]) != scale:
-                raise ValueError("Can't round to the desired number (%d)"%(scale))
+            if sum([round(scale * v) for v in list(self.values())]) != scale:
+                raise ValueError("Can't round to the desired number (%d)" % (scale))
             else:
                 used_freq = self.copy()
                 used_freq.scale(factor=scale)
@@ -1063,7 +1063,7 @@ class FreqsI(object):
 
     def _get_sum_squares(self):
         """Returns sum of squares of items in self."""
-        return sum([i*i for i in list(self.values())])
+        return sum([i * i for i in list(self.values())])
     SumSquares = property(_get_sum_squares)
 
     def _get_variance(self):
@@ -1078,7 +1078,7 @@ class FreqsI(object):
         if count <= 1: #no variance for a single item
             variance = 0.0
         else:
-            variance = (self.SumSquares-(total*total)/count)/(count-1)
+            variance = (self.SumSquares - (total * total) / count) / (count - 1)
         return variance
     Variance = property(_get_variance)
 
@@ -1094,7 +1094,7 @@ class FreqsI(object):
         if not self:
             return None
         try:
-            mean = self.Sum/self.Count
+            mean = self.Sum / self.Count
         except (ZeroDivisionError, FloatingPointError):
             mean = 0.0
         return mean
@@ -1146,7 +1146,7 @@ class FreqsI(object):
         by_val: whether to sort by val instead of key (default True).
         """
         if by_val:
-            items = [(v, (k,v)) for k, v in list(self.items())]
+            items = [(v, (k, v)) for k, v in list(self.items())]
         else:
             items = list(self.items())
         items.sort()
@@ -1243,14 +1243,14 @@ class NumberFreqsI(FreqsI):
         """Returns sum of items in self."""
         if not self:
             return None
-        return sum([item*frequency for item,frequency in list(self.items())])
+        return sum([item * frequency for item, frequency in list(self.items())])
     Sum = property(_get_sum)
 
     def _get_sum_squares(self):
         """Returns sum of squares of items in self."""
         if not self:
             return None
-        return sum([i*i*count for i, count in list(self.items())])
+        return sum([i * i * count for i, count in list(self.items())])
     SumSquares = property(_get_sum_squares)
 
     def _get_uncertainty(self):
@@ -1281,7 +1281,7 @@ class NumberFreqsI(FreqsI):
 
         vals = sorted(self.keys())
         counts = array([self[val] for val in vals])
-        index = quantile * (counts.sum()-1)
+        index = quantile * (counts.sum() - 1)
         lo = int(floor(index))
         hi = int(ceil(index))
         diff = index - lo
@@ -1290,7 +1290,7 @@ class NumberFreqsI(FreqsI):
             hi_val = value_at_expanded_index(vals, counts, hi)
         else:
             hi_val = 0
-        stat = (1-diff) * lo_val + diff * hi_val
+        stat = (1 - diff) * lo_val + diff * hi_val
         return stat
 
     def _get_median(self):

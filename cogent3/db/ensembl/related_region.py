@@ -41,7 +41,7 @@ class _RelatedRegions(LazyRecord):
         seqs = []
         for member in self.Members:
             if feature_types:
-                seq = member.getAnnotatedSeq(feature_types,where_feature)
+                seq = member.getAnnotatedSeq(feature_types, where_feature)
             else:
                 seq = member.Seq
             if seq is None:
@@ -156,14 +156,14 @@ class SyntenicRegion(LazyRecord):
                                              ensembl_coord=True)
 
         ref_location = self.parent.ref_location
-        relative_start = ref_location.Start-block_loc.Start
+        relative_start = ref_location.Start - block_loc.Start
         relative_end = relative_start + len(ref_location)
         if block_loc.Strand != 1:
             relative_start = len(block_loc) - relative_end
             relative_end = relative_start + len(ref_location)
 
         aln_map, aln_loc = cigar.slice_cigar(self.cigar_line, relative_start,
-                                             relative_end, by_align = False)
+                                             relative_end, by_align=False)
 
         self.aln_map = aln_map
         self.aln_loc = aln_loc
@@ -188,14 +188,14 @@ class SyntenicRegion(LazyRecord):
             # we make a loc for the aligned region
             block_loc = self.genome.makeLocation(CoordName=record['name'],
                                                  Start=record['dnafrag_start'],
-                                                 End = record['dnafrag_end'],
+                                                 End=record['dnafrag_end'],
                                                  Strand=record['dnafrag_strand'],
                                                  ensembl_coord=True)
             relative_start = aln_loc[0]
             relative_end = aln_loc[1]
             # new location with correct length
             loc = block_loc.copy()
-            loc.End = loc.Start+(relative_end-relative_start)
+            loc.End = loc.Start + (relative_end - relative_start)
 
             if block_loc.Strand != 1:
                 shift = len(block_loc) - relative_end
@@ -207,7 +207,7 @@ class SyntenicRegion(LazyRecord):
             region = None
         self._cached['Region'] = region
 
-    def _make_aligned(self, feature_types = None, where_feature=None):
+    def _make_aligned(self, feature_types=None, where_feature=None):
         if self.aln_loc is None or self.aln_map is None: # is this required?
             self._make_map_func()
         region = self._cached['Region']

@@ -36,7 +36,7 @@ def map_to_cigar(map):
     cigar = ''
     for span in map.spans:
         if isinstance(span, Span):
-            num_chars = span.End-span.Start
+            num_chars = span.End - span.Start
             char = 'M'
         else:
             num_chars = span.length
@@ -44,7 +44,7 @@ def map_to_cigar(map):
         if num_chars == 1:
             cigar += char
         else:
-            cigar += str(num_chars)+char
+            cigar += str(num_chars) + char
     return cigar
 
 def cigar_to_map(cigar_text):
@@ -58,11 +58,11 @@ def cigar_to_map(cigar_text):
             n = 1
 
         if c == 'M':
-            spans.append(Span(posn, posn+n))
+            spans.append(Span(posn, posn + n))
             posn += n
         else:
             spans.append(LostSpan(n))
-    map = Map(spans = spans, parent_length = posn)
+    map = Map(spans=spans, parent_length=posn)
     return map
 
 def aligned_from_cigar(cigar_text, seq, moltype=DNA):
@@ -103,7 +103,7 @@ def _remap(map):
                 span.End = span.End - start
                 length = span.End
                 spans.append(span)
-        new_map = Map(spans = spans, parent_length = length)
+        new_map = Map(spans=spans, parent_length=length)
     return new_map
 
 def slice_cigar(cigar_text, start, end, by_align=True):
@@ -117,7 +117,7 @@ def slice_cigar(cigar_text, start, end, by_align=True):
         new_map = _remap(new_map)
     return new_map, location
 
-def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, end = None, moltype=DNA):
+def CigarParser(seqs, cigars, sliced=False, ref_seqname=None, start=None, end=None, moltype=DNA):
     """return an alignment from raw sequences and cigar strings
     if sliced, will return an alignment correspondent to ref sequence start to end
 
@@ -136,7 +136,7 @@ def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, 
     else:
         ref_aln_seq = aligned_from_cigar(cigars[ref_seqname], 
                                          seqs[ref_seqname], moltype=moltype)
-        m, aln_loc = slice_cigar(cigars[ref_seqname], start, end, by_align = False)
+        m, aln_loc = slice_cigar(cigars[ref_seqname], start, end, by_align=False)
         data[ref_seqname] = ref_aln_seq[aln_loc[0]:aln_loc[1]]
         for seqname in [seqname for seqname in list(seqs.keys()) if seqname != ref_seqname]:
             m, seq_loc = slice_cigar(cigars[seqname], aln_loc[0], aln_loc[1])
@@ -146,7 +146,7 @@ def CigarParser(seqs, cigars, sliced = False, ref_seqname = None, start = None, 
                     seq = moltype.makeSequence(seq)
                 data[seqname] = seq[seq_loc[0]:seq_loc[1]].gappedByMap(m)
             else:
-                data[seqname] = DNA.makeSequence('-'*(aln_loc[1] - aln_loc[0]))
-    aln = LoadSeqs(data = data, aligned = True)
+                data[seqname] = DNA.makeSequence('-' * (aln_loc[1] - aln_loc[0]))
+    aln = LoadSeqs(data=data, aligned=True)
     return aln
 

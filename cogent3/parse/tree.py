@@ -37,7 +37,7 @@ _dnd_tokens = dict.fromkeys(_dnd_token_str)
 _dnd_tokens_and_spaces = _dnd_token_str + ' \t\v\n'
 
 remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces, \
-                              '-'*len(_dnd_tokens_and_spaces))
+                              '-' * len(_dnd_tokens_and_spaces))
 
 def safe_for_tree(s):
     """Makes string s safe for DndParser by removing significant chars."""

@@ -119,7 +119,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
     for clade in accepted_clades:
         if len(clade) == 1:
             tip_name = next(iter(clade))
-            params = {'length':edgelengths[clade], attr:counts[clade]}
+            params = {'length': edgelengths[clade], attr: counts[clade]}
             nodes[tip_name] = tree_build([], tip_name, params)
         else:
             queue.append(((len(clade), clade)))
@@ -138,7 +138,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
         children = [nodes.pop(c) for c in clade]
         assert len([children])
         nodes[clade] = tree_build(children, None, 
-                                  {attr:counts[clade], 'length':edgelengths[clade]})
+                                  {attr: counts[clade], 'length': edgelengths[clade]})
         queue = new_queue
 
     for root in list(nodes.values()):
@@ -188,7 +188,7 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
                 break
         else:
             accepted_splits[split] = \
-                {attr : weight, 'length' : split_lengths[split]}
+                {attr: weight, 'length': split_lengths[split]}
 
     return [getTree(accepted_splits)]
 
@@ -201,10 +201,10 @@ def getSplits(tree):
 
     def getTipsAndSplits(tree):
         if tree.isTip():
-            return ({frozenset([tree.Name]) : {'length' : tree.Length}}, 
+            return ({frozenset([tree.Name]): {'length': tree.Length}}, 
                     [tree.Name])
 
-        splits = defaultdict(lambda : {'length' : 0.})
+        splits = defaultdict(lambda: {'length': 0.})
         tips = []
         for child in tree.Children:
             s, t = getTipsAndSplits(child)
@@ -213,14 +213,14 @@ def getSplits(tree):
         if not tree.isRoot():
             split = frozenset([t for s in splits for t in s])
             if tree.Length is None:
-                splits[split] = {'length' : None}
+                splits[split] = {'length': None}
             else:
-                splits[split] = {'length':tree.Length+splits[split]['length']}
+                splits[split] = {'length': tree.Length + splits[split]['length']}
         return splits, tips
 
     splits, tips = getTipsAndSplits(tree)
     tips = frozenset(tips)
-    return {frozenset([tips - s, s]) : params for s, params in list(splits.items())}
+    return {frozenset([tips - s, s]): params for s, params in list(splits.items())}
 
 def getTree(splits):
     """Convert a dict keyed by splits into the equivalent tree.
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         for tree in open(filename):
             trees.append(LoadTree(treestring=tree))
-    print("Consensus of %s trees from %s" % (len(trees),sys.argv[1:]))
+    print("Consensus of %s trees from %s" % (len(trees), sys.argv[1:]))
     outtrees = majorityRule(trees, strict=True)
     for tree in outtrees:
         print(tree.asciiArt(compact=True, show_internal=False))

@@ -34,11 +34,11 @@ def GbSeqXmlParser(doc):
     This XML PARSER uses minidom. This means a bad performance for 
     big files (>5MB), and huge XML files will for sure crash the program!
     """
-    if isinstance(doc,xml.dom.minidom.Document):
+    if isinstance(doc, xml.dom.minidom.Document):
         dom_obj = doc
     elif isinstance(doc, io.IOBase):
         dom_obj = xml.dom.minidom.parse(doc)
-    elif isinstance(doc,str):
+    elif isinstance(doc, str):
         dom_obj = xml.dom.minidom.parseString(doc)
     else:
         raise TypeError
@@ -50,7 +50,7 @@ def GbSeqXmlParser(doc):
 
         #cast as string to de-unicode
         raw_string = str(raw_seq).upper()
-        name=str(name)
+        name = str(name)
 
         if record.getElementsByTagName(
                 'GBSeq_moltype')[0].childNodes[0].nodeValue == '9':
@@ -60,13 +60,13 @@ def GbSeqXmlParser(doc):
 
         seq = alphabet.makeSequence(raw_string, Name=name)
 
-        all = annotation.Map([(0,len(seq))], parent_length=len(seq))
+        all = annotation.Map([(0, len(seq))], parent_length=len(seq))
         seq.addAnnotation(annotation.Source, all, name, all)
 
         organism = str(record.getElementsByTagName(
             'GBSeq_organism')[0].childNodes[0].nodeValue)
 
-        seq.addAnnotation(annotation.Feature, "organism", organism, [(0,len(seq))])
+        seq.addAnnotation(annotation.Feature, "organism", organism, [(0, len(seq))])
 
         features = record.getElementsByTagName('GBFeature')
         for feature in features:
@@ -83,15 +83,15 @@ def GbSeqXmlParser(doc):
                 try:
                     start = int(interval.getElementsByTagName(
                         "GBInterval_from")[0].childNodes[0].nodeValue)
-                    end= int(interval.getElementsByTagName(
+                    end = int(interval.getElementsByTagName(
                         "GBInterval_to")[0].childNodes[0].nodeValue)
-                    spans.append((start-1, end))
+                    spans.append((start - 1, end))
                 except IndexError:
                     point = int(interval.getElementsByTagName(
                                 "GBInterval_point")[0].childNodes[0].nodeValue)
-                    spans.append((point-1, point))
+                    spans.append((point - 1, point))
             if spans == []:
-                spans = [(0,len(seq))]
+                spans = [(0, len(seq))]
             for qualifier in feature.getElementsByTagName("GBQualifier"):
                 qname = qualifier.getElementsByTagName(
                     "GBQualifier_name")[0].childNodes[0].nodeValue

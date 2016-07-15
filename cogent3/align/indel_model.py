@@ -18,7 +18,7 @@ def PairTransitionMatrix(order, a):
     and optionally a silent wait state W"""
     size = len(order)
     assert a.shape == (size, size)
-    directions = {'W':(0,0), 'X':(1,0), 'Y':(0, 1), 'M':(1,1)}
+    directions = {'W': (0, 0), 'X': (1, 0), 'Y': (0, 1), 'M': (1, 1)}
     emits = [directions[state.upper()] for state in order]
     return TransitionMatrix(a, emits).withoutSilentStates()
 
@@ -50,10 +50,10 @@ class SimpleIndelModel(_SimpleIndelParams):
         e = self.indel_length
         g = 0.0
         T = numpy.array([
-            [0, d, d, 1-2*d], 
-            [1-e, e, 0, 0],
-            [1-e, 0, e, 0],
-            [1-g, 0, 0, g],
+            [0, d, d, 1 - 2 * d], 
+            [1 - e, e, 0, 0],
+            [1 - e, 0, e, 0],
+            [1 - g, 0, 0, g],
         ])
         return PairTransitionMatrix('WXYM', T).withoutSilentStates()
 
@@ -74,27 +74,27 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
 
         # Second indel event
         if distance < 0.0001:
-            secondary_indel = distance/2
+            secondary_indel = distance / 2
         else:
             x = numpy.exp(-distance - numpy.log(distance))
-            secondary_indel = 1 - 1/distance + x
+            secondary_indel = 1 - 1 / distance + x
         assert 0.0 <= secondary_indel <= 1.0
         secondary_deletion = secondary_insert = secondary_indel / 2.0
-        same_len = (1 - extend)/(1 + extend)
-        longer = shorted = (1.0 - same_len) /  2
+        same_len = (1 - extend) / (1 + extend)
+        longer = shorted = (1.0 - same_len) / 2
 
-        eMX = insert * (1 - secondary_deletion*(1 - longer))
+        eMX = insert * (1 - secondary_deletion * (1 - longer))
         eMY = deletion + insert * secondary_deletion * longer
         eMZ = (eMX + eMY)
 
         eXM =  extend * secondary_deletion * same_len + \
-        close * (deletion/4 + (1.0-indel))
-        eXX =  extend * (secondary_insert*extend/close + 
-                         secondary_deletion*shorted) + \
+        close * (deletion / 4 + (1.0 - indel))
+        eXX = extend * (secondary_insert * extend / close + 
+                         secondary_deletion * shorted) + \
         close * insert + extend
         #eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
         eXY =  extend * secondary_deletion * longer + \
-        close * deletion*3/4
+        close * deletion * 3 / 4
 
         #e = 1 + ( extend * secondary_indel/2 / close)
         #print e, (eXM + eXX + eXY)
@@ -113,7 +113,7 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
             [tXM, tXX, tXY],
             [tYM, tYX, tYY]])
 
-        if(min(tm.flat)<0):
+        if(min(tm.flat) < 0):
             raise ValueError
 
         return PairTransitionMatrix('MXY', tm)

@@ -40,7 +40,7 @@ class Dict2DSparseError(KeyError, Dict2DError):
 def average(upper, lower):
     """Returns mean of the two values."""
     try:
-        val = (upper + lower)/2.0
+        val = (upper + lower) / 2.0
         return val, val
     except TypeError:
         raise TypeError("%s or %s invalid types for averaging."\
@@ -466,7 +466,7 @@ class Dict2D(dict):
             new_f = f
         #get all the rows where the function is True
         row_order = self.RowOrder or self 
-        return [key for key, row in zip(row_order,self.Rows) \
+        return [key for key, row in zip(row_order, self.Rows) \
                 if new_f(row)]
 
     def getRowsIf(self, f, negate=False):
@@ -764,7 +764,7 @@ class Dict2D(dict):
                     method(curr_col.get(r, default), curr_row.get(c, default))
 
     def toDelimited(self, headers=True, item_delimiter='\t', \
-                    row_delimiter = '\n', formatter=str):
+                    row_delimiter='\n', formatter=str):
         """Printable string of items in self, optionally including headers.
 
         headers: whether or not to print headers (default True).

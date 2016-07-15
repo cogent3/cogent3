@@ -23,20 +23,20 @@ class Legend(Drawable):
 
     Arguments:
         - policy: a reference to a Display policy class"""
-    def __init__(self, policy = DisplayPolicy):
+    def __init__(self, policy=DisplayPolicy):
         self.policy = policy
 
     def _makeSampleSequence(self, feature_type):
         seq = moltype.DNA.makeSequence('aaaccggttt' * 7)
         v = seq.addAnnotation(annotation.Feature,
-                              feature_type, feature_type, [(2,3)])
+                              feature_type, feature_type, [(2, 3)])
         v = seq.addAnnotation(annotation.Feature,
-                              feature_type, feature_type, [(7,18)])
+                              feature_type, feature_type, [(7, 18)])
         v = seq.addAnnotation(annotation.Feature,
-                              feature_type, feature_type, [(20,70)])
+                              feature_type, feature_type, [(20, 70)])
         return seq
 
-    def populateAxes(self, ax, columns = 3):
+    def populateAxes(self, ax, columns=3):
         """ Returns the legend as a matplotlib artist
         Arguments:
             - columns: the number of columns of feature / representation
@@ -47,24 +47,24 @@ class Legend(Drawable):
         result = []
         x = y = 0
         for track in self.policy()._makeTrackDefns():
-            if track.tag is None or track.tag=="Graphs":
+            if track.tag is None or track.tag == "Graphs":
                 continue
-            ax.text(10, y*30, track.tag)
+            ax.text(10, y * 30, track.tag)
             y -= 1
             for feature in track:
                 seq = self._makeSampleSequence(feature)
                 display = Display(seq,
-                                  policy = self.policy,
-                                  min_feature_height = 10,
-                                  show_code = False,
-                                  pad = 0,)
+                                  policy=self.policy,
+                                  min_feature_height=10,
+                                  show_code=False,
+                                  pad=0,)
                 sample = display.makeArtist()
                 #trans = sample.get_transform()
                 #offset = Affine2D()
                 #offset.translate(x*600+20 / columns, y*30)
-                sample.translate(x*600/columns+10, y*30)
+                sample.translate(x * 600 / columns + 10, y * 30)
                 ax.add_artist(sample)
-                ax.text(x*600/columns+90, y*30, feature)
+                ax.text(x * 600 / columns + 90, y * 30, feature)
                 x += 1
                 if x % columns == 0:
                     x = 0
@@ -72,7 +72,7 @@ class Legend(Drawable):
             if x:
                 x = 0
                 y -= 1
-            ax.axhline((y+.7)*30)
+            ax.axhline((y + .7) * 30)
 
     def makeFigure(self, margin=0, default_aspect=1.3, **kw):
         kw['margin'] = margin

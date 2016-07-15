@@ -32,21 +32,21 @@ class GetTagTests(TestCase):
         self.empty_tag = xml.dom.minidom.parseString("<outer></outer>")
 
     def test_get_tag_works(self):
-        self.assertEqual(get_tag(self.single_tag,'inner'),'content')
-        self.assertEqual(get_tag(self.double_tag,'inner'),'first content')
-        self.assertEqual(get_tag(self.empty_tag,'inner'),None)
-        self.assertEqual(get_tag(self.empty_tag,'inner', 'blue elephant'),\
+        self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
+        self.assertEqual(get_tag(self.double_tag, 'inner'), 'first content')
+        self.assertEqual(get_tag(self.empty_tag, 'inner'), None)
+        self.assertEqual(get_tag(self.empty_tag, 'inner', 'blue elephant'),\
                          'blue elephant')
-        self.assertEqual(get_tag(self.single_tag,'non-existing tag'),None)
-        self.assertEqual(get_tag(self.single_tag,'non-existing tag',\
-                                 'pink elephant'),'pink elephant')
-        self.assertEqual(get_tag(self.single_tag,'inner'),'content')
+        self.assertEqual(get_tag(self.single_tag, 'non-existing tag'), None)
+        self.assertEqual(get_tag(self.single_tag, 'non-existing tag',\
+                                 'pink elephant'), 'pink elephant')
+        self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
 
     def test_get_tag_fail(self):
         """Make sure the tag and name parameters are in the proper types."""
-        self.assertRaises(AttributeError, get_tag,None,"h1")
+        self.assertRaises(AttributeError, get_tag, None, "h1")
         self.assertRaises(AttributeError, get_tag,\
-                          "<h1>This is not a XML tag object</h1>","h1")
+                          "<h1>This is not a XML tag object</h1>", "h1")
 
 
 class MinimalBlastParser7Tests(TestCase):
@@ -91,46 +91,46 @@ class MinimalBlastParser7Tests(TestCase):
     def test_parse_hit(self):
         """Should return a list with all values for a hit+hsp."""
         data = parse_hit(self.hit1)
-        self.assertEqual(len(data),1)
-        d = dict(list(zip(HIT_XML_FIELDNAMES,data[0])))
-        self.assertEqual(d['SUBJECT_ID'],"gi|148670104|gb|EDL02051.1|")
+        self.assertEqual(len(data), 1)
+        d = dict(list(zip(HIT_XML_FIELDNAMES, data[0])))
+        self.assertEqual(d['SUBJECT_ID'], "gi|148670104|gb|EDL02051.1|")
         self.assertEqual(d['HIT_DEF'],
                          "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
-        self.assertEqual(d['HIT_ACCESSION'],"2001")
-        self.assertEqual(int(d['HIT_LENGTH']),707)
+        self.assertEqual(d['HIT_ACCESSION'], "2001")
+        self.assertEqual(int(d['HIT_LENGTH']), 707)
         # check hit with more HSPs
         data = parse_hit(self.hit2)
-        self.assertEqual(len(data),2)
-        self.assertNotEqual(data[0],data[1])
+        self.assertEqual(len(data), 2)
+        self.assertNotEqual(data[0], data[1])
 
     def test_parse_hsp(self):
         """Should return list with all values for a hsp."""
         data = parse_hsp(self.hsp1)
-        d = dict(list(zip(HSP_XML_FIELDNAMES,data)))
-        self.assertEqual(float(d['BIT_SCORE']),1023.46)
-        self.assertEqual(float(d['SCORE']),2645)
-        self.assertEqual(float(d['E_VALUE']),0.333)
-        self.assertEqual(int(d['QUERY_START']),4)
-        self.assertEqual(int(d['QUERY_END']),18)
-        self.assertEqual(int(d['SUBJECT_START']),5)
-        self.assertEqual(int(d['SUBJECT_END']),19)
-        self.assertEqual(int(d['GAP_OPENINGS']),0)
-        self.assertEqual(int(d['ALIGNMENT_LENGTH']),14)
+        d = dict(list(zip(HSP_XML_FIELDNAMES, data)))
+        self.assertEqual(float(d['BIT_SCORE']), 1023.46)
+        self.assertEqual(float(d['SCORE']), 2645)
+        self.assertEqual(float(d['E_VALUE']), 0.333)
+        self.assertEqual(int(d['QUERY_START']), 4)
+        self.assertEqual(int(d['QUERY_END']), 18)
+        self.assertEqual(int(d['SUBJECT_START']), 5)
+        self.assertEqual(int(d['SUBJECT_END']), 19)
+        self.assertEqual(int(d['GAP_OPENINGS']), 0)
+        self.assertEqual(int(d['ALIGNMENT_LENGTH']), 14)
 
-        self.assertEqual(d['QUERY_ALIGN'],'ELEPHANTTHISISAHITTIGER')
-        self.assertEqual(d['MIDLINE_ALIGN'],'ORCA-WHALE')
-        self.assertEqual(d['SUBJECT_ALIGN'],'SEALSTHIS---HIT--GER')
+        self.assertEqual(d['QUERY_ALIGN'], 'ELEPHANTTHISISAHITTIGER')
+        self.assertEqual(d['MIDLINE_ALIGN'], 'ORCA-WHALE')
+        self.assertEqual(d['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
 
 
 class BlastXmlResultTests(TestCase):
     """Tests parsing of output of Blast with output mode 7 (XML)."""
     def setUp(self):
-        self.result = BlastXMLResult(COMPLETE_XML,xml=True)
+        self.result = BlastXMLResult(COMPLETE_XML, xml=True)
 
     def test_options(self):
         """Constructor should take parser as an option."""
-        result = BlastXMLResult(COMPLETE_XML,parser=MinimalBlastParser7)
-        self.assertEqual(len(list(result.keys())),1)
+        result = BlastXMLResult(COMPLETE_XML, parser=MinimalBlastParser7)
+        self.assertEqual(len(list(result.keys())), 1)
         # make sure whether normal Blast parser still works upon code merge!
 
     def test_parsed_query_sequence(self):
@@ -138,21 +138,21 @@ class BlastXmlResultTests(TestCase):
         # The full query sequence is not given in the XML file.
         # Thus it is not checked explicitly, only whether there is
         # exactly one found.
-        self.assertEqual(len(list(self.result.keys())),1)
+        self.assertEqual(len(list(self.result.keys())), 1)
 
     def test_parsed_iterations(self):
         """The result should have the right number of iterations."""
         n_iter = 0
-        for query_id,hits in self.result.iterHitsByQuery():
+        for query_id, hits in self.result.iterHitsByQuery():
             n_iter += 1
-        self.assertEqual(n_iter,1)
+        self.assertEqual(n_iter, 1)
 
     def test_parsed_hsps(self):
         """The result should have the right number of hsps."""
         n_hsps = 0
-        for query_id,hsps in self.result.iterHitsByQuery():
+        for query_id, hsps in self.result.iterHitsByQuery():
             n_hsps += len(hsps)
-        self.assertEqual(n_hsps,3)
+        self.assertEqual(n_hsps, 3)
 
     def test_parse_hit_details(self):
         """The result should have data from hit fields."""
@@ -162,32 +162,32 @@ class BlastXmlResultTests(TestCase):
                              "gi|148670104|gb|EDL02051.1|")
             self.assertEqual(first_hsp['HIT_DEF'],
                              "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
-            self.assertEqual(first_hsp['HIT_ACCESSION'],"2001")
-            self.assertEqual(first_hsp['HIT_LENGTH'],707)
+            self.assertEqual(first_hsp['HIT_ACCESSION'], "2001")
+            self.assertEqual(first_hsp['HIT_LENGTH'], 707)
 
     def test_parse_hsp_details(self):
         """The result should have data from hsp fields."""
         for query in self.result:
             # should check integers in next version.
             first_hsp = self.result[query][0][0]
-            self.assertEqual(first_hsp['QUERY ID'],1)
-            self.assertEqual(first_hsp['BIT_SCORE'],'1023.46')
-            self.assertEqual(first_hsp['SCORE'],'2645')
-            self.assertEqual(first_hsp['E_VALUE'],'0.333')
-            self.assertEqual(first_hsp['QUERY_START'],'4')
-            self.assertEqual(first_hsp['QUERY_END'],'18')
-            self.assertEqual(first_hsp['QUERY_ALIGN'],'ELEPHANTTHISISAHITTIGER')
-            self.assertEqual(first_hsp['MIDLINE_ALIGN'],'ORCA-WHALE')
-            self.assertEqual(first_hsp['SUBJECT_ALIGN'],'SEALSTHIS---HIT--GER')
-            self.assertEqual(first_hsp['SUBJECT_START'],'5')
-            self.assertEqual(first_hsp['SUBJECT_END'],'19')
-            self.assertEqual(first_hsp['PERCENT_IDENTITY'],'55')
-            self.assertEqual(first_hsp['POSITIVE'],'555')
-            self.assertEqual(first_hsp['GAP_OPENINGS'],0)
-            self.assertEqual(first_hsp['ALIGNMENT_LENGTH'],'14')
+            self.assertEqual(first_hsp['QUERY ID'], 1)
+            self.assertEqual(first_hsp['BIT_SCORE'], '1023.46')
+            self.assertEqual(first_hsp['SCORE'], '2645')
+            self.assertEqual(first_hsp['E_VALUE'], '0.333')
+            self.assertEqual(first_hsp['QUERY_START'], '4')
+            self.assertEqual(first_hsp['QUERY_END'], '18')
+            self.assertEqual(first_hsp['QUERY_ALIGN'], 'ELEPHANTTHISISAHITTIGER')
+            self.assertEqual(first_hsp['MIDLINE_ALIGN'], 'ORCA-WHALE')
+            self.assertEqual(first_hsp['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
+            self.assertEqual(first_hsp['SUBJECT_START'], '5')
+            self.assertEqual(first_hsp['SUBJECT_END'], '19')
+            self.assertEqual(first_hsp['PERCENT_IDENTITY'], '55')
+            self.assertEqual(first_hsp['POSITIVE'], '555')
+            self.assertEqual(first_hsp['GAP_OPENINGS'], 0)
+            self.assertEqual(first_hsp['ALIGNMENT_LENGTH'], '14')
 
             gap_hsp = self.result[query][0][1]
-            self.assertEqual(gap_hsp['GAP_OPENINGS'],'33')
+            self.assertEqual(gap_hsp['GAP_OPENINGS'], '33')
 
 
 
@@ -212,8 +212,8 @@ HSP_XML = """
               <Hsp_midline>ORCA-WHALE</Hsp_midline>
             </Hsp>
             """
-HSP_ONE = HSP_XML%''
-HSP_WITH_GAPS = HSP_XML%'<Hsp_gaps>33</Hsp_gaps>'
+HSP_ONE = HSP_XML % ''
+HSP_WITH_GAPS = HSP_XML % '<Hsp_gaps>33</Hsp_gaps>'
 
 HSP_TWO = """
         <Hsp>
@@ -249,8 +249,8 @@ HIT_XML = """
         </Hit>
 """
 
-HIT_WITH_ONE_HSP = HIT_XML%HSP_ONE
-HIT_WITH_TWO_HSPS = HIT_XML%(HSP_WITH_GAPS+HSP_TWO)
+HIT_WITH_ONE_HSP = HIT_XML % HSP_ONE
+HIT_WITH_TWO_HSPS = HIT_XML % (HSP_WITH_GAPS + HSP_TWO)
 
 PARAM_XML = """
 <BlastOutput_param>
@@ -288,11 +288,11 @@ HIT_SUFFIX = """
  </BlastOutput_iterations>
 """
 
-HEADER_COMPLETE=HEADER_XML%(PARAM_XML+HIT_PREFIX+HIT_WITH_ONE_HSP+\
-                            HIT_WITH_TWO_HSPS+HIT_SUFFIX)
+HEADER_COMPLETE = HEADER_XML % (PARAM_XML + HIT_PREFIX + HIT_WITH_ONE_HSP +\
+                            HIT_WITH_TWO_HSPS + HIT_SUFFIX)
 COMPLETE_XML = """<?xml version="1.0"?>
 <!DOCTYPE BlastOutput PUBLIC "-//NCBI//NCBI BlastOutput/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_BlastOutput.dtd">
-"""+HEADER_COMPLETE
+""" + HEADER_COMPLETE
 
 
 if __name__ == '__main__':

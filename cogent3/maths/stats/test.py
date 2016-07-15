@@ -46,20 +46,20 @@ def std_(x, axis=None):
 
     if axis is None:
         d = x - mean(x)
-        return sqrt(sum(d**2)/(len(x)-1))
+        return sqrt(sum(d**2) / (len(x) - 1))
     elif axis == 0:
         result = []
         for col in range(x.shape[1]):
-            vals = x[:,col]
+            vals = x[:, col]
             d = vals - mean(vals)
-            result.append(sqrt(sum(d**2)/(len(x)-1)))
+            result.append(sqrt(sum(d**2) / (len(x) - 1)))
         return result
     elif axis == 1:
         result = []
         for row in range(x.shape[0]):
-            vals = x[row,:]
+            vals = x[row, :]
             d = vals - mean(vals)
-            result.append(sqrt(sum(d**2)/(len(x)-1)))
+            result.append(sqrt(sum(d**2) / (len(x) - 1)))
         return result
     else:
         raise ValueError("axis out of bounds")
@@ -86,8 +86,8 @@ def var(x, axis=None):
     else:
         n = x.shape[axis]
     #compute the sum of squares from the mean(s)
-    sample_SS = sum(x**2, axis) - sum(x, axis)**2/n
-    return sample_SS / (n-1)
+    sample_SS = sum(x**2, axis) - sum(x, axis)**2 / n
+    return sample_SS / (n - 1)
 
 def std(x, axis=None):
     """computed unbiased standard deviations along given axis or flat array.
@@ -117,10 +117,10 @@ def median(m, axis=None):
         return _median(ravel(m))
     elif axis == 0:
         for col in range(cols):
-            median_vals.append(_median(m[:,col]))
+            median_vals.append(_median(m[:, col]))
     elif axis == 1 or axis == -1:
         for row in range(rows):
-            median_vals.append(_median(m[row,:]))
+            median_vals.append(_median(m[row, :]))
     else:
         raise ValueError("axis(=%s) out of bounds" % axis)
 
@@ -196,14 +196,14 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
 
     #apply Williams correction
     if williams:
-        q = 1 + ((  ( (n/ab) + (n/cd) ) -1 ) * ( ( (n/ac) + (n/bd) ) -1))/(6*n)
+        q = 1 + ((((n / ab) + (n / cd)) - 1) * (((n / ac) + (n / bd)) - 1)) / (6 * n)
         G /= q
 
-    p = chi_high(max(G,0), 1)
+    p = chi_high(max(G, 0), 1)
 
     #find which tail we were in if the test was directional
     if directional:
-        is_high =  ((b == 0) or (d != 0 and (a/b > c/d)))
+        is_high = ((b == 0) or (d != 0 and (a / b > c / d)))
         p = tail(p, is_high)
         if not is_high:
             G = -G
@@ -224,18 +224,18 @@ def G_ind(m, williams=False):
     Requires input data as a numpy array. From Sokal and Rohlf p 738.
     """
     f_ln_f_elements = safe_sum_p_log_p(m)
-    f_ln_f_rows = safe_sum_p_log_p(sum(m,0))
-    f_ln_f_cols = safe_sum_p_log_p(sum(m,1))
+    f_ln_f_rows = safe_sum_p_log_p(sum(m, 0))
+    f_ln_f_cols = safe_sum_p_log_p(sum(m, 1))
     tot = sum(ravel(m))
     f_ln_f_table = tot * log(tot)
 
-    df = (len(m)-1) * (len(m[0])-1)
-    G = 2*(f_ln_f_elements-f_ln_f_rows-f_ln_f_cols+f_ln_f_table)
+    df = (len(m) - 1) * (len(m[0]) - 1)
+    G = 2 * (f_ln_f_elements - f_ln_f_rows - f_ln_f_cols + f_ln_f_table)
     if williams:
-        q = 1+((tot*sum(1.0/sum(m,1))-1)*(tot*sum(1.0/sum(m,0))-1)/ \
-               (6*tot*df))
-        G = G/q
-    return G, chi_high(max(G,0), df)
+        q = 1 + ((tot * sum(1.0 / sum(m, 1)) - 1) * (tot * sum(1.0 / sum(m, 0)) - 1) / \
+               (6 * tot * df))
+        G = G / q
+    return G, chi_high(max(G, 0), df)
 
 
 def calc_contingency_expected(matrix):
@@ -265,7 +265,7 @@ def calc_contingency_expected(matrix):
         for item in matrix[row]:
             column_sum = sum(list(t_matrix[item].values()))
             #calculate expected frequency
-            Expected = (row_sum * column_sum)/overall_total
+            Expected = (row_sum * column_sum) / overall_total
             result[row][item] = [result[row][item]]
             result[row][item].append(Expected)
     return result
@@ -294,12 +294,12 @@ def G_fit(obs, exp, williams=1):
         if e <= 0:
             raise ZeroExpectedError("G_fit requires all expected values to be positive.")
         if o:   #if o is zero, o * log(o/e) must be zero as well.
-            G += o * log(o/e)
+            G += o * log(o / e)
             n += o
 
     G *= 2
     if williams:
-        q = 1 + (k + 1)/(6*n)
+        q = 1 + (k + 1) / (6 * n)
         G /= q
 
     return G, chi_high(G, k - 1)
@@ -333,7 +333,7 @@ def chi_square_from_Dict2D(data):
     (whichever is greater than 1)
 
     """
-    test =  sum([((item[0] - item[1]) * (item[0] - item[1]))/item[1] \
+    test =  sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1] \
                  for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])
@@ -367,7 +367,7 @@ def likelihoods(d_given_h, priors):
         wt_sum += d * p
     #divide each Pr(D|H_i) by the weighted sum and multiply by its prior
     #to get its likelihood
-    return [d/wt_sum for d in d_given_h]
+    return [d / wt_sum for d in d_given_h]
 
 def posteriors(likelihoods, priors):
     """Calculate posterior probabilities given priors and likelihoods.
@@ -383,7 +383,7 @@ def posteriors(likelihoods, priors):
     #Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors)]
 
-def bayes_updates(ds_given_h, priors = None):
+def bayes_updates(ds_given_h, priors=None):
     """Successively apply lists of Pr(D|H) to get Pr(H|D) by marginalization.
 
     Usage: final_probs = bayes_updates(ds_given_h, [priors])
@@ -397,7 +397,7 @@ def bayes_updates(ds_given_h, priors = None):
         length = len(first_list)
         #calculate flat prior if none was passed
         if not priors:
-            priors = [1/length] * length
+            priors = [1 / length] * length
         #apply each form of data to the priors to get posterior probabilities
         for index, d in enumerate(ds_given_h):
             #first, ignore the form of data if all the d's are the same
@@ -419,7 +419,7 @@ def bayes_updates(ds_given_h, priors = None):
     except (ZeroDivisionError, FloatingPointError):
         return [0] * length
 
-def t_paired(a,b, tails=None, exp_diff=0):
+def t_paired(a, b, tails=None, exp_diff=0):
     """Returns t and prob for TWO RELATED samples of scores a and b.  
 
     From Sokal and Rohlf (1995), p. 354.
@@ -444,7 +444,7 @@ def t_paired(a,b, tails=None, exp_diff=0):
         return (None, None)
 
 
-def t_one_sample(a,popmean=0, tails=None):
+def t_one_sample(a, popmean=0, tails=None):
     """Returns t for ONE group of scores a, given a population mean.
 
     Usage:   t, prob = t_one_sample(a, popmean, tails)
@@ -456,14 +456,14 @@ def t_one_sample(a,popmean=0, tails=None):
 """
     try:
         n = len(a)
-        t = (mean(a) - popmean)/(std(a)/sqrt(n))
+        t = (mean(a) - popmean) / (std(a) / sqrt(n))
     except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
             FloatingPointError):
         return None, None
     if isnan(t) or isinf(t):
         return None, None
 
-    prob = t_tailed_prob(t, n-1, tails)
+    prob = t_tailed_prob(t, n - 1, tails)
     return t, prob
 
 
@@ -541,9 +541,9 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
                 result = _t_test_no_variance(x1, x2, tails)
         else:
             # At least one list varies.
-            df = n1+n2-2
-            svar = ((n1-1)*var1 + (n2-1)*var2)/df
-            t = (x1-x2-exp_diff)/sqrt(svar*(1/n1 + 1/n2))
+            df = n1 + n2 - 2
+            svar = ((n1 - 1) * var1 + (n2 - 1) * var2) / df
+            t = (x1 - x2 - exp_diff) / sqrt(svar * (1 / n1 + 1 / n2))
 
             if isnan(t) or isinf(t):
                 result = (None, None)
@@ -699,8 +699,8 @@ def t_one_observation(x, sample, tails=None, exp_diff=0,
         else:
             # The list varies.
             n = len(sample)
-            t = (x - sample_mean - exp_diff)/sample_std/sqrt((n+1)/n)
-            prob = t_tailed_prob(t, n-1, tails)
+            t = (x - sample_mean - exp_diff) / sample_std / sqrt((n + 1) / n)
+            prob = t_tailed_prob(t, n - 1, tails)
             result = (t, prob)
     except (ZeroDivisionError, ValueError, AttributeError, TypeError,
             FloatingPointError):
@@ -732,14 +732,14 @@ def pearson(x_items, y_items):
 
     sum_x = sum(x_items)
     sum_y = sum(y_items)
-    sum_x_sq = sum(x_items*x_items)
-    sum_y_sq = sum(y_items*y_items)
-    sum_xy = sum(x_items*y_items)
+    sum_x_sq = sum(x_items * x_items)
+    sum_y_sq = sum(y_items * y_items)
+    sum_xy = sum(x_items * y_items)
     n = len(x_items)
 
     try:
         r = 1.0 * ((n * sum_xy) - (sum_x * sum_y)) / \
-            (sqrt((n * sum_x_sq)-(sum_x*sum_x))*sqrt((n*sum_y_sq)-(sum_y*sum_y)))
+            (sqrt((n * sum_x_sq) - (sum_x * sum_x)) * sqrt((n * sum_y_sq) - (sum_y * sum_y)))
     except (ZeroDivisionError, ValueError, FloatingPointError): #no variation
         r = 0.0
     #check we didn't get a naughty value for r due to rounding error
@@ -776,32 +776,32 @@ def spearman(x_items, y_items):
 
     if ties1 == 0 and ties2 == 0:
         n = len(rank1)
-        sum_sqr = sum([(x-y)**2 for x,y in zip(rank1,rank2)])
-        rho = 1 - (6*sum_sqr/(n*(n**2 - 1)))
+        sum_sqr = sum([(x - y)**2 for x, y in zip(rank1, rank2)])
+        rho = 1 - (6 * sum_sqr / (n * (n**2 - 1)))
     else:
-        avg = lambda x: sum(x)/len(x)
+        avg = lambda x: sum(x) / len(x)
 
         x_bar = avg(rank1)
         y_bar = avg(rank2)
 
-        numerator = sum([(x-x_bar)*(y-y_bar) for x,y in zip(rank1, rank2)])
-        denominator = sqrt(sum([(x-x_bar)**2 for x in rank1])*
-                           sum([(y-y_bar)**2 for y in rank2]))
+        numerator = sum([(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2)])
+        denominator = sqrt(sum([(x - x_bar)**2 for x in rank1]) *
+                           sum([(y - y_bar)**2 for y in rank2]))
 
         # Calculate rho. Handle the case when there is no variation in one or
         # both of the input vectors.
         if denominator == 0.0:
             rho = 0.0
         else:
-            rho = numerator/denominator
+            rho = numerator / denominator
     return rho
 
 def _get_rank(data):
     """Ranks the elements of a list. Used in Spearman correlation."""
     indices = list(range(len(data)))
-    ranks = list(range(1,len(data)+1))
-    indices.sort(key=lambda index:data[index])
-    ranks.sort(key=lambda index:indices[index-1])
+    ranks = list(range(1, len(data) + 1))
+    indices.sort(key=lambda index: data[index])
+    ranks.sort(key=lambda index: indices[index - 1])
     data_len = len(data)
     i = 0
     ties = 0
@@ -816,11 +816,11 @@ def _get_rank(data):
         while j < data_len and data[indices[j]] == val:
             j += 1
         dup_ranks = j - i
-        val = float(ranks[indices[i]]) + (dup_ranks-1)/2.0
-        for k in range(i, i+dup_ranks):
+        val = float(ranks[indices[i]]) + (dup_ranks - 1) / 2.0
+        for k in range(i, i + dup_ranks):
             ranks[indices[k]] = val
         i += dup_ranks
-        ties += dup_ranks-1
+        ties += dup_ranks - 1
     return ranks, ties
 
 def correlation(x_items, y_items):
@@ -995,17 +995,17 @@ def regress(x, y):
     Adapted from the following URL:
     http://www.python.org/topics/scicomp/recipes_in_python.html
     """
-    x, y = array(x,'Float64'), array(y,'Float64')
+    x, y = array(x, 'Float64'), array(y, 'Float64')
     N = len(x)
     Sx = sum(x)
     Sy = sum(y)
-    Sxx = sum(x*x)
-    Syy = sum(y*y)
-    Sxy = sum(x*y)
+    Sxx = sum(x * x)
+    Syy = sum(y * y)
+    Sxy = sum(x * y)
     det = Sxx * N - Sx * Sx
-    return (Sxy * N - Sy * Sx)/det, (Sxx * Sy - Sx * Sxy)/det
+    return (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
 
-def regress_origin(x,y):
+def regress_origin(x, y):
     """Returns coefficients to regression "y=ax+b" passing through origin.
 
     Requires vectors x and y of same length.
@@ -1013,8 +1013,8 @@ def regress_origin(x,y):
 
     returns slope, intercept as a tuple.
     """
-    x, y = array(x,'Float64'), array(y,'Float64')
-    return sum(x*y)/sum(x*x), 0
+    x, y = array(x, 'Float64'), array(y, 'Float64')
+    return sum(x * y) / sum(x * x), 0
 
 def regress_R2(x, y):
     """Returns the R^2 value for the regression of x and y
@@ -1022,19 +1022,19 @@ def regress_R2(x, y):
     Used the method explained on pg 334 ofJ.H. Zar, Biostatistical analysis,
     fourth edition. 1999
     """
-    slope, intercept = regress(x,y)
+    slope, intercept = regress(x, y)
     coords = list(zip(x, y))
-    Sx = Sy = Syy = SXY =  0.0
+    Sx = Sy = Syy = SXY = 0.0
     n = float(len(y))
     for x, y in coords:
-        SXY += x*y
+        SXY += x * y
         Sx += x
         Sy += y
-        Syy += y*y
-    Sxy = SXY - (Sx*Sy)/n
+        Syy += y * y
+    Sxy = SXY - (Sx * Sy) / n
     regSS = slope * Sxy
-    totSS = Syy - ((Sy*Sy)/n)
-    return regSS/totSS
+    totSS = Syy - ((Sy * Sy) / n)
+    return regSS / totSS
 
 def regress_residuals(x, y):
     """reports the residual (error) for each point from the linear regression"""
@@ -1049,7 +1049,7 @@ def regress_residuals(x, y):
 def stdev_from_mean(x):
     """returns num standard deviations from the mean of each val in x[]"""
     x = array(x)
-    return (x - mean(x))/std(x)
+    return (x - mean(x)) / std(x)
 
 def regress_major(x, y):
     """Returns major-axis regression line of y on x.
@@ -1060,17 +1060,17 @@ def regress_major(x, y):
     N = len(x)
     Sx = sum(x)
     Sy = sum(y)
-    Sxx = sum(x*x)
-    Syy = sum(y*y)
-    Sxy = sum(x*y)
-    var_y = (Syy-((Sy*Sy)/N))/(N-1)
-    var_x = (Sxx-((Sx*Sx)/N))/(N-1)
-    cov = (Sxy-((Sy*Sx)/N))/(N-1)
-    mean_y = Sy/N
-    mean_x = Sx/N
-    D = sqrt((var_y + var_x)*(var_y + var_x) - 4*(var_y*var_x - (cov*cov)))
-    eigen_1 = (var_y + var_x + D)/2
-    slope = cov/(eigen_1 - var_y)
+    Sxx = sum(x * x)
+    Syy = sum(y * y)
+    Sxy = sum(x * y)
+    var_y = (Syy - ((Sy * Sy) / N)) / (N - 1)
+    var_x = (Sxx - ((Sx * Sx) / N)) / (N - 1)
+    cov = (Sxy - ((Sy * Sx) / N)) / (N - 1)
+    mean_y = Sy / N
+    mean_x = Sx / N
+    D = sqrt((var_y + var_x) * (var_y + var_x) - 4 * (var_y * var_x - (cov * cov)))
+    eigen_1 = (var_y + var_x + D) / 2
+    slope = cov / (eigen_1 - var_y)
     intercept = mean_y - (mean_x * slope)
     return (slope, intercept)
 
@@ -1090,7 +1090,7 @@ popstdev should be the parametric population standard deviation, 1 by default.
 tails should be None (default), 'high', or 'low'.
 """ 
     try:
-        z = (mean(a) - popmean)/popstdev*sqrt(len(a))
+        z = (mean(a) - popmean) / popstdev * sqrt(len(a))
         return z, z_tailed_prob(z, tails)
     except (ValueError, TypeError, ZeroDivisionError, AttributeError, \
             FloatingPointError):
@@ -1112,7 +1112,7 @@ def t_tailed_prob(t, df, tails):
     elif tails == 'low':
         return t_low(t, df)
     else:
-        return tprob(t,df)
+        return tprob(t, df)
 
 def reverse_tails(tails):
     """Swaps high for low or vice versa, leaving other values alone."""
@@ -1135,7 +1135,7 @@ def tail(prob, test):
 def combinations(n, k):
     """Returns the number of ways of choosing k items from n.
     """
-    return exp(lgam(n+1) - lgam(k+1) - lgam(n-k+1))
+    return exp(lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1))
 
 def multiple_comparisons(p, n):
     """Corrects P-value for n multiple comparisons.
@@ -1144,7 +1144,7 @@ def multiple_comparisons(p, n):
     otherwise to avoid rounding (1-p) to 1
     """
     if p > 1e-6:   #if p is large and n small, calculate directly
-        return 1 - (1-p)**n
+        return 1 - (1 - p)**n
     else:
         return one_minus_exp(-n * p)
 
@@ -1155,14 +1155,14 @@ def multiple_inverse(p_final, n):
     to 1 (say, within 1e-4) since we then take the ratio of two very similar
     numbers.
     """
-    return one_minus_exp(log_one_minus(p_final)/n)
+    return one_minus_exp(log_one_minus(p_final) / n)
 
 def multiple_n(p_initial, p_final):
     """Returns number of comparisons such that p_initial maps to p_final.
 
     WARNING: not very accurate when p_final is very close to 1.
     """
-    return log_one_minus(p_final)/log_one_minus(p_initial)
+    return log_one_minus(p_final) / log_one_minus(p_initial)
 
 def fisher(probs):
     """Uses Fisher's method to combine multiple tests of a hypothesis.
@@ -1174,7 +1174,7 @@ def fisher(probs):
     except OverflowError as e:
         return 0.0 
 
-def f_value(a,b):
+def f_value(a, b):
     """Returns the num df, the denom df, and the F value.
 
     a, b: lists of values, must have Variance attribute (recommended to
@@ -1187,9 +1187,9 @@ def f_value(a,b):
     """
     if not any(a) or not any(b) or len(a) <= 1 or len(b) <= 1:
         raise ValueError("Vectors should contain more than 1 element")
-    F = var(a)/var(b)
-    dfn = len(a)-1
-    dfd = len(b)-1
+    F = var(a) / var(b)
+    dfn = len(a) - 1
+    dfd = len(b) - 1
     return dfn, dfd, F
 
 
@@ -1210,9 +1210,9 @@ def f_two_sample(a, b, tails=None):
         return dfn, dfd, F, f_high(dfn, dfd, F)
     else:
         if var(a) >= var(b):
-            side='right'
+            side = 'right'
         else:
-            side='left'
+            side = 'left'
         return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
 
 def ANOVA_one_way(a):
@@ -1233,13 +1233,13 @@ def ANOVA_one_way(a):
     for i in a:
         num_cases += len(i)
         group_means.append(i.Mean)
-        group_variances.append(i.Variance * (len(i)-1))
+        group_variances.append(i.Variance * (len(i) - 1))
         all_vals.extend(i)
     group_means = Numbers(group_means)
     #get within group variances (denominator)
     group_variances = Numbers(group_variances)
     dfd = num_cases - len(group_means)
-    within_MS = sum(group_variances)/dfd
+    within_MS = sum(group_variances) / dfd
     #get between group variances (numerator)
     grand_mean = Numbers(all_vals).Mean
     between_MS = 0
@@ -1249,11 +1249,11 @@ def ANOVA_one_way(a):
         x = diff_sq * len(i)
         between_MS += x
     dfn = len(group_means) - 1
-    between_MS = between_MS/dfn
-    F = between_MS/within_MS
+    between_MS = between_MS / dfn
+    F = between_MS / within_MS
     return dfn, dfd, F, between_MS, within_MS, group_means, f_high(dfn, dfd, F)
 
-def MonteCarloP(value, rand_values, tail = 'high'):
+def MonteCarloP(value, rand_values, tail='high'):
     """takes a true value and a list of random values as
         input and returns a p-value
 
@@ -1261,7 +1261,7 @@ def MonteCarloP(value, rand_values, tail = 'high'):
         low = look for smaller values than expected by chance
         high = look for larger values than expected by chance
     """
-    pop_size= len(rand_values)
+    pop_size = len(rand_values)
     rand_values.sort()
     if tail == 'high':
         num_better = pop_size
@@ -1269,7 +1269,7 @@ def MonteCarloP(value, rand_values, tail = 'high'):
             if value <= curr_val:
                 num_better = i
                 break
-        p_val = 1-(num_better / pop_size)
+        p_val = 1 - (num_better / pop_size)
     elif tail == 'low':
         num_better = pop_size
         for i, curr_val in enumerate(rand_values):
@@ -1298,15 +1298,15 @@ def sign_test(success, trials, alt="two sided"):
         success -= 1
         p = binomial_high(success, trials, 0.5)
     elif alt in two:
-        success = min(success, trials-success)
+        success = min(success, trials - success)
         hi = 1 - binomial_high(success, trials, 0.5)
         lo = binomial_low(success, trials, 0.5)
-        p = hi+lo
+        p = hi + lo
     else:
-        raise RuntimeError("alternate [%s] not in %s" % (lo+hi+two))
+        raise RuntimeError("alternate [%s] not in %s" % (lo + hi + two))
     return p
 
-def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
+def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     """Returns the statistic and probability from the Kolmogorov-Smirnov test.
 
     Arguments:
@@ -1339,7 +1339,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
         combined = array(combined, dtype=[('stat', float), ('sample', int)])
         combined.sort(order='stat')
         cumsum = zeros(combined.shape[0], float)
-        scales = array([1/num_x, -1/num_y])
+        scales = array([1 / num_x, -1 / num_y])
         indices = combined['sample']
         cumsum = scales.take(indices)
         cumsum = cumsum.cumsum()
@@ -1388,7 +1388,7 @@ def _get_bootstrap_sample(x, y, num_reps):
         sampled_y = sampled[num_x:]
         yield sampled_x, sampled_y
 
-def ks_boot(x, y, alt = "two sided", num_reps=1000):
+def ks_boot(x, y, alt="two sided", num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
     for when there are ties.
 
@@ -1414,7 +1414,7 @@ def ks_boot(x, y, alt = "two sided", num_reps=1000):
     return observed_stat, num_greater / num_reps
 
 def _average_rank(start_rank, end_rank):
-    ave_rank = sum(range(start_rank, end_rank+1)) / (1+end_rank-start_rank)
+    ave_rank = sum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
     return ave_rank
 
 def mw_test(x, y):
@@ -1428,7 +1428,7 @@ def mw_test(x, y):
 
     x = list(zip(x, zeros(len(x), int), zeros(len(x), int)))
     y = list(zip(y, ones(len(y), int), zeros(len(y), int)))
-    combined = x+y
+    combined = x + y
     combined = array(combined, dtype=[('stat', float), ('sample', int),
                                       ('rank', float)])
     combined.sort(order='stat')
@@ -1448,28 +1448,28 @@ def mw_test(x, y):
             ave_rank = _average_rank(start, index)
             num_tied = index - start + 1
             T += (num_tied**3 - num_tied)
-            for i in range(start-1, index):
+            for i in range(start - 1, index):
                 combined['rank'][i] = ave_rank
             start = None
-        combined['rank'][index] = index+1
+        combined['rank'][index] = index + 1
         prev = value
 
     if start is not None:
         ave_rank = _average_rank(start, index)
         num_tied = index - start + 2
         T += (num_tied**3 - num_tied)
-        for i in range(start-1, index+1):
+        for i in range(start - 1, index + 1):
             combined['rank'][i] = ave_rank
 
     total = combined.shape[0]
     x_ranks_sum = sum(combined['rank'][i] for i in range(total) if combined['sample'][i] == 0)
     prod = num_x * num_y
-    U1 = prod + (num_x * (num_x+1) / 2) - x_ranks_sum
+    U1 = prod + (num_x * (num_x + 1) / 2) - x_ranks_sum
     U2 = prod - U1
     U = max([U1, U2])
     numerator = U - prod / 2
-    denominator = sqrt((prod / (total * (total-1)))*((total**3 - total - T)/12))
-    z = (numerator/denominator)
+    denominator = sqrt((prod / (total * (total - 1))) * ((total**3 - total - T) / 12))
+    z = (numerator / denominator)
     p = zprob(z)
     return U, p
 
@@ -1636,30 +1636,30 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
         exact = True
 
     if num < 50 and not ties and exact:
-        combs = int(num * (num-1) / 2)
+        combs = int(num * (num - 1) / 2)
         working = []
         for i in range(combs):
             row = [-1 for j in range(combs)]
             working.append(row)
 
         tau = kendalls_tau(x, y, False)
-        q = round((tau+1)*num*(num-1) / 4)
+        q = round((tau + 1) * num * (num - 1) / 4)
         if alt in two:
             if q > num * (num - 1) / 4:
-                p = 1 - pkendall(q-1, num, Gamma(num+1), working)
+                p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
             else:
-                p = pkendall(q, num, Gamma(num+1), working)
-            p = min(2*p, 1)
+                p = pkendall(q, num, Gamma(num + 1), working)
+            p = min(2 * p, 1)
         elif alt in hi:
-            p = 1 - pkendall(q-1, num, Gamma(num+1), working)
+            p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
         elif alt in lo:
-            p = pkendall(q, num, Gamma(num+1), working)
+            p = pkendall(q, num, Gamma(num + 1), working)
     else:
         tau, p = kendalls_tau(x, y, True)
         if alt in hi:
             p /= 2
         elif alt in lo:
-            p = 1 - p/2
+            p = 1 - p / 2
     return tau, p
 
 ## Start functions for distance_matrix_permutation_test
@@ -1698,7 +1698,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
     indices = list(range(len(matrix)))
     for k in range(n):
         # shuffle the order of indices, and use those to permute the matrix
-        permuted_matrix = permute_2d(matrix,permutation(indices))
+        permuted_matrix = permute_2d(matrix, permutation(indices))
         special_values, other_values = \
             get_values_from_matrix(permuted_matrix, cells,\
                                    cells2, is_symmetric)
@@ -1715,7 +1715,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
 
     # pack up the parametric stat, parametric p, and empirical p; calc the
     # the latter in the process
-    result = [stat, p, count_more_extreme/n]
+    result = [stat, p, count_more_extreme / n]
     # append the scores of the n tests if requested
     if return_scores: result.append(stats)
     return tuple(result)
@@ -1743,10 +1743,10 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
         for i, val_i in enumerate(matrix):
             for j, val in enumerate(val_i):
                 if is_symmetric:
-                    if (i,j) not in cells and i > j:
+                    if (i, j) not in cells and i > j:
                         cells2_values.append(val)
                 else:
-                    if (i,j) not in cells:
+                    if (i, j) not in cells:
                         cells2_values.append(val)
     return cells_values, cells2_values
 

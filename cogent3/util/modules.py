@@ -31,7 +31,7 @@ def importVersionedModule(name, exec_globals, min_version, alt_desc):
     version = getattr(m, 'version_info', (0, 0))
     desc = '.'.join(str(n) for n in version)
     min_desc = '.'.join(str(n) for n in min_version)
-    max_desc = str(min_version[0])+'.x'
+    max_desc = str(min_version[0]) + '.x'
     if version < min_version:
         fail('Compiled module "%s" is too old as %s < %s. '
              'Will use %s.' % (name, desc, min_desc, alt_desc))

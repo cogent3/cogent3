@@ -40,13 +40,13 @@ class _CallablePredicate(object):
         rows = []
         for i in range(l):
             row = [a[i] for a in list(self.alphabet)]
-            rows.append(' '*(l+1) + ' '.join(row))
+            rows.append(' ' * (l + 1) + ' '.join(row))
         for y in self.alphabet:
             row = []
             for x in self.alphabet:
                 if not self.model.isinstantanious(x, y):
                     c = ' '
-                elif self(x,y):
+                elif self(x, y):
                     c = '*'
                 else:
                     c = '-'
@@ -171,7 +171,7 @@ class ModelSays(predicate):
 
 class DirectedMotifChange(predicate):
     def __init__(self, from_motif, to_motif,
-                 diff_at = None):
+                 diff_at=None):
 
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
@@ -188,8 +188,8 @@ class DirectedMotifChange(predicate):
     def testMotif(self, motifs, query):
         """positions where motif pattern is found in query"""
         positions = set()
-        for offset in range(len(query)-self.motiflen+1):
-            for (q,ms) in zip(query[offset: offset+self.motiflen], motifs):
+        for offset in range(len(query) - self.motiflen + 1):
+            for (q, ms) in zip(query[offset: offset + self.motiflen], motifs):
                 if q not in ms:
                     break
             else:
@@ -218,10 +218,10 @@ class DirectedMotifChange(predicate):
         from_motifs = [resolve(m) for m in self.from_motif]
         to_motifs = [resolve(m) for m in self.to_motif]
         def call(x, y):
-            diffs = [X!=Y for (X,Y) in zip(x, y)]
+            diffs = [X != Y for (X, Y) in zip(x, y)]
             matches = []
             for posn in self.testMotifs(from_motifs, to_motifs, x, y):
-                diff = list(numpy.nonzero(diffs[posn:posn+self.motiflen])[0])
+                diff = list(numpy.nonzero(diffs[posn:posn + self.motiflen])[0])
                 if diff and self.diff_at is None or diff == [self.diff_at]:
                     matches.append(posn)
             return len(matches) == 1
@@ -285,7 +285,7 @@ def parse(rule):
     if '>' in rule or '/' in rule:
         forward_only = '>' in rule
         rule = rule.replace('>', '/')
-        (x,y) = rule.split('/')
+        (x, y) = rule.split('/')
         if not y: y = None
 
         pred = MotifChange(x, y, forward_only, diff_at)

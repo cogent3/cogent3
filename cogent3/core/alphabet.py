@@ -125,7 +125,7 @@ class Enumeration(tuple):
 
         Takes Gap as an argument but ignores it (handled in __init__).
         """
-        return tuple.__new__(cls,data)
+        return tuple.__new__(cls, data)
 
     def __init__(self, data=[], Gap=None, MolType=None):
         """Initializes self from data, and optionally a gap.
@@ -190,7 +190,7 @@ class Enumeration(tuple):
 
         self.Shape = (len(self),)
         #_allowed_range provides for fast sums of matching items
-        self._allowed_range = arange(len(self))[:,newaxis]
+        self._allowed_range = arange(len(self))[:, newaxis]
         self.ArrayType = get_array_type(len(self))
         self._complement_array = None   #set in moltypes.py for standard types
 
@@ -267,7 +267,7 @@ class Enumeration(tuple):
         strings and the desired 3-letter strings). All subenumerations of a
         JointEnumeration made by __pow__ are identical.
         """
-        return JointEnumeration([self]*num, MolType=self.MolType)
+        return JointEnumeration([self] * num, MolType=self.MolType)
 
     def __mul__(self, other):
         """Returns JointEnumeration between self and other.
@@ -471,7 +471,7 @@ class JointEnumeration(Enumeration):
         result = zeros((num_enums, len(a)))
         lengths = self.Shape
         # count backwards through the enumeration lengths and add to array
-        for i in range(num_enums-1, -1, -1):
+        for i in range(num_enums - 1, -1, -1):
             length = lengths[i]
             result[i] = a % length
             a //= array(length, a.dtype.char)
@@ -520,7 +520,7 @@ class Alphabet(Enumeration):
             n = []
             for c in crossproduct:
                 for m in self:
-                    n.append(m+c)
+                    n.append(m + c)
             crossproduct = n
         return Alphabet(crossproduct, MolType=self.MolType)
 
@@ -669,7 +669,7 @@ class Alphabet(Enumeration):
                     raise ValueError("Can't match %s probs to %s alphabet" %
                                      (len(motif_probs), len(self)))
             motif_probs = numpy.asarray(motif_probs)
-        assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
+        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
 class CharAlphabet(Alphabet):

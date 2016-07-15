@@ -75,7 +75,7 @@ def chi_low(x, df):
         raise ValueError("chi_low: x must be >= 0 (got %s)." % x)
     if df < 1:
         raise ValueError("chi_low: df must be >= 1 (got %s)." % df)
-    return igam(df/2, x/2)
+    return igam(df / 2, x / 2)
 
 def chi_high(x, df):
     """Returns right-hand tail of chi-square distribution (x to infinity).
@@ -93,7 +93,7 @@ def chi_high(x, df):
         raise ValueError("chi_high: x must be >= 0 (got %s)." % x)
     if df < 1:
         raise ValueError("chi_high: df must be >= 1 (got %s)." % df)
-    return igamc(df/2, x/2)
+    return igamc(df / 2, x / 2)
 
 def t_low(t, df):
     """Returns left-hand tail of Student's t distribution (-infinity to x).
@@ -149,9 +149,9 @@ def poisson_exact(successes, mean):
     if successes == 0:
         return pdtr(0, mean)
     elif successes < mean:  #use left tail
-        return pdtr(successes, mean) - pdtr(successes-1, mean)
+        return pdtr(successes, mean) - pdtr(successes - 1, mean)
     else: #successes > mean: use right tail
-        return pdtrc(successes-1, mean) - pdtrc(successes, mean)
+        return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
 
 def binomial_high(successes, trials, prob):
     """Returns right-hand binomial tail (X > successes) given prob(success)."""
@@ -211,12 +211,12 @@ def fprob(dfn, dfd, F, side='right'):
     """
     if F < 0:
         raise ValueError("fprob: F must be >= 0 (got %s)." % F)
-    if side=='right':
-        return 2*f_high(dfn, dfd, F)
-    elif side=='left':
-        return 2*f_low(dfn, dfd, F)
+    if side == 'right':
+        return 2 * f_high(dfn, dfd, F)
+    elif side == 'left':
+        return 2 * f_low(dfn, dfd, F)
     else:
-        raise ValueError("Not a valid value for side %s"%(side))
+        raise ValueError("Not a valid value for side %s" % (side))
 
 
 def stdtr(k, t):
@@ -239,32 +239,32 @@ def stdtr(k, t):
         x = t
 
     rk = k  #degrees of freedom
-    z = 1 + (x * x)/rk
+    z = 1 + (x * x) / rk
     #test if k is odd or even
     if (k & 1) != 0:
         #odd k
-        xsqk = x/sqrt(rk)
+        xsqk = x / sqrt(rk)
         p = atan(xsqk)
         if k > 1:
             f = 1
             tz = 1
             j = 3
-            while (j <= (k-2)) and ((tz/f) > MACHEP):
-                tz *= (j-1)/(z*j)
+            while (j <= (k - 2)) and ((tz / f) > MACHEP):
+                tz *= (j - 1) / (z * j)
                 f += tz
                 j += 2
-            p += f * xsqk/z
-        p *= 2/PI
+            p += f * xsqk / z
+        p *= 2 / PI
     else:
         #even k
         f = 1
         tz = 1
         j = 2
-        while (j <= (k-2)) and ((tz/f) > MACHEP):
-            tz *= (j-1)/(z*j)
+        while (j <= (k - 2)) and ((tz / f) > MACHEP):
+            tz *= (j - 1) / (z * j)
             f += tz
             j += 2
-        p = f * x/sqrt(z*rk)
+        p = f * x / sqrt(z * rk)
     #common exit
     if t < 0:
         p = -p  #note destruction of relative accuracy
@@ -287,9 +287,9 @@ def bdtr(k, n, p):
         return 1
     dn = n - k
     if k == 0:
-        return  pow(1-p, dn)
+        return  pow(1 - p, dn)
     else:
-        return  betai(dn, k+1, 1-p)
+        return  betai(dn, k + 1, 1 - p)
 
 def bdtrc(k, n, p):
     """Complement of binomial distribution, k+1 through n.
@@ -310,7 +310,7 @@ def bdtrc(k, n, p):
         if p < .01:
             dk = -expm1(dn * log1p(-p))
         else:
-            dk = 1 - pow(1.0-p, dn)
+            dk = 1 - pow(1.0 - p, dn)
     else:
         dk = k + 1
         dk = betai(dk, dn, p)
@@ -325,7 +325,7 @@ def pdtr(k, m):
         raise ValueError("Poisson k must be >= 0.")
     if m < 0:
         raise ValueError("Poisson m must be >= 0.")
-    return igamc(k+1, m)
+    return igamc(k + 1, m)
 
 def pdtrc(k, m):
     """Returns sum of right tail of Poisson distribution, k+1 through infinity.
@@ -336,7 +336,7 @@ def pdtrc(k, m):
         raise ValueError("Poisson k must be >= 0.")
     if m < 0:
         raise ValueError("Poisson m must be >= 0.")
-    return igam(k+1, m)
+    return igam(k + 1, m)
 
 def fdtr(a, b, x):
     """Returns left tail of F distribution, 0 to x.
@@ -369,7 +369,7 @@ def gdtr(a, b, x):
     """
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
-    return igam( b, a * x)
+    return igam(b, a * x)
 
 def gdtrc(a, b, x):
     """Returns integral from x to inf of Gamma distribution with params a and b.
@@ -385,7 +385,7 @@ def chdtri(df, y):
     y = fix_rounding_error(y)
     if(y < 0.0 or y > 1.0 or df < 1.0):
         raise ZeroDivisionError("y must be between 0 and 1; df >= 1")
-    return 2 * igami(0.5*df, y)
+    return 2 * igami(0.5 * df, y)
 
 def stdtri(k, p):
     """Returns inverse of Student's t distribution. k = df."""
@@ -399,8 +399,8 @@ def stdtri(k, p):
         if p == 0.5:
             return 0.0
         z = 1.0 - 2.0 * p;
-        z = incbi(0.5, 0.5*rk, abs(z))
-        t = sqrt(rk*z/(1.0-z))
+        z = incbi(0.5, 0.5 * rk, abs(z))
+        t = sqrt(rk * z / (1.0 - z))
         if p < 0.5:
             t = -t
         return t
@@ -409,11 +409,11 @@ def stdtri(k, p):
     if p >= 0.5:
         p = 1.0 - p;
         rflg = 1
-    z = incbi(0.5*rk, 0.5, 2.0*p)
+    z = incbi(0.5 * rk, 0.5, 2.0 * p)
 
     if MAXNUM * z < rk:
         return rflg * MAXNUM
-    t = sqrt(rk/z - rk)
+    t = sqrt(rk / z - rk)
     return rflg * t
 
 def pdtri(k, p):
@@ -424,7 +424,7 @@ def pdtri(k, p):
     p = fix_rounding_error(p)
     if k < 0 or p < 0.0 or p >= 1.0:
         raise ZeroDivisionError("k must be >=0, p between 1 and 0.")
-    v = k+1;
+    v = k + 1;
     return igami(v, p)
 
 def bdtri(k, n, y):
@@ -440,14 +440,14 @@ def bdtri(k, n, y):
     dn = n - k
     if k == 0:
         if y > 0.8:
-            p = -expm1(log1p(y-1.0) / dn)
+            p = -expm1(log1p(y - 1.0) / dn)
         else:
-            p = 1.0 - y**(1.0/dn)
+            p = 1.0 - y**(1.0 / dn)
     else:
         dk = k + 1;
         p = incbet(dn, dk, 0.5)
         if p > 0.5:
-            p = incbi(dk, dn, 1.0-y)
+            p = incbi(dk, dn, 1.0 - y)
         else:
             p = 1.0 - incbi(dn, dk, y)
     return p
@@ -463,24 +463,24 @@ def gdtri(a, b, y):
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
         raise ZeroDivisionError("a and b must be non-negative, y from 0 to 1.")
-    return igami(b, 1.0-y) / a
+    return igami(b, 1.0 - y) / a
 
 def fdtri(a, b, y):
     """Returns inverse of F distribution."""
     y = fix_rounding_error(y)
-    if( a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0):
+    if(a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0):
         raise ZeroDivisionError("y must be between 0 and 1; a and b >= 1")
-    y = 1.0-y
+    y = 1.0 - y
     # Compute probability for x = 0.5
-    w = incbet(0.5*b, 0.5*a, 0.5)
+    w = incbet(0.5 * b, 0.5 * a, 0.5)
     # If that is greater than y, then the solution w < .5.
     # Otherwise, solve at 1-y to remove cancellation in (b - b*w).
     if w > y or y < 0.001:
-        w = incbi(0.5*b, 0.5*a, y)
-        x = (b - b*w)/(a*w)
+        w = incbi(0.5 * b, 0.5 * a, y)
+        x = (b - b * w) / (a * w)
     else:
-        w = incbi(0.5*a, 0.5*b, 1.0-y)
-        x = b*w/(a*(1.0-w))
+        w = incbi(0.5 * a, 0.5 * b, 1.0 - y)
+        x = b * w / (a * (1.0 - w))
     return x
 
 

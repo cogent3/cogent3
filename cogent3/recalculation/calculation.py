@@ -189,8 +189,8 @@ class Calculator(object):
             else:
                 other_cells.append(cell)
         self._cells = self.opt_pars + other_cells
-        data_sets = [[0], [0,1]][self.with_undo]
-        self.cell_values = [[None]*len(self._cells) for switch in data_sets]
+        data_sets = [[0], [0, 1]][self.with_undo]
+        self.cell_values = [[None] * len(self._cells) for switch in data_sets]
         self.arg_ranks = [[] for cell in self._cells]
         for (i, cell) in enumerate(self._cells):
             cell.rank = i
@@ -224,7 +224,7 @@ class Calculator(object):
         self._switch = 0
         self.recycled_cells = [
             cell.rank for cell in self._cells if cell.recycled]
-        self.spare = [None] * len (self._cells)
+        self.spare = [None] * len(self._cells)
 
         for cell in self._cells[::-1]:
             for arg in cell.args:
@@ -384,10 +384,10 @@ class Calculator(object):
         if seed is not None:
             random_series.seed(seed)
         X = self.getValueArray()
-        for (i, (l,u)) in enumerate(zip(*self.getBoundsVectors())):
+        for (i, (l, u)) in enumerate(zip(*self.getBoundsVectors())):
             sign = random_series.choice([-1, +1])
             step = random_series.uniform(+0.05, +0.025)
-            X[i] = max(l,min(u,(1.0 + sign*step*X[i])))
+            X[i] = max(l, min(u, (1.0 + sign * step * X[i])))
         self.testoptparvector(X)
         self.optimised = False
 
@@ -422,7 +422,7 @@ class Calculator(object):
         # cache.
         if self.with_undo and self.last_undo:
             for (i, v) in self.last_undo:
-                if (i,v) not in changes:
+                if (i, v) not in changes:
                     break
             else:
                 changes = [ch for ch in changes if ch not in self.last_undo]
@@ -446,7 +446,7 @@ class Calculator(object):
             for cell in program:
                 if cell.recycled:
                     if data[cell.rank] is base[cell.rank]:
-                        data[cell.rank]=self.spare[cell.rank]
+                        data[cell.rank] = self.spare[cell.rank]
                         assert data[cell.rank] is not base[cell.rank]
         else:
             data = self.cell_values[self._switch]
@@ -455,7 +455,7 @@ class Calculator(object):
         changed_optpars = []
         for (i, v)  in changes:
             if i < len(self.opt_pars):
-                assert isinstance(v*1.0, float), v
+                assert isinstance(v * 1.0, float), v
                 changed_optpars.append((i, self.last_values[i]))
                 self.last_values[i] = v
                 data[i] = self.opt_pars[i].transformFromOptimiser(v)
@@ -479,7 +479,7 @@ class Calculator(object):
             except CalculationInterupted as detail:
                 if self.with_undo:
                     self._switch = not self._switch
-                for (i,v) in changed_optpars:
+                for (i, v) in changed_optpars:
                     self.last_values[i] = v
                 self.last_undo = []
                 (cell, exception) = detail.args
@@ -533,27 +533,27 @@ class Calculator(object):
             except (ParameterOutOfBoundsError, ArithmeticError) as exception:
                 error_cell = cell
                 break
-            elapsed[cell.rank] = (t1-t0)
+            elapsed[cell.rank] = (t1 - t0)
 
         tds = []
         for ((name, cells), width) in self._cellsGroupedForDisplay:
             text = ''.join([' +'[cell.rank in elapsed] for cell in cells])
             elap = sum([elapsed.get(cell.rank, 0) for cell in cells])
-            if len(text) > width-4:
+            if len(text) > width - 4:
                 edge_width = min(len(text), (width - 4 - 3)) // 2
-                elipsis = ['   ','...'][not not text.strip()]
+                elipsis = ['   ', '...'][not not text.strip()]
                 text = text[:edge_width] + elipsis + text[-edge_width:]
-            tds.append('%s%4s' % (text, int(TRACE_SCALE*elap+0.5) or ''))
+            tds.append('%s%4s' % (text, int(TRACE_SCALE * elap + 0.5) or ''))
 
         par_descs = []
-        for (i,v) in changes:
+        for (i, v) in changes:
             cell = self._cells[i]
             if isinstance(cell, OptPar):
                 par_descs.append('%s=%8.6f' % (cell.name, v))
             else:
                 par_descs.append('%s=?' % cell.name)
         par_descs = ', '.join(par_descs)[:22].ljust(22)
-        print(' | '.join(tds+['']), end=' ')
+        print(' | '.join(tds + ['']), end=' ')
         if exception:
             print('%15s | %s' % ('', par_descs))
             error_cell.reportError(exception, data)
@@ -582,16 +582,16 @@ class Calculator(object):
             t0 = now()
             last = []
             for j in range(rounds_per_sample):
-                for (i,v) in enumerate(x):
+                for (i, v) in enumerate(x):
                      # Not a real change, but works like one.
                     self.change(last + [(i, v)])
-                    if sa and (i+j) % 2:
+                    if sa and (i + j) % 2:
                         last = [(i, v)]
                     else:
                         last = []
             # Use one agreed on delta otherwise different cpus will finish the
             # loop at different times causing chaos.
-            delta = comm.allreduce(now()-t0, parallel.MPI.MAX)
+            delta = comm.allreduce(now() - t0, parallel.MPI.MAX)
             if delta < 0.1:
                 # time.clock is low res, so need to ensure each sample
                 # is long enough to take SOME time.
@@ -604,7 +604,7 @@ class Calculator(object):
 
         if wall:
             samples.sort()
-            return samples[len(samples)//2]
+            return samples[len(samples) // 2]
         else:
             return sum(samples) / len(samples)
 
@@ -617,7 +617,7 @@ class Calculator(object):
 
     def __getBoundedRoot(self, func, origX, direction, bound, xtol):
         return find_root(func, origX, direction, bound, xtol=xtol,
-                         expected_exception = (
+                         expected_exception=(
                     ParameterOutOfBoundsError, ArithmeticError))
 
     def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):

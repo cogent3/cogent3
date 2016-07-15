@@ -78,7 +78,7 @@ class LhtEdgeLookupDefn(CalculationDefn):
 
 
 def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
-    kw = {'edge_name':edge.Name}
+    kw = {'edge_name': edge.Name}
 
     if edge.istip():
         plh = LeafPartialLikelihoodDefn(lht, **kw)
@@ -206,17 +206,17 @@ class BinnedSiteDistribution(object):
 class PatchSiteDistribution(object):
     def __init__(self, switch, bprobs):
         half = len(bprobs) // 2
-        self.alloc = [0] * half + [1] * (len(bprobs)-half)
+        self.alloc = [0] * half + [1] * (len(bprobs) - half)
 
-        pprobs = numpy.zeros([max(self.alloc)+1], Float)
-        for (b,p) in zip(self.alloc, bprobs):
+        pprobs = numpy.zeros([max(self.alloc) + 1], Float)
+        for (b, p) in zip(self.alloc, bprobs):
             pprobs[b] += p
 
-        self.bprobs = [p/pprobs[self.alloc[i]] for (i,p) in enumerate(bprobs)]
+        self.bprobs = [p / pprobs[self.alloc[i]] for (i, p) in enumerate(bprobs)]
         self.transition_matrix = SiteClassTransitionMatrix(switch, pprobs)
 
     def getWeightedSumLhs(self, lhs):
-        result = numpy.zeros((2,)+lhs[0].shape, lhs[0].dtype.char)
+        result = numpy.zeros((2,) + lhs[0].shape, lhs[0].dtype.char)
         temp = numpy.empty(lhs[0].shape, result.dtype.char)
         for (patch, weight, lh) in zip(self.alloc, self.bprobs, lhs):
             temp[:] = lh
@@ -228,8 +228,8 @@ class PatchSiteDistribution(object):
         return SiteHmm(self, root)
 
     def emit(self, length, random_series):
-        bprobs = [[p for (patch,p) in zip(self.alloc, self.bprobs) if patch==a]
-                  for a in [0,1]]
+        bprobs = [[p for (patch, p) in zip(self.alloc, self.bprobs) if patch == a]
+                  for a in [0, 1]]
         source = self.transition_matrix.emit(random_series)
         result = numpy.zeros([length], int)
         for i in range(length):
@@ -251,8 +251,8 @@ class BinnedLikelihood(object):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
-            [b*self.root.getFullLengthLikelihoods(p)
-             for (b,p) in zip(self.distrib.bprobs, lhs)])
+            [b * self.root.getFullLengthLikelihoods(p)
+             for (b, p) in zip(self.distrib.bprobs, lhs)])
         result /= result.sum(axis=0)
         return result
 
@@ -282,7 +282,7 @@ class SiteHmm(object):
         blhs = lhs / numpy.sum(lhs, axis=0)
         blhs = numpy.array(
             [b * self.root.getFullLengthLikelihoods(p)
-             for (b,p) in zip(self.distrib.bprobs, blhs)])
+             for (b, p) in zip(self.distrib.bprobs, blhs)])
 
         binsum = numpy.zeros(pprobs.shape, Float)
         for (patch, data) in zip(self.distrib.alloc, blhs):

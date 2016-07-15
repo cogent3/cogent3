@@ -93,11 +93,11 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
             cutoff = 0.99
         assert 0 <= cutoff <= 1.0
         max_lnL = self[0][0]
-        forgotten = log(alpha)/(self[-1][0] - max_lnL)
-        weights = [exp(forgotten*(lnL-max_lnL)) for (lnL, t) in self]
+        forgotten = log(alpha) / (self[-1][0] - max_lnL)
+        weights = [exp(forgotten * (lnL - max_lnL)) for (lnL, t) in self]
         # add from smallest end to avoid rounding errors
         weights.reverse()
-        tail = (1.0-cutoff) * sum(weights)
+        tail = (1.0 - cutoff) * sum(weights)
         dropped = 0.0
         for (index, weight) in enumerate(weights):
             dropped += weight
@@ -106,7 +106,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
                 break
         denominator = sum(weights)
         weights.reverse()
-        return WeightedTreeCollection((weight/denominator, tree)
+        return WeightedTreeCollection((weight / denominator, tree)
                                       for (weight, (lnL, tree)) in zip(weights, self))
 
 
@@ -127,7 +127,7 @@ def LoadTrees(filename):
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection
         else:
-            assert klass in [list,  LogLikelihoodScoredTreeCollection]
+            assert klass in [list, LogLikelihoodScoredTreeCollection]
             klass = LogLikelihoodScoredTreeCollection
         tree = LoadTree(treestring=line[1])
         trees.append((lnL, tree))

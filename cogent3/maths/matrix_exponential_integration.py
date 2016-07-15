@@ -46,12 +46,12 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
                 self.R = R
         Cdim = Qdim + self.R.shape[1]
         C = zeros((Cdim, Cdim))
-        C[:Qdim,:Qdim] = Q
-        C[:Qdim,Qdim:] = self.R
+        C[:Qdim, :Qdim] = Q
+        C[:Qdim, Qdim:] = self.R
         self.expm = exponentiator(C)
 
     def __call__(self, t=1.0):
-        return self.expm(t)[:len(self.Q),len(self.Q):]
+        return self.expm(t)[:len(self.Q), len(self.Q):]
 
 class VonBingIntegratingExponentiator(_Exponentiator):
 
@@ -66,13 +66,13 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         self.roots, self.evT = eig(Q)
         self.evI = inv(self.evT.T)
         # Remove following check if performance is a concern
-        reQ = inner(self.evT*self.roots, self.evI).real
+        reQ = inner(self.evT * self.roots, self.evI).real
         if not allclose(Q, reQ): 
             raise ArithmeticError("eigendecomposition failed")
 
     def __call__(self, t=1.0):
         int_roots = array([t if abs(x.real) < 1e-6 else
-                           (exp(x*t)-1)/x for x in self.roots])
+                           (exp(x * t) - 1) / x for x in self.roots])
         result = inner(self.evT * int_roots, self.evI)
         if result.dtype.kind == "c":
             result = asarray(result.real)

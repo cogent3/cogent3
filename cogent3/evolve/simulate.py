@@ -15,9 +15,9 @@ __status__ = "Production"
 
 def argpicks(freqs, random_series):
     partition = numpy.add.accumulate(freqs)
-    assert abs(partition[-1]-1.0) < 1e-6, (freqs, partition)
+    assert abs(partition[-1] - 1.0) < 1e-6, (freqs, partition)
     while True:
-        x = random_series.uniform(0.0,1.0)
+        x = random_series.uniform(0.0, 1.0)
         i = bisect.bisect_left(partition, x)
         yield i
 
@@ -96,7 +96,7 @@ class AlignmentEvolver(object):
         if self.exclude_internal and parent.Children:
             simulated_sequences = {}
         else:
-            simulated_sequences = {parent.Name : ''.join(parent_seq)}
+            simulated_sequences = {parent.Name: ''.join(parent_seq)}
 
         for edge in parent.Children:
             # The result for this edge - a list of motifs

@@ -88,9 +88,9 @@ AA_ATOMS = {
     'TYR': [' N  ', ' CA ', ' C  ', ' O  ', ' CB ', ' CG ', ' CD1', ' CD2', ' CE1', ' CE2', ' CZ ', ' OH ', ' OXT', ' H  ', ' H2 ', ' HA ', ' HB2', ' HB3', ' HD1', ' HD2', ' HE1', ' HE2', ' HH ', ' HXT']}
 
 # sort atoms in residue according to PDBv3 specification
-AA_ATOM_BACKBONE_ORDER = {'N':3, 'CA':2, 'C':1, 'O':0}
-AA_ATOM_REMOTE_ORDER = {'A':0, 'B':1, 'G':2, 'D':3, 'E':4, 'Z':5, \
-                        'H':6, 'X':7, '1':8, '2':9, 'N':9, '3':10}
+AA_ATOM_BACKBONE_ORDER = {'N': 3, 'CA': 2, 'C': 1, 'O': 0}
+AA_ATOM_REMOTE_ORDER = {'A': 0, 'B': 1, 'G': 2, 'D': 3, 'E': 4, 'Z': 5, \
+                        'H': 6, 'X': 7, '1': 8, '2': 9, 'N': 9, '3': 10}
 #H1, H2, H3 and NH2 in PDV v2.3AA_
 
 AA_ATOM_PROPERTIES = {

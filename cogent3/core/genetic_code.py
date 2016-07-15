@@ -28,7 +28,7 @@ class GeneticCodeInitError(ValueError, GeneticCodeError):
 class InvalidCodonError(KeyError, GeneticCodeError):
     pass
 
-_dna_trans = maketrans('TCAG','AGTC')
+_dna_trans = maketrans('TCAG', 'AGTC')
 
 def _simple_rc(seq):
     """simple reverse-complement: works only on unambiguous uppercase DNA"""
@@ -134,11 +134,11 @@ class GeneticCode(object):
             if first_doublet:
                 blocks.append(codons[:2])
             else:
-                blocks.extend([[codons[0]],[codons[1]]])
+                blocks.extend([[codons[0]], [codons[1]]])
             if second_doublet:
                 blocks.append(codons[2:])
             else:
-                blocks.extend([[codons[2]],[codons[3]]])
+                blocks.extend([[codons[2]], [codons[3]]])
             return blocks
 
     def _get_blocks(self):
@@ -162,7 +162,7 @@ class GeneticCode(object):
             blocks = []
             curr_codons = []
             curr_aa = []
-            for index, codon, aa in zip(list(range(64)),self._codons,self.CodeSequence):
+            for index, codon, aa in zip(list(range(64)), self._codons, self.CodeSequence):
                 #we're in a new block if it's a new quartet or a different aa
                 new_quartet = not index % 4
                 if new_quartet and curr_codons:
@@ -223,7 +223,7 @@ class GeneticCode(object):
             return ''
         if start + 1 > len(dna):
             raise ValueError("Translation starts after end of RNA")
-        return ''.join([self[dna[i:i+3]] for i in range(start, len(dna)-2, 3)])
+        return ''.join([self[dna[i:i + 3]] for i in range(start, len(dna) - 2, 3)])
 
     def getStopIndices(self, dna, start=0):
         """returns indexes for stop codons in the specified frame"""
@@ -244,7 +244,7 @@ class GeneticCode(object):
 
     def isStart(self, codon):
         """Returns True if codon is a start codon, False otherwise."""
-        fixed_codon = codon.upper().replace('U','T')
+        fixed_codon = codon.upper().replace('U', 'T')
         return fixed_codon in self.StartCodons
 
     def isStop(self, codon):
@@ -265,7 +265,7 @@ class GeneticCode(object):
             other_code = other
         for codon, old, new in zip(self._codons, self.CodeSequence, other_code):
             if old != new:
-                changes[codon] = old+new
+                changes[codon] = old + new
         return changes
 
 

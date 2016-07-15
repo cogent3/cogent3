@@ -29,7 +29,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
                 c = gap_value
             alignments[dimension].append(c)
 
-    for dimension in [0,1]:
+    for dimension in [0, 1]:
         alignments[dimension].reverse()
 
     if isinstance(s1, str):
@@ -54,12 +54,12 @@ def gap_traceback(aligned_positions):
                 gap_vectors[dimension].append(a)
                 consuming[dimension] = delta
     a += 1
-    for dimension in [0,1]:
+    for dimension in [0, 1]:
         gv = gap_vectors[dimension]
         if consuming[dimension]:
             gv.append(a)
         gap_vectors[dimension] = [
-            (gv[i], gv[i+1]) for i in range(0, len(gv), 2)]
+            (gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
     return (starts, ends, gap_vectors, a)
 
 def map_traceback(aligned_positions):
@@ -78,6 +78,6 @@ def alignment_traceback(seqs, aligned_positions, word_length):
         aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):
-        gs = Aligned(amap*word_length, seq[start*word_length:end*word_length])
+        gs = Aligned(amap * word_length, seq[start * word_length:end * word_length])
         aligneds.append((name, gs))
     return Alignment(MolType=None, data=aligneds)

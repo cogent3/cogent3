@@ -18,7 +18,7 @@ class Var(Setting):
     # placeholder for a single optimiser parameter
     is_constant = False
 
-    def __init__(self, bounds = None):
+    def __init__(self, bounds=None):
         if bounds is None:
             bounds = (None, None, None)
         else:

@@ -42,7 +42,7 @@ output = "timing/" + script + "-" + str(int(time.time())) + "-" + type
 def usage():
     pass
 
-def standard_dev(numbers = [], mean = 1):
+def standard_dev(numbers=[], mean=1):
     import math
 
     sum = 0
@@ -68,13 +68,13 @@ def main():
     i = 0
     attempt = 0
     while i < iterations:
-        start_time  = time.time()
+        start_time = time.time()
         os.system(command + " > " + output + "." + str(i))
-        end_time    = time.time() - start_time
+        end_time = time.time() - start_time
 
         if end_time > minimum_accepted_time:
             times.append(end_time)
-            total_time  = total_time + end_time
+            total_time = total_time + end_time
             print("Time for run %d: %.3f seconds" % (i, end_time))
             i = i + 1
             attempt = 0
@@ -87,7 +87,7 @@ def main():
 
     times.sort()
     mean = total_time / len(times)
-    sd   = standard_dev(times, mean)
+    sd = standard_dev(times, mean)
     print("")
     print("Fastest time   : %.3f" % times[0])
     print("Slowest time   : %.3f" % times[len(times) - 1])
@@ -109,12 +109,12 @@ def main():
 
     if len(times) != len(corrected_times):
         corrected_mean = corrected_total / len(corrected_times)
-        corrected_sd   = standard_dev(corrected_times, corrected_mean)
+        corrected_sd = standard_dev(corrected_times, corrected_mean)
 
         print("")
         print("CORRECTED RESULTS")
         print("Fastest time   : %.3f" % corrected_times[0])
-        print("Slowest time   : %.3f" % corrected_times[len(corrected_times)-1])
+        print("Slowest time   : %.3f" % corrected_times[len(corrected_times) - 1])
         print("Mean           : %.3f" % corrected_mean)
         print("Standard dev   : %.3f" % corrected_sd)
 

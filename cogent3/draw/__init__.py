@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-__all__ = [ 'dendrogram', 'dotplot', 'linear', 'colors', 'TrackDefn',
+__all__ = ['dendrogram', 'dotplot', 'linear', 'colors', 'TrackDefn',
             'Display', 'DisplayPolicy', 'Area', 'Arrow', 'BluntArrow', 
             'Box', 'Diamond'] + [
-    'arrow_rates', 'dinuc', 'fancy_arrow', 'codon_usage','util']
+    'arrow_rates', 'dinuc', 'fancy_arrow', 'codon_usage', 'util']
 
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", 

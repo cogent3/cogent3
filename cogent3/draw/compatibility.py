@@ -45,7 +45,7 @@ def order_to_cluster_similar(S, elts=None, start=None):
     similarity = [numpy.unravel_index(p, S.shape) 
                   for p in numpy.argsort(S, axis=None)]
     for (x, y) in similarity[::-1]:
-        if x==y or x in unavailable or y in unavailable:
+        if x == y or x in unavailable or y in unavailable:
             continue
         (x_end, x_run) = position.get(x, (None, [x]))
         (y_end, y_run) = position.get(y, (None, [y]))
@@ -75,8 +75,8 @@ def tied_segments(scores):
     [(0, 3), (3, 4)]
     """
     pos = numpy.flatnonzero(numpy.diff(scores))
-    pos = numpy.concatenate(([0],pos+1,[len(scores)]))
-    return list(zip(pos[:-1],pos[1:]))
+    pos = numpy.concatenate(([0], pos + 1, [len(scores)]))
+    return list(zip(pos[:-1], pos[1:]))
 
 def order_tied_to_cluster_similar(S, scores):
     """Use similarity measure S to make similar elements
@@ -85,28 +85,28 @@ def order_tied_to_cluster_similar(S, scores):
     assert S.shape == (len(scores), len(scores))
     new_order = []
     start = None    
-    for (a,b) in tied_segments(scores):
-        useful = list(range(a,b))
+    for (a, b) in tied_segments(scores):
+        useful = list(range(a, b))
         if start is not None:
             useful.append(start)
-            start = len(useful)-1
+            start = len(useful) - 1
         useful = numpy.array(useful)
-        S2 = S[useful,:]
-        S2 = S2[:,useful]
-        sub_order = order_to_cluster_similar(S2, list(range(b-a)), start)
+        S2 = S[useful, :]
+        S2 = S2[:, useful]
+        sub_order = order_to_cluster_similar(S2, list(range(b - a)), start)
         new_order.extend([useful[i] for i in sub_order])
         start = new_order[-1]
     assert set(new_order) == set(range(len(scores))) 
     return new_order
 
-def bit_encode(x, _bool2num=numpy.array([b"0",b"1"]).take):
+def bit_encode(x, _bool2num=numpy.array([b"0", b"1"]).take):
     """Convert a boolean array into an integer"""
     return int(_bool2num(x).tostring(), 2)
 
 def bit_decode(x, numseqs):
     """Convert an integer into a boolean array"""
     result = numpy.empty([numseqs], bool)
-    bit = 1 << (numseqs-1)
+    bit = 1 << (numseqs - 1)
     for i in range(numseqs):
         result[i] = bit & x
         bit >>= 1
@@ -137,7 +137,7 @@ def binary_partitions(alignment):
                 halves.append(X)
             else:
                 (X, Z) = sorted(halves)
-                partition = (X,X|Z)
+                partition = (X, X | Z)
                 if partition not in partition_index:
                     partition_index[partition] = len(partitions)
                     partitions.append(partition)
@@ -157,30 +157,30 @@ def min_edges(columns):
     drawing code"""  
     N = len(columns)
     result = numpy.zeros([N, N], int)
-    for i in range(0, N-1):
+    for i in range(0, N - 1):
         (a, mask_a) = columns[i]
-        for j in range(i+1, N):
+        for j in range(i + 1, N):
             (b, mask_b) = columns[j]
             mask = mask_a & mask_b
             (na, nb) = (~a, ~b)
-            combos = [c & mask for c in [a&b, a&nb, na&b, na&nb]]
+            combos = [c & mask for c in [a & b, a & nb, na & b, na & nb]]
             combos = [c for c in combos if c]
-            result[i,j] = result[j,i] = len(combos) - 1
+            result[i, j] = result[j, i] = len(combos) - 1
     return result
 
 def neighbour_similarity_score(matrix):
     left = matrix[:-1]
     right = matrix[1:]
-    upper = matrix[:,:-1]
-    lower = matrix[:,1:]
+    upper = matrix[:, :-1]
+    lower = matrix[:, 1:]
     same = (lower == upper).sum() + (left == right).sum()
-    neighbours = numpy.product(left.shape)+numpy.product(upper.shape)
+    neighbours = numpy.product(left.shape) + numpy.product(upper.shape)
     return same / neighbours
 
 def shuffled(matrix):
     assert matrix.shape == (len(matrix), len(matrix)), matrix.shape
     index = numpy.random.permutation(numpy.arange(len(matrix)))
-    return matrix[index,:][:,index]
+    return matrix[index, :][:, index]
 
 def nss_significance(matrix, samples=10000):
     score = neighbour_similarity_score(matrix)
@@ -189,15 +189,15 @@ def nss_significance(matrix, samples=10000):
         s = neighbour_similarity_score(shuffled(matrix))
         scores[i] = s
     scores.sort()
-    p = (samples-scores.searchsorted(score)+1) / samples
-    return (score, sum(scores)/samples, p)
+    p = (samples - scores.searchsorted(score) + 1) / samples
+    return (score, sum(scores) / samples, p)
 
 def inter_region_average(a):
-    return a.sum()/numpy.product(a.shape)
+    return a.sum() / numpy.product(a.shape)
 
 def intra_region_average(a):
     d = numpy.diag(a)    # ignore the diagonal
-    return (a.sum()-d.sum())/(numpy.product(a.shape)-len(d))
+    return (a.sum() - d.sum()) / (numpy.product(a.shape) - len(d))
 
 def integer_tick_label(sites):
     def _formatfunc(x, pos, _sites=sites, _n=len(sites)):
@@ -226,8 +226,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         print("%s unique binary partitions from %s informative sites" % (
             len(partitions), len(sites)))
     partpart = min_edges(partitions)      # [partition,partition]
-    partimatrix = partpart[columns,:]     # [site, partition]
-    sitematrix = partimatrix[:,columns]   # [site, site]
+    partimatrix = partpart[columns, :]     # [site, partition]
+    sitematrix = partimatrix[:, columns]   # [site, site]
 
     # RETICULATE, JE 1996
 
@@ -244,13 +244,13 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     # PARTIMATRIX, JWE 1997
 
     # Remove the incomplete partitions with gaps or other ambiguities
-    mask = 2**alignment.getNumSeqs()-1
-    complete = [i for (i,(x, xz)) in enumerate(partitions) if xz==mask]
+    mask = 2**alignment.getNumSeqs() - 1
+    complete = [i for (i, (x, xz)) in enumerate(partitions) if xz == mask]
     if not include_incomplete:
-        partimatrix = partimatrix[:,complete]
+        partimatrix = partimatrix[:, complete]
         partitions = [partitions[i] for i in complete]
     # For scoring/ordering purposes, also remove the incomplete sequences
-    complete_columns = [i for (i,c) in enumerate(columns) if c in complete]
+    complete_columns = [i for (i, c) in enumerate(columns) if c in complete]
     scoreable_partimatrix = partimatrix[complete_columns, :]
 
     # Order partitions by increasing conflict score
@@ -265,11 +265,11 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
     # Similarity measure between partitions
     O = boolean_similarity(scoreable_partimatrix <= 2)
-    s = 1.0*len(complete_columns)
+    s = 1.0 * len(complete_columns)
     O = O.astype(float) / s
-    p,q = consist/s, conflict/s
-    E = numpy.outer(p,p) + numpy.outer(q,q)
-    S = (O-E)/numpy.sqrt(E*(1-E)/s)
+    p, q = consist / s, conflict / s
+    E = numpy.outer(p, p) + numpy.outer(q, q)
+    S = (O - E) / numpy.sqrt(E * (1 - E) / s)
 
     # Order partitions for better visual grouping
     if "order_by_conflict":
@@ -300,14 +300,14 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             s_size = 0
         else:
             # distort squares to give enough space for species names
-            extra = max(1.0, (12/80)/(figwidth/(c_size + p_size)))
+            extra = max(1.0, (12 / 80) / (figwidth / (c_size + p_size)))
             p_size *= numpy.sqrt(extra)
             s_size *= extra
 
-        genemap = Display(alignment, recursive=s_size>0, 
+        genemap = Display(alignment, recursive=s_size > 0, 
                           colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
-        figwidth = max(figwidth, figwidth/2 + annot_width)
+        figwidth = max(figwidth, figwidth / 2 + annot_width)
 
         bar_height = 0.5
         link_width = 0.3
@@ -316,8 +316,8 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         xpad = 0.05
         ypad = 0.2
         (x, y) = (c_size + p_size, c_size + s_size)
-        x_scale = y_scale = (figwidth-2*x_margin-xpad-link_width-annot_width)/x
-        figheight = y_scale * y + 2*y_margin + 2*ypad + bar_height
+        x_scale = y_scale = (figwidth - 2 * x_margin - xpad - link_width - annot_width) / x
+        figheight = y_scale * y + 2 * y_margin + 2 * ypad + bar_height
         x_scale /= figwidth
         y_scale /= figheight
         x_margin /= figwidth
@@ -327,31 +327,31 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         bar_height /= figheight
         link_width /= figwidth
         annot_width /= figwidth
-        (c_width, c_height) = (c_size*x_scale, c_size*y_scale)
-        (p_width, s_height) = (p_size*x_scale, s_size*y_scale)
+        (c_width, c_height) = (c_size * x_scale, c_size * y_scale)
+        (p_width, s_height) = (p_size * x_scale, s_size * y_scale)
         vert = (x_margin + xpad + c_width)
         top = (y_margin + c_height + ypad)
-        fig = plt.figure(figsize=(figwidth,figheight))
+        fig = plt.figure(figsize=(figwidth, figheight))
         kw = dict(axisbg=fig.get_facecolor())
         axC = fig.add_axes([x_margin, y_margin, c_width, c_height], **kw)
         axP = fig.add_axes([vert, y_margin, p_width, c_height], 
                            sharey=axC, **kw)
         axS = fig.add_axes([vert, top, p_width, s_height or .001], 
                            sharex=axP, **kw)
-        axB = fig.add_axes([vert, top+ypad+s_height, p_width, bar_height], 
+        axB = fig.add_axes([vert, top + ypad + s_height, p_width, bar_height], 
                            sharex=axP, **kw)
-        axZ = fig.add_axes([vert+p_width, y_margin, link_width, c_height], 
+        axZ = fig.add_axes([vert + p_width, y_margin, link_width, c_height], 
                            frameon=False)
 
         axA = genemap.asAxes(
-            fig, [vert+p_width+link_width, y_margin, annot_width, c_height], 
+            fig, [vert + p_width + link_width, y_margin, annot_width, c_height], 
             vertical=True, labeled=True)
 
         axP.yaxis.set_visible(False)
         #for ax in [axC, axP, axS]:
             #ax.set_aspect(adjustable='box', aspect='equal')
 
-        fig.text(x_margin+c_width/2, .995, title, ha='center', va='top')
+        fig.text(x_margin + c_width / 2, .995, title, ha='center', va='top')
 
         if not s_size:
             axS.set_visible(False)
@@ -379,18 +379,18 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         else:
             isl = integer_tick_label(sites)
             for axis in [axC.yaxis, axC.xaxis]:            
-                axis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
+                axis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
                 axis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-                axis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
+                axis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
                 axis.set_major_formatter(matplotlib.ticker.FuncFormatter(isl))
 
         # Species dimension
         if s_size:
             seq_names = [name.split('  ')[0] 
                          for name in alignment.getSeqNames()]
-            axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
+            axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-            axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
+            axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
             axS.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(seq_names))
             #axS.yaxis.grid(False) #, 'minor')
 
@@ -399,9 +399,9 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         partishow = partimatrix <= 2
         axP.pcolorfast(partishow, cmap=plt.cm.gray)
         axP.set_autoscale_on(False)
-        axC.plot([0,c_size], [0, c_size], color='lightgreen')
-        (sx, sy) = numpy.nonzero(partimatrix.T==0)
-        axP.scatter(sx+0.5, sy+0.5, color='lightgreen', marker='^',
+        axC.plot([0, c_size], [0, c_size], color='lightgreen')
+        (sx, sy) = numpy.nonzero(partimatrix.T == 0)
+        axP.scatter(sx + 0.5, sy + 0.5, color='lightgreen', marker='^',
                     s=15)
 
         # Make [partition, sequence] matrix
@@ -411,20 +411,20 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             partseq2 = numpy.empty([len(partitions), num_seqs], bool)
             for (i, (x, xz)) in enumerate(partitions):
                 partseq1[i] = bit_decode(x, num_seqs)
-                partseq2[i] = bit_decode(xz^x, num_seqs)
+                partseq2[i] = bit_decode(xz ^ x, num_seqs)
 
             # Order sequqnces so as to place similar sequences adjacent
             O = boolean_similarity(partseq1)
             order = order_to_cluster_similar(O)
-            partseq1 = partseq1[:,order]
-            partseq2 = partseq2[:,order]
+            partseq1 = partseq1[:, order]
+            partseq2 = partseq2[:, order]
             seq_names = [seq_names[i] for i in order]
             axS.set_ylim(0, len(seq_names))
             axS.set_autoscale_on(False)
 
-            for (halfpart,color) in [(partseq1, 'red'),(partseq2, 'blue')]:
+            for (halfpart, color) in [(partseq1, 'red'), (partseq2, 'blue')]:
                 (sx, sy) = numpy.nonzero(halfpart)
-                axS.scatter(sx+0.5, sy+0.5, color=color, marker='o')
+                axS.scatter(sx + 0.5, sy + 0.5, color=color, marker='o')
             axS.grid(False)
             #axS.yaxis.tick_right()
             #axS.yaxis.set_label_position('right')
@@ -432,10 +432,10 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         # Bar chart of partition support and conflict scores
         #axB.set_autoscalex_on(False)
         if conflict.sum():
-            axB.bar(numpy.arange(len(partitions)), -conflict/conflict.sum(), 
+            axB.bar(numpy.arange(len(partitions)), -conflict / conflict.sum(), 
                     1.0, color='black', align='edge')
         if support.sum():
-            axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
+            axB.bar(numpy.arange(len(partitions)), +support / support.sum(), 
                     1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
 
@@ -443,7 +443,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axA.set_ylim(0, len(alignment))
         axA.set_autoscale_on(False)
         axA.yaxis.set_major_formatter(
-            matplotlib.ticker.FuncFormatter(lambda y,pos:str(int(y))))
+            matplotlib.ticker.FuncFormatter(lambda y, pos: str(int(y))))
         axA.yaxis.tick_right()
         axA.yaxis.set_label_position('right')
         axA.xaxis.tick_top()
@@ -453,16 +453,16 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         # "Zoom lines" linking informative-site coords to alignment coords 
         from matplotlib.patches import PathPatch
         from matplotlib.path import Path
-        axZ.set_xlim(0.0,1.0)
+        axZ.set_xlim(0.0, 1.0)
         axZ.set_xticks([])
         axZ.set_ylim(0, len(alignment))
         axZ.set_yticks([])
         zoom = len(alignment) / len(sites)
         vertices = []
-        for (i,p) in enumerate(sites):
-            vertices.extend([(.1, (i+0.5)*zoom), (.9,p+0.5)])
-            axA.axhspan(p, p+1, facecolor='green', edgecolor='green', alpha=0.3)
-        ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
+        for (i, p) in enumerate(sites):
+            vertices.extend([(.1, (i + 0.5) * zoom), (.9, p + 0.5)])
+            axA.axhspan(p, p + 1, facecolor='green', edgecolor='green', alpha=0.3)
+        ops = [Path.MOVETO, Path.LINETO] * (len(vertices) // 2)
         path = Path(vertices, ops)
         axZ.add_patch(PathPatch(path, fill=False, linewidth=0.25))
 

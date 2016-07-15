@@ -86,10 +86,10 @@ class SpanTests(TestCase):
     def test_iter(self):
         """Span iter should loop through (integer) contents"""
         self.assertEqual(list(iter(self.empty)), [])
-        self.assertEqual(list(iter(self.full)), [30,31,32,33,34])
-        self.assertEqual(list(iter(self.spans_zero)),[-5,-4,-3,-2,-1,0,1,2,3,4])
+        self.assertEqual(list(iter(self.full)), [30, 31, 32, 33, 34])
+        self.assertEqual(list(iter(self.spans_zero)), [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
         self.assertEqual(list(iter(self.inside)), [31])
-        self.assertEqual(list(self.reverse), [34,33,32,31,30])
+        self.assertEqual(list(self.reverse), [34, 33, 32, 31, 30])
 
     def test_str(self):
         """Span str should print start, stop, reverse"""
@@ -101,7 +101,7 @@ class SpanTests(TestCase):
         """Span len should return difference between start and end"""
         self.assertEqual(len(self.empty), 0)
         self.assertEqual(len(self.full), 5)
-        self.assertEqual(len(self.inside),1)
+        self.assertEqual(len(self.inside), 1)
         self.assertEqual(len(self.spans_zero), 10)
 
     def test_cmp(self):
@@ -242,9 +242,9 @@ class SpanTests(TestCase):
         self.assertFalse(f.endsInside(i))
         self.assertFalse(o.endsInside(f))
         self.assertFalse(o.endsInside(i))
-        self.assertTrue(e.endsInside(Span(-1,1)))
-        self.assertTrue(e.endsInside(Span(0,1)))
-        self.assertFalse(e.endsInside(Span(-1,0)))
+        self.assertTrue(e.endsInside(Span(-1, 1)))
+        self.assertTrue(e.endsInside(Span(0, 1)))
+        self.assertFalse(e.endsInside(Span(-1, 0)))
 
 class RangeInterfaceTests(object): #SpanTests):
     """A single-element Range should behave like the corresponding Span."""
@@ -272,31 +272,31 @@ class RangeTests(TestCase):
     """Tests of the Range object."""
     def setUp(self):
         """Set up a few standard ranges."""
-        self.one = Range(Span(0,100))
-        self.two = Range([Span(3,5), Span(8, 11)])
-        self.three = Range([Span(6,7), Span(15, 17), Span(30, 35)])
-        self.overlapping = Range([Span(6, 10), Span(7,3)])
+        self.one = Range(Span(0, 100))
+        self.two = Range([Span(3, 5), Span(8, 11)])
+        self.three = Range([Span(6, 7), Span(15, 17), Span(30, 35)])
+        self.overlapping = Range([Span(6, 10), Span(7, 3)])
         self.single = Range(0)
         self.singles = Range([3, 11])
         self.twocopy = Range(self.two)
         self.twothree = Range([self.two, self.three])
-        self.empty = Range([Span(6,6), Span(8,8)])
+        self.empty = Range([Span(6, 6), Span(8, 8)])
 
     def test_init(self):
         """Range init from Spans, numbers, or Ranges should work OK."""
         #single span
-        self.assertEqual(self.one, Span(0,100))
+        self.assertEqual(self.one, Span(0, 100))
         #list of spans
-        self.assertEqual(self.two.Spans, [Span(3,5), Span(8,11)])
+        self.assertEqual(self.two.Spans, [Span(3, 5), Span(8, 11)])
         #another range
         self.assertEqual(self.two, self.twocopy)
         #list of ranges
-        self.assertEqual(self.twothree.Spans, [Span(3,5), Span(8,11),
-                                               Span(6,7), Span(15,17), Span(30,35)])
+        self.assertEqual(self.twothree.Spans, [Span(3, 5), Span(8, 11),
+                                               Span(6, 7), Span(15, 17), Span(30, 35)])
         #list of numbers
-        self.assertEqual(self.singles.Spans, [Span(3,4), Span(11,12)])
+        self.assertEqual(self.singles.Spans, [Span(3, 4), Span(11, 12)])
         #single number
-        self.assertEqual(self.single.Spans, [Span(0,1)])
+        self.assertEqual(self.single.Spans, [Span(0, 1)])
         #nothing
         self.assertEqual(Range().Spans, [])
 
@@ -316,8 +316,8 @@ class RangeTests(TestCase):
 
     def test_cmp(self):
         """Ranges should compare equal if they have the same spans"""
-        self.assertEqual(self.twothree, Range([Span(3,5), Span(8, 11),
-                                               Span(6,7), Span(15, 17), Span(30, 35)]))
+        self.assertEqual(self.twothree, Range([Span(3, 5), Span(8, 11),
+                                               Span(6, 7), Span(15, 17), Span(30, 35)]))
         self.assertEqual(Range(), Range())
 
     def test_start_end(self):
@@ -348,7 +348,7 @@ class RangeTests(TestCase):
         self.one.reverse()
         self.assertTrue(self.one.Reverse)
         self.assertFalse(self.two.Reverse)
-        self.two.Spans.append(Span(0,100,Reverse=True))
+        self.two.Spans.append(Span(0, 100, Reverse=True))
         self.assertTrue(self.two.Reverse)
         self.two.reverse()
         self.assertTrue(self.two.Reverse)
@@ -378,7 +378,7 @@ class RangeTests(TestCase):
         #span contains itself
         self.assertContains(self.two, self.twocopy)
         #should work for ranges
-        self.assertContains(self.three, Range([6, Span(15,16), Span(30,33)]))
+        self.assertContains(self.three, Range([6, Span(15, 16), Span(30, 33)]))
         #should work for copy, except when extra piece added
         threecopy = Range(self.three)
         self.assertContains(self.three, threecopy)
@@ -412,79 +412,79 @@ class RangeTests(TestCase):
         """Range sort should sort component spans"""
         one = self.one
         one.sort()
-        self.assertEqual(one.Spans, [Span(100,0)])
-        one.Spans.append(Span(-20,-10))
-        self.assertEqual(one.Spans, [Span(0,100),Span(-20,-10)])
+        self.assertEqual(one.Spans, [Span(100, 0)])
+        one.Spans.append(Span(-20, -10))
+        self.assertEqual(one.Spans, [Span(0, 100), Span(-20, -10)])
         one.sort()
-        self.assertEqual(one.Spans, [Span(-20,-10),Span(0,100)])
+        self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100)])
         one.Spans.append(Span(-20, -10, Reverse=True))
-        self.assertEqual(one.Spans, [Span(-20,-10),Span(0,100),
-                                     Span(-20,-10,Reverse=True)])
+        self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100),
+                                     Span(-20, -10, Reverse=True)])
         one.sort()
-        self.assertEqual(one.Spans, [Span(-20,-10),Span(-20,-10,Reverse=True),
-                                     Span(0,100)])
+        self.assertEqual(one.Spans, [Span(-20, -10), Span(-20, -10, Reverse=True),
+                                     Span(0, 100)])
 
     def test_iter(self):
         """Range iter should iterate through each span in turn"""
-        self.assertEqual(list(iter(self.two)), [3,4,8,9,10])
+        self.assertEqual(list(iter(self.two)), [3, 4, 8, 9, 10])
         self.two.Spans.insert(1, Span(103, 101, Reverse=True))
-        self.assertEqual(list(iter(self.two)), [3,4,102,101,8,9,10])
+        self.assertEqual(list(iter(self.two)), [3, 4, 102, 101, 8, 9, 10])
 
     def test_Extent(self):
         """Range extent should span limits of range"""
-        self.assertEqual(self.one.Extent, Span(0,100))
-        self.assertEqual(self.three.Extent, Span(6,35))
+        self.assertEqual(self.one.Extent, Span(0, 100))
+        self.assertEqual(self.three.Extent, Span(6, 35))
         self.assertEqual(self.singles.Extent, Span(3, 12))
-        self.assertEqual(self.single.Extent, Span(0,1))
+        self.assertEqual(self.single.Extent, Span(0, 1))
         self.three.Spans.append(Span(100, 105, Reverse=True))
-        self.assertEqual(self.three.Extent, Span(6,105))
+        self.assertEqual(self.three.Extent, Span(6, 105))
         self.three.Spans.append(Span(-100, -1000))
-        self.assertEqual(self.three.Extent, Span(-1000,105))
+        self.assertEqual(self.three.Extent, Span(-1000, 105))
 
     def test_simplify(self):
         """Range reduce should group overlapping ranges"""
         #consolidate should have no effect when no overlap
         r = self.two
         r.simplify()
-        self.assertEqual(r.Spans, [Span(3,5), Span(8,11)])
+        self.assertEqual(r.Spans, [Span(3, 5), Span(8, 11)])
         #should consolidate an overlap of the same direction
         r.Spans.append(Span(-1, 4))
         r.simplify()
-        self.assertEqual(r.Spans, [Span(-1,5), Span(8,11)])
+        self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 11)])
         #should also consolidate _adjacent_ spans of the same direction
-        r.Spans.append(Span(11,14))
+        r.Spans.append(Span(11, 14))
         r.simplify()
-        self.assertEqual(r.Spans, [Span(-1,5), Span(8,14)])
+        self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 14)])
         #bridge should cause consolidations
         s = Range(r)
-        s.Spans.append(Span(5,8))
+        s.Spans.append(Span(5, 8))
         s.simplify()
-        self.assertEqual(s.Spans, [Span(-1,14)])
+        self.assertEqual(s.Spans, [Span(-1, 14)])
         #ditto for bridge that overlaps everything
         s = Range(r)
         s.Spans.append(Span(-100, 100))
         s.simplify()
-        self.assertEqual(s.Spans, [Span(-100,100)])
+        self.assertEqual(s.Spans, [Span(-100, 100)])
         #however, can't consolidate span in other orientation
         s = Range(r)
         s.Spans.append(Span(-100, 100, Reverse=True))
-        self.assertEqual(s.Spans, [Span(-1,5), Span(8,14), \
-                                   Span(-100,100,Reverse=True)])
+        self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14), \
+                                   Span(-100, 100, Reverse=True)])
 
 class RangeFromStringTests(TestCase):
     """Tests of the RangeFromString factory function."""
     def test_init(self):
         self.assertEqual(RangeFromString(''), Range())
         self.assertEqual(RangeFromString('  3  , 4\t, ,, 10  ,'),
-                         Range([3,4,10]))
+                         Range([3, 4, 10]))
         self.assertEqual(RangeFromString('3,4-10,1-5'),
-                         Range([Span(3), Span(4,10), Span(1,5)]))
+                         Range([Span(3), Span(4, 10), Span(1, 5)]))
 
 class MapTests(TestCase):
     """tests of the Map class"""
     def test_get_coords(self):
         """getCoordinates should return raw coordinates matching input"""
-        spans = [(0,9), (20, 32)]
+        spans = [(0, 9), (20, 32)]
         map = Map(spans, parent_length=100)
         coords = map.getCoordinates()
         self.assertEqual(coords, spans)

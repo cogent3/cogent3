@@ -24,15 +24,15 @@ class UPGMATests(TestCase):
     def setUp(self):
         """creates inputs"""
         self.pairwise_distances = {('a', 'b'): 1.0,
-                                   ('a', 'c'):4.0,
-                                   ('a', 'd'):20.0,
-                                   ('a', 'e'):22.0,
-                                   ('b', 'c'):5.0,
-                                   ('b', 'd'):21.0,
-                                   ('b', 'e'):23.0,
-                                   ('c', 'd'):10.0,
-                                   ('c', 'e'):12.0,
-                                   ('d', 'e'):2.0}
+                                   ('a', 'c'): 4.0,
+                                   ('a', 'd'): 20.0,
+                                   ('a', 'e'): 22.0,
+                                   ('b', 'c'): 5.0,
+                                   ('b', 'd'): 21.0,
+                                   ('b', 'e'): 23.0,
+                                   ('c', 'd'): 10.0,
+                                   ('c', 'e'): 12.0,
+                                   ('d', 'e'): 2.0}
         #create a list of PhyloNode objects
         a, b, c, d, e = list(map(PhyloNode, 'abcde'))
         self.node_order = [a, b, c, d, e]
@@ -69,7 +69,7 @@ class UPGMATests(TestCase):
         """
         matrix = self.matrix
         index = find_smallest_index(matrix)
-        self.assertEqual(index, (0,1))
+        self.assertEqual(index, (0, 1))
 
     def test_condense_matrix(self):
         """condense_array joins two rows and columns identified by indices
@@ -138,7 +138,7 @@ class UPGMATests(TestCase):
                   ('3', '2', 0.67)]
         row_order = ['3', '2', '1']
         matrix_d2d = Dict2D(matrix, RowOrder=row_order, \
-                            ColOrder=row_order, Pad=True, Default = 999999999999999)
+                            ColOrder=row_order, Pad=True, Default=999999999999999)
         matrix_array, PhyloNode_order = inputs_from_dict2D(matrix_d2d)
         self.assertFloatEqual(matrix_array[0][2], 0.92)
         self.assertFloatEqual(matrix_array[1][0], 0.67)

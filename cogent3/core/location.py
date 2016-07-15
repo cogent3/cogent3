@@ -63,7 +63,7 @@ def _norm_index(i, length, default):
         i = default
     elif i < 0:
         i += length
-    return min(max(i,0),length)
+    return min(max(i, 0), length)
 
 def _norm_slice(index, length):
     """_norm_slice(slice(1, -2, 3), 10) -> (1,8,3)"""
@@ -75,7 +75,7 @@ def _norm_slice(index, length):
         start = index
         if start < 0: start += length
         if start >= length: raise IndexError(index)
-        return (start, start+1, 1)
+        return (start, start + 1, 1)
 
 def as_map(slice, length):
     """Take anything that might be used as a subscript: Integer, Slice,
@@ -202,7 +202,7 @@ class Span(SpanI):
 
     lost = False
 
-    __slots__ = ( 'tidy_start', 'tidy_end', 'length', 'value',
+    __slots__ = ('tidy_start', 'tidy_end', 'length', 'value',
                   'Start', 'End', 'Reverse')
 
     def __init__(self, Start, End=None, tidy_start=False, tidy_end=False,
@@ -257,15 +257,15 @@ class Span(SpanI):
         return self.__class__(self.Start, self.End, self.tidy_end, self.tidy_start, self.value, Reverse=not self.Reverse)
 
     def __getitem__(self, slice):
-        start,end,step = _norm_slice(slice, self.length)
+        start, end, step = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
         assert start <= end, slice
-        tidy_start = self.tidy_start and start==0
+        tidy_start = self.tidy_start and start == 0
         tidy_end = self.tidy_end and end == self.length
         if self.Reverse:
-            (Start, End, Reverse) = (self.End-end, self.End-start, True)
+            (Start, End, Reverse) = (self.End - end, self.End - start, True)
         else:
-            (Start, End, Reverse) = (self.Start+start, self.Start+end, False)
+            (Start, End, Reverse) = (self.Start + start, self.Start + end, False)
         return type(self)(Start, End, tidy_start, tidy_end, self.value, Reverse)
 
     def __mul__(self, scale):
@@ -292,8 +292,8 @@ class Span(SpanI):
 
         # Find the right span(s) of the map
         first = bisect_right(offsets, zlo) - 1
-        last = bisect_left(offsets, zhi, first) -1
-        result = spans[first:last+1]
+        last = bisect_left(offsets, zhi, first) - 1
+        result = spans[first:last + 1]
 
         # Cut off something at either end to get
         # the same position and length as 'self'
@@ -301,7 +301,7 @@ class Span(SpanI):
             end_trim = offsets[last] + spans[last].length - zhi
             start_trim = zlo - offsets[first]
             if end_trim > 0:
-                result[-1] = result[-1][:result[-1].length-end_trim]
+                result[-1] = result[-1][:result[-1].length - end_trim]
             if start_trim > 0:
                 result[0] = result[0][start_trim:]
 
@@ -310,7 +310,7 @@ class Span(SpanI):
         if self.Start < 0:
             result.insert(0, LostSpan(-self.Start))
         if self.End > map_length:
-            result.append(LostSpan(self.End-map_length))
+            result.append(LostSpan(self.End - map_length))
 
         # If the ends of self are meaningful then so are the new ends,
         # but not any new internal breaks.
@@ -365,8 +365,8 @@ class Span(SpanI):
         start = length - self.End
         assert start >= 0
         end = start + self.length
-        return self.__class__(start, end, value = self.value,
-                              Reverse = not self.Reverse)
+        return self.__class__(start, end, value=self.value,
+                              Reverse=not self.Reverse)
 
     def __iter__(self):
         """Iterates over indices contained in self.
@@ -376,7 +376,7 @@ class Span(SpanI):
         by 1 if going backwards.
         """
         if self.Reverse:
-            return iter(range(self.End-1, self.Start-1, -1))
+            return iter(range(self.End - 1, self.Start - 1, -1))
         else:
             return iter(range(self.Start, self.End, 1))
 
@@ -436,9 +436,9 @@ class _LostSpan(object):
         return self
 
     def __getitem__(self, slice):
-        (start,end,step) = _norm_slice(slice, self.length)
+        (start, end, step) = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
-        return self.__class__(abs(end-start), self.value)
+        return self.__class__(abs(end - start), self.value)
 
     def __mul__(self, scale):
         return LostSpan(self.length * scale, self.value)
@@ -552,7 +552,7 @@ class Map(object):
         new_parts = []
         for span in self.spans:
             new_parts.append(span * scale)
-        return Map(spans=new_parts, parent_length=self.parent_length*scale)
+        return Map(spans=new_parts, parent_length=self.parent_length * scale)
 
     def __div__(self, scale):
         # For DNA -> Protein
@@ -569,7 +569,7 @@ class Map(object):
     def withTerminiUnknown(self):
         return Map(self, spans=self.spans[:],
                    parent_length=self.parent_length,
-                   termini_unknown = True)
+                   termini_unknown=True)
 
     def getCoveringSpan(self):
         if self.Reverse:
@@ -625,7 +625,7 @@ class Map(object):
         offset = 0
         for s in self.spans:
             if s.lost:
-                locations.append((offset, offset+s.length))
+                locations.append((offset, offset + s.length))
             offset += s.length
         return Map(locations, parent_length=len(self))
 
@@ -638,14 +638,14 @@ class Map(object):
         offset = 0
         for s in self.spans:
             if not s.lost:
-                locations.append((offset, offset+s.length))
+                locations.append((offset, offset + s.length))
             offset += s.length
         return Map(locations, parent_length=len(self))
 
     def withoutGaps(self):
         return Map(
-            spans = [s for s in self.spans if not s.lost],
-            parent_length = self.parent_length)
+            spans=[s for s in self.spans if not s.lost],
+            parent_length=self.parent_length)
 
     def inverse(self):
         if self.__inverse is None:
@@ -662,9 +662,9 @@ class Map(object):
         for span in self.spans:
             if not span.lost:
                 if span.Reverse:
-                    temp.append((span.Start, span.End, posn+span.length, posn))
+                    temp.append((span.Start, span.End, posn + span.length, posn))
                 else:
-                    temp.append((span.Start, span.End, posn, posn+span.length))
+                    temp.append((span.Start, span.End, posn, posn + span.length))
             posn += span.length
 
         temp.sort()
@@ -672,13 +672,13 @@ class Map(object):
         last_hi = 0
         for (lo, hi, start, end) in temp:
             if lo > last_hi:
-                new_spans.append(LostSpan(lo-last_hi))
+                new_spans.append(LostSpan(lo - last_hi))
             elif lo < last_hi:
                 raise ValueError("Uninvertable. Overlap: %s < %s" % (lo, last_hi))
-            new_spans.append(Span(start, end, Reverse=start>end))
+            new_spans.append(Span(start, end, Reverse=start > end))
             last_hi = hi
         if self.parent_length > last_hi:
-            new_spans.append(LostSpan(self.parent_length-last_hi))
+            new_spans.append(LostSpan(self.parent_length - last_hi))
         return Map(spans=new_spans, parent_length=len(self))
 
     def getCoordinates(self):

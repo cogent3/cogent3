@@ -25,7 +25,7 @@ def _is_Q_ok(Q):
     if not allclose(Q.imag, 0.):
         return False
     offd = Q * (1. - eye(n))
-    if not allclose(offd[offd<0.], 0.):
+    if not allclose(offd[offd < 0.], 0.):
         return False
     one = ones(n)
     if not allclose(Q.dot(one), 0.):
@@ -46,9 +46,9 @@ def is_generator_unique(Q):
         raise ArithmeticError('matrix not diagonalisable')
 
     # Find the Perron-Frobenius eigenvalue
-    PF_EV = argmin([norm(ones(n)/n-v/v.sum()) for v in V.T])
+    PF_EV = argmin([norm(ones(n) / n - v / v.sum()) for v in V.T])
     # Don't mess with the P-F eigenvalue - it has a special job to do
-    ix = list(range(0,PF_EV)) + list(range(PF_EV+1,n))
+    ix = list(range(0, PF_EV)) + list(range(PF_EV + 1, n))
 
     real_close = []
     expe = exp(e)
@@ -58,7 +58,7 @@ def is_generator_unique(Q):
 
         # Can't deal with non-primary roots yet
         if isclose(expe[i], expe[j]):
-            raise NotImplementedError('non-primary root detected:\n'+repr(Q))
+            raise NotImplementedError('non-primary root detected:\n' + repr(Q))
 
     # If the real parts of the eigenvalues are distinct, we're ok
     # For each candidate complex conjugate pair, check for equivalent Qs 
@@ -66,7 +66,7 @@ def is_generator_unique(Q):
         s = zeros(n)
         s[i] = 1.
         s[j] = -1.
-        gen = 2.*pi*complex(0.,1.)*V.dot(diag(s)).dot(inverse(V))
+        gen = 2. * pi * complex(0., 1.) * V.dot(diag(s)).dot(inverse(V))
         Qtest = Q + gen
         if _is_Q_ok(Qtest):
             return False
@@ -111,8 +111,8 @@ def logm_taylor(P, tol=1e-30):
     Y = I
     Q = zeros(P.shape, dtype="double")
     i = 1
-    while norm(Y/i, ord='fro') > tol:
-        Y = dot(Y,X)
-        Q += ((-1)**(i-1)*Y/i)
+    while norm(Y / i, ord='fro') > tol:
+        Y = dot(Y, X)
+        Q += ((-1)**(i - 1) * Y / i)
         i += 1
     return Q

@@ -35,7 +35,7 @@ def Line(x1, y1, x2, y2, **kw):
 
 def Rect(x, y, width, height, **kw):
     """Acts like the RLG shape class of the same name"""
-    return mpatches.Rectangle((x,y),width,height,**line_options(**kw))
+    return mpatches.Rectangle((x, y), width, height, **line_options(**kw))
 
 def Polygon(vertices, **kw):
     """Acts like the RLG shape class of the same name"""
@@ -47,9 +47,9 @@ def String(x, y, text, textAnchor='start', fontName=None, fontSize=10,
     fontname = fontName
     fontsize = fontSize
     color = fillColor
-    ha = {'start':'left', 'middle':'center', 'end':'right'}[textAnchor]
+    ha = {'start': 'left', 'middle': 'center', 'end': 'right'}[textAnchor]
     va = 'baseline'
-    mpl_kw = dict((n,v) for (n,v) in list(locals().items()) if n.islower())
+    mpl_kw = dict((n, v) for (n, v) in list(locals().items()) if n.islower())
     return Text(**mpl_kw)
 
 class Group(matplotlib.artist.Artist):
@@ -128,7 +128,7 @@ def figureLayout(width=None, height=None, margin=0.25, aspect=None,
         height = height or default_aspect * width
     total_height = height + top + bottom
     total_width = width + left + right 
-    posn = [left/total_width, bottom/total_height, width/total_width, height/total_height]
+    posn = [left / total_width, bottom / total_height, width / total_width, height / total_height]
     if leftovers:
         return (total_width, total_height), posn, margins
     else:   
@@ -144,7 +144,7 @@ class Drawable(object):
     # user every chance to change the matplotlib backend first
     def _makeFigure(self, width, height, **kw):
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(width,height), facecolor='white')
+        fig = plt.figure(figsize=(width, height), facecolor='white')
         return fig
 
     def drawFigure(self, title=None, **kw):
@@ -169,7 +169,7 @@ class Drawable(object):
         they are valid for savefig()"""
         makefig_kw = {}
         savefig_kw = {}
-        for (k,v) in list(kw.items()):
+        for (k, v) in list(kw.items()):
             if k in ['dpi', 'facecolor', 'edgecolor', 'orientation',
                      'papertype', 'format', 'transparent']:
                 savefig_kw[k] = v
@@ -184,7 +184,7 @@ class Drawable(object):
         if total_width is not None:
             kw['width'] = total_width / 72
         kw2 = {}
-        for (k,v) in list(kw.items()):
+        for (k, v) in list(kw.items()):
             if k in ['wraps', 'border', 'withTrackLabelColumn']:
                 discontinued('argument', "%s" % k, '1.6')
             else:
@@ -221,7 +221,7 @@ class PathBuilder(object):
 
     def curveTo(self, x1, y1, x2, y2, x3, y3):
         self.points.extend([(x1, y1), (x2, y2), (x3, y3)])
-        self.operators.extend([Path.CURVE4]*3)
+        self.operators.extend([Path.CURVE4] * 3)
 
     def closePath(self):
         self.points.append((0.0, 0.0)) # ignored
@@ -282,7 +282,7 @@ class Rounded(_End):
 
 class Pointy(_End):
     def _effective_dx(self):
-        return max(abs(self.dx), abs(self.dy))*self.dx/abs(self.dx)
+        return max(abs(self.dx), abs(self.dy)) * self.dx / abs(self.dx)
 
     def startPoint(self):
         return (self.x_near + self._effective_dx(), self.y_first)
@@ -307,25 +307,25 @@ class Pointy(_End):
                 path.lineTo(x, y)
 
 def _sign(x):
-    return x and x/abs(x)
+    return x and x / abs(x)
 
 def End(x1, x2, y1, y2, closed=True, rounded=False, pointy=False, blunt=False, 
         min_width=0.5, proportion_of_track=0.6):
     inwards = _sign(x2 - x1)
     span = max(abs(x2 - x1), min_width)
-    thickness = abs(y1-y2)
+    thickness = abs(y1 - y2)
     if pointy:
-        head_size = min(thickness/20, span)
-        head_size = max(head_size, min_width/2)
+        head_size = min(thickness / 20, span)
+        head_size = max(head_size, min_width / 2)
         height = thickness / proportion_of_track
         spare = (height - thickness) / 2
         end = Pointy(x1, x2, y1, y2,
-                     dx=inwards*head_size/2, dy=_sign(y1-y2)*spare,
+                     dx=inwards * head_size / 2, dy=_sign(y1 - y2) * spare,
                      blunt=blunt)
     elif rounded:
-        ry = thickness/4
+        ry = thickness / 4
         rx = min(span, ry)
-        end = Rounded(x1, x2, y1, y2, dx=rx*inwards, dy=ry*_sign(y2-y1))
+        end = Rounded(x1, x2, y1, y2, dx=rx * inwards, dy=ry * _sign(y2 - y1))
     elif not closed:
         end = Open(x1, x2, y1, y2)
     else:

@@ -114,7 +114,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
               row_order=None, digits=4, space=4, title='', missing_data='',
-              max_width = 1e100, row_ids=False, legend='', column_templates=None,
+              max_width=1e100, row_ids=False, legend='', column_templates=None,
               dtype=None, static_column_types=False, limit=None, **kwargs):
     """
     Arguments:
@@ -147,7 +147,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     """
     # 
     if filename is not None and not (reader or static_column_types):
-        if filename[filename.rfind(".")+1:] == 'pickle':
+        if filename[filename.rfind(".") + 1:] == 'pickle':
             f = open(filename, mode='rb')
             loaded_table = pickle.load(f)
             f.close()
@@ -155,7 +155,7 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
 
         sep = sep or kwargs.pop('delimiter', None)
         header, rows, loaded_title, legend = load_delimited(filename,
-                                                            delimiter = sep, limit=limit, **kwargs)
+                                                            delimiter=sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
         f = open(filename, newline=None)

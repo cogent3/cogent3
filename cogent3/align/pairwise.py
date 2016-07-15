@@ -73,16 +73,16 @@ class PointerEncoding(object):
     bytes = 1
 
     def __init__(self, x, y):
-        assert x > 0 and y > 0, (x,y)
-        (x, y) = (numpy.ceil(numpy.log2([x+1,y+1]))).astype(int)
+        assert x > 0 and y > 0, (x, y)
+        (x, y) = (numpy.ceil(numpy.log2([x + 1, y + 1]))).astype(int)
         s = 8 * self.bytes - sum([x, y])
-        assert s**2 >= 4+1, (x,y,s) # min states required
-        self.widths = numpy.array([x,y,s]).astype(int)
+        assert s**2 >= 4 + 1, (x, y, s) # min states required
+        self.widths = numpy.array([x, y, s]).astype(int)
         self.limits = 2 ** self.widths
         self.max_states = self.limits[-1]
         if DEBUG:
             print(self.max_states, "states allowed in viterbi traceback")
-        self.positions = numpy.array([0, x, x+y], int)
+        self.positions = numpy.array([0, x, x + y], int)
         #a.flags.writeable = False
     def encode(self, x, y, s):
         parts = numpy.asarray([x, y, s], int)
@@ -120,9 +120,9 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
         i_sources = preds[0][i]
         current_row = rows[plan[i]]
         #current_row[:] = 0.0
-        current_row[:,0] = impossible
+        current_row[:, 0] = impossible
         if i == 0 and not local:
-            current_row[0,0] = neutral_score
+            current_row[0, 0] = neutral_score
         for j in range(j_low, j_high):
             y = y_index[j]
             j_sources = preds[1][j]
@@ -149,7 +149,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                                 #    print prev_state, prev_value, state
                                 if candidate > cumulative_score:
                                     cumulative_score = candidate
-                                    pointer = (a+dx, b+dy, prev_state)
+                                    pointer = (a + dx, b + dy, prev_state)
                             else:
                                 cumulative_score += prev_value * transition
                 if dx and dy:
@@ -167,8 +167,8 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                 else:
                     current_row[j, state] = cumulative_score * d_score
                 if track is not None:
-                    track[i,j,state] = (numpy.array(pointer) << track_enc).sum()
-                if (i==i_high-1 and j==j_high-1 and not local) or (
+                    track[i, j, state] = (numpy.array(pointer) << track_enc).sum()
+                if (i == i_high - 1 and j == j_high - 1 and not local) or (
                         local and dx and dy and current_row[j, state] > best_score):
                     (best, best_score) = (((i, j), state), current_row[j, state])
     #if DEBUG:
@@ -184,25 +184,25 @@ class TrackBack(object):
 
     def __str__(self):
         return ''.join('(%s,%s)%s' % 
-                       (x,y, '.xym'[dx+2*dy]) for (state, (x,y), (dx,dy))
+                       (x, y, '.xym'[dx + 2 * dy]) for (state, (x, y), (dx, dy))
                        in self.tlist)
 
     def offset(self, X, Y):
-        tlist = [(state, (x+X, y+Y), dxy) for (state, (x,y), dxy) in self.tlist]
+        tlist = [(state, (x + X, y + Y), dxy) for (state, (x, y), dxy) in self.tlist]
         return TrackBack(tlist)
 
     def __add__(self, other):
         return TrackBack(self.tlist + other.tlist)
 
     def asStatePosnTuples(self):
-        return [(s,p) for (s,p,d) in self.tlist]
+        return [(s, p) for (s, p, d) in self.tlist]
 
     def asBinPosTuples(self, state_directions):
         bin_map = dict((state, bin) for (state, bin, dx, dy) in
                        state_directions)
         result = []
         for (state, posn, (dx, dy)) in self.tlist:
-            pos = [[None, i-1][d] for (i,d) in zip(
+            pos = [[None, i - 1][d] for (i, d) in zip(
                 posn, [dx, dy])]
             result.append((bin_map.get(int(state), None), pos))
         return result
@@ -225,7 +225,7 @@ class Pair(object):
         if some_pogs and pyrex_align_module is not None:
             aligner = pyrex_align_module.calc_rows
         elif (not some_pogs) and pyrex_seq_align_module is not None:
-            aligner =  pyrex_seq_align_module.calc_rows
+            aligner = pyrex_seq_align_module.calc_rows
         else:
             aligner = py_calc_rows
 
@@ -251,7 +251,7 @@ class Pair(object):
     def makeSimpleEmissionProbs(self, mprobs, psubs1):
         psubs2 = [numpy.identity(len(psub)) for psub in psubs1]
         bins = [PairBinData(mprobs, *ppsubs) for ppsubs in zip(
-            psubs1, psubs2) ]
+            psubs1, psubs2)]
         return PairEmissionProbs(self, bins)
 
     def makeEmissionProbs(self, bins):
@@ -281,9 +281,9 @@ class Pair(object):
         if state == -1:
             next = (x, y)
         else:
-            if a: x = self.children[0][x][a-1]
-            if b: y = self.children[1][y][b-1]
-            next = numpy.array([x,y], int)
+            if a: x = self.children[0][x][a - 1]
+            if b: y = self.children[1][y][b - 1]
+            next = numpy.array([x, y], int)
         return (next, (a, b), state)
 
     def traceback(self, track, encoding, posn, state, skip_last=False):
@@ -293,7 +293,7 @@ class Pair(object):
             (nposn, (a, b), nstate) = self._decode_state(track, encoding, 
                                                          posn, state)
             if state:
-                result.append((state, posn, (a>0, b>0)))
+                result.append((state, posn, (a > 0, b > 0)))
             if started and state == 0:
                 break
             (posn, state) = (nposn, nstate)
@@ -351,12 +351,12 @@ class _Alignable(object):
         self.alphabet = leaf.alphabet
         (uniq, alphabet_size) = leaf.input_likelihoods.shape
         full = len(leaf.index)
-        self.plh = numpy.zeros([uniq+2, alphabet_size], float)
+        self.plh = numpy.zeros([uniq + 2, alphabet_size], float)
         self.plh[1:-1] = leaf.input_likelihoods
-        self.index = numpy.zeros([full+2], int)
+        self.index = numpy.zeros([full + 2], int)
         self.index[1:-1] = numpy.asarray(leaf.index) + 1
         self.index[0] = 0
-        self.index[full+1] = uniq+1
+        self.index[full + 1] = uniq + 1
 
     def _asCombinedArray(self):
         # POG in a format suitable for Pyrex code, two arrays
@@ -419,7 +419,7 @@ class AlignablePOG(_Alignable):
         for (dim, child) in enumerate(children):
             for (seq_name, aligned) in child.aligneds:
                 #aligned = aligned[(starts[dim]-1)*word_length:(ends[dim]-1)*word_length]
-                aligned = aligned.remappedTo((maps[dim]*word_length).inverse())
+                aligned = aligned.remappedTo((maps[dim] * word_length).inverse())
                 aligneds.append((seq_name, aligned))
         return aligneds
 
@@ -491,7 +491,7 @@ class AlignableSeq(_Alignable):
         # empty list 1st since 0th position has no predecessor
         yield []
         for i in range(1, len(self.index)):
-            yield [i-1]
+            yield [i - 1]
 
     def __getitem__(self, index):
         # XXX the int case should be a different method?
@@ -499,7 +499,7 @@ class AlignableSeq(_Alignable):
             if index == 0:
                 return []
             elif 0 < index < len(self.index):
-                return [index-1]
+                return [index - 1]
             else:
                 raise IndexError(index)
         #elif index == slice(None, None, None):
@@ -512,7 +512,7 @@ class AlignableSeq(_Alignable):
         return  [(half, half)]
 
     def getOuterLoopDiscardPoints(self):
-        return [[]] + [[i] for i in range(len(self)-1)]
+        return [[]] + [[i] for i in range(len(self) - 1)]
 
 
 def adaptPairTM(pairTM, finite=False):
@@ -529,23 +529,23 @@ def adaptPairTM(pairTM, finite=False):
         pairTM = pairTM.withoutSilentStates()
         stationary_probs = numpy.array(pairTM.StationaryProbs)
         T = pairTM.Matrix
-        full_matrix = numpy.zeros([len(T)+2, len(T)+2], float)
-        full_matrix[1:-1,1:-1] = T
-        full_matrix[0,1:-1] = stationary_probs # from BEGIN
-        full_matrix[:,-1] = 1.0  #  to END
+        full_matrix = numpy.zeros([len(T) + 2, len(T) + 2], float)
+        full_matrix[1:-1, 1:-1] = T
+        full_matrix[0, 1:-1] = stationary_probs # from BEGIN
+        full_matrix[:, -1] = 1.0  #  to END
         T = full_matrix
         state_directions_list = list(enumerate(pairTM.Tags))
 
-    this_row_last = lambda state_dx_dy:(not (state_dx_dy[1][0] or state_dx_dy[1][1]), not state_dx_dy[1][0])
+    this_row_last = lambda state_dx_dy: (not (state_dx_dy[1][0] or state_dx_dy[1][1]), not state_dx_dy[1][0])
     state_directions_list.sort(key=this_row_last)
     # sorting into desirable order (sort may not be necessary)
 
     state_directions = numpy.zeros([len(state_directions_list), 4], int)
     for (i, (state, emit)) in enumerate(state_directions_list):
         (dx, dy) = emit
-        assert dx==0 or dy==0 or dx==dy
-        bin = max(dx, dy)-1
-        state_directions[i] = (state+1, bin, dx>0, dy>0)
+        assert dx == 0 or dy == 0 or dx == dy
+        bin = max(dx, dy) - 1
+        state_directions[i] = (state + 1, bin, dx > 0, dy > 0)
     return (state_directions, T)
 
 
@@ -574,7 +574,7 @@ class PairEmissionProbs(object):
                     gap_plh[0] = gap_plh[-1] = 1.0
                 gap_plhs[dim].append(gap_plh)
                 plhs[dim].append(plh)
-        for dim in [0,1]:
+        for dim in [0, 1]:
             plhs[dim] = numpy.array(plhs[dim])
             gap_plhs[dim] = numpy.array(gap_plhs[dim])
         return (plhs, gap_plhs)
@@ -584,7 +584,7 @@ class PairEmissionProbs(object):
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size,
                                    float)
         for (b, (x, y, bin)) in enumerate(zip(plhs[0], plhs[1], self.bins)):
-            match_scores[b] = numpy.inner(x*bin.mprobs, y)
+            match_scores[b] = numpy.inner(x * bin.mprobs, y)
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
         return (match_scores, gap_scores)
 
@@ -607,15 +607,15 @@ class PairEmissionProbs(object):
             (impossible, inevitable) = (0.0, 1.0)
         (M, N) = pair.size
         (mantissas, exponents) = rows
-        mantissas[0,0,0] = inevitable
+        mantissas[0, 0, 0] = inevitable
         if exponents is not None:
-            exponents[0,0,0] = 0
+            exponents[0, 0, 0] = 0
         probs = []
         last_i = -1
-        to_end = numpy.array([(len(T)-1, 0, 0, 0)])
-        for (state, (i,j)) in cells:
+        to_end = numpy.array([(len(T) - 1, 0, 0, 0)])
+        for (state, (i, j)) in cells:
             if i > last_i:
-                rr = pair.calcRows(last_i+1, i+1, 0, N-1,
+                rr = pair.calcRows(last_i + 1, i + 1, 0, N - 1,
                                    state_directions, T, scores, rows, None, None, **kw)
             else:
                 assert i == last_i, (i, last_i)
@@ -630,7 +630,7 @@ class PairEmissionProbs(object):
             _d = DEBUG
             DEBUG = False
             (maxpos, state, score) = pair.calcRows(
-                i, i+1, j, j+1, to_end, T2, scores, rows, None, None, **kw)
+                i, i + 1, j, j + 1, to_end, T2, scores, rows, None, None, **kw)
             DEBUG = _d
             probs.append(score)
         return numpy.array(probs)
@@ -660,13 +660,13 @@ class PairEmissionProbs(object):
             if backward:
                 T2[0, 1:-1] = 1.0  # don't count the begin state transition twice
             else:
-                T2[1:-1:,-1] = 1.0  # don't count the end state transition twice
+                T2[1:-1:, -1] = 1.0  # don't count the end state transition twice
             return self.scores_at_rows(
                 (states, T2), dp_options, 
                 last_row=[link[backward] for link in links],
-                backward = not not backward)
+                backward=not not backward)
 
-        (last_row1, last_row2) = parallel.map(_half_row_scores, [0,1])
+        (last_row1, last_row2) = parallel.map(_half_row_scores, [0, 1])
         middle_row = (last_row1 + last_row2)
         (link, anchor, anchor_state) = numpy.unravel_index(
             numpy.argmax(middle_row.flat), middle_row.shape)
@@ -684,7 +684,7 @@ class PairEmissionProbs(object):
                 part = self[join2:, anchor:]
             return part.dp((states, T2), dp_options)
 
-        [(s1, tb_a), (s2, tb_b)] = parallel.map(_half_solution, [0,1])
+        [(s1, tb_a), (s2, tb_b)] = parallel.map(_half_solution, [0, 1])
         tb = tb_a + tb_b.offset(join2, anchor)
         # Same return as for self.dp(..., tb=...)
         return score, tb
@@ -700,15 +700,15 @@ class PairEmissionProbs(object):
         if reverse:
             p_rows.reverse()
         for i in p_rows:
-            for j in range(0, N-1):
-                for state in range(len(T)-1):
+            for j in range(0, N - 1):
+                for state in range(len(T) - 1):
                     if reverse:
-                        cells.append((state, (M-2-i, N-2-j)))
+                        cells.append((state, (M - 2 - i, N - 2 - j)))
                     else:
                         cells.append((state, (i, j)))
         probs = self.dp(TM, dp_options, cells=cells, backward=backward)
         probs = numpy.array(probs)
-        probs.shape = (len(p_rows), N-1, len(T)-1)
+        probs.shape = (len(p_rows), N - 1, len(T) - 1)
         result = numpy.array([
             probs[p_rows.index(i)] for i in last_row])
         return result
@@ -731,7 +731,7 @@ class PairEmissionProbs(object):
                 msg = 'Local alignment'
             elif cells is not None:
                 msg = 'Posterior probs'
-            elif self.pair.size[0]-2 >= 3 and not backward and (
+            elif self.pair.size[0] - 2 >= 3 and not backward and (
                     problem_size > HIRSCHBERG_LIMIT or 
                     parallel.getCommunicator().Get_size() > 1):
                 return self.hirschberg(TM, dp_options)
@@ -756,9 +756,9 @@ class PairEmissionProbs(object):
             pair = self.pair.backward()
             origT = T
             T = numpy.zeros(T.shape, float)
-            T[1:-1,1:-1] = numpy.transpose(origT[1:-1,1:-1])
-            T[0,:] = origT[:, -1]
-            T[:,-1] = origT[0,:]
+            T[1:-1, 1:-1] = numpy.transpose(origT[1:-1, 1:-1])
+            T[0, :] = origT[:, -1]
+            T[:, -1] = origT[0, :]
         else:
             pair = self.pair
 
@@ -778,20 +778,20 @@ class PairEmissionProbs(object):
         else:
             (M, N) = pair.size
             if dp_options.local:
-                (maxpos, state, score) =  pair.calcRows(1, M-1, 1, N-1,
+                (maxpos, state, score) = pair.calcRows(1, M - 1, 1, N - 1,
                                                         state_directions, T, scores, rows, track, encoder, **kw)
             else:
-                pair.calcRows(0, M-1, 0, N-1,
+                pair.calcRows(0, M - 1, 0, N - 1,
                               state_directions, T, scores, rows, track, encoder, **kw)
-                end_state_only = numpy.array([(len(T)-1, 0, 1, 1)])
-                (maxpos, state, score) = pair.calcRows(M-1, M, N-1, N,
+                end_state_only = numpy.array([(len(T) - 1, 0, 1, 1)])
+                (maxpos, state, score) = pair.calcRows(M - 1, M, N - 1, N,
                                                        end_state_only, T, scores, rows, track, encoder, **kw)
 
             if track is None:
                 result = score
             else:
                 tb = self.pair.traceback(track, encoder, maxpos, state,
-                                         skip_last = not dp_options.local)
+                                         skip_last=not dp_options.local)
                 result = (score, tb)
         return result
 
@@ -848,7 +848,7 @@ class ReversiblePairEmissionProbs(object):
 
     def _makePairEmissionProbs(self, ratio):
         assert 0.0 <= ratio <= 1.0
-        lengths = [self.length * ratio, self.length * (1.0-ratio)]
+        lengths = [self.length * ratio, self.length * (1.0 - ratio)]
         pbins = [bin.forLengths(*lengths) for bin in self.bins]
         return PairEmissionProbs(self.pair, pbins)
 
@@ -918,7 +918,7 @@ class PairHMM(object):
         dp_options = DPFlags(viterbi=False, **kw)
         fwd = self.emission_probs.dp(self._transition_matrix, dp_options, cells)
         (N, M) = self.emission_probs.pair.size
-        cells = [(state, (N-x-2, M-y-2)) for (state, (x,y)) in cells]
+        cells = [(state, (N - x - 2, M - y - 2)) for (state, (x, y)) in cells]
         tb.reverse()
         bck = self.emission_probs.dp(self._transition_matrix, dp_options, cells,
                                      backward=True)[::-1]

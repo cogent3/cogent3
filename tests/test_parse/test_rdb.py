@@ -3,7 +3,7 @@
 """Unit test for RDB Parser
 """
 from cogent3.util.unit_test import TestCase, main
-from cogent3.parse.rdb import RdbParser, MinimalRdbParser,is_seq_label,\
+from cogent3.parse.rdb import RdbParser, MinimalRdbParser, is_seq_label,\
     InfoMaker, create_acceptable_sequence
 from cogent3.core.sequence import Sequence, DnaSequence, RnaSequence
 from cogent3.core.info import Info
@@ -26,16 +26,16 @@ class RdbTests(TestCase):
         seq = 'seq:this is a sequence line'
         not_seq = 'this is not a sequence line'
         still_not_seq = 'this seq: is still not a sequence line'
-        self.assertEqual(is_seq_label(seq),True)
-        self.assertEqual(is_seq_label(not_seq),False)
-        self.assertEqual(is_seq_label(still_not_seq),False)
+        self.assertEqual(is_seq_label(seq), True)
+        self.assertEqual(is_seq_label(not_seq), False)
+        self.assertEqual(is_seq_label(still_not_seq), False)
 
     def test_create_acceptable_sequence(self):
         """create_acceptable_sequence: should handle 'o' and sec. struct"""
         f = create_acceptable_sequence
         # should keep any char accepted by RNA.Alphabet.DegenGapped
         s = "UCAG---NRYBDHKMNSRWVY?"
-        self.assertEqual(f(s),s)
+        self.assertEqual(f(s), s)
         # should replace 'o' by '?'
         s = "UCAG-oo-ACGU"
         self.assertEqual(f(s), "UCAG-??-ACGU")
@@ -54,19 +54,19 @@ class InfoMakerTests(TestCase):
         empty_header = []
         obs = InfoMaker(empty_header)
         exp = Info()
-        self.assertEqual(obs,exp)
+        self.assertEqual(obs, exp)
 
     def test_full(self):
         """InfoMaker should return Info object with name, value pairs"""
-        test_header = ['acc: X3402','abc:1','mty: ssu','seq: Mit. X3402',\
-                       '','nonsense',':no_name']
+        test_header = ['acc: X3402', 'abc:1', 'mty: ssu', 'seq: Mit. X3402',\
+                       '', 'nonsense', ':no_name']
         obs = InfoMaker(test_header)
         exp = Info()
         exp.rRNA = 'X3402'
         exp.abc = '1'
         exp.Species = 'Mit. X3402'
         exp.Gene = 'ssu'
-        self.assertEqual(obs,exp)
+        self.assertEqual(obs, exp)
 
 class GenericRdbTest(TestCase):
     "SetUp data for all Rdb parsers"""
@@ -90,7 +90,7 @@ class MinimalRdbParserTests(GenericRdbTest):
 
     def test_empty(self):
         """MinimalRdbParser should return empty list from file w/o seqs"""
-        self.assertEqual(list(MinimalRdbParser(self.empty)),[])
+        self.assertEqual(list(MinimalRdbParser(self.empty)), [])
         self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)),
                          [])
         self.assertRaises(RecordError, list, MinimalRdbParser(self.nolabels))
@@ -99,7 +99,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         """MinimalRdbParser should return empty list from file w/o seqs"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list, 
-                          MinimalRdbParser(self.labels,strict=True))
+                          MinimalRdbParser(self.labels, strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(MinimalRdbParser(self.labels, strict=False)), 
                          [])
@@ -108,7 +108,7 @@ class MinimalRdbParserTests(GenericRdbTest):
         """MinimalRdbParser should return empty list form file w/o lables"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list,
-                          MinimalRdbParser(self.nolabels,strict=True))
+                          MinimalRdbParser(self.nolabels, strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)), 
                          [])
@@ -116,12 +116,12 @@ class MinimalRdbParserTests(GenericRdbTest):
     def test_single(self):
         """MinimalRdbParser should read single record as (header,seq) tuple"""
         res = list(MinimalRdbParser(self.oneseq))
-        self.assertEqual(len(res),1)
+        self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, (['seq:H.Sapiens'], 'AGUCAUCUAGAUHCAUHC'))
 
         res = list(MinimalRdbParser(self.multiline))
-        self.assertEqual(len(res),1)
+        self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, (['seq:H.Sapiens'], 'AGUCAUUAGAUHCAUHC'))
 
@@ -147,8 +147,8 @@ class MinimalRdbParserTests(GenericRdbTest):
         """MRP: handle strange char. according to constr. and strip off '*'"""
         f = list(MinimalRdbParser(self.strange))
         obs = f[0]
-        exp = (['seq:bac'],'ACGUXxAaKkoo---')
-        self.assertEqual(obs,exp)
+        exp = (['seq:bac'], 'ACGUXxAaKkoo---')
+        self.assertEqual(obs, exp)
 
 class RdbParserTests(GenericRdbTest):
     """Tests for the RdbParser. Should return Sequence objects"""
@@ -164,7 +164,7 @@ class RdbParserTests(GenericRdbTest):
         """RdbParser should return empty list from file w/o seqs"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list, 
-                          RdbParser(self.labels,strict=True))
+                          RdbParser(self.labels, strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.labels, strict=False)), [])
 
@@ -172,7 +172,7 @@ class RdbParserTests(GenericRdbTest):
         """RdbParser should return empty list form file w/o lables"""
         #should fail if strict (the default)
         self.assertRaises(RecordError, list,
-                          RdbParser(self.nolabels,strict=True))
+                          RdbParser(self.nolabels, strict=True))
         #if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.nolabels, strict=False)), 
                          [])
@@ -180,34 +180,34 @@ class RdbParserTests(GenericRdbTest):
     def test_single(self):
         """RdbParser should read single record as (header,seq) tuple"""
         res = list(RdbParser(self.oneseq))
-        self.assertEqual(len(res),1)
+        self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUCUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species':'H.Sapiens',\
-                                           'OriginalSeq':'AGUCAUCUAGAUHCAUHC'}))
+        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',\
+                                           'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         res = list(RdbParser(self.multiline))
-        self.assertEqual(len(res),1)
+        self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species':'H.Sapiens',\
-                                           'OriginalSeq':'AGUCAUUAGAUHCAUHC'}))
+        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',\
+                                           'OriginalSeq': 'AGUCAUUAGAUHCAUHC'}))
 
     def test_single_constructor(self):
         """RdbParser should use constructors if supplied"""
-        to_dna = lambda x, Info: DnaSequence(str(x).replace('U','T'), \
+        to_dna = lambda x, Info: DnaSequence(str(x).replace('U', 'T'), \
                                              Info=Info)
         f = list(RdbParser(self.oneseq, to_dna))
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
-        self.assertEqual(a.Info, Info({'Species':'H.Sapiens',\
-                                       'OriginalSeq':'AGUCAUCUAGAUHCAUHC'}))
+        self.assertEqual(a.Info, Info({'Species': 'H.Sapiens',\
+                                       'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         def alternativeConstr(header_lines):
             info = Info()
             for line in header_lines:
-                all = line.strip().split(':',1)
+                all = line.strip().split(':', 1)
                 #strip out empty lines, lines without name, lines without colon
                 if not all[0] or len(all) != 2: 
                     continue
@@ -220,41 +220,41 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
-        exp_info = Info({'OriginalSeq':'AGUCAUCUAGAUHCAUHC',\
-                         'Refs':{}, 'SEQ':'H.SAPIENS'})
-        self.assertEqual(a.Info, Info({'OriginalSeq':'AGUCAUCUAGAUHCAUHC',\
-                                       'Refs':{}, 'SEQ':'H.SAPIENS'}))
+        exp_info = Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',\
+                         'Refs': {}, 'SEQ': 'H.SAPIENS'})
+        self.assertEqual(a.Info, Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',\
+                                       'Refs': {}, 'SEQ': 'H.SAPIENS'}))
 
     def test_multiple_constructor_bad(self):
         """RdbParser should complain or skip bad records w/ constructor"""
 
         def dnastrict(x, **kwargs):
             try:
-                return DnaSequence(x,  **kwargs)
+                return DnaSequence(x, **kwargs)
             except Exception:
                 raise RecordError("Could not convert sequence")
 
-        self.assertRaises(RecordError, list, RdbParser(self.oneX,dnastrict))
+        self.assertRaises(RecordError, list, RdbParser(self.oneX, dnastrict))
         f = list(RdbParser(self.oneX, dnastrict, strict=False))
         self.assertEqual(len(f), 2)
         a, b = f
 
         self.assertEqual(a, 'ACT')
-        self.assertEqual(a.Info,Info({'Species':'mit','OriginalSeq':'ACT'}))
+        self.assertEqual(a.Info, Info({'Species': 'mit', 'OriginalSeq': 'ACT'}))
         self.assertEqual(b, 'AAA')
-        self.assertEqual(b.Info,Info({'Species':'pla','OriginalSeq':'AAA'}))
+        self.assertEqual(b.Info, Info({'Species': 'pla', 'OriginalSeq': 'AAA'}))
 
     def test_full(self):
         """RdbParser: full data, valid and invalid"""
         # when only good record, should work independent of strict
         r1 = RnaSequence("-??GG-UGAA--CGCU---ACGU-N???---",\
                          Info=Info({'Species': "unidentified Thermus OPB AF027020",\
-                                    'Refs':{'rRNA':['AF027020']},\
-                                    'OriginalSeq':'-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
+                                    'Refs': {'rRNA': ['AF027020']},\
+                                    'OriginalSeq': '-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
         r2 = RnaSequence("---CGAUCG--UAUACG-N???-",\
-                         Info=Info({'Species':'Thermus silvanus X84211',\
-                                    'Refs':{'rRNA':['X84211']},\
-                                    'OriginalSeq':'---CGAU[C(G){--UA}U]ACG-Nooo-'}))
+                         Info=Info({'Species': 'Thermus silvanus X84211',\
+                                    'Refs': {'rRNA': ['X84211']},\
+                                    'OriginalSeq': '---CGAU[C(G){--UA}U]ACG-Nooo-'}))
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split('\n'), strict=True))
         self.assertEqual(len(obs), 2)
         self.assertEqual(obs[0], r1)
@@ -283,7 +283,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(str(obs[1]), str(r2))
         self.assertEqual(obs[1].Info, r2.Info)
 
-RDB_LINES_ONLY_GOOD=\
+RDB_LINES_ONLY_GOOD =\
     """acc:AF027020
 seq: unidentified Thermus OPB AF027020
 -o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---
@@ -294,7 +294,7 @@ seq: Thermus silvanus X84211
 //
 """
 
-RDB_LINES_GOOD_BAD=\
+RDB_LINES_GOOD_BAD =\
     """acc:AF027020
 seq: unidentified Thermus OPB AF027020
 -o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---

@@ -78,7 +78,7 @@ class EnumerationTests(TestCase):
         self.assertEqual(a[1], 'c')
         self.assertEqual(a[2], 'a')
 
-        a = Enumeration([1,'2'])
+        a = Enumeration([1, '2'])
         self.assertEqual(a.index(1), 0)
         self.assertEqual(a.index('2'), 1)
         self.assertRaises(KeyError, a.index, '1')
@@ -109,7 +109,7 @@ class EnumerationTests(TestCase):
         """Enumeration toIndices should return indices from elements"""
         a = Enumeration('bca')
         self.assertEqual(a.toIndices(''), [])
-        self.assertEqual(a.toIndices('ccabac'), [1,1,2,0,2,1])
+        self.assertEqual(a.toIndices('ccabac'), [1, 1, 2, 0, 2, 1])
 
     def test_isValid(self):
         """Enumeration isValid should return True for valid sequence"""
@@ -126,13 +126,13 @@ class EnumerationTests(TestCase):
         """Enumeration fromIndices should return elements from indices"""
         a = Enumeration('bca')
         self.assertEqual(a.fromIndices([]), [])
-        self.assertEqual(a.fromIndices([1,1,2,0,2,1]), list('ccabac'))
+        self.assertEqual(a.fromIndices([1, 1, 2, 0, 2, 1]), list('ccabac'))
 
     def test_pow(self):
         """Enumeration pow should produce JointEnumeration with n copies"""
         a = AminoAcids**3
-        self.assertEqual(a[0], (AminoAcids[0],)*3)
-        self.assertEqual(a[-1], (AminoAcids[-1],)*3)
+        self.assertEqual(a[0], (AminoAcids[0],) * 3)
+        self.assertEqual(a[-1], (AminoAcids[-1],) * 3)
         self.assertEqual(len(a), len(AminoAcids)**3)
         self.assertEqual(a.ArrayType, uint16)
 
@@ -140,7 +140,7 @@ class EnumerationTests(TestCase):
         a = Enumeration('a-b', '-')
         b = a**3
         self.assertEqual(len(b), 27)
-        self.assertEqual(b.Gap, ('-','-','-'))
+        self.assertEqual(b.Gap, ('-', '-', '-'))
         self.assertEqual(b.GapIndex, 13)
         self.assertEqual(b.ArrayType, uint8)
 
@@ -152,46 +152,46 @@ class EnumerationTests(TestCase):
         """Enumeration mul should produce correct JointEnumeration"""
         a = DnaBases * RnaBases
         self.assertEqual(len(a), 16)
-        self.assertEqual(a[0], ('T','U'))
-        self.assertEqual(a[-1], ('G','G'))
+        self.assertEqual(a[0], ('T', 'U'))
+        self.assertEqual(a[-1], ('G', 'G'))
 
         #check that it works with gaps
-        a = Enumeration('ab-','-')
-        b = Enumeration('xz','z')
-        x = a*b
-        self.assertEqual(x.Gap, ('-','z'))
+        a = Enumeration('ab-', '-')
+        b = Enumeration('xz', 'z')
+        x = a * b
+        self.assertEqual(x.Gap, ('-', 'z'))
         self.assertEqual(x.GapIndex, 5)
         self.assertEqual(len(x), 6)
-        self.assertEqual(x, (('a','x'),('a','z'),('b','x'),('b','z'),('-','x'),\
-                             ('-','z')))
+        self.assertEqual(x, (('a', 'x'), ('a', 'z'), ('b', 'x'), ('b', 'z'), ('-', 'x'),\
+                             ('-', 'z')))
         #check that it doesn't work when only one seq has gaps
         c = Enumeration('c')
-        x = a*c
+        x = a * c
         self.assertEqual(x.Gap, None)
 
     def test_counts(self):
         """Enumeration counts should count freqs in array"""
         a = DnaBases
-        f = array([[0,0,1,0,0,3]])
-        self.assertEqual(a.counts(f), array([4,1,0,1]))
+        f = array([[0, 0, 1, 0, 0, 3]])
+        self.assertEqual(a.counts(f), array([4, 1, 0, 1]))
         #check that it works with byte array
-        f = array([[0,0,1,0,0,3]], 'B')
-        self.assertEqual(a.counts(f), array([4,1,0,1]))
+        f = array([[0, 0, 1, 0, 0, 3]], 'B')
+        self.assertEqual(a.counts(f), array([4, 1, 0, 1]))
         #should ignore out-of-bounds items
-        g = [0,4]
-        self.assertEqual(a.counts(g), array([1,0,0,0]))
+        g = [0, 4]
+        self.assertEqual(a.counts(g), array([1, 0, 0, 0]))
         #make sure it works for long sequences, i.e. no wraparound at 255
         h = [0, 3] * 70000
-        self.assertEqual(a.counts(h), array([70000,0,0,70000]))
+        self.assertEqual(a.counts(h), array([70000, 0, 0, 70000]))
         h2 = array(h).astype('B')
-        self.assertEqual(a.counts(h2), array([70000,0,0,70000]))
-        i = array([0,3] * 75000)
-        self.assertEqual(a.counts(i), array([75000,0,0,75000]))
+        self.assertEqual(a.counts(h2), array([70000, 0, 0, 70000]))
+        i = array([0, 3] * 75000)
+        self.assertEqual(a.counts(i), array([75000, 0, 0, 75000]))
         #make sure it works for long _binary_ sequences, e.g. the results
         #of array comparisons.
-        a = array([0,1,2,3]*10000)
-        b = array([0,0,0,0]*10000)
-        same = (a==b)
+        a = array([0, 1, 2, 3] * 10000)
+        b = array([0, 0, 0, 0] * 10000)
+        same = (a == b)
 
 class CharAlphabetTests(TestCase):
     """Tests of CharAlphabets."""
@@ -199,14 +199,14 @@ class CharAlphabetTests(TestCase):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet('UCAG')
         i2c, c2i = r._indices_nums_to_chars, r._chars_to_indices
-        s = array([0,0,1,0,3,2], 'b').tostring()
+        s = array([0, 0, 1, 0, 3, 2], 'b').tostring()
         self.assertEqual(s.translate(i2c), b'UUCUGA')
         self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
 
     def test_fromString(self):
         """CharAlphabet fromString should return correct array"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.fromString('UUCUGA'), array([0,0,1,0,3,2],'B'))
+        self.assertEqual(r.fromString('UUCUGA'), array([0, 0, 1, 0, 3, 2], 'B'))
 
     def test_isValid(self):
         """CharAlphabet isValid should return True for valid sequence"""
@@ -223,24 +223,24 @@ class CharAlphabetTests(TestCase):
     def test_fromArray(self):
         """CharAlphabet fromArray should return correct array"""
         r = CharAlphabet('UCAG')
-        got = r.fromArray(array(['UUC','UGA'], 'c'))
-        self.assertEqual(got, array([[0,0,1],[0,3,2]], 'B'))
+        got = r.fromArray(array(['UUC', 'UGA'], 'c'))
+        self.assertEqual(got, array([[0, 0, 1], [0, 3, 2]], 'B'))
 
     def test_toChars(self):
         """CharAlphabet toChars should convert an input array to chars"""
         r = CharAlphabet('UCAG')
-        c = r.toChars(array([[0,0,1],[0,3,2]], 'B'))
+        c = r.toChars(array([[0, 0, 1], [0, 3, 2]], 'B'))
         self.assertEqual(c, \
-                         array(['UUC','UGA'], 'c'))
+                         array(['UUC', 'UGA'], 'c'))
 
     def test_toString(self):
         """CharAlphabet toString should convert an input array to string"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.toString(array([[0,0,1],[0,3,2]], 'B')), 'UUC\nUGA')
+        self.assertEqual(r.toString(array([[0, 0, 1], [0, 3, 2]], 'B')), 'UUC\nUGA')
         #should work with single seq
-        self.assertEqual(r.toString(array([[0,0,1,0,3,2]], 'B')), 'UUCUGA')
+        self.assertEqual(r.toString(array([[0, 0, 1, 0, 3, 2]], 'B')), 'UUCUGA')
         #should work with single seq
-        self.assertEqual(r.toString(array([0,0,1,0,3,2], 'B')), 'UUCUGA')
+        self.assertEqual(r.toString(array([0, 0, 1, 0, 3, 2], 'B')), 'UUCUGA')
         #should work with empty seq
         self.assertEqual(r.toString(array([], 'B')), '')
 
@@ -268,52 +268,52 @@ class JointEnumerationTests(TestCase):
         #should work for alphabet object
         a = JointEnumeration([DnaBases, RnaBases])
         self.assertEqual(len(a), 16)
-        self.assertEqual(a.Shape, (4,4))
-        self.assertEqual(a[0], ('T','U'))
-        self.assertEqual(a[-1], ('G','G'))
-        self.assertEqual(a._sub_enum_factors, array([[4],[1]]))
+        self.assertEqual(a.Shape, (4, 4))
+        self.assertEqual(a[0], ('T', 'U'))
+        self.assertEqual(a[-1], ('G', 'G'))
+        self.assertEqual(a._sub_enum_factors, array([[4], [1]]))
 
         #should work for arbitrary sequences
         a = JointEnumeration(['TCAG', 'UCAG'])
         self.assertEqual(len(a), 16)
-        self.assertEqual(a[0], ('T','U'))
-        self.assertEqual(a[-1], ('G','G'))
-        self.assertEqual(a._sub_enum_factors, array([[4],[1]]))
+        self.assertEqual(a[0], ('T', 'U'))
+        self.assertEqual(a[-1], ('G', 'G'))
+        self.assertEqual(a._sub_enum_factors, array([[4], [1]]))
 
         #should work for different length sequences
         a = JointEnumeration(['TCA', 'UCAG'])
-        self.assertEqual(a.Shape, (3,4))
+        self.assertEqual(a.Shape, (3, 4))
         self.assertEqual(len(a), 12)
-        self.assertEqual(a[0], ('T','U'))
-        self.assertEqual(a[-1], ('A','G'))
+        self.assertEqual(a[0], ('T', 'U'))
+        self.assertEqual(a[-1], ('A', 'G'))
         self.assertEqual(a._sub_enum_factors, \
-                         array([[4],[1]])) #note: _not_ [3,1]
+                         array([[4], [1]])) #note: _not_ [3,1]
 
     def test_toIndices(self):
         """JointEnumeration toIndices should convert tuples correctly"""
-        a = JointEnumeration(['TCAG','UCAG'])
-        i = a.toIndices([('T','U'),('G','G'),('G','G')])
+        a = JointEnumeration(['TCAG', 'UCAG'])
+        i = a.toIndices([('T', 'U'), ('G', 'G'), ('G', 'G')])
         self.assertEqual(i, [0, 15, 15])
 
     def test_fromIndices(self):
         """JointEnumeration fromIndices should return correct tuples"""
-        a = JointEnumeration(['TCAG','UCAG'])
+        a = JointEnumeration(['TCAG', 'UCAG'])
         i = a.fromIndices([0, 15, 15])
-        self.assertEqual(i, [('T','U'),('G','G'),('G','G')])
+        self.assertEqual(i, [('T', 'U'), ('G', 'G'), ('G', 'G')])
 
     def test_packArrays(self):
         """JointEnumeration packArrays should return correct array."""
         a = JointEnumeration(['xyz', 'abcd', 'ef'])
-        v = [[0,1,2,0],[3,3,1,0], [1,1,0,0]]
+        v = [[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]
         result = a.packArrays(v)
-        self.assertEqual(result, array([7,15,18,0]))
+        self.assertEqual(result, array([7, 15, 18, 0]))
 
     def test_unpackArrays(self):
         """JointEnumeration unpackArrays should return correct arrays."""
         a = JointEnumeration(['xyz', 'abcd', 'ef'])
-        v = [7,15,18,0]
+        v = [7, 15, 18, 0]
         result = a.unpackArrays(v)
-        self.assertEqual(result, array([[0,1,2,0],[3,3,1,0], [1,1,0,0]]))
+        self.assertEqual(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
 
 if __name__ == '__main__':
     main()

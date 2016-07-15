@@ -21,32 +21,32 @@ class FastaTests(TestCase):
     """
     def setUp(self):
         """Setup for Fasta tests."""
-        self.strings = ['AAAA','CCCC','gggg','uuuu']
-        self.labels = ['1st','2nd','3rd','4th']
+        self.strings = ['AAAA', 'CCCC', 'gggg', 'uuuu']
+        self.labels = ['1st', '2nd', '3rd', '4th']
         self.infos = ["Dog", "Cat", "Mouse", "Rat"]
         self.sequences_with_labels = list(map(Sequence, self.strings))
         self.sequences_with_names = list(map(Sequence, self.strings))
-        for l,sl,sn in zip(self.labels,self.sequences_with_labels,\
+        for l, sl, sn in zip(self.labels, self.sequences_with_labels,\
                            self.sequences_with_names):
             sl.Label = l
             sn.Name = l
-        self.fasta_no_label='>0\nAAAA\n>1\nCCCC\n>2\ngggg\n>3\nuuuu'
-        self.fasta_with_label=\
+        self.fasta_no_label = '>0\nAAAA\n>1\nCCCC\n>2\ngggg\n>3\nuuuu'
+        self.fasta_with_label =\
         '>1st\nAAAA\n>2nd\nCCCC\n>3rd\nGGGG\n>4th\nUUUU'
-        self.fasta_with_label_lw2=\
+        self.fasta_with_label_lw2 =\
             '>1st\nAA\nAA\n>2nd\nCC\nCC\n>3rd\nGG\nGG\n>4th\nUU\nUU'
-        self.alignment_dict = {'1st':'AAAA','2nd':'CCCC','3rd':'GGGG',
-                               '4th':'UUUU'}
+        self.alignment_dict = {'1st': 'AAAA', '2nd': 'CCCC', '3rd': 'GGGG',
+                               '4th': 'UUUU'}
         self.alignment_object = Alignment(self.alignment_dict)
         for label, info in zip(self.labels, self.infos):
             self.alignment_object.NamedSeqs[label].Info = Info(species=info)
-        self.fasta_with_label_species=\
+        self.fasta_with_label_species =\
         '>1st:Dog\nAAAA\n>2nd:Cat\nCCCC\n>3rd:Mouse\nGGGG\n>4th:Rat\nUUUU'
-        self.alignment_object.RowOrder = ['1st','2nd','3rd','4th']
+        self.alignment_object.RowOrder = ['1st', '2nd', '3rd', '4th']
 
     def test_fastaFromSequence(self):
         """should return correct fasta string."""
-        self.assertEqual(fasta_from_sequences(''),'')
+        self.assertEqual(fasta_from_sequences(''), '')
         self.assertEqual(fasta_from_sequences(self.strings),\
                          self.fasta_no_label)
         self.assertEqual(fasta_from_sequences(self.sequences_with_labels),\
@@ -60,11 +60,11 @@ class FastaTests(TestCase):
 
     def test_fasta_from_alignment(self):
         """should return correct fasta string."""
-        self.assertEqual(fasta_from_alignment({}),'')
+        self.assertEqual(fasta_from_alignment({}), '')
         self.assertEqual(fasta_from_alignment(self.alignment_dict),\
                          self.fasta_with_label)
         self.assertEqual(fasta_from_alignment(self.alignment_dict,
-                                              line_wrap=2),self.fasta_with_label_lw2)
+                                              line_wrap=2), self.fasta_with_label_lw2)
         self.assertEqual(fasta_from_alignment(self.alignment_object),\
                          self.fasta_with_label)
 

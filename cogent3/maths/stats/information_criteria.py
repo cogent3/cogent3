@@ -26,7 +26,7 @@ def aic(lnL, nfp, sample_size=None):
         assert sample_size > 0, "Invalid sample_size %s" % sample_size
         correction = sample_size / (sample_size - nfp - 1)
 
-    return -2* lnL + 2 * nfp * correction
+    return -2 * lnL + 2 * nfp * correction
 
 def bic(lnL, nfp, sample_size):
     """returns Bayesian Information Criterion
@@ -36,4 +36,4 @@ def bic(lnL, nfp, sample_size):
         - nfp: the number of free parameters in the model
         - sample_size: size of the sample
     """
-    return -2* lnL + nfp * numpy.log(sample_size)
+    return -2 * lnL + nfp * numpy.log(sample_size)

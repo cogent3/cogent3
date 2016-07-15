@@ -66,7 +66,7 @@ class DistributionsTests(TestCase):
     def test_zprob(self):
         """zprob should match twice the z_high probability for abs(z)"""
 
-        probs = [2*i for i in [
+        probs = [2 * i for i in [
             5.000000e-01, 4.960106e-01, 4.601722e-01, 3.085375e-01,
             1.586553e-01, 2.275013e-02, 2.866516e-07, 7.619853e-24,
             2.753624e-89, 4.906714e-198, 0.000000e+00, 0.000000e+00]]
@@ -80,15 +80,15 @@ class DistributionsTests(TestCase):
         """chi_low should match R's pchisq() function"""
 
         probs = {
-            1:  [   0.00000000, 0.07965567, 0.24817037, 0.52049988, 0.68268949,
+            1: [0.00000000, 0.07965567, 0.24817037, 0.52049988, 0.68268949,
                     0.84270079, 0.97465268, 0.99843460, 0.99999226, 0.99999996,
                     1.00000000, 1.00000000
                     ],
-            10: [   0.000000e+00, 2.593339e-14, 2.497951e-09, 6.611711e-06,
+            10: [0.000000e+00, 2.593339e-14, 2.497951e-09, 6.611711e-06,
                     1.721156e-04, 3.659847e-03, 1.088220e-01, 5.595067e-01,
                     9.707473e-01, 9.991434e-01, 9.999997e-01, 1.000000e+00,
                     ],
-            100: [  0.000000e+00, 2.906006e-180, 2.780588e-130, 2.029952e-95,
+            100: [0.000000e+00, 2.906006e-180, 2.780588e-130, 2.029952e-95,
                     1.788777e-80, 1.233751e-65, 2.238699e-46, 2.181059e-32,
                     1.854727e-19, 9.056126e-13, 6.953305e-06, 1.000000e-00
                     ],
@@ -100,15 +100,15 @@ class DistributionsTests(TestCase):
     def test_chi_high(self):
         """chi_high should match R's pchisq(lower.tail=FALSE) function"""
         probs = {
-            1:  [   1.000000e+00, 9.203443e-01, 7.518296e-01, 4.795001e-01,
+            1: [1.000000e+00, 9.203443e-01, 7.518296e-01, 4.795001e-01,
                     3.173105e-01, 1.572992e-01, 2.534732e-02, 1.565402e-03,
                     7.744216e-06, 4.320463e-08, 1.537460e-12, 2.088488e-45,
                     ],
-            10: [   1.000000e+00, 1.000000e-00, 1.000000e-00, 9.999934e-01,
+            10: [1.000000e+00, 1.000000e-00, 1.000000e-00, 9.999934e-01,
                     9.998279e-01, 9.963402e-01, 8.911780e-01, 4.404933e-01,
                     2.925269e-02, 8.566412e-04, 2.669083e-07, 1.613931e-37,
                     ],
-            100:[   1.00000e+00, 1.00000e+00, 1.00000e+00, 1.00000e+00,
+            100: [1.00000e+00, 1.00000e+00, 1.00000e+00, 1.00000e+00,
                     1.00000e+00, 1.00000e+00, 1.00000e+00, 1.00000e+00,
                     1.00000e+00, 1.00000e+00, 9.99993e-01, 1.17845e-08,
                     ],
@@ -121,30 +121,30 @@ class DistributionsTests(TestCase):
     def test_t_low(self):
         """t_low should match R's pt() function"""
         probs = {
-            1:  [   0.5000000, 0.5031830, 0.5317255, 0.6475836, 0.7500000,
+            1: [0.5000000, 0.5031830, 0.5317255, 0.6475836, 0.7500000,
                     0.8524164, 0.9371670, 0.9682745, 0.9840977, 0.9893936,
                     0.9936347, 0.9984085,
                     ],
-            10: [   0.5000000, 0.5038910, 0.5388396, 0.6860532, 0.8295534,
+            10: [0.5000000, 0.5038910, 0.5388396, 0.6860532, 0.8295534,
                     0.9633060, 0.9997313, 0.9999992, 1.0000000, 1.0000000,
                     1.0000000, 1.0000000,
                     ],
-            100:[   0.5000000, 0.5039794, 0.5397277, 0.6909132, 0.8401379,
+            100: [0.5000000, 0.5039794, 0.5397277, 0.6909132, 0.8401379,
                     0.9758939, 0.9999988, 1.0000000, 1.0000000, 1.0000000,
                     1.0000000, 1.0000000,
                     ],
         }
 
         negprobs = {
-            1:  [   0.500000000, 0.496817007, 0.468274483, 0.352416382,
+            1: [0.500000000, 0.496817007, 0.468274483, 0.352416382,
                     0.250000000, 0.147583618, 0.062832958, 0.031725517,
                     0.015902251, 0.010606402, 0.006365349, 0.001591536,
                     ],
-            10: [   5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
+            10: [5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
                     1.704466e-01, 3.669402e-02, 2.686668e-04, 7.947766e-07,
                     1.073031e-09, 1.980896e-11, 1.237155e-13, 1.200254e-19,
                     ],
-            100:[   5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
+            100: [5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
                     1.598621e-01, 2.410609e-02, 1.225087e-06, 4.950844e-17,
                     4.997134e-37, 4.190166e-52, 7.236082e-73, 2.774197e-132,
                     ],
@@ -159,30 +159,30 @@ class DistributionsTests(TestCase):
     def test_t_high(self):
         """t_high should match R's pt(lower.tail=FALSE) function"""
         negprobs = {
-            1:  [   0.5000000, 0.5031830, 0.5317255, 0.6475836, 0.7500000,
+            1: [0.5000000, 0.5031830, 0.5317255, 0.6475836, 0.7500000,
                     0.8524164, 0.9371670, 0.9682745, 0.9840977, 0.9893936,
                     0.9936347, 0.9984085,
                     ],
-            10: [   0.5000000, 0.5038910, 0.5388396, 0.6860532, 0.8295534,
+            10: [0.5000000, 0.5038910, 0.5388396, 0.6860532, 0.8295534,
                     0.9633060, 0.9997313, 0.9999992, 1.0000000, 1.0000000,
                     1.0000000, 1.0000000,
                     ],
-            100:[   0.5000000, 0.5039794, 0.5397277, 0.6909132, 0.8401379,
+            100: [0.5000000, 0.5039794, 0.5397277, 0.6909132, 0.8401379,
                     0.9758939, 0.9999988, 1.0000000, 1.0000000, 1.0000000,
                     1.0000000, 1.0000000,
                     ],
         }
 
         probs = {
-            1:  [   0.500000000, 0.496817007, 0.468274483, 0.352416382,
+            1: [0.500000000, 0.496817007, 0.468274483, 0.352416382,
                     0.250000000, 0.147583618, 0.062832958, 0.031725517,
                     0.015902251, 0.010606402, 0.006365349, 0.001591536,
                     ],
-            10: [   5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
+            10: [5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
                     1.704466e-01, 3.669402e-02, 2.686668e-04, 7.947766e-07,
                     1.073031e-09, 1.980896e-11, 1.237155e-13, 1.200254e-19,
                     ],
-            100:[   5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
+            100: [5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
                     1.598621e-01, 2.410609e-02, 1.225087e-06, 4.950844e-17,
                     4.997134e-37, 4.190166e-52, 7.236082e-73, 2.774197e-132,
                     ],
@@ -198,18 +198,18 @@ class DistributionsTests(TestCase):
         """tprob should match twice the t_high probability for abs(t)"""
 
         probs = {
-            1:  [ 2*i for i in 
-                  [   0.500000000, 0.496817007, 0.468274483, 0.352416382,
+            1: [2 * i for i in 
+                  [0.500000000, 0.496817007, 0.468274483, 0.352416382,
                       0.250000000, 0.147583618, 0.062832958, 0.031725517,
                       0.015902251, 0.010606402, 0.006365349, 0.001591536,
                 ]],
-            10: [ 2*i for i in
-                  [   5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
+            10: [2 * i for i in
+                  [5.000000e-01, 4.961090e-01, 4.611604e-01, 3.139468e-01,
                       1.704466e-01, 3.669402e-02, 2.686668e-04, 7.947766e-07,
                       1.073031e-09, 1.980896e-11, 1.237155e-13, 1.200254e-19,
                 ]],
-            100:[ 2*i for i in
-                  [   5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
+            100: [2 * i for i in
+                  [5.000000e-01, 4.960206e-01, 4.602723e-01, 3.090868e-01,
                       1.598621e-01, 2.410609e-02, 1.225087e-06, 4.950844e-17,
                       4.997134e-37, 4.190166e-52, 7.236082e-73, 2.774197e-132,
                 ]],
@@ -233,9 +233,9 @@ class DistributionsTests(TestCase):
             (2, 17.8): 3.296636e-06,
             (17, 29.6): 0.008753318,
             (180, 0): 1,
-            (180, 137.4):0.999784,
-            (180, 318):2.436995e-17,
-            (180, 1024):8.266457e-233,
+            (180, 137.4): 0.999784,
+            (180, 318): 2.436995e-17,
+            (180, 1024): 8.266457e-233,
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_low(*key), value)
@@ -255,9 +255,9 @@ class DistributionsTests(TestCase):
             (2, 17.8): 0.9999967,
             (17, 29.6): 0.9912467,
             (180, 0): 0,
-            (180, 137.4):0.0002159856,
-            (180, 318):1,
-            (180, 1024):1,
+            (180, 137.4): 0.0002159856,
+            (180, 318): 1,
+            (180, 1024): 1,
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_high(*key), value)
@@ -275,9 +275,9 @@ class DistributionsTests(TestCase):
             (2, 17.8): 2.946919e-06,
             (17, 29.6): 0.004034353,
             (180, 0): 0,
-            (180, 137.4):7.287501e-05,
-            (180, 318):1.067247e-17,
-            (180, 1024):6.815085e-233,
+            (180, 137.4): 7.287501e-05,
+            (180, 318): 1.067247e-17,
+            (180, 1024): 6.815085e-233,
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqual(poisson_exact(*key), value)
@@ -289,14 +289,14 @@ class DistributionsTests(TestCase):
             (1, 1, 0.5): 0,
             (1, 1, 0.0000001): 0,
             (1, 1, 0.9999999): 0,
-            (3, 5, 0.75):0.6328125,
+            (3, 5, 0.75): 0.6328125,
             (0, 60, 0.5): 1,
-            (129, 130, 0.5):7.34684e-40,
+            (129, 130, 0.5): 7.34684e-40,
             (299, 300, 0.099): 4.904089e-302,
             (9, 27, 0.0003): 4.958496e-29,
             (1032, 2050, 0.5): 0.3702155,
             (-1, 3, 0.1): 1,            #if successes less than 0, return 1
-            (-0.5, 3, 0.1):1,
+            (-0.5, 3, 0.1): 1,
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_high(*key), value, 1e-4)
@@ -311,9 +311,9 @@ class DistributionsTests(TestCase):
             (1, 1, 0.0000001): 1,
             (1, 1, 0.9999999): 1,
             (26, 50, .5): 0.6641,
-            (3, 5, 0.75):0.3671875,
+            (3, 5, 0.75): 0.3671875,
             (0, 60, 0.5): 8.673617e-19,
-            (129, 130, 0.5):1,
+            (129, 130, 0.5): 1,
             (299, 300, 0.099): 1,
             (9, 27, 0.0003): 1,
             (1032, 2050, 0.5): 0.6297845,
@@ -335,9 +335,9 @@ class DistributionsTests(TestCase):
             (1, 1, 0.5): 0.5,
             (1, 1, 0.0000001): 1e-07,
             (1, 1, 0.9999999): 0.9999999,
-            (3, 5, 0.75):0.2636719,
+            (3, 5, 0.75): 0.2636719,
             (0, 60, 0.5): 8.673617e-19,
-            (129, 130, 0.5):9.550892e-38,
+            (129, 130, 0.5): 9.550892e-38,
             (299, 300, 0.099): 1.338965e-298,
             (9, 27, 0.0003): 9.175389e-26,
             (1032, 2050, 0.5): 0.01679804,
@@ -350,12 +350,12 @@ class DistributionsTests(TestCase):
         """
         expected = {
             (18.3, 100, 0.2): (0.09089812, 0.09807429),
-            (2.7,1050,0.006): (0.03615498, 0.07623827),
-            (2.7,1050,0.06): (1.365299e-25, 3.044327e-24),
-            (2,100.5,0.6): (7.303533e-37, 1.789727e-36),
-            (10,100.5,.5):(7.578011e-18,1.365543e-17),
+            (2.7, 1050, 0.006): (0.03615498, 0.07623827),
+            (2.7, 1050, 0.06): (1.365299e-25, 3.044327e-24),
+            (2, 100.5, 0.6): (7.303533e-37, 1.789727e-36),
+            (10, 100.5, .5): (7.578011e-18, 1.365543e-17),
             (0.2, 60, 0.5): (8.673617e-19, 5.20417e-17),
-            (.5,5,.3):(0.16807,0.36015),
+            (.5, 5, .3): (0.16807, 0.36015),
         }
 
         for (key, value) in list(expected.items()):
@@ -365,8 +365,8 @@ class DistributionsTests(TestCase):
 
     def test_binomial_exact_errors(self):
         """binomial_exact should raise errors on invalid input"""
-        self.assertRaises(ValueError, binomial_exact,10.2, 5, 0.33)
-        self.assertRaises(ValueError, binomial_exact,-2, 5, 0.33)
+        self.assertRaises(ValueError, binomial_exact, 10.2, 5, 0.33)
+        self.assertRaises(ValueError, binomial_exact, -2, 5, 0.33)
         self.assertRaises(ValueError, binomial_exact, 10, 50, -2)
         self.assertRaises(ValueError, binomial_exact, 10, 50, 3)
 
@@ -378,9 +378,9 @@ class DistributionsTests(TestCase):
             (1, 1, 20): 0.1400487,
             (1, 1, 1000000): 0.0006366196,
             (1, 10, 0): 1,
-            (1,10, 5): 0.0493322,
+            (1, 10, 5): 0.0493322,
             (1, 10, 20): 0.001193467,
-            (10, 1, 0):1,
+            (10, 1, 0): 1,
             (10, 10, 14.7): 0.0001062585,
             (13.7, 11.9, 3.8): 0.01340347,  #test non-integer degrees of freedom
             #used following series to track down a bug after a failed test case
@@ -401,7 +401,7 @@ class DistributionsTests(TestCase):
             (28, 39, 10): 1.431901e-10,
             (28, 39, 300): 1.226935e-37,
             (28, 39, 50): 8.846678e-23,
-            (28,39,304.7): 9.08154e-38,
+            (28, 39, 304.7): 9.08154e-38,
             (28.4, 39.2, 304.7): 5.573927e-38,
             (1032, 2050, 0): 1,
             (1032, 2050, 4.15): 1.23535e-165,
@@ -421,9 +421,9 @@ class DistributionsTests(TestCase):
             (1, 1, 20): 0.8599513,
             (1, 1, 1000000): 0.9993634,
             (1, 10, 0): 0,
-            (1,10, 5): 0.9506678,
+            (1, 10, 5): 0.9506678,
             (1, 10, 20): 0.9988065,
-            (10, 1, 0):0,
+            (10, 1, 0): 0,
             (10, 10, 14.7): 0.9998937,
             (28.4, 39.2, 304.7): 1,
             (1032, 2050, 0): 0,
@@ -438,11 +438,11 @@ class DistributionsTests(TestCase):
         """fprob should return twice the tail on a particular side"""
         error = 1e-4
         #right-hand side
-        self.assertFloatEqualAbs(fprob(10,10,1.2), 0.7788, eps=error)
+        self.assertFloatEqualAbs(fprob(10, 10, 1.2), 0.7788, eps=error)
         #left-hand side
-        self.assertFloatEqualAbs(fprob(10,10,1.2, side='left'), 1.2212,
+        self.assertFloatEqualAbs(fprob(10, 10, 1.2, side='left'), 1.2212,
                                  eps=error)
-        self.assertRaises(ValueError, fprob, 10,10,-3)
+        self.assertRaises(ValueError, fprob, 10, 10, -3)
         self.assertRaises(ValueError, fprob, 10, 10, 1, 'non_valid_side')
 
     def test_stdtr(self):
@@ -478,13 +478,13 @@ class DistributionsTests(TestCase):
         index = 0
         for i in t:
             for j in k:
-                self.assertFloatEqual(stdtr(j,i), exp[index])
+                self.assertFloatEqual(stdtr(j, i), exp[index])
                 index += 1
 
     def test_bdtr(self):
         """bdtr should match cephes results"""
-        k_s = [0,1,2,3,5]
-        n_s = [5,10,1000]
+        k_s = [0, 1, 2, 3, 5]
+        n_s = [5, 10, 1000]
         p_s = [1e-10, .1, .5, .9, .999999]
         exp = [
             0.9999999995,
@@ -567,13 +567,13 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtr(k,n,p), exp[index])
+                    self.assertFloatEqual(bdtr(k, n, p), exp[index])
                     index += 1
 
     def test_bdtrc(self):
         """bdtrc should give same results as cephes"""
-        k_s = [0,1,2,3,5]
-        n_s = [5,10,1000]
+        k_s = [0, 1, 2, 3, 5]
+        n_s = [5, 10, 1000]
         p_s = [1e-10, .1, .5, .9, .999999]
 
         exp = [
@@ -657,92 +657,92 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtrc(k,n,p), exp[index])
+                    self.assertFloatEqual(bdtrc(k, n, p), exp[index])
                     index += 1
 
     def test_pdtr(self):
         """pdtr should match cephes results"""
-        k_s = [0,1,2,5,10]
-        m_s = [1e-9, 0.1,0.5,1,2,31]
+        k_s = [0, 1, 2, 5, 10]
+        m_s = [1e-9, 0.1, 0.5, 1, 2, 31]
         exp = [
-            0.999999999 ,
-            0.904837418036 ,
-            0.606530659713 ,
-            0.367879441171 ,
-            0.135335283237 ,
-            3.44247710847e-14 ,
-            1.0 ,
-            0.99532115984 ,
-            0.909795989569 ,
-            0.735758882343 ,
-            0.40600584971 ,
-            1.10159267471e-12 ,
-            1.0 ,
-            0.99984534693 ,
-            0.985612322033 ,
-            0.919698602929 ,
-            0.676676416183 ,
-            1.76426951809e-11 ,
-            1.0 ,
-            0.999999998725 ,
-            0.999985835063 ,
-            0.999405815182 ,
-            0.983436391519 ,
-            9.72616712615e-09 ,
-            1.0 ,
-            1.0 ,
-            0.999999999992 ,
-            0.999999989952 ,
-            0.999991691776 ,
-            1.12519146046e-05 ,
+            0.999999999,
+            0.904837418036,
+            0.606530659713,
+            0.367879441171,
+            0.135335283237,
+            3.44247710847e-14,
+            1.0,
+            0.99532115984,
+            0.909795989569,
+            0.735758882343,
+            0.40600584971,
+            1.10159267471e-12,
+            1.0,
+            0.99984534693,
+            0.985612322033,
+            0.919698602929,
+            0.676676416183,
+            1.76426951809e-11,
+            1.0,
+            0.999999998725,
+            0.999985835063,
+            0.999405815182,
+            0.983436391519,
+            9.72616712615e-09,
+            1.0,
+            1.0,
+            0.999999999992,
+            0.999999989952,
+            0.999991691776,
+            1.12519146046e-05,
 
         ]
         index = 0
         for k in k_s:
             for m in m_s:
-                self.assertFloatEqual(pdtr(k,m), exp[index])
+                self.assertFloatEqual(pdtr(k, m), exp[index])
                 index += 1
 
     def test_pdtrc(self):
         """pdtrc should match cephes results"""
-        k_s = [0,1,2,5,10]
-        m_s = [1e-9, 0.1,0.5,1,2,31]
+        k_s = [0, 1, 2, 5, 10]
+        m_s = [1e-9, 0.1, 0.5, 1, 2, 31]
         exp = [
-            9.999999995e-10 ,
-            0.095162581964 ,
-            0.393469340287 ,
-            0.632120558829 ,
-            0.864664716763 ,
-            1.0 ,
-            4.99999999667e-19 ,
-            0.00467884016044 ,
-            0.090204010431 ,
-            0.264241117657 ,
-            0.59399415029 ,
-            0.999999999999 ,
-            1.66666666542e-28 ,
-            0.000154653070265 ,
-            0.014387677967 ,
-            0.0803013970714 ,
-            0.323323583817 ,
-            0.999999999982 ,
-            1.3888888877e-57 ,
-            1.27489869223e-09 ,
-            1.41649373223e-05 ,
-            0.000594184817582 ,
-            0.0165636084806 ,
-            0.999999990274 ,
-            2.50521083625e-107 ,
-            2.28584493079e-19 ,
-            7.74084073923e-12 ,
-            1.00477663757e-08 ,
-            8.30822436848e-06 ,
-            0.999988748085 ,
+            9.999999995e-10,
+            0.095162581964,
+            0.393469340287,
+            0.632120558829,
+            0.864664716763,
+            1.0,
+            4.99999999667e-19,
+            0.00467884016044,
+            0.090204010431,
+            0.264241117657,
+            0.59399415029,
+            0.999999999999,
+            1.66666666542e-28,
+            0.000154653070265,
+            0.014387677967,
+            0.0803013970714,
+            0.323323583817,
+            0.999999999982,
+            1.3888888877e-57,
+            1.27489869223e-09,
+            1.41649373223e-05,
+            0.000594184817582,
+            0.0165636084806,
+            0.999999990274,
+            2.50521083625e-107,
+            2.28584493079e-19,
+            7.74084073923e-12,
+            1.00477663757e-08,
+            8.30822436848e-06,
+            0.999988748085,
         ]
         index = 0
         for k in k_s:
             for m in m_s:
-                self.assertFloatEqual(pdtrc(k,m), exp[index])
+                self.assertFloatEqual(pdtrc(k, m), exp[index])
                 index += 1
 
     def test_fdtr(self):
@@ -836,7 +836,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(fdtr(a,b,x), exp[index])
+                    self.assertFloatEqual(fdtr(a, b, x), exp[index])
                     index += 1
 
     def test_fdtrc(self):
@@ -930,7 +930,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(fdtrc(a,b,x), exp[index])
+                    self.assertFloatEqual(fdtrc(a, b, x), exp[index])
                     index += 1
 
     def test_gdtr(self):
@@ -1024,7 +1024,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(gdtr(a,b,x), exp[index])
+                    self.assertFloatEqual(gdtr(a, b, x), exp[index])
                     index += 1
 
     def test_gdtrc(self):
@@ -1118,12 +1118,12 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(gdtrc(a,b,x), exp[index])
+                    self.assertFloatEqual(gdtrc(a, b, x), exp[index])
                     index += 1
 
     def test_chdtri(self):
         """chdtri should match cephes results"""
-        k_s = [1,2,5,10,100]
+        k_s = [1, 2, 5, 10, 100]
         p_s = [1e-50, 1e-9, .02, .5, .8, .99]
         exp = [
             224.384748319,
@@ -1160,12 +1160,12 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(chdtri(k,p), exp[index])
+                self.assertFloatEqual(chdtri(k, p), exp[index])
                 index += 1
 
     def test_stdtri(self):
         """stdtri should match cephes results"""
-        k_s = [1,2,5,10,100]
+        k_s = [1, 2, 5, 10, 100]
         p_s = [1e-50, 1e-9, .02, .5, .8, .99]
         exp = [
             -3.18309886184e+49,
@@ -1202,12 +1202,12 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(stdtri(k,p), exp[index])
+                self.assertFloatEqual(stdtri(k, p), exp[index])
                 index += 1
 
     def test_pdtri(self):
         """pdtri should match cephes results"""
-        k_s = [1,2,5,10,100]
+        k_s = [1, 2, 5, 10, 100]
         p_s = [1e-50, 1e-9, .02, .5, .8, .99]
         exp = [
             119.924420375,
@@ -1244,13 +1244,13 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(pdtri(k,p), exp[index])
+                self.assertFloatEqual(pdtri(k, p), exp[index])
                 index += 1
 
     def test_bdtri(self):
         """bdtri should match cephes results"""
-        k_s = [0,1,2,3]
-        n_s = [5,10,1000]
+        k_s = [0, 1, 2, 3]
+        n_s = [5, 10, 1000]
         p_s = [1e-10, .1, .5, .9, .999999]
         exp = [
             0.99,
@@ -1318,13 +1318,13 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtri(k,n,p), exp[index])
+                    self.assertFloatEqual(bdtri(k, n, p), exp[index])
                     index += 1
 
 
     def test_gdtri(self):
         """gdtri should match cephes results"""
-        k_s = [1,2,4,10,100]
+        k_s = [1, 2, 4, 10, 100]
         n_s = k_s
         p_s = [1e-9, .02, .5, .8, .99]
         exp = [
@@ -1458,12 +1458,12 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(gdtri(k,n,p), exp[index])
+                    self.assertFloatEqual(gdtri(k, n, p), exp[index])
                     index += 1
 
     def test_fdtri(self):
         """fdtri should match cephes results"""
-        k_s = [1,2,4,10,100]
+        k_s = [1, 2, 4, 10, 100]
         n_s = k_s
         p_s = [1e-50, 1e-9, .02, .5, .8, .99]
         exp = [
@@ -1622,7 +1622,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(fdtri(k,n,p), exp[index])
+                    self.assertFloatEqual(fdtri(k, n, p), exp[index])
                     index += 1
 
 if __name__ == "__main__":

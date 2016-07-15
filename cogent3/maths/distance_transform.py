@@ -93,13 +93,13 @@ def _rankdata(a):
     ivec = argsort(a)
     svec = take(a, ivec)
     sumranks = dupcount = 0
-    newarray = zeros(n,'d')
+    newarray = zeros(n, 'd')
     for i in range(n):
         sumranks = sumranks + i
         dupcount = dupcount + 1
-        if i==n-1 or svec[i] != svec[i+1]:
+        if i == n - 1 or svec[i] != svec[i + 1]:
             averank = sumranks / float(dupcount) + 1
-            for j in range(i-dupcount+1,i+1):
+            for j in range(i - dupcount + 1, i + 1):
                 newarray[ivec[j]] = averank
                 sumranks = dupcount = 0
     return newarray
@@ -189,7 +189,7 @@ def dist_bray_curtis(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -198,21 +198,21 @@ def dist_bray_curtis(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
+        return zeros((0, 0), 'd')
 
-    dists = zeros((numrows,numrows),'d')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
-        r1 = datamtx[i,:]
+        r1 = datamtx[i, :]
         for j in range(i):
-            r2 = datamtx[j,:]
+            r2 = datamtx[j, :]
             abs_v = float(sum(abs(r1 - r2)))
             v = sum(r1 + r2)
             cur_d = 0.0 
             if v > 0:
-                cur_d = abs_v/v
+                cur_d = abs_v / v
 
             dists[i][j] = dists[j][i] = cur_d
     return dists
@@ -243,7 +243,7 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
     if strict:
         if not numpy.all(numpy.isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if numpy.any(datamtx<0.0):
+        if numpy.any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -252,24 +252,24 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
         try:
             numrows, numcols = numpy.shape(datamtx)
         except ValueError:
-            return numpy.zeros((0,0),'d')
+            return numpy.zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return numpy.zeros((0,0),'d')
+        return numpy.zeros((0, 0), 'd')
 
-    dists = numpy.zeros((numrows,numrows),'d')
+    dists = numpy.zeros((numrows, numrows), 'd')
     for i in range(numrows):
-        r1 = datamtx[i,:]
+        r1 = datamtx[i, :]
         r1sum = r1.sum()
         for j in range(i):
-            r2 = datamtx[j,:]
+            r2 = datamtx[j, :]
             r2sum = r2.sum()
-            minvals = numpy.min([r1,r2],axis=0)
+            minvals = numpy.min([r1, r2], axis=0)
 
             if (r1sum + r2sum) == 0:
                 dists[i][j] = dists[j][i] = 0.0
             else:
-                dissim = 1 - ( (2*minvals.sum()) / (r1sum + r2sum) )
+                dissim = 1 - ((2 * minvals.sum()) / (r1sum + r2sum))
                 dists[i][j] = dists[j][i] = dissim
     return dists
 
@@ -298,7 +298,7 @@ def dist_canberra(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -307,22 +307,22 @@ def dist_canberra(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
-    oldstate = seterr(invalid='ignore',divide='ignore')
+    oldstate = seterr(invalid='ignore', divide='ignore')
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
         r1 = datamtx[i]
         for j in range(i):
             r2 = datamtx[j]
             dist = 0.0
-            net = abs( r1 - r2 ) / (r1 + r2)
+            net = abs(r1 - r2) / (r1 + r2)
 
             net = nan_to_num(net)
             num_nonzeros = nonzero(net)[0].size
-            dists[i,j] = dists[j,i] = nan_to_num(net.sum()/num_nonzeros)
+            dists[i, j] = dists[j, i] = nan_to_num(net.sum() / num_nonzeros)
 
     seterr(**oldstate)
     return dists
@@ -353,7 +353,7 @@ def dist_chisq(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -362,11 +362,11 @@ def dist_chisq(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     sqrt_grand_sum = sqrt(sum(datamtx))
     rowsums, colsums = sum(datamtx, axis=1), sum(datamtx, axis=0)
     if not colsums.all():
@@ -385,9 +385,9 @@ def dist_chisq(datamtx, strict=True):
                 else: dist = 1.0
             else:
                 dist = sqrt_grand_sum *\
-                    sqrt(sum( multiply((1./colsums) ,
-                                       square(r1/r1sum - r2/r2sum)) ))
-            dists[i,j] = dists[j,i] = dist
+                    sqrt(sum(multiply((1. / colsums),
+                                       square(r1 / r1sum - r2 / r2sum))))
+            dists[i, j] = dists[j, i] = dist
     return dists
 
 def dist_chord(datamtx, strict=True):
@@ -419,11 +419,11 @@ def dist_chord(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
         r1 = datamtx[i] # cache here
         r1norm = norm(r1)
@@ -435,8 +435,8 @@ def dist_chord(datamtx, strict=True):
                     dist = 0.0
                 else: dist = 1.0
             else:
-                dist = norm(r1/r1norm - r2/r2norm)
-            dists[i,j] = dists[j,i] = dist
+                dist = norm(r1 / r1norm - r2 / r2norm)
+            dists[i, j] = dists[j, i] = dist
 
     return dists
 
@@ -466,17 +466,17 @@ def dist_euclidean(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for r in range(numrows):
         for c in range(r):
             dist = norm(datamtx[r] - datamtx[c])
             if isnan(dist):
                 raise RuntimeError('ERROR: overflow when computing euclidean distance')
-            dists[r,c] = dists[c,r] = dist
+            dists[r, c] = dists[c, r] = dist
 
     return dists
 
@@ -512,11 +512,11 @@ def dist_gower(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     coldiffs = datamtx.max(axis=0) - datamtx.min(axis=0)
     for i in range(numcols):
         if coldiffs[i] == 0.0:
@@ -528,7 +528,7 @@ def dist_gower(datamtx, strict=True):
             r2 = datamtx[j]
             rowdiff = r2 - r1
             dist = sum(abs(r1 - r2) / coldiffs)
-            dists[i,j] = dists[j,i] = dist
+            dists[i, j] = dists[j, i] = dist
 
     return dists
 
@@ -551,7 +551,7 @@ def dist_hellinger(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -560,11 +560,11 @@ def dist_hellinger(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
         r1 = datamtx[i]
         r1sum = sum(r1)
@@ -576,8 +576,8 @@ def dist_hellinger(datamtx, strict=True):
                     dist = 0.0
                 else: dist = 1.0
             else:
-                dist = norm(sqrt(r1/r1sum) - sqrt(r2/r2sum))
-            dists[i,j] = dists[j,i] = dist
+                dist = norm(sqrt(r1 / r1sum) - sqrt(r2 / r2sum))
+            dists[i, j] = dists[j, i] = dist
 
     return dists
 
@@ -604,7 +604,7 @@ def dist_kulczynski(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -613,11 +613,11 @@ def dist_kulczynski(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     rowsums = datamtx.sum(axis=1)
     # rowsum: the sum of elements in a row
     # cache to avoid recalculating for each pair
@@ -627,13 +627,13 @@ def dist_kulczynski(datamtx, strict=True):
         for j in range(i):
             r2 = datamtx[j]
             jrowsum = rowsums[j]
-            rowminsum = float(sum(where(r1<r2, r1,r2)))
+            rowminsum = float(sum(where(r1 < r2, r1, r2)))
             if (irowsum == 0.0 and jrowsum == 0.0):
                 cur_d = 0.0 # => two rows of zeros
             elif (irowsum == 0.0 or jrowsum == 0.0):
                 cur_d = 1.0 # one row zeros, one not all zeros
             else:
-                cur_d = 1.0 - (((rowminsum/irowsum) + (rowminsum/jrowsum))/2.0)
+                cur_d = 1.0 - (((rowminsum / irowsum) + (rowminsum / jrowsum)) / 2.0)
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -664,15 +664,15 @@ def dist_manhattan(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
         r1 = datamtx[i] # cache here
         for j in range(i):
-            dists[i,j] = dists[j,i] = sum(abs(r1 - datamtx[j]))
+            dists[i, j] = dists[j, i] = sum(abs(r1 - datamtx[j]))
 
     return dists
 
@@ -705,7 +705,7 @@ def dist_abund_jaccard(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -714,11 +714,11 @@ def dist_abund_jaccard(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
 
     rowsums = datamtx.sum(axis=1, dtype='float')
 
@@ -770,7 +770,7 @@ def dist_morisita_horn(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -779,17 +779,17 @@ def dist_morisita_horn(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
 
     rowsums = datamtx.sum(axis=1, dtype='float')
     row_ds = (datamtx**2).sum(axis=1, dtype='float') # these are d_a, etc
 
     for i in range(numrows):
-        if row_ds[i] !=0.:
+        if row_ds[i] != 0.:
             row_ds[i] = row_ds[i] / rowsums[i]**2
     # this leaves row_ds zero if actually 0/0
     for i in range(numrows):
@@ -800,14 +800,14 @@ def dist_morisita_horn(datamtx, strict=True):
             row2 = datamtx[j]
             N2 = rowsums[j]
             d2 = row_ds[j]
-            if N2 == 0.0 and N1==0.0:
+            if N2 == 0.0 and N1 == 0.0:
                 dist = 0.0
-            elif N2 == 0.0 or N1==0.0:
+            elif N2 == 0.0 or N1 == 0.0:
                 dist = 1.0
             else:
             # d's zero only if N's zero, and we already checked for that
-                similarity = 2*sum(row1*row2)
-                similarity = similarity / ( (d1 + d2) * N1 * N2 )
+                similarity = 2 * sum(row1 * row2)
+                similarity = similarity / ((d1 + d2) * N1 * N2)
                 dist = 1 - similarity
             dists[i][j] = dists[j][i] = dist
     return dists
@@ -849,26 +849,26 @@ def dist_pearson(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
+        return zeros((0, 0), 'd')
 
-    rowmeans =  mean(datamtx, axis=1)
-    rowstds =  std(datamtx, axis=1)
+    rowmeans = mean(datamtx, axis=1)
+    rowstds = std(datamtx, axis=1)
 
-    dists = zeros((numrows,numrows),'d')
+    dists = zeros((numrows, numrows), 'd')
     n = float(numrows)
 
     for i in range(numrows):
-        r1 = datamtx[i,:]
+        r1 = datamtx[i, :]
         r1m = rowmeans[i]
         r1dev = r1 - r1m
         for j in range(i):
-            r2 = datamtx[j,:]
+            r2 = datamtx[j, :]
             r2m = rowmeans[j]
             r2dev = r2 - r2m
-            top = sum(r1dev*r2dev)
+            top = sum(r1dev * r2dev)
             sum1 = sum(r1dev**2)
             sum2 = sum(r2dev**2)
 
@@ -878,7 +878,7 @@ def dist_pearson(datamtx, strict=True):
                 r = 0.0
             else:
                 bottom = sqrt(sum1 * sum2)
-                r = top/bottom
+                r = top / bottom
 
             dists[i][j] = dists[j][i] = 1.0 - r
 
@@ -906,7 +906,7 @@ def dist_soergel(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -915,21 +915,21 @@ def dist_soergel(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
-        r1 = datamtx[i,:]
+        r1 = datamtx[i, :]
         for j in range(i):
-            r2 = datamtx[j,:]
+            r2 = datamtx[j, :]
             top = float(sum(abs(r1 - r2)))
-            bot = float(sum(where(r1>r2, r1,r2)))
+            bot = float(sum(where(r1 > r2, r1, r2)))
             if bot <= 0.0:
                 cur_d = 0.0
             else:
-                cur_d = top/bot
+                cur_d = top / bot
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -967,24 +967,24 @@ def dist_spearman_approx(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
 
     if numcols < 2:
         return dists # formula fails for < 2 elements per row
 
     for i in range(numrows):
-        r1 = datamtx[i,:]
+        r1 = datamtx[i, :]
         rank1 = _rankdata(r1)
         for j in range(i):
-            r2 = datamtx[j,:]
+            r2 = datamtx[j, :]
             rank2 = _rankdata(r2)
             rankdiff = rank1 - rank2
             dsqsum = sum((rankdiff)**2)
-            dist = 6*dsqsum / float(numcols*(numcols**2-1))
+            dist = 6 * dsqsum / float(numcols * (numcols**2 - 1))
 
             dists[i][j] = dists[j][i] = dist
     return dists
@@ -1008,7 +1008,7 @@ def dist_specprof(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1017,11 +1017,11 @@ def dist_specprof(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
         r1 = datamtx[i]
         r1sum = sum(r1)
@@ -1033,8 +1033,8 @@ def dist_specprof(datamtx, strict=True):
                     dist = 0.0
                 else: dist = 1.0
             else:
-                dist = norm((r1/r1sum) - (r2/r2sum))
-            dists[i,j] = dists[j,i] = dist
+                dist = norm((r1 / r1sum) - (r2 / r2sum))
+            dists[i, j] = dists[j, i] = dist
 
     return dists
 
@@ -1109,7 +1109,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1118,11 +1118,11 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     rowsums = datamtx.sum(axis=1)
 
     for i in range(numrows):
@@ -1132,7 +1132,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
             bottom = float(rowsums[i] + rowsums[j])
             cur_d = 0.0
             if bottom:
-                cur_d = 1-(2*logical_and(row1,row2).sum()/bottom)
+                cur_d = 1 - (2 * logical_and(row1, row2).sum() / bottom)
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -1176,7 +1176,7 @@ def binary_dist_hamming(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1185,11 +1185,11 @@ def binary_dist_hamming(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     rowsums = datamtx.sum(axis=1)
 
     for i in range(numrows):
@@ -1199,7 +1199,7 @@ def binary_dist_hamming(datamtx, strict=True):
             second = datamtx[j]
             b = rowsums[j]
             c = float(logical_and(first, second).sum())
-            dist = a + b - (2.0*c)
+            dist = a + b - (2.0 * c)
             dists[i][j] = dists[j][i] = dist
     return dists
 
@@ -1234,7 +1234,7 @@ def binary_dist_jaccard(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1243,11 +1243,11 @@ def binary_dist_jaccard(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
 
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
@@ -1257,10 +1257,10 @@ def binary_dist_jaccard(datamtx, strict=True):
             second = datamtx[j]
             b = rowsums[j]
             c = float(logical_and(first, second).sum())
-            if a==0.0 and b==0.0:
+            if a == 0.0 and b == 0.0:
                 dist = 0.0
             else:
-                dist = 1.0 - (c/(a+b-c))
+                dist = 1.0 - (c / (a + b - c))
             dists[i][j] = dists[j][i] = dist
     return dists
 
@@ -1295,7 +1295,7 @@ def binary_dist_lennon(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1304,11 +1304,11 @@ def binary_dist_lennon(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
 
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
@@ -1318,12 +1318,12 @@ def binary_dist_lennon(datamtx, strict=True):
             second = datamtx[j]
             b = rowsums[j]
             c = float(logical_and(first, second).sum())
-            if a==0.0 and b==0.0:
+            if a == 0.0 and b == 0.0:
                 dist = 0.0
-            elif c==0.0:
+            elif c == 0.0:
                 dist = 1.0
             else:
-                dist = 1.0 - (c/(c + min([a-c,b-c])))
+                dist = 1.0 - (c / (c + min([a - c, b - c])))
             dists[i][j] = dists[j][i] = dist
     return dists
 
@@ -1358,7 +1358,7 @@ def binary_dist_ochiai(datamtx, strict=True):
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
-        if any(datamtx<0.0):
+        if any(datamtx < 0.0):
             raise ValueError("negative value in input matrix")
         if rank(datamtx) != 2:
             raise ValueError("input matrix not 2D")
@@ -1367,11 +1367,11 @@ def binary_dist_ochiai(datamtx, strict=True):
         try:
             numrows, numcols = shape(datamtx)
         except ValueError:
-            return zeros((0,0),'d')
+            return zeros((0, 0), 'd')
 
     if numrows == 0 or numcols == 0:
-        return zeros((0,0),'d')
-    dists = zeros((numrows,numrows),'d')
+        return zeros((0, 0), 'd')
+    dists = zeros((numrows, numrows), 'd')
     rowsums = datamtx.sum(axis=1)
 
     for i in range(numrows):
@@ -1381,12 +1381,12 @@ def binary_dist_ochiai(datamtx, strict=True):
             second = datamtx[j]
             b = rowsums[j]
             c = float(logical_and(first, second).sum())
-            if a==0.0 and b==0.0:
+            if a == 0.0 and b == 0.0:
                 dist = 0.0
-            elif a==0.0 or b==0.0:
+            elif a == 0.0 or b == 0.0:
                 dist = 1.0
             else:
-                dist = 1.0 - (c/sqrt(a*b))
+                dist = 1.0 - (c / sqrt(a * b))
             dists[i][j] = dists[j][i] = dist
     return dists
 
@@ -1403,14 +1403,14 @@ def binary_dist_pearson(datamtx, strict=True):
 
 if __name__ == "__main__":
     """ just a test run"""
-    matrix1 = array(    [   [10,8,4,1],
-                            [8,6,2,1],
-                            [0,0,0,0],
-                            [0,0,1,0],
-                            [1,1,0,1],
-                            [1,0,8,10],
-                            [0,0,0,0],
-                            [8,6,2,1],
+    matrix1 = array([[10, 8, 4, 1],
+                            [8, 6, 2, 1],
+                            [0, 0, 0, 0],
+                            [0, 0, 1, 0],
+                            [1, 1, 0, 1],
+                            [1, 0, 8, 10],
+                            [0, 0, 0, 0],
+                            [8, 6, 2, 1],
                             ])
 
     res = dist_euclidean(matrix1)

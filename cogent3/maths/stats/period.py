@@ -6,7 +6,7 @@ try:
     from math import factorial
 except ImportError: # python version < 2.6
     from cogent3.maths.stats.special import Gamma
-    factorial = lambda x: Gamma(x+1)
+    factorial = lambda x: Gamma(x + 1)
 
 from cogent3.maths.stats.special import igam
 
@@ -23,10 +23,10 @@ def chi_square(x, p, df=1):
     """returns the chisquare statistic and it's probability"""
     N = len(x)
     end = N
-    sim = numpy.logical_not(numpy.logical_xor(x[0:end-p], x[p:end]))*1
-    s = ((numpy.ones((N-p,), float)-sim)**2).sum()
-    D = s/(N-p)
-    p_val = 1 - igam(df/2.0, D/2)
+    sim = numpy.logical_not(numpy.logical_xor(x[0:end - p], x[p:end])) * 1
+    s = ((numpy.ones((N - p,), float) - sim)**2).sum()
+    D = s / (N - p)
+    p_val = 1 - igam(df / 2.0, D / 2)
     return D, p_val
 
 def g_statistic(X, p=None, idx=None):
@@ -45,15 +45,15 @@ def g_statistic(X, p=None, idx=None):
     else:
         assert idx is not None
         power = X[idx]
-    g_obs = power/X.sum()
-    M = numpy.floor(1/g_obs)
+    g_obs = power / X.sum()
+    M = numpy.floor(1 / g_obs)
     pmax = len(X)
 
-    result = numpy.zeros((int(M+1),), float)
+    result = numpy.zeros((int(M + 1),), float)
     pmax_fact = factorial(pmax)
-    for index in range(1, min(pmax, int(M))+1):
-        v = (-1)**(index-1)*pmax_fact/factorial(pmax-index)/factorial(index)
-        v *= (1-index*g_obs)**(pmax-1)
+    for index in range(1, min(pmax, int(M)) + 1):
+        v = (-1)**(index - 1) * pmax_fact / factorial(pmax - index) / factorial(index)
+        v *= (1 - index * g_obs)**(pmax - 1)
         result[index] = v
 
     p_val = result.sum()
@@ -129,12 +129,12 @@ class SeqToSymbols(object):
 def circular_indices(vector, start, length, num):
     """docstring for circular_indices"""
     if start > length:
-        start = start-length
+        start = start - length
 
-    if start+num < length:
-        return vector[start: start+num]
+    if start + num < length:
+        return vector[start: start + num]
     # get all till end, then from beginning
-    return vector[start:] + vector[:start+num-length]
+    return vector[start:] + vector[:start + num - length]
 
 def sampled_places(block_size, length):
     """returns randomly sampled positions with block_size to make a new vector
@@ -150,7 +150,7 @@ def sampled_places(block_size, length):
         result += circular_indices(vector, i, length, block_size)
 
     if remainder:
-        result += circular_indices(vector, i+block_size, length, remainder)
+        result += circular_indices(vector, i + block_size, length, remainder)
 
     assert len(result) == length, len(result)
     return result
@@ -174,9 +174,9 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
     signal_length = len(signal)
 
     if seq_to_symbols is not None:
-        dtype='c'
+        dtype = 'c'
     else:
-        dtype=None # let numpy guess
+        dtype = None # let numpy guess
 
     signal = numpy.array(list(signal), dtype=dtype)
 

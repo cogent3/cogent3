@@ -42,7 +42,7 @@ def _is_junk(line, t_strs):
 
 def is_blast_junk(line):
     """Ignore empty line or lines with blast info"""
-    return _is_junk(line, ("BLAST","TBLAS"))
+    return _is_junk(line, ("BLAST", "TBLAS"))
 
 def is_blat_junk(line):
     """Ignore empty line or lines with blat info"""
@@ -102,7 +102,7 @@ def GenericBlastParser9(lines, finder, make_col_headers=False):
 
                 # check if need to insert column headers
                 if make_col_headers and label == "FIELDS":
-                    data.insert(0, list(map(upper, list(map(strip,value.split(","))))))
+                    data.insert(0, list(map(upper, list(map(strip, value.split(","))))))
 
             else:
                 data.append(list(map(strip, line.split("\t"))))
@@ -121,9 +121,9 @@ def TableToValues(table, constructors=None, header=None):
     c_list = [constructors.get(k, str) for k in header]
     return [[c(val) for c, val in zip(c_list, row)] for row in table], header
 
-psiblast_constructors={'% identity':float, 'alignment length':int, \
-                       'mismatches':int, 'gap openings':int, 'q. start':int, 'q. end':int, \
-                       's. start':int, 's. end':int, 'e-value':float, 'bit score':float}
+psiblast_constructors = {'% identity': float, 'alignment length': int, \
+                       'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int, \
+                       's. start': int, 's. end': int, 'e-value': float, 'bit score': float}
 #make case-insensitive
 for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
@@ -189,7 +189,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     # no filter, returh all
     if not threshold:
         if keep_values:
-            return [(x[p_ix],x[e_ix]) for x in data]
+            return [(x[p_ix], x[e_ix]) for x in data]
         else:
             return [x[p_ix] for x in data]
     else:
@@ -202,7 +202,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
                 return (val <= max_val)
             return (val >= max_val)
         if keep_values:
-            return [(x[p_ix],x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
+            return [(x[p_ix], x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
         else:
             return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
 
@@ -346,15 +346,15 @@ class BlastResult(dict):
     _eq = lambda x, y: cmp(x, y) == 0 
 
     FieldComparisonOperators = {
-        PERCENT_IDENTITY:(_gt, float),
-        ALIGNMENT_LENGTH:(_gt, int),
-        MISMATCHES:(_lt, int),
-        E_VALUE:(_lt, float),
-        BIT_SCORE:(_gt, float)
+        PERCENT_IDENTITY: (_gt, float),
+        ALIGNMENT_LENGTH: (_gt, int),
+        MISMATCHES: (_lt, int),
+        E_VALUE: (_lt, float),
+        BIT_SCORE: (_gt, float)
         }   
 
     # set up valid blast keys
-    HitKeys = set([ ITERATION,
+    HitKeys = set([ITERATION,
                     QUERY_ID,
                     SUBJECT_ID,
                     PERCENT_IDENTITY,
@@ -366,7 +366,7 @@ class BlastResult(dict):
                     SUBJECT_START,
                     SUBJECT_END,
                     E_VALUE,
-                    BIT_SCORE ])
+                    BIT_SCORE])
 
 
     def __init__(self, data, psiblast=False):
@@ -429,7 +429,7 @@ class BlastResult(dict):
         """Returns copy of self containing hits where f(entry) is True."""
         raise NotImplementedError
 
-    def bestHitsByQuery(self, iteration=-1,  n=1, field='BIT SCORE', return_self=False):
+    def bestHitsByQuery(self, iteration=-1, n=1, field='BIT SCORE', return_self=False):
         """Iterates over all queries and returns best hit for each 
 
         return_self: if False, will not return best hit as itself.
@@ -472,10 +472,10 @@ class BlastResult(dict):
 
 fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='', \
                                                    ignore=never_ignore)
-fasta_field_map = { 'NCBI sequence id':'seq_id',
-                    'NCBI taxonomy id':'tax_id',
-                    'Common name':'common_name',
-                    'Scientific name':'scientific_name'}
+fasta_field_map = {'NCBI sequence id': 'seq_id',
+                    'NCBI taxonomy id': 'tax_id',
+                    'Common name': 'common_name',
+                    'Scientific name': 'scientific_name'}
 
 def FastacmdTaxonomyParser(lines):
     """Yields successive records from the results of fastacmd -T.

@@ -17,7 +17,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-_lc_to_wc = ''.join([[chr(x),'?']['A' <= chr(x) <= 'Z'] for x in range(256)])
+_lc_to_wc = ''.join([[chr(x), '?']['A' <= chr(x) <= 'Z'] for x in range(256)])
 
 def FromFilenameParser(filename, format=None, **kw):
     """Arguments:
@@ -62,11 +62,11 @@ def format_from_filename(filename, format=None):
     if format:
         return format
     else:
-        return filename[filename.rfind('.')+1:]
+        return filename[filename.rfind('.') + 1:]
 
-PARSERS  = {
+PARSERS = {
     'phylip': phylip.MinimalPhylipParser,
-    'paml':  paml.PamlParser,
+    'paml': paml.PamlParser,
     'fasta': fasta.MinimalFastaParser,
     'mfa': fasta.MinimalFastaParser,
     'fa': fasta.MinimalFastaParser,

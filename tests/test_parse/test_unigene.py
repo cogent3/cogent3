@@ -21,7 +21,7 @@ class unigeneTests(TestCase):
     def test_read_sts(self):
         """_read_sts should perform correct conversions"""
         self.assertEqual(_read_sts('ACC=RH128467 UNISTS=211775\n'), \
-                         {'ACC':'RH128467', 'UNISTS':'211775'})
+                         {'ACC': 'RH128467', 'UNISTS': '211775'})
 
     def test_read_expression(self):
         """_read_expression should perform correct conversions"""
@@ -35,13 +35,13 @@ class unigeneTests(TestCase):
         #execution and it's persistent class data
         UniGeneSeqRecord.found_fields = {}
         self.assertEqual(_read_seq('ACC=BC025044.1\n'), \
-                         UniGeneSeqRecord({'ACC':'BC025044.1'}))
+                         UniGeneSeqRecord({'ACC': 'BC025044.1'}))
         self.assertEqual(_read_seq(\
             "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"), \
-            UniGeneSeqRecord({   'ACC':'AI842963.1','NID':'g5477176',
-                                 'CLONE':'UI-M-AO1-aem-f-10-0-UI', 'END':"3'", 
-                                 'LID':'1944', 'SEQTYPE':'EST',
-                                 'TRACE':'158501677'}) )
+            UniGeneSeqRecord({'ACC': 'AI842963.1', 'NID': 'g5477176',
+                                 'CLONE': 'UI-M-AO1-aem-f-10-0-UI', 'END': "3'", 
+                                 'LID': '1944', 'SEQTYPE': 'EST',
+                                 'TRACE': '158501677'}))
 
     def test_LinesToUniGene(self):
         """LinesToUniGene should give expected results on sample data"""
@@ -88,32 +88,32 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(first.LOCUSLINK, 20194)
         self.assertEqual(first.EXPRESS, ['embryo', 'whole body', \
                                          'mammary gland', 'brain'])
-        self.assertEqual(first.STS, [{'ACC':'RH128467','UNISTS':'211775'},
-                                     {'ACC':'M16465', 'UNISTS':'178878'}])
+        self.assertEqual(first.STS, [{'ACC': 'RH128467', 'UNISTS': '211775'},
+                                     {'ACC': 'M16465', 'UNISTS': '178878'}])
         exp_prot_sim = list(map(UniGeneProtSimRecord, [
-            {'ORG':'Homo sapiens','PROTGI':'107251', 
-             'PROTID':'pir:JC1139','PCT':'91','ALN':'97'},
-            {'ORG':'Mus musculus','PROTGI':'116487',
-             'PROTID':'sp:P08207','PCT':'100','ALN':'97'},
-            {'ORG':'Rattus norvegicus','PROTGI':'116489',
-             'PROTID':'sp:P05943','PCT':'94','ALN':'94'},]))
+            {'ORG': 'Homo sapiens', 'PROTGI': '107251', 
+             'PROTID': 'pir:JC1139', 'PCT': '91', 'ALN': '97'},
+            {'ORG': 'Mus musculus', 'PROTGI': '116487',
+             'PROTID': 'sp:P08207', 'PCT': '100', 'ALN': '97'},
+            {'ORG': 'Rattus norvegicus', 'PROTGI': '116489',
+             'PROTID': 'sp:P05943', 'PCT': '94', 'ALN': '94'}, ]))
         for obs, exp in zip(first.PROTSIM, exp_prot_sim):
             self.assertEqual(obs, exp)
         self.assertEqual(first.SCOUNT, 5)
         exp_seqs = list(map(UniGeneSeqRecord, [
-            {'ACC':'BC025044.1', 'NID':'g19263549','PID':'g19263550',
-                'SEQTYPE':'mRNA'},
-            {'ACC':'AA471893.1','NID':'g2199884','END':"5'",
-             'CLONE':'IMAGE:872193','LID':'539', 'SEQTYPE':'EST'},
-            {'ACC':'AI842963.1','NID':'g5477176',
-             'CLONE':'UI-M-AO1-aem-f-10-0-UI','END':"3'",'LID':'1944',
-             'SEQTYPE':'EST','TRACE':'158501677'},
-            {'ACC':'CB595147.1','NID':'g29513003',
-             'CLONE':'IMAGE:30300703','END':"5'",'LID':'12885',
-             'MGC':'6677832', 'SEQTYPE':'EST'},
-            {'ACC':'BY144053.1','NID':'g26280109',
-             'CLONE':'L930184D22','END':"5'",'LID':'12267',
-             'SEQTYPE':'EST'}]))
+            {'ACC': 'BC025044.1', 'NID': 'g19263549', 'PID': 'g19263550',
+                'SEQTYPE': 'mRNA'},
+            {'ACC': 'AA471893.1', 'NID': 'g2199884', 'END': "5'",
+             'CLONE': 'IMAGE:872193', 'LID': '539', 'SEQTYPE': 'EST'},
+            {'ACC': 'AI842963.1', 'NID': 'g5477176',
+             'CLONE': 'UI-M-AO1-aem-f-10-0-UI', 'END': "3'", 'LID': '1944',
+             'SEQTYPE': 'EST', 'TRACE': '158501677'},
+            {'ACC': 'CB595147.1', 'NID': 'g29513003',
+             'CLONE': 'IMAGE:30300703', 'END': "5'", 'LID': '12885',
+             'MGC': '6677832', 'SEQTYPE': 'EST'},
+            {'ACC': 'BY144053.1', 'NID': 'g26280109',
+             'CLONE': 'L930184D22', 'END': "5'", 'LID': '12267',
+             'SEQTYPE': 'EST'}]))
         for obs, exp in zip(first.SEQUENCE, exp_seqs):
             self.assertEqual(obs, exp)
         self.assertEqual(second.ID, 'Mm.5')
@@ -121,18 +121,18 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(second.GENE, 'Hoxa10')
         self.assertEqual(second.CYTOBAND, '6 26.33 cM')
         self.assertEqual(second.LOCUSLINK, 15395)
-        self.assertEqual(second.EXPRESS,['kidney','colon','mammary gland'])
+        self.assertEqual(second.EXPRESS, ['kidney', 'colon', 'mammary gland'])
         self.assertEqual(second.CHROMOSOME, '6')
         self.assertEqual(second.PROTSIM, list(map(UniGeneProtSimRecord, [
-            {'ORG':'Caenorhabditis elegans', 'PROTGI':'7510074',
-             'PROTID':'pir:T31611','PCT':'30',
-             'ALN':'326'}])))
+            {'ORG': 'Caenorhabditis elegans', 'PROTGI': '7510074',
+             'PROTID': 'pir:T31611', 'PCT': '30',
+             'ALN': '326'}])))
         self.assertEqual(second.SCOUNT, 1)
         self.assertEqual(second.STS, [])
         self.assertEqual(second.SEQUENCE, list(map(UniGeneSeqRecord, [
-            {'ACC':'AW990320.1','NID':'g8185938',
-             'CLONE':'IMAGE:1513482','END':"5'",'LID':'1043',
-             'SEQTYPE':'EST','TRACE':'94472873'}])))
+            {'ACC': 'AW990320.1', 'NID': 'g8185938',
+             'CLONE': 'IMAGE:1513482', 'END': "5'", 'LID': '1043',
+             'SEQTYPE': 'EST', 'TRACE': '94472873'}])))
 
         #test that the synonym mapping works OK
         self.assertEqual(second.SequenceIds[0].NucleotideId, 'g8185938')

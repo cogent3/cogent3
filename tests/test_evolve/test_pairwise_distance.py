@@ -51,46 +51,46 @@ class TestPair(TestCase):
         """make correct diversity matrix when all chars valid"""
         s1 = seq_to_indices('ACGTACGTAC', self.dna_char_indices)
         s2 = seq_to_indices('GTGTACGTAC', self.dna_char_indices)
-        matrix = numpy.zeros((4,4), float)
+        matrix = numpy.zeros((4, 4), float)
         # self-self should just be an identity matrix
         _fill_diversity_matrix(matrix, s1, s1)
         self.assertEqual(matrix.sum(), len(s1))
         self.assertEqual(matrix,
-                         numpy.array([[2,0,0,0],
-                                      [0,3,0,0],
-                                      [0,0,3,0],
-                                      [0,0,0,2]], float))
+                         numpy.array([[2, 0, 0, 0],
+                                      [0, 3, 0, 0],
+                                      [0, 0, 3, 0],
+                                      [0, 0, 0, 2]], float))
 
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
         self.assertEqual(matrix,
-                         numpy.array([[2,0,0,0],
-                                      [1,2,0,0],
-                                      [0,0,2,1],
-                                      [0,0,0,2]], float))
+                         numpy.array([[2, 0, 0, 0],
+                                      [1, 2, 0, 0],
+                                      [0, 0, 2, 1],
+                                      [0, 0, 0, 2]], float))
 
     def test_fill_diversity_matrix_some(self):
         """make correct diversity matrix when not all chars valid"""
         s1 = seq_to_indices('RACGTACGTACN', self.dna_char_indices)
         s2 = seq_to_indices('AGTGTACGTACA', self.dna_char_indices)
-        matrix = numpy.zeros((4,4), float)
+        matrix = numpy.zeros((4, 4), float)
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
         self.assertEqual(matrix,
-                         numpy.array([[2,0,0,0],
-                                      [1,2,0,0],
-                                      [0,0,2,1],
-                                      [0,0,0,2]], float))
+                         numpy.array([[2, 0, 0, 0],
+                                      [1, 2, 0, 0],
+                                      [0, 0, 2, 1],
+                                      [0, 0, 0, 2]], float))
 
     def test_python_vs_cython_fill_matrix(self):
         """python & cython fill_diversity_matrix give same answer"""
         s1 = seq_to_indices('RACGTACGTACN', self.dna_char_indices)
         s2 = seq_to_indices('AGTGTACGTACA', self.dna_char_indices)
-        matrix1 = numpy.zeros((4,4), float)
+        matrix1 = numpy.zeros((4, 4), float)
         _fill_diversity_matrix(matrix1, s1, s2)
-        matrix2 = numpy.zeros((4,4), float)
+        matrix2 = numpy.zeros((4, 4), float)
         pyx_fill_diversity_matrix(matrix2, s1, s2)
         self.assertFloatEqual(matrix1, matrix2)
 
@@ -98,7 +98,7 @@ class TestPair(TestCase):
         """compute JC69 from diversity matrix"""
         s1 = seq_to_indices('ACGTACGTAC', self.dna_char_indices)
         s2 = seq_to_indices('GTGTACGTAC', self.dna_char_indices)
-        matrix = numpy.zeros((4,4), float)
+        matrix = numpy.zeros((4, 4), float)
         _fill_diversity_matrix(matrix, s1, s2)
         total, p, dist, var = _jc69_from_matrix(matrix)
         self.assertEqual(total, 10.0)
@@ -229,7 +229,7 @@ class TestPair(TestCase):
         aln = LoadSeqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        self.assertEqual(logdet_calc.Variances[1,1], None)
+        self.assertEqual(logdet_calc.Variances[1, 1], None)
 
         index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
@@ -248,7 +248,7 @@ class TestPair(TestCase):
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
-        self.assertFloatEqual(logdet_calc.Variances[1,1], var, eps=1e-3)
+        self.assertFloatEqual(logdet_calc.Variances[1, 1], var, eps=1e-3)
 
     def test_logdet_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -291,9 +291,9 @@ class TestPair(TestCase):
         M = numpy.linalg.inv(J)
         f = J.sum(1), J.sum(0)
         dist = -0.25 * numpy.log( numpy.linalg.det(J) / \
-                                  numpy.sqrt(f[0].prod() * f[1].prod()) )
+                                  numpy.sqrt(f[0].prod() * f[1].prod()))
 
-        self.assertFloatEqual(paralinear_calc.Dists[1,1], dist, eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.Dists[1, 1], dist, eps=1e-3)
 
     def test_paralinear_variance(self):
         """calculate paralinear variance consistent with hand calculation"""
@@ -320,7 +320,7 @@ class TestPair(TestCase):
             var -= 1 / numpy.sqrt(f[0][i] * f[1][i])
         var /= 16 * len(data[0][1])
 
-        self.assertFloatEqual(paralinear_calc.Variances[1,1], var, eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.Variances[1, 1], var, eps=1e-3)
 
     def test_paralinear_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -346,10 +346,10 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(show_progress=False)
 
-        self.assertFloatEqual(logdet_calc.Dists[1,1],
-                              paralinear_calc.Dists[1,1], eps=1e-3)
-        self.assertFloatEqual(paralinear_calc.Variances[1,1], 
-                              logdet_calc.Variances[1,1], eps=1e-3)
+        self.assertFloatEqual(logdet_calc.Dists[1, 1],
+                              paralinear_calc.Dists[1, 1], eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.Variances[1, 1], 
+                              logdet_calc.Variances[1, 1], eps=1e-3)
 
 if __name__ == '__main__':
     main()
