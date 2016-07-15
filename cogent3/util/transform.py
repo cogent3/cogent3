@@ -22,7 +22,7 @@ from functools import reduce
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight","Zongzhi Liu"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
@@ -42,7 +42,7 @@ def bools(items):
 
 def bool_each(functions, *args, **kwargs):
     """Returns list of booleans: results of applying each function to args."""
-    return bools(apply_each(functions,*args, **kwargs))
+    return bools(apply_each(functions, *args, **kwargs))
 
 def conjoin(functions, *args, **kwargs):
     """Returns True if all functions return True when applied to args."""
@@ -57,7 +57,7 @@ def all(functions):
         return conjoin(functions, *args, **kwargs)
     return apply_to
 
-def both(f,g):
+def both(f, g):
     """Returns function that returns True when functions f and g return True."""
     def apply_to(*args, **kwargs):
         #use operator.__and__ to make it compatible to numpy array operation
@@ -78,7 +78,7 @@ def any(functions):
         return disjoin(functions, *args, **kwargs)
     return apply_to
 
-def either(f,g):
+def either(f, g):
     """Returns a function that returns True if either f or g returns True."""
     def apply_to(*args, **kwargs):
         return f(*args, **kwargs) or g(*args, **kwargs)
@@ -97,13 +97,13 @@ def none(functions):
         return negate(functions, *args, **kwargs)
     return apply_to
 
-def neither(f,g):
+def neither(f, g):
     """Returns a function that returns True if neither f not g returns True."""
     def apply_to(*args, **kwargs):
         return not(f(*args, **kwargs)) and not(g(*args, **kwargs))
     return apply_to
 
-def compose(f,g):
+def compose(f, g):
     """Returns a function that returns the result of applying f to g(x)."""
     def apply_to(*args, **kwargs):
         return f(g(*args, **kwargs))
@@ -134,7 +134,7 @@ def per_shortest(total, x, y):
     if not shortest:
         return 0
     else:
-        return total/shortest
+        return total / shortest
 
 def per_longest(total, x, y):
     """Divides total by max(len(x), len(y)).
@@ -147,7 +147,7 @@ def per_longest(total, x, y):
     if not longest:
         return 0
     else:
-        return total/longest
+        return total / longest
 
 class for_seq(object):
     """Returns function that applies f(i,j) to i,j in zip(first, second).
@@ -171,10 +171,10 @@ class for_seq(object):
     def __call__(self, first, second):
         f = self.f
         if self.normalizer is None:
-            return self.aggregator([f(i,j) for i,j in zip(first, second)])
+            return self.aggregator([f(i, j) for i, j in zip(first, second)])
         else:
             return self.normalizer(self.aggregator(\
-                [f(i,j) for i,j in zip(first,second)]), first, second)
+                [f(i, j) for i, j in zip(first, second)]), first, second)
 
 #convenience functions for modifying objects
 
@@ -252,14 +252,14 @@ def test_container(container):
 def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
     new = [c for c in map(chr, range(256)) if c not in good_chars]
-    return str.maketrans("".join(new), default*len(new))
+    return str.maketrans("".join(new), default * len(new))
 
 def trans_all(bad_chars, default):
     """Returns translation table mapping all the 'bad chars' to default."""
-    return str.maketrans(bad_chars, default*len(bad_chars))
+    return str.maketrans(bad_chars, default * len(bad_chars))
 
 
-def find_any(words, case_sens = False):
+def find_any(words, case_sens=False):
     """Tests if any of the given words occurs in the given string.
 
     This filter is case INsensitive by default.
@@ -280,12 +280,12 @@ def find_any(words, case_sens = False):
         return False
     return apply_to
 
-def find_no(words, case_sens = False):
+def find_no(words, case_sens=False):
     """Returns True if none of the words appears in s.
 
     This filter is case INsensitive by default.
     """
-    f=find_any(words,case_sens)
+    f = find_any(words, case_sens)
     def apply_to(s):
         return not f(s)
     return apply_to
@@ -314,7 +314,7 @@ def find_all(words, case_sens=False):
     return apply_to
 
 
-def keep_if_more(items,x,case_sens=False):
+def keep_if_more(items, x, case_sens=False):
     """Returns True if #items in s > x. False otherwise.
 
     This filter is case INsensitive by default.
@@ -344,17 +344,17 @@ def keep_if_more(items,x,case_sens=False):
             return False
     return find_more_good
 
-def exclude_if_more(items,x,case_sens=False):
+def exclude_if_more(items, x, case_sens=False):
     """Returns True if #items in s < x.
 
     This filter is case INsensitive by default.
     """
-    f = keep_if_more(items,x,case_sens)
+    f = keep_if_more(items, x, case_sens)
     def apply_to(s):
         return not f(s)
     return apply_to
 
-def keep_if_more_other(items,x,case_sens=False):
+def keep_if_more_other(items, x, case_sens=False):
     """Returns True if #items in s other than those in items > x. 
 
     This filter is case INsensitive by default.
@@ -382,12 +382,12 @@ def keep_if_more_other(items,x,case_sens=False):
             return False
     return apply_to
 
-def exclude_if_more_other(items,x,case_sens=False):
+def exclude_if_more_other(items, x, case_sens=False):
     """Returns True if #items other than in items in s < x.
 
     This filter is case INsensitive by default.
     """ 
-    f = keep_if_more_other(items,x,case_sens)
+    f = keep_if_more_other(items, x, case_sens)
     def apply_to(s):
         return not f(s)
     return apply_to
@@ -611,12 +611,12 @@ def perm(items, n=None):
     if n is None:
         n = len(items)
     for i in range(len(items)):
-        v = items[i:i+1]
+        v = items[i:i + 1]
         if n == 1:
             yield v
         else:
-            rest = items[:i] + items[i+1:]
-            for p in perm(rest, n-1):
+            rest = items[:i] + items[i + 1:]
+            for p in perm(rest, n - 1):
                 yield v + p
 
 def comb(items, n=None):
@@ -629,12 +629,12 @@ def comb(items, n=None):
     if n is None:
         n = len(items)
     for i in range(len(items)):
-        v = items[i:i+1]
+        v = items[i:i + 1]
         if n == 1:
             yield v
         else:
-            rest = items[i+1:]
-            for c in comb(rest, n-1):
+            rest = items[i + 1:]
+            for c in comb(rest, n - 1):
                 yield v + c
 
 def _increment_comb(outcomes, vector):

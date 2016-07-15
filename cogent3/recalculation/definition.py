@@ -163,10 +163,10 @@ class WeightedPartitionDefn(CalculationDefn):
 
     def __init__(self, weights, name):
         N = len(weights.bin_names)
-        partition = PartitionDefn(size=N, name=name+'_partition')
+        partition = PartitionDefn(size=N, name=name + '_partition')
         partition.user_param = False
         CalculationDefn.__init__(self, weights, partition,
-                                 name=name+'_distrib')
+                                 name=name + '_distrib')
 
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
@@ -194,16 +194,16 @@ class GammaDefn(MonotonicDefn):
     def __init__(self, weights, name=None, default_shape=1.0,
                  extra_label=None, dimensions=()):
         name = self.makeName(name, extra_label)
-        shape = PositiveParamDefn(name+'_shape',
+        shape = PositiveParamDefn(name + '_shape',
                                   default=default_shape, dimensions=dimensions, lower=1e-2)
-        CalculationDefn.__init__(self, weights, shape, name=name+'_distrib')
+        CalculationDefn.__init__(self, weights, shape, name=name + '_distrib')
 
     def calc(self, weights, a):
         from cogent3.maths.stats.distribution import gdtri
         weights = weights / numpy.sum(weights)
-        percentiles = (numpy.add.accumulate(weights) - weights*0.5)
-        medians = numpy.array([gdtri(a,a,p) for p in percentiles])
-        scale = numpy.sum(medians*weights)
+        percentiles = (numpy.add.accumulate(weights) - weights * 0.5)
+        medians = numpy.array([gdtri(a, a, p) for p in percentiles])
+        scale = numpy.sum(medians * weights)
         #assert 0.5 < scale < 2.0, scale # medians as approx. to means.
         return medians / scale
 
@@ -250,7 +250,7 @@ class ParamDefn(_InputDefn):
     upper = +1e10
 
     def makeDefaultSetting(self):
-        return Var(bounds = (self.lower, self.default, self.upper))
+        return Var(bounds=(self.lower, self.default, self.upper))
 
     def checkSettingIsValid(self, setting):
         pass
@@ -329,10 +329,10 @@ def _proportions(total, params):
     [0.125, 0.125, 0.375, 0.375]"""
     if len(params) == 0:
         return [total]
-    half = (len(params)+1) // 2
+    half = (len(params) + 1) // 2
     part = 1.0 / (params[0] + 1.0) # ratio -> proportion
-    return _proportions(total*part, params[1:half]) + \
-        _proportions(total*(1.0-part), params[half:])
+    return _proportions(total * part, params[1:half]) + \
+        _proportions(total * (1.0 - part), params[half:])
 
 def _unpack_proportions(values):
     """List of N-1 ratios from N proportions"""
@@ -380,7 +380,7 @@ class PartitionDefn(_InputDefn):
         self.checkValueIsValid(default, True)
 
     def _makeDefaultValue(self):
-        return numpy.array([1.0/self.size] * self.size)
+        return numpy.array([1.0 / self.size] * self.size)
 
     def makeDefaultSetting(self):
         #return ConstVal(self.default)
@@ -418,7 +418,7 @@ class PartitionDefn(_InputDefn):
         N = len(value)
         assert abs(sum(value) - 1.0) < .00001
         ratios = _unpack_proportions(value)
-        ratios = [LogOptPar(name+'_ratio', scope, (1e-6,r,1e+6))
+        ratios = [LogOptPar(name + '_ratio', scope, (1e-6, r, 1e+6))
                   for r in ratios]
         def r2p(*ratios):
             return numpy.asarray(_proportions(1.0, ratios))
@@ -471,7 +471,7 @@ class SelectForDimension(_Defn):
 
     name = 'select'
     user_param = True
-    numeric=True # not guarenteed!
+    numeric = True # not guarenteed!
     internal_dimensions = ()
 
     def __init__(self, arg, dimension, name=None):
@@ -483,19 +483,19 @@ class SelectForDimension(_Defn):
         self.arg = arg
         self.valid_dimensions = arg.valid_dimensions
         if dimension not in self.valid_dimensions:
-            self.valid_dimensions =  self.valid_dimensions + (dimension,)
+            self.valid_dimensions = self.valid_dimensions + (dimension,)
         self.dimension = dimension
         arg.addClient(self)
 
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
-            scope2 = dict((n,v) for (n,v) in list(scope.items()) if n!=self.dimension)
+            scope2 = dict((n, v) for (n, v) in list(scope.items()) if n != self.dimension)
             input_num = self.arg.outputOrdinalFor(scope2)
             pos = self.arg.bin_names.index(scope[self.dimension])
             self.assignments[scope_t] = (input_num, pos)
         self._update_from_assignments()
-        self.values = [self.arg.values[i][p] for (i,p) in self.uniq]
+        self.values = [self.arg.values[i][p] for (i, p) in self.uniq]
 
     def _select(self, arg, p):
         return arg[p]
@@ -505,7 +505,7 @@ class SelectForDimension(_Defn):
         distribs = input_soup[id(self.arg)]
         for (input_num, bin_num) in self.uniq:
             cell = EvaluatedCell(
-                self.name, (lambda x,p=bin_num:x[p]), (distribs[input_num],))
+                self.name, (lambda x, p=bin_num: x[p]), (distribs[input_num],))
             cells.append(cell)
         return (cells, cells)
 
@@ -561,7 +561,7 @@ class ParallelSumDefn(CalculationDefn):
 
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
            'CallDefn', 'ParallelSumDefn'] + [
-    n for (n,c) in list(vars().items())
+    n for (n, c) in list(vars().items())
     if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
     or isinstance(c, CalcDefn)]
 

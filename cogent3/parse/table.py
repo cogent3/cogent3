@@ -51,7 +51,7 @@ class ConvertFields(object):
     __call__ = _call
 
 
-def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
+def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
                           sep=",", strip_wspace=True, limit=None, **kw):
     """Returns a parser for a delimited tabular file.
 
@@ -128,8 +128,8 @@ def autogen_reader(infile, sep, with_title, limit=None):
     return SeparatorFormatParser(converter=ConvertFields(numeric_fields),
                                  sep=sep, limit=limit)
 
-def load_delimited(filename, header = True, delimiter = ',',
-                   with_title = False, with_legend = False, limit=None):
+def load_delimited(filename, header=True, delimiter=',',
+                   with_title=False, with_legend=False, limit=None):
     if limit is not None:
         limit += 1 # don't count header line
 
@@ -138,7 +138,7 @@ def load_delimited(filename, header = True, delimiter = ',',
     else:
         f = open(filename, newline=None)
 
-    reader = csv.reader(f, dialect = 'excel', delimiter = delimiter)
+    reader = csv.reader(f, dialect='excel', delimiter=delimiter)
     rows = []
     num_lines = 0
     for row in reader:

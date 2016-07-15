@@ -46,7 +46,7 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
     modelClass = eval(modelClass)
     if parameterisation is not None:
         predicates = {'silly': silly_predicate}
-        par_rules = [{'par_name':'silly', 'is_independent':parameterisation}]
+        par_rules = [{'par_name': 'silly', 'is_independent': parameterisation}]
     else:
         predicates = {}
         par_rules = []
@@ -79,15 +79,15 @@ class CompareImplementations(object):
 
     def __call__(self, *args):
         self.switch(0)
-        (pc,aln) = quiet(makePC, *args)
-        speed1 = measure_evals_per_sec(pc,aln)
+        (pc, aln) = quiet(makePC, *args)
+        speed1 = measure_evals_per_sec(pc, aln)
         self.switch(1)
-        (pc,aln) = quiet(makePC, *args)
-        speed2 = measure_evals_per_sec(pc,aln)
+        (pc, aln) = quiet(makePC, *args)
+        speed2 = measure_evals_per_sec(pc, aln)
         if speed1 < speed2:
-            speed = '+%2.1f' % (speed2/speed1)
+            speed = '+%2.1f' % (speed2 / speed1)
         else:
-            speed = '-%2.1f' % (speed1/speed2)
+            speed = '-%2.1f' % (speed1 / speed2)
         if speed in ['+1.0', '-1.0']:
             speed = ''
         return speed
@@ -101,7 +101,7 @@ def benchmarks(test):
             (False, 'global'), (False, 'local'), (True, 'global')]:
         print(parameterisation, ['', 'opt motifs'][optimise_motifs])
         print(' ' * 14, end=' ')
-        wcol = 5*len(sequence_lengths) + 2
+        wcol = 5 * len(sequence_lengths) + 2
         for alphabet in alphabets:
             print(str(alphabet).ljust(wcol), end=' ')
         print()
@@ -111,13 +111,13 @@ def benchmarks(test):
                 print("%4s" % sequence_length, end=' ')
             print('  ', end=' ')
         print()
-        print(' '*12 + (' | '.join(['']+['-'*(len(sequence_lengths)*5) for alphabet in alphabets]+[''])))
+        print(' ' * 12 + (' | '.join([''] + ['-' * (len(sequence_lengths) * 5) for alphabet in alphabets] + [''])))
         for treesize in treesizes:
             print(("%4s taxa    | " % treesize), end=' ')
             (taxa, tree) = subtree(treesize)
             for alphabet in alphabets:
                 for sequence_length in sequence_lengths:
-                    speed = test(alphabet, parameterisation=='local',
+                    speed = test(alphabet, parameterisation == 'local',
                                  sequence_length, taxa, tree, optimise_motifs)
                     print("%4s" % speed, end=' ')
                 print('| ', end=' ')
@@ -125,7 +125,7 @@ def benchmarks(test):
         print()
     print()
 
-def silly_predicate(a,b):
+def silly_predicate(a, b):
     return a.count('A') > a.count('T') or b.count('A') > b.count('T')
 
 #def asym_predicate((a,b)):

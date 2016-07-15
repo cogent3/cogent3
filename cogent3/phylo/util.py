@@ -30,11 +30,11 @@ def lookupSymmetricDict(dists, a, b):
     v1 = dists.get((a, b), None)
     v2 = dists.get((b, a), None)
     if v1 is None and v2 is None:
-        raise KeyError((a,b))
+        raise KeyError((a, b))
     elif v1 is None or v2 is None or v1 == v2:
         return v1 or v2
     else:
-        raise ValueError("d[%s,%s] != d[%s,%s]" % (a,b,b,a))
+        raise ValueError("d[%s,%s] != d[%s,%s]" % (a, b, b, a))
 
 def distanceDictTo2D(dists):
     """(names, dists).  Distances converted into a straightforward distance

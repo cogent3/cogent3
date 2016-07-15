@@ -76,11 +76,11 @@ def _indexed(values):
 
 
 def _fmtrow(width, values, maxwidth):
-    if (len(dict([(id(v),1) for v in values])) == 1 and
+    if (len(dict([(id(v), 1) for v in values])) == 1 and
             len(str(values[0])) > width):
         s = str(values[0]).replace('\n', ' ')
         if len(s) > maxwidth:
-            s = s[:maxwidth-4] + '...'
+            s = s[:maxwidth - 4] + '...'
     else:
         template = '%%%ss' % width
         s = ''.join([(template % (v,)).replace('\n', ' ')[:width]
@@ -153,7 +153,7 @@ class _Defn(object):
         return [self.selectFromDimension(dimension, cat) for cat in cats]
 
     def selectFromDimension(self, dimension, cat):
-        return SelectFromDimension(self, **{dimension:cat})
+        return SelectFromDimension(self, **{dimension: cat})
 
     def getRequiredScopes(self, arg_dimensions):
         # A list of scope dictionaries: [{dimension:value},] that this
@@ -191,7 +191,7 @@ class _Defn(object):
         for (d, dim) in enumerate(self.valid_dimensions):
             seen = {}
             for (scope_t, i) in list(self.index.items()):
-                rest_of_scope = scope_t[:d]+scope_t[d+1:]
+                rest_of_scope = scope_t[:d] + scope_t[d + 1:]
                 if rest_of_scope in seen:
                     if i != seen[rest_of_scope]:
                         used.append(dim)
@@ -269,7 +269,7 @@ class _Defn(object):
         # Initially ignore EACH, just get a full ungrouped set
         kw2 = {}
         independent_dimensions = []
-        for (i,dimension) in enumerate(self.valid_dimensions):
+        for (i, dimension) in enumerate(self.valid_dimensions):
             selection = kw.get(dimension, None)
             if selection in [EACH, ALL]:
                 dimension_independent = selection.independent
@@ -349,7 +349,7 @@ class _Defn(object):
             value = self.wrapValue(value)
             scope = tuple([scope_t[i] for i in posns])
 
-            (d,key) = (result, self.name)
+            (d, key) = (result, self.name)
             for key2 in scope:
                 if key not in d: d[key] = {}
                 (d, key) = (d[key], key2)
@@ -377,11 +377,11 @@ class _Defn(object):
                 argname = arg.name
                 for nums in self.uniq:
                     row.append(nums[i])
-            body.append((['', self.name][i==0], argname, row))
+            body.append((['', self.name][i == 0], argname, row))
 
         return '\n'.join(
             ['%-10s%-10s%s' % (label1[:9], label2[:9],
-                               _fmtrow(col_width+1, settings, max_width))
+                               _fmtrow(col_width + 1, settings, max_width))
              for (label1, label2, settings) in body])
 
     def __repr__(self):
@@ -451,7 +451,7 @@ class _NonLeafDefn(_Defn):
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
         calc = self.makeCalcFunction()
-        self.values = [nullor(self.name, calc, self.recycling)(*[a.values[i] for (i,a) in zip(u, self.args)]) for u in self.uniq]
+        self.values = [nullor(self.name, calc, self.recycling)(*[a.values[i] for (i, a) in zip(u, self.args)]) for u in self.uniq]
 
 
 class _LeafDefn(_Defn):
@@ -496,7 +496,7 @@ class _LeafDefn(_Defn):
 
     def update(self):
         self._update_from_assignments()
-        gdv = lambda x:x.getDefaultValue()
+        gdv = lambda x: x.getDefaultValue()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
     def assignAll(self, scope_spec=None, value=None,
@@ -553,7 +553,7 @@ class _LeafDefn(_Defn):
         else:
             s_value = sum(values) / len(values)
             for value in values:
-                if not numpy.all(value==s_value):
+                if not numpy.all(value == s_value):
                     warnings.warn("Used mean of %s %s values" % 
                                   (len(values), self.name), stacklevel=4)
                     break
@@ -562,7 +562,7 @@ class _LeafDefn(_Defn):
     def getCurrentBounds(self, scope):
         lowest = highest = None
         for s in scope:
-            (lower, init, upper)  = self.assignments[s].getBounds()
+            (lower, init, upper) = self.assignments[s].getBounds()
             if upper == lower: continue
             if lowest is None or lower < lowest: lowest = lower
             if highest is None or upper > highest: highest = upper
@@ -577,9 +577,9 @@ class _LeafDefn(_Defn):
                            self._local_repr(col_width=6, max_width=60))
 
     def _local_repr(self, col_width, max_width):
-        template = "%%%s.%sf" % (col_width, (col_width-1)//2)
+        template = "%%%s.%sf" % (col_width, (col_width - 1) // 2)
         assignments = []
-        for (i,a) in list(self.assignments.items()):
+        for (i, a) in list(self.assignments.items()):
             if a is None:
                 assignments.append('None')
             elif a.is_constant:
@@ -590,7 +590,7 @@ class _LeafDefn(_Defn):
             else:
                 assignments.append('Var') # %s' % str(i))
         return '%-20s%s' % (self.name[:19],
-                            _fmtrow(col_width+1, assignments, max_width))
+                            _fmtrow(col_width + 1, assignments, max_width))
 
 
 class ParameterController(object):
@@ -599,7 +599,7 @@ class ParameterController(object):
 
     def __init__(self, top_defn):
         # topological sort
-        indegree = {id(top_defn):0}
+        indegree = {id(top_defn): 0}
         Q = [top_defn]
         while Q:
             pd = Q.pop(0)
@@ -791,7 +791,7 @@ class ParameterController(object):
 
     def optimise(self, local=None, 
                  filename=None, interval=None,
-                 limit_action='warn',  max_evaluations=None, 
+                 limit_action='warn', max_evaluations=None, 
                  tolerance=1e-6, global_tolerance=1e-1, **kw):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run

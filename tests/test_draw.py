@@ -108,7 +108,7 @@ class CheckOutput(object):
         html = ['<html><head><title>Drawing Test Output</title></head>',
                 '<body>']
         html.append('<p>%s figures of which %s differ from baseline' % (
-            len(self.results), sum(d for (m,d) in self.results)))
+            len(self.results), sum(d for (m, d) in self.results)))
         for (msg, different) in self.results:
             fn1 = file_for_test(msg, True, False)
             fn2 = file_for_test(msg, False, False)
@@ -147,9 +147,9 @@ def do(msg, display, **kw):
 def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
     seq = DNA.makeSequence(seq)
-    v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20,35)])
-    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'repeat_unit', [(39,49)])
-    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'rep2', [(49,60)])
+    v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20, 35)])
+    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'repeat_unit', [(39, 49)])
+    v = seq.addAnnotation(annotation.Feature, 'repeat_unit', 'rep2', [(49, 60)])
     return seq
 
 def makeSampleAlignment():
@@ -163,14 +163,14 @@ def makeSampleAlignment():
     seq2.Name = 'FAKE02'
     names = (seq1.getName(), seq2.getName())
     align = global_pairwise(seq1, seq2, DNA, 2, 1)
-    align.addAnnotation(annotation.Variable, 'redline', 'align', [((0,15),1),((15,30),2),((30,45),3)])
-    align.addAnnotation(annotation.Variable, 'blueline', 'align', [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
+    align.addAnnotation(annotation.Variable, 'redline', 'align', [((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
+    align.addAnnotation(annotation.Variable, 'blueline', 'align', [((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
     return align
 
 seq = makeSampleSequence()
-a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [((0,15),1),((15,30),2),((30,45),3)])
-v = seq.addAnnotation(annotation.Feature, 'gene', 'gene', [(0,15),(20,35),(40,55)])
-b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
+a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
+v = seq.addAnnotation(annotation.Feature, 'gene', 'gene', [(0, 15), (20, 35), (40, 55)])
+b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
 
 align = makeSampleAlignment()
 
@@ -183,9 +183,9 @@ def green_cg(seq):
         last = posn
         posn = seq.find('CG', posn)
         if posn < 0: break
-        result.append('k' * (posn-last)+'gg')
+        result.append('k' * (posn - last) + 'gg')
         posn += 2
-    result.append('k' * (len(seq)-last))
+    result.append('k' * (len(seq) - last))
     return list(''.join(result))
 
 
@@ -227,7 +227,7 @@ class DrawingTests(unittest.TestCase):
     def test_trees(self):
         treestring = "((A:.1,B:.22)ab:.3,((C:.4,D:.5)cd:.55,E:.6)cde:.7,F:.2)"
         for edge in 'ABCDEF':
-            treestring = treestring.replace(edge, edge+edge.lower()*10)
+            treestring = treestring.replace(edge, edge + edge.lower() * 10)
         t = LoadTree(treestring=treestring)
         for klass in [
                 UnrootedDendrogram, 
@@ -249,7 +249,7 @@ class DrawingTests(unittest.TestCase):
 
     def test_partimatrix(self):
         aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA)
-        species5 = ['Human','HowlerMon','Mouse','NineBande','DogFaced']
+        species5 = ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
         aln = aln.takeSeqs(species5)
         aln = aln[:500]
         fig = partimatrix(aln, samples=0, display=True, print_stats=False,

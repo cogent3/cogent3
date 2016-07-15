@@ -30,7 +30,7 @@ __status__ = "Development"
 
 def item_empty_filter(d):
     """return a dict with only nonempty values"""
-    pairs = [(k,v) for (k,v) in d.items() if v]
+    pairs = [(k, v) for (k, v) in d.items() if v]
     return dict(pairs)
 
 class EbiTests(TestCase):
@@ -41,9 +41,9 @@ class EbiTests(TestCase):
     def test_item_empty_filter(self):
         """item_empty_filter: known values"""
         inputs = [
-            {1:0, 2:1, 3:'', 4:[], 5:False, 6:{}}]
+            {1: 0, 2: 1, 3: '', 4: [], 5:False, 6:{}}]
         expects = [
-            {2:1}]
+            {2: 1}]
         self.assertEqual(list(map(item_empty_filter, inputs)), expects)
 
     def test_rstrip_(self):
@@ -64,7 +64,7 @@ class EbiTests(TestCase):
             '    content',
             '-bbb:',  #3
             '  bbb',
-            'c',]
+            'c', ]
         self.assertEqual(list(f(test)),
                          [test[0:3], test[3:-1], test[-1:]])
 
@@ -73,19 +73,19 @@ class EbiTests(TestCase):
         self.assertEqual(list(f(all_indent)), [all_indent])
 
         #test empty lines
-        self.assertEqual(list(f(['',' '])), [])
+        self.assertEqual(list(f(['', ' '])), [])
 
     def test_period_tail_finder(self):
         """period_tail_finder should yield each group of expected lines."""
         test = "a\naa.\nb\nbb.".splitlines()
         self.assertEqual(list(period_tail_finder(test)),
-                         [['a','aa.'],['b','bb.']])
+                         [['a', 'aa.'], ['b', 'bb.']])
 
     def test_EbiFinder(self):
         """EbiFinder should return expected list"""
         test = "a\n//\nb\n//".splitlines()
         self.assertEqual(list(EbiFinder(test)),
-                         [['a','//'],['b','//']])
+                         [['a', '//'], ['b', '//']])
 
         test_fail = test + ['c']
         self.assertRaises(RecordError, 
@@ -94,12 +94,12 @@ class EbiTests(TestCase):
 
     def test_pairs_to_dict(self):
         """pairs_to_dict should return the expected dict"""
-        test_dict = {'a': 1, 'b': 2, 'b': 3,}
-        sorted_items = [('a', 1), ('b', 2), ('b', 3),] 
+        test_dict = {'a': 1, 'b': 2, 'b': 3, }
+        sorted_items = [('a', 1), ('b', 2), ('b', 3), ] 
         add_one = lambda x: x + 1
-        double = lambda x: x*2
+        double = lambda x: x * 2
         set_zero = lambda x: 0
-        handlers ={ 'a': add_one, 'b': double,}
+        handlers = {'a': add_one, 'b': double, }
 
         #test default all
         self.assertEqual(pairs_to_dict(sorted_items),
@@ -122,7 +122,7 @@ class EbiTests(TestCase):
                          {'a': 1, 'b': [2, 3]})
 
         #test raise error when  key not found in all_keys 
-        f = curry(pairs_to_dict, all_keys=['a','c'])
+        f = curry(pairs_to_dict, all_keys=['a', 'c'])
         self.assertRaises(ValueError, f, sorted_items)
 
         #test handlers
@@ -145,7 +145,7 @@ class EbiTests(TestCase):
                  'BB    bb.',
                  'CC C   cc.',
                  'DD dd.']
-        expected_linecodes =[
+        expected_linecodes = [
             'AA', 'BB', 'CC C', 'DD dd.']
         #pprint(map(linecode_maker, tests)) 
         self.assertEqual(list(map(linecode_maker, tests)), 
@@ -160,7 +160,7 @@ class EbiTests(TestCase):
                  'EE',
                  '']
         #expects = [line[5:] for line in tests]
-        expects = ['aa.', ' bb.', '  cc.', '.','','']
+        expects = ['aa.', ' bb.', '  cc.', '.', '', '']
         self.assertEqual(labeloff(tests), expects) 
 
     def test_join_parser(self):
@@ -180,9 +180,9 @@ class EbiTests(TestCase):
         self.assertEqual(join_parser(test_list, chars_to_strip='"; '),
                          'aaa bbb  ccc')
         #test empty
-        self.assertEqual(join_parser([]),'')
-        self.assertEqual(join_parser(['', ' ']),'')
-        self.assertEqual(join_parser(''),'')
+        self.assertEqual(join_parser([]), '')
+        self.assertEqual(join_parser(['', ' ']), '')
+        self.assertEqual(join_parser(''), '')
 
 
     def test_join_split_parser(self):
@@ -192,29 +192,29 @@ class EbiTests(TestCase):
 
         assertEqual(f(['aa; bb;', 'cc.']),
                     ['aa', 'bb', 'cc'])
-        assertEqual(f(['aa; bb, bbb;', 'cc.'],delimiters=';,'),
-                    ['aa', ['bb','bbb'], 'cc'])
+        assertEqual(f(['aa; bb, bbb;', 'cc.'], delimiters=';,'),
+                    ['aa', ['bb', 'bbb'], 'cc'])
         #test item_modifer
         got = f('aa (bb) (cc).', '(', 
                 item_modifier=rstrip_(') '))
-        assertEqual(got, ['aa','bb','cc'])
+        assertEqual(got, ['aa', 'bb', 'cc'])
         assertEqual(f('aa (bb)xx (cc).', '(', item_modifier=rstrip_(') ')),
-                    ['aa','bb)xx','cc'])
+                    ['aa', 'bb)xx', 'cc'])
 
         #test empty
-        assertEqual(f([]),[''])
-        assertEqual(f(['', ' ']),[''])
-        assertEqual(f(''),[''])
+        assertEqual(f([]), [''])
+        assertEqual(f(['', ' ']), [''])
+        assertEqual(f(''), [''])
 
     def test_join_split_dict_parser(self):
         """join_split_dict_parser: should return expected"""
         f = join_split_dict_parser
         #test default
         self.assertEqual(f('aa=1; bb=2,3; cc=4 (if aa=1);'),
-                         {'aa':'1', 'bb': ['2','3'], 'cc': '4 (if aa=1)'})
+                         {'aa': '1', 'bb': ['2', '3'], 'cc': '4 (if aa=1)'})
 
         self.assertEqual(f('aa=1; bb=2,3; cc=4:5', delimiters=';=,:'),
-                         {'aa':'1', 'bb': ['2','3'], 'cc': '4:5'})
+                         {'aa': '1', 'bb': ['2', '3'], 'cc': '4:5'})
 
         #test strict=False -> splits without dict() 
         self.assertEqual(f('aa=1; bb.', strict=False), [['aa', '1'], ['bb']])
@@ -246,7 +246,7 @@ class EbiTests(TestCase):
     def test_linecode_merging_maker(self):
         """linecode_merging_maker: """
         f = linecode_merging_maker
-        lines =['ID   id.', 'RN   rn.', 'RR   invalid', 'RN  rn.']
+        lines = ['ID   id.', 'RN   rn.', 'RR   invalid', 'RN  rn.']
         labels = ['ID', 'REF', 'RR', 'RN  rn.']
 
         self.assertEqual(list(map(f, lines)), list(zip(labels, lines)))
@@ -278,11 +278,11 @@ class EbiTests(TestCase):
 
         #test bad record - unknown linecode or wrong line format
         self.assertRaises(ValueError, list, 
-                          f(fake_records_valid + ['ID   id.', 'RR   not valid.','//']))
+                          f(fake_records_valid + ['ID   id.', 'RR   not valid.', '//']))
         self.assertRaises(ValueError, list, 
-                          f(fake_records_valid + ['ID   id.', ' RN   bad format.','//']))
+                          f(fake_records_valid + ['ID   id.', ' RN   bad format.', '//']))
         self.assertRaises(ValueError, list, 
-                          f(fake_records_valid + ['ID   id.', 'RN  bad format.','//']))
+                          f(fake_records_valid + ['ID   id.', 'RN  bad format.', '//']))
 
         #test bad record - not end with '//'
         self.assertRaises(RecordError, list, f(fake_records_valid +
@@ -293,7 +293,7 @@ class EbiTests(TestCase):
         #the first record, [:-5], is valid even when strict=True.
         the_first_valid = list(f(fake_records_valid[:-5], strict=True))[0]
         #[1] get the header_dict
-        self.assertEqual(len(the_first_valid[1]),9) 
+        self.assertEqual(len(the_first_valid[1]), 9) 
 
         self.assertRaises(RecordError, list, 
                           f(fake_records_valid, strict=True))
@@ -319,7 +319,7 @@ class RootParsersKnownValues(TestCase):
         """id_parser should return expected dict"""
         id_line = [
             'ID   CYC_BOVIN      STANDARD;      PRT;   104 AA.']
-        self.assertEqual( id_parser(id_line),
+        self.assertEqual(id_parser(id_line),
                           {'DataClass': 'STANDARD', 'Length': 104, 'MolType': 'PRT', 
                            'EntryName': 'CYC_BOVIN'})
 
@@ -327,7 +327,7 @@ class RootParsersKnownValues(TestCase):
         """sq_parser should return expected dict"""
         lines = [
             "SQ   SEQUENCE   486 AA;  55639 MW;  D7862E867AD74383 CRC64;"]
-        self.assertEqual( sq_parser(lines),
+        self.assertEqual(sq_parser(lines),
                           {'Crc64': 'D7862E867AD74383', 'Length': 486, 
                            'MolWeight': 55639})
 
@@ -336,7 +336,7 @@ class RootParsersKnownValues(TestCase):
         lines = [
             "AC   Q16653; O00713; O00714;",
             "AC   Q92892; Q92893;"]
-        self.assertEqual( ac_parser(lines),
+        self.assertEqual(ac_parser(lines),
                           ['Q16653', 'O00713', 'O00714', 'Q92892', 'Q92893'])
 
     def test_oc_parser(self):   
@@ -353,7 +353,7 @@ class RootParsersKnownValues(TestCase):
             "DT   01-AUG-1988 (Rel. 08, Created)\n"\
             "DT   30-MAY-2000 (Rel. 39, Last sequence update)\n"\
             "DT   10-MAY-2005 (Rel. 47, Last annotation update)\n".splitlines()
-        self.assertEqual( dt_parser(lines),
+        self.assertEqual(dt_parser(lines),
                           ['01-AUG-1988 (Rel. 08, Created)',
                            '30-MAY-2000 (Rel. 39, Last sequence update)',
                            '10-MAY-2005 (Rel. 47, Last annotation update)'])
@@ -364,7 +364,7 @@ class RootParsersKnownValues(TestCase):
             ' AAA (aa) ',
             'AAA [xx] (aa)',
             'AAA',
-            '',]
+            '', ]
         expects = [
             {'OfficalName': 'AAA', 'Synonyms': ['aa']},
             {'OfficalName': 'AAA [xx]', 'Synonyms': ['aa']},
@@ -376,9 +376,9 @@ class RootParsersKnownValues(TestCase):
     def test_pr_parser(self):
         """pr_parser should return expected list"""
         inpr = "PR   Project:PRJNA38045; Project:PRJNA41539;"
-        exp = ['PRJNA38045','PRJNA41539']
+        exp = ['PRJNA38045', 'PRJNA41539']
         obs = pr_parser(inpr)
-        self.assertEqual(obs,exp)
+        self.assertEqual(obs, exp)
 
     def test_de_parser(self):
         """de_parser should return expected list"""
@@ -456,9 +456,9 @@ class FT_Tests(TestCase):
             ['DNA_BIND    >102    292'],
             ['CONFLICT    327    327       E -> R (in Ref. 2).'],
             ['PROPEP      ?25     48',
-             '                             /FTId=PRO_021449.',],
+             '                             /FTId=PRO_021449.', ],
             ['VARIANT     214    214       V -> I.',
-             '                             /FTId=VAR_009122.',],]
+             '                             /FTId=VAR_009122.', ], ]
         expects = [
             ('DNA_BIND', '>102', 292, ''),
             ('CONFLICT', 327, 327, 'E -> R (in Ref. 2)'),
@@ -470,7 +470,7 @@ class FT_Tests(TestCase):
     def test_try_int(self):
         """try_int: known values"""
         inputs = ['9', '0', '-3', '2.3', '<9', '>9', '?', '?35', '']
-        expects = [9,   0,   -3,  '2.3', '<9', '>9', '?', '?35', '']
+        expects = [9, 0, -3, '2.3', '<9', '>9', '?', '?35', '']
         self.assertEqual(list(map(try_int, inputs)), expects)
 
     def test_ft_id_parser(self):
@@ -480,7 +480,7 @@ class FT_Tests(TestCase):
             'ddd',
             '/FTId=PRO_021449',
             'V -> I. /FTId=VAR_009122',
-            'E -> R (tumor). /FTId=VAR_002343',]
+            'E -> R (tumor). /FTId=VAR_002343', ]
         expects = [
             {'Description': '', 'Id': ''},
             {'Description': 'ddd', 'Id': ''},
@@ -562,11 +562,11 @@ class CC_Tests(TestCase):
         valid_topics = [
             ['-!- topic1: first: line', '    second line'],
             ['-!- topic2: ', '    first line', '   second line'],
-            [' topic3: not treated invalid topic format'],]
+            [' topic3: not treated invalid topic format'], ]
         expects = [
             ('topic1', ['first: line', 'second line']),
             ('topic2', ['first line', 'econd line']),
-            ('topic3', ['not treated invalid topic format']),]
+            ('topic3', ['not treated invalid topic format']), ]
 
         self.assertEqual(list(map(cc_basic_itemparser, valid_topics)),
                          expects)
@@ -579,8 +579,8 @@ class CC_Tests(TestCase):
         inputs = [ 
             ['Self; NbExp=1; IntAct=EBI-123485, EBI-123485;',
              'Q9W158:CG4612; NbExp=1; IntAct=EBI-123485, EBI-89895;',
-             'Q9VYI0:fne; NbExp=1; IntAct=EBI-123485, EBI-126770;',]]
-        expects =[
+             'Q9VYI0:fne; NbExp=1; IntAct=EBI-123485, EBI-126770;', ]]
+        expects = [
             [('Self', {'NbExp': '1', 
                        'IntAct': ['EBI-123485', 'EBI-123485']}),
              ('Q9W158:CG4612', {'NbExp': '1', 
@@ -599,7 +599,7 @@ class CC_Tests(TestCase):
              '  KM=688 uM for pyridoxal;',
              '  Vmax=1.604 mmol/min/mg enzyme;',
              'pH dependence:',
-             '  Optimum pH is 6.0. Active pH 4.5 to 10.5;',]
+             '  Optimum pH is 6.0. Active pH 4.5 to 10.5;', ]
         ]
         expects = [
             {'Kinetic parameters': {
@@ -622,7 +622,7 @@ class CC_Tests(TestCase):
              '  IsoId=O43918-1; Sequence=Displayed;',
              'Name=3; Synonyms=AIRE-3,',
              'ai-2, ai-3;',  #broken the hanging_paragraph_finder
-             '  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;',]]
+             '  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;', ]]
         expects = \
             [[{'Comment': 'Free text', 'Event': 'Alternative initiation'},
               {'Comment': 'Additional isoforms seem to exist. confirmation',
@@ -698,7 +698,7 @@ class ReferenceTests(TestCase):
                           'RX   PubMed=1113;',
                           'RA   Zhang L., Wu S.-L., Rubin C.S.;',
                           'RT   "A novel ";',
-                          'RL   J. Biol. Chem. 276:10.',]
+                          'RL   J. Biol. Chem. 276:10.', ]
         rn, others = single_ref_parser(fake_ref_block)
         self.assertEqual(rn, 1)
         self.assertEqual(len(others), 6)
@@ -714,7 +714,7 @@ class ReferenceTests(TestCase):
         lines = \
             "RA   Galinier A., Bleicher F., Negre D.,\n"\
             "RA   Cozzone A.J., Cortay J.-C.;\n".splitlines()
-        self.assertEqual( ra_parser(lines),
+        self.assertEqual(ra_parser(lines),
                           ['Galinier A.', 'Bleicher F.', 'Negre D.', 'Cozzone A.J.', 
                            'Cortay J.-C.'])
 
@@ -747,31 +747,31 @@ class ReferenceTests(TestCase):
         lines = [
             'RT   "New insulin-like proteins',
             'RT   analysis and homology modeling.";']
-        self.assertEqual( rt_parser(lines),
+        self.assertEqual(rt_parser(lines),
                           'New insulin-like proteins analysis and homology modeling')
 
     def test_rl_parser(self):
         """rl_parser should return expected str"""
         lines = [
             "RL   J. Mol. Biol. 168:321-331(1983)."]
-        self.assertEqual( rl_parser(lines),
+        self.assertEqual(rl_parser(lines),
                           'J. Mol. Biol. 168:321-331(1983)')
 
     def test_rn_parser(self):
         """rn_parser should return expected str"""
-        lines = [ "RN   [8]"]
-        self.assertEqual( rn_parser(lines), 8)
+        lines = ["RN   [8]"]
+        self.assertEqual(rn_parser(lines), 8)
 
     def test_rg_parser(self):
         """rg_parser should return expected str"""
-        lines = [ "RG   The mouse genome sequencing consortium;"]
-        self.assertEqual( rg_parser(lines),
+        lines = ["RG   The mouse genome sequencing consortium;"]
+        self.assertEqual(rg_parser(lines),
                           ['The mouse genome sequencing consortium'])
 
     def test_rp_parser(self):
         """rp_parser should return expected str"""
-        lines = [ "RP   X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)."]
-        self.assertEqual( rp_parser(lines),
+        lines = ["RP   X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)."]
+        self.assertEqual(rp_parser(lines),
                           'X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)')
 
 #################################

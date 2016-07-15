@@ -78,7 +78,7 @@ class FeatureCoordLevelsCache(object):
         if species not in self._species_feature_levels:
             self._species_feature_levels[species] = {}
             self._species_feature_dbs[species] = []
-        coord_system = CoordSystem(core_db = core_db)
+        coord_system = CoordSystem(core_db=core_db)
         if set(feature_types).intersection(set(['cpg', 'repeat', 'gene'])):
             if 'core_db' not in self._species_feature_dbs[species]:
                 self._species_feature_dbs[species].append('core_db')
@@ -97,7 +97,7 @@ class FeatureCoordLevelsCache(object):
                 records = self._get_meta_coord_records(otherfeature_db)
                 self._add_species_feature_levels(species, records, 'otherfeature', coord_system)
 
-    def __call__(self, species = None, core_db=None, feature_types=None, var_db=None, otherfeature_db=None):
+    def __call__(self, species=None, core_db=None, feature_types=None, var_db=None, otherfeature_db=None):
         if 'variation' in feature_types:
             assert var_db is not None
         species = _Species.getSpeciesName(core_db.db_name.Species or species)

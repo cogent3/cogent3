@@ -81,7 +81,7 @@ class JackknifeTests(TestCase):
         expected_standard_err = [30.69509346, 1.87179671]
         got_standard_err = test_knife.Exception
 
-        for index in [0,1]:
+        for index in [0, 1]:
             self.assertAlmostEqual(got_jk_stat[index], expected_jk_stat[index])
             self.assertAlmostEqual(got_standard_err[index],
                                    expected_standard_err[index])
@@ -112,18 +112,18 @@ class JackknifeTests(TestCase):
 
         test_knife.jackknife()
         expected_pseudovalues = data.transpose()
-        expected_subsample_stats = [[ 198.9091, 11.8336],
-                                    [ 197.0909, 11.7609],
-                                    [ 204.2727, 12.1155],
-                                    [ 209.2727, 12.9155],
-                                    [ 178.4545, 11.0791],
-                                    [ 192.4545, 11.7882],
-                                    [ 204.2727, 13.0145],
-                                    [ 184.2727, 11.7055],
-                                    [ 206.0909, 12.7618],
-                                    [ 193.3636, 11.7436],
-                                    [ 184.2727, 11.5745],
-                                    [ 194.2727, 12.2773]]
+        expected_subsample_stats = [[198.9091, 11.8336],
+                                    [197.0909, 11.7609],
+                                    [204.2727, 12.1155],
+                                    [209.2727, 12.9155],
+                                    [178.4545, 11.0791],
+                                    [192.4545, 11.7882],
+                                    [204.2727, 13.0145],
+                                    [184.2727, 11.7055],
+                                    [206.0909, 12.7618],
+                                    [193.3636, 11.7436],
+                                    [184.2727, 11.5745],
+                                    [194.2727, 12.2773]]
         got_subsample_stats = test_knife._subset_statistics
         got_pseudovalues = test_knife._pseudovalues
 

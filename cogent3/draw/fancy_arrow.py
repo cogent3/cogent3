@@ -20,7 +20,7 @@ class FancyArrow(Polygon):
 
     def __init__(self, x, y, dx, dy, width=0.001, length_includes_head=False, \
                  head_width=None, head_length=None, shape='full', overhang=0, \
-                 head_starts_at_zero=False,**kwargs):
+                 head_starts_at_zero=False, **kwargs):
         """Returns a new Arrow.
 
         length_includes_head: True if head is counted in calculating the length.
@@ -40,19 +40,19 @@ class FancyArrow(Polygon):
 
         distance = sqrt(dx**2 + dy**2)
         if length_includes_head:
-            length=distance
+            length = distance
         else:
-            length=distance+head_length
+            length = distance + head_length
         if not length:
             verts = [] #display nothing if empty
         else:
             #start by drawing horizontal arrow, point at (0,0)
             hw, hl, hs, lw = head_width, head_length, overhang, width
             left_half_arrow = array([
-                [0.0,0.0],                  #tip
-                [-hl, -hw/2.0],             #leftmost
-                [-hl*(1-hs), -lw/2.0], #meets stem
-                [-length, -lw/2.0],          #bottom left
+                [0.0, 0.0],                  #tip
+                [-hl, -hw / 2.0],             #leftmost
+                [-hl * (1 - hs), -lw / 2.0], #meets stem
+                [-length, -lw / 2.0],          #bottom left
                 [-length, 0],
             ])
             #if we're not including the head, shift up by head length
@@ -60,22 +60,22 @@ class FancyArrow(Polygon):
                 left_half_arrow += [head_length, 0]
             #if the head starts at 0, shift up by another head length
             if head_starts_at_zero:
-                left_half_arrow += [head_length/2.0, 0]
+                left_half_arrow += [head_length / 2.0, 0]
             #figure out the shape, and complete accordingly
             if shape == 'left':
                 coords = left_half_arrow
             else:
-                right_half_arrow = left_half_arrow*[1,-1]
+                right_half_arrow = left_half_arrow * [1, -1]
                 if shape == 'right':
                     coords = right_half_arrow
                 elif shape == 'full':
-                    coords=concatenate([left_half_arrow,right_half_arrow[::-1]])
+                    coords = concatenate([left_half_arrow, right_half_arrow[::-1]])
                 else:
                     raise ValueError("Got unknown shape: %s" % shape)
-            cx = float(dx)/distance
-            sx = float(dy)/distance
-            M = array([[cx, sx],[-sx,cx]])
-            verts = dot(coords, M) + (x+dx, y+dy)
+            cx = float(dx) / distance
+            sx = float(dy) / distance
+            M = array([[cx, sx], [-sx, cx]])
+            verts = dot(coords, M) + (x + dx, y + dy)
 
         Polygon.__init__(self, list(map(tuple, verts)), **kwargs)
 

@@ -130,11 +130,11 @@ class MPIParallelContext(ParallelContext):
     def imap(self, f, s, chunksize=1):
         comm = self.comm
         (size, rank) = (comm.Get_size(), comm.Get_rank())
-        ordinals = list(range(0, len(s), size*chunksize))
+        ordinals = list(range(0, len(s), size * chunksize))
         # ensure same number of allgather calls in every process
         for start in ordinals:
             start += rank
-            local_results = UnFlattened([f(x) for x in s[start:start+chunksize]])
+            local_results = UnFlattened([f(x) for x in s[start:start + chunksize]])
             for results in comm.allgather(local_results):
                 # mpi4py allgather has a nasty inconsistancy about flattening
                 # lists of simple values
@@ -245,7 +245,7 @@ class ContextStack(threading.local):
 
     def imap(self, f, s, chunksize=1):
         """Like itertools.imap(f,s) only parallel."""
-        chunks = (len(s)-1) // chunksize + 1
+        chunks = (len(s) - 1) // chunksize + 1
         with self.split(chunks) as next:
             for element in next.imap(f, s, chunksize=chunksize):
                 yield element

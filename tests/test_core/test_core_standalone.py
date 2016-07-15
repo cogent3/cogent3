@@ -30,7 +30,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
         aln = LoadSeqs(filename=filename, **kw)
         if test_write:
             suffix = filename.split('.')[-1]
-            fn = tempfile.mktemp(suffix='.'+suffix)
+            fn = tempfile.mktemp(suffix='.' + suffix)
             aln.writeToFile(filename=fn)
             os.remove(fn)
 
@@ -68,7 +68,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
 class AlignmentTestMethods(unittest.TestCase):
     """Testing Alignment methods"""
     def setUp(self):
-        self.alignment = LoadSeqs(filename = os.path.join(data_path,'brca1_5.paml'))
+        self.alignment = LoadSeqs(filename=os.path.join(data_path, 'brca1_5.paml'))
 
     def test_picklability(self):
         """Pickle an alignment containing an annotated sequence"""
@@ -79,8 +79,8 @@ class AlignmentTestMethods(unittest.TestCase):
         import pickle as pickle
         seq1 = DNA.makeSequence("aagaagaagaccccca")
         seq2 = DNA.makeSequence("aagaagaagaccccct")
-        seq2.addFeature('exon', 'fred', [(10,15)])
-        aln = LoadSeqs(data={'a':seq1, 'b':seq2})
+        seq2.addFeature('exon', 'fred', [(10, 15)])
+        aln = LoadSeqs(data={'a': seq1, 'b': seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
         # more closely
@@ -99,7 +99,7 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_variablePositions(self):
         new_seqs = {'seq1': 'ACGTACGT', 'seq2': 'ACCGACGT', 'seq3': 'ACGTACGT'}
         align = LoadSeqs(data=new_seqs)
-        self.assertEqual(align.variablePositions(), [2,3])
+        self.assertEqual(align.variablePositions(), [2, 3])
 
     def test_numberseqs(self):
         """testing the number of sequences"""
@@ -126,7 +126,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         # testing exclusion of one
         to_exclude = ['NineBande']
-        sub_align = self.alignment.takeSeqs(to_exclude, negate = True)
+        sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
         new = sub_align.getSeqNames()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
@@ -135,7 +135,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset = ['DogFaced', 'HowlerMon', 'NineBande']
         subset.sort()
         to_exclude = ['Human', 'Mouse']
-        sub_align = self.alignment.takeSeqs(to_exclude, negate = True)
+        sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
         new = sub_align.getSeqNames()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
@@ -167,24 +167,24 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_slidingWindows(self):          
         """test slicing of sequences"""      
-        alignment = LoadSeqs(data = {'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
+        alignment = LoadSeqs(data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
-        for bit in alignment.slidingWindows(5,2):
-            result+=[bit]
+        for bit in alignment.slidingWindows(5, 2):
+            result += [bit]
         self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
         # specify a starting window position
         result = []
-        for bit in alignment.slidingWindows(5,2, start=1):
-            result+=[bit]
+        for bit in alignment.slidingWindows(5, 2, start=1):
+            result += [bit]
         self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
         self.assertEqual(result[1].todict(), {'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
 
         # specify a ending window position
         result = []
         for bit in alignment.slidingWindows(5, 1, start=1, end=3):
-            result+=[bit]
+            result += [bit]
         self.assertEqual(result[0].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
         self.assertEqual(result[1].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
@@ -192,12 +192,12 @@ class AlignmentTestMethods(unittest.TestCase):
         # specify a ending window position
         result = []
         for bit in alignment.slidingWindows(5, 1, start=5):
-            result+=[bit]
+            result += [bit]
         self.assertEqual(result, [])
 
         result = []
-        for bit in alignment.slidingWindows(5,1):
-            result+=[bit]                    
+        for bit in alignment.slidingWindows(5, 1):
+            result += [bit]                    
         self.assertEqual(result[0].todict(), {'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
         self.assertEqual(result[2].todict(), {'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
@@ -207,17 +207,17 @@ class AlignmentTestMethods(unittest.TestCase):
         """test removal of redundant gaps (all entries in alignment column are gaps)"""
         alignment = LoadSeqs(data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omitGapPositions().todict()
-        self.assertEqual(align_dict, {'seq1':'ACGT-GT', 'seq2':'ACGTAGT', 'seq3':'ACGTAGT'})
+        self.assertEqual(align_dict, {'seq1': 'ACGT-GT', 'seq2': 'ACGTAGT', 'seq3': 'ACGTAGT'})
 
     def test_withoutAnyGaps(self):
         """test removal of all gaps (any entries in alignment column are gaps)"""
         alignment = LoadSeqs(data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omitGapPositions(allowed_gap_frac=0).todict()
-        self.assertEqual(align_dict, {'seq1':'ACGTGT', 'seq2':'ACGTGT', 'seq3':'ACGTGT'})
+        self.assertEqual(align_dict, {'seq1': 'ACGTGT', 'seq2': 'ACGTGT', 'seq3': 'ACGTGT'})
 
         alignment = LoadSeqs(data={'seq1': 'ACGT', 'seq2': '----', 'seq3': '----'})
         align_dict = alignment.omitGapPositions(allowed_gap_frac=0).todict()
-        self.assertEqual(align_dict, {'seq1':'', 'seq2':'', 'seq3':''})
+        self.assertEqual(align_dict, {'seq1': '', 'seq2': '', 'seq3': ''})
 
     def test_degap(self):
         """test stripping gaps from collections and alignments"""
@@ -283,14 +283,14 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_getasdict(self):
         """getting the alignment as a dictionary"""
-        seqs={'seq1': 'ACGT--GT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
+        seqs = {'seq1': 'ACGT--GT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
         alignment = LoadSeqs(data=seqs)
         align_dict = alignment.todict()
         self.assertEqual(align_dict, seqs)
 
     def test_alignadd(self):
         """testing adding one alignment to another."""
-        align1= LoadSeqs(data={'a': 'AAAA', 'b': 'TTTT', 'c': 'CCCC'})
+        align1 = LoadSeqs(data={'a': 'AAAA', 'b': 'TTTT', 'c': 'CCCC'})
         align2 = LoadSeqs(data={'a': 'GGGG', 'b': '----', 'c': 'NNNN'})
         align = align1 + align2
         concatdict = align.todict()
@@ -298,28 +298,28 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_replaceSeqs(self):
         """synchronize gaps between protein seqs and codon seqs"""
-        pd={'FlyingFox': 'C-TNAH',
-            'DogFaced':  'CGTNT-',
+        pd = {'FlyingFox': 'C-TNAH',
+            'DogFaced': 'CGTNT-',
             'FreeTaile': '-GTDTH',
             'LittleBro': 'C-TD-H',
-            'TombBat':   'C--STH'}
-        pal = LoadSeqs(moltype = PROTEIN, data = pd)
+            'TombBat': 'C--STH'}
+        pal = LoadSeqs(moltype=PROTEIN, data=pd)
 
-        cu={'TombBat':   'TGTAGTACTCAT',
+        cu = {'TombBat': 'TGTAGTACTCAT',
             'FreeTaile': 'GGCACAGATACTCAT',
             'FlyingFox': 'TGTACAAATGCTCAT',
             'LittleBro': 'TGTACAGATCAT',
-            'DogFaced':  'TGTGGCACAAATACT'}
+            'DogFaced': 'TGTGGCACAAATACT'}
 
-        co = LoadSeqs(moltype = DNA, data = cu, aligned = False)
+        co = LoadSeqs(moltype=DNA, data=cu, aligned=False)
         cal = pal.replaceSeqs(co)
         result = cal.todict()
         for taxon, expected_sequence in [
                 ('FlyingFox', 'TGT---ACAAATGCTCAT'),
-                ('DogFaced',   'TGTGGCACAAATACT---'),
+                ('DogFaced', 'TGTGGCACAAATACT---'),
                 ('FreeTaile', '---GGCACAGATACTCAT'),
                 ('LittleBro', 'TGT---ACAGAT---CAT'),
-                ('TombBat',  'TGT------AGTACTCAT')]:
+                ('TombBat', 'TGT------AGTACTCAT')]:
             self.assertEqual(result[taxon], expected_sequence)
 
     def test_sample(self):
@@ -349,7 +349,7 @@ class AlignmentTestMethods(unittest.TestCase):
                                    'seq2': 'AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPP'})
         shuffled = alignment.sample(motif_length=2)
         # ensure length correct
-        sample = alignment.sample(10,motif_length=2)
+        sample = alignment.sample(10, motif_length=2)
         self.assertEqual(len(sample), 20)
         # test columns alignment preserved
         seqs = list(sample.todict().values())
@@ -378,15 +378,15 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_withoutTerminalStopCodons(self):
         """test without terminal stop handling"""
-        seq_coll = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGACG',
-                                    'seq3': 'ACGCGT'}, moltype = DNA, aligned=False)
+        seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGACG',
+                                    'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
         seq_coll = seq_coll.withoutTerminalStopCodons()
         seqs = seq_coll.todict()
         self.assertEqual(seqs['seq1'], 'ACG')   # note: not 'acg---'
         self.assertEqual(seqs['seq2'], 'ACGACG')
         # aligned
-        aln = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGTGA',
-                               'seq3': 'ACGTAA'}, moltype = DNA)
+        aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGTGA',
+                               'seq3': 'ACGTAA'}, moltype=DNA)
         aln = aln.withoutTerminalStopCodons()
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG', 'seq2': 'ACG', 'seq3': 'ACG'})   # note: not 'acg---'
@@ -397,8 +397,8 @@ class AlignmentTestMethods(unittest.TestCase):
                          {'seq1': 'ACGAAA', 'seq2': 'ACG---', 'seq3': 'ACG---'})
 
         # for case where a sequence length is not divisible by 3
-        seq_coll = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGAC'},
-                            moltype = DNA, aligned=False)
+        seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGAC'},
+                            moltype=DNA, aligned=False)
         # fail
         self.assertRaises(ValueError, seq_coll.withoutTerminalStopCodons)
         # unless explicitly over-ridden with allow_partial
@@ -430,56 +430,56 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_hasTerminalStops(self):
         """test truth values for terminal stops"""
         # seq collections
-        seq_coll = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACG',
-                                    'seq3': 'ACGCGT'}, moltype = DNA, aligned=False)
+        seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACG',
+                                    'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
         assert seq_coll.hasTerminalStops() == True
-        seq_coll = LoadSeqs(data = {'seq1': 'ACGTAC', 'seq2': 'ACGACG',
-                                    'seq3': 'ACGCGT'}, moltype = DNA, aligned=False)
+        seq_coll = LoadSeqs(data={'seq1': 'ACGTAC', 'seq2': 'ACGACG',
+                                    'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
         assert seq_coll.hasTerminalStops() == False
         # alignments
-        aln = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGCAA',
-                               'seq3': 'ACGCGT'}, moltype = DNA)
+        aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGCAA',
+                               'seq3': 'ACGCGT'}, moltype=DNA)
         assert aln.hasTerminalStops() == True
-        aln = LoadSeqs(data = {'seq1': 'ACGTAA', 'seq2': 'ACGTAG',
-                               'seq3': 'ACGTGA'}, moltype = DNA)
+        aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGTAG',
+                               'seq3': 'ACGTGA'}, moltype=DNA)
         assert aln.hasTerminalStops() == True
-        aln = LoadSeqs(data = {'seq1': 'ACGCAA', 'seq2': 'ACGCAA',
-                               'seq3': 'ACGCGT'}, moltype = DNA)
+        aln = LoadSeqs(data={'seq1': 'ACGCAA', 'seq2': 'ACGCAA',
+                               'seq3': 'ACGCGT'}, moltype=DNA)
         assert aln.hasTerminalStops() == False
 
         # ValueError if ragged end
-        aln = LoadSeqs(data = {'seq1': 'ACGCAA', 'seq2': 'ACGTAA',
-                               'seq3': 'ACGCG-'}, moltype = DNA)
+        aln = LoadSeqs(data={'seq1': 'ACGCAA', 'seq2': 'ACGTAA',
+                               'seq3': 'ACGCG-'}, moltype=DNA)
         self.assertRaises(ValueError, aln.hasTerminalStops)
         self.assertTrue(aln.hasTerminalStops(allow_partial=True))
 
     def test_slice(self):
         seqs = {'seq1': 'ACGTANGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
-        alignment = LoadSeqs(data = seqs)
-        short = {'seq1':'A', 'seq2':'A', 'seq3':'A'}
+        alignment = LoadSeqs(data=seqs)
+        short = {'seq1': 'A', 'seq2': 'A', 'seq3': 'A'}
         self.assertEqual(alignment[0:1].todict(), short)
 
     def test_get_motifprobs(self):
         """calculation of motif probs"""
         seqs = {'seq1': 'ACGTANGT', 'seq2': '-CGTACGT', 'seq3': 'ACGTACGT'}
-        aln = LoadSeqs(data = seqs, moltype=DNA)
+        aln = LoadSeqs(data=seqs, moltype=DNA)
         mprobs = aln.getMotifProbs(allow_gap=False)
-        expected = {'A':5/22, 'T':6/22, 'C':5/22, 'G':6/22}
+        expected = {'A': 5 / 22, 'T': 6 / 22, 'C': 5 / 22, 'G': 6 / 22}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=True)
-        expected = {'A':5/23, 'T':6/23, 'C':5/23, 'G':6/23, '-':1/23}
+        expected = {'A': 5 / 23, 'T': 6 / 23, 'C': 5 / 23, 'G': 6 / 23, '-': 1 / 23}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=False, include_ambiguity=True)
-        expected = {'A':5.25/23, 'T':6.25/23, 'C':5.25/23, 'G':6.25/23}
+        expected = {'A': 5.25 / 23, 'T': 6.25 / 23, 'C': 5.25 / 23, 'G': 6.25 / 23}
         self.assertEqual(mprobs, expected)
         mprobs = aln.getMotifProbs(allow_gap=True, include_ambiguity=True)
-        expected = {'A':5.25/24, 'T':6.25/24, 'C':5.25/24, 'G':6.25/24, '-':
-                    1/24}
+        expected = {'A': 5.25 / 24, 'T': 6.25 / 24, 'C': 5.25 / 24, 'G': 6.25 / 24, '-':
+                    1 / 24}
         self.assertEqual(mprobs, expected)
         seqs = {'seq1': 'ACGAANGA', 'seq2': '-CGAACGA', 'seq3': 'ACGAACGA'}
-        aln = LoadSeqs(data = seqs, moltype=DNA)
+        aln = LoadSeqs(data=seqs, moltype=DNA)
         mprobs = aln.getMotifProbs(exclude_unobserved=True)
-        expected = {'A':11/22, 'C':5/22, 'G':6/22}
+        expected = {'A': 11 / 22, 'C': 5 / 22, 'G': 6 / 22}
         self.assertEqual(mprobs, expected)
 
 
@@ -488,7 +488,7 @@ class AlignmentTestMethods(unittest.TestCase):
 class SequenceTestMethods(unittest.TestCase):
     """Testing Sequence methods"""
     def setUp(self):
-        self.seq = Sequence(DNA,  'ATGACGTTGCGTAGCATAGCTCGA')
+        self.seq = Sequence(DNA, 'ATGACGTTGCGTAGCATAGCTCGA')
 
     def test_getlength(self):
         """testing getting length"""
@@ -497,9 +497,9 @@ class SequenceTestMethods(unittest.TestCase):
     def test_getInMotifSize(self):
         """test accuracy of chunking various sizes"""
         self.assertEqual(self.seq.getInMotifSize(2),
-                         ['AT','GA','CG','TT','GC','GT','AG','CA','TA','GC','TC','GA'])
+                         ['AT', 'GA', 'CG', 'TT', 'GC', 'GT', 'AG', 'CA', 'TA', 'GC', 'TC', 'GA'])
         self.assertEqual(self.seq.getInMotifSize(3),
-                         ['ATG','ACG','TTG','CGT','AGC','ATA','GCT','CGA'])
+                         ['ATG', 'ACG', 'TTG', 'CGT', 'AGC', 'ATA', 'GCT', 'CGA'])
 
     def test_translate(self):
         """test of translating seqs"""
@@ -514,15 +514,15 @@ class SequenceTestMethods(unittest.TestCase):
     def test_slidingWindows(self):
         """test sliding window along sequences"""
         result = []
-        for bit in self.seq.slidingWindows(5,2):
-            result+=[bit]
+        for bit in self.seq.slidingWindows(5, 2):
+            result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ATGAC', 'GACGT', 'CGTTG', 'TTGCG', 'GCGTA',
                           'GTAGC', 'AGCAT', 'CATAG', 'TAGCT', 'GCTCG'])
 
         result = []
-        for bit in self.seq.slidingWindows(5,1):
-            result+=[bit]
+        for bit in self.seq.slidingWindows(5, 1):
+            result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ATGAC', 'TGACG', 'GACGT', 'ACGTT', 'CGTTG',
                           'GTTGC', 'TTGCG', 'TGCGT', 'GCGTA', 'CGTAG',
@@ -531,7 +531,7 @@ class SequenceTestMethods(unittest.TestCase):
 
         result = []
         for bit in self.seq.slidingWindows(5, 1, start=3, end=6):
-            result+=[bit]
+            result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ACGTT', 'CGTTG', 'GTTGC'])
 

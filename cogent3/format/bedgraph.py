@@ -35,7 +35,7 @@ _booleans = ('autoScale', 'alwaysZero', 'gridDefault', 'yLineOnOff')
 
 valid_values = dict(autoScale=['on', 'off'], graphType=['bar', 'points'],
                     windowingFunction=['maximum', 'mean', 'minimum'],
-                    smoothingWindow=['off']+list(map(str,list(range(2,17)))))
+                    smoothingWindow=['off'] + list(map(str, list(range(2, 17)))))
 
 def raise_invalid_vals(key, val):
     """raises RuntimeError on invalid values for keys """
@@ -60,7 +60,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
 
     assert None not in (name, description, color)
     header = [min_header % {'name': name, 'description': description,
-                            'color': ','.join(map(str,color))}]
+                            'color': ','.join(map(str, color))}]
 
     if kwargs:
         if not set(kwargs) <= set(bedgraph_fields):
@@ -70,7 +70,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
                 str(list(not_allowed)))
 
         if 'altColor' in kwargs:
-            kwargs['altColor'] = ','.join(map(str,kwargs['altColor']))
+            kwargs['altColor'] = ','.join(map(str, kwargs['altColor']))
 
         header_suffix = []
         for key in kwargs:

@@ -26,8 +26,8 @@ def _merged_cell_text_wrap(text, max_line_length, space):
         return [text]
     buffer = ' ' * space
     wrapped = textwrap.wrap(text, width=max_line_width,
-                            initial_indent = buffer, subsequent_indent = buffer)
-    wrapped = ["%s" % line.ljust(max_line_width + 2*space) for line in wrapped]
+                            initial_indent=buffer, subsequent_indent=buffer)
+    wrapped = ["%s" % line.ljust(max_line_width + 2 * space) for line in wrapped]
     return wrapped
 
 def html(text, **kwargs):
@@ -44,14 +44,14 @@ def _merge_cells(row):
     last = 0
     span = 1 # the minimum
     for i in range(1, len(row), 1):
-        if row[i-1] != row[i]:
-            new_row.append(((last,last+span), row[i-1]))
-            last=i
-            span=1
+        if row[i - 1] != row[i]:
+            new_row.append(((last, last + span), row[i - 1]))
+            last = i
+            span = 1
             continue
         span += 1
 
-    new_row.append(((last,last+span), row[i]))
+    new_row.append(((last, last + span), row[i]))
     return new_row
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
@@ -77,7 +77,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     # TODO use the docutils writer html convertor instead of str, for correct
     # escaping of characters
     if row_cell_func is None:
-        row_cell_func = lambda v,r,c: '<td>%s</td>' % v
+        row_cell_func = lambda v, r, c: '<td>%s</td>' % v
 
     if header_cell_func is None:
         header_cell_func = lambda v, c: '<th>%s</th>' % v
@@ -90,7 +90,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     if header:
         th = formatted('th', '<th>')
         row = [header_cell_func(label, i) for i, label in enumerate(header)]
-        data += [formatted('tr', '<tr>')]+row+['</tr>']
+        data += [formatted('tr', '<tr>')] + row + ['</tr>']
 
     formatted_rows = []
     td = formatted('td', '<td>')
@@ -108,7 +108,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
         data = '\n'.join(data)
     return data
 
-def latex(rows, header=None, caption=None, justify=None, label=None, position = None):
+def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
     """Returns the text a LaTeX longtable.
 
     Arguments:
@@ -142,7 +142,7 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position = 
 
     return "\n".join(table_format)
 
-def simpleFormat(header, formatted_table, title = None, legend = None, max_width = 1e100, identifiers = None, borders = True, space = 2):
+def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e100, identifiers=None, borders=True, space=2):
     """Returns a table in a simple text format.
 
     Arguments:
@@ -236,7 +236,7 @@ def simpleFormat(header, formatted_table, title = None, legend = None, max_width
 
     return '\n'.join(table)
 
-def gridTableFormat(header, formatted_table, title = None, legend = None):
+def gridTableFormat(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
 
     Arguments:
@@ -303,7 +303,7 @@ def gridTableFormat(header, formatted_table, title = None, legend = None):
 
     return '\n'.join(table)
 
-def separatorFormat(header, formatted_table, title = None, legend = None, sep = None):
+def separatorFormat(header, formatted_table, title=None, legend=None, sep=None):
     """Returns a table with column entries separated by a delimiter. If an entry
     contains the sep character, that entry is put in quotes. Also, title and
     legends (if provided) are forced to a single line and all words forced to
@@ -350,7 +350,7 @@ def FormatFields(formats):
           eg [(0, "'%s'"), (4, '%.4f')]. All non-specified columns are
           formatted as strings."""
     index_format = []
-    def callable(line, index_format = index_format):
+    def callable(line, index_format=index_format):
         if not index_format:
             index_format = ["%s" for index in range(len(line))]
             for index, format in formats:
@@ -360,7 +360,7 @@ def FormatFields(formats):
 
     return callable
 
-def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
+def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     """Returns a writer for a delimited tabular file. The writer has a
     has_header argument which ignores the formatter for a header line. Default
     format is string. Does not currently handle Titles or Legends.
@@ -370,7 +370,7 @@ def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
     - ignore: lines for which ignore returns True are ignored
     - sep: the delimiter deparating fields."""
     formatter = formatter or []
-    def callable(lines, formatter = formatter, has_header=False):
+    def callable(lines, formatter=formatter, has_header=False):
         if not formatter:
             formatter = FormatFields([(i, "%s") for i in range(len(lines[0]))])
         header_done = None
@@ -384,7 +384,7 @@ def SeparatorFormatWriter(formatter = None, ignore = None, sep=","):
 
     return callable
 
-def formattedCells(rows, header = None, digits=4, column_templates = None, missing_data = ''):
+def formattedCells(rows, header=None, digits=4, column_templates=None, missing_data=''):
     """Return rows with each columns cells formatted as an equal length
     string.
 

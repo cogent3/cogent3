@@ -34,11 +34,11 @@ def TinyseqParser(doc):
     This XML PARSER uses minidom. This means a bad performance for 
     big files (>5MB), and huge XML files will for sure crash the program!
     """
-    if isinstance(doc,xml.dom.minidom.Document):
+    if isinstance(doc, xml.dom.minidom.Document):
         dom_obj = doc
     elif isinstance(doc, io.IOBase):
         dom_obj = xml.dom.minidom.parse(doc)
-    elif isinstance(doc,str):
+    elif isinstance(doc, str):
         dom_obj = xml.dom.minidom.parseString(doc)
     else:
         raise TypeError
@@ -50,7 +50,7 @@ def TinyseqParser(doc):
 
         #cast as string to de-unicode
         raw_string = str(raw_seq).upper()
-        name=str(name)
+        name = str(name)
 
         if record.getElementsByTagName(
                 'TSeq_seqtype')[0].getAttribute('value') == 'protein':
@@ -60,12 +60,12 @@ def TinyseqParser(doc):
 
         seq = alphabet.makeSequence(raw_string, Name=name)
 
-        seq.addAnnotation(annotation.Feature, "genbank_id", name, [(0,len(seq))])
+        seq.addAnnotation(annotation.Feature, "genbank_id", name, [(0, len(seq))])
 
         organism = str(record.getElementsByTagName(
             'TSeq_orgname')[0].childNodes[0].nodeValue)
 
-        seq.addAnnotation(annotation.Feature, "organism", organism, [(0,len(seq))])
+        seq.addAnnotation(annotation.Feature, "organism", organism, [(0, len(seq))])
 
         yield (name, seq)
 

@@ -37,8 +37,8 @@ def suitable_threshold(window, desired_probability):
 
 def _reinchify(figsize, posn, *args):
     (fw, fh) = figsize
-    (x,y,w,h) = posn
-    return [fw*x, fh*y, fw*w, fh*h]
+    (x, y, w, h) = posn
+    return [fw * x, fh * y, fw * w, fh * h]
 
 def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     """'Fat' annotated X and Y axes for a dotplot
@@ -56,20 +56,20 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
         labeled=False, bottom=left, margin=0))
 
     # equalize points-per-base scales to get aspect ratio 1.0
-    ipb = min(w1/len(seq1), w2/len(seq2))
-    (w1, w2) = ipb*len(seq1), ipb*len(seq2)
+    ipb = min(w1 / len(seq1), w2 / len(seq2))
+    (w1, w2) = ipb * len(seq1), ipb * len(seq2)
 
     # Figure with correct aspect
     # Indent enough for labels and/or vertical display
-    (w,h), posn = figureLayout(width=w1, height=w2,
-                               left=max(x1,y2+h2), bottom=y1+h1, **kw)
-    fig = plt.figure(figsize=(w,h), facecolor='white')
+    (w, h), posn = figureLayout(width=w1, height=w2,
+                               left=max(x1, y2 + h2), bottom=y1 + h1, **kw)
+    fig = plt.figure(figsize=(w, h), facecolor='white')
 
     fw = fig.get_figwidth()
     fh = fig.get_figheight()
     # 2 sequence display axes
-    x = seq1.asAxes(fig, [posn[0], posn[1]-h1/fh, posn[2], h1/fh])
-    y = seq2.asAxes(fig, [posn[0]-h2/fw, posn[1], h2/fw, posn[3]], 
+    x = seq1.asAxes(fig, [posn[0], posn[1] - h1 / fh, posn[2], h1 / fh])
+    y = seq2.asAxes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]], 
                     vertical=True, labeled=False)
 
     # and 1 dotplot axes
@@ -98,9 +98,9 @@ class Display2D(Drawable):
         # be re-used at different resolutions, colours etc.
         (len1, len2) = (len(self.seq1), len(self.seq2))
         if threshold is None:
-            universe = (len1-window) * (len2-window)
+            universe = (len1 - window) * (len2 - window)
             acceptable_noise = min(len1, len2) / window
-            threshold = suitable_threshold(window, acceptable_noise/universe)
+            threshold = suitable_threshold(window, acceptable_noise / universe)
             # print 'require %s / %s bases' % (threshold, window)
             # print 'expect %s / %s matching' % (acceptable_noise, universe)
 
@@ -111,7 +111,7 @@ class Display2D(Drawable):
             if hasattr(self.seq1, "reversecomplement"):
                 rev = dotplot(str(self.seq1.reversecomplement()), 
                               str(self.seq2), window, threshold, min_gap, None)
-                rev = [((len1-x1,y1),(len1-x2,y2)) for ((x1,y1),(x2,y2)) in rev]
+                rev = [((len1 - x1, y1), (len1 - x2, y2)) for ((x1, y1), (x2, y2)) in rev]
             else:
                 rev = []
             self._cache[key] = (fwd, rev)
@@ -131,7 +131,7 @@ class Display2D(Drawable):
             for segment in lines:
                 vertices.extend(segment)
             if vertices:
-                ops = [Path.MOVETO, Path.LINETO] * (len(vertices)//2)
+                ops = [Path.MOVETO, Path.LINETO] * (len(vertices) // 2)
                 path = Path(vertices, ops)
                 patch = PathPatch(path, edgecolor=colour, fill=False)
                 ax.add_patch(patch)

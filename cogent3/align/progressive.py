@@ -18,7 +18,7 @@ __status__ = "Production"
 
 @UI.display_wrap
 def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
-              ui = None, ests_from_pairwise=True, param_vals=None):
+              ui=None, ests_from_pairwise=True, param_vals=None):
     """Returns a multiple alignment and tree.
 
     Uses the provided substitution model and a tree for determining the

@@ -18,7 +18,7 @@ def PamlParser(f):
             raise ValueError('Sequence name missing')
         currseq = []
         length = 0
-        while length <  seqlen:
+        while length < seqlen:
             seq_line = f.readline()
             if not seq_line:
                 raise ValueError('Sequence "%s" is short: %s < %s' % 

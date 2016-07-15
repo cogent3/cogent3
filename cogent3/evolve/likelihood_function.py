@@ -30,11 +30,11 @@ __status__ = "Production"
 
 class LikelihoodFunction(ParameterController):
     def setpar(self, param_name, value, edge=None, **scope):
-        deprecated('method', 'setpar','setParamRule', '1.6')
+        deprecated('method', 'setpar', 'setParamRule', '1.6')
         return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
 
     def testfunction(self):
-        deprecated('method', 'testfunction','getLogLikelihood', '1.6')
+        deprecated('method', 'testfunction', 'getLogLikelihood', '1.6')
         return self.getLogLikelihood()
 
     def getLogLikelihood(self):
@@ -126,10 +126,10 @@ class LikelihoodFunction(ParameterController):
         for edge, probs in list(prob_array.items()):
             seq = []
             for row in probs:
-                by_p = [(p,state) for state, p in list(row.items())]
+                by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.MolType.makeSequence("".join(seq)))]
-        return Alignment(data = seqs, MolType = self.model.MolType)
+        return Alignment(data=seqs, MolType=self.model.MolType)
 
     def getBinProbs(self, locus=None):
         hmm = self.getParamValue('bindex', locus=locus)
@@ -161,7 +161,7 @@ class LikelihoodFunction(ParameterController):
             new_result = []
             for r in result:
                 for cat in self._valuesForDimension(dim):
-                    new_result.append(r+[cat])
+                    new_result.append(r + [cat])
             result = new_result
         return result
 
@@ -292,7 +292,7 @@ class LikelihoodFunction(ParameterController):
                 title = ['', 'global params'][with_titles]
             result.append(table.Table(
                 heading_names, list_table,
-                max_width = 80, row_ids = row_ids,
+                max_width=80, row_ids=row_ids,
                 title=title, **self._format))
         return result
 
@@ -348,8 +348,8 @@ class LikelihoodFunction(ParameterController):
     def setTablesFormat(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results
         of str(lf) too."""
-        space = [space, 4][type(space)!=int]
-        digits = [digits, 4][type(digits)!=int]
+        space = [space, 4][type(space) != int]
+        digits = [digits, 4][type(digits) != int]
         self._format = dict(space=space, digits=digits)
 
     def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
@@ -420,15 +420,15 @@ class LikelihoodFunction(ParameterController):
         else:
             mprobs = self.getParamValue('mprobs', locus=locus, edge='root')
             mprobs = self._model.calcWordProbs(mprobs)
-            mprobs = dict((m, p) for (m,p) in zip(self._motifs, mprobs))
+            mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs))
             root_sequence = randomSequence(
                 random_series, mprobs, sequence_length)
 
         simulated_sequences = evolver(self._tree, root_sequence)
 
         return Alignment(
-            data = simulated_sequences,
-            MolType = self._model.MolType)
+            data=simulated_sequences,
+            MolType=self._model.MolType)
 
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
@@ -443,6 +443,6 @@ class LikelihoodFunction(ParameterController):
         for edge in self.tree.getEdgeVector(include_root=False):
             Q = self.getRateMatrixForEdge(edge.Name).asarray()
             t = self.getParamValue('length', edge=edge.Name)
-            if not is_generator_unique(Q*t):
+            if not is_generator_unique(Q * t):
                 return False
         return True

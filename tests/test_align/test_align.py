@@ -35,7 +35,7 @@ def matchedColumns(align):
     return len(align.filtered(all_same))
 
 seq1 = DNA.makeSequence('aaaccggacattacgtgcgta', Name='FAKE01')
-seq2 = DNA.makeSequence( 'ccggtcaggttacgtacgtt', Name= 'FAKE02')
+seq2 = DNA.makeSequence('ccggtcaggttacgtacgtt', Name='FAKE02')
 
 class AlignmentTestCase(unittest.TestCase):
     def _aligned_both_ways(self, seq1, seq2, **kw):
@@ -96,7 +96,7 @@ class AlignmentTestCase(unittest.TestCase):
         score_matrix = make_dna_scoring_dict(match=1, transition=-1, 
                                              transversion=-1)
         pattern = DNA.makeSequence('cwc', Name='pattern')
-        two_hit = DNA.makeSequence( 'cactc', Name= 'target')
+        two_hit = DNA.makeSequence('cactc', Name='target')
         aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
         hit = aln.NamedSeqs['target']
         self.assertEqual(str(hit).lower(), 'cac')
@@ -106,7 +106,7 @@ class UnalignedPairTestCase(unittest.TestCase):
     def test_forward(self):
         tree = cogent3.LoadTree(tip_names='AB')
         pc = dna_model.makeLikelihoodFunction(tree, aligned=False)  
-        pc.setSequences({'A':seq1, 'B':seq2})
+        pc.setSequences({'A': seq1, 'B': seq2})
         LnL = pc.getLogLikelihood()
         assert isinstance(LnL, float)
 
@@ -128,9 +128,9 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         return aln
 
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
-        orig = dict((n,s.replace('-', '')) for (n,s) in list(seqs.items()))
+        orig = dict((n, s.replace('-', '')) for (n, s) in list(seqs.items()))
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
-        result = dict((n,s.lower()) for (n,s) in list(aln.todict().items()))
+        result = dict((n, s.lower()) for (n, s) in list(aln.todict().items()))
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
         # assert the returned alignment has the correct parameter values in the
@@ -168,7 +168,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             'B': 'tac-gtc',
             'C': 'ta---ta', 
             'D': 'cac-cta',
-            }, model=HKY85(), param_vals=[('kappa',2.0)])
+            }, model=HKY85(), param_vals=[('kappa', 2.0)])
 
     def test_TreeAlign_does_pairs(self):
         """test TreeAlign handles pairs of sequences"""

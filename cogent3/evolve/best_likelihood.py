@@ -37,7 +37,7 @@ def _take(array, indices):
         new_array.append(array[index])
     return new_array
 
-def aligned_columns_to_rows(aln, motif_len, exclude_chars = None, allowed_chars='ACGT'):
+def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars='ACGT'):
     """return alignment broken into motifs as a transposed list with
     sequences as columns and aligned columns as rows
 
@@ -85,9 +85,9 @@ def get_ML_probs(columns_list, with_patterns=False):
     for column_pattern, freq in list(col_freq_dict.items()):
         # note, the behaviour of / is changed due to the __future__ import
         if with_patterns:
-            row = [column_pattern, freq/n, freq]
+            row = [column_pattern, freq / n, freq]
         else:
-            row = [freq/n, freq]
+            row = [freq / n, freq]
         col_lnL_freqs.append(row)
     return col_lnL_freqs
 
@@ -96,11 +96,11 @@ def get_G93_lnL_from_array(columns_list):
     col_stats = get_ML_probs(columns_list)
     log_likelihood = 0
     for freq, num in col_stats:
-        pattern_lnL = log(freq)*num
+        pattern_lnL = log(freq) * num
         log_likelihood += pattern_lnL
     return log_likelihood
 
-def BestLogLikelihood(aln, alphabet=None, exclude_chars = None,
+def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
                       allowed_chars='ACGT', motif_length=None, return_length=False):
     """returns the best log-likelihood according to Goldman 1993.
 

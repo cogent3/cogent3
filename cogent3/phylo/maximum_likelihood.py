@@ -32,7 +32,7 @@ class ML(TreeEvaluator):
         if dists:
             self.wlsMakeTreeScorer = WLS(dists).makeTreeScorer
         else:
-            fake_wls = lambda a:(None, None)
+            fake_wls = lambda a: (None, None)
             self.wlsMakeTreeScorer = lambda n: fake_wls
 
     def evaluateTree(self, tree):
@@ -62,7 +62,7 @@ class ML(TreeEvaluator):
         return evaluate
 
     def result2output(self, err, ancestry, annotated_tree, names):
-        return (-1.0*err, annotated_tree)
+        return (-1.0 * err, annotated_tree)
 
     def results2output(self, results):
         return LogLikelihoodScoredTreeCollection(results)

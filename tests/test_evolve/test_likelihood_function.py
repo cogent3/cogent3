@@ -44,7 +44,7 @@ data_path = os.path.join(base_path, 'data')
 
 ALIGNMENT = LoadSeqs(
     moltype=DNA,
-    filename = os.path.join(data_path,'brca1.fasta'))
+    filename=os.path.join(data_path, 'brca1.fasta'))
 
 OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
 
@@ -55,7 +55,7 @@ OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
 def isTransition(motif1, motif2):
     position = getposition(motif1, motif2)
     a, b = motif1[position], motif2[position]
-    transitions = {('A', 'G') : 1, ('C', 'T'):1}
+    transitions = {('A', 'G'): 1, ('C', 'T'): 1}
     pair = (min(a, b), max(a, b))
 
     return pair in transitions
@@ -86,20 +86,20 @@ def getposition(motif1, motif2):
 
 ##############################################################
 # funcs for testing the monomer weighted substitution matrices
-_root_probs = lambda x: dict([(n1+n2, p1*p2) \
-                              for n1,p1 in list(x.items()) for n2,p2 in list(x.items())])
+_root_probs = lambda x: dict([(n1 + n2, p1 * p2) \
+                              for n1, p1 in list(x.items()) for n2, p2 in list(x.items())])
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
     instantaneous rate matrix"""
-    Q = ones((4,4), float)*0.25 # assumes equi-frequent mprobs at root
+    Q = ones((4, 4), float) * 0.25 # assumes equi-frequent mprobs at root
     for i in range(4):
-        Q[i,i] = 0.0
+        Q[i, i] = 0.0
     Q[coord] *= val
     row_sum = Q.sum(axis=1)
-    scale = 1/(.25*row_sum).sum()
+    scale = 1 / (.25 * row_sum).sum()
     for i in range(4):
-        Q[i,i] -= row_sum[i]
+        Q[i, i] -= row_sum[i]
     Q *= scale
     return expm(Q)(length)
 
@@ -169,7 +169,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', partitioned_params='omega', 
             distribution='gamma', mprob_model='tuple')
-        lf = self._makeLikelihoodFunction(submod,bins=3) 
+        lf = self._makeLikelihoodFunction(submod, bins=3) 
         values = list(lf.getParamValueDict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
@@ -238,15 +238,15 @@ class LikelihoodCalcs(TestCase):
             submod, discrete_edges=['Human'])
         self.assertEqual(likelihood_function.getNumFreeParams(), 12)
         evolve_lnL = likelihood_function.getLogLikelihood()
-        self.assertNotEqual(evolve_lnL,  -157.49363874840455)
+        self.assertNotEqual(evolve_lnL, -157.49363874840455)
 
     def test_dinucleotide(self):
         """test a dinucleotide model."""
         submod = substitution_model.Dinucleotide(
             equal_motif_probs=True,
             do_scaling=False,
-            motif_probs = None,
-            predicates = {'kappa': 'transition'},
+            motif_probs=None,
+            predicates={'kappa': 'transition'},
             mprob_model='tuple')
         likelihood_function = self._makeLikelihoodFunction(submod)
         evolve_lnL = likelihood_function.getLogLikelihood()
@@ -271,14 +271,14 @@ class LikelihoodFunctionTests(TestCase):
     def setUp(self):
         self.submodel = Nucleotide(
             do_scaling=True, model_gaps=False, equal_motif_probs=True,
-            predicates = {'beta': 'transition'})
+            predicates={'beta': 'transition'})
 
         self.data = LoadSeqs(
-            filename = os.path.join(data_path, 'brca1_5.paml'),
-            moltype = self.submodel.MolType)
+            filename=os.path.join(data_path, 'brca1_5.paml'),
+            moltype=self.submodel.MolType)
 
         self.tree = LoadTree(
-            filename = os.path.join(data_path, 'brca1_5.tree'))
+            filename=os.path.join(data_path, 'brca1_5.tree'))
 
     def _makeLikelihoodFunction(self, **kw):
         lf = self.submodel.makeLikelihoodFunction(self.tree, **kw)
@@ -289,10 +289,10 @@ class LikelihoodFunctionTests(TestCase):
     def _setLengthsAndBetas(self, likelihood_function):
         for (species, length) in [
                 ("DogFaced", 0.1),
-                ("NineBande",  0.2),
+                ("NineBande", 0.2),
                 ("Human", 0.3),
                 ("HowlerMon", 0.4),
-                ("Mouse",  0.5)]:
+                ("Mouse", 0.5)]:
             likelihood_function.setParamRule("length", value=length, 
                                              edge=species, is_constant=True)
         for (species1, species2, length) in [
@@ -347,7 +347,7 @@ motif    mprobs
     G    0.2500
 ---------------""")
 
-        likelihood_function = self._makeLikelihoodFunction(digits=2,space=2)
+        likelihood_function = self._makeLikelihoodFunction(digits=2, space=2)
         self.assertEqual(str(likelihood_function), \
                          """Likelihood Function Table\n\
 ===============================
@@ -374,13 +374,13 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(-250.686745262,
-                               likelihood_function.getLogLikelihood(),places=9)
+                               likelihood_function.getLogLikelihood(), places=9)
 
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(230.77670557,
-                               likelihood_function.getGStatistic(),places=6)
+                               likelihood_function.getGStatistic(), places=6)
 
     def test_ancestralsequences(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -406,7 +406,7 @@ motif  mprobs
         "Simulate DNA alignment"
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        simulated_alignment = likelihood_function.simulateAlignment(20, exclude_internal = False)
+        simulated_alignment = likelihood_function.simulateAlignment(20, exclude_internal=False)
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.getSeqNames()), 8)
 
@@ -426,7 +426,7 @@ motif  mprobs
 
     def test_simulateAlignment2(self):
         "Simulate alignment with dinucleotide model"
-        al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
+        al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
         t = LoadTree(treestring="(a,c);")
         sm = substitution_model.Dinucleotide(mprob_model='tuple')
         lf = sm.makeParamController(t)
@@ -439,10 +439,10 @@ motif  mprobs
         preserved"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
         al = LoadSeqs(data={
-            'a':'g--cactat?',
-            'b':'---c-ctcct',
-            'c':'-a-c-ctat-',
-            'd':'-a-c-ctat-'})
+            'a': 'g--cactat?',
+            'b': '---c-ctcct',
+            'c': '-a-c-ctat-',
+            'd': '-a-c-ctat-'})
         sm = Nucleotide(recode_gaps=True)
         lf = sm.makeParamController(t)
         #pc.setConstantLengths()
@@ -459,7 +459,7 @@ motif  mprobs
     def test_simulateAlignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
         def use_root_seq(root_sequence):
-            al = LoadSeqs(data={'a':'ggaatt','c':'cctaat'})
+            al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
             t = LoadTree(treestring="(a,c);")
             sm = substitution_model.Dinucleotide(mprob_model='tuple')
             lf = sm.makeParamController(t)
@@ -585,10 +585,10 @@ motif    mprobs
     G    0.2500
 ---------------""")
         self.assertEqual(likelihood_function.getParamValueDict(['edge']), {
-            'beta': {'NineBande': 1.0, 'edge.1': 1.0,'DogFaced': 1.0, 'Human': 1.0,
+            'beta': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
                      'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
-            'length': {'NineBande': 1.0,'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
-                       'edge.0': 1.0, 'Mouse': 1.0,'HowlerMon': 1.0}})
+            'length': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
+                       'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0}})
 
     def test_get_statistics_from_empirical_model(self):
         """should return valid dict from an empirical substitution model"""

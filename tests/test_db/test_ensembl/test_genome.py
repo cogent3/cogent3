@@ -49,7 +49,7 @@ class TestGenome(GenomeTestBase):
         est = self.human.getEstMatching(StableId='ENSESTG00000000010')
         direct = list(est)[0]
         ests = self.human.getFeatures(feature_types='est', CoordName=6,
-                                      Start=99994000 , End=100076519)
+                                      Start=99994000, End=100076519)
         stable_ids = [est.StableId for est in ests]
         self.assertContains(stable_ids, direct.StableId)
 
@@ -67,10 +67,10 @@ class TestGenome(GenomeTestBase):
         """should return a generic region that extracts correct sequence"""
         chrom = 1
         Start = 11137
-        End = Start+20
+        End = Start + 20
         region = self.human.getRegion(CoordName=chrom, Start=Start, End=End,
                                       ensembl_coord=True)
-        self.assertEqual(region.Location.Start, Start-1)
+        self.assertEqual(region.Location.Start, Start - 1)
         self.assertEqual(region.Location.End, End)
         self.assertEqual(region.Location.CoordName, str(chrom))
         self.assertEqual(region.Location.CoordType, 'chromosome')
@@ -87,11 +87,11 @@ class TestGenome(GenomeTestBase):
     def test_no_assembly(self):
         """return N's for coordinates with no assembly"""
         krat = Genome('Kangaroo rat', Release=58)
-        Start=24385
-        End=Start+100
+        Start = 24385
+        End = Start + 100
         region = krat.getRegion(CoordName='scaffold_13754', Start=Start,
                                 End=End)
-        self.assertEqual(str(region.Seq), 'N' * (End-Start))
+        self.assertEqual(str(region.Seq), 'N' * (End - Start))
 
     def test_getting_annotated_seq(self):
         """a region should return a sequence with the correct annotation"""
@@ -160,7 +160,7 @@ class TestGene(GenomeTestBase):
         # note length can change between genome builds
         self.assertGreaterThan(len(brca2), 83700)
         transcript = brca2.getMember('ENST00000544455')
-        self.assertEqual(transcript.getCdsLength(),len(transcript.Cds))
+        self.assertEqual(transcript.getCdsLength(), len(transcript.Cds))
 
     def test_get_genes_by_stable_id(self):
         """if get gene by stable_id, attributes should be correctly
@@ -171,7 +171,7 @@ class TestGene(GenomeTestBase):
         """transcript should return correct exons for brca2"""
         transcript = self.brca2.getMember('ENST00000380152')
         self.assertEqual(len(transcript.TranslatedExons), 26)
-        self.assertEqual(len(transcript.Cds), 3419*3)
+        self.assertEqual(len(transcript.Cds), 3419 * 3)
         self.assertEqual(len(transcript.ProteinSeq), 3418)
 
     def test_translated_exons(self):
@@ -239,8 +239,8 @@ class TestGene(GenomeTestBase):
         self.assertTrue(len(gene.Transcripts) > 1)
         # .. and correctly construct the Cds and location
         for transcript in gene.Transcripts:
-            self.assertTrue(transcript.getCdsLength()>0)
-            self.assertEqual(transcript.Location.CoordName,'17')
+            self.assertTrue(transcript.getCdsLength() > 0)
+            self.assertEqual(transcript.Location.CoordName, '17')
 
     def test_get_longest_cds_transcript2(self):
         """should correctly return transcript with longest cds"""
@@ -290,7 +290,7 @@ class TestGene(GenomeTestBase):
     def test_get_by_description(self):
         """if get by description, all attributes should be correctly
         constructed"""
-        description='breast cancer 2'
+        description = 'breast cancer 2'
         results = list(self.human.getGenesMatching(Description=description))
         self._eval_brca2(results[0])
 
@@ -300,7 +300,7 @@ class TestGene(GenomeTestBase):
         # just returns the first
         exon_id = 'ENSE00001484009'
         exon = transcript.getMember(exon_id)
-        trans_exon = transcript.getMember(exon_id,'TranslatedExons')
+        trans_exon = transcript.getMember(exon_id, 'TranslatedExons')
         self.assertEqual(exon.StableId, exon_id)
         self.assertEqual(trans_exon.StableId, exon_id)
         # we check we got Exon in the first call and TranslatedExon in the
@@ -368,7 +368,7 @@ class TestGene(GenomeTestBase):
             ('ENSG00000132199', 'ENST00000340116', 14)]:
             gene = asserted_one(self.human.getGenesMatching(StableId=gene_id))
             transcript = asserted_one(
-                [t for t in gene.Transcripts if t.StableId==transcript_id])
+                [t for t in gene.Transcripts if t.StableId == transcript_id])
             if exp_number == 0:
                 self.assertEqual(transcript.Introns, None)
             else:
@@ -393,7 +393,7 @@ class TestGene(GenomeTestBase):
             gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
             strand = gene.Location.Strand
             transcript = asserted_one(
-                [t for t in gene.Transcripts if t.StableId==stable_id])
+                [t for t in gene.Transcripts if t.StableId == stable_id])
             introns = transcript.Introns
             self.assertEqual(len(introns), len(exp_introns))
             idx = 0
@@ -422,7 +422,7 @@ class TestGene(GenomeTestBase):
             gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
             seq = gene.getAnnotatedSeq(feature_types='gene')
             intron = asserted_one(seq.getAnnotationsMatching('intron',
-                                                             '%s-%d'%(stable_id, rank)))
+                                                             '%s-%d' % (stable_id, rank)))
             intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
             self.assertEqual(intron_seq[-10:], exp_seq3.upper())
@@ -430,7 +430,7 @@ class TestGene(GenomeTestBase):
 
 
 class TestVariation(GenomeTestBase):
-    snp_names =  ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
+    snp_names = ['rs34213141', 'rs12791610', 'rs10792769', 'rs11545807', 'rs11270496']
     snp_nt_alleles = ['G/A', 'C/T', 'A/G', 'C/A', 'CAGCTCCAGCTC/-']
     snp_aa_alleles = ['G/R', 'P/L', 'Y/C', 'V/F', 'GAGAV/V']
     snp_effects = [['intron_variant', 'missense_variant'],
@@ -440,7 +440,7 @@ class TestVariation(GenomeTestBase):
                     'regulatory_region_variant'],
                    ['non_synonymous_codon']]
     snp_nt_len = [1, 1, 1, 1, 12]
-    map_weights = [1,1,1,1,1]
+    map_weights = [1, 1, 1, 1, 1]
     snp_flanks = [
         ('CTGAGGTGAGCCAGCGTTGGAGCTGTTTTTCCTTTCAGTATGAATTCCACAAGGAAATCATCTCAGGAGGAAGGGCTCATACTTGGATCCAGAAAATATCAACATAGCCAAAGAAAAACAATCAAGACATACCTCCAGGAGCTGTGTAACAGCAACCGGAAAGAGAAACAATGGTGTGTTCCTATGTGGGATATAAAGAGCCGGGGCTCAGGGGGCTCCACACCTGCACCTCCTTCTCACCTGCTCCTCTACCTGCTCCACCCTCAATCCACCAGAACCATGGGCTGCTGTGGCTGCTCC',
          'GAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCACCCGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCC'),
@@ -539,7 +539,7 @@ class TestVariation(GenomeTestBase):
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
         expect = set([('A', '0.0303'), ('G', '0.9697')])
         allele_freqs = snp.AlleleFreqs
-        allele_freqs = set((a, '%.4f' % f )
+        allele_freqs = set((a, '%.4f' % f)
                            for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
         self.assertTrue(expect.issubset(allele_freqs))
 
@@ -581,8 +581,8 @@ class TestFeatures(GenomeTestBase):
     def test_get_multiple_features(self):
         """should not fail to get multiple feature types"""
         regions =\
-            self.human.getFeatures(feature_types=['repeat','gene','cpg'],
-                                   CoordName=1, Start=869936,End=901867)
+            self.human.getFeatures(feature_types=['repeat', 'gene', 'cpg'],
+                                   CoordName=1, Start=869936, End=901867)
         for region in regions:
             pass
 
@@ -636,7 +636,7 @@ class TestFeatures(GenomeTestBase):
                                            End=31871820))[0]
         minus = plus.Location.copy()
         minus.Strand *= -1
-        minus = self.human.getRegion(region = minus)
+        minus = self.human.getRegion(region=minus)
         # get Sequence
         plus_seq = plus.getAnnotatedSeq(feature_types='gene')
         minus_seq = minus.getAnnotatedSeq(feature_types='gene')
@@ -645,7 +645,7 @@ class TestFeatures(GenomeTestBase):
         # the Cds, however, from the annotated sequences should be identical
         plus_cds = plus_seq.getAnnotationsMatching('CDS')[0]
         minus_cds = minus_seq.getAnnotationsMatching('CDS')[0]
-        self.assertEqual(str(plus_cds.getSlice()),str(minus_cds.getSlice()))
+        self.assertEqual(str(plus_cds.getSlice()), str(minus_cds.getSlice()))
 
     def test_other_feature_data_correct(self):
         """should apply CpG feature data in a manner consistent with strand"""
@@ -671,7 +671,7 @@ class TestFeatures(GenomeTestBase):
 
     def test_other_repeat(self):
         """should apply repeat feature data in a manner consistent with strand"""
-        coord=dict(CoordName=13, Start=32316063, End=32316363)
+        coord = dict(CoordName=13, Start=32316063, End=32316363)
         # 13:32316063 -32316363
         ps_repeat = self.human.getRegion(Strand=1, **coord)
         ms_repeat = self.human.getRegion(Strand=-1, **coord)
@@ -692,7 +692,7 @@ class TestFeatures(GenomeTestBase):
     def test_get_features_from_nt(self):
         """should correctly return the encompassing gene from 1nt"""
         snp = list(self.human.getVariation(Symbol='rs34213141'))[0]
-        genes = list(self.human.getFeatures(feature_types='gene',region=snp))
+        genes = list(self.human.getFeatures(feature_types='gene', region=snp))
         self.assertTrue('ENSG00000254997' in [g.StableId for g in genes])
 
 
@@ -701,7 +701,7 @@ class TestAssembly(TestCase):
     def test_assemble_seq(self):
         """should correctly fill in a sequence with N's"""
         expect = DNA.makeSequence("NAAAAANNCCCCCNNGGGNNN")
-        frags = ["AAAAA","CCCCC","GGG"]
+        frags = ["AAAAA", "CCCCC", "GGG"]
         positions = [(11, 16), (18, 23), (25, 28)]
         self.assertEqual(_assemble_seq(frags, 10, 31, positions), expect)
         positions = [(1, 6), (8, 13), (15, 18)]
@@ -722,7 +722,7 @@ class TestAssembly(TestCase):
         # one frag
         expect = DNA.makeSequence(''.join(frags))
         positions = [(10, 23)]
-        self.assertEqual(_assemble_seq([''.join(frags)],10,23,positions),
+        self.assertEqual(_assemble_seq([''.join(frags)], 10, 23, positions),
                          expect)
 
 if __name__ == "__main__":

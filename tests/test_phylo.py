@@ -39,7 +39,7 @@ class ConsensusTests(unittest.TestCase):
             Tree("((a,c),b,d);"),
             Tree("((a,b),c,d);")]
 
-        weights = list(map(log, [0.4,0.4,0.05,0.15])) # emphasizing the a,b clade
+        weights = list(map(log, [0.4, 0.4, 0.05, 0.15])) # emphasizing the a,b clade
         self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
 
@@ -132,7 +132,7 @@ class ConsensusTests(unittest.TestCase):
 
     def test_get_tree_get_splits(self):
         """getTree should provide a reciprocal map of getSplits"""
-        tree = LoadTree(filename=os.path.join(data_path,"murphy.tree"))
+        tree = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
         self.assertTrue(tree.sameTopology(getTree(getSplits(tree))))
 
     def test_consensus_tree_branch_lengths(self):
@@ -151,12 +151,12 @@ class ConsensusTests(unittest.TestCase):
         ct = ct.rootedWithTip('d')
         ct = ct.sorted(tip_names)
 
-        self.assertTrue(abs(get_ac(ct).Length-get_ac(maj_tree).Length) < 1e-9)
+        self.assertTrue(abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
         ct = sct.getConsensusTree(method='rooted')
         maj_tree = self.rooted_trees_lengths[0][1]
-        self.assertTrue(abs(get_ac(ct).Length-get_ac(maj_tree).Length) < 1e-9)
+        self.assertTrue(abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""
@@ -167,11 +167,11 @@ class ConsensusTests(unittest.TestCase):
 
     def test_consensus_from_scored_trees_collection_ii(self):
         """strict consensus should handle conflicting trees"""
-        sct = ScoredTreeCollection(list(zip([1]*3, self.unrooted_conflicting_trees)))
+        sct = ScoredTreeCollection(list(zip([1] * 3, self.unrooted_conflicting_trees)))
         ct = sct.getConsensusTrees()[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
 
-        sct = ScoredTreeCollection(list(zip([1]*3, self.rooted_conflicting_trees)))
+        sct = ScoredTreeCollection(list(zip([1] * 3, self.rooted_conflicting_trees)))
         #cts = sct.getConsensusTrees(method='rooted')
         ct = sct.getConsensusTrees(method='rooted')[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
@@ -214,7 +214,7 @@ class ConsensusTests(unittest.TestCase):
 
         # convert lnL into p
         eval_klass(WeightedTreeCollection([(exp(s), t) 
-                                           for s,t in self.scored_trees]))
+                                           for s, t in self.scored_trees]))
         remove_files(['sample.trees'], error_on_missing=False)
 
 
@@ -251,10 +251,10 @@ class TreeReconstructionTests(unittest.TestCase):
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
         tied_dists = {
-            ('a', 'b'):3, ('a', 'c'):3, ('a', 'd'):4, ('a', 'e'):3, 
-            ('b', 'c'):3, ('b', 'd'):3, ('b', 'e'):4,
-            ('c', 'd'):3, ('c', 'e'):3, 
-            ('d', 'e'):3}
+            ('a', 'b'): 3, ('a', 'c'): 3, ('a', 'd'): 4, ('a', 'e'): 3, 
+            ('b', 'c'): 3, ('b', 'd'): 3, ('b', 'e'): 4,
+            ('c', 'd'): 3, ('c', 'e'): 3, 
+            ('d', 'e'): 3}
         results = gnj(tied_dists, keep=3)
         scores = [score for (score, tree) in results]
         self.assertEqual(scores[:2], [7.75, 7.75])
@@ -288,18 +288,18 @@ class TreeReconstructionTests(unittest.TestCase):
 
 class DistancesTests(unittest.TestCase):
     def setUp(self):
-        self.al = LoadSeqs(data = {'a':'GTACGTACGATC',
-                                   'b':'GTACGTACGTAC',
-                                   'c':'GTACGTACGTTC',
-                                   'e':'GTACGTACTGGT'})
-        self.collection = LoadSeqs(data = {'a':'GTACGTACGATC',
-                                           'b':'GTACGTACGTAC',
-                                           'c':'GTACGTACGTTC',
-                                           'e':'GTACGTACTGGT'}, aligned=False)
+        self.al = LoadSeqs(data={'a': 'GTACGTACGATC',
+                                   'b': 'GTACGTACGTAC',
+                                   'c': 'GTACGTACGTTC',
+                                   'e': 'GTACGTACTGGT'})
+        self.collection = LoadSeqs(data={'a': 'GTACGTACGATC',
+                                           'b': 'GTACGTACGTAC',
+                                           'c': 'GTACGTACGTTC',
+                                           'e': 'GTACGTACTGGT'}, aligned=False)
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
-        observed = dict([(frozenset(k),v) for (k,v) in list(observed.items())])
-        expected = dict([(frozenset(k),v) for (k,v) in list(expected.items())])
+        observed = dict([(frozenset(k), v) for (k, v) in list(observed.items())])
+        expected = dict([(frozenset(k), v) for (k, v) in list(expected.items())])
         for key in expected:
             self.assertAlmostEqual(expected[key], observed[key], precision)
 
@@ -325,7 +325,7 @@ class DistancesTests(unittest.TestCase):
 
     def test_EstimateDistancesWithMotifProbs(self):
         """EstimateDistances with supplied motif probs"""
-        motif_probs= {'A':0.1,'C':0.2,'G':0.2,'T':0.5}
+        motif_probs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5}
         d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
         d.run()
         canned_result = {('a', 'c'): 0.07537,

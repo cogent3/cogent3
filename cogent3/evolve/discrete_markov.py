@@ -27,7 +27,7 @@ class PsubMatrixDefn(PartitionDefn):
                                dimension, size, **kw)
 
         (dim_name, dim_cats) = self.internal_dimension
-        self.internal_dimensions = (dim_name, dim_name+"2")
+        self.internal_dimensions = (dim_name, dim_name + "2")
         self.array_template = DictArrayTemplate(dim_cats, dim_cats)
 
     def _makeDefaultValue(self):
@@ -37,7 +37,7 @@ class PsubMatrixDefn(PartitionDefn):
         return (flat + diag) / 2
 
     def checkValueIsValid(self, value, is_constant):
-        if value.shape != (self.size,self.size):
+        if value.shape != (self.size, self.size):
             raise ValueError("Wrong array shape %s for %s, expected (%s,%s)" % 
                              (value.shape, self.name, self.size, self.size))
         for part in value:
@@ -52,7 +52,7 @@ class PsubMatrixDefn(PartitionDefn):
             assert hasattr(v, 'getDefaultValue'), v
             value = v.getDefaultValue()
             assert hasattr(value, 'shape'), value
-            assert value.shape == (self.size,self.size)
+            assert value.shape == (self.size, self.size)
             scope = [key for key in self.assignments
                      if self.assignments[key] is v]
             if v.is_constant or (variable is not None and variable is not v):
@@ -61,11 +61,11 @@ class PsubMatrixDefn(PartitionDefn):
                 rows = []
                 for part in value:
                     (ratios, partition) = self._makePartitionCell(
-                        self.name+'_part', scope, part)
+                        self.name + '_part', scope, part)
                     all_cells.extend(ratios)
                     rows.append(partition)
                 all_cells.extend(rows)
-                matrix = EvaluatedCell(self.name, lambda *x:numpy.array(x), 
+                matrix = EvaluatedCell(self.name, lambda *x: numpy.array(x), 
                                        rows)
             all_cells.append(matrix)
             uniq_cells.append(matrix)
@@ -83,7 +83,7 @@ class PartialyDiscretePsubsDefn(object):
     def __init__(self, alphabet, psubs, discrete_edges):
         motifs = tuple(alphabet)
         dpsubs = PsubMatrixDefn(
-            name="dpsubs", dimension = ('motif', motifs), default=None, 
+            name="dpsubs", dimension=('motif', motifs), default=None, 
             dimensions=('locus', 'edge'))
         self.choices = [psubs, dpsubs]
         self.discrete_edges = discrete_edges

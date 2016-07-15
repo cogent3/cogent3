@@ -65,7 +65,7 @@ def great_deluge(a, step_factor=500, max_iter=100, max_total_iters=1000):
        data object, or functions acting on that object.
     """
     water_level = curr_cost = a.cost() # can't be worse than initial guess
-    step_size = abs(water_level)/step_factor
+    step_size = abs(water_level) / step_factor
     iter_count = 0
     total_iters = 0
     while iter_count < max_iter and total_iters < max_total_iters:

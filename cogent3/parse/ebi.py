@@ -89,12 +89,12 @@ def pairs_to_dict(key_values, dict_mode=None,
     if not dict_mode: dict_mode = 'overwrite_value'
 
     #generate add_item for different dict_mode.
-    if dict_mode=='always_multi_value':
+    if dict_mode == 'always_multi_value':
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place"""
             dictionary.setdefault(key, []).append(value)
 
-    elif dict_mode=='allow_multi_value':
+    elif dict_mode == 'allow_multi_value':
         multiples = {} #auxillary dict recording the keys with multi_values
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place
@@ -108,14 +108,14 @@ def pairs_to_dict(key_values, dict_mode=None,
             else:
                 dictionary[key] = value
 
-    elif dict_mode=='no_duplicated_key':
+    elif dict_mode == 'no_duplicated_key':
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place"""
             if key in dictionary:
                 raise ValueError('Duplicated Key')
             dictionary[key] = value
 
-    elif dict_mode=='overwrite_value':
+    elif dict_mode == 'overwrite_value':
         def add_item(dictionary, key, value):
             """add key, value to dictionary in place"""
             dictionary[key] = value
@@ -196,7 +196,7 @@ def join_split_parser(lines, delimiters=';', item_modifier=strip,
     return NestedSplitter(delimiters, 
                           constructor=item_modifier, same_level=same_level)(result)
 
-def join_split_dict_parser(lines, delimiters=[';', ('=',1), ','], 
+def join_split_dict_parser(lines, delimiters=[';', ('=', 1), ','], 
                            dict_mode=None, strict=True, **kwargs):
     """return a dict from lines, using the splited pairs from
     join_split_parser and pairs_to_dict.
@@ -228,7 +228,7 @@ def join_split_dict_parser(lines, delimiters=[';', ('=',1), ','],
     if value_delimiters:
         split_value = NestedSplitter(value_delimiters, same_level=False) 
         #should raise ValueError here if a pair donot have two elems.
-        for i,(k, v) in enumerate(pairs):
+        for i, (k, v) in enumerate(pairs):
             v = split_value(v)
             #modify v only if splitted by the first dilimiter
             if len(v) > 1:
@@ -283,8 +283,8 @@ def id_parser(lines):
     ID   CYC_BOVIN      STANDARD;      PRT;   104 AA.
     """
     lines = labeloff(lines)
-    return mapping_parser(lines[0], delimiters=[';',None],
-                          fields=('EntryName','DataClass','MolType',('Length',int)))
+    return mapping_parser(lines[0], delimiters=[';', None],
+                          fields=('EntryName', 'DataClass', 'MolType', ('Length', int)))
 
 def sq_parser(lines):
     """return a mapping dict from SQ lines (only one line).
@@ -300,8 +300,8 @@ def sq_parser(lines):
     ('CRC64').
     """
     lines = labeloff(lines)
-    return mapping_parser(lines[0], delimiters=[';',None],
-                          fields=(None, ('Length', int), None, ('MolWeight',int), None, 'Crc64'))
+    return mapping_parser(lines[0], delimiters=[';', None],
+                          fields=(None, ('Length', int), None, ('MolWeight', int), None, 'Crc64'))
 
 def kw_parser(lines):
     """return a list of keywords from KW lines.
@@ -680,15 +680,15 @@ def ft_basic_itemparser(item_lines):
     WARNING: not complete, location fields need further work?
     """
     #cut_postions: the postions to split the line into fields
-    original_cut_positions = [15,22,35] #see doc of ft_parser
+    original_cut_positions = [15, 22, 35] #see doc of ft_parser
     #keyname will start from 0(instead of 6) after labeloff
     cut_positions = [e - 6 for e in original_cut_positions]
 
     #unpack the first line to fields
     first_line = item_lines[0]
     keyname, from_point, to_point, description = \
-    [first_line[i:j].strip() for i,j in
-     zip([0]+cut_positions,cut_positions+[None])]
+    [first_line[i:j].strip() for i, j in
+     zip([0] + cut_positions, cut_positions + [None])]
 
     #extend the description if provided following lines
     if len(item_lines) > 1:
@@ -725,7 +725,7 @@ def ft_id_parser(description):
     FT                                /FTId=VSP_004370.
     """
     fieldnames = ['Description', 'Id']
-    id_sep='/FTId='  
+    id_sep = '/FTId='  
     try:
         desc, id = [i.strip(' .') for i in description.split(id_sep)]
     except:
@@ -762,7 +762,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter='('):
     #if mut_from/to unknown, the mutation message will be in mut_from
     mutation_delimiter = '->'
     try:
-        mut_from, mut_to=list(map(strip, mutation.split(mutation_delimiter, 1)))
+        mut_from, mut_to = list(map(strip, mutation.split(mutation_delimiter, 1)))
     except ValueError as e:  #too many values to unpack
         mut_from, mut_to = mutation, ''
 
@@ -799,9 +799,9 @@ def ft_id_mutation_parser(description):
 ft_description_parsers = {
     'VARIANT': ft_id_mutation_parser,
     'VARSPLIC': ft_id_mutation_parser,
-    'CARBOHYD':ft_id_parser,
+    'CARBOHYD': ft_id_parser,
     'CHAIN': ft_id_parser,
-    'PEPTIDE':ft_id_parser,
+    'PEPTIDE': ft_id_parser,
     'PROPEP': ft_id_parser,
     'CONFLICT': ft_mutation_parser,
     'MUTAGEN': ft_mutagen_parser,
@@ -879,7 +879,7 @@ def cc_parser(lines, strict=False):
         result = pairs_to_dict(topic_contents, 'always_multi_value', 
                                handlers=cc_content_parsers, default_handler=join_parser)
     except Exception as e:
-        pprint( lines)
+        pprint(lines)
         raise e
 
     if strict:
@@ -940,7 +940,7 @@ def cc_itemfinder(lines):
         #normalize license lines to the format of topic lines
         license_idx = lines.index(license_border)
         lines[license_idx] = license_headstr 
-        for i in range(license_idx+1, len(lines)):
+        for i in range(license_idx + 1, len(lines)):
             lines[i] = ' ' * content_start + lines[i]
 
     #the return line is all we need, if no license block
@@ -957,9 +957,9 @@ def cc_interaction_parser(content_list):
         {{SP_Ac:identifier[ (xeno)]}|Self}; NbExp=n; IntAct=IntAct_Protein_Ac,
         IntAct_Protein_Ac;
     """
-    result= []
+    result = []
     for line in content_list:
-        interactor, params = line.split(';',1)
+        interactor, params = line.split(';', 1)
         params = join_split_dict_parser([params])
         result.append((interactor.strip(), params))
     return result
@@ -1033,10 +1033,10 @@ def cc_biophysicochemical_properties_parser(content):
         sub_content = list(map(strip, sub_topic[1:])) #strip the two leading spaces
 
         #further process the content here
-        if sub_key in ['Kinetic parameters',  'Absorption']:
+        if sub_key in ['Kinetic parameters', 'Absorption']:
             #group into a dict which allow multiple values.
             subkey_values = join_split_parser(sub_content,
-                                              delimiters=[';',('=',1)])
+                                              delimiters=[';', ('=', 1)])
             sub_content = pairs_to_dict(subkey_values, 'allow_multi_value')
         else:
             sub_content = join_parser(sub_content, chars_to_strip='; ')
@@ -1052,7 +1052,7 @@ cc_content_parsers = {
     'BIOPHYSICOCHEMICAL PROPERTIES': cc_biophysicochemical_properties_parser,
     'INTERACTION': cc_interaction_parser, 
     'DATABASE': join_split_dict_parser, 
-    'MASS SPECTROMETRY':join_split_dict_parser, 
+    'MASS SPECTROMETRY': join_split_dict_parser, 
 }
 
 
@@ -1125,7 +1125,7 @@ def rx_parser(lines):
            http://www.doi.org/handbook_2000/enumeration.html#2.2
     """
     lines = labeloff(lines) 
-    return join_split_dict_parser(lines, delimiters=['; ','='])
+    return join_split_dict_parser(lines, delimiters=['; ', '='])
 
 def rc_parser(lines):
     """return a dict from RC lines.
@@ -1360,7 +1360,7 @@ def linecode_merging_maker(line):
 def parse_header(header_dict, strict=True):
     """Parses a dictionary of header lines"""
     return pairs_to_dict(list(header_dict.items()), 'no_duplicated_key',
-                         handlers = _parsers)
+                         handlers=_parsers)
 
 _parsers = {
     'ID': id_parser,
@@ -1390,7 +1390,7 @@ _parsers = {
 }
 
 def EbiParser(lines, seq_constructor=Sequence, 
-              header_constructor= parse_header, strict=True, selected_labels=[]):
+              header_constructor=parse_header, strict=True, selected_labels=[]):
     """Parser for the EBI data format.
 
     lines: input data (list of lines or file stream)
@@ -1442,9 +1442,9 @@ Examples:
         lines = open(args[0])
         print('Parsing the file')
         for i, rec in enumerate(EbiParser(lines, strict=True)):
-            print('\r %s: %s' % (i,rec[1]['ID']['EntryName']), end=' ')
+            print('\r %s: %s' % (i, rec[1]['ID']['EntryName']), end=' ')
     else: 
-        lines="""\
+        lines = """\
 ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA. 
 AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
 DT   01-MAY-2000 (TrEMBLrel. 13, Created)
@@ -1537,7 +1537,7 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
      MISVMQQMIN NDSPEDSKES ITSVQQTPFF WPSAAAAIPS IQGESRSERE
 //
 """.split('\n')
-        pprint(list(EbiParser(lines,strict=False, selected_labels=[])))
+        pprint(list(EbiParser(lines, strict=False, selected_labels=[])))
 
 
     #from time import time

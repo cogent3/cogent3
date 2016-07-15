@@ -24,10 +24,10 @@ class GeneticCodeTests(TestCase):
             "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
         self.mt = \
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG"
-        self.AllG= \
+        self.AllG = \
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
 
-        self.WrongLength= [
+        self.WrongLength = [
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
             "",
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
@@ -57,7 +57,7 @@ class GeneticCodeTests(TestCase):
                          'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
         self.assertEqual(sgc.StartCodonSequence,
                          '---M---------------M---------------M----------------------------')
-        self.assertEqual(sgc.StartCodons, {'TTG':'M', 'CTG':'M', 'ATG':'M'})
+        self.assertEqual(sgc.StartCodons, {'TTG': 'M', 'CTG': 'M', 'ATG': 'M'})
         self.assertEqual(sgc.ID, 1)
         self.assertEqual(sgc.Name, 'Standard Nuclear')
         self.assertEqual(sgc['UUU'], 'F')
@@ -79,7 +79,7 @@ class GeneticCodeTests(TestCase):
                              'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
             self.assertEqual(sgc.StartCodonSequence,
                              '---M---------------M---------------M----------------------------')
-            self.assertEqual(sgc.StartCodons, {'TTG':'M', 'CTG':'M', 'ATG':'M'})
+            self.assertEqual(sgc.StartCodons, {'TTG': 'M', 'CTG': 'M', 'ATG': 'M'})
             self.assertEqual(sgc.ID, 1)
             self.assertEqual(sgc.Name, 'Standard Nuclear')
             self.assertEqual(sgc['TTT'], 'F')
@@ -93,14 +93,14 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(mtgc.isStart('AUU'), True)
         self.assertEqual(mtgc.isStop('UGA'), False)
 
-        self.assertEqual(sgc_new.changes(mtgc), {'AGA':'R*', 'AGG':'R*',
-                                                 'ATA':'IM', 'TGA':'*W'})
-        self.assertEqual(mtgc.changes(sgc_new), {'AGA':'*R', 'AGG':'*R',
-                                                 'ATA':'MI', 'TGA':'W*'})
+        self.assertEqual(sgc_new.changes(mtgc), {'AGA': 'R*', 'AGG': 'R*',
+                                                 'ATA': 'IM', 'TGA': '*W'})
+        self.assertEqual(mtgc.changes(sgc_new), {'AGA': '*R', 'AGG': '*R',
+                                                 'ATA': 'MI', 'TGA': 'W*'})
         self.assertEqual(mtgc.changes(mtgc), {})
         self.assertEqual(mtgc.changes(
             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'),
-            {'AGA':'*R', 'AGG':'*R', 'ATA':'MI', 'TGA':'W*'})
+            {'AGA': '*R', 'AGG': '*R', 'ATA': 'MI', 'TGA': 'W*'})
 
     def test_str(self):
         """GeneticCode str() should return its code string"""
@@ -130,7 +130,7 @@ class GeneticCodeTests(TestCase):
         for i in variant_codons:
             self.assertEqual(sgc[i], 'I')
         #full check for the standard code
-        codons = [a+b+c for a in 'UCAG' for b in 'TCAG' for c in 'UCAG']
+        codons = [a + b + c for a in 'UCAG' for b in 'TCAG' for c in 'UCAG']
         for codon, aa in zip(codons, self.SGC):
             self.assertEqual(sgc[codon], aa)
         #full check for another code
@@ -144,7 +144,7 @@ class GeneticCodeTests(TestCase):
         """GeneticCode getitem should return codon set for aa"""
         #for all G, should return all the codons (in some order)
         allg = GeneticCode(self.AllG)
-        codons = [a+b+c for a in 'TCAG' for b in 'TCAG' for c in 'TCAG']
+        codons = [a + b + c for a in 'TCAG' for b in 'TCAG' for c in 'TCAG']
         g_codons = allg['G']
         codons_copy = codons[:]
         self.assertEqual(g_codons, codons_copy)
@@ -159,7 +159,7 @@ class GeneticCodeTests(TestCase):
         obs_arg = sgc['R']
         self.assertEqual(obs_ile, exp_ile)
 
-        exp_leu = ['TTA','TTG','CTT','CTC','CTA','CTG']
+        exp_leu = ['TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG']
         obs_leu = sgc['L']
         self.assertEqual(obs_leu, exp_leu)
 
@@ -180,32 +180,32 @@ class GeneticCodeTests(TestCase):
         """GeneticCode Blocks should return correct list"""
         sgc = GeneticCode(self.SGC)
         exp_blocks = [
-            ['TTT', 'TTC',],
-            ['TTA', 'TTG',],
-            ['TCT','TCC','TCA','TCG'],
-            ['TAT','TAC'],
-            ['TAA','TAG'],
-            ['TGT','TGC'],
+            ['TTT', 'TTC', ],
+            ['TTA', 'TTG', ],
+            ['TCT', 'TCC', 'TCA', 'TCG'],
+            ['TAT', 'TAC'],
+            ['TAA', 'TAG'],
+            ['TGT', 'TGC'],
             ['TGA'],
             ['TGG'],
-            ['CTT','CTC','CTA','CTG'],
-            ['CCT','CCC','CCA','CCG'],
-            ['CAT','CAC'],
-            ['CAA','CAG'],
-            ['CGT','CGC','CGA','CGG'],
-            ['ATT','ATC'],
-            ['ATA',],
-            ['ATG',],
-            ['ACT','ACC','ACA','ACG'],
-            ['AAT','AAC'],
-            ['AAA','AAG'],
-            ['AGT','AGC'],
-            ['AGA','AGG'],
-            ['GTT','GTC','GTA','GTG'],
-            ['GCT','GCC','GCA','GCG'],
-            ['GAT','GAC'],
-            ['GAA','GAG'],
-            ['GGT','GGC','GGA','GGG'],
+            ['CTT', 'CTC', 'CTA', 'CTG'],
+            ['CCT', 'CCC', 'CCA', 'CCG'],
+            ['CAT', 'CAC'],
+            ['CAA', 'CAG'],
+            ['CGT', 'CGC', 'CGA', 'CGG'],
+            ['ATT', 'ATC'],
+            ['ATA', ],
+            ['ATG', ],
+            ['ACT', 'ACC', 'ACA', 'ACG'],
+            ['AAT', 'AAC'],
+            ['AAA', 'AAG'],
+            ['AGT', 'AGC'],
+            ['AGA', 'AGG'],
+            ['GTT', 'GTC', 'GTA', 'GTG'],
+            ['GCT', 'GCC', 'GCA', 'GCG'],
+            ['GAT', 'GAC'],
+            ['GAA', 'GAG'],
+            ['GGT', 'GGC', 'GGA', 'GGG'],
         ]
         self.assertEqual(sgc.Blocks, exp_blocks)
 
@@ -213,27 +213,27 @@ class GeneticCodeTests(TestCase):
         """GeneticCode Anticodons should return correct list"""
         sgc = GeneticCode(self.SGC)
         exp_anticodons = {
-            'F': ['AAA', 'GAA',],
-            'L': ['TAA', 'CAA', 'AAG','GAG','TAG','CAG'],
-            'Y': ['ATA','GTA'],
-            '*': ['TTA','CTA', 'TCA'],
-            'C': ['ACA','GCA'],
+            'F': ['AAA', 'GAA', ],
+            'L': ['TAA', 'CAA', 'AAG', 'GAG', 'TAG', 'CAG'],
+            'Y': ['ATA', 'GTA'],
+            '*': ['TTA', 'CTA', 'TCA'],
+            'C': ['ACA', 'GCA'],
             'W': ['CCA'],
-            'S': ['AGA','GGA','TGA','CGA','ACT','GCT'],
-            'P': ['AGG','GGG','TGG','CGG'],
-            'H': ['ATG','GTG'],
-            'Q': ['TTG','CTG'],
-            'R': ['ACG','GCG','TCG','CCG','TCT','CCT'],
-            'I': ['AAT','GAT','TAT'],
-            'M': ['CAT',],
-            'T': ['AGT','GGT','TGT','CGT'],
-            'N': ['ATT','GTT'],
-            'K': ['TTT','CTT'],
-            'V': ['AAC','GAC','TAC','CAC'],
-            'A': ['AGC','GGC','TGC','CGC'],
-            'D': ['ATC','GTC'],
-            'E': ['TTC','CTC'],
-            'G': ['ACC','GCC','TCC','CCC'],
+            'S': ['AGA', 'GGA', 'TGA', 'CGA', 'ACT', 'GCT'],
+            'P': ['AGG', 'GGG', 'TGG', 'CGG'],
+            'H': ['ATG', 'GTG'],
+            'Q': ['TTG', 'CTG'],
+            'R': ['ACG', 'GCG', 'TCG', 'CCG', 'TCT', 'CCT'],
+            'I': ['AAT', 'GAT', 'TAT'],
+            'M': ['CAT', ],
+            'T': ['AGT', 'GGT', 'TGT', 'CGT'],
+            'N': ['ATT', 'GTT'],
+            'K': ['TTT', 'CTT'],
+            'V': ['AAC', 'GAC', 'TAC', 'CAC'],
+            'A': ['AGC', 'GGC', 'TGC', 'CGC'],
+            'D': ['ATC', 'GTC'],
+            'E': ['TTC', 'CTC'],
+            'G': ['ACC', 'GCC', 'TCC', 'CCC'],
         }
         self.assertEqual(sgc.Anticodons, exp_anticodons)
 
@@ -309,27 +309,27 @@ class GeneticCodeTests(TestCase):
     def test_Synonyms(self):
         """GeneticCode Synonyms should return aa -> codon set mapping."""
         expected_synonyms = {
-            'A':['GCT','GCC','GCA','GCG'],
-            'C':['TGT', 'TGC'],
-            'D':['GAT', 'GAC'],
-            'E':['GAA','GAG'],
-            'F':['TTT','TTC'],
-            'G':['GGT','GGC','GGA','GGG'],
-            'H':['CAT','CAC'],
-            'I':['ATT','ATC','ATA'],
-            'K':['AAA','AAG'],
-            'L':['TTA','TTG','CTT','CTC','CTA','CTG'],
-            'M':['ATG'],
-            'N':['AAT','AAC'],
-            'P':['CCT','CCC','CCA','CCG'],
-            'Q':['CAA','CAG'],
-            'R':['AGA','AGG','CGT','CGC','CGA','CGG'],
-            'S':['TCT','TCC','TCA','TCG','AGT','AGC'],
-            'T':['ACT','ACC','ACA','ACG'],
-            'V':['GTT','GTC','GTA','GTG'],
-            'W':['TGG'],
-            'Y':['TAT','TAC'],
-            '*':['TAA','TAG', 'TGA'],
+            'A': ['GCT', 'GCC', 'GCA', 'GCG'],
+            'C': ['TGT', 'TGC'],
+            'D': ['GAT', 'GAC'],
+            'E': ['GAA', 'GAG'],
+            'F': ['TTT', 'TTC'],
+            'G': ['GGT', 'GGC', 'GGA', 'GGG'],
+            'H': ['CAT', 'CAC'],
+            'I': ['ATT', 'ATC', 'ATA'],
+            'K': ['AAA', 'AAG'],
+            'L': ['TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'],
+            'M': ['ATG'],
+            'N': ['AAT', 'AAC'],
+            'P': ['CCT', 'CCC', 'CCA', 'CCG'],
+            'Q': ['CAA', 'CAG'],
+            'R': ['AGA', 'AGG', 'CGT', 'CGC', 'CGA', 'CGG'],
+            'S': ['TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'],
+            'T': ['ACT', 'ACC', 'ACA', 'ACG'],
+            'V': ['GTT', 'GTC', 'GTA', 'GTG'],
+            'W': ['TGG'],
+            'Y': ['TAT', 'TAC'],
+            '*': ['TAA', 'TAG', 'TGA'],
         }
         obs_synonyms = GeneticCode(self.SGC).Synonyms
         #note that the lists will be arbitrary-order

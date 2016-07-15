@@ -20,7 +20,7 @@ def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
     was_high = False
     scores = [0] * window
     score = 0
-    (i_lo, i_hi) = max(0, -diagonal), min(len(seq1), len(seq2)-diagonal)
+    (i_lo, i_hi) = max(0, -diagonal), min(len(seq1), len(seq2) - diagonal)
     for i in range(i_lo, i_hi):
         j = i + diagonal
         k = i % window
@@ -30,7 +30,7 @@ def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
         if score >= threshold:
             if not was_high:
                 start = max(i_lo, i - window)
-                if d_segments and start-d_segments[-1][1] < min_gap_length:
+                if d_segments and start - d_segments[-1][1] < min_gap_length:
                     (start, jumped_end) = d_segments.pop()
                 was_high = True
         else:
@@ -61,7 +61,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     def one_diagonal(dia):
         segs = segments_from_diagonal(seq1, seq2, window, threshold, 
                                       min_gap_length, dia)
-        return [((start, start+dia), (end, end+dia)) for (start, end) in segs]
+        return [((start, start + dia), (end, end + dia)) for (start, end) in segs]
 
     if band is None:
         band = max(len(seq1), len(seq2))
@@ -72,7 +72,7 @@ def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None)
     if isinstance(seq2, str):
         seq2 = seq2.encode('utf8')
 
-    diagonals = list(range(-min(len(seq1), band), min(len(seq2), band)+1))
+    diagonals = list(range(-min(len(seq1), band), min(len(seq2), band) + 1))
     result = []
     for diag_segments in ui.imap(one_diagonal, diagonals, noun='offset'):
         result.extend(diag_segments)

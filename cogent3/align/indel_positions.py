@@ -17,11 +17,11 @@ def pog_traceback(pogs, aligned_positions):
         for (dim, pos) in enumerate(posn):
             if pos is not None:
                 align_builder.addSkipped(dim, upto[dim], pos)
-                upto[dim] = pos+1
+                upto[dim] = pos + 1
 
         align_builder.addAligned(posn)
 
-    for dim in [0,1]:
+    for dim in [0, 1]:
         align_builder.addSkipped(dim, upto[dim], len(pogs[dim]))
 
     result_pog = align_builder.getPOG()
@@ -73,7 +73,7 @@ class POGBuilder(object):
         # Build a list of gaps (ie: segments of X or Y state) in
         # the alignment and a dict which maps from seq posn to the
         # start of the surrounding gap.
-        for (i, state) in enumerate(self.states+['.']):
+        for (i, state) in enumerate(self.states + ['.']):
             gap = state in 'XYxy'
             if gap and not ingap:
                 start = i
@@ -92,12 +92,12 @@ class POGBuilder(object):
         # Keep only those child gaps which sit entirely within a gap
         # in this alignment
         child_jumps = []
-        for (dim,pog) in enumerate(self.children):
+        for (dim, pog) in enumerate(self.children):
             r = self.remap[dim]
             for (i, j) in pog.jumps:
                 (i, j) = (r[i], r[j])
                 if i in gapmap and j in gapmap and gapmap[i] == gapmap[j]:
-                    child_jumps.append((i,j))
+                    child_jumps.append((i, j))
 
         pog = POG(len(self.aligned_positions), jumps, child_jumps)
         pog.aligned_positions = self.aligned_positions
@@ -126,7 +126,7 @@ class POG(object):
         self.jumps = jumps
         self.child_jumps = child_jumps
         self.all_jumps = self.jumps + self.child_jumps
-        self.all_jumps.sort(key=lambda i_j:i_j[1])
+        self.all_jumps.sort(key=lambda i_j: i_j[1])
         self.length = length
         for (i, j) in self.all_jumps:
             assert i <= j, (length, jumps, child_jumps)
@@ -143,18 +143,18 @@ class POG(object):
         the length is len(self)+2 and the positions are all offset by 1"""
         result = [[]]
         # First the regular, linear sequence relationships
-        for i in range(self.length+1):
+        for i in range(self.length + 1):
             pre = [i]
             result.append(pre)
         # Then add in the indel jumps.  Given an indel from i to j
         # j could have been ajacent to one of i's predecessors in
         # the ancestral sequence. This depends on all_jumps being sorted
         # by j.
-        for (i,j) in self.all_jumps:
+        for (i, j) in self.all_jumps:
             if i == j:
                 continue
             assert i < j
-            result[j+1].extend(result[i+1])
+            result[j + 1].extend(result[i + 1])
         return result
 
     def getAlignedPositions(self):
@@ -169,7 +169,7 @@ class POG(object):
     def midlinks(self):
         # for the hirchberg algorithm.
         half = self.length // 2
-        jumps = [(i,j) for (i,j) in self.all_jumps if i<=half and j>=half]
+        jumps = [(i, j) for (i, j) in self.all_jumps if i <= half and j >= half]
         return [(half, half)] + jumps
 
     def __getitem__(self, index):
@@ -183,20 +183,20 @@ class POG(object):
         else:
             end = index.stop
         assert end >= start, (start, end, index, self.length)
-        def moved(i,j):
-            i2 = max(min(i, end), start)-start
-            j2 = max(min(j, end), start)-start
+        def moved(i, j):
+            i2 = max(min(i, end), start) - start
+            j2 = max(min(j, end), start) - start
             return (i2, j2)
-        jumps = [moved(i,j) for (i,j) in self.jumps if i<end or j>start]
-        cjumps = [moved(i,j) for (i,j) in self.child_jumps if i<end or j>start]
-        return POG(end-start, jumps, cjumps)
+        jumps = [moved(i, j) for (i, j) in self.jumps if i < end or j > start]
+        cjumps = [moved(i, j) for (i, j) in self.child_jumps if i < end or j > start]
+        return POG(end - start, jumps, cjumps)
 
     def backward(self):
         # Switches predecessors / successors
         # POGs need to be reversable for the hirchberg algorithm.
         length = self.length
-        jumps = [(length-j, length-i) for (i,j) in self.jumps]
-        cjumps = [(length-j, length-i) for (i,j) in self.child_jumps]
+        jumps = [(length - j, length - i) for (i, j) in self.jumps]
+        cjumps = [(length - j, length - i) for (i, j) in self.child_jumps]
         return POG(length, jumps, cjumps)
 
     def writeToDot(self, dot):
@@ -225,7 +225,7 @@ class LeafPOG(POG):
         self.jumps = []
 
     def asListOfPredLists(self):
-        pog = [ [[i]] for i in range(self.length)]
+        pog = [[[i]] for i in range(self.length)]
         return [[]] + pog + [[len(pog)]]
 
     def __len__(self):

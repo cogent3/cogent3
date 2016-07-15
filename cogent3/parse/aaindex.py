@@ -138,8 +138,8 @@ class AAIndex1Parser(AAIndexParser):
         # Split by white space
         data = re.split('\s*', raw)
 
-        i=0
-        while(i<len(data)):
+        i = 0
+        while(i < len(data)):
             # If it's even it's a key
             if((i % 2) == 0):
                 keys += [data[i]]
@@ -207,7 +207,7 @@ class AAIndex2Parser(AAIndexParser):
 
         rowscols = self._parse_rowscols(raw_data[:raw_data.find('BRK')])
         try:
-            data = self._parse_data(raw_data[raw_data.find('BRK')+3:],\
+            data = self._parse_data(raw_data[raw_data.find('BRK') + 3:],\
                                     rowscols[0], rowscols[1])
         except IndexError:
             return None
@@ -226,7 +226,7 @@ class AAIndex2Parser(AAIndexParser):
 
 
         # If square matrix
-        if len(data) == (len(rows)*len(cols)):
+        if len(data) == (len(rows) * len(cols)):
             result = dict.fromkeys(rows)
             i = 0
             for r in rows:
@@ -236,11 +236,11 @@ class AAIndex2Parser(AAIndexParser):
                         new_row[c] = float(data[i])
                     except ValueError:
                         new_row[c] = data[i]
-                    i+=1
+                    i += 1
                 result[r] = new_row
 
         # else if LTM
-        elif len(data) == (len(cols)+1) * len(rows)/2 :
+        elif len(data) == (len(cols) + 1) * len(rows) / 2:
             result = dict.fromkeys(rows)
             i = 0
             for r in rows:
@@ -263,7 +263,7 @@ class AAIndex2Parser(AAIndexParser):
             for each record in AAIndex2 so we know what the data is that
             we are looking at.
         """
-        p ='[rows|cols]\s=\s([^ \t\n\r\f\v,]*)'
+        p = '[rows|cols]\s=\s([^ \t\n\r\f\v,]*)'
         result = []
         result += re.findall(p, raw)
         return result
@@ -332,7 +332,7 @@ class AAIndex1Record(AAIndexRecord):
 
         """
         keys = list(self.Data.keys())
-        if include_stops : keys += '*'
+        if include_stops: keys += '*'
 
         # build result dict top layer, start empty
         result = {}
@@ -388,10 +388,10 @@ class AAIndex2Record(AAIndexRecord):
         if include_stops:
             stop_row = {}
             for i in result:
-                stop_row.update({i:None})
-            result.update({'*':stop_row})
+                stop_row.update({i: None})
+            result.update({'*': stop_row})
             for i in result:
-                result[i].update({'*':None})
+                result[i].update({'*': None})
 
         # Right now we are only dealing with square matrices
         return result

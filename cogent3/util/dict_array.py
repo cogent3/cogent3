@@ -44,7 +44,7 @@ class DictArrayTemplate(object):
             else:
                 names = list(names)[:]
             self.names.append(names)
-            self.ordinals.append(dict((c,i) for (i,c) in enumerate(names)))
+            self.ordinals.append(dict((c, i) for (i, c) in enumerate(names)))
         self._shape = tuple(len(keys) for keys in self.names)
 
     def __eq__(self, other):
@@ -54,7 +54,7 @@ class DictArrayTemplate(object):
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
-            return [self._dict2list(value[key], depth+1) for key in self.names[depth]]
+            return [self._dict2list(value[key], depth + 1) for key in self.names[depth]]
         else:
             return value
 
@@ -71,7 +71,7 @@ class DictArrayTemplate(object):
         assert value.shape == self._shape, (value.shape, self._shape)
         return value
 
-    def wrap(self, array, dtype = None):
+    def wrap(self, array, dtype=None):
         # dtype is numpy
         array = numpy.asarray(array, dtype=dtype)
         for (dim, categories) in enumerate(self.names):
@@ -173,7 +173,7 @@ class DictArray(object):
         return self.template.names[0][:]
 
     def items(self):
-        return [(n,self[n]) for n in list(self.keys())]
+        return [(n, self[n]) for n in list(self.keys())]
 
     def __repr__(self):
         return self.template.array_repr(self.array)

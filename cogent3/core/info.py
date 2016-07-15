@@ -107,7 +107,7 @@ class Info(MappedRecord, Delegator):
 
     Delegates to DbRefs for database IDs.
     """
-    Required = {'Refs':None}
+    Required = {'Refs': None}
     def __init__(self, *args, **kwargs):
         """Returns new Info object. Creates DbRefs if necessary."""
         temp = dict(*args, **kwargs)

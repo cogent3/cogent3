@@ -70,7 +70,7 @@ class _SciPyOptimiser(object):
 
         if show_remaining:
             def _callback(fcalls, x, fval, delta):
-                remaining = math.log(max(abs(delta)/tolerance, 1.0))
+                remaining = math.log(max(abs(delta) / tolerance, 1.0))
                 show_remaining(remaining, -fval, delta, fcalls)
         else:
             _callback = None

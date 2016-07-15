@@ -45,7 +45,7 @@ class TestPredicates(unittest.TestCase):
                           self._makeMotifChange, '----', 'NNNN')
 
     def test_isfromcpg(self):
-        isFromCpG = self._makeMotifChange('CG', forward_only = True)
+        isFromCpG = self._makeMotifChange('CG', forward_only=True)
         self.assertMatch(isFromCpG, 'CG', 'CA')
         self.assertMatch(isFromCpG, 'CG', 'TG')
         self.assertMatch(isFromCpG, 'ACG', 'ATG')
@@ -63,20 +63,20 @@ class TestPredicates(unittest.TestCase):
         self.assertMatch(isFromToCpG, 'CTT', 'CGT')
 
     def test_isFromToCpA_C_only(self):
-        isFromToCpA_C_only = self._makeMotifChange('CA', diff_at = 0)
+        isFromToCpA_C_only = self._makeMotifChange('CA', diff_at=0)
         self.assertMatch(isFromToCpA_C_only, 'CA', 'TA')
         self.assertMatch(isFromToCpA_C_only, 'TCA', 'TTA')
         self.assertMatch(isFromToCpA_C_only, 'TAA', 'CAA')
         self.assertNoMatch(isFromToCpA_C_only, 'TCA', 'TCT')
 
     def test_isFromCpA_C_only(self):
-        isFromCpA_C_only = self._makeMotifChange('CA', forward_only = True, diff_at = 0)
+        isFromCpA_C_only = self._makeMotifChange('CA', forward_only=True, diff_at=0)
         self.assertMatch(isFromCpA_C_only, 'CA', 'TA')
         self.assertMatch(isFromCpA_C_only, 'TCA', 'TTA')
         self.assertNoMatch(isFromCpA_C_only, 'TAA', 'CAA')
 
     def test_isCpT_T_only(self):
-        isCpT_T_only = self._makeMotifChange('CT', diff_at = 1)
+        isCpT_T_only = self._makeMotifChange('CT', diff_at=1)
         self.assertMatch(isCpT_T_only, 'CT', 'CA')
         self.assertMatch(isCpT_T_only, 'TCA', 'TCT')
         self.assertNoMatch(isCpT_T_only, 'TTA', 'TCA')
@@ -102,7 +102,7 @@ class TestPredicates(unittest.TestCase):
         self.assertMatch(isCtoT, 'C', 'T')
         self.assertMatch(isCtoT, 'T', 'C')
         self.assertNoMatch(isCtoT, 'T', 'A')
-        isCtoT = self._makeMotifChange('C', 'T', forward_only = True)
+        isCtoT = self._makeMotifChange('C', 'T', forward_only=True)
         self.assertMatch(isCtoT, 'C', 'T')
         self.assertNoMatch(isCtoT, 'T', 'C')
 
@@ -120,7 +120,7 @@ class TestPredicates(unittest.TestCase):
         self.assertMatch(isCG_CA, 'CATT', 'CGTT')
         self.assertMatch(isCG_CA, 'TCAT', 'TCGT')
         self.assertMatch(isCG_CA, 'TTCA', 'TTCG')
-        isCG_CA = self._makeMotifChange('CG', 'CA', forward_only = True)
+        isCG_CA = self._makeMotifChange('CG', 'CA', forward_only=True)
         self.assertMatch(isCG_CA, 'CGTT', 'CATT')
         self.assertMatch(isCG_CA, 'TCGT', 'TCAT')
         self.assertMatch(isCG_CA, 'TTCG', 'TTCA')
@@ -128,7 +128,7 @@ class TestPredicates(unittest.TestCase):
         self.assertNoMatch(isCG_CA, 'TCAT', 'TCGT')
         self.assertNoMatch(isCG_CA, 'TTCA', 'TTCG')
 
-        isCG = self._makeMotifChange('CG', diff_at = 1)
+        isCG = self._makeMotifChange('CG', diff_at=1)
         self.assertMatch(isCG, 'CGTT', 'CATT')
         self.assertMatch(isCG, 'TCGT', 'TCAT')
         self.assertMatch(isCG, 'TTCG', 'TTCA')

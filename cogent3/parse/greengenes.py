@@ -22,7 +22,7 @@ def make_ignore_f(start_line):
     """Make an ignore function that ignores bad gg lines"""
     def ignore(line):
         """Return false if line is bad"""
-        return not line or ['',''] == line or [start_line,''] == line
+        return not line or ['', ''] == line or [start_line, ''] == line
     return ignore
 
 def DefaultDelimitedSplitter(delimiter):
@@ -35,7 +35,7 @@ def DefaultDelimitedSplitter(delimiter):
         return parsed
     return f
 
-def MinimalGreengenesParser(lines,LineDelim="=",RecStart="BEGIN",RecEnd="END"):
+def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"):
     """Parses raw Greengeens 16S rRNA Gene records
 
     lines  :  open records file
@@ -57,8 +57,8 @@ def MinimalGreengenesParser(lines,LineDelim="=",RecStart="BEGIN",RecEnd="END"):
     for record in parser(lines):
         yield GenericRecord(record)
 
-all_ids = lambda x,y: True
-specific_ids = lambda x,y: x in y
+all_ids = lambda x, y: True
+specific_ids = lambda x, y: x in y
 def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
     """Yield specific fields from successive Greengenes records
 

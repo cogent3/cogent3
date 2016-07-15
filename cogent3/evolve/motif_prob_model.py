@@ -42,7 +42,7 @@ class MotifProbModel(object):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
         return substitution_calculation.PartitionDefn(
-            name="mprobs", default=None, dimensions = ('locus','edge'),
+            name="mprobs", default=None, dimensions=('locus', 'edge'),
             dimension=('motif', tuple(self.getInputAlphabet())))
 
     def setParamControllerMotifProbs(self, pc, motif_probs, **kw):
@@ -63,13 +63,13 @@ class MotifProbModel(object):
 
     def adaptMotifProbs(self, motif_probs, auto=False):
         motif_probs = self.getInputAlphabet().adaptMotifProbs(motif_probs)
-        assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
+        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
     def makeEqualMotifProbs(self):
         alphabet = self.getInputAlphabet()
-        p = 1.0/len(alphabet)
-        return dict([(m,p) for m in alphabet])
+        p = 1.0 / len(alphabet)
+        return dict([(m, p) for m in alphabet])
 
     def makeSampleMotifProbs(self):
         import random
@@ -111,37 +111,37 @@ class ComplexMotifProbModel(MotifProbModel):
         # w2c[ATC, AT*] = 1
         self.m2w = m2w = numpy.zeros([size, length], int)
         self.w2m = w2m = numpy.zeros([length, size, len(monomers)], int)
-        contexts = monomers.getWordAlphabet(length-1)
-        self.w2c = w2c = numpy.zeros([size, length*len(contexts)], int)
+        contexts = monomers.getWordAlphabet(length - 1)
+        self.w2c = w2c = numpy.zeros([size, length * len(contexts)], int)
         for (i, word) in enumerate(tuple_alphabet):
             for j in range(length):
                 monomer = monomers.index(word[j])
-                context = contexts.index(word[:j]+word[j+1:])
+                context = contexts.index(word[:j] + word[j + 1:])
                 m2w[i, j] = monomer
                 w2m[j, i, monomer] = 1
-                w2c[i, context*length+j] = 1
+                w2c[i, context * length + j] = 1
 
         self.mutated_posn = numpy.zeros(mask.shape, int)
         self.mutant_motif = numpy.zeros(mask.shape, int)
         self.context_indices = numpy.zeros(mask.shape, int)
 
         for (i, old_word, j, new_word, diff) in self._mutations():
-            self.mutated_posn[i,j] = diff
+            self.mutated_posn[i, j] = diff
             mutant_motif = new_word[diff]
-            context = new_word[:diff]+new_word[diff+1:]
-            self.mutant_motif[i,j] = monomers.index(mutant_motif)
+            context = new_word[:diff] + new_word[diff + 1:]
+            self.mutant_motif[i, j] = monomers.index(mutant_motif)
             c = contexts.index(context)
-            self.context_indices[i,j] = c * length + diff 
+            self.context_indices[i, j] = c * length + diff 
 
     def _mutations(self):
-        diff_pos = lambda x,y: [i for i in range(len(x)) if x[i] != y[i]]
+        diff_pos = lambda x, y: [i for i in range(len(x)) if x[i] != y[i]]
         num_states = len(self.tuple_alphabet)
         for i in range(num_states):
             old_word = self.tuple_alphabet[i]
             for j in range(num_states):
                 new_word = self.tuple_alphabet[j]
-                if self.mask[i,j]:
-                    assert self.mask[i,j] == 1.0
+                if self.mask[i, j]:
+                    assert self.mask[i, j] == 1.0
                     diffs = diff_pos(old_word, new_word)
                     assert len(diffs) == 1, (old_word, new_word)
                     diff = diffs[0]
@@ -205,7 +205,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         assert len(monomer_probs) == self.m2w.shape[1], (
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
         result = numpy.product(
-            [monomer_probs[i].take(self.m2w[:,i]) 
+            [monomer_probs[i].take(self.m2w[:, i]) 
              for i in positions], axis=0)
         result /= result.sum()
         return result
@@ -227,12 +227,12 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
     def makeMotifWordProbDefns(self):
         monomer_probs = substitution_calculation.PartitionDefn(
             name="psmprobs", default=None, 
-            dimensions = ('locus', 'position', 'edge'),
+            dimensions=('locus', 'position', 'edge'),
             dimension=('motif', tuple(self.getInputAlphabet())))
         monomer_probs3 = monomer_probs.acrossDimension('position', [
             str(i) for i in range(self.word_length)])
         monomer_probs3 = substitution_calculation.CalcDefn(
-            lambda *x:numpy.array(x), name='mprobs')(*monomer_probs3)
+            lambda *x: numpy.array(x), name='mprobs')(*monomer_probs3)
         word_probs = substitution_calculation.CalcDefn(
             self.calcWordProbs, name="wprobs")(monomer_probs3)
         mprobs_matrix = substitution_calculation.CalcDefn(
@@ -242,7 +242,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def setParamControllerMotifProbs(self, pc, motif_probs, **kw):
         assert len(motif_probs) == self.word_length
-        for (i,m) in enumerate(motif_probs):
+        for (i, m) in enumerate(motif_probs):
             pc.setParamRule('psmprobs', value=m, position=str(i), **kw)
 
     def adaptMotifProbs(self, motif_probs, auto=False):
@@ -264,7 +264,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
 
     def calcWordWeightMatrix(self, motif_probs): 
         context_probs = numpy.dot(motif_probs, self.w2c)
-        context_probs[context_probs==0.0] = numpy.inf
+        context_probs[context_probs == 0.0] = numpy.inf
         result = motif_probs / context_probs.take(self.context_indices)
         return result
 

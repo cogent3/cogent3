@@ -53,9 +53,9 @@ data = """
 
 class TestParsePamlMatrix(TestCase):
     def test_parse(self):
-        matrix,freqs = PamlMatrixParser(StringIO(data))
-        self.assertEqual(DSO78_matrix,matrix)
-        self.assertEqual(DSO78_freqs,freqs)
+        matrix, freqs = PamlMatrixParser(StringIO(data))
+        self.assertEqual(DSO78_matrix, matrix)
+        self.assertEqual(DSO78_freqs, freqs)
     pass
 
 if __name__ == "__main__":

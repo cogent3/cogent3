@@ -80,7 +80,7 @@ class EnsemblDbName(object):
             self.Build = build[1]
             self.GeneralRelease = build[0]
         else:
-            self.Build  = None
+            self.Build = None
 
         self.Species = None
         self.Species = Species.getSpeciesName(self.Prefix)

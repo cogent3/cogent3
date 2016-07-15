@@ -53,17 +53,17 @@ class _LikelihoodTreeEdge(object):
                 for align_index in alignment:
                     col = align_index[i]
                     if col is None:
-                        u = len(c.uniq)-1 # gap
+                        u = len(c.uniq) - 1 # gap
                     else:
                         u = c.index[col]
-                        assert 0 <= u < len(c.uniq)-1, (
+                        assert 0 <= u < len(c.uniq) - 1, (
                             u, len(c.uniq), c.uniq[-1], align_index)
                     a.append(u)
                 assignments.append(a)
         (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
 
         # extra column for gap
-        uniq.append(tuple([len(c.uniq)-1 for c in children]))
+        uniq.append(tuple([len(c.uniq) - 1 for c in children]))
         counts.append(0)
 
         self.uniq = numpy.asarray(uniq, self.integer_type)
@@ -108,10 +108,10 @@ class _LikelihoodTreeEdge(object):
         (share, remainder) = divmod(U, size)
         if share == 0:
             return self # not enough to share
-        share_sizes = [share+1]*remainder + [share]*(size-remainder)
+        share_sizes = [share + 1] * remainder + [share] * (size - remainder)
         assert sum(share_sizes) == U
-        (lo,hi) = [sum(share_sizes[:i]) for i in (rank, rank+1)]
-        local_cols = [i for (i,u) in enumerate(self.index) 
+        (lo, hi) = [sum(share_sizes[:i]) for i in (rank, rank + 1)]
+        local_cols = [i for (i, u) in enumerate(self.index) 
                       if lo <= u < hi]
         local = self.selectColumns(local_cols)
 
@@ -133,7 +133,7 @@ class _LikelihoodTreeEdge(object):
         """Recombine full uniq array (eg: likelihoods) from MPI CPUs"""
         if self.comm is None:
             return (self, likelihoods)
-        result = numpy.empty([sum(self.share_sizes)+1], likelihoods.dtype)
+        result = numpy.empty([sum(self.share_sizes) + 1], likelihoods.dtype)
         mpi_type = None  # infer it from the likelihoods/result array dtype
         send = (likelihoods[:-1], mpi_type)  # drop gap column
         recv = (result, self.share_sizes, None, mpi_type)
@@ -153,12 +153,12 @@ class _LikelihoodTreeEdge(object):
         observed = self.counts[unambig].astype(int)
         expected = likelihoods[unambig] * observed.sum()
         #chisq = ((observed-expected)**2 / expected).sum()
-        G = 2 * observed.dot(numpy.log(observed/expected))
+        G = 2 * observed.dot(numpy.log(observed / expected))
 
         if return_table:
             motifs = self.getSitePatterns(unambig)
             rows = list(zip(motifs, observed, expected))
-            rows.sort(key=lambda row:(-row[1], row[0]))
+            rows.sort(key=lambda row: (-row[1], row[0]))
             table = LoadTable(header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
             return (G, table)
         else:
@@ -168,7 +168,7 @@ class _LikelihoodTreeEdge(object):
         if self.edge_name == name:
             return self
         else:
-            for (i,c) in self._indexed_children:
+            for (i, c) in self._indexed_children:
                 r = c.getEdge(name)
                 if r is not None:
                     return r
@@ -319,7 +319,7 @@ class LikelihoodTreeLeaf(object):
         self.ambig = numpy.sum(self.input_likelihoods, axis=-1)
 
     def backward(self):
-        index = numpy.array(self.index[::-1,...])
+        index = numpy.array(self.index[::-1, ...])
         result = self.__class__(self.uniq, self.input_likelihoods, self.counts, 
                                 index, self.edge_name, self.alphabet, None)
         return result
@@ -333,7 +333,7 @@ class LikelihoodTreeLeaf(object):
 
     def getMotifCounts(self, include_ambiguity=False):
         weights = self.counts / self.ambig
-        profile = self.input_likelihoods * weights[...,numpy.newaxis]
+        profile = self.input_likelihoods * weights[..., numpy.newaxis]
         if not include_ambiguity:
             unambig = self.ambig == 1.0
             profile = numpy.compress(unambig, profile, axis=0)
@@ -341,7 +341,7 @@ class LikelihoodTreeLeaf(object):
 
     def getAmbiguousPositions(self):
         ambig = {}
-        for (i,u) in enumerate(self.index):
+        for (i, u) in enumerate(self.index):
             if self.ambig[u] != 1.0:
                 ambig[i] = self.uniq[u]
         return ambig
@@ -349,7 +349,7 @@ class LikelihoodTreeLeaf(object):
     def selectColumns(self, cols):
         sub_index = [self.index[i] for i in cols]
         (keep, counts, index) = _indexed(sub_index)
-        keep.append(len(self.uniq)-1)  # extra column for gap
+        keep.append(len(self.uniq) - 1)  # extra column for gap
         counts.append(0)
         counts = numpy.array(counts, FLOAT_TYPE)
         uniq = [self.uniq[u] for u in keep]

@@ -62,8 +62,8 @@ class _LikelihoodParameterController(_LF):
         self.model = self._model = model
         self.tree = self._tree = tree
         self.seq_names = tree.getTipNames()
-        self.locus_names  = _category_names('locus', loci)
-        self.bin_names  = _category_names('bin', bins)
+        self.locus_names = _category_names('locus', loci)
+        self.bin_names = _category_names('bin', bins)
         self.posn_names = [str(i) for i in range(model.getWordLength())]
         self.motifs = self._motifs = model.getMotifs()
         self._mprob_motifs = list(model.getMprobAlphabet())
@@ -105,7 +105,7 @@ class _LikelihoodParameterController(_LF):
                 except KeyError:
                     continue  # new parameter
                 for (u, value) in enumerate(uniq):
-                    group = [edge for (edge, i) in list(index.items()) if i==u]
+                    group = [edge for (edge, i) in list(index.items()) if i == u]
                     self.setParamRule(par_name, edges=group, init=value)
             for edge in edges:
                 if edge.Length is not None:
@@ -136,7 +136,7 @@ class _LikelihoodParameterController(_LF):
             else:
                 pseudocount = 0.5
         counts += pseudocount
-        mprobs = counts/(1.0*sum(counts))
+        mprobs = counts / (1.0 * sum(counts))
         self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant, 
                            is_independent=is_independent, auto=auto, **kwargs)
 
@@ -270,8 +270,8 @@ class _LikelihoodParameterController(_LF):
 
         Note: This is just a convenient interface to setParameterRule.
         """
-        self.setParamRule("length", tip_names = [tip1name, tip2name],
-                          is_clade = 1, is_independent = 0)
+        self.setParamRule("length", tip_names=[tip1name, tip2name],
+                          is_clade=1, is_independent=0)
 
     def setConstantLengths(self, tree=None, exclude_list=[]):
         """Constrains edge lengths to those in the tree.
@@ -355,7 +355,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         with self.updatesPostponed():
             for (locus_name, align) in zip(self.locus_names, aligns):
                 self.assignAll(
-                    'alignment', {'locus':[locus_name]},
+                    'alignment', {'locus': [locus_name]},
                     value=align, const=True)
                 if self.mprobs_from_alignment:
                     self.setMotifProbsFromData(align, locus=locus_name, auto=True,
@@ -394,6 +394,6 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             if self.mprobs_from_alignment:
                 counts = numpy.sum([pog.leaf.getMotifCounts()
                                     for pog in list(leaves.values())], 0)
-                mprobs = counts/(1.0*sum(counts))
+                mprobs = counts / (1.0 * sum(counts))
                 self.setMotifProbs(mprobs, locus=locus, is_constant=True, auto=True)
 

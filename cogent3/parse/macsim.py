@@ -28,7 +28,7 @@ def MacsimParser(doc):
 
         #cast as string to de-unicode
         raw_string = ''.join(str(raw_seq).upper().split())
-        name=str(name).strip()
+        name = str(name).strip()
 
         if str(record.getAttribute('seq-type')).lower() == 'protein':
             alphabet = moltype.PROTEIN

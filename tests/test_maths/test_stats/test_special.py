@@ -23,30 +23,30 @@ class SpecialTests(TestCase):
 
     def test_permutations(self):
         """permutations should return expected results"""
-        self.assertEqual(permutations(1,1), 1)
-        self.assertEqual(permutations(2,1), 2)
-        self.assertEqual(permutations(3,1), 3)
-        self.assertEqual(permutations(4,1), 4)
-        self.assertEqual(permutations(4,2), 12)
-        self.assertEqual(permutations(4,3), 24)
-        self.assertEqual(permutations(4,4), 24)
+        self.assertEqual(permutations(1, 1), 1)
+        self.assertEqual(permutations(2, 1), 2)
+        self.assertEqual(permutations(3, 1), 3)
+        self.assertEqual(permutations(4, 1), 4)
+        self.assertEqual(permutations(4, 2), 12)
+        self.assertEqual(permutations(4, 3), 24)
+        self.assertEqual(permutations(4, 4), 24)
         self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e+239)
 
     def test_permutations_errors(self):
         """permutations should raise errors on invalid input"""
-        self.assertRaises(IndexError,permutations,10,50)
-        self.assertRaises(IndexError,permutations,-1,50)
-        self.assertRaises(IndexError,permutations,10,-5)
+        self.assertRaises(IndexError, permutations, 10, 50)
+        self.assertRaises(IndexError, permutations, -1, 50)
+        self.assertRaises(IndexError, permutations, 10, -5)
 
     def test_permutations_float(self):
         """permutations should use gamma function when floats as input"""
-        self.assertFloatEqual(permutations(1.0,1), 1)
-        self.assertFloatEqual(permutations(2,1.0), 2)
-        self.assertFloatEqual(permutations(3.0,1.0), 3)
-        self.assertFloatEqual(permutations(4.0,1), 4)
-        self.assertFloatEqual(permutations(4.0,2.0), 12)
-        self.assertFloatEqual(permutations(4.0,3.0), 24)
-        self.assertFloatEqual(permutations(4,4.0), 24)
+        self.assertFloatEqual(permutations(1.0, 1), 1)
+        self.assertFloatEqual(permutations(2, 1.0), 2)
+        self.assertFloatEqual(permutations(3.0, 1.0), 3)
+        self.assertFloatEqual(permutations(4.0, 1), 4)
+        self.assertFloatEqual(permutations(4.0, 2.0), 12)
+        self.assertFloatEqual(permutations(4.0, 3.0), 24)
+        self.assertFloatEqual(permutations(4, 4.0), 24)
         self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e+239)
 
     def test_permutations_range(self):
@@ -58,7 +58,7 @@ class SpecialTests(TestCase):
         upper_lim = 151200
         previous_value = 30239.9999
         while start <= end:
-            obs = permutations(10,start)
+            obs = permutations(10, start)
             assert lower_lim <= obs <= upper_lim
             assert obs > previous_value
             previous_value = obs
@@ -66,57 +66,57 @@ class SpecialTests(TestCase):
 
     def test_permutations_exact(self):
         """permutations_exact should return expected results"""
-        self.assertFloatEqual(permutations_exact(1,1), 1)
-        self.assertFloatEqual(permutations_exact(2,1), 2)
-        self.assertFloatEqual(permutations_exact(3,1), 3)
-        self.assertFloatEqual(permutations_exact(4,1), 4)
-        self.assertFloatEqual(permutations_exact(4,2), 12)
-        self.assertFloatEqual(permutations_exact(4,3), 24)
-        self.assertFloatEqual(permutations_exact(4,4), 24)
-        self.assertFloatEqual(permutations_exact(300,100),\
+        self.assertFloatEqual(permutations_exact(1, 1), 1)
+        self.assertFloatEqual(permutations_exact(2, 1), 2)
+        self.assertFloatEqual(permutations_exact(3, 1), 3)
+        self.assertFloatEqual(permutations_exact(4, 1), 4)
+        self.assertFloatEqual(permutations_exact(4, 2), 12)
+        self.assertFloatEqual(permutations_exact(4, 3), 24)
+        self.assertFloatEqual(permutations_exact(4, 4), 24)
+        self.assertFloatEqual(permutations_exact(300, 100),\
                               3.8807387193009318e239)
 
     def test_ln_permutations(self):
         """ln_permutations should return expected results"""
-        self.assertFloatEqual(ln_permutations(1,1), math.log(1))
-        self.assertFloatEqual(ln_permutations(2,1), math.log(2))
-        self.assertFloatEqual(ln_permutations(3,1.0), math.log(3))
-        self.assertFloatEqual(ln_permutations(4,1), math.log(4))
-        self.assertFloatEqual(ln_permutations(4.0,2), math.log(12))
-        self.assertFloatEqual(ln_permutations(4,3.0), math.log(24))
-        self.assertFloatEqual(ln_permutations(4,4), math.log(24))
-        self.assertFloatEqual(ln_permutations(300.0,100),\
+        self.assertFloatEqual(ln_permutations(1, 1), math.log(1))
+        self.assertFloatEqual(ln_permutations(2, 1), math.log(2))
+        self.assertFloatEqual(ln_permutations(3, 1.0), math.log(3))
+        self.assertFloatEqual(ln_permutations(4, 1), math.log(4))
+        self.assertFloatEqual(ln_permutations(4.0, 2), math.log(12))
+        self.assertFloatEqual(ln_permutations(4, 3.0), math.log(24))
+        self.assertFloatEqual(ln_permutations(4, 4), math.log(24))
+        self.assertFloatEqual(ln_permutations(300.0, 100),\
                               math.log(3.8807387193009318e239))
 
     def test_combinations(self):
         """combinations should return expected results when int as input"""
-        self.assertEqual(combinations(1,1), 1)
-        self.assertEqual(combinations(2,1), 2)
-        self.assertEqual(combinations(3,1), 3)
-        self.assertEqual(combinations(4,1), 4)
-        self.assertEqual(combinations(4,2), 6)
-        self.assertEqual(combinations(4,3), 4)
-        self.assertEqual(combinations(4,4), 1)
-        self.assertEqual(combinations(20,4), 19*17*15)
+        self.assertEqual(combinations(1, 1), 1)
+        self.assertEqual(combinations(2, 1), 2)
+        self.assertEqual(combinations(3, 1), 3)
+        self.assertEqual(combinations(4, 1), 4)
+        self.assertEqual(combinations(4, 2), 6)
+        self.assertEqual(combinations(4, 3), 4)
+        self.assertEqual(combinations(4, 4), 1)
+        self.assertEqual(combinations(20, 4), 19 * 17 * 15)
         self.assertFloatEqual(combinations(300, 100), 4.1582514632578812e+81)
 
     def test_combinations_errors(self):
         """combinations should raise errors on invalid input"""
-        self.assertRaises(IndexError,combinations,10,50)
-        self.assertRaises(IndexError,combinations,-1,50)
-        self.assertRaises(IndexError,combinations,10,-5)
+        self.assertRaises(IndexError, combinations, 10, 50)
+        self.assertRaises(IndexError, combinations, -1, 50)
+        self.assertRaises(IndexError, combinations, 10, -5)
 
     def test_combinations_float(self):
         """combinations should use gamma function when floats as input"""
-        self.assertFloatEqual(combinations(1.0,1.0), 1)
-        self.assertFloatEqual(combinations(2.0,1.0), 2)
-        self.assertFloatEqual(combinations(3.0,1.0), 3)
-        self.assertFloatEqual(combinations(4.0,1.0), 4)
-        self.assertFloatEqual(combinations(4.0,2), 6)
-        self.assertFloatEqual(combinations(4,3.0), 4)
-        self.assertFloatEqual(combinations(4.0,4.0), 1)
-        self.assertFloatEqual(combinations(20.0,4.0), 19*17*15)
-        self.assertFloatEqual(combinations(300,100.0),4.1582514632578812e81)
+        self.assertFloatEqual(combinations(1.0, 1.0), 1)
+        self.assertFloatEqual(combinations(2.0, 1.0), 2)
+        self.assertFloatEqual(combinations(3.0, 1.0), 3)
+        self.assertFloatEqual(combinations(4.0, 1.0), 4)
+        self.assertFloatEqual(combinations(4.0, 2), 6)
+        self.assertFloatEqual(combinations(4, 3.0), 4)
+        self.assertFloatEqual(combinations(4.0, 4.0), 1)
+        self.assertFloatEqual(combinations(20.0, 4.0), 19 * 17 * 15)
+        self.assertFloatEqual(combinations(300, 100.0), 4.1582514632578812e81)
 
     def test_combinations_range(self):
         """combinations should decrease gradually with increasing k"""
@@ -127,7 +127,7 @@ class SpecialTests(TestCase):
         upper_lim = 252
         previous_value = 252.00001
         while start <= end:
-            obs = combinations(10,start)
+            obs = combinations(10, start)
             assert lower_lim <= obs <= upper_lim
             assert obs < previous_value
             previous_value = obs
@@ -135,33 +135,33 @@ class SpecialTests(TestCase):
 
     def test_combinations_exact(self):
         """combinations_exact should return expected results"""
-        self.assertEqual(combinations_exact(1,1), 1)
-        self.assertEqual(combinations_exact(2,1), 2)
-        self.assertEqual(combinations_exact(3,1), 3)
-        self.assertEqual(combinations_exact(4,1), 4)
-        self.assertEqual(combinations_exact(4,2), 6)
-        self.assertEqual(combinations_exact(4,3), 4)
-        self.assertEqual(combinations_exact(4,4), 1)
-        self.assertEqual(combinations_exact(20,4), 19*17*15)
-        self.assertFloatEqual(combinations_exact(300,100),4.1582514632578812e81)
+        self.assertEqual(combinations_exact(1, 1), 1)
+        self.assertEqual(combinations_exact(2, 1), 2)
+        self.assertEqual(combinations_exact(3, 1), 3)
+        self.assertEqual(combinations_exact(4, 1), 4)
+        self.assertEqual(combinations_exact(4, 2), 6)
+        self.assertEqual(combinations_exact(4, 3), 4)
+        self.assertEqual(combinations_exact(4, 4), 1)
+        self.assertEqual(combinations_exact(20, 4), 19 * 17 * 15)
+        self.assertFloatEqual(combinations_exact(300, 100), 4.1582514632578812e81)
 
     def test_ln_combinations(self):
         """ln_combinations should return expected results"""
-        self.assertFloatEqual(ln_combinations(1,1), math.log(1))
-        self.assertFloatEqual(ln_combinations(2,1), math.log(2))
-        self.assertFloatEqual(ln_combinations(3,1), math.log(3))
-        self.assertFloatEqual(ln_combinations(4.0,1), math.log(4))
-        self.assertFloatEqual(ln_combinations(4,2.0), math.log(6))
-        self.assertFloatEqual(ln_combinations(4,3), math.log(4))
-        self.assertFloatEqual(ln_combinations(4,4.0), math.log(1))
-        self.assertFloatEqual(ln_combinations(20,4), math.log(19*17*15))
-        self.assertFloatEqual(ln_combinations(300,100),\
+        self.assertFloatEqual(ln_combinations(1, 1), math.log(1))
+        self.assertFloatEqual(ln_combinations(2, 1), math.log(2))
+        self.assertFloatEqual(ln_combinations(3, 1), math.log(3))
+        self.assertFloatEqual(ln_combinations(4.0, 1), math.log(4))
+        self.assertFloatEqual(ln_combinations(4, 2.0), math.log(6))
+        self.assertFloatEqual(ln_combinations(4, 3), math.log(4))
+        self.assertFloatEqual(ln_combinations(4, 4.0), math.log(1))
+        self.assertFloatEqual(ln_combinations(20, 4), math.log(19 * 17 * 15))
+        self.assertFloatEqual(ln_combinations(300, 100),\
                               math.log(4.1582514632578812e+81))
 
     def test_ln_binomial_integer(self):
         """ln_binomial should match R results for integer values"""
         expected = {
-            (10,60,0.1): -3.247883,
+            (10, 60, 0.1): -3.247883,
             (1, 1, 0.5): math.log(0.5),
             (1, 1, 0.0000001): math.log(1e-07),
             (1, 1, 0.9999999): math.log(0.9999999),
@@ -179,12 +179,12 @@ class SpecialTests(TestCase):
         """Binomial exact should match values from R for integer successes"""
         expected = {
             (18.3, 100, 0.2): (math.log(0.09089812), math.log(0.09807429)),
-            (2.7,1050,0.006): (math.log(0.03615498), math.log(0.07623827)),
-            (2.7,1050,0.06): (math.log(1.365299e-25), math.log(3.044327e-24)),
-            (2,100.5,0.6): (math.log(7.303533e-37), math.log(1.789727e-36)),
+            (2.7, 1050, 0.006): (math.log(0.03615498), math.log(0.07623827)),
+            (2.7, 1050, 0.06): (math.log(1.365299e-25), math.log(3.044327e-24)),
+            (2, 100.5, 0.6): (math.log(7.303533e-37), math.log(1.789727e-36)),
             (0.2, 60, 0.5): (math.log(8.673617e-19), math.log(5.20417e-17)),
-            (.5,5,.3):(math.log(0.16807),math.log(0.36015)),
-            (10,100.5,.5):(math.log(7.578011e-18),math.log(1.365543e-17)),
+            (.5, 5, .3): (math.log(0.16807), math.log(0.36015)),
+            (10, 100.5, .5): (math.log(7.578011e-18), math.log(1.365543e-17)),
         }
 
         for (key, value) in list(expected.items()):
@@ -195,14 +195,14 @@ class SpecialTests(TestCase):
     def test_ln_binomial_range(self):
         """ln_binomial should increase in a monotonically increasing region.
         """
-        start=0
-        end=1
+        start = 0
+        end = 1
         step = 0.1
-        lower_lim = -1.783375-1e-4
-        upper_lim = -1.021235+1e-4 
+        lower_lim = -1.783375 - 1e-4
+        upper_lim = -1.021235 + 1e-4 
         previous_value = -1.784
         while start <= end:
-            obs = ln_binomial(start,5,.3)
+            obs = ln_binomial(start, 5, .3)
             assert lower_lim <= obs <= upper_lim
             assert obs > previous_value
             previous_value = obs
@@ -211,7 +211,7 @@ class SpecialTests(TestCase):
 
     def test_log_one_minus_large(self):
         """log_one_minus_x should return math.log(1-x) if x is large"""
-        self.assertFloatEqual(log_one_minus(0.2), math.log(1-0.2))
+        self.assertFloatEqual(log_one_minus(0.2), math.log(1 - 0.2))
 
     def test_log_one_minus_small(self):
         """log_one_minus_x should return -x if x is small"""
@@ -219,7 +219,7 @@ class SpecialTests(TestCase):
 
     def test_one_minus_exp_large(self):
         """one_minus_exp_x should return 1 - math.exp(x) if x is large"""
-        self.assertFloatEqual(one_minus_exp(0.2), 1-(math.exp(0.2)))
+        self.assertFloatEqual(one_minus_exp(0.2), 1 - (math.exp(0.2)))
 
     def test_one_minus_exp_small(self):
         """one_minus_exp_x should return -x if x is small"""
@@ -241,16 +241,16 @@ class SpecialTests(TestCase):
             0.69314718056,
             0.69314718106,
             0.698134722071,
-            1.09861228867,]
+            1.09861228867, ]
         for p, e in zip(p_s, exp):
             self.assertFloatEqual(log1p(p), e)
 
     def test_igami(self):
         """igami should give same result as cephes implementation"""
         a_vals = [1e-10, 1e-5, 0.5, 1, 10, 200]
-        y_vals = list(range(0,10,2))
-        obs = [igami(a, y/10.0) for a in a_vals for y in y_vals]
-        exp=[1.79769313486e+308,
+        y_vals = list(range(0, 10, 2))
+        obs = [igami(a, y / 10.0) for a in a_vals for y in y_vals]
+        exp = [1.79769313486e+308,
              0.0,
              0.0,
              0.0,
@@ -282,11 +282,11 @@ class SpecialTests(TestCase):
              188.010915412,
              ]
         for o, e in zip(obs, exp):
-            self.assertFloatEqual(o,e)
+            self.assertFloatEqual(o, e)
 
     def test_ndtri(self):
         """ndtri should give same result as implementation in cephes"""
-        exp=[-1.79769313486e+308,
+        exp = [-1.79769313486e+308,
              -2.32634787404,
              -2.05374891063,
              -1.88079360815,
@@ -387,7 +387,7 @@ class SpecialTests(TestCase):
              2.05374891063,
              2.32634787404,
              ]
-        obs = [ndtri(i/100.0) for i in range(100)]
+        obs = [ndtri(i / 100.0) for i in range(100)]
         self.assertFloatEqual(obs, exp)
 
     def test_incbi(self):
@@ -545,12 +545,12 @@ class SpecialTests(TestCase):
         for a in aa_range:
             for b in bb_range:
                 for y in yy_range:
-                    result = incbi(a,b,y)
+                    result = incbi(a, b, y)
                     e = exp[i]
                     self.assertFloatEqual(e, result)
                     i += 1
         #specific cases that failed elsewhere
-        self.assertFloatEqual(incbi(999,2,1e-10), 0.97399698104554944)
+        self.assertFloatEqual(incbi(999, 2, 1e-10), 0.97399698104554944)
 
 #execute tests if called from command line
 if __name__ == '__main__':

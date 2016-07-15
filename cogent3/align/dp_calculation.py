@@ -41,7 +41,7 @@ class FloatWithAttrs(float):
         return float.__new__(cls, value)
     def __init__(self, value, **kw):
         float.__init__(self)
-        for (n,v) in list(kw.items()):
+        for (n, v) in list(kw.items()):
             setattr(self, n, v)
 
 def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
@@ -56,7 +56,7 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
         assert bprobs
         R = SiteClassTransitionMatrix(switch, bprobs)
         TM = R.nestTransitionMatricies(tms)
-    assert min(TM.Matrix.flat) >=0, bin_data
+    assert min(TM.Matrix.flat) >= 0, bin_data
     return EP.makePairHMM(TM)
 
 class BinData(object):
@@ -90,10 +90,10 @@ class FwdDefn(CalculationDefn):
 class EdgeSumAndAlignDefn(CalculationDefn):
     name = 'pair'
     def calc(self, pog1, pog2, length1, length2, bin):
-        edge = Edge(pog1, pog2, length1+length2, [bin])
+        edge = Edge(pog1, pog2, length1 + length2, [bin])
         def _getaln():
             try:
-                ratio = length1/(length1+length2)
+                ratio = length1 / (length1 + length2)
             except (ZeroDivisionError, FloatingPointError):
                 ratio = 1.
             return edge.getViterbiPath().getAlignable(ratio)
@@ -104,9 +104,9 @@ class EdgeSumAndAlignDefn(CalculationDefn):
 class EdgeSumAndAlignDefnWithBins(CalculationDefn):
     name = 'pair'
     def calc(self, pog1, pog2, length1, length2, switch, bprobs, *bin_data):
-        edge = Edge(pog1, pog2, length1+length2, bin_data, switch, bprobs)
+        edge = Edge(pog1, pog2, length1 + length2, bin_data, switch, bprobs)
         def _getaln():
-            ratio = length1/(length1+length2)
+            ratio = length1 / (length1 + length2)
             (vtScore, result) = edge.getViterbiScoreAndAlignable(ratio)
             return result
         edge.getaln = _getaln
@@ -147,7 +147,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
     if len(bin_names) > 1:
         switch = ProbabilityParamDefn('bin_switch', dimensions=['locus'])
         bprobs = PartitionDefn(
-            [1.0/len(bin_names) for bin in bin_names], name = "bprobs",
+            [1.0 / len(bin_names) for bin in bin_names], name="bprobs",
             dimensions=['locus'], dimension=('bin', bin_names))
         edge_args = [switch, bprobs]
         edge_defn_constructor = EdgeSumAndAlignDefnWithBins

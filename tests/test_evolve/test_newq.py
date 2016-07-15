@@ -24,28 +24,28 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-def _dinuc_root_probs(x,y=None):
+def _dinuc_root_probs(x, y=None):
     if y is None:
         y = x
-    return dict([(n1+n2, p1*p2) 
-                 for n1,p1 in list(x.items()) for n2,p2 in list(y.items())])
+    return dict([(n1 + n2, p1 * p2) 
+                 for n1, p1 in list(x.items()) for n2, p2 in list(y.items())])
 
-def _trinuc_root_probs(x,y,z):
-    return dict([(n1+n2+n3, p1*p2*p3) 
-                 for n1,p1 in list(x.items()) for n2,p2 in list(y.items())
-                 for n3,p3 in list(z.items())])
+def _trinuc_root_probs(x, y, z):
+    return dict([(n1 + n2 + n3, p1 * p2 * p3) 
+                 for n1, p1 in list(x.items()) for n2, p2 in list(y.items())
+                 for n3, p3 in list(z.items())])
 
 def make_p(length, coord, val):
     """returns a probability matrix with value set at coordinate in
     instantaneous rate matrix"""
-    Q = ones((4,4), float)*0.25 # assumes equi-frequent mprobs at root
+    Q = ones((4, 4), float) * 0.25 # assumes equi-frequent mprobs at root
     for i in range(4):
-        Q[i,i] = 0.0
+        Q[i, i] = 0.0
     Q[coord] *= val
     row_sum = Q.sum(axis=1)
-    scale = 1/(.25*row_sum).sum()
+    scale = 1 / (.25 * row_sum).sum()
     for i in range(4):
-        Q[i,i] -= row_sum[i]
+        Q[i, i] -= row_sum[i]
     Q *= scale
     return expm(Q)(length)
 
@@ -56,13 +56,13 @@ class NewQ(TestCase):
         moltype=DNA)
     tree = LoadTree(tip_names=['seq1', 'seq2'])
 
-    symm_nuc_probs = dict(A=0.25,T=0.25,C=0.25,G=0.25)
+    symm_nuc_probs = dict(A=0.25, T=0.25, C=0.25, G=0.25)
     symm_root_probs = _dinuc_root_probs(symm_nuc_probs)
-    asymm_nuc_probs = dict(A=0.1,T=0.1,C=0.4,G=0.4)
+    asymm_nuc_probs = dict(A=0.1, T=0.1, C=0.4, G=0.4)
     asymm_root_probs = _dinuc_root_probs(asymm_nuc_probs)
     posn_root_probs = _dinuc_root_probs(symm_nuc_probs, asymm_nuc_probs)
-    cond_root_probs = dict([(n1+n2, p1*[.1, .7][n1==n2]) 
-                            for n1,p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
+    cond_root_probs = dict([(n1 + n2, p1 * [.1, .7][n1 == n2]) 
+                            for n1, p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
 
     # Each of these (data, model) pairs should give a result different 
     # from any of the simpler models applied to the same data.  
@@ -82,9 +82,9 @@ class NewQ(TestCase):
 
     def test_newQ_is_nuc_process(self):
         """newQ is an extension of an independent nucleotide process"""
-        nuc = Nucleotide(motif_probs = self.asymm_nuc_probs)
+        nuc = Nucleotide(motif_probs=self.asymm_nuc_probs)
         new_di = Nucleotide(motif_length=2, mprob_model='monomer',
-                            motif_probs = self.asymm_root_probs)
+                            motif_probs=self.asymm_root_probs)
 
         nuc_lf = nuc.makeLikelihoodFunction(self.tree)
         new_di_lf = new_di.makeLikelihoodFunction(self.tree)
@@ -159,8 +159,8 @@ class NewQ(TestCase):
         posn1 = []
         posn2 = []
         for name, seq in list(self.aln.todict().items()):
-            p1 = [seq[i] for i in range(0,aln_len,2)]
-            p2 = [seq[i] for i in range(1,aln_len,2)]
+            p1 = [seq[i] for i in range(0, aln_len, 2)]
+            p2 = [seq[i] for i in range(1, aln_len, 2)]
             posn1.append([name, ''.join(p1)])
             posn2.append([name, ''.join(p2)])
 
@@ -175,7 +175,7 @@ class NewQ(TestCase):
         posn1_lnL = lf.getLogLikelihood()
         lf.setAlignment(posn2)
         posn2_lnL = lf.getLogLikelihood()
-        expect_lnL = posn1_lnL+posn2_lnL
+        expect_lnL = posn1_lnL + posn2_lnL
 
         # the joint model
         lf.setAlignment(self.aln)
@@ -200,7 +200,7 @@ class NewQ(TestCase):
             # then conditional is the same as positional
             ps = Nucleotide(motif_length=motif_length, motif_probs=motif_probs,
                             mprob_model='monomers')
-            cd = Nucleotide(motif_length=motif_length,motif_probs=motif_probs,
+            cd = Nucleotide(motif_length=motif_length, motif_probs=motif_probs,
                             mprob_model='conditional')
 
             ps_lf = ps.makeLikelihoodFunction(self.tree)
@@ -272,7 +272,7 @@ class NewQ(TestCase):
 
         # we construct the hand calc variants
         mprobs = ones(4, float) * .25
-        a = make_p(.2, (0,3), 8)
+        a = make_p(.2, (0, 3), 8)
         a = dot(mprobs, a)
 
         b = make_p(.2, (3, 0), 8)
@@ -300,9 +300,9 @@ def _make_likelihood(model, tree, results, is_discrete=False):
     # discrete model fails to make a likelihood function if tree has
     # lengths
     if is_discrete:
-        kwargs={}
+        kwargs = {}
     else:
-        kwargs=dict(expm='pade')
+        kwargs = dict(expm='pade')
 
     lf = model.makeLikelihoodFunction(tree,
                                       optimise_motif_probs=True, **kwargs)
@@ -319,7 +319,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
 def MakeCachedObjects(model, tree, seq_length, opt_args):
     """simulates an alignment under F81, all models should be the same"""
     lf = model.makeLikelihoodFunction(tree)
-    lf.setMotifProbs(dict(A=0.1,C=0.2,G=0.3,T=0.4))
+    lf.setMotifProbs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
     aln = lf.simulateAlignment(seq_length)
     results = dict(aln=aln)
     discrete_tree = LoadTree(tip_names=aln.Names)
@@ -344,7 +344,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     def fit_constructed_gen(results=results):
         if 'constructed_gen' in results:
             return
-        preds = [MotifChange(a,b, forward_only=True) for a,b in [['A', 'C'],
+        preds = [MotifChange(a, b, forward_only=True) for a, b in [['A', 'C'],
                                                                  ['A', 'G'], ['A', 'T'], ['C', 'A'], ['C', 'G'],
                                                                  ['C', 'T'], ['G', 'C'], ['G', 'T'], ['T', 'A'],
                                                                  ['T', 'C'], ['T', 'G']]]

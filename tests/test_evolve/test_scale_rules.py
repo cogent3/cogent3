@@ -41,49 +41,49 @@ class ScaleRuleTests(unittest.TestCase):
 
     def test_scaled(self):
         """Scale rule requiring matrix entries to have all pars specified"""
-        model = self._makeModel(True, {'k':trans}, {
-            'ts':trans, 'tv': ~trans})
+        model = self._makeModel(True, {'k': trans}, {
+            'ts': trans, 'tv': ~trans})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k':6.0, 'length':4.0}),
-            {'ts': 3.0, 'tv':1.0})
+            self._getScaledLengths(model, {'k': 6.0, 'length': 4.0}),
+            {'ts': 3.0, 'tv': 1.0})
 
     def test_binned(self):
-        model = self._makeModel(True, {'k':trans}, {
-            'ts':trans, 'tv': ~trans})
+        model = self._makeModel(True, {'k': trans}, {
+            'ts': trans, 'tv': ~trans})
 
         LF = model.makeLikelihoodFunction(TREE, bins=2)
         LF.setParamRule('length', value=4.0, is_constant=True)
         LF.setParamRule('k', value=6.0, bin='bin0', is_constant=True)
         LF.setParamRule('k', value=1.0, bin='bin1', is_constant=True)
 
-        for (bin, expected) in [('bin0', 3.0), ('bin1', 4.0/3), (None, 13.0/6)]:
+        for (bin, expected) in [('bin0', 3.0), ('bin1', 4.0 / 3), (None, 13.0 / 6)]:
             self.assertEqual(LF.getScaledLengths('ts', bin=bin)['a'], expected)
 
     def test_unscaled(self):
         """Scale rule on a model which has scaling performed after calculation
         rather than during it"""
-        model = self._makeModel(False, {'k':trans}, {
-            'ts':trans, 'tv': ~trans})
+        model = self._makeModel(False, {'k': trans}, {
+            'ts': trans, 'tv': ~trans})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k':6.0, 'length':2.0}),
-            {'ts': 3.0, 'tv':1.0})
+            self._getScaledLengths(model, {'k': 6.0, 'length': 2.0}),
+            {'ts': 3.0, 'tv': 1.0})
 
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
-        model = self._makeModel(True, {'k':trans, 'ac':a_c}, {
+        model = self._makeModel(True, {'k': trans, 'ac': a_c}, {
             'or': (trans | a_c), 'not': ~(trans | a_c)})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k':6.0,'length':6.0, 'ac': 3.0}),
+            self._getScaledLengths(model, {'k': 6.0, 'length': 6.0, 'ac': 3.0}),
             {'or': 5.0, 'not': 1.0})
 
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
         model = substitution_model.Codon(
             do_scaling=True, model_gaps=False, recode_gaps=True,
-            predicates = {
+            predicates={
                 'k': trans,
                 'r': replacement},
             motif_probs={
@@ -118,8 +118,8 @@ class ScaleRuleTests(unittest.TestCase):
                 'CCG': 0.00021146119687037428, 'AGT': 0.03742863184605625,
                 'CAG': 0.024106576443222668, 'CCA': 0.021357580883907802,
                 'CCC': 0.0069782194967223515},
-            scales = {'dN': replacement, 'dS': ~replacement},
-            mprob_model = 'tuple',
+            scales={'dN': replacement, 'dS': ~replacement},
+            mprob_model='tuple',
         )
         length = 0.1115
 
@@ -131,7 +131,7 @@ class ScaleRuleTests(unittest.TestCase):
         dS = length * a['dS'] / (3.0 * b['dS'])
         # following are results from PAML
         self.assertEqual('%.4f' % dN, '0.0325')
-        self.assertEqual('%.4f' % dS ,'0.0514')
+        self.assertEqual('%.4f' % dS, '0.0514')
 
 if __name__ == '__main__':
     unittest.main()

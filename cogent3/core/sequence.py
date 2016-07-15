@@ -68,7 +68,7 @@ class SequenceI(object):
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return fasta_from_sequences([self], make_seqlabel = make_seqlabel,
+        return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
                                     line_wrap=self.LineWrap)
 
     def translate(self, *args, **kwargs):
@@ -328,7 +328,7 @@ class SequenceI(object):
         """
         if function is None:
             #use identity scoring function
-            function = lambda a, b : a != b
+            function = lambda a, b: a != b
         distance = 0
         for first, second in zip(self, other):
             distance += function(first, second)
@@ -378,8 +378,8 @@ class SequenceI(object):
             return 0.0
 
         is_gap = self.MolType.Gaps.__contains__
-        return sum([is_gap(i) == is_gap(j) for i,j in zip(self, other)]) \
-            /min(len(self),len(other))
+        return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) \
+            / min(len(self), len(other))
 
     def fracDiffGaps(self, other):
         """Returns frac. of positions where self and other's gap states differ.
@@ -419,7 +419,7 @@ class SequenceI(object):
                 identities += 1
 
         if count:
-            return identities/count
+            return identities / count
         else:   #there were no positions that weren't gaps
             return 0
 
@@ -447,7 +447,7 @@ class SequenceI(object):
                 diffs += 1
 
         if count:
-            return diffs/count
+            return diffs / count
         else:   #there were no positions that weren't gaps
             return 0
 
@@ -469,7 +469,7 @@ class SequenceI(object):
         if not self or not other:
             return 0.0
 
-        return for_seq(f = lambda x, y: (x,y) in similar_pairs, \
+        return for_seq(f=lambda x, y: (x, y) in similar_pairs, \
                        normalizer=per_shortest)(self, other)
 
     def withTerminiUnknown(self):
@@ -483,11 +483,11 @@ class SequenceI(object):
                 last_nongap = i
         missing = self.MolType.Missing
         if first_nongap is None:    #sequence was all gaps
-            result = self.__class__([missing for i in len(self)],Info=self.Info)
+            result = self.__class__([missing for i in len(self)], Info=self.Info)
         else:
-            prefix = missing*first_nongap
-            mid = str(self[first_nongap:last_nongap+1])
-            suffix = missing*(len(self)-last_nongap-1)
+            prefix = missing * first_nongap
+            mid = str(self[first_nongap:last_nongap + 1])
+            suffix = missing * (len(self) - last_nongap - 1)
             result = self.__class__(prefix + mid + suffix, Info=self.Info)
         return result
 
@@ -496,7 +496,7 @@ class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
     MolType = None      #connected to ACSII when moltype is imported
 
-    def __init__(self, Seq='',Name=None, Info=None, check=True, \
+    def __init__(self, Seq='', Name=None, Info=None, check=True, \
                  preserve_case=False, gaps_allowed=True, wildcards_allowed=True):
         """Initialize a sequence.
 
@@ -580,7 +580,7 @@ class Sequence(_Annotatable, SequenceI):
             - shadow: whether to mask the annotated regions, or everything but
               the annotated regions"""
         if mask_char is None:
-            ambigs = [(len(v), c) for c,v in list(self.MolType.Ambiguities.items())]
+            ambigs = [(len(v), c) for c, v in list(self.MolType.Ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
         assert mask_char in self.MolType, 'Invalid mask_char %s' % mask_char
@@ -598,7 +598,7 @@ class Sequence(_Annotatable, SequenceI):
         segments = []
         for b, e in region.getCoordinates():
             segments.append(self._seq[i:b])
-            segments.append(mask_char * (e-b))
+            segments.append(mask_char * (e - b))
             i = e
         segments.append(self._seq[i:])
 
@@ -710,11 +710,11 @@ class Sequence(_Annotatable, SequenceI):
             - end: last window start position
         """
         start = [start, 0][start is None]
-        end = [end, len(self)-window+1][end is None]
-        end = min(len(self)-window+1, end)
-        if start < end and len(self)-end >= window-1:
+        end = [end, len(self) - window + 1][end is None]
+        end = min(len(self) - window + 1, end)
+        if start < end and len(self) - end >= window - 1:
             for pos in range(start, end, step):
-                yield self[pos:pos+window]
+                yield self[pos:pos + window]
 
     def getInMotifSize(self, motif_length=1, log_warnings=True):
         """returns sequence as list of non-overlapping motifs
@@ -731,8 +731,8 @@ class Sequence(_Annotatable, SequenceI):
             if remainder and log_warnings:
                 warnings.warn('Dropped remainder "%s" from end of sequence' %
                               seq[-remainder:])
-            return [seq[i:i+motif_length]
-                    for i in range(0, length-remainder, motif_length)]
+            return [seq[i:i + motif_length]
+                    for i in range(0, length - remainder, motif_length)]
 
     def parseOutGaps(self):
         gapless = []
@@ -744,7 +744,7 @@ class Sequence(_Annotatable, SequenceI):
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             ''.join(gapless),
-            Name = self.getName(), Info=self.Info)
+            Name=self.getName(), Info=self.Info)
         if self.annotations:
             seq.annotations = [a.remappedTo(seq, map) for a in self.annotations]
         return (map, seq)
@@ -830,8 +830,8 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = self.CodonAlphabet(gc).withGapMotif()
         # translate the codons
         translation = []
-        for posn in range(0, len(self._seq)-2, 3):
-            orig_codon = self._seq[posn:posn+3]
+        for posn in range(0, len(self._seq) - 2, 3):
+            orig_codon = self._seq[posn:posn + 3]
             resolved = codon_alphabet.resolveAmbiguity(orig_codon)
             trans = []
             for codon in resolved:
@@ -862,14 +862,14 @@ class NucleicAcidSequence(Sequence):
             posn *= 3
             if aa == '*':
                 if start is not None:
-                    orfs.append((start,posn))
+                    orfs.append((start, posn))
                 start = None
             else:
                 if start is None:
-                    if (not atg) or gc.isStart(self[posn:posn+3]):
+                    if (not atg) or gc.isStart(self[posn:posn + 3]):
                         start = posn
         if start is not None:
-            orfs.append((start, posn+3))
+            orfs.append((start, posn + 3))
         return orfs
 
     def toRna(self):
@@ -893,7 +893,7 @@ class DnaSequence(NucleicAcidSequence):
 
     def _seq_filter(self, seq):
         """Converts U to T."""
-        return seq.replace('u','t').replace('U','T')
+        return seq.replace('u', 't').replace('U', 'T')
 
 
 class RnaSequence(NucleicAcidSequence):
@@ -908,7 +908,7 @@ class RnaSequence(NucleicAcidSequence):
 
     def _seq_filter(self, seq):
         """Converts T to U."""
-        return seq.replace('t','u').replace('T','U')
+        return seq.replace('t', 'u').replace('T', 'U')
 
 
 class ABSequence(Sequence):
@@ -1029,7 +1029,7 @@ class ModelSequenceBase(object):
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return fasta_from_sequences([self], make_seqlabel = make_seqlabel,
+        return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
                                     line_wrap=self.LineWrap)
 
     def toPhylip(self, name_len=28, label_len=30):
@@ -1041,7 +1041,7 @@ class ModelSequenceBase(object):
 
     def isValid(self):
         """Checks that no items in self are out of the Alphabet range."""
-        return self._data == self._data.clip(m, 0, len(self.Alphabet)-1)
+        return self._data == self._data.clip(m, 0, len(self.Alphabet) - 1)
 
     def toKwords(self, k, overlapping=True):
         """Turns sequence into sequence of its k-words.
@@ -1058,9 +1058,9 @@ class ModelSequenceBase(object):
         result = zeros(num_words)
         for i in range(k):
             if overlapping:
-                curr_slice = seq[i:i+num_words]
+                curr_slice = seq[i:i + num_words]
             else:
-                curr_slice = seq[i:last_index+i:k]
+                curr_slice = seq[i:last_index + i:k]
             result *= alpha_len
             result += curr_slice
         return result
@@ -1104,7 +1104,7 @@ class ModelSequenceBase(object):
             s = self
         c = self.__class__
         a = self.Alphabet.Gapped
-        result = zeros(len(other),a.ArrayType)+a.GapIndex
+        result = zeros(len(other), a.ArrayType) + a.GapIndex
         put(result, nonzero(other.nongaps()), s._data)
         return c(result)
 
@@ -1128,7 +1128,7 @@ class ModelSequenceBase(object):
     def disambiguate(self, *args, **kwargs):
         """Disambiguates self using strings/moltype. Should recode if demand."""
         return self.__class__(self.MolType.disambiguate(str(self), \
-                                                        *args,**kwargs))
+                                                        *args, **kwargs))
 
     def distance(self, other, function=None, use_indices=False):
         """Returns distance between self and other using function(i,j).
@@ -1240,7 +1240,7 @@ class ModelSequenceBase(object):
             other_gaps = array(self.MolType.gapVector(other))
         min_len = min(len(self), len(other))
         self_gaps, other_gaps = self_gaps[:min_len], other_gaps[:min_len]
-        return (self_gaps == other_gaps).sum()/float(min_len)
+        return (self_gaps == other_gaps).sum() / float(min_len)
 
 
 class ModelSequence(ModelSequenceBase, SequenceI):
@@ -1338,7 +1338,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         if not self or not other:
             return 0.0
 
-        return for_seq(f = lambda x, y: (x,y) in similar_pairs, \
+        return for_seq(f=lambda x, y: (x, y) in similar_pairs, \
                        normalizer=per_shortest)(str(self), str(other))
 
 class ModelNucleicAcidSequence(ModelSequence):
@@ -1347,8 +1347,8 @@ class ModelNucleicAcidSequence(ModelSequence):
     def toCodons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
         alpha_len = len(self.Alphabet)
-        return ModelCodonSequence(alpha_len*(\
-            alpha_len*self._data[::3] + self._data[1::3]) + self._data[2::3], \
+        return ModelCodonSequence(alpha_len * (\
+            alpha_len * self._data[::3] + self._data[1::3]) + self._data[2::3], \
             Name=self.Name, Alphabet=self.Alphabet.Triples)
 
     def complement(self):
@@ -1377,7 +1377,7 @@ class ModelRnaSequence(ModelNucleicAcidSequence):
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting T -> U"""
         if hasattr(data, 'upper'):
-            data = data.upper().replace('T','U')
+            data = data.upper().replace('T', 'U')
         return super(ModelNucleicAcidSequence, self).__init__(data, \
                                                               *args, **kwargs)
 
@@ -1388,7 +1388,7 @@ class ModelDnaSequence(ModelNucleicAcidSequence):
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting U -> T"""
         if hasattr(data, 'upper'):
-            data = data.upper().replace('U','T')
+            data = data.upper().replace('U', 'T')
         return super(ModelNucleicAcidSequence, self).__init__(data, \
                                                               *args, **kwargs)
 
@@ -1403,7 +1403,7 @@ class ModelCodonSequence(ModelSequence):
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('U','T')    #convert to uppercase DNA
+        s = s.upper().replace('U', 'T')    #convert to uppercase DNA
         d = self.SequenceClass(s, \
                                Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
@@ -1423,17 +1423,17 @@ class ModelCodonSequence(ModelSequence):
     def toDna(self):
         """Returns a ModelDnaSequence from the data in self"""
         unpacked = self.Alphabet.unpackArrays(self._data)
-        result = zeros((len(self._data),3))
+        result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
-            result[:,i] = v
+            result[:, i] = v
         return ModelDnaSequence(ravel(result), Name=self.Name)
 
     def toRna(self):
         """Returns a ModelDnaSequence from the data in self."""
         unpacked = self.Alphabet.unpackArrays(self._data)
-        result = zeros((len(self._data),3))
+        result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
-            result[:,i] = v
+            result[:, i] = v
         return ModelRnaSequence(ravel(result), Name=self.Name)
 
 class ModelDnaCodonSequence(ModelCodonSequence):
@@ -1448,7 +1448,7 @@ class ModelRnaCodonSequence(ModelCodonSequence):
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('T','U')    #convert to uppercase DNA
+        s = s.upper().replace('T', 'U')    #convert to uppercase DNA
         d = self.SequenceClass(s, \
                                Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
@@ -1459,4 +1459,4 @@ class ModelProteinSequence(ModelSequence):
 
 class ModelProteinWithStopSequence(ModelSequence):
     MolType = None #set to PROTEIN_WITH_STOP in moltype.py
-    Alphabet= None #set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py
+    Alphabet = None #set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py

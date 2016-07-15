@@ -17,8 +17,8 @@ class DbRefTests(TestCase):
     """Tests of the DbRef object."""
     def setUp(self):
         """Define a standard DbRef object"""
-        self.data = dict(Accession='xyz',Db='abc',Name='qwe',Description='blah',
-                         Data = list(range(20)))
+        self.data = dict(Accession='xyz', Db='abc', Name='qwe', Description='blah',
+                         Data=list(range(20)))
         self.db = DbRef(**self.data)
 
     def test_init_minimal(self):
@@ -56,7 +56,7 @@ class DbRefTests(TestCase):
         self.assertGreaterThan(DbRef('123'), DbRef('14'))
         self.assertLessThan(DbRef('123'), DbRef('abc'))
         #check that it ignores other attributes
-        self.assertEqual(DbRef('x','y','z','a','b'), DbRef('x'))
+        self.assertEqual(DbRef('x', 'y', 'z', 'a', 'b'), DbRef('x'))
 
 class infoTests(TestCase):
     """Tests of top-level functions."""
@@ -65,8 +65,8 @@ class infoTests(TestCase):
         self.assertEqual(_make_list('abc'), ['abc'])
         self.assertEqual(_make_list([]), [])
         self.assertEqual(_make_list(None), [None])
-        self.assertEqual(_make_list({'x':'y'}), [{'x':'y'}])
-        self.assertEqual(_make_list([1,2,3]), [1,2,3])
+        self.assertEqual(_make_list({'x': 'y'}), [{'x': 'y'}])
+        self.assertEqual(_make_list([1, 2, 3]), [1, 2, 3])
 
 class DbRefsTests(TestCase):
     """Tests of the DbRefs class."""
@@ -76,8 +76,8 @@ class DbRefsTests(TestCase):
 
     def test_init_data(self):
         """DbRefs init with data should produce expected results"""
-        d = DbRefs({'GenBank':'ab', 'GO':(3,44), 'PDB':['asdf','ghjk']})
-        self.assertEqual(d,{'GenBank':['ab'],'GO':[3,44],'PDB':['asdf','ghjk']})
+        d = DbRefs({'GenBank': 'ab', 'GO': (3, 44), 'PDB': ['asdf', 'ghjk']})
+        self.assertEqual(d, {'GenBank': ['ab'], 'GO': [3, 44], 'PDB': ['asdf', 'ghjk']})
         d.GenBank = 'xyz'
         self.assertEqual(d['GenBank'], ['xyz'])
 
@@ -96,7 +96,7 @@ class InfoTests(TestCase):
         #need to check init, setting, and resetting of attributes that belong
         #in the Info object and attributes that belong in Info.Refs. Also need
         #to check __getitem__, __setitem__, and __contains__.
-        d = Info({'x':3, 'GO':12345})
+        d = Info({'x': 3, 'GO': 12345})
         self.assertEqual(d.x, 3)
         self.assertEqual(d.GO, [12345])
         self.assertEqual(d.Refs.GO, [12345])

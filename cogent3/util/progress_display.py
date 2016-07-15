@@ -46,7 +46,7 @@ else:
             bar_template = CODES['GREEN'] + b'%s' + CODES['NORMAL'] + b'%s'
             bar_template = bar_template.decode('utf8')
             def terminal_progress_bar(dots, width):
-                return bar_template % ('█' * dots, '█' * (width-dots))
+                return bar_template % ('█' * dots, '█' * (width - dots))
         else:
             def terminal_progress_bar(dots, width):
                 return '.' * dots
@@ -122,12 +122,12 @@ class ProgressContext(object):
         if self.depth == self.max_depth:
             return NullContext()
         return ProgressContext(
-            progress_bar = self.progress_bar, 
-            prefix = self.message,
-            base = self.base+self.progress*self.segment,
-            segment = self.current*self.segment,
-            parent = self,
-            rate = self.rate) 
+            progress_bar=self.progress_bar, 
+            prefix=self.message,
+            base=self.base + self.progress * self.segment,
+            segment=self.current * self.segment,
+            parent=self,
+            rate=self.rate) 
 
     def display(self, msg=None, progress=None, current=0.0):
         """Inform the UI that we are are at 'progress' of the way through and 
@@ -150,12 +150,12 @@ class ProgressContext(object):
             updated = True
 
         if updated and (
-                (self.depth==0 and self.progress in [0.0, 1.0]) or 
+                (self.depth == 0 and self.progress in [0.0, 1.0]) or 
                 time.time() > self.t_last + self.rate):
             self.render()
 
     def render(self):
-        self.progress_bar.set(self.base+self.progress*self.segment, self.message[0])
+        self.progress_bar.set(self.base + self.progress * self.segment, self.message[0])
         self.t_last = time.time()
 
     def done(self):
@@ -181,7 +181,7 @@ class ProgressContext(object):
             count = len(items)
         if start is None:
             start = 0.0
-        step = (end-start) / count
+        step = (end - start) / count
         if labels:
             assert len(labels) == count
         elif count == 1:
@@ -192,7 +192,7 @@ class ProgressContext(object):
             template = '%s%%%sd/%s' % (noun, len(str(count)), count)
             labels = [template % i for i in range(0, count)]
         for (i, item) in enumerate(items):
-            self.display(msg=labels[i], progress=start+step*i, current=step)
+            self.display(msg=labels[i], progress=start + step * i, current=step)
             yield item
         self.display(progress=end, current=0)
 
@@ -208,7 +208,7 @@ class ProgressContext(object):
 
     def eager_map(self, f, s, **kw):
         """Like regular Python2 map() but with a progress bar"""
-        return list(self.imap(f,s, **kw))
+        return list(self.imap(f, s, **kw))
 
     def map(self, f, s, **kw):
         """Synonym for eager_map, unlike in Python3"""
@@ -241,7 +241,7 @@ class LogFileOutput(object):
     def set(self, progress, message):        
         if message:
             delta = '+%s' % int(time.time() - self.t0)
-            progress = int(100*progress+0.5)
+            progress = int(100 * progress + 0.5)
             print("%s %5s %3i%% %s" % (
                 self.lpad, delta, progress,
                 str(message.encode('utf8'))), file=self.output)

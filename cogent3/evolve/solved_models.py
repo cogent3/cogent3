@@ -40,13 +40,13 @@ class PredefinedNucleotide(Nucleotide):
         """Is F81, HKY83 or TN93 when passed 0, 1 or 2 parameters"""
         if kappa_r is None:
             kappa_r = kappa_y
-        result = numpy.empty([4,4], float)
+        result = numpy.empty([4, 4], float)
         _solved_models.calc_TN93_P(self._do_scaling, pi, time, kappa_y, kappa_r, result)
         return result
 
     def checkPsubCalculationsMatch(self):
         pi = numpy.array([.1, .2, .3, .4])
-        params = [4,6][:len(self.parameter_order)]
+        params = [4, 6][:len(self.parameter_order)]
         Q = self.calcQ(pi, pi, *params)
         P1 = FastExponentiator(Q)(.5)
         P2 = self.calcPsubMatrix(pi, .5, *params)

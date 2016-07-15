@@ -136,7 +136,7 @@ class PhylipWriter(_AlignmentWriter):
         self.setblocksize(block_size)
 
         # header
-        self.file.write('%d  %d\n' %(self.number_sequences, self.align_length))
+        self.file.write('%d  %d\n' % (self.number_sequences, self.align_length))
         # sequences (pretty much as writ by Gavin)
 
         for seqname in self.align_order:
@@ -182,7 +182,7 @@ class PamlWriter(_AlignmentWriter):
 
         #sequences
         for seq in self.align_order:
-            self.file.writelines('%s\n%s' % (seq,self.wrapstringtoblocksize(alignmentdict[seq], altblocksize = block_size)))
+            self.file.writelines('%s\n%s' % (seq, self.wrapstringtoblocksize(alignmentdict[seq], altblocksize=block_size)))
 
 
 class FastaWriter(_AlignmentWriter):
@@ -208,7 +208,7 @@ class FastaWriter(_AlignmentWriter):
         for seq in self.align_order:
             self.file.writelines('>%s\n%s' % (seq,
                                               self.wrapstringtoblocksize(alignmentdict[seq],
-                                                                         altblocksize = block_size)))
+                                                                         altblocksize=block_size)))
 
 
 class GDEWriter(_AlignmentWriter):
@@ -234,11 +234,11 @@ class GDEWriter(_AlignmentWriter):
         for seq in self.align_order:
             self.file.writelines('%s%s\n%s' % ("%", seq,
                                                self.wrapstringtoblocksize(alignmentdict[seq],
-                                                                          altblocksize = block_size)))
+                                                                          altblocksize=block_size)))
 
 
 # to add a new file format add it's suffix and class name here
-WRITERS  = {
+WRITERS = {
     'phylip': PhylipWriter,
     'paml': PamlWriter,
     'fasta': FastaWriter,

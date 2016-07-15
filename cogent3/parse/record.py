@@ -150,7 +150,7 @@ class GenericRecord(dict):
 
     def copy(self):
         """Coerces copy to correct type"""
-        temp = self.__class__(super(GenericRecord,self).copy())
+        temp = self.__class__(super(GenericRecord, self).copy())
         #don't forget to copy attributes!
         for attr, val in self.__dict__.items():
             temp.__dict__[attr] = deepcopy(val)
@@ -191,9 +191,9 @@ class MappedRecord(GenericRecord):
             return prototype.copy()
         elif isinstance(prototype, list):
             return prototype[:]
-        elif isinstance(prototype,str) or isinstance(prototype,int) or\
-                isinstance(prototype,int) or isinstance(prototype,tuple)\
-                or isinstance(prototype,complex) or prototype is None: 
+        elif isinstance(prototype, str) or isinstance(prototype, int) or\
+                isinstance(prototype, int) or isinstance(prototype, tuple)\
+                or isinstance(prototype, complex) or prototype is None: 
             return prototype     #immutable type: use directly
         else:
             return deepcopy(prototype)
@@ -282,7 +282,7 @@ class MappedRecord(GenericRecord):
 
     def setdefault(self, key, default=None):
         """Returns self[key] or default (and sets self[key]=default)"""
-        return super(MappedRecord, self).setdefault(self.unalias(key),default)
+        return super(MappedRecord, self).setdefault(self.unalias(key), default)
 
     def update(self, *args, **kwargs):
         """Updates self with items in other"""
@@ -341,7 +341,7 @@ def dict_adder(obj, field, val):
     try:
         getattr(obj, field)[key] = value
     except AttributeError:
-        setattr(obj, field, {key:value})
+        setattr(obj, field, {key: value})
 
 class LineOrientedConstructor(object):
     """Constructs a MappedRecord from a sequence of lines."""

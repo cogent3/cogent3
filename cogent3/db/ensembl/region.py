@@ -20,11 +20,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-DEFAULT_PARENT_LENGTH = 2 **30
+DEFAULT_PARENT_LENGTH = 2 ** 30
 
 # some common string display formatting
-_quoted = lambda x : DisplayString(x, with_quotes=True)
-_limit_words = lambda x : DisplayString(x, with_quotes=True, num_words=3)
+_quoted = lambda x: DisplayString(x, with_quotes=True)
+_limit_words = lambda x: DisplayString(x, with_quotes=True, num_words=3)
 
 class _Region(LazyRecord):
     """a simple genomic region object"""
@@ -61,7 +61,7 @@ class _Region(LazyRecord):
         result = asserted_one(query.execute().fetchall())
         coord_name = result['name']
 
-        coord = Coordinate(genome = self.genome, CoordName=coord_name,
+        coord = Coordinate(genome=self.genome, CoordName=coord_name,
                            Start=start, End=end, Strand=strand,
                            seq_region_id=seq_region_id,
                            ensembl_coord=True)
@@ -92,7 +92,7 @@ class _Region(LazyRecord):
                     alt_loc = assembly_exception_coordinate(self.Location)
                     seq = get_sequence(alt_loc)
                 except NoItemError:
-                    seq = DNA.makeSequence("N"*len(self))
+                    seq = DNA.makeSequence("N" * len(self))
             seq.Name = str(self.Location)
             self._cached['Seq'] = seq
         return self._cached['Seq']
@@ -138,11 +138,11 @@ class _Region(LazyRecord):
         return data
 
     def getAnnotatedSeq(self, feature_types=None, where_feature=None):
-        regions = list(self.getFeatures(feature_types = feature_types, 
-                                        where_feature = where_feature))
+        regions = list(self.getFeatures(feature_types=feature_types, 
+                                        where_feature=where_feature))
         # seq_map is on the + strand, regardless the actual strand of sequence
-        seq_map = Map(locations = [(self.Location.Start, self.Location.End)], 
-                      parent_length = DEFAULT_PARENT_LENGTH)
+        seq_map = Map(locations=[(self.Location.Start, self.Location.End)], 
+                      parent_length=DEFAULT_PARENT_LENGTH)
         seq_map = seq_map.inverse()
 
         for region in regions:
@@ -196,10 +196,10 @@ class GenericRegion(_Region):
     def __str__(self):
         my_type = self.__class__.__name__
         return "%s(Species='%s'; CoordName='%s'; Start=%s; End=%s;"\
-               " length=%s; Strand='%s')" %  (my_type,
+               " length=%s; Strand='%s')" % (my_type,
                                               self.genome.Species,
                                               self.Location.CoordName, self.Location.Start,
-                                              self.Location.End, len(self), '-+'[self.Location.Strand>0])
+                                              self.Location.End, len(self), '-+'[self.Location.Strand > 0])
 
     def _get_seq_region_record(self, CoordName):
         # override the _Region class method, since, we take the provided Start
@@ -295,7 +295,7 @@ class Gene(_StableRegion):
             data = asserted_one(list(self.genome._get_gene_query(db, **args).execute()))
 
         for name, func in \
-            [('StableId',self._get_gene_stable_id_record),
+            [('StableId', self._get_gene_stable_id_record),
              ('BioType', self._get_gene_record),
              ('Description', self._get_gene_record),
              ('Symbol', self._get_xref_record),
@@ -338,7 +338,7 @@ class Gene(_StableRegion):
         return
 
     def _get_xref_record(self):
-        attr_column_map = [('Symbol','display_label', _quoted)]
+        attr_column_map = [('Symbol', 'display_label', _quoted)]
         self._populate_cache_from_record(attr_column_map, 'xref')
         return
 
@@ -371,7 +371,7 @@ class Gene(_StableRegion):
         canonical_id = self._table_rows['gene']['canonical_transcript_id']
         transcript_table = self.db.getTable('transcript')
         query = sql.select([transcript_table],
-                           transcript_table.c.transcript_id==canonical_id)
+                           transcript_table.c.transcript_id == canonical_id)
         records = query.execute().fetchall()
         assert len(records) == 1,\
         "wrong number of records from CanonicalTranscript"
@@ -392,7 +392,7 @@ class Gene(_StableRegion):
         gene_id = self._table_rows['gene']['gene_id']
         transcript_table = self.db.getTable('transcript')
         query = sql.select([transcript_table],
-                           transcript_table.c.gene_id==gene_id)
+                           transcript_table.c.gene_id == gene_id)
         records = query.execute().fetchall()
         if not records:
             self._set_null_values(['Transcripts'], 'transcript')
@@ -454,7 +454,7 @@ class Transcript(_StableRegion):
         self._attr_ensembl_table_map = dict(StableId=['transcript_stable_id',
                                                       'transcript'][genome.GeneralRelease >= 65],
                                             Location='transcript',
-                                            Status = 'transcript',
+                                            Status='transcript',
                                             TranslatedExons='translation')
 
         self._am_prot_coding = None
@@ -467,7 +467,7 @@ class Transcript(_StableRegion):
         attr_column_map = [('BioType', 'biotype', _quoted),
                            ('Status', 'status', _quoted)]
         self._populate_cache_from_record(attr_column_map, 'transcript')
-        self._am_prot_coding=self._cached['BioType'].lower()=='protein_coding'
+        self._am_prot_coding = self._cached['BioType'].lower() == 'protein_coding'
 
     def _get_status(self):
         return self._cached['Status']
@@ -596,30 +596,30 @@ class Transcript(_StableRegion):
         start_exon = self.Exons[start_index]
 
         if start_index == end_index:
-            shift_start=[seq_start,len(start_exon)-seq_end][flip_coords]
-            shift_end = [seq_end-len(start_exon), -1*seq_start][flip_coords]
+            shift_start = [seq_start, len(start_exon) - seq_end][flip_coords]
+            shift_end = [seq_end - len(start_exon), -1 * seq_start][flip_coords]
         else:
             shift_start = [seq_start, 0][flip_coords]
-            shift_end = [0, -1*seq_start][flip_coords]
+            shift_end = [0, -1 * seq_start][flip_coords]
 
         coord = start_exon.Location.resized(shift_start, shift_end)
 
         DEBUG = False
         if DEBUG:
-            out = ['\nseq_start=%d; seq_end=%d' %(seq_start, seq_end),
-                   'shift_start=%d; shift_end=%d'%(shift_start, shift_end),
-                   'len=%s'% len(coord)]
-            sys.stderr.write('\n'.join(map(str,out))+'\n')
+            out = ['\nseq_start=%d; seq_end=%d' % (seq_start, seq_end),
+                   'shift_start=%d; shift_end=%d' % (shift_start, shift_end),
+                   'len=%s' % len(coord)]
+            sys.stderr.write('\n'.join(map(str, out)) + '\n')
 
         new_start_exon = Exon(self.genome, self.db, start_exon.exon_id,
                               start_exon.Rank, Location=coord)
-        translated_exons=(new_start_exon,)+\
-            self.Exons[start_index+1:end_index]
+        translated_exons = (new_start_exon,) +\
+            self.Exons[start_index + 1:end_index]
         if start_index != end_index:
             end_exon = self.Exons[end_index]
-            shift_start = [0, len(end_exon)-seq_end][flip_coords]
-            shift_end = [seq_end-len(end_exon), 0][flip_coords]
-            coord=end_exon.Location.resized(shift_start, shift_end)
+            shift_start = [0, len(end_exon) - seq_end][flip_coords]
+            shift_end = [seq_end - len(end_exon), 0][flip_coords]
+            coord = end_exon.Location.resized(shift_start, shift_end)
             new_end_exon = Exon(self.genome, self.db, end_exon.exon_id,
                                 end_exon.Rank, Location=coord)
             translated_exons += (new_end_exon,)
@@ -649,15 +649,15 @@ class Transcript(_StableRegion):
                 coord.End = [start_exon.Location.Start, coord.End][flip_coords]
             if len(coord) != 0:
                 untranslated_5exons.append(Exon(self.genome, self.db,
-                                                exon.exon_id, exon.Rank, Location = coord))
-        for exon in exons[end_exon.Rank -1: num_exons]: # get 3'UTR
+                                                exon.exon_id, exon.Rank, Location=coord))
+        for exon in exons[end_exon.Rank - 1: num_exons]: # get 3'UTR
             coord = exon.Location.copy()
             if exon.StableId == end_exon.StableId:
                 coord.Start = [end_exon.Location.End, coord.Start][flip_coords]
                 coord.End = [coord.End, end_exon.Location.Start][flip_coords]
             if len(coord) != 0:
                 untranslated_3exons.append(Exon(self.genome, self.db,
-                                                exon.exon_id, exon.Rank,  Location = coord))
+                                                exon.exon_id, exon.Rank, Location=coord))
 
         self._cached["UntranslatedExons5"] = tuple(untranslated_5exons)
         self._cached["UntranslatedExons3"] = tuple(untranslated_3exons)
@@ -753,8 +753,8 @@ class Transcript(_StableRegion):
             for exon in self.TranslatedExons:
                 out += ['TranslatedExon[rank=%d]\n' % exon.Rank, exon,
                         exon.Location, 
-                        '%s ... %s'%(exon.Seq[:20],exon.Seq[-20:])]
-                sys.stderr.write('\n'.join(map(str, out))+'\n')
+                        '%s ... %s' % (exon.Seq[:20], exon.Seq[-20:])]
+                sys.stderr.write('\n'.join(map(str, out)) + '\n')
             raise
 
         self._cached['ProteinSeq'] = cds.getTranslation()
@@ -801,7 +801,7 @@ class Transcript(_StableRegion):
             cds_spans.extend(feature_data[-1].spans)
         if cds_spans:
             # TODO: check strand
-            cds_map = Map(spans = cds_spans, parent_length = parent_map.parent_length)
+            cds_map = Map(spans=cds_spans, parent_length=parent_map.parent_length)
             features.append(('CDS', str(self.StableId), cds_map))
         return features
 
@@ -820,12 +820,12 @@ class Transcript(_StableRegion):
                 continue
             utr3_spans.extend(feature_data[-1].spans)
         if utr5_spans:
-            utr5_map = Map(spans = utr5_spans,
-                           parent_length = parent_map.parent_length)
+            utr5_map = Map(spans=utr5_spans,
+                           parent_length=parent_map.parent_length)
             features.append(("5'UTR", str(self.StableId), utr5_map))
         if utr3_spans:
-            utr3_map = Map(spans = utr3_spans,
-                           parent_length = parent_map.parent_length)
+            utr3_map = Map(spans=utr3_spans,
+                           parent_length=parent_map.parent_length)
             features.append(("3'UTR", str(self.StableId), utr3_map))
         return features
 
@@ -940,7 +940,7 @@ class Intron(GenericRegion):
                                                  self.TranscriptStableId, self.Rank)
 
     def _make_symbol(self):
-        self._cached['Symbol'] = '%s-%s'%(self.TranscriptStableId, self.Rank)
+        self._cached['Symbol'] = '%s-%s' % (self.TranscriptStableId, self.Rank)
 
     def _get_symbol(self):
         return self._get_cached_value('Symbol', self._make_symbol)
@@ -999,8 +999,8 @@ class Variation(_Region):
 
         assert data is not None, 'Variation record created in an unusual way'
         for name, value, func in \
-            [('Effect',Effect,self._get_variation_table_record),
-             ('Symbol',Symbol,self._get_variation_table_record)]:
+            [('Effect', Effect, self._get_variation_table_record),
+             ('Symbol', Symbol, self._get_variation_table_record)]:
             if value is not None:
                 self._table_rows[self._attr_ensembl_table_map[name]] = data
                 if func is not None:
@@ -1077,7 +1077,7 @@ class Variation(_Region):
             seq = flanking.Seq
             seqs[name] = seq
 
-        self._cached[('FlankingSeq')] = (seqs['up'][-300:],seqs['down'][:300])
+        self._cached[('FlankingSeq')] = (seqs['up'][-300:], seqs['down'][:300])
 
 
     def _get_flanking_seq_data_lt_70(self):
@@ -1108,7 +1108,7 @@ class Variation(_Region):
                 seq = flanking.Seq
             seqs[name] = seq
 
-        self._cached[('FlankingSeq')] = (seqs['up'][-300:],seqs['down'][:300])
+        self._cached[('FlankingSeq')] = (seqs['up'][-300:], seqs['down'][:300])
 
     def _get_flanking_seq(self):
         return self._get_cached_value('FlankingSeq',
@@ -1224,7 +1224,7 @@ class Variation(_Region):
             return
 
         table_name = self._attr_ensembl_table_map['PeptideAlleles']
-        loc = lambda x: int(x)-1
+        loc = lambda x: int(x) - 1
 
         # column name changed between releases, so we check to see which
         # one is being used for this instance and set the column strings
@@ -1250,7 +1250,7 @@ class Variation(_Region):
         var_feature_record = self._table_rows['variation_feature']
         var_feature_id = var_feature_record['variation_feature_id']
         table = self.genome.VarDb.getTable(table_name)
-        self_effect = set([self.Effect,[self.Effect]][type(self.Effect)==str])
+        self_effect = set([self.Effect, [self.Effect]][type(self.Effect) == str])
         query = sql.select([table.c.variation_feature_id,
                             table.columns[pep_allele_string],
                             table.c.translation_start,
@@ -1274,7 +1274,7 @@ class Variation(_Region):
         # we only want unique allele strings
         allele_location = dict(list(zip(pep_alleles, translation_location)))
         pep_alleles = list(set(pep_alleles))
-        pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
+        pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles) == 1]
         if type(pep_alleles) not in (str, str):
             for pep_allele in pep_alleles:
                 translation_location = allele_location[pep_allele]
@@ -1323,7 +1323,7 @@ class CpGisland(GenericRegion):
                                               self.Location.Start,
                                               self.Location.End,
                                               len(self),
-                                              '-+'[self.Location.Strand>0], self.Score)
+                                              '-+'[self.Location.Strand > 0], self.Score)
 
 
 class Repeat(GenericRegion):
@@ -1338,16 +1338,16 @@ class Repeat(GenericRegion):
 
         self.Score = Score
         # assume always created from repeat_feature table
-        self._table_rows['repeat_feature']= data
+        self._table_rows['repeat_feature'] = data
 
     def __str__(self):
         my_type = self.__class__.__name__
 
         return "%s(CoordName='%s'; Start=%s; End=%s; length=%s;"\
-               " Strand='%s', Score=%.1f)" %  (my_type,
+               " Strand='%s', Score=%.1f)" % (my_type,
                                                self.Location.CoordName,
                                                self.Location.Start, self.Location.End, len(self),
-                                               '-+'[self.Location.Strand>0], self.Score)
+                                               '-+'[self.Location.Strand > 0], self.Score)
 
     def _get_repeat_consensus_record(self):
         repeat_consensus_table = self.db.getTable('repeat_consensus')
@@ -1356,7 +1356,7 @@ class Repeat(GenericRegion):
                             repeat_consensus_table.c.repeat_consensus_id == repeat_consensus_id)
         record = asserted_one(record.execute().fetchall())
         self._table_rows['repeat_consensus'] = record
-        limit_length = lambda x : DisplayString(x, repr_length=10)
+        limit_length = lambda x: DisplayString(x, repr_length=10)
         attr_column_map = [('Symbol', 'repeat_name', _quoted),
                            ('RepeatClass', 'repeat_class', _quoted),
                            ('RepeatType', 'repeat_type', _quoted),

@@ -21,10 +21,10 @@ class _fake_seq(str):
 
     def __getitem__(self, *args, **kwargs):
         new_seq = str.__getitem__(self, *args, **kwargs)
-        return self.__new__(self.__class__,self.Label, new_seq)
+        return self.__new__(self.__class__, self.Label, new_seq)
 
 
-def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
+def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
     """Returns a FASTA string given a list of sequences. A sequence.Label
        attribute takes precedence over sequence.Name.
 
@@ -34,7 +34,7 @@ def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
         - line_wrap: a integer for maximum line width
     """
     fasta_list = []
-    for i,seq in enumerate(seqs):
+    for i, seq in enumerate(seqs):
         # Check if it has a label, or one is to be created
         label = str(i)
         if make_seqlabel is not None:
@@ -47,15 +47,15 @@ def fasta_from_sequences(seqs, make_seqlabel = None, line_wrap = None):
         # wrap sequence lines
         seq_str = str(seq)
         if line_wrap is not None:
-            numlines,remainder = divmod(len(seq_str),line_wrap)
+            numlines, remainder = divmod(len(seq_str), line_wrap)
             if remainder:
                 numlines += 1
-            body = ["%s" % seq_str[j*line_wrap:(j+1)*line_wrap] \
+            body = ["%s" % seq_str[j * line_wrap:(j + 1) * line_wrap] \
                     for j in range(numlines)]
         else:
             body = ["%s" % seq_str]
 
-        fasta_list.append('>'+label)
+        fasta_list.append('>' + label)
         fasta_list += body
 
     return '\n'.join(fasta_list)

@@ -85,32 +85,32 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"    
 
-gDefaultExcludes = ''.join([IUPAC_gap,IUPAC_missing])
+gDefaultExcludes = ''.join([IUPAC_gap, IUPAC_missing])
 gDefaultNullValue = nan
 
-def build_rate_matrix(count_matrix,freqs,aa_order='ACDEFGHIKLMNPQRSTVWY'):
+def build_rate_matrix(count_matrix, freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
 
-    epm = EmpiricalProteinMatrix(count_matrix,freqs)
+    epm = EmpiricalProteinMatrix(count_matrix, freqs)
     word_probs = array([freqs[aa] for aa in aa_order])
     num = word_probs.shape[0]
-    mprobs_matrix = ones((num,num), float)*word_probs
+    mprobs_matrix = ones((num, num), float) * word_probs
 
     return epm.calcQ(word_probs, mprobs_matrix)
 
 ## Mutual Information Analysis
 # Mutual Information Calculators
-def mi(h1,h2,joint_h):
+def mi(h1, h2, joint_h):
     """ Calc Mutual Information given two entropies and their joint entropy
     """
     return h1 + h2 - joint_h
 
-def normalized_mi(h1,h2,joint_h):
+def normalized_mi(h1, h2, joint_h):
     """ MI normalized by joint entropy, as described in Martin 2005 """
-    return mi(h1,h2,joint_h) / joint_h
+    return mi(h1, h2, joint_h) / joint_h
 nmi = normalized_mi
 
 # Other functions used in MI calculations
-def join_positions(pos1,pos2):
+def join_positions(pos1, pos2):
     """ Merge two positions and return as a list of strings
 
         pos1: iterable object containing the first positions data
@@ -120,22 +120,22 @@ def join_positions(pos1,pos2):
             >>> join_positions('ABCD','1234')
                 ['A1', 'B2', 'C3', 'D4']
     """
-    return [''.join([r1,r2]) for r1,r2 in zip(pos1,pos2)]
+    return [''.join([r1, r2]) for r1, r2 in zip(pos1, pos2)]
 
-def joint_entropy(pos1,pos2):
+def joint_entropy(pos1, pos2):
     """ Calculate the joint entroy of a pair of positions """
-    return Freqs(join_positions(pos1,pos2)).Uncertainty
+    return Freqs(join_positions(pos1, pos2)).Uncertainty
 
 # Exclude handlers (functions for processing position strings with exclude
 # characters)
-def ignore_excludes(pos,excludes=gDefaultExcludes):
+def ignore_excludes(pos, excludes=gDefaultExcludes):
     """ Return position data as-is (results in excludes treated as other chars)
     """
     return pos
 
 # Functions for scoring coevolution on the basis of Mutual Information
-def mi_pair(alignment,pos1,pos2,h1=None,h2=None,mi_calculator=mi,\
-            null_value=gDefaultNullValue,excludes=gDefaultExcludes,exclude_handler=None):
+def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,\
+            null_value=gDefaultNullValue, excludes=gDefaultExcludes, exclude_handler=None):
     """ Calculate mutual information of a pair of alignment positions
 
         alignment: the full alignment object
@@ -166,12 +166,12 @@ def mi_pair(alignment,pos1,pos2,h1=None,h2=None,mi_calculator=mi,\
     # exclude_hanlder == ignore_excludes, so I explicitly
     # check, and bypass this block if possible.
     if exclude_handler != ignore_excludes:
-        for col in (col1,col2):
+        for col in (col1, col2):
             states = set(col)
             for exclude in excludes:
                 if exclude in states:
                     try:
-                        col = exclude_handler(col,excludes)
+                        col = exclude_handler(col, excludes)
                         break
                     except TypeError:
                         return null_value
@@ -182,20 +182,20 @@ def mi_pair(alignment,pos1,pos2,h1=None,h2=None,mi_calculator=mi,\
     if not h2:
         h2 = Freqs(col2).Uncertainty
     # Calculate the joint entropy of pos1 & pos2
-    joint_h = joint_entropy(col1,col2)
+    joint_h = joint_entropy(col1, col2)
     # Calculate MI using the specified method -- return null_value when
     # the specified MI cannot be calculated 
     # (e.g., mi_calculator=nmi and joint_h=0.0)
     try:
-        result = mi_calculator(h1,h2,joint_h)
+        result = mi_calculator(h1, h2, joint_h)
         if result <= ROUND_ERROR: result = 0.0
     except ZeroDivisionError:
         result = null_value
     return result
 
-def mi_position(alignment,position,\
-                positional_entropies=None,mi_calculator=mi,null_value=gDefaultNullValue,\
-                excludes=gDefaultExcludes,exclude_handler=None):
+def mi_position(alignment, position,\
+                positional_entropies=None, mi_calculator=mi, null_value=gDefaultNullValue,\
+                excludes=gDefaultExcludes, exclude_handler=None):
     """ Calc mi b/w position and all other positions in an alignment
 
         alignment: the full alignment object
@@ -219,7 +219,7 @@ def mi_position(alignment,position,\
     """
     aln_length = len(alignment)
     # Create result vector    
-    result = zeros(aln_length,float) 
+    result = zeros(aln_length, float) 
 
     # compile positional entropies if not passed in
     if positional_entropies == None:
@@ -229,14 +229,14 @@ def mi_position(alignment,position,\
     # Will want to make a change here so that we don't need to recalculate
     # all values when calling from mi_alignment
     for i in range(aln_length):
-        result[i] = mi_pair(alignment,pos1=position,pos2=i,\
-                            h1=positional_entropies[position],h2=positional_entropies[i],\
-                            mi_calculator=mi_calculator,null_value=null_value,excludes=excludes,\
+        result[i] = mi_pair(alignment, pos1=position, pos2=i,\
+                            h1=positional_entropies[position], h2=positional_entropies[i],\
+                            mi_calculator=mi_calculator, null_value=null_value, excludes=excludes,\
                             exclude_handler=exclude_handler)
     return result
 
-def mi_alignment(alignment,mi_calculator=mi,null_value=gDefaultNullValue,\
-                 excludes=gDefaultExcludes,exclude_handler=None):
+def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,\
+                 excludes=gDefaultExcludes, exclude_handler=None):
     """ Calc mi over all position pairs in an alignment
 
         alignment: the full alignment object
@@ -253,7 +253,7 @@ def mi_alignment(alignment,mi_calculator=mi,null_value=gDefaultNullValue,\
     """
     aln_length = len(alignment)
     # Create result matrix 
-    result = zeros((aln_length,aln_length),float) 
+    result = zeros((aln_length, aln_length), float) 
 
     # Compile postional entropies for each position in the alignment
     # I believe I started using this rather than alignment.uncertainties 
@@ -264,11 +264,11 @@ def mi_alignment(alignment,mi_calculator=mi,null_value=gDefaultNullValue,\
     # Calculate pairwise MI between position_number and all alignment
     # positions, and return the results in a vector.
     for i in range(aln_length):
-        for j in range(i+1):
-            result[i,j] = mi_pair(alignment,pos1=i,pos2=j,\
-                                  h1=positional_entropies[i],h2=positional_entropies[j],\
-                                  mi_calculator=mi_calculator,null_value=null_value,\
-                                  excludes=excludes,exclude_handler=exclude_handler)
+        for j in range(i + 1):
+            result[i, j] = mi_pair(alignment, pos1=i, pos2=j,\
+                                  h1=positional_entropies[i], h2=positional_entropies[j],\
+                                  mi_calculator=mi_calculator, null_value=null_value,\
+                                  excludes=excludes, exclude_handler=exclude_handler)
     # copy the lower triangle to the upper triangle to make 
     # the matrix symmetric
     ltm_to_symmetric(result)
@@ -276,8 +276,8 @@ def mi_alignment(alignment,mi_calculator=mi,null_value=gDefaultNullValue,\
 ## End Mutual Information Analysis
 
 ## Start Normalized Mutual Information Analysis (Martin 2005)
-def normalized_mi_pair(alignment,pos1,pos2,h1=None,h2=None,\
-                       null_value=gDefaultNullValue,excludes=gDefaultExcludes,\
+def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,\
+                       null_value=gDefaultNullValue, excludes=gDefaultExcludes,\
                        exclude_handler=None):
     """Calc normalized mutual information of a pair of alignment positions
 
@@ -297,13 +297,13 @@ def normalized_mi_pair(alignment,pos1,pos2,h1=None,h2=None,\
          with exclude characters processed in someway. 
 
     """
-    return mi_pair(alignment,pos1,pos2,h1=h1,h2=h2,mi_calculator=nmi,\
-                   null_value=null_value,excludes=excludes,\
+    return mi_pair(alignment, pos1, pos2, h1=h1, h2=h2, mi_calculator=nmi,\
+                   null_value=null_value, excludes=excludes,\
                    exclude_handler=exclude_handler)
 nmi_pair = normalized_mi_pair
 
-def normalized_mi_position(alignment,position,positional_entropies=None,\
-                           null_value=gDefaultNullValue,excludes=gDefaultExcludes,\
+def normalized_mi_position(alignment, position, positional_entropies=None,\
+                           null_value=gDefaultNullValue, excludes=gDefaultExcludes,\
                            exclude_handler=None):
     """ Calc normalized mi b/w position and all other positions in an alignment
 
@@ -324,14 +324,14 @@ def normalized_mi_position(alignment,position,positional_entropies=None,\
          with exclude characters processed in someway. 
 
     """
-    return mi_position(alignment,position,\
+    return mi_position(alignment, position,\
                        positional_entropies=positional_entropies,\
-                       mi_calculator=nmi,null_value=null_value,excludes=excludes,\
+                       mi_calculator=nmi, null_value=null_value, excludes=excludes,\
                        exclude_handler=exclude_handler)
 nmi_position = normalized_mi_position
 
-def normalized_mi_alignment(alignment,null_value=gDefaultNullValue,\
-                            excludes=gDefaultExcludes,exclude_handler=None):
+def normalized_mi_alignment(alignment, null_value=gDefaultNullValue,\
+                            excludes=gDefaultExcludes, exclude_handler=None):
     """ Calc normalized mi over all position pairs in an alignment
 
         alignment: the full alignment object
@@ -343,8 +343,8 @@ def normalized_mi_alignment(alignment,null_value=gDefaultNullValue,\
         exclude_handler: a function which takes a position and returns it 
          with exclude characters processed in someway. 
     """
-    return mi_alignment(alignment=alignment,mi_calculator=normalized_mi,\
-                        null_value=null_value,excludes=excludes,\
+    return mi_alignment(alignment=alignment, mi_calculator=normalized_mi,\
+                        null_value=null_value, excludes=excludes,\
                         exclude_handler=exclude_handler)
 nmi_alignment = normalized_mi_alignment
 ## End Normalized Mutual Information Analysis
@@ -387,14 +387,14 @@ protein_dict = {
 }
 default_sca_freqs = protein_dict
 
-def freqs_to_array(f,alphabet):
+def freqs_to_array(f, alphabet):
     """Takes data in freqs object and turns it into array.
 
     f = dict or Freqs object
     alphabet = Alphabet object or just a list that specifies the order
         of things to appear in the resulting array
     """
-    return array([f.get(i,0) for i in alphabet])
+    return array([f.get(i, 0) for i in alphabet])
 
 def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
     """Returns list of allowed perturbations as characters
@@ -412,12 +412,12 @@ def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
     result = []
     abs_cutoff = cutoff * num_seqs
 
-    for char,count in zip(alphabet,counts):
+    for char, count in zip(alphabet, counts):
         if count >= abs_cutoff:
             result.append(char)
     return result
 
-def probs_from_dict(d,alphabet):
+def probs_from_dict(d, alphabet):
     """ Convert dict of alphabet char probabilities to list in alphabet's order
 
         d: probabilities of observing each character in alphabet (dict indexed
@@ -429,7 +429,7 @@ def probs_from_dict(d,alphabet):
     """
     return array([d[c] for c in alphabet])
 
-def freqs_from_aln(aln,alphabet,scaled_aln_size=100):
+def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
     """Return the frequencies in aln of chars in alphabet's order
 
         aln: the alignment object
@@ -451,10 +451,10 @@ def freqs_from_aln(aln,alphabet,scaled_aln_size=100):
     alphabet_as_indices = array([aln.Alphabet.toIndices(alphabet)]).transpose()
     aln_data = ravel(aln.ArrayPositions)
     return (alphabet_as_indices == aln_data).sum(1) * \
-        (scaled_aln_size/len(aln_data))
+        (scaled_aln_size / len(aln_data))
 
 
-def get_positional_frequencies(aln,position_number,alphabet,\
+def get_positional_frequencies(aln, position_number, alphabet,\
                                scaled_aln_size=100):
     """Return the freqs in aln[position_number] of chars in alphabet's order
 
@@ -476,9 +476,9 @@ def get_positional_frequencies(aln,position_number,alphabet,\
     alphabet_as_indices = array([aln.Alphabet.toIndices(alphabet)]).transpose()
     position_data = aln.ArrayPositions[position_number]
     return (alphabet_as_indices == position_data).sum(1) * \
-        (scaled_aln_size/len(position_data))
+        (scaled_aln_size / len(position_data))
 
-def get_positional_probabilities(pos_freqs,natural_probs,scaled_aln_size=100):
+def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
     """Get probs of observering the freq of each char given it's natural freq 
         In Suel 2003 supplementary material, this step is defined as:
          "... each element is the binomial probability of observing each 
@@ -501,10 +501,10 @@ def get_positional_probabilities(pos_freqs,natural_probs,scaled_aln_size=100):
 
     """
     results = []
-    for pos_freq,natural_prob in zip(pos_freqs,natural_probs):
+    for pos_freq, natural_prob in zip(pos_freqs, natural_probs):
         try:
             results.append(\
-                binomial_exact(pos_freq,scaled_aln_size,natural_prob))
+                binomial_exact(pos_freq, scaled_aln_size, natural_prob))
         # Because of the scaling of alignments to scaled_aln_size, pos_freq is
         # a float rather than an int. So, if a position is perfectly conserved,
         # pos_freq as a float could be greater than scaled_aln_size. 
@@ -512,10 +512,10 @@ def get_positional_probabilities(pos_freqs,natural_probs,scaled_aln_size=100):
         # scaling stuff though. 
         except ValueError as e:
             results.append(binomial_exact(int(pos_freq),\
-                                          scaled_aln_size,natural_prob))
+                                          scaled_aln_size, natural_prob))
     return array(results)
 
-def get_subalignments(aln,position,selections):
+def get_subalignments(aln, position, selections):
     """ returns subalns w/ seq[pos] == selection for each in selections 
         aln: an alignment object
         position: int in alignment to be checked for each perturbation
@@ -533,11 +533,11 @@ def get_subalignments(aln,position,selections):
     """
     result = []
     for s in aln.Alphabet.toIndices(selections):
-        seqs_to_keep = nonzero(aln.ArraySeqs[:,position] == s)[0]
+        seqs_to_keep = nonzero(aln.ArraySeqs[:, position] == s)[0]
         result.append(aln.getSubAlignment(seqs=seqs_to_keep))
     return result
 
-def get_dg(position_probs,aln_probs):
+def get_dg(position_probs, aln_probs):
     """ Return delta_g vector
 
         position_probs: the prob of observing each alphabet chars frequency in
@@ -549,11 +549,11 @@ def get_dg(position_probs,aln_probs):
 
     """
     results = []
-    for position_prob,aln_prob in zip(position_probs,aln_probs):
-        results.append(log(position_prob/aln_prob))
+    for position_prob, aln_prob in zip(position_probs, aln_probs):
+        results.append(log(position_prob / aln_prob))
     return array(results)
 
-def get_dgg(all_dgs,subaln_dgs,scaled_aln_size=100):
+def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
     """Return delta_delta_g value
 
         all_dgs: the dg vector for a position-of-interest in the alignment
@@ -581,14 +581,14 @@ def get_dgg(all_dgs,subaln_dgs,scaled_aln_size=100):
         Euclidian norm, but until I see their code, I can't be sure about
         this.
     """
-    return norm(all_dgs - subaln_dgs)/scaled_aln_size * e
+    return norm(all_dgs - subaln_dgs) / scaled_aln_size * e
 
 
 
-def sca_pair(alignment,pos1,pos2,cutoff,\
-             position_freqs=None,position_probs=None,dgs=None,perturbations=None,\
-             scaled_aln_size=100,null_value=gDefaultNullValue,return_all=False,\
-             alphabet=default_sca_alphabet,background_freqs=default_sca_freqs):
+def sca_pair(alignment, pos1, pos2, cutoff,\
+             position_freqs=None, position_probs=None, dgs=None, perturbations=None,\
+             scaled_aln_size=100, null_value=gDefaultNullValue, return_all=False,\
+             alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w a pair of alignment columns 
 
         alignment: full alignment object
@@ -648,20 +648,20 @@ def sca_pair(alignment,pos1,pos2,cutoff,\
     num_seqs = alignment.getNumSeqs()
 
     # Calculate frequency distributions
-    natural_probs = probs_from_dict(background_freqs,alphabet)
-    aln_freqs = freqs_from_aln(alignment,alphabet,scaled_aln_size)
+    natural_probs = probs_from_dict(background_freqs, alphabet)
+    aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(\
-        aln_freqs,natural_probs,scaled_aln_size)
+        aln_freqs, natural_probs, scaled_aln_size)
 
     # get positional frequencies
     if position_freqs:
         pos1_freqs = position_freqs[pos1]
         pos2_freqs = position_freqs[pos2]
     else:
-        pos1_freqs = get_positional_frequencies(alignment,pos1,\
-                                                alphabet,scaled_aln_size)
-        pos2_freqs = get_positional_frequencies(alignment,pos2,\
-                                                alphabet,scaled_aln_size)
+        pos1_freqs = get_positional_frequencies(alignment, pos1,\
+                                                alphabet, scaled_aln_size)
+        pos2_freqs = get_positional_frequencies(alignment, pos2,\
+                                                alphabet, scaled_aln_size)
     # get positional probability vectors ("... each element is the binomial
     # probability of observing each amino acid residue at position j given its
     # mean frequency in all natural proteins." Suel 2003 supplementary
@@ -670,51 +670,51 @@ def sca_pair(alignment,pos1,pos2,cutoff,\
         pos2_probs = position_probs[pos2]
     else:
         pos2_probs = get_positional_probabilities(pos2_freqs,\
-                                                  natural_probs,scaled_aln_size)
+                                                  natural_probs, scaled_aln_size)
 
     # get statistical energies for pos2 in full alignment
     if dgs:
         pos2_dg = dgs[pos2]
     else:
-        pos2_dg = get_dg(pos2_probs,aln_probs)
+        pos2_dg = get_dg(pos2_probs, aln_probs)
 
     # determine allowed perturbations
     if perturbations:
         allowed_perturbations = perturbations[pos1]
     else:
         allowed_perturbations = \
-            get_allowed_perturbations(pos1_freqs,cutoff,alphabet,scaled_aln_size)
+            get_allowed_perturbations(pos1_freqs, cutoff, alphabet, scaled_aln_size)
     # should we do something different here on return_all == True?
     if not allowed_perturbations: return null_value
 
     # generate the subalignments which contain each allowed 
     # perturbation residue at pos1
-    subalignments = get_subalignments(alignment,pos1,allowed_perturbations)
+    subalignments = get_subalignments(alignment, pos1, allowed_perturbations)
 
     # calculate ddg for each allowed perturbation
     ddg_values = []
     for subalignment in subalignments:
         # Calculate dg for the subalignment
-        subaln_freqs = freqs_from_aln(subalignment,alphabet,scaled_aln_size)
+        subaln_freqs = freqs_from_aln(subalignment, alphabet, scaled_aln_size)
         subaln_probs = get_positional_probabilities(\
-            subaln_freqs,natural_probs,scaled_aln_size)
+            subaln_freqs, natural_probs, scaled_aln_size)
         subaln_pos2_freqs = get_positional_frequencies(\
-            subalignment,pos2,alphabet,scaled_aln_size)
+            subalignment, pos2, alphabet, scaled_aln_size)
         subaln_pos2_probs = get_positional_probabilities(\
-            subaln_pos2_freqs,natural_probs,scaled_aln_size)      
-        subaln_dg = get_dg(subaln_pos2_probs,subaln_probs)
-        ddg_values.append(get_dgg(pos2_dg,subaln_dg,scaled_aln_size))
+            subaln_pos2_freqs, natural_probs, scaled_aln_size)      
+        subaln_dg = get_dg(subaln_pos2_probs, subaln_probs)
+        ddg_values.append(get_dgg(pos2_dg, subaln_dg, scaled_aln_size))
 
     if return_all:
-        return list(zip(allowed_perturbations,ddg_values))
+        return list(zip(allowed_perturbations, ddg_values))
     else:
         return max(ddg_values)
 
-def sca_position(alignment,position,cutoff,\
-                 position_freqs=None,position_probs=None,dgs=None,\
-                 perturbations=None,scaled_aln_size=100,\
-                 null_value=gDefaultNullValue,return_all=False,\
-                 alphabet=default_sca_alphabet,background_freqs=default_sca_freqs):
+def sca_position(alignment, position, cutoff,\
+                 position_freqs=None, position_probs=None, dgs=None,\
+                 perturbations=None, scaled_aln_size=100,\
+                 null_value=gDefaultNullValue, return_all=False,\
+                 alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w a column and all other columns 
 
         alignment: full alignment object
@@ -760,45 +760,45 @@ def sca_position(alignment,position,cutoff,\
 
     """
     num_seqs = alignment.getNumSeqs()
-    natural_probs = probs_from_dict(background_freqs,alphabet)
-    aln_freqs = freqs_from_aln(alignment,alphabet,scaled_aln_size)
+    natural_probs = probs_from_dict(background_freqs, alphabet)
+    aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(\
-        aln_freqs,natural_probs,scaled_aln_size)
+        aln_freqs, natural_probs, scaled_aln_size)
     if not position_freqs:
         position_freqs = []
         for i in range(len(alignment)):
             position_freqs.append(\
                 get_positional_frequencies(\
-                    alignment,i,alphabet,scaled_aln_size))
+                    alignment, i, alphabet, scaled_aln_size))
 
     if not position_probs:
         position_probs = []
         for i in range(len(alignment)):
             position_probs.append(get_positional_probabilities(\
-                position_freqs[i],natural_probs,scaled_aln_size))
+                position_freqs[i], natural_probs, scaled_aln_size))
     if not dgs:
         dgs = []
         for i in range(len(alignment)):
-            dgs.append(get_dg(position_probs[i],aln_probs))
+            dgs.append(get_dg(position_probs[i], aln_probs))
 
     if not perturbations:
         perturbations = []
         for i in range(len(alignment)):
             perturbations.append(get_allowed_perturbations(\
-                position_freqs[i],cutoff,alphabet,scaled_aln_size))
+                position_freqs[i], cutoff, alphabet, scaled_aln_size))
 
     result = []
     for i in range(len(alignment)):
-        result.append(sca_pair(alignment,position,i,cutoff,\
-                               position_freqs=position_freqs,position_probs=position_probs,\
-                               dgs=dgs,perturbations=perturbations,\
-                               scaled_aln_size=scaled_aln_size,null_value=null_value,\
-                               return_all=return_all,alphabet=alphabet,\
+        result.append(sca_pair(alignment, position, i, cutoff,\
+                               position_freqs=position_freqs, position_probs=position_probs,\
+                               dgs=dgs, perturbations=perturbations,\
+                               scaled_aln_size=scaled_aln_size, null_value=null_value,\
+                               return_all=return_all, alphabet=alphabet,\
                                background_freqs=background_freqs))
     return array(result)
 
-def sca_alignment(alignment,cutoff,null_value=gDefaultNullValue,\
-                  scaled_aln_size=100,return_all=False,alphabet=default_sca_alphabet,\
+def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,\
+                  scaled_aln_size=100, return_all=False, alphabet=default_sca_alphabet,\
                   background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w all columns in alignment
 
@@ -826,40 +826,40 @@ def sca_alignment(alignment,cutoff,null_value=gDefaultNullValue,\
 
     """
     num_seqs = alignment.getNumSeqs()
-    natural_probs = probs_from_dict(background_freqs,alphabet)
-    aln_freqs = freqs_from_aln(alignment,alphabet,scaled_aln_size)
+    natural_probs = probs_from_dict(background_freqs, alphabet)
+    aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(\
-        aln_freqs,natural_probs,scaled_aln_size)
+        aln_freqs, natural_probs, scaled_aln_size)
     # get all positional frequencies
     position_freqs = []
     for i in range(len(alignment)):
         position_freqs.append(\
-            get_positional_frequencies(alignment,i,alphabet,scaled_aln_size))
+            get_positional_frequencies(alignment, i, alphabet, scaled_aln_size))
 
     # get all positional probabilities 
     position_probs = []
     for i in range(len(alignment)):
         position_probs.append(get_positional_probabilities(\
-            position_freqs[i],natural_probs,scaled_aln_size))
+            position_freqs[i], natural_probs, scaled_aln_size))
 
     # get all delta_g vectors 
     dgs = []
     for i in range(len(alignment)):
-        dgs.append(get_dg(position_probs[i],aln_probs))
+        dgs.append(get_dg(position_probs[i], aln_probs))
 
     # get all allowed perturbations
     perturbations = []
     for i in range(len(alignment)):
         perturbations.append(get_allowed_perturbations(\
-            position_freqs[i],cutoff,alphabet,scaled_aln_size))
+            position_freqs[i], cutoff, alphabet, scaled_aln_size))
 
     result = []
     for i in range(len(alignment)):
-        result.append(sca_position(alignment,i,cutoff,\
-                                   position_freqs=position_freqs,position_probs=position_probs,\
-                                   dgs=dgs,perturbations=perturbations,\
-                                   scaled_aln_size=scaled_aln_size,null_value=null_value,\
-                                   return_all=return_all,alphabet=alphabet,\
+        result.append(sca_position(alignment, i, cutoff,\
+                                   position_freqs=position_freqs, position_probs=position_probs,\
+                                   dgs=dgs, perturbations=perturbations,\
+                                   scaled_aln_size=scaled_aln_size, null_value=null_value,\
+                                   return_all=return_all, alphabet=alphabet,\
                                    background_freqs=background_freqs))
     return array(result)     
 ## End statistical coupling analysis
@@ -874,10 +874,10 @@ def make_weights(freqs, n):
     freqs.normalize()
     char_prob = list(freqs.items())
     weights = []
-    for C,P in char_prob:
-        alts = Freqs([(c, p) for c, p in char_prob if c!=C])
+    for C, P in char_prob:
+        alts = Freqs([(c, p) for c, p in char_prob if c != C])
         alts.normalize()
-        alts = Freqs([(c,w/(2*n)) for c,w in list(alts.items())])
+        alts = Freqs([(c, w / (2 * n)) for c, w in list(alts.items())])
         weights += [(C, alts)]
     return weights
 
@@ -899,13 +899,13 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
     for a, b in list(pair_freqs.keys()):
         weights = weights1[a]
 
-        pr = a+b
+        pr = a + b
         pair_freqs -= [pr]
         obs1 -= a
 
         # make comparable alignments by mods to col 1
         for c, w in list(weights.items()):
-            new_pr = c+b
+            new_pr = c + b
             pair_freqs += [new_pr]
             obs1 += c
 
@@ -922,7 +922,7 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
         weights = weights2[b]
         obs2 -= b
         for c, w in list(weights.items()):
-            new_pr = a+c
+            new_pr = a + c
             pair_freqs += [new_pr]
             obs2 += c
 
@@ -953,12 +953,12 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
     col1 = positions[pos1]
     col2 = positions[pos2]
     seqs = [''.join(p) for p in zip(col1, col2)]
-    for col in (col1,col2):
+    for col in (col1, col2):
         states = {}.fromkeys(col)
         for exclude in excludes:
             if exclude in states:
                 try:
-                    col = exclude_handler(col,excludes)
+                    col = exclude_handler(col, excludes)
                     break
                 except TypeError:
                     return null_value
@@ -977,7 +977,7 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
     entropy = mi(col1.Uncertainty, col2.Uncertainty,
                  seq_freqs.Uncertainty)
     scales = calc_pair_scale(seqs, col1, col2, weights1, weights2)
-    scaled_mi = 1-sum([w * seq_freqs[pr] for pr, e, w in scales \
+    scaled_mi = 1 - sum([w * seq_freqs[pr] for pr, e, w in scales \
                        if entropy <= e])
 
     return scaled_mi
@@ -986,7 +986,7 @@ def resampled_mi_position(alignment, position, positional_entropies=None,
                           excludes=gDefaultExcludes, exclude_handler=None,
                           null_value=gDefaultNullValue):
     aln_length = len(alignment)
-    result = zeros(aln_length,float)
+    result = zeros(aln_length, float)
     positional_entropies = positional_entropies or alignment.uncertainties()
 
     for i in range(aln_length):
@@ -1000,7 +1000,7 @@ def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
                            exclude_handler=None, null_value=gDefaultNullValue):
     """returns scaled mutual information for all possible pairs."""
     aln_length = len(alignment)
-    result = zeros((aln_length,aln_length),float)
+    result = zeros((aln_length, aln_length), float)
     positional_entropies = alignment.uncertainties()
 
     for i in range(aln_length):
@@ -1012,7 +1012,7 @@ def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
 ## End Resampled Mutual Information Analysis
 
 ## Begin ancestral_states analysis        
-def get_ancestral_seqs(aln, tree, sm = None, pseudocount=1e-6, optimise=True):
+def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
 
     Arguments:
@@ -1028,58 +1028,58 @@ def get_ancestral_seqs(aln, tree, sm = None, pseudocount=1e-6, optimise=True):
          not perfectly clear about it.
     """
     sm = sm or SubstitutionModel(aln.Alphabet, recode_gaps=True)
-    lf = sm.makeLikelihoodFunction(tree,sm.motif_probs)
+    lf = sm.makeLikelihoodFunction(tree, sm.motif_probs)
     lf.setAlignment(aln, motif_pseudocount=pseudocount)
     if optimise:
         lf.optimise(local=True)
-    return DenseAlignment(lf.likelyAncestralSeqs(),MolType=aln.MolType)
+    return DenseAlignment(lf.likelyAncestralSeqs(), MolType=aln.MolType)
 
 
-def ancestral_state_alignment(aln,tree,ancestral_seqs=None,\
+def ancestral_state_alignment(aln, tree, ancestral_seqs=None,\
                               null_value=gDefaultNullValue):
-    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln,tree)
+    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
         row = [null_value] * len(aln)
-        for j in range(i+1):
+        for j in range(i + 1):
             row[j] = ancestral_state_pair(\
-                aln,tree,i,j,ancestral_seqs,null_value)
+                aln, tree, i, j, ancestral_seqs, null_value)
         result.append(row)
     return ltm_to_symmetric(array(result))
 
-def ancestral_state_position(aln,tree,position,\
-                             ancestral_seqs=None,null_value=gDefaultNullValue):
+def ancestral_state_position(aln, tree, position,\
+                             ancestral_seqs=None, null_value=gDefaultNullValue):
 
-    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln,tree)
+    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
         result.append(ancestral_state_pair(\
-            aln,tree,position,i,ancestral_seqs,null_value))
+            aln, tree, position, i, ancestral_seqs, null_value))
     return array(result)
 
-def ancestral_state_pair(aln,tree,pos1,pos2,\
-                         ancestral_seqs=None,null_value=gDefaultNullValue):
+def ancestral_state_pair(aln, tree, pos1, pos2,\
+                         ancestral_seqs=None, null_value=gDefaultNullValue):
     """
 
     """
-    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln,tree)
+    ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = \
-        dict(list(zip(ancestral_seqs.Names,ancestral_seqs.ArraySeqs)))
+        dict(list(zip(ancestral_seqs.Names, ancestral_seqs.ArraySeqs)))
     distances = tree.getDistances()
     tips = tree.getNodeNames(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this 
     # -- what is it?)
-    nodes = dict([(n,tree.getNodeMatchingName(n)) for n in tips])
+    nodes = dict([(n, tree.getNodeMatchingName(n)) for n in tips])
     # add tip branch lengths as distance b/w identical tips -- this is 
     # necessary for my weighting step, where we want correlated changes 
     # occuring on a single branch to be given the most weight
-    distances.update(dict([((n,n),nodes[n].Length) for n in nodes]))
+    distances.update(dict([((n, n), nodes[n].Length) for n in nodes]))
     result = 0
-    names_to_seqs = dict(list(zip(aln.Names,aln.ArraySeqs)))
+    names_to_seqs = dict(list(zip(aln.Names, aln.ArraySeqs)))
     for i in range(len(tips)):
         org1 = tips[i]
         seq1 = names_to_seqs[org1]
-        for j in range(i,len(tips)):
+        for j in range(i, len(tips)):
             org2 = tips[j]
             seq2 = names_to_seqs[org2]
             ancestor = nodes[org1].lastCommonAncestor(nodes[org2]).Name
@@ -1124,18 +1124,18 @@ def ancestral_state_pair(aln,tree,pos1,pos2,\
                     # that appear to be better under some circumstances, 
                     # and at worst, about the same as simply incrementing
                     # by 1.  
-                    result += (1/distances[(org1,org2)])
+                    result += (1 / distances[(org1, org2)])
                     # Another one to try might involve discounting the score 
                     # for a pair when one changes and the other doesn't.
     return result      
 ## End ancestral_states analysis        
 
 ### Methods for running coevolutionary analyses on sequence data.
-method_abbrevs_to_names = {'mi':'Mutual Information',\
-                           'nmi':'Normalized Mutual Information',\
-                           'sca':'Statistical Coupling Analysis',\
-                           'an':'Ancestral States',\
-                           'rmi':'Resampled Mutual Information'}
+method_abbrevs_to_names = {'mi': 'Mutual Information',\
+                           'nmi': 'Normalized Mutual Information',\
+                           'sca': 'Statistical Coupling Analysis',\
+                           'an': 'Ancestral States',\
+                           'rmi': 'Resampled Mutual Information'}
 
 ## Method-specific error checking functions
 # Some of the coevolution algorithms require method-specific input validation, 
@@ -1151,7 +1151,7 @@ method_abbrevs_to_names = {'mi':'Mutual Information',\
 # validation
 # is only performed once by coevolve_alignment.
 
-def sca_input_validation(alignment,**kwargs):
+def sca_input_validation(alignment, **kwargs):
     """SCA specific validations steps """
 
     # check that all required parameters are present in kwargs
@@ -1181,9 +1181,9 @@ def sca_input_validation(alignment,**kwargs):
         background_freqs = kwargs['background_freqs']
     except KeyError:
         background_freqs = default_sca_freqs
-    validate_alphabet(alphabet,background_freqs)
+    validate_alphabet(alphabet, background_freqs)
 
-def validate_alphabet(alphabet,freqs):
+def validate_alphabet(alphabet, freqs):
     """SCA validation: ValueError if set(alphabet) != set(freqs.keys()) 
     """
     alphabet_chars = set(alphabet)
@@ -1191,7 +1191,7 @@ def validate_alphabet(alphabet,freqs):
     if alphabet_chars != freq_chars:
         raise ValueError("Alphabet and background freqs must contain identical sets of chars.")
 
-def ancestral_states_input_validation(alignment,**kwargs):
+def ancestral_states_input_validation(alignment, **kwargs):
     """Ancestral States (AS) specific validations steps """
     # check that all required parameters are present in kwargs
     required_parameters = ['tree']
@@ -1200,15 +1200,15 @@ def ancestral_states_input_validation(alignment,**kwargs):
             raise ValueError('Required parameter was not provided: ' + rp)
 
     # validate the tree
-    validate_tree(alignment,kwargs['tree'])
+    validate_tree(alignment, kwargs['tree'])
 
     # if ancestral seqs are provided, validate them. (If calculated on the fly,
     # we trust them.)
     if 'ancestral_seqs' in kwargs:
-        validate_ancestral_seqs(alignment,kwargs['tree'],\
+        validate_ancestral_seqs(alignment, kwargs['tree'],\
                                 kwargs['ancestral_seqs'])
 
-def validate_ancestral_seqs(alignment,tree,ancestral_seqs):
+def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
     """AS validation: ValueError if incompatible aln, tree, & ancestral seqs
 
         Incompatibility between the alignment and the ancestral_seqs is
@@ -1225,7 +1225,7 @@ def validate_ancestral_seqs(alignment,tree,ancestral_seqs):
     if edges != seqs:
         raise ValueError("Must be ancestral seqs for all edges and root in tree, and no more.")
 
-def validate_tree(alignment,tree):
+def validate_tree(alignment, tree):
     """AS validation: ValueError if tip and seq names aren't same 
     """
     if set(tree.getTipNames()) != set(alignment.getSeqNames()):
@@ -1234,7 +1234,7 @@ def validate_tree(alignment,tree):
 ## End method-specific error checking functions
 
 ## General (opposed to algorithm-specific) validation functions
-def validate_position(alignment,position):
+def validate_position(alignment, position):
     """ValueError if position is outside the range of the alignment """
     if not 0 <= position < len(alignment):
         raise ValueError("Position is outside the range of the alignment: " + str(position))
@@ -1247,18 +1247,18 @@ def validate_alignment(alignment):
         if ambiguous_pos: bad_seqs.append(name)
     if bad_seqs:
         raise ValueError('Ambiguous characters in sequences: %s' \
-                         % '; '.join(map(str,bad_seqs)))
+                         % '; '.join(map(str, bad_seqs)))
 
-def coevolve_alignments_validation(method,alignment1,alignment2,\
-                                   min_num_seqs,max_num_seqs,**kwargs):
+def coevolve_alignments_validation(method, alignment1, alignment2,\
+                                   min_num_seqs, max_num_seqs, **kwargs):
     """ Validation steps required for intermolecular coevolution analyses
     """
     valid_methods_for_different_moltypes = {}.fromkeys(\
-        [mi_alignment,nmi_alignment,resampled_mi_alignment])
+        [mi_alignment, nmi_alignment, resampled_mi_alignment])
     if (alignment1.MolType != alignment2.MolType) and \
     method not in valid_methods_for_different_moltypes:
         raise AssertionError("Different MolTypes only supported for %s" %\
-                             ' '.join(map(str,list(valid_methods_for_different_moltypes.keys()))))  
+                             ' '.join(map(str, list(valid_methods_for_different_moltypes.keys()))))  
 
     alignment1_names = \
         set([n.split('+')[0].strip() for n in alignment1.Names])
@@ -1292,11 +1292,11 @@ def coevolve_alignments_validation(method,alignment1,alignment2,\
 
 # coevolve alignment functions: f(alignment,**kwargs) -> 2D array
 coevolve_alignment_functions = \
-    {'mi': mi_alignment,'nmi': normalized_mi_alignment,\
-     'rmi': resampled_mi_alignment,'sca': sca_alignment,\
-     'an':ancestral_state_alignment}
+    {'mi': mi_alignment, 'nmi': normalized_mi_alignment,\
+     'rmi': resampled_mi_alignment, 'sca': sca_alignment,\
+     'an': ancestral_state_alignment}
 
-def coevolve_alignment(method,alignment,**kwargs):
+def coevolve_alignment(method, alignment, **kwargs):
     """ Apply coevolution method to alignment (for intramolecular coevolution)
 
         method: f(alignment,**kwargs) -> 2D array of coevolution scores
@@ -1305,11 +1305,11 @@ def coevolve_alignment(method,alignment,**kwargs):
         **kwargs: parameters to be passed to method()
     """
     # Perform method specific validation steps
-    if method == sca_alignment: sca_input_validation(alignment,**kwargs)
+    if method == sca_alignment: sca_input_validation(alignment, **kwargs)
     if method == ancestral_state_alignment: 
-        ancestral_states_input_validation(alignment,**kwargs)
+        ancestral_states_input_validation(alignment, **kwargs)
     validate_alignment(alignment)
-    return method(alignment,**kwargs)
+    return method(alignment, **kwargs)
 
 ## End alignment-wide intramolecular coevolution analysis
 
@@ -1321,12 +1321,12 @@ def coevolve_alignment(method,alignment,**kwargs):
 # function is used, but the user shouldn't have to know anything about 
 # that.
 coevolve_alignment_to_coevolve_pair = \
-    {mi_alignment: mi_pair,normalized_mi_alignment: normalized_mi_pair,\
+    {mi_alignment: mi_pair, normalized_mi_alignment: normalized_mi_pair,\
      resampled_mi_alignment: resampled_mi_pair, sca_alignment: sca_pair,\
-     ancestral_state_alignment:ancestral_state_pair}
+     ancestral_state_alignment: ancestral_state_pair}
 
 
-def merge_alignments(alignment1,alignment2):
+def merge_alignments(alignment1, alignment2):
     """ Append alignment 2 to the end of alignment 1
 
         This function is used by coevolve_alignments to merge two alignments
@@ -1336,16 +1336,16 @@ def merge_alignments(alignment1,alignment2):
     # Created maps from the final seq ids (i.e., seq id before plus) to the
     # seq ids in the original alignments
     aln1_name_map = \
-    dict([(n.split('+')[0].strip(),n) for n in alignment1.Names])
+    dict([(n.split('+')[0].strip(), n) for n in alignment1.Names])
     aln2_name_map = \
-    dict([(n.split('+')[0].strip(),n) for n in alignment2.Names])
+    dict([(n.split('+')[0].strip(), n) for n in alignment2.Names])
 
     try:
-        for merged_name,orig_name in list(aln1_name_map.items()):
+        for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] = alignment1.getGappedSeq(orig_name) +\
                 alignment2.getGappedSeq(aln2_name_map[merged_name])
     except ValueError: # Differing MolTypes
-        for merged_name,orig_name in list(aln1_name_map.items()):
+        for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] =\
                 Sequence(alignment1.getGappedSeq(orig_name)) +\
                 Sequence(alignment2.getGappedSeq(aln2_name_map[merged_name]))
@@ -1353,9 +1353,9 @@ def merge_alignments(alignment1,alignment2):
         raise KeyError('A sequence identifier is in alignment2 ' +\
                        'but not alignment1 -- did you filter out sequences identifiers' +\
                        ' not common to both alignments?')
-    return LoadSeqs(data=result,aligned=DenseAlignment)
+    return LoadSeqs(data=result, aligned=DenseAlignment)
 
-def n_random_seqs(alignment,n):
+def n_random_seqs(alignment, n):
     """Given alignment, return n random seqs in a new alignment object.
 
         This function is used by coevolve_alignments.
@@ -1365,9 +1365,9 @@ def n_random_seqs(alignment,n):
     shuffle(seq_names)
     return alignment.takeSeqs(seq_names[:n]) 
 
-def coevolve_alignments(method,alignment1,alignment2,\
-                        return_full=False,merged_aln_filepath=None,min_num_seqs=2,\
-                        max_num_seqs=None,sequence_filter=n_random_seqs,**kwargs):
+def coevolve_alignments(method, alignment1, alignment2,\
+                        return_full=False, merged_aln_filepath=None, min_num_seqs=2,\
+                        max_num_seqs=None, sequence_filter=n_random_seqs, **kwargs):
     """ Apply method to a pair of alignments (for intermolecular coevolution)
 
         method: the *_alignment function to be applied
@@ -1444,21 +1444,21 @@ def coevolve_alignments(method,alignment1,alignment2,\
     """
     # Perform general validation step
     coevolve_alignments_validation(method,\
-                                   alignment1,alignment2,min_num_seqs,max_num_seqs,**kwargs)
+                                   alignment1, alignment2, min_num_seqs, max_num_seqs, **kwargs)
     # Append alignment 2 to the end of alignment 1 in a new alignment object
-    merged_alignment = merge_alignments(alignment1,alignment2)
+    merged_alignment = merge_alignments(alignment1, alignment2)
     validate_alignment(merged_alignment)
 
     if max_num_seqs and merged_alignment.getNumSeqs() > max_num_seqs:
         try:
-            merged_alignment = sequence_filter(merged_alignment,max_num_seqs)
+            merged_alignment = sequence_filter(merged_alignment, max_num_seqs)
         except TypeError:
             raise ValueError("Too many sequences for covariation analysis.")
 
     # If the user provided a filepath for the merged alignment, write it to
     # disk. This is sometimes useful for post-processing steps.
     if merged_aln_filepath:
-        merged_aln_file = open(merged_aln_filepath,'w')
+        merged_aln_file = open(merged_aln_filepath, 'w')
         merged_aln_file.write(merged_alignment.toFasta())
         merged_aln_file.close()
 
@@ -1468,7 +1468,7 @@ def coevolve_alignments(method,alignment1,alignment2,\
         # merged alignment. Calling coevolve_alignment ensures that
         # the correct validations are performed, rather than directly
         # calling method.
-        result = coevolve_alignment(method,merged_alignment,**kwargs)
+        result = coevolve_alignment(method, merged_alignment, **kwargs)
         return result
 
     ## Note: we only get here if the above if statement comes back False, 
@@ -1488,7 +1488,7 @@ def coevolve_alignments(method,alignment1,alignment2,\
     # the result object to be filled in.
     len_alignment1 = len(alignment1)
     len_alignment2 = len(alignment2)
-    result = array([[gDefaultNullValue]*len_alignment1]*len_alignment2)
+    result = array([[gDefaultNullValue] * len_alignment1] * len_alignment2)
 
     # Some of the methods run much faster if relevant data is computed once,
     # and passed in -- that is done here, but there is a lot of repeated code.
@@ -1499,31 +1499,31 @@ def coevolve_alignments(method,alignment1,alignment2,\
             [Freqs(p).Uncertainty for p in merged_alignment.Positions]
         for i in range(len_alignment1):
             for j in range(len_alignment2):
-                result[j,i] = \
-                    method(merged_alignment,j+len_alignment1,i,\
-                           h1=positional_entropies[j+len_alignment1],\
-                           h2=positional_entropies[i],**kwargs)
+                result[j, i] = \
+                    method(merged_alignment, j + len_alignment1, i,\
+                           h1=positional_entropies[j + len_alignment1],\
+                           h2=positional_entropies[i], **kwargs)
     elif method == ancestral_state_pair:    
         # Perform method-specific validations so we can safely work
         # directly with method rather than the coevolve_pair wrapper,
         # and thereby avoid validation steps on each call to method.
-        ancestral_states_input_validation(merged_alignment,**kwargs)
-        ancestral_seqs = get_ancestral_seqs(merged_alignment,kwargs['tree'])
+        ancestral_states_input_validation(merged_alignment, **kwargs)
+        ancestral_seqs = get_ancestral_seqs(merged_alignment, kwargs['tree'])
         for i in range(len_alignment1):
             for j in range(len_alignment2):
-                result[j,i] = \
+                result[j, i] = \
                     method(aln=merged_alignment,\
-                           pos1=j+len_alignment1,pos2=i,\
-                           ancestral_seqs=ancestral_seqs,**kwargs)
+                           pos1=j + len_alignment1, pos2=i,\
+                           ancestral_seqs=ancestral_seqs, **kwargs)
     else:
         # Perform method-specific validations so we can safely work
         # directly with method rather than the coevolve_pair wrapper,
         # and thereby avoid validation steps on each call to method.
-        if method == sca_pair: sca_input_validation(merged_alignment,**kwargs)
+        if method == sca_pair: sca_input_validation(merged_alignment, **kwargs)
         for i in range(len_alignment1):
             for j in range(len_alignment2):
-                result[j,i] = \
-                    method(merged_alignment,j+len_alignment1,i,**kwargs)
+                result[j, i] = \
+                    method(merged_alignment, j + len_alignment1, i, **kwargs)
     return result
 
 
@@ -1532,11 +1532,11 @@ def coevolve_alignments(method,alignment1,alignment2,\
 ## Start positional coevolution analysis
 # coevolve position functions: f(alignment,position,**kwargs) -> 1D array
 coevolve_position_functions = \
-    {'mi': mi_position,'nmi': normalized_mi_position,\
-     'rmi': resampled_mi_position,'sca': sca_position,\
-     'an':ancestral_state_position}
+    {'mi': mi_position, 'nmi': normalized_mi_position,\
+     'rmi': resampled_mi_position, 'sca': sca_position,\
+     'an': ancestral_state_position}
 
-def coevolve_position(method,alignment,position,**kwargs):
+def coevolve_position(method, alignment, position, **kwargs):
     """ Apply provided coevolution method to a column in alignment 
 
         method: f(alignment,position,**kwargs) -> array of coevolution scores
@@ -1546,25 +1546,25 @@ def coevolve_position(method,alignment,position,**kwargs):
         **kwargs: parameters to be passed to method()
     """
     # Perform method-specific validation steps
-    if method == sca_position: sca_input_validation(alignment,**kwargs)
+    if method == sca_position: sca_input_validation(alignment, **kwargs)
     if method == ancestral_state_position: 
-        ancestral_states_input_validation(alignment,**kwargs)
+        ancestral_states_input_validation(alignment, **kwargs)
     # Perform general validation steps
-    validate_position(alignment,position)
+    validate_position(alignment, position)
     validate_alignment(alignment)
     # Perform the analysis and return the result vector
-    return method(alignment,position=position,**kwargs)
+    return method(alignment, position=position, **kwargs)
 
 ## End positional coevolution analysis
 
 ## Start pairwise coevolution analysis
 # coevolve pair functions: f(alignment,pos1,pos2,**kwargs) -> float
 coevolve_pair_functions = \
-    {'mi': mi_pair,'nmi': normalized_mi_pair,\
-     'rmi': resampled_mi_pair,'sca': sca_pair,\
-     'an':ancestral_state_pair}
+    {'mi': mi_pair, 'nmi': normalized_mi_pair,\
+     'rmi': resampled_mi_pair, 'sca': sca_pair,\
+     'an': ancestral_state_pair}
 
-def coevolve_pair(method,alignment,pos1,pos2,**kwargs):
+def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
     """ Apply provided coevolution method to columns pos1 & pos2 of alignment 
 
         method: f(alignment,pos1,pos2,**kwargs) -> coevolution score
@@ -1575,15 +1575,15 @@ def coevolve_pair(method,alignment,pos1,pos2,**kwargs):
 
     """
     # Perform method-specific validation steps
-    if method == sca_pair: sca_input_validation(alignment,**kwargs)
+    if method == sca_pair: sca_input_validation(alignment, **kwargs)
     if method == ancestral_state_pair: 
-        ancestral_states_input_validation(alignment,**kwargs)
+        ancestral_states_input_validation(alignment, **kwargs)
     # Perform general validation steps
-    validate_position(alignment,pos1)
-    validate_position(alignment,pos2)
+    validate_position(alignment, pos1)
+    validate_position(alignment, pos2)
     validate_alignment(alignment)
     # Perform the analysis and return the result score
-    return method(alignment,pos1=pos1,pos2=pos2,**kwargs)
+    return method(alignment, pos1=pos1, pos2=pos2, **kwargs)
 
 ## End pairwise coevolution analysis    
 ### End methods for running coevolutionary analyses on sequence data
@@ -1592,8 +1592,8 @@ def coevolve_pair(method,alignment,pos1,pos2,**kwargs):
 ## Coevolution matrix filters: the following functions are used as 
 ## post-processing filters for coevolution result matrices.
 
-def filter_threshold_based_multiple_interdependency(aln,coevolution_matrix,
-                                                    threshold=0.95,max_cmp_threshold=1,cmp_function=greater_equal,\
+def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
+                                                    threshold=0.95, max_cmp_threshold=1, cmp_function=greater_equal,\
                                                     intermolecular_data_only=False):
     """Filters positions with more than max_cmp_threshold scores >= threshold
 
@@ -1641,8 +1641,8 @@ def filter_threshold_based_multiple_interdependency(aln,coevolution_matrix,
     filtered_rows = []
     for row_n in range(coevolution_matrix.shape[0]):
         count_cmp_threshold = 0
-        for v in coevolution_matrix[row_n,:]:
-            if v != gDefaultNullValue and cmp_function(v,threshold):
+        for v in coevolution_matrix[row_n, :]:
+            if v != gDefaultNullValue and cmp_function(v, threshold):
                 count_cmp_threshold += 1
                 if count_cmp_threshold > max_cmp_threshold:
                     filtered_rows.append(row_n)
@@ -1653,29 +1653,29 @@ def filter_threshold_based_multiple_interdependency(aln,coevolution_matrix,
         filtered_cols = []
         for col_n in range(coevolution_matrix.shape[1]):
             count_cmp_threshold = 0
-            for v in coevolution_matrix[:,col_n]:
-                if v != gDefaultNullValue and cmp_function(v,threshold):
+            for v in coevolution_matrix[:, col_n]:
+                if v != gDefaultNullValue and cmp_function(v, threshold):
                     count_cmp_threshold += 1
                     if count_cmp_threshold > max_cmp_threshold:
                         filtered_cols.append(col_n)
                         break
         # filter the rows and cols in a non-symmetric matrix
         for row_n in filtered_rows:
-            coevolution_matrix[row_n,:] = gDefaultNullValue
+            coevolution_matrix[row_n, :] = gDefaultNullValue
         for col_n in filtered_cols:
-            coevolution_matrix[:,col_n] = gDefaultNullValue
+            coevolution_matrix[:, col_n] = gDefaultNullValue
     else:
         # filter the rows and cols in a symmetric matrix
         for row_n in filtered_rows:
-            coevolution_matrix[row_n,:] =\
-                coevolution_matrix[:,row_n] = gDefaultNullValue
+            coevolution_matrix[row_n, :] =\
+                coevolution_matrix[:, row_n] = gDefaultNullValue
 
     # return the result
     return coevolution_matrix
 
 
-def is_parsimony_informative(column_freqs,minimum_count=2,\
-                             minimum_differences=2,ignored=gDefaultExcludes,strict=False):
+def is_parsimony_informative(column_freqs, minimum_count=2,\
+                             minimum_differences=2, ignored=gDefaultExcludes, strict=False):
     """Return True is aln_position is parsimony informative
 
         column_freqs: dict of characters at alignmnet position mapped
@@ -1741,9 +1741,9 @@ def is_parsimony_informative(column_freqs,minimum_count=2,\
             return False
     return count_gte_minimum >= minimum_differences
 
-def filter_non_parsimony_informative(aln,coevolution_matrix,\
-                                     null_value=gDefaultNullValue,minimum_count=2,minimum_differences=2,\
-                                     ignored=gDefaultExcludes,intermolecular_data_only=False,strict=False):
+def filter_non_parsimony_informative(aln, coevolution_matrix,\
+                                     null_value=gDefaultNullValue, minimum_count=2, minimum_differences=2,\
+                                     ignored=gDefaultExcludes, intermolecular_data_only=False, strict=False):
     """ Replaces scores in coevolution_matrix with null_value for positions
          which are not parsimony informative. 
 
@@ -1760,17 +1760,17 @@ def filter_non_parsimony_informative(aln,coevolution_matrix,\
         len_aln1 = coevolution_matrix.shape[1]
     column_frequencies = aln.columnFreqs()
     for i in range(len(column_frequencies)):
-        if not is_parsimony_informative(column_frequencies[i],minimum_count,\
-                                        minimum_differences,ignored,strict):
+        if not is_parsimony_informative(column_frequencies[i], minimum_count,\
+                                        minimum_differences, ignored, strict):
             if not intermolecular_data_only:
-                coevolution_matrix[i,:] = coevolution_matrix[:,i] = null_value
+                coevolution_matrix[i, :] = coevolution_matrix[:, i] = null_value
             else:
                 try:
-                    coevolution_matrix[:,i] = null_value
+                    coevolution_matrix[:, i] = null_value
                 except IndexError:
-                    coevolution_matrix[i-len_aln1,:] = null_value
+                    coevolution_matrix[i - len_aln1, :] = null_value
 
-def make_positional_exclude_percentage_function(excludes,max_exclude_percent):
+def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
     """ return function to identify aln positions with > max_exclude_percent 
     """
     excludes = {}.fromkeys(excludes)
@@ -1782,9 +1782,9 @@ def make_positional_exclude_percentage_function(excludes,max_exclude_percent):
         return exclude_count / len(col) > max_exclude_percent
     return f
 
-def filter_exclude_positions(aln,coevolution_matrix,\
-                             max_exclude_percent=0.1,null_value=gDefaultNullValue,\
-                             excludes=gDefaultExcludes,intermolecular_data_only=False):
+def filter_exclude_positions(aln, coevolution_matrix,\
+                             max_exclude_percent=0.1, null_value=gDefaultNullValue,\
+                             excludes=gDefaultExcludes, intermolecular_data_only=False):
     """ Assign null_value to positions with > max_exclude_percent excludes
 
         aln: the DenseAlignment object
@@ -1802,7 +1802,7 @@ def filter_exclude_positions(aln,coevolution_matrix,\
     """
     # construct the function to be passed to aln.getPositionIndices
     f = make_positional_exclude_percentage_function(\
-        excludes,max_exclude_percent)
+        excludes, max_exclude_percent)
     # identify the positions containing too many exclude characters
     exclude_positions = aln.getPositionIndices(f)
 
@@ -1811,21 +1811,21 @@ def filter_exclude_positions(aln,coevolution_matrix,\
         # if working with intramolecular data (or inter + intra molecular data)
         # this is easy
         for p in exclude_positions:
-            coevolution_matrix[p,:] = coevolution_matrix[:,p] = null_value
+            coevolution_matrix[p, :] = coevolution_matrix[:, p] = null_value
     else:
         # if working with intermolecular data only, this is more complicated --
         # must convert from alignment positions to matrix positions
         len_aln1 = coevolution_matrix.shape[1]
         for p in exclude_positions:
             try:
-                coevolution_matrix[:,p] = null_value
+                coevolution_matrix[:, p] = null_value
             except IndexError:
-                coevolution_matrix[p-len_aln1,:] = null_value
+                coevolution_matrix[p - len_aln1, :] = null_value
 
 ## Functions for archiving/retrieiving coevolve results
 #### These functions are extremely general -- should they go 
 #### somewhere else, or should I be using pre-existing code?
-def pickle_coevolution_result(coevolve_result,out_filepath='output.pkl'):
+def pickle_coevolution_result(coevolve_result, out_filepath='output.pkl'):
     """ Pickle coevolve_result and store it at output_filepath 
 
         coevolve_result: result from a coevolve_* function (above); this can
@@ -1854,14 +1854,14 @@ def unpickle_coevolution_result(in_filepath):
         u = Unpickler(infile)
     except IOError:
         err = \
-            "Can't access filepath. Does it exist? Do you have read access? "+\
+            "Can't access filepath. Does it exist? Do you have read access? " +\
             in_filepath
         raise IOError(err)
     r = u.load()
     infile.close()
     return r
 
-def coevolution_matrix_to_csv(coevolve_matrix,out_filepath='output.csv'):
+def coevolution_matrix_to_csv(coevolve_matrix, out_filepath='output.csv'):
     """ Write coevolve_matrix as csv file at output_filepath 
 
         coevolve_result: result from a coevolve_alignment function (above);
@@ -1869,7 +1869,7 @@ def coevolution_matrix_to_csv(coevolve_matrix,out_filepath='output.csv'):
         out_filepath: path where the csv result should be stored
     """
     try:
-        f = open(out_filepath,'w')
+        f = open(out_filepath, 'w')
     except IOError:
         err = "Can't access filepath. Do you have write access? " + \
             out_filepath
@@ -1888,13 +1888,13 @@ def csv_to_coevolution_matrix(in_filepath):
         f = open(in_filepath)
     except IOError:
         err = \
-            "Can't access filepath. Does it exist? Do you have read access? "+\
+            "Can't access filepath. Does it exist? Do you have read access? " +\
             in_filepath
         raise IOError(err)
     result = []
     for line in f:
         values = line.strip().split(',')
-        result.append(list(map(float,values)))
+        result.append(list(map(float, values)))
     f.close()
     return array(result)
 
@@ -1904,8 +1904,8 @@ def csv_to_coevolution_matrix(in_filepath):
 
 ## Start functions for analyzing the results of a coevolution run.
 
-def identify_aln_positions_above_threshold(coevolution_matrix,threshold,\
-                                           aln_position,null_value=gDefaultNullValue):
+def identify_aln_positions_above_threshold(coevolution_matrix, threshold,\
+                                           aln_position, null_value=gDefaultNullValue):
     """ Returns the list of alignment positions which achieve a 
         score >= threshold with aln_position. 
         Coevolution matrix should be symmetrical or you
@@ -1921,7 +1921,7 @@ def identify_aln_positions_above_threshold(coevolution_matrix,threshold,\
     return results
 
 def aln_position_pairs_cmp_threshold(coevolution_matrix,\
-                                     threshold,cmp_function,null_value=gDefaultNullValue,\
+                                     threshold, cmp_function, null_value=gDefaultNullValue,\
                                      intermolecular_data_only=False):
     """ Returns list of position pairs with score >= threshold 
 
@@ -1939,36 +1939,36 @@ def aln_position_pairs_cmp_threshold(coevolution_matrix,\
             "Non-square matrices only supported for intermolecular-only data."
     results = []
     # compile the matrix positions with cmp(value,threshold) == True
-    for i,row in enumerate(coevolution_matrix):
-        for j,value in enumerate(row):
-            if value != null_value and cmp_function(value,threshold):
-                results.append((i,j))
+    for i, row in enumerate(coevolution_matrix):
+        for j, value in enumerate(row):
+            if value != null_value and cmp_function(value, threshold):
+                results.append((i, j))
 
     # if working with intermolecular data only, need to convert 
     # matrix positions to alignment positions
     if intermolecular_data_only: 
         # convert matrix positions to alignment positions
         adjustment = coevolution_matrix.shape[1]
-        results = [(j,i+adjustment) for i,j in results]
+        results = [(j, i + adjustment) for i, j in results]
     return results
 
 def aln_position_pairs_ge_threshold(coevolution_matrix,\
-                                    threshold,null_value=gDefaultNullValue,\
+                                    threshold, null_value=gDefaultNullValue,\
                                     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(\
-        coevolution_matrix,threshold,greater_equal,null_value,intermolecular_data_only)
+        coevolution_matrix, threshold, greater_equal, null_value, intermolecular_data_only)
 
 def aln_position_pairs_le_threshold(coevolution_matrix,\
-                                    threshold,null_value=gDefaultNullValue,\
+                                    threshold, null_value=gDefaultNullValue,\
                                     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(\
-        coevolution_matrix,threshold,less_equal,\
-        null_value,intermolecular_data_only)
+        coevolution_matrix, threshold, less_equal,\
+        null_value, intermolecular_data_only)
 
-def count_cmp_threshold(m,threshold,cmp_function,null_value=gDefaultNullValue,\
-                        symmetric=False,ignore_diagonal=False):
+def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue,\
+                        symmetric=False, ignore_diagonal=False):
     """ Returns a count of the values in m >= threshold, ignoring nulls.
 
         m: coevolution matrix (numpy array) 
@@ -1981,7 +1981,7 @@ def count_cmp_threshold(m,threshold,cmp_function,null_value=gDefaultNullValue,\
     total_hits = 0
     if not symmetric:
         if ignore_diagonal:
-            values = [m[i,j] \
+            values = [m[i, j] \
                       for i in range(m.shape[0]) \
                       for j in range(m.shape[1]) \
                       if i != j]
@@ -1993,10 +1993,10 @@ def count_cmp_threshold(m,threshold,cmp_function,null_value=gDefaultNullValue,\
             # sets the upper triangle to zero -- if i could get it to set
             # that to null_value, and then apply flat, that'd be fine.
             #values = tril(m,-1)
-            values = [m[i,j] for i in range(len(m)) for j in range(i)]
+            values = [m[i, j] for i in range(len(m)) for j in range(i)]
         else:
             #values = tril(m)
-            values = [m[i,j] for i in range(len(m)) for j in range(i+1)]
+            values = [m[i, j] for i in range(len(m)) for j in range(i + 1)]
 
     if isnan(null_value):
         def is_not_null_value(v):
@@ -2012,17 +2012,17 @@ def count_cmp_threshold(m,threshold,cmp_function,null_value=gDefaultNullValue,\
                 total_hits += 1
     return total_hits, total_non_null
 
-def count_ge_threshold(m,threshold,null_value=gDefaultNullValue,\
-                       symmetric=False,ignore_diagonal=False):
+def count_ge_threshold(m, threshold, null_value=gDefaultNullValue,\
+                       symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
-    return count_cmp_threshold(m,threshold,greater_equal,null_value,\
-                               symmetric,ignore_diagonal)
+    return count_cmp_threshold(m, threshold, greater_equal, null_value,\
+                               symmetric, ignore_diagonal)
 
-def count_le_threshold(m,threshold,null_value=gDefaultNullValue,\
-                       symmetric=False,ignore_diagonal=False):
+def count_le_threshold(m, threshold, null_value=gDefaultNullValue,\
+                       symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
-    return count_cmp_threshold(m,threshold,less_equal,null_value,\
-                               symmetric,ignore_diagonal)
+    return count_cmp_threshold(m, threshold, less_equal, null_value,\
+                               symmetric, ignore_diagonal)
 
 def ltm_to_symmetric(m):
     """ Copies values from lower triangle to upper triangle"""
@@ -2031,7 +2031,7 @@ def ltm_to_symmetric(m):
 
     for i in range(len(m)):
         for j in range(i):
-            m[j,i] = m[i,j]
+            m[j, i] = m[i, j]
     return m
 
 
@@ -2041,7 +2041,7 @@ def ltm_to_symmetric(m):
 
 ## Script functionality
 def build_coevolution_matrix_filepath(input_filepath,\
-                                      output_dir='./',method=None,alphabet=None,parameter=None):
+                                      output_dir='./', method=None, alphabet=None, parameter=None):
     """ Build filepath from input filename, output dir, and list of suffixes
 
         input_filepath: filepath to be used for generating the output
@@ -2070,15 +2070,15 @@ def build_coevolution_matrix_filepath(input_filepath,\
         try:
             cutoff_str = str(parameter)
             point_index = cutoff_str.rindex('.')
-            method = '_'.join([method,cutoff_str[point_index+1:point_index+4]])
+            method = '_'.join([method, cutoff_str[point_index + 1:point_index + 4]])
         except ValueError:
             raise ValueError('Cutoff must be provided when method == \'sca\'')
 
-    suffixes = [_f for _f in [alphabet,method] if _f]
+    suffixes = [_f for _f in [alphabet, method] if _f]
 
     # strip path
     try:
-        result = input_filepath[input_filepath.rindex('/')+1:]
+        result = input_filepath[input_filepath.rindex('/') + 1:]
     except ValueError:
         result = input_filepath
     # strip final suffix
@@ -2088,11 +2088,11 @@ def build_coevolution_matrix_filepath(input_filepath,\
         pass
     # append output path
     if output_dir.endswith('/'):
-        result = ''.join([output_dir,result])
+        result = ''.join([output_dir, result])
     else:
-        result = ''.join([output_dir,'/',result])
+        result = ''.join([output_dir, '/', result])
     # append output suffixes
-    result = '.'.join([_f for _f in [result]+suffixes if _f])
+    result = '.'.join([_f for _f in [result] + suffixes if _f])
 
     return result
 
@@ -2125,5 +2125,5 @@ def parse_coevolution_matrix_filepath(filepath):
     except IndexError:
         raise ValueError('output filepath not in parsable format: %s. See doc string for format definition.' % filepath)
 
-    return (alignment_id,alphabet_id,method_id)
+    return (alignment_id, alphabet_id, method_id)
 

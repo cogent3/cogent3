@@ -46,7 +46,7 @@ def MsfParser(f):
     for name in sequences:
         if len(sequences[name]) != seqinfo[name]:
             warnings.warn("Length of loaded seqs [%s] is [%s] not "\
-                          "[%s] as expected." % (name,len(sequences[name]),seqinfo[name]))
+                          "[%s] as expected." % (name, len(sequences[name]), seqinfo[name]))
 
     #yield sequences
     for name in sequences:

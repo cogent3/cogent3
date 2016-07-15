@@ -24,10 +24,10 @@ class TestIntegratingExponentiator(TestCase):
         and should work for different choices of R and exponentiatior."""
         # Result from Von Bing's R code
         result = 0.7295333
-        q = array([[0.5, 0.2, 0.1, 0.2]]*4)
+        q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(q[i, ])
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VanLoanIntegratingExponentiator(q, -diag(q))(1.0)
@@ -39,14 +39,14 @@ class TestIntegratingExponentiator(TestCase):
 
         Q = array([[1., 1.], [0., 1.]])
         def integral(t):
-            return array([[exp(t)-1., exp(t)*(t-1.)+1.], [0., exp(t)-1.]])
+            return array([[exp(t) - 1., exp(t) * (t - 1.) + 1.], [0., exp(t) - 1.]])
 
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(1.),
                               integral(1.))
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q)(2.),
                               integral(2.))
 
-        R = array([[1.],[1.]])
+        R = array([[1.], [1.]])
         self.assertFloatEqual(expm.VanLoanIntegratingExponentiator(Q, R,
                                                                    cmme.TaylorExponentiator)(1.), dot(integral(1.), R))
 
@@ -57,10 +57,10 @@ class TestIntegratingExponentiator(TestCase):
         a diagonisable matrix."""
         # Result from Von Bing's R code.
         result = 0.7295333
-        q = array([[0.5, 0.2, 0.1, 0.2]]*4)
+        q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(q[i, ])
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VonBingIntegratingExponentiator(q)(1.0)
@@ -70,10 +70,10 @@ class TestIntegratingExponentiator(TestCase):
                           expm.VonBingIntegratingExponentiator,
                           array([[1., 1.], [0., 1.]]))
 
-        p = array([[ 0.86758487,  0.05575623,  0.0196798 ,  0.0569791 ],
-                   [ 0.01827347,  0.93312148,  0.02109664,  0.02750842],
-                   [ 0.04782582,  0.1375742 ,  0.80046869,  0.01413129],
-                   [ 0.23022035,  0.22306947,  0.06995306,  0.47675713]])
+        p = array([[0.86758487, 0.05575623, 0.0196798, 0.0569791],
+                   [0.01827347, 0.93312148, 0.02109664, 0.02750842],
+                   [0.04782582, 0.1375742, 0.80046869, 0.01413129],
+                   [0.23022035, 0.22306947, 0.06995306, 0.47675713]])
 
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(1.),
                               expm.VanLoanIntegratingExponentiator(p,

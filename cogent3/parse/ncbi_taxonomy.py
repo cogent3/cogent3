@@ -20,34 +20,34 @@ class MissingParentError(Exception):
 
 #Note: numbers not guaranteed to be consistent if new taxa are invented...
 RanksToNumbers = {
-    'forma':1,
-    'varietas':2,
-    'subspecies':3,
-    'species':4,
-    'species subgroup':5,
-    'species group':6,
-    'subgenus':7,
-    'genus':8,
-    'subtribe':9,
-    'tribe':10,
-    'subfamily':11,
-    'family':12,
-    'superfamily':13,
-    'parvorder':14,
-    'infraorder':15,
-    'suborder':16,
-    'order':17,
-    'superorder':18,
-    'infraclass':19,
-    'subclass':20,
-    'class':21,
-    'superclass':22,
-    'subphylum':23,
-    'phylum':24,
-    'superphylum':25,
-    'kingdom':26,
-    'superkingdom':27,
-    'no rank':28,
+    'forma': 1,
+    'varietas': 2,
+    'subspecies': 3,
+    'species': 4,
+    'species subgroup': 5,
+    'species group': 6,
+    'subgenus': 7,
+    'genus': 8,
+    'subtribe': 9,
+    'tribe': 10,
+    'subfamily': 11,
+    'family': 12,
+    'superfamily': 13,
+    'parvorder': 14,
+    'infraorder': 15,
+    'suborder': 16,
+    'order': 17,
+    'superorder': 18,
+    'infraclass': 19,
+    'subclass': 20,
+    'class': 21,
+    'superclass': 22,
+    'subphylum': 23,
+    'phylum': 24,
+    'superphylum': 25,
+    'kingdom': 26,
+    'superkingdom': 27,
+    'no rank': 28,
 }
 
 @total_ordering
@@ -94,7 +94,7 @@ class NcbiTaxon(object):
 
     def __str__(self):
         """Writes data out in format we got it."""
-        pieces = [str(getattr(self,f)) for f in self.Fields]
+        pieces = [str(getattr(self, f)) for f in self.Fields]
         #remember to set the parent of the root to itself
         if pieces[1] == 'None':
             pieces[1] = pieces[0]

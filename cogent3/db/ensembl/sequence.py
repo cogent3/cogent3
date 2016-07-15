@@ -30,7 +30,7 @@ def _assemble_seq(frags, start, end, frag_positions):
         diff = frag_start - prev_end
         assert diff >= 0, 'fragment position start < previous end: %s, %s' %\
         (frag_start, prev_end)
-        assembled += ['N'*diff, frags[index]]
+        assembled += ['N' * diff, frags[index]]
         prev_end = frag_end
     diff = end - frag_end
     assert diff >= 0, 'end[%s] < previous frag_end[%s]' % (end, frag_end)
@@ -45,12 +45,12 @@ def _make_coord(genome, coord_name, start, end, strand):
 
 def get_lower_coord_conversion(coord, species, core_db):
     coord_system = CoordSystem(species=species, core_db=core_db)
-    seq_level_coord_type = CoordSystem(species=species,core_db=core_db,
+    seq_level_coord_type = CoordSystem(species=species, core_db=core_db,
                                        seq_level=True)
     query_rank = coord_system[coord.CoordType].rank
     seq_level_rank = coord_system[seq_level_coord_type].rank
     assemblies = None
-    for rank in range(query_rank+1, seq_level_rank):
+    for rank in range(query_rank + 1, seq_level_rank):
         coord_type = None
         for key in list(coord_system.keys()):
             if coord_system[key].rank == rank:
@@ -74,11 +74,11 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
     # no matter what strand user provide, we get the + sequence first
     coord.Strand = 1
     species = genome.Species
-    coord_type = CoordSystem(species=species,core_db=genome.CoreDb,
+    coord_type = CoordSystem(species=species, core_db=genome.CoreDb,
                              seq_level=True)
 
     if DEBUG:
-        print('Created Coordinate:',coord,coord.EnsemblStart,coord.EnsemblEnd)
+        print('Created Coordinate:', coord, coord.EnsemblStart, coord.EnsemblEnd)
         print(coord.CoordType, coord_type)
 
     assemblies = get_coord_conversion(coord, coord_type, genome.CoreDb)

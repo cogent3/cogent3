@@ -51,7 +51,7 @@ class TestFeatureCoordLevels(TestCase):
         coord = dict(CoordName=9, Start=21727352, End=21729141)
         region = self.chicken.getRegion(**coord)
         # repeat is recorded at contig level, strand is 0
-        repeats = region.getFeatures(feature_types = 'repeat')
+        repeats = region.getFeatures(feature_types='repeat')
         expect = [("9", 21727499, 21727527), ("9", 21728009, 21728018),
                   ("9", 21728169, 21728178)]
         obs = []

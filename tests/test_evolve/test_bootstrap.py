@@ -40,26 +40,26 @@ def float_ge_zero(num, epsilon=1e-6):
 
 class BootstrapTests(unittest.TestCase):
     def gettree(self):
-        treeobj = LoadTree(filename=os.path.join(data_path,"murphy.tree"))
+        treeobj = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
 
         return treeobj.getSubTree(seqnames)
 
-    def getsubmod(self,choice = 'F81'):
+    def getsubmod(self, choice='F81'):
         if choice == 'F81':
             return substitution_model.Nucleotide(model_gaps=True)
         else:
             return substitution_model.Nucleotide(
                 model_gaps=True,
-                predicates = {'kappa':'transition'})
+                predicates={'kappa': 'transition'})
 
     def getalignmentobj(self):
         moltype = self.getsubmod().MolType
         alignmentobj = LoadSeqs(
-            filename = os.path.join(data_path, "brca1.fasta"),
-            moltype = moltype)
+            filename=os.path.join(data_path, "brca1.fasta"),
+            moltype=moltype)
         return alignmentobj.takeSeqs(seqnames)[:1000]
 
-    def getcontroller(self,treeobj, submodobj):
+    def getcontroller(self, treeobj, submodobj):
         return submodobj.makeParamController(treeobj)
 
     def create_null_controller(self, alignobj):
@@ -73,7 +73,7 @@ class BootstrapTests(unittest.TestCase):
         controller.setLocalClock('Human', 'Chimpanzee')
         return controller
 
-    def create_alt_controller(self,alignobj):
+    def create_alt_controller(self, alignobj):
         """An alternative model controller. Chimp/Human
         branches are free to vary."""
 

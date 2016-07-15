@@ -59,7 +59,7 @@ class _Tokeniser(object):
         if column > 30:
             sample = "..." + sample[-20:]
         if line > 0:
-            msg += 'line %s:%s "%s"' % (line+1, column, sample)
+            msg += 'line %s:%s "%s"' % (line + 1, column, sample)
         else:
             msg += 'char %s "%s"' % (column, sample)
         return TreeParseError(msg + '. ' + detail)
@@ -71,7 +71,7 @@ class _Tokeniser(object):
         text = None
         closing_quote_token = None
         in_comment = False
-        for token in re.split("""([\\t ]+|\\n|''|""|[]['"(),:;])""", self.text)+[EOT]:
+        for token in re.split("""([\\t ]+|\\n|''|""|[]['"(),:;])""", self.text) + [EOT]:
             label_complete = False
             token_consumed = True
             self.token = token
@@ -94,7 +94,7 @@ class _Tokeniser(object):
                     label_complete = True
                     closing_quote_token = None
                 else:
-                    if token == closing_quote_token*2:
+                    if token == closing_quote_token * 2:
                         token = token[0]
                     text += token
             elif token is EOT or token in '\n[():,;':
@@ -193,5 +193,5 @@ def parse_string(text, constructor, **kw):
                 raise tokeniser.error("Name should come before length.")
             name = token
     assert not stack, stack
-    assert len(nodes) ==  1, len(nodes)
+    assert len(nodes) == 1, len(nodes)
     return nodes[0]

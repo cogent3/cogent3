@@ -29,16 +29,16 @@ def PamlMatrixParser(f):
     frequencies in the format used by PAML and returns a symetric array in single
     letter alphabetical order and a dictionary of frequencies for use by
     substitution_model.EmpiricalProteinMatrix"""
-    matrix = numpy.zeros([20,20], Float)
+    matrix = numpy.zeros([20, 20], Float)
     next_number = numbers_in(f).__next__
-    for row in range(1,20):
+    for row in range(1, 20):
         for col in range(0, row):
-            matrix[row,col] = matrix[col,row] = next_number()
+            matrix[row, col] = matrix[col, row] = next_number()
 
     freqs = [next_number() for i in range(20)]
     total = sum(freqs)
-    assert abs(total-1) < 0.001, freqs
-    freqs = [freq/total for freq in freqs]
+    assert abs(total - 1) < 0.001, freqs
+    freqs = [freq / total for freq in freqs]
 
     matrix = numpy.take(matrix, reorder, 0)
     matrix = numpy.take(matrix, reorder, 1)

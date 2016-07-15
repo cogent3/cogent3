@@ -12,7 +12,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
 Release = 23
-account = HostAccount('mysql-eg-publicsql.ebi.ac.uk','anonymous', '', port=4157)
+account = HostAccount('mysql-eg-publicsql.ebi.ac.uk', 'anonymous', '', port=4157)
 
 class MZ_ComparaTestBase(TestCase):
     comp = Compara(['D.grimshawi', 'D.melanogaster'], Release=Release,
@@ -39,14 +39,14 @@ class MZ_TestCompara(MZ_ComparaTestBase):
             StableId='FBgn0050169')
         orthologs = self.comp.getRelatedGenes(gene_region=brca2,
                                               Relationship='ortholog_one2one')
-        self.assertEqual(len(orthologs.Members),2)
+        self.assertEqual(len(orthologs.Members), 2)
 
     def test_get_collection(self):
         sc35 = self.comp.Dmelanogaster.getGeneByStableId(StableId="FBgn0040286")
         Orthologs = self.comp.getRelatedGenes(gene_region=sc35,
                                               Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
-        self.assertTrue(len(collection.Seqs[0])> 1000)
+        self.assertTrue(len(collection.Seqs[0]) > 1000)
 
 class MZ_Genome(TestCase):
     def test_get_general_release(self):

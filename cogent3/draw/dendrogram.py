@@ -44,7 +44,7 @@ to_rgb = matplotlib.colors.colorConverter.to_rgb
 
 def _sign(x):
     """Returns True if x is positive, False otherwise."""
-    return x and x/abs(x)
+    return x and x / abs(x)
 
 def _first_non_none(values):
     for item in values:
@@ -56,7 +56,7 @@ def SimpleColormap(color0, color1, name=None):
     c0 = to_rgb(color0)
     c1 = to_rgb(color1)
     cn = ['red', 'green', 'blue']
-    d = dict((n,[(0,s,s),(1,e,e)]) for (n,s,e) in zip(cn, c0, c1))
+    d = dict((n, [(0, s, s), (1, e, e)]) for (n, s, e) in zip(cn, c0, c1))
     return matplotlib.colors.LinearSegmentedColormap(name, d)
 
 class ScalarColormapShading(object):
@@ -89,7 +89,7 @@ class ScalarColormapShading(object):
             return "grey"
         else:
             value_to_show = max(min(value, self.max_val), self.min_val)
-            normed = (value_to_show-self.min_val)/(self.max_val-self.min_val)
+            normed = (value_to_show - self.min_val) / (self.max_val - self.min_val)
             color = self.cmap(normed)
             return color    
 
@@ -128,14 +128,14 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
     highlight_color = to_rgb(highlight_color)
 
     if edge_color_callback is not None:
-        return lambda edge:edge_color_callback(edge)
+        return lambda edge: edge_color_callback(edge)
     elif shade_param:
         if cmap is None:
             cmap = SimpleColormap(edge_color, highlight_color)
         return ScalarColormapShading(
             shade_param, min_value, max_value, cmap)
     else:
-        return lambda edge:edge_color
+        return lambda edge: edge_color
 
 
 class MatplotlibRenderer(object):
@@ -168,7 +168,7 @@ class MatplotlibRenderer(object):
         if edge is not None:
             opts['edgecolor'] = self.edge_color(edge)
         path = Path([(x1, y1), (x2, y2)], [Path.MOVETO, Path.LINETO])
-        return PathPatch(path,  **opts)
+        return PathPatch(path, **opts)
 
     def polygon(self, vertices, color):
         opts = self.line_opts.copy()
@@ -199,7 +199,7 @@ class DendrogramLabelStyle(object):
                         label_template = "%%(%s)s" % show_params[0]
                     else:
                         label_template = "\n".join(
-                            ["%s: %%(%s)s" % (p,p) for p in show_params])
+                            ["%s: %%(%s)s" % (p, p) for p in show_params])
                 elif show_params:
                     label_template = "%s"
                 else:
@@ -295,8 +295,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             for c in children:
                 c.updateGeometry(use_lengths, self.depth, track_coordinates)
             self.height = max([c.height for c in children]) + self.length
-            self.leafcount  = sum([c.leafcount for c in children])
-            self.edgecount  = sum([c.edgecount for c in children]) + 1
+            self.leafcount = sum([c.leafcount for c in children])
+            self.edgecount = sum([c.edgecount for c in children]) + 1
             self.longest_label = max([c.longest_label for c in children],
                                      key=len)
         else:
@@ -318,7 +318,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         return result
 
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
-        (width, height),posn,kw = rlg2mpl.figureLayout(width, height, margin=0,
+        (width, height), posn, kw = rlg2mpl.figureLayout(width, height, margin=0,
                                                        default_aspect=0.5, leftovers=True, **kw)
         fig = self._makeFigure(width, height)
         ax = fig.add_axes(posn, frameon=False)
@@ -335,7 +335,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if use_lengths and self.aspect_distorts_lengths:
             ax.set_aspect('equal')
         g = self.asArtist(width, height, use_lengths=use_lengths, 
-                          margin=margin*72, **kw)
+                          margin=margin * 72, **kw)
         ax.add_artist(g)
         return fig
 
@@ -365,7 +365,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             raise ValueError('%spt not wide enough for ""%s"' %
                              (width, self.longest_label))
 
-        scale = self.updateCoordinates(width-total_label_width, height)
+        scale = self.updateCoordinates(width - total_label_width, height)
 
         if shade_param is not None and max_value is None:
             max_value = 0
@@ -386,19 +386,19 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if use_lengths:
             # Placing the scale properly might take some work,
             # for now just always put it in a bottom corner.
-            unit = 10**min(0.0, numpy.floor(numpy.log10(width/scale/2.0)))
+            unit = 10**min(0.0, numpy.floor(numpy.log10(width / scale / 2.0)))
             if scale_bar == "right":
-                x1, x2 = (width-scale*unit, width)
+                x1, x2 = (width - scale * unit, width)
             elif scale_bar == "left":
-                x1, x2 = (-left_labels, scale*unit-left_labels)
+                x1, x2 = (-left_labels, scale * unit - left_labels)
             else:
                 assert not scale_bar, scale_bar
             if scale_bar:
                 ss.append(renderer.line(x1, 0.0, x2, 0.0))
-                ss.append(renderer.string((x1+x2)/2, 5, str(unit), va='bottom', ha='center'))
+                ss.append(renderer.string((x1 + x2) / 2, 5, str(unit), va='bottom', ha='center'))
 
         g = rlg2mpl.Group(*ss)
-        g.translate(margin+left_labels, margin)
+        g.translate(margin + left_labels, margin)
         return g
 
     def _draw(self, renderer, label_style):
@@ -434,15 +434,15 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         # Edge Label
         text = label_style.getEdgeLabel(self)
         if text:
-            midx, midy = (self.x1+self.x2)/2, (self.y1+self.y2)/2
+            midx, midy = (self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2
             if self.x1 == self.x2:
                 rot = 0
             else:
-                rot = numpy.arctan((self.y2-self.y1)/(self.x2-self.x1))
-            midx += numpy.cos(rot+numpy.pi/2)*3
-            midy += numpy.sin(rot+numpy.pi/2)*3
+                rot = numpy.arctan((self.y2 - self.y1) / (self.x2 - self.x1))
+            midx += numpy.cos(rot + numpy.pi / 2) * 3
+            midy += numpy.sin(rot + numpy.pi / 2) * 3
             g.append(renderer.string(midx, midy, text, ha='center', va='bottom', 
-                                     rotation=180/numpy.pi*rot))
+                                     rotation=180 / numpy.pi * rot))
         return g
 
     def _draw_node_label(self, renderer, label_style):
@@ -454,21 +454,21 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     def _draw_collapsed_clade(self, renderer, label_style):
         text = label_style.getNodeLabel(self)
         color = _first_non_none([self.CladeColor, self.Color, 'black'])
-        icolor = 'white' if sum(to_rgb(color))/3 < 0.5 else 'black'
+        icolor = 'white' if sum(to_rgb(color)) / 3 < 0.5 else 'black'
         g = []
         if not self.Children:
             return g
-        (l,r,t,b), vertices = self.wedgeVertices()
+        (l, r, t, b), vertices = self.wedgeVertices()
         g.append(renderer.polygon(vertices, color))
         if not b <= self.y2 <= t:
             # ShelvedDendrogram needs this extra line segment
             g.append(renderer.line(self.x2, self.y2, self.x2, b, self))
         (x, ha, y, va) = self.getLabelCoordinates(text, renderer)
         g.append(renderer.string(
-                (self.x2+r)/2, (t+b)/2, str(self.leafcount), ha=ha, va=va,
+                (self.x2 + r) / 2, (t + b) / 2, str(self.leafcount), ha=ha, va=va,
             color=icolor))
         g.append(renderer.string(
-            x-self.x2+r, y, text, ha=ha, va=va, color=self.NameColor))
+            x - self.x2 + r, y, text, ha=ha, va=va, color=self.NameColor))
         return g
 
     def setCollapsed(self, collapsed=True, label=None, color=None):
@@ -532,7 +532,7 @@ class _RootedDendrogram(_Dendrogram):
             child.update_x_coordinates(scale, self.x2)
 
     def getLabelCoordinates(self, text, renderer):
-        return (self.x2+renderer.labelPadDistance, 'left', self.y2, 'center')
+        return (self.x2 + renderer.labelPadDistance, 'left', self.y2, 'center')
 
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
@@ -540,7 +540,7 @@ class SquareDendrogram(_RootedDendrogram):
     def yCoords(self, scale, y1):
         cys = [c.y1 for c in self.Children]
         if cys:
-            y2 = (cys[0]+cys[-1]) / 2.0
+            y2 = (cys[0] + cys[-1]) / 2.0
         else:
             y2 = y1 - 0.5 * scale.y
         return (y2, y2)
@@ -551,11 +551,11 @@ class SquareDendrogram(_RootedDendrogram):
         return (x1, x2)
 
     def wedgeVertices(self):
-        tip_ys = [(c.y2 + self.y2)/2 for c in self.iterTips()]
-        t,b = max(tip_ys), min(tip_ys)
+        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iterTips()]
+        t, b = max(tip_ys), min(tip_ys)
         cxs = [c.x2 for c in self.iterTips()]
-        l,r = min(cxs), max(cxs)
-        return (l,r,t,b), [(self.x2, b), (self.x2, t), (l, t), (r, b)]
+        l, r = min(cxs), max(cxs)
+        return (l, r, t, b), [(self.x2, b), (self.x2, t), (l, t), (r, b)]
 
 
 class StraightDendrogram(_RootedDendrogram):
@@ -563,11 +563,11 @@ class StraightDendrogram(_RootedDendrogram):
         # has a side effect of adjusting the child y1's to meet nodes' y2's
         cys = [c.y1 for c in self.Children]
         if cys:
-            y2 = (cys[0]+cys[-1]) / 2.0
+            y2 = (cys[0] + cys[-1]) / 2.0
             distances = [child.length for child in self.Children]
             closest_child = self.Children[distances.index(min(distances))]
             dy = closest_child.y1 - y2
-            max_dy = 0.8*max(5, closest_child.length*scale.x)
+            max_dy = 0.8 * max(5, closest_child.length * scale.x)
             if abs(dy) > max_dy:
                 # 'moved', node.Name, y2, 'to within', max_dy,
                 # 'of', closest_child.Name, closest_child.y1
@@ -586,12 +586,12 @@ class StraightDendrogram(_RootedDendrogram):
         return (x1, x1 + dx)
 
     def wedgeVertices(self):
-        tip_ys = [(c.y2 + self.y2)/2 for c in self.iterTips()]
-        t,b = max(tip_ys), min(tip_ys)
+        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iterTips()]
+        t, b = max(tip_ys), min(tip_ys)
         cxs = [c.x2 for c in self.iterTips()]
-        l,r = min(cxs), max(cxs)
+        l, r = min(cxs), max(cxs)
         vertices = [(self.x2, self.y2), (l, t), (r, b)]
-        return (l,r,t,b), vertices
+        return (l, r, t, b), vertices
 
 class _ContemporaneousMixin(object):
     """A dendrogram with all of the tips lined up.  
@@ -602,7 +602,7 @@ class _ContemporaneousMixin(object):
         super(_ContemporaneousMixin, self).__init__(edge, use_lengths)
 
     def xCoords(self, scale, x1):
-        return (x1, (scale.height-(self.height-self.length))*scale.x)
+        return (x1, (scale.height - (self.height - self.length)) * scale.x)
 
 class ContemporaneousDendrogram(_ContemporaneousMixin, SquareDendrogram):
     pass
@@ -647,44 +647,44 @@ class UnrootedDendrogram(_Dendrogram):
         return (label_width, label_width)
 
     def wedgeVertices(self):
-        tip_dists = [(c.depth-self.depth)*self.scale for c in self.iterTips()]
+        tip_dists = [(c.depth - self.depth) * self.scale for c in self.iterTips()]
         (near, far) = (min(tip_dists), max(tip_dists))
         a = self.angle - 0.25 * self.wedge
-        (x1, y1) = (self.x2+near*numpy.sin(a), self.y2+near*numpy.cos(a))
+        (x1, y1) = (self.x2 + near * numpy.sin(a), self.y2 + near * numpy.cos(a))
         a = self.angle + 0.25 * self.wedge
-        (x2, y2) = (self.x2+far*numpy.sin(a), self.y2+far*numpy.cos(a))
+        (x2, y2) = (self.x2 + far * numpy.sin(a), self.y2 + far * numpy.cos(a))
         vertices = [(self.x2, self.y2), (x1, y1), (x2, y2)]
-        return (self.x2, (x1+x2)/2, self.y2, (y1+y2)/2), vertices
+        return (self.x2, (x1 + x2) / 2, self.y2, (y1 + y2) / 2), vertices
 
     def updateCoordinates(self, width, height):
-        angle = 2*numpy.pi / self.leafcount
+        angle = 2 * numpy.pi / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
         # the best rotation of the tree to fit the display.
         best_scale = 0
         for i in range(60):
-            direction = i/60.0*numpy.pi
+            direction = i / 60.0 * numpy.pi
             points = self._update_coordinates(1.0, 0, 0, direction, angle)
-            xs = [x for (x,y) in points]
-            ys = [y for (x,y) in points]
-            scale = min(float(width)/(max(xs)-min(xs)), float(height)/(max(ys)-min(ys)))
+            xs = [x for (x, y) in points]
+            ys = [y for (x, y) in points]
+            scale = min(float(width) / (max(xs) - min(xs)), float(height) / (max(ys) - min(ys)))
             scale *= 0.95 # extra margin for labels
             if scale > best_scale:
                 best_scale = scale
-                mid_x = width/2-((max(xs)+min(xs))/2)*scale
-                mid_y = height/2-((max(ys)+min(ys))/2)*scale
+                mid_x = width / 2 - ((max(xs) + min(xs)) / 2) * scale
+                mid_y = height / 2 - ((max(ys) + min(ys)) / 2) * scale
                 best_args = (scale, mid_x, mid_y, direction, angle)
         self._update_coordinates(*best_args)
         return best_scale
 
     def _update_coordinates(self, s, x1, y1, a, da):
         # Constant angle algorithm.  Should add maximim daylight step.
-        (x2, y2) = (x1+self.length*s*numpy.sin(a), y1+self.length*s*numpy.cos(a))
+        (x2, y2) = (x1 + self.length * s * numpy.sin(a), y1 + self.length * s * numpy.cos(a))
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         if self.Collapsed:
             self.wedge = self.leafcount * da
             self.scale = s
-            (l,r,t,b), vertices = self.wedgeVertices()
+            (l, r, t, b), vertices = self.wedgeVertices()
             return vertices
 
         a -= self.leafcount * da / 2
@@ -692,16 +692,16 @@ class UnrootedDendrogram(_Dendrogram):
             points = [(x2, y2)]
         else:
             points = []
-            for (i,child) in enumerate(self.Children):
+            for (i, child) in enumerate(self.Children):
                 ca = child.leafcount * da
-                points += child._update_coordinates(s, x2, y2, a+ca/2, da)
+                points += child._update_coordinates(s, x2, y2, a + ca / 2, da)
                 a += ca
         return points
 
     def getLabelCoordinates(self, text, renderer):
         (dx, dy) = (numpy.sin(self.angle), numpy.cos(self.angle))
         pad = renderer.labelPadDistance
-        (x, y) = (self.x2+pad*dx, self.y2+pad*dy)
+        (x, y) = (self.x2 + pad * dx, self.y2 + pad * dy)
         if dx > abs(dy):
             return (x, 'left', y, 'center')
         elif -dx > abs(dy):

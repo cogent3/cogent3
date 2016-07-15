@@ -72,7 +72,7 @@ class DndTokenizerTests(TestCase):
     def test_gdata(self):
         """DndTokenizer should work as expected on real data"""
         exp = \
-            ['(', '(', 'xyz', ':', '0.28124',',', '(', 'def', ':', '0.24498',\
+            ['(', '(', 'xyz', ':', '0.28124', ',', '(', 'def', ':', '0.24498',\
              ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
              ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
              'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
@@ -86,19 +86,19 @@ class DndTokenizerTests(TestCase):
 
     def test_nonames(self):
         """DndTokenizer should work as expected on trees with no names"""
-        exp = ['(','(',',',')',',','(',',',')',')',';']
+        exp = ['(', '(', ',', ')', ',', '(', ',', ')', ')', ';']
         obs = list(DndTokenizer(no_names))
         self.assertEqual(obs, exp)
 
     def test_missing_tip_name(self):
         """DndTokenizer should work as expected on trees with a missing name"""
-        exp = ['(','(','a',',','b',')',',','(','c',',',')',')',';']
+        exp = ['(', '(', 'a', ',', 'b', ')', ',', '(', 'c', ',', ')', ')', ';']
         obs = list(DndTokenizer(missing_tip_name))
         self.assertEqual(obs, exp)
 
     def test_minimal(self):
         """DndTokenizer should work as expected a minimal tree without names"""
-        exp = ['(',')',';']
+        exp = ['(', ')', ';']
         obs = list(DndTokenizer(minimal))
         self.assertEqual(obs, exp)
 

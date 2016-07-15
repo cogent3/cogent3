@@ -129,14 +129,14 @@ def get_BL_table(branch_lengths):
         if beg_tag.match(line):
             in_table = 1
         if in_table == 1:
-            if line.startswith("---") or beg_tag.match(line) or line.strip()== '':
+            if line.startswith("---") or beg_tag.match(line) or line.strip() == '':
                 pass
             else:
                 result.append(line)
     return result
 
-def find_fields(line, field_order = ["taxa", "parent", "bl"], \
-                field_delims = [0, 21, 36, 49]):
+def find_fields(line, field_order=["taxa", "parent", "bl"], \
+                field_delims=[0, 21, 36, 49]):
     """takes line from BL table and returns dict with field names mapped to info
 
     field order is the order of field names to extract from the file and

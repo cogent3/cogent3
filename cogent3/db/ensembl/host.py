@@ -57,7 +57,7 @@ class HostAccount(object):
         return self._hash
 
     def __str__(self):
-        return '%s:%s@%s:%s' % (self.user,self.passwd,self.host,self.port)
+        return '%s:%s@%s:%s' % (self.user, self.passwd, self.host, self.port)
 
 
 def get_ensembl_account(release=None):
@@ -77,7 +77,7 @@ class EngineCache(object):
     _db_account = {}
     def __call__(self, account, db_name=None, pool_recycle=None):
         """returns an active SQLAlchemy connection engine"""
-        assert account and db_name,"Must provide an account and a db"
+        assert account and db_name, "Must provide an account and a db"
         pool_recycle = pool_recycle or 3600
         if account not in self._db_account.get(db_name, []):
             if db_name == "PARENT":
@@ -144,7 +144,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
             continue
     return dbs
 
-def get_latest_release(account = None):
+def get_latest_release(account=None):
     """returns the number of the latest release based on the compara db"""
     names = get_db_name(account=account, db_type="compara")
     compara = []

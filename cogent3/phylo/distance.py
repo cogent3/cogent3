@@ -37,12 +37,12 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
     lengths = {}
     for key in data:
         a, b, c = key
-        for x, y in [(a,b), (a,c), (b,c)]:
+        for x, y in [(a, b), (a, c), (b, c)]:
             length = data[key]['length'][x] + data[key]['length'][y]
             try:
-                lengths[(x,y)].append(length)
+                lengths[(x, y)].append(length)
             except KeyError:
-                lengths[(x,y)] = [length]
+                lengths[(x, y)] = [length]
 
     # get all the distances involving this pair
     for pair in lengths:
@@ -55,7 +55,7 @@ class EstimateDistances(object):
     """Base class used for estimating pairwise distances between sequences.
     Can also estimate other parameters from pairs."""
 
-    def __init__(self, seqs, submodel, threeway=False, motif_probs = None,
+    def __init__(self, seqs, submodel, threeway=False, motif_probs=None,
                  do_pair_align=False, rigorous_align=False, est_params=None,
                  modify_lf=None):
         """Arguments:
@@ -145,12 +145,12 @@ class EstimateDistances(object):
         # note that we may want to consider removing the redundant gaps
 
         # create the tree object
-        tree = LoadTree(tip_names = sequence_names)
+        tree = LoadTree(tip_names=sequence_names)
 
         # make the parameter controller
         lf = self._sm.makeLikelihoodFunction(tree)
         if not self._threeway:
-            lf.setParamRule('length', is_independent = False)
+            lf.setParamRule('length', is_independent=False)
 
         if self._motif_probs:
             lf.setMotifProbs(self._motif_probs)
@@ -242,7 +242,7 @@ class EstimateDistances(object):
 
         return pairwise_stats
 
-    def getPairwiseDistances(self,summary_function="mean", **kwargs):
+    def getPairwiseDistances(self, summary_function="mean", **kwargs):
         """Return the pairwise distances as a dictionary keyed by (seq1, seq2).
         Convenience interface to getPairwiseParam.
 
@@ -251,7 +251,7 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'.
         """
-        return self.getPairwiseParam('length',summary_function=summary_function,
+        return self.getPairwiseParam('length', summary_function=summary_function,
                                      **kwargs)
 
     def getParamValues(self, param, **kwargs):
@@ -267,7 +267,7 @@ class EstimateDistances(object):
         """returns raw estimated parameter dictionary"""
         return self._param_ests.copy()
 
-    def getTable(self,summary_function="mean", **kwargs):
+    def getTable(self, summary_function="mean", **kwargs):
         """returns a Table instance of the distance matrix.
 
         Arguments:
@@ -275,7 +275,7 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
         d = \
-        self.getPairwiseDistances(summary_function=summary_function,**kwargs)
+        self.getPairwiseDistances(summary_function=summary_function, **kwargs)
         if not d:
             d = {}
             for s1 in self._seqnames:
@@ -283,7 +283,7 @@ class EstimateDistances(object):
                     if s1 == s2:
                         continue
                     else:
-                        d[(s1,s2)] = 'Not Done'
+                        d[(s1, s2)] = 'Not Done'
         twoD = []
         for s1 in self._seqnames:
             row = [s1]
@@ -292,12 +292,12 @@ class EstimateDistances(object):
                     row.append('')
                     continue
                 try:
-                    row.append(d[(s1,s2)])
+                    row.append(d[(s1, s2)])
                 except KeyError:
-                    row.append(d[(s2,s1)])
+                    row.append(d[(s2, s1)])
             twoD.append(row)
-        T = table.Table(['Seq1 \ Seq2'] + self._seqnames, twoD, row_ids = True,
-                        missing_data = "*")
+        T = table.Table(['Seq1 \ Seq2'] + self._seqnames, twoD, row_ids=True,
+                        missing_data="*")
         return T
 
     def getNewickTrees(self):
@@ -306,8 +306,8 @@ class EstimateDistances(object):
         for comp_names, param_vals in list(self._param_ests.items()):
             tips = []
             for name in comp_names:
-                tips.append(repr(name)+":%s" % param_vals[name])
-            trees.append("("+",".join(tips)+");")
+                tips.append(repr(name) + ":%s" % param_vals[name])
+            trees.append("(" + ",".join(tips) + ");")
 
         return trees
 

@@ -134,7 +134,7 @@ _species_common_map = [['Acyrthosiphon pisum', 'A.pisum'],
 
 class SpeciesNameMap(dict):
     """mapping between common names and latin names"""
-    def __init__(self, species_common = _species_common_map):
+    def __init__(self, species_common=_species_common_map):
         """provides latin name:common name mappings"""
         self._species_common = {}
         self._common_species = {}
@@ -154,8 +154,8 @@ class SpeciesNameMap(dict):
                          rows=rows, space=2).sorted())
 
     def __repr__(self):
-        return 'Available species: %s' % ("'"+\
-                                          "'; '".join(list(self._common_species.keys()))+"'")
+        return 'Available species: %s' % ("'" +\
+                                          "'; '".join(list(self._common_species.keys())) + "'")
 
     def getCommonName(self, name, level='raise'):
         """returns the common name for the given name (which can be either a
@@ -218,7 +218,7 @@ class SpeciesNameMap(dict):
                 raise RuntimeError("Unknown name %s" % name)
             species_name = name
 
-        return str(species_name.lower().replace(" ","_"))
+        return str(species_name.lower().replace(" ", "_"))
 
     def getComparaName(self, name):
         """returns string matching a compara instance attribute name for a
@@ -238,7 +238,7 @@ class SpeciesNameMap(dict):
         if not species_name in self._species_common:
             return
         common_name = self._species_common.pop(species_name)
-        ensembl_name= self._species_ensembl.pop(species_name)
+        ensembl_name = self._species_ensembl.pop(species_name)
         self._ensembl_species.pop(ensembl_name)
         self._common_species.pop(common_name)
 
@@ -251,7 +251,7 @@ class SpeciesNameMap(dict):
         self._purge_species(species_name) # remove if existing
         self._species_common[species_name] = common_name
         self._common_species[common_name] = species_name
-        ensembl_name = species_name.lower().replace(" ","_")
+        ensembl_name = species_name.lower().replace(" ", "_")
         self._species_ensembl[species_name] = ensembl_name
         self._ensembl_species[ensembl_name] = species_name
         return

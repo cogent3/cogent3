@@ -18,7 +18,7 @@ def quartic(x):
     # Has global maximum at -4 and local maximum at 2
     # http://www.wolframalpha.com/input/?i=x**2*%283*x**2%2B8*x-48%29
     # Scaled down 10-fold to avoid having to change init_temp
-    return x**2*(3*x**2+8*x-48)
+    return x**2 * (3 * x**2 + 8 * x - 48)
 
 class NullFile(object):
     def write(self, x):
@@ -48,7 +48,7 @@ def MakeF():
     return f, last, evals
 
 class OptimiserTestCase(TestCase):
-    def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10,10]), **kw):
+    def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10, 10]), **kw):
         local = kw.get('local', None)
         max_evaluations = kw.get('max_evaluations', None)
 
@@ -66,7 +66,7 @@ class OptimiserTestCase(TestCase):
     def test_bounded(self):
         # Global minimum out of bounds, so find secondary one
         # numpy.seterr('raise')
-        self._test_optimisation(bounds=([0.0],[10.0]), target=2, seed=1)
+        self._test_optimisation(bounds=([0.0], [10.0]), target=2, seed=1)
 
     def test_local(self):
         # Global minimum not the nearest one
@@ -83,7 +83,7 @@ class OptimiserTestCase(TestCase):
     def test_get_max_eval_count(self):
         """return the evaluation count from optimisation"""
         f, last, evals = MakeF()
-        x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10,10]),
+        x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10, 10]),
                      return_eval_count=True)
         self.assertTrue(e > 500)
 

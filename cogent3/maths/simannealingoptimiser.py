@@ -28,7 +28,7 @@ class AnnealingSchedule(object):
     """Responsible for the shape of the simulated annealing temperature profile"""
 
     def __init__(self, temp_reduction, initial_temp, temp_iterations, step_cycles):
-        if initial_temp < 0.0 :
+        if initial_temp < 0.0:
             raise ValueError("Initial temperature not +ve")
         self.T = self.initial_temp = initial_temp
         self.temp_reduction = temp_reduction
@@ -43,7 +43,7 @@ class AnnealingSchedule(object):
 
     def roundsToReach(self, T):
         from math import log
-        return int(-log(self.initial_temp/T) / log(self.temp_reduction)) + 1
+        return int(-log(self.initial_temp / T) / log(self.temp_reduction)) + 1
 
     def cool(self):
         self.T = self.temp_reduction * self.T
@@ -59,7 +59,7 @@ class AnnealingHistory(object):
     def __init__(self, sample=4):
         self.sample_size = sample
         #self.values = deque([None]*sample, sample) Py2.6
-        self.values = deque([None]*sample)
+        self.values = deque([None] * sample)
 
     def note(self, F):
         self.values.append(F)
@@ -69,8 +69,8 @@ class AnnealingHistory(object):
 
     def minRemainingRounds(self, tolerance):
         last = self.values[-1]
-        return max([0]+[i+1 for (i,v) in enumerate(self.values)
-                        if v is None or abs(v-last)>tolerance])
+        return max([0] + [i + 1 for (i, v) in enumerate(self.values)
+                        if v is None or abs(v - last) > tolerance])
 
 
 class AnnealingState(object):
@@ -111,11 +111,11 @@ class AnnealingState(object):
         if self.NTRY == 0:
             return
         for I in range(len(self.X)):
-            RATIO = (self.NACP[I]*1.0) / self.NTRY
+            RATIO = (self.NACP[I] * 1.0) / self.NTRY
             if RATIO > 0.6:
-                self.VM[I] *= (1.0 + (2.0 * ((RATIO-0.6)/0.4)))
+                self.VM[I] *= (1.0 + (2.0 * ((RATIO - 0.6) / 0.4)))
             elif RATIO < 0.4:
-                self.VM[I] /= (1.0 + (2.0 * ((0.4 - RATIO)/0.4)))
+                self.VM[I] /= (1.0 + (2.0 * ((0.4 - RATIO) / 0.4)))
             self.NACP[I] = 0
         self.NTRY = 0
 
@@ -147,7 +147,7 @@ class AnnealingRun(object):
         history = self.history
         schedule = self.schedule
 
-        est_anneal_remaining = schedule.roundsToReach(tolerance/10) + 3
+        est_anneal_remaining = schedule.roundsToReach(tolerance / 10) + 3
         while True:
             min_history_remaining = history.minRemainingRounds(tolerance)
             if min_history_remaining == 0:
@@ -157,7 +157,7 @@ class AnnealingRun(object):
             est_anneal_remaining += -1
 
             for i in range(self.schedule.dwell):
-                show_remaining(remaining + 1 - i/self.schedule.dwell, 
+                show_remaining(remaining + 1 - i / self.schedule.dwell, 
                                state.FOPT, schedule.T, state.NFCNEV)
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
@@ -196,9 +196,9 @@ class SimulatedAnnealing(object):
         self.restore = restore
 
     def maximise(self, function, xopt, show_remaining, 
-                 random_series = None, seed = None, 
-                 tolerance = None, temp_reduction = 0.5, init_temp=5.0,
-                 temp_iterations = 5, step_cycles = 20):
+                 random_series=None, seed=None, 
+                 tolerance=None, temp_reduction=0.5, init_temp=5.0,
+                 temp_iterations=5, step_cycles=20):
 
         """Optimise function(xopt).
 
@@ -239,8 +239,8 @@ class SimulatedAnnealing(object):
         result = run.run(
             function,
             tolerance,
-            checkpointer = self.checkpointer,
-            show_remaining = show_remaining)
+            checkpointer=self.checkpointer,
+            show_remaining=show_remaining)
 
         return result.XOPT
 

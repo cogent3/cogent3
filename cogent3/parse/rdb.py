@@ -25,31 +25,31 @@ maketrans = str.maketrans
 
 RdbFinder = DelimitedRecordFinder('//')
 
-_field_names = {'acc':'rRNA',\
-                'src':'Source',\
-                'str':'Strain',\
-                'ta1':'Taxonomy1',\
-                'ta2':'Taxonomy2',\
-                'ta3':'Taxonomy3',\
-                'ta4':'Taxonomy4',\
-                'chg':'Changes',\
-                'rem':'Remarks',\
-                'aut':'Authors',\
-                'ttl':'Title',\
-                'jou':'Journal',\
-                'dat':'JournalYear',\
-                'vol':'JournalVolume',\
-                'pgs':'JournalPages',\
-                'mty':'Gene',\
-                'del':'Deletions',\
-                'seq':'Species'}
+_field_names = {'acc': 'rRNA',\
+                'src': 'Source',\
+                'str': 'Strain',\
+                'ta1': 'Taxonomy1',\
+                'ta2': 'Taxonomy2',\
+                'ta3': 'Taxonomy3',\
+                'ta4': 'Taxonomy4',\
+                'chg': 'Changes',\
+                'rem': 'Remarks',\
+                'aut': 'Authors',\
+                'ttl': 'Title',\
+                'jou': 'Journal',\
+                'dat': 'JournalYear',\
+                'vol': 'JournalVolume',\
+                'pgs': 'JournalPages',\
+                'mty': 'Gene',\
+                'del': 'Deletions',\
+                'seq': 'Species'}
 
 
 def InfoMaker(header_lines):
     """Returns an Info object constructed from the headerLines."""
     info = Info()
     for line in header_lines:
-        all = line.strip().split(':',1)
+        all = line.strip().split(':', 1)
         #strip out empty lines, lines without name, lines without colon
         if not all[0] or len(all) != 2: 
             continue
@@ -66,7 +66,7 @@ def is_seq_label(x):
     "Check if x looks like a sequence label line."""
     return x.startswith('seq:')
 
-def MinimalRdbParser(infile,strict=True):
+def MinimalRdbParser(infile, strict=True):
     """Yield successive sequences as (headerLines, sequence) tuples.
 
     If strict is True (default) raises RecordError when 'seq' label is missing
@@ -82,7 +82,7 @@ def MinimalRdbParser(infile,strict=True):
         if not index:
             if strict:
                 raise RecordError("Found Rdb record without seq label "\
-                                  + "line: %s"%rec[0])
+                                  + "line: %s" % rec[0])
             else:
                 continue
 
@@ -95,7 +95,7 @@ def MinimalRdbParser(infile,strict=True):
         if not sequence:
             if strict:
                 raise RecordError("Found Rdb record without sequences: %s"\
-                                  %rec[0])
+                                  % rec[0])
             else:
                 continue
 
@@ -131,7 +131,7 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
     original sequence is stored in the info dictionary under 'OriginalSeq'.
     If the original sequence is the desired end product, use MinimalRdbParser.
     """
-    for header, sequence in MinimalRdbParser(lines,strict=strict):
+    for header, sequence in MinimalRdbParser(lines, strict=strict):
         info = LabelConstructor(header)
         clean_seq = create_acceptable_sequence(sequence)
         # add original raw sequence to info
@@ -139,11 +139,11 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
         if strict:
             #need to do error checking while constructing info and sequence
             try:
-                yield SeqConstructor(clean_seq, Info = info)
+                yield SeqConstructor(clean_seq, Info=info)
             except AlphabetError:
                 raise RecordError(\
                     "Sequence construction failed on record with reference %s."\
-                    %(info.Refs))
+                    % (info.Refs))
         else:
             #not strict: just skip any record that raises an exception
             try:

@@ -65,8 +65,8 @@ class PartialTree(object):
         d = self.d
         L = len(d)
         r = numpy.sum(d, 0)
-        Q = d - numpy.add.outer(r, r)/(L-2.0)
-        return Q/2.0 + sum(r)/(L-2.0)/2 + self.score
+        Q = d - numpy.add.outer(r, r) / (L - 2.0)
+        return Q / 2.0 + sum(r) / (L - 2.0) / 2 + self.score
 
     def join(self, i, j):
         tips = self.tips[:]
@@ -77,11 +77,11 @@ class PartialTree(object):
         # Branch lengths from i and j to new node
         L = len(nodes)
         r = numpy.sum(d, axis=0)
-        ij_dist_diff = (r[i]-r[j]) / (L-2.0)
-        left_length = 0.5 * (d[i,j] + ij_dist_diff)
-        right_length = 0.5 * (d[i,j] - ij_dist_diff)
+        ij_dist_diff = (r[i] - r[j]) / (L - 2.0)
+        left_length = 0.5 * (d[i, j] + ij_dist_diff)
+        right_length = 0.5 * (d[i, j] - ij_dist_diff)
 
-        score = self.score + d[i,j]
+        score = self.score + d[i, j]
 
         left_length = max(0.0, left_length)
         right_length = max(0.0, right_length)
@@ -91,7 +91,7 @@ class PartialTree(object):
             [(left_length, nodes[i]), (right_length, nodes[j])])
 
         # Store new node at i
-        new_dists = 0.5 * (d[i] + d[j] - d[i,j])
+        new_dists = 0.5 * (d[i] + d[j] - d[i, j])
         d[:, i] = new_dists
         d[i, :] = new_dists
         d[i, i] = 0.0
@@ -99,20 +99,20 @@ class PartialTree(object):
         tips[i] = new_tip_set
 
         # Eliminate j
-        d[j, :] = d[L-1, :]
-        d[:, j] = d[:, L-1]
+        d[j, :] = d[L - 1, :]
+        d[:, j] = d[:, L - 1]
         assert d[j, j] == 0.0, d
-        d = d[0:L-1, 0:L-1]
-        nodes[j] = nodes[L-1]
+        d = d[0:L - 1, 0:L - 1]
+        nodes[j] = nodes[L - 1]
         nodes.pop()
-        tips[j] = tips[L-1]
+        tips[j] = tips[L - 1]
         tips.pop()
 
         return type(self)(d, nodes, tips, score)
 
     def asScoreTreeTuple(self):
         assert len(self.nodes) == 3 # otherwise next line needs generalizing
-        lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d)/4
+        lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d) / 4
         root = LightweightTreeNode(list(zip(lengths, self.nodes)))
         tree = root.convert()
         tree.Name = "root"
@@ -132,7 +132,7 @@ class Pair(object):
         self.new_partition = new_partition
 
     def joined(self):
-        new_tree = self.tree.join(self.i,self.j)
+        new_tree = self.tree.join(self.i, self.j)
         new_tree.topology = self.topology
         return new_tree
 
@@ -147,7 +147,7 @@ def uniq_neighbour_joins(trees, encode_partition):
     topologies = set()
     order = numpy.argsort(scores.flat)
     for index in order:
-        (k, ij) = divmod(index, L*L)
+        (k, ij) = divmod(index, L * L)
         (i, j) = divmod(ij, L)
         if i == j:
             continue
@@ -204,13 +204,13 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     total_work_before = {}
     for L in range(len(names), 3, -1):
         total_work_before[L] = total_work
-        max_candidates = min(all_keep, max_candidates*L*(L-1)//2)
+        max_candidates = min(all_keep, max_candidates * L * (L - 1) // 2)
         total_work += max_candidates
 
     def _show_progress():
         t = len(next_trees)
         work_done = total_work_before[L] + t
-        ui.display(msg=template % (L, t), progress=work_done/total_work)
+        ui.display(msg=template % (L, t), progress=work_done / total_work)
 
     for L in range(len(names), 3, -1):
         # Generator of candidate joins, best first.
@@ -235,7 +235,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         # Maintain a separate queue of joins for each possible 
         # topological distance 
         max_td = (max(prior_td) + 1) // 2
-        queue = [deque() for g in range(max_td+1)]
+        queue = [deque() for g in range(max_td + 1)]
         queued = 0
 
         # Now take up to dkeep joins, an equal number of the best at each 
@@ -247,7 +247,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
             if candidates and not queue[target_td]:
                 for pair in candidates:
                     diff = pair.new_partition not in best_topology
-                    td = (prior_td[id(pair.tree)] + [-1,+1][diff]) // 2
+                    td = (prior_td[id(pair.tree)] + [-1, +1][diff]) // 2
                     # equiv, slower: td = len(best_topology ^ topology) // 2
                     queue[td].append(pair)
                     queued += 1

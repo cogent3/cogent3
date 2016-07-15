@@ -47,7 +47,7 @@ def ismallest(data, size):
 def tree2ancestry(tree, order=None):
     nodes = tree.unrooted().getEdgeVector()[:-1]
     if order is not None:
-        lookup = dict([(k,i) for (i,k) in enumerate(order)])
+        lookup = dict([(k, i) for (i, k) in enumerate(order)])
         def _ordered_tips_first(n):
             if n.Children:
                 return len(order)
@@ -62,7 +62,7 @@ def tree2ancestry(tree, order=None):
         A[i, i] = 1
         seen[id(node)] = i
         for c in node.Children:
-            A[:,i] |= A[:,seen[id(c)]]
+            A[:, i] |= A[:, seen[id(c)]]
     names = [n.Name for n in nodes if not n.Children]
     lengths = [n.Length for n in nodes]
     return (A, names, lengths)
@@ -72,7 +72,7 @@ def ancestry2tree(A, lengths, tip_names):
     tips = {}
     tip = 0
     for i in range(len(A)):
-        if numpy.sum(A[:,i]) == 1:
+        if numpy.sum(A[:, i]) == 1:
             tips[i] = tip_names[tip]
             tip += 1
     assert tip == len(tip_names)
@@ -89,7 +89,7 @@ def ancestry2tree(A, lengths, tip_names):
         if lengths is None:
             params = {}
         else:
-            params = {'length':lengths[i]}
+            params = {'length': lengths[i]}
         node = constructor(child_nodes, name, params)
         free[i] = node
     return constructor(list(free.values()), 'root', {})
@@ -101,17 +101,17 @@ def grown(B, split_edge):
     the leaf node order the same as the order in which they are added, which is 
     what is assumed by ancestry2tree and ancestry2paths"""
     n = len(B)
-    A = numpy.zeros([n+2, n+2], int)
+    A = numpy.zeros([n + 2, n + 2], int)
     A[:n, :n] = B
     (sibling, parent) = (n, n + 1)
     A[sibling] = A[parent] = A[split_edge]
-    A[:,parent] = A[:,split_edge]
-    A[sibling,split_edge] = 0
+    A[:, parent] = A[:, split_edge]
+    A[sibling, split_edge] = 0
     A[parent, split_edge] = 0
-    A[sibling,sibling] = 1
-    A[parent,parent] = 1
-    A[sibling,parent] = 1
-    A[split_edge,parent] = 1
+    A[sibling, sibling] = 1
+    A[parent, parent] = 1
+    A[sibling, parent] = 1
+    A[split_edge, parent] = 1
     return A
 
 class TreeEvaluator(object):
@@ -198,7 +198,7 @@ class TreeEvaluator(object):
             a = 4
 
         # All trees of size a-1, no need to compare them
-        for n in range(init_tree_size+1, a):
+        for n in range(init_tree_size + 1, a):
             trees2 = []
             for (err2, lengths2, ancestry) in trees:
                 for split_edge in range(len(ancestry)):
@@ -210,15 +210,15 @@ class TreeEvaluator(object):
         # Pre calculate how much work is to be done, for progress display
         tree_count = len(trees)
         total_work = 0
-        work_done = [0] * (init_tree_size+1)
-        for n in range(init_tree_size+1, tree_size+1):
-            evals = tree_count * (n*2-5)
+        work_done = [0] * (init_tree_size + 1)
+        for n in range(init_tree_size + 1, tree_size + 1):
+            evals = tree_count * (n * 2 - 5)
             total_work += evals * n
             tree_count = min(k, evals)
             work_done.append(total_work)
 
         # For each tree size, grow at each edge of each tree. Keep best k.
-        for n in range(init_tree_size+1, tree_size+1):
+        for n in range(init_tree_size + 1, tree_size + 1):
             evaluate = self.makeTreeScorer(names[:n])            
 
             def grown_tree(spec):
@@ -229,11 +229,11 @@ class TreeEvaluator(object):
                 return (err, tree_ordinal, split_edge, lengths, ancestry)
 
             specs = [(i, tree, edge) 
-                     for (i,tree) in enumerate(trees) 
-                     for edge in range(n*2-5)]
+                     for (i, tree) in enumerate(trees) 
+                     for edge in range(n * 2 - 5)]
 
             candidates = ui.imap(grown_tree, specs, noun=('%s leaf tree' % n),
-                                 start=work_done[n-1]/total_work, end=work_done[n]/total_work)
+                                 start=work_done[n - 1] / total_work, end=work_done[n] / total_work)
 
             best = ismallest(candidates, k)
 

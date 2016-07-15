@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of the db utility functions and classes."""
 from cogent3.util.unit_test import TestCase, main
-from cogent3.db.util import UrlGetter, expand_slice, last_nondigit_index,make_lists_of_expanded_slices_of_set_size,make_lists_of_accessions_of_set_size
+from cogent3.db.util import UrlGetter, expand_slice, last_nondigit_index, make_lists_of_expanded_slices_of_set_size, make_lists_of_accessions_of_set_size
 from os import remove
 
 __author__ = "Rob Knight"
@@ -26,27 +26,27 @@ class db_util_tests(TestCase):
 
     def test_expand_slice(self):
         """expand_slice should get accession range"""
-        self.assertEqual(expand_slice(slice('AF1001','AF1003')), \
-                         ['AF1001','AF1002','AF1003'])
+        self.assertEqual(expand_slice(slice('AF1001', 'AF1003')), \
+                         ['AF1001', 'AF1002', 'AF1003'])
         #can't expand if accession prefixes
-        self.assertRaises(TypeError, expand_slice, slice('AF100:','AG1002'))
+        self.assertRaises(TypeError, expand_slice, slice('AF100:', 'AG1002'))
         #should keep leading zeros
-        self.assertEqual(expand_slice(slice('AF0001','AF0003')), \
-                         ['AF0001','AF0002','AF0003'])
+        self.assertEqual(expand_slice(slice('AF0001', 'AF0003')), \
+                         ['AF0001', 'AF0002', 'AF0003'])
 
     def test_make_lists_of_expanded_slices_of_set_size(self):
         """make_lists_of_expanded_slices_of_set_size: should return a
         list of lists"""
-        expected_list = ['HM780503 HM780504 HM780505','HM780506']
-        observed = make_lists_of_expanded_slices_of_set_size(slice('HM780503','HM780506'),size_limit=3)
-        self.assertEqual(observed,expected_list)
+        expected_list = ['HM780503 HM780504 HM780505', 'HM780506']
+        observed = make_lists_of_expanded_slices_of_set_size(slice('HM780503', 'HM780506'), size_limit=3)
+        self.assertEqual(observed, expected_list)
 
     def make_lists_of_accessions_of_set_size(self):
         """make_lists_of_expanded_slices_of_set_size: should return a
         list of lists"""
         expected_list = ['HM780503 HM780506 HM780660 HM780780']
-        observed = make_lists_of_accessions_of_set_size(['HM780503','HM780506', 'HM780660', 'HM780780'],size_limit=3)        
-        self.assertEqual(observed,expected_list)
+        observed = make_lists_of_accessions_of_set_size(['HM780503', 'HM780506', 'HM780660', 'HM780780'], size_limit=3)        
+        self.assertEqual(observed, expected_list)
 
 
 class UrlGetterTests(TestCase):
@@ -54,7 +54,7 @@ class UrlGetterTests(TestCase):
     def retrieval_test(self):
         """Urlgetter should init, read and retrieve"""
         class Google(UrlGetter):
-            BaseUrl='http://www.google.com'
+            BaseUrl = 'http://www.google.com'
         g = Google()
         #test URL construction
         self.assertEqual(str(g), 'http://www.google.com')

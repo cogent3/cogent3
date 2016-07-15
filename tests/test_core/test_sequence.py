@@ -49,7 +49,7 @@ class SequenceTests(TestCase):
 
     def test_init_other_seq(self):
         """Sequence init with other seq should preserve name and info."""
-        r = self.RNA('UCAGG', Name='x', Info={'z':3})
+        r = self.RNA('UCAGG', Name='x', Info={'z': 3})
         s = Sequence(r)
         self.assertEqual(s._seq, 'UCAGG')
         self.assertEqual(s.Name, 'x')
@@ -101,7 +101,7 @@ class SequenceTests(TestCase):
         odd_dna.LineWrap = 2
         self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
         #check that changing the linewrap again works
-        even_dna.LineWrap  = 4
+        even_dna.LineWrap = 4
         self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
 
     def test_serialize(self):
@@ -169,7 +169,7 @@ class SequenceTests(TestCase):
     def test_iter(self):
         """Sequence iter should iterate over sequence"""
         p = self.PROT('QWE')
-        self.assertEqual(list(p), ['Q','W','E'])
+        self.assertEqual(list(p), ['Q', 'W', 'E'])
 
     def test_isGapped(self):
         """Sequence isGapped should return True if gaps in seq"""
@@ -240,7 +240,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('ACGUACGUcgaucagu').firstNonStrict(), None)
         self.assertEqual(self.RNA('N').firstNonStrict(), 0)
         self.assertEqual(self.RNA('-').firstNonStrict(), 0)
-        self.assertEqual(self.RNA('ACGUcgAUGUGCAUcagu-').firstNonStrict(),18)
+        self.assertEqual(self.RNA('ACGUcgAUGUGCAUcagu-').firstNonStrict(), 18)
 
     def test_disambiguate(self):
         """Sequence disambiguate should remove degenerate bases"""
@@ -275,26 +275,26 @@ class SequenceTests(TestCase):
     def test_gapList(self):
         """Sequence gapList should return correct gap positions"""
         self.assertEqual(self.RNA('').gapList(), [])
-        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gapList(),[])
-        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').gapList(),[12])
+        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gapList(), [])
+        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').gapList(), [12])
         self.assertEqual(self.RNA('-DSHUHDS').gapList(), [0])
         self.assertEqual(self.RNA('UACHASADS-').gapList(), [9])
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
-                                  ).gapList(), [0,1,2,11,12,13,19,20,21,30,31,32])
+                                  ).gapList(), [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
 
     def test_gapVector(self):
         """Sequence gapVector should return correct gap positions"""
         g = lambda x: self.RNA(x).gapVector()
         self.assertEqual(g(''), [])
-        self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False]*27)
+        self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False] * 27)
         self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'), 
-                         list(map(bool, list(map(int,'000000000000001000000000')))))
+                         list(map(bool, list(map(int, '000000000000001000000000')))))
         self.assertEqual(g('-DSHSUHDSS'), 
-                         list(map(bool, list(map(int,'1000000000')))))
+                         list(map(bool, list(map(int, '1000000000')))))
         self.assertEqual(g('UACHASCAGDS-'), 
-                         list(map(bool, list(map(int,'000000000001')))))
+                         list(map(bool, list(map(int, '000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'), \
-                         list(map(bool, list(map(int,'111000000001110000011100000000111')))))
+                         list(map(bool, list(map(int, '111000000001110000011100000000111')))))
 
     def test_gapMaps(self):
         """Sequence gapMaps should return dicts mapping gapped/ungapped pos"""
@@ -305,12 +305,12 @@ class SequenceTests(TestCase):
         end_gaps = 'ab---'
         mid_gaps = '--a--b-cd---'
         gm = lambda x: self.RNA(x).gapMaps()
-        self.assertEqual(gm(empty), ({},{}))
-        self.assertEqual(gm(no_gaps), ({0:0,1:1,2:2}, {0:0,1:1,2:2}))
-        self.assertEqual(gm(all_gaps), ({},{}))
-        self.assertEqual(gm(start_gaps), ({0:2,1:3,2:4},{2:0,3:1,4:2}))
-        self.assertEqual(gm(end_gaps), ({0:0,1:1},{0:0,1:1}))
-        self.assertEqual(gm(mid_gaps), ({0:2,1:5,2:7,3:8},{2:0,5:1,7:2,8:3}))
+        self.assertEqual(gm(empty), ({}, {}))
+        self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
+        self.assertEqual(gm(all_gaps), ({}, {}))
+        self.assertEqual(gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
+        self.assertEqual(gm(end_gaps), ({0: 0, 1: 1}, {0: 0, 1: 1}))
+        self.assertEqual(gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
 
     def test_countGaps(self):
         """Sequence countGaps should return correct gap count"""
@@ -485,7 +485,7 @@ class SequenceTests(TestCase):
         """Sequence matrixDistance should look up distances from a matrix"""
         #note that the score matrix must contain 'diagonal' elements m[i][i] 
         #to avoid failure when the sequences match.
-        m = {'U':{'U':0, 'C':1, 'A':5}, 'C':{'C':0, 'A':2,'G':4}}
+        m = {'U': {'U': 0, 'C': 1, 'A': 5}, 'C': {'C': 0, 'A': 2, 'G': 4}}
         self.assertEqual(self.RNA('UUUCCC').matrixDistance('UCACGG', m), 14)
         self.assertEqual(self.RNA('UUUCCC').matrixDistance('', m), 0)
         self.assertEqual(self.RNA('UUU').matrixDistance('CAC', m), 7)
@@ -525,7 +525,7 @@ class SequenceTests(TestCase):
         s6 = self.RNA('UU--')
         s7 = self.RNA('-')
         s8 = self.RNA('GGG')
-        e =  self.RNA('')
+        e = self.RNA('')
         self.assertEqual(s1.fracSameGaps(s1), 1)
         self.assertEqual(s1.fracSameGaps(s2), 1)
         self.assertEqual(s1.fracSameGaps(s3), 0)
@@ -540,7 +540,7 @@ class SequenceTests(TestCase):
         self.assertEqual(e.fracSameGaps(e), 0.0)
         self.assertEqual(s4.fracSameGaps(s5), 0.0)
         self.assertEqual(s4.fracSameGaps(s6), 0.5)
-        self.assertFloatEqual(s6.fracSameGaps(s8), 2/3.0)
+        self.assertFloatEqual(s6.fracSameGaps(s8), 2 / 3.0)
 
     def test_fracDiffGaps(self):
         """Sequence fracDiffGaps should return difference in gap positions"""
@@ -552,7 +552,7 @@ class SequenceTests(TestCase):
         s6 = self.RNA('UU--')
         s7 = self.RNA('-')
         s8 = self.RNA('GGG')
-        e =  self.RNA('')
+        e = self.RNA('')
         self.assertEqual(s1.fracDiffGaps(s1), 0)
         self.assertEqual(s1.fracDiffGaps(s2), 0)
         self.assertEqual(s1.fracDiffGaps(s3), 1)
@@ -567,7 +567,7 @@ class SequenceTests(TestCase):
         self.assertEqual(e.fracDiffGaps(e), 0.0)
         self.assertEqual(s4.fracDiffGaps(s5), 1.0)
         self.assertEqual(s4.fracDiffGaps(s6), 0.5)
-        self.assertFloatEqual(s6.fracDiffGaps(s8), 1/3.0)
+        self.assertFloatEqual(s6.fracDiffGaps(s8), 1 / 3.0)
 
     def test_fracSameNonGaps(self):
         """Sequence fracSameNonGaps should return similarities at non-gaps"""
@@ -580,7 +580,7 @@ class SequenceTests(TestCase):
         s7 = self.RNA('--------')
         s8 = self.RNA('AAAA----')
         s9 = self.RNA('A-GG-A-C')
-        e =  self.RNA('')
+        e = self.RNA('')
 
         test = lambda x, y, z: self.assertFloatEqual(x.fracSameNonGaps(y), z)
         test(s1, s2, 0.25)
@@ -591,7 +591,7 @@ class SequenceTests(TestCase):
         test(s4, s6, 0.6)
         test(s4, s7, 0)
         test(s4, s8, 0.5)
-        test(s4, s9, 2/3.0)
+        test(s4, s9, 2 / 3.0)
         test(e, s4, 0)
 
     def test_fracDiffNonGaps(self):
@@ -605,7 +605,7 @@ class SequenceTests(TestCase):
         s7 = self.RNA('--------')
         s8 = self.RNA('AAAA----')
         s9 = self.RNA('A-GG-A-C')
-        e =  self.RNA('')
+        e = self.RNA('')
 
         test = lambda x, y, z: self.assertFloatEqual(x.fracDiffNonGaps(y), z)
         test(s1, s2, 0.75)
@@ -616,19 +616,19 @@ class SequenceTests(TestCase):
         test(s4, s6, 0.4)
         test(s4, s7, 0)
         test(s4, s8, 0.5)
-        test(s4, s9, 1/3.0)
+        test(s4, s9, 1 / 3.0)
         test(e, s4, 0)
 
     def test_fracSimilar(self):
         """Sequence fracSimilar should return the fraction similarity"""
         transitions = dict.fromkeys([ \
-            ('A','A'), ('A','G'), ('G','A'), ('G','G'),
-            ('U','U'), ('U','C'), ('C','U'), ('C','C')])
+            ('A', 'A'), ('A', 'G'), ('G', 'A'), ('G', 'G'),
+            ('U', 'U'), ('U', 'C'), ('C', 'U'), ('C', 'C')])
 
         s1 = self.RNA('UCAGGCAA')
         s2 = self.RNA('CCAAAUGC')
         s3 = self.RNA('GGGGGGGG')
-        e =  self.RNA('')
+        e = self.RNA('')
 
         test = lambda x, y, z: self.assertFloatEqual( \
             x.fracSimilar(y, transitions), z)
@@ -636,9 +636,9 @@ class SequenceTests(TestCase):
         test(e, e, 0)
         test(s1, e, 0)
         test(s1, s1, 1)
-        test(s1, s2, 7.0/8)
-        test(s1, s3, 5.0/8)
-        test(s2,s3, 4.0/8)
+        test(s1, s2, 7.0 / 8)
+        test(s1, s3, 5.0 / 8)
+        test(s2, s3, 4.0 / 8)
 
     def test_withTerminiUnknown(self):
         """withTerminiUnknown should reset termini to unknown char"""
@@ -693,13 +693,13 @@ class ModelSequenceTests(object):
         odd_dna.LineWrap = 2
         self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
         #check that changing the linewrap again works
-        even_dna.LineWrap  = 4
+        even_dna.LineWrap = 4
         self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
 
     def test_toPhylip(self):
         """Sequence toPhylip() should return one-line phylip string"""
         s = self.SequenceClass('ACG', Name='xyz')
-        self.assertEqual(s.toPhylip(), 'xyz'+' '*27+'ACG')
+        self.assertEqual(s.toPhylip(), 'xyz' + ' ' * 27 + 'ACG')
 
 
 class DnaSequenceTests(ModelSequenceTests, TestCase):
@@ -715,7 +715,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
         orig = 'TCAGGA'
         r = self.SequenceClass(orig)
-        self.assertEqual(r._data, array([0,1,2,3,3,2]))
+        self.assertEqual(r._data, array([0, 1, 2, 3, 3, 2]))
         self.assertEqual(str(r), orig)
 
     def test_toKwords(self):
@@ -729,12 +729,12 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
         self.assertEqual(w, r._data)
         #if we use k = 2, should get overlapping or nonoverlapping k-words
         w = r.toKwords(2)
-        self.assertEqual(w, array([8,1,5,5,4,2,11,13]))
+        self.assertEqual(w, array([8, 1, 5, 5, 4, 2, 11, 13]))
         w = r.toKwords(2, overlapping=False)
-        self.assertEqual(w, array([8,5,4,11]))
+        self.assertEqual(w, array([8, 5, 4, 11]))
         #check a case with k = 3, i.e. codons
         w = r.toKwords(3, overlapping=False)
-        self.assertEqual(w, array([33,20,45]))
+        self.assertEqual(w, array([33, 20, 45]))
 
 
 class CodonSequenceTests(SequenceTests, TestCase):
@@ -748,7 +748,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
 
         orig = 'TCAGGA'
         r = self.SequenceClass(orig)
-        self.assertEqual(r._data, array([6,62]))
+        self.assertEqual(r._data, array([6, 62]))
         self.assertEqual(str(r), orig)
 
     def test_toKwords(self):
@@ -762,7 +762,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
         self.assertEqual(w, r._data)
         #if we use k = 2, should get overlapping or nonoverlapping k-words
         w = r.toKwords(2)
-        self.assertEqual(w, array([2132,1325]))
+        self.assertEqual(w, array([2132, 1325]))
         w = r.toKwords(2, overlapping=False)
         self.assertEqual(w, array([2132]))
 
@@ -780,8 +780,8 @@ class DnaSequenceGapTests(TestCase):
     def test_gaps(self):
         """Gapped sequence gaps() should return correct array"""
         sc = self.SequenceClass
-        self.assertEqual(sc('TC').gaps(), array([0,0]))
-        self.assertEqual(sc('T-').gaps(), array([0,1]))
+        self.assertEqual(sc('TC').gaps(), array([0, 0]))
+        self.assertEqual(sc('T-').gaps(), array([0, 1]))
 
     def test_degap(self):
         """Gapped sequence degap() should return correct array"""
@@ -791,8 +791,8 @@ class DnaSequenceGapTests(TestCase):
     def test_nongaps(self):
         """Gapped sequence nongaps() should return correct array"""
         sc = self.SequenceClass
-        self.assertEqual(sc('TC').nongaps(), array([1,1]))
-        self.assertEqual(sc('T-').nongaps(), array([1,0]))
+        self.assertEqual(sc('TC').nongaps(), array([1, 1]))
+        self.assertEqual(sc('T-').nongaps(), array([1, 0]))
 
     def test_regap(self):
         """Gapped sequence regap() should return correct sequence"""
@@ -838,7 +838,7 @@ class SequenceIntegrationTests(TestCase):
         """ModelDnaCodonSequence should behave as expected"""
         d = ModelDnaCodonSequence('UUUCGU')
         self.assertEqual(str(d), 'TTTCGT')
-        self.assertEqual(d._data, array([0,28]))
+        self.assertEqual(d._data, array([0, 28]))
         self.assertEqual(str(d.toRna()), 'UUUCGU')
         self.assertEqual(str(d.toDna()), 'TTTCGT')
 
@@ -846,7 +846,7 @@ class SequenceIntegrationTests(TestCase):
         """ModelRnaCodonSequence should behave as expected"""
         r = ModelRnaCodonSequence('UUUCGU')
         self.assertEqual(str(r), 'UUUCGU')
-        self.assertEqual(r._data, array([0,28]))
+        self.assertEqual(r._data, array([0, 28]))
         self.assertEqual(str(r.toRna()), 'UUUCGU')
         self.assertEqual(str(r.toDna()), 'TTTCGT')
 
@@ -861,7 +861,7 @@ class ModelSequenceTests(SequenceTests):
         """ModelSequence distance should work with function of indices"""
         s1 = self.RNA('AUGC')
         s2 = self.RNA('AAGC')
-        def f(x,y):
+        def f(x, y):
             if x == 2 or y == 2:
                 return 10
             return 0
@@ -887,25 +887,25 @@ class ModelSequenceTests(SequenceTests):
         """Sequence gapArray should return array of gaps"""
         r = self.RNA('-?A-?NRY-')
         v = r.gapArray()
-        self.assertEqual(v, array([1,1,0,1,1,0,0,0,1]))
+        self.assertEqual(v, array([1, 1, 0, 1, 1, 0, 0, 0, 1]))
         r = self.RNA('AC')
         v = r.gapArray()
-        self.assertEqual(v, array([0,0]))
+        self.assertEqual(v, array([0, 0]))
         r = self.RNA('-?')
         v = r.gapArray()
-        self.assertEqual(v, array([1,1]))
+        self.assertEqual(v, array([1, 1]))
 
     def test_gapIndices(self):
         """Sequence gapIndices should return positions of gaps"""
         r = self.RNA('-?A-?NRY-')
         v = r.gapIndices()
-        self.assertEqual(v, array([0,1,3,4,8]))
+        self.assertEqual(v, array([0, 1, 3, 4, 8]))
         r = self.RNA('AC')
         v = r.gapIndices()
         self.assertEqual(v, array([])) #note: always returns array
         r = self.RNA('-?')
         v = r.gapIndices()
-        self.assertEqual(v, array([0,1]))
+        self.assertEqual(v, array([0, 1]))
 
 
 #run if called from command-line

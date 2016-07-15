@@ -48,7 +48,7 @@ class TestSpeciesNamemaps(TestCase):
         common_name2 = 'pika'
         ensembl_pref = 'ochotona_princeps'
         Species.amendSpecies(species_name, common_name1)
-        self.assertEqual(Species.getCommonName(species_name),common_name1)
+        self.assertEqual(Species.getCommonName(species_name), common_name1)
         Species.amendSpecies(species_name, common_name2)
         self.assertEqual(Species.getSpeciesName(common_name2), species_name)
         self.assertEqual(Species.getSpeciesName(ensembl_pref), species_name)

@@ -31,7 +31,7 @@ def test(r=1, **kw):
         return '*'
     else:
         t = time.clock() - t0
-        return int ( (len(seq1)*len(seq2))/t/1000 )
+        return int((len(seq1) * len(seq2)) / t / 1000)
 
 if __name__ == '__main__':
     d = 2
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     print("               1000s positions^2 per second")
     print(template % ("length", "simple", "logs", "scaled"))
     for r in [100, 200, 300, 400, 500]:
-        times = [test(r, use_logs=l, use_scaling=s) for (l,s) in options]
-        print(template % tuple([r*10] + times))
+        times = [test(r, use_logs=l, use_scaling=s) for (l, s) in options]
+        print(template % tuple([r * 10] + times))

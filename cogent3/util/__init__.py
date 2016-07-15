@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 __all__ = ['array', 'checkpointing', 'datatypes', 'dict2d', 'misc', 'modules',
            'organizer', 'parallel', 'table', 'transform', 'unit_test',
-           'warning','recode_alignment']
+           'warning', 'recode_alignment']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

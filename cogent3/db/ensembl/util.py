@@ -36,7 +36,7 @@ class CaseInsensitiveString(str):
     """A case insensitive string class. Comparisons are case insensitive."""
     def __new__(cls, arg, h=None):
         n = str.__new__(cls, str(arg))
-        n._hash=hash(''.join(list(n)).lower())
+        n._hash = hash(''.join(list(n)).lower())
         n._lower = ''.join(list(n)).lower()
         return n
 
@@ -73,7 +73,7 @@ class LazyRecord(object):
             if attr not in self._cached:
                 self._cached[attr] = func(table[column])
 
-    def _set_null_values(self, attrs, table_name = None):
+    def _set_null_values(self, attrs, table_name=None):
         for attr in attrs:
             self._cached[attr] = self.NULL_VALUE
 
@@ -93,9 +93,9 @@ def convert_strand(val):
     """ensures a consistent internal representation of strand"""
     if isinstance(val, str):
         assert val in '-+', 'unknown strand "%s"' % val
-        val = [-1,1][val == '+']
+        val = [-1, 1][val == '+']
     elif val is not None:
-        val = [-1,1][val > 0]
+        val = [-1, 1][val > 0]
     else:
         val = 1
     return val

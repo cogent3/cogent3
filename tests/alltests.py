@@ -175,8 +175,7 @@ def suite():
     for module in modules_to_test:
         if module.endswith('.rst'):
             module = os.path.join(*module.split(".")[:-1]) + ".rst"
-            test = doctest.DocFileSuite(module, optionflags=
-                                        doctest.REPORT_ONLY_FIRST_FAILURE |
+            test = doctest.DocFileSuite(module, optionflags=doctest.REPORT_ONLY_FIRST_FAILURE |
                                         doctest.ELLIPSIS)
         else:
             test = unittest.findTestCases(my_import(module))

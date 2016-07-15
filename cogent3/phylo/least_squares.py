@@ -25,7 +25,7 @@ def _ancestry2paths(A):
     split metric matrix.  The paths will be in the same triangular matrix order 
     as produced by distanceDictAndNamesTo1D, provided that the tips appear in 
     the correct order in A"""
-    tips = [i for i in range(A.shape[0]) if sum(A[:,i])==1]
+    tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []
     for (tip1, tip2) in triangularOrder(tips):
         path = A[tip1] ^ A[tip2]
@@ -35,7 +35,7 @@ def _ancestry2paths(A):
 class WLS(TreeEvaluator):
     """(err, best_tree) = WLS(dists).trex()"""
 
-    def __init__(self, dists, weights = None):
+    def __init__(self, dists, weights=None):
         """Arguments:
             - dists: a dict with structure (seq1, seq2): distance
             - weights: an equivalently structured dict with measurements of
@@ -44,7 +44,7 @@ class WLS(TreeEvaluator):
 
         self.dists = dists
         self.weights = weights or \
-        dict((key, 1.0/(dists[key]**2)) for key in dists)
+        dict((key, 1.0 / (dists[key]**2)) for key in dists)
         (self.names, dists) = distanceDictTo1D(self.dists)
 
     def makeTreeScorer(self, names):
@@ -64,7 +64,7 @@ class WLS(TreeEvaluator):
             A = _ancestry2paths(ancestry)
             if lengths is None:
                 At = transpose(A)
-                X = dot(weights * At,  A)
+                X = dot(weights * At, A)
                 y = dot(At, weights_dists)
                 lengths = solve(X, y)
                 lengths = maximum(lengths, 0.0)

@@ -37,14 +37,14 @@ def _ipdft_inner2(x, X, W, ulim, N): # fastest python
 
 def _autocorr_inner2(x, xc, N): # fastest python
     products = multiply.outer(x, x)
-    v = [products.trace(offset=m) for m in range(-len(x)+1, len(x))]
+    v = [products.trace(offset=m) for m in range(-len(x) + 1, len(x))]
     xc.put(range(xc.shape[0]), v)
 
 def _autocorr_inner(x, xc, N): # naive python
-    for m in range(-N+1, N):
+    for m in range(-N + 1, N):
         for n in range(N):
-            if 0 <= n-m < N:
-                xc[m+N-1] += (x[n]*x[n-m])
+            if 0 <= n - m < N:
+                xc[m + N - 1] += (x[n] * x[n - m])
 
 try:
     # try using pyrexed versions
@@ -69,7 +69,7 @@ class _PeriodEstimator(object):
         super(_PeriodEstimator, self).__init__()
         self.length = length
         self.llim = llim or 2
-        self.ulim = ulim or (length-1)
+        self.ulim = ulim or (length - 1)
 
         if self.ulim > length:
             raise RuntimeError('Error: ulim > length')
@@ -92,12 +92,12 @@ class AutoCorrelation(_PeriodEstimator):
         N is the length of x"""
         super(AutoCorrelation, self).__init__(length, llim, ulim, period)
 
-        periods = list(range(-length+1, length))
+        periods = list(range(-length + 1, length))
 
         self.min_idx = periods.index(self.llim)
         self.max_idx = periods.index(self.ulim)
         self.periods = array(periods[self.min_idx: self.max_idx + 1])
-        self.xc = zeros(2*self.length-1)
+        self.xc = zeros(2 * self.length - 1)
 
     def evaluate(self, x):
         x = array(x, float64)
@@ -105,7 +105,7 @@ class AutoCorrelation(_PeriodEstimator):
         autocorr_inner(x, self.xc, self.length)
         xc = self.xc[self.min_idx: self.max_idx + 1]
         if self.period is not None:
-            return xc[self.period-self.llim]
+            return xc[self.period - self.llim]
 
         return xc, self.periods
 
@@ -138,22 +138,22 @@ class Ipdft(_PeriodEstimator):
             llim = period
             ulim = period
         super(Ipdft, self).__init__(length, llim, ulim, period)
-        self.periods = array(list(range(self.llim, self.ulim+1)))
-        self.W = exp(-1j * 2 * pi / arange(1, self.ulim+1))
-        self.X = array([0+0j] * self.length)
+        self.periods = array(list(range(self.llim, self.ulim + 1)))
+        self.W = exp(-1j * 2 * pi / arange(1, self.ulim + 1))
+        self.X = array([0 + 0j] * self.length)
         self.abs_ft_sig = abs_ft_sig
 
     def evaluate(self, x):
         x = array(x, float64)
-        self.X.fill(0+0j)
+        self.X.fill(0 + 0j)
         self.X = ipdft_inner(x, self.X, self.W, self.ulim, self.length)
-        pwr = self.X[self.llim-1:self.ulim]
+        pwr = self.X[self.llim - 1:self.ulim]
 
         if self.abs_ft_sig:
             pwr = abs(pwr)
 
         if self.period is not None:
-            return pwr[self.period-self.llim]
+            return pwr[self.period - self.llim]
 
         return array(pwr), self.periods
 
@@ -252,16 +252,16 @@ def dft(x, **kwargs):
     n = len(x) // 2 * 2
     x = array(x[:n])
     pwr = fft.rfft(x, n)[1:]
-    freq = (arange(n/2+1)/(float(n)))[1:]
+    freq = (arange(n / 2 + 1) / (float(n)))[1:]
     pwr = list(pwr)
-    periods = [1/f for f in freq]
+    periods = [1 / f for f in freq]
     pwr.reverse()
     periods.reverse()
     return array(pwr), array(periods)
 
 if __name__ == "__main__":
     from numpy import sin
-    x = sin(2*pi/5*arange(1,9))
+    x = sin(2 * pi / 5 * arange(1, 9))
     print(x)
     print(goertzel(x, 4))
     print(goertzel(x, 8))

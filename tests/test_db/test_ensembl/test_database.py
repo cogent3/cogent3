@@ -57,7 +57,7 @@ class TestDatabase(TestCase):
         expected = set(['gene_split', 'alt_allele', 'other_paralog',
                         'ortholog_one2many', 'ortholog_one2one',
                         'within_species_paralog', 'ortholog_many2many'])
-        self.assertEqual(len(got&expected), len(expected))
+        self.assertEqual(len(got & expected), len(expected))
 
     def test_get_table_row_counts(self):
         """should return correct row counts for some tables"""
